@@ -25,10 +25,10 @@ jobs:
     if: "!contains(github.event.head_commit.author.name, 'GITHUBACTION')"
     needs: test
     runs-on: ubuntu-latest
-    env:
-      GITHUB\_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v3
+        with:  
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
       - uses: actions/setup-node@v2
         with:
           node-version: 16

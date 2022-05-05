@@ -21,16 +21,9 @@ export abstract class BaseModule<TModuleResult, TModuleObjectResult> {
     private readonly mModuleClass: IPwbModuleClass<TModuleObjectResult>;
     private readonly mModuleDefinition: ModuleDefinition;
     private readonly mModuleObjectList: Array<IPwbModuleObject<TModuleObjectResult>>;
-    private readonly mTargetAttribute: XmlAttribute;
-    private readonly mTargetNode: Node;
+    private readonly mTargetAttribute: XmlAttribute | null;
+    private readonly mTargetNode: Node | null;
     private readonly mTemplateClone: BaseXmlNode;
-
-    /**
-     * Get module definition.
-     */
-    public get moduleDefinition(): ModuleDefinition {
-        return this.mModuleDefinition;
-    }
 
     /**
      * If modules reads data into the view.
@@ -47,17 +40,24 @@ export abstract class BaseModule<TModuleResult, TModuleObjectResult> {
     }
 
     /**
-     * Get target node.
+     * Get module definition.
      */
-    protected get node(): Node {
-        return this.mTargetNode;
+    public get moduleDefinition(): ModuleDefinition {
+        return this.mModuleDefinition;
     }
 
     /**
      * Get target attribute.
      */
-    protected get attribute(): XmlAttribute {
+    protected get attribute(): XmlAttribute | null {
         return this.mTargetAttribute;
+    }
+
+    /**
+     * Get target node.
+     */
+    protected get node(): Node | null {
+        return this.mTargetNode;
     }
 
     /**
@@ -87,7 +87,9 @@ export abstract class BaseModule<TModuleResult, TModuleObjectResult> {
         this.mInjections = new Dictionary<InjectionConstructor, any>();
         this.mInjections.set(ModuleLayerValuesReference, new ModuleLayerValuesReference(this.mLayerValues));
         this.mInjections.set(ComponentManagerReference, new ComponentManagerReference(pParameter.componentManager));
-        this.mInjections.set(ModuleAttributeReference, new ModuleAttributeReference(pParameter.targetAttribute));
+        if (pParameter.targetAttribute !== null) {
+            this.mInjections.set(ModuleAttributeReference, new ModuleAttributeReference(pParameter.targetAttribute));
+        }
         this.mInjections.set(ModuleTemplateReference, new ModuleTemplateReference(this.mTemplateClone));
         this.mInjections.set(ModuleTargetReference, new ModuleTargetReference(pParameter.targetNode));
     }
@@ -118,7 +120,7 @@ export abstract class BaseModule<TModuleResult, TModuleObjectResult> {
 
         // Create extensions and collect extension injections.
         const lExtensions: ModuleExtensions = new ModuleExtensions();
-        const lExtensionInjectionList: Array<object> = lExtensions.executeInjectorExtensions({
+        const lExtensionInjectionList: Array<object | null> = lExtensions.executeInjectorExtensions({
             componentManager: this.mComponentManager,
             targetClass: this.mModuleClass,
             template: this.mTemplateClone,
@@ -163,8 +165,8 @@ export type BaseModuleConstructorParameter<TModuleObjectResult> = {
     moduleDefinition: ModuleDefinition,
     moduleClass: IPwbModuleClass<TModuleObjectResult>,
     targetTemplate: BaseXmlNode,
-    targetAttribute: XmlAttribute,
+    targetAttribute: XmlAttribute | null, // Null for native text expression.
     values: LayerValues,
     componentManager: ComponentManager,
-    targetNode: Node;
+    targetNode: Node | null; // Null for Multiplicator modules. 
 };

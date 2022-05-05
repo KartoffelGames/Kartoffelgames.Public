@@ -9,7 +9,7 @@ import { LayerValues } from '../values/layer-values';
 export abstract class BaseBuilder {
     private readonly mComponentValues: LayerValues;
     private readonly mContentManager: ContentManager;
-    private readonly mParentBuilder: BaseBuilder;
+    private readonly mParentBuilder: BaseBuilder | null;
     private readonly mShadowParent: BaseXmlNode;
     private readonly mTemplate: BaseXmlNode;
 
@@ -42,11 +42,10 @@ export abstract class BaseBuilder {
     }
 
     /**
-     * Shadow parent of all template elements.
-     * Not actuall parent for 
+     * Get component content of builder.
      */
-    protected get shadowParent(): BaseXmlNode {
-        return this.mShadowParent;
+    protected get contentManager(): ContentManager {
+        return this.mContentManager;
     }
 
     /**
@@ -63,10 +62,11 @@ export abstract class BaseBuilder {
     }
 
     /**
-     * Get component content of builder.
+     * Shadow parent of all template elements.
+     * Not actuall parent for 
      */
-    protected get contentManager(): ContentManager {
-        return this.mContentManager;
+    protected get shadowParent(): BaseXmlNode {
+        return this.mShadowParent;
     }
 
     /**
@@ -76,7 +76,7 @@ export abstract class BaseBuilder {
      * @param pParentLayerValues - New component values.
      * @param pManipulatorScope - If builder is inside an manipulator scope.
      */
-    public constructor(pTemplate: BaseXmlNode, pShadowParent: BaseXmlNode, pModules: ComponentModules, pParentLayerValues: LayerValues, pParentBuilder: BaseBuilder) {
+    public constructor(pTemplate: BaseXmlNode, pShadowParent: BaseXmlNode, pModules: ComponentModules, pParentLayerValues: LayerValues, pParentBuilder: BaseBuilder | null) {
         this.mShadowParent = pShadowParent;
         this.mParentBuilder = pParentBuilder;
 

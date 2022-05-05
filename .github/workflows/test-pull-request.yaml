@@ -1,4 +1,4 @@
-name: Pull Request Test
+name: Test All Packages
 
 on:
   pull_request:
@@ -7,19 +7,19 @@ on:
       - 'master'
 
 jobs:
+
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v3
-        with:  
-          token: ${{ secrets.CI_GITHUB_TOKEN }}
       - uses: actions/setup-node@v2
         with:
           node-version: 16
+      - run: npm run update-dependency-versions
       - run: npm ci --ignore-scripts
       - run: npx turbo run test --force
-        env:
-          GITHUB\_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
 
 

@@ -9,13 +9,6 @@ export class XmlDocument extends BaseXmlNode {
     private readonly mDefaultNamespace: string;
 
     /**
-     * Get nodes namespace.
-     */
-    public get defaultNamespace(): string {
-        return this.mDefaultNamespace;
-    }
-
-    /**
      * Get all document xml nodes.
      */
     public get body(): Array<BaseXmlNode> {
@@ -23,9 +16,16 @@ export class XmlDocument extends BaseXmlNode {
     }
 
     /**
+     * Get nodes namespace.
+     */
+    public get defaultNamespace(): string {
+        return this.mDefaultNamespace;
+    }
+
+    /**
      * Get xml nodes document.
      */
-    public get document(): XmlDocument {
+    public override get document(): XmlDocument {
         return this;
     }
 

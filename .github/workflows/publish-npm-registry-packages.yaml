@@ -5,20 +5,26 @@ on:
     types: [published]
 
 jobs:
+
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v2
         with:
           node-version: 16
       - run: npm run update-dependency-versions
-      - run: npm ci --ignore-scripts  
+      - run: npm ci --ignore-scripts
       - run: npx turbo run test --force
 
-  publish-github-packages:
+  publish-npm-packages:
     needs: test
     runs-on: ubuntu-latest
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.CI_NPM_TOKEN }}
+      GITHUB\_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v3
         with:  
@@ -28,25 +34,15 @@ jobs:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
           scope: '@kartoffelgames'
-      - name: Set up git for commits
-        run: |
-          git config user.name "GITHUBACTION"
-          git config user.email 'kartoffelgames@users.noreply.github.com'
-          git checkout master
       - name: Bumb version numbers
         run: |
           npm version patch -ws
           npm run update-dependency-versions
       - name: Npm install
         run: npm ci --ignore-scripts
-      - name: Build and release
-        run: |      
-          npx turbo run build:release --force       
-          git commit -am "Bump package versions."
-          git push origin master --follow-tags --no-verify
-      - run: npm publish -ws --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.CI_NPM_TOKEN }}
-          GITHUB\_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
+      - name: Build
+        run: npx turbo run build:release --force       
+      - name: Release
+        run: npm publish -ws --access public
 
       

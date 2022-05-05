@@ -27,9 +27,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      GITHUB\_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v3
+        with:  
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
       - uses: actions/setup-node@v2
         with:
           node-version: '16.x'

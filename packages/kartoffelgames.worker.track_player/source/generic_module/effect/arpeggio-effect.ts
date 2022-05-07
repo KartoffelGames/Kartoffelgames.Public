@@ -19,4 +19,12 @@ export class ArpeggioEffect extends BaseEffect {
     public set noteChanges(pNoteChanges: Array<number>) {
         this.mNoteChangList = pNoteChanges;
     }
+
+    /**
+     * Constructor.
+     */
+    public constructor() {
+        super();
+        this.mNoteChangList = new Array<number>();
+    }
 }

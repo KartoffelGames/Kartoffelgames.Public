@@ -35,6 +35,7 @@ export class PatternList {
      */
     public constructor() {
         this.mPatternList = new Array<Pattern>();
+        this.mSongPositionList = new Array<number>();
     }
 
     /**
@@ -46,7 +47,7 @@ export class PatternList {
         const lNewPattern: Pattern = new Pattern();
 
         // Add new when no index is specified.
-        if (pIndex === null || pIndex === this.mPatternList.length) {
+        if (typeof pIndex === 'undefined' || pIndex === this.mPatternList.length) {
             this.mPatternList.push(lNewPattern);
         } else {
             // Check if index would produce gaps.

@@ -39,6 +39,7 @@ export class GenericModule {
      * Initialize
      */
     public constructor() {
+        this.mSongName = '';
         this.mPattern = new PatternList();
         this.mSamples = new SampleList();
     }

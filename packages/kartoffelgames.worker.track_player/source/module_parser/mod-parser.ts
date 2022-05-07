@@ -164,7 +164,7 @@ export class ModParser extends BaseParser {
      * @param pParameterX - Effect first parameter.
      * @param pParameterY - Effect second parameter.
      */
-    private parseEffect(pEffect: number, pParameterX: number, pParameterY: number): BaseEffect {
+    private parseEffect(_pEffect: number, _pParameterX: number, _pParameterY: number): BaseEffect {
         // TODO: Parse Effect.
         return new EmptyEffect();
     }

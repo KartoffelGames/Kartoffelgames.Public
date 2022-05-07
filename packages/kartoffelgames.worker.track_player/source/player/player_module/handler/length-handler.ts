@@ -63,6 +63,7 @@ export class LengthHandler {
     public constructor(pModule: GenericModule, pSpeedHandler: SpeedHandler) {
         this.mGenericModule = pModule;
         this.mSpeedHandler = pSpeedHandler;
+        this.mTicksPerDivision = 0;
 
         // Set default tick rate.
         this.setTickRate(6);

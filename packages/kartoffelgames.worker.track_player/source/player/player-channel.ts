@@ -45,7 +45,7 @@ export class PlayerChannel {
     /**
      * Play next tick and get sample position value.
      */
-    public nextSample(pSongPositionChanged: boolean, pDivisionChanged: boolean, pTickChanged: boolean): number {
+    public nextSample(pSongPositionChanged: boolean, pDivisionChanged: boolean, _pTickChanged: boolean): number {
         // Call on change methods.
         if (pSongPositionChanged) {
             this.onPatternChange();
@@ -55,7 +55,7 @@ export class PlayerChannel {
         }
 
         // Get current sample.
-        const lSample: Sample = this.mContinuingInformation.sample;
+        const lSample: Sample | null = this.mContinuingInformation.sample;
 
         // Exit if no sample exists or sample finished playing.
         if (lSample === null || lSample.data.length === 0 || (this.mContinuingInformation.samplePosition + 1) > lSample.data.length) {
@@ -90,7 +90,7 @@ export class PlayerChannel {
         // Reset sample position if new sample should be played.
         if (lDivision.sampleIndex !== -1) {
             // Only change and reset sample if period is set or sample has changed.
-            const lNewSample: Sample = this.mPlayerModule.module.samples.getSample(this.division.sampleIndex);
+            const lNewSample: Sample | null = this.mPlayerModule.module.samples.getSample(this.division.sampleIndex);
             if (lNewSample !== this.mContinuingInformation.sample || lDivision.period !== Pitch.Empty) {
                 this.mContinuingInformation.samplePosition = 0;
                 this.mContinuingInformation.period = this.division.period;
@@ -102,6 +102,9 @@ export class PlayerChannel {
         // TODO: Add effect to ContinuingInformation.
     }
 
+    /**
+     * On pattern change. Reset pattern data.
+     */
     public onPatternChange(): void {
         // Reset every continuing information.
         this.mContinuingInformation.period = 0;
@@ -113,7 +116,7 @@ export class PlayerChannel {
 
 interface ContinuingInformation {
     period: number;
-    sample: Sample;
+    sample: Sample | null;
     samplePosition: number;
     effects: Array<BasePlayerEffect<BaseEffect>>;
 }

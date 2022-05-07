@@ -65,7 +65,7 @@ export class Player {
         // For each audio sample.
         for (let lAudioSampleIndex: number = 0; lAudioSampleIndex < pAudioBlockLength; lAudioSampleIndex++) {
             // Tick next. Exit if no other pattern can be played.
-            const lCursorChange: CursorChange = this.tick();
+            const lCursorChange: CursorChange | null = this.tick();
             if (!lCursorChange) {
                 return lOutputBufferList;
             }
@@ -95,13 +95,13 @@ export class Player {
         if (lChangeOn.division) {
             // Execute jump. Set everything on change state if jump happened.
             if (this.mPlayerModule.jump.executeJump()) {
+                lChangeOn.tick = true;
                 lChangeOn.division = true;
                 lChangeOn.songPosition = true;
-                lChangeOn.tick = true;
             } else if (this.mPlayerModule.jump.executeLoop()) {
+                lChangeOn.tick = true;
                 lChangeOn.division = true;
                 lChangeOn.songPosition = false;
-                lChangeOn.tick = true;
             }
         }
 

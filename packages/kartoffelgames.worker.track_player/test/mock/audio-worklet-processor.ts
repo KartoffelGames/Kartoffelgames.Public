@@ -2,7 +2,7 @@ abstract class AudioWorkletProcessorMock {
     public sampleRate: number = 48000;
 }
 
-const gRegisterProcessor = (pName: string, pProcessorCtor: any) => {
+const gRegisterProcessor = (_pName: string, _pProcessorCtor: any) => {
     // Nothing for now.
 };
 

@@ -8,10 +8,10 @@ export class CursorHandler {
     private mTickIndex: number;
 
     /**
-     * Get current songPosition index.
+     * Get current audio sample index.
      */
-    public get songPositionIndex(): number {
-        return this.mSongPositionIndex;
+    public get audioSampleIndex(): number {
+        return this.mAudioSampleIndex;
     }
 
     /**
@@ -22,17 +22,17 @@ export class CursorHandler {
     }
 
     /**
+     * Get current songPosition index.
+     */
+    public get songPositionIndex(): number {
+        return this.mSongPositionIndex;
+    }
+
+    /**
      * Get current tick index.
      */
     public get tickIndex(): number {
         return this.mTickIndex;
-    }
-
-    /**
-     * Get current audio sample index.
-     */
-    public get audioSampleIndex(): number {
-        return this.mAudioSampleIndex;
     }
 
     /**
@@ -41,6 +41,12 @@ export class CursorHandler {
      */
     public constructor(pLengthInformation: LengthHandler) {
         this.mModuleLengthInformation = pLengthInformation;
+
+        // Default.
+        this.mSongPositionIndex = 0;
+        this.mDivisionIndex = 0;
+        this.mTickIndex = 0;
+        this.mAudioSampleIndex = 0;
 
         // Reset cursor.
         this.restart();

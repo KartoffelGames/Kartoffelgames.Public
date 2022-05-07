@@ -3,7 +3,7 @@ import { ModParser } from './module_parser/mod-parser';
 import { Player } from './player/player';
 
 export class TrackPlayerProcessor extends AudioWorkletProcessor {
-    private mMixer: Player;
+    private mMixer: Player | null;
 
     /**
      * Constructor.
@@ -41,12 +41,12 @@ export class TrackPlayerProcessor extends AudioWorkletProcessor {
      * @param pOutputs - Output.
      * @param pParameters - Processor parameter.
      */
-    public process(pInputs: Array<Array<Float32Array>>, pOutputs: Array<Array<Float32Array>>, pParameters: Record<string, Float32Array>): boolean {
+    public override process(_pInputs: Array<Array<Float32Array>>, pOutputs: Array<Array<Float32Array>>, _pParameters: Record<string, Float32Array>): boolean {
         if (this.mMixer !== null) {
             // Get block length and mix this block.
             const lAudioBlockLength = pOutputs[0][0].length;
-            const lModuleChannelList: Array<Float32Array> = this.mMixer.next(lAudioBlockLength);
-            if(lModuleChannelList === null){
+            const lModuleChannelList: Array<Float32Array> | null = this.mMixer.next(lAudioBlockLength);
+            if (lModuleChannelList === null) {
                 // Exit and set disposeable if no output is generated.
                 return false;
             }
@@ -73,7 +73,7 @@ export class TrackPlayerProcessor extends AudioWorkletProcessor {
         const lFile: Uint8Array = new Uint8Array(pFile);
 
         // Parse with correct data.
-        let lModule: GenericModule = null;
+        let lModule: GenericModule | null = null;
         switch (pType.toUpperCase()) {
             case 'MOD':
                 lModule = new ModParser(lFile).parse();
@@ -82,7 +82,6 @@ export class TrackPlayerProcessor extends AudioWorkletProcessor {
         // Create mixer when module is loaded.
         if (lModule !== null) {
             this.mMixer = new Player(lModule, sampleRate);
-            console.log(lModule)
         }
     }
 

@@ -27,7 +27,7 @@ export class SampleList {
         const lNewSample: Sample = new Sample();
 
         // Add new when no index is specified.
-        if (pIndex === null || pIndex === this.mSampleList.length) {
+        if (typeof pIndex === 'undefined' || pIndex === this.mSampleList.length) {
             this.mSampleList.push(lNewSample);
         } else {
             // Check if index would produce gaps.

@@ -67,7 +67,7 @@ export class ByteHelper {
      * @param pByteArray - Byte array.
      */
     public static concatBytes(pByteArray: Uint8Array): bigint {
-        let lConcatNumber: bigint = null;
+        let lConcatNumber: bigint | null = null;
 
         // Extend bigint for each byte.
         for (const lByte of pByteArray) {
@@ -81,7 +81,7 @@ export class ByteHelper {
             }
         }
 
-        return lConcatNumber;
+        return lConcatNumber ?? 0n;
     }
 
     /**
@@ -90,7 +90,7 @@ export class ByteHelper {
      * @param pBitList - index of bits.
      */
     public static pickBits(pBits: bigint, pBitLength: number, pBitList: Array<number>): bigint {
-        let lPicketNumber: bigint = null;
+        let lPicketNumber: bigint | null = null;
 
         // Pick each bit.
         for (const lBitIndex of pBitList) {
@@ -100,7 +100,7 @@ export class ByteHelper {
             // Apply bitmask and get single bit.
             const lPickedBit: bigint = ((pBits & lBitMask) !== 0n) ? 1n : 0n;
 
-            if(lPicketNumber === null){
+            if (lPicketNumber === null) {
                 lPicketNumber = lPickedBit;
             } else {
                 lPicketNumber <<= 1n;
@@ -108,7 +108,7 @@ export class ByteHelper {
             }
         }
 
-        return lPicketNumber;
+        return lPicketNumber ?? 0n;
     }
 
     /**

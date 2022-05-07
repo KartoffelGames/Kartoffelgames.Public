@@ -26,7 +26,7 @@ export class Pattern {
         const lNewDivision: Division = new Division();
 
         // Add new when no index is specified.
-        if (pIndex === null || pIndex === this.mDivisionList.length) {
+        if (typeof pIndex === 'undefined' || pIndex === this.mDivisionList.length) {
             this.mDivisionList.push(lNewDivision);
         } else {
             // Check if index would produce gaps.

@@ -1,7 +1,7 @@
 import { CursorHandler } from './cursor-handler';
 
 export class JumpHandler {
-    private mJumpSongPosition: number;
+    private mJumpSongPosition: number | null;
     private readonly mLoopPosition: LoopPosition;
     private readonly mPlayerCursor: CursorHandler;
 
@@ -39,7 +39,7 @@ export class JumpHandler {
         return false;
     }
 
-    public executeLoop(): boolean { 
+    public executeLoop(): boolean {
         // Look for existing jump.
         if (this.mLoopPosition.counter > 0 && this.mLoopPosition.active) {
             // Execute jump.
@@ -57,7 +57,7 @@ export class JumpHandler {
     /**
      * Reset loop position.
      */
-    public resetLoop(): void { 
+    public resetLoop(): void {
         this.mLoopPosition.counter = 0;
         this.mLoopPosition.division = -1;
         this.mLoopPosition.active = false;
@@ -71,7 +71,7 @@ export class JumpHandler {
         this.mJumpSongPosition = pSongPosition;
     }
 
-    public setLoopPosition(pDivision: number, pCounter: number): void {
+    public setLoopPosition(_pDivision: number, _pCounter: number): void {
         // TODO: Counter beim setzen oder beim sprung????
         // TODO: Jump wann.
     }
@@ -80,5 +80,5 @@ export class JumpHandler {
 interface LoopPosition {
     division: number,
     counter: number;
-    active: boolean
+    active: boolean;
 }

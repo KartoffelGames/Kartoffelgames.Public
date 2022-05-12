@@ -35,7 +35,7 @@ export class LengthHandler {
     }
 
     /**
-     * Get count of samples per division.
+     * Get count of samples per tick.
      */
     public get samples(): number {
         return ((this.mSpeedHandler.speed.sampleRate * 60) / (this.mSpeedHandler.speed.beatsPerMinute * this.mSpeedHandler.speed.speedUp)) / 24;

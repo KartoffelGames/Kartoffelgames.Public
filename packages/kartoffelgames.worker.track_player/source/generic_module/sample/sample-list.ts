@@ -46,7 +46,7 @@ export class SampleList {
      * Get sample by index.
      * @param pIndex - Index of sample.
      */
-    public getSample(pIndex: number): Sample | null {
+    public getSample(pIndex: number): Sample {
         // Read sample.
         return this.mSampleList[pIndex] ?? new Sample();
     }

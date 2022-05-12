@@ -1,3 +1,5 @@
+import { Exception } from '@kartoffelgames/core.data';
+
 /**
  * Sample information.
  */
@@ -8,20 +10,6 @@ export class Sample {
     private mRepeatLength: number;
     private mRepeatStartOffset: number;
     private mVolume: number;
-
-    /**
-     * Get sample name.
-     */
-    public get name(): string {
-        return this.mName;
-    }
-
-    /**
-     * Set sample name.
-     */
-    public set name(pName: string) {
-        this.mName = pName;
-    }
 
     /**
      * Get sample byte data.
@@ -35,20 +23,6 @@ export class Sample {
      */
     public set data(pData: Float32Array) {
         this.mData = pData;
-    }
-
-    /**
-     * Get sample repeat offset.
-     */
-    public get repeatOffset(): number {
-        return this.mRepeatStartOffset;
-    }
-
-    /**
-     * Get sample repeat length.
-     */
-    public get repeatLength(): number {
-        return this.mRepeatLength;
     }
 
     /**
@@ -66,16 +40,48 @@ export class Sample {
     }
 
     /**
-     * Get samples volume.
+     * Get sample name.
+     */
+    public get name(): string {
+        return this.mName;
+    }
+
+    /**
+     * Set sample name.
+     */
+    public set name(pName: string) {
+        this.mName = pName;
+    }
+
+    /**
+     * Get sample repeat length.
+     */
+    public get repeatLength(): number {
+        return this.mRepeatLength;
+    }
+
+    /**
+     * Get sample repeat offset.
+     */
+    public get repeatOffset(): number {
+        return this.mRepeatStartOffset;
+    }
+
+    /**
+     * Get samples volume. 0..1
      */
     public get volume(): number {
         return this.mVolume;
     }
 
     /**
-     * Set samples volume.
+     * Set samples volume. 0..1
      */
     public set volume(pVolume: number) {
+        if (pVolume > 1 || pVolume < 0) {
+            throw new Exception('Volume out of range [0..1]', this);
+        }
+
         this.mVolume = pVolume;
     }
 

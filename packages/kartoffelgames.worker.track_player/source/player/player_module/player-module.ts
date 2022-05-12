@@ -1,4 +1,6 @@
 import { GenericModule } from '../../generic_module/generic-module';
+import { DivisionChannel } from '../../generic_module/pattern/division-channel';
+import { Pattern } from '../../generic_module/pattern/pattern';
 import { CursorHandler } from './handler/cursor-handler';
 import { JumpHandler } from './handler/jump-handler';
 import { LengthHandler } from './handler/length-handler';
@@ -56,6 +58,17 @@ export class PlayerModule {
         this.mCursor = pParameter.cursorHandler;
         this.mJump = pParameter.jumpHandler;
         this.mSpeedHandler = pParameter.speedHandler;
+    }
+
+    /**
+     * Get current playing divisions channel
+     * @param pChannelIndex - Channel index.
+     */
+    public getDivision(pChannelIndex: number): DivisionChannel {
+        const lSongPosition: number = this.mGenericModule.pattern.songPositions[this.mCursor.songPositionIndex];
+        const lPattern: Pattern = this.mGenericModule.pattern.getPattern(lSongPosition);
+
+        return lPattern.getDivision(this.mCursor.divisionIndex).getChannel(pChannelIndex);
     }
 }
 

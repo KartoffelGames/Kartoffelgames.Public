@@ -1,7 +1,11 @@
-import { Pitch } from '../enum/pitch';
-import { BaseEffect } from '../generic_module/effect/base-effect';
-import { EmptyEffect } from '../generic_module/effect/empty-effect';
+import { Direction } from '../enum/direction.enum';
+import { Pitch } from '../enum/Pitch';
+import { SetPitchEffect } from '../generic_module/effect/pitch/set-pitch-effect';
+import { SetSampleEffect } from '../generic_module/effect/sample/set-sample-effect';
+import { SetVolumeEffect } from '../generic_module/effect/volume/set-volume-effect';
+import { VolumeSlideEffect } from '../generic_module/effect/volume/volume-slide-effect';
 import { GenericModule } from '../generic_module/generic-module';
+import { IGenericEffect } from '../generic_module/interface/i-generic-effect';
 import { Division } from '../generic_module/pattern/division';
 import { DivisionChannel } from '../generic_module/pattern/division-channel';
 import { Pattern } from '../generic_module/pattern/pattern';
@@ -164,9 +168,61 @@ export class ModParser extends BaseParser {
      * @param pParameterX - Effect first parameter.
      * @param pParameterY - Effect second parameter.
      */
-    private parseEffect(_pEffect: number, _pParameterX: number, _pParameterY: number): BaseEffect {
-        // TODO: Parse Effect.
-        return new EmptyEffect();
+    private parseEffect(pEffect: number, pParameterX: number, pParameterY: number, pPitch: Pitch, pSampleNumber: number): Array<IGenericEffect> {
+        const lEffectList: Array<IGenericEffect> = new Array<IGenericEffect>();
+
+        // Ignore flags for ignoring channel data when pitch or sample is part of a effect parameter.
+        let lIgnoreSample: boolean = false;
+        let lIgnorePitch: boolean = false;
+
+        // Parse other Effect.
+        switch (pEffect) {
+            case 0x0: break; // TODO:
+            case 0x1: break; // TODO:
+            case 0x2: break; // TODO:
+            case 0x3: break; // TODO:
+            case 0x4: break; // TODO:
+            case 0x5: break; // TODO:
+            case 0x6: break; // TODO:
+            case 0x7: break; // TODO:
+            case 0x8: break; // TODO:
+            case 0x9: break; // TODO:
+            case 0xA: {
+                // Ignore YParameter when XParameter is set. Convert 0..64 to 0..1 range. 
+                const lVolumeSlide: VolumeSlideEffect = new VolumeSlideEffect();
+                lVolumeSlide.direction = (pParameterX > 0) ? Direction.Up : Direction.Down;
+                lVolumeSlide.volumeChangePerTick = ((pParameterX > 0) ? pParameterX : pParameterY) / 64;
+                lEffectList.push(lVolumeSlide);
+                break;
+            }
+            case 0xB: break; // TODO:
+            case 0xC: {
+                // Ignore YParameter when XParameter is set. Convert 0..64 to 0..1 range. 
+                const lVolumeSet: SetVolumeEffect = new SetVolumeEffect();
+                lVolumeSet.volume = (pParameterX * 16 + pParameterY) / 64;
+                lEffectList.push(lVolumeSet);
+                break;
+            }
+            case 0xD: break; // TODO:
+            case 0xE: break; // TODO:
+            case 0xF: break; // TODO:
+        }
+
+        // Add sample as effect if not ignored.
+        if (!lIgnoreSample && pSampleNumber > 0) {
+            const lSampleEffect: SetSampleEffect = new SetSampleEffect();
+            lSampleEffect.sampleIndex = pSampleNumber - 1;
+            lEffectList.push(lSampleEffect);
+        }
+
+        // Add pitch as effect if not ignored.
+        if (!lIgnorePitch && pPitch !== Pitch.Empty) {
+            const lPitchEffect: SetPitchEffect = new SetPitchEffect();
+            lPitchEffect.pitch = pPitch;
+            lEffectList.push(lPitchEffect);
+        }
+
+        return lEffectList;
     }
 
     /**
@@ -234,9 +290,12 @@ export class ModParser extends BaseParser {
 
                     // Add division.
                     const lDivisionChannel: DivisionChannel = lDivision.addChannel(lChannelIndex);
-                    lDivisionChannel.period = ModParser.PITCH_TABLE[lSamplePeriod] ?? 0;
-                    lDivisionChannel.sampleIndex = lSampleNumber - 1;
-                    lDivisionChannel.effect = this.parseEffect(lSampleEffect, lSampleEffectParameterX, lSampleEffectParameterY);
+
+                    // Add division effect.
+                    const lEffectList: Array<IGenericEffect> = this.parseEffect(lSampleEffect, lSampleEffectParameterX, lSampleEffectParameterY, ModParser.PITCH_TABLE[lSamplePeriod] ?? 0, lSampleNumber);
+                    for (const lEffect of lEffectList) {
+                        lDivisionChannel.setEffect(lEffect);
+                    }
 
                     // Set next divison position.
                     lNextPatternDevisionPosition += 4;
@@ -293,7 +352,7 @@ export class ModParser extends BaseParser {
 
             // Read sample volume.
             const lSampleVolumeBuffer: Uint8Array = ByteHelper.readBytes(this.data, lSampleHeaderOffset + lSampleVolumeOffset, 1);
-            lSample.volume = ByteHelper.byteToByte(lSampleVolumeBuffer[0]);
+            lSample.volume = ByteHelper.byteToByte(lSampleVolumeBuffer[0]) / 64;
 
             // Read sample repeat offset.
             const lSampleRepeatOffsetBuffer: Uint8Array = ByteHelper.readBytes(this.data, lSampleHeaderOffset + lSampleRepeatOffsetOffset, 2);
@@ -320,7 +379,6 @@ export class ModParser extends BaseParser {
             } else {
                 lSample.data = new Float32Array(0);
             }
-
             // Count previous sample body data length.
             lPreviousSampleBodyDataLength += lSampleLength;
         }

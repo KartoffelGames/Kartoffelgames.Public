@@ -13,7 +13,7 @@ import { VolumeSlideEffect } from '../generic_module/effect/volume/volume-slide-
 import { IGenericEffect } from '../generic_module/interface/i-generic-effect';
 import { Sample } from '../generic_module/sample/sample';
 import { BaseEffectProcessor } from './effect/base-effect-processor';
-import { SetPitchEffectProcessor } from './effect/pitch/set-period-effect-processor';
+import { SetPitchEffectProcessor } from './effect/pitch/set-pitch-effect-processor';
 import { CutSampleEffectProcessor } from './effect/sample/cut-sample-effect-processor';
 import { DelaySampleEffectProcessor } from './effect/sample/delay-sample-effect-processor';
 import { RetriggerSampleEffectProcessor } from './effect/sample/retrigger-sample-effect-processor';

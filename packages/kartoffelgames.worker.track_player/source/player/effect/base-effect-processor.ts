@@ -4,7 +4,7 @@ import { IGenericEffect } from '../../generic_module/interface/i-generic-effect'
 import { ChannelSettings } from '../player-channel';
 import { PlayerModule } from '../player_module/player-module';
 
-export abstract class BaseEffectProcessor<TEffect extends IGenericEffect> {
+export abstract class BaseEffectProcessor<TEffect extends IGenericEffect>  {
     private readonly mEffect: TEffect;
 
     /**
@@ -33,9 +33,17 @@ export abstract class BaseEffectProcessor<TEffect extends IGenericEffect> {
     }
 
     /**
+     * On effect end.
+     */
+    public onEffectEnd(): void {
+        // Does nothing. Overrideable
+    }
+
+    /**
      * Process effect and get last
      * @param pSampleStep - Current next sample step.
+     * @param pPlayerModule - Global player module.
      * @param pTickChanged - If tick has changed since last process.
      */
-    public abstract process(pChannelSettings: ChannelSettings, pTickChanged: boolean, pPlayerModule: PlayerModule): ChannelSettings;
+    public abstract process(pChannelSettings: ChannelSettings, pPlayerModule: PlayerModule, pTickChanged: boolean): ChannelSettings;
 }

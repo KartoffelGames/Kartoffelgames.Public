@@ -24,10 +24,9 @@ export class VolumeSlideEffectProcessor extends BaseEffectProcessor<VolumeSlideE
     /**
      * Process effect.
      * @param pChannelSettings - Executing channel settings.
-     * @param _pTickChanged - True when tick has changed.
      * @param pPlayerModule - Global player module.
      */
-    public process(pChannelSettings: ChannelSettings, _pTickChanged: boolean, pPlayerModule: PlayerModule): ChannelSettings {
+    public process(pChannelSettings: ChannelSettings, pPlayerModule: PlayerModule): ChannelSettings {
         // Calculate volume change per sample.
         const lVolumeChange: number = this.effectData.volumeChangePerTick / pPlayerModule.length.samples;
 

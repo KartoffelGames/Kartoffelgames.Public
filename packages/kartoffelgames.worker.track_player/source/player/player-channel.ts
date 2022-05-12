@@ -1,20 +1,41 @@
-import { List } from '@kartoffelgames/core.data';
+import { Dictionary, List } from '@kartoffelgames/core.data';
 import { EffectBound } from '../enum/effect-bound';
 import { Pitch } from '../enum/Pitch';
 import { SetPitchEffect } from '../generic_module/effect/pitch/set-pitch-effect';
+import { CutSampleEffect } from '../generic_module/effect/sample/cut-sample-effect';
 import { SetSampleEffect } from '../generic_module/effect/sample/set-sample-effect';
+import { SetBeatsPerMinuteEffect } from '../generic_module/effect/speed/set-bpm-effect';
+import { SetSpeedEffect } from '../generic_module/effect/speed/set-speed-effect';
 import { SetVolumeEffect } from '../generic_module/effect/volume/set-volume-effect';
 import { VolumeSlideEffect } from '../generic_module/effect/volume/volume-slide-effect';
 import { IGenericEffect } from '../generic_module/interface/i-generic-effect';
 import { Sample } from '../generic_module/sample/sample';
 import { BaseEffectProcessor } from './effect/base-effect-processor';
 import { SetPitchEffectProcessor } from './effect/pitch/set-period-effect-processor';
+import { CutSampleEffectProcessor } from './effect/sample/cut-sample-effect-processor';
 import { SetSampleEffectProcessor } from './effect/sample/set-sample-effect-processor';
+import { SetBeatsPerMinuteEffectProcessor } from './effect/speed/set-bpm-effect-processor';
+import { SetSpeedEffectProcessor } from './effect/speed/set-speed-effect-processor';
 import { SetVolumeEffectProcessor } from './effect/volume/set-volume-effect-processor';
 import { VolumeSlideEffectProcessor } from './effect/volume/volume-slide-effect-processor';
 import { PlayerModule } from './player_module/player-module';
 
 export class PlayerChannel {
+    private static readonly EFFECT_MAP: Dictionary<IGenericEffect, EffectProcessorConstructor> = (() => {
+        const lEffectToProcessor: Dictionary<IGenericEffect, EffectProcessorConstructor> = new Dictionary<IGenericEffect, EffectProcessorConstructor>();
+        lEffectToProcessor.set(SetSampleEffect, SetSampleEffectProcessor);
+        lEffectToProcessor.set(SetPitchEffect, SetPitchEffectProcessor);
+        lEffectToProcessor.set(VolumeSlideEffect, VolumeSlideEffectProcessor);
+        lEffectToProcessor.set(SetVolumeEffect, SetVolumeEffectProcessor);
+        lEffectToProcessor.set(SetSpeedEffect, SetSpeedEffectProcessor);
+        lEffectToProcessor.set(SetBeatsPerMinuteEffect, SetBeatsPerMinuteEffectProcessor);
+        lEffectToProcessor.set(CutSampleEffect, CutSampleEffectProcessor);
+
+        // TODO: Others
+
+        return lEffectToProcessor;
+    })();
+
     private readonly mChannelIndex: number;
     private mChannelSettings: ChannelSettings;
     private mEffectList: Array<BaseEffectProcessor<IGenericEffect>>;
@@ -58,13 +79,11 @@ export class PlayerChannel {
 
         // Execute all effects in priority order.
         for (const lEffect of this.mEffectList) {
-            this.mChannelSettings = lEffect.process(this.mChannelSettings, pTickChanged, this.mPlayerModule);
+            this.mChannelSettings = lEffect.process(this.mChannelSettings, this.mPlayerModule, pTickChanged);
         }
 
-        // Clear single bound effects.
-        this.mEffectList = this.mEffectList.filter((pEffect) => {
-            return pEffect.effectBound !== EffectBound.Single;
-        });
+        // Clear single bound effects after execution.
+        this.clearEffectBoundEffects(EffectBound.Single);
 
         // Get current sample.
         const lSample: Sample | null = this.mChannelSettings.sampleData.sample;
@@ -80,7 +99,7 @@ export class PlayerChannel {
         lSamplePositionValue *= this.mChannelSettings.volume;
 
         // Get current pitch of sample. Calculate finetune with "(12th root of two) * current pitch * finetune."
-        const lPitch: number = this.mChannelSettings.pitch + ((Math.pow(2, 1/12) * this.mChannelSettings.pitch) * this.mChannelSettings.finetune)
+        const lPitch: number = this.mChannelSettings.pitch + ((Math.pow(2, 1 / 12) * this.mChannelSettings.pitch) * this.mChannelSettings.finetune);
 
         // Calculate next sample position.
         const lSampleSpeed = 7093789.2 / ((lPitch * 2) * this.mPlayerModule.speed.speed.sampleRate);
@@ -99,6 +118,21 @@ export class PlayerChannel {
     }
 
     /**
+     * Clear effects with specified effect bound.
+     * @param pEffectBound - Effect bound to clear.
+     */
+    private clearEffectBoundEffects(pEffectBound: EffectBound): void {
+        this.mEffectList = this.mEffectList.filter((pEffect) => {
+            // "Deconstruct" when effect should be deleted.
+            if (pEffect.effectBound === pEffectBound) {
+                pEffect.onEffectEnd();
+            }
+
+            return pEffect.effectBound !== pEffectBound;
+        });
+    }
+
+    /**
      * Convert generic effects into effect processors.
      * @param pGenericEffects - Division effects for this channel.
      */
@@ -107,16 +141,14 @@ export class PlayerChannel {
 
         // Convert each generic effect into processable effect.
         for (const lGenericEffect of pGenericEffects) {
-            if (lGenericEffect instanceof SetSampleEffect) {
-                lEffectList.push(new SetSampleEffectProcessor(lGenericEffect));
-            } else if (lGenericEffect instanceof SetPitchEffect) {
-                lEffectList.push(new SetPitchEffectProcessor(lGenericEffect));
-            } else if (lGenericEffect instanceof VolumeSlideEffect) {
-                lEffectList.push(new VolumeSlideEffectProcessor(lGenericEffect));
-            } else if (lGenericEffect instanceof SetVolumeEffect) {
-                lEffectList.push(new SetVolumeEffectProcessor(lGenericEffect));
+            // Read effect processor for generic effect.
+            const lEffectProcessorConstructor: EffectProcessorConstructor | undefined = PlayerChannel.EFFECT_MAP.get(lGenericEffect.constructor);
+
+            // Create supported effect.
+            if (typeof lEffectProcessorConstructor !== 'undefined') {
+                const lEffectProcessor: BaseEffectProcessor<IGenericEffect> = new lEffectProcessorConstructor(lGenericEffect);
+                lEffectList.push(lEffectProcessor);
             }
-            // TODO: Others
         }
 
         return lEffectList;
@@ -128,9 +160,7 @@ export class PlayerChannel {
      */
     private onDivisionChange(): void {
         // Clear division bound effects.
-        this.mEffectList = this.mEffectList.filter((pEffect) => {
-            return pEffect.effectBound !== EffectBound.Division;
-        });
+        this.clearEffectBoundEffects(EffectBound.Division);
 
         // Add effect into effect list. Convert generic effect into effect processors. 
         const lConvertedEffect: List<BaseEffectProcessor<IGenericEffect>> = this.createEffects(this.mPlayerModule.getDivision(this.mChannelIndex).effects);
@@ -153,3 +183,5 @@ export interface ChannelSettings {
     invertLoop: boolean,
     sampleData: SampleData;
 }
+
+export type EffectProcessorConstructor = new (pEffect: any) => BaseEffectProcessor<IGenericEffect>;

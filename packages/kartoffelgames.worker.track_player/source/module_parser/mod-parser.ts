@@ -1,7 +1,10 @@
 import { Direction } from '../enum/direction.enum';
 import { Pitch } from '../enum/Pitch';
 import { SetPitchEffect } from '../generic_module/effect/pitch/set-pitch-effect';
+import { CutSampleEffect } from '../generic_module/effect/sample/cut-sample-effect';
 import { SetSampleEffect } from '../generic_module/effect/sample/set-sample-effect';
+import { SetBeatsPerMinuteEffect } from '../generic_module/effect/speed/set-bpm-effect';
+import { SetSpeedEffect } from '../generic_module/effect/speed/set-speed-effect';
 import { SetVolumeEffect } from '../generic_module/effect/volume/set-volume-effect';
 import { VolumeSlideEffect } from '../generic_module/effect/volume/volume-slide-effect';
 import { GenericModule } from '../generic_module/generic-module';
@@ -204,8 +207,50 @@ export class ModParser extends BaseParser {
                 break;
             }
             case 0xD: break; // TODO:
-            case 0xE: break; // TODO:
-            case 0xF: break; // TODO:
+            case 0xE: {
+                switch (pParameterX) {
+                    case 0x0: break; // TODO:
+                    case 0x1: break; // TODO:
+                    case 0x2: break; // TODO:
+                    case 0x3: break; // TODO:
+                    case 0x4: break; // TODO:
+                    case 0x5: break; // TODO:
+                    case 0x6: break; // TODO:
+                    case 0x7: break; // TODO:
+                    case 0x8: break; // TODO:
+                    case 0x9: break; // TODO:
+                    case 0xA: break; // TODO:
+                    case 0xB: break; // TODO:
+                    case 0xC: break; // TODO:
+                    case 0xD: {
+                        const lCutSampleEffect: CutSampleEffect = new CutSampleEffect();
+                        lCutSampleEffect.ticks = pParameterY;
+                        lEffectList.push(lCutSampleEffect);
+                        break;
+                    }
+                    case 0xE: break; // TODO:
+                    case 0xF: break; // TODO:
+                }
+                break;
+            }
+            case 0xF: {
+                // Calculate speed change. Speed can not be lower than 1.
+                let lSpeed: number = pParameterX * 16 + pParameterY;
+                lSpeed = Math.max(lSpeed, 1);
+
+                // Different effect for different speed value.
+                if (lSpeed <= 32) {
+                    const lSetSpeedEffect: SetSpeedEffect = new SetSpeedEffect();
+                    lSetSpeedEffect.speed = lSpeed;
+                    lEffectList.push(lSetSpeedEffect);
+                } else {
+                    const lSetBeatsPerMinuteEffect: SetBeatsPerMinuteEffect = new SetBeatsPerMinuteEffect();
+                    lSetBeatsPerMinuteEffect.beatsPerMinute = lSpeed;
+                    lEffectList.push(lSetBeatsPerMinuteEffect);
+                }
+
+                break;
+            }
         }
 
         // Add sample as effect if not ignored.

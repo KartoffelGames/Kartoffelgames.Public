@@ -3,6 +3,8 @@ import { EffectBound } from '../enum/effect-bound';
 import { Pitch } from '../enum/Pitch';
 import { SetPitchEffect } from '../generic_module/effect/pitch/set-pitch-effect';
 import { CutSampleEffect } from '../generic_module/effect/sample/cut-sample-effect';
+import { DelaySampleEffect } from '../generic_module/effect/sample/delay-sample-effect';
+import { RetriggerSampleEffect } from '../generic_module/effect/sample/retrigger-sample-effect';
 import { SetSampleEffect } from '../generic_module/effect/sample/set-sample-effect';
 import { SetBeatsPerMinuteEffect } from '../generic_module/effect/speed/set-bpm-effect';
 import { SetSpeedEffect } from '../generic_module/effect/speed/set-speed-effect';
@@ -13,6 +15,8 @@ import { Sample } from '../generic_module/sample/sample';
 import { BaseEffectProcessor } from './effect/base-effect-processor';
 import { SetPitchEffectProcessor } from './effect/pitch/set-period-effect-processor';
 import { CutSampleEffectProcessor } from './effect/sample/cut-sample-effect-processor';
+import { DelaySampleEffectProcessor } from './effect/sample/delay-sample-effect-processor';
+import { RetriggerSampleEffectProcessor } from './effect/sample/retrigger-sample-effect-processor';
 import { SetSampleEffectProcessor } from './effect/sample/set-sample-effect-processor';
 import { SetBeatsPerMinuteEffectProcessor } from './effect/speed/set-bpm-effect-processor';
 import { SetSpeedEffectProcessor } from './effect/speed/set-speed-effect-processor';
@@ -30,6 +34,8 @@ export class PlayerChannel {
         lEffectToProcessor.set(SetSpeedEffect, SetSpeedEffectProcessor);
         lEffectToProcessor.set(SetBeatsPerMinuteEffect, SetBeatsPerMinuteEffectProcessor);
         lEffectToProcessor.set(CutSampleEffect, CutSampleEffectProcessor);
+        lEffectToProcessor.set(DelaySampleEffect, DelaySampleEffectProcessor);
+        lEffectToProcessor.set(RetriggerSampleEffect, RetriggerSampleEffectProcessor);
 
         // TODO: Others
 
@@ -104,6 +110,8 @@ export class PlayerChannel {
         // Calculate next sample position.
         const lSampleSpeed = 7093789.2 / ((lPitch * 2) * this.mPlayerModule.speed.speed.sampleRate);
         this.mChannelSettings.sampleData.position += lSampleSpeed;
+
+        // TODO: Invert loop. this.mChannelSettings.invertLoop
 
         // Check for loop information.
         if (lSample.repeatLength > 0) {

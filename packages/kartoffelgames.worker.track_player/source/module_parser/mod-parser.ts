@@ -2,6 +2,8 @@ import { Direction } from '../enum/direction.enum';
 import { Pitch } from '../enum/Pitch';
 import { SetPitchEffect } from '../generic_module/effect/pitch/set-pitch-effect';
 import { CutSampleEffect } from '../generic_module/effect/sample/cut-sample-effect';
+import { DelaySampleEffect } from '../generic_module/effect/sample/delay-sample-effect';
+import { RetriggerSampleEffect } from '../generic_module/effect/sample/retrigger-sample-effect';
 import { SetSampleEffect } from '../generic_module/effect/sample/set-sample-effect';
 import { SetBeatsPerMinuteEffect } from '../generic_module/effect/speed/set-bpm-effect';
 import { SetSpeedEffect } from '../generic_module/effect/speed/set-speed-effect';
@@ -218,14 +220,27 @@ export class ModParser extends BaseParser {
                     case 0x6: break; // TODO:
                     case 0x7: break; // TODO:
                     case 0x8: break; // TODO:
-                    case 0x9: break; // TODO:
+                    case 0x9: {
+                        // Set effect only when the interval parameter is set.
+                        if (pParameterY > 0) {
+                            const lRetriggerSampleEffect: RetriggerSampleEffect = new RetriggerSampleEffect();
+                            lRetriggerSampleEffect.tickInterval = pParameterY;
+                            lEffectList.push(lRetriggerSampleEffect);
+                        }
+                        break;
+                    }
                     case 0xA: break; // TODO:
                     case 0xB: break; // TODO:
-                    case 0xC: break; // TODO:
-                    case 0xD: {
+                    case 0xC: {
                         const lCutSampleEffect: CutSampleEffect = new CutSampleEffect();
                         lCutSampleEffect.ticks = pParameterY;
                         lEffectList.push(lCutSampleEffect);
+                        break;
+                    }
+                    case 0xD: {
+                        const lDelaySampleEffect: DelaySampleEffect = new DelaySampleEffect();
+                        lDelaySampleEffect.ticks = pParameterY;
+                        lEffectList.push(lDelaySampleEffect);
                         break;
                     }
                     case 0xE: break; // TODO:

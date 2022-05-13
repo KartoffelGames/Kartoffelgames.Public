@@ -4,6 +4,7 @@ import { SetPitchEffect } from '../generic_module/effect/pitch/set-pitch-effect'
 import { CutSampleEffect } from '../generic_module/effect/sample/cut-sample-effect';
 import { DelaySampleEffect } from '../generic_module/effect/sample/delay-sample-effect';
 import { RetriggerSampleEffect } from '../generic_module/effect/sample/retrigger-sample-effect';
+import { SampleOffsetEffect } from '../generic_module/effect/sample/sample-offset-effect';
 import { SetSampleEffect } from '../generic_module/effect/sample/set-sample-effect';
 import { SetBeatsPerMinuteEffect } from '../generic_module/effect/speed/set-bpm-effect';
 import { SetSpeedEffect } from '../generic_module/effect/speed/set-speed-effect';
@@ -191,7 +192,12 @@ export class ModParser extends BaseParser {
             case 0x6: break; // TODO:
             case 0x7: break; // TODO:
             case 0x8: break; // TODO:
-            case 0x9: break; // TODO:
+            case 0x9: {
+                const lSampleOffset: SampleOffsetEffect = new SampleOffsetEffect();
+                lSampleOffset.offset = pParameterX * 4096 + pParameterY * 256;
+                lEffectList.push(lSampleOffset);
+                break;
+            }
             case 0xA: {
                 // Ignore YParameter when XParameter is set. Convert 0..64 to 0..1 range. 
                 const lVolumeSlide: VolumeSlideEffect = new VolumeSlideEffect();

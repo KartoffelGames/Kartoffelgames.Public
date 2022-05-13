@@ -5,6 +5,7 @@ import { SetPitchEffect } from '../generic_module/effect/pitch/set-pitch-effect'
 import { CutSampleEffect } from '../generic_module/effect/sample/cut-sample-effect';
 import { DelaySampleEffect } from '../generic_module/effect/sample/delay-sample-effect';
 import { RetriggerSampleEffect } from '../generic_module/effect/sample/retrigger-sample-effect';
+import { SampleOffsetEffect } from '../generic_module/effect/sample/sample-offset-effect';
 import { SetSampleEffect } from '../generic_module/effect/sample/set-sample-effect';
 import { SetBeatsPerMinuteEffect } from '../generic_module/effect/speed/set-bpm-effect';
 import { SetSpeedEffect } from '../generic_module/effect/speed/set-speed-effect';
@@ -17,6 +18,7 @@ import { SetPitchEffectProcessor } from './effect/pitch/set-pitch-effect-process
 import { CutSampleEffectProcessor } from './effect/sample/cut-sample-effect-processor';
 import { DelaySampleEffectProcessor } from './effect/sample/delay-sample-effect-processor';
 import { RetriggerSampleEffectProcessor } from './effect/sample/retrigger-sample-effect-processor';
+import { SampleOffsetEffectProcessor } from './effect/sample/sample-offset-effect-processor';
 import { SetSampleEffectProcessor } from './effect/sample/set-sample-effect-processor';
 import { SetBeatsPerMinuteEffectProcessor } from './effect/speed/set-bpm-effect-processor';
 import { SetSpeedEffectProcessor } from './effect/speed/set-speed-effect-processor';
@@ -36,6 +38,7 @@ export class PlayerChannel {
         lEffectToProcessor.set(CutSampleEffect, CutSampleEffectProcessor);
         lEffectToProcessor.set(DelaySampleEffect, DelaySampleEffectProcessor);
         lEffectToProcessor.set(RetriggerSampleEffect, RetriggerSampleEffectProcessor);
+        lEffectToProcessor.set(SampleOffsetEffect, SampleOffsetEffectProcessor);
 
         // TODO: Others
 

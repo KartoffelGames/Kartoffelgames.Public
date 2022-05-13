@@ -9,14 +9,14 @@ export class InvertSampleLoopEffect implements IGenericEffect {
     /**
      * Get if loop should be inverted.
      */
-    public get offset(): boolean {
+    public get invert(): boolean {
         return this.mInvert;
     }
 
     /**
      * Set if loop should be inverted.
      */
-    public set offset(pOffset: boolean) {
+    public set invert(pOffset: boolean) {
         this.mInvert = pOffset;
     }
 

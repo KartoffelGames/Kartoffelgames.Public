@@ -3,6 +3,7 @@ import { Pitch } from '../enum/Pitch';
 import { SetPitchEffect } from '../generic_module/effect/pitch/set-pitch-effect';
 import { CutSampleEffect } from '../generic_module/effect/sample/cut-sample-effect';
 import { DelaySampleEffect } from '../generic_module/effect/sample/delay-sample-effect';
+import { InvertSampleLoopEffect } from '../generic_module/effect/sample/invert-sample-loop-effect';
 import { RetriggerSampleEffect } from '../generic_module/effect/sample/retrigger-sample-effect';
 import { SampleOffsetEffect } from '../generic_module/effect/sample/sample-offset-effect';
 import { SetSampleEffect } from '../generic_module/effect/sample/set-sample-effect';
@@ -250,7 +251,12 @@ export class ModParser extends BaseParser {
                         break;
                     }
                     case 0xE: break; // TODO:
-                    case 0xF: break; // TODO:
+                    case 0xF: {
+                        const lInvertLoop: InvertSampleLoopEffect = new InvertSampleLoopEffect();
+                        lInvertLoop.invert = pParameterY > 0;
+                        lEffectList.push(lInvertLoop);
+                        break;
+                    }
                 }
                 break;
             }

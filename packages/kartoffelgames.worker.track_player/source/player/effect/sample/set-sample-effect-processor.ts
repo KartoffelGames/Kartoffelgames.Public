@@ -33,6 +33,7 @@ export class SetSampleEffectProcessor extends BaseEffectProcessor<SetSampleEffec
         pChannelSettings.finetune = lSample.fineTune;
         pChannelSettings.sampleData.sample = lSample;
         pChannelSettings.volume = lSample.volume;
+        pChannelSettings.invertLoop = false;
 
         return pChannelSettings;
     }

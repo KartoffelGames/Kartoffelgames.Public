@@ -9,7 +9,7 @@ export class SampleOffsetEffectProcessor extends BaseEffectProcessor<SampleOffse
      * Get effect processor bound.
      */
     public get effectBound(): EffectBound {
-        return EffectBound.Division;
+        return EffectBound.Single;
     }
 
     /**

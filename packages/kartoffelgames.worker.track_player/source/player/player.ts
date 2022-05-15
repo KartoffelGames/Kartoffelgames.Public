@@ -94,6 +94,12 @@ export class Player {
         // Move cursor one sample
         const lChangeOn: CursorChange = this.mPlayerModule.cursor.next();
 
+        // Reset loop position and pattern settings on pattern change.
+        if (lChangeOn.songPosition) {
+            this.mPlayerModule.jump.resetLoop();
+            this.mPlayerModule.settings.resetPatternSettings();
+        }
+
         // Check for jump action. Jump only on division change.
         if (lChangeOn.division) {
             // Execute jump. Set everything on change state if jump happened.
@@ -101,10 +107,6 @@ export class Player {
                 lChangeOn.tick = true;
                 lChangeOn.division = true;
                 lChangeOn.songPosition = true;
-            } else if (this.mPlayerModule.jump.executeLoop()) {
-                lChangeOn.tick = true;
-                lChangeOn.division = true;
-                lChangeOn.songPosition = false;
             }
         }
 

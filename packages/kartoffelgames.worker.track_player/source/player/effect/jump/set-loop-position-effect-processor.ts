@@ -1,10 +1,11 @@
 import { EffectBound } from '../../../enum/effect-bound';
 import { EffectPriority } from '../../../enum/effect-priority';
-import { SetVolumeEffect } from '../../../generic_module/effect/volume/set-volume-effect';
+import { SetLoopPositionEffectEffect } from '../../../generic_module/effect/jump/set-loop-position-effect';
 import { ChannelSettings } from '../../player-channel';
+import { PlayerModule } from '../../player_module/player-module';
 import { BaseEffectProcessor } from '../base-effect-processor';
 
-export class SetVolumeEffectProcessor extends BaseEffectProcessor<SetVolumeEffect>{
+export class SetLoopPositionEffectProcessor extends BaseEffectProcessor<SetLoopPositionEffectEffect>{
     /**
      * Get effect processor bound.
      */
@@ -22,13 +23,11 @@ export class SetVolumeEffectProcessor extends BaseEffectProcessor<SetVolumeEffec
     /**
      * Process effect.
      * @param pChannelSettings - Executing channel settings.
+     * @param pPlayerModule - Global player module.
      */
-    public process(pChannelSettings: ChannelSettings): ChannelSettings {
-        // Set volume.
-        pChannelSettings.volume = this.effectData.volume;
-
-        // Apply [0..1] min/max boundary.
-        pChannelSettings.volume = Math.max(Math.min(pChannelSettings.volume, 1), 0);
+    public process(pChannelSettings: ChannelSettings, pPlayerModule: PlayerModule): ChannelSettings {
+        // Set jump position.
+        pPlayerModule.jump.setLoopPosition(this.effectData.divisionIndex);
 
         return pChannelSettings;
     }

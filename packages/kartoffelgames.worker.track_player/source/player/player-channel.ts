@@ -1,6 +1,8 @@
 import { Dictionary, List } from '@kartoffelgames/core.data';
 import { EffectBound } from '../enum/effect-bound';
 import { Pitch } from '../enum/Pitch';
+import { LoopEffect } from '../generic_module/effect/jump/loop-effect';
+import { SetLoopPositionEffectEffect } from '../generic_module/effect/jump/set-loop-position-effect';
 import { ArpeggioEffect } from '../generic_module/effect/pitch/arpeggio-effect';
 import { PeriodSlideEffect } from '../generic_module/effect/pitch/period-slide-effect';
 import { SetFinetuneEffect } from '../generic_module/effect/pitch/set-finetune-effect';
@@ -19,6 +21,8 @@ import { VolumeSlideEffect } from '../generic_module/effect/volume/volume-slide-
 import { IGenericEffect } from '../generic_module/interface/i-generic-effect';
 import { Sample } from '../generic_module/sample/sample';
 import { BaseEffectProcessor } from './effect/base-effect-processor';
+import { LoopEffectProcessor } from './effect/jump/loop-effect-processor';
+import { SetLoopPositionEffectProcessor } from './effect/jump/set-loop-position-effect-processor';
 import { ArpeggioEffectProcessor } from './effect/pitch/arpeggio-effect-processor';
 import { PeriodSlideEffectProcessor } from './effect/pitch/period-slide-effect-effect-processor';
 import { SetFinetuneEffectProcessor } from './effect/pitch/set-finetune-effect-processor';
@@ -54,6 +58,8 @@ export class PlayerChannel {
         lEffectToProcessor.set(PeriodSlideEffect, PeriodSlideEffectProcessor);
         lEffectToProcessor.set(ArpeggioEffect, ArpeggioEffectProcessor);
         lEffectToProcessor.set(SetGlissandoEffect, SetGlissandoEffectProcessor);
+        lEffectToProcessor.set(SetLoopPositionEffectEffect, SetLoopPositionEffectProcessor);
+        lEffectToProcessor.set(LoopEffect, LoopEffectProcessor);
 
         // TODO: Others
 

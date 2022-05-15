@@ -1,8 +1,10 @@
 import { Dictionary, List } from '@kartoffelgames/core.data';
 import { EffectBound } from '../enum/effect-bound';
 import { Pitch } from '../enum/Pitch';
+import { ArpeggioEffect } from '../generic_module/effect/pitch/arpeggio-effect';
 import { PeriodSlideEffect } from '../generic_module/effect/pitch/period-slide-effect';
 import { SetFinetuneEffect } from '../generic_module/effect/pitch/set-finetune-effect';
+import { SetGlissandoEffect } from '../generic_module/effect/pitch/set-glissando-effect';
 import { SetPitchEffect } from '../generic_module/effect/pitch/set-pitch-effect';
 import { CutSampleEffect } from '../generic_module/effect/sample/cut-sample-effect';
 import { DelaySampleEffect } from '../generic_module/effect/sample/delay-sample-effect';
@@ -17,8 +19,10 @@ import { VolumeSlideEffect } from '../generic_module/effect/volume/volume-slide-
 import { IGenericEffect } from '../generic_module/interface/i-generic-effect';
 import { Sample } from '../generic_module/sample/sample';
 import { BaseEffectProcessor } from './effect/base-effect-processor';
+import { ArpeggioEffectProcessor } from './effect/pitch/arpeggio-effect-processor';
 import { PeriodSlideEffectProcessor } from './effect/pitch/period-slide-effect-effect-processor';
 import { SetFinetuneEffectProcessor } from './effect/pitch/set-finetune-effect-processor';
+import { SetGlissandoEffectProcessor } from './effect/pitch/set-glissando-effect-processor';
 import { SetPitchEffectProcessor } from './effect/pitch/set-pitch-effect-processor';
 import { CutSampleEffectProcessor } from './effect/sample/cut-sample-effect-processor';
 import { DelaySampleEffectProcessor } from './effect/sample/delay-sample-effect-processor';
@@ -48,6 +52,8 @@ export class PlayerChannel {
         lEffectToProcessor.set(InvertSampleLoopEffect, InvertSampleLoopEffectProcessor);
         lEffectToProcessor.set(SetFinetuneEffect, SetFinetuneEffectProcessor);
         lEffectToProcessor.set(PeriodSlideEffect, PeriodSlideEffectProcessor);
+        lEffectToProcessor.set(ArpeggioEffect, ArpeggioEffectProcessor);
+        lEffectToProcessor.set(SetGlissandoEffect, SetGlissandoEffectProcessor);
 
         // TODO: Others
 

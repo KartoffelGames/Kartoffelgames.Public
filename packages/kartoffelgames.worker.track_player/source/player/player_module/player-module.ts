@@ -4,34 +4,36 @@ import { Pattern } from '../../generic_module/pattern/pattern';
 import { CursorHandler } from './handler/cursor-handler';
 import { JumpHandler } from './handler/jump-handler';
 import { LengthHandler } from './handler/length-handler';
+import { SettingsHandler } from './handler/settings-handler';
 import { SpeedHandler } from './handler/speed-handler';
 
 export class PlayerModule {
-    private readonly mCursor: CursorHandler;
+    private readonly mCursorHandler: CursorHandler;
     private readonly mGenericModule: GenericModule;
-    private readonly mJump: JumpHandler;
-    private readonly mModuleLengthInformation: LengthHandler;
+    private readonly mJumpHandler: JumpHandler;
+    private readonly mLengthHandler: LengthHandler;
+    private readonly mSettingHandler: SettingsHandler;
     private readonly mSpeedHandler: SpeedHandler;
 
     /**
      * Get current cursor.
      */
     public get cursor(): CursorHandler {
-        return this.mCursor;
+        return this.mCursorHandler;
     }
 
     /**
      * Get jump handler.
      */
     public get jump(): JumpHandler {
-        return this.mJump;
+        return this.mJumpHandler;
     }
 
     /**
      * Get length handler.
      */
     public get length(): LengthHandler {
-        return this.mModuleLengthInformation;
+        return this.mLengthHandler;
     }
 
     /**
@@ -39,6 +41,13 @@ export class PlayerModule {
      */
     public get module(): GenericModule {
         return this.mGenericModule;
+    }
+
+    /**
+     * Get settings handler.
+     */
+    public get settings(): SettingsHandler {
+        return this.mSettingHandler;
     }
 
     /**
@@ -54,9 +63,10 @@ export class PlayerModule {
      */
     public constructor(pParameter: PlayerModuleConstructorParameter) {
         this.mGenericModule = pParameter.genericModule;
-        this.mModuleLengthInformation = pParameter.lengthHandler;
-        this.mCursor = pParameter.cursorHandler;
-        this.mJump = pParameter.jumpHandler;
+        this.mLengthHandler = pParameter.lengthHandler;
+        this.mCursorHandler = pParameter.cursorHandler;
+        this.mJumpHandler = pParameter.jumpHandler;
+        this.mSettingHandler = pParameter.settingsHandler;
         this.mSpeedHandler = pParameter.speedHandler;
     }
 
@@ -65,10 +75,10 @@ export class PlayerModule {
      * @param pChannelIndex - Channel index.
      */
     public getDivision(pChannelIndex: number): DivisionChannel {
-        const lSongPosition: number = this.mGenericModule.pattern.songPositions[this.mCursor.songPositionIndex];
+        const lSongPosition: number = this.mGenericModule.pattern.songPositions[this.mCursorHandler.songPositionIndex];
         const lPattern: Pattern = this.mGenericModule.pattern.getPattern(lSongPosition);
 
-        return lPattern.getDivision(this.mCursor.divisionIndex).getChannel(pChannelIndex);
+        return lPattern.getDivision(this.mCursorHandler.divisionIndex).getChannel(pChannelIndex);
     }
 }
 
@@ -78,4 +88,5 @@ interface PlayerModuleConstructorParameter {
     lengthHandler: LengthHandler;
     cursorHandler: CursorHandler;
     jumpHandler: JumpHandler;
+    settingsHandler: SettingsHandler;
 }

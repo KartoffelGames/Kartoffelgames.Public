@@ -7,8 +7,9 @@ import { IGenericEffect } from '../../interface/i-generic-effect';
  */
 export class PeriodSlideEffect implements IGenericEffect {
     private mDirection: Direction;
+    private mGlissandoSensitive: boolean;
     private mNoteBoundary: Pitch;
-    private mPeriodSlide: number;
+    private mPeriodSlidePerTick: number;
 
     /**
      * Get volume change direction.
@@ -22,6 +23,20 @@ export class PeriodSlideEffect implements IGenericEffect {
      */
     public set direction(pDirection: Direction) {
         this.mDirection = pDirection;
+    }
+
+    /**
+     * Get if slide is glissando sensitive.
+     */
+    public get glissandoSensitive(): boolean {
+        return this.mGlissandoSensitive;
+    }
+
+    /**
+     * Set if slide is glissando sensitive.
+     */
+    public set glissandoSensitive(pSensitive: boolean) {
+        this.mGlissandoSensitive = pSensitive;
     }
 
     /**
@@ -39,25 +54,26 @@ export class PeriodSlideEffect implements IGenericEffect {
     }
 
     /**
-     * Get period slide up.
+     * Get period slide.
      */
-    public get periodSlide(): number {
-        return this.mPeriodSlide;
+    public get periodSlidePerTick(): number {
+        return this.mPeriodSlidePerTick;
     }
 
     /**
-     * Set period slide up.
+     * Set period slide.
      */
-    public set periodSlide(pChangeperTick: number) {
-        this.mPeriodSlide = pChangeperTick;
+    public set periodSlidePerTick(pChangeperTick: number) {
+        this.mPeriodSlidePerTick = pChangeperTick;
     }
 
     /**
      * Constructor.
      */
     public constructor() {
-        this.mPeriodSlide = 0;
+        this.mPeriodSlidePerTick = 0;
         this.mDirection = Direction.Down;
         this.mNoteBoundary = Pitch.Empty;
+        this.mGlissandoSensitive = false;
     }
 }

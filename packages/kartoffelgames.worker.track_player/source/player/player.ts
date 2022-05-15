@@ -3,6 +3,7 @@ import { PlayerChannel } from './player-channel';
 import { CursorChange, CursorHandler } from './player_module/handler/cursor-handler';
 import { JumpHandler } from './player_module/handler/jump-handler';
 import { LengthHandler } from './player_module/handler/length-handler';
+import { SettingsHandler } from './player_module/handler/settings-handler';
 import { SpeedHandler } from './player_module/handler/speed-handler';
 import { PlayerModule } from './player_module/player-module';
 
@@ -24,6 +25,7 @@ export class Player {
         const lLengthHandler: LengthHandler = new LengthHandler(pModule, lSpeedHandler);
         const lCursorHandler: CursorHandler = new CursorHandler(lLengthHandler);
         const lJumpHandler: JumpHandler = new JumpHandler(lCursorHandler);
+        const lSettingsHandler: SettingsHandler = new SettingsHandler();
 
         // Create player module. Initialize with handler.
         this.mPlayerModule = new PlayerModule({
@@ -31,7 +33,8 @@ export class Player {
             speedHandler: lSpeedHandler,
             lengthHandler: lLengthHandler,
             cursorHandler: lCursorHandler,
-            jumpHandler: lJumpHandler
+            jumpHandler: lJumpHandler,
+            settingsHandler: lSettingsHandler
         });
     }
 

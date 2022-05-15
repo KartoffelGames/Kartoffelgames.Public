@@ -1,5 +1,6 @@
 import { Direction } from '../enum/direction.enum';
 import { Pitch } from '../enum/Pitch';
+import { SetFinetuneEffect } from '../generic_module/effect/pitch/set-finetune-effect';
 import { SetPitchEffect } from '../generic_module/effect/pitch/set-pitch-effect';
 import { CutSampleEffect } from '../generic_module/effect/sample/cut-sample-effect';
 import { DelaySampleEffect } from '../generic_module/effect/sample/delay-sample-effect';
@@ -194,25 +195,25 @@ export class ModParser extends BaseParser {
             case 0x7: break; // TODO:
             case 0x8: break; // TODO:
             case 0x9: {
-                const lSampleOffset: SampleOffsetEffect = new SampleOffsetEffect();
-                lSampleOffset.offset = pParameterX * 4096 + pParameterY * 256;
-                lEffectList.push(lSampleOffset);
+                const lSampleOffsetEffect: SampleOffsetEffect = new SampleOffsetEffect();
+                lSampleOffsetEffect.offset = pParameterX * 4096 + pParameterY * 256;
+                lEffectList.push(lSampleOffsetEffect);
                 break;
             }
             case 0xA: {
                 // Ignore YParameter when XParameter is set. Convert 0..64 to 0..1 range. 
-                const lVolumeSlide: VolumeSlideEffect = new VolumeSlideEffect();
-                lVolumeSlide.direction = (pParameterX > 0) ? Direction.Up : Direction.Down;
-                lVolumeSlide.volumeChangePerTick = ((pParameterX > 0) ? pParameterX : pParameterY) / 64;
-                lEffectList.push(lVolumeSlide);
+                const lVolumeSlideEffect: VolumeSlideEffect = new VolumeSlideEffect();
+                lVolumeSlideEffect.direction = (pParameterX > 0) ? Direction.Up : Direction.Down;
+                lVolumeSlideEffect.volumeChangePerTick = ((pParameterX > 0) ? pParameterX : pParameterY) / 64;
+                lEffectList.push(lVolumeSlideEffect);
                 break;
             }
             case 0xB: break; // TODO:
             case 0xC: {
                 // Ignore YParameter when XParameter is set. Convert 0..64 to 0..1 range. 
-                const lVolumeSet: SetVolumeEffect = new SetVolumeEffect();
-                lVolumeSet.volume = (pParameterX * 16 + pParameterY) / 64;
-                lEffectList.push(lVolumeSet);
+                const lVolumeSetEffect: SetVolumeEffect = new SetVolumeEffect();
+                lVolumeSetEffect.volume = (pParameterX * 16 + pParameterY) / 64;
+                lEffectList.push(lVolumeSetEffect);
                 break;
             }
             case 0xD: break; // TODO:
@@ -223,7 +224,12 @@ export class ModParser extends BaseParser {
                     case 0x2: break; // TODO:
                     case 0x3: break; // TODO:
                     case 0x4: break; // TODO:
-                    case 0x5: break; // TODO:
+                    case 0x5: {
+                        const lSetFinetuneEffect: SetFinetuneEffect = new SetFinetuneEffect();
+                        lSetFinetuneEffect.finetune = pParameterY;
+                        lEffectList.push(lSetFinetuneEffect);
+                        break;
+                    }
                     case 0x6: break; // TODO:
                     case 0x7: break; // TODO:
                     case 0x8: break; // TODO:
@@ -252,9 +258,9 @@ export class ModParser extends BaseParser {
                     }
                     case 0xE: break; // TODO:
                     case 0xF: {
-                        const lInvertLoop: InvertSampleLoopEffect = new InvertSampleLoopEffect();
-                        lInvertLoop.invert = pParameterY > 0;
-                        lEffectList.push(lInvertLoop);
+                        const lInvertLoopEffect: InvertSampleLoopEffect = new InvertSampleLoopEffect();
+                        lInvertLoopEffect.invert = pParameterY > 0;
+                        lEffectList.push(lInvertLoopEffect);
                         break;
                     }
                 }

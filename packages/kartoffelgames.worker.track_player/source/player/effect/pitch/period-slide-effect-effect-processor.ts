@@ -1,7 +1,7 @@
 import { Direction } from '../../../enum/direction.enum';
-import { EffectBound } from '../../../enum/effect-bound';
-import { EffectPriority } from '../../../enum/effect-priority';
-import { Pitch } from '../../../enum/Pitch';
+import { EffectBound } from '../../../enum/effect-bound.enum';
+import { EffectPriority } from '../../../enum/effect-priority.enum';
+import { Pitch } from '../../../enum/pitch.enum';
 import { PeriodSlideEffect } from '../../../generic_module/effect/pitch/period-slide-effect';
 import { ChannelSettings } from '../../player-channel';
 import { PlayerModule } from '../../player_module/player-module';

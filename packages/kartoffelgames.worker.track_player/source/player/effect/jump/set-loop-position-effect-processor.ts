@@ -1,5 +1,5 @@
-import { EffectBound } from '../../../enum/effect-bound';
-import { EffectPriority } from '../../../enum/effect-priority';
+import { EffectBound } from '../../../enum/effect-bound.enum';
+import { EffectPriority } from '../../../enum/effect-priority.enum';
 import { SetLoopPositionEffectEffect } from '../../../generic_module/effect/jump/set-loop-position-effect';
 import { ChannelSettings } from '../../player-channel';
 import { PlayerModule } from '../../player_module/player-module';

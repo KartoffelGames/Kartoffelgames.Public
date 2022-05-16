@@ -1,5 +1,5 @@
-import { EffectBound } from '../../../enum/effect-bound';
-import { EffectPriority } from '../../../enum/effect-priority';
+import { EffectBound } from '../../../enum/effect-bound.enum';
+import { EffectPriority } from '../../../enum/effect-priority.enum';
 import { SetBeatsPerMinuteEffect } from '../../../generic_module/effect/speed/set-bpm-effect';
 import { ChannelSettings } from '../../player-channel';
 import { PlayerModule } from '../../player_module/player-module';

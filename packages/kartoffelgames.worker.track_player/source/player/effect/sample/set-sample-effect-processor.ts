@@ -1,5 +1,5 @@
-import { EffectBound } from '../../../enum/effect-bound';
-import { EffectPriority } from '../../../enum/effect-priority';
+import { EffectBound } from '../../../enum/effect-bound.enum';
+import { EffectPriority } from '../../../enum/effect-priority.enum';
 import { SetSampleEffect } from '../../../generic_module/effect/sample/set-sample-effect';
 import { Sample } from '../../../generic_module/sample/sample';
 import { ChannelSettings } from '../../player-channel';

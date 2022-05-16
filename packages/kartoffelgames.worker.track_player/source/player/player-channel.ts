@@ -1,6 +1,6 @@
 import { Dictionary, List } from '@kartoffelgames/core.data';
-import { EffectBound } from '../enum/effect-bound';
-import { Pitch } from '../enum/Pitch';
+import { EffectBound } from '../enum/effect-bound.enum';
+import { Pitch } from '../enum/pitch.enum';
 import { LoopEffect } from '../generic_module/effect/jump/loop-effect';
 import { SetLoopPositionEffectEffect } from '../generic_module/effect/jump/set-loop-position-effect';
 import { ArpeggioEffect } from '../generic_module/effect/pitch/arpeggio-effect';
@@ -18,6 +18,7 @@ import { SetBeatsPerMinuteEffect } from '../generic_module/effect/speed/set-bpm-
 import { SetSpeedEffect } from '../generic_module/effect/speed/set-speed-effect';
 import { SetVolumeEffect } from '../generic_module/effect/volume/set-volume-effect';
 import { VolumeSlideEffect } from '../generic_module/effect/volume/volume-slide-effect';
+import { SetWaveformEffect } from '../generic_module/effect/waveform/set-waveform-effect';
 import { IGenericEffect } from '../generic_module/interface/i-generic-effect';
 import { Sample } from '../generic_module/sample/sample';
 import { BaseEffectProcessor } from './effect/base-effect-processor';
@@ -38,6 +39,7 @@ import { SetBeatsPerMinuteEffectProcessor } from './effect/speed/set-bpm-effect-
 import { SetSpeedEffectProcessor } from './effect/speed/set-speed-effect-processor';
 import { SetVolumeEffectProcessor } from './effect/volume/set-volume-effect-processor';
 import { VolumeSlideEffectProcessor } from './effect/volume/volume-slide-effect-processor';
+import { SetWaveformEffectProcessor } from './effect/waveform/set-waveform-effect-processor';
 import { PlayerModule } from './player_module/player-module';
 
 export class PlayerChannel {
@@ -60,8 +62,10 @@ export class PlayerChannel {
         lEffectToProcessor.set(SetGlissandoEffect, SetGlissandoEffectProcessor);
         lEffectToProcessor.set(SetLoopPositionEffectEffect, SetLoopPositionEffectProcessor);
         lEffectToProcessor.set(LoopEffect, LoopEffectProcessor);
+        lEffectToProcessor.set(SetWaveformEffect, SetWaveformEffectProcessor);
 
-        // TODO: Others
+        // TODO: DelayPatternEffect
+        // TODO: WaveformEffect
 
         return lEffectToProcessor;
     })();

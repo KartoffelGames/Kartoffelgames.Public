@@ -1,11 +1,11 @@
 import { EffectBound } from '../../../enum/effect-bound.enum';
 import { EffectPriority } from '../../../enum/effect-priority.enum';
-import { SetGlissandoEffect } from '../../../generic_module/effect/pitch/set-glissando-effect';
+import { SetWaveformEffect } from '../../../generic_module/effect/waveform/set-waveform-effect';
 import { ChannelSettings } from '../../player-channel';
 import { PlayerModule } from '../../player_module/player-module';
 import { BaseEffectProcessor } from '../base-effect-processor';
 
-export class SetGlissandoEffectProcessor extends BaseEffectProcessor<SetGlissandoEffect>{
+export class SetWaveformEffectProcessor extends BaseEffectProcessor<SetWaveformEffect>{
     /**
      * Get effect processor bound.
      */
@@ -26,9 +26,7 @@ export class SetGlissandoEffectProcessor extends BaseEffectProcessor<SetGlissand
      * @param pPlayerModule - Global player module.
      */
     public process(pChannelSettings: ChannelSettings, pPlayerModule: PlayerModule): ChannelSettings {
-        // Set global glissando state.
-        pPlayerModule.settings.glissandoEnabled = this.effectData.enabled;
-
+        pPlayerModule.settings.setWaveform(this.effectData.waveform, this.effectData.target, this.effectData.retrigger);
         return pChannelSettings;
     }
 }

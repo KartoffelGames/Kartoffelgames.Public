@@ -1,5 +1,5 @@
-import { EffectBound } from '../../../enum/effect-bound';
-import { EffectPriority } from '../../../enum/effect-priority';
+import { EffectBound } from '../../../enum/effect-bound.enum';
+import { EffectPriority } from '../../../enum/effect-priority.enum';
 import { SetPitchEffect } from '../../../generic_module/effect/pitch/set-pitch-effect';
 import { ChannelSettings } from '../../player-channel';
 import { BaseEffectProcessor } from '../base-effect-processor';

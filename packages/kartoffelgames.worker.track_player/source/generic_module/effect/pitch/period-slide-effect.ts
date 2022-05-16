@@ -1,5 +1,5 @@
 import { Direction } from '../../../enum/direction.enum';
-import { Pitch } from '../../../enum/Pitch';
+import { Pitch } from '../../../enum/pitch.enum';
 import { IGenericEffect } from '../../interface/i-generic-effect';
 
 /**

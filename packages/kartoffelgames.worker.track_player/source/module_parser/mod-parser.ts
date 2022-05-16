@@ -1,5 +1,5 @@
 import { Direction } from '../enum/direction.enum';
-import { Pitch } from '../enum/Pitch';
+import { Pitch } from '../enum/pitch.enum';
 import { SetFinetuneEffect } from '../generic_module/effect/pitch/set-finetune-effect';
 import { SetPitchEffect } from '../generic_module/effect/pitch/set-pitch-effect';
 import { CutSampleEffect } from '../generic_module/effect/sample/cut-sample-effect';

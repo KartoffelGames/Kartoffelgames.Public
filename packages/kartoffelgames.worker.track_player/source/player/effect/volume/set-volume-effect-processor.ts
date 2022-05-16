@@ -1,5 +1,5 @@
-import { EffectBound } from '../../../enum/effect-bound';
-import { EffectPriority } from '../../../enum/effect-priority';
+import { EffectBound } from '../../../enum/effect-bound.enum';
+import { EffectPriority } from '../../../enum/effect-priority.enum';
 import { SetVolumeEffect } from '../../../generic_module/effect/volume/set-volume-effect';
 import { ChannelSettings } from '../../player-channel';
 import { BaseEffectProcessor } from '../base-effect-processor';

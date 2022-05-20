@@ -106,7 +106,7 @@ const gGetDefaultTypescriptLoader = (pIncludeCoverage) => {
 
     // Add coverage loader if coverage is enabled.
     if (pIncludeCoverage) {
-        lTsLoader.push({ loader: 'istanbul-instrumenter-loader' });
+        lTsLoader.push({ loader: '@jsdevtools/coverage-istanbul-loader' });
     }
 
     // Add default typescript loader.

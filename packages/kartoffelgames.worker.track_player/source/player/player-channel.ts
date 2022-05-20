@@ -1,6 +1,5 @@
 import { Dictionary, List } from '@kartoffelgames/core.data';
 import { EffectBound } from '../enum/effect-bound.enum';
-import { Pitch } from '../enum/pitch.enum';
 import { LoopEffect } from '../generic_module/effect/jump/loop-effect';
 import { SetLoopPositionEffectEffect } from '../generic_module/effect/jump/set-loop-position-effect';
 import { ArpeggioEffect } from '../generic_module/effect/pitch/arpeggio-effect';
@@ -40,7 +39,8 @@ import { SetSpeedEffectProcessor } from './effect/speed/set-speed-effect-process
 import { SetVolumeEffectProcessor } from './effect/volume/set-volume-effect-processor';
 import { VolumeSlideEffectProcessor } from './effect/volume/volume-slide-effect-processor';
 import { SetWaveformEffectProcessor } from './effect/waveform/set-waveform-effect-processor';
-import { PlayerModule } from './player_module/player-module';
+import { PlayerChannelSettings } from './player-channel-settings';
+import { PlayerGlobalSettings } from './player_module/player-global-settings';
 
 export class PlayerChannel {
     private static readonly EFFECT_MAP: Dictionary<IGenericEffect, EffectProcessorConstructor> = (() => {
@@ -71,30 +71,21 @@ export class PlayerChannel {
     })();
 
     private readonly mChannelIndex: number;
-    private mChannelSettings: ChannelSettings;
+    private mChannelSettings: PlayerChannelSettings;
     private mEffectList: Array<BaseEffectProcessor<IGenericEffect>>;
-    private readonly mPlayerModule: PlayerModule;
+    private readonly mPlayerModule: PlayerGlobalSettings;
 
     /**
      * Constructor.
      */
-    public constructor(pPlayerModule: PlayerModule, pChannelIndex: number) {
+    public constructor(pPlayerModule: PlayerGlobalSettings, pChannelIndex: number) {
         this.mChannelIndex = pChannelIndex;
         this.mPlayerModule = pPlayerModule;
 
         this.mEffectList = new Array<BaseEffectProcessor<IGenericEffect>>();
 
         // Set empty continuing information.
-        this.mChannelSettings = {
-            pitch: Pitch.Empty,
-            sampleData: {
-                sample: null,
-                position: 0
-            },
-            volume: 0,
-            finetune: 0,
-            invertLoop: false
-        };
+        this.mChannelSettings = new PlayerChannelSettings();
     }
 
     /**
@@ -113,7 +104,7 @@ export class PlayerChannel {
 
         // Execute all effects in priority order.
         for (const lEffect of this.mEffectList) {
-            this.mChannelSettings = lEffect.process(this.mChannelSettings, this.mPlayerModule, pTickChanged);
+            lEffect.process(this.mChannelSettings, this.mPlayerModule, pTickChanged);
         }
 
         // Clear single bound effects after execution.
@@ -202,22 +193,6 @@ export class PlayerChannel {
         const lConvertedEffect: List<BaseEffectProcessor<IGenericEffect>> = this.createEffects(this.mPlayerModule.getDivision(this.mChannelIndex).effects);
         this.mEffectList.push(...lConvertedEffect);
     }
-}
-
-interface SampleData {
-    sample: Sample | null,
-    position: number;
-}
-
-export interface ChannelSettings {
-    pitch: Pitch,
-    /**
-     * Volume range form 0 to 1.
-     */
-    volume: number,
-    finetune: number,
-    invertLoop: boolean,
-    sampleData: SampleData;
 }
 
 export type EffectProcessorConstructor = new (pEffect: any) => BaseEffectProcessor<IGenericEffect>;

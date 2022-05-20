@@ -6,14 +6,16 @@ import { JumpHandler } from './handler/jump-handler';
 import { LengthHandler } from './handler/length-handler';
 import { SettingsHandler } from './handler/settings-handler';
 import { SpeedHandler } from './handler/speed-handler';
+import { WaveHandler } from './handler/wave-handler';
 
-export class PlayerModule {
+export class PlayerGlobalSettings {
     private readonly mCursorHandler: CursorHandler;
     private readonly mGenericModule: GenericModule;
     private readonly mJumpHandler: JumpHandler;
     private readonly mLengthHandler: LengthHandler;
     private readonly mSettingHandler: SettingsHandler;
     private readonly mSpeedHandler: SpeedHandler;
+    private readonly mWaveHandler: WaveHandler;
 
     /**
      * Get current cursor.
@@ -58,6 +60,13 @@ export class PlayerModule {
     }
 
     /**
+     * Get wave handler.
+     */
+    public get wave(): WaveHandler {
+        return this.mWaveHandler;
+    }
+
+    /**
      * Constructor.
      * @param pParameter - Constructor parameter.
      */
@@ -68,6 +77,7 @@ export class PlayerModule {
         this.mJumpHandler = pParameter.jumpHandler;
         this.mSettingHandler = pParameter.settingsHandler;
         this.mSpeedHandler = pParameter.speedHandler;
+        this.mWaveHandler = pParameter.waveHandler;
     }
 
     /**
@@ -89,4 +99,5 @@ interface PlayerModuleConstructorParameter {
     cursorHandler: CursorHandler;
     jumpHandler: JumpHandler;
     settingsHandler: SettingsHandler;
+    waveHandler: WaveHandler;
 }

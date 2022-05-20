@@ -1,3 +1,4 @@
+import { WaveformTarget } from '../../../enum/waveform-target.enum';
 import { IGenericEffect } from '../../interface/i-generic-effect';
 
 /**
@@ -6,7 +7,7 @@ import { IGenericEffect } from '../../interface/i-generic-effect';
 export class WaveformEffect implements IGenericEffect {
     private mAmplitude: number;
     private mCirclesPerTick: number;
-    private mEffectTarget: WaveformEffectTarget;
+    private mEffectTarget: WaveformTarget;
 
     /**
      * Get amplitude.
@@ -39,14 +40,14 @@ export class WaveformEffect implements IGenericEffect {
     /**
      * Get effect target.
      */
-    public get target(): WaveformEffectTarget {
+    public get target(): WaveformTarget {
         return this.mEffectTarget;
     }
 
     /**
      * Set effect target.
      */
-    public set target(pTarget: WaveformEffectTarget) {
+    public set target(pTarget: WaveformTarget) {
         this.mEffectTarget = pTarget;
     }
 
@@ -56,9 +57,6 @@ export class WaveformEffect implements IGenericEffect {
     public constructor() {
         this.mAmplitude = 0;
         this.mCirclesPerTick = 0;
-        this.mEffectTarget = 'vibrato';
+        this.mEffectTarget = WaveformTarget.Vibrato;
     }
 }
-
-
-type WaveformEffectTarget = 'vibrato' | 'tremolo';

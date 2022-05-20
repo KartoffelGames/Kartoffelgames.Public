@@ -5,11 +5,12 @@ import { JumpHandler } from './player_module/handler/jump-handler';
 import { LengthHandler } from './player_module/handler/length-handler';
 import { SettingsHandler } from './player_module/handler/settings-handler';
 import { SpeedHandler } from './player_module/handler/speed-handler';
-import { PlayerModule } from './player_module/player-module';
+import { WaveHandler } from './player_module/handler/wave-handler';
+import { PlayerGlobalSettings } from './player_module/player-global-settings';
 
 export class Player {
     private readonly mChannelList: Array<PlayerChannel>;
-    private readonly mPlayerModule: PlayerModule;
+    private readonly mPlayerModule: PlayerGlobalSettings;
 
     /**
      * Constructor.
@@ -26,15 +27,17 @@ export class Player {
         const lCursorHandler: CursorHandler = new CursorHandler(lLengthHandler);
         const lJumpHandler: JumpHandler = new JumpHandler(lCursorHandler);
         const lSettingsHandler: SettingsHandler = new SettingsHandler();
+        const lWaveHandler: WaveHandler = new WaveHandler();
 
         // Create player module. Initialize with handler.
-        this.mPlayerModule = new PlayerModule({
+        this.mPlayerModule = new PlayerGlobalSettings({
             genericModule: pModule,
             speedHandler: lSpeedHandler,
             lengthHandler: lLengthHandler,
             cursorHandler: lCursorHandler,
             jumpHandler: lJumpHandler,
-            settingsHandler: lSettingsHandler
+            settingsHandler: lSettingsHandler,
+            waveHandler: lWaveHandler
         });
     }
 

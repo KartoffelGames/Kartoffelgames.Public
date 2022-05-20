@@ -3,8 +3,8 @@ import { EffectBound } from '../../../enum/effect-bound.enum';
 import { EffectPriority } from '../../../enum/effect-priority.enum';
 import { Pitch } from '../../../enum/pitch.enum';
 import { PeriodSlideEffect } from '../../../generic_module/effect/pitch/period-slide-effect';
-import { ChannelSettings } from '../../player-channel';
-import { PlayerModule } from '../../player_module/player-module';
+import { PlayerChannelSettings } from '../../player-channel-settings';
+import { PlayerGlobalSettings } from '../../player_module/player-global-settings';
 import { BaseEffectProcessor } from '../base-effect-processor';
 
 export class PeriodSlideEffectProcessor extends BaseEffectProcessor<PeriodSlideEffect>{
@@ -25,17 +25,18 @@ export class PeriodSlideEffectProcessor extends BaseEffectProcessor<PeriodSlideE
     /**
      * Process effect.
      * @param pChannelSettings - Executing channel settings.
-     * @param pPlayerModule - Global player module.
+     * @param pGlobalSettings - Global player settings.
+     * @param pTickChanged - If tick changed.
      */
-    public process(pChannelSettings: ChannelSettings, pPlayerModule: PlayerModule, pTickChanged: boolean): ChannelSettings {
+    public process(pChannelSettings: PlayerChannelSettings, pGlobalSettings: PlayerGlobalSettings, pTickChanged: boolean): void {
         // Calculate pitch change per sample. Slide in semitones on glisando enabled and effect is glissando sensitive.
         let lPeriodSlide: number = 0;
-        if (pPlayerModule.settings.glissandoEnabled && this.effectData.glissandoSensitive) {
+        if (pGlobalSettings.settings.glissandoEnabled && this.effectData.glissandoSensitive) {
             if (pTickChanged) {
                 lPeriodSlide = pChannelSettings.pitch * Math.pow(2, 1 / 12);
             }
         } else {
-            lPeriodSlide = this.effectData.periodSlidePerTick / pPlayerModule.length.samples;
+            lPeriodSlide = this.effectData.periodSlidePerTick / pGlobalSettings.length.samples;
         }
 
         // Move in right direction. Pitch down increases the pitch period value.
@@ -57,7 +58,5 @@ export class PeriodSlideEffectProcessor extends BaseEffectProcessor<PeriodSlideE
             // Default boundary between C1 and B3.
             pChannelSettings.pitch = Math.max(Math.min(pChannelSettings.pitch, Pitch.Octave1C), Pitch.Octave3B);
         }
-
-        return pChannelSettings;
     }
 }

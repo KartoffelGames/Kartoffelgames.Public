@@ -1,8 +1,8 @@
 import { EffectBound } from '../../../enum/effect-bound.enum';
 import { EffectPriority } from '../../../enum/effect-priority.enum';
 import { SetLoopPositionEffectEffect } from '../../../generic_module/effect/jump/set-loop-position-effect';
-import { ChannelSettings } from '../../player-channel';
-import { PlayerModule } from '../../player_module/player-module';
+import { PlayerChannelSettings } from '../../player-channel-settings';
+import { PlayerGlobalSettings } from '../../player_module/player-global-settings';
 import { BaseEffectProcessor } from '../base-effect-processor';
 
 export class SetLoopPositionEffectProcessor extends BaseEffectProcessor<SetLoopPositionEffectEffect>{
@@ -22,13 +22,11 @@ export class SetLoopPositionEffectProcessor extends BaseEffectProcessor<SetLoopP
 
     /**
      * Process effect.
-     * @param pChannelSettings - Executing channel settings.
-     * @param pPlayerModule - Global player module.
+     * @param _pChannelSettings - Executing channel settings.
+     * @param pGlobalSettings - Global player settings.
      */
-    public process(pChannelSettings: ChannelSettings, pPlayerModule: PlayerModule): ChannelSettings {
+    public process(_pChannelSettings: PlayerChannelSettings, pGlobalSettings: PlayerGlobalSettings): void {
         // Set jump position.
-        pPlayerModule.jump.setLoopPosition(this.effectData.divisionIndex);
-
-        return pChannelSettings;
+        pGlobalSettings.jump.setLoopPosition(this.effectData.divisionIndex);
     }
 }

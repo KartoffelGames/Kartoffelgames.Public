@@ -1,8 +1,8 @@
 import { EffectBound } from '../../../enum/effect-bound.enum';
 import { EffectPriority } from '../../../enum/effect-priority.enum';
 import { SetWaveformEffect } from '../../../generic_module/effect/waveform/set-waveform-effect';
-import { ChannelSettings } from '../../player-channel';
-import { PlayerModule } from '../../player_module/player-module';
+import { PlayerChannelSettings } from '../../player-channel-settings';
+import { PlayerGlobalSettings } from '../../player_module/player-global-settings';
 import { BaseEffectProcessor } from '../base-effect-processor';
 
 export class SetWaveformEffectProcessor extends BaseEffectProcessor<SetWaveformEffect>{
@@ -23,10 +23,9 @@ export class SetWaveformEffectProcessor extends BaseEffectProcessor<SetWaveformE
     /**
      * Process effect.
      * @param pChannelSettings - Executing channel settings.
-     * @param pPlayerModule - Global player module.
+     * @param pGlobalSettings - Global player settings.
      */
-    public process(pChannelSettings: ChannelSettings, pPlayerModule: PlayerModule): ChannelSettings {
-        pPlayerModule.settings.setWaveform(this.effectData.waveform, this.effectData.target, this.effectData.retrigger);
-        return pChannelSettings;
+    public process(_pChannelSettings: PlayerChannelSettings, pGlobalSettings: PlayerGlobalSettings): void {
+        pGlobalSettings.settings.setWaveform(this.effectData.waveform, this.effectData.target, this.effectData.retrigger);
     }
 }

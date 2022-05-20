@@ -1,8 +1,8 @@
 import { EffectBound } from '../../../enum/effect-bound.enum';
 import { EffectPriority } from '../../../enum/effect-priority.enum';
 import { RetriggerSampleEffect } from '../../../generic_module/effect/sample/retrigger-sample-effect';
-import { ChannelSettings } from '../../player-channel';
-import { PlayerModule } from '../../player_module/player-module';
+import { PlayerChannelSettings } from '../../player-channel-settings';
+import { PlayerGlobalSettings } from '../../player_module/player-global-settings';
 import { BaseEffectProcessor } from '../base-effect-processor';
 
 export class RetriggerSampleEffectProcessor extends BaseEffectProcessor<RetriggerSampleEffect>{
@@ -23,13 +23,13 @@ export class RetriggerSampleEffectProcessor extends BaseEffectProcessor<Retrigge
     /**
      * Process effect.
      * @param pChannelSettings - Executing channel settings.
+     * @param pGlobalSettings - Global player settings.
+     * @param pTickChanged - If tick changed.
      */
-    public process(pChannelSettings: ChannelSettings, pPlayerModule: PlayerModule, pTickChanged: boolean): ChannelSettings {
+    public process(pChannelSettings: PlayerChannelSettings, pGlobalSettings: PlayerGlobalSettings, pTickChanged: boolean): void {
         // Retrigger sample position when tick reaches a retigger tick.
-        if (pTickChanged && (pPlayerModule.cursor.tickIndex % this.effectData.tickInterval) === 0) {
+        if (pTickChanged && (pGlobalSettings.cursor.tickIndex % this.effectData.tickInterval) === 0) {
             pChannelSettings.sampleData.position = 0;
         }
-
-        return pChannelSettings;
     }
 }

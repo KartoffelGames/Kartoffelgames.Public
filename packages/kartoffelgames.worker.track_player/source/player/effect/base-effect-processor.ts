@@ -1,8 +1,8 @@
 import { EffectBound } from '../../enum/effect-bound.enum';
 import { EffectPriority } from '../../enum/effect-priority.enum';
 import { IGenericEffect } from '../../generic_module/interface/i-generic-effect';
-import { ChannelSettings } from '../player-channel';
-import { PlayerModule } from '../player_module/player-module';
+import { PlayerChannelSettings } from '../player-channel-settings';
+import { PlayerGlobalSettings } from '../player_module/player-global-settings';
 
 export abstract class BaseEffectProcessor<TEffect extends IGenericEffect>  {
     private readonly mEffect: TEffect;
@@ -42,8 +42,8 @@ export abstract class BaseEffectProcessor<TEffect extends IGenericEffect>  {
     /**
      * Process effect and get last
      * @param pSampleStep - Current next sample step.
-     * @param pPlayerModule - Global player module.
+     * @param pGlobalSettings - Global player module.
      * @param pTickChanged - If tick has changed since last process.
      */
-    public abstract process(pChannelSettings: ChannelSettings, pPlayerModule: PlayerModule, pTickChanged: boolean): ChannelSettings;
+    public abstract process(pChannelSettings: PlayerChannelSettings, pGlobalSettings: PlayerGlobalSettings, pTickChanged: boolean): void;
 }

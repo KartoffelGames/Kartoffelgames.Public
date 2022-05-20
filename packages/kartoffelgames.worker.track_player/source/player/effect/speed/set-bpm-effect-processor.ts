@@ -1,8 +1,8 @@
 import { EffectBound } from '../../../enum/effect-bound.enum';
 import { EffectPriority } from '../../../enum/effect-priority.enum';
 import { SetBeatsPerMinuteEffect } from '../../../generic_module/effect/speed/set-bpm-effect';
-import { ChannelSettings } from '../../player-channel';
-import { PlayerModule } from '../../player_module/player-module';
+import { PlayerChannelSettings } from '../../player-channel-settings';
+import { PlayerGlobalSettings } from '../../player_module/player-global-settings';
 import { BaseEffectProcessor } from '../base-effect-processor';
 
 export class SetBeatsPerMinuteEffectProcessor extends BaseEffectProcessor<SetBeatsPerMinuteEffect>{
@@ -23,12 +23,11 @@ export class SetBeatsPerMinuteEffectProcessor extends BaseEffectProcessor<SetBea
     /**
      * Process effect.
      * @param pChannelSettings - Executing channel settings.
+     * @param pGlobalSettings - Global player settings.
      */
-    public process(pChannelSettings: ChannelSettings, pPlayerModule: PlayerModule): ChannelSettings {
+    public process(_pChannelSettings: PlayerChannelSettings, pGlobalSettings: PlayerGlobalSettings): void {
         // Set speed, keep beats per minute.
-        const lCurrentSpeedUp: number = pPlayerModule.speed.speed.speedUp;
-        pPlayerModule.speed.setSpeed(this.effectData.beatsPerMinute, lCurrentSpeedUp);
-
-        return pChannelSettings;
+        const lCurrentSpeedUp: number = pGlobalSettings.speed.speed.speedUp;
+        pGlobalSettings.speed.setSpeed(this.effectData.beatsPerMinute, lCurrentSpeedUp);
     }
 }

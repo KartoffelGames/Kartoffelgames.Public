@@ -2,8 +2,8 @@ import { EffectBound } from '../../../enum/effect-bound.enum';
 import { EffectPriority } from '../../../enum/effect-priority.enum';
 import { SetSampleEffect } from '../../../generic_module/effect/sample/set-sample-effect';
 import { Sample } from '../../../generic_module/sample/sample';
-import { ChannelSettings } from '../../player-channel';
-import { PlayerModule } from '../../player_module/player-module';
+import { PlayerChannelSettings } from '../../player-channel-settings';
+import { PlayerGlobalSettings } from '../../player_module/player-global-settings';
 import { BaseEffectProcessor } from '../base-effect-processor';
 
 export class SetSampleEffectProcessor extends BaseEffectProcessor<SetSampleEffect>{
@@ -24,17 +24,15 @@ export class SetSampleEffectProcessor extends BaseEffectProcessor<SetSampleEffec
     /**
      * Process effect.
      * @param pChannelSettings - Executing channel settings.
-     * @param pPlayerModule - Global player module.
+     * @param pGlobalSettings - Global player settings.
      */
-    public process(pChannelSettings: ChannelSettings, pPlayerModule: PlayerModule): ChannelSettings {
-        const lSample: Sample = pPlayerModule.module.samples.getSample(this.effectData.sampleIndex);
+    public process(pChannelSettings: PlayerChannelSettings, pGlobalSettings: PlayerGlobalSettings): void {
+        const lSample: Sample = pGlobalSettings.module.samples.getSample(this.effectData.sampleIndex);
 
         // Reset volume and finetune. Set sample.
         pChannelSettings.finetune = lSample.fineTune;
         pChannelSettings.sampleData.sample = lSample;
         pChannelSettings.volume = lSample.volume;
         pChannelSettings.invertLoop = false;
-
-        return pChannelSettings;
     }
 }

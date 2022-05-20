@@ -1,8 +1,8 @@
 import { EffectBound } from '../../../enum/effect-bound.enum';
 import { EffectPriority } from '../../../enum/effect-priority.enum';
 import { PositionJumpEffect } from '../../../generic_module/effect/jump/position-jump-effect';
-import { ChannelSettings } from '../../player-channel';
-import { PlayerModule } from '../../player_module/player-module';
+import { PlayerChannelSettings } from '../../player-channel-settings';
+import { PlayerGlobalSettings } from '../../player_module/player-global-settings';
 import { BaseEffectProcessor } from '../base-effect-processor';
 
 export class JumpEffectProcessor extends BaseEffectProcessor<PositionJumpEffect>{
@@ -22,13 +22,11 @@ export class JumpEffectProcessor extends BaseEffectProcessor<PositionJumpEffect>
 
     /**
      * Process effect.
-     * @param pChannelSettings - Executing channel settings.
-     * @param pPlayerModule - Global player module.
+     * @param _pChannelSettings - Executing channel settings.
+     * @param pGlobalSettings - Global player settings.
      */
-    public process(pChannelSettings: ChannelSettings, pPlayerModule: PlayerModule): ChannelSettings {
+    public process(_pChannelSettings: PlayerChannelSettings, pGlobalSettings: PlayerGlobalSettings): void {
         // Set jump position.
-        pPlayerModule.jump.setJumpPosition(this.effectData.songPositionIndex, this.effectData.divisionIndex);
-
-        return pChannelSettings;
+        pGlobalSettings.jump.setJumpPosition(this.effectData.songPositionIndex, this.effectData.divisionIndex);
     }
 }

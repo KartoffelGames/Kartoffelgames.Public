@@ -1,7 +1,7 @@
 import { EffectBound } from '../../../enum/effect-bound.enum';
 import { EffectPriority } from '../../../enum/effect-priority.enum';
 import { SetPitchEffect } from '../../../generic_module/effect/pitch/set-pitch-effect';
-import { ChannelSettings } from '../../player-channel';
+import { PlayerChannelSettings } from '../../player-channel-settings';
 import { BaseEffectProcessor } from '../base-effect-processor';
 
 export class SetPitchEffectProcessor extends BaseEffectProcessor<SetPitchEffect>{
@@ -23,11 +23,9 @@ export class SetPitchEffectProcessor extends BaseEffectProcessor<SetPitchEffect>
      * Process effect.
      * @param pChannelSettings - Executing channel settings.
      */
-    public process(pChannelSettings: ChannelSettings): ChannelSettings {
+    public process(pChannelSettings: PlayerChannelSettings): void {
         // Reset sample position. Set pitch.
         pChannelSettings.pitch = this.effectData.pitch;
         pChannelSettings.sampleData.position = 0;
-
-        return pChannelSettings;
     }
 }

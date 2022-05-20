@@ -1,8 +1,8 @@
 import { EffectBound } from '../../../enum/effect-bound.enum';
 import { EffectPriority } from '../../../enum/effect-priority.enum';
 import { LoopEffect } from '../../../generic_module/effect/jump/loop-effect';
-import { ChannelSettings } from '../../player-channel';
-import { PlayerModule } from '../../player_module/player-module';
+import { PlayerChannelSettings } from '../../player-channel-settings';
+import { PlayerGlobalSettings } from '../../player_module/player-global-settings';
 import { BaseEffectProcessor } from '../base-effect-processor';
 
 export class LoopEffectProcessor extends BaseEffectProcessor<LoopEffect>{
@@ -23,12 +23,10 @@ export class LoopEffectProcessor extends BaseEffectProcessor<LoopEffect>{
     /**
      * Process effect.
      * @param pChannelSettings - Executing channel settings.
-     * @param pPlayerModule - Global player module.
+     * @param pGlobalSettings - Global player settings.
      */
-    public process(pChannelSettings: ChannelSettings, pPlayerModule: PlayerModule): ChannelSettings {
+    public process(_pChannelSettings: PlayerChannelSettings, pGlobalSettings: PlayerGlobalSettings): void {
         // Set loop count.
-        pPlayerModule.jump.setLoop(this.effectData.loopCount);
-
-        return pChannelSettings;
+        pGlobalSettings.jump.setLoop(this.effectData.loopCount);
     }
 }

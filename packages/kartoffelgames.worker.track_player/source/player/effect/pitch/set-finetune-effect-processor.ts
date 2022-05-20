@@ -1,7 +1,7 @@
 import { EffectBound } from '../../../enum/effect-bound.enum';
 import { EffectPriority } from '../../../enum/effect-priority.enum';
 import { SetFinetuneEffect } from '../../../generic_module/effect/pitch/set-finetune-effect';
-import { ChannelSettings } from '../../player-channel';
+import { PlayerChannelSettings } from '../../player-channel-settings';
 import { BaseEffectProcessor } from '../base-effect-processor';
 
 export class SetFinetuneEffectProcessor extends BaseEffectProcessor<SetFinetuneEffect>{
@@ -23,9 +23,8 @@ export class SetFinetuneEffectProcessor extends BaseEffectProcessor<SetFinetuneE
      * Process effect.
      * @param pChannelSettings - Executing channel settings.
      */
-    public process(pChannelSettings: ChannelSettings): ChannelSettings {
+    public process(pChannelSettings: PlayerChannelSettings): void {
         // Set finetune.
         pChannelSettings.finetune = this.effectData.finetune;
-        return pChannelSettings;
     }
 }

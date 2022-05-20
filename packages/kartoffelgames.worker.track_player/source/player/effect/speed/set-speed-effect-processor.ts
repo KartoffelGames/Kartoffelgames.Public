@@ -1,8 +1,8 @@
 import { EffectBound } from '../../../enum/effect-bound.enum';
 import { EffectPriority } from '../../../enum/effect-priority.enum';
 import { SetSpeedEffect } from '../../../generic_module/effect/speed/set-speed-effect';
-import { ChannelSettings } from '../../player-channel';
-import { PlayerModule } from '../../player_module/player-module';
+import { PlayerChannelSettings } from '../../player-channel-settings';
+import { PlayerGlobalSettings } from '../../player_module/player-global-settings';
 import { BaseEffectProcessor } from '../base-effect-processor';
 
 export class SetSpeedEffectProcessor extends BaseEffectProcessor<SetSpeedEffect>{
@@ -23,9 +23,9 @@ export class SetSpeedEffectProcessor extends BaseEffectProcessor<SetSpeedEffect>
     /**
      * Process effect.
      * @param pChannelSettings - Executing channel settings.
+     * @param pGlobalSettings - Global player settings.
      */
-    public process(pChannelSettings: ChannelSettings, pPlayerModule: PlayerModule): ChannelSettings {
-        pPlayerModule.length.setTickRate(this.effectData.speed);
-        return pChannelSettings;
+    public process(_pChannelSettings: PlayerChannelSettings, pGlobalSettings: PlayerGlobalSettings): void {
+        pGlobalSettings.length.setTickRate(this.effectData.speed);
     }
 }

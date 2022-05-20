@@ -1,8 +1,8 @@
 import { EffectBound } from '../../../enum/effect-bound.enum';
 import { EffectPriority } from '../../../enum/effect-priority.enum';
 import { ArpeggioEffect } from '../../../generic_module/effect/pitch/arpeggio-effect';
-import { ChannelSettings } from '../../player-channel';
-import { PlayerModule } from '../../player_module/player-module';
+import { PlayerChannelSettings } from '../../player-channel-settings';
+import { PlayerGlobalSettings } from '../../player_module/player-global-settings';
 import { BaseEffectProcessor } from '../base-effect-processor';
 
 export class ArpeggioEffectProcessor extends BaseEffectProcessor<ArpeggioEffect>{
@@ -34,11 +34,11 @@ export class ArpeggioEffectProcessor extends BaseEffectProcessor<ArpeggioEffect>
     /**
      * Process effect.
      * @param pChannelSettings - Executing channel settings.
-     * @param pPlayerModule - Global player module.
+     * @param pGlobalSettings - Global player settings.
      */
-    public process(pChannelSettings: ChannelSettings, pPlayerModule: PlayerModule): ChannelSettings {
+    public process(pChannelSettings: PlayerChannelSettings, pGlobalSettings: PlayerGlobalSettings): void {
         // Calculate count of samples in this division.
-        const lSampleCount: number = pPlayerModule.length.samples * pPlayerModule.length.ticks;
+        const lSampleCount: number = pGlobalSettings.length.samples * pGlobalSettings.length.ticks;
 
         // Calculate current arpeggio pitch by dividing sample count into equal parts.
         const lCurrentPitchIndex: number = Math.floor(this.mSampleCounter / (lSampleCount / this.effectData.notes.length));
@@ -48,7 +48,5 @@ export class ArpeggioEffectProcessor extends BaseEffectProcessor<ArpeggioEffect>
 
         // Count elapsed samples.
         this.mSampleCounter++;
-
-        return pChannelSettings;
     }
 }

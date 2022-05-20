@@ -1,7 +1,7 @@
 import { EffectBound } from '../../../enum/effect-bound.enum';
 import { EffectPriority } from '../../../enum/effect-priority.enum';
 import { InvertSampleLoopEffect } from '../../../generic_module/effect/sample/invert-sample-loop-effect';
-import { ChannelSettings } from '../../player-channel';
+import { PlayerChannelSettings } from '../../player-channel-settings';
 import { BaseEffectProcessor } from '../base-effect-processor';
 
 export class InvertSampleLoopEffectProcessor extends BaseEffectProcessor<InvertSampleLoopEffect>{
@@ -23,8 +23,7 @@ export class InvertSampleLoopEffectProcessor extends BaseEffectProcessor<InvertS
      * Process effect.
      * @param pChannelSettings - Executing channel settings.
      */
-    public process(pChannelSettings: ChannelSettings): ChannelSettings {
+    public process(pChannelSettings: PlayerChannelSettings): void {
         pChannelSettings.invertLoop = this.effectData.invert;
-        return pChannelSettings;
     }
 }

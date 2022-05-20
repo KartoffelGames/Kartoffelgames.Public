@@ -1,7 +1,7 @@
 import { EffectBound } from '../../../enum/effect-bound.enum';
 import { EffectPriority } from '../../../enum/effect-priority.enum';
 import { SampleOffsetEffect } from '../../../generic_module/effect/sample/sample-offset-effect';
-import { ChannelSettings } from '../../player-channel';
+import { PlayerChannelSettings } from '../../player-channel-settings';
 import { BaseEffectProcessor } from '../base-effect-processor';
 
 export class SampleOffsetEffectProcessor extends BaseEffectProcessor<SampleOffsetEffect>{
@@ -23,8 +23,7 @@ export class SampleOffsetEffectProcessor extends BaseEffectProcessor<SampleOffse
      * Process effect.
      * @param pChannelSettings - Executing channel settings.
      */
-    public process(pChannelSettings: ChannelSettings): ChannelSettings {
+    public process(pChannelSettings: PlayerChannelSettings): void {
         pChannelSettings.sampleData.position = this.effectData.offset;
-        return pChannelSettings;
     }
 }

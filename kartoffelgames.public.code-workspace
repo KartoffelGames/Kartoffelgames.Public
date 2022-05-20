@@ -1,6 +1,10 @@
 {
     "folders": [
         {
+            "name": "KartoffelGames.Tool.CMS",
+            "path": "./packages/kartoffelgames.tool.cms"
+        },
+        {
             "name": "Kartoffelgames.Core.Data",
             "path": "./packages/kartoffelgames.core.data"
         },

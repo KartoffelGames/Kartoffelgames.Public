@@ -1,3 +1,4 @@
+import { PwbExport } from '@kartoffelgames/web.potato-web-builder';
 import { CmsStyles } from '../type';
 
 export class CmsElement<TData extends object> {
@@ -7,6 +8,7 @@ export class CmsElement<TData extends object> {
     /**
      * Get element data.
      */
+    @PwbExport
     public get data(): TData {
         return this.mData;
     }
@@ -21,6 +23,7 @@ export class CmsElement<TData extends object> {
     /**
      * Get element style.
      */
+    @PwbExport
     public get style(): CmsStyles {
         return this.mStyle;
     }

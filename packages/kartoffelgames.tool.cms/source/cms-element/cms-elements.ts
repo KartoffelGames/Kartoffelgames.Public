@@ -12,7 +12,9 @@ export class CmsElements {
      * @param pElementClass - element constructor.
      */
     public static addElement(pElementClass: CmsElementConstructor): void {
-        const lElementSelector: string = Metadata.get(pElementClass).getMetadata(ComponentManager.METADATA_SELECTOR);
+        // TODO: Validate pElementClass as CMS-Element
+
+        const lElementSelector: string = <string>Metadata.get(pElementClass).getMetadata(ComponentManager.METADATA_SELECTOR);
         CmsElements.mElements.add(pElementClass, lElementSelector);
     }
 

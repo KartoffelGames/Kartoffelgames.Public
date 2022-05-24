@@ -49,7 +49,10 @@ MyHeadingElement = __decorate([(0, pwb_cms_element_decorator_1.PwbCmsElement)({
 }), __metadata("design:paramtypes", [])], MyHeadingElement);
 document.addEventListener('DOMContentLoaded', () => {
   var lApp = new cms_app_1.CmsApp('CMS-App');
-  lApp.addMenuItem('Main', 'Heading', MyHeadingElement);
+  lApp.addMenuItem('Main', 'Heading H1', MyHeadingElement, {
+    headingType: 'h1',
+    text: 'This is a H1'
+  });
   lApp.addMenuItem('Main', 'Heading H2', MyHeadingElement, {
     headingType: 'h2',
     text: 'This is a H2'
@@ -111,14 +114,30 @@ exports.CmsApp = CmsApp; // TODO: Specify column count.
 /*!*******************************************!*\
   !*** ./source/cms-element/cms-element.ts ***!
   \*******************************************/
-/***/ ((__unused_webpack_module, exports) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
+
+var __decorate = this && this.__decorate || function (decorators, target, key, desc) {
+  var c = arguments.length,
+      r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc,
+      d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);else for (var i = decorators.length - 1; i >= 0; i--) {
+    if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  }
+  return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+
+var __metadata = this && this.__metadata || function (k, v) {
+  if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
 
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.CmsElement = void 0;
+
+var web_potato_web_builder_1 = __webpack_require__(/*! @kartoffelgames/web.potato-web-builder */ "../kartoffelgames.web.potato_web_builder/library/source/index.js");
 
 class CmsElement {
   /**
@@ -163,6 +182,10 @@ class CmsElement {
 
 }
 
+__decorate([web_potato_web_builder_1.PwbExport, __metadata("design:type", Object), __metadata("design:paramtypes", [Object])], CmsElement.prototype, "data", null);
+
+__decorate([web_potato_web_builder_1.PwbExport, __metadata("design:type", Object), __metadata("design:paramtypes", [Object])], CmsElement.prototype, "style", null);
+
 exports.CmsElement = CmsElement;
 
 /***/ }),
@@ -192,6 +215,7 @@ class CmsElements {
    * @param pElementClass - element constructor.
    */
   static addElement(pElementClass) {
+    // TODO: Validate pElementClass as CMS-Element
     var lElementSelector = core_dependency_injection_1.Metadata.get(pElementClass).getMetadata(component_manager_1.ComponentManager.METADATA_SELECTOR);
     CmsElements.mElements.add(pElementClass, lElementSelector);
   }
@@ -6744,6 +6768,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var ExportExtension_1;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ExportExtension = void 0;
+const core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
 const core_dependency_injection_1 = __webpack_require__(/*! @kartoffelgames/core.dependency-injection */ "../kartoffelgames.core.dependency_injection/library/source/index.js");
 const pwb_extension_decorator_1 = __webpack_require__(/*! ../../extension/decorator/pwb-extension.decorator */ "../kartoffelgames.web.potato_web_builder/library/source/extension/decorator/pwb-extension.decorator.js");
 const extension_mode_1 = __webpack_require__(/*! ../../extension/enum/extension-mode */ "../kartoffelgames.web.potato_web_builder/library/source/extension/enum/extension-mode.js");
@@ -6759,8 +6784,20 @@ let ExportExtension = ExportExtension_1 = class ExportExtension {
     constructor(pTargetElementReference, pComponentManagerReference) {
         this.mHtmlElement = pTargetElementReference.value;
         this.mUserObjectHandler = pComponentManagerReference.value.userObjectHandler;
-        const lExportedPropertyList = core_dependency_injection_1.Metadata.get(this.mUserObjectHandler.userClass).getMetadata(ExportExtension_1.METADATA_EXPORTED_PROPERTIES);
-        this.connectExportedProperties(lExportedPropertyList ?? new Array());
+        // All exported properties of target and parent classes.
+        const lExportedPropertyList = new core_data_1.List();
+        let lClass = this.mUserObjectHandler.userClass;
+        do {
+            // Find all exported properties of current class layer and add all to merged property list.
+            const lPropertyList = core_dependency_injection_1.Metadata.get(lClass).getMetadata(ExportExtension_1.METADATA_EXPORTED_PROPERTIES);
+            if (lPropertyList) {
+                lExportedPropertyList.push(...lPropertyList);
+            }
+            // Get next inherited parent class. Exit when no parent was found.
+            // eslint-disable-next-line no-cond-assign
+        } while (lClass = Object.getPrototypeOf(lClass));
+        // Connect exported properties with distinct list.
+        this.connectExportedProperties(lExportedPropertyList.distinct());
     }
     /**
      * Connect exported properties to html element attributes with the same name.
@@ -9045,7 +9082,7 @@ class PwbApp {
      * @param pContentClass - Component class.
      */
     createComponent(pContentClass) {
-        // Get content selector.
+        // Get content selector. Selector is allways found.
         const lSelector = core_dependency_injection_1.Metadata.get(pContentClass).getMetadata(component_manager_1.ComponentManager.METADATA_SELECTOR);
         // Create content template content is always inside xhtml namespace.
         const lContentTemplate = new core_xml_1.XmlElement();

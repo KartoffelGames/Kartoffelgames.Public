@@ -29,7 +29,7 @@ class MyHeadingElement extends CmsElement<MyHeadingElementData>{
 
 document.addEventListener('DOMContentLoaded', () => {
     const lApp = new CmsApp('CMS-App');
-    lApp.addMenuItem('Main', 'Heading', MyHeadingElement);
+    lApp.addMenuItem('Main', 'Heading H1', MyHeadingElement, { headingType: 'h1', text: 'This is a H1' });
     lApp.addMenuItem('Main', 'Heading H2', MyHeadingElement, { headingType: 'h2', text: 'This is a H2' });
     lApp.appendTo(document.body);
 });

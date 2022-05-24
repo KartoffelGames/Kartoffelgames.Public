@@ -181,6 +181,14 @@ module.exports = (pEnviroment) => {
             lFileName = `${lProjectName}.scratchpad.js`;
             lOutputDirectory = './scratchpad/build';
             break;
+
+        case 'demo':
+            gInitializeScratchpadFiles(lProjectName);
+            lEntryFile = './demo/source/index.ts';
+            lBuildMode = 'development';
+            lFileName = `${lProjectName}.demo.js`;
+            lOutputDirectory = './demo/build';
+            break;
     }
 
     return {

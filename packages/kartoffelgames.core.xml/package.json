@@ -42,7 +42,8 @@
     },
     "scripts": {
         "script:build": "npm run pre:build && webpack-cli --config ../../enviroment/configuration/webpack.config.js",
-        "script:start-server": "lite-server -c ../../enviroment/configuration/lite-server.config.json",
+        "script:start-scratchpad-server": "lite-server -c ../../enviroment/configuration/scratchpad-server.config.json",
+        "script:start-demo-server": "lite-server -c ../../enviroment/configuration/demo-server.config.json",
         "pre:build:build-tsc": "tsc --project tsconfig.json --noemit false",
         "pre:build:clean": "node -e \"require('../../enviroment/scripts/clean-build').cleanBuild()\"",
         "pre:build:copyRawFiles": "copyfiles -e \"**/*.ts\" source/**/* library/",
@@ -50,9 +51,11 @@
         "build:debug": "npm run script:build -- --env=buildType=debug",
         "build:release": "npm run script:build -- --env=buildType=release",
         "build:scratchpad": "npm run script:build -- --env=buildType=scratchpad",
+        "build:demo": "npm run script:build -- --env=buildType=demo",
         "build:test": "npm run script:build -- --env=buildType=test",
         "build:test-coverage": "npm run script:build -- --env=buildType=test --env=coverage",
-        "scratchpad": "run-p \"build:scratchpad -- --watch\" \"script:start-server\"",
+        "scratchpad": "run-p \"build:scratchpad -- --watch\" \"script:start-scratchpad-server\"",
+        "demo": "run-p \"build:demo -- --watch\" \"script:start-demo-server\"",
         "test": "npm run build:test && npx mocha --config \"../../enviroment/configuration/mocha.config.js\"",
         "test:debug": "npm run build:test && npx mocha --config \"../../enviroment/configuration/mocha.config.js\" --no-timeouts",
         "test:coverage": "npm run build:test-coverage && npx nyc --nycrc-path \"../../enviroment/configuration/nyc.config.json\" mocha --config \"../../enviroment/configuration/mocha.config.js\""

@@ -39,7 +39,7 @@ export class ConstructorMetadata {
      * Get metadata of constructor.
      * @param pMetadataKey - Metadata key.
      */
-    public getMetadata<T>(pMetadataKey: string): T {
+    public getMetadata<T>(pMetadataKey: string): T | null {
         return this.mCustomMetadata.get(pMetadataKey) ?? null;
     }
 

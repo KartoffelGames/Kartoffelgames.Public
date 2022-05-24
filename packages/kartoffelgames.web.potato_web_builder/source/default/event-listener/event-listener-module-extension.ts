@@ -28,7 +28,7 @@ export class EventListenerModuleExtension implements IPwbExtensionOnDeconstruct 
      */
     public constructor(pTargetClassReference: ExtensionTargetClassReference, pTargetObjectReference: ExtensionTargetObjectReference, pElementReference: ModuleTargetReference, pComponentManager: ComponentManagerReference) {
         // Get event metadata.
-        const lEventPropertyList: Array<[string, string]> = Metadata.get(pTargetClassReference.value).getMetadata(EventListenerComponentExtension.METADATA_USER_EVENT_LISTENER_PROPERIES);
+        const lEventPropertyList: Array<[string, string]> | null = Metadata.get(pTargetClassReference.value).getMetadata(EventListenerComponentExtension.METADATA_USER_EVENT_LISTENER_PROPERIES);
 
         // Initialize lists.
         this.mEventListenerList = new Array<[string, EventListener]>();

@@ -1,6 +1,6 @@
 import { XmlElement } from '@kartoffelgames/core.xml';
-import { ChangeDetection, CompareHandler } from '@kartoffelgames/web.change-detection';
-import { ComponentScopeExecutor, LayerValues, ModuleAttributeReference, ModuleLayerValuesReference, ModuleTemplateReference, MultiplicatorResult, PwbMultiplicatorAttributeModule } from '@kartoffelgames/web.potato-web-builder';
+import { CompareHandler } from '@kartoffelgames/web.change-detection';
+import { ComponentScopeExecutor, LayerValues, ModuleAttributeReference, ModuleLayerValuesReference, MultiplicatorResult, PwbMultiplicatorAttributeModule } from '@kartoffelgames/web.potato-web-builder';
 import { IPwbMultiplicatorModuleOnUpdate } from '@kartoffelgames/web.potato-web-builder/library/source/module/interface/module';
 import { CmsElementData } from '../type';
 
@@ -31,7 +31,7 @@ export class CmsTemplateContenModule implements IPwbMultiplicatorModuleOnUpdate 
         const lElementData: Array<CmsElementData> = ComponentScopeExecutor.executeSilent(this.mDataExpression, this.mLayerValues);
 
         // Optimize by checking data with CompareHandler.
-        // Skip if values are the same.
+        // Skip when values are the same.
         if (this.mCompareHandler.compareAndUpdate(lElementData)) {
             return null;
         }
@@ -47,12 +47,14 @@ export class CmsTemplateContenModule implements IPwbMultiplicatorModuleOnUpdate 
             lElement.tagName = lContentData.element;
 
             // Add data as layer value and bind to element.
-            // lData.setLayerValue('data', lContentDat.data);
-            // lElement.setAttribute('[data]', 'data');
+            lData.setLayerValue('data', lContentData.data);
+            lElement.setAttribute('[data]', 'data');
 
             // Add style as layer value and bind to element.
             lData.setLayerValue('style', lContentData.data);
             lElement.setAttribute('[style]', 'style');
+
+            console.log(lContentData);
 
             // Add element and layer values to results.
             lResult.addElement(lElement, lData);

@@ -70,7 +70,5 @@ export class CmsEditorComponent {
 
         // Set element data as json string into drag event.
         pEvent.dataTransfer?.setData('elementData', JSON.stringify(lElementData));
-
-        console.log(lElementData);
     }
 }

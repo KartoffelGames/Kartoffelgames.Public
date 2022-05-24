@@ -387,7 +387,6 @@ var CmsEditorComponent = class CmsEditorComponent {
     }; // Set element data as json string into drag event.
 
     (_pEvent$dataTransfer2 = pEvent.dataTransfer) === null || _pEvent$dataTransfer2 === void 0 ? void 0 : _pEvent$dataTransfer2.setData('elementData', JSON.stringify(lElementData));
-    console.log(lElementData);
   }
 
 };
@@ -458,7 +457,7 @@ var CmsTemplateContenModule = class CmsTemplateContenModule {
   onUpdate() {
     // Read element data from data expression.
     var lElementData = web_potato_web_builder_1.ComponentScopeExecutor.executeSilent(this.mDataExpression, this.mLayerValues); // Optimize by checking data with CompareHandler.
-    // Skip if values are the same.
+    // Skip when values are the same.
 
     if (this.mCompareHandler.compareAndUpdate(lElementData)) {
       return null;
@@ -473,12 +472,13 @@ var CmsTemplateContenModule = class CmsTemplateContenModule {
 
       var lElement = new core_xml_1.XmlElement();
       lElement.tagName = lContentData.element; // Add data as layer value and bind to element.
-      // lData.setLayerValue('data', lContentDat.data);
-      // lElement.setAttribute('[data]', 'data');
-      // Add style as layer value and bind to element.
+
+      lData.setLayerValue('data', lContentData.data);
+      lElement.setAttribute('[data]', 'data'); // Add style as layer value and bind to element.
 
       lData.setLayerValue('style', lContentData.data);
-      lElement.setAttribute('[style]', 'style'); // Add element and layer values to results.
+      lElement.setAttribute('[style]', 'style');
+      console.log(lContentData); // Add element and layer values to results.
 
       lResult.addElement(lElement, lData);
     }

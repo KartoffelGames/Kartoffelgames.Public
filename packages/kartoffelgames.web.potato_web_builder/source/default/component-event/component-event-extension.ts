@@ -24,7 +24,7 @@ export class ComponentEventExtension {
      */
     public constructor(pTargetClassReference: ExtensionTargetClassReference, pTargetObjectReference: ExtensionTargetObjectReference, pElementReference: ComponentElementReference) {
         // Get event metadata.
-        const lEventProperties: Dictionary<string, string> = Metadata.get(pTargetClassReference.value).getMetadata(ComponentEventExtension.METADATA_USER_EVENT_PROPERIES);
+        const lEventProperties: Dictionary<string, string> | null = Metadata.get(pTargetClassReference.value).getMetadata(ComponentEventExtension.METADATA_USER_EVENT_PROPERIES);
 
         if (lEventProperties !== null) {
             // Easy access target objects.

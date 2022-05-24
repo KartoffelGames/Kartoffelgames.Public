@@ -95,7 +95,7 @@ export class PwbApp {
         }
 
         // Get content selector.
-        const lSelector: string = Metadata.get(pContentClass).getMetadata(ComponentManager.METADATA_SELECTOR);
+        const lSelector: string | null = Metadata.get(pContentClass).getMetadata(ComponentManager.METADATA_SELECTOR);
         if (!lSelector) {
             throw new Exception('Content is not a component.', this);
         }
@@ -249,8 +249,8 @@ export class PwbApp {
      * @param pContentClass - Component class.
      */
     private createComponent(pContentClass: InjectionConstructor): HTMLElement {
-        // Get content selector.
-        const lSelector: string = Metadata.get(pContentClass).getMetadata(ComponentManager.METADATA_SELECTOR);
+        // Get content selector. Selector is allways found.
+        const lSelector: string = <string>Metadata.get(pContentClass).getMetadata(ComponentManager.METADATA_SELECTOR);
 
         // Create content template content is always inside xhtml namespace.
         const lContentTemplate: XmlElement = new XmlElement();

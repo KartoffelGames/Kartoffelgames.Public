@@ -1,0 +1,14 @@
+<!-- Element picker wrapper -->
+<div class="element-picker">
+
+    <!-- Element display -->
+    <div class="element" draggable="true" *pwbFor="menuItem of this.menuItems" data-preset="{{ window.JSON.stringify(menuItem) }}" (dragstart)="this.onElementPresetDrag($event)">
+        <span>{{menuItem.description.text}}</span>
+    </div>
+
+</div>
+
+<!-- Content -->
+<div class="content" (dragover)="$event.preventDefault()" (drop)="this.onContentDrop($event)">
+    <content-placeholder *cmsTemplateContent="this.contentData" />
+</div>

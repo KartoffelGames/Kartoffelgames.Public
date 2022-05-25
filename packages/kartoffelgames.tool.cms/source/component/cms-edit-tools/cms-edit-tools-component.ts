@@ -5,9 +5,10 @@ import CssContent from './cms-edit-tools-component.css';
 import HtmlContent from './cms-edit-tools-component.html';
 
 @PwbComponent({
-    selector: 'edit-tools',
+    selector: 'cms-edit-tools',
     template: HtmlContent,
-    style: CssContent
+    style: CssContent,
+    components: [CmsEditFormComponent]
 })
 export class CmsEditToolsComponent<TData extends object> {
     /**
@@ -34,7 +35,7 @@ export class CmsEditToolsComponent<TData extends object> {
     /**
      * Constructor.
      */
-    public constructor(){
+    public constructor() {
         this.data = <TData>{};
         this.formTemplate = '';
         this.styles = {};

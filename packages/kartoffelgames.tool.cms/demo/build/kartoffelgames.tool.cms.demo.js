@@ -287,6 +287,8 @@ exports.PwbCmsElement = void 0;
 
 var web_potato_web_builder_1 = __webpack_require__(/*! @kartoffelgames/web.potato-web-builder */ "../kartoffelgames.web.potato_web_builder/library/source/index.js");
 
+var cms_edit_tools_component_1 = __webpack_require__(/*! ../component/cms-edit-tools/cms-edit-tools-component */ "./source/component/cms-edit-tools/cms-edit-tools-component.ts");
+
 var cms_elements_1 = __webpack_require__(/*! ./cms-elements */ "./source/cms-element/cms-elements.ts");
 /**
  * AtScript. CMS element.
@@ -303,20 +305,146 @@ function PwbCmsElement(pParameter) {
     // if(pUserClassConstructor.prototype instanceof CmsElement){
     //     throw new Exception('Cms element must inherit CmsElement', PwbCmsElement);
     // }
-    // Create class unique formular template.
-    pUserClassConstructor.prototype.FORMULAR_TEMPLATE = pParameter.formularTemplate; // Infuse setting formular template.
-
-    var lTemplate = '<cms-edit-tools [data]="this.data" [styles]="this.styles" [formTemplate]="this.FORMULAR_TEMPLATE"/>' + ((_pParameter$component = pParameter.componentTemplate) !== null && _pParameter$component !== void 0 ? _pParameter$component : '');
+    // Infuse setting formular template.
+    var lTemplate = "<cms-edit-tools>".concat(pParameter.formularTemplate, "</cms-edit-tools>").concat((_pParameter$component = pParameter.componentTemplate) !== null && _pParameter$component !== void 0 ? _pParameter$component : '');
     (0, web_potato_web_builder_1.PwbComponent)({
       selector: pParameter.selector,
       template: lTemplate,
-      style: (_pParameter$style = pParameter.style) !== null && _pParameter$style !== void 0 ? _pParameter$style : ''
+      style: (_pParameter$style = pParameter.style) !== null && _pParameter$style !== void 0 ? _pParameter$style : '',
+      components: [cms_edit_tools_component_1.CmsEditToolsComponent]
     })(pUserClassConstructor);
     cms_elements_1.CmsElements.addElement(pUserClassConstructor);
   };
 }
 
 exports.PwbCmsElement = PwbCmsElement;
+
+/***/ }),
+
+/***/ "./source/component/cms-edit-form/cms-edit-form-component.ts":
+/*!*******************************************************************!*\
+  !*** ./source/component/cms-edit-form/cms-edit-form-component.ts ***!
+  \*******************************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+
+var __decorate = this && this.__decorate || function (decorators, target, key, desc) {
+  var c = arguments.length,
+      r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc,
+      d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);else for (var i = decorators.length - 1; i >= 0; i--) {
+    if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  }
+  return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+
+var __metadata = this && this.__metadata || function (k, v) {
+  if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.CmsEditFormComponent = void 0;
+
+var web_potato_web_builder_1 = __webpack_require__(/*! @kartoffelgames/web.potato-web-builder */ "../kartoffelgames.web.potato_web_builder/library/source/index.js");
+
+var cms_edit_form_component_css_1 = __webpack_require__(/*! ./cms-edit-form-component.css */ "./source/component/cms-edit-form/cms-edit-form-component.css");
+
+var cms_edit_form_component_html_1 = __webpack_require__(/*! ./cms-edit-form-component.html */ "./source/component/cms-edit-form/cms-edit-form-component.html");
+
+var CmsEditFormComponent = class CmsEditFormComponent {
+  /**
+   * Constructor.
+   */
+  constructor() {
+    this.mShow = true;
+  }
+  /**
+   * Show dialog.
+   */
+
+
+  show() {
+    this.mShow = true;
+  }
+
+};
+
+__decorate([web_potato_web_builder_1.PwbExport, __metadata("design:type", Function), __metadata("design:paramtypes", []), __metadata("design:returntype", void 0)], CmsEditFormComponent.prototype, "show", null);
+
+CmsEditFormComponent = __decorate([(0, web_potato_web_builder_1.PwbComponent)({
+  selector: 'cms-edit-form',
+  template: cms_edit_form_component_html_1.default,
+  style: cms_edit_form_component_css_1.default
+}), __metadata("design:paramtypes", [])], CmsEditFormComponent);
+exports.CmsEditFormComponent = CmsEditFormComponent;
+
+/***/ }),
+
+/***/ "./source/component/cms-edit-tools/cms-edit-tools-component.ts":
+/*!*********************************************************************!*\
+  !*** ./source/component/cms-edit-tools/cms-edit-tools-component.ts ***!
+  \*********************************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+
+var __decorate = this && this.__decorate || function (decorators, target, key, desc) {
+  var c = arguments.length,
+      r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc,
+      d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);else for (var i = decorators.length - 1; i >= 0; i--) {
+    if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  }
+  return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+
+var __metadata = this && this.__metadata || function (k, v) {
+  if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.CmsEditToolsComponent = void 0;
+
+var web_potato_web_builder_1 = __webpack_require__(/*! @kartoffelgames/web.potato-web-builder */ "../kartoffelgames.web.potato_web_builder/library/source/index.js");
+
+var cms_edit_form_component_1 = __webpack_require__(/*! ../cms-edit-form/cms-edit-form-component */ "./source/component/cms-edit-form/cms-edit-form-component.ts");
+
+var cms_edit_tools_component_css_1 = __webpack_require__(/*! ./cms-edit-tools-component.css */ "./source/component/cms-edit-tools/cms-edit-tools-component.css");
+
+var cms_edit_tools_component_html_1 = __webpack_require__(/*! ./cms-edit-tools-component.html */ "./source/component/cms-edit-tools/cms-edit-tools-component.html");
+
+var CmsEditToolsComponent = class CmsEditToolsComponent {
+  /**
+   * Constructor.
+   */
+  constructor() {
+    this.data = {};
+    this.formTemplate = '';
+    this.styles = {};
+  }
+
+};
+
+__decorate([web_potato_web_builder_1.PwbExport, __metadata("design:type", Object)], CmsEditToolsComponent.prototype, "data", void 0);
+
+__decorate([web_potato_web_builder_1.PwbExport, __metadata("design:type", String)], CmsEditToolsComponent.prototype, "formTemplate", void 0);
+
+__decorate([web_potato_web_builder_1.PwbExport, __metadata("design:type", Object)], CmsEditToolsComponent.prototype, "styles", void 0);
+
+__decorate([(0, web_potato_web_builder_1.PwbChild)('editForm'), __metadata("design:type", cms_edit_form_component_1.CmsEditFormComponent)], CmsEditToolsComponent.prototype, "mFormElement", void 0);
+
+CmsEditToolsComponent = __decorate([(0, web_potato_web_builder_1.PwbComponent)({
+  selector: 'cms-edit-tools',
+  template: cms_edit_tools_component_html_1.default,
+  style: cms_edit_tools_component_css_1.default,
+  components: [cms_edit_form_component_1.CmsEditFormComponent]
+}), __metadata("design:paramtypes", [])], CmsEditToolsComponent);
+exports.CmsEditToolsComponent = CmsEditToolsComponent;
 
 /***/ }),
 
@@ -515,6 +643,62 @@ CmsTemplateContenModule = __decorate([(0, web_potato_web_builder_1.PwbMultiplica
   selector: /^\*cmsTemplateContent$/
 }), __metadata("design:paramtypes", [web_potato_web_builder_1.ModuleAttributeReference, web_potato_web_builder_1.ModuleLayerValuesReference])], CmsTemplateContenModule);
 exports.CmsTemplateContenModule = CmsTemplateContenModule;
+
+/***/ }),
+
+/***/ "./source/component/cms-edit-form/cms-edit-form-component.css":
+/*!********************************************************************!*\
+  !*** ./source/component/cms-edit-form/cms-edit-form-component.css ***!
+  \********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (".overlay {\r\n    position: fixed;\r\n    width: 500px;\r\n    height: 500px;\r\n    background-color: red;\r\n}");
+
+/***/ }),
+
+/***/ "./source/component/cms-edit-form/cms-edit-form-component.html":
+/*!*********************************************************************!*\
+  !*** ./source/component/cms-edit-form/cms-edit-form-component.html ***!
+  \*********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<div *pwbIf=\"this.mShow\" class=\"overlay\" $DEFAULT>\r\n</div>");
+
+/***/ }),
+
+/***/ "./source/component/cms-edit-tools/cms-edit-tools-component.css":
+/*!**********************************************************************!*\
+  !*** ./source/component/cms-edit-tools/cms-edit-tools-component.css ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("");
+
+/***/ }),
+
+/***/ "./source/component/cms-edit-tools/cms-edit-tools-component.html":
+/*!***********************************************************************!*\
+  !*** ./source/component/cms-edit-tools/cms-edit-tools-component.html ***!
+  \***********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<cms-edit-form #editForm $DEFAULT/>");
 
 /***/ }),
 

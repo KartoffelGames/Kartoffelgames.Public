@@ -1,7 +1,7 @@
-import { Exception } from '@kartoffelgames/core.data';
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { PwbComponent } from '@kartoffelgames/web.potato-web-builder';
 import { IPwbMultiplicatorModuleClass, IPwbStaticModuleClass } from '@kartoffelgames/web.potato-web-builder/library/source/module/interface/module';
+import { CmsEditToolsComponent } from '../component/cms-edit-tools/cms-edit-tools-component';
 import { CmsElement } from './cms-element';
 import { CmsElements } from './cms-elements';
 
@@ -20,16 +20,14 @@ export function PwbCmsElement(pParameter: CmsComponentParameter): any {
         //     throw new Exception('Cms element must inherit CmsElement', PwbCmsElement);
         // }
 
-        // Create class unique formular template.
-        (<any>pUserClassConstructor.prototype).FORMULAR_TEMPLATE = pParameter.formularTemplate;
-
         // Infuse setting formular template.
-        const lTemplate: string = '<cms-edit-tools [data]="this.data" [styles]="this.styles" [formTemplate]="this.FORMULAR_TEMPLATE"/>' + (pParameter.componentTemplate ?? '');
+        const lTemplate: string = `<cms-edit-tools>${pParameter.formularTemplate}</cms-edit-tools>${pParameter.componentTemplate ?? ''}`;
 
         PwbComponent({
             selector: pParameter.selector,
             template: lTemplate,
-            style: pParameter.style ?? ''
+            style: pParameter.style ?? '',
+            components: [CmsEditToolsComponent]
         })(pUserClassConstructor);
 
         CmsElements.addElement(pUserClassConstructor);

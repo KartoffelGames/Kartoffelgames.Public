@@ -8,20 +8,13 @@ import HtmlContent from './cms-edit-form-component.html';
     style: CssContent
 })
 export class CmsEditFormComponent {
-    /**
-     * Element form edit template.
-     */
-    @PwbExport
-    public formTemplate: string;
-
     private mShow: boolean;
 
     /**
      * Constructor.
      */
     public constructor() {
-        this.formTemplate = '';
-        this.mShow = false;
+        this.mShow = true;
     }
 
     /**

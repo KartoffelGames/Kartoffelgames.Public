@@ -36,6 +36,7 @@ export class SlotAttributeModule implements IPwbMultiplicatorModuleOnUpdate {
         // Skip update if slot is already set.
         if (!this.mCalled) {
             this.mCalled = true;
+        } else {
             return null;
         }
 

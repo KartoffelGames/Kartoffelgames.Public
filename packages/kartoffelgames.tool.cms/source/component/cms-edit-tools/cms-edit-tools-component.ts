@@ -10,34 +10,14 @@ import HtmlContent from './cms-edit-tools-component.html';
     style: CssContent,
     components: [CmsEditFormComponent]
 })
-export class CmsEditToolsComponent<TData extends object> {
-    /**
-     * Element data.
-     */
-    @PwbExport
-    public data: TData;
-
-    /**
-     * Element form edit template.
-     */
-    @PwbExport
-    public formTemplate: string;
-
-    /**
-     * Elment style definitions.
-     */
-    @PwbExport
-    public styles: CmsStyles;
-
+export class CmsEditToolsComponent {
     @PwbChild('editForm')
     private readonly mFormElement!: CmsEditFormComponent;
 
     /**
-     * Constructor.
+     * Open edit form.
      */
-    public constructor() {
-        this.data = <TData>{};
-        this.formTemplate = '';
-        this.styles = {};
+    public openForm(): void {
+        this.mFormElement.show();
     }
 }

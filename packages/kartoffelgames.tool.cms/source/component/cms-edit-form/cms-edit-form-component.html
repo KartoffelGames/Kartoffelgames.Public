@@ -1,2 +1,19 @@
-<div *pwbIf="this.mShow" class="overlay" $DEFAULT>
+<!-- Blocking overlay -->
+<div *pwbIf="!this.hidden" class="overlay">
+
+    <!-- Dialog -->
+    <div class="dialog">
+
+        <div $DEFAULT />
+
+        <!-- Actions -->
+        <div>
+            <button (click)="this.close()">Ok</button>
+            <button>Cancel</button>
+        </div>
+
+    </div>
+
+
+
 </div>

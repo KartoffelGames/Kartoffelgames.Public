@@ -359,18 +359,28 @@ var CmsEditFormComponent = class CmsEditFormComponent {
    * Constructor.
    */
   constructor() {
-    this.mShow = true;
+    this.hidden = true;
   }
   /**
-   * Show dialog.
+   * Hide dialog.
    */
 
 
+  close() {
+    this.hidden = true;
+  }
+  /**
+  * Show dialog.
+  */
+
+
   show() {
-    this.mShow = true;
+    this.hidden = false;
   }
 
 };
+
+__decorate([web_potato_web_builder_1.PwbExport, __metadata("design:type", Function), __metadata("design:paramtypes", []), __metadata("design:returntype", void 0)], CmsEditFormComponent.prototype, "close", null);
 
 __decorate([web_potato_web_builder_1.PwbExport, __metadata("design:type", Function), __metadata("design:paramtypes", []), __metadata("design:returntype", void 0)], CmsEditFormComponent.prototype, "show", null);
 
@@ -420,21 +430,13 @@ var cms_edit_tools_component_html_1 = __webpack_require__(/*! ./cms-edit-tools-c
 
 var CmsEditToolsComponent = class CmsEditToolsComponent {
   /**
-   * Constructor.
+   * Open edit form.
    */
-  constructor() {
-    this.data = {};
-    this.formTemplate = '';
-    this.styles = {};
+  openForm() {
+    this.mFormElement.show();
   }
 
 };
-
-__decorate([web_potato_web_builder_1.PwbExport, __metadata("design:type", Object)], CmsEditToolsComponent.prototype, "data", void 0);
-
-__decorate([web_potato_web_builder_1.PwbExport, __metadata("design:type", String)], CmsEditToolsComponent.prototype, "formTemplate", void 0);
-
-__decorate([web_potato_web_builder_1.PwbExport, __metadata("design:type", Object)], CmsEditToolsComponent.prototype, "styles", void 0);
 
 __decorate([(0, web_potato_web_builder_1.PwbChild)('editForm'), __metadata("design:type", cms_edit_form_component_1.CmsEditFormComponent)], CmsEditToolsComponent.prototype, "mFormElement", void 0);
 
@@ -443,7 +445,7 @@ CmsEditToolsComponent = __decorate([(0, web_potato_web_builder_1.PwbComponent)({
   template: cms_edit_tools_component_html_1.default,
   style: cms_edit_tools_component_css_1.default,
   components: [cms_edit_form_component_1.CmsEditFormComponent]
-}), __metadata("design:paramtypes", [])], CmsEditToolsComponent);
+})], CmsEditToolsComponent);
 exports.CmsEditToolsComponent = CmsEditToolsComponent;
 
 /***/ }),
@@ -656,7 +658,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (".overlay {\r\n    position: fixed;\r\n    width: 500px;\r\n    height: 500px;\r\n    background-color: red;\r\n}");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (".overlay {\r\n    position: fixed;\r\n    top: 0;\r\n    left: 0;\r\n    width: 100vw;\r\n    height: 100vh;\r\n    background-color: rgba(90, 90, 90, 0.40);\r\n}\r\n\r\n.dialog {\r\n    position: fixed;\r\n    background-color: red;\r\n    left: 50%;\r\n    top: 50%;\r\n    transform: translate(-50%, -50%);\r\n}");
 
 /***/ }),
 
@@ -670,7 +672,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<div *pwbIf=\"this.mShow\" class=\"overlay\" $DEFAULT>\r\n</div>");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<!-- Blocking overlay -->\r\n<div *pwbIf=\"!this.hidden\" class=\"overlay\">\r\n\r\n    <!-- Dialog -->\r\n    <div class=\"dialog\">\r\n\r\n        <div $DEFAULT />\r\n\r\n        <!-- Actions -->\r\n        <div>\r\n            <button (click)=\"this.close()\">Ok</button>\r\n            <button>Cancel</button>\r\n        </div>\r\n\r\n    </div>\r\n\r\n\r\n\r\n</div>");
 
 /***/ }),
 
@@ -698,7 +700,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<cms-edit-form #editForm $DEFAULT/>");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<button (click)=\"this.openForm()\">EDIT</button>\r\n\r\n<cms-edit-form #editForm $DEFAULT/>");
 
 /***/ }),
 
@@ -7597,59 +7599,44 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SlotAttributeModule = void 0;
 const core_xml_1 = __webpack_require__(/*! @kartoffelgames/core.xml */ "../kartoffelgames.core.xml/library/source/index.js");
-const layer_values_1 = __webpack_require__(/*! ../../component/values/layer-values */ "../kartoffelgames.web.potato_web_builder/library/source/component/values/layer-values.js");
-const pwb_multiplicator_attribute_module_decorator_1 = __webpack_require__(/*! ../../module/decorator/pwb-multiplicator-attribute-module.decorator */ "../kartoffelgames.web.potato_web_builder/library/source/module/decorator/pwb-multiplicator-attribute-module.decorator.js");
+const element_creator_1 = __webpack_require__(/*! ../../component/content/element-creator */ "../kartoffelgames.web.potato_web_builder/library/source/component/content/element-creator.js");
 const module_attribute_reference_1 = __webpack_require__(/*! ../../injection_reference/module-attribute-reference */ "../kartoffelgames.web.potato_web_builder/library/source/injection_reference/module-attribute-reference.js");
-const module_layer_values_reference_1 = __webpack_require__(/*! ../../injection_reference/module-layer-values-reference */ "../kartoffelgames.web.potato_web_builder/library/source/injection_reference/module-layer-values-reference.js");
-const module_template_reference_1 = __webpack_require__(/*! ../../injection_reference/module-template-reference */ "../kartoffelgames.web.potato_web_builder/library/source/injection_reference/module-template-reference.js");
-const multiplicator_result_1 = __webpack_require__(/*! ../../module/result/multiplicator-result */ "../kartoffelgames.web.potato_web_builder/library/source/module/result/multiplicator-result.js");
+const module_target_reference_1 = __webpack_require__(/*! ../../injection_reference/module-target-reference */ "../kartoffelgames.web.potato_web_builder/library/source/injection_reference/module-target-reference.js");
+const pwb_static_attribute_module_decorator_1 = __webpack_require__(/*! ../../module/decorator/pwb-static-attribute-module.decorator */ "../kartoffelgames.web.potato_web_builder/library/source/module/decorator/pwb-static-attribute-module.decorator.js");
+const module_access_type_1 = __webpack_require__(/*! ../../module/enum/module-access-type */ "../kartoffelgames.web.potato_web_builder/library/source/module/enum/module-access-type.js");
 let SlotAttributeModule = class SlotAttributeModule {
     /**
      * Constructor.
-     * @param pTargetTemplate - Target templat.
-     * @param pValueHandler - Values of component.
-     * @param pAttribute - Attribute of module.
+     * @param pAttributeReference - Attribute of module.
+     * @param pTargetReference - Target element.
      */
-    constructor(pValueReference, pAttributeReference, pTemplateReference) {
-        this.mTemplateReference = pTemplateReference;
-        this.mValueHandler = pValueReference.value;
+    constructor(pAttributeReference, pTargetReference) {
+        this.mTargetReference = pTargetReference;
         this.mAttributeReference = pAttributeReference;
-        this.mCalled = false;
-    }
-    /**
-     * Process module.
-     */
-    onUpdate() {
-        // Skip update if slot is already set.
-        if (!this.mCalled) {
-            this.mCalled = true;
-            return null;
-        }
         // Get name of slot. Remove starting $.
         const lAttribute = this.mAttributeReference.value;
         const lSlotName = lAttribute.name.substring(1);
-        // Clone currrent template element.
-        const lClone = this.mTemplateReference.value.clone();
-        // Create slot element
-        const lSlotElement = new core_xml_1.XmlElement();
-        lSlotElement.tagName = 'slot';
+        // Create slot xml element.
+        const lSlotXmlElement = new core_xml_1.XmlElement();
+        lSlotXmlElement.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+        lSlotXmlElement.tagName = 'slot';
+        // Create slot html element.
+        const lSlotElement = element_creator_1.ElementCreator.createElement(lSlotXmlElement);
         // Set slot as default of name is $DEFAUKLT
         if (lSlotName !== 'DEFAULT') {
             lSlotElement.setAttribute('name', lSlotName);
         }
-        // Add slot to element.
-        lClone.appendChild(lSlotElement);
-        // Create result.
-        const lResult = new multiplicator_result_1.MultiplicatorResult();
-        lResult.addElement(lClone, new layer_values_1.LayerValues(this.mValueHandler));
-        return lResult;
+        // Add slot element to target. Gets append as first element.
+        pTargetReference.value?.appendChild(lSlotElement);
     }
 };
 SlotAttributeModule = __decorate([
-    (0, pwb_multiplicator_attribute_module_decorator_1.PwbMultiplicatorAttributeModule)({
-        selector: /^\$[\w]+$/
+    (0, pwb_static_attribute_module_decorator_1.PwbStaticAttributeModule)({
+        selector: /^\$[\w]+$/,
+        forbiddenInManipulatorScopes: false,
+        access: module_access_type_1.ModuleAccessType.Write
     }),
-    __metadata("design:paramtypes", [module_layer_values_reference_1.ModuleLayerValuesReference, module_attribute_reference_1.ModuleAttributeReference, module_template_reference_1.ModuleTemplateReference])
+    __metadata("design:paramtypes", [module_attribute_reference_1.ModuleAttributeReference, module_target_reference_1.ModuleTargetReference])
 ], SlotAttributeModule);
 exports.SlotAttributeModule = SlotAttributeModule;
 //# sourceMappingURL=slot-attribute-module.js.map

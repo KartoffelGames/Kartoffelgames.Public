@@ -8,20 +8,28 @@ import HtmlContent from './cms-edit-form-component.html';
     style: CssContent
 })
 export class CmsEditFormComponent {
-    private mShow: boolean;
+    public hidden: boolean;
 
     /**
      * Constructor.
      */
     public constructor() {
-        this.mShow = true;
+        this.hidden = true;
     }
 
     /**
-     * Show dialog.
+     * Hide dialog.
      */
     @PwbExport
-    public show(): void{
-        this.mShow = true;
+    public close(): void {
+        this.hidden = true;
+    }
+
+    /**
+    * Show dialog.
+    */
+    @PwbExport
+    public show(): void {
+        this.hidden = false;
     }
 }

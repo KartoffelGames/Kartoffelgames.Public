@@ -114,7 +114,7 @@ describe('EventAttributeModule', () => {
         }
 
         // Evaluation.
-        expect(lErrorMessage).to.equal('Event emiter property must be of type ComponentEventEmitter');
+        expect(lErrorMessage).to.equal('Event emitter property must be of type ComponentEventEmitter');
     });
 
     it('-- Clear custom events on deconstruct', async () => {
@@ -323,6 +323,95 @@ describe('EventAttributeModule', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector(),
             template: `<${lEventComponentSelector} (click)="this.handler($event)"/>`
+        })
+        class TestComponent {
+            public handler(pEvent: ComponentEvent<string>): void {
+                lEventValueResult = pEvent.value;
+            }
+        }
+
+        // Setup. Create element and click div.
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        const lEventChild: HTMLDivElement & EventComponent = TestUtil.getComponentNode(lComponent, lEventComponentSelector);
+        lEventChild.callEvent();
+
+        // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
+        expect(lEventValueResult).to.equal(lEventValue);
+    });
+
+    it('-- Inherited event-emitter event', async () => {
+        // Setup. Values.
+        const lEventValue: string = 'EVENT-VALUE';
+        const lEventComponentSelector: string = TestUtil.randomSelector();
+
+        // Process. Define parent class.
+        class ParentClass {
+            @PwbComponentEvent('custom-event')
+            private readonly mEvent!: ComponentEventEmitter<string>;
+
+            @PwbExport
+            public callEvent(): void {
+                this.mEvent.dispatchEvent(lEventValue);
+            }
+        }
+
+        // Setup. Define component.
+        @PwbComponent({
+            selector: lEventComponentSelector,
+        })
+        class EventComponent extends ParentClass { }
+
+        // Process. Define component and wait for update.
+        let lEventValueResult: string | null = null;
+        @PwbComponent({
+            selector: TestUtil.randomSelector(),
+            template: `<${lEventComponentSelector} (custom-event)="this.handler($event)"/>`
+        })
+        class TestComponent {
+            public handler(pEvent: ComponentEvent<string>): void {
+                lEventValueResult = pEvent.value;
+            }
+        }
+
+        // Setup. Create element and click div.
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        const lEventChild: HTMLDivElement & EventComponent = TestUtil.getComponentNode(lComponent, lEventComponentSelector);
+        lEventChild.callEvent();
+
+        // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
+        expect(lEventValueResult).to.equal(lEventValue);
+    });
+
+    it('-- Inherited overriden event-emitter event', async () => {
+        // Setup. Values.
+        const lEventValue: string = 'EVENT-VALUE';
+        const lEventComponentSelector: string = TestUtil.randomSelector();
+
+        // Process. Define parent class.
+        class ParentClass {
+            @PwbComponentEvent('custom-event')
+            private readonly mEvent!: ComponentEventEmitter<string>;
+        }
+
+        // Setup. Define component.
+        @PwbComponent({
+            selector: lEventComponentSelector,
+        })
+        class EventComponent extends ParentClass {
+            @PwbComponentEvent('custom-event')
+            private readonly mOverridenEvent!: ComponentEventEmitter<string>;
+
+            @PwbExport
+            public callEvent(): void {
+                this.mOverridenEvent.dispatchEvent(lEventValue);
+            }
+        }
+
+        // Process. Define component and wait for update.
+        let lEventValueResult: string | null = null;
+        @PwbComponent({
+            selector: TestUtil.randomSelector(),
+            template: `<${lEventComponentSelector} (custom-event)="this.handler($event)"/>`
         })
         class TestComponent {
             public handler(pEvent: ComponentEvent<string>): void {

@@ -91,4 +91,31 @@ describe('PwbChildAttributeModule', () => {
         // Evaluation.
         expect(lErrorFunction).to.throw(Exception, 'Target is not a Component');
     });
+
+    it('-- Read inherited id child', async () => {
+        // Setup. Values.
+        const lIdName: string = 'IdChildId';
+
+        // Setup. Define parent class.
+        class ParentClass {
+            @PwbExport
+            @PwbChild(lIdName)
+            public idChild!: HTMLDivElement;
+        }
+
+        // Setup. Define component.
+        @PwbComponent({
+            selector: TestUtil.randomSelector(),
+            template: `<div #${lIdName}/>`
+        })
+        class TestComponent extends ParentClass { }
+
+        // Setup. Create element.
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        const lComponentIdChild: HTMLDivElement = ChangeDetection.getUntrackedObject(lComponent.idChild);
+        const lRealIdChild: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
+
+        // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
+        expect(lComponentIdChild).to.equal(lRealIdChild);
+    });
 });

@@ -498,7 +498,7 @@ describe('ForOfManipulatorAttributeModule', () => {
         ], true);
     });
 
-    it('-- After native elements', async () => {
+    it('-- Inside native elements', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
@@ -514,7 +514,6 @@ describe('ForOfManipulatorAttributeModule', () => {
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
-        // Evaluation.
         // Evaluation.
         expect(lComponent).to.have.componentStructure([
             Comment, // Component Anchor

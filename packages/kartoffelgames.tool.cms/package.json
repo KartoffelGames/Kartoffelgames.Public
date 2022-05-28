@@ -38,9 +38,9 @@
         "webpack-cli": "^4.8.0"
     },
     "dependencies": {
-        "@kartoffelgames/core.data": "^0.0.32",
-        "@kartoffelgames/web.potato-web-builder": "^0.0.23",
-        "@kartoffelgames/core.dependency-injection": "^0.0.29"
+        "@kartoffelgames/core.data": "^0.0.33",
+        "@kartoffelgames/web.potato-web-builder": "^0.0.24",
+        "@kartoffelgames/core.dependency-injection": "^0.0.30"
     },
     "scripts": {
         "script:build": "npm run pre:build && webpack-cli --config ../../enviroment/configuration/webpack.config.js",

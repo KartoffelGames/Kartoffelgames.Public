@@ -13,7 +13,7 @@ import HtmlContent from './cms-editor-component.html';
 })
 export class CmsEditorComponent {
     @PwbExport
-    public contentData: Array<CmsElementData>;
+    public contentData: Array<CmsElementData<object>>;
 
     @PwbExport
     public menuGroup: string;
@@ -29,7 +29,7 @@ export class CmsEditorComponent {
      * Constructor.
      */
     public constructor() {
-        this.contentData = new Array<CmsElementData>();
+        this.contentData = new Array<CmsElementData<object>>();
         this.menuGroup = 'Main'; // TODO: TO empty string. Only for debug.
     }
 
@@ -42,7 +42,7 @@ export class CmsEditorComponent {
 
         // Check for existing data.
         if (typeof lElementDataJson !== 'undefined' && lElementDataJson !== '') {
-            const lElementData: CmsElementData = JSON.parse(lElementDataJson);
+            const lElementData: CmsElementData<object> = JSON.parse(lElementDataJson);
 
             // TODO: Remove element if it was only moved and not created.
 
@@ -62,7 +62,7 @@ export class CmsEditorComponent {
         const lElementPreset: MenuItem = JSON.parse(<string>lTarget.dataset['preset']);
 
         // Create CmsElementData from target.
-        const lElementData: CmsElementData = {
+        const lElementData: CmsElementData<object> = {
             element: lElementPreset.element,
             data: lElementPreset.presetData ?? {},
             style: {}

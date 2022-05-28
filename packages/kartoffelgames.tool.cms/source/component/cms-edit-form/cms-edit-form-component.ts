@@ -18,16 +18,21 @@ export class CmsEditFormComponent {
     }
 
     /**
-     * Hide dialog.
+     * Close dialog.
      */
     @PwbExport
-    public close(): void {
+    public close(pSuccess: boolean): void {
         this.hidden = true;
+
+        // Revert changes on cancel.
+        if(!pSuccess){
+            // TODO: Revert changes.
+        }
     }
 
     /**
-    * Show dialog.
-    */
+     * Show dialog.
+     */
     @PwbExport
     public show(): void {
         this.hidden = false;

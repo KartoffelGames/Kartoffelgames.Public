@@ -1,45 +1,28 @@
 import { PwbExport } from '@kartoffelgames/web.potato-web-builder';
-import { CmsStyles } from '../type';
+import { CmsElementData, CmsStyles } from '../type';
 
 export class CmsElement<TData extends object> {
-    private mData: TData;
-    private mStyle: CmsStyles;
+    @PwbExport
+    public elementData: CmsElementData<TData>;
 
     /**
      * Get element data.
      */
-    @PwbExport
-    public get data(): TData {
-        return this.mData;
-    }
-
-    /**
-     * Set element data.
-     */
-    public set data(pData: TData) {
-        this.mData = pData;
+    protected get data(): TData {
+        return this.elementData.data;
     }
 
     /**
      * Get element style.
      */
-    @PwbExport
-    public get style(): CmsStyles {
-        return this.mStyle;
-    }
-
-    /**
-     * Set element style.
-     */
-    public set style(pStyle: CmsStyles) {
-        this.mStyle = pStyle;
+    protected get style(): CmsStyles {
+        return this.elementData.style;
     }
 
     /**
      * Constructor.
      */
     public constructor() {
-        this.mData = <TData>{};
-        this.mStyle = {};
+        this.elementData = <CmsElementData<TData>>{};
     }
 }

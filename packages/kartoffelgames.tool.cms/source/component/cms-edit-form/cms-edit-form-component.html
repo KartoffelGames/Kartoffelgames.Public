@@ -1,15 +1,15 @@
 <!-- Blocking overlay -->
-<div *pwbIf="!this.hidden" class="overlay">
+<div *pwbIf="!this.hidden" class="overlay" (click)="this.close(false)">
 
     <!-- Dialog -->
-    <div class="dialog">
+    <div class="dialog" (click)="$event.preventDefault()">
 
         <div $DEFAULT />
 
         <!-- Actions -->
         <div>
-            <button (click)="this.close()">Ok</button>
-            <button>Cancel</button>
+            <button (click)="this.close(true)">Ok</button>
+            <button (click)="this.close(false)">Cancel</button>
         </div>
 
     </div>

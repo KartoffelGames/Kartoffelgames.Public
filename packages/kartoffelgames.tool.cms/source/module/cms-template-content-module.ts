@@ -28,7 +28,7 @@ export class CmsTemplateContenModule implements IPwbMultiplicatorModuleOnUpdate 
      */
     public onUpdate(): MultiplicatorResult | null {
         // Read element data from data expression.
-        const lElementData: Array<CmsElementData> = ComponentScopeExecutor.executeSilent(this.mDataExpression, this.mLayerValues);
+        const lElementData: Array<CmsElementData<object>> = ComponentScopeExecutor.executeSilent(this.mDataExpression, this.mLayerValues);
 
         // Optimize by checking data with CompareHandler.
         // Skip when values are the same.
@@ -46,15 +46,9 @@ export class CmsTemplateContenModule implements IPwbMultiplicatorModuleOnUpdate 
             const lElement: XmlElement = new XmlElement();
             lElement.tagName = lContentData.element;
 
-            // Add data as layer value and bind to element.
-            lData.setLayerValue('data', lContentData.data);
-            lElement.setAttribute('[data]', 'data');
-
-            // Add style as layer value and bind to element.
-            lData.setLayerValue('style', lContentData.data);
-            lElement.setAttribute('[style]', 'style');
-
-            console.log(lContentData);
+            // Add element data as layer value and bind to element.
+            lData.setLayerValue('elementData', lContentData);
+            lElement.setAttribute('[elementData]', 'elementData');
 
             // Add element and layer values to results.
             lResult.addElement(lElement, lData);

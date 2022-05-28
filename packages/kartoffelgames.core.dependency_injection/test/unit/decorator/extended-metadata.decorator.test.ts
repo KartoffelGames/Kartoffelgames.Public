@@ -14,7 +14,7 @@ describe('ExtendedMetadata', () => {
             class TestA { }
 
             // Process. Read metadata.
-            const lResultMetadataValue: object = Metadata.get(TestA).getMetadata(lMetadataKey);
+            const lResultMetadataValue: object | null = Metadata.get(TestA).getMetadata(lMetadataKey);
 
             // Evaluation.
             expect(lResultMetadataValue).to.equal(lMetadataValue);

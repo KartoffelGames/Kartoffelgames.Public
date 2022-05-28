@@ -24,7 +24,6 @@ export class Metadata {
         } else {
             lMetadata = new ConstructorMetadata();
             Metadata.mConstructorMetadata.add(lRegisteredConstructor, lMetadata);
-
         }
 
         return lMetadata;

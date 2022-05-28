@@ -177,4 +177,28 @@ describe('Export', () => {
         // Evaluation.
         expect(lResultValue).to.equal(lTestValue);
     });
+
+    it('-- Export parent class exported properties', async () => {
+        // Setup.
+        const lTestValue: string = 'TEST-VALUE';
+
+        // Setup. Define parent class.
+        class ParentClass {
+            @PwbExport
+            public children: string = lTestValue;
+        }
+
+        // Setup. Define component.
+        @PwbComponent({
+            selector: TestUtil.randomSelector()
+        })
+        class TestComponent extends ParentClass {}
+
+        // Process. Create element and click div.
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        const lResultValue: string = lComponent.children;
+
+        // Evaluation.
+        expect(lResultValue).to.equal(lTestValue);
+    });
 });

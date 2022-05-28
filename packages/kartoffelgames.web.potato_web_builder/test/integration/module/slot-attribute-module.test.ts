@@ -24,8 +24,6 @@ describe('SlotAttribute', () => {
         // Evaluation.
         expect(lComponent).to.have.componentStructure([
             Comment, // Component Anchor
-            Comment, // - Manipulator Anchor
-            Comment, // -- Manipulator Child Anchor
             {
                 node: HTMLDivElement,
                 childs: [HTMLSlotElement]
@@ -51,8 +49,6 @@ describe('SlotAttribute', () => {
         // Evaluation.
         expect(lComponent).to.have.componentStructure([
             Comment, // Component Anchor
-            Comment, // - Manipulator Anchor
-            Comment, // -- Manipulator Child Anchor
             {
                 node: HTMLDivElement,
                 childs: [{

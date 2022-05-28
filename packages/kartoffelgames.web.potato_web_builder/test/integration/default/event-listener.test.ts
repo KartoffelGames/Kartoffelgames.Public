@@ -312,4 +312,30 @@ describe('PwbEventListener', () => {
         lComponent.dispatchEvent(new Event('click', { bubbles: false }));
         expect(lEventCalled).to.be.true;
     });
+
+    it('-- Native listener inherited from parent', async () => {
+        // Process.
+        let lEventCalled: boolean = false;
+
+        // Process. Define parent class.
+        class ParentClass {
+            @PwbEventListener('click')
+            private listener(_pEvent: MouseEvent) {
+                lEventCalled = true;
+            }
+        }
+
+        // Process. Define component.
+        @PwbComponent({
+            selector: TestUtil.randomSelector()
+        })
+        class TestComponent extends ParentClass { }
+
+        // Process. Create element and click div.
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        lComponent.click();
+
+        // Evaluation.
+        expect(lEventCalled).to.be.true;
+    });
 });

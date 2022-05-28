@@ -1,67 +1,46 @@
 import { XmlAttribute, XmlElement } from '@kartoffelgames/core.xml';
-import { LayerValues } from '../../component/values/layer-values';
-import { PwbMultiplicatorAttributeModule } from '../../module/decorator/pwb-multiplicator-attribute-module.decorator';
-import { IPwbMultiplicatorModuleOnUpdate } from '../../module/interface/module';
+import { ElementCreator } from '../../component/content/element-creator';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
-import { ModuleLayerValuesReference } from '../../injection_reference/module-layer-values-reference';
-import { ModuleTemplateReference } from '../../injection_reference/module-template-reference';
-import { MultiplicatorResult } from '../../module/result/multiplicator-result';
+import { ModuleTargetReference } from '../../injection_reference/module-target-reference';
+import { PwbStaticAttributeModule } from '../../module/decorator/pwb-static-attribute-module.decorator';
+import { ModuleAccessType } from '../../module/enum/module-access-type';
 
-@PwbMultiplicatorAttributeModule({
-    selector: /^\$[\w]+$/
+@PwbStaticAttributeModule({
+    selector: /^\$[\w]+$/,
+    forbiddenInManipulatorScopes: false,
+    access: ModuleAccessType.Write
 })
-export class SlotAttributeModule implements IPwbMultiplicatorModuleOnUpdate {
+export class SlotAttributeModule {
     private readonly mAttributeReference: ModuleAttributeReference;
-    private mCalled: boolean;
-    private readonly mTemplateReference: ModuleTemplateReference;
-    private readonly mValueHandler: LayerValues;
+    private readonly mTargetReference: ModuleTargetReference;
 
     /**
      * Constructor.
-     * @param pTargetTemplate - Target templat.
-     * @param pValueHandler - Values of component.
-     * @param pAttribute - Attribute of module.
+     * @param pAttributeReference - Attribute of module.
+     * @param pTargetReference - Target element.
      */
-    public constructor(pValueReference: ModuleLayerValuesReference, pAttributeReference: ModuleAttributeReference, pTemplateReference: ModuleTemplateReference) {
-        this.mTemplateReference = pTemplateReference;
-        this.mValueHandler = pValueReference.value;
+    public constructor(pAttributeReference: ModuleAttributeReference, pTargetReference: ModuleTargetReference) {
+        this.mTargetReference = pTargetReference;
         this.mAttributeReference = pAttributeReference;
-        this.mCalled = false;
-    }
-
-    /**
-     * Process module.
-     */
-    public onUpdate(): MultiplicatorResult | null {
-        // Skip update if slot is already set.
-        if (!this.mCalled) {
-            this.mCalled = true;
-            return null;
-        }
 
         // Get name of slot. Remove starting $.
         const lAttribute: XmlAttribute = <XmlAttribute>this.mAttributeReference.value;
         const lSlotName: string = lAttribute.name.substring(1);
 
-        // Clone currrent template element.
-        const lClone: XmlElement = <XmlElement>this.mTemplateReference.value.clone();
+        // Create slot xml element.
+        const lSlotXmlElement: XmlElement = new XmlElement();
+        lSlotXmlElement.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+        lSlotXmlElement.tagName = 'slot';
 
-        // Create slot element
-        const lSlotElement: XmlElement = new XmlElement();
-        lSlotElement.tagName = 'slot';
+        // Create slot html element.
+        const lSlotElement: Element = ElementCreator.createElement(lSlotXmlElement);
 
         // Set slot as default of name is $DEFAUKLT
         if (lSlotName !== 'DEFAULT') {
             lSlotElement.setAttribute('name', lSlotName);
         }
 
-        // Add slot to element.
-        lClone.appendChild(lSlotElement);
-
-        // Create result.
-        const lResult: MultiplicatorResult = new MultiplicatorResult();
-        lResult.addElement(lClone, new LayerValues(this.mValueHandler));
-
-        return lResult;
+        // Add slot element to target. Gets append as first element.
+        pTargetReference.value?.appendChild(lSlotElement);
     }
 }

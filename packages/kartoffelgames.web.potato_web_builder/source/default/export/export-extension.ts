@@ -1,4 +1,5 @@
-import { Metadata } from '@kartoffelgames/core.dependency-injection';
+import { List } from '@kartoffelgames/core.data';
+import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
 import { UserObjectHandler } from '../../component/handler/user-object-handler';
 import { PwbExtension } from '../../extension/decorator/pwb-extension.decorator';
 import { ExtensionMode } from '../../extension/enum/extension-mode';
@@ -25,8 +26,23 @@ export class ExportExtension {
         this.mHtmlElement = <HTMLElement>pTargetElementReference.value;
         this.mUserObjectHandler = pComponentManagerReference.value.userObjectHandler;
 
-        const lExportedPropertyList: Array<string | symbol> = Metadata.get(this.mUserObjectHandler.userClass).getMetadata(ExportExtension.METADATA_EXPORTED_PROPERTIES);
-        this.connectExportedProperties(lExportedPropertyList ?? new Array<string | symbol>());
+        // All exported properties of target and parent classes.
+        const lExportedPropertyList: List<string | symbol> = new List<string | symbol>();
+
+        let lClass: InjectionConstructor = this.mUserObjectHandler.userClass;
+        do {
+            // Find all exported properties of current class layer and add all to merged property list.
+            const lPropertyList: Array<string | symbol> | null = Metadata.get(lClass).getMetadata(ExportExtension.METADATA_EXPORTED_PROPERTIES);
+            if (lPropertyList) {
+                lExportedPropertyList.push(...lPropertyList);
+            }
+
+            // Get next inherited parent class. Exit when no parent was found.
+            // eslint-disable-next-line no-cond-assign
+        } while (lClass = Object.getPrototypeOf(lClass));
+
+        // Connect exported properties with distinct list.
+        this.connectExportedProperties(lExportedPropertyList.distinct());
     }
 
     /**

@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { Metadata } from '@kartoffelgames/core.dependency-injection';
+import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
 import { ChangeDetection } from '@kartoffelgames/web.change-detection';
 import { PwbExtension } from '../../extension/decorator/pwb-extension.decorator';
 import { ExtensionMode } from '../../extension/enum/extension-mode';
@@ -17,7 +17,7 @@ import { EventListenerComponentExtension } from './event-listener-component-exte
 })
 export class EventListenerModuleExtension implements IPwbExtensionOnDeconstruct {
     private readonly mEventListenerList: Array<[string, EventListener]>;
-    private readonly mTargetElement: HTMLElement | null;
+    private readonly mTargetElement: HTMLElement;
 
     /**
      * Constructor.
@@ -28,36 +28,46 @@ export class EventListenerModuleExtension implements IPwbExtensionOnDeconstruct 
      */
     public constructor(pTargetClassReference: ExtensionTargetClassReference, pTargetObjectReference: ExtensionTargetObjectReference, pElementReference: ModuleTargetReference, pComponentManager: ComponentManagerReference) {
         // Get event metadata.
-        const lEventPropertyList: Array<[string, string]> = Metadata.get(pTargetClassReference.value).getMetadata(EventListenerComponentExtension.METADATA_USER_EVENT_LISTENER_PROPERIES);
+        const lEventPropertyList: Array<[string, string]> = new Array<[string, string]>();
+
+        let lClass: InjectionConstructor = pTargetClassReference.value;
+        do {
+            // Find all event properties of current class layer and add all to merged property list.
+            const lPropertyList: Array<[string, string]> | null = Metadata.get(lClass).getMetadata(EventListenerComponentExtension.METADATA_USER_EVENT_LISTENER_PROPERIES);
+            if (lPropertyList) {
+                // Merge all properies into event property list.
+                for (const lProperty of lPropertyList) {
+                    lEventPropertyList.push(lProperty);
+
+                    // Validate property type: Function.
+                    if (Metadata.get(lClass).getProperty(lProperty[0]).type !== Function) {
+                        throw new Exception(`Event listener property must be of type Function`, this);
+                    }
+                }
+            }
+
+            // Get next inherited parent class. Exit when no parent was found.
+            // eslint-disable-next-line no-cond-assign
+        } while (lClass = Object.getPrototypeOf(lClass));
 
         // Initialize lists.
         this.mEventListenerList = new Array<[string, EventListener]>();
 
-        // Only if any event listener is defined.
-        if (lEventPropertyList !== null) {
-            // Easy access target objects.
-            const lTargetObject: object = pTargetObjectReference.value;
-            this.mTargetElement = <HTMLElement>pElementReference.value ?? pComponentManager.value.elementHandler.htmlElement;
+        // Easy access target objects.
+        const lTargetObject: object = pTargetObjectReference.value;
+        this.mTargetElement = <HTMLElement>pElementReference.value ?? pComponentManager.value.elementHandler.htmlElement;
 
-            // Override each property with the corresponding component event emitter.
-            for (const lEventProperty of lEventPropertyList) {
-                const [lPropertyKey, lEventName] = lEventProperty;
+        // Override each property with the corresponding component event emitter.
+        for (const lEventProperty of lEventPropertyList) {
+            const [lPropertyKey, lEventName] = lEventProperty;
 
-                // Check property type.
-                if (Metadata.get(pTargetClassReference.value).getProperty(lPropertyKey).type !== Function) {
-                    throw new Exception(`Event listener property must be of type Function`, this);
-                }
+            // Get target event listener function.
+            let lEventListener: EventListener = Reflect.get(lTargetObject, lPropertyKey);
+            lEventListener = ChangeDetection.getUntrackedObject(lEventListener);
 
-                // Get target event listener function.
-                let lEventListener: EventListener = Reflect.get(lTargetObject, lPropertyKey);
-                lEventListener = ChangeDetection.getUntrackedObject(lEventListener);
-
-                // Add listener element and save for deconstruct.
-                this.mEventListenerList.push([lEventName, lEventListener]);
-                this.mTargetElement.addEventListener(lEventName, lEventListener);
-            }
-        } else {
-            this.mTargetElement = null;
+            // Add listener element and save for deconstruct.
+            this.mEventListenerList.push([lEventName, lEventListener]);
+            this.mTargetElement.addEventListener(lEventName, lEventListener);
         }
     }
 
@@ -65,11 +75,6 @@ export class EventListenerModuleExtension implements IPwbExtensionOnDeconstruct 
      * Remove all listener.
      */
     public onDeconstruct(): void {
-        // Exit if no events where set.
-        if (this.mTargetElement === null) {
-            return;
-        }
-
         // Remove all events from target element.
         for (const lListener of this.mEventListenerList) {
             const [lEventName, lFunction] = lListener;

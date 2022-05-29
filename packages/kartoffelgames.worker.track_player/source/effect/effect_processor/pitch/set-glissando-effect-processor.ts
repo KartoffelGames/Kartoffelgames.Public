@@ -1,18 +1,8 @@
-import { EffectBound } from '../../../enum/effect-bound.enum';
 import { EffectPriority } from '../../../enum/effect-priority.enum';
 import { SetGlissandoEffect } from '../../effect_definition/pitch/set-glissando-effect';
-import { PlayerChannelSettings } from '../../../player/player-channel-settings';
-import { PlayerGlobalSettings } from '../../../player/player_module/player-global-settings';
 import { BaseEffectProcessor } from '../base-effect-processor';
 
 export class SetGlissandoEffectProcessor extends BaseEffectProcessor<SetGlissandoEffect>{
-    /**
-     * Get effect processor bound.
-     */
-    public get effectBound(): EffectBound {
-        return EffectBound.Single;
-    }
-
     /**
      * Get effect processor priority.
      */
@@ -21,12 +11,10 @@ export class SetGlissandoEffectProcessor extends BaseEffectProcessor<SetGlissand
     }
 
     /**
-     * Process effect.
-     * @param _pChannelSettings - Executing channel settings.
-     * @param pGlobalSettings - Global player settings.
+     * On process start.
      */
-    public process(_pChannelSettings: PlayerChannelSettings, pGlobalSettings: PlayerGlobalSettings): void {
+    public override onEffectStart(): void {
         // Set global glissando state.
-        pGlobalSettings.settings.glissandoEnabled = this.effectData.enabled;
+        this.globalSettings.settings.glissandoEnabled = this.effectData.enabled;
     }
 }

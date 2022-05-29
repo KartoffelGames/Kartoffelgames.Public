@@ -1,22 +1,10 @@
-import { EffectBound } from '../../../enum/effect-bound.enum';
 import { EffectPriority } from '../../../enum/effect-priority.enum';
 import { WaveformTarget } from '../../../enum/waveform-target.enum';
 import { Waveform } from '../../../enum/waveform.enum';
 import { WaveformEffect } from '../../effect_definition/waveform/waveform-effect';
-import { PlayerChannelSettings } from '../../../player/player-channel-settings';
-import { PlayerGlobalSettings } from '../../../player/player_module/player-global-settings';
 import { BaseEffectProcessor } from '../base-effect-processor';
 
 export class WaveformEffectProcessor extends BaseEffectProcessor<WaveformEffect>{
-    private mFirstCall: boolean;
-
-    /**
-     * Get effect processor bound.
-     */
-    public get effectBound(): EffectBound {
-        return EffectBound.Division;
-    }
-
     /**
      * Get effect processor priority.
      */
@@ -24,32 +12,24 @@ export class WaveformEffectProcessor extends BaseEffectProcessor<WaveformEffect>
         return EffectPriority.Low;
     }
 
+
     /**
-     * Constructor.
-     * @param pEffectData - Effect data.
+     * On process start.
      */
-    public constructor(pEffectData: WaveformEffect) {
-        super(pEffectData);
-        this.mFirstCall = true;
+    public override onEffectStart(): void {
+        const lTarget: WaveformTarget = this.effectData.target;
+
+        // Reset waveform position if set to retrigger.
+        if (this.globalSettings.wave.getWaveform(lTarget).retrigger) {
+            this.channelSettings.setWaveformPosition(lTarget, 0);
+        }
     }
 
     /**
      * Process effect.
-     * @param pChannelSettings - Executing channel settings.
-     * @param pGlobalSettings - Global player settings.
      */
-    public process(pChannelSettings: PlayerChannelSettings, pGlobalSettings: PlayerGlobalSettings): void {
+    public override onProcess(): void {
         const lTarget: WaveformTarget = this.effectData.target;
-
-        // Call on first sample.
-        if (this.mFirstCall) {
-            this.mFirstCall = false;
-
-            // Reset waveform position if set to retrigger.
-            if (pGlobalSettings.wave.getWaveform(lTarget).retrigger) {
-                pChannelSettings.setWaveformPosition(lTarget, 0);
-            }
-        }
 
 
         // TODO: Calculate waveform value based on set waveform.

@@ -1,16 +1,12 @@
-import { EffectBound } from '../../enum/effect-bound.enum';
 import { EffectPriority } from '../../enum/effect-priority.enum';
-import { IGenericEffect } from '../effect_definition/i-generic-effect';
 import { PlayerChannelSettings } from '../../player/player-channel-settings';
 import { PlayerGlobalSettings } from '../../player/player_module/player-global-settings';
+import { IGenericEffect } from '../effect_definition/i-generic-effect';
 
 export abstract class BaseEffectProcessor<TEffect extends IGenericEffect>  {
     private readonly mEffect: TEffect;
-
-    /**
-     * If this effect should only be called once at division start.
-     */
-    public abstract readonly effectBound: EffectBound;
+    private readonly mChannelSettings: PlayerChannelSettings;
+    private readonly mGlobalSettings: PlayerGlobalSettings;
 
     /**
      * Priority in wich effects should be applied.
@@ -18,18 +14,36 @@ export abstract class BaseEffectProcessor<TEffect extends IGenericEffect>  {
     public abstract readonly priority: EffectPriority;
 
     /**
-     * Effect data.
+     * Get effect data.
      */
     protected get effectData(): TEffect {
         return this.mEffect;
     }
 
     /**
+     * Get channel settings.
+     */
+    protected get channelSettings(): PlayerChannelSettings {
+        return this.mChannelSettings;
+    }
+
+    /**
+     * Get global player settings.
+     */
+    protected get globalSettings(): PlayerGlobalSettings {
+        return this.mGlobalSettings;
+    }
+
+    /**
      * Constructor.
      * @param pEffect - Effect data.
+     * @param pChannelSettings - Current channels settings.
+     * @param pGlobalSettings - Global player module.
      */
-    public constructor(pEffect: TEffect) {
+    public constructor(pEffect: TEffect, pChannelSettings: PlayerChannelSettings, pGlobalSettings: PlayerGlobalSettings) {
         this.mEffect = pEffect;
+        this.mChannelSettings = pChannelSettings;
+        this.mGlobalSettings = pGlobalSettings;
     }
 
     /**
@@ -40,10 +54,17 @@ export abstract class BaseEffectProcessor<TEffect extends IGenericEffect>  {
     }
 
     /**
-     * Process effect and get last
-     * @param pSampleStep - Current next sample step.
-     * @param pGlobalSettings - Global player module.
-     * @param pTickChanged - If tick has changed since last process.
+     * On effect start.
      */
-    public abstract process(pChannelSettings: PlayerChannelSettings, pGlobalSettings: PlayerGlobalSettings, pTickChanged: boolean): void;
+    public onEffectStart(): void {
+        // Does nothing. Overrideable
+    }
+
+    /**
+     * Process effect and get last
+     * @param _pTickChanged - If tick has changed since last process.
+     */
+    public onProcess(_pTickChanged: boolean): void {
+        // Does nothing. Overrideable
+    }
 }

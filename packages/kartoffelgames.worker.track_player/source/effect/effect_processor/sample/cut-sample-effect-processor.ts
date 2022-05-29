@@ -1,18 +1,8 @@
-import { EffectBound } from '../../../enum/effect-bound.enum';
 import { EffectPriority } from '../../../enum/effect-priority.enum';
 import { CutSampleEffect } from '../../effect_definition/sample/cut-sample-effect';
-import { PlayerChannelSettings } from '../../../player/player-channel-settings';
-import { PlayerGlobalSettings } from '../../../player/player_module/player-global-settings';
 import { BaseEffectProcessor } from '../base-effect-processor';
 
 export class CutSampleEffectProcessor extends BaseEffectProcessor<CutSampleEffect>{
-    /**
-     * Get effect processor bound.
-     */
-    public get effectBound(): EffectBound {
-        return EffectBound.Division;
-    }
-
     /**
      * Get effect processor priority.
      */
@@ -22,14 +12,12 @@ export class CutSampleEffectProcessor extends BaseEffectProcessor<CutSampleEffec
 
     /**
      * Process effect.
-     * @param pChannelSettings - Executing channel settings.
-     * @param pGlobalSettings - Glbal player settings.
      * @param pTickChanged - If tick changed.
      */
-    public process(pChannelSettings: PlayerChannelSettings, pGlobalSettings: PlayerGlobalSettings, pTickChanged: boolean): void {
+    public override onProcess(pTickChanged: boolean): void {
         // Set volume to 0 on new tick and when tick index reaches tick where the sample should be cut.  
-        if (pTickChanged && pGlobalSettings.cursor.tickIndex === this.effectData.ticks) {
-            pChannelSettings.volume = 0;
+        if (pTickChanged && this.globalSettings.cursor.tickIndex === this.effectData.ticks) {
+            this.channelSettings.volume = 0;
         }
     }
 }

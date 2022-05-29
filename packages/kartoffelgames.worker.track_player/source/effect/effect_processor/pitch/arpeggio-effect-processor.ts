@@ -1,19 +1,11 @@
-import { EffectBound } from '../../../enum/effect-bound.enum';
 import { EffectPriority } from '../../../enum/effect-priority.enum';
-import { ArpeggioEffect } from '../../effect_definition/pitch/arpeggio-effect';
 import { PlayerChannelSettings } from '../../../player/player-channel-settings';
 import { PlayerGlobalSettings } from '../../../player/player_module/player-global-settings';
+import { ArpeggioEffect } from '../../effect_definition/pitch/arpeggio-effect';
 import { BaseEffectProcessor } from '../base-effect-processor';
 
 export class ArpeggioEffectProcessor extends BaseEffectProcessor<ArpeggioEffect>{
     private mSampleCounter: number;
-
-    /**
-     * Get effect processor bound.
-     */
-    public get effectBound(): EffectBound {
-        return EffectBound.Division;
-    }
 
     /**
      * Get effect processor priority.
@@ -25,26 +17,26 @@ export class ArpeggioEffectProcessor extends BaseEffectProcessor<ArpeggioEffect>
     /**
      * Constructor.
      * @param pEffect - Effect data.
+     * @param pChannelSettings - Current channels settings.
+     * @param pGlobalSettings - Global player module.
      */
-    public constructor(pEffect: ArpeggioEffect) {
-        super(pEffect);
+    public constructor(pEffect: ArpeggioEffect, pChannelSettings: PlayerChannelSettings, pGlobalSettings: PlayerGlobalSettings) {
+        super(pEffect, pChannelSettings, pGlobalSettings);
         this.mSampleCounter = 0;
     }
 
     /**
      * Process effect.
-     * @param pChannelSettings - Executing channel settings.
-     * @param pGlobalSettings - Global player settings.
      */
-    public process(pChannelSettings: PlayerChannelSettings, pGlobalSettings: PlayerGlobalSettings): void {
+    public override onProcess(): void {
         // Calculate count of samples in this division.
-        const lSampleCount: number = pGlobalSettings.length.samples * pGlobalSettings.length.ticks;
+        const lSampleCount: number = this.globalSettings.length.samples * this.globalSettings.length.ticks;
 
         // Calculate current arpeggio pitch by dividing sample count into equal parts.
         const lCurrentPitchIndex: number = Math.floor(this.mSampleCounter / (lSampleCount / this.effectData.notes.length));
 
         // Set channel pitch.
-        pChannelSettings.pitch = this.effectData.notes[lCurrentPitchIndex];
+        this.channelSettings.pitch = this.effectData.notes[lCurrentPitchIndex];
 
         // Count elapsed samples.
         this.mSampleCounter++;

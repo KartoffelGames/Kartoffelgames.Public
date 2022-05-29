@@ -1,5 +1,5 @@
 import { Dictionary, List } from '@kartoffelgames/core.data';
-import { EffectBound } from '../enum/effect-bound.enum';
+import { IGenericEffect } from '../effect/effect_definition/i-generic-effect';
 import { LoopEffect } from '../effect/effect_definition/jump/loop-effect';
 import { SetLoopPositionEffectEffect } from '../effect/effect_definition/jump/set-loop-position-effect';
 import { ArpeggioEffect } from '../effect/effect_definition/pitch/arpeggio-effect';
@@ -18,8 +18,7 @@ import { SetSpeedEffect } from '../effect/effect_definition/speed/set-speed-effe
 import { SetVolumeEffect } from '../effect/effect_definition/volume/set-volume-effect';
 import { VolumeSlideEffect } from '../effect/effect_definition/volume/volume-slide-effect';
 import { SetWaveformEffect } from '../effect/effect_definition/waveform/set-waveform-effect';
-import { IGenericEffect } from '../effect/effect_definition/i-generic-effect';
-import { Sample } from '../generic_module/sample/sample';
+import { WaveformEffect } from '../effect/effect_definition/waveform/waveform-effect';
 import { BaseEffectProcessor } from '../effect/effect_processor/base-effect-processor';
 import { LoopEffectProcessor } from '../effect/effect_processor/jump/loop-effect-processor';
 import { SetLoopPositionEffectProcessor } from '../effect/effect_processor/jump/set-loop-position-effect-processor';
@@ -39,6 +38,8 @@ import { SetSpeedEffectProcessor } from '../effect/effect_processor/speed/set-sp
 import { SetVolumeEffectProcessor } from '../effect/effect_processor/volume/set-volume-effect-processor';
 import { VolumeSlideEffectProcessor } from '../effect/effect_processor/volume/volume-slide-effect-processor';
 import { SetWaveformEffectProcessor } from '../effect/effect_processor/waveform/set-waveform-effect-processor';
+import { WaveformEffectProcessor } from '../effect/effect_processor/waveform/waveform-effect-processor';
+import { Sample } from '../generic_module/sample/sample';
 import { PlayerChannelSettings } from './player-channel-settings';
 import { PlayerGlobalSettings } from './player_module/player-global-settings';
 
@@ -63,9 +64,9 @@ export class PlayerChannel {
         lEffectToProcessor.set(SetLoopPositionEffectEffect, SetLoopPositionEffectProcessor);
         lEffectToProcessor.set(LoopEffect, LoopEffectProcessor);
         lEffectToProcessor.set(SetWaveformEffect, SetWaveformEffectProcessor);
+        lEffectToProcessor.set(WaveformEffect, WaveformEffectProcessor);
 
         // TODO: DelayPatternEffect
-        // TODO: WaveformEffect
 
         return lEffectToProcessor;
     })();
@@ -104,11 +105,8 @@ export class PlayerChannel {
 
         // Execute all effects in priority order.
         for (const lEffect of this.mEffectList) {
-            lEffect.process(this.mChannelSettings, this.mPlayerModule, pTickChanged);
+            lEffect.onProcess(pTickChanged);
         }
-
-        // Clear single bound effects after execution.
-        this.clearEffectBoundEffects(EffectBound.Single);
 
         // Get current sample.
         const lSample: Sample | null = this.mChannelSettings.sampleData.sample;
@@ -145,21 +143,6 @@ export class PlayerChannel {
     }
 
     /**
-     * Clear effects with specified effect bound.
-     * @param pEffectBound - Effect bound to clear.
-     */
-    private clearEffectBoundEffects(pEffectBound: EffectBound): void {
-        this.mEffectList = this.mEffectList.filter((pEffect) => {
-            // "Deconstruct" when effect should be deleted.
-            if (pEffect.effectBound === pEffectBound) {
-                pEffect.onEffectEnd();
-            }
-
-            return pEffect.effectBound !== pEffectBound;
-        });
-    }
-
-    /**
      * Convert generic effects into effect processors.
      * @param pGenericEffects - Division effects for this channel.
      */
@@ -173,7 +156,8 @@ export class PlayerChannel {
 
             // Create supported effect.
             if (typeof lEffectProcessorConstructor !== 'undefined') {
-                const lEffectProcessor: BaseEffectProcessor<IGenericEffect> = new lEffectProcessorConstructor(lGenericEffect);
+                const lEffectProcessor: BaseEffectProcessor<IGenericEffect> = new lEffectProcessorConstructor(lGenericEffect, this.mChannelSettings, this.mPlayerModule);
+                lEffectProcessor.onEffectStart();
                 lEffectList.push(lEffectProcessor);
             }
         }
@@ -187,7 +171,10 @@ export class PlayerChannel {
      */
     private onDivisionChange(): void {
         // Clear division bound effects.
-        this.clearEffectBoundEffects(EffectBound.Division);
+        for (const lEffect of this.mEffectList) {
+            lEffect.onEffectEnd();
+        }
+        this.mEffectList = new Array<BaseEffectProcessor<IGenericEffect>>();
 
         // Add effect into effect list. Convert generic effect into effect processors. 
         const lConvertedEffect: List<BaseEffectProcessor<IGenericEffect>> = this.createEffects(this.mPlayerModule.getDivision(this.mChannelIndex).effects);
@@ -195,4 +182,4 @@ export class PlayerChannel {
     }
 }
 
-export type EffectProcessorConstructor = new (pEffect: any) => BaseEffectProcessor<IGenericEffect>;
+export type EffectProcessorConstructor = new (pEffect: any, pChannelSettings: PlayerChannelSettings, pGlobalSettings: PlayerGlobalSettings) => BaseEffectProcessor<IGenericEffect>;

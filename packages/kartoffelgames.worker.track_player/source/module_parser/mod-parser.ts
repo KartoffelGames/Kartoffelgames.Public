@@ -1,25 +1,25 @@
 import { Direction } from '../enum/direction.enum';
 import { Pitch } from '../enum/pitch.enum';
-import { SetFinetuneEffect } from '../generic_module/effect/pitch/set-finetune-effect';
-import { SetPitchEffect } from '../generic_module/effect/pitch/set-pitch-effect';
-import { CutSampleEffect } from '../generic_module/effect/sample/cut-sample-effect';
-import { DelaySampleEffect } from '../generic_module/effect/sample/delay-sample-effect';
-import { InvertSampleLoopEffect } from '../generic_module/effect/sample/invert-sample-loop-effect';
-import { RetriggerSampleEffect } from '../generic_module/effect/sample/retrigger-sample-effect';
-import { SampleOffsetEffect } from '../generic_module/effect/sample/sample-offset-effect';
-import { SetSampleEffect } from '../generic_module/effect/sample/set-sample-effect';
-import { SetBeatsPerMinuteEffect } from '../generic_module/effect/speed/set-bpm-effect';
-import { SetSpeedEffect } from '../generic_module/effect/speed/set-speed-effect';
-import { SetVolumeEffect } from '../generic_module/effect/volume/set-volume-effect';
-import { VolumeSlideEffect } from '../generic_module/effect/volume/volume-slide-effect';
+import { SetFinetuneEffect } from '../effect/effect_definition/pitch/set-finetune-effect';
+import { SetPitchEffect } from '../effect/effect_definition/pitch/set-pitch-effect';
+import { CutSampleEffect } from '../effect/effect_definition/sample/cut-sample-effect';
+import { DelaySampleEffect } from '../effect/effect_definition/sample/delay-sample-effect';
+import { InvertSampleLoopEffect } from '../effect/effect_definition/sample/invert-sample-loop-effect';
+import { RetriggerSampleEffect } from '../effect/effect_definition/sample/retrigger-sample-effect';
+import { SampleOffsetEffect } from '../effect/effect_definition/sample/sample-offset-effect';
+import { SetSampleEffect } from '../effect/effect_definition/sample/set-sample-effect';
+import { SetBeatsPerMinuteEffect } from '../effect/effect_definition/speed/set-bpm-effect';
+import { SetSpeedEffect } from '../effect/effect_definition/speed/set-speed-effect';
+import { SetVolumeEffect } from '../effect/effect_definition/volume/set-volume-effect';
+import { VolumeSlideEffect } from '../effect/effect_definition/volume/volume-slide-effect';
 import { GenericModule } from '../generic_module/generic-module';
-import { IGenericEffect } from '../generic_module/interface/i-generic-effect';
+import { IGenericEffect } from '../effect/effect_definition/i-generic-effect';
 import { Division } from '../generic_module/pattern/division';
 import { DivisionChannel } from '../generic_module/pattern/division-channel';
 import { Pattern } from '../generic_module/pattern/pattern';
 import { Sample } from '../generic_module/sample/sample';
 import { BaseParser } from './base-parser';
-import { ByteHelper } from './helper/byte-helper';
+import { ByteUtil } from './helper/byte-util';
 
 /**
  * MOD file parser.
@@ -145,8 +145,8 @@ export class ModParser extends BaseParser {
         // Get 4 character extension name. 
         //When the module has a extension than it has allways 31 samples.
         const lOffset = ModParser.NAME_BYTE_LENGTH + (31 * ModParser.SAMPLE_HEADER_BYTE_LENGTH) + lPatternInformationLength;
-        const lModuleExtensionBuffer = ByteHelper.readBytes(this.data, lOffset, 4);
-        const lModuleExtensionName: string = ByteHelper.byteToString(lModuleExtensionBuffer);
+        const lModuleExtensionBuffer = ByteUtil.readBytes(this.data, lOffset, 4);
+        const lModuleExtensionName: string = ByteUtil.byteToString(lModuleExtensionBuffer);
 
         // Check for all possible extension names. Return empty if no one matches any of those.
         return <ModuleExtension>((['M.K.', 'FLT4', 'FLT8', 'M!K!', '6CHN', '8CHN'].includes(lModuleExtensionName)) ? lModuleExtensionName : '');
@@ -163,7 +163,7 @@ export class ModParser extends BaseParser {
         const lOffset = ModParser.NAME_BYTE_LENGTH + (lSampleCount * ModParser.SAMPLE_HEADER_BYTE_LENGTH) + 1 + 1;
 
         // Get sample play order and find max value.
-        const lModuleSongPositionBuffer = ByteHelper.readBytes(this.data, lOffset, 128);
+        const lModuleSongPositionBuffer = ByteUtil.readBytes(this.data, lOffset, 128);
         const lHighestPatternIndex: number = Math.max(...lModuleSongPositionBuffer);
 
         // Index to count.
@@ -311,10 +311,10 @@ export class ModParser extends BaseParser {
         const lStartingOffset: number = 0;
 
         // Get module name as byte array.
-        const lNameBuffer = ByteHelper.readBytes(this.data, lStartingOffset, ModParser.NAME_BYTE_LENGTH);
+        const lNameBuffer = ByteUtil.readBytes(this.data, lStartingOffset, ModParser.NAME_BYTE_LENGTH);
 
         // Convert byte to string.
-        pModule.songName = ByteHelper.byteToString(lNameBuffer);
+        pModule.songName = ByteUtil.byteToString(lNameBuffer);
     }
 
     /**
@@ -329,12 +329,12 @@ export class ModParser extends BaseParser {
 
         // Get sample order length.
         const lSampleOrderLengthOffset = ModParser.NAME_BYTE_LENGTH + (lSampleCount * ModParser.SAMPLE_HEADER_BYTE_LENGTH);
-        const lSampleOrderLengthBuffer = ByteHelper.readBytes(this.data, lSampleOrderLengthOffset, 1);
+        const lSampleOrderLengthBuffer = ByteUtil.readBytes(this.data, lSampleOrderLengthOffset, 1);
         const lSampleOrderLength: number = lSampleOrderLengthBuffer[0];
 
         // Get sample order.
         const lSampleOrderOffset = ModParser.NAME_BYTE_LENGTH + (lSampleCount * ModParser.SAMPLE_HEADER_BYTE_LENGTH) + 1 + 1;
-        const lModuleSongPositionBuffer = ByteHelper.readBytes(this.data, lSampleOrderOffset, 128);
+        const lModuleSongPositionBuffer = ByteUtil.readBytes(this.data, lSampleOrderOffset, 128);
         pModule.pattern.songPositions = [...lModuleSongPositionBuffer.slice(0, lSampleOrderLength)];
 
         // Set starting offset of first pattern division.
@@ -352,19 +352,19 @@ export class ModParser extends BaseParser {
                 // Create new pattern division for each channel.
                 for (let lChannelIndex: number = 0; lChannelIndex < pChannelCount; lChannelIndex++) {
                     // Get 32bit and concat all bits into one number: wwww xxxxxxxxxxxx yyyy zzzzzzzzzzzz = Length 32bit. 
-                    const lDevisionBuffer: Uint8Array = ByteHelper.readBytes(this.data, lNextPatternDevisionPosition, 4);
-                    const lBufferNumber: bigint = ByteHelper.concatBytes(lDevisionBuffer);
+                    const lDevisionBuffer: Uint8Array = ByteUtil.readBytes(this.data, lNextPatternDevisionPosition, 4);
+                    const lBufferNumber: bigint = ByteUtil.concatBytes(lDevisionBuffer);
 
                     // wwww yyyy (8 bits ) - sample number, not index.
-                    const lSampleNumber: number = Number(ByteHelper.pickBits(lBufferNumber, 32, [0, 1, 2, 3, 16, 17, 18, 19]));
+                    const lSampleNumber: number = Number(ByteUtil.pickBits(lBufferNumber, 32, [0, 1, 2, 3, 16, 17, 18, 19]));
 
                     // xxxx xxxx xxxx (12 bits) - sample period
-                    const lSamplePeriod: number = Number(ByteHelper.pickBits(lBufferNumber, 32, [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]));
+                    const lSamplePeriod: number = Number(ByteUtil.pickBits(lBufferNumber, 32, [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]));
 
                     // zzzz zzzz zzzz (12 bits) - sample effect
-                    const lSampleEffect: number = Number(ByteHelper.pickBits(lBufferNumber, 32, [20, 21, 22, 23]));
-                    const lSampleEffectParameterX: number = Number(ByteHelper.pickBits(lBufferNumber, 32, [24, 25, 26, 27]));
-                    const lSampleEffectParameterY: number = Number(ByteHelper.pickBits(lBufferNumber, 32, [28, 29, 30, 31]));
+                    const lSampleEffect: number = Number(ByteUtil.pickBits(lBufferNumber, 32, [20, 21, 22, 23]));
+                    const lSampleEffectParameterX: number = Number(ByteUtil.pickBits(lBufferNumber, 32, [24, 25, 26, 27]));
+                    const lSampleEffectParameterY: number = Number(ByteUtil.pickBits(lBufferNumber, 32, [28, 29, 30, 31]));
 
                     // Add division.
                     const lDivisionChannel: DivisionChannel = lDivision.addChannel(lChannelIndex);
@@ -417,29 +417,29 @@ export class ModParser extends BaseParser {
             const lSample: Sample = pModule.samples.addSample(lSampleIndex);
 
             // Read sample name.
-            const lSampleNameBuffer: Uint8Array = ByteHelper.readBytes(this.data, lSampleHeaderOffset + lSampleNameOffset, 22);
-            lSample.name = ByteHelper.byteToString(lSampleNameBuffer);
+            const lSampleNameBuffer: Uint8Array = ByteUtil.readBytes(this.data, lSampleHeaderOffset + lSampleNameOffset, 22);
+            lSample.name = ByteUtil.byteToString(lSampleNameBuffer);
 
             // Read sample length and save for later use.
-            const lSampleLengthBuffer: Uint8Array = ByteHelper.readBytes(this.data, lSampleHeaderOffset + lSampleLengthOffset, 2);
-            const lSampleLength = ByteHelper.byteToWorld(lSampleLengthBuffer[0], lSampleLengthBuffer[1]) * 2; // WorldLength to ByteLength
+            const lSampleLengthBuffer: Uint8Array = ByteUtil.readBytes(this.data, lSampleHeaderOffset + lSampleLengthOffset, 2);
+            const lSampleLength = ByteUtil.byteToWorld(lSampleLengthBuffer[0], lSampleLengthBuffer[1]) * 2; // WorldLength to ByteLength
 
             // Read sample fine tune. Lowest four bits represent a signed nibble.
-            const lSampleFinetuneBuffer: Uint8Array = ByteHelper.readBytes(this.data, lSampleHeaderOffset + lSampleFinetuneOffset, 1);
-            lSample.fineTune = ByteHelper.byteToNibble(lSampleFinetuneBuffer[0], true)[1];
+            const lSampleFinetuneBuffer: Uint8Array = ByteUtil.readBytes(this.data, lSampleHeaderOffset + lSampleFinetuneOffset, 1);
+            lSample.fineTune = ByteUtil.byteToNibble(lSampleFinetuneBuffer[0], true)[1];
 
             // Read sample volume.
-            const lSampleVolumeBuffer: Uint8Array = ByteHelper.readBytes(this.data, lSampleHeaderOffset + lSampleVolumeOffset, 1);
-            lSample.volume = ByteHelper.byteToByte(lSampleVolumeBuffer[0]) / 64;
+            const lSampleVolumeBuffer: Uint8Array = ByteUtil.readBytes(this.data, lSampleHeaderOffset + lSampleVolumeOffset, 1);
+            lSample.volume = ByteUtil.byteToByte(lSampleVolumeBuffer[0]) / 64;
 
             // Read sample repeat offset.
-            const lSampleRepeatOffsetBuffer: Uint8Array = ByteHelper.readBytes(this.data, lSampleHeaderOffset + lSampleRepeatOffsetOffset, 2);
-            let lSampleRepeatOffset: number = ByteHelper.byteToWorld(lSampleRepeatOffsetBuffer[0], lSampleRepeatOffsetBuffer[1]) * 2; // WorldLength to ByteLength
+            const lSampleRepeatOffsetBuffer: Uint8Array = ByteUtil.readBytes(this.data, lSampleHeaderOffset + lSampleRepeatOffsetOffset, 2);
+            let lSampleRepeatOffset: number = ByteUtil.byteToWorld(lSampleRepeatOffsetBuffer[0], lSampleRepeatOffsetBuffer[1]) * 2; // WorldLength to ByteLength
             lSampleRepeatOffset -= 2; // Remove repeat information in first word. 
 
             // Read sample repeat length.
-            const lSampleRepeatLengthBuffer: Uint8Array = ByteHelper.readBytes(this.data, lSampleHeaderOffset + lSampleRepeatLengthOffset, 2);
-            let lSampleRepeatLength: number = ByteHelper.byteToWorld(lSampleRepeatLengthBuffer[0], lSampleRepeatLengthBuffer[1]) * 2; // WorldLength to ByteLength
+            const lSampleRepeatLengthBuffer: Uint8Array = ByteUtil.readBytes(this.data, lSampleHeaderOffset + lSampleRepeatLengthOffset, 2);
+            let lSampleRepeatLength: number = ByteUtil.byteToWorld(lSampleRepeatLengthBuffer[0], lSampleRepeatLengthBuffer[1]) * 2; // WorldLength to ByteLength
             lSampleRepeatLength -= 2; // Remove repeat information in first word. 
 
             // Set repeat information.
@@ -448,10 +448,10 @@ export class ModParser extends BaseParser {
             // Read sample body data and convert to Uint16.
             const lSampleLengthWithoutRepeat: number = lSampleLength - 2;
             if (lSampleLengthWithoutRepeat > 0) {
-                const lSampleBodyDataInt8Buffer: Uint8Array = ByteHelper.readBytes(this.data, lDataOffset + lPreviousSampleBodyDataLength, lSampleLengthWithoutRepeat);
+                const lSampleBodyDataInt8Buffer: Uint8Array = ByteUtil.readBytes(this.data, lDataOffset + lPreviousSampleBodyDataLength, lSampleLengthWithoutRepeat);
                 const lSampleBodyDataFloat32Buffer: Float32Array = new Float32Array(lSampleLengthWithoutRepeat);
                 for (let lIndex: number = 0; lIndex < lSampleLengthWithoutRepeat; lIndex++) {
-                    lSampleBodyDataFloat32Buffer[lIndex] = ByteHelper.byteToByte(lSampleBodyDataInt8Buffer[lIndex], true) / 128; // Range [-1 .. 1]
+                    lSampleBodyDataFloat32Buffer[lIndex] = ByteUtil.byteToByte(lSampleBodyDataInt8Buffer[lIndex], true) / 128; // Range [-1 .. 1]
                 }
                 lSample.data = lSampleBodyDataFloat32Buffer;
             } else {

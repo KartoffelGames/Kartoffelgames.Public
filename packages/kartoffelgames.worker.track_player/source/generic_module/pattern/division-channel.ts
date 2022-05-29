@@ -1,6 +1,6 @@
 
 import { List } from '@kartoffelgames/core.data';
-import { IGenericEffect } from '../interface/i-generic-effect';
+import { IGenericEffect } from '../../effect/effect_definition/i-generic-effect';
 
 export class DivisionChannel {
     private readonly mEffectList: List<IGenericEffect>;

@@ -95,6 +95,18 @@ export class PlayerChannelSettings {
     }
 
     /**
+     * Get waveform position.
+     * @param pTarget - Position set target.
+     */
+    public getWaveformPosition(pTarget: WaveformTarget): number {
+        if (pTarget === WaveformTarget.Tremolo) {
+            return this.mWaveformPositions.tremolo;
+        } else {
+            return this.mWaveformPositions.vibrato;
+        }
+    }
+
+    /**
      * Set channels sample. Does reset sample position. 
      * @param pSample - Sample.
      */
@@ -113,12 +125,14 @@ export class PlayerChannelSettings {
 
     /**
      * Set waveform position.
+     * When position is greater than 1, the relative position from zero is preserved and not reset.
      * @param pTarget - Position set target.
      * @param pPosition - New position between 0 and 1.
      */
     public setWaveformPosition(pTarget: WaveformTarget, pPosition: number): void {
         // Position boundary between 0 and 1.
-        const lPosition: number = Math.max(Math.min(pPosition, 1), 0);
+        // When position is greater than 1, the relative position from zero is preserved and not reset.
+        const lPosition: number = Math.max(Math.min(pPosition % 1, 1), 0);
 
         if (pTarget === WaveformTarget.Tremolo) {
             this.mWaveformPositions.tremolo = lPosition;

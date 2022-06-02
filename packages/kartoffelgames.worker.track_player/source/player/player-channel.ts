@@ -121,10 +121,14 @@ export class PlayerChannel {
         let lSamplePositionValue: number = lSample.data[lNextSamplePosition];
         lSamplePositionValue *= this.mChannelSettings.volume;
 
-        // Get current pitch of sample. Calculate finetune with "(12th root of two) * current pitch * finetune."
-        const lPitch: number = this.mChannelSettings.pitch + ((Math.pow(2, 1 / 12) * this.mChannelSettings.pitch) * this.mChannelSettings.finetune);
+        // Get current pitch of sample. Calculate fine tune into pitch with: "pitch * sqrt(2, 12)^(fintune/8)"
+        // When fine tune is 0, the current pitch does not change.
+        // Semitone is "(12th root of two) * current pitch".
+        // Fine tune changes 1/8 of an semi tone.
+        const lPitch: number = this.mChannelSettings.pitch * Math.pow(Math.pow(2, 1 / 12), this.mChannelSettings.finetune / 8);
 
         // Calculate next sample position.
+        // 7093789.2 is a magic number from old amiga ages.
         const lSampleSpeed = 7093789.2 / ((lPitch * 2) * this.mPlayerModule.speed.speed.sampleRate);
         this.mChannelSettings.sampleData.position += lSampleSpeed;
 

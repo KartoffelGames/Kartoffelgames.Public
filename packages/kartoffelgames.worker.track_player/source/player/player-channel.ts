@@ -74,6 +74,7 @@ export class PlayerChannel {
     private readonly mChannelIndex: number;
     private mChannelSettings: PlayerChannelSettings;
     private mEffectList: Array<BaseEffectProcessor<IGenericEffect>>;
+    private mInsideLoop: boolean;
     private readonly mPlayerModule: PlayerGlobalSettings;
 
     /**
@@ -82,6 +83,7 @@ export class PlayerChannel {
     public constructor(pPlayerModule: PlayerGlobalSettings, pChannelIndex: number) {
         this.mChannelIndex = pChannelIndex;
         this.mPlayerModule = pPlayerModule;
+        this.mInsideLoop = false;
 
         this.mEffectList = new Array<BaseEffectProcessor<IGenericEffect>>();
 
@@ -111,6 +113,11 @@ export class PlayerChannel {
         // Get current sample.
         const lSample: Sample | null = this.mChannelSettings.sampleData.sample;
 
+        // Reset sample loop state when position was reset.
+        if (this.mChannelSettings.sampleData.position === 0) {
+            this.mInsideLoop = false;
+        }
+
         // Exit if no sample exists or sample finished playing.
         if (lSample === null || lSample.data.length === 0 || (this.mChannelSettings.sampleData.position + 1) > lSample.data.length) {
             return 0;
@@ -132,17 +139,14 @@ export class PlayerChannel {
         const lSampleSpeed = 7093789.2 / ((lPitch * 2) * this.mPlayerModule.speed.speed.sampleRate);
         this.mChannelSettings.sampleData.position += lSampleSpeed;
 
-        // Check for loop information.
-        if (lSample.repeatLength > 0) {
-            // Check if sample cursor is after the repeat range.
-            if ((this.mChannelSettings.sampleData.position + 1) > (lSample.repeatOffset + lSample.repeatLength)) {
-                // Move back as long as not inside repeat length.
-                this.mChannelSettings.sampleData.position = lSample.repeatOffset;
-            }
+        // Check for loop information and sample cursor is after the repeat range.
+        if (lSample.repeatLength > 0 && (this.mChannelSettings.sampleData.position + 1) > (lSample.repeatOffset + lSample.repeatLength)) {
+            // Move back as long as not inside repeat length.
+            this.mChannelSettings.sampleData.position = lSample.repeatOffset;
         }
 
         // Invert the "loop". Not just the loop but the none loop and siltent data too.
-        if (this.mChannelSettings.invertLoop) {
+        if (this.mChannelSettings.invertLoop && this.mInsideLoop) {
             return lSamplePositionValue * -1;
         } else {
             return lSamplePositionValue;

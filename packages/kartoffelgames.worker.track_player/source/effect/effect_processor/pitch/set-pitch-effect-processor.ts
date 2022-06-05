@@ -16,6 +16,6 @@ export class SetPitchEffectProcessor extends BaseEffectProcessor<SetPitchEffect>
     public override onEffectStart(): void {
         // Reset sample position. Set pitch.
         this.channelSettings.pitch = this.effectData.pitch;
-        this.channelSettings.sampleData.position = 0;
+        this.channelSettings.setSamplePosition(0);
     }
 }

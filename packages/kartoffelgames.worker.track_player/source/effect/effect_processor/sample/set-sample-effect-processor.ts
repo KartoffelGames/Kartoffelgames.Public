@@ -19,7 +19,7 @@ export class SetSampleEffectProcessor extends BaseEffectProcessor<SetSampleEffec
 
         // Reset volume and finetune. Set sample.
         this.channelSettings.finetune = lSample.fineTune;
-        this.channelSettings.sampleData.sample = lSample;
+        this.channelSettings.setSample(lSample);
         this.channelSettings.volume = lSample.volume;
         this.channelSettings.invertLoop = false;
     }

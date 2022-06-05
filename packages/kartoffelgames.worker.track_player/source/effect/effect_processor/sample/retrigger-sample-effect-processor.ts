@@ -19,7 +19,7 @@ export class RetriggerSampleEffectProcessor extends BaseEffectProcessor<Retrigge
     public override onProcess(pTickChanged: boolean): void {
         // Retrigger sample position when tick reaches a retigger tick.
         if (pTickChanged && (this.globalSettings.cursor.tickIndex % this.effectData.tickInterval) === 0) {
-            this.channelSettings.sampleData.position = 0;
+            this.channelSettings.setSamplePosition(0);
         }
     }
 }

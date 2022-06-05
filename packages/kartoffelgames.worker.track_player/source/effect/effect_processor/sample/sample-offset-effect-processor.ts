@@ -14,6 +14,6 @@ export class SampleOffsetEffectProcessor extends BaseEffectProcessor<SampleOffse
      * On process start.
      */
     public override onEffectStart(): void {
-        this.channelSettings.sampleData.position = this.effectData.offset;
+        this.channelSettings.setSamplePosition(this.effectData.offset);
     }
 }

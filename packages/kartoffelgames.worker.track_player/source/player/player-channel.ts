@@ -77,14 +77,14 @@ export class PlayerChannel {
     private mChannelSettings: PlayerChannelSettings;
     private mEffectList: Array<BaseEffectProcessor<IGenericEffect>>;
     private mInsideLoop: boolean;
-    private readonly mPlayerModule: PlayerGlobalSettings;
+    private readonly mGlobalSettings: PlayerGlobalSettings;
 
     /**
      * Constructor.
      */
     public constructor(pPlayerModule: PlayerGlobalSettings, pChannelIndex: number) {
         this.mChannelIndex = pChannelIndex;
-        this.mPlayerModule = pPlayerModule;
+        this.mGlobalSettings = pPlayerModule;
         this.mInsideLoop = false;
 
         this.mEffectList = new Array<BaseEffectProcessor<IGenericEffect>>();
@@ -138,13 +138,13 @@ export class PlayerChannel {
 
         // Calculate next sample position.
         // 7093789.2 is a magic number from old amiga ages.
-        const lSampleSpeed = 7093789.2 / ((lPitch * 2) * this.mPlayerModule.speed.speed.sampleRate);
-        this.mChannelSettings.sampleData.position += lSampleSpeed;
+        const lSampleSpeed = 7093789.2 / ((lPitch * 2) * this.mGlobalSettings.speed.speed.sampleRate);
+        this.mChannelSettings.setSamplePosition(this.mChannelSettings.sampleData.position + lSampleSpeed);
 
         // Check for loop information and sample cursor is after the repeat range.
         if (lSample.repeatLength > 0 && (this.mChannelSettings.sampleData.position + 1) > (lSample.repeatOffset + lSample.repeatLength)) {
             // Move back as long as not inside repeat length.
-            this.mChannelSettings.sampleData.position = lSample.repeatOffset;
+            this.mChannelSettings.setSamplePosition(lSample.repeatOffset);
         }
 
         // Invert the "loop". Not just the loop but the none loop and siltent data too.
@@ -169,7 +169,7 @@ export class PlayerChannel {
 
             // Create supported effect.
             if (typeof lEffectProcessorConstructor !== 'undefined') {
-                const lEffectProcessor: BaseEffectProcessor<IGenericEffect> = new lEffectProcessorConstructor(lGenericEffect, this.mChannelSettings, this.mPlayerModule);
+                const lEffectProcessor: BaseEffectProcessor<IGenericEffect> = new lEffectProcessorConstructor(lGenericEffect, this.mChannelSettings, this.mGlobalSettings);
                 lEffectProcessor.onEffectStart();
                 lEffectList.push(lEffectProcessor);
             }
@@ -182,10 +182,10 @@ export class PlayerChannel {
      * Get current playing divisions channel
      */
     private getDivision(): DivisionChannel {
-        const lSongPosition: number = this.mPlayerModule.module.pattern.songPositions[this.mPlayerModule.cursor.songPositionIndex];
-        const lPattern: Pattern = this.mPlayerModule.module.pattern.getPattern(lSongPosition);
+        const lSongPosition: number = this.mGlobalSettings.module.pattern.songPositions[this.mGlobalSettings.cursor.songPositionIndex];
+        const lPattern: Pattern = this.mGlobalSettings.module.pattern.getPattern(lSongPosition);
 
-        return lPattern.getDivision(this.mPlayerModule.cursor.divisionIndex).getChannel(this.mChannelIndex);
+        return lPattern.getDivision(this.mGlobalSettings.cursor.divisionIndex).getChannel(this.mChannelIndex);
     }
 
     /**

@@ -55,11 +55,11 @@ export class PlayerChannelSettings {
     /**
      * Get sample information.
      */
-    public get sampleData(): SampleData {
+    public get sampleData() {
         return {
             sample: this.mSampleData.sample,
             position: this.mSampleData.position
-        };
+        } as const;
     }
 
     /**

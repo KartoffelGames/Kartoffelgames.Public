@@ -180,13 +180,12 @@ export class PlayerChannel {
 
     /**
      * Get current playing divisions channel
-     * @param pChannelIndex - Channel index.
      */
-    private getDivision(pChannelIndex: number): DivisionChannel {
+    private getDivision(): DivisionChannel {
         const lSongPosition: number = this.mPlayerModule.module.pattern.songPositions[this.mPlayerModule.cursor.songPositionIndex];
         const lPattern: Pattern = this.mPlayerModule.module.pattern.getPattern(lSongPosition);
 
-        return lPattern.getDivision(this.mPlayerModule.cursor.divisionIndex).getChannel(pChannelIndex);
+        return lPattern.getDivision(this.mPlayerModule.cursor.divisionIndex).getChannel(this.mChannelIndex);
     }
 
     /**
@@ -201,7 +200,7 @@ export class PlayerChannel {
         this.mEffectList = new Array<BaseEffectProcessor<IGenericEffect>>();
 
         // Add effect into effect list. Convert generic effect into effect processors. 
-        const lConvertedEffect: List<BaseEffectProcessor<IGenericEffect>> = this.createEffects(this.getDivision(this.mChannelIndex).effects);
+        const lConvertedEffect: List<BaseEffectProcessor<IGenericEffect>> = this.createEffects(this.getDivision().effects);
         this.mEffectList.push(...lConvertedEffect);
     }
 }

@@ -79,17 +79,6 @@ export class PlayerGlobalSettings {
         this.mSpeedHandler = pParameter.speedHandler;
         this.mWaveHandler = pParameter.waveHandler;
     }
-
-    /**
-     * Get current playing divisions channel
-     * @param pChannelIndex - Channel index.
-     */
-    public getDivision(pChannelIndex: number): DivisionChannel {
-        const lSongPosition: number = this.mGenericModule.pattern.songPositions[this.mCursorHandler.songPositionIndex];
-        const lPattern: Pattern = this.mGenericModule.pattern.getPattern(lSongPosition);
-
-        return lPattern.getDivision(this.mCursorHandler.divisionIndex).getChannel(pChannelIndex);
-    }
 }
 
 interface PlayerModuleConstructorParameter {

@@ -42,6 +42,8 @@ import { WaveformEffectProcessor } from '../effect/effect_processor/waveform/wav
 import { Sample } from '../generic_module/sample/sample';
 import { PlayerChannelSettings } from './player-channel-settings';
 import { PlayerGlobalSettings } from './global_settings/player-global-settings';
+import { DivisionChannel } from '../generic_module/pattern/division-channel';
+import { Pattern } from '../generic_module/pattern/pattern';
 
 export class PlayerChannel {
     private static readonly EFFECT_MAP: Dictionary<IGenericEffect, EffectProcessorConstructor> = (() => {
@@ -177,6 +179,17 @@ export class PlayerChannel {
     }
 
     /**
+     * Get current playing divisions channel
+     * @param pChannelIndex - Channel index.
+     */
+    private getDivision(pChannelIndex: number): DivisionChannel {
+        const lSongPosition: number = this.mPlayerModule.module.pattern.songPositions[this.mPlayerModule.cursor.songPositionIndex];
+        const lPattern: Pattern = this.mPlayerModule.module.pattern.getPattern(lSongPosition);
+
+        return lPattern.getDivision(this.mPlayerModule.cursor.divisionIndex).getChannel(pChannelIndex);
+    }
+
+    /**
      * On division change.
      * Load all new division effects and clear old division bound effects. 
      */
@@ -188,7 +201,7 @@ export class PlayerChannel {
         this.mEffectList = new Array<BaseEffectProcessor<IGenericEffect>>();
 
         // Add effect into effect list. Convert generic effect into effect processors. 
-        const lConvertedEffect: List<BaseEffectProcessor<IGenericEffect>> = this.createEffects(this.mPlayerModule.getDivision(this.mChannelIndex).effects);
+        const lConvertedEffect: List<BaseEffectProcessor<IGenericEffect>> = this.createEffects(this.getDivision(this.mChannelIndex).effects);
         this.mEffectList.push(...lConvertedEffect);
     }
 }

@@ -3,7 +3,7 @@ import { ModParser } from './module_parser/mod-parser';
 import { Player } from './player/player';
 
 export class TrackPlayerProcessor extends AudioWorkletProcessor {
-    private mMixer: Player | null;
+    private mPlayer: Player | null;
 
     /**
      * Constructor.
@@ -13,7 +13,7 @@ export class TrackPlayerProcessor extends AudioWorkletProcessor {
         super();
 
         // Set module as unloaded.
-        this.mMixer = null;
+        this.mPlayer = null;
 
         // Set port listener for receiving messages.
         this.port.addEventListener('message', (pEvent: MessageEvent) => {
@@ -42,10 +42,10 @@ export class TrackPlayerProcessor extends AudioWorkletProcessor {
      * @param pParameters - Processor parameter.
      */
     public override process(_pInputs: Array<Array<Float32Array>>, pOutputs: Array<Array<Float32Array>>, _pParameters: Record<string, Float32Array>): boolean {
-        if (this.mMixer !== null) {
+        if (this.mPlayer !== null) {
             // Get block length and mix this block.
             const lAudioBlockLength = pOutputs[0][0].length;
-            const lModuleChannelList: Array<Float32Array> | null = this.mMixer.next(lAudioBlockLength);
+            const lModuleChannelList: Array<Float32Array> | null = this.mPlayer.next(lAudioBlockLength);
             if (lModuleChannelList === null) {
                 // Exit and set disposeable if no output is generated.
                 return false;
@@ -69,6 +69,7 @@ export class TrackPlayerProcessor extends AudioWorkletProcessor {
      * Load binary file and parse to a generic module.
      * @param pFile - File as binary data.
      */
+    // TODO: Outsource parsing and only "load" parsed module.
     private loadFile(pType: string, pFile: ArrayBuffer): void {
         const lFile: Uint8Array = new Uint8Array(pFile);
 
@@ -81,7 +82,7 @@ export class TrackPlayerProcessor extends AudioWorkletProcessor {
 
         // Create mixer when module is loaded.
         if (lModule !== null) {
-            this.mMixer = new Player(lModule, sampleRate);
+            this.mPlayer = new Player(lModule, sampleRate);
         }
     }
 
@@ -94,6 +95,11 @@ export class TrackPlayerProcessor extends AudioWorkletProcessor {
         switch (pMessageType) {
             case 'load': this.loadFile(pMessageData.type, pMessageData.buffer);
         }
+
+        // TODO: Specify edit messages.
+        // TODO: Specify media actions (pause, play, navigate, speed, ...)
+        // TODO: Specify monitor messages. (Channel pulse, current playing data, ...)
+        // TODO: Specify dynamic reaction messages (Remove channel, Add channel)
     }
 }
 

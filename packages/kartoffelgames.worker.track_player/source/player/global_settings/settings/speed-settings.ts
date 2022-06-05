@@ -36,6 +36,7 @@ export class SpeedSettings {
      * @param pSpeedUp 
      */
     public setSpeed(pBeatsPerMinute: number, pSpeedUp: number): void {
+        // TODO: Split into two method as they have nothing in common.
         this.mSpeedInformation.beatsPerMinute = pBeatsPerMinute;
         this.mSpeedInformation.speedUp = pSpeedUp;
     }

@@ -2,6 +2,7 @@ import { Pitch } from '../enum/pitch.enum';
 import { WaveformTarget } from '../enum/waveform-target.enum';
 import { Sample } from '../generic_module/sample/sample';
 
+// TODO: Retructurize.
 export class PlayerChannelSettings {
     private mFinetune: number;
     private mInvertLoop: boolean;

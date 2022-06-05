@@ -8,6 +8,7 @@ import { SpeedSettings } from './global_settings/settings/speed-settings';
 import { WaveSettings } from './global_settings/settings/wave-settings';
 import { PlayerGlobalSettings } from './global_settings/player-global-settings';
 
+// TODO: Find better name for tick as it is a already reserved name. 
 export class Player {
     private readonly mChannelList: Array<PlayerChannel>;
     private readonly mPlayerModule: PlayerGlobalSettings;
@@ -46,7 +47,7 @@ export class Player {
      * @param pAudioBlockLength - Length of next audio block.
      */
     public next(pAudioBlockLength: number): Array<Float32Array> | null {
-        // Exit if song is finished.
+        // Exit when song is finished.
         if (this.mPlayerModule.cursor.songPositionIndex >= this.mPlayerModule.length.songPositions) {
             return null;
         }

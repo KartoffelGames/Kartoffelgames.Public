@@ -1,5 +1,6 @@
 import { LengthSettings } from './length-settings';
 
+// TODO: Rename ..Index to ..Cursor
 export class CursorSettings {
     private mAudioSampleIndex: number;
     private mDivisionIndex: number;

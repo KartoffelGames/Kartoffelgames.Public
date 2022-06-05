@@ -64,7 +64,7 @@ export class JumpSettings {
 
     /**
      * Activate loop after current division.
-     * Cancels loop has executed more times than loop count is specified.
+     * Cancels loop when loop count is reached.
      * Different loop count means different loop.
      * @param pLoopCount - Loop count.
      */
@@ -87,6 +87,7 @@ export class JumpSettings {
      * @param pDivision - Set loop position.
      */
     public setLoopPosition(pDivision: number): void {
+        // TODO: Reset loop when new position is specified. ???
         this.mLoopPosition.division = pDivision;
     }
 }

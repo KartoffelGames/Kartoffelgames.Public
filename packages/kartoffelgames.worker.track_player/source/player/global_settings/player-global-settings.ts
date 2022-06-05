@@ -1,6 +1,4 @@
 import { GenericModule } from '../../generic_module/generic-module';
-import { DivisionChannel } from '../../generic_module/pattern/division-channel';
-import { Pattern } from '../../generic_module/pattern/pattern';
 import { CursorSettings } from './settings/cursor-settings';
 import { JumpSettings } from './settings/jump-settings';
 import { LengthSettings } from './settings/length-settings';
@@ -49,6 +47,7 @@ export class PlayerGlobalSettings {
      * Get settings handler.
      */
     public get settings(): SettingsSettings {
+        // TODO: Rename to what??
         return this.mSettingHandler;
     }
 

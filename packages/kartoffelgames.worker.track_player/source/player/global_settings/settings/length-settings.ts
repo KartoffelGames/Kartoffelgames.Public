@@ -12,7 +12,8 @@ export class LengthSettings {
      * Get channel count.
      */
     public get channels(): number {
-        // For performance. Get channel count from first division.
+        // TODO: Is there now a better way to find the current needed channels?
+        // For performance. Get channel count for first division.
         const lFirstPattern: Pattern = this.mGenericModule.pattern.getPattern(0);
         const lFirstDivision: Division = lFirstPattern.getDivision(0);
 
@@ -23,7 +24,7 @@ export class LengthSettings {
      * Get count of divisions per pattern.
      */
     public get divisions(): number {
-        // Get all pattern lenfths.
+        // Get all pattern lengths.
         const lPatternLengthList: Array<number> = new Array<number>();
         for (let lPatternIndex: number = 0; lPatternIndex < this.mGenericModule.pattern.patternCount; lPatternIndex++) {
             const lPattern: Pattern = this.mGenericModule.pattern.getPattern(lPatternIndex);

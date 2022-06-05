@@ -1,6 +1,7 @@
 import { WaveformTarget } from '../../../enum/waveform-target.enum';
 import { Waveform } from '../../../enum/waveform.enum';
 
+// TODO: What is this cursed name??? 
 export class SettingsSettings {
     private mGlissandoEnabled: boolean;
     private readonly mWaveformSetting: WaveformSettings;

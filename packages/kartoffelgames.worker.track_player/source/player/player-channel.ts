@@ -96,6 +96,7 @@ export class PlayerChannel {
     /**
      * Play next tick and get sample position value.
      */
+    // TODO: Remove _pSongPositionChanged parameter.
     public nextSample(_pSongPositionChanged: boolean, pDivisionChanged: boolean, pTickChanged: boolean): number {
         if (pDivisionChanged) {
             this.onDivisionChange();
@@ -145,6 +146,9 @@ export class PlayerChannel {
         if (lSample.repeatLength > 0 && (this.mChannelSettings.sampleData.position + 1) > (lSample.repeatOffset + lSample.repeatLength)) {
             // Move back as long as not inside repeat length.
             this.mChannelSettings.setSamplePosition(lSample.repeatOffset);
+
+            // Set loop state.
+            this.mInsideLoop = true;
         }
 
         // Invert the "loop". Not just the loop but the none loop and siltent data too.

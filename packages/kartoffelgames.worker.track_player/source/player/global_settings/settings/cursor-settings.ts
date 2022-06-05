@@ -1,9 +1,9 @@
-import { LengthHandler } from './length-handler';
+import { LengthSettings } from './length-settings';
 
-export class CursorHandler {
+export class CursorSettings {
     private mAudioSampleIndex: number;
     private mDivisionIndex: number;
-    private readonly mModuleLengthInformation: LengthHandler;
+    private readonly mModuleLengthInformation: LengthSettings;
     private mSongPositionIndex: number;
     private mTickIndex: number;
 
@@ -39,7 +39,7 @@ export class CursorHandler {
      * Constructor.
      * @param pLengthInformation - Module length calculator.
      */
-    public constructor(pLengthInformation: LengthHandler) {
+    public constructor(pLengthInformation: LengthSettings) {
         this.mModuleLengthInformation = pLengthInformation;
 
         // Default.

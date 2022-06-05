@@ -1,11 +1,11 @@
 import { GenericModule } from '../../../generic_module/generic-module';
 import { Division } from '../../../generic_module/pattern/division';
 import { Pattern } from '../../../generic_module/pattern/pattern';
-import { SpeedHandler } from './speed-handler';
+import { SpeedSettings } from './speed-settings';
 
-export class LengthHandler {
+export class LengthSettings {
     private readonly mGenericModule: GenericModule;
-    private readonly mSpeedHandler: SpeedHandler;
+    private readonly mSpeedHandler: SpeedSettings;
     private mTicksPerDivision: number;
 
     /**
@@ -60,7 +60,7 @@ export class LengthHandler {
      * @param pModule - Playing module.
      * @param pSpeedHandler - Speed handler.
      */
-    public constructor(pModule: GenericModule, pSpeedHandler: SpeedHandler) {
+    public constructor(pModule: GenericModule, pSpeedHandler: SpeedSettings) {
         this.mGenericModule = pModule;
         this.mSpeedHandler = pSpeedHandler;
         this.mTicksPerDivision = 0;

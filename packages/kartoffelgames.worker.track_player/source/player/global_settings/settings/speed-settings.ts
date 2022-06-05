@@ -1,4 +1,4 @@
-export class SpeedHandler {
+export class SpeedSettings {
     private readonly mSpeedInformation: SpeedInformation;
 
     /**

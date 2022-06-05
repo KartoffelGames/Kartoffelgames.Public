@@ -41,7 +41,7 @@ import { SetWaveformEffectProcessor } from '../effect/effect_processor/waveform/
 import { WaveformEffectProcessor } from '../effect/effect_processor/waveform/waveform-effect-processor';
 import { Sample } from '../generic_module/sample/sample';
 import { PlayerChannelSettings } from './player-channel-settings';
-import { PlayerGlobalSettings } from './player_module/player-global-settings';
+import { PlayerGlobalSettings } from './global_settings/player-global-settings';
 
 export class PlayerChannel {
     private static readonly EFFECT_MAP: Dictionary<IGenericEffect, EffectProcessorConstructor> = (() => {

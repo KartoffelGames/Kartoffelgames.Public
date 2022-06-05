@@ -1,7 +1,7 @@
 import { WaveformTarget } from '../../../enum/waveform-target.enum';
 import { Waveform } from '../../../enum/waveform.enum';
 
-export class SettingsHandler {
+export class SettingsSettings {
     private mGlissandoEnabled: boolean;
     private readonly mWaveformSetting: WaveformSettings;
 

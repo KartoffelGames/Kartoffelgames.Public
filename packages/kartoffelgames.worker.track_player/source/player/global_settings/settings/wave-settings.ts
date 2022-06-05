@@ -1,7 +1,7 @@
 import { WaveformTarget } from '../../../enum/waveform-target.enum';
 import { Waveform } from '../../../enum/waveform.enum';
 
-export class WaveHandler {
+export class WaveSettings {
     private readonly mWaveformSetting: WaveformSettings;
 
     /**

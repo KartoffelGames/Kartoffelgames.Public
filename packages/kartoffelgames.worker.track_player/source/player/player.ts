@@ -1,12 +1,12 @@
 import { GenericModule } from '../generic_module/generic-module';
 import { PlayerChannel } from './player-channel';
-import { CursorChange, CursorHandler } from './player_module/setting_handler/cursor-handler';
-import { JumpHandler } from './player_module/setting_handler/jump-handler';
-import { LengthHandler } from './player_module/setting_handler/length-handler';
-import { SettingsHandler } from './player_module/setting_handler/settings-handler';
-import { SpeedHandler } from './player_module/setting_handler/speed-handler';
-import { WaveHandler } from './player_module/setting_handler/wave-handler';
-import { PlayerGlobalSettings } from './player_module/player-global-settings';
+import { CursorChange, CursorSettings } from './global_settings/settings/cursor-settings';
+import { JumpSettings } from './global_settings/settings/jump-settings';
+import { LengthSettings } from './global_settings/settings/length-settings';
+import { SettingsSettings } from './global_settings/settings/settings-settings';
+import { SpeedSettings } from './global_settings/settings/speed-settings';
+import { WaveSettings } from './global_settings/settings/wave-settings';
+import { PlayerGlobalSettings } from './global_settings/player-global-settings';
 
 export class Player {
     private readonly mChannelList: Array<PlayerChannel>;
@@ -22,12 +22,12 @@ export class Player {
         this.mChannelList = new Array<PlayerChannel>();
 
         // Create handler.
-        const lSpeedHandler: SpeedHandler = new SpeedHandler(pSampleRate);
-        const lLengthHandler: LengthHandler = new LengthHandler(pModule, lSpeedHandler);
-        const lCursorHandler: CursorHandler = new CursorHandler(lLengthHandler);
-        const lJumpHandler: JumpHandler = new JumpHandler(lCursorHandler);
-        const lSettingsHandler: SettingsHandler = new SettingsHandler();
-        const lWaveHandler: WaveHandler = new WaveHandler();
+        const lSpeedHandler: SpeedSettings = new SpeedSettings(pSampleRate);
+        const lLengthHandler: LengthSettings = new LengthSettings(pModule, lSpeedHandler);
+        const lCursorHandler: CursorSettings = new CursorSettings(lLengthHandler);
+        const lJumpHandler: JumpSettings = new JumpSettings(lCursorHandler);
+        const lSettingsHandler: SettingsSettings = new SettingsSettings();
+        const lWaveHandler: WaveSettings = new WaveSettings();
 
         // Create player module. Initialize with handler.
         this.mPlayerModule = new PlayerGlobalSettings({

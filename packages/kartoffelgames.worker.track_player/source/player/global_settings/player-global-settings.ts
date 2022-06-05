@@ -1,40 +1,40 @@
 import { GenericModule } from '../../generic_module/generic-module';
 import { DivisionChannel } from '../../generic_module/pattern/division-channel';
 import { Pattern } from '../../generic_module/pattern/pattern';
-import { CursorHandler } from './setting_handler/cursor-handler';
-import { JumpHandler } from './setting_handler/jump-handler';
-import { LengthHandler } from './setting_handler/length-handler';
-import { SettingsHandler } from './setting_handler/settings-handler';
-import { SpeedHandler } from './setting_handler/speed-handler';
-import { WaveHandler } from './setting_handler/wave-handler';
+import { CursorSettings } from './settings/cursor-settings';
+import { JumpSettings } from './settings/jump-settings';
+import { LengthSettings } from './settings/length-settings';
+import { SettingsSettings } from './settings/settings-settings';
+import { SpeedSettings } from './settings/speed-settings';
+import { WaveSettings } from './settings/wave-settings';
 
 export class PlayerGlobalSettings {
-    private readonly mCursorHandler: CursorHandler;
+    private readonly mCursorHandler: CursorSettings;
     private readonly mGenericModule: GenericModule;
-    private readonly mJumpHandler: JumpHandler;
-    private readonly mLengthHandler: LengthHandler;
-    private readonly mSettingHandler: SettingsHandler;
-    private readonly mSpeedHandler: SpeedHandler;
-    private readonly mWaveHandler: WaveHandler;
+    private readonly mJumpHandler: JumpSettings;
+    private readonly mLengthHandler: LengthSettings;
+    private readonly mSettingHandler: SettingsSettings;
+    private readonly mSpeedHandler: SpeedSettings;
+    private readonly mWaveHandler: WaveSettings;
 
     /**
      * Get current cursor.
      */
-    public get cursor(): CursorHandler {
+    public get cursor(): CursorSettings {
         return this.mCursorHandler;
     }
 
     /**
      * Get jump handler.
      */
-    public get jump(): JumpHandler {
+    public get jump(): JumpSettings {
         return this.mJumpHandler;
     }
 
     /**
      * Get length handler.
      */
-    public get length(): LengthHandler {
+    public get length(): LengthSettings {
         return this.mLengthHandler;
     }
 
@@ -48,21 +48,21 @@ export class PlayerGlobalSettings {
     /**
      * Get settings handler.
      */
-    public get settings(): SettingsHandler {
+    public get settings(): SettingsSettings {
         return this.mSettingHandler;
     }
 
     /**
      * Get speed handler.
      */
-    public get speed(): SpeedHandler {
+    public get speed(): SpeedSettings {
         return this.mSpeedHandler;
     }
 
     /**
      * Get wave handler.
      */
-    public get wave(): WaveHandler {
+    public get wave(): WaveSettings {
         return this.mWaveHandler;
     }
 
@@ -94,10 +94,10 @@ export class PlayerGlobalSettings {
 
 interface PlayerModuleConstructorParameter {
     genericModule: GenericModule;
-    speedHandler: SpeedHandler;
-    lengthHandler: LengthHandler;
-    cursorHandler: CursorHandler;
-    jumpHandler: JumpHandler;
-    settingsHandler: SettingsHandler;
-    waveHandler: WaveHandler;
+    speedHandler: SpeedSettings;
+    lengthHandler: LengthSettings;
+    cursorHandler: CursorSettings;
+    jumpHandler: JumpSettings;
+    settingsHandler: SettingsSettings;
+    waveHandler: WaveSettings;
 }

@@ -1,15 +1,15 @@
-import { CursorHandler } from './cursor-handler';
+import { CursorSettings } from './cursor-settings';
 
-export class JumpHandler {
-    private readonly mCursor: CursorHandler;
+export class JumpSettings {
+    private readonly mCursor: CursorSettings;
     private mJumpSongPosition: JumpPosition | null;
     private readonly mLoopPosition: LoopPosition;
-    
+
     /**
      * Constructor.
      * @param pCursor - Player cursor.
      */
-    public constructor(pCursor: CursorHandler) {
+    public constructor(pCursor: CursorSettings) {
         this.mCursor = pCursor;
 
         // Initialize with none working jump position. 
@@ -70,13 +70,13 @@ export class JumpHandler {
      */
     public setLoop(pLoopCount: number): void {
         // Refresh only when another loop count is set.
-        if(this.mLoopPosition.loopCount !== pLoopCount) {
+        if (this.mLoopPosition.loopCount !== pLoopCount) {
             this.mLoopPosition.loopCount = pLoopCount;
             this.mLoopPosition.counter = 0;
         }
-        
+
         // Set jump position only when loops are left.
-        if(this.mLoopPosition.counter < this.mLoopPosition.loopCount) {
+        if (this.mLoopPosition.counter < this.mLoopPosition.loopCount) {
             this.mLoopPosition.counter++;
             this.setJumpPosition(this.mCursor.songPositionIndex, this.mLoopPosition.division);
         }

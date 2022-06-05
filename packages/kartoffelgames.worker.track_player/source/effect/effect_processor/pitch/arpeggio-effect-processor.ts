@@ -1,6 +1,6 @@
 import { EffectPriority } from '../../../enum/effect-priority.enum';
 import { PlayerChannelSettings } from '../../../player/player-channel-settings';
-import { PlayerGlobalSettings } from '../../../player/player_module/player-global-settings';
+import { PlayerGlobalSettings } from '../../../player/global_settings/player-global-settings';
 import { ArpeggioEffect } from '../../effect_definition/pitch/arpeggio-effect';
 import { BaseEffectProcessor } from '../base-effect-processor';
 

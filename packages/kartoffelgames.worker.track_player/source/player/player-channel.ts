@@ -116,7 +116,7 @@ export class PlayerChannel {
             return 0;
         }
 
-        // Get next sample position value. Apply volume.
+        // Get current sample position value. Apply volume.
         const lNextSamplePosition = Math.floor(this.mChannelSettings.sampleData.position);
         let lSamplePositionValue: number = lSample.data[lNextSamplePosition];
         lSamplePositionValue *= this.mChannelSettings.volume;
@@ -132,8 +132,6 @@ export class PlayerChannel {
         const lSampleSpeed = 7093789.2 / ((lPitch * 2) * this.mPlayerModule.speed.speed.sampleRate);
         this.mChannelSettings.sampleData.position += lSampleSpeed;
 
-        // TODO: Invert loop. this.mChannelSettings.invertLoop
-
         // Check for loop information.
         if (lSample.repeatLength > 0) {
             // Check if sample cursor is after the repeat range.
@@ -143,7 +141,12 @@ export class PlayerChannel {
             }
         }
 
-        return lSamplePositionValue;
+        // Invert the "loop". Not just the loop but the none loop and siltent data too.
+        if (this.mChannelSettings.invertLoop) {
+            return lSamplePositionValue * -1;
+        } else {
+            return lSamplePositionValue;
+        }
     }
 
     /**

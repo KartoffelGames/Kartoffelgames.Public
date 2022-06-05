@@ -1,12 +1,12 @@
 import { GenericModule } from '../../generic_module/generic-module';
 import { DivisionChannel } from '../../generic_module/pattern/division-channel';
 import { Pattern } from '../../generic_module/pattern/pattern';
-import { CursorHandler } from './handler/cursor-handler';
-import { JumpHandler } from './handler/jump-handler';
-import { LengthHandler } from './handler/length-handler';
-import { SettingsHandler } from './handler/settings-handler';
-import { SpeedHandler } from './handler/speed-handler';
-import { WaveHandler } from './handler/wave-handler';
+import { CursorHandler } from './setting_handler/cursor-handler';
+import { JumpHandler } from './setting_handler/jump-handler';
+import { LengthHandler } from './setting_handler/length-handler';
+import { SettingsHandler } from './setting_handler/settings-handler';
+import { SpeedHandler } from './setting_handler/speed-handler';
+import { WaveHandler } from './setting_handler/wave-handler';
 
 export class PlayerGlobalSettings {
     private readonly mCursorHandler: CursorHandler;

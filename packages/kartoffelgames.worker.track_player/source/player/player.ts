@@ -1,11 +1,11 @@
 import { GenericModule } from '../generic_module/generic-module';
 import { PlayerChannel } from './player-channel';
-import { CursorChange, CursorHandler } from './player_module/handler/cursor-handler';
-import { JumpHandler } from './player_module/handler/jump-handler';
-import { LengthHandler } from './player_module/handler/length-handler';
-import { SettingsHandler } from './player_module/handler/settings-handler';
-import { SpeedHandler } from './player_module/handler/speed-handler';
-import { WaveHandler } from './player_module/handler/wave-handler';
+import { CursorChange, CursorHandler } from './player_module/setting_handler/cursor-handler';
+import { JumpHandler } from './player_module/setting_handler/jump-handler';
+import { LengthHandler } from './player_module/setting_handler/length-handler';
+import { SettingsHandler } from './player_module/setting_handler/settings-handler';
+import { SpeedHandler } from './player_module/setting_handler/speed-handler';
+import { WaveHandler } from './player_module/setting_handler/wave-handler';
 import { PlayerGlobalSettings } from './player_module/player-global-settings';
 
 export class Player {

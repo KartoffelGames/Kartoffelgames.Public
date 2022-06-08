@@ -3,7 +3,7 @@ import { PlayerChannel } from './player-channel';
 import { CursorChange, CursorSettings } from './global_settings/settings/cursor-settings';
 import { JumpSettings } from './global_settings/settings/jump-settings';
 import { LengthSettings } from './global_settings/settings/length-settings';
-import { SettingsSettings } from './global_settings/settings/settings-settings';
+import { DelaySettings } from './global_settings/settings/delay-settings';
 import { SpeedSettings } from './global_settings/settings/speed-settings';
 import { WaveSettings } from './global_settings/settings/wave-settings';
 import { PlayerGlobalSettings } from './global_settings/player-global-settings';
@@ -26,7 +26,7 @@ export class Player {
         const lLengthHandler: LengthSettings = new LengthSettings(pModule, lSpeedHandler);
         const lCursorHandler: CursorSettings = new CursorSettings(lLengthHandler);
         const lJumpHandler: JumpSettings = new JumpSettings(lCursorHandler);
-        const lSettingsHandler: SettingsSettings = new SettingsSettings();
+        const lSettingsHandler: DelaySettings = new DelaySettings();
         const lWaveHandler: WaveSettings = new WaveSettings();
 
         // Create player module. Initialize with handler.
@@ -100,7 +100,7 @@ export class Player {
         // Reset loop position and pattern settings on pattern change.
         if (lChangeOn.songPosition) {
             this.mPlayerModule.jump.resetLoop();
-            this.mPlayerModule.settings.resetPatternSettings();
+            this.mPlayerModule.delay.resetPatternSettings();
         }
 
         // Check for jump action. Jump only on division change.

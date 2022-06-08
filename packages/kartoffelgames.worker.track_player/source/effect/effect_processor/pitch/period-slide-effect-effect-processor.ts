@@ -19,7 +19,7 @@ export class PeriodSlideEffectProcessor extends BaseEffectProcessor<PeriodSlideE
     public override onProcess(pTickChanged: boolean): void {
         // Calculate pitch change per sample. Slide in semitones on glisando enabled and effect is glissando sensitive.
         let lPeriodSlide: number = 0;
-        if (this.globalSettings.settings.glissandoEnabled && this.effectData.glissandoSensitive) {
+        if (this.globalSettings.delay.glissandoEnabled && this.effectData.glissandoSensitive) {
             if (pTickChanged) {
                 lPeriodSlide = this.channelSettings.pitch * Math.pow(2, 1 / 12);
             }

@@ -15,6 +15,6 @@ export class SetGlissandoEffectProcessor extends BaseEffectProcessor<SetGlissand
      */
     public override onEffectStart(): void {
         // Set global glissando state.
-        this.globalSettings.settings.glissandoEnabled = this.effectData.enabled;
+        this.globalSettings.delay.glissandoEnabled = this.effectData.enabled;
     }
 }

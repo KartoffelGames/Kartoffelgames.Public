@@ -17,7 +17,6 @@ export class JumpSettings {
         this.mLoopPosition = {
             division: -1,
             counter: 0,
-            active: false,
             loopCount: 0
         };
     }
@@ -46,7 +45,6 @@ export class JumpSettings {
     public resetLoop(): void {
         this.mLoopPosition.counter = 0;
         this.mLoopPosition.division = 0;
-        this.mLoopPosition.active = false;
         this.mLoopPosition.loopCount = 0;
     }
 
@@ -86,8 +84,10 @@ export class JumpSettings {
      * Set loop position for this pattern.
      * @param pDivision - Set loop position.
      */
-    public setLoopPosition(pDivision: number): void {
-        // TODO: Reset loop when new position is specified. ???
+    public setLoopPosition(pDivision: number): void {   
+        // Reset loop. Loop can uninteded without exit.
+        this.resetLoop();
+
         this.mLoopPosition.division = pDivision;
     }
 }
@@ -100,6 +100,5 @@ interface JumpPosition {
 interface LoopPosition {
     division: number;
     counter: number;
-    active: boolean;
     loopCount: number;
 }

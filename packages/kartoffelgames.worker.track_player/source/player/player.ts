@@ -8,7 +8,6 @@ import { SpeedSettings } from './global_settings/settings/speed-settings';
 import { WaveSettings } from './global_settings/settings/wave-settings';
 import { PlayerGlobalSettings } from './global_settings/player-global-settings';
 
-// TODO: Find better name for tick as it is a already reserved name. 
 export class Player {
     private readonly mChannelList: Array<PlayerChannel>;
     private readonly mPlayerModule: PlayerGlobalSettings;
@@ -46,7 +45,7 @@ export class Player {
      * Process next audio block.
      * @param pAudioBlockLength - Length of next audio block.
      */
-    public next(pAudioBlockLength: number): Array<Float32Array> | null {
+    public nextBlock(pAudioBlockLength: number): Array<Float32Array> | null {
         // Exit when song is finished.
         if (this.mPlayerModule.cursor.songPositionIndex >= this.mPlayerModule.length.songPositions) {
             return null;
@@ -72,7 +71,7 @@ export class Player {
         // For each audio sample.
         for (let lAudioSampleIndex: number = 0; lAudioSampleIndex < pAudioBlockLength; lAudioSampleIndex++) {
             // Tick next. Exit if no other pattern can be played.
-            const lCursorChange: CursorChange | null = this.tick();
+            const lCursorChange: CursorChange | null = this.tickAudioSample();
             if (!lCursorChange) {
                 return lOutputBufferList;
             }
@@ -81,7 +80,7 @@ export class Player {
             for (let lChannelIndex = 0; lChannelIndex < this.mPlayerModule.length.channels; lChannelIndex++) {
                 // Get next channel value.
                 const lChannelBuffer = lOutputBufferList[lChannelIndex];
-                lChannelBuffer[lAudioSampleIndex] = this.mChannelList[lChannelIndex].nextSample(lCursorChange.songPosition, lCursorChange.division, lCursorChange.tick);
+                lChannelBuffer[lAudioSampleIndex] = this.mChannelList[lChannelIndex].nextAudioSample(lCursorChange.division, lCursorChange.tick);
             }
         }
 
@@ -92,7 +91,7 @@ export class Player {
      * Executes after each audio sample.
      * Triggers channels next division.
      */
-    private tick(): CursorChange | null {
+    private tickAudioSample(): CursorChange | null {
         // TODO: Execute pattern offset.
 
         // Move cursor one sample

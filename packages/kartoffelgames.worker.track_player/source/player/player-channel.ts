@@ -96,8 +96,7 @@ export class PlayerChannel {
     /**
      * Play next tick and get sample position value.
      */
-    // TODO: Remove _pSongPositionChanged parameter.
-    public nextSample(_pSongPositionChanged: boolean, pDivisionChanged: boolean, pTickChanged: boolean): number {
+    public nextAudioSample(pDivisionChanged: boolean, pTickChanged: boolean): number {
         if (pDivisionChanged) {
             this.onDivisionChange();
         }
@@ -139,7 +138,7 @@ export class PlayerChannel {
 
         // Calculate next sample position.
         // 7093789.2 is a magic number from old amiga ages.
-        const lSampleSpeed = 7093789.2 / ((lPitch * 2) * this.mGlobalSettings.speed.speed.sampleRate);
+        const lSampleSpeed = 7093789.2 / ((lPitch * 2) * this.mGlobalSettings.speed.sampleRate);
         this.mChannelSettings.setSamplePosition(this.mChannelSettings.sampleData.position + lSampleSpeed);
 
         // Check for loop information and sample cursor is after the repeat range.

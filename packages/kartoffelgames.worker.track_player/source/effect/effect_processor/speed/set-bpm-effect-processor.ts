@@ -14,8 +14,7 @@ export class SetBeatsPerMinuteEffectProcessor extends BaseEffectProcessor<SetBea
      * On process start.
      */
     public override onEffectStart(): void {
-        // Set speed, keep beats per minute.
-        const lCurrentSpeedUp: number = this.globalSettings.speed.speed.speedUp;
-        this.globalSettings.speed.setSpeed(this.effectData.beatsPerMinute, lCurrentSpeedUp);
+        // Set speed.
+        this.globalSettings.speed.beatsPerMinute = this.effectData.beatsPerMinute;
     }
 }

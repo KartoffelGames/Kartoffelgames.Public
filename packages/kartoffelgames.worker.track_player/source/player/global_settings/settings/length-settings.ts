@@ -39,7 +39,7 @@ export class LengthSettings {
      * Get count of samples per tick.
      */
     public get samples(): number {
-        return ((this.mSpeedHandler.speed.sampleRate * 60) / (this.mSpeedHandler.speed.beatsPerMinute * this.mSpeedHandler.speed.speedUp)) / 24;
+        return ((this.mSpeedHandler.sampleRate * 60) / (this.mSpeedHandler.beatsPerMinute * this.mSpeedHandler.speedUp)) / 24;
     }
 
     /**

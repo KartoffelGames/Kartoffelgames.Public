@@ -1,15 +1,41 @@
 export class SpeedSettings {
-    private readonly mSpeedInformation: SpeedInformation;
+    private mSampleRate: number;
+    private mBeatsPerMinute: number;
+    private mSpeedUp: number;
 
     /**
-     * Get readonly speed information.
+     * Get sample rate.
      */
-    public get speed(): SpeedInformation {
-        return {
-            beatsPerMinute: this.mSpeedInformation.beatsPerMinute,
-            sampleRate: this.mSpeedInformation.sampleRate,
-            speedUp: this.mSpeedInformation.speedUp
-        };
+    public get sampleRate(): number {
+        return this.mSampleRate;
+    }
+
+    /**
+     * Get beats per minute.
+     */
+    public get beatsPerMinute(): number {
+        return this.mBeatsPerMinute;
+    }
+
+    /**
+     * Set beats per minute.
+     */
+    public set beatsPerMinute(pBeatsPerMinute: number) {
+        this.mBeatsPerMinute = pBeatsPerMinute;
+    }
+
+    /**
+     * Get speedUp.
+     */
+    public get speedUp(): number {
+        return this.mSpeedUp;
+    }
+
+    /**
+     * Set speedUp.
+     */
+    public set speedUp(pSpeedUp: number) {
+        this.mSpeedUp = pSpeedUp;
     }
 
     /**
@@ -19,31 +45,8 @@ export class SpeedSettings {
      */
     public constructor(pSampleRate: number) {
         // Init speed information.
-        this.mSpeedInformation = {
-            sampleRate: pSampleRate,
-            beatsPerMinute: 0,
-            speedUp: 0
-        };
-
-        // Set default speed.
-        this.setSpeed(125, 1);
+        this.mSampleRate = pSampleRate;
+        this.mBeatsPerMinute = 125;
+        this.mSpeedUp = 1;
     }
-
-    /**
-     * Set new global speed.
-     * Recalculates samples per tick.
-     * @param pBeatsPerMinute 
-     * @param pSpeedUp 
-     */
-    public setSpeed(pBeatsPerMinute: number, pSpeedUp: number): void {
-        // TODO: Split into two method as they have nothing in common.
-        this.mSpeedInformation.beatsPerMinute = pBeatsPerMinute;
-        this.mSpeedInformation.speedUp = pSpeedUp;
-    }
-}
-
-interface SpeedInformation {
-    sampleRate: number;
-    beatsPerMinute: number;
-    speedUp: number
 }

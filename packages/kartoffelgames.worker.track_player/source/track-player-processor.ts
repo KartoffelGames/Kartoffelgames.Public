@@ -45,7 +45,7 @@ export class TrackPlayerProcessor extends AudioWorkletProcessor {
         if (this.mPlayer !== null) {
             // Get block length and mix this block.
             const lAudioBlockLength = pOutputs[0][0].length;
-            const lModuleChannelList: Array<Float32Array> | null = this.mPlayer.next(lAudioBlockLength);
+            const lModuleChannelList: Array<Float32Array> | null = this.mPlayer.nextBlock(lAudioBlockLength);
             if (lModuleChannelList === null) {
                 // Exit and set disposeable if no output is generated.
                 return false;

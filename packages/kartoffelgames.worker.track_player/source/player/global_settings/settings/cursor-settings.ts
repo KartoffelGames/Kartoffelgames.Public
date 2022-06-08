@@ -1,39 +1,38 @@
 import { LengthSettings } from './length-settings';
 
-// TODO: Rename ..Index to ..Cursor
 export class CursorSettings {
-    private mAudioSampleIndex: number;
-    private mDivisionIndex: number;
+    private mAudioSampleCursor: number;
+    private mDivisionCursor: number;
     private readonly mModuleLengthInformation: LengthSettings;
-    private mSongPositionIndex: number;
-    private mTickIndex: number;
+    private mSongPositionCursor: number;
+    private mTickCursor: number;
 
     /**
      * Get current audio sample index.
      */
-    public get audioSampleIndex(): number {
-        return this.mAudioSampleIndex;
+    public get audioSampleCursor(): number {
+        return this.mAudioSampleCursor;
     }
 
     /**
      * Get current division index.
      */
-    public get divisionIndex(): number {
-        return this.mDivisionIndex;
+    public get divisionCursor(): number {
+        return this.mDivisionCursor;
     }
 
     /**
      * Get current songPosition index.
      */
-    public get songPositionIndex(): number {
-        return this.mSongPositionIndex;
+    public get songPositionCursor(): number {
+        return this.mSongPositionCursor;
     }
 
     /**
      * Get current tick index.
      */
-    public get tickIndex(): number {
-        return this.mTickIndex;
+    public get tickCursor(): number {
+        return this.mTickCursor;
     }
 
     /**
@@ -44,10 +43,10 @@ export class CursorSettings {
         this.mModuleLengthInformation = pLengthInformation;
 
         // Default.
-        this.mSongPositionIndex = 0;
-        this.mDivisionIndex = 0;
-        this.mTickIndex = 0;
-        this.mAudioSampleIndex = 0;
+        this.mSongPositionCursor = 0;
+        this.mDivisionCursor = 0;
+        this.mTickCursor = 0;
+        this.mAudioSampleCursor = 0;
 
         // Reset cursor.
         this.restart();
@@ -60,12 +59,12 @@ export class CursorSettings {
      */
     public jumpTo(pSongPosition: number, pDivision: number): void {
         // Set song position and division.
-        this.mSongPositionIndex = pSongPosition;
-        this.mDivisionIndex = pDivision;
+        this.mSongPositionCursor = pSongPosition;
+        this.mDivisionCursor = pDivision;
 
         // Reset tick and sample.
-        this.mAudioSampleIndex = 0;
-        this.mTickIndex = 0;
+        this.mAudioSampleCursor = 0;
+        this.mTickCursor = 0;
     }
 
     /**
@@ -79,38 +78,38 @@ export class CursorSettings {
         };
 
         // Check restart position.
-        if (this.mSongPositionIndex === -1) {
+        if (this.mSongPositionCursor === -1) {
             // Set everthing on change state.
             lCursorChange.songPosition = true;
             lCursorChange.division = true;
             lCursorChange.tick = true;
 
             // Set everything on first index.
-            this.mAudioSampleIndex = 0;
-            this.mTickIndex = 0;
-            this.mDivisionIndex = 0;
-            this.mSongPositionIndex = 0;
+            this.mAudioSampleCursor = 0;
+            this.mTickCursor = 0;
+            this.mDivisionCursor = 0;
+            this.mSongPositionCursor = 0;
         } else {
             // Increment sample and check overflow.
-            this.mAudioSampleIndex++;
-            if (this.mAudioSampleIndex === this.mModuleLengthInformation.samples) {
-                this.mAudioSampleIndex -= this.mModuleLengthInformation.samples;
+            this.mAudioSampleCursor++;
+            if (this.mAudioSampleCursor === this.mModuleLengthInformation.samples) {
+                this.mAudioSampleCursor -= this.mModuleLengthInformation.samples;
 
                 // Set change state, increment tick and check overflow.
                 lCursorChange.tick = true;
-                this.mTickIndex++;
-                if (this.mTickIndex === this.mModuleLengthInformation.ticks) {
-                    this.mTickIndex -= this.mModuleLengthInformation.ticks;
+                this.mTickCursor++;
+                if (this.mTickCursor === this.mModuleLengthInformation.ticks) {
+                    this.mTickCursor -= this.mModuleLengthInformation.ticks;
 
                     // Set change state, increment division and check overflow.
                     lCursorChange.division = true;
-                    this.mDivisionIndex++;
-                    if (this.mDivisionIndex === this.mModuleLengthInformation.divisions) {
-                        this.mDivisionIndex -= this.mModuleLengthInformation.divisions;
+                    this.mDivisionCursor++;
+                    if (this.mDivisionCursor === this.mModuleLengthInformation.divisions) {
+                        this.mDivisionCursor -= this.mModuleLengthInformation.divisions;
 
                         // Set change state and increment song position. Song position can overflow.
                         lCursorChange.songPosition = true;
-                        this.mSongPositionIndex++;
+                        this.mSongPositionCursor++;
                     }
                 }
             }
@@ -123,10 +122,10 @@ export class CursorSettings {
      * Restart cursor.
      */
     public restart(): void {
-        this.mSongPositionIndex = -1;
-        this.mDivisionIndex = -1;
-        this.mTickIndex = -1;
-        this.mAudioSampleIndex = -1;
+        this.mSongPositionCursor = -1;
+        this.mDivisionCursor = -1;
+        this.mTickCursor = -1;
+        this.mAudioSampleCursor = -1;
     }
 }
 

@@ -16,7 +16,7 @@ export class CutSampleEffectProcessor extends BaseEffectProcessor<CutSampleEffec
      */
     public override onProcess(pTickChanged: boolean): void {
         // Set volume to 0 on new tick and when tick index reaches tick where the sample should be cut.  
-        if (pTickChanged && this.globalSettings.cursor.tickIndex === this.effectData.ticks) {
+        if (pTickChanged && this.globalSettings.cursor.tickCursor === this.effectData.ticks) {
             this.channelSettings.volume = 0;
         }
     }

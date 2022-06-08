@@ -76,7 +76,7 @@ export class JumpSettings {
         // Set jump position only when loops are left.
         if (this.mLoopPosition.counter < this.mLoopPosition.loopCount) {
             this.mLoopPosition.counter++;
-            this.setJumpPosition(this.mCursor.songPositionIndex, this.mLoopPosition.division);
+            this.setJumpPosition(this.mCursor.songPositionCursor, this.mLoopPosition.division);
         }
     }
 

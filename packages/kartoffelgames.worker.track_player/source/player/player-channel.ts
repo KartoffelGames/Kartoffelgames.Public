@@ -185,10 +185,10 @@ export class PlayerChannel {
      * Get current playing divisions channel
      */
     private getDivision(): DivisionChannel {
-        const lSongPosition: number = this.mGlobalSettings.module.pattern.songPositions[this.mGlobalSettings.cursor.songPositionIndex];
+        const lSongPosition: number = this.mGlobalSettings.module.pattern.songPositions[this.mGlobalSettings.cursor.songPositionCursor];
         const lPattern: Pattern = this.mGlobalSettings.module.pattern.getPattern(lSongPosition);
 
-        return lPattern.getDivision(this.mGlobalSettings.cursor.divisionIndex).getChannel(this.mChannelIndex);
+        return lPattern.getDivision(this.mGlobalSettings.cursor.divisionCursor).getChannel(this.mChannelIndex);
     }
 
     /**

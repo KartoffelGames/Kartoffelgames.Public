@@ -47,7 +47,7 @@ export class Player {
      */
     public nextBlock(pAudioBlockLength: number): Array<Float32Array> | null {
         // Exit when song is finished.
-        if (this.mPlayerModule.cursor.songPositionIndex >= this.mPlayerModule.length.songPositions) {
+        if (this.mPlayerModule.cursor.songPositionCursor >= this.mPlayerModule.length.songPositions) {
             return null;
         }
 
@@ -114,7 +114,7 @@ export class Player {
         }
 
         // Check song end.
-        if (this.mPlayerModule.cursor.songPositionIndex >= this.mPlayerModule.length.songPositions) {
+        if (this.mPlayerModule.cursor.songPositionCursor >= this.mPlayerModule.length.songPositions) {
             return null;
         }
 

@@ -16,7 +16,7 @@ export class DelaySampleEffectProcessor extends BaseEffectProcessor<DelaySampleE
      */
     public override onProcess(pTickChanged: boolean): void {
         // Delay sample position as long as current tick is lower than specified one.
-        if (pTickChanged && this.globalSettings.cursor.tickIndex < this.effectData.ticks) {
+        if (pTickChanged && this.globalSettings.cursor.tickCursor < this.effectData.ticks) {
             this.channelSettings.setSamplePosition(0);
         }
     }

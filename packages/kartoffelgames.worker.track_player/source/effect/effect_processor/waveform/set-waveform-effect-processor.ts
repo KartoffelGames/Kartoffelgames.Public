@@ -14,6 +14,6 @@ export class SetWaveformEffectProcessor extends BaseEffectProcessor<SetWaveformE
      * On process start.
      */
     public override onEffectStart(): void {
-        this.globalSettings.settings.setWaveform(this.effectData.waveform, this.effectData.target, this.effectData.retrigger);
+        this.globalSettings.wave.setWaveform(this.effectData.waveform, this.effectData.target, this.effectData.retrigger);
     }
 }

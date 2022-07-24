@@ -44,6 +44,8 @@ import { PlayerChannelSettings } from './player-channel-settings';
 import { PlayerGlobalSettings } from './global_settings/player-global-settings';
 import { DivisionChannel } from '../generic_module/pattern/division-channel';
 import { Pattern } from '../generic_module/pattern/pattern';
+import { DelayPatternEffectProcessor } from '../effect/effect_processor/pattern/delay-pattern-effect';
+import { DelayPatternEffect } from '../effect/effect_definition/pattern/delay-pattern-effect';
 
 export class PlayerChannel {
     private static readonly EFFECT_MAP: Dictionary<IGenericEffect, EffectProcessorConstructor> = (() => {
@@ -67,9 +69,7 @@ export class PlayerChannel {
         lEffectToProcessor.set(LoopEffect, LoopEffectProcessor);
         lEffectToProcessor.set(SetWaveformEffect, SetWaveformEffectProcessor);
         lEffectToProcessor.set(WaveformEffect, WaveformEffectProcessor);
-
-        // TODO: DelayPatternEffect
-
+        lEffectToProcessor.set(DelayPatternEffect, DelayPatternEffectProcessor);
         return lEffectToProcessor;
     })();
 

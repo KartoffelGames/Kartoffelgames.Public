@@ -92,15 +92,12 @@ export class Player {
      * Triggers channels next division.
      */
     private tickAudioSample(): CursorChange | null {
-        // TODO: Execute pattern offset.
-
         // Move cursor one sample
         const lChangeOn: CursorChange = this.mPlayerModule.cursor.next();
 
         // Reset loop position and pattern settings on pattern change.
         if (lChangeOn.songPosition) {
             this.mPlayerModule.jump.resetLoop();
-            this.mPlayerModule.delay.resetPatternSettings();
         }
 
         // Check for jump action. Jump only on division change.

@@ -22,11 +22,4 @@ export class DelaySettings {
     public constructor() {
         this.mGlissandoEnabled = false;
     }
-
-    /**
-     * Reset pattern related settings.
-     */
-    public resetPatternSettings(): void {
-        // TODO:
-    }
 }

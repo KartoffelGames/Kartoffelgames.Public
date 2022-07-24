@@ -1,5 +1,3 @@
-import { WaveformTarget } from '../../../enum/waveform-target.enum';
-import { Waveform } from '../../../enum/waveform.enum';
 
 export class DelaySettings {
     private mGlissandoEnabled: boolean;

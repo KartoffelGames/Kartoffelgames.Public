@@ -65,6 +65,8 @@ export class CursorSettings {
         // Reset tick and sample.
         this.mAudioSampleCursor = 0;
         this.mTickCursor = 0;
+
+        // TODO: Trigger cursor changes on 
     }
 
     /**

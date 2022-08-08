@@ -1,6 +1,8 @@
 import { expect } from 'chai';
 import { StatefullSerializeable } from '../../../source/statefull_serialize/decorator/statefull-serializeable.decorator';
-import { ObjectifiedAnonymousObject, ObjectifiedArray, ObjectifiedBigInt, ObjectifiedClass, ObjectifiedSymbol, StatefullSerializer } from '../../../source/statefull_serialize/statefull-serializer';
+import { StatefullSerializeableMap } from '../../../source/statefull_serialize/statefull-serializeable-map';
+import { StatefullSerializer } from '../../../source/statefull_serialize/statefull-serializer';
+import { ObjectifiedAnonymousObject, ObjectifiedArray, ObjectifiedBigInt, ObjectifiedClass, ObjectifiedSymbol } from '../../../source/statefull_serialize/types/Objectified';
 
 describe('StatefullSerializer', () => {
     describe('Method: objectify', () => {
@@ -114,7 +116,7 @@ describe('StatefullSerializer', () => {
             });
         });
 
-        it('-- BigInt', () => {
+        it('-- Array', () => {
             // Setup.
             const lSerializer: StatefullSerializer = new StatefullSerializer();
             const lValueList: Array<number> = [2, 4, 1];
@@ -245,6 +247,130 @@ describe('StatefullSerializer', () => {
                     }
                 });
             });
+
+            it('-- Not registered class', () => {
+                // Setup. Create class.
+                class TestClass {
+                    public constructor(_pValue: number) { /* Empty */ }
+                }
+
+                // Setup. Create object.
+                const lSerializer: StatefullSerializer = new StatefullSerializer();
+                const lTestObject: TestClass = new TestClass(1);
+
+                // Process.
+                const lErrorFunction = () => {
+                    lSerializer.objectify(lTestObject);
+                };
+
+                // Evaluation.
+                expect(lErrorFunction).to.throw(`Constructor "${TestClass.name}" is not registered.`);
+            });
+
+            it('-- Not registered objects', () => {
+                // Setup. Create class.
+                class TestClass {
+                    public constructor(_pValue: number) { /* Empty */ }
+                }
+
+                // Setup. Create object.
+                const lSerializer: StatefullSerializer = new StatefullSerializer();
+                const lTestObject: TestClass = new TestClass(1);
+
+                // Setup. Register class after creation.
+                StatefullSerializeableMap.instance.registerClass(TestClass, '99d6bd98-99dc-45b1-9144-6b9a7b99e664');
+
+                // Process.
+                const lErrorFunction = () => {
+                    lSerializer.objectify(lTestObject);
+                };
+
+                // Evaluation.
+                expect(lErrorFunction).to.throw(`Object has no registered constructor parameter`);
+            });
+
+            it('-- Ignore set and get', () => {
+                // Setup. CLass id.
+                const lClassId: string = '7cb5a25d-6211-4ff5-9614-5f9307f2cfaa';
+
+                // Setup. Create class.
+                @StatefullSerializeable(lClassId)
+                class TestClass {
+                    private mInner: number;
+
+                    public get inner(): number {
+                        return this.mInner;
+                    } set inner(pValue: number) {
+                        this.mInner = pValue;
+                    }
+
+                    public constructor(pValue: number) {
+                        this.mInner = pValue;
+                    }
+                }
+
+                // Setup. Define test values.
+                const lSerializer: StatefullSerializer = new StatefullSerializer();
+                const lParameter = [241];
+                const lTestObject: TestClass = new TestClass(lParameter[0]);
+
+                // Process.
+                const lResult: ObjectifiedClass = <ObjectifiedClass>lSerializer.objectify(lTestObject);
+
+                // Evaluation.
+                expect(lResult).to.deep.equal({
+                    '&type': 'class',
+                    '&constructor': lClassId,
+                    '&objectId': lResult['&objectId'],
+                    '&parameter': lParameter,
+                    '&values': { mInner: lParameter[0] }
+                });
+            });
+
+            it('-- Ignore readonly properties.', () => {
+                // Setup. CLass id.
+                const lClassId: string = '3f8063ae-00b2-4b89-968f-51992938b031';
+
+                // Setup. Create class.
+                @StatefullSerializeable(lClassId)
+                class TestClass { }
+
+                // Setup. Define test values.
+                const lSerializer: StatefullSerializer = new StatefullSerializer();
+                const lTestObject: TestClass = new TestClass();
+
+                // Setup. Define own readonly property
+                Object.defineProperty(lTestObject, 'myPropertyShouldNotBeIncluded', {
+                    value: 241,
+                    writable: false
+                });
+
+                // Process.
+                const lResult: ObjectifiedClass = <ObjectifiedClass>lSerializer.objectify(lTestObject);
+
+                // Evaluation.
+                expect(lResult).to.deep.equal({
+                    '&type': 'class',
+                    '&constructor': lClassId,
+                    '&objectId': lResult['&objectId'],
+                    '&parameter': [],
+                    '&values': {}
+                });
+            });
+        });
+    });
+
+    describe('Method: serialize', () => {
+        it('-- Default', () => {
+            // Setup.
+            const lSerializer: StatefullSerializer = new StatefullSerializer();
+            const lValue: number = 241;
+
+            // Process.
+            const lResult: string = lSerializer.serialize(lValue);
+
+            // Evaluation.
+            expect(lResult).to.equal('241');
         });
     });
 });

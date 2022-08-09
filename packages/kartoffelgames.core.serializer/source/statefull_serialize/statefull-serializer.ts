@@ -3,6 +3,12 @@ import { SerializeableConstructor, SerializeableGuid } from '../type';
 import { StatefullSerializeableMap } from './statefull-serializeable-map';
 import { ObjectifedValue, ObjectifiedArray, ObjectifiedClass, ObjectifiedObject, ObjectifiedSimple } from './types/Objectified';
 
+// istanbul ignore next
+// Cross platform cryto solution. Please dont, i know. I haven't found any better solution.
+if (!globalThis.crypto) { // No Cryto should be nodeJS.
+    globalThis.crypto = eval('require')('crypto');
+}
+
 export class StatefullSerializer {
     /**
      * Objectify value.
@@ -19,17 +25,6 @@ export class StatefullSerializer {
      */
     public serialize(pObject: any): string {
         return JSON.stringify(this.objectify(pObject));
-    }
-
-    /**
-     * Generates a none cryptografic UUID.
-     */
-    private generateNoneCryptograficUuid(): SerializeableGuid {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (pCharacter) {
-            const lRandomNumber = Math.random() * 16 | 0;
-            const lCharacterResult = pCharacter === 'x' ? lRandomNumber : (lRandomNumber & 0x3 | 0x8);
-            return lCharacterResult.toString(16);
-        });
     }
 
     /**
@@ -84,7 +79,7 @@ export class StatefullSerializer {
         }
 
         // Create new guid and register as symbols id.
-        const lObjectId: SerializeableGuid = this.generateNoneCryptograficUuid();
+        const lObjectId: SerializeableGuid = globalThis.crypto.randomUUID();
         pObjectIds.set(pObject, lObjectId);
 
         // Symbol

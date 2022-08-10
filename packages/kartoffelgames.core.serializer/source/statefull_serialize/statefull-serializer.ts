@@ -1,7 +1,7 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { SerializeableConstructor, SerializeableGuid } from '../type';
 import { StatefullSerializeableMap } from './statefull-serializeable-map';
-import { ObjectifedValue, ObjectifiedArray, ObjectifiedClass, ObjectifiedObject, ObjectifiedSimple } from './types/Objectified';
+import { ObjectifiedValue, ObjectifiedArray, ObjectifiedClass, ObjectifiedObject, ObjectifiedSimple } from './types/Objectified';
 
 // istanbul ignore next
 // Cross platform cryto solution. Please dont, i know. I haven't found any better solution.
@@ -14,7 +14,7 @@ export class StatefullSerializer {
      * Objectify value.
      * @param pObject - Object.
      */
-    public objectify(pObject: any): ObjectifedValue {
+    public objectify(pObject: any): ObjectifiedValue {
         const lObjectIds: Dictionary<any, SerializeableGuid> = new Dictionary<any, SerializeableGuid>();
         return this.objectifyUnknown(pObject, lObjectIds);
     }
@@ -41,9 +41,10 @@ export class StatefullSerializer {
         const lObjectifiedParameterList: ObjectifiedArray = <ObjectifiedArray>this.objectifyUnknown(lParameterList, pObjectIds);
 
         // Read all property descriptors and objectify all none readonly values.
-        const lValueObject: { [key: string]: ObjectifedValue; } = {};
+        // Order property keys so an constistent reference chain can be achived.
+        const lValueObject: { [key: string]: ObjectifiedValue; } = {};
         const lDescriptorList = Object.getOwnPropertyDescriptors(pObject);
-        for (const lDescriptorKey in lDescriptorList) {
+        for (const lDescriptorKey of Object.keys(lDescriptorList).sort()) {
             const lPropertyDescriptor: PropertyDescriptor = lDescriptorList[lDescriptorKey];
 
             // Only none readonly values.
@@ -95,7 +96,7 @@ export class StatefullSerializer {
 
         // Array.
         if (Array.isArray(pObject)) {
-            const lSimpleArray: Array<ObjectifedValue> = pObject.map(pItem => this.objectifyUnknown(pItem, pObjectIds));
+            const lSimpleArray: Array<ObjectifiedValue> = pObject.map(pItem => this.objectifyUnknown(pItem, pObjectIds));
 
             return {
                 '&type': 'array',
@@ -109,8 +110,9 @@ export class StatefullSerializer {
             const lObject: any = <any>pObject;
 
             // Objectify each key of object.
-            const lAnonymousObject: { [key: string]: ObjectifedValue; } = {};
-            for (const lKey in lObject) {
+            // Order property keys so an constistent reference chain can be achived.
+            const lAnonymousObject: { [key: string]: ObjectifiedValue; } = {};
+            for (const lKey of Object.keys(lObject).sort()) {
                 // Ignores SET and GET and METHODS
                 lAnonymousObject[lKey] = this.objectifyUnknown(lObject[lKey], pObjectIds);
             }
@@ -131,7 +133,7 @@ export class StatefullSerializer {
      * @param pUnknown - Unknown value.
      * @param pObjectIds - Object ids of current serialization.
      */
-    private objectifyUnknown(pUnknown: unknown, pObjectIds: Dictionary<any, SerializeableGuid>): ObjectifedValue {
+    private objectifyUnknown(pUnknown: unknown, pObjectIds: Dictionary<any, SerializeableGuid>): ObjectifiedValue {
         const lType: 'string' | 'number' | 'bigint' | 'boolean' | 'symbol' | 'undefined' | 'object' | 'function' = typeof pUnknown;
         switch (lType) {
             // Native simple types.

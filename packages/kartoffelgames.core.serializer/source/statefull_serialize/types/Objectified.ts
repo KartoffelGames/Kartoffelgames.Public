@@ -2,7 +2,7 @@
 
 import { SerializeableGuid } from '../../type';
 
-export type ObjectifedValue = ObjectifiedSimple | ObjectifiedBigInt | ObjectifiedObject;
+export type ObjectifiedValue = ObjectifiedSimple | ObjectifiedBigInt | ObjectifiedObject;
 
 export type ObjectifiedSimple = string | number | boolean | undefined | null;
 
@@ -26,7 +26,7 @@ export type ObjectifiedSymbol = {
 export type ObjectifiedArray = {
     '&type': 'array',
     '&objectId': SerializeableGuid,
-    '&values': Array<ObjectifedValue>;
+    '&values': Array<ObjectifiedValue>;
 };
 
 export type ObjectifiedReference = {
@@ -37,13 +37,13 @@ export type ObjectifiedReference = {
 export type ObjectifiedAnonymousObject = {
     '&type': 'anonymous-object',
     '&objectId': SerializeableGuid,
-    '&values': { [key: string]: ObjectifedValue; };
+    '&values': { [key: string]: ObjectifiedValue; };
 };
 
 export type ObjectifiedClass = {
     '&type': 'class',
     '&constructor': SerializeableGuid,
     '&objectId': SerializeableGuid,
-    '&parameter': Array<ObjectifedValue>,
-    '&values': { [key: string]: ObjectifedValue; };
+    '&parameter': Array<ObjectifiedValue>,
+    '&values': { [key: string]: ObjectifiedValue; };
 };

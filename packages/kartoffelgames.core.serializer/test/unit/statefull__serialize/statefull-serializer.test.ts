@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { StatefullSerializeable } from '../../../source/statefull_serialize/decorator/statefull-serializeable.decorator';
 import { StatefullSerializeableMap } from '../../../source/statefull_serialize/statefull-serializeable-map';
 import { StatefullSerializer } from '../../../source/statefull_serialize/statefull-serializer';
-import { ObjectifiedAnonymousObject, ObjectifiedArray, ObjectifiedBigInt, ObjectifiedClass, ObjectifiedSymbol } from '../../../source/statefull_serialize/types/Objectified';
+import { ObjectifiedAnonymousObject, ObjectifiedArray, ObjectifiedBigInt, ObjectifiedClass, ObjectifiedSymbol } from '../../../source/statefull_serialize/types/Objectified.type';
 
 describe('StatefullSerializer', () => {
     describe('Method: objectify', () => {

@@ -2,11 +2,11 @@
 
 import { SerializeableGuid } from '../../type';
 
-export type ObjectifiedValue = ObjectifiedSimple | ObjectifiedBigInt | ObjectifiedObject;
+export type ObjectifiedValue = ObjectifiedSimple | ObjectifiedObject;
 
 export type ObjectifiedSimple = string | number | boolean | undefined | null;
 
-export type ObjectifiedObject = ObjectifiedSymbol | ObjectifiedArray | ObjectifiedReference | ObjectifiedAnonymousObject | ObjectifiedClass;
+export type ObjectifiedObject = ObjectifiedSymbol | ObjectifiedArray | ObjectifiedReference | ObjectifiedAnonymousObject | ObjectifiedClass | ObjectifiedBigInt;
 
 export type ObjectifiedBigInt = {
     '&type': 'bigint',
@@ -47,3 +47,5 @@ export type ObjectifiedClass = {
     '&parameter': Array<ObjectifiedValue>,
     '&values': { [key: string]: ObjectifiedValue; };
 };
+
+export type ObjectifiedObjectType = 'class' | 'anonymous-object' | 'reference' | 'array' | 'symbol' | 'bigint';

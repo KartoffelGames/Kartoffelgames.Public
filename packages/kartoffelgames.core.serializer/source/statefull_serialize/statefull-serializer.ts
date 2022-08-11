@@ -1,7 +1,7 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { SerializeableConstructor, SerializeableGuid } from '../type';
 import { StatefullSerializeableMap } from './statefull-serializeable-map';
-import { ObjectifiedValue, ObjectifiedArray, ObjectifiedClass, ObjectifiedObject, ObjectifiedSimple } from './types/Objectified';
+import { ObjectifiedValue, ObjectifiedArray, ObjectifiedClass, ObjectifiedObject, ObjectifiedSimple } from './types/Objectified.type';
 
 // istanbul ignore next
 // Cross platform cryto solution. Please dont, i know. I haven't found any better solution.
@@ -97,7 +97,7 @@ export class StatefullSerializer {
         // Array.
         if (Array.isArray(pObject)) {
             const lSimpleArray: Array<ObjectifiedValue> = pObject.map(pItem => this.objectifyUnknown(pItem, pObjectIds));
-
+            // TODO: BufferArray / TypedArrays ??? Over arrayType?
             return {
                 '&type': 'array',
                 '&objectId': lObjectId,

@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import { StatefullSerializeable } from '../../../source/statefull_serialize/decorator/statefull-serializeable.decorator';
-import { StatefullSerializeableMap } from '../../../source/statefull_serialize/statefull-serializeable-map';
+import { StatefullSerializeableClasses } from '../../../source/statefull_serialize/statefull-serializeable-classes';
 import { StatefullSerializer } from '../../../source/statefull_serialize/statefull-serializer';
-import { ObjectifiedAnonymousObject, ObjectifiedArray, ObjectifiedBigInt, ObjectifiedClass, ObjectifiedSymbol } from '../../../source/statefull_serialize/types/Objectified.type';
+import { ObjectifiedBigInt, ObjectifiedClass, ObjectifiedSymbol } from '../../../source/statefull_serialize/types/Objectified.type';
 
 describe('StatefullSerializer', () => {
     describe('Method: objectify', () => {
@@ -110,45 +110,7 @@ describe('StatefullSerializer', () => {
             // Evaluation.
             expect(lResult).to.deep.equal({
                 '&type': 'bigint',
-                '&values': {
-                    'number': lValue.toString()
-                }
-            });
-        });
-
-        it('-- Array', () => {
-            // Setup.
-            const lSerializer: StatefullSerializer = new StatefullSerializer();
-            const lValueList: Array<number> = [2, 4, 1];
-
-            // Process.
-            const lResult: ObjectifiedArray = <ObjectifiedArray>lSerializer.objectify(lValueList);
-
-            // Evaluation.
-            expect(lResult).to.deep.equal({
-                '&type': 'array',
-                '&objectId': lResult['&objectId'],
-                '&values': lValueList
-            });
-        });
-
-        it('-- Anonymous object', () => {
-            // Setup.
-            const lSerializer: StatefullSerializer = new StatefullSerializer();
-            const lValueList: any = {
-                a: 2,
-                b: 4,
-                c: 1
-            };
-
-            // Process.
-            const lResult: ObjectifiedAnonymousObject = <ObjectifiedAnonymousObject>lSerializer.objectify(lValueList);
-
-            // Evaluation.
-            expect(lResult).to.deep.equal({
-                '&type': 'anonymous-object',
-                '&objectId': lResult['&objectId'],
-                '&values': lValueList
+                '&number': lValue.toString()
             });
         });
 
@@ -159,12 +121,191 @@ describe('StatefullSerializer', () => {
             lValueList.a = lValueList;
 
             // Process.
-            const lResult: ObjectifiedAnonymousObject = <ObjectifiedAnonymousObject>lSerializer.objectify(lValueList);
+            const lResult: ObjectifiedClass = <ObjectifiedClass>lSerializer.objectify(lValueList);
 
             // Evaluation. Property "a" has a reference on parent object. 
             expect(lResult['&values']['a']).to.deep.equal({
                 '&type': 'reference',
                 '&objectId': lResult['&objectId'],
+            });
+        });
+
+        describe('-- Predefined', () => {
+            it('-- Object', () => {
+                // Setup.
+                const lValue = { a: '241', b: '420' };
+                const lSerializer: StatefullSerializer = new StatefullSerializer();
+
+                // Process.
+                const lResult: ObjectifiedClass = <ObjectifiedClass>lSerializer.objectify(lValue);
+
+                // Evaluation.
+                expect(lResult).to.deep.equal({
+                    '&type': 'class',
+                    '&constructor': lResult['&constructor'],
+                    '&objectId': lResult['&objectId'],
+                    '&initialisation': {
+                        'parameter': [],
+                        'requiredValues': []
+                    },
+                    '&values': {
+                        a: lValue.a,
+                        b: lValue.b
+                    }
+                });
+            });
+
+            it('-- Array', () => {
+                // Setup.
+                const lValue: Array<string> = ['241', '420'];
+                const lSerializer: StatefullSerializer = new StatefullSerializer();
+
+                // Process.
+                const lResult: ObjectifiedClass = <ObjectifiedClass>lSerializer.objectify(lValue);
+
+                // Evaluation.
+                expect(lResult).to.deep.equal({
+                    '&type': 'class',
+                    '&constructor': lResult['&constructor'],
+                    '&objectId': lResult['&objectId'],
+                    '&initialisation': {
+                        'parameter': [],
+                        'requiredValues': []
+                    },
+                    '&values': {
+                        0: lValue[0],
+                        1: lValue[1],
+                        length: lValue.length
+                    }
+                });
+            });
+
+            it('-- Date', () => {
+                // Setup.
+                const lValue: Date = new Date('1995-12-17T03:24:00');
+                const lSerializer: StatefullSerializer = new StatefullSerializer();
+
+                // Process.
+                const lResult: ObjectifiedClass = <ObjectifiedClass>lSerializer.objectify(lValue);
+
+                // Evaluation.
+                expect(lResult).to.deep.equal({
+                    '&type': 'class',
+                    '&constructor': lResult['&constructor'],
+                    '&objectId': lResult['&objectId'],
+                    '&initialisation': {
+                        'parameter': [lValue.toString()],
+                        'requiredValues': []
+                    },
+                    '&values': {}
+                });
+            });
+
+            it('-- Set', () => {
+                // Setup.
+                const lSetValueList: Array<string> = ['241', '420'];
+                const lValue: Set<string> = new Set<string>(lSetValueList);
+                const lSerializer: StatefullSerializer = new StatefullSerializer();
+
+                // Process.
+                const lResult: ObjectifiedClass = <ObjectifiedClass>lSerializer.objectify(lValue);
+
+                // Evaluation.
+                expect(lResult).to.deep.equal({
+                    '&type': 'class',
+                    '&constructor': lResult['&constructor'],
+                    '&objectId': lResult['&objectId'],
+                    '&initialisation': {
+                        'parameter': [{
+                            '&type': 'class',
+                            '&constructor': (<ObjectifiedClass>lResult['&initialisation']['parameter'][0])['&constructor'],
+                            '&objectId': (<ObjectifiedClass>lResult['&initialisation']['parameter'][0])['&objectId'],
+                            '&initialisation': {
+                                'parameter': [],
+                                'requiredValues': []
+                            },
+                            '&values': {
+                                '0': lSetValueList[0],
+                                '1': lSetValueList[1],
+                                'length': lSetValueList.length
+                            }
+                        }],
+                        'requiredValues': []
+                    },
+                    '&values': {}
+                });
+            });
+
+            it('-- Map', () => {
+                // Setup.
+                const lKeyValueTuble: [string, string] = ['241', '420'];
+                const lValue: Map<string, string> = new Map<string, string>([lKeyValueTuble]);
+                const lSerializer: StatefullSerializer = new StatefullSerializer();
+
+                // Process.
+                const lResult: ObjectifiedClass = <ObjectifiedClass>lSerializer.objectify(lValue);
+
+                // Evaluation.
+                expect(lResult).to.deep.equal({
+                    '&type': 'class',
+                    '&constructor': lResult['&constructor'],
+                    '&objectId': lResult['&objectId'],
+                    '&initialisation': {
+                        'parameter': [{
+                            '&type': 'class',
+                            '&constructor': (<ObjectifiedClass>lResult['&initialisation']['parameter'][0])['&constructor'],
+                            '&objectId': (<ObjectifiedClass>lResult['&initialisation']['parameter'][0])['&objectId'],
+                            '&initialisation': {
+                                'parameter': [],
+                                'requiredValues': []
+                            },
+                            '&values': {
+                                '0': {
+                                    '&constructor': (<ObjectifiedClass>(<ObjectifiedClass>lResult['&initialisation']['parameter'][0])['&values']['0'])['&constructor'],
+                                    '&initialisation': {
+                                        'parameter': [],
+                                        'requiredValues': []
+                                    },
+                                    '&objectId': (<ObjectifiedClass>(<ObjectifiedClass>lResult['&initialisation']['parameter'][0])['&values']['0'])['&objectId'],
+                                    '&type': 'class',
+                                    '&values': {
+                                        '0': lKeyValueTuble[0],
+                                        '1': lKeyValueTuble[1],
+                                        'length': lKeyValueTuble.length
+                                    }
+                                },
+                                'length': 1
+                            }
+                        }],
+                        'requiredValues': []
+                    },
+                    '&values': {}
+                });
+            });
+
+            it('-- TypedArray', () => {
+                // Setup.
+                const lValueList: Array<number> = [87, 27];
+                const lValue: Uint8Array = new Uint8Array(lValueList);
+                const lSerializer: StatefullSerializer = new StatefullSerializer();
+
+                // Process.
+                const lResult: ObjectifiedClass = <ObjectifiedClass>lSerializer.objectify(lValue);
+
+                // Evaluation.
+                expect(lResult).to.deep.equal({
+                    '&type': 'class',
+                    '&constructor': lResult['&constructor'],
+                    '&objectId': lResult['&objectId'],
+                    '&initialisation': {
+                        'parameter': [lValueList.length],
+                        'requiredValues': []
+                    },
+                    '&values': {
+                        0: lValue[0],
+                        1: lValue[1],
+                    }
+                });
             });
         });
 
@@ -195,7 +336,10 @@ describe('StatefullSerializer', () => {
                     '&type': 'class',
                     '&constructor': lClassId,
                     '&objectId': lResult['&objectId'],
-                    '&parameter': lParameter,
+                    '&initialisation': {
+                        'parameter': lParameter,
+                        'requiredValues': []
+                    },
                     '&values': { mInner: lParameter[0] }
                 });
             });
@@ -235,13 +379,19 @@ describe('StatefullSerializer', () => {
                     '&type': 'class',
                     '&constructor': lClassId,
                     '&objectId': lResult['&objectId'],
-                    '&parameter': lParameter,
+                    '&initialisation': {
+                        'parameter': lParameter,
+                        'requiredValues': []
+                    },
                     '&values': {
                         mObject: {
                             '&type': 'class',
                             '&constructor': lClassIdChild,
                             '&objectId': (<ObjectifiedClass>lResult['&values']['mObject'])['&objectId'],
-                            '&parameter': lParameter,
+                            '&initialisation': {
+                                'parameter': lParameter,
+                                'requiredValues': []
+                            },
                             '&values': { mInner: lParameter[0] }
                         }
                     }
@@ -265,28 +415,6 @@ describe('StatefullSerializer', () => {
 
                 // Evaluation.
                 expect(lErrorFunction).to.throw(`Constructor "${TestClass.name}" is not registered.`);
-            });
-
-            it('-- Not registered objects', () => {
-                // Setup. Create class.
-                class TestClass {
-                    public constructor(_pValue: number) { /* Empty */ }
-                }
-
-                // Setup. Create object.
-                const lSerializer: StatefullSerializer = new StatefullSerializer();
-                const lTestObject: TestClass = new TestClass(1);
-
-                // Setup. Register class after creation.
-                StatefullSerializeableMap.instance.registerClass(TestClass, '99d6bd98-99dc-45b1-9144-6b9a7b99e664');
-
-                // Process.
-                const lErrorFunction = () => {
-                    lSerializer.objectify(lTestObject);
-                };
-
-                // Evaluation.
-                expect(lErrorFunction).to.throw(`Object has no registered constructor parameter`);
             });
 
             it('-- Ignore set and get', () => {
@@ -322,7 +450,10 @@ describe('StatefullSerializer', () => {
                     '&type': 'class',
                     '&constructor': lClassId,
                     '&objectId': lResult['&objectId'],
-                    '&parameter': lParameter,
+                    '&initialisation': {
+                        'parameter': lParameter,
+                        'requiredValues': []
+                    },
                     '&values': { mInner: lParameter[0] }
                 });
             });
@@ -353,8 +484,47 @@ describe('StatefullSerializer', () => {
                     '&type': 'class',
                     '&constructor': lClassId,
                     '&objectId': lResult['&objectId'],
-                    '&parameter': [],
+                    '&initialisation': {
+                        'parameter': [],
+                        'requiredValues': []
+                    },
                     '&values': {}
+                });
+            });
+
+            it('-- Required values', () => {
+                // Setup.
+                const lRequiredName: string = 'RequiredValue';
+                const lRequiredValue: number = 241;
+                const lClassId: string = '474b291a-4b9e-497d-a491-5813e90ae6ad';
+
+                // Setup. Create class.
+                class TestClass { }
+
+                // Setup. Register class.
+                StatefullSerializeableClasses.instance.registerClass(TestClass, lClassId, () => {
+                    return {
+                        requiredValues: [{ propertyName: lRequiredName, value: lRequiredValue }]
+                    };
+                });
+
+                // Setup. Define test values.
+                const lSerializer: StatefullSerializer = new StatefullSerializer();
+                const lTestObject: TestClass = new TestClass();
+
+                // Process.
+                const lResult: ObjectifiedClass = <ObjectifiedClass>lSerializer.objectify(lTestObject);
+
+                // Evaluation.
+                expect(lResult).to.deep.equal({
+                    '&type': 'class',
+                    '&constructor': lClassId,
+                    '&objectId': lResult['&objectId'],
+                    '&initialisation': {
+                        'parameter': [],
+                        'requiredValues': [{ propertyName: lRequiredName, value: lRequiredValue }]
+                    },
+                    '&values': { }
                 });
             });
         });

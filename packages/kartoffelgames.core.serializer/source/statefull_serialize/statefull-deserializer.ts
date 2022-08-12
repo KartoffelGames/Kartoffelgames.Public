@@ -46,7 +46,7 @@ export class StatefullDeserializer {
                 const lBigIntObject: ObjectifiedBigInt = <ObjectifiedBigInt>pObjectified;
 
                 // Get bigint value and create bigint number.
-                const lNumberAsString: string = lBigIntObject['&values']['number'];
+                const lNumberAsString: string = lBigIntObject['&number'];
                 return BigInt(lNumberAsString);
             }
 
@@ -66,11 +66,8 @@ export class StatefullDeserializer {
             }
         }
 
-        // TODO: "anonymous-object"
-
-        // TODO: "array"
-
         // TODO: "class" 
+        return null;
     }
 
     /**

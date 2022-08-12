@@ -1,5 +1,5 @@
 import { SerializeableConstructor, SerializeableGuid } from '../../type';
-import { StatefullSerializeableMap } from '../statefull-serializeable-map';
+import { StatefullSerializeableClasses } from '../statefull-serializeable-classes';
 
 /**
  * AtScript.
@@ -9,18 +9,25 @@ import { StatefullSerializeableMap } from '../statefull-serializeable-map';
  */
 export function StatefullSerializeable(pGuid: SerializeableGuid) {
     return function (pConstructor: SerializeableConstructor): any {
+        const lObjectToConstructorParameter: WeakMap<object, Array<any>> = new WeakMap<object, Array<any>>();
+
         // Extends original constructor that maps any parameter of constructed objects.
         const lParameterProxyConstructor = class extends pConstructor {
             public constructor(...pParameter: Array<any>) {
                 super(...pParameter);
 
-                // Map constructed object.
-                StatefullSerializeableMap.instance.registerObject(this, pParameter);
+                // Map constructor parameter.
+                lObjectToConstructorParameter.set(this, pParameter);
             }
         };
 
         // Map serializable class.
-        StatefullSerializeableMap.instance.registerClass(lParameterProxyConstructor, pGuid);
+        StatefullSerializeableClasses.instance.registerClass(lParameterProxyConstructor, pGuid, (pObject: object) => {
+            return {
+                parameter: <Array<any>>lObjectToConstructorParameter.get(pObject),
+                requiredValues: []
+            };
+        });
 
         // Override original constrcutor.
         return lParameterProxyConstructor;

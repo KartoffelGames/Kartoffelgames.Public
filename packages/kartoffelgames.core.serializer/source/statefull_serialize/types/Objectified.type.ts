@@ -4,29 +4,21 @@ import { SerializeableGuid } from '../../type';
 
 export type ObjectifiedValue = ObjectifiedSimple | ObjectifiedObject;
 
-export type ObjectifiedSimple = string | number | boolean | undefined | null;
+export type ObjectifiedObject = ObjectifiedSymbol | ObjectifiedReference | ObjectifiedClass | ObjectifiedBigInt;
 
-export type ObjectifiedObject = ObjectifiedSymbol | ObjectifiedArray | ObjectifiedReference | ObjectifiedAnonymousObject | ObjectifiedClass | ObjectifiedBigInt;
+export type ObjectifiedSimple = string | number | boolean | undefined | null;
 
 export type ObjectifiedBigInt = {
     '&type': 'bigint',
-    '&values': {
-        'number': string;
-    };
+    '&number': string;
 };
 
 export type ObjectifiedSymbol = {
     '&type': 'symbol',
     '&objectId': SerializeableGuid,
     '&values': {
-        'description': string | undefined;
+        description: string | undefined;
     };
-};
-
-export type ObjectifiedArray = {
-    '&type': 'array',
-    '&objectId': SerializeableGuid,
-    '&values': Array<ObjectifiedValue>;
 };
 
 export type ObjectifiedReference = {
@@ -34,17 +26,14 @@ export type ObjectifiedReference = {
     '&objectId': SerializeableGuid,
 };
 
-export type ObjectifiedAnonymousObject = {
-    '&type': 'anonymous-object',
-    '&objectId': SerializeableGuid,
-    '&values': { [key: string]: ObjectifiedValue; };
-};
-
 export type ObjectifiedClass = {
     '&type': 'class',
     '&constructor': SerializeableGuid,
     '&objectId': SerializeableGuid,
-    '&parameter': Array<ObjectifiedValue>,
+    '&initialisation': {
+        parameter: Array<ObjectifiedValue>,
+        requiredValues: Array<{ propertyName: string; value: ObjectifiedValue; }>;
+    };
     '&values': { [key: string]: ObjectifiedValue; };
 };
 

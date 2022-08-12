@@ -1,7 +1,7 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { SerializeableConstructor, SerializeableGuid } from '../type';
-import { StatefullSerializeableMap } from './statefull-serializeable-map';
-import { ObjectifiedValue, ObjectifiedArray, ObjectifiedClass, ObjectifiedObject, ObjectifiedSimple } from './types/Objectified.type';
+import { StatefullSerializeableClasses, StatefullSerializerInitializationParameter } from './statefull-serializeable-classes';
+import { ObjectifiedObject, ObjectifiedSimple, ObjectifiedValue } from './types/Objectified.type';
 
 // istanbul ignore next
 // Cross platform cryto solution. Please dont, i know. I haven't found any better solution.
@@ -25,41 +25,6 @@ export class StatefullSerializer {
      */
     public serialize(pObject: any): string {
         return JSON.stringify(this.objectify(pObject));
-    }
-
-    /**
-     * Objectify objects that got created from a class.
-     * @param pObject - Object from class.
-     * @param pObjectIds - Curren serializer runs object ids.
-     */
-    private objectifyClass(pObject: object, pObjectId: SerializeableGuid, pObjectIds: Dictionary<any, SerializeableGuid>): ObjectifiedClass {
-        const lClassConstructor: SerializeableConstructor = <SerializeableConstructor>pObject.constructor;
-        const lClassId: SerializeableGuid = StatefullSerializeableMap.instance.getClassId(lClassConstructor);
-
-        // Read constructor parameter.
-        const lParameterList: Array<any> = StatefullSerializeableMap.instance.getObjectConstructionParameter(pObject);
-        const lObjectifiedParameterList: ObjectifiedArray = <ObjectifiedArray>this.objectifyUnknown(lParameterList, pObjectIds);
-
-        // Read all property descriptors and objectify all none readonly values.
-        // Order property keys so an constistent reference chain can be achived.
-        const lValueObject: { [key: string]: ObjectifiedValue; } = {};
-        const lDescriptorList = Object.getOwnPropertyDescriptors(pObject);
-        for (const lDescriptorKey of Object.keys(lDescriptorList).sort()) {
-            const lPropertyDescriptor: PropertyDescriptor = lDescriptorList[lDescriptorKey];
-
-            // Only none readonly values.
-            if (lPropertyDescriptor.writable) {
-                lValueObject[lDescriptorKey] = this.objectifyUnknown(lPropertyDescriptor.value, pObjectIds);
-            }
-        }
-
-        return {
-            '&type': 'class',
-            '&constructor': lClassId,
-            '&objectId': pObjectId,
-            '&parameter': lObjectifiedParameterList['&values'],
-            '&values': lValueObject
-        };
     }
 
     /**
@@ -94,38 +59,49 @@ export class StatefullSerializer {
             };
         }
 
-        // Array.
-        if (Array.isArray(pObject)) {
-            const lSimpleArray: Array<ObjectifiedValue> = pObject.map(pItem => this.objectifyUnknown(pItem, pObjectIds));
-            // TODO: BufferArray / TypedArrays ??? Over arrayType?
+        // Objects with constructors.
+        const lClassConstructor: SerializeableConstructor = <SerializeableConstructor>pObject.constructor;
+        const lClassId: SerializeableGuid = StatefullSerializeableClasses.instance.getClassId(lClassConstructor);
+
+        // Read constructor parameter.
+        const lInitializationObject: StatefullSerializerInitializationParameter = StatefullSerializeableClasses.instance.getObjectConstructionParameter(pObject);
+
+        // Build initialization parameter.
+        const lInitializationParameter: Array<ObjectifiedValue> | undefined = lInitializationObject.parameter?.map(pValue => {
+            return this.objectifyUnknown(pValue, pObjectIds);
+        });
+
+        // Build initialization required values.
+        const lInitializationRequiredValueList = lInitializationObject.requiredValues?.map(pValue => {
             return {
-                '&type': 'array',
-                '&objectId': lObjectId,
-                '&values': lSimpleArray
+                propertyName: pValue.propertyName,
+                value: this.objectifyUnknown(pValue.value, pObjectIds)
             };
-        }
+        });
 
-        // Anonymous object.
-        if (pObject.constructor === Object) {
-            const lObject: any = <any>pObject;
+        // Read all property descriptors and objectify all none readonly values.
+        // Order property keys so an constistent reference chain can be achived.
+        const lValueObject: { [key: string]: ObjectifiedValue; } = {};
+        const lDescriptorList = Object.getOwnPropertyDescriptors(pObject);
+        for (const lDescriptorKey of Object.keys(lDescriptorList).sort()) {
+            const lPropertyDescriptor: PropertyDescriptor = lDescriptorList[lDescriptorKey];
 
-            // Objectify each key of object.
-            // Order property keys so an constistent reference chain can be achived.
-            const lAnonymousObject: { [key: string]: ObjectifiedValue; } = {};
-            for (const lKey of Object.keys(lObject).sort()) {
-                // Ignores SET and GET and METHODS
-                lAnonymousObject[lKey] = this.objectifyUnknown(lObject[lKey], pObjectIds);
+            // Only none readonly values.
+            if (lPropertyDescriptor.writable) {
+                lValueObject[lDescriptorKey] = this.objectifyUnknown(lPropertyDescriptor.value, pObjectIds);
             }
-
-            return {
-                '&type': 'anonymous-object',
-                '&objectId': lObjectId,
-                '&values': lAnonymousObject
-            };
         }
 
-        // Class and other types.
-        return this.objectifyClass(pObject, lObjectId, pObjectIds);
+        return {
+            '&type': 'class',
+            '&constructor': lClassId,
+            '&objectId': lObjectId,
+            '&initialisation': {
+                'parameter': lInitializationParameter ?? [], // Default empty array.
+                'requiredValues': lInitializationRequiredValueList ?? [] // Default empty array.
+            },
+            '&values': lValueObject
+        };
     }
 
     /**
@@ -149,13 +125,11 @@ export class StatefullSerializer {
                 const lBigInt: bigint = <bigint>pUnknown;
                 return {
                     '&type': 'bigint',
-                    '&values': {
-                        'number': lBigInt.toString()
-                    }
+                    '&number': lBigInt.toString()
                 };
             }
 
-            // Symbol &Object
+            // Symbol & Object
             case 'symbol':
             case 'object': {
                 const lObject: object = <object>pUnknown;

@@ -1,23 +1,27 @@
 {
     "folders": [
         {
-            "name": "Kartoffelgames.Core.Data",
+            "name": "KartoffelGames.Core.Serializer",
+            "path": "./packages/kartoffelgames.core.serializer"
+        },
+        {
+            "name": "KartoffelGames.Core.Data",
             "path": "./packages/kartoffelgames.core.data"
         },
         {
-            "name": "Kartoffelgames.Core.Dependency_Injection",
+            "name": "KartoffelGames.Core.Dependency_Injection",
             "path": "./packages/kartoffelgames.core.dependency_injection"
         },
         {
-            "name": "Kartoffelgames.Core.Xml",
+            "name": "KartoffelGames.Core.Xml",
             "path": "./packages/kartoffelgames.core.xml"
         },
         {
-            "name": "Kartoffelgames.Web.Change_Detection",
+            "name": "KartoffelGames.Web.Change_Detection",
             "path": "./packages/kartoffelgames.web.change_detection"
         },
         {
-            "name": "Kartoffelgames.Web.Potato_Web_Builder",
+            "name": "KartoffelGames.Web.Potato_Web_Builder",
             "path": "./packages/kartoffelgames.web.potato_web_builder"
         },
         {

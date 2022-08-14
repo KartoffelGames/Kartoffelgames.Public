@@ -1,6 +1,7 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
-import { SerializeableGuid } from '../type';
-import { ObjectifiedBigInt, ObjectifiedObject, ObjectifiedObjectType, ObjectifiedReference, ObjectifiedSymbol, ObjectifiedValue } from './types/Objectified.type';
+import { SerializeableConstructor, SerializeableGuid } from '../type';
+import { StatefullSerializeableClasses } from './statefull-serializeable-classes';
+import { ObjectifiedBigInt, ObjectifiedClass, ObjectifiedObject, ObjectifiedObjectType, ObjectifiedReference, ObjectifiedSymbol, ObjectifiedValue } from './types/Objectified.type';
 
 export class StatefullDeserializer {
     /**
@@ -21,6 +22,11 @@ export class StatefullDeserializer {
         return this.deobjectify<T>(lObjectifiedValue);
     }
 
+    /**
+     * Deserialize
+     * @param pObjectified - Objectified value.
+     * @param pObjectIds - Current serializer runs object ids.
+     */
     private deobjectifyObject(pObjectified: ObjectifiedObject, pObjectIds: Dictionary<SerializeableGuid, any>): unknown {
         // Get object type by [&type].
         const lObjectType: ObjectifiedObjectType = pObjectified['&type'];
@@ -64,10 +70,50 @@ export class StatefullDeserializer {
 
                 return lSymbol;
             }
-        }
 
-        // TODO: "class" 
-        return null;
+            case 'class': {
+                // Hint object type.
+                const lClassObject: ObjectifiedClass = <ObjectifiedClass>pObjectified;
+
+                // Read object data.
+                const lClassId: SerializeableGuid = lClassObject['&constructor'];
+                const lObjectId: SerializeableGuid = lClassObject['&objectId'];
+                const lConstructionParameterList = lClassObject['&initialisation']['parameter'].map(pValue => this.deobjectifyUnknown(pValue, pObjectIds));
+
+                // Get class constructor.
+                const lConstructor: SerializeableConstructor = StatefullSerializeableClasses.instance.getClass(lClassId);
+
+                // Build class and register object id.
+                const lClass = new lConstructor(...lConstructionParameterList);
+                pObjectIds.set(lObjectId, lClass);
+
+                // Add required values.
+                for (const lRequiredValue of lClassObject['&initialisation']['requiredValues']) {
+                    const lDeserializedValue: any = this.deobjectifyUnknown(lRequiredValue.value, pObjectIds);
+
+                    // Add required value.
+                    if (typeof lClass[lRequiredValue.propertyName] === 'function') {
+                        // Call function with spread operator when value is an array.
+                        if (Array.isArray(lDeserializedValue)) {
+                            lClass[lRequiredValue.propertyName](...lDeserializedValue);
+                        } else {
+                            lClass[lRequiredValue.propertyName](lDeserializedValue);
+                        }
+                    } else {
+                        lClass[lRequiredValue.propertyName] = lDeserializedValue;
+                    }
+                }
+
+                // Add state values in alphabetical order.
+                const lValues = lClassObject['&values'];
+                for (const lKey of Object.keys(lValues).sort()) {
+                    // Deserialize and add value.
+                    lClass[lKey] = this.deobjectifyUnknown(lValues[lKey], pObjectIds);
+                }
+
+                return null;
+            }
+        }
     }
 
     /**

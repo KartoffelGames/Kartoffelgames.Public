@@ -30,7 +30,7 @@ export class StatefullSerializer {
     /**
      * Objectify referenceable values, any value that gets passed as reference.
      * @param pObject - Reference.
-     * @param pObjectIds - Curren serializer runs object ids.
+     * @param pObjectIds - Current serializer runs object ids.
      */
     private objectifyObject(pObject: object | symbol, pObjectIds: Dictionary<any, SerializeableGuid>): ObjectifiedObject {
         // Load cached objectification.

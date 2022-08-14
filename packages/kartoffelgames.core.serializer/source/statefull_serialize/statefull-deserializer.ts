@@ -111,7 +111,7 @@ export class StatefullDeserializer {
                     lClass[lKey] = this.deobjectifyUnknown(lValues[lKey], pObjectIds);
                 }
 
-                return null;
+                return lClass;
             }
         }
     }
@@ -125,7 +125,7 @@ export class StatefullDeserializer {
         const lType: 'string' | 'number' | 'bigint' | 'boolean' | 'symbol' | 'undefined' | 'object' | 'function' = typeof pObjectified;
 
         // Objectified is simple value. Simply return.
-        if (lType !== 'object' && pObjectified !== null) {
+        if (lType !== 'object' || pObjectified === null) {
             return pObjectified;
         }
 

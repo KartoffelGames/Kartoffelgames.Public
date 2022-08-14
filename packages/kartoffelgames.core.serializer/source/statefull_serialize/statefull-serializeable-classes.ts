@@ -83,7 +83,7 @@ export class StatefullSerializeableClasses {
 
         // Catch not registered constructors.
         if (!lGuid) {
-            throw new Exception('Id is not registered.', this);
+            throw new Exception('ClassId is not registered.', this);
         }
 
         return lGuid;

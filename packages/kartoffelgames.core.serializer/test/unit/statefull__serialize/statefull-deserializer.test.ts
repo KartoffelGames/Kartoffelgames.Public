@@ -3,7 +3,7 @@ import { StatefullSerializeable } from '../../../source/statefull_serialize/deco
 import { StatefullDeserializer } from '../../../source/statefull_serialize/statefull-deserializer';
 import { StatefullSerializeableClasses } from '../../../source/statefull_serialize/statefull-serializeable-classes';
 import { StatefullSerializer } from '../../../source/statefull_serialize/statefull-serializer';
-import { ObjectifiedClass, ObjectifiedReference, ObjectifiedValue } from '../../../source/statefull_serialize/types/Objectified.type';
+import { ObjectifiedReference, ObjectifiedValue } from '../../../source/statefull_serialize/types/Objectified.type';
 
 describe('StatefullDeserializer', () => {
     describe('Method: deobjectify', () => {
@@ -328,29 +328,6 @@ describe('StatefullDeserializer', () => {
                 expect(lResult).to.be.deep.equal(lTestObject);
                 expect(lResult).to.be.instanceOf(TestClass);
                 expect(lResult.object).to.be.instanceOf(TestClassChild);
-            });
-
-            it('-- Not registered class', () => {
-                // Setup.
-                const lDeserializer: StatefullDeserializer = new StatefullDeserializer();
-                const lObjectifiedValue: ObjectifiedClass = {
-                    '&type': 'class',
-                    '&constructor': 'NOT THERE',
-                    '&objectId': 'ALSO NOT THERE',
-                    '&initialisation': {
-                        'parameter': [],
-                        'requiredValues': []
-                    },
-                    '&values': {}
-                };
-
-                // Process.
-                const lErrorFunction = () => {
-                    lDeserializer.deobjectify(lObjectifiedValue);
-                };
-
-                // Evaluation.
-                expect(lErrorFunction).to.throw(`ClassId is not registered.`);
             });
 
             it('-- Required values', () => {

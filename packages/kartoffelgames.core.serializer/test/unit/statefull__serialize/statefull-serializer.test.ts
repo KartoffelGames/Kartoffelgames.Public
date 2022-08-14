@@ -398,25 +398,6 @@ describe('StatefullSerializer', () => {
                 });
             });
 
-            it('-- Not registered class', () => {
-                // Setup. Create class.
-                class TestClass {
-                    public constructor(_pValue: number) { /* Empty */ }
-                }
-
-                // Setup. Create object.
-                const lSerializer: StatefullSerializer = new StatefullSerializer();
-                const lTestObject: TestClass = new TestClass(1);
-
-                // Process.
-                const lErrorFunction = () => {
-                    lSerializer.objectify(lTestObject);
-                };
-
-                // Evaluation.
-                expect(lErrorFunction).to.throw(`Constructor "${TestClass.name}" is not registered.`);
-            });
-
             it('-- Ignore set and get', () => {
                 // Setup. CLass id.
                 const lClassId: string = '7cb5a25d-6211-4ff5-9614-5f9307f2cfaa';
@@ -524,7 +505,7 @@ describe('StatefullSerializer', () => {
                         'parameter': [],
                         'requiredValues': [{ propertyName: lRequiredName, value: lRequiredValue }]
                     },
-                    '&values': { }
+                    '&values': {}
                 });
             });
         });

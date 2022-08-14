@@ -1,3 +1,4 @@
+import { StatefullDeserializer } from '@kartoffelgames/core.serializer';
 import { GenericModule } from './generic_module/generic-module';
 import { ModParser } from './module_parser/mod-parser';
 import { Player } from './player/player';
@@ -23,7 +24,7 @@ export class TrackPlayerProcessor extends AudioWorkletProcessor {
 
                 // If message has valid type, load message data.
                 if (lType !== null) {
-                    const lData: MessageData = pEvent.data?.data ?? null;
+                    const lData: any = pEvent.data?.data ?? null;
 
                     // Process message when message data is valid.
                     if (lData !== null) {
@@ -66,34 +67,17 @@ export class TrackPlayerProcessor extends AudioWorkletProcessor {
     }
 
     /**
-     * Load binary file and parse to a generic module.
-     * @param pFile - File as binary data.
-     */
-    // TODO: Outsource parsing and only "load" parsed module.
-    private loadFile(pType: string, pFile: ArrayBuffer): void {
-        const lFile: Uint8Array = new Uint8Array(pFile);
-
-        // Parse with correct data.
-        let lModule: GenericModule | null = null;
-        switch (pType.toUpperCase()) {
-            case 'MOD':
-                lModule = new ModParser(lFile).parse();
-        }
-
-        // Create mixer when module is loaded.
-        if (lModule !== null) {
-            this.mPlayer = new Player(lModule, sampleRate);
-        }
-    }
-
-    /**
      * Process message.
      * @param pMessageType - Message type.
      * @param pMessageData - Message data.
      */
-    private readMessage(pMessageType: string, pMessageData: MessageData): void {
+    private readMessage(pMessageType: string, pMessageData: any): void {
         switch (pMessageType) {
-            case 'load': this.loadFile(pMessageData.type, pMessageData.buffer);
+            case 'load': {
+                const lModule: GenericModule = new StatefullDeserializer().deserialize(pMessageData);
+                this.mPlayer = new Player(lModule, sampleRate);
+                break;
+            }
         }
 
         // TODO: Specify edit messages.
@@ -103,8 +87,6 @@ export class TrackPlayerProcessor extends AudioWorkletProcessor {
     }
 }
 
-type LoadMessageData = { buffer: ArrayBuffer, type: string; };
-type MessageData = LoadMessageData;
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 declare const sampleRate: number;

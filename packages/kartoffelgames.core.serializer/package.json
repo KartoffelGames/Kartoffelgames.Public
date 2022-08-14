@@ -1,7 +1,7 @@
 {
     "name": "@kartoffelgames/core.serializer",
     "projectName": "KartoffelGames.Core.Serializer",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "KartoffelGames.Core.Serializer",
     "author": {
         "name": "KartoffelGames"
@@ -38,7 +38,7 @@
         "webpack-cli": "^4.8.0"
     },
     "dependencies": {
-        "@kartoffelgames/core.data": "^0.0.33"
+        "@kartoffelgames/core.data": "^0.0.34"
     },
     "scripts": {
         "script:build": "npm run pre:build && webpack-cli --config ../../enviroment/configuration/webpack.config.js",

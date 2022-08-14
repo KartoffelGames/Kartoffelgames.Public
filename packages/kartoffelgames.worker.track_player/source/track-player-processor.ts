@@ -1,6 +1,5 @@
 import { StatefullDeserializer } from '@kartoffelgames/core.serializer';
 import { GenericModule } from './generic_module/generic-module';
-import { ModParser } from './module_parser/mod-parser';
 import { Player } from './player/player';
 
 export class TrackPlayerProcessor extends AudioWorkletProcessor {
@@ -74,7 +73,7 @@ export class TrackPlayerProcessor extends AudioWorkletProcessor {
     private readMessage(pMessageType: string, pMessageData: any): void {
         switch (pMessageType) {
             case 'load': {
-                const lModule: GenericModule = new StatefullDeserializer().deserialize(pMessageData);
+                const lModule: GenericModule = new StatefullDeserializer().deserialize(pMessageData, GenericModule);
                 this.mPlayer = new Player(lModule, sampleRate);
                 break;
             }
@@ -84,6 +83,7 @@ export class TrackPlayerProcessor extends AudioWorkletProcessor {
         // TODO: Specify media actions (pause, play, navigate, speed, ...)
         // TODO: Specify monitor messages. (Channel pulse, current playing data, ...)
         // TODO: Specify dynamic reaction messages (Remove channel, Add channel)
+        // TODO: Specify export message. As GenericModule
     }
 }
 

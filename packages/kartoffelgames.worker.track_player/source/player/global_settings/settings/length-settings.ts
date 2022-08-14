@@ -13,6 +13,8 @@ export class LengthSettings {
      */
     public get channels(): number {
         // TODO: Is there now a better way to find the current needed channels?
+        // Cursor as "Optional" handler. Assigned via property??? Best solution!!
+
         // For performance. Get channel count for first division.
         const lFirstPattern: Pattern = this.mGenericModule.pattern.getPattern(0);
         const lFirstDivision: Division = lFirstPattern.getDivision(0);

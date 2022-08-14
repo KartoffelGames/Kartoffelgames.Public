@@ -6,18 +6,20 @@ import { ObjectifiedBigInt, ObjectifiedClass, ObjectifiedObject, ObjectifiedObje
 export class StatefullDeserializer {
     /**
      * Deobjectifiy objectified values.
+     * @param _pResultConstructor - Result type constructor. Optional for reference only.
      * @param pObjectified - Objectified values.
      */
-    public deobjectify<T>(pObjectified: ObjectifiedValue): T {
+    public deobjectify<T>(pObjectified: ObjectifiedValue, _pResultConstructor?: new () => T): T {
         const lObjectIds: Dictionary<SerializeableGuid, any> = new Dictionary<SerializeableGuid, any>();
         return <T>this.deobjectifyUnknown(pObjectified, lObjectIds);
     }
 
     /**
      * Deserialize serialized string.
+     * @param _pResultConstructor - Result type constructor. Optional for reference only.
      * @param pString - Serialized string.
      */
-    public deserialize<T>(pString: string): T {
+    public deserialize<T>(pString: string, _pResultConstructor?: new () => T): T {
         const lObjectifiedValue: any = JSON.parse(pString);
         return this.deobjectify<T>(lObjectifiedValue);
     }

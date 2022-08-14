@@ -1,11 +1,10 @@
 
-import { List } from '@kartoffelgames/core.data';
 import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
 import { IGenericEffect } from '../../effect/effect_definition/i-generic-effect';
 
 @StatefullSerializeable('3fd4b733-df66-4499-819a-78002d25b649')
 export class DivisionChannel {
-    private readonly mEffectList: List<IGenericEffect>;
+    private readonly mEffectList: Array<IGenericEffect>;
 
     /**
      * Set effect.
@@ -19,7 +18,7 @@ export class DivisionChannel {
      * Set empty information.
      */
     public constructor() {
-        this.mEffectList = new List<IGenericEffect>();
+        this.mEffectList = new Array<IGenericEffect>();
     }
 
     /**
@@ -34,7 +33,10 @@ export class DivisionChannel {
 
         // Remove old effect of same type.
         if (typeof lSameEffectType !== 'undefined') {
-            this.mEffectList.remove(lSameEffectType);
+            const lEffectIndex: number = this.mEffectList.indexOf(lSameEffectType);
+            if (lEffectIndex !== -1) {
+                this.mEffectList.splice(lEffectIndex, 1);
+            }
         }
     }
 
@@ -50,7 +52,10 @@ export class DivisionChannel {
 
         // Remove old effect of same type.
         if (typeof lSameEffectType !== 'undefined') {
-            this.mEffectList.remove(lSameEffectType);
+            const lEffectIndex: number = this.mEffectList.indexOf(lSameEffectType);
+            if (lEffectIndex !== -1) {
+                this.mEffectList.splice(lEffectIndex, 1);
+            }
         }
 
         this.mEffectList.push(pEffect);

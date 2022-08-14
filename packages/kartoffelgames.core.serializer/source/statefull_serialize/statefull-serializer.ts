@@ -6,7 +6,16 @@ import { ObjectifiedObject, ObjectifiedSimple, ObjectifiedValue } from './types/
 // istanbul ignore next
 // Cross platform cryto solution. Please dont, i know. I haven't found any better solution.
 if (!globalThis.crypto) { // No Cryto should be nodeJS.
-    globalThis.crypto = eval('require')('crypto');
+    globalThis.crypto = <any>{};
+}
+if (!globalThis.crypto.randomUUID) {
+    globalThis.crypto.randomUUID = () => {
+        return 'xxxxxxxx-xxxx-xxxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (pCharacter) => {
+            const lRandomNumber = Math.random() * 16 | 0;
+            const lRandomCharacter = pCharacter === 'x' ? lRandomNumber : (lRandomNumber & 0x3 | 0x8);
+            return lRandomCharacter.toString(16);
+        });
+    };
 }
 
 export class StatefullSerializer {

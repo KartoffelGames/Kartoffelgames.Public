@@ -1,3 +1,4 @@
+import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
 import { Direction } from '../../../enum/direction.enum';
 import { Pitch } from '../../../enum/pitch.enum';
 import { IGenericEffect } from '../i-generic-effect';
@@ -5,6 +6,7 @@ import { IGenericEffect } from '../i-generic-effect';
 /**
  * Devision period slide effect.
  */
+@StatefullSerializeable('c73b8272-d6db-432d-a2af-2a364cff187e')
 export class PeriodSlideEffect implements IGenericEffect {
     private mDirection: Direction;
     private mGlissandoSensitive: boolean;

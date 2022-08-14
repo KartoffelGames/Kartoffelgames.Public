@@ -1,8 +1,10 @@
+import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
 import { IGenericEffect } from '../i-generic-effect';
 
 /**
  * Sample delay effect.
  */
+@StatefullSerializeable('9aca6964-f76d-447f-8d7e-5b8c70ffdb3e')
 export class DelayPatternEffect implements IGenericEffect {
     private mDivisions: number;
 

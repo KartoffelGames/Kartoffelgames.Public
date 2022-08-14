@@ -1,8 +1,10 @@
+import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
 import { IGenericEffect } from '../i-generic-effect';
 
 /**
  * Sample set effect.
  */
+@StatefullSerializeable('4d89d145-7a92-4639-bebf-cfaa916e77ff')
 export class SetSampleEffect implements IGenericEffect {
     private mSampleIndex: number;
 

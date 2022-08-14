@@ -87,7 +87,7 @@ export class TrackPlayerProcessor extends AudioWorkletProcessor {
     }
 }
 
-
+// Global used variable in processor scope.
 // eslint-disable-next-line @typescript-eslint/naming-convention
 declare const sampleRate: number;
 

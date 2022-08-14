@@ -1,8 +1,10 @@
+import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
 import { IGenericEffect } from '../i-generic-effect';
 
 /**
  * Set speed effect.
  */
+@StatefullSerializeable('1641d552-51fc-4f24-8e01-52a29de9271c')
 export class SetSpeedEffect implements IGenericEffect {
     private mSpeed: number;
 

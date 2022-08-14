@@ -1,9 +1,11 @@
+import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
 import { WaveformTarget } from '../../../enum/waveform-target.enum';
 import { IGenericEffect } from '../i-generic-effect';
 
 /**
  * Devision waveform effect.
  */
+@StatefullSerializeable('4b6b14f0-1f2f-4a5f-8eca-17ca284e6cf2')
 export class WaveformEffect implements IGenericEffect {
     private mAmplitude: number;
     private mCirclesPerTick: number;

@@ -1,3 +1,4 @@
+import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
 import { WaveformTarget } from '../../../enum/waveform-target.enum';
 import { Waveform } from '../../../enum/waveform.enum';
 import { IGenericEffect } from '../i-generic-effect';
@@ -5,6 +6,7 @@ import { IGenericEffect } from '../i-generic-effect';
 /**
  * Set effects waveform effect.
  */
+@StatefullSerializeable('03f67b87-0760-4a61-8df6-26161c818f16')
 export class SetWaveformEffect implements IGenericEffect {
     private mEffectTarget: WaveformTarget;
     private mRetrigger: boolean;

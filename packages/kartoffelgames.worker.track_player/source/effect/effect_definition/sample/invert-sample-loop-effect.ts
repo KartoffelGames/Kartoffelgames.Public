@@ -1,8 +1,10 @@
+import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
 import { IGenericEffect } from '../i-generic-effect';
 
 /**
  * Sample loop invert effect.
  */
+@StatefullSerializeable('111c5fcf-ae55-4f1d-8d5a-77f385129ce5')
 export class InvertSampleLoopEffect implements IGenericEffect {
     private mInvert: boolean;
 

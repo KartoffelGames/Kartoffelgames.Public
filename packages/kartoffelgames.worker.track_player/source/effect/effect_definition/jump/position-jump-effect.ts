@@ -1,8 +1,10 @@
+import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
 import { IGenericEffect } from '../i-generic-effect';
 
 /**
  * Jump effect.
  */
+@StatefullSerializeable('7ba5c774-d66e-4f58-a23d-49a2973aa4a3')
 export class PositionJumpEffect implements IGenericEffect {
     private mDivisionIndex: number;
     private mSongPositionIndex: number;

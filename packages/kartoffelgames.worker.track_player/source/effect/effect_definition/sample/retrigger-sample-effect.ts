@@ -1,8 +1,10 @@
+import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
 import { IGenericEffect } from '../i-generic-effect';
 
 /**
  * Sample retrigger effect.
  */
+@StatefullSerializeable('4b8bbb2f-d1ed-490c-ac37-0aae07a66b99')
 export class RetriggerSampleEffect implements IGenericEffect {
     private mRetriggerTickInterval: number;
 

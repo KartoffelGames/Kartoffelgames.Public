@@ -1,8 +1,10 @@
 import { Exception } from '@kartoffelgames/core.data';
+import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
 
 /**
  * Sample information.
  */
+@StatefullSerializeable('217a4b0a-1a1a-4c93-9228-ad04e032f5f9')
 export class Sample {
     private mData: Float32Array;
     private mFineTune: number;

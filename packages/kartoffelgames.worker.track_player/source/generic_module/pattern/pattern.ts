@@ -1,6 +1,8 @@
 import { Exception } from '@kartoffelgames/core.data';
+import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
 import { Division } from './division';
 
+@StatefullSerializeable('e9a8b42d-c2e2-4466-8a5d-5c24290310f2')
 export class Pattern {
     private readonly mDivisionList: Array<Division>;
 

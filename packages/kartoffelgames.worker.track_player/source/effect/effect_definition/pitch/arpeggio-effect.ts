@@ -1,9 +1,11 @@
+import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
 import { Pitch } from '../../../enum/pitch.enum';
 import { IGenericEffect } from '../i-generic-effect';
 
 /**
  * Devision arpeggio effect.
  */
+@StatefullSerializeable('af9665cc-4859-4d3e-ad0f-6f249dcfc60a')
 export class ArpeggioEffect implements IGenericEffect {
     private readonly mNoteList: Array<Pitch>;
 

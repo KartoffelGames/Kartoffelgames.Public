@@ -1,9 +1,11 @@
+import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
 import { Direction } from '../../../enum/direction.enum';
 import { IGenericEffect } from '../i-generic-effect';
 
 /**
  * Sample volume slide effect.
  */
+@StatefullSerializeable('9c97f93e-a223-4f7b-a036-a2cd01c4ff0a')
 export class VolumeSlideEffect implements IGenericEffect {
     private mDirection: Direction;
     private mVolumeChangePerTick: number;

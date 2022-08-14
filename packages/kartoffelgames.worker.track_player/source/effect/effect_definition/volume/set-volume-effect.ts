@@ -1,8 +1,10 @@
+import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
 import { IGenericEffect } from '../i-generic-effect';
 
 /**
  * Sample volume slide effect.
  */
+@StatefullSerializeable('cc8156b4-f9ff-4eba-94fb-2640f525bac2')
 export class SetVolumeEffect implements IGenericEffect {
     private mVolume: number;
 

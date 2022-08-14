@@ -1,9 +1,11 @@
 import { Exception } from '@kartoffelgames/core.data';
+import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
 import { Pattern } from './pattern';
 
 /**
  * Complete pattern data.
  */
+@StatefullSerializeable('79cfd5d5-1575-45f4-a056-8248811d3deb')
 export class PatternList {
     private readonly mPatternList: Array<Pattern>;
     private mSongPositionList: Array<number>;

@@ -1,8 +1,10 @@
+import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
 import { IGenericEffect } from '../i-generic-effect';
 
 /**
  * Sample finetune effect.
  */
+@StatefullSerializeable('a0572a01-adc4-479b-b874-7969d26ef0c8')
 export class SetFinetuneEffect implements IGenericEffect {
     private mFinetune: number;
 

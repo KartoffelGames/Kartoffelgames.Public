@@ -1,7 +1,9 @@
 
 import { List } from '@kartoffelgames/core.data';
+import { StatefullSerializeable } from '@kartoffelgames/core.serializer';
 import { IGenericEffect } from '../../effect/effect_definition/i-generic-effect';
 
+@StatefullSerializeable('3fd4b733-df66-4499-819a-78002d25b649')
 export class DivisionChannel {
     private readonly mEffectList: List<IGenericEffect>;
 

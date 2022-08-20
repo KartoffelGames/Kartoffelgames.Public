@@ -88,15 +88,16 @@ export class ByteUtil {
     /**
      * Pick bits and concat every picket bit into one number.
      * @param pBits - Bit to pick.
+     * @param pBitCount - Length of data.
      * @param pBitList - index of bits.
      */
-    public static pickBits(pBits: bigint, pBitLength: number, pBitList: Array<number>): bigint {
+    public static pickBits(pBits: bigint, pBitCount: number, pBitList: Array<number>): bigint {
         let lPicketNumber: bigint | null = null;
 
         // Pick each bit.
         for (const lBitIndex of pBitList) {
-            // Create bitmask with revered index. Convert pBitLength to last index.
-            const lBitMask: bigint = BigInt(1 << (pBitLength - 1) - lBitIndex);
+            // Create bitmask with revered index. So that lBitIndex => 0 is the first bit and not the last.
+            const lBitMask: bigint = BigInt(1 << (pBitCount - 1) - lBitIndex);
 
             // Apply bitmask and get single bit.
             const lPickedBit: bigint = ((pBits & lBitMask) !== 0n) ? 1n : 0n;

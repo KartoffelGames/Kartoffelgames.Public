@@ -5,7 +5,7 @@ import { DivisionChannel } from '../generic_module/pattern/division-channel';
 import { Pattern } from '../generic_module/pattern/pattern';
 import { Sample } from '../generic_module/sample/sample';
 import { BaseEffectParser, ChannelValue } from './base-effect-parser';
-import { ByteUtil } from './helper/byte-util';
+import { ByteUtil } from '@kartoffelgames/core.data';
 
 export abstract class BaseModuleParser {
     private readonly mData: Uint8Array;
@@ -29,7 +29,7 @@ export abstract class BaseModuleParser {
 
         // Parse module name.
         const lNameBuffer = ByteUtil.readBytes(this.mData, lParseOptions.name.offset, lParseOptions.name.length);
-        lModule.songName  =  ByteUtil.byteToString(lNameBuffer, lParseOptions.name.emptyValue);
+        lModule.songName = ByteUtil.byteToString(lNameBuffer, lParseOptions.name.emptyValue);
 
         // Pattern starting position.
         let lPatternPosition: number = lParseOptions.pattern.offset;

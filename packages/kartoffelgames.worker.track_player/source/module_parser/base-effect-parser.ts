@@ -1,7 +1,5 @@
-import { Dictionary, Exception, List } from '@kartoffelgames/core.data';
+import { Exception, List } from '@kartoffelgames/core.data';
 import { IGenericEffect } from '../effect/effect_definition/i-generic-effect';
-import { SetPitchEffect } from '../effect/effect_definition/pitch/set-pitch-effect';
-import { ByteUtil } from './helper/byte-util';
 
 export class BaseEffectParser {
     private readonly mHandler: List<EffectHandlerSetting>;

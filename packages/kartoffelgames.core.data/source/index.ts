@@ -8,6 +8,7 @@ export { Exception } from './exception/exception';
 // Handler.
 export { EnumUtil } from './util/enum-util';
 export { TypeUtil } from './util/type-util';
+export { ByteUtil } from './util/byte-util';
 
 // Interfaces.
 export { IVoidParameterConstructor } from './interface/i-constructor';

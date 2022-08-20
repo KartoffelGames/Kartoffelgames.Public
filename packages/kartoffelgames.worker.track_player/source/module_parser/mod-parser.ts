@@ -1,5 +1,5 @@
-import { Direction } from '../enum/direction.enum';
-import { Pitch } from '../enum/pitch.enum';
+import { ByteUtil } from '@kartoffelgames/core.data';
+import { IGenericEffect } from '../effect/effect_definition/i-generic-effect';
 import { SetFinetuneEffect } from '../effect/effect_definition/pitch/set-finetune-effect';
 import { SetPitchEffect } from '../effect/effect_definition/pitch/set-pitch-effect';
 import { CutSampleEffect } from '../effect/effect_definition/sample/cut-sample-effect';
@@ -12,14 +12,14 @@ import { SetBeatsPerMinuteEffect } from '../effect/effect_definition/speed/set-b
 import { SetSpeedEffect } from '../effect/effect_definition/speed/set-speed-effect';
 import { SetVolumeEffect } from '../effect/effect_definition/volume/set-volume-effect';
 import { VolumeSlideEffect } from '../effect/effect_definition/volume/volume-slide-effect';
+import { Direction } from '../enum/direction.enum';
+import { Pitch } from '../enum/pitch.enum';
 import { GenericModule } from '../generic_module/generic-module';
-import { IGenericEffect } from '../effect/effect_definition/i-generic-effect';
 import { Division } from '../generic_module/pattern/division';
 import { DivisionChannel } from '../generic_module/pattern/division-channel';
 import { Pattern } from '../generic_module/pattern/pattern';
 import { Sample } from '../generic_module/sample/sample';
 import { BaseParser } from './base-module-parser';
-import { ByteUtil } from './helper/byte-util';
 
 /**
  * MOD file parser.

@@ -18,7 +18,7 @@ import { Division } from '../generic_module/pattern/division';
 import { DivisionChannel } from '../generic_module/pattern/division-channel';
 import { Pattern } from '../generic_module/pattern/pattern';
 import { Sample } from '../generic_module/sample/sample';
-import { BaseParser } from './base-parser';
+import { BaseParser } from './base-module-parser';
 import { ByteUtil } from './helper/byte-util';
 
 /**
@@ -324,15 +324,15 @@ export class ModParser extends BaseParser {
      * @param pPatternCount - Pattern count.
      */
     private parsePattern(pModule: GenericModule, pModuleExtension: ModuleExtension, pChannelCount: number, pPatternCount: number): void {
-        // Get sample count.
+        // Get pattern count.
         const lSampleCount: number = (pModuleExtension !== '') ? 31 : 15;
 
-        // Get sample order length.
+        // Get pattern order length.
         const lSampleOrderLengthOffset = ModParser.NAME_BYTE_LENGTH + (lSampleCount * ModParser.SAMPLE_HEADER_BYTE_LENGTH);
         const lSampleOrderLengthBuffer = ByteUtil.readBytes(this.data, lSampleOrderLengthOffset, 1);
         const lSampleOrderLength: number = lSampleOrderLengthBuffer[0];
 
-        // Get sample order.
+        // Get pattern order.
         const lSampleOrderOffset = ModParser.NAME_BYTE_LENGTH + (lSampleCount * ModParser.SAMPLE_HEADER_BYTE_LENGTH) + 1 + 1;
         const lModuleSongPositionBuffer = ByteUtil.readBytes(this.data, lSampleOrderOffset, 128);
         pModule.pattern.songPositions = [...lModuleSongPositionBuffer.slice(0, lSampleOrderLength)];

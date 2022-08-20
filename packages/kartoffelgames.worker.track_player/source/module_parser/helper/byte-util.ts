@@ -36,10 +36,11 @@ export class ByteUtil {
     /**
      * Convert byte array to string.
      * @param pByteArray - Unsigned Byte array.
+     * @param pEmptyValue - Value interpreted as empty.
      */
-    public static byteToString(pByteArray: Uint8Array): string {
+    public static byteToString(pByteArray: Uint8Array, pEmptyValue: number = 0): string {
         // Filter NULL-Bytes.
-        const lNullFilteredArray: Uint8Array = pByteArray.filter((pByte: number) => { return pByte !== 0; });
+        const lNullFilteredArray: Uint8Array = pByteArray.filter((pByte: number) => { return pByte !== pEmptyValue; });
 
         // Decode byte array to string.
         return String.fromCharCode(...lNullFilteredArray);

@@ -4,18 +4,18 @@ import { Division } from '../generic_module/pattern/division';
 import { DivisionChannel } from '../generic_module/pattern/division-channel';
 import { Pattern } from '../generic_module/pattern/pattern';
 import { Sample } from '../generic_module/sample/sample';
-import { BaseEffectParser, ChannelValue } from './base-effect-parser';
+import { EffectParser, ChannelValue } from './effect-parser';
 import { ByteUtil } from '@kartoffelgames/core.data';
 
 export abstract class BaseModuleParser {
     private readonly mData: Uint8Array;
-    private readonly mEffectParser: BaseEffectParser;
+    private readonly mEffectParser: EffectParser;
 
     /**
      * Constructor.
      * @param pData - Byte data of module.
      */
-    public constructor(pData: Uint8Array, pEffectParser: BaseEffectParser) {
+    public constructor(pData: Uint8Array, pEffectParser: EffectParser) {
         this.mData = pData;
         this.mEffectParser = pEffectParser;
     }
@@ -28,14 +28,30 @@ export abstract class BaseModuleParser {
         const lParseOptions: ModuleParseOptions = this.calculateModuleParseOptions(this.mData);
 
         // Parse module name.
-        const lNameBuffer = ByteUtil.readBytes(this.mData, lParseOptions.name.offset, lParseOptions.name.length);
+        const lNameBuffer = ByteUtil.readBytes(this.mData, lParseOptions.name.byteOffset, lParseOptions.name.bytes);
         lModule.songName = ByteUtil.byteToString(lNameBuffer, lParseOptions.name.emptyValue);
 
+        // Read and convert song position.
+        const lPatternOrderList: Array<number> = new Array<number>();
+        let lSongOrderPosition: number = lParseOptions.songPositions.byteOffset;
+        for (let lPatternOrderIndex: number = 0; lPatternOrderIndex < lParseOptions.songPositions.count; lPatternOrderIndex++) {
+            const lPatternIndexBuffer: Uint8Array = ByteUtil.readBytes(this.mData, lSongOrderPosition, lParseOptions.songPositions.valueByteSize);
+
+            // Convert pattern index buffer to number.
+            lPatternOrderList.push(Number(ByteUtil.concatBytes(lPatternIndexBuffer)));
+
+            lSongOrderPosition += lParseOptions.songPositions.valueByteSize;
+        }
+        lModule.pattern.songPositions = lPatternOrderList;
+
+        // Get pattern count from highest song position pattern index.
+        const lPatternCount: number = Math.max(...lPatternOrderList) + 1;
+
         // Pattern starting position.
-        let lPatternPosition: number = lParseOptions.pattern.offset;
+        let lPatternPosition: number = lParseOptions.pattern.byteOffset;
 
         // Parse pattern.
-        for (let lPatternIndex: number = 0; lPatternIndex < lParseOptions.pattern.count; lPatternIndex++) {
+        for (let lPatternIndex: number = 0; lPatternIndex < lPatternCount; lPatternIndex++) {
             const lPattern: Pattern = lModule.pattern.addPattern(lPatternIndex);
             // Parse division.
             for (let lDivisionIndex: number = 0; lDivisionIndex < lParseOptions.pattern.division.count; lDivisionIndex++) {
@@ -46,7 +62,7 @@ export abstract class BaseModuleParser {
 
                     // For MOD files:
                     // Get 32bit and concat all bits into one number: wwww xxxxxxxxxxxx yyyy zzzzzzzzzzzz = Length 32bit. 
-                    const lDevisionBuffer: Uint8Array = ByteUtil.readBytes(this.mData, lPatternPosition, lParseOptions.pattern.channel.length);
+                    const lDevisionBuffer: Uint8Array = ByteUtil.readBytes(this.mData, lPatternPosition, lParseOptions.pattern.channel.bytes);
                     const lChannelValueList: Array<ChannelValue> = this.parseChannel(lDevisionBuffer);
 
                     // Convert received channel data to effects.
@@ -59,49 +75,42 @@ export abstract class BaseModuleParser {
                         }
                     }
 
-                    lPatternPosition += lParseOptions.pattern.channel.length;
+                    lPatternPosition += lParseOptions.pattern.channel.bytes;
                 }
             }
         }
 
-        // Read and convert song position.
-        const lPatternOrderList: Array<number> = new Array<number>();
-        let lSongOrderPosition: number = lParseOptions.songOrder.offset;
-        for (let lPatternOrderIndex: number = 0; lPatternOrderIndex < lParseOptions.songOrder.count; lPatternOrderIndex++) {
-            const lPatternIndexBuffer: Uint8Array = ByteUtil.readBytes(this.mData, lSongOrderPosition, lParseOptions.songOrder.byteSize);
-
-            // Convert pattern index buffer to number.
-            lPatternOrderList.push(Number(ByteUtil.concatBytes(lPatternIndexBuffer)));
-
-            lSongOrderPosition += lParseOptions.songOrder.byteSize;
-        }
-        lModule.pattern.songPositions = lPatternOrderList;
-
         // Sample head starting position.
         let lSampleHeadPosition: number = lParseOptions.sample.head.offset;
-        let lSampleBodyPosition: number = lParseOptions.sample.body.offset;
+        let lSampleBodyPosition: number = lParseOptions.sample.body.byteOffset;
+
+        const lSampleDataByteSize: number = lParseOptions.sample.body.valueByteSize;
 
         // Parse sample header.
         for (let lSampleIndex: number = 0; lSampleIndex < lParseOptions.sample.count; lSampleIndex++) {
             const lSample: Sample = lModule.samples.addSample(lSampleIndex);
 
             // Get sample data and parse.
-            const lSampleHeadBuffer: Uint8Array = ByteUtil.readBytes(this.mData, lSampleHeadPosition, lParseOptions.sample.head.length);
+            const lSampleHeadBuffer: Uint8Array = ByteUtil.readBytes(this.mData, lSampleHeadPosition, lParseOptions.sample.head.bytes);
             const lSampleHead: SampleHead = this.parseSampleHead(lSampleHeadBuffer);
 
             // Fill sample data.
             lSample.name = lSampleHead.name;
             lSample.fineTune = lSampleHead.fineTune;
             lSample.volume = lSampleHead.volume;
-            lSample.setRepeatInformation(lSampleHead.repeatOffset, lSampleHead.repeatLength);
+            lSample.setRepeatInformation(lSampleHead.repeatOffset * lSampleDataByteSize, lSampleHead.repeatLength * lSampleDataByteSize);
+
+            // Calculate data length and offset.
+            const lDataLength: number = lSampleHead.bodyLength * lSampleDataByteSize - lParseOptions.sample.body.dataStartByteOffset;
+            const lDataOffset: number = lSampleBodyPosition + lParseOptions.sample.body.dataStartByteOffset;
 
             // Retrieve and parse sample body.
-            const lSampleBodyBuffer: Uint8Array = ByteUtil.readBytes(this.mData, lSampleBodyPosition, lSampleHead.length * lParseOptions.sample.body.byteSize);
+            const lSampleBodyBuffer: Uint8Array = ByteUtil.readBytes(this.mData, lDataOffset, lDataLength);
             lSample.data = this.parseSampleBody(lSampleBodyBuffer);
 
             // Move position cursor.
-            lSampleHeadPosition += lParseOptions.sample.head.length;
-            lSampleBodyPosition += lSampleHead.length * lParseOptions.sample.body.byteSize;
+            lSampleHeadPosition += lParseOptions.sample.head.bytes;
+            lSampleBodyPosition += lSampleHead.bodyLength * lSampleDataByteSize;
         }
 
         return lModule;
@@ -146,42 +155,42 @@ export type ModuleParseOptions = {
     name: ModuleNameParseOptions;
     pattern: ModulePatternParseOptions;
     sample: ModuleSampleParseOptions;
-    songOrder: ModuleSongOrderParseOption;
+    songPositions: ModuleSongOrderParseOption;
 };
 
 export type ModuleNameParseOptions = {
-    offset: number;
-    length: number;
+    byteOffset: number;
+    bytes: number;
     emptyValue: number;
 };
 
 export type ModulePatternParseOptions = {
-    count: number;
-    offset: number;
+    byteOffset: number;
     division: {
         count: number;
     };
     channel: {
         count: number;
-        length: number;
+        bytes: number;
     };
 };
 
 export type ModuleSongOrderParseOption = {
-    offset: number;
+    byteOffset: number;
     count: number,
-    byteSize: number;
+    valueByteSize: number;
 };
 
 export type ModuleSampleParseOptions = {
     count: number;
     head: {
         offset: number;
-        length: number;
+        bytes: number;
     };
     body: {
-        offset: number;
-        byteSize: number;
+        byteOffset: number;
+        valueByteSize: number;
+        dataStartByteOffset: number;
     };
 };
 
@@ -191,5 +200,5 @@ export type SampleHead = {
     fineTune: number;
     repeatOffset: number;
     repeatLength: number;
-    length: number;
+    bodyLength: number;
 };

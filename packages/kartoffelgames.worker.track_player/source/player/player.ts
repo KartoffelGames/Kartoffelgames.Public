@@ -42,10 +42,11 @@ export class Player {
     }
 
     /**
-     * Process next audio block.
+     * Process next audio block. 
+     * Two buffers for left and right channel.
      * @param pAudioBlockLength - Length of next audio block.
      */
-    public nextBlock(pAudioBlockLength: number): Array<Float32Array> | null {
+    public nextBlock(pAudioBlockLength: number): [Float32Array, Float32Array] | null {
         // Exit when song is finished.
         if (this.mPlayerModule.cursor.songPositionCursor >= this.mPlayerModule.length.songPositions) {
             return null;
@@ -62,11 +63,11 @@ export class Player {
             }
         }
 
-        // Create output buffer with specified length.
-        const lOutputBufferList: Array<Float32Array> = new Array<Float32Array>();
-        for (let lOutputIndex: number = 0; lOutputIndex < this.mPlayerModule.length.channels; lOutputIndex++) {
-            lOutputBufferList.push(new Float32Array(pAudioBlockLength));
-        }
+        // Create output buffer for left and right channel.
+        const lOutputBufferList: [Float32Array, Float32Array] = [
+            new Float32Array(pAudioBlockLength),
+            new Float32Array(pAudioBlockLength)
+        ];
 
         // For each audio sample.
         for (let lAudioSampleIndex: number = 0; lAudioSampleIndex < pAudioBlockLength; lAudioSampleIndex++) {
@@ -78,9 +79,13 @@ export class Player {
 
             // For each channel.
             for (let lChannelIndex = 0; lChannelIndex < this.mPlayerModule.length.channels; lChannelIndex++) {
-                // Get next channel value.
-                const lChannelBuffer = lOutputBufferList[lChannelIndex];
-                lChannelBuffer[lAudioSampleIndex] = this.mChannelList[lChannelIndex].nextAudioSample(lCursorChange.division, lCursorChange.tick);
+                // Generate left and right channel.
+                const [lLeftChannel, lRightChannel] = this.mChannelList[lChannelIndex].nextAudioSample(lCursorChange.division, lCursorChange.tick);
+
+                // Apply tracker channel value to left and right output channel.
+                // Reduce channel output value by 40% to reduce audio clipping.
+                lOutputBufferList[0][lAudioSampleIndex] += lLeftChannel * 0.6; // Left channel.
+                lOutputBufferList[1][lAudioSampleIndex] += lRightChannel * 0.6; // Right channel.
             }
         }
 

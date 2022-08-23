@@ -95,8 +95,9 @@ export class PlayerChannel {
 
     /**
      * Play next tick and get sample position value.
+     * Return two values for left and right channel.
      */
-    public nextAudioSample(pDivisionChanged: boolean, pTickChanged: boolean): number {
+    public nextAudioSample(pDivisionChanged: boolean, pTickChanged: boolean): [number, number] {
         if (pDivisionChanged) {
             this.onDivisionChange();
         }
@@ -122,7 +123,7 @@ export class PlayerChannel {
 
         // Exit if no sample exists or sample finished playing.
         if (lSample === null || lSample.data.length === 0 || (this.mChannelSettings.sampleData.position + 1) > lSample.data.length) {
-            return 0;
+            return [0, 0];
         }
 
         // Get current sample position value. Apply volume.
@@ -151,11 +152,18 @@ export class PlayerChannel {
         }
 
         // Invert the "loop". Not just the loop but the none loop and siltent data too.
+        let lChannelValue: number;
         if (this.mChannelSettings.invertLoop && this.mInsideLoop) {
-            return lSamplePositionValue * -1;
+            lChannelValue = lSamplePositionValue * -1;
         } else {
-            return lSamplePositionValue;
+            lChannelValue = lSamplePositionValue;
         }
+
+        // Apply panning.
+        const lLeftMultiply: number = 1 - (this.mChannelSettings.panning / 2 + 0.5);
+        const lRightMultiply: number = this.mChannelSettings.panning / 2 + 0.5;
+
+        return [lChannelValue * lLeftMultiply, lChannelValue * lRightMultiply];
     }
 
     /**

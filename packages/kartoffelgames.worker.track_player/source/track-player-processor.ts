@@ -45,19 +45,30 @@ export class TrackPlayerProcessor extends AudioWorkletProcessor {
         if (this.mPlayer !== null) {
             // Get block length and mix this block.
             const lAudioBlockLength = pOutputs[0][0].length;
-            const lModuleChannelList: Array<Float32Array> | null = this.mPlayer.nextBlock(lAudioBlockLength);
+            const lModuleChannelList: [Float32Array, Float32Array] | null = this.mPlayer.nextBlock(lAudioBlockLength);
             if (lModuleChannelList === null) {
                 // Exit and set disposeable if no output is generated.
                 return false;
             }
 
-            // Processor has one output for each module channel. Each output has only one channel.  
-            for (let lChannelIndex: number = 0; lChannelIndex < lModuleChannelList.length; lChannelIndex++) {
-                // Copy channel data into output.
-                const lProcessChannel: Float32Array = pOutputs[lChannelIndex][0];
-                const lModuleChannel: Float32Array = lModuleChannelList[lChannelIndex];
-                for (let lSampleIndex: number = 0; lSampleIndex < lProcessChannel.length; lSampleIndex++) {
-                    lProcessChannel[lSampleIndex] = lModuleChannel[lSampleIndex];
+            /*
+             * Processor can has multiple outputs with multiple channels.
+             * Multiple outputs contains the same data.
+             * Channels are divided between left an right in order [L R L R...]
+             */
+
+            // For each outout.
+            for (const lOutput of pOutputs) {
+                // Dublicate data for each output.
+                for (let lChannelIndex: number = 0; lChannelIndex < lModuleChannelList.length; lChannelIndex++) {
+                    // Even channels are right channel data (1) and uneven are left data (0).
+                    const lChannelData: Float32Array = lModuleChannelList[1 - (lChannelIndex % 2)];
+
+                    // Copy channel data to output.
+                    const lChannelBuffer: Float32Array = lModuleChannelList[lChannelIndex];
+                    for (let lSampleIndex: number = 0; lSampleIndex < lChannelBuffer.length; lSampleIndex++) {
+                        lChannelBuffer[lSampleIndex] = lChannelData[lSampleIndex];
+                    }
                 }
             }
         }

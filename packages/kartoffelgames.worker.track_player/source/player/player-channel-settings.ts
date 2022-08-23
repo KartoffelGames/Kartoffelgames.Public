@@ -10,46 +10,42 @@ export class PlayerChannelSettings {
     private readonly mSampleData: SampleData;
     private mVolume: number;
     private readonly mWaveformPositions: WaveformPositions;
+    private mPanning: number;
 
     /**
-     * Get current channel finetune.
+     * Current channel finetune.
      */
     public get finetune(): number {
         return this.mFinetune;
-    }
-
-    /**
-     * set current channel finetune.
-     */
-    public set finetune(pFinetune: number) {
+    } set finetune(pFinetune: number) {
         this.mFinetune = pFinetune;
     }
 
     /**
-     * Get if loop should be inverted.
+     * If loop should be inverted.
      */
     public get invertLoop(): boolean {
         return this.mInvertLoop;
-    }
-
-    /**
-     * Set if loop should be inverted.
-     */
-    public set invertLoop(pInvertLoop: boolean) {
+    } set invertLoop(pInvertLoop: boolean) {
         this.mInvertLoop = pInvertLoop;
     }
 
     /**
-     * Get current channel pitch.
+     * Channel panning.
+     * Range from -1 (full left) to 1 (full right).
      */
-    public get pitch(): Pitch {
-        return this.mPitch;
+    public get panning(): number {
+        return this.panning;
+    } set panning(pPanning: number) {
+        this.mPanning = pPanning;
     }
 
     /**
-     * Set current channel pitch.
+     * Current channel pitch.
      */
-    public set pitch(pPitch: Pitch) {
+    public get pitch(): Pitch {
+        return this.mPitch;
+    } set pitch(pPitch: Pitch) {
         this.mPitch = pPitch;
     }
 
@@ -64,16 +60,11 @@ export class PlayerChannelSettings {
     }
 
     /**
-     * Get current channel volume.
+     * Current channel volume.
      */
     public get volume(): number {
         return this.mVolume;
-    }
-
-    /**
-     * Set current channel volume.
-     */
-    public set volume(pVolume: number) {
+    } set volume(pVolume: number) {
         this.mVolume = pVolume;
     }
 
@@ -85,6 +76,7 @@ export class PlayerChannelSettings {
         this.mInvertLoop = false;
         this.mPitch = Pitch.Empty;
         this.mVolume = 0;
+        this.mPanning = 0;
         this.mSampleData = {
             sample: null,
             position: 0

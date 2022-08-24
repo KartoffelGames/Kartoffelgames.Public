@@ -60,14 +60,15 @@ export class TrackPlayerProcessor extends AudioWorkletProcessor {
             // For each outout.
             for (const lOutput of pOutputs) {
                 // Dublicate data for each output.
-                for (let lChannelIndex: number = 0; lChannelIndex < lModuleChannelList.length; lChannelIndex++) {
+                for (let lChannelIndex: number = 0; lChannelIndex < lOutput.length; lChannelIndex++) {
+                    // Get output channel
+                    const lOutputChannel: Float32Array = lOutput[lChannelIndex];
                     // Even channels are right channel data (1) and uneven are left data (0).
                     const lChannelData: Float32Array = lModuleChannelList[1 - (lChannelIndex % 2)];
 
                     // Copy channel data to output.
-                    const lChannelBuffer: Float32Array = lModuleChannelList[lChannelIndex];
-                    for (let lSampleIndex: number = 0; lSampleIndex < lChannelBuffer.length; lSampleIndex++) {
-                        lChannelBuffer[lSampleIndex] = lChannelData[lSampleIndex];
+                    for (let lSampleIndex: number = 0; lSampleIndex < lChannelData.length; lSampleIndex++) {
+                        lOutputChannel[lSampleIndex] = lChannelData[lSampleIndex];
                     }
                 }
             }

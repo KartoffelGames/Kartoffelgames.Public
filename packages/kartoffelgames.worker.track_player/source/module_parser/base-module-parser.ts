@@ -67,7 +67,7 @@ export abstract class BaseModuleParser {
 
                     // Convert received channel data to effects.
                     for (const lChannelValue of lChannelValueList) {
-                        const lEffectList: Array<IGenericEffect> = this.mEffectParser.parseChannel(lChannelValue);
+                        const lEffectList: Array<IGenericEffect> = this.mEffectParser.parseChannel(lChannelIndex, lChannelValue);
 
                         // Add all effects to new division channel.
                         for (const lEffect of lEffectList) {

@@ -25,13 +25,14 @@ export class EffectProcessEvent {
         return this.mData;
     }
 
-    public constructor(pParameterX: number, pParameterY: number, pPitch: number, pSample: number) {
+    public constructor(pChannelIndex: number, pParameterX: number, pParameterY: number, pPitch: number, pSample: number) {
         // Default.
         this.mIgnorePitch = false;
         this.mIgnoreSample = false;
 
         // Create data object.
         this.mData = {
+            channelIndex: pChannelIndex,
             parameter: {
                 first: pParameterX,
                 second: pParameterY
@@ -57,6 +58,7 @@ export class EffectProcessEvent {
 }
 
 type EffectProcessEventData = {
+    channelIndex: number;
     parameter: {
         first: number;
         second: number;

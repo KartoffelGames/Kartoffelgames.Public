@@ -95,9 +95,10 @@ export class EffectParser {
 
     /**
      * Parse channel data with handler found with bit pattern.
+     * @param pChannelIndex - Index of channel.
      * @param pChannel - Channel data.
      */
-    public parseChannel(pChannel: ChannelValue): Array<IGenericEffect> {
+    public parseChannel(pChannelIndex: number, pChannel: ChannelValue): Array<IGenericEffect> {
         // Try to find effect handler.
         const lEffectHandler: EffectHandlerSetting | undefined = this.mEffectHandler.find(pHandler => {
             // Extract effects fixed bits with patterns bitmask and compare with handlers fixed bits.
@@ -111,7 +112,7 @@ export class EffectParser {
 
         // Handle no found handler.
         if (!lEffectHandler) {
-            lEvent = new EffectProcessEvent(0, 0, pChannel.pitch, pChannel.sample);
+            lEvent = new EffectProcessEvent(pChannelIndex, 0, 0, pChannel.pitch, pChannel.sample);
         } else {
             // Reverse data, lower bits must be first.
             const lReversedEffectBitList: Array<string> = [...pChannel.effect.toString(2)].reverse();
@@ -136,7 +137,7 @@ export class EffectParser {
             const lParameterY: number = parseInt(lParameterYBits, 2);
 
             // Create process event.
-            lEvent = new EffectProcessEvent(lParameterX, lParameterY, pChannel.pitch, pChannel.sample);
+            lEvent = new EffectProcessEvent(pChannelIndex, lParameterX, lParameterY, pChannel.pitch, pChannel.sample);
 
             // Call handler for effect, pitch and sample processing.
             lParsedEffectList.push(...lEffectHandler.handler(lEvent));

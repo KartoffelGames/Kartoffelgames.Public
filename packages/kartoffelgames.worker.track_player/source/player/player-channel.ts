@@ -2,6 +2,7 @@ import { Dictionary, List } from '@kartoffelgames/core.data';
 import { IGenericEffect } from '../effect/effect_definition/i-generic-effect';
 import { LoopEffect } from '../effect/effect_definition/jump/loop-effect';
 import { SetLoopPositionEffectEffect } from '../effect/effect_definition/jump/set-loop-position-effect';
+import { DelayPatternEffect } from '../effect/effect_definition/pattern/delay-pattern-effect';
 import { ArpeggioEffect } from '../effect/effect_definition/pitch/arpeggio-effect';
 import { PeriodSlideEffect } from '../effect/effect_definition/pitch/period-slide-effect';
 import { SetFinetuneEffect } from '../effect/effect_definition/pitch/set-finetune-effect';
@@ -12,6 +13,7 @@ import { DelaySampleEffect } from '../effect/effect_definition/sample/delay-samp
 import { InvertSampleLoopEffect } from '../effect/effect_definition/sample/invert-sample-loop-effect';
 import { RetriggerSampleEffect } from '../effect/effect_definition/sample/retrigger-sample-effect';
 import { SampleOffsetEffect } from '../effect/effect_definition/sample/sample-offset-effect';
+import { SetPanningEffect } from '../effect/effect_definition/sample/set-panning-effect';
 import { SetSampleEffect } from '../effect/effect_definition/sample/set-sample-effect';
 import { SetBeatsPerMinuteEffect } from '../effect/effect_definition/speed/set-bpm-effect';
 import { SetSpeedEffect } from '../effect/effect_definition/speed/set-speed-effect';
@@ -22,6 +24,7 @@ import { WaveformEffect } from '../effect/effect_definition/waveform/waveform-ef
 import { BaseEffectProcessor } from '../effect/effect_processor/base-effect-processor';
 import { LoopEffectProcessor } from '../effect/effect_processor/jump/loop-effect-processor';
 import { SetLoopPositionEffectProcessor } from '../effect/effect_processor/jump/set-loop-position-effect-processor';
+import { DelayPatternEffectProcessor } from '../effect/effect_processor/pattern/delay-pattern-effect';
 import { ArpeggioEffectProcessor } from '../effect/effect_processor/pitch/arpeggio-effect-processor';
 import { PeriodSlideEffectProcessor } from '../effect/effect_processor/pitch/period-slide-effect-effect-processor';
 import { SetFinetuneEffectProcessor } from '../effect/effect_processor/pitch/set-finetune-effect-processor';
@@ -32,6 +35,7 @@ import { DelaySampleEffectProcessor } from '../effect/effect_processor/sample/de
 import { InvertSampleLoopEffectProcessor } from '../effect/effect_processor/sample/invert-sample-loop-effect-processor';
 import { RetriggerSampleEffectProcessor } from '../effect/effect_processor/sample/retrigger-sample-effect-processor';
 import { SampleOffsetEffectProcessor } from '../effect/effect_processor/sample/sample-offset-effect-processor';
+import { SetPanningEffectProcessor } from '../effect/effect_processor/sample/set-panning-effect-processor';
 import { SetSampleEffectProcessor } from '../effect/effect_processor/sample/set-sample-effect-processor';
 import { SetBeatsPerMinuteEffectProcessor } from '../effect/effect_processor/speed/set-bpm-effect-processor';
 import { SetSpeedEffectProcessor } from '../effect/effect_processor/speed/set-speed-effect-processor';
@@ -39,13 +43,11 @@ import { SetVolumeEffectProcessor } from '../effect/effect_processor/volume/set-
 import { VolumeSlideEffectProcessor } from '../effect/effect_processor/volume/volume-slide-effect-processor';
 import { SetWaveformEffectProcessor } from '../effect/effect_processor/waveform/set-waveform-effect-processor';
 import { WaveformEffectProcessor } from '../effect/effect_processor/waveform/waveform-effect-processor';
-import { Sample } from '../generic_module/sample/sample';
-import { PlayerChannelSettings } from './player-channel-settings';
-import { PlayerGlobalSettings } from './global_settings/player-global-settings';
 import { DivisionChannel } from '../generic_module/pattern/division-channel';
 import { Pattern } from '../generic_module/pattern/pattern';
-import { DelayPatternEffectProcessor } from '../effect/effect_processor/pattern/delay-pattern-effect';
-import { DelayPatternEffect } from '../effect/effect_definition/pattern/delay-pattern-effect';
+import { Sample } from '../generic_module/sample/sample';
+import { PlayerGlobalSettings } from './global_settings/player-global-settings';
+import { PlayerChannelSettings } from './player-channel-settings';
 
 export class PlayerChannel {
     private static readonly EFFECT_MAP: Dictionary<IGenericEffect, EffectProcessorConstructor> = (() => {
@@ -70,6 +72,7 @@ export class PlayerChannel {
         lEffectToProcessor.set(SetWaveformEffect, SetWaveformEffectProcessor);
         lEffectToProcessor.set(WaveformEffect, WaveformEffectProcessor);
         lEffectToProcessor.set(DelayPatternEffect, DelayPatternEffectProcessor);
+        lEffectToProcessor.set(SetPanningEffect, SetPanningEffectProcessor);
         return lEffectToProcessor;
     })();
 

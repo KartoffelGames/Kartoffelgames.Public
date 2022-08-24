@@ -35,7 +35,7 @@ export class PlayerChannelSettings {
      * Range from -1 (full left) to 1 (full right).
      */
     public get panning(): number {
-        return this.panning;
+        return this.mPanning;
     } set panning(pPanning: number) {
         this.mPanning = pPanning;
     }

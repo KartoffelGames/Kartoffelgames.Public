@@ -25,6 +25,14 @@ export class EffectProcessEvent {
         return this.mData;
     }
 
+    /**
+     * Constructor.
+     * @param pChannelIndex - Channel index.
+     * @param pParameterX - Effect parameter one.
+     * @param pParameterY - Effect parameter two.
+     * @param pPitch - Channels pitch.
+     * @param pSample - Channels sample.
+     */
     public constructor(pChannelIndex: number, pParameterX: number, pParameterY: number, pPitch: number, pSample: number) {
         // Default.
         this.mIgnorePitch = false;

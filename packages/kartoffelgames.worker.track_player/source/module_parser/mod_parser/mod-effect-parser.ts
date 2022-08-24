@@ -92,6 +92,9 @@ export class ModEffectParser extends EffectParser {
         57: Pitch.Octave4B
     };
 
+    /**
+     * Constructor.
+     */
     public constructor() {
         super();
 

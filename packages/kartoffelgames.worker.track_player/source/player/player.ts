@@ -68,6 +68,7 @@ export class Player {
             new Float32Array(pAudioBlockLength),
             new Float32Array(pAudioBlockLength)
         ];
+        const [lLeftOutputBuffer, lRightOutputBuffer] = lOutputBufferList;
 
         // For each audio sample.
         for (let lAudioSampleIndex: number = 0; lAudioSampleIndex < pAudioBlockLength; lAudioSampleIndex++) {
@@ -80,12 +81,12 @@ export class Player {
             // For each channel.
             for (let lChannelIndex = 0; lChannelIndex < this.mPlayerModule.length.channels; lChannelIndex++) {
                 // Generate left and right channel.
-                const [lLeftChannel, lRightChannel] = this.mChannelList[lChannelIndex].nextAudioSample(lCursorChange.division, lCursorChange.tick);
+                const [lLeftChannelValue, lRightChannelValue] = this.mChannelList[lChannelIndex].nextAudioSample(lCursorChange.division, lCursorChange.tick);
 
                 // Apply tracker channel value to left and right output channel.
                 // Reduce channel output value by 40% to reduce audio clipping.
-                lOutputBufferList[0][lAudioSampleIndex] += lLeftChannel * 0.6; // Left channel.
-                lOutputBufferList[1][lAudioSampleIndex] += lRightChannel * 0.6; // Right channel.
+                lLeftOutputBuffer[lAudioSampleIndex] += lLeftChannelValue * 0.6; // Left channel.
+                lRightOutputBuffer[lAudioSampleIndex] += lRightChannelValue * 0.6; // Right channel.
             }
         }
 

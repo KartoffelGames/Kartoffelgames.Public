@@ -7,7 +7,7 @@ export class SetPanningEffectProcessor extends BaseEffectProcessor<SetPanningEff
      * Get effect processor priority.
      */
     public get priority(): EffectPriority {
-        return EffectPriority.Low;
+        return EffectPriority.High;
     }
 
     /**

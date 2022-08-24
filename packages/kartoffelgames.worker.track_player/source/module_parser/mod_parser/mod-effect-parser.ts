@@ -6,6 +6,7 @@ import { DelaySampleEffect } from '../../effect/effect_definition/sample/delay-s
 import { InvertSampleLoopEffect } from '../../effect/effect_definition/sample/invert-sample-loop-effect';
 import { RetriggerSampleEffect } from '../../effect/effect_definition/sample/retrigger-sample-effect';
 import { SampleOffsetEffect } from '../../effect/effect_definition/sample/sample-offset-effect';
+import { SetPanningEffect } from '../../effect/effect_definition/sample/set-panning-effect';
 import { SetSampleEffect } from '../../effect/effect_definition/sample/set-sample-effect';
 import { SetBeatsPerMinuteEffect } from '../../effect/effect_definition/speed/set-bpm-effect';
 import { SetSpeedEffect } from '../../effect/effect_definition/speed/set-speed-effect';
@@ -113,11 +114,20 @@ export class ModEffectParser extends EffectParser {
         this.addSampleHandler((pEvent: EffectProcessEvent): Array<IGenericEffect> => {
             const lEffectList: Array<IGenericEffect> = new Array<IGenericEffect>();
 
-            // Only 
+            // Only add sample when sample is set.
             if (pEvent.data.sample > 0) {
                 const lSampleEffect: SetSampleEffect = new SetSampleEffect();
                 lSampleEffect.sampleIndex = pEvent.data.sample - 1; // Number to index.
                 lEffectList.push(lSampleEffect);
+
+                // Calculate channel panning based on channel index.
+                // L] [R R L L] [R R... => Period length is 4. Index 0 interpreted as last index of period (3).
+                const lIsLeftChannel: boolean = ((pEvent.data.channelIndex + 3) % 4) > 1; // Range from 0...3
+
+                // Add panning effect base on channel index.
+                const lPanningEffect: SetPanningEffect = new SetPanningEffect();
+                lPanningEffect.panning = lIsLeftChannel ? -1 : 1;
+                lEffectList.push(lPanningEffect);
             }
 
             return lEffectList;

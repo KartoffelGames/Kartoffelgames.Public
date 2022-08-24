@@ -5,7 +5,8 @@ import { DivisionChannel } from '../generic_module/pattern/division-channel';
 import { Pattern } from '../generic_module/pattern/pattern';
 import { Sample } from '../generic_module/sample/sample';
 import { EffectParser, ChannelValue } from './effect-parser';
-import { ByteUtil } from '@kartoffelgames/core.data';
+import { ByteUtil, Dictionary } from '@kartoffelgames/core.data';
+import { EffectParseHistory } from './effect-parse-history';
 
 export abstract class BaseModuleParser {
     private readonly mData: Uint8Array;
@@ -50,6 +51,9 @@ export abstract class BaseModuleParser {
         // Pattern starting position.
         let lPatternPosition: number = lParseOptions.pattern.byteOffset;
 
+        // Create effect parse history to channel index mapping.
+        const lEffectParseHistorys: Dictionary<number, EffectParseHistory> = new Dictionary<number, EffectParseHistory>();
+
         // Parse pattern.
         for (let lPatternIndex: number = 0; lPatternIndex < lPatternCount; lPatternIndex++) {
             const lPattern: Pattern = lModule.pattern.addPattern(lPatternIndex);
@@ -65,13 +69,21 @@ export abstract class BaseModuleParser {
                     const lDevisionBuffer: Uint8Array = ByteUtil.readBytes(this.mData, lPatternPosition, lParseOptions.pattern.channel.bytes);
                     const lChannelValueList: Array<ChannelValue> = this.parseChannel(lDevisionBuffer);
 
+                    // Setup effect parse history for this channel.
+                    let lEffectParseHistory: EffectParseHistory | undefined = lEffectParseHistorys.get(lChannelIndex);
+                    if (!lEffectParseHistory) {
+                        lEffectParseHistory = new EffectParseHistory();
+                        lEffectParseHistorys.set(lChannelIndex, lEffectParseHistory);
+                    }
+
                     // Convert received channel data to effects.
                     for (const lChannelValue of lChannelValueList) {
-                        const lEffectList: Array<IGenericEffect> = this.mEffectParser.parseChannel(lChannelIndex, lChannelValue);
+                        const lEffectList: Array<IGenericEffect> = this.mEffectParser.parseChannel(lChannelIndex, lChannelValue, lEffectParseHistory);
 
-                        // Add all effects to new division channel.
+                        // Add all effects to new division channel and history.
                         for (const lEffect of lEffectList) {
                             lDivisionChannel.setEffect(lEffect);
+                            lEffectParseHistory.add(lEffect);
                         }
                     }
 

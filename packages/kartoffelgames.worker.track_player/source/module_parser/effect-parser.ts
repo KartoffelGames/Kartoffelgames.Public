@@ -1,6 +1,7 @@
 import { Exception, List } from '@kartoffelgames/core.data';
 import { IGenericEffect } from '../effect/effect_definition/i-generic-effect';
 import { EffectParseEvent } from './effect-parse-event';
+import { EffectParseHistory } from './effect-parse-history';
 
 export class EffectParser {
     private readonly mEffectHandler: List<EffectHandlerSetting>;
@@ -97,8 +98,9 @@ export class EffectParser {
      * Parse channel data with handler found with bit pattern.
      * @param pChannelIndex - Index of channel.
      * @param pChannel - Channel data.
+     * @param pHistory - Effect parse history for current channel.
      */
-    public parseChannel(pChannelIndex: number, pChannel: ChannelValue): Array<IGenericEffect> {
+    public parseChannel(pChannelIndex: number, pChannel: ChannelValue, pHistory: EffectParseHistory): Array<IGenericEffect> {
         // Try to find effect handler.
         const lEffectHandler: EffectHandlerSetting | undefined = this.mEffectHandler.find(pHandler => {
             // Extract effects fixed bits with patterns bitmask and compare with handlers fixed bits.
@@ -112,7 +114,7 @@ export class EffectParser {
 
         // Handle no found handler.
         if (!lEffectHandler) {
-            lEvent = new EffectParseEvent(pChannelIndex, 0, 0, pChannel.pitch, pChannel.sample);
+            lEvent = new EffectParseEvent(pChannelIndex, pHistory, 0, 0, pChannel.pitch, pChannel.sample);
         } else {
             // Reverse data, lower bits must be first.
             const lReversedEffectBitList: Array<string> = [...pChannel.effect.toString(2)].reverse();
@@ -137,7 +139,7 @@ export class EffectParser {
             const lParameterY: number = parseInt(lParameterYBits, 2);
 
             // Create process event.
-            lEvent = new EffectParseEvent(pChannelIndex, lParameterX, lParameterY, pChannel.pitch, pChannel.sample);
+            lEvent = new EffectParseEvent(pChannelIndex, pHistory, lParameterX, lParameterY, pChannel.pitch, pChannel.sample);
 
             // Call handler for effect, pitch and sample processing.
             lParsedEffectList.push(...lEffectHandler.handler(lEvent));

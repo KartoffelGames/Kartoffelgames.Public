@@ -15,7 +15,7 @@ import { VolumeSlideEffect } from '../../effect/effect_definition/volume/volume-
 import { Direction } from '../../enum/direction.enum';
 import { Pitch } from '../../enum/pitch.enum';
 import { EffectParser } from '../effect-parser';
-import { EffectProcessEvent } from '../effect-process-event';
+import { EffectParseEvent } from '../effect-parse-event';
 
 export class ModEffectParser extends EffectParser {
     private static readonly PITCH_TABLE: { [SourcePitch: number]: number; } = {
@@ -99,7 +99,7 @@ export class ModEffectParser extends EffectParser {
         super();
 
         // Pitch handler.
-        this.addPitchHandler((pEvent: EffectProcessEvent): Array<IGenericEffect> => {
+        this.addPitchHandler((pEvent: EffectParseEvent): Array<IGenericEffect> => {
             const lEffectList: Array<IGenericEffect> = new Array<IGenericEffect>();
             const lPitch: Pitch = ModEffectParser.PITCH_TABLE[pEvent.data.pitch];
 
@@ -114,7 +114,7 @@ export class ModEffectParser extends EffectParser {
         });
 
         // Sample handler.
-        this.addSampleHandler((pEvent: EffectProcessEvent): Array<IGenericEffect> => {
+        this.addSampleHandler((pEvent: EffectParseEvent): Array<IGenericEffect> => {
             const lEffectList: Array<IGenericEffect> = new Array<IGenericEffect>();
 
             // Only add sample when sample is set.
@@ -164,14 +164,14 @@ export class ModEffectParser extends EffectParser {
         //this.addEffectHandler('1000.xxxx.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
 
         // 0x9
-        this.addEffectHandler('1001.xxxx.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => {
+        this.addEffectHandler('1001.xxxx.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
             const lSampleOffsetEffect: SampleOffsetEffect = new SampleOffsetEffect();
             lSampleOffsetEffect.offset = pEvent.data.parameter.first * 4096 + pEvent.data.parameter.second * 256;
             return [lSampleOffsetEffect];
         });
 
         // 0xA
-        this.addEffectHandler('1010.xxxx.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => {
+        this.addEffectHandler('1010.xxxx.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
             // Ignore YParameter when XParameter is set. Convert 0..64 to 0..1 range. 
             const lVolumeSlideEffect: VolumeSlideEffect = new VolumeSlideEffect();
             lVolumeSlideEffect.direction = (pEvent.data.parameter.first > 0) ? Direction.Up : Direction.Down;
@@ -183,7 +183,7 @@ export class ModEffectParser extends EffectParser {
         //this.addEffectHandler('1011.xxxx.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
 
         // 0xC
-        this.addEffectHandler('1100.xxxx.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => {
+        this.addEffectHandler('1100.xxxx.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
             // Ignore YParameter when XParameter is set. Convert 0..64 to 0..1 range. 
             const lVolumeSetEffect: SetVolumeEffect = new SetVolumeEffect();
             lVolumeSetEffect.volume = (pEvent.data.parameter.first * 16 + pEvent.data.parameter.second) / 64;
@@ -211,7 +211,7 @@ export class ModEffectParser extends EffectParser {
             //this.addEffectHandler('1110.0100.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
 
             // 0x5
-            this.addEffectHandler('1110.0101.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => {
+            this.addEffectHandler('1110.0101.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
                 const lSetFinetuneEffect: SetFinetuneEffect = new SetFinetuneEffect();
                 lSetFinetuneEffect.finetune = pEvent.data.parameter.second;
                 return [lSetFinetuneEffect];
@@ -227,7 +227,7 @@ export class ModEffectParser extends EffectParser {
             //this.addEffectHandler('1110.1000.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
 
             // 0x9
-            this.addEffectHandler('1110.1001.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => {
+            this.addEffectHandler('1110.1001.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
                 const lEffectList: Array<IGenericEffect> = new Array<IGenericEffect>();
 
                 // Set effect only when the interval parameter is set.
@@ -247,14 +247,14 @@ export class ModEffectParser extends EffectParser {
             //this.addEffectHandler('1110.1011.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
 
             // 0xC
-            this.addEffectHandler('1110.1100.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => {
+            this.addEffectHandler('1110.1100.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
                 const lCutSampleEffect: CutSampleEffect = new CutSampleEffect();
                 lCutSampleEffect.ticks = pEvent.data.parameter.second;
                 return [lCutSampleEffect];
             });
 
             // 0xD
-            this.addEffectHandler('1110.1101.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => {
+            this.addEffectHandler('1110.1101.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
                 const lDelaySampleEffect: DelaySampleEffect = new DelaySampleEffect();
                 lDelaySampleEffect.ticks = pEvent.data.parameter.second;
                 return [lDelaySampleEffect];
@@ -264,7 +264,7 @@ export class ModEffectParser extends EffectParser {
             //this.addEffectHandler('1110.1110.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
 
             // 0xF
-            this.addEffectHandler('1110.1111.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => {
+            this.addEffectHandler('1110.1111.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
                 const lInvertLoopEffect: InvertSampleLoopEffect = new InvertSampleLoopEffect();
                 lInvertLoopEffect.invert = pEvent.data.parameter.second > 0;
                 return [lInvertLoopEffect];
@@ -272,7 +272,7 @@ export class ModEffectParser extends EffectParser {
         }
 
         // 0xF
-        this.addEffectHandler('1111.xxxx.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => {
+        this.addEffectHandler('1111.xxxx.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
             const lEffectList: Array<IGenericEffect> = new Array<IGenericEffect>();
 
             // Calculate speed change. Speed can not be lower than 1.

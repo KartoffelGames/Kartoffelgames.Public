@@ -1,6 +1,6 @@
 import { Exception, List } from '@kartoffelgames/core.data';
 import { IGenericEffect } from '../effect/effect_definition/i-generic-effect';
-import { EffectProcessEvent } from './effect-process-event';
+import { EffectParseEvent } from './effect-parse-event';
 
 export class EffectParser {
     private readonly mEffectHandler: List<EffectHandlerSetting>;
@@ -77,7 +77,7 @@ export class EffectParser {
 
     /**
      * Add pitch handler.
-     * Is ignored when the {@link EffectProcessEvent.ignorePitch} is set.
+     * Is ignored when the {@link EffectParseEvent.ignorePitch} is set.
      * @param pHandler - Handler.
      */
     public addPitchHandler(pHandler: EffectHandler) {
@@ -86,7 +86,7 @@ export class EffectParser {
 
     /**
      * Add sample handler.
-     * Is ignored when the {@link EffectProcessEvent.ignoreSample} is set.
+     * Is ignored when the {@link EffectParseEvent.ignoreSample} is set.
      * @param pHandler - Handler.
      */
     public addSampleHandler(pHandler: EffectHandler) {
@@ -107,12 +107,12 @@ export class EffectParser {
         });
 
         // Create empty effect list and define effect process event.
-        let lEvent: EffectProcessEvent;
+        let lEvent: EffectParseEvent;
         const lParsedEffectList: Array<IGenericEffect> = new Array<IGenericEffect>();
 
         // Handle no found handler.
         if (!lEffectHandler) {
-            lEvent = new EffectProcessEvent(pChannelIndex, 0, 0, pChannel.pitch, pChannel.sample);
+            lEvent = new EffectParseEvent(pChannelIndex, 0, 0, pChannel.pitch, pChannel.sample);
         } else {
             // Reverse data, lower bits must be first.
             const lReversedEffectBitList: Array<string> = [...pChannel.effect.toString(2)].reverse();
@@ -137,7 +137,7 @@ export class EffectParser {
             const lParameterY: number = parseInt(lParameterYBits, 2);
 
             // Create process event.
-            lEvent = new EffectProcessEvent(pChannelIndex, lParameterX, lParameterY, pChannel.pitch, pChannel.sample);
+            lEvent = new EffectParseEvent(pChannelIndex, lParameterX, lParameterY, pChannel.pitch, pChannel.sample);
 
             // Call handler for effect, pitch and sample processing.
             lParsedEffectList.push(...lEffectHandler.handler(lEvent));
@@ -171,7 +171,7 @@ export type ChannelValue = {
     sample: number;
 };
 
-export type EffectHandler = (pEvent: EffectProcessEvent) => Array<IGenericEffect>;
+export type EffectHandler = (pEvent: EffectParseEvent) => Array<IGenericEffect>;
 
 type EffectHandlerSetting = {
     allocation: {

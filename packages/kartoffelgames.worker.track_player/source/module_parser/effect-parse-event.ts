@@ -1,5 +1,5 @@
 
-export class EffectProcessEvent {
+export class EffectParseEvent {
     private mIgnorePitch: boolean;
     private mIgnoreSample: boolean;
     private readonly mData: EffectProcessEventData;

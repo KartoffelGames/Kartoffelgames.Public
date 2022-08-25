@@ -14,7 +14,17 @@ export class JumpEffectProcessor extends BaseEffectProcessor<PositionJumpEffect>
      * On process start.
      */
     public override onEffectStart(): void {
-        // Set jump position.
-        this.globalSettings.jump.setJumpPosition(this.effectData.songPositionIndex, this.effectData.divisionIndex);
+        // Shift or jump song position.
+        if (this.effectData.songPositionShiftMode) {
+            const lCurrentSongPosition: number = this.globalSettings.cursor.songPositionCursor;
+
+            // Set jump position.
+            this.globalSettings.jump.setJumpPosition(lCurrentSongPosition + this.effectData.songPosition, this.effectData.divisionIndex);
+        } else {
+            // Set jump position.
+            this.globalSettings.jump.setJumpPosition(this.effectData.songPosition, this.effectData.divisionIndex);
+        }
+
+
     }
 }

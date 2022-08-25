@@ -87,6 +87,7 @@ export class TrackPlayerProcessor extends AudioWorkletProcessor {
             case 'load': {
                 const lModule: GenericModule = new StatefullDeserializer().deserialize(pMessageData, GenericModule);
                 this.mPlayer = new Player(lModule, sampleRate);
+                console.log(lModule);
                 break;
             }
         }

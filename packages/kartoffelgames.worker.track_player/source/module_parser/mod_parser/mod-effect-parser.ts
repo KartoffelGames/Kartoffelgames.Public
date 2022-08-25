@@ -16,6 +16,11 @@ import { Direction } from '../../enum/direction.enum';
 import { Pitch } from '../../enum/pitch.enum';
 import { EffectParser } from '../effect-parser';
 import { EffectParseEvent } from '../effect-parse-event';
+import { ArpeggioEffect } from '../../effect/effect_definition/pitch/arpeggio-effect';
+import { PeriodSlideEffect } from '../../effect/effect_definition/pitch/period-slide-effect';
+import { WaveformEffect } from '../../effect/effect_definition/waveform/waveform-effect';
+import { WaveformTarget } from '../../enum/waveform-target.enum';
+import { PositionJumpEffect } from '../../effect/effect_definition/jump/position-jump-effect';
 
 export class ModEffectParser extends EffectParser {
     private static readonly PITCH_TABLE: { [SourcePitch: number]: number; } = {
@@ -136,41 +141,203 @@ export class ModEffectParser extends EffectParser {
             return lEffectList;
         });
 
-        // 0x0
-        //this.addEffectHandler('0000.xxxx.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
+        // 0x0 => Arpeggio Effect.
+        this.addEffectHandler('0000.xxxx.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
+            // Exit on empty effect. Prevents unnecessary effect creation on empty effects.
+            if (pEvent.data.parameter.first === 0 && pEvent.data.parameter.second === 0) {
+                return [];
+            }
 
-        // 0x1
-        //this.addEffectHandler('0001.xxxx.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
+            const lArpeggioEffect: ArpeggioEffect = new ArpeggioEffect();
 
-        // 0x2
-        //this.addEffectHandler('0010.xxxx.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
+            // Add notes for arpeggio
+            lArpeggioEffect.addNote(pEvent.data.pitch);
+            lArpeggioEffect.addNote(pEvent.data.pitch * Math.pow(Math.pow(2, 1 / 12), pEvent.data.parameter.first));
+            lArpeggioEffect.addNote(pEvent.data.pitch * Math.pow(Math.pow(2, 1 / 12), pEvent.data.parameter.second));
+            lArpeggioEffect.addNote(pEvent.data.pitch);
 
-        // 0x3
-        //this.addEffectHandler('0011.xxxx.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
+            return [lArpeggioEffect];
+        });
 
-        // 0x4
-        //this.addEffectHandler('0100.xxxx.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
+        // 0x1 => Period Slide Up
+        this.addEffectHandler('0001.xxxx.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
+            const lPeriodSlideEffect: PeriodSlideEffect = new PeriodSlideEffect();
+            lPeriodSlideEffect.direction = Direction.Up;
+            lPeriodSlideEffect.noteBoundary = Pitch.Octave3B;
+            lPeriodSlideEffect.periodSlidePerTick = pEvent.data.parameter.first * 16 + pEvent.data.parameter.second;
 
-        // 0x5
-        //this.addEffectHandler('0101.xxxx.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
+            return [lPeriodSlideEffect];
+        });
 
-        // 0x6
-        //this.addEffectHandler('0110.xxxx.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
+        // 0x2 => Period Slide Down
+        this.addEffectHandler('0010.xxxx.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
+            const lPeriodSlideEffect: PeriodSlideEffect = new PeriodSlideEffect();
+            lPeriodSlideEffect.direction = Direction.Down;
+            lPeriodSlideEffect.noteBoundary = Pitch.Octave1C;
+            lPeriodSlideEffect.periodSlidePerTick = pEvent.data.parameter.first * 16 + pEvent.data.parameter.second;
 
-        // 0x7
-        //this.addEffectHandler('0111.xxxx.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
+            return [lPeriodSlideEffect];
+        });
 
-        // 0x8
-        //this.addEffectHandler('1000.xxxx.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
+        // 0x3 => Slide to note
+        this.addEffectHandler('0011.xxxx.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
+            const lPeriodSlideEffect: PeriodSlideEffect = new PeriodSlideEffect();
 
-        // 0x9
+            // Load last slide when not parameter is applied.
+            if (pEvent.data.parameter.first !== 0 || pEvent.data.parameter.second !== 0) {
+                // Load last pitch. Use C2 when not last pitch was set.
+                const lLastPitch: Pitch = pEvent.history.last(SetPitchEffect)?.pitch ?? Pitch.Octave2C;
+
+                // Set pitch depending on last pitch.
+                lPeriodSlideEffect.direction = (lLastPitch < pEvent.data.pitch) ? Direction.Down : Direction.Up;
+                lPeriodSlideEffect.noteBoundary = pEvent.data.pitch;
+                lPeriodSlideEffect.periodSlidePerTick = pEvent.data.parameter.first * 16 + pEvent.data.parameter.second;
+            } else {
+                // Load last used period slide effect.
+                const lLastPeriodSlide: PeriodSlideEffect | undefined = pEvent.history.last(PeriodSlideEffect);
+                const lLastEffectPitchBoundary: Pitch = lLastPeriodSlide?.noteBoundary ?? Pitch.Octave2C;
+                const lLastEffectSlide: number = lLastPeriodSlide?.periodSlidePerTick ?? 0;
+
+                // Load last pitch. Use C2 when not last pitch was set.
+                const lLastPitch: Pitch = pEvent.history.last(SetPitchEffect)?.pitch ?? Pitch.Octave2C;
+
+                // Set pitch depending on last pitch.
+                lPeriodSlideEffect.direction = (lLastPitch < lLastEffectPitchBoundary) ? Direction.Down : Direction.Up;
+                lPeriodSlideEffect.noteBoundary = lLastEffectPitchBoundary;
+                lPeriodSlideEffect.periodSlidePerTick = lLastEffectSlide;
+            }
+
+            // Ignore period.
+            pEvent.preventPitch();
+
+            return [lPeriodSlideEffect];
+        });
+
+        // 0x4 => Vibrato
+        this.addEffectHandler('0100.xxxx.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
+            // Load current pitch. Use C2 when not last pitch was set.
+            const lLastPitch: Pitch = pEvent.data.pitch || (pEvent.history.last(SetPitchEffect)?.pitch ?? Pitch.Octave2C);
+
+            const lVibratoEffect: WaveformEffect = new WaveformEffect();
+
+            // Load old vibrato effect when one of the parameter is zero. 
+            if (pEvent.data.parameter.first !== 0 && pEvent.data.parameter.second !== 0) {
+                lVibratoEffect.target = WaveformTarget.Vibrato;
+                lVibratoEffect.circlePerTick = pEvent.data.parameter.first / 64;
+
+                // Amplitude y/16 Semitones.
+                lVibratoEffect.amplitude = lLastPitch * Math.pow(Math.pow(2, 1 / 12), pEvent.data.parameter.second / 16);
+            } else {
+                // Load last vibrato effect.
+                const lLastVibratoEffect: WaveformEffect | undefined = pEvent.history.last(WaveformEffect);
+
+                // Apply last effect values.
+                lVibratoEffect.amplitude = lLastVibratoEffect?.amplitude ?? 0;
+                lVibratoEffect.circlePerTick = lLastVibratoEffect?.amplitude ?? 1;
+                lVibratoEffect.target = WaveformTarget.Vibrato;
+            }
+
+            return [lVibratoEffect];
+        });
+
+        // 0x5 => Continue 'Slide to note', but also do Volume slide
+        this.addEffectHandler('0101.xxxx.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
+            const lVolumeSlideEffect: VolumeSlideEffect = new VolumeSlideEffect();
+
+            // Set direction based on set parameter.
+            if (pEvent.data.parameter.first !== 0) {
+                lVolumeSlideEffect.direction == Direction.Up;
+                lVolumeSlideEffect.volumeChangePerTick = pEvent.data.parameter.first;
+            } else {
+                lVolumeSlideEffect.direction == Direction.Up;
+                lVolumeSlideEffect.volumeChangePerTick = pEvent.data.parameter.second;
+            }
+
+            const lPeriodSlideEffect: PeriodSlideEffect = new PeriodSlideEffect();
+
+            // Load last used period slide effect.
+            const lLastPeriodSlide: PeriodSlideEffect | undefined = pEvent.history.last(PeriodSlideEffect);
+            const lLastEffectPitchBoundary: Pitch = lLastPeriodSlide?.noteBoundary ?? Pitch.Octave2C;
+            const lLastEffectSlide: number = lLastPeriodSlide?.periodSlidePerTick ?? 0;
+
+            // Load last pitch. Use C2 when not last pitch was set.
+            const lLastPitch: Pitch = pEvent.history.last(SetPitchEffect)?.pitch ?? Pitch.Octave2C;
+
+            // Set pitch depending on last pitch.
+            lPeriodSlideEffect.direction = (lLastPitch < lLastEffectPitchBoundary) ? Direction.Down : Direction.Up;
+            lPeriodSlideEffect.noteBoundary = lLastEffectPitchBoundary;
+            lPeriodSlideEffect.periodSlidePerTick = lLastEffectSlide;
+
+            return [lVolumeSlideEffect, lPeriodSlideEffect];
+        });
+
+        // 0x6 => Continue 'Vibrato', but also do Volume slide
+        this.addEffectHandler('0110.xxxx.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
+            const lVolumeSlideEffect: VolumeSlideEffect = new VolumeSlideEffect();
+
+            // Set direction based on set parameter.
+            if (pEvent.data.parameter.first !== 0) {
+                lVolumeSlideEffect.direction == Direction.Up;
+                lVolumeSlideEffect.volumeChangePerTick = pEvent.data.parameter.first;
+            } else {
+                lVolumeSlideEffect.direction == Direction.Up;
+                lVolumeSlideEffect.volumeChangePerTick = pEvent.data.parameter.second;
+            }
+
+            const lVibratoEffect: WaveformEffect = new WaveformEffect();
+
+            // Load last vibrato effect.
+            const lLastVibratoEffect: WaveformEffect | undefined = pEvent.history.last(WaveformEffect);
+
+            // Apply last effect values.
+            lVibratoEffect.amplitude = lLastVibratoEffect?.amplitude ?? 0;
+            lVibratoEffect.circlePerTick = lLastVibratoEffect?.amplitude ?? 1;
+            lVibratoEffect.target = WaveformTarget.Vibrato;
+
+            return [lVolumeSlideEffect, lVibratoEffect];
+        });
+
+        // 0x7 => Tremolo
+        this.addEffectHandler('0111.xxxx.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
+            const lTremoloEffect: WaveformEffect = new WaveformEffect();
+
+            // Load old vibrato effect when one of the parameter is zero. 
+            if (pEvent.data.parameter.first !== 0 && pEvent.data.parameter.second !== 0) {
+                lTremoloEffect.target = WaveformTarget.Tremolo;
+                lTremoloEffect.circlePerTick = pEvent.data.parameter.first / 64;
+
+                // Amplitude y/16 Semitones.
+                lTremoloEffect.amplitude = pEvent.data.parameter.second;
+            } else {
+                // Load last vibrato effect.
+                const lLastTremoloEffect: WaveformEffect | undefined = pEvent.history.last(WaveformEffect);
+
+                // Apply last effect values.
+                lTremoloEffect.amplitude = lLastTremoloEffect?.amplitude ?? 0;
+                lTremoloEffect.circlePerTick = lLastTremoloEffect?.amplitude ?? 1;
+                lTremoloEffect.target = WaveformTarget.Tremolo;
+            }
+
+            return [lTremoloEffect];
+        });
+
+        // 0x8 => Set panning position
+        this.addEffectHandler('1000.xxxx.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
+            const lSetPanningEffect: SetPanningEffect = new SetPanningEffect();
+            // Panning ranges from 0 to 128. Convert to -1...1 range.
+            lSetPanningEffect.panning = ((pEvent.data.parameter.first * 16 + pEvent.data.parameter.second) - 64) / 64;
+
+            return [lSetPanningEffect];
+        });
+
+        // 0x9 => Set sample offset
         this.addEffectHandler('1001.xxxx.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
             const lSampleOffsetEffect: SampleOffsetEffect = new SampleOffsetEffect();
             lSampleOffsetEffect.offset = pEvent.data.parameter.first * 4096 + pEvent.data.parameter.second * 256;
             return [lSampleOffsetEffect];
         });
 
-        // 0xA
+        // 0xA => Volume slide
         this.addEffectHandler('1010.xxxx.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
             // Ignore YParameter when XParameter is set. Convert 0..64 to 0..1 range. 
             const lVolumeSlideEffect: VolumeSlideEffect = new VolumeSlideEffect();
@@ -179,10 +346,16 @@ export class ModEffectParser extends EffectParser {
             return [lVolumeSlideEffect];
         });
 
-        // 0xB
-        //this.addEffectHandler('1011.xxxx.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
+        // 0xB => Position Jump
+        this.addEffectHandler('1011.xxxx.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
+            const lJumpEffect: PositionJumpEffect = new PositionJumpEffect();
+            lJumpEffect.divisionIndex = 0;
+            lJumpEffect.songPosition = pEvent.data.parameter.first * 16 + pEvent.data.parameter.second;
 
-        // 0xC
+            return [lJumpEffect];
+        });
+
+        // 0xC => Set volume
         this.addEffectHandler('1100.xxxx.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
             // Ignore YParameter when XParameter is set. Convert 0..64 to 0..1 range. 
             const lVolumeSetEffect: SetVolumeEffect = new SetVolumeEffect();
@@ -190,25 +363,32 @@ export class ModEffectParser extends EffectParser {
             return [lVolumeSetEffect];
         });
 
-        // 0xD
-        //this.addEffectHandler('1101.xxxx.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
+        // 0xD => Pattern Break
+        this.addEffectHandler('1101.xxxx.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
+            const lJumpEffect: PositionJumpEffect = new PositionJumpEffect();
+            lJumpEffect.divisionIndex = pEvent.data.parameter.first * 10 + pEvent.data.parameter.second;
+            lJumpEffect.songPosition = 1;
+            lJumpEffect.songPositionShiftMode = true;
+
+            return [lJumpEffect];
+        });
 
         // 0xE
         {
-            // 0x0
-            //this.addEffectHandler('1110.0000.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
+            // 0x0 => Set filter on/off. UNUSED.
+            //this.addEffectHandler('1110.0000.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => { /* UNUSED */ });
 
             // 0x1
-            //this.addEffectHandler('1110.0001.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
+            //this.addEffectHandler('1110.0001.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
 
             // 0x2
-            //this.addEffectHandler('1110.0010.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
+            //this.addEffectHandler('1110.0010.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
 
             // 0x3
-            //this.addEffectHandler('1110.0011.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
+            //this.addEffectHandler('1110.0011.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
 
             // 0x4
-            //this.addEffectHandler('1110.0100.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
+            //this.addEffectHandler('1110.0100.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
 
             // 0x5
             this.addEffectHandler('1110.0101.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
@@ -218,13 +398,13 @@ export class ModEffectParser extends EffectParser {
             });
 
             // 0x6
-            //this.addEffectHandler('1110.0110.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
+            //this.addEffectHandler('1110.0110.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
 
             // 0x7
-            //this.addEffectHandler('1110.0111.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
+            //this.addEffectHandler('1110.0111.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
 
             // 0x8
-            //this.addEffectHandler('1110.1000.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
+            //this.addEffectHandler('1110.1000.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
 
             // 0x9
             this.addEffectHandler('1110.1001.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
@@ -241,10 +421,10 @@ export class ModEffectParser extends EffectParser {
             });
 
             // 0xA
-            //this.addEffectHandler('1110.1010.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
+            //this.addEffectHandler('1110.1010.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
 
             // 0xB
-            //this.addEffectHandler('1110.1011.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
+            //this.addEffectHandler('1110.1011.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
 
             // 0xC
             this.addEffectHandler('1110.1100.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {
@@ -261,7 +441,7 @@ export class ModEffectParser extends EffectParser {
             });
 
             // 0xE
-            //this.addEffectHandler('1110.1110.yyyy', (pEvent: EffectProcessEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
+            //this.addEffectHandler('1110.1110.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => { return []; /* TODO: */ });
 
             // 0xF
             this.addEffectHandler('1110.1111.yyyy', (pEvent: EffectParseEvent): Array<IGenericEffect> => {

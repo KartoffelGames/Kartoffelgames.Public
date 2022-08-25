@@ -8,33 +8,33 @@ import { IGenericEffect } from '../i-generic-effect';
 export class PositionJumpEffect implements IGenericEffect {
     private mDivisionIndex: number;
     private mSongPositionIndex: number;
+    private mSongPositionShiftMode: boolean;
 
     /**
-     * Get division index.
+     * Division index.
      */
     public get divisionIndex(): number {
         return this.mDivisionIndex;
-    }
-
-    /**
-     * Get division index.
-     */
-    public set divisionIndex(pIndex: number) {
+    } set divisionIndex(pIndex: number) {
         this.mDivisionIndex = pIndex;
     }
 
     /**
-     * Get song position index.
+     * Song position index or shift value based on shift mode.
      */
-    public get songPositionIndex(): number {
+    public get songPosition(): number {
         return this.mSongPositionIndex;
+    } set songPosition(pIndex: number) {
+        this.mSongPositionIndex = pIndex;
     }
 
     /**
-     * Get song position index.
+     * Song position shift mode.
      */
-    public set songPositionIndex(pIndex: number) {
-        this.mSongPositionIndex = pIndex;
+    public get songPositionShiftMode(): boolean {
+        return this.mSongPositionShiftMode;
+    } set songPositionShiftMode(pIndex: boolean) {
+        this.mSongPositionShiftMode = pIndex;
     }
 
     /**
@@ -43,5 +43,6 @@ export class PositionJumpEffect implements IGenericEffect {
     public constructor() {
         this.mDivisionIndex = 0;
         this.mSongPositionIndex = 0;
+        this.mSongPositionShiftMode = false;
     }
 }

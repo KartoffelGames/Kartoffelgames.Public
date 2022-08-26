@@ -16,7 +16,7 @@
     "devDependencies": {
         "@typescript-eslint/eslint-plugin": "~5.21.0",
         "@typescript-eslint/parser": "~5.21.0",
-        "eslint": "8.2.0",
+        "eslint": "^8.23.0",
         "turbo": "^1.0.28"
     },
     "packageManager": "npm@8.1.2"

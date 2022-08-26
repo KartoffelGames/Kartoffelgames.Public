@@ -2,7 +2,7 @@ import { EffectPriority } from '../../../enum/effect-priority.enum';
 import { PositionJumpEffect } from '../../effect_definition/jump/position-jump-effect';
 import { BaseEffectProcessor } from '../base-effect-processor';
 
-export class JumpEffectProcessor extends BaseEffectProcessor<PositionJumpEffect>{
+export class PositionJumpEffectProcessor extends BaseEffectProcessor<PositionJumpEffect>{
     /**
      * Get effect processor priority.
      */

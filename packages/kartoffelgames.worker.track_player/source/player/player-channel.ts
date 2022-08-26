@@ -1,6 +1,7 @@
 import { Dictionary, List } from '@kartoffelgames/core.data';
 import { IGenericEffect } from '../effect/effect_definition/i-generic-effect';
 import { LoopEffect } from '../effect/effect_definition/jump/loop-effect';
+import { PositionJumpEffect } from '../effect/effect_definition/jump/position-jump-effect';
 import { SetLoopPositionEffectEffect } from '../effect/effect_definition/jump/set-loop-position-effect';
 import { DelayPatternEffect } from '../effect/effect_definition/pattern/delay-pattern-effect';
 import { ArpeggioEffect } from '../effect/effect_definition/pitch/arpeggio-effect';
@@ -23,6 +24,7 @@ import { SetWaveformEffect } from '../effect/effect_definition/waveform/set-wave
 import { WaveformEffect } from '../effect/effect_definition/waveform/waveform-effect';
 import { BaseEffectProcessor } from '../effect/effect_processor/base-effect-processor';
 import { LoopEffectProcessor } from '../effect/effect_processor/jump/loop-effect-processor';
+import { PositionJumpEffectProcessor } from '../effect/effect_processor/jump/position-jump-effect-processor';
 import { SetLoopPositionEffectProcessor } from '../effect/effect_processor/jump/set-loop-position-effect-processor';
 import { DelayPatternEffectProcessor } from '../effect/effect_processor/pattern/delay-pattern-effect';
 import { ArpeggioEffectProcessor } from '../effect/effect_processor/pitch/arpeggio-effect-processor';
@@ -73,6 +75,7 @@ export class PlayerChannel {
         lEffectToProcessor.set(WaveformEffect, WaveformEffectProcessor);
         lEffectToProcessor.set(DelayPatternEffect, DelayPatternEffectProcessor);
         lEffectToProcessor.set(SetPanningEffect, SetPanningEffectProcessor);
+        lEffectToProcessor.set(PositionJumpEffect, PositionJumpEffectProcessor);
         return lEffectToProcessor;
     })();
 

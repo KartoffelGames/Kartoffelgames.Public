@@ -6,6 +6,7 @@
         "preinstall": "git config core.hooksPath ./enviroment/git_hooks && git config pull.rebase true",
         "lint": "npx eslint \"**/*.ts\" --config enviroment/configuration/eslint.config.js",
         "lint:fix": "npm run lint -- --fix",
+        "workflow:update-version-numbers": "node ./enviroment/scripts/project/project.mjs run=2",
         "project": "node ./enviroment/scripts/project/project.mjs"
     },
     "private": true,

@@ -1,5 +1,6 @@
 import { stdin, stdout } from 'node:process';
 import * as readline from 'node:readline';
+import * as util from 'node:util';
 
 export class Console {
     private readonly mIn: NodeJS.ReadStream;
@@ -149,8 +150,14 @@ export class Console {
      * Output text.
      * @param pText - Output text. 
      */
-    public writeLine(pText: string): void {
-        this.mOut.write(pText + '\n');
+    public writeLine(pText: string, pColor?: string): void {
+        if (pColor) {
+            const lColorCode: [string, string] = <any>util.inspect.colors[pColor];
+            const lColoredCode: string = `\x1b[${lColorCode[0]}m${pText}\x1b[${lColorCode[1]}m`;
+            this.mOut.write(lColoredCode + '\n');
+        } else {
+            this.mOut.write(pText + '\n');
+        }
     }
 }
 

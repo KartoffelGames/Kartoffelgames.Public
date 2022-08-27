@@ -27,21 +27,23 @@ export class PackageCommand {
      */
     public async create(pBlueprintType: string): Promise<void> {
         const lConsole = new Console();
+        const lBlueprintPath = path.resolve(this.mCliRootPath, 'blueprints', pBlueprintType.toLowerCase());
+
+        // Output heading.
         lConsole.writeLine('// Create Project');
+
+        // Check correct blueprint.
+        if (!FileUtil.exists(lBlueprintPath)) {
+            throw `Blueprint "${pBlueprintType}" does not exist.`;
+        }
 
         // Needed questions.
         const lProjectName = await lConsole.promt('Project Name: ', /^[a-zA-Z]+\.[a-zA-Z_.]+$/);
         const lPackageName = this.mWorkspaceHelper.getPackageName(lProjectName);
         const lProjectFolder = lProjectName.toLowerCase();
 
-        // Create paths.
-        const lBlueprintPath = path.resolve(this.mCliRootPath, 'blueprints', pBlueprintType.toLowerCase());
+        // Create new package path. 
         const lPackagePath = path.resolve(this.mWorkspaceRootPath, WorkspacePath.PackageDirectory, lProjectFolder);
-
-        // Check correct blueprint.
-        if (!FileUtil.exists(lBlueprintPath)) {
-            throw `Blueprint "${pBlueprintType}" does not exist.`;
-        }
 
         // Get all package.json files.
         if (this.mWorkspaceHelper.packageExists(lPackageName)) {

@@ -16,12 +16,17 @@ import { Parameter } from './helper/parameter';
     // Output main banner.
     lConsole.banner('Project Settings');
 
-    // Execute functions based on path.
-    if (lParameter.isPath('create *')) {
-        const lBlueprintType: string = lParameter.getPath(1);
-        await new PackageCommand(lCliRootPath, lWorkspaceRootPath).create(lBlueprintType);
-    } else {
-        throw `Command not found.`;
+    // Wrap error.
+    try {
+        // Execute functions based on path.
+        if (lParameter.isPath('create *')) {
+            const lBlueprintType: string = lParameter.getPath(1);
+            await new PackageCommand(lCliRootPath, lWorkspaceRootPath).create(lBlueprintType);
+        } else {
+            throw `Command not found.`;
+        }
+    } catch (e) {
+        lConsole.writeLine((<any>e).toString(), 'red');
     }
 
     process.exit(0);

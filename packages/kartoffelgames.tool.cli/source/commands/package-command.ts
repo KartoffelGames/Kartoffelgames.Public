@@ -6,6 +6,8 @@ import { WorkspacePath } from '../helper/workspace-path.js';
 import { Workspace } from '../helper/workspace.js';
 
 export class PackageCommand {
+    private static readonly PACKAGE_SETTING_KEY: string = 'kg.options';
+
     private readonly mCliRootPath: string;
     private readonly mWorkspaceHelper: Workspace;
     private readonly mWorkspaceRootPath: string;
@@ -44,6 +46,7 @@ export class PackageCommand {
 
         // Create new package path. 
         const lPackagePath = path.resolve(this.mWorkspaceRootPath, WorkspacePath.PackageDirectory, lProjectFolder);
+        const lPackageJsonPath = path.resolve(lPackagePath, 'package.json');
 
         // Get all package.json files.
         if (this.mWorkspaceHelper.packageExists(lPackageName)) {
@@ -70,6 +73,15 @@ export class PackageCommand {
 
         // Add package to workspace.
         this.mWorkspaceHelper.createVsWorkspace(lProjectName);
+
+        // Update package.json custom settings.
+        const lCustomSettings = {
+            blueprint: pBlueprintType.toLowerCase()
+        };
+        const lPackageJsonContent: string = FileUtil.read(lPackageJsonPath);
+        const lPackageJsonJson: any = JSON.parse(lPackageJsonContent);
+        lPackageJsonJson[PackageCommand.PACKAGE_SETTING_KEY] = lCustomSettings;
+        FileUtil.write(lPackageJsonPath, JSON.stringify(lPackageJsonJson, null, 4));
 
         // Display init information.
         lConsole.writeLine('Project successfull created.');

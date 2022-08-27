@@ -38,19 +38,17 @@
         "@kartoffelgames/core.data": "^0.0.34"
     },
     "scripts": {
-        "script:build": "npm run pre:build && webpack-cli --config ../../enviroment/configuration/webpack.config.js",
+        "pre:build:webpack": "webpack-cli --config ../../enviroment/configuration/webpack.config.js",
+        "pre:build:clean": "node ../../enviroment/scripts/clean-build.mjs",
         "pre:build:build-tsc": "tsc --project tsconfig.json --noemit false",
-        "pre:build:clean": "node -e \"require('../../enviroment/scripts/clean-build').cleanBuild()\"",
         "pre:build:copyRawFiles": "copyfiles -e \"**/*.ts\" source/**/* library/",
         "pre:build": "npm run pre:build:clean && npm run pre:build:copyRawFiles && npm run pre:build:build-tsc",
-        "build:debug": "npm run script:build -- --env=buildType=debug",
-        "build:release": "npm run script:build -- --env=buildType=release",
-        "build:test": "npm run script:build -- --env=buildType=test",
-        "build:test-coverage": "npm run script:build -- --env=buildType=test --env=coverage",
+        "build:debug": "npm run pre:build",
+        "build": "npm run pre:build",
         "scratchpad": "webpack serve --config=../../enviroment/configuration/webpack.config.js --env=buildType=scratchpad",
-        "test": "npm run build:test && npx mocha --config \"../../enviroment/configuration/mocha.config.js\"",
-        "test:debug": "npm run build:test && npx mocha --config \"../../enviroment/configuration/mocha.config.js\" --no-timeouts",
-        "test:coverage": "npm run build:test-coverage && npx nyc --nycrc-path \"../../enviroment/configuration/nyc.config.json\" mocha --config \"../../enviroment/configuration/mocha.config.js\""
+        "test": "npm run pre:build:webpack -- --env=buildType=test && npx mocha --config \"../../enviroment/configuration/mocha.config.js\"",
+        "test:debug": "npm run pre:build:webpack -- --env=buildType=test && npx mocha --config \"../../enviroment/configuration/mocha.config.js\" --no-timeouts",
+        "test:coverage": "npm run pre:build:webpack -- --env=buildType=test --env=coverage && npx nyc --nycrc-path \"../../enviroment/configuration/nyc.config.json\" mocha --config \"../../enviroment/configuration/mocha.config.js\""
     },
     "repository": {
         "type": "git",

@@ -7,9 +7,9 @@
                 "^build:debug"
             ]
         },
-        "build:release": {
+        "build": {
             "dependsOn": [
-                "^build:release"
+                "^build"
             ]
         },
         "test": {

@@ -87,4 +87,72 @@ export class PackageCommand {
         lConsole.writeLine('Project successfull created.');
         lConsole.writeLine(`Call "npm install" to initialize this project`);
     }
+
+    /**
+     * Sync all local dependency verions.
+     */
+    public async sync(): Promise<void> {
+        // Get all package.json files.
+        const lPackageFolderPath = path.resolve(this.mWorkspaceRootPath, WorkspacePath.PackageDirectory);
+        const lPackageFileList = FileUtil.getAllFilesOfName(lPackageFolderPath, 'package.json', 1);
+
+        // Map each package.json with its path.
+        const lPackageInformations: Map<string, PackageChangeInformation> = new Map<string, PackageChangeInformation>();
+        for (const lPackageFilePath of lPackageFileList) {
+            const lFileText = FileUtil.read(lPackageFilePath);
+            const lPackageJson = JSON.parse(lFileText);
+
+            // Map package information.
+            lPackageInformations.set(lPackageJson['name'], {
+                name: lPackageJson['name'],
+                path: path.dirname(lPackageFilePath),
+                json: lPackageJson,
+                changed: false
+            });
+        }
+
+        // Replace local dependencies.
+        for (const lPackageInformation of lPackageInformations.values()) {
+            const lPackageJson = lPackageInformation.json;
+
+            // Devlopment and productive dependencies.
+            const lDependencyTypeList = ['devDependencies', 'dependencies'];
+            for (const lDependencyType of lDependencyTypeList) {
+                // Replace dependencies.
+                if (lDependencyType in lPackageJson) {
+                    for (const lDependencyName in lPackageJson[lDependencyType]) {
+                        // On local package exists.
+                        if (lDependencyName in lPackageInformations) {
+                            const lOldDependency = lPackageJson[lDependencyType][lDependencyName];
+                            const lNewDependency = `^${(<PackageChangeInformation>lPackageInformations.get(lDependencyName)).json['version']}`;
+
+                            // Check for possible changes before applying.
+                            if (lNewDependency !== null && lNewDependency !== lOldDependency) {
+                                lPackageJson[lDependencyType][lDependencyName] = lNewDependency;
+                                lPackageInformation['changed'] = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Replace json files with altered jsons.
+        for (const lPackageInformation of lPackageInformations.values()) {
+            if (lPackageInformation.changed) {
+                const lPackageJsonText = JSON.stringify(lPackageInformation.json, null, 4);
+                const lPackageFilePath = path.resolve(lPackageInformation.path, 'package.json');
+
+                // Write altered data to package.json.
+                FileUtil.write(lPackageFilePath, lPackageJsonText);
+            }
+        }
+    }
 }
+
+type PackageChangeInformation = {
+    name: string;
+    path: string;
+    json: any;
+    changed: boolean;
+};

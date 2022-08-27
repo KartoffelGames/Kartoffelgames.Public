@@ -22,11 +22,14 @@ import { Parameter } from './helper/parameter';
         if (lParameter.isPath('create *')) {
             const lBlueprintType: string = lParameter.getPath(1);
             await new PackageCommand(lCliRootPath, lWorkspaceRootPath).create(lBlueprintType);
-        } else if(lParameter.isPath('help')) {
+        } if (lParameter.isPath('sync')) {
+            await new PackageCommand(lCliRootPath, lWorkspaceRootPath).sync();
+        } else if (lParameter.isPath('help')) {
             // List all commands.
             lConsole.writeLine('Available commands:');
             lConsole.writeLine('    kg help                            - This');
             lConsole.writeLine('    kg create <blueprint name>         - Create new project');
+            lConsole.writeLine('    kg sync         - Sync all local dependency verions');
         } else {
             throw `Command not found.`;
         }

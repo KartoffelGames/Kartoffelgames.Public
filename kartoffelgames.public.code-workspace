@@ -1,10 +1,6 @@
 {
     "folders": [
         {
-            "name": "KartoffelGames.Core.Serializer",
-            "path": "./packages/kartoffelgames.core.serializer"
-        },
-        {
             "name": "KartoffelGames.Core.Data",
             "path": "./packages/kartoffelgames.core.data"
         },
@@ -13,8 +9,16 @@
             "path": "./packages/kartoffelgames.core.dependency_injection"
         },
         {
+            "name": "KartoffelGames.Core.Serializer",
+            "path": "./packages/kartoffelgames.core.serializer"
+        },
+        {
             "name": "KartoffelGames.Core.Xml",
             "path": "./packages/kartoffelgames.core.xml"
+        },
+        {
+            "name": "KartoffelGames.Tool.CLI",
+            "path": "./packages/kartoffelgames.tool.cli"
         },
         {
             "name": "KartoffelGames.Web.Change_Detection",

@@ -7,12 +7,16 @@
 // Toggle everything to remote.
 
 // Load dependencies.
-const gPath = require('path');
-const gFilereader = require('fs');
-const gChildProcess = require('child_process');
+import * as path from 'path';
+import * as filereader from 'fs';
+import { Out } from '../helper/out.mjs';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
 
+const __dirname = dirname(fileURLToPath(
+    import.meta.url));
 // Global paths.
-const gPackageFolderPath = gPath.resolve(__dirname, '../../packages');
+const gPackageFolderPath = path.resolve(__dirname, '../../../../packages');
 
 /**
  * Get all file paths of given file name.
@@ -21,15 +25,15 @@ const gPackageFolderPath = gPath.resolve(__dirname, '../../packages');
  * @param pSearchDepth - How deep should be searched.
  */
 const gGetAllFilesOfName = (pStartDestination, pFileName, pSearchDepth) => {
-    const lAbsoulteStartDestination = gPath.resolve(pStartDestination);
+    const lAbsoulteStartDestination = path.resolve(pStartDestination);
 
     // Check start directory existence.
-    if (!gFilereader.existsSync(lAbsoulteStartDestination)) {
+    if (!filereader.existsSync(lAbsoulteStartDestination)) {
         throw `"${lAbsoulteStartDestination}" does not exists.`;
     }
 
     // Check if start directory is a directory.
-    let lDirectoryStatus = gFilereader.statSync(lAbsoulteStartDestination);
+    let lDirectoryStatus = filereader.statSync(lAbsoulteStartDestination);
     if (!lDirectoryStatus.isDirectory()) {
         throw `"${lAbsoulteStartDestination}" is not a directory.`;
     }
@@ -38,9 +42,9 @@ const gGetAllFilesOfName = (pStartDestination, pFileName, pSearchDepth) => {
 
     // Check every file.
     // Copy each item into new directory.
-    for (const lChildItemName of gFilereader.readdirSync(pStartDestination)) {
-        const lItemPath = gPath.join(lAbsoulteStartDestination, lChildItemName);
-        const lItemStatus = gFilereader.statSync(lItemPath);
+    for (const lChildItemName of filereader.readdirSync(pStartDestination)) {
+        const lItemPath = path.join(lAbsoulteStartDestination, lChildItemName);
+        const lItemStatus = filereader.statSync(lItemPath);
 
         // Check if file or directory. Only search for files in found directory if depth is available.
         // Add item path to results if file name matches seached file name.
@@ -66,12 +70,12 @@ const gChangeLocalDependenciesTo = (pCallback) => {
     // Map each package.json with its path.
     const lPackageInformations = {}; // PackageName : {path, json, changed}
     for (const lPackageFilePath of lPackageFileList) {
-        const lFileText = gFilereader.readFileSync(lPackageFilePath, { encoding: 'utf8' });
+        const lFileText = filereader.readFileSync(lPackageFilePath, { encoding: 'utf8' });
         const lPackageJson = JSON.parse(lFileText);
 
         // Map package information.
         lPackageInformations[lPackageJson['name']] = {
-            path: gPath.dirname(lPackageFilePath),
+            path: path.dirname(lPackageFilePath),
             json: lPackageJson,
             changed: false
         };
@@ -108,10 +112,10 @@ const gChangeLocalDependenciesTo = (pCallback) => {
         const lPackageInformation = lPackageInformations[lLocalPathName];
         if (lPackageInformation['changed']) {
             const lPackageJsonText = JSON.stringify(lPackageInformation['json'], null, 4);
-            const lPackageFilePath = gPath.resolve(lPackageInformation['path'], 'package.json');;
+            const lPackageFilePath = path.resolve(lPackageInformation['path'], 'package.json');;
 
             // Write altered data to package.json.
-            gFilereader.writeFileSync(lPackageFilePath, lPackageJsonText, { encoding: 'utf8' });
+            filereader.writeFileSync(lPackageFilePath, lPackageJsonText, { encoding: 'utf8' });
         }
     }
 };
@@ -120,10 +124,18 @@ const gChangeLocalDependenciesTo = (pCallback) => {
  * Toggle all local available dependencies to remote files.
  */
 const gUpdateDependencyVersions = () => {
+    const lOut = new Out();
+
+    lOut.writeLine('////-----------------////');
+    lOut.writeLine('//// Update Versions ////');
+    lOut.writeLine('////-----------------////');
+
     gChangeLocalDependenciesTo((_pThispackageInformation, pReplacementPackageInformation) => {
         return `^${pReplacementPackageInformation['json']['version']}`;
     });
+    lOut.writeLine('Versions updated.');
+
 };
 
 // Export.
-module.exports.updateDependencyVersions = gUpdateDependencyVersions;
+export const updateDependencyVersions = gUpdateDependencyVersions;

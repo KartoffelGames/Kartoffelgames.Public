@@ -6,8 +6,7 @@
         "preinstall": "git config core.hooksPath ./enviroment/git_hooks && git config pull.rebase true",
         "lint": "npx eslint \"**/*.ts\" --config enviroment/configuration/eslint.config.js",
         "lint:fix": "npm run lint -- --fix",
-        "create-project": "node -e \"require('./enviroment/scripts/create-package').createPackage()\"",
-        "update-dependency-versions": "node -e \"require('./enviroment/scripts/update-dependency-versions').updateDependencyVersions()\""
+        "project": "node ./enviroment/scripts/project/project.mjs"
     },
     "private": true,
     "workspaces": [

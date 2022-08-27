@@ -16,8 +16,8 @@
         "ES2021",
         "DOM"
       ],
-      "module": "CommonJS",
-      "moduleResolution": "node",
+      "module": "ESNext",
+      "moduleResolution": "Node",
       "noEmit": true,
       "noEmitOnError": true,
       "noImplicitAny": true,
@@ -32,7 +32,7 @@
       "strictFunctionTypes": true,
       "strictNullChecks": true,
       "strictPropertyInitialization": true,
-      "target": "es2021",
+      "target": "ESNext",
       "useUnknownInCatchVariables": true
     },
     "exclude": [

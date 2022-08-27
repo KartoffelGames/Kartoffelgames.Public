@@ -17,7 +17,8 @@ module.exports = {
         "node_modules/",
         "Library/",
         "Scratchpad/",
-        "**/*.js"
+        "**/*.js",
+        "**/*.mjs"
     ],
     "rules": {
         "no-return-await": "warn",

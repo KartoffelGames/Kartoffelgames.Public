@@ -1,7 +1,14 @@
 // Load dependencies.
-const gPath = require('path');
-const gFilereader = require('fs');
-const gReadline = require("readline");
+import * as path from 'node:path';
+import * as filereader from 'node:fs';
+import * as readline from 'node:readline';
+import { Out } from '../helper/out.mjs';
+
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(
+    import.meta.url));
 
 /**
  * Copy directory with all files into destination
@@ -10,29 +17,29 @@ const gReadline = require("readline");
  * @param pDestination - The path to the new copy.
  */
 const gCopyDirectory = (pSource, pDestination, pOverride, pReplacementMap) => {
-    const lSourceItem = gPath.resolve(pSource);
-    const lDestinationItem = gPath.resolve(pDestination);
+    const lSourceItem = path.resolve(pSource);
+    const lDestinationItem = path.resolve(pDestination);
 
-    let lSourceExists = gFilereader.existsSync(lSourceItem);
-    let lDestinationExists = gFilereader.existsSync(lDestinationItem);
-    let lFileStatus = lSourceExists && gFilereader.statSync(lSourceItem);
+    let lSourceExists = filereader.existsSync(lSourceItem);
+    let lDestinationExists = filereader.existsSync(lDestinationItem);
+    let lFileStatus = lSourceExists && filereader.statSync(lSourceItem);
     let lSourceIsDirectory = lSourceExists && lFileStatus.isDirectory();
 
     if (lSourceIsDirectory) {
         // Create destination directory.
         if (!lDestinationExists) {
-            gFilereader.mkdirSync(lDestinationItem);
+            filereader.mkdirSync(lDestinationItem);
         }
 
         // Copy each item into new directory.
-        for (const lChildItemName of gFilereader.readdirSync(lSourceItem)) {
-            gCopyDirectory(gPath.join(lSourceItem, lChildItemName), gPath.join(lDestinationItem, lChildItemName), pOverride, pReplacementMap);
+        for (const lChildItemName of filereader.readdirSync(lSourceItem)) {
+            gCopyDirectory(path.join(lSourceItem, lChildItemName), path.join(lDestinationItem, lChildItemName), pOverride, pReplacementMap);
         }
     } else if (!lDestinationExists || pOverride) {
-        gFilereader.copyFileSync(lSourceItem, lDestinationItem);
+        filereader.copyFileSync(lSourceItem, lDestinationItem);
 
         // Read file text.
-        const lFileText = gFilereader.readFileSync(lDestinationItem, { encoding: 'utf8' });
+        const lFileText = filereader.readFileSync(lDestinationItem, { encoding: 'utf8' });
 
         // Replace each replacement pattern.
         let lAlteredFileText = lFileText;
@@ -42,7 +49,7 @@ const gCopyDirectory = (pSource, pDestination, pOverride, pReplacementMap) => {
         }
 
         // Update file with altered file text.
-        gFilereader.writeFileSync(lDestinationItem, lAlteredFileText, { encoding: 'utf8' });
+        filereader.writeFileSync(lDestinationItem, lAlteredFileText, { encoding: 'utf8' });
     }
 };
 
@@ -53,15 +60,15 @@ const gCopyDirectory = (pSource, pDestination, pOverride, pReplacementMap) => {
  * @param pSearchDepth - How deep should be searched.
  */
 const gGetAllFilesOfName = (pStartDestination, pFileName, pSearchDepth) => {
-    const lAbsoulteStartDestination = gPath.resolve(pStartDestination);
+    const lAbsoulteStartDestination = path.resolve(pStartDestination);
 
     // Check start directory existence.
-    if (!gFilereader.existsSync(lAbsoulteStartDestination)) {
+    if (!filereader.existsSync(lAbsoulteStartDestination)) {
         throw `"${lAbsoulteStartDestination}" does not exists.`;
     }
 
     // Check if start directory is a directory.
-    let lDirectoryStatus = gFilereader.statSync(lAbsoulteStartDestination);
+    let lDirectoryStatus = filereader.statSync(lAbsoulteStartDestination);
     if (!lDirectoryStatus.isDirectory()) {
         throw `"${lAbsoulteStartDestination}" is not a directory.`;
     }
@@ -70,9 +77,9 @@ const gGetAllFilesOfName = (pStartDestination, pFileName, pSearchDepth) => {
 
     // Check every file.
     // Copy each item into new directory.
-    for (const lChildItemName of gFilereader.readdirSync(pStartDestination)) {
-        const lItemPath = gPath.join(lAbsoulteStartDestination, lChildItemName);
-        const lItemStatus = gFilereader.statSync(lItemPath);
+    for (const lChildItemName of filereader.readdirSync(pStartDestination)) {
+        const lItemPath = path.join(lAbsoulteStartDestination, lChildItemName);
+        const lItemStatus = filereader.statSync(lItemPath);
 
         // Check if file or directory. Only search for files in found directory if depth is available.
         // Add item path to results if file name matches seached file name.
@@ -88,43 +95,6 @@ const gGetAllFilesOfName = (pStartDestination, pFileName, pSearchDepth) => {
 };
 
 /**
- * Open promt and validate answer.
- * @param pQuestion = Input question. 
- * @param pValidationRegex - Validation for input.
- */
-const gPromt = async(pQuestion, pValidationRegex) => {
-    // Initialize readline.
-    const lReadLine = gReadline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-    });
-
-    // Async.
-    const lAnswer = await new Promise((pResolve) => {
-        let lInput = '';
-
-        lReadLine.question(pQuestion, (pAnswer) => {
-            lInput = pAnswer;
-            lReadLine.close();
-        });
-
-        // Resolve promise on input close.
-        lReadLine.on("close", () => {
-            pResolve(lInput);
-        });
-    });
-
-    // Validate answer.
-    if (pValidationRegex && !pValidationRegex.test(lAnswer)) {
-        // Output error message and retry promt.
-        console.log(`Answer musst match ${pValidationRegex.toString()}`);
-        return await gPromt(pQuestion, pValidationRegex);
-    } else {
-        return lAnswer;
-    }
-};
-
-/**
  * Add packages as vs code workspace to workspace settings.
  * @param pWorkspaceFile - Workspace setting file.
  * @param pWorkspaceName - Name of workspace. 
@@ -132,7 +102,7 @@ const gPromt = async(pQuestion, pValidationRegex) => {
  */
 const gAddVSWorkspace = (pWorkspaceFile, pWorkspaceName, pWorkspaceFolder) => {
     // Read workspace file json.
-    const lFileText = gFilereader.readFileSync(pWorkspaceFile, { encoding: 'utf8' });
+    const lFileText = filereader.readFileSync(pWorkspaceFile, { encoding: 'utf8' });
     const lPackageJson = JSON.parse(lFileText);
 
     // Add new folder to folder list.
@@ -151,31 +121,35 @@ const gAddVSWorkspace = (pWorkspaceFile, pWorkspaceName, pWorkspaceFolder) => {
 
     // Update workspace file.
     const lPackageJsonText = JSON.stringify(lPackageJson, null, 4);
-    gFilereader.writeFileSync(pWorkspaceFile, lPackageJsonText, { encoding: 'utf8' });
+    filereader.writeFileSync(pWorkspaceFile, lPackageJsonText, { encoding: 'utf8' });
 };
 
 
-module.exports.createPackage = async() => {
-    console.log('//// Create Project ////');
+export const createPackage = async() => {
+    const lOut = new Out();
+
+    lOut.writeLine('////----------------////');
+    lOut.writeLine('//// Create Project ////');
+    lOut.writeLine('////----------------////');
 
     // Needed questions.
-    const lProjectName = await gPromt('Project Name: ', /^[a-zA-Z\_\.]+$/);
-    const lPackageName = await gPromt('Package Name: ', /^(@[a-z]+\/)?[a-z\.\-]+$/);
+    const lProjectName = await lOut.promt('Project Name: ', /^[a-zA-Z\_\.]+$/);
+    const lPackageName = await lOut.promt('Package Name: ', /^(@[a-z]+\/)?[a-z\.\-]+$/);
     const lProjectFolder = lProjectName.toLowerCase();
 
     try {
         // Create paths.
-        const lPackagePath = gPath.resolve(__dirname, '../../packages', lProjectFolder);
-        const lBlueprintPath = gPath.resolve(__dirname, '../project_blueprint');
-        const lPackageFolderPath = gPath.resolve(__dirname, '../../packages');
-        const lWorkspaceFile = gPath.resolve(__dirname, '../../kartoffelgames.public.code-workspace');
+        const lPackagePath = path.resolve(__dirname, '../../../../packages', lProjectFolder);
+        const lBlueprintPath = path.resolve(__dirname, '../../../project_blueprint');
+        const lPackageFolderPath = path.resolve(__dirname, '../../../../packages');
+        const lWorkspaceFile = path.resolve(__dirname, '../../../../kartoffelgames.public.code-workspace');
 
         // Get all package.json files.
         const lPackageFileList = gGetAllFilesOfName(lPackageFolderPath, 'package.json', 1);
 
         // Read files and convert json.
         for (const lPackageFile of lPackageFileList) {
-            const lFileText = gFilereader.readFileSync(lPackageFile, { encoding: 'utf8' });
+            const lFileText = filereader.readFileSync(lPackageFile, { encoding: 'utf8' });
             const lFileJson = JSON.parse(lFileText);
 
             // Check dublicate project name and package name.
@@ -188,16 +162,15 @@ module.exports.createPackage = async() => {
             }
         }
 
-        console.log('');
-        console.log('Create project');
+        lOut.writeLine('');
+        lOut.writeLine('Create project');
 
         // Check if project directory already exists.
-        if (gFilereader.existsSync(lPackagePath)) {
-            console.error('Project directory already exists.');
-            return;
+        if (filereader.existsSync(lPackagePath)) {
+            throw 'Project directory already exists.';
         } else {
             // Create package folder.
-            gFilereader.mkdirSync(lPackagePath);
+            filereader.mkdirSync(lPackagePath);
         }
 
         // Copy all files from blueprint folder.
@@ -210,7 +183,7 @@ module.exports.createPackage = async() => {
         // Add package to workspace.
         gAddVSWorkspace(lWorkspaceFile, lProjectName, lProjectFolder);
 
-        console.log('Project successfull created.', `Call "npm install -w ${lPackageName}" to initialize this project`);
+        lOut.writeLine('Project successfull created.', `Call "npm install -w ${lPackageName}" to initialize this project`);
 
     } catch (e) {
         console.error(e);

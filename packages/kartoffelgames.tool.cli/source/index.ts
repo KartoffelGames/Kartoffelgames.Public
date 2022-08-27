@@ -10,7 +10,7 @@ import { Parameter } from './helper/parameter';
     const lParameter: Parameter = new Parameter();
 
     // Get paths.
-    const lCliRootPath: string = path.resolve(__dirname, '..');
+    const lCliRootPath: string = path.resolve(__dirname, '..', '..'); // Called from /library/source
     const lWorkspaceRootPath: string = process.cwd();
 
     // Output main banner.

@@ -1,0 +1,98 @@
+import * as path from 'node:path';
+import { FileUtil } from './file-util';
+import { WorkspacePath } from './workspace-path';
+
+export class Workspace {
+    private readonly mRootPath: string;
+
+    /**
+     * Constructor.
+     * @param pRootPath - Project root path.
+     */
+    public constructor(pRootPath: string) {
+        this.mRootPath = path.resolve(pRootPath);
+    }
+
+    /**
+     * Add packages as vs code workspace to workspace settings.
+     * @param pWorkspaceName - Name of workspace. 
+     * @param pWorkspaceFolder - Folder name of workspace.
+     */
+    public createVsWorkspace(pWorkspaceName: string): void {
+        const lWorkspaceFilePath: string = path.resolve(this.mRootPath, WorkspacePath.WorkspaceFile);
+        const lWorkspaceFolder: string = pWorkspaceName.toLowerCase();
+
+        // Read workspace file json.
+        const lFileText = FileUtil.read(lWorkspaceFilePath);
+        const lPackageJson = JSON.parse(lFileText);
+
+        // Add new folder to folder list.
+        const lFolderList: Array<{ name: string, path: string; }> = lPackageJson['folders'];
+        lFolderList.push({
+            name: pWorkspaceName,
+            path: `./packages/${lWorkspaceFolder}`
+        });
+
+        // Sort folder alphabeticaly.
+        lFolderList.sort((pFirst, pSecond) => {
+            if (pFirst.name < pSecond.name) { return -1; }
+            if (pFirst.name > pSecond.name) { return 1; }
+            return 0;
+        });
+
+        // Update workspace file.
+        const lPackageJsonText = JSON.stringify(lPackageJson, null, 4);
+        FileUtil.write(lWorkspaceFilePath, lPackageJsonText);
+    }
+
+    /**
+     * Get package name.
+     * @param pName - Package name of project name.
+     */
+    public getPackageName(pName: string): string {
+        const lPackageRegex: RegExp = /^@[a-zA-Z0-9]+\/[a-zA-Z0-9.-]+$/;
+
+        // Check if name is already the package name.
+        if (lPackageRegex.test(pName)) {
+            return pName.toLowerCase();
+        }
+
+        const lPartList: Array<string> = pName.split('.');
+
+        // Try to parse name.
+        let lPackageName: string = `@${lPartList[0]}/${lPartList.slice(1).join('.')}`;
+        lPackageName = lPackageName.replace('_', '-');
+        lPackageName = lPackageName.toLowerCase();
+
+        // Validate parsed name.
+        if (!lPackageRegex.test(lPackageName)) {
+            throw `Project name "${pName}" cant be parsed to a package name.`;
+        }
+
+        return lPackageName;
+    }
+
+    /**
+     * Check if package exists.
+     * @param pPackageName - Package name.
+     */
+    public packageExists(pPackageName: string): boolean {
+        const lPackageName: string = this.getPackageName(pPackageName);
+
+        // Get all package.json files.
+        const lPackageFileList = FileUtil.getAllFilesOfName(path.resolve(this.mRootPath, WorkspacePath.PackageDirectory), 'package.json', 1);
+
+        // Read files and convert json.
+        for (const lPackageFile of lPackageFileList) {
+            const lFileText = FileUtil.read(lPackageFile);
+            const lFileJson = JSON.parse(lFileText);
+
+            // Check dublicate project name and package name.
+            if (lFileJson['name'].toLowerCase() === lPackageName.toLowerCase()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}

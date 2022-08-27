@@ -16,7 +16,7 @@
         "ES2021",
         "DOM"
       ],
-      "module": "ESNext",
+      "module": "CommonJS",
       "moduleResolution": "Node",
       "noEmit": true,
       "noEmitOnError": true,

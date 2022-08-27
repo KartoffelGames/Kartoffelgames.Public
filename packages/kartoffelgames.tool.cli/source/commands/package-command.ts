@@ -92,6 +92,11 @@ export class PackageCommand {
      * Sync all local dependency verions.
      */
     public async sync(): Promise<void> {
+        const lConsole = new Console();
+
+        // Output heading.
+        lConsole.writeLine('Sync package version numbers...');
+
         // Get all package.json files.
         const lPackageFolderPath = path.resolve(this.mWorkspaceRootPath, WorkspacePath.PackageDirectory);
         const lPackageFileList = FileUtil.getAllFilesOfName(lPackageFolderPath, 'package.json', 1);
@@ -113,23 +118,23 @@ export class PackageCommand {
 
         // Replace local dependencies.
         for (const lPackageInformation of lPackageInformations.values()) {
-            const lPackageJson = lPackageInformation.json;
+            const lCurrentPackageJson = lPackageInformation.json;
 
-            // Devlopment and productive dependencies.
+            // Sync Devlopment and productive dependencies.
             const lDependencyTypeList = ['devDependencies', 'dependencies'];
             for (const lDependencyType of lDependencyTypeList) {
-                // Replace dependencies.
-                if (lDependencyType in lPackageJson) {
-                    for (const lDependencyName in lPackageJson[lDependencyType]) {
+                // Check if package.json has dependency property.
+                if (lDependencyType in lCurrentPackageJson) {
+                    for (const lDependencyName in lCurrentPackageJson[lDependencyType]) {
                         // On local package exists.
-                        if (lDependencyName in lPackageInformations) {
-                            const lOldDependency = lPackageJson[lDependencyType][lDependencyName];
+                        if (lPackageInformations.has(lDependencyName)) {
+                            const lOldDependency = lCurrentPackageJson[lDependencyType][lDependencyName];
                             const lNewDependency = `^${(<PackageChangeInformation>lPackageInformations.get(lDependencyName)).json['version']}`;
 
                             // Check for possible changes before applying.
                             if (lNewDependency !== null && lNewDependency !== lOldDependency) {
-                                lPackageJson[lDependencyType][lDependencyName] = lNewDependency;
-                                lPackageInformation['changed'] = true;
+                                lCurrentPackageJson[lDependencyType][lDependencyName] = lNewDependency;
+                                lPackageInformation.changed = true;
                             }
                         }
                     }
@@ -147,6 +152,8 @@ export class PackageCommand {
                 FileUtil.write(lPackageFilePath, lPackageJsonText);
             }
         }
+
+        lConsole.writeLine('Sync completed');
     }
 }
 

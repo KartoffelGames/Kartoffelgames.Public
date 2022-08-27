@@ -85,6 +85,6 @@ export class PackageCommand {
 
         // Display init information.
         lConsole.writeLine('Project successfull created.');
-        lConsole.writeLine(`Call "npm install to initialize this project`);
+        lConsole.writeLine(`Call "npm install" to initialize this project`);
     }
 }

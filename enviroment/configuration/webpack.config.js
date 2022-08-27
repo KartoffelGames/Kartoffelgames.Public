@@ -178,8 +178,8 @@ module.exports = (pEnviroment) => {
             gInitializeScratchpadFiles(lProjectName);
             lEntryFile = './scratchpad/source/index.ts';
             lBuildMode = 'development';
-            lFileName = `${lProjectName}.scratchpad.js`;
-            lOutputDirectory = './scratchpad/build';
+            lFileName = `scratchpad.js`;
+            lOutputDirectory = 'dist';
             break;
     }
 
@@ -208,6 +208,20 @@ module.exports = (pEnviroment) => {
             aggregateTimeout: 1000,
             ignored: /node_modules/,
             poll: 1000
-        }
+        },
+        devServer: {
+            open: true,
+            liveReload: true,
+            static: {
+                directory: "./scratchpad",
+                watch: true
+            },
+            compress: true,
+            port: 5500,
+            client: {
+                logging: 'info',
+                overlay: true,
+            }
+        },
     };
 };

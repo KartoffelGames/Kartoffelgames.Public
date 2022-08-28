@@ -17,14 +17,12 @@ export class FileUtil {
 
         for (const lSourceFile of lSourceFileList) {
             // Create relative item path. Trim leading splash.
-            let lRelativeItemPath: string = lSourceFile.replace(lSourcePath, '')
-            lRelativeItemPath = lRelativeItemPath.startsWith('/') ? lRelativeItemPath.substring(1) : lRelativeItemPath;
+            let lRelativeItemPath: string = lSourceFile.replace(lSourcePath, '');
+            lRelativeItemPath = lRelativeItemPath.startsWith('\\') ? lRelativeItemPath.substring(1) : lRelativeItemPath;
 
             // Remove source path from source file, to append destination path instead of it.
             const lSourceItem: string = lSourceFile;
             const lDestinationItem: string = path.resolve(lDestinationPath, lRelativeItemPath);
-
-            console.log(lSourceItem, lDestinationItem)
 
             // File destination status. Check if override.
             const lDestinationExists = filereader.existsSync(lDestinationItem);

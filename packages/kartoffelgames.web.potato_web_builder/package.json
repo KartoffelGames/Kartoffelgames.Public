@@ -60,5 +60,9 @@
     "bugs": {
         "url": "https://github.com/KartoffelGames/KartoffelGames.Public/issues"
     },
-    "homepage": "https://github.com/KartoffelGames/KartoffelGames.Public#readme"
+    "homepage": "https://github.com/KartoffelGames/KartoffelGames.Public#readme",
+    "kg.options": {
+        "blueprint": "package",
+        "pack": false
+    }
 }

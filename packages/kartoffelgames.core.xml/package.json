@@ -61,5 +61,9 @@
     "homepage": "https://github.com/KartoffelGames/KartoffelGames.Public#readme",
     "publishConfig": {
         "registry": "https://npm.pkg.github.com/"
+    },
+    "kg.options": {
+        "blueprint": "package",
+        "pack": false
     }
 }

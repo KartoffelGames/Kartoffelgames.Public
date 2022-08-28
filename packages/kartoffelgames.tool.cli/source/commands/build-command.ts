@@ -43,9 +43,13 @@ export class BuildCommand {
         // Create shell command executor.
         const lShell: Shell = new Shell(lPackagePath);
 
+        // Load command from local node-modules.
+        const lTypescriptCli: string = require.resolve('typescript/lib/tsc.js');
+        const lWebpackCli: string = require.resolve('webpack-cli/bin/cli.js');
+
         // Run tsc.
         lConsole.writeLine('Build typescript');
-        lShell.call('npx tsc --project tsconfig.json --noemit false');
+        lShell.call(`node ${lTypescriptCli} --project tsconfig.json --noemit false`);
         lConsole.clearLines(1); // Empty typescript file.
 
         // Copy external files.
@@ -55,7 +59,7 @@ export class BuildCommand {
         // Build typescript when configurated.
         if (lConfiguration.pack) {
             lConsole.writeLine('Build Webpack');
-            const lWebpackCommand: string = `webpack-cli --config ${lWebpackConfigPath} --env=buildType=release`;
+            const lWebpackCommand: string = `node ${lWebpackCli} --config ${lWebpackConfigPath} --env=buildType=release`;
             lShell.call(lWebpackCommand);
         }
     }

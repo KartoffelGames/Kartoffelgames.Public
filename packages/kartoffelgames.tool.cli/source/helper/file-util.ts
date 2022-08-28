@@ -1,5 +1,5 @@
-import * as path from 'node:path';
-import * as filereader from 'node:fs';
+import * as path from 'path';
+import * as filereader from 'fs';
 
 export class FileUtil {
     /**

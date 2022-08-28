@@ -1,4 +1,4 @@
-import * as path from 'node:path';
+import * as path from 'path';
 import { Console } from '../helper/console.js';
 import { FileUtil } from '../helper/file-util.js';
 import { Shell } from '../helper/shell.js';
@@ -32,7 +32,7 @@ export class BuildCommand {
         const lPackagePath: string = this.mWorkspaceHelper.getProjectDirectory(pPackageName);
         const lPackageSourcePath: string = path.resolve(lPackagePath, 'source');
         const lPackageLibrarySourcePath: string = path.resolve(lPackagePath, 'library', 'source');
-        const lWebpackConfig: string = path.resolve(this.mCliRootPath, 'configuration', 'webpack.config.js');
+        const lWebpackConfigPath: string = path.resolve(this.mCliRootPath, 'configuration', 'webpack.config.js');
 
         // Read package configuration.
         const lConfiguration: WorkspaceConfiguration = this.mWorkspaceHelper.getProjectConfiguration(pPackageName);
@@ -46,10 +46,18 @@ export class BuildCommand {
         // Run tsc.
         lConsole.writeLine('Build typescript');
         lShell.call('npx tsc --project tsconfig.json --noemit false');
+        lConsole.clearLines(1); // Empty typescript file.
 
         // Copy external files.
-        lConsole.writeLine('Copy external files...');
+        lConsole.writeLine('Copy external files');
         FileUtil.copyDirectory(lPackageSourcePath, lPackageLibrarySourcePath, true, new Map<RegExp, string>(), ['.ts']);
+
+        // Build typescript when configurated.
+        if (lConfiguration.pack) {
+            lConsole.writeLine('Build Webpack');
+            const lWebpackCommand: string = `webpack-cli --config ${lWebpackConfigPath} --env=buildType=release`;
+            lShell.call(lWebpackCommand);
+        }
     }
 
     /**
@@ -60,7 +68,7 @@ export class BuildCommand {
         const lConsole = new Console();
 
         // Output heading.
-        lConsole.writeLine('Clear build output...');
+        lConsole.writeLine('Clear build output');
 
         // Construct paths.
         const lPackagePath: string = this.mWorkspaceHelper.getProjectDirectory(pPackageName);
@@ -68,8 +76,5 @@ export class BuildCommand {
 
         // Force delete directory.
         FileUtil.deleteDirectory(lPackageLibraryPath);
-
-        // Success message.
-        lConsole.writeLine('Clear successful');
     }
 }

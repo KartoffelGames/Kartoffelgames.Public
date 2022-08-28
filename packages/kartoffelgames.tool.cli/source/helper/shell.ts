@@ -1,4 +1,4 @@
-import { execSync, SpawnSyncReturns } from 'node:child_process';
+import { execSync, SpawnSyncReturns } from 'child_process';
 import { Console } from './console';
 
 export class Shell {

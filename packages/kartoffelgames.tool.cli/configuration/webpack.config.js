@@ -3,74 +3,12 @@ const gPath = require('path');
 const gFilereader = require('fs');
 
 /**
- * Copy directory with all files into destination
- * and replace text in files.
- * @param pSource - The path to the thing to copy.
- * @param pDestination - The path to the new copy.
- */
-const gCopyDirectory = (pSource, pDestination, pOverride, pReplacementMap) => {
-    const lSourceItem = gPath.resolve(pSource);
-    const lDestinationItem = gPath.resolve(pDestination);
-
-    let lSourceExists = gFilereader.existsSync(lSourceItem);
-    let lDestinationExists = gFilereader.existsSync(lDestinationItem);
-    let lFileStatus = lSourceExists && gFilereader.statSync(lSourceItem);
-    let lSourceIsDirectory = lSourceExists && lFileStatus.isDirectory();
-
-    if (lSourceIsDirectory) {
-        // Create destination directory.
-        if (!lDestinationExists) {
-            gFilereader.mkdirSync(lDestinationItem);
-        }
-
-        // Copy each item into new directory.
-        for (const lChildItemName of gFilereader.readdirSync(lSourceItem)) {
-            gCopyDirectory(gPath.join(lSourceItem, lChildItemName), gPath.join(lDestinationItem, lChildItemName), pOverride, pReplacementMap);
-        }
-    } else if (!lDestinationExists || pOverride) {
-        gFilereader.copyFileSync(lSourceItem, lDestinationItem);
-
-        // Read file text.
-        const lFileText = gFilereader.readFileSync(lDestinationItem, { encoding: 'utf8' });
-
-        // Replace each replacement pattern.
-        let lAlteredFileText = lFileText;
-        for (const lReplacement in pReplacementMap) {
-            const lReplacementRegex = pReplacementMap[lReplacement];
-            lAlteredFileText = lAlteredFileText.replace(lReplacementRegex, lReplacement);
-        }
-
-        // Update file with altered file text.
-        gFilereader.writeFileSync(lDestinationItem, lAlteredFileText, { encoding: 'utf8' });
-    }
-};
-
-/**
- * Initialize Scratchpad files.
- * @param pProjectRootDirectory - Project root directory.
- */
-const gInitializeScratchpadFiles = (pProjectName) => {
-    // Copy scratchpad blueprint into scratchpad directory.
-    gCopyDirectory(gPath.resolve(__dirname, '../project_blueprint/scratchpad'), './scratchpad', false, {
-        [pProjectName]: /{{PROJECT_NAME}}/g
-    });
-};
-
-/**
- * Initialize Test files.
- */
-const gInitializeTextFiles = () => {
-    // Copy scratchpad blueprint into scratchpad directory.
-    gCopyDirectory(gPath.resolve(__dirname, '../project_blueprint/Test'), './test', false, {});
-};
-
-/**
  * Load default loader from module declaration file.
  */
 const gGetDefaultFileLoader = () => {
 
     // Read module declaration file.
-    const lDeclarationFilepath = gPath.resolve(__dirname, '..', '..', 'declaration', 'module-declaration.d.ts');
+    const lDeclarationFilepath = gPath.resolve(__dirname, '..', '..', '..', 'declaration', 'module-declaration.d.ts');
     const lFileContent = gFilereader.readFileSync(lDeclarationFilepath, 'utf8');
 
     const lFileExtensionRegex = /declare\s+module\s+(?:"|')\*([.a-zA-Z0-9]+)(?:"|')\s*{.*?\/\*\s*LOADER::([a-zA-Z-]+)\s*\*\/.*?}/gms;
@@ -167,7 +105,6 @@ module.exports = (pEnviroment) => {
             break;
 
         case 'test':
-            gInitializeTextFiles();
             lEntryFile = './test/index.ts';
             lBuildMode = 'development';
             lFileName = `${lProjectName}.test.js`;
@@ -175,7 +112,6 @@ module.exports = (pEnviroment) => {
             break;
 
         case 'scratchpad':
-            gInitializeScratchpadFiles(lProjectName);
             lEntryFile = './scratchpad/source/index.ts';
             lBuildMode = 'development';
             lFileName = `scratchpad.js`;

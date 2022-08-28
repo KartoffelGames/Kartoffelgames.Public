@@ -1,6 +1,6 @@
 #! /usr/bin/env node
 
-import * as path from 'node:path';
+import * as path from 'path';
 import { BuildCommand } from './commands/build-command';
 import { PackageCommand } from './commands/package-command';
 import { Console } from './helper/console';
@@ -15,7 +15,7 @@ import { Parameter } from './helper/parameter';
     const lWorkspaceRootPath: string = process.cwd();
 
     // Output main banner.
-    lConsole.banner('Project Settings');
+    lConsole.banner('------ KG CLI ------');
 
     // Wrap error.
     try {

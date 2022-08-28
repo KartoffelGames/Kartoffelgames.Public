@@ -1,6 +1,6 @@
-import { stdin, stdout } from 'node:process';
-import * as readline from 'node:readline';
-import * as util from 'node:util';
+import { stdin, stdout } from 'process';
+import * as readline from 'readline';
+import * as util from 'util';
 
 export class Console {
     private readonly mIn: NodeJS.ReadStream;

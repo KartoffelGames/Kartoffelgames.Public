@@ -1,5 +1,5 @@
 // Load dependencies.
-import * as path from 'node:path';
+import * as path from 'path';
 import { Console } from '../helper/console.js';
 import { FileUtil } from '../helper/file-util.js';
 import { WorkspacePath } from '../helper/workspace-path.js';

@@ -1,4 +1,4 @@
-import * as path from 'node:path';
+import * as path from 'path';
 import { FileUtil } from './file-util';
 import { WorkspacePath } from './workspace-path';
 
@@ -93,7 +93,7 @@ export class Workspace {
         // Fill config defaults.
         return {
             blueprint: lConfiguration.blueprint ?? '',
-            packOutput: lConfiguration.packOutput ?? false
+            pack: lConfiguration.pack ?? false
         };
     }
 
@@ -148,5 +148,5 @@ export class Workspace {
 
 export type WorkspaceConfiguration = {
     blueprint: string;
-    packOutput: boolean;
+    pack: boolean;
 };

@@ -8,9 +8,9 @@
     },
     "files": [
         "library/source/**/*",
-        "configuration/**/*",
-        "blueprints/**/*"
+        "enviroment/**/*"
     ],
+    "types": "enviroment/declaration/module-declaration.d.ts",
     "bin": {
         "kg": "library/source/index.js"
     },

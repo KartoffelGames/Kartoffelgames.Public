@@ -63,7 +63,7 @@ export class Workspace {
 
         // Try to parse name.
         let lPackageName: string = `@${lPartList[0]}/${lPartList.slice(1).join('.')}`;
-        lPackageName = lPackageName.replace('_', '-');
+        lPackageName = lPackageName.replace(/_/g, '-');
         lPackageName = lPackageName.toLowerCase();
 
         // Validate parsed name.

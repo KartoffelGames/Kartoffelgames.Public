@@ -62,6 +62,6 @@
     "homepage": "https://github.com/KartoffelGames/KartoffelGames.Public#readme",
     "kg.options": {
         "blueprint": "tool",
-        "pack": true
+        "pack": false
     }
 }

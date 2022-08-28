@@ -32,7 +32,7 @@ export class PackageCommand {
         const lBlueprintPath = path.resolve(this.mCliRootPath, 'blueprints', pBlueprintType.toLowerCase());
 
         // Output heading.
-        lConsole.writeLine('// Create Project');
+        lConsole.writeLine('Create Project');
 
         // Check correct blueprint.
         if (!FileUtil.exists(lBlueprintPath)) {

@@ -65,6 +65,14 @@ export class FileUtil {
     }
 
     /**
+     * Remove directory.
+     * @param pPath - Directory path.
+     */
+    public static deleteDirectory(pPath: string): void {
+        filereader.rmSync(pPath, { recursive: true, force: true });
+    }
+
+    /**
      * Check path or file existance.
      * @param pPath - Path.
      */

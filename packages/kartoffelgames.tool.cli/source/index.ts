@@ -1,6 +1,7 @@
 #! /usr/bin/env node
 
 import * as path from 'node:path';
+import { BuildCommand } from './commands/build-command';
 import { PackageCommand } from './commands/package-command';
 import { Console } from './helper/console';
 import { Parameter } from './helper/parameter';
@@ -22,8 +23,11 @@ import { Parameter } from './helper/parameter';
         if (lParameter.isPath('create *')) {
             const lBlueprintType: string = lParameter.getPath(1);
             await new PackageCommand(lCliRootPath, lWorkspaceRootPath).create(lBlueprintType);
-        } if (lParameter.isPath('sync')) {
+        } else if (lParameter.isPath('sync')) {
             await new PackageCommand(lCliRootPath, lWorkspaceRootPath).sync();
+        } else if (lParameter.isPath('build *')) {
+            const lPackageName: string = lParameter.getPath(1);
+            await new BuildCommand(lCliRootPath, lWorkspaceRootPath).build(lPackageName);
         } else if (lParameter.isPath('help')) {
             // List all commands.
             lConsole.writeLine('Available commands:');

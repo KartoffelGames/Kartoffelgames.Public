@@ -73,6 +73,30 @@ export class Workspace {
     }
 
     /**
+     * Get project directory.
+     * @param pName - Package name.
+     */
+    public getProjectDirectory(pName: string): string {
+        const lPackageName: string = this.getPackageName(pName);
+
+        // Get all package.json files.
+        const lPackageFileList = FileUtil.getAllFilesOfName(path.resolve(this.mRootPath, WorkspacePath.PackageDirectory), 'package.json', 1);
+
+        // Read files and convert json.
+        for (const lPackageFile of lPackageFileList) {
+            const lFileText = FileUtil.read(lPackageFile);
+            const lFileJson = JSON.parse(lFileText);
+
+            // Check dublicate project name and package name.
+            if (lFileJson['name'].toLowerCase() === lPackageName.toLowerCase()) {
+                return path.dirname(lPackageFile);
+            }
+        }
+
+        throw 'Package does not exist.';
+    }
+
+    /**
      * Check if package exists.
      * @param pPackageName - Package name.
      */

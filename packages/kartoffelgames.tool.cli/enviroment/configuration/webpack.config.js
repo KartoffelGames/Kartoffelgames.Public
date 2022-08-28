@@ -6,7 +6,6 @@ const gFilereader = require('fs');
  * Load default loader from module declaration file.
  */
 const gGetDefaultFileLoader = () => {
-
     // Read module declaration file.
     const lDeclarationFilepath = gPath.resolve(__dirname, '..', '..', '..', 'declaration', 'module-declaration.d.ts');
     const lFileContent = gFilereader.readFileSync(lDeclarationFilepath, 'utf8');

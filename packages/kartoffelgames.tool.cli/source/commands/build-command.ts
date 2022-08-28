@@ -32,7 +32,7 @@ export class BuildCommand {
         const lPackagePath: string = this.mWorkspaceHelper.getProjectDirectory(pPackageName);
         const lPackageSourcePath: string = path.resolve(lPackagePath, 'source');
         const lPackageLibrarySourcePath: string = path.resolve(lPackagePath, 'library', 'source');
-        const lWebpackConfigPath: string = path.resolve(this.mCliRootPath, 'configuration', 'webpack.config.js');
+        const lWebpackConfigPath: string = path.resolve(this.mCliRootPath, 'enviroment', 'configuration', 'webpack.config.js');
 
         // Read package configuration.
         const lConfiguration: WorkspaceConfiguration = this.mWorkspaceHelper.getProjectConfiguration(pPackageName);

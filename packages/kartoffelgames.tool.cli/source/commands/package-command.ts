@@ -27,7 +27,7 @@ export class PackageCommand {
      */
     public async create(pBlueprintType: string): Promise<void> {
         const lConsole = new Console();
-        const lBlueprintPath = path.resolve(this.mCliRootPath, 'blueprints', pBlueprintType.toLowerCase());
+        const lBlueprintPath = path.resolve(this.mCliRootPath, 'enviroment', 'blueprints', pBlueprintType.toLowerCase());
 
         // Output heading.
         lConsole.writeLine('Create Project');

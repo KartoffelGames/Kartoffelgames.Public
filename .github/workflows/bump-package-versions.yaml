@@ -17,7 +17,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 16
-      - run: npm run workflow:update-version-numbers
+      - run: npx kg sync
       - run: npm ci --ignore-scripts
       - run: npx turbo run test --force
 
@@ -39,7 +39,7 @@ jobs:
       - name: Bump version numbers
         run: |
           npm version patch -ws
-          npm run workflow:update-version-numbers
+          npx kg sync
       - name: Push updated versions
         run: |         
           git commit -am "Bump package versions."

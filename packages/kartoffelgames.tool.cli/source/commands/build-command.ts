@@ -2,7 +2,7 @@ import * as path from 'node:path';
 import { Console } from '../helper/console.js';
 import { FileUtil } from '../helper/file-util.js';
 import { Shell } from '../helper/shell.js';
-import { Workspace } from '../helper/workspace.js';
+import { Workspace, WorkspaceConfiguration } from '../helper/workspace.js';
 
 
 export class BuildCommand {
@@ -30,9 +30,12 @@ export class BuildCommand {
 
         // Construct paths.
         const lPackagePath: string = this.mWorkspaceHelper.getProjectDirectory(pPackageName);
+        const lPackageSourcePath: string = path.resolve(lPackagePath, 'source');
+        const lPackageLibrarySourcePath: string = path.resolve(lPackagePath, 'library', 'source');
         const lWebpackConfig: string = path.resolve(this.mCliRootPath, 'configuration', 'webpack.config.js');
 
-        // TODO: Read package configuration.
+        // Read package configuration.
+        const lConfiguration: WorkspaceConfiguration = this.mWorkspaceHelper.getProjectConfiguration(pPackageName);
 
         // Clear output.
         await this.clear(pPackageName);
@@ -43,6 +46,10 @@ export class BuildCommand {
         // Run tsc.
         lConsole.writeLine('Build typescript');
         lShell.call('npx tsc --project tsconfig.json --noemit false');
+
+        // Copy external files.
+        lConsole.writeLine('Copy external files...');
+        FileUtil.copyDirectory(lPackageSourcePath, lPackageLibrarySourcePath, true, new Map<RegExp, string>(), ['.ts']);
     }
 
     /**

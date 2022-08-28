@@ -33,7 +33,8 @@ import { Parameter } from './helper/parameter';
             lConsole.writeLine('Available commands:');
             lConsole.writeLine('    kg help                            - This');
             lConsole.writeLine('    kg create <blueprint name>         - Create new project');
-            lConsole.writeLine('    kg sync         - Sync all local dependency verions');
+            lConsole.writeLine('    kg sync                            - Sync all local dependency verions');
+            lConsole.writeLine('    kg build <project name>            - Build project');
         } else {
             throw `Command not found.`;
         }

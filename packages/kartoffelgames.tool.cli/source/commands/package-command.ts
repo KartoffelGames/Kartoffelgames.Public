@@ -6,8 +6,6 @@ import { WorkspacePath } from '../helper/workspace-path.js';
 import { Workspace } from '../helper/workspace.js';
 
 export class PackageCommand {
-    private static readonly PACKAGE_SETTING_KEY: string = 'kg.options';
-
     private readonly mCliRootPath: string;
     private readonly mWorkspaceHelper: Workspace;
     private readonly mWorkspaceRootPath: string;
@@ -49,7 +47,7 @@ export class PackageCommand {
         const lPackageJsonPath = path.resolve(lPackagePath, 'package.json');
 
         // Get all package.json files.
-        if (this.mWorkspaceHelper.packageExists(lPackageName)) {
+        if (this.mWorkspaceHelper.projectExists(lPackageName)) {
             throw 'Package already exists.';
         }
 
@@ -69,7 +67,7 @@ export class PackageCommand {
         lReplacementMap.set(/{{PROJECT_NAME}}/g, lProjectName);
         lReplacementMap.set(/{{PACKAGE_NAME}}/g, lPackageName);
         lReplacementMap.set(/{{PROJECT_FOLDER}}/g, lProjectFolder);
-        FileUtil.copyDirectory(lBlueprintPath, lPackagePath, false, lReplacementMap);
+        FileUtil.copyDirectory(lBlueprintPath, lPackagePath, false, lReplacementMap, []);
 
         // Add package to workspace.
         this.mWorkspaceHelper.createVsWorkspace(lProjectName);
@@ -80,7 +78,7 @@ export class PackageCommand {
         };
         const lPackageJsonContent: string = FileUtil.read(lPackageJsonPath);
         const lPackageJsonJson: any = JSON.parse(lPackageJsonContent);
-        lPackageJsonJson[PackageCommand.PACKAGE_SETTING_KEY] = lCustomSettings;
+        lPackageJsonJson[Workspace.PACKAGE_SETTING_KEY] = lCustomSettings;
         FileUtil.write(lPackageJsonPath, JSON.stringify(lPackageJsonJson, null, 4));
 
         // Display init information.

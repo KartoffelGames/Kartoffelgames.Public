@@ -3,6 +3,8 @@ import { FileUtil } from './file-util';
 import { WorkspacePath } from './workspace-path';
 
 export class Workspace {
+    public static readonly PACKAGE_SETTING_KEY: string = 'kg.options';
+
     private readonly mRootPath: string;
 
     /**
@@ -73,6 +75,29 @@ export class Workspace {
     }
 
     /**
+     * Read project configuration.
+     * @param pName - Project name.
+     */
+    public getProjectConfiguration(pName: string): WorkspaceConfiguration {
+        // Construct paths.
+        const lProjectPath: string = this.getProjectDirectory(pName);
+        const lPackageJsonPath: string = path.resolve(lProjectPath, 'package.json');
+
+        // Read and parse package.json
+        const lFile: string = FileUtil.read(lPackageJsonPath);
+        const lJson: any = JSON.parse(lFile);
+
+        // Read project config.
+        const lConfiguration: WorkspaceConfiguration = lJson[Workspace.PACKAGE_SETTING_KEY];
+
+        // Fill config defaults.
+        return {
+            blueprint: lConfiguration.blueprint ?? '',
+            packOutput: lConfiguration.packOutput ?? false
+        };
+    }
+
+    /**
      * Get project directory.
      * @param pName - Package name.
      */
@@ -100,7 +125,7 @@ export class Workspace {
      * Check if package exists.
      * @param pPackageName - Package name.
      */
-    public packageExists(pPackageName: string): boolean {
+    public projectExists(pPackageName: string): boolean {
         const lPackageName: string = this.getPackageName(pPackageName);
 
         // Get all package.json files.
@@ -120,3 +145,8 @@ export class Workspace {
         return false;
     }
 }
+
+export type WorkspaceConfiguration = {
+    blueprint: string;
+    packOutput: boolean;
+};

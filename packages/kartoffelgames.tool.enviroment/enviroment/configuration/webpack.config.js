@@ -1,3 +1,5 @@
+// @ts-check
+
 // Load dependencies.
 const gPath = require('path');
 const gFilereader = require('fs');
@@ -65,7 +67,6 @@ const gGetDefaultTypescriptLoader = (pIncludeCoverage) => {
 
 /**
  * Get project name.
- * @param pProjectRootDirectory - Project root directory.
  */
 const gGetProjectName = () => {
     const lFilePath = gPath.resolve('package.json');

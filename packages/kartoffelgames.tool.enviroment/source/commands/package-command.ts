@@ -73,12 +73,16 @@ export class PackageCommand {
         this.mWorkspaceHelper.createVsWorkspace(lProjectName);
 
         // Update package.json custom settings.
-        const lCustomSettings = {
-            blueprint: pBlueprintType.toLowerCase()
-        };
         const lPackageJsonContent: string = FileUtil.read(lPackageJsonPath);
         const lPackageJsonJson: any = JSON.parse(lPackageJsonContent);
-        lPackageJsonJson[Workspace.PACKAGE_SETTING_KEY] = lCustomSettings;
+
+        // Extend PACKAGE_SETTING_KEY with "blueprint" property. 
+        if (typeof lPackageJsonJson[Workspace.PACKAGE_SETTING_KEY] !== 'object') {
+            lPackageJsonJson[Workspace.PACKAGE_SETTING_KEY] = {};
+        }
+        lPackageJsonJson[Workspace.PACKAGE_SETTING_KEY].blueprint = pBlueprintType.toLowerCase();
+
+        // Save packag.json.
         FileUtil.write(lPackageJsonPath, JSON.stringify(lPackageJsonJson, null, 4));
 
         // Display init information.

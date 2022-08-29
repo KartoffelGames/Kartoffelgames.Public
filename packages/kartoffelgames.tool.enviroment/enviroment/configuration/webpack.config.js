@@ -84,48 +84,47 @@ module.exports = (pEnviroment) => {
     const lProjectName = gGetProjectName().toLowerCase();
 
     // Set variable configuration default values.
-    let lEntryFile = '';
-    let lBuildMode = 'none';
-    let lFileName = 'script.js';
-    let lOutputDirectory = './library/build';
+    const lBuildSettings = {
+        target: 'node',
+        entryFile: '',
+        buildMode: 'none',
+        fileName: 'script.js',
+        outputDirectory: './library/build'
+    };
 
     switch (pEnviroment.buildType) {
         case 'release':
-            lEntryFile = './source/index.ts';
-            lBuildMode = 'production';
-            lFileName = `${lProjectName}.js`;
-            lOutputDirectory = './library/build';
-            break;
-
-        case 'debug':
-            lEntryFile = './source/index.ts';
-            lBuildMode = 'development';
-            lFileName = `${lProjectName}.debug.js`;
-            lOutputDirectory = './library/build';
+            lBuildSettings.target = 'web';
+            lBuildSettings.entryFile = './source/index.ts';
+            lBuildSettings.buildMode = 'production';
+            lBuildSettings.fileName = `${lProjectName}.js`;
+            lBuildSettings.outputDirectory = './library/build';
             break;
 
         case 'test':
-            lEntryFile = './test/index.ts';
-            lBuildMode = 'development';
-            lFileName = `${lProjectName}.test.js`;
-            lOutputDirectory = './library/build';
+            lBuildSettings.target = 'node';
+            lBuildSettings.entryFile = './test/index.ts';
+            lBuildSettings.buildMode = 'development';
+            lBuildSettings.fileName = `${lProjectName}.test.js`;
+            lBuildSettings.outputDirectory = './library/build';
             break;
 
         case 'scratchpad':
-            lEntryFile = './scratchpad/source/index.ts';
-            lBuildMode = 'development';
-            lFileName = `scratchpad.js`;
-            lOutputDirectory = 'dist';
+            lBuildSettings.target = 'web';
+            lBuildSettings.entryFile = './scratchpad/source/index.ts';
+            lBuildSettings.buildMode = 'development';
+            lBuildSettings.fileName = 'scratchpad.js';
+            lBuildSettings.outputDirectory = 'dist';
             break;
     }
 
     return {
         devtool: 'source-map',
-        target: 'web',
-        entry: lEntryFile,
-        mode: lBuildMode,
+        target: lBuildSettings.target,
+        entry: lBuildSettings.entryFile,
+        mode: lBuildSettings.buildMode,
         output: {
-            filename: `../${lOutputDirectory}/${lFileName}` // ".." because Dist is the staring directory.
+            filename: `../${lBuildSettings.outputDirectory}/${lBuildSettings.fileName}` // ".." because Dist is the staring directory.
         },
         resolve: {
             extensions: ['.ts', '.js']

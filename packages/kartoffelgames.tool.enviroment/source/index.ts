@@ -28,13 +28,18 @@ import { Parameter } from './helper/parameter';
         } else if (lParameter.isPath('build *')) {
             const lPackageName: string = lParameter.getPath(1);
             await new BuildCommand(lCliRootPath, lWorkspaceRootPath).build(lPackageName);
+        } else if (lParameter.isPath('test *')) {
+            const lPackageName: string = lParameter.getPath(1);
+            const lOptionList: Array<string> = lParameter.getPathRange(2, 4).map(pItem => pItem.substring(2));
+            await new BuildCommand(lCliRootPath, lWorkspaceRootPath).test(lPackageName, lOptionList);
         } else if (lParameter.isPath('help')) {
             // List all commands.
             lConsole.writeLine('Available commands:');
-            lConsole.writeLine('    kg help                            - This');
-            lConsole.writeLine('    kg create <blueprint name>         - Create new project');
-            lConsole.writeLine('    kg sync                            - Sync all local dependency verions');
-            lConsole.writeLine('    kg build <project name>            - Build project');
+            lConsole.writeLine('    kg help                                                - This');
+            lConsole.writeLine('    kg create <blueprint name>                             - Create new project');
+            lConsole.writeLine('    kg sync                                                - Sync all local dependency verions');
+            lConsole.writeLine('    kg build <project name>                                - Build project');
+            lConsole.writeLine('    kg test <project name> [--coverage] [-- no-timeout]    - Build project');
         } else {
             throw `Command not found.`;
         }

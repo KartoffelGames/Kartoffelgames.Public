@@ -82,9 +82,15 @@ export class BuildCommand {
         FileUtil.deleteDirectory(lPackageLibraryPath);
     }
 
-    public async test(pPackageName: string, pOptions?: Array<'no-timeout' | 'coverage'>): Promise<void> {
+    /**
+     * Run mocha test.
+     * Valid test options are "coverage" and "no-timeout".
+     * @param pPackageName - Package name.
+     * @param pOptions - Test options. 
+     */
+    public async test(pPackageName: string, pOptions?: Array<string>): Promise<void> {
         const lConsole = new Console();
-        const lOptions: Array<'no-timeout' | 'coverage'> = pOptions ?? new Array<'no-timeout' | 'coverage'>();
+        const lOptions: Array<string> = pOptions ?? new Array<string>();
 
         // Construct paths.
         const lPackagePath: string = this.mWorkspaceHelper.getProjectDirectory(pPackageName);

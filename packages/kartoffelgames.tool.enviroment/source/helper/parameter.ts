@@ -58,6 +58,15 @@ export class Parameter {
     }
 
     /**
+     * Get path parts.
+     * @param pStart - Start index.
+     * @param pEnd - End index.
+     */
+    public getPathRange(pStart: number, pEnd: number): Array<string> {
+        return this.mPath.slice(pStart, pEnd);
+    }
+
+    /**
      * Check if parameter are on path.
      * Pattern is case insensitive.
      * Widcards are set with "*".

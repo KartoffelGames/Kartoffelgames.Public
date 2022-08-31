@@ -44,7 +44,7 @@
       "Library"
     ],
     "files": [
-      "node_modules/@kartoffelgames/tool.cli/enviroment/declaration/module-declaration.d.ts"
+      "node_modules/@kartoffelgames/tool.enviroment/enviroment/declaration/module-declaration.d.ts"
     ],
     "include": [
       "./**/*.ts"

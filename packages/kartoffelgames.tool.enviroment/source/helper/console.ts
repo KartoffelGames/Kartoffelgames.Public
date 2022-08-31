@@ -150,14 +150,22 @@ export class Console {
      * Output text.
      * @param pText - Output text. 
      */
-    public writeLine(pText: string, pColor?: string): void {
+    public write(pText: string, pColor?: string): void {
         if (pColor) {
             const lColorCode: [string, string] = <any>util.inspect.colors[pColor];
             const lColoredCode: string = `\x1b[${lColorCode[0]}m${pText}\x1b[${lColorCode[1]}m`;
-            this.mOut.write(lColoredCode + '\n');
+            this.mOut.write(lColoredCode);
         } else {
-            this.mOut.write(pText + '\n');
+            this.mOut.write(pText);
         }
+    }
+
+    /**
+     * Output text end with newline.
+     * @param pText - Output text. 
+     */
+    public writeLine(pText: string, pColor?: string): void {
+        this.write(pText + '\n', pColor);
     }
 }
 

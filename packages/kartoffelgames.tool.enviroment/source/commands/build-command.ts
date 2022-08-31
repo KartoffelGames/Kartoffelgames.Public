@@ -49,7 +49,7 @@ export class BuildCommand {
 
         // Run tsc.
         lConsole.writeLine('Build typescript');
-        lShell.call(`node ${lTypescriptCli} --project tsconfig.json --noemit false`);
+        await lShell.call(`node ${lTypescriptCli} --project tsconfig.json --noemit false`);
         lConsole.clearLines(1); // Empty typescript file.
 
         // Copy external files.
@@ -60,7 +60,7 @@ export class BuildCommand {
         if (lConfiguration.pack) {
             lConsole.writeLine('Build Webpack');
             const lWebpackCommand: string = `node ${lWebpackCli} --config "${lWebpackConfigPath}" --env=buildType=release`;
-            lShell.call(lWebpackCommand);
+            await lShell.call(lWebpackCommand);
         }
     }
 
@@ -118,7 +118,7 @@ export class BuildCommand {
 
         // Build test webpack
         lConsole.writeLine('Build Webpack');
-        lShell.call(lWebpackCommand);
+        await lShell.call(lWebpackCommand);
 
         // Load mocha and nyc from local node-modules.
         const lMochaCli: string = require.resolve('mocha/bin/mocha');
@@ -139,6 +139,6 @@ export class BuildCommand {
 
         // Run test
         lConsole.writeLine('Run Test');
-        lShell.call(lMochaCommand);
+        await lShell.call(lMochaCommand);
     }
 }

@@ -59,7 +59,7 @@ export class BuildCommand {
         // Build typescript when configurated.
         if (lConfiguration.pack) {
             lConsole.writeLine('Build Webpack');
-            const lWebpackCommand: string = `node ${lWebpackCli} --config ${lWebpackConfigPath} --env=buildType=release`;
+            const lWebpackCommand: string = `node ${lWebpackCli} --config "${lWebpackConfigPath}" --env=buildType=release`;
             lShell.call(lWebpackCommand);
         }
     }
@@ -80,5 +80,59 @@ export class BuildCommand {
 
         // Force delete directory.
         FileUtil.deleteDirectory(lPackageLibraryPath);
+    }
+
+    public async test(pPackageName: string, pOptions?: Array<'no-timeout' | 'coverage'>): Promise<void> {
+        const lConsole = new Console();
+        const lOptions: Array<'no-timeout' | 'coverage'> = pOptions ?? new Array<'no-timeout' | 'coverage'>();
+
+        // Construct paths.
+        const lPackagePath: string = this.mWorkspaceHelper.getProjectDirectory(pPackageName);
+        const lWebpackConfigPath: string = path.resolve(this.mCliRootPath, 'enviroment', 'configuration', 'webpack.config.js');
+        const lMochaConfigPath: string = path.resolve(this.mCliRootPath, 'enviroment', 'configuration', 'mocha.config.js');
+        const lNycConfigPath: string = path.resolve(this.mCliRootPath, 'enviroment', 'configuration', 'nyc.config.json');
+
+        // Parse command configuration.
+        const lIsCoverage: boolean = lOptions.includes('coverage');
+        const lIsNoTimeout: boolean = lOptions.includes('no-timeout');
+
+        // Create shell command executor.
+        const lShell: Shell = new Shell(lPackagePath);
+
+        // Load command from local node-modules.
+        const lWebpackCli: string = require.resolve('webpack-cli/bin/cli.js');
+
+        // Construct webpack command.
+        let lWebpackCommand: string = `node ${lWebpackCli} --config "${lWebpackConfigPath}"`;
+        if (lIsCoverage) {
+            lWebpackCommand += ' --env=buildType=test-coverage';
+        } else {
+            lWebpackCommand += ' --env=buildType=test';
+        }
+
+        // Build test webpack
+        lConsole.writeLine('Build Webpack');
+        lShell.call(lWebpackCommand);
+
+        // Load mocha and nyc from local node-modules.
+        const lMochaCli: string = require.resolve('mocha/bin/mocha');
+        const lNycCli: string = require.resolve('nyc/bin/nyc.js');
+
+        // Construct mocha command.
+        let lMochaCommand: string = '';
+        if (lIsCoverage) {
+            lMochaCommand = `node ${lNycCli} --nycrc-path "${lNycConfigPath}" mocha --config "${lMochaConfigPath}"`;
+        } else {
+            lMochaCommand = `node ${lMochaCli} --config "${lMochaConfigPath}" `;
+        }
+
+        // Append no timout setting to mocha command.
+        if (lIsNoTimeout) {
+            lWebpackCommand += ' --no-timeouts';
+        }
+
+        // Run test
+        lConsole.writeLine('Run Test');
+        lShell.call(lMochaCommand);
     }
 }

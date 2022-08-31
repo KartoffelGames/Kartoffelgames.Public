@@ -89,7 +89,8 @@ module.exports = (pEnviroment) => {
         entryFile: '',
         buildMode: 'none',
         fileName: 'script.js',
-        outputDirectory: './library/build'
+        outputDirectory: './library/build',
+        includeCoverage: false
     };
 
     switch (pEnviroment.buildType) {
@@ -99,14 +100,25 @@ module.exports = (pEnviroment) => {
             lBuildSettings.buildMode = 'production';
             lBuildSettings.fileName = `${lProjectName}.js`;
             lBuildSettings.outputDirectory = './library/build';
+            lBuildSettings.includeCoverage = false;
             break;
 
         case 'test':
             lBuildSettings.target = 'node';
             lBuildSettings.entryFile = './test/index.ts';
             lBuildSettings.buildMode = 'development';
-            lBuildSettings.fileName = `${lProjectName}.test.js`;
+            lBuildSettings.fileName = `test-pack.js`;
             lBuildSettings.outputDirectory = './library/build';
+            lBuildSettings.includeCoverage = false;
+            break;
+
+        case 'test-coverage':
+            lBuildSettings.target = 'node';
+            lBuildSettings.entryFile = './test/index.ts';
+            lBuildSettings.buildMode = 'development';
+            lBuildSettings.fileName = `test-pack.js`;
+            lBuildSettings.outputDirectory = './library/build';
+            lBuildSettings.includeCoverage = true;
             break;
 
         case 'scratchpad':
@@ -115,6 +127,7 @@ module.exports = (pEnviroment) => {
             lBuildSettings.buildMode = 'development';
             lBuildSettings.fileName = 'scratchpad.js';
             lBuildSettings.outputDirectory = 'dist';
+            lBuildSettings.includeCoverage = false;
             break;
     }
 
@@ -133,7 +146,7 @@ module.exports = (pEnviroment) => {
         module: {
             rules: [{
                     test: /\.ts?$/,
-                    use: gGetDefaultTypescriptLoader(!!pEnviroment.coverage)
+                    use: gGetDefaultTypescriptLoader(lBuildSettings.includeCoverage)
                 },
                 ...gGetDefaultFileLoader()
             ]

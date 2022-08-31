@@ -16,6 +16,6 @@ module.exports = {
     "require": [
         "jsdom-global/register"
     ],
-    "file": [`library/build/${gGetProjectName().toLowerCase()}.test.js`],
+    "file": [`library/build/test-pack.js`],
     "parallel": false
 };

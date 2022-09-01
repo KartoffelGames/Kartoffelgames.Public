@@ -4,21 +4,37 @@ import * as path from 'path';
 import { BuildCommand } from './commands/build-command';
 import { PackageCommand } from './commands/package-command';
 import { Console } from './helper/console';
+import { FileUtil } from './helper/file-util';
 import { Parameter } from './helper/parameter';
+
+const gGetWorkspaceRootPath = (pCurrentPath: string) => {
+    const lAllFiles: Array<string> = FileUtil.getAllFilesBackwards(pCurrentPath, 'package.json');
+
+    for (const lFile of lAllFiles) {
+        const lFileContent: string = FileUtil.read(lFile);
+        const lFileJson: any = JSON.parse(lFileContent);
+
+        if (lFileJson['kg.root'] || lFileJson['kg']?.['root']) {
+            return path.dirname(lFile);
+        }
+    }
+
+    return pCurrentPath;
+};
 
 (async () => {
     const lConsole: Console = new Console();
     const lParameter: Parameter = new Parameter();
 
-    // Get paths.
-    const lCliRootPath: string = path.resolve(__dirname, '..', '..'); // Called from /library/source
-    const lWorkspaceRootPath: string = process.cwd();
-
-    // Output main banner.
-    lConsole.banner('------ KG CLI ------');
-
     // Wrap error.
     try {
+        // Get paths.
+        const lCliRootPath: string = path.resolve(__dirname, '..', '..'); // Called from /library/source
+        const lWorkspaceRootPath: string = gGetWorkspaceRootPath(process.cwd());
+
+        // Output main banner.
+        lConsole.banner('------ KG CLI ------');
+
         // Execute functions based on path.
         if (lParameter.isPath('create *')) {
             const lBlueprintType: string = lParameter.getPath(1);

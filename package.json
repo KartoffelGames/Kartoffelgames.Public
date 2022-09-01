@@ -18,5 +18,6 @@
         "turbo": "^1.0.28",
         "@kartoffelgames/enviroment": "^0.0.1"
     },
-    "packageManager": "npm@8.1.2"
+    "packageManager": "npm@8.1.2",
+    "kg.root": true
 }

@@ -72,6 +72,49 @@ export class FileUtil {
     }
 
     /**
+     * Find all files of name backwards from starting directory, ending on root.
+     * @param pStartDestination - Start search destination.
+     * @param pFileName - File name.
+     */
+    public static getAllFilesBackwards(pStartDestination: string, pFileName: string): Array<string> {
+        const lAbsoulteStartDestination = path.resolve(pStartDestination);
+
+        // Check start directory existence.
+        if (!filereader.existsSync(lAbsoulteStartDestination)) {
+            throw `"${lAbsoulteStartDestination}" does not exists.`;
+        }
+
+        // Check if start directory is a directory.
+        const lDirectoryStatus = filereader.statSync(lAbsoulteStartDestination);
+        if (!lDirectoryStatus.isDirectory()) {
+            throw `"${lAbsoulteStartDestination}" is not a directory.`;
+        }
+
+        const lResultPathList = new Array<string>();
+
+        // Check every file.
+        // Copy each item into new directory.
+        for (const lChildItemName of filereader.readdirSync(pStartDestination)) {
+            const lItemPath = path.join(lAbsoulteStartDestination, lChildItemName);
+            const lItemStatus = filereader.statSync(lItemPath);
+
+            // Check if file or directory. Only search for files in found directory if depth is available.
+            // Add item path to results if file name matches seached file name.
+            if (!lItemStatus.isDirectory() && lChildItemName.toLowerCase() === pFileName.toLowerCase()) {
+                lResultPathList.push(lItemPath);
+            }
+        }
+
+        // Go Backwards.
+        const lBackwardsPath: string = path.dirname(lAbsoulteStartDestination);
+        if (path.parse(lBackwardsPath).root !== lBackwardsPath) {
+            lResultPathList.push(...FileUtil.getAllFilesBackwards(lBackwardsPath, pFileName));
+        }
+
+        return lResultPathList;
+    }
+
+    /**
      * Get all file paths of given file name.
      * @param pStartDestination - Starting destination of search.
      * @param pSearchDepth - How deep should be searched.

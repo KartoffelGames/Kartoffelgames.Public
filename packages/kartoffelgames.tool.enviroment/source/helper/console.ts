@@ -15,15 +15,6 @@ export class Console {
 
         // Set input configurations.
         readline.emitKeypressEvents(this.mIn);
-        this.mIn.setRawMode(true);
-        this.mIn.resume();
-
-        // Exit on ctrl+c.
-        this.mIn.on('keypress', (_pChunk: Buffer, pKey: KeyPressKey) => {
-            if (pKey && pKey.ctrl && pKey.name === 'c') {
-                process.exit();
-            }
-        });
     }
 
     /**
@@ -91,62 +82,6 @@ export class Console {
     }
 
     /**
-     * Output selection line.
-     * @param {string} pTitle 
-     * @param {object} pOptionList 
-     */
-    public async selectBox(pTitle: string, pOptionList: Array<SelectBoxOption>): Promise<any> {
-        let lSelectedIndex = 0;
-
-        // Set selected value to first option and define draw   
-        const lOutPutSelection = (pFirstDraw = false) => {
-            // Clear drawn lines.
-            if (!pFirstDraw) {
-                this.clearLines(pOptionList.length + 1);
-            }
-
-            const lSelectedValue = pOptionList[lSelectedIndex].value;
-
-            // Redraw options with highlighted selected.
-            this.writeLine(pTitle);
-            for (const lOption of pOptionList) {
-                this.writeLine((lOption.value === lSelectedValue ? '>' : ' ') + '   ' + lOption.name);
-            }
-        };
-
-        return new Promise((pResolve) => {
-            const lKeyListener = (_pChunk: Buffer, pKey: KeyPressKey) => {
-                switch (pKey.name) {
-                    case 'up':
-                        {
-                            lSelectedIndex = Math.min(Math.max(lSelectedIndex - 1, 0), pOptionList.length - 1);
-                            lOutPutSelection();
-                            break;
-                        }
-                    case 'down':
-                        {
-                            lSelectedIndex = Math.min(Math.max(lSelectedIndex + 1, 0), pOptionList.length - 1);
-                            lOutPutSelection();
-                            break;
-                        }
-                    case 'return':
-                        {
-                            this.mIn.off('keypress', lKeyListener);
-                            this.mIn.setRawMode(false);
-                            pResolve(pOptionList[lSelectedIndex].value);
-                            break;
-                        }
-                }
-            };
-
-            // Register key listener.
-            this.mIn.on('keypress', lKeyListener);
-
-            lOutPutSelection(true);
-        });
-    }
-
-    /**
      * Output text.
      * @param pText - Output text. 
      */
@@ -168,15 +103,3 @@ export class Console {
         this.write(pText + '\n', pColor);
     }
 }
-
-type SelectBoxOption = {
-    name: string;
-    value: any;
-};
-
-type KeyPressKey = {
-    ctrl: boolean;
-    meta: boolean;
-    shift: boolean;
-    name: string;
-};

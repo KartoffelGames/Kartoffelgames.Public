@@ -18,7 +18,10 @@ export class Workspace {
             cli: {
                 root: this.mCliRootPath,
                 enviroment: {
-                    packageBlueprints: path.resolve(this.mCliRootPath, 'enviroment', 'package_blueprints')
+                    packageBlueprints: path.resolve(this.mCliRootPath, 'enviroment', 'package_blueprints'),
+                    commandBlueprints: {
+                        scratchpad: path.resolve(this.mCliRootPath, 'enviroment', 'command_blueprints', 'scratchpad')
+                    }
                 },
                 files: {
                     webpackConfig: path.resolve(this.mCliRootPath, 'enviroment', 'configuration', 'webpack.config.js'),
@@ -136,6 +139,7 @@ export class Workspace {
                     source: path.resolve(lProjectDirectory, 'library', 'source')
                 },
                 source: path.resolve(lProjectDirectory, 'source'),
+                scratchpad: path.resolve(lProjectDirectory, 'scratchpad'),
                 file: {
                     packageJson: path.resolve(lProjectDirectory, 'package.json')
                 }
@@ -245,6 +249,7 @@ export type ProjectPaths = {
             source: string;
         };
         source: string;
+        scratchpad: string;
         file: {
             packageJson: string;
         };
@@ -261,6 +266,9 @@ export type RootPaths = {
         root: string;
         enviroment: {
             packageBlueprints: string;
+            commandBlueprints: {
+                scratchpad: string;
+            };
         };
         files: {
             webpackConfig: string;

@@ -39,7 +39,6 @@ export class PackageCommand {
 
         // Create new package path. 
         const lPackagePath = path.resolve(this.mWorkspace.paths.packages, lProjectFolder);
-        const lPackageJsonPath = path.resolve(lPackagePath, 'package.json'); // Cant access pathOf(project) bc. project is not yet created.
 
         // Get all package.json files.
         if (this.mWorkspace.projectExists(lPackageName)) {
@@ -67,18 +66,10 @@ export class PackageCommand {
         // Add package to workspace.
         this.mWorkspace.createVsWorkspace(lProjectName);
 
-        // Update package.json custom settings.
-        const lPackageJsonContent: string = FileUtil.read(lPackageJsonPath);
-        const lPackageJsonJson: any = JSON.parse(lPackageJsonContent);
-
-        // Extend PACKAGE_SETTING_KEY with "blueprint" property. 
-        if (typeof lPackageJsonJson[Workspace.PACKAGE_SETTING_KEY] !== 'object') {
-            lPackageJsonJson[Workspace.PACKAGE_SETTING_KEY] = {};
-        }
-        lPackageJsonJson[Workspace.PACKAGE_SETTING_KEY].blueprint = pBlueprintType.toLowerCase();
-
-        // Save packag.json.
-        FileUtil.write(lPackageJsonPath, JSON.stringify(lPackageJsonJson, null, 4));
+        // Read configuration, add blueprint type and save configuration.
+        const lWorkspaceConfiguration = this.mWorkspace.getProjectConfiguration(lProjectName);
+        lWorkspaceConfiguration.config.blueprint = pBlueprintType.toLowerCase();
+        this.mWorkspace.updateProjectConfiguration(lProjectName, lWorkspaceConfiguration);
 
         // Display init information.
         lConsole.writeLine('Project successfull created.');

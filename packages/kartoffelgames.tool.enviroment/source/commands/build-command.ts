@@ -48,7 +48,7 @@ export class BuildCommand {
         FileUtil.copyDirectory(lPackagePaths.project.source, lPackagePaths.project.library.source, true, new Map<RegExp, string>(), ['.ts']);
 
         // Build typescript when configurated.
-        if (lConfiguration.pack) {
+        if (lConfiguration.config.pack) {
             lConsole.writeLine('Build Webpack');
             const lWebpackCommand: string = `node ${lWebpackCli} --config "${this.mWorkspaceHelper.paths.cli.files.webpackConfig}" --env=buildType=release`;
             await lShell.call(lWebpackCommand);

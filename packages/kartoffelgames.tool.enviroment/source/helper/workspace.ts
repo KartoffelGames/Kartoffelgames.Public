@@ -2,8 +2,6 @@ import * as path from 'path';
 import { FileUtil } from './file-util';
 
 export class Workspace {
-    public static readonly PACKAGE_SETTING_KEY: string = 'kg.options';
-
     private readonly mCliRootPath: string;
     private readonly mRootPath: string;
 
@@ -112,13 +110,14 @@ export class Workspace {
         const lJson: any = JSON.parse(lFile);
 
         // Read project config.
-        const lConfiguration: WorkspaceConfiguration = lJson[Workspace.PACKAGE_SETTING_KEY];
-        // TODO: Key splitiing. for kg.config and kg[config]
+        const lConfiguration: WorkspaceConfiguration = lJson['kg'];
 
         // Fill config defaults.
         return {
-            blueprint: lConfiguration.blueprint ?? '',
-            pack: lConfiguration.pack ?? false
+            config: {
+                blueprint: lConfiguration?.config?.blueprint ?? '',
+                pack: lConfiguration?.config?.pack ?? false
+            }
         };
     }
 
@@ -169,6 +168,25 @@ export class Workspace {
     }
 
     /**
+     * Update project kg information.
+     * @param pName - Name of project.
+     * @param pConfig - Project kg information.
+     */
+    public updateProjectConfiguration(pName: string, pConfig: WorkspaceConfiguration): void {
+        const lProjectPaths = this.pathsOf(pName);
+
+        // Update package.json custom settings.
+        const lPackageJsonContent: string = FileUtil.read(lProjectPaths.project.file.packageJson);
+        const lPackageJsonJson: any = JSON.parse(lPackageJsonContent);
+
+        // Set config.
+        lPackageJsonJson['kg'] = pConfig;
+
+        // Save packag.json.
+        FileUtil.write(lProjectPaths.project.file.packageJson, JSON.stringify(lPackageJsonJson, null, 4));
+    }
+
+    /**
      * Find workspace root path.
      * @param pCurrentPath - Current path.
      */
@@ -213,8 +231,10 @@ export class Workspace {
 }
 
 export type WorkspaceConfiguration = {
-    blueprint: string;
-    pack: boolean;
+    config: {
+        blueprint: string;
+        pack: boolean;
+    };
 };
 
 export type ProjectPaths = {

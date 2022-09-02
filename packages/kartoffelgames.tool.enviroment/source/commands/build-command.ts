@@ -1,4 +1,3 @@
-import * as path from 'path';
 import { Console } from '../helper/console.js';
 import { FileUtil } from '../helper/file-util.js';
 import { Shell } from '../helper/shell.js';
@@ -6,19 +5,15 @@ import { Workspace, WorkspaceConfiguration } from '../helper/workspace.js';
 
 
 export class BuildCommand {
-    private readonly mCliRootPath: string;
     private readonly mWorkspaceHelper: Workspace;
-    private readonly mWorkspaceRootPath: string;
 
     /**
      * Constructor.
      * @param pCliRootPath - Cli project root.
      * @param pWorkspaceRootPath - Workspace root path.
      */
-    public constructor(pCliRootPath: string, pWorkspaceRootPath: string) {
-        this.mCliRootPath = path.resolve(pCliRootPath);
-        this.mWorkspaceRootPath = path.resolve(pWorkspaceRootPath);
-        this.mWorkspaceHelper = new Workspace(pWorkspaceRootPath);
+    public constructor(pWorkspace: Workspace) {
+        this.mWorkspaceHelper = pWorkspace;
     }
 
     /**
@@ -29,10 +24,7 @@ export class BuildCommand {
         const lConsole = new Console();
 
         // Construct paths.
-        const lPackagePath: string = this.mWorkspaceHelper.getProjectDirectory(pPackageName);
-        const lPackageSourcePath: string = path.resolve(lPackagePath, 'source');
-        const lPackageLibrarySourcePath: string = path.resolve(lPackagePath, 'library', 'source');
-        const lWebpackConfigPath: string = path.resolve(this.mCliRootPath, 'enviroment', 'configuration', 'webpack.config.js');
+        const lPackagePaths = this.mWorkspaceHelper.pathsOf(pPackageName);
 
         // Read package configuration.
         const lConfiguration: WorkspaceConfiguration = this.mWorkspaceHelper.getProjectConfiguration(pPackageName);
@@ -41,7 +33,7 @@ export class BuildCommand {
         await this.clear(pPackageName);
 
         // Create shell command executor.
-        const lShell: Shell = new Shell(lPackagePath);
+        const lShell: Shell = new Shell(lPackagePaths.project.root);
 
         // Load command from local node-modules.
         const lTypescriptCli: string = require.resolve('typescript/lib/tsc.js');
@@ -53,12 +45,12 @@ export class BuildCommand {
 
         // Copy external files.
         lConsole.writeLine('Copy external files');
-        FileUtil.copyDirectory(lPackageSourcePath, lPackageLibrarySourcePath, true, new Map<RegExp, string>(), ['.ts']);
+        FileUtil.copyDirectory(lPackagePaths.project.source, lPackagePaths.project.library.source, true, new Map<RegExp, string>(), ['.ts']);
 
         // Build typescript when configurated.
         if (lConfiguration.pack) {
             lConsole.writeLine('Build Webpack');
-            const lWebpackCommand: string = `node ${lWebpackCli} --config "${lWebpackConfigPath}" --env=buildType=release`;
+            const lWebpackCommand: string = `node ${lWebpackCli} --config "${this.mWorkspaceHelper.paths.cli.files.webpackConfig}" --env=buildType=release`;
             await lShell.call(lWebpackCommand);
         }
 
@@ -76,11 +68,10 @@ export class BuildCommand {
         lConsole.writeLine('Clear build output');
 
         // Construct paths.
-        const lPackagePath: string = this.mWorkspaceHelper.getProjectDirectory(pPackageName);
-        const lPackageLibraryPath: string = path.resolve(lPackagePath, 'library');
+        const lPackagePaths = this.mWorkspaceHelper.pathsOf(pPackageName);
 
         // Force delete directory.
-        FileUtil.deleteDirectory(lPackageLibraryPath);
+        FileUtil.deleteDirectory(lPackagePaths.project.library.root);
     }
 
     /**
@@ -93,19 +84,16 @@ export class BuildCommand {
         const lConsole = new Console();
 
         // Construct paths.
-        const lPackagePath: string = this.mWorkspaceHelper.getProjectDirectory(pPackageName);
-        const lWebpackConfigPath: string = path.resolve(this.mCliRootPath, 'enviroment', 'configuration', 'webpack.config.js');
-        const lMochaConfigPath: string = path.resolve(this.mCliRootPath, 'enviroment', 'configuration', 'mocha.config.js');
-        const lNycConfigPath: string = path.resolve(this.mCliRootPath, 'enviroment', 'configuration', 'nyc.config.json');
+        const lPackagePaths = this.mWorkspaceHelper.pathsOf(pPackageName);
 
         // Create shell command executor.
-        const lShell: Shell = new Shell(lPackagePath);
+        const lShell: Shell = new Shell(lPackagePaths.project.root);
 
         // Load command from local node-modules.
         const lWebpackCli: string = require.resolve('webpack-cli/bin/cli.js');
 
         // Construct webpack command.
-        let lWebpackCommand: string = `node ${lWebpackCli} --config "${lWebpackConfigPath}"`;
+        let lWebpackCommand: string = `node ${lWebpackCli} --config "${this.mWorkspaceHelper.paths.cli.files.webpackConfig}"`;
         if (pOptions.coverage) {
             lWebpackCommand += ' --env=buildType=test-coverage';
         } else {
@@ -123,9 +111,9 @@ export class BuildCommand {
         // Construct mocha command.
         let lMochaCommand: string = '';
         if (pOptions.coverage) {
-            lMochaCommand = `node ${lNycCli} --nycrc-path "${lNycConfigPath}" mocha --config "${lMochaConfigPath}"`;
+            lMochaCommand = `node ${lNycCli} --nycrc-path "${this.mWorkspaceHelper.paths.cli.files.nycConfig}" mocha --config "${this.mWorkspaceHelper.paths.cli.files.mochaConfig}"`;
         } else {
-            lMochaCommand = `node ${lMochaCli} --config "${lMochaConfigPath}" `;
+            lMochaCommand = `node ${lMochaCli} --config "${this.mWorkspaceHelper.paths.cli.files.mochaConfig}" `;
         }
 
         // Append no timout setting to mocha command.

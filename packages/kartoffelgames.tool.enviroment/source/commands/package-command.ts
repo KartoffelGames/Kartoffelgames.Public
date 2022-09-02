@@ -2,21 +2,18 @@
 import * as path from 'path';
 import { Console } from '../helper/console.js';
 import { FileUtil } from '../helper/file-util.js';
-import { WorkspacePath } from '../helper/workspace-path.js';
 import { Workspace } from '../helper/workspace.js';
 
 export class PackageCommand {
-    private readonly mCliRootPath: string;
-    private readonly mWorkspaceHelper: Workspace;
+    private readonly mWorkspace: Workspace;
 
     /**
      * Constructor.
      * @param pCliRootPath - Cli project root.
      * @param pCurrentPath - Current execution path.
      */
-    public constructor(pCliRootPath: string, pCurrentPath: string) {
-        this.mCliRootPath = path.resolve(pCliRootPath);
-        this.mWorkspaceHelper = new Workspace(pCurrentPath);
+    public constructor(pWorkspace: Workspace) {
+        this.mWorkspace = pWorkspace;
     }
 
     /**
@@ -25,7 +22,7 @@ export class PackageCommand {
      */
     public async create(pBlueprintType: string): Promise<void> {
         const lConsole = new Console();
-        const lBlueprintPath = path.resolve(this.mCliRootPath, 'enviroment', 'blueprints', pBlueprintType.toLowerCase());
+        const lBlueprintPath = path.resolve(this.mWorkspace.paths.cli.enviroment.blueprints, pBlueprintType.toLowerCase());
 
         // Output heading.
         lConsole.writeLine('Create Project');
@@ -37,15 +34,15 @@ export class PackageCommand {
 
         // Needed questions.
         const lProjectName = await lConsole.promt('Project Name: ', /^[a-zA-Z]+\.[a-zA-Z_.]+$/);
-        const lPackageName = this.mWorkspaceHelper.getPackageName(lProjectName);
+        const lPackageName = this.mWorkspace.getPackageName(lProjectName);
         const lProjectFolder = lProjectName.toLowerCase();
 
         // Create new package path. 
-        const lPackagePath = path.resolve(this.mWorkspaceHelper.root, WorkspacePath.PackageDirectory, lProjectFolder);
-        const lPackageJsonPath = path.resolve(lPackagePath, 'package.json');
+        const lPackagePath = path.resolve(this.mWorkspace.paths.packages, lProjectFolder);
+        const lPackageJsonPath = path.resolve(lPackagePath, 'package.json'); // Cant access pathOf(project) bc. project is not yet created.
 
         // Get all package.json files.
-        if (this.mWorkspaceHelper.projectExists(lPackageName)) {
+        if (this.mWorkspace.projectExists(lPackageName)) {
             throw 'Package already exists.';
         }
 
@@ -68,7 +65,7 @@ export class PackageCommand {
         FileUtil.copyDirectory(lBlueprintPath, lPackagePath, false, lReplacementMap, []);
 
         // Add package to workspace.
-        this.mWorkspaceHelper.createVsWorkspace(lProjectName);
+        this.mWorkspace.createVsWorkspace(lProjectName);
 
         // Update package.json custom settings.
         const lPackageJsonContent: string = FileUtil.read(lPackageJsonPath);
@@ -98,8 +95,7 @@ export class PackageCommand {
         lConsole.writeLine('Sync package version numbers...');
 
         // Get all package.json files.
-        const lPackageFolderPath = path.resolve(this.mWorkspaceHelper.root, WorkspacePath.PackageDirectory);
-        const lPackageFileList = FileUtil.findFiles(lPackageFolderPath, 'package.json', 1);
+        const lPackageFileList = FileUtil.findFiles(this.mWorkspace.paths.packages, 'package.json', 1);
 
         // Map each package.json with its path.
         const lPackageInformations: Map<string, PackageChangeInformation> = new Map<string, PackageChangeInformation>();

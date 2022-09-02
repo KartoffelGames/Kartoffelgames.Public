@@ -1,25 +1,43 @@
 import * as path from 'path';
 import { FileUtil } from './file-util';
-import { WorkspacePath } from './workspace-path';
 
 export class Workspace {
     public static readonly PACKAGE_SETTING_KEY: string = 'kg.options';
 
+    private readonly mCliRootPath: string;
     private readonly mRootPath: string;
 
     /**
-     * Get workspace root path. 
+     * Get root paths.
      */
-    public get root(): string {
-        return this.mRootPath;
+    public get paths(): RootPaths {
+        return {
+            root: this.mRootPath,
+            file: {
+                vsWorkspace: path.resolve(this.mRootPath, 'kg.code-workspace')
+            },
+            packages: path.resolve(this.mRootPath, 'packages'),
+            cli: {
+                root: this.mCliRootPath,
+                enviroment: {
+                    blueprints: path.resolve(this.mCliRootPath, 'enviroment', 'blueprints')
+                },
+                files: {
+                    webpackConfig: path.resolve(this.mCliRootPath, 'enviroment', 'configuration', 'webpack.config.js'),
+                    mochaConfig: path.resolve(this.mCliRootPath, 'enviroment', 'configuration', 'mocha.config.js'),
+                    nycConfig: path.resolve(this.mCliRootPath, 'enviroment', 'configuration', 'nyc.config.json')
+                }
+            }
+        };
     }
 
     /**
      * Constructor.
      * @param pCurrentPath - Project root path.
      */
-    public constructor(pCurrentPath: string) {
-        this.mRootPath = this.getWorkspaceRootPath(pCurrentPath);
+    public constructor(pCurrentPath: string, pCliRootPath: string) {
+        this.mRootPath = this.findWorkspaceRootPath(pCurrentPath);
+        this.mCliRootPath = path.resolve(pCliRootPath);
     }
 
     /**
@@ -28,7 +46,7 @@ export class Workspace {
      * @param pWorkspaceFolder - Folder name of workspace.
      */
     public createVsWorkspace(pWorkspaceName: string): void {
-        const lWorkspaceFilePath: string = path.resolve(this.mRootPath, WorkspacePath.WorkspaceFile);
+        const lWorkspaceFilePath: string = this.paths.file.vsWorkspace;
         const lWorkspaceFolder: string = pWorkspaceName.toLowerCase();
 
         // Read workspace file json.
@@ -87,15 +105,15 @@ export class Workspace {
      */
     public getProjectConfiguration(pName: string): WorkspaceConfiguration {
         // Construct paths.
-        const lProjectPath: string = this.getProjectDirectory(pName);
-        const lPackageJsonPath: string = path.resolve(lProjectPath, 'package.json');
+        const lPaths: ProjectPaths = this.pathsOf(pName);
 
         // Read and parse package.json
-        const lFile: string = FileUtil.read(lPackageJsonPath);
+        const lFile: string = FileUtil.read(lPaths.project.file.packageJson);
         const lJson: any = JSON.parse(lFile);
 
         // Read project config.
         const lConfiguration: WorkspaceConfiguration = lJson[Workspace.PACKAGE_SETTING_KEY];
+        // TODO: Key splitiing. for kg.config and kg[config]
 
         // Fill config defaults.
         return {
@@ -112,7 +130,7 @@ export class Workspace {
         const lPackageName: string = this.getPackageName(pName);
 
         // Get all package.json files.
-        const lPackageFileList = FileUtil.findFiles(path.resolve(this.mRootPath, WorkspacePath.PackageDirectory), 'package.json', 1);
+        const lPackageFileList = FileUtil.findFiles(this.paths.packages, 'package.json', 1);
 
         // Read files and convert json.
         for (const lPackageFile of lPackageFileList) {
@@ -129,6 +147,28 @@ export class Workspace {
     }
 
     /**
+     * Get all available paths of workspace.
+     * @param pPackageName - Package name.
+     */
+    public pathsOf(pPackageName: string): ProjectPaths {
+        const lProjectDirectory: string = this.getProjectDirectory(pPackageName);
+
+        return {
+            project: {
+                root: lProjectDirectory,
+                library: {
+                    root: path.resolve(lProjectDirectory, 'library'),
+                    source: path.resolve(lProjectDirectory, 'library', 'source')
+                },
+                source: path.resolve(lProjectDirectory, 'source'),
+                file: {
+                    packageJson: path.resolve(lProjectDirectory, 'package.json')
+                }
+            },
+        };
+    }
+
+    /**
      * Check if package exists.
      * @param pPackageName - Package name.
      */
@@ -136,7 +176,7 @@ export class Workspace {
         const lPackageName: string = this.getPackageName(pPackageName);
 
         // Get all package.json files.
-        const lPackageFileList = FileUtil.findFiles(path.resolve(this.mRootPath, WorkspacePath.PackageDirectory), 'package.json', 1);
+        const lPackageFileList = FileUtil.findFiles(this.paths.packages, 'package.json', 1);
 
         // Read files and convert json.
         for (const lPackageFile of lPackageFileList) {
@@ -156,7 +196,7 @@ export class Workspace {
      * Find workspace root path.
      * @param pCurrentPath - Current path.
      */
-    private getWorkspaceRootPath(pCurrentPath: string): string {
+    private findWorkspaceRootPath(pCurrentPath: string): string {
         const lAllFiles: Array<string> = FileUtil.findFilesReverse(pCurrentPath, 'package.json');
 
         for (const lFile of lAllFiles) {
@@ -175,4 +215,37 @@ export class Workspace {
 export type WorkspaceConfiguration = {
     blueprint: string;
     pack: boolean;
+};
+
+export type ProjectPaths = {
+    project: {
+        root: string;
+        library: {
+            root: string;
+            source: string;
+        };
+        source: string;
+        file: {
+            packageJson: string;
+        };
+    };
+};
+
+export type RootPaths = {
+    root: string;
+    file: {
+        vsWorkspace: string;
+    },
+    packages: string;
+    cli: {
+        root: string;
+        enviroment: {
+            blueprints: string;
+        };
+        files: {
+            webpackConfig: string;
+            mochaConfig: string;
+            nycConfig: string;
+        };
+    };
 };

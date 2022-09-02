@@ -11,13 +11,15 @@ import { Workspace } from './helper/workspace';
 
 (async () => {
     const lConsole: Console = new Console();
-    const lParameter: Parameter = new Parameter('index.js');
-    const lWorkspace: Workspace = new Workspace(process.cwd());
 
     // Wrap error.
     try {
         // Get paths.
         const lCliRootPath: string = path.resolve(__dirname, '..', '..'); // Called from /library/source
+
+        // Setup enviroment information.
+        const lParameter: Parameter = new Parameter('index.js');
+        const lWorkspace: Workspace = new Workspace(process.cwd(), lCliRootPath);
 
         // Output main banner.
         lConsole.banner('KG ENVIROMENT');
@@ -25,15 +27,15 @@ import { Workspace } from './helper/workspace';
         // Execute functions based on path.
         if (lParameter.isPath('create *')) {
             const lBlueprintType: string = lParameter.getPath(1);
-            await new PackageCommand(lCliRootPath, lWorkspace.root).create(lBlueprintType);
+            await new PackageCommand(lWorkspace).create(lBlueprintType);
         } else if (lParameter.isPath('sync')) {
-            await new PackageCommand(lCliRootPath, lWorkspace.root).sync();
+            await new PackageCommand(lWorkspace).sync();
         } else if (lParameter.isPath('build *')) {
             const lPackageName: string = lParameter.getPath(1);
-            await new BuildCommand(lCliRootPath, lWorkspace.root).build(lPackageName);
+            await new BuildCommand(lWorkspace).build(lPackageName);
         } else if (lParameter.isPath('test *')) {
             const lPackageName: string = lParameter.getPath(1);
-            await new BuildCommand(lCliRootPath, lWorkspace.root).test(lPackageName, {
+            await new BuildCommand(lWorkspace).test(lPackageName, {
                 coverage: lParameter.parameter.has('coverage'),
                 noTimeout: lParameter.parameter.has('no-timeout'),
             });

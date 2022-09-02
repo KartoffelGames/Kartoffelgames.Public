@@ -18,7 +18,7 @@ export class Workspace {
             cli: {
                 root: this.mCliRootPath,
                 enviroment: {
-                    blueprints: path.resolve(this.mCliRootPath, 'enviroment', 'blueprints')
+                    blueprints: path.resolve(this.mCliRootPath, 'enviroment', 'package_blueprints')
                 },
                 files: {
                     webpackConfig: path.resolve(this.mCliRootPath, 'enviroment', 'configuration', 'webpack.config.js'),

@@ -8,11 +8,18 @@ export class Workspace {
     private readonly mRootPath: string;
 
     /**
-     * Constructor.
-     * @param pRootPath - Project root path.
+     * Get workspace root path. 
      */
-    public constructor(pRootPath: string) {
-        this.mRootPath = path.resolve(pRootPath);
+    public get root(): string {
+        return this.mRootPath;
+    }
+
+    /**
+     * Constructor.
+     * @param pCurrentPath - Project root path.
+     */
+    public constructor(pCurrentPath: string) {
+        this.mRootPath = this.getWorkspaceRootPath(pCurrentPath);
     }
 
     /**
@@ -143,6 +150,25 @@ export class Workspace {
         }
 
         return false;
+    }
+
+    /**
+     * Find workspace root path.
+     * @param pCurrentPath - Current path.
+     */
+    private getWorkspaceRootPath(pCurrentPath: string): string {
+        const lAllFiles: Array<string> = FileUtil.getAllFilesBackwards(pCurrentPath, 'package.json');
+
+        for (const lFile of lAllFiles) {
+            const lFileContent: string = FileUtil.read(lFile);
+            const lFileJson: any = JSON.parse(lFileContent);
+
+            if (lFileJson['kg.root'] || lFileJson['kg']?.['root']) {
+                return path.dirname(lFile);
+            }
+        }
+
+        return pCurrentPath;
     }
 }
 

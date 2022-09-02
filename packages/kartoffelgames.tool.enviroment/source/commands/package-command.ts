@@ -8,17 +8,15 @@ import { Workspace } from '../helper/workspace.js';
 export class PackageCommand {
     private readonly mCliRootPath: string;
     private readonly mWorkspaceHelper: Workspace;
-    private readonly mWorkspaceRootPath: string;
 
     /**
      * Constructor.
      * @param pCliRootPath - Cli project root.
-     * @param pWorkspaceRootPath - Workspace root path.
+     * @param pCurrentPath - Current execution path.
      */
-    public constructor(pCliRootPath: string, pWorkspaceRootPath: string) {
+    public constructor(pCliRootPath: string, pCurrentPath: string) {
         this.mCliRootPath = path.resolve(pCliRootPath);
-        this.mWorkspaceRootPath = path.resolve(pWorkspaceRootPath);
-        this.mWorkspaceHelper = new Workspace(pWorkspaceRootPath);
+        this.mWorkspaceHelper = new Workspace(pCurrentPath);
     }
 
     /**
@@ -43,7 +41,7 @@ export class PackageCommand {
         const lProjectFolder = lProjectName.toLowerCase();
 
         // Create new package path. 
-        const lPackagePath = path.resolve(this.mWorkspaceRootPath, WorkspacePath.PackageDirectory, lProjectFolder);
+        const lPackagePath = path.resolve(this.mWorkspaceHelper.root, WorkspacePath.PackageDirectory, lProjectFolder);
         const lPackageJsonPath = path.resolve(lPackagePath, 'package.json');
 
         // Get all package.json files.
@@ -100,7 +98,7 @@ export class PackageCommand {
         lConsole.writeLine('Sync package version numbers...');
 
         // Get all package.json files.
-        const lPackageFolderPath = path.resolve(this.mWorkspaceRootPath, WorkspacePath.PackageDirectory);
+        const lPackageFolderPath = path.resolve(this.mWorkspaceHelper.root, WorkspacePath.PackageDirectory);
         const lPackageFileList = FileUtil.getAllFilesOfName(lPackageFolderPath, 'package.json', 1);
 
         // Map each package.json with its path.

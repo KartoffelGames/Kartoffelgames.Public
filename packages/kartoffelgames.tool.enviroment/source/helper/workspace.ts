@@ -123,30 +123,6 @@ export class Workspace {
     }
 
     /**
-     * Get project directory.
-     * @param pName - Package name.
-     */
-    public getProjectDirectory(pName: string): string {
-        const lPackageName: string = this.getPackageName(pName);
-
-        // Get all package.json files.
-        const lPackageFileList = FileUtil.findFiles(this.paths.packages, 'package.json', 1);
-
-        // Read files and convert json.
-        for (const lPackageFile of lPackageFileList) {
-            const lFileText = FileUtil.read(lPackageFile);
-            const lFileJson = JSON.parse(lFileText);
-
-            // Check dublicate project name and package name.
-            if (lFileJson['name'].toLowerCase() === lPackageName.toLowerCase()) {
-                return path.dirname(lPackageFile);
-            }
-        }
-
-        throw 'Package does not exist.';
-    }
-
-    /**
      * Get all available paths of workspace.
      * @param pPackageName - Package name.
      */
@@ -209,6 +185,30 @@ export class Workspace {
         }
 
         return pCurrentPath;
+    }
+
+    /**
+     * Get project directory.
+     * @param pName - Package name.
+     */
+    private getProjectDirectory(pName: string): string {
+        const lPackageName: string = this.getPackageName(pName);
+
+        // Get all package.json files.
+        const lPackageFileList = FileUtil.findFiles(this.paths.packages, 'package.json', 1);
+
+        // Read files and convert json.
+        for (const lPackageFile of lPackageFileList) {
+            const lFileText = FileUtil.read(lPackageFile);
+            const lFileJson = JSON.parse(lFileText);
+
+            // Check dublicate project name and package name.
+            if (lFileJson['name'].toLowerCase() === lPackageName.toLowerCase()) {
+                return path.dirname(lPackageFile);
+            }
+        }
+
+        throw 'Package does not exist.';
     }
 }
 

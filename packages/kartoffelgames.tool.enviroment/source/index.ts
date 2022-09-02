@@ -39,6 +39,9 @@ import { Workspace } from './helper/workspace';
                 coverage: lParameter.parameter.has('coverage'),
                 noTimeout: lParameter.parameter.has('no-timeout'),
             });
+        } else if (lParameter.isPath('scratchpad *')) {
+            const lPackageName: string = lParameter.getPath(1);
+            await new BuildCommand(lWorkspace).scratchpad(lPackageName);
         } else if (lParameter.isPath('help')) {
             // List all commands.
             lConsole.writeLine('Available commands:');
@@ -47,6 +50,7 @@ import { Workspace } from './helper/workspace';
             lConsole.writeLine('    kg sync                                                - Sync all local dependency verions');
             lConsole.writeLine('    kg build <project name>                                - Build project');
             lConsole.writeLine('    kg test <project name> [--coverage] [-- no-timeout]    - Build project');
+            lConsole.writeLine('    kg scratchpad <project name>                           - Start scratchpad files');
         } else {
             throw `Command not found.`;
         }

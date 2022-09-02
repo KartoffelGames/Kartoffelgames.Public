@@ -75,6 +75,27 @@ export class BuildCommand {
     }
 
     /**
+     * Start webpack devserver from scratchpad files.
+     * @param pPackageName - Package name.
+     */
+    public async scratchpad(pPackageName: string): Promise<void> {
+        const lConsole = new Console();
+
+        // Construct paths.
+        const lPackagePaths = this.mWorkspaceHelper.pathsOf(pPackageName);
+
+        // Create shell command executor.
+        const lShell: Shell = new Shell(lPackagePaths.project.root);
+
+        // Load command from local node-modules.
+        const lWebpackCli: string = require.resolve('webpack-cli/bin/cli.js');
+
+        // Build test webpack
+        lConsole.writeLine('Starting Webserver...');
+        await lShell.call(`node ${lWebpackCli} serve --config "${this.mWorkspaceHelper.paths.cli.files.webpackConfig}" --env=buildType=scratchpad`);
+    }
+
+    /**
      * Run mocha test.
      * Valid test options are "coverage" and "no-timeout".
      * @param pPackageName - Package name.

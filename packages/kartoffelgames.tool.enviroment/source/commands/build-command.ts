@@ -50,7 +50,6 @@ export class BuildCommand {
         // Run tsc.
         lConsole.writeLine('Build typescript');
         await lShell.call(`node ${lTypescriptCli} --project tsconfig.json --noemit false`);
-        lConsole.clearLines(1); // Empty typescript file.
 
         // Copy external files.
         lConsole.writeLine('Copy external files');
@@ -62,6 +61,8 @@ export class BuildCommand {
             const lWebpackCommand: string = `node ${lWebpackCli} --config "${lWebpackConfigPath}" --env=buildType=release`;
             await lShell.call(lWebpackCommand);
         }
+
+        lConsole.writeLine('Build sucessful');
     }
 
     /**
@@ -88,19 +89,14 @@ export class BuildCommand {
      * @param pPackageName - Package name.
      * @param pOptions - Test options. 
      */
-    public async test(pPackageName: string, pOptions?: Array<string>): Promise<void> {
+    public async test(pPackageName: string, pOptions: TestOptions): Promise<void> {
         const lConsole = new Console();
-        const lOptions: Array<string> = pOptions ?? new Array<string>();
 
         // Construct paths.
         const lPackagePath: string = this.mWorkspaceHelper.getProjectDirectory(pPackageName);
         const lWebpackConfigPath: string = path.resolve(this.mCliRootPath, 'enviroment', 'configuration', 'webpack.config.js');
         const lMochaConfigPath: string = path.resolve(this.mCliRootPath, 'enviroment', 'configuration', 'mocha.config.js');
         const lNycConfigPath: string = path.resolve(this.mCliRootPath, 'enviroment', 'configuration', 'nyc.config.json');
-
-        // Parse command configuration.
-        const lIsCoverage: boolean = lOptions.includes('coverage');
-        const lIsNoTimeout: boolean = lOptions.includes('no-timeout');
 
         // Create shell command executor.
         const lShell: Shell = new Shell(lPackagePath);
@@ -110,7 +106,7 @@ export class BuildCommand {
 
         // Construct webpack command.
         let lWebpackCommand: string = `node ${lWebpackCli} --config "${lWebpackConfigPath}"`;
-        if (lIsCoverage) {
+        if (pOptions.coverage) {
             lWebpackCommand += ' --env=buildType=test-coverage';
         } else {
             lWebpackCommand += ' --env=buildType=test';
@@ -126,14 +122,14 @@ export class BuildCommand {
 
         // Construct mocha command.
         let lMochaCommand: string = '';
-        if (lIsCoverage) {
+        if (pOptions.coverage) {
             lMochaCommand = `node ${lNycCli} --nycrc-path "${lNycConfigPath}" mocha --config "${lMochaConfigPath}"`;
         } else {
             lMochaCommand = `node ${lMochaCli} --config "${lMochaConfigPath}" `;
         }
 
         // Append no timout setting to mocha command.
-        if (lIsNoTimeout) {
+        if (pOptions.noTimeout) {
             lWebpackCommand += ' --no-timeouts';
         }
 
@@ -142,3 +138,8 @@ export class BuildCommand {
         await lShell.call(lMochaCommand);
     }
 }
+
+type TestOptions = {
+    coverage: boolean;
+    noTimeout: boolean;
+};

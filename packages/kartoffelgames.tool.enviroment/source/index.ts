@@ -11,7 +11,7 @@ import { Workspace } from './helper/workspace';
 
 (async () => {
     const lConsole: Console = new Console();
-    const lParameter: Parameter = new Parameter();
+    const lParameter: Parameter = new Parameter('index.js');
     const lWorkspace: Workspace = new Workspace(process.cwd());
 
     // Wrap error.
@@ -20,7 +20,7 @@ import { Workspace } from './helper/workspace';
         const lCliRootPath: string = path.resolve(__dirname, '..', '..'); // Called from /library/source
 
         // Output main banner.
-        lConsole.banner('------ KG CLI ------');
+        lConsole.banner('KG ENVIROMENT');
 
         // Execute functions based on path.
         if (lParameter.isPath('create *')) {
@@ -33,8 +33,10 @@ import { Workspace } from './helper/workspace';
             await new BuildCommand(lCliRootPath, lWorkspace.root).build(lPackageName);
         } else if (lParameter.isPath('test *')) {
             const lPackageName: string = lParameter.getPath(1);
-            const lOptionList: Array<string> = lParameter.getPathRange(2, 4).map(pItem => pItem.substring(2));
-            await new BuildCommand(lCliRootPath, lWorkspace.root).test(lPackageName, lOptionList);
+            await new BuildCommand(lCliRootPath, lWorkspace.root).test(lPackageName, {
+                coverage: lParameter.parameter.has('coverage'),
+                noTimeout: lParameter.parameter.has('no-timeout'),
+            });
         } else if (lParameter.isPath('help')) {
             // List all commands.
             lConsole.writeLine('Available commands:');

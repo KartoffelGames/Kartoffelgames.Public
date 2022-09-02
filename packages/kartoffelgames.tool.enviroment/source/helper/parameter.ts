@@ -3,50 +3,68 @@ export class Parameter {
     private readonly mPath: Array<string>;
 
     /**
-     * Constructor.
+     * Get parameters.
      */
-    public constructor() {
-        this.mParameters = new Map<string, CommandParameter>();
-        this.mPath = new Array<string>();
-
-        // Read parameter.
-        process.argv.forEach((pValue: string, pIndex: number) => {
-            const lParameterRegex = /^([^=]+)=(.+)$/g;
-
-            // Check if value is a parameter. 
-            if (lParameterRegex.test(pValue)) {
-                // Find all parameter.
-                const lMatch: RegExpExecArray = <RegExpExecArray>lParameterRegex.exec(pValue);
-
-                // Get parameter value. Remove start and end quotation mark.
-                let lParameterValue: string = lMatch[2]; // Second group.
-                if (lParameterValue.startsWith('"')) {
-                    lParameterValue = lParameterValue.substring(1, lParameterValue.length - 1);
-                }
-
-                // Create parameter.
-                const lParameter: CommandParameter = {
-                    name: lMatch[1], // First group.
-                    value: lParameterValue,
-                };
-
-                // Register parameter.
-                this.mParameters.set(lParameter.name, lParameter);
-            }
-
-            // Add value to path. Ignore the two first values. [node.exe, jsPath]
-            if (pIndex > 1) {
-                this.mPath.push(pValue);
-            }
-        });
+    public get parameter(): Map<string, CommandParameter> {
+        return this.mParameters;
     }
 
     /**
-     * Get parameter value.
-     * @param pName - Parameter name.
+     * Constructor.
+     * @param pStartingCommand - Starting command path part. Part of a command that initializes the real command start.
      */
-    public getParameter(pName: string): string {
-        return this.mParameters.get(pName)?.value ?? '';
+    public constructor(pStartingCommand: string) {
+        this.mParameters = new Map<string, CommandParameter>();
+        this.mPath = new Array<string>();
+
+        const lParameterName: RegExp = /^--(.+)$/;
+
+        // Next parameter buffer.
+        let lNextParameterIsValue: boolean = false;
+        let lNextParameterName: string = '';
+
+        // Read parameter.
+        let lCommandStarted: boolean = false;
+        let lCommandParameterStarted: boolean = false;
+        process.argv.forEach((pValue: string) => {
+            // Process command only when starting command has reached.
+            if (!lCommandStarted) {
+                // Check if path started.
+                if (pValue.toLowerCase().includes(pStartingCommand.toLowerCase())) {
+                    lCommandStarted = true;
+                } else {
+                    return;
+                }
+            } else {
+                if (lParameterName.test(pValue)) {
+                    // Set area as parameter started.
+                    lCommandParameterStarted = true;
+
+                    // Process as parameter name.
+                    const lParameterNameMatch = <RegExpExecArray>lParameterName.exec(pValue);
+                    lNextParameterName = lParameterNameMatch[1]; // First group. Name without "--"
+                    lNextParameterIsValue = true;
+
+                    // Set empty parameter.
+                    this.mParameters.set(lNextParameterName, {
+                        name: lNextParameterName,
+                        value: null
+                    });
+                } else if (lNextParameterIsValue) {
+                    // Process parameter value.
+                    (<CommandParameter>this.mParameters.get(lNextParameterName)).value = pValue;
+
+                    // Reset parameter flags.
+                    lNextParameterIsValue = false;
+                    lNextParameterName = '';
+                } else if (!lCommandParameterStarted) {
+                    // Process as path.
+                    this.mPath.push(pValue);
+                } else {
+                    throw 'Wrong command syntax';
+                }
+            }
+        });
     }
 
     /**
@@ -77,13 +95,16 @@ export class Parameter {
     public isPath(pPathPattern: string): boolean {
         const lPatternList: Array<string> = pPathPattern.split(' ');
 
+        // Check path length.
+        if (lPatternList.length !== this.mPath.length) {
+            return false;
+        }
+
         for (let lIndex: number = 0; lIndex < lPatternList.length; lIndex++) {
             const lPattern: string = <string>lPatternList[lIndex].toLowerCase();
-            const lPath: string | undefined = this.mPath[lIndex]?.toLowerCase() ?? '';
+            const lPath: string = <string>this.mPath[lIndex].toLowerCase();
 
-            if (lPattern === '*' && lPath) {
-                continue;
-            } else if (lPattern === lPath) {
+            if (lPattern === '*' || lPattern === lPath) {
                 continue;
             } else {
                 return false;
@@ -96,5 +117,5 @@ export class Parameter {
 
 type CommandParameter = {
     name: string;
-    value: string;
+    value: string | null;
 };

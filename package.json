@@ -4,7 +4,7 @@
     "license": "MIT",
     "scripts": {
         "preinstall": "git config pull.rebase true",
-        "lint": "npx eslint \"**/*.ts\" --config enviroment/configuration/eslint.config.js",
+        "lint": "npx eslint \"**/*.ts\" --config ./eslint.config.js",
         "lint:fix": "npm run lint -- --fix"
     },
     "private": true,

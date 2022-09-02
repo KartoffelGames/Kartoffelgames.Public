@@ -62,8 +62,10 @@
     "publishConfig": {
         "registry": "https://npm.pkg.github.com/"
     },
-    "kg.options": {
-        "blueprint": "package",
-        "pack": false
+    "kg": {
+        "config": {
+            "blueprint": "package",
+            "pack": false
+        }
     }
 }

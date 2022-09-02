@@ -99,7 +99,7 @@ export class PackageCommand {
 
         // Get all package.json files.
         const lPackageFolderPath = path.resolve(this.mWorkspaceHelper.root, WorkspacePath.PackageDirectory);
-        const lPackageFileList = FileUtil.getAllFilesOfName(lPackageFolderPath, 'package.json', 1);
+        const lPackageFileList = FileUtil.findFiles(lPackageFolderPath, 'package.json', 1);
 
         // Map each package.json with its path.
         const lPackageInformations: Map<string, PackageChangeInformation> = new Map<string, PackageChangeInformation>();

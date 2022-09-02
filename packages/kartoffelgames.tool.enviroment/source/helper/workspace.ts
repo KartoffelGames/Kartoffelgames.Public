@@ -112,7 +112,7 @@ export class Workspace {
         const lPackageName: string = this.getPackageName(pName);
 
         // Get all package.json files.
-        const lPackageFileList = FileUtil.getAllFilesOfName(path.resolve(this.mRootPath, WorkspacePath.PackageDirectory), 'package.json', 1);
+        const lPackageFileList = FileUtil.findFiles(path.resolve(this.mRootPath, WorkspacePath.PackageDirectory), 'package.json', 1);
 
         // Read files and convert json.
         for (const lPackageFile of lPackageFileList) {
@@ -136,7 +136,7 @@ export class Workspace {
         const lPackageName: string = this.getPackageName(pPackageName);
 
         // Get all package.json files.
-        const lPackageFileList = FileUtil.getAllFilesOfName(path.resolve(this.mRootPath, WorkspacePath.PackageDirectory), 'package.json', 1);
+        const lPackageFileList = FileUtil.findFiles(path.resolve(this.mRootPath, WorkspacePath.PackageDirectory), 'package.json', 1);
 
         // Read files and convert json.
         for (const lPackageFile of lPackageFileList) {
@@ -157,7 +157,7 @@ export class Workspace {
      * @param pCurrentPath - Current path.
      */
     private getWorkspaceRootPath(pCurrentPath: string): string {
-        const lAllFiles: Array<string> = FileUtil.getAllFilesBackwards(pCurrentPath, 'package.json');
+        const lAllFiles: Array<string> = FileUtil.findFilesReverse(pCurrentPath, 'package.json');
 
         for (const lFile of lAllFiles) {
             const lFileContent: string = FileUtil.read(lFile);

@@ -56,6 +56,7 @@ import { Workspace } from './helper/workspace';
         }
     } catch (e) {
         lConsole.writeLine((<any>e).toString(), 'red');
+        process.exit(1);
     }
 
     process.exit(0);

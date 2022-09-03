@@ -28,6 +28,9 @@ import { Workspace } from './helper/workspace';
         if (lParameter.isPath('create *')) {
             const lBlueprintType: string = lParameter.getPath(1);
             await new PackageCommand(lWorkspace).create(lBlueprintType);
+        } else if (lParameter.isPath('init *')) {
+            const lBlueprintType: string = lParameter.getPath(1);
+            await new PackageCommand(lWorkspace).init(lBlueprintType, process.cwd());
         } else if (lParameter.isPath('sync')) {
             await new PackageCommand(lWorkspace).sync();
         } else if (lParameter.isPath('build *')) {

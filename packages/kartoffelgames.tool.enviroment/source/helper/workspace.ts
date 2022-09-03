@@ -21,6 +21,7 @@ export class Workspace {
                 root: this.mCliRootPath,
                 enviroment: {
                     packageBlueprints: path.resolve(this.mCliRootPath, 'enviroment', 'package_blueprints'),
+                    projectBlueprints: path.resolve(this.mCliRootPath, 'enviroment', 'project_blueprints'),
                     commandBlueprints: {
                         scratchpad: path.resolve(this.mCliRootPath, 'enviroment', 'command_blueprints', 'scratchpad')
                     }
@@ -268,6 +269,7 @@ export type RootPaths = {
         root: string;
         enviroment: {
             packageBlueprints: string;
+            projectBlueprints: string;
             commandBlueprints: {
                 scratchpad: string;
             };

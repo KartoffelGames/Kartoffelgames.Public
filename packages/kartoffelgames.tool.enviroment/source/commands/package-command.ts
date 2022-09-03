@@ -17,7 +17,7 @@ export class PackageCommand {
     }
 
     /**
-     * Create project based on blueprint.
+     * Create package based on blueprint.
      * @param pBlueprintType - Blueprint type.
      */
     public async create(pBlueprintType: string): Promise<void> {
@@ -25,7 +25,7 @@ export class PackageCommand {
         const lBlueprintPath = path.resolve(this.mWorkspace.paths.cli.enviroment.packageBlueprints, pBlueprintType.toLowerCase());
 
         // Output heading.
-        lConsole.writeLine('Create Project');
+        lConsole.writeLine('Create Package');
 
         // Check correct blueprint.
         if (!FileUtil.exists(lBlueprintPath)) {
@@ -33,7 +33,7 @@ export class PackageCommand {
         }
 
         // Needed questions.
-        const lProjectName = await lConsole.promt('Project Name: ', /^[a-zA-Z]+\.[a-zA-Z_.]+$/);
+        const lProjectName = await lConsole.promt('Package Name: ', /^[a-zA-Z]+\.[a-zA-Z_.]+$/);
         const lPackageName = this.mWorkspace.getPackageName(lProjectName);
         const lProjectFolder = lProjectName.toLowerCase();
 
@@ -46,7 +46,7 @@ export class PackageCommand {
         }
 
         lConsole.writeLine('');
-        lConsole.writeLine('Create project...');
+        lConsole.writeLine('Create package...');
 
         // Check if project directory already exists.
         if (FileUtil.exists(lPackagePath)) {
@@ -70,6 +70,39 @@ export class PackageCommand {
         const lWorkspaceConfiguration = this.mWorkspace.getProjectConfiguration(lProjectName);
         lWorkspaceConfiguration.config.blueprint = pBlueprintType.toLowerCase();
         this.mWorkspace.updateProjectConfiguration(lProjectName, lWorkspaceConfiguration);
+
+        // Display init information.
+        lConsole.writeLine('Project successfull created.');
+        lConsole.writeLine(`Call "npm install" to initialize this project`);
+    }
+
+    /**
+     * Initialize project based on blueprint.
+     * @param pBlueprintType - Blueprint type.
+     */
+    public async init(pBlueprintType: string, pWorkingDirectory: string): Promise<void> {
+        const lConsole = new Console();
+        const lBlueprintPath = path.resolve(this.mWorkspace.paths.cli.enviroment.projectBlueprints, pBlueprintType.toLowerCase());
+        const lWorkingDirectory: string = path.resolve(pWorkingDirectory);
+
+        // Output heading.
+        lConsole.writeLine('Initialize');
+
+        // Check correct blueprint.
+        if (!FileUtil.exists(lBlueprintPath)) {
+            throw `Blueprint "${pBlueprintType}" does not exist.`;
+        }
+
+        // Needed questions.
+        const lProjectName = await lConsole.promt('Project Name: ', /^[a-zA-Z0-9-_]+$/);
+
+        lConsole.writeLine('');
+        lConsole.writeLine('Create project...');
+
+        // Copy all files from blueprint folder.
+        const lReplacementMap: Map<RegExp, string> = new Map<RegExp, string>();
+        lReplacementMap.set(/{{PROJECT_NAME}}/g, lProjectName);
+        FileUtil.copyDirectory(lBlueprintPath, lWorkingDirectory, false, lReplacementMap, []);
 
         // Display init information.
         lConsole.writeLine('Project successfull created.');

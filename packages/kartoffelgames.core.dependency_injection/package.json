@@ -19,6 +19,10 @@
     "dependencies": {
         "@kartoffelgames/core.data": "^0.0.34"
     },
+    "scripts": {
+        "build": "kg build KartoffelGames.Core.Dependency_Injection",
+        "test": "kg test KartoffelGames.Core.Dependency_Injection"
+    },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/KartoffelGames/KartoffelGames.Public.git",

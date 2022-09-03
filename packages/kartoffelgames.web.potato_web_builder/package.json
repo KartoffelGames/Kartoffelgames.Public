@@ -22,6 +22,10 @@
         "@kartoffelgames/core.xml": "^0.0.34",
         "@kartoffelgames/web.change-detection": "^0.0.31"
     },
+    "scripts": {
+        "build": "kg build KartoffelGames.Web.Potato_Web_Builder",
+        "test": "kg test KartoffelGames.Web.Potato_Web_Builder"
+    },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/KartoffelGames/KartoffelGames.Public.git",

@@ -1,6 +1,14 @@
 export class Parameter {
+    private readonly mFullPath: Array<string>;
     private readonly mParameters: Map<string, CommandParameter>;
     private readonly mPath: Array<string>;
+
+    /**
+     * Get full path.
+     */
+    public get fullPath(): Array<string> {
+        return this.mFullPath;
+    }
 
     /**
      * Get parameters.
@@ -10,12 +18,20 @@ export class Parameter {
     }
 
     /**
+     * Get path.
+     */
+    public get path(): Array<string> {
+        return this.mPath;
+    }
+
+    /**
      * Constructor.
      * @param pStartingCommand - Starting command path part. Part of a command that initializes the real command start.
      */
     public constructor(pStartingCommand: string) {
         this.mParameters = new Map<string, CommandParameter>();
         this.mPath = new Array<string>();
+        this.mFullPath = new Array<string>();
 
         const lParameterName: RegExp = /^--(.+)$/;
 
@@ -63,25 +79,11 @@ export class Parameter {
                 } else {
                     throw 'Wrong command syntax';
                 }
+
+                // Add value to full path.
+                this.mFullPath.push(pValue);
             }
         });
-    }
-
-    /**
-     * Get path part by index.
-     * @param pIndex - Path part index.
-     */
-    public getPath(pIndex: number): string {
-        return this.mPath[pIndex] ?? '';
-    }
-
-    /**
-     * Get path parts.
-     * @param pStart - Start index.
-     * @param pEnd - End index.
-     */
-    public getPathRange(pStart: number, pEnd: number): Array<string> {
-        return this.mPath.slice(pStart, pEnd);
     }
 
     /**
@@ -95,14 +97,9 @@ export class Parameter {
     public isPath(pPathPattern: string): boolean {
         const lPatternList: Array<string> = pPathPattern.split(' ');
 
-        // Check path length.
-        if (lPatternList.length !== this.mPath.length) {
-            return false;
-        }
-
         for (let lIndex: number = 0; lIndex < lPatternList.length; lIndex++) {
             const lPattern: string = <string>lPatternList[lIndex].toLowerCase();
-            const lPath: string = <string>this.mPath[lIndex].toLowerCase();
+            const lPath: string = <string>this.mFullPath[lIndex].toLowerCase();
 
             if (lPattern === '*' || lPattern === lPath) {
                 continue;

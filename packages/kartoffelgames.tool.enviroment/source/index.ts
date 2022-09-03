@@ -3,6 +3,7 @@
 import * as path from 'path';
 import { BuildCommand } from './commands/build-command';
 import { PackageCommand } from './commands/package-command';
+import { CommandData, CommandMap } from './helper/command-map';
 import { Console } from './helper/console';
 import { Parameter } from './helper/parameter';
 import { Workspace } from './helper/workspace';
@@ -20,43 +21,50 @@ import { Workspace } from './helper/workspace';
         // Setup enviroment information.
         const lParameter: Parameter = new Parameter('index.js');
         const lWorkspace: Workspace = new Workspace(process.cwd(), lCliRootPath);
+        const lCommandMap: CommandMap = new CommandMap('kg', lParameter);
 
         // Output main banner.
         lConsole.banner('KG ENVIROMENT');
 
-        // Execute functions based on path.
-        if (lParameter.isPath('create *')) {
-            const lBlueprintType: string = lParameter.getPath(1);
+        // Add commands.
+        lCommandMap.add('create <blueprint_name>', async (pData: CommandData) => {
+            const lBlueprintType: string = pData.pathData['blueprint_name'];
             await new PackageCommand(lWorkspace).create(lBlueprintType);
-        } else if (lParameter.isPath('init *')) {
-            const lBlueprintType: string = lParameter.getPath(1);
+        }, 'Create new package.');
+
+        lCommandMap.add('init <blueprint_name>', async (pData: CommandData) => {
+            const lBlueprintType: string = pData.pathData['blueprint_name'];
             await new PackageCommand(lWorkspace).init(lBlueprintType, process.cwd());
-        } else if (lParameter.isPath('sync')) {
+        }, 'Initialize new project in current directory.');
+
+        lCommandMap.add('sync', async (_pData: CommandData) => {
             await new PackageCommand(lWorkspace).sync();
-        } else if (lParameter.isPath('build *')) {
-            const lPackageName: string = lParameter.getPath(1);
+        }, 'Sync all local dependency verions.');
+
+       /* lCommandMap.add('build --all', async (pData: CommandData) => {
+            const lPackageName: string = pData.pathData['project_name'];
+            await new BuildCommand(lWorkspace).buildAll(lPackageName);
+        }, 'Build package.');*/
+
+        lCommandMap.add('build <project_name>', async (pData: CommandData) => {
+            const lPackageName: string = pData.pathData['project_name'];
             await new BuildCommand(lWorkspace).build(lPackageName);
-        } else if (lParameter.isPath('test *')) {
-            const lPackageName: string = lParameter.getPath(1);
+        }, 'Build package.');
+
+        lCommandMap.add('test <project_name> [--coverage] [--no-timeout]', async (pData: CommandData) => {
+            const lPackageName: string = pData.pathData['project_name'];
             await new BuildCommand(lWorkspace).test(lPackageName, {
-                coverage: lParameter.parameter.has('coverage'),
-                noTimeout: lParameter.parameter.has('no-timeout'),
+                coverage: pData.command.parameter.has('coverage'),
+                noTimeout: pData.command.parameter.has('no-timeout'),
             });
-        } else if (lParameter.isPath('scratchpad *')) {
-            const lPackageName: string = lParameter.getPath(1);
+        }, 'Test project.');
+
+        lCommandMap.add('scratchpad <project_name>', async (pData: CommandData) => {
+            const lPackageName: string = pData.pathData['project_name'];
             await new BuildCommand(lWorkspace).scratchpad(lPackageName);
-        } else if (lParameter.isPath('help')) {
-            // List all commands.
-            lConsole.writeLine('Available commands:');
-            lConsole.writeLine('    kg help                                                - This');
-            lConsole.writeLine('    kg create <blueprint name>                             - Create new project');
-            lConsole.writeLine('    kg sync                                                - Sync all local dependency verions');
-            lConsole.writeLine('    kg build <project name>                                - Build project');
-            lConsole.writeLine('    kg test <project name> [--coverage] [-- no-timeout]    - Build project');
-            lConsole.writeLine('    kg scratchpad <project name>                           - Start scratchpad files');
-        } else {
-            throw `Command not found.`;
-        }
+        }, 'Serve scratchpad files over local http server.');
+
+        await lCommandMap.execute();
     } catch (e) {
         lConsole.writeLine((<any>e).toString(), 'red');
         process.exit(1);

@@ -124,6 +124,33 @@ export class FileUtil {
     }
 
     /**
+     * Search directory for file extension.
+     * @param pDestination - Search destination.
+     * @param pFileExtension - Search file extension.
+     */
+    public static findFileExtension(pDestination: string, pFileExtension: string): Array<string> {
+        const lAbsoulteStartDestination = path.resolve(pDestination);
+
+        // Check if start directory is a directory.
+        const lDirectoryStatus = filereader.statSync(lAbsoulteStartDestination);
+        if (!lDirectoryStatus.isDirectory()) {
+            throw `"${lAbsoulteStartDestination}" is not a directory.`;
+        }
+
+        const lResultList: Array<string> = new Array<string>();
+        for (const lChildItemName of filereader.readdirSync(lAbsoulteStartDestination)) {
+            const lItemPath = path.join(lAbsoulteStartDestination, lChildItemName);
+            const lItemStatus = filereader.statSync(lItemPath);
+
+            if (!lItemStatus.isDirectory() && lChildItemName.endsWith(pFileExtension)) {
+                lResultList.push(lItemPath);
+            }
+        }
+
+        return lResultList;
+    }
+
+    /**
      * Get all file paths of given file name.
      * @param pStartDestination - Starting destination of search.
      * @param pFileName - File name that should be searched.
@@ -147,7 +174,7 @@ export class FileUtil {
 
         // Check every file.
         // Copy each item into new directory.
-        for (const lChildItemName of filereader.readdirSync(pStartDestination)) {
+        for (const lChildItemName of filereader.readdirSync(lAbsoulteStartDestination)) {
             const lItemPath = path.join(lAbsoulteStartDestination, lChildItemName);
             const lItemStatus = filereader.statSync(lItemPath);
 

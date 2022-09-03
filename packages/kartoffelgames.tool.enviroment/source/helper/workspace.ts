@@ -9,10 +9,12 @@ export class Workspace {
      * Get root paths.
      */
     public get paths(): RootPaths {
+        const lVsWorkspaceFiles: Array<string> = FileUtil.findFileExtension(this.mRootPath, '.code-workspace');
+
         return {
             root: this.mRootPath,
             file: {
-                vsWorkspace: path.resolve(this.mRootPath, 'kg.code-workspace')
+                vsWorkspace: lVsWorkspaceFiles[0]
             },
             packages: path.resolve(this.mRootPath, 'packages'),
             cli: {

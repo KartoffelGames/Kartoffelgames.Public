@@ -1,12 +1,6 @@
 {
     "$schema": "https://turborepo.org/schema.json",
-    "baseBranch": "origin/master",
     "pipeline": {
-        "build:debug": {
-            "dependsOn": [
-                "^build:debug"
-            ]
-        },
         "build": {
             "dependsOn": [
                 "^build"
@@ -14,7 +8,7 @@
         },
         "test": {
             "dependsOn": [
-                "^build:debug"
+                "^build"
             ]
         }
     }

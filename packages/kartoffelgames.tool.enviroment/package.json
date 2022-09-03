@@ -14,7 +14,7 @@
     "bin": {
         "kg": "library/source/index.js"
     },
-    "devDependencies": {
+    "dependencies": {
         "@types/chai": "^4.2.21",
         "@types/mocha": "^5.2.7",
         "@types/node": "^18.7.13",

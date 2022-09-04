@@ -17,10 +17,6 @@
             "path": "./packages/kartoffelgames.core.xml"
         },
         {
-            "name": "KartoffelGames.Tool.Enviroment",
-            "path": "./packages/kartoffelgames.tool.enviroment"
-        },
-        {
             "name": "KartoffelGames.Web.Change_Detection",
             "path": "./packages/kartoffelgames.web.change_detection"
         },

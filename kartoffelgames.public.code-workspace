@@ -1,0 +1,47 @@
+{
+    "folders": [
+        {
+            "name": "KartoffelGames.Core.Data",
+            "path": "./packages/kartoffelgames.core.data"
+        },
+        {
+            "name": "KartoffelGames.Core.Dependency_Injection",
+            "path": "./packages/kartoffelgames.core.dependency_injection"
+        },
+        {
+            "name": "KartoffelGames.Core.Serializer",
+            "path": "./packages/kartoffelgames.core.serializer"
+        },
+        {
+            "name": "KartoffelGames.Core.Xml",
+            "path": "./packages/kartoffelgames.core.xml"
+        },
+        {
+            "name": "KartoffelGames.Web.Change_Detection",
+            "path": "./packages/kartoffelgames.web.change_detection"
+        },
+        {
+            "name": "KartoffelGames.Web.Potato_Web_Builder",
+            "path": "./packages/kartoffelgames.web.potato_web_builder"
+        },
+        {
+            "name": "_ROOT",
+            "path": "."
+        }
+    ],
+    "settings": {
+        "files.exclude": {
+            "**/.nyc_output": true,
+            "**/.turbo": true,
+            "**/*.tsbuildinfo": true,
+            "**/coverage": true,
+            "**/dist": true,
+            "**/node_modules": true
+        },
+        "typescript.implementationsCodeLens.enabled": true,
+        "typescript.referencesCodeLens.enabled": true,
+        "javascript.format.semicolons": "insert",
+        "typescript.referencesCodeLens.showOnAllFunctions": true,
+        "typescript.tsdk": "node_modules\\typescript\\lib"
+    }
+}

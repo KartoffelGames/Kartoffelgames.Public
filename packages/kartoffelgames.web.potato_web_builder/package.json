@@ -33,5 +33,18 @@
     "bugs": {
         "url": "https://github.com/KartoffelGames/KartoffelGames.Public/issues"
     },
-    "homepage": "https://github.com/KartoffelGames/KartoffelGames.Public#readme"
+    "homepage": "https://github.com/KartoffelGames/KartoffelGames.Public#readme",
+    "kg": {
+        "name": "Kartoffelgames.Web.Potato_Web_Builder",
+        "root": false,
+        "config": {
+            "build-configuration": {
+                "pack": false,
+                "target": "web"
+            },
+            "tests": [
+                "unit"
+            ]
+        }
+    }
 }

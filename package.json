@@ -21,5 +21,18 @@
         "eslint": "^8.26.0",
         "turbo": "^1.6.3"
     },
-    "packageManager": "npm@8.1.2"
+    "packageManager": "npm@8.1.2",
+    "kg": {
+        "name": "Kartoffelgames.Public",
+        "root": true,
+        "config": {
+            "build-configuration": {
+                "pack": false,
+                "target": "web"
+            },
+            "tests": [
+                "unit"
+            ]
+        }
+    }
 }

@@ -1,6 +1,5 @@
 {
     "name": "@kartoffelgames/web.change-detection",
-    "projectName": "KartoffelGames.Web.Change_Detection",
     "version": "0.0.31",
     "description": "KartoffelGames.Web.Change_Detection",
     "author": {
@@ -20,8 +19,8 @@
         "@kartoffelgames/core.data": "^0.0.34"
     },
     "scripts": {
-        "build": "kg build KartoffelGames.Web.Change_Detection",
-        "test": "kg test KartoffelGames.Web.Change_Detection"
+        "build": "kg build @kartoffelgames/web.change-detection",
+        "test": "kg test @kartoffelgames/web.change-detection"
     },
     "repository": {
         "type": "git",
@@ -31,11 +30,5 @@
     "bugs": {
         "url": "https://github.com/KartoffelGames/KartoffelGames.Public/issues"
     },
-    "homepage": "https://github.com/KartoffelGames/KartoffelGames.Public#readme",
-    "kg": {
-        "config": {
-            "blueprint": "package",
-            "pack": false
-        }
-    }
+    "homepage": "https://github.com/KartoffelGames/KartoffelGames.Public#readme"
 }

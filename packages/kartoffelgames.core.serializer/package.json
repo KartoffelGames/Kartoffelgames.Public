@@ -1,6 +1,5 @@
 {
     "name": "@kartoffelgames/core.serializer",
-    "projectName": "KartoffelGames.Core.Serializer",
     "version": "0.0.2",
     "description": "KartoffelGames.Core.Serializer",
     "author": {
@@ -20,8 +19,8 @@
         "@kartoffelgames/core.data": "^0.0.34"
     },
     "scripts": {
-        "build": "kg build KartoffelGames.Core.Serializer",
-        "test": "kg test KartoffelGames.Core.Serializer"
+        "build": "kg build @kartoffelgames/core.serializer",
+        "test": "kg test @kartoffelgames/core.serializer"
     },
     "repository": {
         "type": "git",
@@ -31,11 +30,5 @@
     "bugs": {
         "url": "https://github.com/KartoffelGames/KartoffelGames.Public/issues"
     },
-    "homepage": "https://github.com/KartoffelGames/KartoffelGames.Public#readme",
-    "kg": {
-        "config": {
-            "blueprint": "package",
-            "pack": false
-        }
-    }
+    "homepage": "https://github.com/KartoffelGames/KartoffelGames.Public#readme"
 }

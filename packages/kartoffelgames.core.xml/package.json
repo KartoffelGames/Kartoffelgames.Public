@@ -1,6 +1,5 @@
 {
     "name": "@kartoffelgames/core.xml",
-    "projectName": "KartoffelGames.Core.Xml",
     "version": "0.0.34",
     "description": "KartoffelGames.Core.Xml",
     "author": {
@@ -20,8 +19,8 @@
         "@kartoffelgames/core.data": "^0.0.34"
     },
     "scripts": {
-        "build": "kg build KartoffelGames.Core.Xml",
-        "test": "kg test KartoffelGames.Core.Xml"
+        "build": "kg build @kartoffelgames/core.xml",
+        "test": "kg test @kartoffelgames/core.xml"
     },
     "repository": {
         "type": "git",
@@ -31,14 +30,5 @@
     "bugs": {
         "url": "https://github.com/KartoffelGames/KartoffelGames.Public/issues"
     },
-    "homepage": "https://github.com/KartoffelGames/KartoffelGames.Public#readme",
-    "publishConfig": {
-        "registry": "https://npm.pkg.github.com/"
-    },
-    "kg": {
-        "config": {
-            "blueprint": "package",
-            "pack": false
-        }
-    }
+    "homepage": "https://github.com/KartoffelGames/KartoffelGames.Public#readme"
 }

@@ -1,6 +1,5 @@
 {
     "name": "@kartoffelgames/core.dependency-injection",
-    "projectName": "KartoffelGames.Core.Dependency_Injection",
     "version": "0.0.31",
     "description": "KartoffelGames.Core.Dependency_Injection",
     "author": {
@@ -20,8 +19,8 @@
         "@kartoffelgames/core.data": "^0.0.34"
     },
     "scripts": {
-        "build": "kg build KartoffelGames.Core.Dependency_Injection",
-        "test": "kg test KartoffelGames.Core.Dependency_Injection"
+        "build": "kg build @kartoffelgames/core.dependency-injection",
+        "test": "kg test @kartoffelgames/core.dependency-injection"
     },
     "repository": {
         "type": "git",
@@ -31,11 +30,5 @@
     "bugs": {
         "url": "https://github.com/KartoffelGames/KartoffelGames.Public/issues"
     },
-    "homepage": "https://github.com/KartoffelGames/KartoffelGames.Public#readme",
-    "kg": {
-        "config": {
-            "blueprint": "package",
-            "pack": false
-        }
-    }
+    "homepage": "https://github.com/KartoffelGames/KartoffelGames.Public#readme"
 }

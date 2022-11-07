@@ -7,18 +7,18 @@
         "lint": "npx eslint \"./**/*.ts\" --config .eslintrc.js",
         "lint:fix": "npm run lint -- --fix",
         "sync": "npx kg sync",
-        "build": "npx turbo run build --force",
-        "test": "npx turbo run test --force"
+        "build": "npx turbo run build",
+        "test": "npx turbo run test"
     },
     "private": true,
     "workspaces": [
         "./packages/*"
     ],
     "devDependencies": {
-        "@kartoffelgames/environment": "^0.0.15",
-        "@typescript-eslint/eslint-plugin": "^5.42.0",
-        "@typescript-eslint/parser": "^5.42.0",
-        "eslint": "^8.26.0",
+        "@kartoffelgames/environment": "^0.0.17",
+        "@typescript-eslint/eslint-plugin": "^5.42.1",
+        "@typescript-eslint/parser": "^5.42.1",
+        "eslint": "^8.27.0",
         "turbo": "^1.6.3"
     },
     "packageManager": "npm@8.1.2",

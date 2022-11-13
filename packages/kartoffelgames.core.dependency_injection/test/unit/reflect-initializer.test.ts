@@ -181,7 +181,7 @@ describe('ReflectInitializer', () => {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             class TestA {
                 @lDecorator
-                public [lPrototypeKey]: number;
+                public [lPrototypeKey]?: number;
             }
 
             // Evaluation.

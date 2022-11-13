@@ -52,7 +52,7 @@ describe('ConstructorMetadata', () => {
             lMetadata.setMetadata(lMetadataKey, lMetadataValue);
 
             // Process.
-            const lResultMetadatavalue: string = lMetadata.getMetadata(lMetadataKey);
+            const lResultMetadatavalue: string | null = lMetadata.getMetadata(lMetadataKey);
 
             // Evaluation.
             expect(lResultMetadatavalue).to.equal(lMetadataValue);
@@ -63,7 +63,7 @@ describe('ConstructorMetadata', () => {
             const lMetadata: ConstructorMetadata = new ConstructorMetadata();
 
             // Process.
-            const lResultMetadatavalue: string = lMetadata.getMetadata('AnyKey');
+            const lResultMetadatavalue: string | null = lMetadata.getMetadata('AnyKey');
 
             // Evaluation.
             expect(lResultMetadatavalue).to.be.null;
@@ -79,7 +79,7 @@ describe('ConstructorMetadata', () => {
             lMetadata.setMetadata(lMetadataKey, lMetadataValue);
 
             // Process.
-            const lResultMetadatavalue: string = lMetadata.getMetadata(lMetadataKey);
+            const lResultMetadatavalue: string | null = lMetadata.getMetadata(lMetadataKey);
 
             // Evaluation.
             expect(lResultMetadatavalue).to.equal(lMetadataValue);
@@ -94,7 +94,7 @@ describe('ConstructorMetadata', () => {
             // Process.
             lMetadata.setMetadata(lMetadataKey, 'OldMetadataValue');
             lMetadata.setMetadata(lMetadataKey, lMetadataValue);
-            const lResultMetadatavalue: string = lMetadata.getMetadata(lMetadataKey);
+            const lResultMetadatavalue: string | null = lMetadata.getMetadata(lMetadataKey);
 
             // Evaluation.
             expect(lResultMetadatavalue).to.equal(lMetadataValue);

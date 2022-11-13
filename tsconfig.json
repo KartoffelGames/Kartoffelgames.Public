@@ -32,7 +32,7 @@
     "strictFunctionTypes": true,
     "strictNullChecks": true,
     "strictPropertyInitialization": true,
-    "target": "ESNext",
+    "target": "ES2021",
     "useUnknownInCatchVariables": true
   },
   "exclude": [

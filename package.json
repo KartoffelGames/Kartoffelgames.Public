@@ -1,5 +1,4 @@
 {
-    "name": "kartoffelgames.public",
     "version": "0.0.0",
     "license": "MIT",
     "scripts": {
@@ -21,18 +20,5 @@
         "eslint": "^8.27.0",
         "turbo": "^1.6.3"
     },
-    "packageManager": "npm@8.1.2",
-    "kg": {
-        "name": "Kartoffelgames.Public",
-        "root": true,
-        "config": {
-            "build-configuration": {
-                "pack": false,
-                "target": "web"
-            },
-            "tests": [
-                "unit"
-            ]
-        }
-    }
+    "packageManager": "npm@8.1.2"
 }

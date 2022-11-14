@@ -40,7 +40,8 @@
         "config": {
             "build-configuration": {
                 "pack": false,
-                "target": "web"
+                "target": "web",
+                "scope": "main"
             },
             "tests": [
                 "unit"

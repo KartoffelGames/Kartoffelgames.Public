@@ -29,7 +29,7 @@
             "path": "./packages/kartoffelgames.web.potato_web_builder"
         },
         {
-            "name": "_Enviroment",
+            "name": "_ROOT",
             "path": "."
         }
     ],
@@ -37,7 +37,6 @@
         "files.exclude": {
             "**/.nyc_output": true,
             "**/.turbo": true,
-            "**/*.code-workspace": true,
             "**/*.tsbuildinfo": true,
             "**/coverage": true,
             "**/dist": true,
@@ -46,12 +45,7 @@
         "typescript.implementationsCodeLens.enabled": true,
         "typescript.referencesCodeLens.enabled": true,
         "javascript.format.semicolons": "insert",
-        "javascript.referencesCodeLens.enabled": true,
-        "typescript.format.semicolons": "insert",
         "typescript.referencesCodeLens.showOnAllFunctions": true,
-        "eslint.options": {
-            "configFile": "../../enviroment/configuration/eslint.config.js"
-        },
         "typescript.tsdk": "node_modules\\typescript\\lib"
     }
 }

@@ -5,21 +5,37 @@
             "type": "node",
             "request": "launch",
             "name": "Mocha Test",
+<<<<<<< HEAD
             "runtimeExecutable": "npm",
             "runtimeArgs": [
                 "run",
                 "test:debug"
             ],
             "cwd": "${workspaceRoot}",
+=======
+            "runtimeExecutable": "npx",
+            "runtimeArgs": [
+                "kg",
+                "test",
+                "${workspaceFolderBasename}",
+                "--no-timeout",
+            ],
+            "cwd": "${workspaceFolder}",
+>>>>>>> master
             "skipFiles": [
                 "${workspaceFolder}/../../node_modules/**/*.js",
                 "<node_internals>/**/*.js"
             ],
             "sourceMaps": true,
             "sourceMapPathOverrides": {
+<<<<<<< HEAD
                 "webpack://@kartoffelgames/core.serializer/*": "${workspaceRoot}/*"
             },
             "protocol": "inspector"
+=======
+                "webpack://@kartoffelgames/core.serializer/*": "${workspaceFolder}/*"
+            }
+>>>>>>> master
         }
     ]
 }

@@ -29,7 +29,7 @@ describe('ExtendedMetadata', () => {
             // Process.         
             class TestA {
                 @ExtendedMetadata(lMetadataKey, lMetadataValue)
-                public [lPropertyName]: string;
+                public [lPropertyName]?: string;
             }
 
             // Process. Read metadata.

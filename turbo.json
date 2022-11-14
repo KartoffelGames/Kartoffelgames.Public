@@ -1,20 +1,14 @@
 {
     "$schema": "https://turborepo.org/schema.json",
-    "baseBranch": "origin/master",
     "pipeline": {
-        "build:debug": {
+        "build": {
             "dependsOn": [
-                "^build:debug"
-            ]
-        },
-        "build:release": {
-            "dependsOn": [
-                "^build:release"
+                "^build"
             ]
         },
         "test": {
             "dependsOn": [
-                "^build:debug"
+                "^build"
             ]
         }
     }

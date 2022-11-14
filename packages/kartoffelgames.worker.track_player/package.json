@@ -40,8 +40,8 @@
         "ignore-loader": "^0.1.0"
     },
     "dependencies": {
-        "@kartoffelgames/core.data": "^0.0.33",
-        "@kartoffelgames/core.serilizer": "^0.0.1"
+        "@kartoffelgames/core.data": "^0.0.34",
+        "@kartoffelgames/core.serializer": "^0.0.2"
     },
     "scripts": {
         "script:build": "npm run pre:build && webpack-cli --config ../../enviroment/configuration/webpack.config.js",
@@ -68,5 +68,19 @@
     "bugs": {
         "url": "https://github.com/KartoffelGames/KartoffelGames.Public/issues"
     },
-    "homepage": "https://github.com/KartoffelGames/KartoffelGames.Public#readme"
+    "homepage": "https://github.com/KartoffelGames/KartoffelGames.Public#readme",
+    "kg": {
+        "name": "Kartoffelgames.Worker.Track_Player",
+        "root": false,
+        "config": {
+            "build-configuration": {
+                "pack": false,
+                "target": "web",
+                "scope": "worker"
+            },
+            "tests": [
+                "unit"
+            ]
+        }
+    }
 }

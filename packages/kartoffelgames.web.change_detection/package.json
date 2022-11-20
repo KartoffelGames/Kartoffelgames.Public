@@ -19,8 +19,9 @@
         "@kartoffelgames/core.data": "^0.0.34"
     },
     "scripts": {
-        "build": "kg build @kartoffelgames/web.change-detection",
-        "test": "kg test @kartoffelgames/web.change-detection"
+        "build": "kg build @kartoffelgames/web.change-detection && kg page @kartoffelgames/web.change-detection --build-only",
+        "test": "kg test @kartoffelgames/web.change-detection",
+        "page": "kg page @kartoffelgames/web.change-detection --build-only"
     },
     "repository": {
         "type": "git",

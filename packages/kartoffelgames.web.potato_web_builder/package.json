@@ -22,8 +22,9 @@
         "@kartoffelgames/web.change-detection": "^0.0.31"
     },
     "scripts": {
-        "build": "kg build @kartoffelgames/web.potato-web-builder",
-        "test": "kg test @kartoffelgames/web.potato-web-builder"
+        "build": "kg build @kartoffelgames/web.potato-web-builder && kg page @kartoffelgames/web.potato-web-builder --build-only",
+        "test": "kg test @kartoffelgames/web.potato-web-builder",
+        "page": "kg page @kartoffelgames/web.potato-web-builder --build-only"
     },
     "repository": {
         "type": "git",

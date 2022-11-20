@@ -19,8 +19,9 @@
         "@kartoffelgames/core.data": "^0.0.34"
     },
     "scripts": {
-        "build": "kg build @kartoffelgames/core.serializer",
-        "test": "kg test @kartoffelgames/core.serializer"
+        "build": "kg build @kartoffelgames/core.serializer && kg page @kartoffelgames/core.serializer --build-only",
+        "test": "kg test @kartoffelgames/core.serializer",
+        "page": "kg page @kartoffelgames/core.serializer --build-only"
     },
     "repository": {
         "type": "git",

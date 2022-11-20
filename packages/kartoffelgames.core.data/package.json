@@ -16,8 +16,9 @@
         "typescript": "^4.8.4"
     },
     "scripts": {
-        "build": "kg build @kartoffelgames/core.data",
-        "test": "kg test @kartoffelgames/core.data"
+        "build": "kg build @kartoffelgames/core.data && kg page @kartoffelgames/core.data --build-only",
+        "test": "kg test @kartoffelgames/core.data",
+        "page": "kg page @kartoffelgames/core.data --build-only"
     },
     "repository": {
         "type": "git",
@@ -39,7 +40,8 @@
             },
             "tests": [
                 "unit"
-            ]
+            ],
+            "page": false
         }
     }
 }

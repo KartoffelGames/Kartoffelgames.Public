@@ -19,8 +19,9 @@
         "@kartoffelgames/core.data": "^0.0.34"
     },
     "scripts": {
-        "build": "kg build @kartoffelgames/core.dependency-injection",
-        "test": "kg test @kartoffelgames/core.dependency-injection"
+        "build": "kg build @kartoffelgames/core.dependency-injection && kg page @kartoffelgames/core.dependency_injection --build-only",
+        "test": "kg test @kartoffelgames/core.dependency-injection",
+        "page": "kg page @kartoffelgames/core.dependency_injection --build-only"
     },
     "repository": {
         "type": "git",
@@ -42,7 +43,8 @@
             },
             "tests": [
                 "unit"
-            ]
+            ],
+            "page": false
         }
     }
 }

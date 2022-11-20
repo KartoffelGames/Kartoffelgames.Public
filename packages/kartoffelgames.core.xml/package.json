@@ -19,8 +19,9 @@
         "@kartoffelgames/core.data": "^0.0.34"
     },
     "scripts": {
-        "build": "kg build @kartoffelgames/core.xml",
-        "test": "kg test @kartoffelgames/core.xml"
+        "build": "kg build @kartoffelgames/core.xml && kg page @kartoffelgames/core.xml --build-only",
+        "test": "kg test @kartoffelgames/core.xml",
+        "page": "kg page @kartoffelgames/core.xml --build-only"
     },
     "repository": {
         "type": "git",
@@ -42,7 +43,8 @@
             },
             "tests": [
                 "unit"
-            ]
+            ],
+            "page": false
         }
     }
 }

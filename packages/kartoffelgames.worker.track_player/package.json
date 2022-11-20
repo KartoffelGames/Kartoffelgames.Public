@@ -21,8 +21,9 @@
         "@kartoffelgames/core.serializer": "^0.0.2"
     },
     "scripts": {
-        "build": "kg build @kartoffelgames/worker.track-player",
-        "test": "kg test @kartoffelgames/worker.track-player"
+        "build": "kg build @kartoffelgames/worker.track-player && kg page @kartoffelgames/worker.track-player --build-only",
+        "test": "kg test @kartoffelgames/worker.track-player",
+        "page": "kg page @kartoffelgames/worker.track-player --build-only"
     },
     "repository": {
         "type": "git",

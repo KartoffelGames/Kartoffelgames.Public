@@ -1,4 +1,4 @@
-export enum GameInputButton {
+export enum KeyboardButton {
     // Letter keys.
     KeyA = 'KeyA',
     KeyB = 'KeyB',

@@ -106,6 +106,7 @@ export class GamepadConnection {
      * @param pGamepadIndex - Gamepad index.
      */
     private deconstructGamepad(pGamepadIndex: number): void {
+        // TODO: Only disconnect GamepadInput
         this.mGamepads.delete(pGamepadIndex);
     }
 
@@ -115,6 +116,8 @@ export class GamepadConnection {
      * @param pGamepad - Gamepad
      */
     private initGamepad(pGamepad: Gamepad): void {
+        // TODO: Enable gamepad when allready created.
+
         let lFoundMapping: GamepadMapping | null = null;
 
         // Try to find mappig by id assignment.
@@ -140,6 +143,8 @@ export class GamepadConnection {
             id: pGamepad.id,
             mapping: lFoundMapping
         };
+
+        // TODO: Add BaseGenericInput => GamepadInput
 
         this.mGamepads.add(pGamepad.index, lGamepadInformation);
     }

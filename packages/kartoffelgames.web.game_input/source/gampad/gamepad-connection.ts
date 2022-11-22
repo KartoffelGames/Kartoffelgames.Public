@@ -2,7 +2,12 @@ import { Dictionary } from '@kartoffelgames/core.data';
 import { GamepadButtonType } from './enum/gamepad-button-type.enum';
 import { GamepadMapping } from './gamepad-mapping';
 
-export class GamepadHandler {
+// TODO: Listener
+// TODO: Pressed state. Apply tolerance.
+// TODO: GamepadGameInput for each connected gamepad.
+// TODO: Disconnect and not delete on gamepad disconnect.
+
+export class GamepadConnection {
     private static mIntervalStarted: boolean = false;
     private static readonly mMappingList: Array<MappingAssignment> = new Array<MappingAssignment>();
     private static readonly mStandardMapping: GamepadMapping = ((): GamepadMapping => {
@@ -71,8 +76,8 @@ export class GamepadHandler {
         }
 
         // Polling when no auto connection is available. Only starte once.
-        if (!GamepadHandler.mIntervalStarted) {
-            GamepadHandler.mIntervalStarted = true;
+        if (!GamepadConnection.mIntervalStarted) {
+            GamepadConnection.mIntervalStarted = true;
 
             // Poll connection state every one second.
             globalThis.setInterval(() => {
@@ -114,7 +119,7 @@ export class GamepadHandler {
 
         // Try to find mappig by id assignment.
         const lGamepadId: string = pGamepad.id;
-        for (const lMappingAssignment of GamepadHandler.mMappingList) {
+        for (const lMappingAssignment of GamepadConnection.mMappingList) {
             if (lMappingAssignment.idMatch.test(lGamepadId)) {
                 lFoundMapping = lMappingAssignment.mapping;
                 break;
@@ -123,10 +128,10 @@ export class GamepadHandler {
 
         // Fallback to gamepad mapping property.
         if (pGamepad.mapping === 'standard') {
-            lFoundMapping = GamepadHandler.mStandardMapping;
+            lFoundMapping = GamepadConnection.mStandardMapping;
         } else {
             // There are more mapping types, but ignored for now. :) hehe
-            lFoundMapping = GamepadHandler.mStandardMapping;
+            lFoundMapping = GamepadConnection.mStandardMapping;
         }
 
         // Build general gamepad information.

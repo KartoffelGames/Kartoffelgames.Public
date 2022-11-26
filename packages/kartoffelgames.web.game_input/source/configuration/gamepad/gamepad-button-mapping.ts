@@ -1,23 +1,23 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { GamepadButtonType } from './enum/gamepad-button-type.enum';
-import { GamepadButton } from '../enum/gamepad-button.enum';
+import { GamepadButtonType } from '../../enum/gamepad-button-type.enum';
+import { GamepadButton } from '../../enum/gamepad-button.enum';
 
 /**
  * Gamepad mapping.
  */
- export class GamepadMapping {
-    private readonly mMapping: Dictionary<GamepadButton, GamepadButtonMapping>;
+ export class GamepadButtonMapping {
+    private readonly mMapping: Dictionary<GamepadButton, GamepadDeviceButton>;
 
     /**
      * Constructor.
      */
-    public constructor(pMapping?: { [key in GamepadButton]?: GamepadButtonMapping }) {
-        this.mMapping = new Dictionary<GamepadButton, GamepadButtonMapping>();
+    public constructor(pMapping?: { [key in GamepadButton]?: GamepadDeviceButton }) {
+        this.mMapping = new Dictionary<GamepadButton, GamepadDeviceButton>();
 
         // Apply optional mapping.
         if (pMapping) {
             for (const lButton of Object.keys(pMapping)) {
-                const lButtonMapping: GamepadButtonMapping | undefined = pMapping[<GamepadButton>lButton];
+                const lButtonMapping: GamepadDeviceButton | undefined = pMapping[<GamepadButton>lButton];
                 if (lButtonMapping) {
                     this.addMapping(<GamepadButton>lButton, lButtonMapping.type, lButtonMapping.index);
                 }
@@ -42,7 +42,7 @@ import { GamepadButton } from '../enum/gamepad-button.enum';
      * @param pGamepad - Gamepad data.
      */
     public executeMapping(pButton: GamepadButton, pGamepad: Gamepad): number {
-        const lButtonMapping: GamepadButtonMapping | undefined = this.mMapping.get(pButton);
+        const lButtonMapping: GamepadDeviceButton | undefined = this.mMapping.get(pButton);
 
         // Return unpressed value on all unmapped buttons. 
         if (!lButtonMapping) {
@@ -58,7 +58,7 @@ import { GamepadButton } from '../enum/gamepad-button.enum';
     }
 }
 
-type GamepadButtonMapping = {
+type GamepadDeviceButton = {
     type: GamepadButtonType;
     index: number;
 };

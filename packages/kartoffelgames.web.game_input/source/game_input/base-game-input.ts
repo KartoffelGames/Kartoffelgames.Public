@@ -4,7 +4,7 @@ import { InputDevice } from '../enum/input-device.enum';
 import { InputButton } from '../types';
 import { InputButtonEvent, InputButtonEventMap } from './input-button-event';
 
-export abstract class BaseGenericInput extends EventTarget {
+export abstract class BaseGameInput extends EventTarget {
     private readonly mButtonState: Dictionary<InputButton, number>;
     private mConnected: boolean;
     private readonly mDeviceType: InputDevice;

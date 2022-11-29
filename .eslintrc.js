@@ -307,6 +307,7 @@ module.exports = {
         "@typescript-eslint/no-this-alias": "off",
         "no-use-before-declare": "off",
         "no-prototype-builtins": "off",
-        "@typescript-eslint/no-explicit-any": "off"
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-non-null-assertion": "off"
     }
 };

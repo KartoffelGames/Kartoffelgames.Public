@@ -1,23 +1,27 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { InputConfiguration } from '../configuration/input-configuration';
 import { GamepadButtonMapping } from '../configuration/gamepad/gamepad-button-mapping';
+import { InputConfiguration } from '../configuration/input-configuration';
+import { GamepadGameInput, GamepadGameInputInformation } from './gamepad-game-input';
 
-// TODO: Listener
-// TODO: Pressed state. Apply tolerance.
-// TODO: GamepadGameInput for each connected gamepad.
-// TODO: Disconnect and not delete on gamepad disconnect.
-
+/**
+ * Handles connect and disconnection of gamepads.
+ */
 export class GamepadConnection {
-    private static mIntervalStarted: boolean = false;
+    private readonly mGamepads: Dictionary<string, GamepadGameInput>;
 
-    private readonly mGamepads: Dictionary<number, GamepadInformation>;
+    /**
+     * Get all gamepads.
+     */
+    public get gamepads(): Array<GamepadGameInput> {
+        return [...this.mGamepads.values()];
+    }
 
     /**
      * Constructor.
      * Initialize connecting and disconnecting gamepads.
      */
     public constructor() {
-        this.mGamepads = new Dictionary<number, GamepadInformation>();
+        this.mGamepads = new Dictionary<string, GamepadGameInput>();
 
         // Init connected gamepads.
         globalThis.addEventListener('gamepadconnected', (pEvent: GamepadEvent) => {
@@ -26,7 +30,7 @@ export class GamepadConnection {
 
         // Deconstruct disconnected gamepads.
         globalThis.addEventListener('gamepaddisconnected', (pEvent: GamepadEvent) => {
-            this.deconstructGamepad(pEvent.gamepad.index);
+            this.deconstructGamepad(pEvent.gamepad);
         });
 
         // Init gamepads that are connected before constructor call.
@@ -35,40 +39,17 @@ export class GamepadConnection {
                 this.initGamepad(lGamepad);
             }
         }
-
-        // Polling when no auto connection is available. Only starte once.
-        if (!GamepadConnection.mIntervalStarted) {
-            GamepadConnection.mIntervalStarted = true;
-
-            // Poll connection state every one second.
-            globalThis.setInterval(() => {
-                // Connect gamepads.
-                const lGamepadList = globalThis.navigator.getGamepads();
-                for (const lGamepad of lGamepadList) {
-                    if (lGamepad !== null && !this.mGamepads.has(lGamepad.index) && lGamepad.connected) {
-                        // Dispatch gamepad connect event.
-                        globalThis.dispatchEvent(new GamepadEvent('gamepadconnected', { gamepad: lGamepad }));
-                    }
-                }
-
-                // Disconnect gamepads.
-                for (const lGamepadIndex of this.mGamepads.keys()) {
-                    const lGamepad: Gamepad | null | undefined = lGamepadList[lGamepadIndex];
-                    if (!lGamepad || !lGamepad.connected) {
-                        globalThis.dispatchEvent(new GamepadEvent('gamepaddisconnected', { gamepad: <Gamepad>{ index: lGamepadIndex } }));
-                    }
-                }
-            }, 1000);
-        }
     }
 
     /**
      * Desconstruct gamepad.
-     * @param pGamepadIndex - Gamepad index.
+     * @param pGamepad - Gamepad.
      */
-    private deconstructGamepad(pGamepadIndex: number): void {
-        // TODO: Only disconnect GamepadInput
-        this.mGamepads.delete(pGamepadIndex);
+    private deconstructGamepad(pGamepad: Gamepad): void {
+        // Only disconnect GamepadInput
+        if (this.mGamepads.has(pGamepad.id)) {
+            this.mGamepads.get(pGamepad.id)!.connected = false;
+        }
     }
 
     /**
@@ -77,12 +58,14 @@ export class GamepadConnection {
      * @param pGamepad - Gamepad
      */
     private initGamepad(pGamepad: Gamepad): void {
-        // TODO: Enable gamepad when allready created.
-
-        let lFoundMapping: GamepadButtonMapping | null = null;
+        // Enable gamepad when already created.
+        if (this.mGamepads.has(pGamepad.id)) {
+            this.mGamepads.get(pGamepad.id)!.connected = true;
+            return;
+        }
 
         // Try to find mappig by id assignment.
-        lFoundMapping = InputConfiguration.gamepad.getMapping(pGamepad.id);
+        let lFoundMapping: GamepadButtonMapping | null = InputConfiguration.gamepad.getMapping(pGamepad.id);
 
         // Fallback to gamepad mapping property.
         if (!lFoundMapping) {
@@ -95,21 +78,13 @@ export class GamepadConnection {
         }
 
         // Build general gamepad information.
-        const lGamepadInformation: GamepadInformation = {
+        const lGamepadInformation: GamepadGameInputInformation = {
             index: pGamepad.index,
             id: pGamepad.id,
             mapping: lFoundMapping
         };
 
-        // TODO: Add BaseGenericInput => GamepadInput
-
-        this.mGamepads.add(pGamepad.index, lGamepadInformation);
+        // Add GamepadGameInput
+        this.mGamepads.add(pGamepad.id, new GamepadGameInput(lGamepadInformation));
     }
 }
-
-
-type GamepadInformation = {
-    index: number;
-    id: string;
-    mapping: GamepadButtonMapping;
-};

@@ -2,6 +2,7 @@ import { Dictionary } from '@kartoffelgames/core.data';
 import { InputConfiguration } from '../configuration/input-configuration';
 import { InputDevice } from '../enum/input-device.enum';
 import { InputButton } from '../types';
+import { InputButtonEvent, InputButtonEventMap } from './input-button-event';
 
 export abstract class BaseGenericInput extends EventTarget {
     private readonly mButtonState: Dictionary<InputButton, number>;
@@ -131,47 +132,5 @@ export abstract class BaseGenericInput extends EventTarget {
 
         // Trigger value change event.
         this.dispatchEvent(new InputButtonEvent('statechange', pButton, pCurrentState));
-    }
-}
-
-export interface InputButtonEventMap {
-    'press': InputButtonEvent;
-    'statechange': InputButtonEvent;
-}
-
-export class InputButtonEvent extends Event {
-    private readonly mButton: InputButton;
-    private readonly mState: number;
-
-    /**
-     * Button.
-     */
-    public get button(): InputButton {
-        return this.mButton;
-    }
-
-    /**
-     * Button pressed state.
-     */
-    public get isPressed(): boolean {
-        return this.mState > 0;
-    }
-
-    /**
-     * Button state.
-     */
-    public get state(): number {
-        return this.mState;
-    }
-
-    /**
-     * Constructor.
-     * @param pType - Event type.
-     * @param pState - Button state.
-     */
-    public constructor(pType: keyof InputButtonEventMap, pButton: InputButton, pState: number) {
-        super(pType);
-        this.mState = pState;
-        this.mButton = pButton;
     }
 }

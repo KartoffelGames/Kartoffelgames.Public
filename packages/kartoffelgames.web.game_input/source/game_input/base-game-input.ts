@@ -72,7 +72,7 @@ export abstract class BaseGameInput extends EventTarget {
      * @param pButton - Button.
      */
     public isPressed(pButton: InputButton): boolean {
-        return this.getButtonState(pButton) > 0;
+        return this.getButtonState(pButton) !== 0;
     }
 
     /**

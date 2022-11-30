@@ -99,10 +99,17 @@ export abstract class BaseGameInput extends EventTarget {
 
                 // Get lowest state of all alias buttons.
                 let lAliasTargetNextState: number = lAliasButtonList.reduce((pCurrentValue: number, pNextValue: InputButton) => {
-                    return Math.min(pCurrentValue, this.mButtonState.get(pNextValue) ?? 0);
+                    const lNextValue: number = this.mButtonState.get(pNextValue) ?? 0;
+
+                    // Save changes closer to zero.
+                    if (Math.abs(lNextValue) < Math.abs(pCurrentValue)) {
+                        return lNextValue;
+                    } else {
+                        return pCurrentValue;
+                    }
                 }, 999);
 
-                if(lAliasTargetNextState === 999) {
+                if (lAliasTargetNextState === 999) {
                     lAliasTargetNextState = 0;
                 }
 

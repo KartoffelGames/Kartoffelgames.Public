@@ -87,24 +87,30 @@ export abstract class BaseGameInput extends EventTarget {
 
         // Set next target button state and trigger button change.
         this.mButtonState.set(pButton, pValue);
-        this.dispatchButtonChangeEvent(pButton, pValue, lButtonCurrentState);
+        const lStateChanged: boolean = this.dispatchButtonChangeEvent(pButton, pValue, lButtonCurrentState);
 
-        // Update all alias targets that are assigned to this alias button.
-        const lAliasTargetList = InputConfiguration.alias.assignedTargetOf(pButton) ?? [];
-        for (const lAliasTarget of lAliasTargetList) {
-            // Get all alias buttons of target button.
-            const lAliasButtonList: Array<InputButton> = InputConfiguration.alias.aliasOf(lAliasTarget) ?? [];
+        // Onyl trigger alias mapping on value change.
+        if (lStateChanged) {
+            // Update all alias targets that are assigned to this alias button.
+            const lAliasTargetList = InputConfiguration.alias.assignedTargetOf(pButton) ?? [];
+            for (const lAliasTarget of lAliasTargetList) {
+                // Get all alias buttons of target button.
+                const lAliasButtonList: Array<InputButton> = InputConfiguration.alias.aliasOf(lAliasTarget) ?? [];
 
-            // Get lowest state of all alias buttons.
-            const lMinState: number = lAliasButtonList.reduce((pCurrentValue: number, pNextValue: InputButton) => {
-                return Math.min(pCurrentValue, this.mButtonState.get(pNextValue) ?? 0);
-            }, 0);
+                // Get lowest state of all alias buttons.
+                let lAliasTargetNextState: number = lAliasButtonList.reduce((pCurrentValue: number, pNextValue: InputButton) => {
+                    return Math.min(pCurrentValue, this.mButtonState.get(pNextValue) ?? 0);
+                }, 999);
 
-            // Set highest state to alias target state.
-            const lAliasTargetCurrentState: number = this.mButtonState.get(lAliasTarget) ?? 0;
-            const lAliasTargetNextState: number = Math.max(lAliasTargetCurrentState, lMinState);
-            this.mButtonState.set(lAliasTarget, lAliasTargetNextState);
-            this.dispatchButtonChangeEvent(lAliasTarget, lAliasTargetNextState, lAliasTargetCurrentState);
+                if(lAliasTargetNextState === 999) {
+                    lAliasTargetNextState = 0;
+                }
+
+                // Set highest state to alias target state.
+                const lAliasTargetCurrentState: number = this.mButtonState.get(lAliasTarget) ?? 0;
+                this.mButtonState.set(lAliasTarget, lAliasTargetNextState);
+                this.dispatchButtonChangeEvent(lAliasTarget, lAliasTargetNextState, lAliasTargetCurrentState);
+            }
         }
     }
 
@@ -114,15 +120,15 @@ export abstract class BaseGameInput extends EventTarget {
      * @param pCurrentState - Current set state.
      * @param pLastState - Last state.
      */
-    private dispatchButtonChangeEvent(pButton: InputButton, pCurrentState: number, pLastState: number): void {
+    private dispatchButtonChangeEvent(pButton: InputButton, pCurrentState: number, pLastState: number): boolean {
         // Exit when values has not changed.
         if (pCurrentState === pLastState) {
-            return;
+            return false;
         }
 
         // Exit when input is not connected.
         if (!this.connected) {
-            return;
+            return false;
         }
 
         // Trigger pressed event when last state was zero.
@@ -132,5 +138,7 @@ export abstract class BaseGameInput extends EventTarget {
 
         // Trigger value change event.
         this.dispatchEvent(new InputButtonEvent('statechange', pButton, pCurrentState));
+
+        return true;
     }
 }

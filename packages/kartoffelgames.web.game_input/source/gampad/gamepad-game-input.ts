@@ -19,10 +19,12 @@ export class GamepadGameInput extends BaseGameInput {
         this.startScanLoop();
     }
 
+    /**
+     * Start scanning for pressed buttons.
+     */
     private startScanLoop(): void {
         // Get all gamepad buttons.
         const lGamepadButtonList: Array<GamepadButton> = EnumUtil.enumValuesToArray<GamepadButton>(GamepadButton);
-
         const lLoop = () => {
             // Only scan on connected gamepads.
             if (this.connected) {
@@ -38,8 +40,8 @@ export class GamepadGameInput extends BaseGameInput {
                         // Read button value.
                         let lButtonValue = this.mGamepadInformation.mapping.executeMapping(lButton, lGamepad);
 
-                        // Apply tolerance.
-                        if (lButtonValue < InputConfiguration.gamepad.triggerTolerance) {
+                        // Apply tolerance. Absolute values for negative axis.
+                        if (Math.abs(lButtonValue) < InputConfiguration.gamepad.triggerTolerance) {
                             lButtonValue = 0;
                         }
 

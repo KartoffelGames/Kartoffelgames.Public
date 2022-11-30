@@ -1,42 +1,34 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { GamepadButtonMapping } from '../configuration/gamepad/gamepad-button-mapping';
 import { InputConfiguration } from '../configuration/input-configuration';
+import { InputDevices } from '../input-devices';
 import { GamepadGameInput, GamepadGameInputInformation } from './gamepad-game-input';
 
 /**
  * Handles connect and disconnection of gamepads.
  */
 export class GamepadConnection {
-    private readonly mGamepads: Dictionary<string, GamepadGameInput>;
-
-    /**
-     * Get all gamepads.
-     */
-    public get gamepads(): Array<GamepadGameInput> {
-        return [...this.mGamepads.values()];
-    }
+    private static readonly mGamepads: Dictionary<string, GamepadGameInput> = new Dictionary<string, GamepadGameInput>();
 
     /**
      * Constructor.
      * Initialize connecting and disconnecting gamepads.
      */
-    public constructor() {
-        this.mGamepads = new Dictionary<string, GamepadGameInput>();
-
+    public static init(): void {
         // Init connected gamepads.
         globalThis.addEventListener('gamepadconnected', (pEvent: GamepadEvent) => {
-            this.initGamepad(pEvent.gamepad);
+            GamepadConnection.initGamepad(pEvent.gamepad);
         });
 
         // Deconstruct disconnected gamepads.
         globalThis.addEventListener('gamepaddisconnected', (pEvent: GamepadEvent) => {
-            this.deconstructGamepad(pEvent.gamepad);
+            GamepadConnection.deconstructGamepad(pEvent.gamepad);
         });
 
         // Init gamepads that are connected before constructor call.
         for (const lGamepad of globalThis.navigator.getGamepads()) {
             if (lGamepad !== null) {
-                this.initGamepad(lGamepad);
+                GamepadConnection.initGamepad(lGamepad);
             }
         }
     }
@@ -45,10 +37,10 @@ export class GamepadConnection {
      * Desconstruct gamepad.
      * @param pGamepad - Gamepad.
      */
-    private deconstructGamepad(pGamepad: Gamepad): void {
+    private static deconstructGamepad(pGamepad: Gamepad): void {
         // Only disconnect GamepadInput
-        if (this.mGamepads.has(pGamepad.id)) {
-            this.mGamepads.get(pGamepad.id)!.connected = false;
+        if (GamepadConnection.mGamepads.has(pGamepad.id)) {
+            GamepadConnection.mGamepads.get(pGamepad.id)!.connected = false;
         }
     }
 
@@ -57,10 +49,10 @@ export class GamepadConnection {
      * Applies gamepad button mapping. 
      * @param pGamepad - Gamepad
      */
-    private initGamepad(pGamepad: Gamepad): void {
+    private static initGamepad(pGamepad: Gamepad): void {
         // Enable gamepad when already created.
-        if (this.mGamepads.has(pGamepad.id)) {
-            this.mGamepads.get(pGamepad.id)!.connected = true;
+        if (GamepadConnection.mGamepads.has(pGamepad.id)) {
+            GamepadConnection.mGamepads.get(pGamepad.id)!.connected = true;
             return;
         }
 
@@ -84,7 +76,12 @@ export class GamepadConnection {
             mapping: lFoundMapping
         };
 
-        // Add GamepadGameInput
-        this.mGamepads.add(pGamepad.id, new GamepadGameInput(lGamepadInformation));
+        const lGamepadInput: GamepadGameInput = new GamepadGameInput(lGamepadInformation);
+
+        // Add GamepadGameInput to local store.
+        GamepadConnection.mGamepads.add(pGamepad.id, lGamepadInput);
+
+        // Add gamepad to global input devices.
+        InputDevices.registerDevice(lGamepadInput);
     }
 }

@@ -108,7 +108,9 @@ export abstract class BaseGameInput extends EventTarget {
 
         // Trigger pressed event when last state was zero.
         if (pLastState === 0) {
-            this.dispatchEvent(new InputButtonEvent('press', pButton, pCurrentState));
+            this.dispatchEvent(new InputButtonEvent('down', pButton, pCurrentState));
+        } else if(pLastState > 0 && pCurrentState === 0) {
+            this.dispatchEvent(new InputButtonEvent('up', pButton, pCurrentState));
         }
 
         // Trigger value change event.

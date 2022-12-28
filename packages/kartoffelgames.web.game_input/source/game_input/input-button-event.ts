@@ -39,6 +39,7 @@ export class InputButtonEvent extends Event {
 
 
 export interface InputButtonEventMap {
-    'press': InputButtonEvent;
+    'down': InputButtonEvent;
+    'up': InputButtonEvent;
     'statechange': InputButtonEvent;
 }

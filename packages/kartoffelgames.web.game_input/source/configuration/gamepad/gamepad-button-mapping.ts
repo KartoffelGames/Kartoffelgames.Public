@@ -5,7 +5,7 @@ import { GamepadButton } from '../../enum/gamepad-button.enum';
 /**
  * Gamepad mapping.
  */
- export class GamepadButtonMapping {
+export class GamepadButtonMapping {
     private readonly mMapping: Dictionary<GamepadButton, GamepadDeviceButton>;
 
     /**

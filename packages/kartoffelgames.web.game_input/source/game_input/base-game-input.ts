@@ -1,5 +1,4 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { InputConfiguration } from '../configuration/input-configuration';
 import { InputDevice } from '../enum/input-device.enum';
 import { InputButton } from '../types';
 import { InputButtonEvent, InputButtonEventMap } from './input-button-event';
@@ -87,38 +86,7 @@ export abstract class BaseGameInput extends EventTarget {
 
         // Set next target button state and trigger button change.
         this.mButtonState.set(pButton, pValue);
-        const lStateChanged: boolean = this.dispatchButtonChangeEvent(pButton, pValue, lButtonCurrentState);
-
-        // Onyl trigger alias mapping on value change.
-        if (lStateChanged) {
-            // Update all alias targets that are assigned to this alias button.
-            const lAliasTargetList = InputConfiguration.alias.assignedTargetOf(pButton) ?? [];
-            for (const lAliasTarget of lAliasTargetList) {
-                // Get all alias buttons of target button.
-                const lAliasButtonList: Array<InputButton> = InputConfiguration.alias.aliasOf(lAliasTarget) ?? [];
-
-                // Get lowest state of all alias buttons.
-                let lAliasTargetNextState: number = lAliasButtonList.reduce((pCurrentValue: number, pNextValue: InputButton) => {
-                    const lNextValue: number = this.mButtonState.get(pNextValue) ?? 0;
-
-                    // Save changes closer to zero.
-                    if (Math.abs(lNextValue) < Math.abs(pCurrentValue)) {
-                        return lNextValue;
-                    } else {
-                        return pCurrentValue;
-                    }
-                }, 999);
-
-                if (lAliasTargetNextState === 999) {
-                    lAliasTargetNextState = 0;
-                }
-
-                // Set highest state to alias target state.
-                const lAliasTargetCurrentState: number = this.mButtonState.get(lAliasTarget) ?? 0;
-                this.mButtonState.set(lAliasTarget, lAliasTargetNextState);
-                this.dispatchButtonChangeEvent(lAliasTarget, lAliasTargetNextState, lAliasTargetCurrentState);
-            }
-        }
+        this.dispatchButtonChangeEvent(pButton, pValue, lButtonCurrentState);
     }
 
     /**

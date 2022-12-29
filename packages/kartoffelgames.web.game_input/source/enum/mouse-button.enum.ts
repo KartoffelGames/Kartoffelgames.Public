@@ -1,10 +1,13 @@
 export enum MouseButton {
     // Main trigger.
-    MouseLeft = 'mouseLeft',
-    MouseRight = 'mouseRight',
-    MouseMiddle = 'mouseMiddle',
+    MainLeft = 'mainLeft',
+    MainRight = 'mainRight',
+    MainMiddle = 'mainMiddle',
+
+    SecondaryBack = 'secondaryBack',
+    SecondaryForward = 'secondaryForward',
 
     // Axis.
-    MouseXaxis = 'mouseXaxis',
-    MouseYaxis = 'mouseYaxis'
+    Xaxis = 'xAxis',
+    Yaxis = 'yAxis'
 }

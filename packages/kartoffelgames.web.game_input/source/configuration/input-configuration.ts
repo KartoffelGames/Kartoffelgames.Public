@@ -1,12 +1,16 @@
-import { GamepadConfiguration } from './gamepad/gamepad-configuaration';
+import { GamepadConfiguration } from './gamepad/gamepad-configuration';
 
 export class InputConfiguration {
-    private static readonly mGamepad: GamepadConfiguration = new GamepadConfiguration();
+    private readonly mGamepad: GamepadConfiguration;
 
     /**
      * Gamepad configuration.
      */
-    public static get gamepad(): GamepadConfiguration {
-        return InputConfiguration.mGamepad;
+     public get gamepad(): GamepadConfiguration {
+        return this.mGamepad;
+    }
+
+    public constructor() {
+        this.mGamepad = new GamepadConfiguration();
     }
 }

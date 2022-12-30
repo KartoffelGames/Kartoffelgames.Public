@@ -1,12 +1,21 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { BaseGameInput } from './game_input/base-game-input';
+import { InputConfiguration } from './configuration/input-configuration';
 
 export class InputDevices {
+    private static readonly mConfiguration: InputConfiguration = new InputConfiguration();
     private static readonly mConnectionChangeListenerList: Array<ConnectionChangeListener> = new Array<ConnectionChangeListener>();
     private static readonly mInputDevices: Dictionary<string, BaseGameInput> = new Dictionary<string, BaseGameInput>();
 
     /**
-     * Get all inout devices.
+     * Get input device configuration.
+     */
+    public static get configuration(): InputConfiguration {
+        return InputDevices.mConfiguration;
+    }
+
+    /**
+     * Get all input devices.
      */
     public static get devices(): Array<BaseGameInput> {
         return [...InputDevices.mInputDevices.values()];

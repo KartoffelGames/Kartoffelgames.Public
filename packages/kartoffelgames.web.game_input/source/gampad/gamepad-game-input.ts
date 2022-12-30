@@ -1,9 +1,9 @@
 import { EnumUtil } from '@kartoffelgames/core.data';
 import { GamepadButtonMapping } from '../configuration/gamepad/gamepad-button-mapping';
-import { InputConfiguration } from '../configuration/input-configuration';
 import { GamepadButton } from '../enum/gamepad-button.enum';
 import { InputDevice } from '../enum/input-device.enum';
 import { BaseGameInput } from '../game_input/base-game-input';
+import { InputDevices } from '../input-devices';
 
 export class GamepadGameInput extends BaseGameInput {
     private readonly mGamepadInformation: GamepadGameInputInformation;
@@ -41,7 +41,7 @@ export class GamepadGameInput extends BaseGameInput {
                         let lButtonValue = this.mGamepadInformation.mapping.executeMapping(lButton, lGamepad);
 
                         // Apply tolerance. Absolute values for negative axis.
-                        if (Math.abs(lButtonValue) < InputConfiguration.gamepad.triggerTolerance) {
+                        if (Math.abs(lButtonValue) < InputDevices.configuration.gamepad.triggerTolerance) {
                             lButtonValue = 0;
                         }
 

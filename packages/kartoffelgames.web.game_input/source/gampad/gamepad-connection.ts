@@ -1,6 +1,5 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { GamepadButtonMapping } from '../configuration/gamepad/gamepad-button-mapping';
-import { InputConfiguration } from '../configuration/input-configuration';
 import { InputDevices } from '../input-devices';
 import { GamepadGameInput, GamepadGameInputInformation } from './gamepad-game-input';
 
@@ -16,17 +15,17 @@ export class GamepadConnection {
      */
     public static init(): void {
         // Init connected gamepads.
-        globalThis.addEventListener('gamepadconnected', (pEvent: GamepadEvent) => {
+        window.addEventListener('gamepadconnected', (pEvent: GamepadEvent) => {
             GamepadConnection.initGamepad(pEvent.gamepad);
         });
 
         // Deconstruct disconnected gamepads.
-        globalThis.addEventListener('gamepaddisconnected', (pEvent: GamepadEvent) => {
+        window.addEventListener('gamepaddisconnected', (pEvent: GamepadEvent) => {
             GamepadConnection.deconstructGamepad(pEvent.gamepad);
         });
 
         // Init gamepads that are connected before constructor call.
-        for (const lGamepad of globalThis.navigator.getGamepads()) {
+        for (const lGamepad of globalThis.navigator.getGamepads?.() ?? []) {
             if (lGamepad !== null) {
                 GamepadConnection.initGamepad(lGamepad);
             }
@@ -57,15 +56,15 @@ export class GamepadConnection {
         }
 
         // Try to find mappig by id assignment.
-        let lFoundMapping: GamepadButtonMapping | null = InputConfiguration.gamepad.getMapping(pGamepad.id);
+        let lFoundMapping: GamepadButtonMapping | null = InputDevices.configuration.gamepad.getMapping(pGamepad.id);
 
         // Fallback to gamepad mapping property.
         if (!lFoundMapping) {
             if (pGamepad.mapping === 'standard') {
-                lFoundMapping = InputConfiguration.gamepad.standardMapping;
+                lFoundMapping = InputDevices.configuration.gamepad.standardMapping;
             } else {
                 // There are more mapping types, but ignored for now. :) hehe
-                lFoundMapping = InputConfiguration.gamepad.standardMapping;
+                lFoundMapping = InputDevices.configuration.gamepad.standardMapping;
             }
         }
 

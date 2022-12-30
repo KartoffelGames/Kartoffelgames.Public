@@ -1,33 +1,15 @@
 import { ButtonValueType } from '../../enum/button-value-type.enum';
-import { GamepadButtonMapping } from './gamepad-button-mapping';
+import { GamepadButtonMapping } from '../gamepad-button-mapping';
 
 export class GamepadConfiguration {
     private readonly mMappingList: Array<MappingAssignment> = new Array<MappingAssignment>();
     private readonly mStandardMapping: GamepadButtonMapping;
-    private mTriggerTolerance: number;
-
-    /**
-     * Get standart gamepad mapping.
-     */
-    public get standardMapping(): GamepadButtonMapping {
-        return this.mStandardMapping;
-    }
-
-    /**
-     * Tolerance on wich buttons and axis are marked as pressed.
-     */
-    public get triggerTolerance(): number {
-        return this.mTriggerTolerance;
-    } set triggerTolerance(pTolerance: number) {
-        this.mTriggerTolerance = pTolerance;
-    }
 
     /**
      * Constructor.
      * Initializes standard mapping.
      */
     public constructor() {
-        this.mTriggerTolerance = 0;
         this.mMappingList = new Array<MappingAssignment>();
         this.mStandardMapping = new GamepadButtonMapping({
             clusterButtonBottom: { type: ButtonValueType.Button, index: 0 },
@@ -67,14 +49,14 @@ export class GamepadConfiguration {
      * Get mapping of gamepad.
      * @param pGamepadId - Manufacturer id of gamepad.
      */
-    public getMapping(pGamepadId: string): GamepadButtonMapping | null {
+    public getMapping(pGamepadId: string): GamepadButtonMapping {
         for (const lMappingAssignment of this.mMappingList) {
             if (lMappingAssignment.idMatch.test(pGamepadId)) {
                 return lMappingAssignment.mapping;
             }
         }
 
-        return null;
+        return this.mStandardMapping;
     }
 }
 

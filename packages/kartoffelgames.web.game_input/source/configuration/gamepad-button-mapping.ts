@@ -1,6 +1,6 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { ButtonValueType } from '../../enum/button-value-type.enum';
-import { GamepadButton } from '../../enum/gamepad-button.enum';
+import { ButtonValueType } from '../enum/button-value-type.enum';
+import { GamepadButton } from '../enum/gamepad-button.enum';
 
 /**
  * Gamepad mapping.

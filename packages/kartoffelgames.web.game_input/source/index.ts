@@ -1,9 +1,4 @@
-import { MouseKeyboardConnection } from './keyboard_mouse/mouse-keyboard-connection';
-MouseKeyboardConnection.init();
-
-import { GamepadConnection } from './gampad/gamepad-connection';
-GamepadConnection.init();
-
-export { GamepadConnection, MouseKeyboardConnection };
+export { MouseKeyboardConnector } from './connector/mouse-keyboard-connector';
+export { GamepadConnector } from './connector/gamepad-connector';
 export { InputDevices } from './input-devices';
 export { InputConfiguration } from './configuration/input-configuration';

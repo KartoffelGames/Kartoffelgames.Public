@@ -1,16 +1,21 @@
+import { DeviceConfiguration } from '../configuration/device-configuration';
+import { InputConfiguration } from '../configuration/input-configuration';
 import { InputDevice } from '../enum/input-device.enum';
 import { KeyboardButton } from '../enum/keyboard-button.enum';
 import { MouseButton } from '../enum/mouse-button.enum';
-import { BaseGameInput } from '../game_input/base-game-input';
+import { BaseInputDevice } from './base-input-device';
 
-export class MouseKeyboardGameInput extends BaseGameInput {
+export class MouseKeyboardInputDevice extends BaseInputDevice {
 
     /**
      * Constructor.
-     * @param pGamepad - Gamepad object.
+     * @param pConfiguration - Iput configuration.
      */
-    public constructor() {
-        super('KEYBOARD_MOUSE_1', InputDevice.MouseKeyboard);
+    public constructor(pConfiguration: InputConfiguration) {
+        const lDeviceId: string = 'KEYBOARD_MOUSE_1';
+        const lDeviceConfiguration: DeviceConfiguration = pConfiguration.deviceConfiguration(lDeviceId);
+
+        super(lDeviceId, InputDevice.MouseKeyboard, lDeviceConfiguration);
 
         this.setupCaptureListener();
     }

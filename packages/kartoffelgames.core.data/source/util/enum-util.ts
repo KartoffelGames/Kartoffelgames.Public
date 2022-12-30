@@ -8,7 +8,7 @@ export class EnumUtil {
      */
     public static enumNamesToArray(pEnum: object): Array<string> {
         // Convert enum to key array.
-        return Object.keys(pEnum).filter((pKey) => typeof pKey === 'string');
+        return Object.keys(pEnum).filter((pKey) => isNaN(Number(pKey)));
     }
 
     /**

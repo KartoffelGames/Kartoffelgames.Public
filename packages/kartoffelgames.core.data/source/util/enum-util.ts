@@ -3,12 +3,12 @@
  */
 export class EnumUtil {
     /**
-     * Return all values of an enum as array.
+     * Return all keys of an enum as array.
      * @param pEnum - typeof Enum object.
      */
     public static enumNamesToArray(pEnum: object): Array<string> {
-        // Convert enum to array.
-        return Object.keys(pEnum);
+        // Convert enum to key array.
+        return Object.keys(pEnum).filter((pKey) => typeof pKey === 'string');
     }
 
     /**
@@ -16,7 +16,13 @@ export class EnumUtil {
      * @param pEnum - typeof Enum object.
      */
     public static enumValuesToArray<T>(pEnum: object): Array<T> {
-        // Convert enum to array.
-        return Object.values(pEnum);
+        const lEnumValues: Array<T> = new Array<T>();
+
+        // Convert enum to vaue array by iterating over all keys.
+        for (const lKey of EnumUtil.enumNamesToArray(pEnum)) {
+            lEnumValues.push((<{ [key: string]: T; }>pEnum)[lKey]);
+        }
+
+        return lEnumValues;
     }
 }

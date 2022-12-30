@@ -1,4 +1,4 @@
-import { GamepadButtonType } from '../../enum/gamepad-button-type.enum';
+import { ButtonValueType } from '../../enum/button-value-type.enum';
 import { GamepadButtonMapping } from './gamepad-button-mapping';
 
 export class GamepadConfiguration {
@@ -30,27 +30,27 @@ export class GamepadConfiguration {
         this.mTriggerTolerance = 0;
         this.mMappingList = new Array<MappingAssignment>();
         this.mStandardMapping = new GamepadButtonMapping({
-            clusterButtonBottom: { type: GamepadButtonType.Button, index: 0 },
-            clusterButtonRight: { type: GamepadButtonType.Button, index: 1 },
-            clusterButtonLeft: { type: GamepadButtonType.Button, index: 2 },
-            clusterButtonTop: { type: GamepadButtonType.Button, index: 3 },
-            buttonLeft: { type: GamepadButtonType.Button, index: 4 },
-            buttonRight: { type: GamepadButtonType.Button, index: 5 },
-            triggerLeft: { type: GamepadButtonType.Button, index: 6 },
-            triggerRight: { type: GamepadButtonType.Button, index: 7 },
-            selectButton: { type: GamepadButtonType.Button, index: 8 },
-            startButton: { type: GamepadButtonType.Button, index: 9 },
-            homeButton: { type: GamepadButtonType.Button, index: 16 },
-            directionalPadTop: { type: GamepadButtonType.Button, index: 12 },
-            directionalPadBottom: { type: GamepadButtonType.Button, index: 13 },
-            directionalPadRight: { type: GamepadButtonType.Button, index: 15 },
-            directionalPadLeft: { type: GamepadButtonType.Button, index: 14 },
-            leftThumbStickButton: { type: GamepadButtonType.Button, index: 10 },
-            leftThumbStickXaxis: { type: GamepadButtonType.Axis, index: 0 },
-            leftThumbStickYaxis: { type: GamepadButtonType.Axis, index: 1 },
-            rightThumbStickButton: { type: GamepadButtonType.Button, index: 11 },
-            rightThumbStickXaxis: { type: GamepadButtonType.Axis, index: 2 },
-            rightThumbStickYaxis: { type: GamepadButtonType.Axis, index: 3 },
+            clusterButtonBottom: { type: ButtonValueType.Button, index: 0 },
+            clusterButtonRight: { type: ButtonValueType.Button, index: 1 },
+            clusterButtonLeft: { type: ButtonValueType.Button, index: 2 },
+            clusterButtonTop: { type: ButtonValueType.Button, index: 3 },
+            buttonLeft: { type: ButtonValueType.Button, index: 4 },
+            buttonRight: { type: ButtonValueType.Button, index: 5 },
+            triggerLeft: { type: ButtonValueType.Button, index: 6 },
+            triggerRight: { type: ButtonValueType.Button, index: 7 },
+            selectButton: { type: ButtonValueType.Button, index: 8 },
+            startButton: { type: ButtonValueType.Button, index: 9 },
+            homeButton: { type: ButtonValueType.Button, index: 16 },
+            directionalPadTop: { type: ButtonValueType.Button, index: 12 },
+            directionalPadBottom: { type: ButtonValueType.Button, index: 13 },
+            directionalPadRight: { type: ButtonValueType.Button, index: 15 },
+            directionalPadLeft: { type: ButtonValueType.Button, index: 14 },
+            leftThumbStickButton: { type: ButtonValueType.Button, index: 10 },
+            leftThumbStickXaxis: { type: ButtonValueType.Axis, index: 0 },
+            leftThumbStickYaxis: { type: ButtonValueType.Axis, index: 1 },
+            rightThumbStickButton: { type: ButtonValueType.Button, index: 11 },
+            rightThumbStickXaxis: { type: ButtonValueType.Axis, index: 2 },
+            rightThumbStickYaxis: { type: ButtonValueType.Axis, index: 3 },
         });
     }
 

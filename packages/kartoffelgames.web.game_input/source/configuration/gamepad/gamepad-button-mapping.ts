@@ -1,5 +1,5 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { GamepadButtonType } from '../../enum/gamepad-button-type.enum';
+import { ButtonValueType } from '../../enum/button-value-type.enum';
 import { GamepadButton } from '../../enum/gamepad-button.enum';
 
 /**
@@ -31,7 +31,7 @@ export class GamepadButtonMapping {
      * @param pButtonType - Type of button.
      * @param pButtonIndex - Mapped index.
      */
-    public addMapping(pButton: GamepadButton, pButtonType: GamepadButtonType, pButtonIndex: number): void {
+    public addMapping(pButton: GamepadButton, pButtonType: ButtonValueType, pButtonIndex: number): void {
         this.mMapping.set(pButton, { type: pButtonType, index: pButtonIndex });
     }
 
@@ -50,7 +50,7 @@ export class GamepadButtonMapping {
         }
 
         // Access correct button array for axis or button  buttons.
-        if (lButtonMapping.type === GamepadButtonType.Button) {
+        if (lButtonMapping.type === ButtonValueType.Button) {
             return pGamepad.buttons[lButtonMapping.index].value;
         } else { // Axis.   
             return pGamepad.axes[lButtonMapping.index];
@@ -59,6 +59,6 @@ export class GamepadButtonMapping {
 }
 
 type GamepadDeviceButton = {
-    type: GamepadButtonType;
+    type: ButtonValueType;
     index: number;
 };

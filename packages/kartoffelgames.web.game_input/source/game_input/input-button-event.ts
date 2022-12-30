@@ -37,7 +37,6 @@ export class InputButtonEvent extends Event {
     }
 }
 
-
 export interface InputButtonEventMap {
     'down': InputButtonEvent;
     'up': InputButtonEvent;

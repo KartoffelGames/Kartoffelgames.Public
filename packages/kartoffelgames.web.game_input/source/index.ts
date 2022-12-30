@@ -1,8 +1,8 @@
 import { MouseKeyboardConnection } from './keyboard_mouse/mouse-keyboard-connection';
-GamepadConnection.init();
+MouseKeyboardConnection.init();
 
 import { GamepadConnection } from './gampad/gamepad-connection';
-MouseKeyboardConnection.init();
+GamepadConnection.init();
 
 export { GamepadConnection, MouseKeyboardConnection };
 export { InputDevices } from './input-devices';

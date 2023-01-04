@@ -1,4 +1,4 @@
-import { InputButton } from './types';
+import { InputButton } from '../types';
 
 export class InputButtonEvent extends Event {
     private readonly mButton: InputButton;
@@ -38,7 +38,7 @@ export class InputButtonEvent extends Event {
 }
 
 export interface InputButtonEventMap {
-    'down': InputButtonEvent;
-    'up': InputButtonEvent;
-    'statechange': InputButtonEvent;
+    'buttondown': InputButtonEvent;
+    'buttonup': InputButtonEvent;
+    'buttonstatechange': InputButtonEvent;
 }

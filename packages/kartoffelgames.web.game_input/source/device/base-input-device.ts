@@ -20,6 +20,9 @@ export abstract class BaseInputDevice extends EventTarget {
         return this.mConnected;
     } set connected(pConnected: boolean) {
         this.mConnected = pConnected;
+
+        // Call state change method.
+        this.onConnectionStateChange();
     }
 
     /**
@@ -52,7 +55,7 @@ export abstract class BaseInputDevice extends EventTarget {
         super();
 
         this.mId = pId;
-        this.mConnected = true;
+        this.mConnected = false;
         this.mDeviceType = pDeviceType;
         this.mButtonState = new Dictionary<InputButton, number>();
         this.mActionStates = new Dictionary<string, number>();
@@ -194,4 +197,9 @@ export abstract class BaseInputDevice extends EventTarget {
 
         return true;
     }
+
+    /**
+     * Called on connection change.
+     */
+    protected abstract onConnectionStateChange(): void;
 }

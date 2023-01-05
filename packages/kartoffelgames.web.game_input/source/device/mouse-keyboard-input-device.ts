@@ -6,6 +6,9 @@ import { MouseButton } from '../enum/mouse-button.enum';
 import { BaseInputDevice } from './base-input-device';
 
 export class MouseKeyboardInputDevice extends BaseInputDevice {
+    private mLoopRunning: boolean;
+    private mMovementX: number = 0;
+    private mMovementY: number = 0;
 
     /**
      * Constructor.
@@ -17,7 +20,17 @@ export class MouseKeyboardInputDevice extends BaseInputDevice {
 
         super(lDeviceId, InputDevice.MouseKeyboard, lDeviceConfiguration);
 
+        this.mLoopRunning = false;
         this.setupCaptureListener();
+    }
+
+    /**
+     * On connection state change.
+     */
+    protected onConnectionStateChange(): void {
+        if (this.connected && !this.mLoopRunning) {
+            this.startMouseMoveScanLoop();
+        }
     }
 
     /**
@@ -55,25 +68,10 @@ export class MouseKeyboardInputDevice extends BaseInputDevice {
      */
     private setupCaptureListener(): void {
         // Capture mouse movement for next frame.
-        let lMovementX: number = 0;
-        let lMovementY: number = 0;
         document.addEventListener('mousemove', (pMouseEvent) => {
-            lMovementX += pMouseEvent.movementX;
-            lMovementY += pMouseEvent.movementY;
+            this.mMovementX += pMouseEvent.movementX;
+            this.mMovementY += pMouseEvent.movementY;
         });
-
-        const lMouseMoveReport = () => {
-            // Calculate to axis value by set base value to 10 pixels.
-            this.setButtonState(MouseButton.Xaxis, lMovementX / 10);
-            this.setButtonState(MouseButton.Yaxis, lMovementY / 10);
-
-            // Reset mouse movement.
-            lMovementX = 0;
-            lMovementY = 0;
-
-            window.requestAnimationFrame(lMouseMoveReport);
-        };
-        window.requestAnimationFrame(lMouseMoveReport);
 
         // Mouse button events.
         document.addEventListener('mouseup', (pMouseEvent) => {
@@ -92,5 +90,33 @@ export class MouseKeyboardInputDevice extends BaseInputDevice {
             const lInputKey: KeyboardButton = <KeyboardButton>pKeyboardEvent.code;
             this.setButtonState(lInputKey, 0);
         });
+    }
+
+    /**
+     * Start scanning mouse movements.
+     */
+    private startMouseMoveScanLoop(): void {
+        // Reset mouse movement.
+        this.mMovementX = 0;
+        this.mMovementY = 0;
+
+        const lMouseMoveReport = () => {
+            // Calculate to axis value by set base value to 10 pixels.
+            this.setButtonState(MouseButton.Xaxis, this.mMovementX / 10);
+            this.setButtonState(MouseButton.Yaxis, this.mMovementY / 10);
+
+            // Reset mouse movement.
+            this.mMovementX = 0;
+            this.mMovementY = 0;
+
+            if (this.connected) {
+                globalThis.requestAnimationFrame(lMouseMoveReport);
+            } else {
+                this.mLoopRunning = false;
+            }
+        };
+
+        globalThis.requestAnimationFrame(lMouseMoveReport);
+        this.mLoopRunning = true;
     }
 }

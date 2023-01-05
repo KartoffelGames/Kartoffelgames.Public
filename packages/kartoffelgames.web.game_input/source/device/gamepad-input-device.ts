@@ -8,6 +8,7 @@ import { BaseInputDevice } from './base-input-device';
 
 export class GamepadInputDevice extends BaseInputDevice {
     private readonly mGamepadInformation: GamepadGameInputInformation;
+    private mLoopRunning: boolean;
 
     /**
      * Constructor.
@@ -20,7 +21,16 @@ export class GamepadInputDevice extends BaseInputDevice {
         super(lDeviceId, InputDevice.Gamepad, lDeviceConfiguration);
 
         this.mGamepadInformation = pGamepad;
-        this.startScanLoop();
+        this.mLoopRunning = false;
+    }
+
+    /**
+     * On connection state change.
+     */
+    protected onConnectionStateChange(): void {
+        if (this.connected && !this.mLoopRunning) {
+            this.startScanLoop();
+        }
     }
 
     /**
@@ -53,11 +63,17 @@ export class GamepadInputDevice extends BaseInputDevice {
                 }
             }
 
-            window.requestAnimationFrame(lLoop);
+            // Stop loop on disconnect.
+            if (this.connected) {
+                globalThis.requestAnimationFrame(lLoop);
+            } else {
+                this.mLoopRunning = false;
+            }
         };
 
         // Request starting animation frame.
-        window.requestAnimationFrame(lLoop);
+        globalThis.requestAnimationFrame(lLoop);
+        this.mLoopRunning = true;
     }
 }
 

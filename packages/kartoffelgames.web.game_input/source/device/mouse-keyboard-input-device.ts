@@ -54,11 +54,26 @@ export class MouseKeyboardInputDevice extends BaseInputDevice {
      * Setup event listener for keyboard and mouse events.
      */
     private setupCaptureListener(): void {
-        // Capture mouse movement. Calculate to axis value by set base value to 10 pixels.
+        // Capture mouse movement for next frame.
+        let lMovementX: number = 0;
+        let lMovementY: number = 0;
         document.addEventListener('mousemove', (pMouseEvent) => {
-            this.setButtonState(MouseButton.Xaxis, pMouseEvent.movementX / 10);
-            this.setButtonState(MouseButton.Yaxis, pMouseEvent.movementY / 10);
+            lMovementX += pMouseEvent.movementX;
+            lMovementY += pMouseEvent.movementY;
         });
+
+        const lMouseMoveReport = () => {
+            // Calculate to axis value by set base value to 10 pixels.
+            this.setButtonState(MouseButton.Xaxis, lMovementX / 10);
+            this.setButtonState(MouseButton.Yaxis, lMovementY / 10);
+
+            // Reset mouse movement.
+            lMovementX = 0;
+            lMovementY = 0;
+
+            window.requestAnimationFrame(lMouseMoveReport);
+        };
+        window.requestAnimationFrame(lMouseMoveReport);
 
         // Mouse button events.
         document.addEventListener('mouseup', (pMouseEvent) => {

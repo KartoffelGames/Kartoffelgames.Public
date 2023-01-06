@@ -1,8 +1,8 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { DeviceConfiguration } from '../configuration/device-configuration';
 import { InputDevice } from '../enum/input-device.enum';
-import { InputActionEvent, InputActionEventMap } from '../events/input-action-event';
-import { InputButtonEvent, InputButtonEventMap } from '../events/input-button-event';
+import { InputActionEvent, InputActionEventMap } from '../event/input-action-event';
+import { InputButtonEvent, InputButtonEventMap } from '../event/input-button-event';
 import { InputButton } from '../types';
 
 export abstract class BaseInputDevice extends EventTarget {

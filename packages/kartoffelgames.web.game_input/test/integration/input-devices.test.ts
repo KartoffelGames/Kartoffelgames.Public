@@ -1,6 +1,10 @@
 import { expect } from 'chai';
-import { BaseInputDevice, DeviceConfiguration, InputConfiguration, InputDevices, MouseKeyboardConnector } from '../../source';
+import { DeviceConfiguration } from '../../source/configuration/device-configuration';
+import { InputConfiguration } from '../../source/configuration/input-configuration';
+import { MouseKeyboardConnector } from '../../source/connector/mouse-keyboard-connector';
+import { BaseInputDevice } from '../../source/device/base-input-device';
 import { MouseKeyboardInputDevice } from '../../source/device/mouse-keyboard-input-device';
+import { InputDevices } from '../../source/input-devices';
 import '../mock/request-animation-frame-mock-session';
 
 const gCreateConfig = (): InputConfiguration => {

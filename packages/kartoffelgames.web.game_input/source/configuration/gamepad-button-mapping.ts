@@ -17,10 +17,8 @@ export class GamepadButtonMapping {
         // Apply optional mapping.
         if (pMapping) {
             for (const lButton of Object.keys(pMapping)) {
-                const lButtonMapping: GamepadDeviceButton | undefined = pMapping[<GamepadButton>lButton];
-                if (lButtonMapping) {
-                    this.addMapping(<GamepadButton>lButton, lButtonMapping.type, lButtonMapping.index);
-                }
+                const lButtonMapping: GamepadDeviceButton = pMapping[<GamepadButton>lButton]!;
+                this.addMapping(<GamepadButton>lButton, lButtonMapping.type, lButtonMapping.index);
             }
         }
     }

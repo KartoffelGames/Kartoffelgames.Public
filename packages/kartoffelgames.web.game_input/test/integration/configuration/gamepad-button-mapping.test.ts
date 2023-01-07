@@ -19,7 +19,7 @@ const gGetGamepad = (pButtonIndex: number, pType: ButtonValueType, pValue: numbe
 };
 
 describe('GamepadButtonMapping', () => {
-    describe('Constructor', () => {
+    describe('Method: constructor', () => {
         it('-- With mapping', () => {
             // Setup.
             const lButton: GamepadButton = GamepadButton.ButtonLeft;

@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 // Injection
 export { Injector } from './injector';
 export { Injection } from './injection/injection';

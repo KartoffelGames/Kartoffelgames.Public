@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 // Component
 export { UserObject, UserClass } from './component/interface/user-class';
 export { PwbApp } from './pwb-app';

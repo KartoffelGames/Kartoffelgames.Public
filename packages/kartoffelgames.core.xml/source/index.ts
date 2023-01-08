@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 // Exports for package.
 export { BaseXmlParser } from './parser/base-xml-parser';
 export { BaseXmlNode } from './node/base-xml-node';

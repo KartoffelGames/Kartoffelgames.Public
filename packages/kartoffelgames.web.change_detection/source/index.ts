@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 export { CompareHandler } from './comparison/compare-handler';
 export { ChangeDetection, ChangeDetectionReason } from './change_detection/change-detection';
 

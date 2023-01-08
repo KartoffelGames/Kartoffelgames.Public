@@ -7,8 +7,8 @@ describe('EnumUtil', () => {
         enum TestEnum {
             One = 1,
             Two = 2,
-            Three = 3,
-            Five = 5,
+            Three = '3',
+            Five = '5',
         }
 
         // Process.
@@ -23,14 +23,14 @@ describe('EnumUtil', () => {
         enum TestEnum {
             One = 1,
             Two = 2,
-            Three = 3,
-            Five = 5,
+            Three = '3',
+            Five = '5',
         }
 
         // Process.
         const lValueArray: Array<string> = EnumUtil.enumValuesToArray(TestEnum);
 
         // Evaluation.
-        expect(lValueArray).to.be.deep.equal([1, 2, 3, 5]);
+        expect(lValueArray).to.be.deep.equal([1, 2, '3', '5']);
     });
 });

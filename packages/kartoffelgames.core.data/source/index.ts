@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 // Container.
 export { Dictionary } from './data_container/dictionary/dictionary';
 export { List } from './data_container/list/list';

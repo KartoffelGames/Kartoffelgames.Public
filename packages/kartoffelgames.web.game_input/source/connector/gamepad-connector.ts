@@ -26,7 +26,7 @@ export class GamepadConnector implements IInputConnector {
         });
 
         // Init gamepads that are connected before constructor call.
-        for (const lGamepad of globalThis.navigator.getGamepads?.() ?? []) {
+        for (const lGamepad of globalThis.navigator.getGamepads()) {
             if (lGamepad !== null) {
                 this.connectGamepad(lGamepad, pDevices);
             }

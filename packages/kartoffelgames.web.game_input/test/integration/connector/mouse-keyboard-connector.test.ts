@@ -19,7 +19,7 @@ describe('MouseKeyboardConnector', () => {
         }
     });
 
-    it('Method: constructor', () => {
+    it('-- Connect mouse keyboard', () => {
         // Setup.
         const lConfig: InputConfiguration = new InputConfiguration(new DeviceConfiguration());
         const lInputDevices: InputDevices = new InputDevices(lConfig);

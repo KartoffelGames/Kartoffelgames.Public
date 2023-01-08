@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-import { InputActionEvent } from '../../../source';
 import { DeviceConfiguration } from '../../../source/configuration/device-configuration';
 import { InputConfiguration } from '../../../source/configuration/input-configuration';
 import { BaseInputDevice } from '../../../source/device/base-input-device';
@@ -7,6 +6,7 @@ import { MouseKeyboardInputDevice } from '../../../source/device/mouse-keyboard-
 import { InputDevice } from '../../../source/enum/input-device.enum';
 import { KeyboardButton } from '../../../source/enum/keyboard-button.enum';
 import { MouseButton } from '../../../source/enum/mouse-button.enum';
+import { InputActionEvent } from '../../../source/event/input-action-event';
 import { InputButtonEvent } from '../../../source/event/input-button-event';
 import '../../mock/request-animation-frame-mock-session';
 

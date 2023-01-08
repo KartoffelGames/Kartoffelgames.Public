@@ -1,8 +1,10 @@
 import { expect } from 'chai';
-import { BaseInputDevice, GamepadButton, GamepadConnector } from '../../../source';
+import { GamepadButton } from '../../../source/enum/gamepad-button.enum';
 import { DeviceConfiguration } from '../../../source/configuration/device-configuration';
 import { GamepadButtonMapping } from '../../../source/configuration/gamepad-button-mapping';
 import { InputConfiguration } from '../../../source/configuration/input-configuration';
+import { GamepadConnector } from '../../../source/connector/gamepad-connector';
+import { BaseInputDevice } from '../../../source/device/base-input-device';
 import { GamepadInputDevice } from '../../../source/device/gamepad-input-device';
 import { ButtonValueType } from '../../../source/enum/button-value-type.enum';
 import { InputDevice } from '../../../source/enum/input-device.enum';

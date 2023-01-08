@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 export { DeviceConfiguration } from './configuration/device-configuration';
 export { MouseKeyboardConnector } from './connector/mouse-keyboard-connector';
 export { GamepadConnector } from './connector/gamepad-connector';

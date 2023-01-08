@@ -1,8 +1,11 @@
 import { expect } from 'chai';
-import { BaseInputDevice, InputButtonEvent, KeyboardButton, MouseButton } from '../../../source';
 import { DeviceConfiguration } from '../../../source/configuration/device-configuration';
 import { InputConfiguration } from '../../../source/configuration/input-configuration';
+import { BaseInputDevice } from '../../../source/device/base-input-device';
 import { MouseKeyboardInputDevice } from '../../../source/device/mouse-keyboard-input-device';
+import { KeyboardButton } from '../../../source/enum/keyboard-button.enum';
+import { MouseButton } from '../../../source/enum/mouse-button.enum';
+import { InputButtonEvent } from '../../../source/event/input-button-event';
 import '../../mock/request-animation-frame-mock-session';
 
 const gInputDeviceList: Array<BaseInputDevice> = [];

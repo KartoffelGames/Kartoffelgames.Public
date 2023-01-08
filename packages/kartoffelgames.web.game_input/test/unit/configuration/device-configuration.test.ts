@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { ButtonAction, DeviceConfiguration } from '../../../source/configuration/device-configuration';
 import { KeyboardButton } from '../../../source/enum/keyboard-button.enum';
 
-describe('device-configuration', () => {
+describe('DeviceConfiguration', () => {
     it('Property: keyActions', () => {
         // Setup. Variables.
         const lButtons = [KeyboardButton.KeyK];

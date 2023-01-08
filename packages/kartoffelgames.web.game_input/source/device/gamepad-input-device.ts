@@ -42,24 +42,18 @@ export class GamepadInputDevice extends BaseInputDevice {
         const lLoop = () => {
             // Only scan on connected gamepads.
             if (this.connected) {
-                // Find connected gamepad.
+                // Find connected gamepad. Gamepad does allways exists. Even after disconnect.
                 const lGamepad = globalThis.navigator.getGamepads().find((pGamepad) => {
-                    return pGamepad?.index === this.mGamepadInformation.index;
-                });
+                    return pGamepad!.index === this.mGamepadInformation.index;
+                })!;
 
-                // On found gamepad.
-                if (lGamepad) {
-                    // Scan each gamepad button.
-                    for (const lButton of lGamepadButtonList) {
-                        // Read button value.
-                        const lButtonValue = this.mGamepadInformation.mapping.executeMapping(lButton, lGamepad);
+                // Scan each gamepad button.
+                for (const lButton of lGamepadButtonList) {
+                    // Read button value.
+                    const lButtonValue = this.mGamepadInformation.mapping.executeMapping(lButton, lGamepad);
 
-                        // Set button value.
-                        this.setButtonState(lButton, lButtonValue);
-                    }
-                } else {
-                    // Disconnect gamepad when not found.
-                    this.connected = false;
+                    // Set button value.
+                    this.setButtonState(lButton, lButtonValue);
                 }
             }
 

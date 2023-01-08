@@ -15,7 +15,7 @@ export class GamepadInputDevice extends BaseInputDevice {
      * @param pGamepad - Gamepad object.
      */
     public constructor(pGamepad: GamepadGameInputInformation, pConfiguration: InputConfiguration) {
-        const lDeviceId: string = `gamepad_${pGamepad.id}`;
+        const lDeviceId: string = `gamepad_${pGamepad.index}`;
         const lDeviceConfiguration: DeviceConfiguration = pConfiguration.deviceConfiguration(lDeviceId);
 
         super(lDeviceId, InputDevice.Gamepad, lDeviceConfiguration);
@@ -44,7 +44,7 @@ export class GamepadInputDevice extends BaseInputDevice {
             if (this.connected) {
                 // Find connected gamepad.
                 const lGamepad = globalThis.navigator.getGamepads().find((pGamepad) => {
-                    return pGamepad?.id === this.mGamepadInformation.id;
+                    return pGamepad?.index === this.mGamepadInformation.index;
                 });
 
                 // On found gamepad.

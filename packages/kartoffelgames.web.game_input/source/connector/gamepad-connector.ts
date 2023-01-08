@@ -8,7 +8,7 @@ import { GamepadInputDevice, GamepadGameInputInformation } from '../device/gamep
  * Handles connect and disconnection of gamepads.
  */
 export class GamepadConnector implements IInputConnector {
-    private static readonly mGamepads: Dictionary<string, GamepadInputDevice> = new Dictionary<string, GamepadInputDevice>();
+    private static readonly mGamepads: Dictionary<number, GamepadInputDevice> = new Dictionary<number, GamepadInputDevice>();
 
     /**
      * Constructor.
@@ -40,8 +40,8 @@ export class GamepadConnector implements IInputConnector {
      */
     private connectGamepad(pGamepad: Gamepad, pDevices: InputDevices): void {
         // Enable gamepad when already created.
-        if (GamepadConnector.mGamepads.has(pGamepad.id)) {
-            pDevices.registerDevice(GamepadConnector.mGamepads.get(pGamepad.id)!);
+        if (GamepadConnector.mGamepads.has(pGamepad.index)) {
+            pDevices.registerDevice(GamepadConnector.mGamepads.get(pGamepad.index)!);
             return;
         }
 
@@ -58,7 +58,7 @@ export class GamepadConnector implements IInputConnector {
         const lGamepadInput: GamepadInputDevice = new GamepadInputDevice(lGamepadInformation, pDevices.configuration);
 
         // Add GamepadGameInput to local store.
-        GamepadConnector.mGamepads.add(pGamepad.id, lGamepadInput);
+        GamepadConnector.mGamepads.add(pGamepad.index, lGamepadInput);
 
         // Add gamepad to global input devices.
         pDevices.registerDevice(lGamepadInput);
@@ -70,8 +70,8 @@ export class GamepadConnector implements IInputConnector {
      */
     private disconnectGamepad(pGamepad: Gamepad, pDevices: InputDevices): void {
         // Only disconnect GamepadInput
-        if (GamepadConnector.mGamepads.has(pGamepad.id)) {
-            pDevices.unregisterDevice(GamepadConnector.mGamepads.get(pGamepad.id)!);
+        if (GamepadConnector.mGamepads.has(pGamepad.index)) {
+            pDevices.unregisterDevice(GamepadConnector.mGamepads.get(pGamepad.index)!);
         }
     }
 }

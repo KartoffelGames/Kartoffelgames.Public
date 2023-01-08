@@ -12,7 +12,18 @@ const gCreateConfig = (): InputConfiguration => {
     return new InputConfiguration(lDeviceConfiguration);
 };
 
+const gInputDeviceList: Array<InputDevices> = [];
+
 describe('InputDevices', () => {
+    after(() => {
+        for (const lInputDevices of gInputDeviceList) {
+            // Cleanup.
+            for (const lDevice of lInputDevices.devices) {
+                lInputDevices.unregisterDevice(lDevice);
+            }
+        }
+    });
+
     it('Property: configuration', () => {
         // Setup.
         const lConfig: InputConfiguration = gCreateConfig();
@@ -29,6 +40,7 @@ describe('InputDevices', () => {
         // Setup.
         const lConfig: InputConfiguration = gCreateConfig();
         const lInputDevices: InputDevices = new InputDevices(lConfig);
+        gInputDeviceList.push(lInputDevices); // For cleanup.
         lInputDevices.registerConnector(new MouseKeyboardConnector());
 
         // Process.
@@ -36,17 +48,13 @@ describe('InputDevices', () => {
 
         // Evaluation.
         expect(lDeviceList[0]).to.be.instanceOf(MouseKeyboardInputDevice);
-
-        // Cleanup.
-        for (const lDevice of lInputDevices.devices) {
-            lInputDevices.unregisterDevice(lDevice);
-        }
     });
 
     it('Method: onConnectionChange', () => {
         // Setup.
         const lConfig: InputConfiguration = gCreateConfig();
         const lInputDevices: InputDevices = new InputDevices(lConfig);
+        gInputDeviceList.push(lInputDevices); // For cleanup.
 
         // Process.
         let lDevice: BaseInputDevice | null = null;
@@ -57,17 +65,13 @@ describe('InputDevices', () => {
 
         // Evaluation.
         expect(lDevice).to.be.instanceOf(MouseKeyboardInputDevice);
-
-        // Cleanup.
-        for (const lDevice of lInputDevices.devices) {
-            lInputDevices.unregisterDevice(lDevice);
-        }
     });
 
     it('Method: registerConnector', () => {
         // Setup.
         const lConfig: InputConfiguration = gCreateConfig();
         const lInputDevices: InputDevices = new InputDevices(lConfig);
+        gInputDeviceList.push(lInputDevices); // For cleanup.
 
         // Process.
         lInputDevices.registerConnector(new MouseKeyboardConnector());
@@ -75,11 +79,6 @@ describe('InputDevices', () => {
 
         // Evaluation.
         expect(lDeviceList[0]).to.be.instanceOf(MouseKeyboardInputDevice);
-
-        // Cleanup.
-        for (const lDevice of lInputDevices.devices) {
-            lInputDevices.unregisterDevice(lDevice);
-        }
     });
 
     describe('Method: registerDevice', () => {
@@ -87,6 +86,7 @@ describe('InputDevices', () => {
             // Setup.
             const lConfig: InputConfiguration = gCreateConfig();
             const lInputDevices: InputDevices = new InputDevices(lConfig);
+            gInputDeviceList.push(lInputDevices); // For cleanup.
 
             // Setup device.
             const lDevice = new MouseKeyboardInputDevice(lConfig);
@@ -97,17 +97,13 @@ describe('InputDevices', () => {
 
             // Evaluation.
             expect(lDeviceList[0]).to.equal(lDevice);
-
-            // Cleanup.
-            for (const lDevice of lInputDevices.devices) {
-                lInputDevices.unregisterDevice(lDevice);
-            }
         });
 
         it('-- Register two times', () => {
             // Setup.
             const lConfig: InputConfiguration = gCreateConfig();
             const lInputDevices: InputDevices = new InputDevices(lConfig);
+            gInputDeviceList.push(lInputDevices); // For cleanup.
 
             // Setup device.
             const lDevice = new MouseKeyboardInputDevice(lConfig);
@@ -119,11 +115,6 @@ describe('InputDevices', () => {
 
             // Evaluation.
             expect(lDeviceList[0]).to.equal(lDevice);
-
-            // Cleanup.
-            for (const lDevice of lInputDevices.devices) {
-                lInputDevices.unregisterDevice(lDevice);
-            }
         });
     });
 
@@ -131,6 +122,7 @@ describe('InputDevices', () => {
         // Setup.
         const lConfig: InputConfiguration = gCreateConfig();
         const lInputDevices: InputDevices = new InputDevices(lConfig);
+        gInputDeviceList.push(lInputDevices); // For cleanup.
 
         // Setup device.
         const lDevice = new MouseKeyboardInputDevice(lConfig);
@@ -143,10 +135,5 @@ describe('InputDevices', () => {
         // Evaluation.
         expect(lDeviceList[0]).to.be.instanceOf(MouseKeyboardInputDevice);
         expect(lDevice.connected).to.be.false;
-
-        // Cleanup.
-        for (const lDevice of lInputDevices.devices) {
-            lInputDevices.unregisterDevice(lDevice);
-        }
     });
 });

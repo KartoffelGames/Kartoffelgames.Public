@@ -126,7 +126,7 @@ export abstract class BaseInputDevice extends EventTarget {
             const lActionButtonList: Array<InputButton> = this.deviceConfiguration.getActionButtons(lAction);
 
             // Get lowest state of all alias buttons.
-            let lActionState: number = lActionButtonList.reduce((pCurrentValue: number, pNextValue: InputButton) => {
+            const lActionState: number = lActionButtonList.reduce((pCurrentValue: number, pNextValue: InputButton) => {
                 const lNextValue: number = this.mButtonState.get(pNextValue) ?? 0;
 
                 // Save changes closer to zero.
@@ -136,11 +136,6 @@ export abstract class BaseInputDevice extends EventTarget {
                     return pCurrentValue;
                 }
             }, 999);
-
-            // No action buttons defined.
-            if (lActionState === 999) {
-                lActionState = 0;
-            }
 
             // Set highest state to alias target state.
             const lActionLastState: number = this.mActionStates.get(lAction) ?? 0;

@@ -5,6 +5,7 @@ import { GamepadButtonMapping } from '../../../source/configuration/gamepad-butt
 import { InputConfiguration } from '../../../source/configuration/input-configuration';
 import { GamepadInputDevice } from '../../../source/device/gamepad-input-device';
 import { ButtonValueType } from '../../../source/enum/button-value-type.enum';
+import { InputDevice } from '../../../source/enum/input-device.enum';
 import { InputButtonEvent } from '../../../source/event/input-button-event';
 import { InputDevices } from '../../../source/input-devices';
 import { AddGamepad, RemoveGamepad } from '../../mock/gamepad-mock';
@@ -153,5 +154,27 @@ describe('GamepadInputDevice', () => {
 
         // Evaluation.
         expect(lButtonState).to.be.equal(lButtonValue);
+    });
+
+    it('-- Device type', async () => {
+        // Setup variables.
+        const lGamepadIndex: number = gNextIndex();
+
+        // Setup config.
+        const lConfig: InputConfiguration = new InputConfiguration(new DeviceConfiguration());
+        const lInputDevices: InputDevices = new InputDevices(lConfig);
+        gInputDeviceList.push(lInputDevices); // For cleanup.
+
+        // Process.
+        lInputDevices.registerConnector(new GamepadConnector());
+        const lDevice: GamepadInputDevice = await new Promise((pResolve) => {
+            lInputDevices.onConnectionChange((pDevice: BaseInputDevice) => {
+                pResolve(<GamepadInputDevice>pDevice);
+            });
+            AddGamepad(lGamepadIndex, 0, ButtonValueType.Button, 0);
+        });
+
+        // Evaluation.
+        expect(lDevice.deviceType).to.equal(InputDevice.Gamepad);
     });
 });

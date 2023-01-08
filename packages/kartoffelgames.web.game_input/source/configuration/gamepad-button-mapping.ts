@@ -49,9 +49,9 @@ export class GamepadButtonMapping {
 
         // Access correct button array for axis or button  buttons.
         if (lButtonMapping.type === ButtonValueType.Button) {
-            return pGamepad.buttons[lButtonMapping.index].value;
+            return pGamepad.buttons[lButtonMapping.index]?.value ?? 0;
         } else { // Axis.   
-            return pGamepad.axes[lButtonMapping.index];
+            return pGamepad.axes[lButtonMapping.index] ?? 0;
         }
     }
 }

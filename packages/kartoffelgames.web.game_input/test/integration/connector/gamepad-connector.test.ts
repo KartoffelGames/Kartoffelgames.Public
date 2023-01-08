@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { GamepadButton, InputButtonEvent } from '../../../source';
+import { GamepadButton } from '../../../source/enum/gamepad-button.enum';
 import { DeviceConfiguration } from '../../../source/configuration/device-configuration';
 import { GamepadButtonMapping } from '../../../source/configuration/gamepad-button-mapping';
 import { InputConfiguration } from '../../../source/configuration/input-configuration';
@@ -9,6 +9,7 @@ import { GamepadInputDevice } from '../../../source/device/gamepad-input-device'
 import { ButtonValueType } from '../../../source/enum/button-value-type.enum';
 import { InputDevices } from '../../../source/input-devices';
 import { AddGamepad, RemoveGamepad } from '../../mock/gamepad-mock';
+import { InputButtonEvent } from '../../../source/event/input-button-event';
 
 let gIndex: number = 0;
 const gNextIndex = () => {

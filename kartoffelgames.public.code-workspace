@@ -33,6 +33,10 @@
             "path": "packages\\kartoffelgames.web.game_input"
         },
         {
+            "name": "Kartoffelgames.Web.Gpu",
+            "path": "packages\\kartoffelgames.web.gpu"
+        },
+        {
             "name": "_ROOT",
             "path": "."
         }

@@ -2,6 +2,13 @@ export abstract class BaseAttachment<TAttachment extends GPURenderPassColorAttac
     protected readonly mAttachment: AttachmentTexture;
 
     /**
+     * Texture format.
+     */
+    public get format(): GPUTextureFormat{
+        return this.mAttachment.format;
+    }
+
+    /**
      * constructor.
      * @param pAttachment - Attachment.
      */

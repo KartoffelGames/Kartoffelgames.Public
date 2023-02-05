@@ -1,23 +1,27 @@
 import { BaseAttachment } from './base-attachment';
 
 export class DepthStencilAttachment extends BaseAttachment<GPURenderPassDepthStencilAttachment> {
-
     /**
      * Get attachment as render pass attachment.
-     * @param pName - Attachment name.
      */
-    public asAttachment(pName: string): GPURenderPassDepthStencilAttachment | undefined {
-        const lAttachment = this.mAttachments.get(pName);
-        if (!lAttachment) {
-            return undefined;
+    public renderPassAttachment(): GPURenderPassDepthStencilAttachment {
+        // Convert color to number.
+        let lClearValue: number = 0;
+        if ('r' in this.mAttachment.clearValue) {
+            const lColorDict: GPUColorDict = this.mAttachment.clearValue;
+            lClearValue = lColorDict.r + lColorDict.g + lColorDict.b + lColorDict.a;
+        } else {
+            for (const lValue of this.mAttachment.clearValue) {
+                lClearValue += lValue;
+            }
         }
 
         // Convert to depth stencil attachment,
         return {
-            view: lAttachment.view,
-            depthClearValue: <number>lAttachment.clearValue,
-            depthLoadOp: lAttachment.loadOp,
-            depthStoreOp: lAttachment.storeOp
+            view: this.mAttachment.view,
+            depthClearValue: lClearValue,
+            depthLoadOp: this.mAttachment.loadOp,
+            depthStoreOp: this.mAttachment.storeOp
         };
     }
 }

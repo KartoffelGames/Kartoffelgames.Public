@@ -18,4 +18,4 @@ export { ICloneable } from './interface/i-cloneable';
 export { IDeconstructable } from './interface/i-deconstructable';
 
 // Support types.
-export { Writeable, Readonly, ObjectFieldPath, ObjectFieldPathPart } from './types';
+export { Writeable, Readonly, ObjectFieldPath, ObjectFieldPathPart, TypedArray } from './types';

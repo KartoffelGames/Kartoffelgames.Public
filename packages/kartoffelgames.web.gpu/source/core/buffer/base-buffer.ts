@@ -85,4 +85,4 @@ type BufferDataType<T extends TypedArray> = {
     new(pArrayBuffer: ArrayBuffer): T;
 };
 
-export type TypedArray = Float32Array;
+export type TypedArray = Float32Array | Float64Array | Uint8Array | Int8Array | Uint16Array | Int16Array | Uint32Array | Int32Array;

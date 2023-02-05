@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception, TypedArray } from '@kartoffelgames/core.data';
 import { Gpu } from '../gpu';
 
 export abstract class BaseBuffer<T extends TypedArray> {
@@ -84,5 +84,3 @@ type BufferDataType<T extends TypedArray> = {
     BYTES_PER_ELEMENT: number;
     new(pArrayBuffer: ArrayBuffer): T;
 };
-
-export type TypedArray = Float32Array | Float64Array | Uint8Array | Int8Array | Uint16Array | Int16Array | Uint32Array | Int32Array;

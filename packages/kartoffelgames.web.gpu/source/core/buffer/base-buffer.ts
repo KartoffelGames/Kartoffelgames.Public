@@ -79,7 +79,7 @@ export abstract class BaseBuffer<T extends TypedArray> {
     public abstract write(pBufferCallback: (pBuffer: T) => Promise<void>): Promise<void>;
 }
 
-type BufferDataType<T extends TypedArray> = {
+export type BufferDataType<T extends TypedArray> = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     BYTES_PER_ELEMENT: number;
     new(pArrayBuffer: ArrayBuffer): T;

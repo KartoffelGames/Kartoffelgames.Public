@@ -1,15 +1,23 @@
-import { TypedArray } from '@kartoffelgames/core.data';
-import { BaseBuffer } from './buffer/base-buffer';
+import { Exception, TypedArray } from '@kartoffelgames/core.data';
+import { BaseBuffer, BufferDataType } from '../../buffer/base-buffer';
 
 export class VertexAttributes<T extends TypedArray> {
     private readonly mAttributes: Array<AttributeFormatDefinition>;
-    private readonly mBuffer: BaseBuffer<T>;
+    private mBuffer: BaseBuffer<T> | null;
+    private readonly mBufferDataType: BufferDataType<T>;
 
     /**
      * Attribute buffer.
      */
-    public get buffer(): BaseBuffer<T> {
+    public get buffer(): BaseBuffer<T> | null {
         return this.mBuffer;
+    }
+
+    /**
+     * Get underlying type of buffer.
+     */
+    public get bufferDataType(): BufferDataType<T> {
+        return this.mBufferDataType;
     }
 
     /**
@@ -23,8 +31,9 @@ export class VertexAttributes<T extends TypedArray> {
      * Constructor.
      * @param pBuffer - Buffer.
      */
-    public constructor(pBuffer: BaseBuffer<T>) {
-        this.mBuffer = pBuffer;
+    public constructor(pType: BufferDataType<T>) {
+        this.mBufferDataType = pType;
+        this.mBuffer = null;
         this.mAttributes = new Array<AttributeFormatDefinition>();
     }
 
@@ -42,7 +51,7 @@ export class VertexAttributes<T extends TypedArray> {
     /**
      * Generate buffer layout.
      */
-    public generateBufferLayout(): GPUVertexBufferLayout {
+    public generateBufferLayout(pLocationOffset: number = 0): GPUVertexBufferLayout {
         // Count overall used bytes.
         let lTotalBytes: number = 0;
 
@@ -53,17 +62,30 @@ export class VertexAttributes<T extends TypedArray> {
             lAttributes.push({
                 format: lAttribute.format,
                 offset: lTotalBytes, // Current counter of bytes.
-                shaderLocation: lIndex
+                shaderLocation: lIndex + pLocationOffset
             });
 
             lTotalBytes += lAttribute.itemCount;
         }
 
         return {
-            arrayStride: this.mBuffer.type.BYTES_PER_ELEMENT * lTotalBytes,
+            arrayStride: this.mBufferDataType.BYTES_PER_ELEMENT * lTotalBytes,
             stepMode: 'vertex',
             attributes: lAttributes
         };
+    }
+
+    /**
+     * Update or replace buffer of attribute.
+     * @param pBuffer - New buffer.
+     */
+    public setBuffer(pBuffer: BaseBuffer<T>): void {
+        // Validate new buffer.
+        if (pBuffer.type !== this.mBufferDataType) {
+            throw new Exception('Buffer type does not match.', this);
+        }
+
+        this.mBuffer = pBuffer;
     }
 }
 

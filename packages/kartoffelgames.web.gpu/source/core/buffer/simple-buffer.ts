@@ -1,7 +1,8 @@
+import { TypedArray } from '@kartoffelgames/core.data';
 import { Gpu } from '../gpu';
-import { BaseBuffer, TypedArray } from './base-buffer';
+import { BaseBuffer } from './base-buffer';
 
-export class Buffer<T extends TypedArray> extends BaseBuffer<T> {
+export class SimpleBuffer<T extends TypedArray> extends BaseBuffer<T> {
     /**
      * Constructor.
      * @param pGpu - GPU.
@@ -11,7 +12,7 @@ export class Buffer<T extends TypedArray> extends BaseBuffer<T> {
      */
     public constructor(pGpu: Gpu, pUsage: GPUFlagsConstant, pItemCount: number, pInitialData: T) {
         const lUsage = pUsage | GPUBufferUsage.COPY_DST; // Extend buffer usage by copy destination.
-        super(pGpu, pItemCount, lUsage, pInitialData);
+        super(pGpu, lUsage, pItemCount, pInitialData);
     }
 
     /**

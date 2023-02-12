@@ -145,7 +145,7 @@ export type AttachmentDescription = {
 
 type AttachmentDescriptionWithDefault = Required<AttachmentDescription>;
 
-enum AttachmentType {
+export enum AttachmentType {
     Color = 1,
     Depth = 2,
     Stencil = 4

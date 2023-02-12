@@ -42,9 +42,9 @@ export class Shader {
 
         // Fetch entry points.
         this.mEntryPoints = {
-            fragment: /(@fragment(.|\n)*fn )(\w*)/gm.exec(pSource)?.[3],
-            vertex: /(@vertex(.|\n)*fn )(\w*)/gm.exec(pSource)?.[3],
-            compute: /(@compute(.|\n)*fn )(\w*)/gm.exec(pSource)?.[3]
+            fragment: /(@fragment(.|\r?\n)*?fn )(\w*)/gm.exec(pSource)?.[3],
+            vertex: /(@vertex(.|\r?\n)*?fn )(\w*)/gm.exec(pSource)?.[3],
+            compute: /(@compute(.|\r?\n)*?fn )(\w*)/gm.exec(pSource)?.[3]
         };
     }
 }

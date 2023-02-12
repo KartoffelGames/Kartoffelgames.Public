@@ -1,6 +1,8 @@
 import { BaseAttachment } from './base-attachment';
 
 export class CanvasAttachment extends BaseAttachment<GPURenderPassColorAttachment> {
+    private readonly mContext: GPUCanvasContext;
+
     public constructor(pContext: GPUCanvasContext) {
         const lTexture: GPUTexture = pContext.getCurrentTexture();
 
@@ -15,15 +17,19 @@ export class CanvasAttachment extends BaseAttachment<GPURenderPassColorAttachmen
             arrayLayerCount: 1,
             baseArrayLayer: 0,
         });
+
+        this.mContext = pContext;
     }
 
     /**
      * Get attachment as render pass attachment.
      */
     public renderPassAttachment(): GPURenderPassColorAttachment {
+        const lTexture: GPUTexture = this.mContext.getCurrentTexture();
+
         // Convert to color attachment,
         return {
-            view: this.mAttachment.view,
+            view: lTexture.createView(),
             clearValue: this.mAttachment.clearValue,
             loadOp: this.mAttachment.loadOp,
             storeOp: this.mAttachment.storeOp

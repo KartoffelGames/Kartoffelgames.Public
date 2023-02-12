@@ -1,5 +1,6 @@
+import { TypedArray } from '@kartoffelgames/core.data';
 import { Gpu } from '../gpu';
-import { BaseBuffer, TypedArray } from './base-buffer';
+import { BaseBuffer } from './base-buffer';
 
 export class RingBuffer<T extends TypedArray> extends BaseBuffer<T> {
     private readonly mStagingBufferList: Array<GPUBuffer>;

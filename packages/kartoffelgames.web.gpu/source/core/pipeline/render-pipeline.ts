@@ -49,7 +49,7 @@ export class RenderPipeline {
         this.mAttributeList.push(pAttribute);
     }
 
-    public addBinGroup(pGroup: BindGroup): void {
+    public addBindGroup(pGroup: BindGroup): void {
         this.mBindGoupList.push(pGroup);
     }
 
@@ -95,22 +95,25 @@ export class RenderPipeline {
         });
     }
 
-    public render(pEncoder: GPUCommandEncoder, pVertexBuffer: BaseBuffer<any>, pIndexBuffer: BaseBuffer<Uint16Array>): void {
+    public render(pEncoder: GPUCommandEncoder, pIndexBuffer: BaseBuffer<Uint16Array>): void {
         const lEncoder: GPURenderPassEncoder = pEncoder.beginRenderPass(this.generatePassDescriptor());
         lEncoder.setPipeline(this.generatePipeline());
 
+        // Add bind groups.
         for (let lIndex: number = 0; lIndex < this.mBindGoupList.length; lIndex++) {
             const lBindGroup = this.mBindGoupList[lIndex];
-
             lEncoder.setBindGroup(lIndex, lBindGroup.generateBindGroup());
         }
 
-        lEncoder.setVertexBuffer(0, pVertexBuffer.buffer);
+        // Add vertex attribute buffer.
+        for (let lIndex: number = 0; lIndex < this.mAttributeList.length; lIndex++) {
+            const lAttribute = this.mAttributeList[lIndex];
+            lEncoder.setVertexBuffer(lIndex, lAttribute.buffer!.buffer);
+        }
+
         lEncoder.setIndexBuffer(pIndexBuffer.buffer, 'uint16');
         lEncoder.drawIndexed(pIndexBuffer.itemCount);
         lEncoder.end();
-
-        this.mGpu.device.queue.submit([pEncoder.finish()]);
     }
 
     private generatePassDescriptor(): GPURenderPassDescriptor {

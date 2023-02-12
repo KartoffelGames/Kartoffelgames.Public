@@ -44,7 +44,7 @@ export class VertexAttributes<T extends TypedArray> {
     public addAttributeLocation(pFormat: AttributeFormat): void {
         this.mAttributes.push({
             format: pFormat,
-            itemCount: gAttributeTypeToBufferType[pFormat].itemCount
+            itemStride: gAttributeTypeToBufferType[pFormat].itemStride
         });
     }
 
@@ -65,7 +65,7 @@ export class VertexAttributes<T extends TypedArray> {
                 shaderLocation: lIndex + pLocationOffset
             });
 
-            lTotalBytes += lAttribute.itemCount;
+            lTotalBytes += lAttribute.itemStride;
         }
 
         return {
@@ -90,37 +90,37 @@ export class VertexAttributes<T extends TypedArray> {
 }
 
 const gAttributeTypeToBufferType = {
-    'uint8x2': { type: Uint8Array, itemCount: 2 },
-    'uint8x4': { type: Uint8Array, itemCount: 4 },
-    'sint8x2': { type: Int8Array, itemCount: 2 },
-    'sint8x4': { type: Int8Array, itemCount: 4 },
-    'unorm8x2': { type: Float32Array, itemCount: 2 },
-    'unorm8x4': { type: Float32Array, itemCount: 4 },
-    'snorm8x2': { type: Float32Array, itemCount: 2 },
-    'snorm8x4': { type: Float32Array, itemCount: 4 },
-    'uint16x2': { type: Uint16Array, itemCount: 2 },
-    'uint16x4': { type: Uint16Array, itemCount: 4 },
-    'sint16x2': { type: Int16Array, itemCount: 2 },
-    'sint16x4': { type: Int16Array, itemCount: 4 },
-    'unorm16x2': { type: Float32Array, itemCount: 2 },
-    'unorm16x4': { type: Float32Array, itemCount: 4 },
-    'snorm16x2': { type: Float32Array, itemCount: 2 },
-    'snorm16x4': { type: Float32Array, itemCount: 4 },
-    'float16x2': { type: Float32Array, itemCount: 2 },
-    'float16x4': { type: Float32Array, itemCount: 4 },
-    'float32': { type: Float32Array, itemCount: 1 },
-    'float32x2': { type: Float32Array, itemCount: 2 },
-    'float32x3': { type: Float32Array, itemCount: 3 },
-    'float32x4': { type: Float32Array, itemCount: 4 },
-    'uint32': { type: Uint32Array, itemCount: 1 },
-    'uint32x2': { type: Uint32Array, itemCount: 2 },
-    'uint32x3': { type: Uint32Array, itemCount: 3 },
-    'uint32x4': { type: Uint32Array, itemCount: 4 },
-    'sint32': { type: Int32Array, itemCount: 1 },
-    'sint32x2': { type: Int32Array, itemCount: 2 },
-    'sint32x3': { type: Int32Array, itemCount: 3 },
-    'sint32x4': { type: Int32Array, itemCount: 4 },
+    'uint8x2': { type: Uint8Array, itemStride: 2 },
+    'uint8x4': { type: Uint8Array, itemStride: 4 },
+    'sint8x2': { type: Int8Array, itemStride: 2 },
+    'sint8x4': { type: Int8Array, itemStride: 4 },
+    'unorm8x2': { type: Float32Array, itemStride: 2 },
+    'unorm8x4': { type: Float32Array, itemStride: 4 },
+    'snorm8x2': { type: Float32Array, itemStride: 2 },
+    'snorm8x4': { type: Float32Array, itemStride: 4 },
+    'uint16x2': { type: Uint16Array, itemStride: 2 },
+    'uint16x4': { type: Uint16Array, itemStride: 4 },
+    'sint16x2': { type: Int16Array, itemStride: 2 },
+    'sint16x4': { type: Int16Array, itemStride: 4 },
+    'unorm16x2': { type: Float32Array, itemStride: 2 },
+    'unorm16x4': { type: Float32Array, itemStride: 4 },
+    'snorm16x2': { type: Float32Array, itemStride: 2 },
+    'snorm16x4': { type: Float32Array, itemStride: 4 },
+    'float16x2': { type: Float32Array, itemStride: 2 },
+    'float16x4': { type: Float32Array, itemStride: 4 },
+    'float32': { type: Float32Array, itemStride: 1 },
+    'float32x2': { type: Float32Array, itemStride: 2 },
+    'float32x3': { type: Float32Array, itemStride: 3 },
+    'float32x4': { type: Float32Array, itemStride: 4 },
+    'uint32': { type: Uint32Array, itemStride: 1 },
+    'uint32x2': { type: Uint32Array, itemStride: 2 },
+    'uint32x3': { type: Uint32Array, itemStride: 3 },
+    'uint32x4': { type: Uint32Array, itemStride: 4 },
+    'sint32': { type: Int32Array, itemStride: 1 },
+    'sint32x2': { type: Int32Array, itemStride: 2 },
+    'sint32x3': { type: Int32Array, itemStride: 3 },
+    'sint32x4': { type: Int32Array, itemStride: 4 },
 } as const;
 
 type AttributeFormat = keyof typeof gAttributeTypeToBufferType;
-type AttributeFormatDefinition = { format: AttributeFormat, itemCount: number; };
+type AttributeFormatDefinition = { format: AttributeFormat, itemStride: number; };

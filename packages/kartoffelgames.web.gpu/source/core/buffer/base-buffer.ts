@@ -64,8 +64,9 @@ export abstract class BaseBuffer<T extends TypedArray> {
                 throw new Exception('Buffer data exeedes buffer size.', this);
             }
 
-            // Copy optional data into buffer.
-            this.mGpu.device.queue.writeBuffer(this.mBuffer, 0, pData, 0, pData.length);
+            const lData = new this.mDataType(this.mBuffer.getMappedRange())
+            lData.set(pData, 0);
+            console.log(lData);
 
             // unmap buffer.
             this.mBuffer.unmap();

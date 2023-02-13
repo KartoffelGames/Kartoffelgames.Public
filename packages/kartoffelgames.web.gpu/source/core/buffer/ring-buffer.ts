@@ -13,8 +13,7 @@ export class RingBuffer<T extends TypedArray> extends BaseBuffer<T> {
      * @param pInitialData  - Inital data. Can be empty.
      */
     public constructor(pGpu: Gpu, pUsage: GPUFlagsConstant, pItemCount: number, pInitialData: T) {
-        const lUsage = pUsage | GPUBufferUsage.COPY_DST; // Extend buffer usage by copy destination.
-        super(pGpu, lUsage, pItemCount, pInitialData);
+        super(pGpu, pUsage, pItemCount, pInitialData);
 
         // Waving stagin buffer list.
         this.mStagingBufferList = new Array<GPUBuffer>();
@@ -46,7 +45,7 @@ export class RingBuffer<T extends TypedArray> extends BaseBuffer<T> {
 
         // Copy buffer data from staging into wavig buffer.
         const lCommandDecoder: GPUCommandEncoder = this.gpu.device.createCommandEncoder();
-        lCommandDecoder.copyBufferToBuffer(lStagingBuffer, 0, this.buffer, 0, this.size);
+        lCommandDecoder.copyBufferToBuffer(lStagingBuffer, 0, await this.native(), 0, this.size);
         this.gpu.device.queue.submit([lCommandDecoder.finish()]);
 
         // Shedule staging buffer remaping.

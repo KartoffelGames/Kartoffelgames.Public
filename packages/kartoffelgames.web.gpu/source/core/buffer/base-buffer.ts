@@ -1,35 +1,25 @@
 import { Exception, TypedArray } from '@kartoffelgames/core.data';
 import { Gpu } from '../gpu';
+import { GpuNativeObject } from '../gpu-native-object';
 
-export abstract class BaseBuffer<T extends TypedArray> {
-    private readonly mBuffer: GPUBuffer;
-    private readonly mBufferItemCount: number;
+export abstract class BaseBuffer<T extends TypedArray> extends GpuNativeObject<GPUBuffer> {
+    private readonly mBufferLength: number;
+    private readonly mBufferUsage: GPUFlagsConstant;
     private readonly mDataType: BufferDataType<T>;
-    private readonly mGpu: Gpu;
-
-    public get buffer(): GPUBuffer {
-        return this.mBuffer;
-    }
-
-    /**
-     * GPU.
-     */
-    public get gpu(): Gpu {
-        return this.mGpu;
-    }
+    private mInitData: T | null;
 
     /**
      * Buffer size in items.
      */
-    public get itemCount(): number {
-        return this.mBufferItemCount;
+    public get length(): number {
+        return this.mBufferLength;
     }
 
     /**
      * Buffer size in bytes aligned to 4 bytes.
      */
     public get size(): number {
-        return ((this.mBufferItemCount * this.type.BYTES_PER_ELEMENT) + 3) & ~3;
+        return ((this.mBufferLength * this.type.BYTES_PER_ELEMENT) + 3) & ~3;
     }
 
     /**
@@ -47,30 +37,47 @@ export abstract class BaseBuffer<T extends TypedArray> {
      * @param pInitialData  - Inital data. Can be empty.
      */
     public constructor(pGpu: Gpu, pUsage: GPUFlagsConstant, pItemCount: number, pData: T) {
-        this.mGpu = pGpu;
-        this.mBufferItemCount = pItemCount;
-        this.mDataType = <BufferDataType<T>>pData.constructor;
+        super(pGpu);
 
-        // Create buffer.
-        this.mBuffer = pGpu.device.createBuffer({
+        this.mBufferUsage = pUsage;
+        this.mInitData = pData;
+        this.mBufferLength = pItemCount;
+        this.mDataType = <BufferDataType<T>>pData.constructor;
+    }
+
+    /**
+     * Generate native object.
+     */
+    protected async generate(): Promise<GPUBuffer> {
+        // Restrict buffer reset.
+        if (!this.mInitData) {
+            throw new Exception(`Buffer data can't be reset`, this);
+        }
+
+        // Create gpu buffer mapped
+        const lBuffer: GPUBuffer = this.gpu.device.createBuffer({
             size: this.size,
-            usage: pUsage | GPUBufferUsage.COPY_DST,
-            mappedAtCreation: pData.length > 0 // Map data when buffer would receive initial data.
+            usage: this.mBufferUsage | GPUBufferUsage.COPY_DST,
+            mappedAtCreation: this.mInitData.length > 0 // Map data when buffer would receive initial data.
         });
 
         // Copy only when data is available.
-        if (pData.length > 0) {
-            if (pData.length > this.size) {
+        if (this.mInitData.length > 0) {
+            if (this.mInitData.length > this.size) {
                 throw new Exception('Buffer data exeedes buffer size.', this);
             }
 
-            const lData = new this.mDataType(this.mBuffer.getMappedRange())
-            lData.set(pData, 0);
-            console.log(lData);
+            const lData = new this.mDataType(lBuffer.getMappedRange());
+            lData.set(this.mInitData, 0);
 
             // unmap buffer.
-            this.mBuffer.unmap();
+            lBuffer.unmap();
         }
+
+        // Clear init data.
+        this.mInitData = null;
+
+        return lBuffer;
     }
 
     /**

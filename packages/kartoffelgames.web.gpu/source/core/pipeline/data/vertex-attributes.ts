@@ -65,11 +65,11 @@ export class VertexAttributes<T extends TypedArray> {
                 shaderLocation: lIndex + pLocationOffset
             });
 
-            lTotalBytes += lAttribute.itemStride;
+            lTotalBytes += this.mBufferDataType.BYTES_PER_ELEMENT * lAttribute.itemStride;
         }
 
         return {
-            arrayStride: this.mBufferDataType.BYTES_PER_ELEMENT * lTotalBytes,
+            arrayStride: lTotalBytes,
             stepMode: 'vertex',
             attributes: lAttributes
         };

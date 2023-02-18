@@ -1,11 +1,13 @@
-import { Gpu } from '../../gpu';
+import { BindType } from '../enum/bind-type.enum';
+import { ShaderStage } from '../enum/shader-stage.enu';
+import { Gpu } from '../gpu';
+import { GpuNativeObject } from '../gpu-native-object';
 
-export class BindGroupLayout {
-    private readonly mGpu: Gpu;
+export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     private readonly mGroupBindList: Array<TextureBindLayout | BufferBindLayout>;
 
     public constructor(pGpu: Gpu) {
-        this.mGpu = pGpu;
+        super(pGpu);
         this.mGroupBindList = new Array<TextureBindLayout | BufferBindLayout>();
     }
 
@@ -13,7 +15,7 @@ export class BindGroupLayout {
      * Add buffer bind.
      * @param pName - Bind name.
      * @param pVisibility - Visibility.
-     * @param pType - Bind type.
+     * @param pType - Bind type.s
      * @param pHasDynamicOffset - Has dynamic offset.
      * @param pMinBindingSize - min binding size.
      */
@@ -27,6 +29,8 @@ export class BindGroupLayout {
             minBindingSize: pMinBindingSize
         });
     }
+
+    // TODO: Sampler.
 
     /**
      * Add texture bind.
@@ -50,7 +54,7 @@ export class BindGroupLayout {
     /**
      * Generate layout.
      */
-    public generateLayout(): GPUBindGroupLayout {
+    protected async generate(): Promise<GPUBindGroupLayout> {
         const lEntryList: Array<GPUBindGroupLayoutEntry> = new Array<GPUBindGroupLayoutEntry>();
 
         // Generate layout entry for each binding.
@@ -85,7 +89,7 @@ export class BindGroupLayout {
         }
 
         // Create binding group layout.
-        return this.mGpu.device.createBindGroupLayout({
+        return this.gpu.device.createBindGroupLayout({
             entries: lEntryList
         });
     }
@@ -94,7 +98,7 @@ export class BindGroupLayout {
 interface BindLayout {
     name: string;
     bindType: BindType;
-    visibility: BindVisibility;
+    visibility: ShaderStage;
 }
 
 interface TextureBindLayout extends BindLayout {
@@ -109,12 +113,4 @@ interface BufferBindLayout extends BindLayout {
     type: GPUBufferBindingType;
     hasDynamicOffset: boolean;
     minBindingSize: GPUSize64;
-}
-
-export type BindType = 'Texture' | 'Buffer';
-
-export enum BindVisibility {
-    Fragment = GPUShaderStage.FRAGMENT,
-    Vertex = GPUShaderStage.VERTEX,
-    Compute = GPUShaderStage.COMPUTE,
 }

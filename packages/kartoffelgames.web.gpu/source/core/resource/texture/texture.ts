@@ -1,6 +1,6 @@
-import { TextureUsage } from '../enum/texture-usage.enum';
-import { Gpu } from '../gpu';
-import { GpuNativeObject } from '../gpu-native-object';
+import { TextureUsage } from './texture-usage.enum';
+import { Gpu } from '../../gpu';
+import { GpuNativeObject } from '../../gpu-native-object';
 
 export class Texture extends GpuNativeObject<GPUTexture> {
     private mDepth: number;

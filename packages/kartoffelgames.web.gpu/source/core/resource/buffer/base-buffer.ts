@@ -1,6 +1,6 @@
 import { Exception, TypedArray } from '@kartoffelgames/core.data';
-import { Gpu } from '../gpu';
-import { GpuNativeObject } from '../gpu-native-object';
+import { Gpu } from '../../gpu';
+import { GpuNativeObject } from '../../gpu-native-object';
 
 export abstract class BaseBuffer<T extends TypedArray> extends GpuNativeObject<GPUBuffer> {
     private readonly mBufferLength: number;

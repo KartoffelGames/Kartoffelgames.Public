@@ -4,6 +4,7 @@ import { GpuNativeObject } from '../../gpu-native-object';
 
 export class Texture extends GpuNativeObject<GPUTexture> {
     private mDepth: number;
+    private readonly mDimension: GPUTextureViewDimension;
     private readonly mFormat: GPUTextureFormat;
     private mHeight: number;
     private mImageBitmapList: Array<ImageBitmap>;
@@ -22,6 +23,13 @@ export class Texture extends GpuNativeObject<GPUTexture> {
         }
 
         this.mDepth = pDepth;
+    }
+
+    /**
+     * Texture dimension.
+     */
+    public get dimension(): GPUTextureViewDimension {
+        return this.mDimension;
     }
 
     /**
@@ -72,12 +80,13 @@ export class Texture extends GpuNativeObject<GPUTexture> {
      * @param pFormat - Texture format.
      * @param pDimension - Texture dimension.
      */
-    public constructor(pGpu: Gpu, pFormat: GPUTextureFormat, pUsage: TextureUsage) {
+    public constructor(pGpu: Gpu, pFormat: GPUTextureFormat, pUsage: TextureUsage, pDimension: GPUTextureViewDimension = '2d') {
         super(pGpu);
 
         this.mFormat = pFormat;
         this.mUsage = pUsage;
         this.mImageBitmapList = new Array<ImageBitmap>();
+        this.mDimension = pDimension;
 
         // Set defaults.
         this.mHeight = 1;
@@ -143,5 +152,4 @@ export class Texture extends GpuNativeObject<GPUTexture> {
 
         return lTexture;
     }
-
 }

@@ -3,12 +3,13 @@ import { Gpu } from '../gpu';
 import { Texture } from '../resource/texture/texture';
 import { TextureUsage } from '../resource/texture/texture-usage.enum';
 import { AttachmentType } from './attachment-type.enum';
-import { AttachmentTexture } from './base-attachment';
-import { ColorAttachment } from './color-attachment';
-import { DepthStencilAttachment } from './depth-stencil-attachment';
+import { AttachmentDefinition } from './type/base-attachment';
+import { ColorAttachment } from './type/color-attachment';
+import { DepthStencilAttachment } from './type/depth-stencil-attachment';
 
 export class Attachments {
-    protected readonly mAttachments: Dictionary<string, AttachmentTexture>;
+    protected readonly mAttachments: Dictionary<string, AttachmentDefinition>;
+    protected readonly mGpu: Gpu;
 
     /**
      * Constructor.
@@ -18,7 +19,8 @@ export class Attachments {
      * @param pAttachmentDescriptions - Attachments.
      */
     public constructor(pGpu: Gpu, pWidth: number, pHeight: number, pAttachmentDescriptions: Array<AttachmentDescription>) {
-        this.mAttachments = new Dictionary<string, AttachmentTexture>();
+        this.mAttachments = new Dictionary<string, AttachmentDefinition>();
+        this.mGpu = pGpu;
 
         // Fill in defaults.
         const lDefaultFilledAttachmentList: Array<AttachmentDescriptionWithDefault> = this.forceAttachmentDefault(pAttachmentDescriptions);
@@ -67,7 +69,7 @@ export class Attachments {
             return undefined;
         }
 
-        return new ColorAttachment(lAttachment);
+        return new ColorAttachment(this.mGpu, lAttachment);
     }
 
     /**
@@ -80,7 +82,19 @@ export class Attachments {
             return undefined;
         }
 
-        return new DepthStencilAttachment(lAttachment);
+        return new DepthStencilAttachment(this.mGpu, lAttachment);
+    }
+
+    /**
+     * Resize all attachments.
+     * @param pWidth - New width.
+     * @param pHeight - New height.
+     */
+    public resize(pWidth: number, pHeight: number): void {
+        for(const lAttachment of this.mAttachments.values()){
+            lAttachment.texture.width = pWidth;
+            lAttachment.texture.height = pHeight;
+        }
     }
 
     /**

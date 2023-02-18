@@ -2,7 +2,7 @@ import { Exception, TypedArray } from '@kartoffelgames/core.data';
 import { CanvasAttachment } from '../attachment/canvas-attachment';
 import { ColorAttachment } from '../attachment/color-attachment';
 import { DepthStencilAttachment } from '../attachment/depth-stencil-attachment';
-import { BaseBuffer } from '../buffer/base-buffer';
+import { BaseBuffer } from '../resource/buffer/base-buffer';
 import { Gpu } from '../gpu';
 import { Shader } from '../shader';
 import { BindGroup } from './data/bind-group';

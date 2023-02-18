@@ -4,7 +4,6 @@ import { AttachmentTexture } from './base-attachment';
 import { ColorAttachment } from './color-attachment';
 import { DepthStencilAttachment } from './depth-stencil-attachment';
 
-
 export class Attachments {
     protected readonly mAttachments: Dictionary<string, AttachmentTexture>;
 

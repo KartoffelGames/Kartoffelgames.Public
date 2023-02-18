@@ -1,5 +1,8 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { Gpu } from '../gpu';
+import { Texture } from '../resource/texture/texture';
+import { TextureUsage } from '../resource/texture/texture-usage.enum';
+import { AttachmentType } from './attachment-type.enum';
 import { AttachmentTexture } from './base-attachment';
 import { ColorAttachment } from './color-attachment';
 import { DepthStencilAttachment } from './depth-stencil-attachment';
@@ -23,40 +26,33 @@ export class Attachments {
         // Group attachments by GPUTextureFormat.
         for (const [lFormat, lAttachmentList] of this.groupAttachments(lDefaultFilledAttachmentList)) {
             // Count layers.
-            const lLayerCount: number = lAttachmentList.reduce((pCurrent, pNext) => { return pCurrent + pNext.layerCount; }, 0);
+            const lTextureDepth: number = lAttachmentList.reduce((pCurrent, pNext) => { return pCurrent + pNext.depth; }, 0);
 
-            // Create texture.
-            const lTexture: GPUTexture = pGpu.device.createTexture({
-                size: [pWidth, pHeight, lLayerCount],
-                usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-                format: lFormat,
-            });
+            // Create texture and set size and concat debug label.
+            const lTexture: Texture = new Texture(pGpu, lFormat, TextureUsage.RenderAttachment | TextureUsage.TextureBinding, '3d');
+            lTexture.width = pWidth;
+            lTexture.height = pHeight;
+            lTexture.depth = lTextureDepth;
+            lTexture.label = lAttachmentList.reduce((pCurrent, pNext) => { return `${pCurrent}${pNext.name}-`; }, '-');
 
             // Create views from same texture.
             let lCurrentLayer: number = 0;
             for (const lAttachment of lAttachmentList) {
-                // Create view from texture.
-                const lView: GPUTextureView = lTexture.createView({
-                    dimension: lAttachment.dimension,
-                    baseArrayLayer: lCurrentLayer,
-                    arrayLayerCount: lAttachment.layerCount,
-                });
 
                 // Create attachment information.
                 this.mAttachments.set(lAttachment.name, {
                     texture: lTexture,
-                    view: lView,
                     clearValue: lAttachment.clearValue,
                     loadOp: lAttachment.loadOp,
                     storeOp: lAttachment.storeOp,
                     format: lFormat,
                     dimension: lAttachment.dimension,
-                    arrayLayerCount: lAttachment.layerCount,
+                    arrayLayerCount: lAttachment.depth,
                     baseArrayLayer: lCurrentLayer
                 });
 
                 // Increment layer.
-                lCurrentLayer += lAttachment.layerCount;
+                lCurrentLayer += lAttachment.depth;
             }
         }
     }
@@ -102,7 +98,7 @@ export class Attachments {
                 loadOp: lAttachment.loadOp || 'clear',
                 storeOp: lAttachment.storeOp || 'store',
                 format: lAttachment.format,
-                layerCount: lAttachment.layerCount || 1,
+                depth: lAttachment.depth || 1,
                 dimension: lAttachment.dimension || '2d'
             });
         }
@@ -138,14 +134,8 @@ export type AttachmentDescription = {
     loadOp?: GPULoadOp;
     storeOp?: GPUStoreOp;
     format: GPUTextureFormat;
-    layerCount?: GPUIntegerCoordinate;
+    depth?: GPUIntegerCoordinate;
     dimension?: GPUTextureViewDimension;
 };
 
 type AttachmentDescriptionWithDefault = Required<AttachmentDescription>;
-
-export enum AttachmentType {
-    Color = 1,
-    Depth = 2,
-    Stencil = 4
-}

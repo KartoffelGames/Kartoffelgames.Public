@@ -1,5 +1,5 @@
 import { Exception, TypedArray } from '@kartoffelgames/core.data';
-import { BaseBuffer, BufferDataType } from '../../buffer/base-buffer';
+import { BaseBuffer, BufferDataType } from '../../resource/buffer/base-buffer';
 
 export class VertexAttributes<T extends TypedArray> {
     private readonly mAttributes: Array<AttributeFormatDefinition>;

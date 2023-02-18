@@ -18,6 +18,13 @@ export abstract class GpuNativeObject<T> {
     }
 
     /**
+     * Generated native object.
+     */
+    protected get generatedNative(): T | null {
+        return this.mNativeObject;
+    }
+
+    /**
      * Get global gpu.
      */
     protected get gpu(): Gpu {

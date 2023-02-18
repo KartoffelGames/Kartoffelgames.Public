@@ -17,11 +17,6 @@ export class Texture extends GpuNativeObject<GPUTexture> {
     public get depth(): number {
         return this.mDepth;
     } set depth(pDepth: number) {
-        // Reset texture on size change.
-        if (pDepth !== this.mDepth) {
-            this.reset();
-        }
-
         this.mDepth = pDepth;
     }
 
@@ -45,11 +40,6 @@ export class Texture extends GpuNativeObject<GPUTexture> {
     public get height(): number {
         return this.mHeight;
     } set height(pHeight: number) {
-        // Reset texture on size change.
-        if (pHeight !== this.mHeight) {
-            this.reset();
-        }
-
         this.mHeight = pHeight;
     }
 
@@ -66,11 +56,6 @@ export class Texture extends GpuNativeObject<GPUTexture> {
     public get width(): number {
         return this.mWidth;
     } set width(pWidth: number) {
-        // Reset texture on size change.
-        if (pWidth !== this.mWidth) {
-            this.reset();
-        }
-
         this.mWidth = pWidth;
     }
 
@@ -113,9 +98,6 @@ export class Texture extends GpuNativeObject<GPUTexture> {
 
         // Resolve all bitmaps.
         this.mImageBitmapList = await Promise.all(lBitmapResolvePromiseList);
-
-        // Reset texture.
-        this.reset();
     }
 
     /**
@@ -147,9 +129,32 @@ export class Texture extends GpuNativeObject<GPUTexture> {
                     { texture: lTexture, origin: [0, 0, lBitmapIndex] },
                     [lBitmap.width, lBitmap.height]
                 );
+
+                // Release image data.
+                lBitmap.close();
             }
         }
 
+        // Clear closed bitmap list.
+        this.mImageBitmapList = new Array<ImageBitmap>();
+
         return lTexture;
+    }
+
+    /**
+     * Validate native object state for a refresh.
+     */
+    protected override async validateState(): Promise<boolean> {
+        // Validate changed size.
+        if (this.mHeight !== this.generatedNative?.height || this.mWidth !== this.generatedNative?.width || this.mDepth !== this.generatedNative?.depthOrArrayLayers) {
+            return false;
+        }
+
+        // Validate data to copy.
+        if (this.mImageBitmapList.length > 0) {
+            return false;
+        }
+
+        return true;
     }
 }

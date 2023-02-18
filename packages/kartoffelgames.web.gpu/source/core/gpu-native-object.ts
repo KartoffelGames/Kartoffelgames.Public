@@ -5,7 +5,17 @@ import { Gpu } from './gpu';
  */
 export abstract class GpuNativeObject<T> {
     private readonly mGpu: Gpu;
+    private mLabel: string;
     private mNativeObject: T | null;
+    
+    /**
+     * Debug label.
+     */
+    public get label(): string {
+        return this.mLabel;
+    } set label(pLabel: string) {
+        this.mLabel = pLabel;
+    }
 
     /**
      * Get global gpu.
@@ -21,6 +31,7 @@ export abstract class GpuNativeObject<T> {
     public constructor(pGpu: Gpu) {
         this.mGpu = pGpu;
         this.mNativeObject = null;
+        this.mLabel = '';
     }
 
     /**

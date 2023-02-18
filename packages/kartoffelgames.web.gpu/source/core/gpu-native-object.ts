@@ -7,7 +7,7 @@ export abstract class GpuNativeObject<T> {
     private readonly mGpu: Gpu;
     private mLabel: string;
     private mNativeObject: T | null;
-    
+
     /**
      * Debug label.
      */
@@ -39,7 +39,7 @@ export abstract class GpuNativeObject<T> {
      */
     public async native(): Promise<T> {
         // Generate new native object when not already created.
-        if (!this.mNativeObject) {
+        if (!this.mNativeObject || await this.validateState()) {
             this.mNativeObject = await this.generate();
         }
 
@@ -47,10 +47,10 @@ export abstract class GpuNativeObject<T> {
     }
 
     /**
-     * Reset generated native object.
+     * Validate native object. Refresh native on negative state.
      */
-    protected reset(): void {
-        this.mNativeObject = null;
+    protected async validateState(): Promise<boolean> {
+        return true;
     }
 
     /**

@@ -33,25 +33,32 @@ export abstract class BaseBuffer<T extends TypedArray> extends GpuNativeObject<G
      * Constructor.
      * @param pGpu - GPU.
      * @param pUsage - Buffer usage beside COPY_DST.
-     * @param pItemCount - Buffer size.
-     * @param pInitialData  - Inital data. Can be empty.
+     * @param pData  - Inital data. Can be empty.
      */
-    public constructor(pGpu: Gpu, pUsage: GPUFlagsConstant, pItemCount: number, pData: T) {
+    public constructor(pGpu: Gpu, pUsage: GPUFlagsConstant, pData: T) {
         super(pGpu);
 
         this.mBufferUsage = pUsage;
         this.mInitData = pData;
-        this.mBufferLength = pItemCount;
+        this.mBufferLength = pData.length;
         this.mDataType = <BufferDataType<T>>pData.constructor;
+    }
+
+    /**
+     * Destroy native object.
+     * @param pNativeObject - Native object.
+     */
+    protected async destroyNative(pNativeObject: GPUBuffer): Promise<void>{
+        pNativeObject.destroy();
     }
 
     /**
      * Generate native object.
      */
     protected async generate(): Promise<GPUBuffer> {
-        // Restrict buffer reset.
+        // Generate new empty init data.
         if (!this.mInitData) {
-            throw new Exception(`Buffer data can't be reset`, this);
+            this.mInitData = new this.mDataType(this.mBufferLength);
         }
 
         // Create gpu buffer mapped
@@ -90,5 +97,5 @@ export abstract class BaseBuffer<T extends TypedArray> extends GpuNativeObject<G
 export type BufferDataType<T extends TypedArray> = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     BYTES_PER_ELEMENT: number;
-    new(pArrayBuffer: ArrayBuffer): T;
+    new(pInitValues: ArrayBuffer | number | TypedArray): T;
 };

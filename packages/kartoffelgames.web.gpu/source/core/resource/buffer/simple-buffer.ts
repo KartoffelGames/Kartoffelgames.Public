@@ -7,11 +7,10 @@ export class SimpleBuffer<T extends TypedArray> extends BaseBuffer<T> {
      * Constructor.
      * @param pGpu - GPU.
      * @param pUsage - Buffer usage beside COPY_DST.
-     * @param pItemCount - Buffer size.
      * @param pInitialData  - Inital data. Can be empty.
      */
-    public constructor(pGpu: Gpu, pUsage: GPUFlagsConstant, pItemCount: number, pInitialData: T) {
-        super(pGpu, pUsage, pItemCount, pInitialData);
+    public constructor(pGpu: Gpu, pUsage: GPUFlagsConstant, pInitialData: T) {
+        super(pGpu, pUsage, pInitialData);
     }
 
     /**

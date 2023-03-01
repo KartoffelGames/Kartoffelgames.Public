@@ -42,11 +42,25 @@ export abstract class GpuNativeObject<T> {
     }
 
     /**
+     * Destroy generated native object.
+     */
+    public async destroy(): Promise<void> {
+        // Destroy old native object.
+        if (this.mNativeObject) {
+            await this.destroyNative(this.mNativeObject);
+        }
+    }
+
+    /**
      * Get native object.
      */
     public async native(): Promise<T> {
         // Generate new native object when not already created.
         if (!this.mNativeObject || await this.validateState()) {
+            // Destroy old native object.
+            await this.destroy();
+
+            // Generate new native object.
             this.mNativeObject = await this.generate();
         }
 
@@ -59,6 +73,11 @@ export abstract class GpuNativeObject<T> {
     protected async validateState(): Promise<boolean> {
         return true;
     }
+
+    /**
+     * Destory object.
+     */
+    protected abstract destroyNative(pNativeObject: T): Promise<void>;
 
     /**
      * Generate native object.

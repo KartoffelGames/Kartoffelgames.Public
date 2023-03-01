@@ -3,20 +3,21 @@ import { Gpu } from '../../gpu';
 import { BaseBuffer } from './base-buffer';
 
 export class RingBuffer<T extends TypedArray> extends BaseBuffer<T> {
-    private readonly mStagingBufferList: Array<GPUBuffer>;
+    private readonly mReadyBufferList: Array<GPUBuffer>;
+    private readonly mWavingBufferList: Array<GPUBuffer>;
 
     /**
      * Constructor.
      * @param pGpu - GPU.
      * @param pUsage - Buffer usage beside COPY_DST.
-     * @param pItemCount - Buffer size.
      * @param pInitialData  - Inital data. Can be empty.
      */
-    public constructor(pGpu: Gpu, pUsage: GPUFlagsConstant, pItemCount: number, pInitialData: T) {
-        super(pGpu, pUsage, pItemCount, pInitialData);
+    public constructor(pGpu: Gpu, pUsage: GPUFlagsConstant, pInitialData: T) {
+        super(pGpu, pUsage, pInitialData);
 
-        // Waving stagin buffer list.
-        this.mStagingBufferList = new Array<GPUBuffer>();
+        // Waving buffer list.
+        this.mReadyBufferList = new Array<GPUBuffer>();
+        this.mWavingBufferList = new Array<GPUBuffer>();
     }
 
     /**
@@ -26,14 +27,17 @@ export class RingBuffer<T extends TypedArray> extends BaseBuffer<T> {
     public async write(pBufferCallback: (pBuffer: T) => Promise<void>): Promise<void> {
         // Create new buffer when no mapped buffer is available. 
         let lStagingBuffer: GPUBuffer;
-        if (this.mStagingBufferList.length === 0) {
+        if (this.mReadyBufferList.length === 0) {
             lStagingBuffer = this.gpu.device.createBuffer({
                 size: this.size,
                 usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
                 mappedAtCreation: true,
             });
+
+            // Add new buffer to complete list.
+            this.mWavingBufferList.push(lStagingBuffer);
         } else {
-            lStagingBuffer = this.mStagingBufferList.pop()!;
+            lStagingBuffer = this.mReadyBufferList.pop()!;
         }
 
         // Execute write operations.
@@ -50,7 +54,25 @@ export class RingBuffer<T extends TypedArray> extends BaseBuffer<T> {
 
         // Shedule staging buffer remaping.
         lStagingBuffer.mapAsync(GPUMapMode.WRITE).then(() => {
-            this.mStagingBufferList.push(lStagingBuffer);
+            this.mReadyBufferList.push(lStagingBuffer);
         });
+    }
+
+    /**
+     * Destory all buffers.
+     * @param pNativeObject - Native buffer object.
+     */
+    protected override async destroyNative(pNativeObject: GPUBuffer): Promise<void> {
+        super.destroyNative(pNativeObject);
+
+        // Destroy all wave buffer and clear list.
+        for (let lCount: number = 0; this.mWavingBufferList.length < lCount; lCount++) {
+            this.mWavingBufferList.pop()?.destroy();
+        }
+
+        // Clear ready buffer list.
+        for (let lCount: number = 0; this.mReadyBufferList.length < lCount; lCount++) {
+            this.mReadyBufferList.pop();
+        }
     }
 }

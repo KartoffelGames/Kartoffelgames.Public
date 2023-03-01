@@ -3,22 +3,13 @@ import { Gpu } from '../../gpu';
 import { GpuNativeObject } from '../../gpu-native-object';
 
 export class Texture extends GpuNativeObject<GPUTexture> {
-    private mDepth: number;
     private readonly mDimension: GPUTextureViewDimension;
     private readonly mFormat: GPUTextureFormat;
     private mHeight: number;
     private mImageBitmapList: Array<ImageBitmap>;
+    private mLayerCount: number;
     private readonly mUsage: TextureUsage;
     private mWidth: number;
-
-    /**
-     * Texture depth.
-     */
-    public get depth(): number {
-        return this.mDepth;
-    } set depth(pDepth: number) {
-        this.mDepth = pDepth;
-    }
 
     /**
      * Texture dimension.
@@ -41,6 +32,15 @@ export class Texture extends GpuNativeObject<GPUTexture> {
         return this.mHeight;
     } set height(pHeight: number) {
         this.mHeight = pHeight;
+    }
+
+    /**
+     * Texture depth.
+     */
+    public get layer(): number {
+        return this.mLayerCount;
+    } set layer(pDepth: number) {
+        this.mLayerCount = pDepth;
     }
 
     /**
@@ -76,7 +76,7 @@ export class Texture extends GpuNativeObject<GPUTexture> {
         // Set defaults.
         this.mHeight = 1;
         this.mWidth = 1;
-        this.mDepth = 1;
+        this.mLayerCount = 1;
     }
 
     /**
@@ -101,6 +101,14 @@ export class Texture extends GpuNativeObject<GPUTexture> {
     }
 
     /**
+     * Destroy native object.
+     * @param pNativeObject - Native object.
+     */
+    protected async destroyNative(pNativeObject: GPUTexture): Promise<void> {
+        pNativeObject.destroy();
+    }
+
+    /**
      * Generate texture based on parameters.
      */
     protected async generate(): Promise<GPUTexture> {
@@ -112,7 +120,7 @@ export class Texture extends GpuNativeObject<GPUTexture> {
 
         // Create texture with set size, format and usage.
         const lTexture: GPUTexture = this.gpu.device.createTexture({
-            size: [this.mWidth, this.mHeight, this.mDepth],
+            size: [this.mWidth, this.mHeight, this.mLayerCount],
             format: this.mFormat,
             usage: lUsage
         });
@@ -146,7 +154,7 @@ export class Texture extends GpuNativeObject<GPUTexture> {
      */
     protected override async validateState(): Promise<boolean> {
         // Validate changed size.
-        if (this.mHeight !== this.generatedNative?.height || this.mWidth !== this.generatedNative?.width || this.mDepth !== this.generatedNative?.depthOrArrayLayers) {
+        if (this.mHeight !== this.generatedNative?.height || this.mWidth !== this.generatedNative?.width || this.mLayerCount !== this.generatedNative?.depthOrArrayLayers) {
             return false;
         }
 

@@ -1,8 +1,9 @@
 import { TextureUsage } from './texture-usage.enum';
 import { Gpu } from '../../gpu';
 import { GpuNativeObject } from '../../gpu-native-object';
+import { ITexture } from './i-texture.interface';
 
-export class Texture extends GpuNativeObject<GPUTexture> {
+export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
     private readonly mDimension: GPUTextureViewDimension;
     private readonly mFormat: GPUTextureFormat;
     private mHeight: number;

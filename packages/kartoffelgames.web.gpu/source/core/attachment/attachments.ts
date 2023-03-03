@@ -39,18 +39,25 @@ export class Attachments {
             throw new Exception(`Attachment "${pAttachment.name}" already exists.`, this);
         }
 
+        // Validate canvas settings.
+        if ('canvas' in pAttachment) {
+            if (pAttachment.layers !== 1) {
+                throw new Exception('Invalid layer count on canvas attachment. Only one layer allowed.', this);
+            }
+
+            if (pAttachment.dimension !== '2d') {
+                throw new Exception('Invalid dimension on canvas attachment. Only 2d as dimension allowed.', this);
+            }
+        }
+
         // Auto detect format.
         const lFormat: GPUTextureFormat = pAttachment.format ?? window.navigator.gpu.getPreferredCanvasFormat();
 
         // Special canvas treatment for fixed properties.
         let lType: AttachmentType = pAttachment.type;
-        let lLayer: number = (<TextureAttachmentDescription>pAttachment)?.layers ?? 1;
-        let lDimension: GPUTextureViewDimension = (<TextureAttachmentDescription>pAttachment)?.dimension ?? '2d';
         let lCanvas: HTMLCanvasElement | null = null;
         if ('canvas' in pAttachment) {
-            lType &= AttachmentType.Canvas;
-            lLayer = 1;
-            lDimension = '2d';
+            lType &= AttachmentType.Canvas; // Inject canvas type.
             lCanvas = pAttachment.canvas;
         }
 
@@ -60,12 +67,12 @@ export class Attachments {
             frame: null,
             name: pAttachment.name,
             clearValue: pAttachment.clearValue,
-            loadOp: pAttachment.loadOp ?? 'clear',
-            storeOp: pAttachment.storeOp ?? 'store',
+            loadOp: pAttachment.loadOp ?? 'clear', // Apply default value.
+            storeOp: pAttachment.storeOp ?? 'store', // Apply default value.
             format: lFormat,
-            layers: lLayer,
-            dimension: lDimension,
-            baseArrayLayer: -1,
+            layers: pAttachment.layers ?? 1, // Apply default value.
+            dimension: pAttachment.dimension ?? '2d', // Apply default value.
+            baseArrayLayer: null,
             canvas: lCanvas
         };
 
@@ -81,7 +88,7 @@ export class Attachments {
      * @param pName - Attachment name.
      * @param pType - Type of attachment.
      */
-    public getAttachment(pName: string, pType: AttachmentType.Color | AttachmentType.Canvas): ColorAttachment;
+    public getAttachment(pName: string, pType: AttachmentType.Color): ColorAttachment;
     public getAttachment(pName: string, pType: AttachmentType.Depth | AttachmentType.Stencil): DepthStencilAttachment;
     public getAttachment(pName: string, pType: AttachmentType): DepthStencilAttachment | ColorAttachment {
         // Rebuild textures.
@@ -142,10 +149,10 @@ export class Attachments {
             // Get group name by format. 
             // Exclude canvas by setting unique group names as they should never be grouped.
             let lGroupName: string = lAttachment.format;
-            let lIsCanvasGroup: boolean = false;
+            let lCanvas: HTMLCanvasElement | null = null;
             if ((lAttachment.type & AttachmentType.Canvas) > 0) {
                 lGroupName = `CANVAS--${lAttachment.name}--${lGroupName}`;
-                lIsCanvasGroup = true;
+                lCanvas = lAttachment.canvas;
             }
 
             // Create new group when not already created.
@@ -155,7 +162,7 @@ export class Attachments {
                     format: lAttachment.format,
                     attachments: new Array<AttachmentData>(),
                     updatedNeeded: false,
-                    isCanvasGroup: lIsCanvasGroup
+                    canvas: lCanvas
                 });
             }
 
@@ -178,7 +185,7 @@ export class Attachments {
                     format: 'bgra8unorm',
                     attachments: new Array<AttachmentData>(),
                     updatedNeeded: true,
-                    isCanvasGroup: false
+                    canvas: null
                 });
             }
         }
@@ -217,11 +224,11 @@ export class Attachments {
 
                 // Create texture and set size and concat debug label.
                 let lTexture: ITexture;
-                if (lGroup.isCanvasGroup) {
-                    const lCanvas: HTMLCanvasElement = lGroup.attachments[0].canvas!;
-                    const lCanvasTexture: CanvasTexture = new CanvasTexture(this.mGpu, lCanvas, lGroup.format, TextureUsage.RenderAttachment | TextureUsage.TextureBinding);
+                if (lGroup.canvas !== null) {
+                    const lCanvasTexture: CanvasTexture = new CanvasTexture(this.mGpu, lGroup.canvas, lGroup.format, TextureUsage.RenderAttachment | TextureUsage.TextureBinding);
                     lCanvasTexture.width = this.mSize.width;
                     lCanvasTexture.height = this.mSize.height;
+                    lCanvasTexture.label = lGroup.name;
 
                     lTexture = lCanvasTexture;
                 } else {
@@ -261,7 +268,7 @@ type AttachmentGroup = {
     attachments: Array<AttachmentData>;
     updatedNeeded: boolean;
     name: string;
-    isCanvasGroup: boolean;
+    canvas: HTMLCanvasElement | null;
 };
 
 type AttachmentData = {
@@ -274,7 +281,7 @@ type AttachmentData = {
     format: GPUTextureFormat;
     layers: GPUIntegerCoordinate;
     dimension: GPUTextureViewDimension;
-    baseArrayLayer: number;
+    baseArrayLayer: number | null;
     canvas: HTMLCanvasElement | null;
 };
 
@@ -292,6 +299,8 @@ export type CanvasAttachmentDescription = {
     loadOp?: GPULoadOp;
     storeOp?: GPUStoreOp;
     format?: GPUTextureFormat;
+    layers?: GPUIntegerCoordinate;
+    dimension?: GPUTextureViewDimension;
 };
 export type TextureAttachmentDescription = {
     type: AttachmentType.Color | AttachmentType.Depth | AttachmentType.Stencil,

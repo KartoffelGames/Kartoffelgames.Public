@@ -1,11 +1,32 @@
+import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { BindType } from '../enum/bind-type.enum';
 import { ShaderStage } from '../enum/shader-stage.enum';
 import { Gpu } from '../gpu';
 import { GpuNativeObject } from '../gpu-native-object';
 
 export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
-    private readonly mGroupBindList: Array<BindLayout>;
+    private readonly mGroupBinds: Dictionary<string, BindLayout>;
     private mRequestUpdate: boolean;
+
+    /**
+     * Get basic information of group binds.
+     */
+    public get binds(): Array<BindInformation> {
+        const lResult: Array<BindInformation> = new Array<BindInformation>();
+
+        // Fetch general and basic information from group bind.
+        const lBindList: Array<BindLayout> = [...this.mGroupBinds.values()];
+        for (let lIndex: number = 0; lIndex < lBindList.length; lIndex++) {
+            const lBind = lBindList[lIndex];
+            lResult.push({
+                name: lBind.name,
+                type: lBind.bindType,
+                index: lIndex
+            });
+        }
+
+        return lResult;
+    }
 
     /**
      * Constructor.
@@ -13,7 +34,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
      */
     public constructor(pGpu: Gpu) {
         super(pGpu);
-        this.mGroupBindList = new Array<BindLayout>();
+        this.mGroupBinds = new Dictionary<string, BindLayout>();
         this.mRequestUpdate = false;
     }
 
@@ -26,7 +47,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
      * @param pMinBindingSize - min binding size.
      */
     public addBuffer(pName: string, pVisibility: ShaderStage, pBindingType: GPUBufferBindingType = 'uniform', pHasDynamicOffset: boolean = false, pMinBindingSize: GPUSize64 = 0): void {
-        this.mGroupBindList.push({
+        this.mGroupBinds.set(pName, {
             bindType: BindType.Buffer,
             name: pName,
             visibility: pVisibility,
@@ -45,7 +66,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
      * @param pVisibility - Visibility.
      */
     public addExternalTexture(pName: string, pVisibility: ShaderStage): void {
-        this.mGroupBindList.push({
+        this.mGroupBinds.set(pName, {
             bindType: BindType.ExternalTexture,
             name: pName,
             visibility: pVisibility,
@@ -62,7 +83,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
      * @param pSampleType - Sample type.
      */
     public addSampler(pName: string, pVisibility: ShaderStage, pSampleType: GPUSamplerBindingType = 'filtering'): void {
-        this.mGroupBindList.push({
+        this.mGroupBinds.set(pName, {
             bindType: BindType.Sampler,
             name: pName,
             visibility: pVisibility,
@@ -82,7 +103,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
      * @param pDimension - Texture dimension.
      */
     public addStorageTexture(pName: string, pVisibility: ShaderStage, pFormat: GPUTextureFormat, pStorageAccess: GPUStorageTextureAccess = 'write-only', pDimension: GPUTextureViewDimension = '2d'): void {
-        this.mGroupBindList.push({
+        this.mGroupBinds.set(pName, {
             name: pName,
             bindType: BindType.StorageTexture,
             visibility: pVisibility,
@@ -104,7 +125,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
      * @param pMultisampled - Is multisampled.
      */
     public addTexture(pName: string, pVisibility: ShaderStage, pSampleType: GPUTextureSampleType = 'float', pViewDimension: GPUTextureViewDimension = '2d', pMultisampled: boolean = false): void {
-        this.mGroupBindList.push({
+        this.mGroupBinds.set(pName, {
             name: pName,
             bindType: BindType.Texture,
             visibility: pVisibility,
@@ -112,6 +133,28 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
             viewDimension: pViewDimension,
             multisampled: pMultisampled
         });
+
+        // Request native object update.
+        this.mRequestUpdate = true;
+    }
+
+    /**
+     * Get full bind information.
+     * @param pName - Bind name.
+     */
+    public getBind(pName: string): Readonly<BindLayout> {
+        if (!this.mGroupBinds.has(pName)) {
+            throw new Exception(`Bind ${pName} does not exist.`, this);
+        }
+
+        return this.mGroupBinds.get(pName)!;
+    }
+
+    /** 
+     * Remove bind.
+     */
+    public removeBind(pName: string): void {
+        this.mGroupBinds.delete(pName);
 
         // Request native object update.
         this.mRequestUpdate = true;
@@ -132,8 +175,9 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
         const lEntryList: Array<GPUBindGroupLayoutEntry> = new Array<GPUBindGroupLayoutEntry>();
 
         // Generate layout entry for each binding.
-        for (let lIndex: number = 0; lIndex < this.mGroupBindList.length; lIndex++) {
-            const lEntry = this.mGroupBindList[lIndex];
+        const lBindList: Array<BindLayout> = [...this.mGroupBinds.values()];
+        for (let lIndex: number = 0; lIndex < lBindList.length; lIndex++) {
+            const lEntry = lBindList[lIndex];
 
             // Generate default properties.
             const lLayoutEntry: GPUBindGroupLayoutEntry = {
@@ -229,4 +273,10 @@ interface ExternalTextureBindLayout extends BaseBindLayout, Required<GPUExternal
     bindType: BindType.ExternalTexture;
 }
 
-type BindLayout = BufferBindLayout | SamplerBindLayout | TextureBindLayout | StorageTextureBindLayout | ExternalTextureBindLayout;
+export type BindLayout = BufferBindLayout | SamplerBindLayout | TextureBindLayout | StorageTextureBindLayout | ExternalTextureBindLayout;
+
+export type BindInformation = {
+    name: string,
+    type: BindType,
+    index: number;
+};

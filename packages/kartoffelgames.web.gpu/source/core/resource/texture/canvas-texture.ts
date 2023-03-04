@@ -2,6 +2,7 @@ import { TextureUsage } from './texture-usage.enum';
 import { Gpu } from '../../gpu';
 import { GpuNativeObject } from '../../gpu-native-object';
 import { ITexture } from './i-texture.interface';
+import { TextureView } from './texture-view';
 
 export class CanvasTexture extends GpuNativeObject<GPUTexture> implements ITexture {
     private readonly mCanvas: HTMLCanvasElement;
@@ -13,7 +14,7 @@ export class CanvasTexture extends GpuNativeObject<GPUTexture> implements ITextu
      * Texture dimension.
      * Fixed to 2D.
      */
-    public get dimension(): GPUTextureViewDimension {
+    public get dimension(): GPUTextureDimension {
         return '2d';
     }
 
@@ -38,6 +39,14 @@ export class CanvasTexture extends GpuNativeObject<GPUTexture> implements ITextu
      * Fixed to one.
      */
     public get layer(): number {
+        return 1;
+    }
+
+    /**
+     * Texture multi sample level.
+     * Fixed to one.
+     */
+    public get multiSampleLevel(): number {
         return 1;
     }
 
@@ -82,6 +91,13 @@ export class CanvasTexture extends GpuNativeObject<GPUTexture> implements ITextu
     }
 
     /**
+     * Create view of this texture.
+     */
+    public async view(): Promise<TextureView> {
+        return new TextureView(this.gpu, this);
+    }
+
+    /**
      * Destory native gpu texture.
      * @param _pNativeObject - Native gpu texture.
      */
@@ -93,13 +109,13 @@ export class CanvasTexture extends GpuNativeObject<GPUTexture> implements ITextu
      * Get current canvas texture.
      */
     protected async generate(): Promise<GPUTexture> {
-        return this.mContext.getCurrentTexture(); 
+        return this.mContext.getCurrentTexture();
     }
 
     /**
      * Allways invalidate current texture to generate latest texture.
      */
-    protected override async validateState(): Promise<boolean>{
+    protected override async validateState(): Promise<boolean> {
         return false;
     }
 }

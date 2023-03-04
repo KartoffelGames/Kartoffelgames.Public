@@ -44,10 +44,6 @@ export class Attachments {
             if (pAttachment.layers !== 1) {
                 throw new Exception('Invalid layer count on canvas attachment. Only one layer allowed.', this);
             }
-
-            if (pAttachment.dimension !== '2d') {
-                throw new Exception('Invalid dimension on canvas attachment. Only 2d as dimension allowed.', this);
-            }
         }
 
         // Auto detect format.
@@ -286,8 +282,9 @@ type AttachmentData = {
 };
 
 // Exported attachment data has never any nullish frame or canvas information.
-type ExportAttachmentData = Omit<Omit<AttachmentData, 'canvas'>, 'frame'> & {
+type ExportAttachmentData = Omit<Omit<Omit<AttachmentData, 'baseArrayLayer'>, 'canvas'>, 'frame'> & {
     frame: ITexture;
+    baseArrayLayer: number;
 };
 
 // Descriptive data.

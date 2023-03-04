@@ -1,5 +1,5 @@
 import { BindType } from '../enum/bind-type.enum';
-import { ShaderStage } from '../enum/shader-stage.enu';
+import { ShaderStage } from '../enum/shader-stage.enum';
 import { Gpu } from '../gpu';
 import { GpuNativeObject } from '../gpu-native-object';
 

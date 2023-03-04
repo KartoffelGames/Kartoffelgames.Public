@@ -2,6 +2,14 @@ import { BaseAttachment } from './base-attachment';
 
 export class DepthStencilAttachment extends BaseAttachment<GPURenderPassDepthStencilAttachment> {
     /**
+     * Destory native object.
+     * @param _pNativeObject - Native object.
+     */
+    protected async destroyNative(_pNativeObject: GPURenderPassColorAttachment): Promise<void> {
+        // Nothing needed here.
+    }
+
+    /**
      * Generate depth attachment.
      */
     protected async generate(): Promise<GPURenderPassDepthStencilAttachment> {
@@ -20,13 +28,13 @@ export class DepthStencilAttachment extends BaseAttachment<GPURenderPassDepthSte
         }
 
         // Generate native gpu texture.
-        const lTexture: GPUTexture = await this.attachment.texture.native();
+        const lTexture: GPUTexture = await this.attachment.frame.native();
 
         // Generate view.
         const lView: GPUTextureView = lTexture.createView({
             dimension: this.attachment.dimension,
             baseArrayLayer: this.attachment.baseArrayLayer,
-            arrayLayerCount: this.attachment.arrayLayerCount,
+            arrayLayerCount: this.attachment.layers,
         });
 
         // Convert to depth stencil attachment,

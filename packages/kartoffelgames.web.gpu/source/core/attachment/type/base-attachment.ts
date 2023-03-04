@@ -1,6 +1,7 @@
 import { Gpu } from '../../gpu';
 import { GpuNativeObject } from '../../gpu-native-object';
-import { Texture } from '../../resource/texture/texture';
+import { ITexture } from '../../resource/texture/i-texture.interface';
+import { AttachmentType } from '../attachment-type.enum';
 
 export abstract class BaseAttachment<TAttachment extends GPURenderPassColorAttachment | GPURenderPassDepthStencilAttachment> extends GpuNativeObject<TAttachment>{
     private readonly mAttachment: AttachmentDefinition;
@@ -26,10 +27,10 @@ export abstract class BaseAttachment<TAttachment extends GPURenderPassColorAttac
     /**
      * Validate native object. Refresh native on negative state.
      */
-    protected override async validateState(): Promise<boolean>{
+    protected override async validateState(): Promise<boolean> {
         // Validate for new generated texture.
-        const lTexture: GPUTexture = await this.mAttachment.texture.native();
-        if(lTexture !== this.mOldTexture){
+        const lTexture: GPUTexture = await this.mAttachment.frame.native();
+        if (lTexture !== this.mOldTexture) {
             this.mOldTexture = lTexture;
             return false;
         }
@@ -39,14 +40,14 @@ export abstract class BaseAttachment<TAttachment extends GPURenderPassColorAttac
 }
 
 export type AttachmentDefinition = {
-    texture: Texture;
+    type: AttachmentType,
+    frame: ITexture;
+    name: string,
     clearValue: GPUColor;
     loadOp: GPULoadOp;
     storeOp: GPUStoreOp;
-
     format: GPUTextureFormat;
+    layers: GPUIntegerCoordinate;
     dimension: GPUTextureViewDimension;
-    arrayLayerCount: GPUIntegerCoordinate;
-    baseArrayLayer: number,
-}
-
+    baseArrayLayer: number;
+};

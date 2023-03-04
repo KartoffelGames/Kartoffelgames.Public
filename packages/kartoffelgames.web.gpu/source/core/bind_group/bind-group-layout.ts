@@ -3,6 +3,7 @@ import { BindType } from '../enum/bind-type.enum';
 import { ShaderStage } from '../enum/shader-stage.enum';
 import { Gpu } from '../gpu';
 import { GpuNativeObject } from '../gpu-native-object';
+import { BindGroup } from './bind-group';
 
 export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     private readonly mGroupBinds: Dictionary<string, BindLayout>;
@@ -136,6 +137,13 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
 
         // Request native object update.
         this.mRequestUpdate = true;
+    }
+
+    /**
+     * Create bind group based on this layout.
+     */
+    public createBindGroup(): BindGroup{
+        return new BindGroup(this.gpu, this);
     }
 
     /**

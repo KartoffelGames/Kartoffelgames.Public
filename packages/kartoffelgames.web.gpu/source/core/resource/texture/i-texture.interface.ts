@@ -1,11 +1,12 @@
 import { GpuNativeObject } from '../../gpu-native-object';
 import { TextureUsage } from './texture-usage.enum';
+import { TextureView } from './texture-view';
 
 export interface ITexture extends GpuNativeObject<GPUTexture> {
     /**
      * Texture dimension.
      */
-    readonly dimension: GPUTextureViewDimension;
+    readonly dimension: GPUTextureDimension;
 
     /**
      * Texture format.
@@ -22,6 +23,12 @@ export interface ITexture extends GpuNativeObject<GPUTexture> {
      */
     readonly layer: number;
 
+
+    /**
+     * Texture multi sample level.
+     */
+    readonly multiSampleLevel: number;
+
     /**
      * Texture usage.
      */
@@ -31,4 +38,9 @@ export interface ITexture extends GpuNativeObject<GPUTexture> {
      * Texture width.
      */
     width: number;
+
+    /**
+     * Get texture view.
+     */
+    view(): Promise<TextureView>;
 }

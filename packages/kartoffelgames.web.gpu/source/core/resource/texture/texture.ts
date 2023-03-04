@@ -2,20 +2,23 @@ import { TextureUsage } from './texture-usage.enum';
 import { Gpu } from '../../gpu';
 import { GpuNativeObject } from '../../gpu-native-object';
 import { ITexture } from './i-texture.interface';
+import { TextureView } from './texture-view';
+import { Exception } from '@kartoffelgames/core.data';
 
 export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
-    private readonly mDimension: GPUTextureViewDimension;
+    private readonly mDimension: GPUTextureDimension;
     private readonly mFormat: GPUTextureFormat;
     private mHeight: number;
     private mImageBitmapList: Array<ImageBitmap>;
     private mLayerCount: number;
+    private mMultiSampleLevel: number;
     private readonly mUsage: TextureUsage;
     private mWidth: number;
 
     /**
      * Texture dimension.
      */
-    public get dimension(): GPUTextureViewDimension {
+    public get dimension(): GPUTextureDimension {
         return this.mDimension;
     }
 
@@ -45,6 +48,19 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
     }
 
     /**
+     * Texture multi sample level.
+     */
+    public get multiSampleLevel(): number {
+        return this.mMultiSampleLevel;
+    } set multiSampleLevel(pLevel: number) {
+        if (pLevel < 1) {
+            throw new Exception('Multi sample level must be greater than zero.', this);
+        }
+
+        this.mMultiSampleLevel = pLevel;
+    }
+
+    /**
      * Texture usage.
      */
     public get usage(): TextureUsage {
@@ -66,13 +82,14 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
      * @param pFormat - Texture format.
      * @param pDimension - Texture dimension.
      */
-    public constructor(pGpu: Gpu, pFormat: GPUTextureFormat, pUsage: TextureUsage, pDimension: GPUTextureViewDimension = '2d') {
+    public constructor(pGpu: Gpu, pFormat: GPUTextureFormat, pUsage: TextureUsage, pDimension: GPUTextureDimension = '2d') {
         super(pGpu);
 
         this.mFormat = pFormat;
         this.mUsage = pUsage;
         this.mImageBitmapList = new Array<ImageBitmap>();
         this.mDimension = pDimension;
+        this.mMultiSampleLevel = 1;
 
         // Set defaults.
         this.mHeight = 1;
@@ -102,6 +119,13 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
     }
 
     /**
+     * Create view of this texture.
+     */
+    public async view(): Promise<TextureView> {
+        return new TextureView(this.gpu, this);
+    }
+
+    /**
      * Destroy native object.
      * @param pNativeObject - Native object.
      */
@@ -123,7 +147,8 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
         const lTexture: GPUTexture = this.gpu.device.createTexture({
             size: [this.mWidth, this.mHeight, this.mLayerCount],
             format: this.mFormat,
-            usage: lUsage
+            usage: lUsage,
+            dimension: this.mDimension
         });
 
         // Copy bitmap into texture.
@@ -155,7 +180,7 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
      */
     protected override async validateState(): Promise<boolean> {
         // Validate changed size.
-        if (this.mHeight !== this.generatedNative?.height || this.mWidth !== this.generatedNative?.width || this.mLayerCount !== this.generatedNative?.depthOrArrayLayers) {
+        if (this.mHeight !== this.generatedNative?.height || this.mWidth !== this.generatedNative?.width || this.mLayerCount !== this.generatedNative?.depthOrArrayLayers || this.mMultiSampleLevel !== this.generatedNative.sampleCount) {
             return false;
         }
 

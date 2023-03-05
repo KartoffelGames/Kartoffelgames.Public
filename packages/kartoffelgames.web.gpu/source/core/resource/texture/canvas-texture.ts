@@ -93,8 +93,8 @@ export class CanvasTexture extends GpuNativeObject<GPUTexture> implements ITextu
     /**
      * Create view of this texture.
      */
-    public async view(): Promise<TextureView> {
-        return new TextureView(this.gpu, this);
+    public async view(pBaseLayer?: number, pLayerCount?: number): Promise<TextureView> {
+        return new TextureView(this.gpu, this, pBaseLayer, pLayerCount);
     }
 
     /**

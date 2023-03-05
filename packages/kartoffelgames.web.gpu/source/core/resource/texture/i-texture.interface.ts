@@ -42,5 +42,5 @@ export interface ITexture extends GpuNativeObject<GPUTexture> {
     /**
      * Get texture view.
      */
-    view(): Promise<TextureView>;
+    view(pBaseLayer?: number, pLayerCount?: number): Promise<TextureView>;
 }

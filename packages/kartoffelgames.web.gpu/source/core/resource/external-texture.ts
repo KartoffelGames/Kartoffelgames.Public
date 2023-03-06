@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { Gpu } from '../../gpu';
-import { GpuNativeObject } from '../../gpu-native-object';
+import { Gpu } from '../gpu';
+import { GpuNativeObject } from '../gpu-native-object';
 
 export class ExternalTexture extends GpuNativeObject<GPUExternalTexture> {
     private mVideoElement: HTMLVideoElement | null;

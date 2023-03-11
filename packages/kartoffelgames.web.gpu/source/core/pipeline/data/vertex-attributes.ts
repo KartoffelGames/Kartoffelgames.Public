@@ -1,17 +1,13 @@
-import { Exception, TypedArray } from '@kartoffelgames/core.data';
-import { BaseBuffer, BufferDataType } from '../../resource/buffer/base-buffer';
+import { TypedArray } from '@kartoffelgames/core.data';
+import { Gpu } from '../../gpu';
+import { GpuNativeObject } from '../../gpu-native-object';
+import { BufferDataType } from '../../resource/buffer/base-buffer';
 
-export class VertexAttributes<T extends TypedArray> {
+export class VertexAttributes<T extends TypedArray> extends GpuNativeObject<GPUVertexBufferLayout> {
     private readonly mAttributes: Array<AttributeFormatDefinition>;
-    private mBuffer: BaseBuffer<T> | null;
     private readonly mBufferDataType: BufferDataType<T>;
-
-    /**
-     * Attribute buffer.
-     */
-    public get buffer(): BaseBuffer<T> | null {
-        return this.mBuffer;
-    }
+    private mLocationOffset: number;
+    private mStrideLength: number;
 
     /**
      * Get underlying type of buffer.
@@ -21,19 +17,31 @@ export class VertexAttributes<T extends TypedArray> {
     }
 
     /**
-     * Attribute count.
+     * Attribute location index offset..
      */
-    public get count(): number {
-        return this.mAttributes.length;
+    public get locationOffset(): number {
+        return this.mLocationOffset;
+    } set locationOffset(pValue: number) {
+        this.mLocationOffset = pValue;
+    }
+
+    /**
+     * Get buffer item length that the assigned buffer should have.
+     */
+    public get strideLength(): number {
+        return this.mStrideLength;
     }
 
     /**
      * Constructor.
      * @param pBuffer - Buffer.
      */
-    public constructor(pType: BufferDataType<T>) {
+    public constructor(pGpu: Gpu, pType: BufferDataType<T>) {
+        super(pGpu);
+
+        this.mStrideLength = 0;
+        this.mLocationOffset = 0;
         this.mBufferDataType = pType;
-        this.mBuffer = null;
         this.mAttributes = new Array<AttributeFormatDefinition>();
     }
 
@@ -42,16 +50,30 @@ export class VertexAttributes<T extends TypedArray> {
      * @param pFormat - Attribute format.
      */
     public addAttributeLocation(pFormat: AttributeFormat): void {
+        const lItemStride: number = gAttributeTypeToBufferType[pFormat].itemStride;
+
+        // Increase item size.
+        this.mStrideLength += lItemStride;
+
+        // Add attribute.
         this.mAttributes.push({
             format: pFormat,
-            itemStride: gAttributeTypeToBufferType[pFormat].itemStride
+            itemStride: lItemStride
         });
     }
 
     /**
-     * Generate buffer layout.
+     * Free storage of native object.
+     * @param _pNativeObject - Native object. 
      */
-    public generateBufferLayout(pLocationOffset: number = 0): GPUVertexBufferLayout {
+    protected async destroyNative(_pNativeObject: GPUVertexBufferLayout): Promise<void> {
+        // Nothing to destroy.
+    }
+
+    /**
+     * Generate native object.
+     */
+    protected async generate(): Promise<GPUVertexBufferLayout> {
         // Count overall used bytes.
         let lTotalBytes: number = 0;
 
@@ -62,7 +84,7 @@ export class VertexAttributes<T extends TypedArray> {
             lAttributes.push({
                 format: lAttribute.format,
                 offset: lTotalBytes, // Current counter of bytes.
-                shaderLocation: lIndex + pLocationOffset
+                shaderLocation: lIndex + this.mLocationOffset
             });
 
             lTotalBytes += this.mBufferDataType.BYTES_PER_ELEMENT * lAttribute.itemStride;
@@ -76,16 +98,13 @@ export class VertexAttributes<T extends TypedArray> {
     }
 
     /**
-     * Update or replace buffer of attribute.
-     * @param pBuffer - New buffer.
+     * Invalidate native object on different stride lengths.
      */
-    public setBuffer(pBuffer: BaseBuffer<T>): void {
-        // Validate new buffer.
-        if (pBuffer.type !== this.mBufferDataType) {
-            throw new Exception('Buffer type does not match.', this);
-        }
+    protected override async validateState(): Promise<boolean> {
+        const lLastArrayStrideLength: number | undefined = this.generatedNative?.arrayStride;
+        const lCurrentArrayStideLength: number = this.mBufferDataType.BYTES_PER_ELEMENT * this.mStrideLength;
 
-        this.mBuffer = pBuffer;
+        return lLastArrayStrideLength === lCurrentArrayStideLength;
     }
 }
 

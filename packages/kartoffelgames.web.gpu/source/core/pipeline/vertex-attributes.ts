@@ -1,7 +1,7 @@
 import { TypedArray } from '@kartoffelgames/core.data';
-import { Gpu } from '../../gpu';
-import { GpuNativeObject } from '../../gpu-native-object';
-import { BufferDataType } from '../../resource/buffer/base-buffer';
+import { Gpu } from '../gpu';
+import { GpuNativeObject } from '../gpu-native-object';
+import { BufferDataType } from '../resource/buffer/base-buffer';
 
 export class VertexAttributes<T extends TypedArray> extends GpuNativeObject<GPUVertexBufferLayout> {
     private readonly mAttributes: Array<AttributeFormatDefinition>;

@@ -23,10 +23,14 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
      * Set depth attachment.
      */
     public set depthAttachment(pAttachment: DepthStencilAttachment) {
-        this.mDepthAttachment = pAttachment;
+        // Unregister old and register new depth attachment.
+        if(this.mDepthAttachment){
+            this.unregisterInternalNative(this.mDepthAttachment);
+        }
+        this.registerInternalNative(pAttachment);
 
-        // Set data changed flag.
-        this.mPipelineDataChangeState.depthAttachment = true;
+        // Set attachment.
+        this.mDepthAttachment = pAttachment;
     }
 
     /**
@@ -114,9 +118,6 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
         this.mPipelineDataChangeState = {
             primitive: false,
             shader: false,
-            attachments: false,
-            attributes: false,
-            bindGroups: false,
             depthAttachment: false
         };
 
@@ -131,8 +132,8 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
      * @param pAttachment - Attachment.
      */
     public addAttachment(pAttachment: ColorAttachment): number {
-        // Set data changed flag.
-        this.mPipelineDataChangeState.attachments = true;
+        // Register attachment as internal.
+        this.registerInternalNative(pAttachment);
 
         return this.mRenderTargetList.push(pAttachment) - 1;
     }
@@ -142,10 +143,10 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
      * @param pAttribute - Vertex Attributes.
      */
     public addAttribute(pAttribute: VertexAttributes<TypedArray>): void {
-        // Set data changed flag.
-        this.mPipelineDataChangeState.attributes = true;
-
         this.mAttributeList.push(pAttribute);
+
+        // Register attribute as internal.
+        this.registerInternalNative(pAttribute);
     }
 
     /**
@@ -153,10 +154,10 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
      * @param pBindGroupLayout - Bind group layout.
      */
     public addBindGroup(pBindGroupLayout: BindGroupLayout): void {
-        // Set data changed flag.
-        this.mPipelineDataChangeState.bindGroups = true;
-
         this.mBindGoupList.push(pBindGroupLayout);
+
+        // Register bind group as internal.
+        this.registerInternalNative(pBindGroupLayout);
     }
 
     /**
@@ -283,7 +284,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
             }
         }
 
-        // TODO: Validate native states.
+        // Native objects are validated over internal natives.
 
         return true;
     }
@@ -292,8 +293,5 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
 type PipelineDataChangeState = {
     primitive: boolean;
     shader: boolean;
-    attachments: boolean;
-    attributes: boolean;
-    bindGroups: boolean;
     depthAttachment: boolean;
 };

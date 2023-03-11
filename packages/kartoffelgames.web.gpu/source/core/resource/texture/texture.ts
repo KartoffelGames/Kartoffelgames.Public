@@ -178,9 +178,9 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
     /**
      * Validate native object state for a refresh.
      */
-    protected override async validateState(): Promise<boolean> {
+    protected override async validateState(pGeneratedNative: GPUTexture): Promise<boolean> {
         // Validate changed size.
-        if (this.mHeight !== this.generatedNative?.height || this.mWidth !== this.generatedNative?.width || this.mLayerCount !== this.generatedNative?.depthOrArrayLayers || this.mMultiSampleLevel !== this.generatedNative.sampleCount) {
+        if (this.mHeight !== pGeneratedNative.height || this.mWidth !== pGeneratedNative.width || this.mLayerCount !== pGeneratedNative.depthOrArrayLayers || this.mMultiSampleLevel !== pGeneratedNative.sampleCount) {
             return false;
         }
 

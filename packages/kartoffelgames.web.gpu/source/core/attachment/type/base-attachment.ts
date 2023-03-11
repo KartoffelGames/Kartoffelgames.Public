@@ -5,7 +5,7 @@ import { AttachmentType } from '../attachment-type.enum';
 
 export abstract class BaseAttachment<TAttachment extends GPURenderPassColorAttachment | GPURenderPassDepthStencilAttachment> extends GpuNativeObject<TAttachment>{
     private readonly mAttachment: AttachmentDefinition;
-    private mOldTexture: GPUTexture | null;
+    private mOldTextureId: string;
 
     /**
      * Get texture format.
@@ -28,17 +28,20 @@ export abstract class BaseAttachment<TAttachment extends GPURenderPassColorAttac
     public constructor(pGpu: Gpu, pAttachment: AttachmentDefinition) {
         super(pGpu);
         this.mAttachment = pAttachment;
-        this.mOldTexture = null;
+        this.mOldTextureId = '';
     }
 
     /**
      * Validate native object. Refresh native on negative state.
      */
     protected override async validateState(): Promise<boolean> {
+        // Problem can not be solved with native object change listener,
+        // as attachment.frame is not readonly and can be replaced with other textures when needed.
+        // So checking for changes with the nativeId is the fastes way, without generating the native texture.
+
         // Validate for new generated texture.
-        const lTexture: GPUTexture = await this.mAttachment.frame.native();
-        if (lTexture !== this.mOldTexture) {
-            this.mOldTexture = lTexture;
+        if (this.mAttachment.frame.nativeId !== this.mOldTextureId) {
+            this.mOldTextureId = this.mAttachment.frame.nativeId;
             return false;
         }
 

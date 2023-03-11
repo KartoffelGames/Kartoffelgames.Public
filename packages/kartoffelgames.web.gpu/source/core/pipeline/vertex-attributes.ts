@@ -107,8 +107,8 @@ export class VertexAttributes<T extends TypedArray> extends GpuNativeObject<GPUV
     /**
      * Invalidate native object on different stride lengths.
      */
-    protected override async validateState(): Promise<boolean> {
-        const lLastArrayStrideLength: number | undefined = this.generatedNative?.arrayStride;
+    protected override async validateState(pGeneratedNative: GPUVertexBufferLayout): Promise<boolean> {
+        const lLastArrayStrideLength: number | undefined = pGeneratedNative.arrayStride;
         const lCurrentArrayStideLength: number = this.mBufferDataType.BYTES_PER_ELEMENT * this.mStrideLength;
 
         return lLastArrayStrideLength === lCurrentArrayStideLength;

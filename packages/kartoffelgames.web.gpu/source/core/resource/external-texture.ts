@@ -69,7 +69,7 @@ export class ExternalTexture extends GpuNativeObject<GPUExternalTexture> {
     /**
      * Invalidate on expired texture.
      */
-    protected override async validateState(): Promise<boolean> {
-        return !!(this.generatedNative && !this.generatedNative.expired);
+    protected override async validateState(pGeneratedNative: GPUExternalTexture): Promise<boolean> {
+        return pGeneratedNative.expired;
     }
 }

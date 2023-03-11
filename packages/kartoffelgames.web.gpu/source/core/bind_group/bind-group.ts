@@ -10,7 +10,6 @@ import { BindGroupLayout } from './bind-group-layout';
 
 export class BindGroup extends GpuNativeObject<GPUBindGroup>{
     private readonly mBindData: Dictionary<string, Bind>;
-    private mCurrentGeneratedLayout: GPUBindGroupLayout | null;
     private readonly mLayout: BindGroupLayout;
     private readonly mNativeData: WeakMap<object, string>;
 
@@ -25,7 +24,9 @@ export class BindGroup extends GpuNativeObject<GPUBindGroup>{
         this.mLayout = pLayout;
         this.mBindData = new Dictionary<string, Bind>();
         this.mNativeData = new WeakMap<object, string>();
-        this.mCurrentGeneratedLayout = null;
+
+        // Register layout as internal.
+        this.registerInternalNative(pLayout);
     }
 
     /**
@@ -42,6 +43,12 @@ export class BindGroup extends GpuNativeObject<GPUBindGroup>{
         if (lLayout.bindType !== lDataBindType) {
             throw new Exception(`Bind data "${pBindName}" has wrong type`, this);
         }
+
+        // Unregister possible old data and register new.
+        if (this.mBindData.has(pBindName)) {
+            this.unregisterInternalNative(this.mBindData.get(pBindName)!.data);
+        }
+        this.registerInternalNative(pData);
 
         // Set bind type to Teture for TS type check shutup.
         this.mBindData.set(pBindName, { type: <BindType.Texture>lDataBindType, name: pBindName, data: <TextureView>pData });
@@ -108,33 +115,10 @@ export class BindGroup extends GpuNativeObject<GPUBindGroup>{
             lEntryList.push(lGroupEntry);
         }
 
-        // Update last bind group layout.
-        this.mCurrentGeneratedLayout = await this.mLayout.native();
-
         return this.gpu.device.createBindGroup({
             layout: await this.mLayout.native(),
             entries: lEntryList
         });
-    }
-
-    /**
-     * Invalidate bind group when layout changes.
-     */
-    protected override async validateState(): Promise<boolean> {
-        // Validate changed layout. 
-        if (this.mCurrentGeneratedLayout !== await this.mLayout.native()) {
-            return false;
-        }
-
-        // Validate binded native.
-        for (const lData of this.mBindData.values()) {
-            // Check if native data is still assigned to bind slot by name.
-            if (this.mNativeData.get(await lData.data.native()) === lData.name) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /**

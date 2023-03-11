@@ -7,7 +7,6 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
     private readonly mBaseLayer: GPUIntegerCoordinate;
     private mBaseMipLevel: GPUIntegerCoordinate;
     private mDimension: GPUTextureViewDimension;
-    private mLastTexture: GPUTexture | null;
     private readonly mLayerCount: GPUIntegerCoordinate;
     private mMipLevelCount: GPUIntegerCoordinate;
     private readonly mTexture: ITexture;
@@ -78,7 +77,6 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
      */
     public constructor(pGpu: Gpu, pTexture: ITexture, pBaseLayer?: number, pLayerCount?: number) {
         super(pGpu);
-        this.mLastTexture = null;
         this.mUpdateRequested = false;
 
         this.mTexture = pTexture;
@@ -90,6 +88,9 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
         this.mAspect = 'all';
         this.mBaseMipLevel = 0;
         this.mMipLevelCount = 0;
+
+        // Register texture as internal.
+        this.registerInternalNative(pTexture);
     }
 
     /**
@@ -104,12 +105,10 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
      * Generate new texture view.
      */
     protected async generate(): Promise<GPUTextureView> {
-        const lTexture: GPUTexture = await this.mTexture.native();
-
         // Update flags.
-        this.mLastTexture = lTexture;
         this.mUpdateRequested = false;
 
+        const lTexture: GPUTexture = await this.mTexture.native();
         return lTexture.createView({
             format: this.mTexture.format,
             dimension: this.mDimension,
@@ -125,11 +124,6 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
      * Invalidate generated object when proeprties has changed.
      */
     protected override async validateState(): Promise<boolean> {
-        // Invalidate on Texture change.
-        if (this.mLastTexture !== await this.mTexture.native()) {
-            return false;
-        }
-
         return !this.mUpdateRequested;
     }
 }

@@ -8,6 +8,13 @@ export abstract class BaseAttachment<TAttachment extends GPURenderPassColorAttac
     private mOldTexture: GPUTexture | null;
 
     /**
+     * Get texture format.
+     */
+    public get format(): GPUTextureFormat {
+        return this.mAttachment.format;
+    }
+
+    /**
      * Attachment definition.
      */
     protected get attachment(): AttachmentDefinition {

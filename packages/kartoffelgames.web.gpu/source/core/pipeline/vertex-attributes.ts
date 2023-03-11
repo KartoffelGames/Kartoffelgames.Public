@@ -4,7 +4,7 @@ import { GpuNativeObject } from '../gpu-native-object';
 import { BufferDataType } from '../resource/buffer/base-buffer';
 
 export class VertexAttributes<T extends TypedArray> extends GpuNativeObject<GPUVertexBufferLayout> {
-    private readonly mAttributes: Array<AttributeFormatDefinition>;
+    private readonly mAttributeList: Array<AttributeFormatDefinition>;
     private readonly mBufferDataType: BufferDataType<T>;
     private mLocationOffset: number;
     private mStrideLength: number;
@@ -14,6 +14,13 @@ export class VertexAttributes<T extends TypedArray> extends GpuNativeObject<GPUV
      */
     public get bufferDataType(): BufferDataType<T> {
         return this.mBufferDataType;
+    }
+
+    /**
+     * Get attribute count.
+     */
+    public get count(): number {
+        return this.mAttributeList.length;
     }
 
     /**
@@ -42,7 +49,7 @@ export class VertexAttributes<T extends TypedArray> extends GpuNativeObject<GPUV
         this.mStrideLength = 0;
         this.mLocationOffset = 0;
         this.mBufferDataType = pType;
-        this.mAttributes = new Array<AttributeFormatDefinition>();
+        this.mAttributeList = new Array<AttributeFormatDefinition>();
     }
 
     /**
@@ -56,7 +63,7 @@ export class VertexAttributes<T extends TypedArray> extends GpuNativeObject<GPUV
         this.mStrideLength += lItemStride;
 
         // Add attribute.
-        this.mAttributes.push({
+        this.mAttributeList.push({
             format: pFormat,
             itemStride: lItemStride
         });
@@ -79,8 +86,8 @@ export class VertexAttributes<T extends TypedArray> extends GpuNativeObject<GPUV
 
         // Generate attributes.
         const lAttributes: Array<GPUVertexAttribute> = new Array<GPUVertexAttribute>();
-        for (let lIndex: number = 0; lIndex < this.mAttributes.length; lIndex++) {
-            const lAttribute = this.mAttributes[lIndex];
+        for (let lIndex: number = 0; lIndex < this.mAttributeList.length; lIndex++) {
+            const lAttribute = this.mAttributeList[lIndex];
             lAttributes.push({
                 format: lAttribute.format,
                 offset: lTotalBytes, // Current counter of bytes.

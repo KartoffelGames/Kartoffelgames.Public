@@ -1,125 +1,299 @@
 import { Exception, TypedArray } from '@kartoffelgames/core.data';
-import { CanvasAttachment } from '../attachment/canvas-attachment';
-import { ColorAttachment } from '../attachment/color-attachment';
-import { DepthStencilAttachment } from '../attachment/depth-stencil-attachment';
-import { BaseBuffer } from '../resource/buffer/base-buffer';
+import { ColorAttachment } from '../attachment/type/color-attachment';
+import { DepthStencilAttachment } from '../attachment/type/depth-stencil-attachment';
+import { BindGroupLayout } from '../bind_group/bind-group-layout';
 import { Gpu } from '../gpu';
+import { GpuNativeObject } from '../gpu-native-object';
 import { Shader } from '../shader';
-import { BindGroup } from './data/bind-group';
-import { VertexAttributes } from './data/vertex-attributes';
+import { VertexAttributes } from './vertex-attributes';
 
-export class RenderPipeline {
+export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
     private readonly mAttributeList: Array<VertexAttributes<TypedArray>>;
-    private readonly mBindGoupList: Array<BindGroup>;
-    private mDepthAttachment!: DepthStencilAttachment;
-    private readonly mGpu: Gpu;
+    private readonly mBindGoupList: Array<BindGroupLayout>;
+    private mDepthAttachment: DepthStencilAttachment | null;
+    private mDepthCompare: GPUCompareFunction;
+    private mDepthWriteEnabled: boolean;
+    private mFragmentShader: Shader | null;
+    private readonly mPipelineDataChangeState: PipelineDataChangeState;
     private readonly mPrimitive: GPUPrimitiveState;
-    private readonly mRenderTargetList: Array<ColorAttachment | CanvasAttachment>;
-    private readonly mShader: Shader;
+    private readonly mRenderTargetList: Array<ColorAttachment>;
+    private mVertexShader: Shader | null;
 
-    public set depth(pAttachment: DepthStencilAttachment) {
+    /**
+     * Set depth attachment.
+     */
+    public set depthAttachment(pAttachment: DepthStencilAttachment) {
         this.mDepthAttachment = pAttachment;
+
+        // Set data changed flag.
+        this.mPipelineDataChangeState.depthAttachment = true;
     }
 
     /**
-     * GPU.
+     * Set depth compare function.
      */
-    public get gpu(): Gpu {
-        return this.mGpu;
+    public get depthCompare(): GPUCompareFunction {
+        return this.mDepthCompare;
+    } set depthCompare(pValue: GPUCompareFunction) {
+        this.mDepthCompare = pValue;
+
+        // Set data changed flag.
+        this.mPipelineDataChangeState.depthAttachment = true;
+    }
+
+    /**
+     * Defines which polygon orientation will be culled.
+     */
+    public get primitiveCullMode(): GPUCullMode {
+        return this.mPrimitive.cullMode!;
+    } set primitiveCullMode(pValue: GPUCullMode) {
+        this.mPrimitive.cullMode = pValue;
+
+        // Set data changed flag.
+        this.mPipelineDataChangeState.primitive = true;
+    }
+
+    /**
+     * Defines which polygons are considered front-facing.
+     */
+    public get primitiveFrontFace(): GPUFrontFace {
+        return this.mPrimitive.frontFace!;
+    } set primitiveFrontFace(pValue: GPUFrontFace) {
+        this.mPrimitive.frontFace = pValue;
+
+        // Set data changed flag.
+        this.mPipelineDataChangeState.primitive = true;
+    }
+
+    /**
+     * The type of primitive to be constructed from the vertex inputs.
+     */
+    public get primitiveTopology(): GPUPrimitiveTopology {
+        return this.mPrimitive.topology!;
+    } set primitiveTopology(pValue: GPUPrimitiveTopology) {
+        this.mPrimitive.topology = pValue;
+
+        // Set data changed flag.
+        this.mPipelineDataChangeState.primitive = true;
+    }
+
+    /**
+     * Set depth write enabled / disabled.
+     */
+    public get writeDepth(): boolean {
+        return this.mDepthWriteEnabled;
+    } set writeDepth(pValue: boolean) {
+        this.mDepthWriteEnabled = pValue;
+
+        // Set data changed flag.
+        this.mPipelineDataChangeState.depthAttachment = true;
     }
 
     /**
      * Constructor.
      * @param pGpu - GPU.
      */
-    public constructor(pGpu: Gpu, pShader: Shader, pPrimitive: GPUPrimitiveState) {
-        this.mGpu = pGpu;
-        this.mShader = pShader;
-        this.mPrimitive = pPrimitive;
+    public constructor(pGpu: Gpu) {
+        super(pGpu);
+
+        // Init unassigned properties.
+        this.mVertexShader = null;
+        this.mFragmentShader = null;
+        this.mDepthAttachment = null;
+
+        // Set default values.
+        this.mPrimitive = {
+            frontFace: 'cw',
+            cullMode: 'back',
+            topology: 'triangle-list'
+        };
+        this.mDepthWriteEnabled = true;
+        this.mDepthCompare = 'less';
+
+        // Unchanged change state.
+        this.mPipelineDataChangeState = {
+            primitive: false,
+            shader: false,
+            attachments: false,
+            attributes: false,
+            bindGroups: false,
+            depthAttachment: false
+        };
+
+        // Init lists.
         this.mAttributeList = new Array<VertexAttributes<any>>();
-        this.mRenderTargetList = new Array<ColorAttachment | CanvasAttachment>();
-        this.mBindGoupList = new Array<BindGroup>();
+        this.mRenderTargetList = new Array<ColorAttachment>();
+        this.mBindGoupList = new Array<BindGroupLayout>();
     }
 
-    public addAttachment(pAttachment: ColorAttachment | CanvasAttachment): void {
-        this.mRenderTargetList.push(pAttachment);
+    /**
+     * Add attachment. Return attachment index.
+     * @param pAttachment - Attachment.
+     */
+    public addAttachment(pAttachment: ColorAttachment): number {
+        // Set data changed flag.
+        this.mPipelineDataChangeState.attachments = true;
+
+        return this.mRenderTargetList.push(pAttachment) - 1;
     }
 
+    /**
+     * Add vertex attributes. Order matters.
+     * @param pAttribute - Vertex Attributes.
+     */
     public addAttribute(pAttribute: VertexAttributes<TypedArray>): void {
+        // Set data changed flag.
+        this.mPipelineDataChangeState.attributes = true;
+
         this.mAttributeList.push(pAttribute);
     }
 
-    public addBindGroup(pGroup: BindGroup): void {
-        this.mBindGoupList.push(pGroup);
+    /**
+     * Add bind group layout.
+     * @param pBindGroupLayout - Bind group layout.
+     */
+    public addBindGroup(pBindGroupLayout: BindGroupLayout): void {
+        // Set data changed flag.
+        this.mPipelineDataChangeState.bindGroups = true;
+
+        this.mBindGoupList.push(pBindGroupLayout);
     }
 
-    public generatePipeline(): GPURenderPipeline {
+    /**
+     * Set Shader programms for pipeline.
+     * @param pShader - Vertex with optional fragement shader.
+     * @param pFragmentShader - Fragment shader.
+     */
+    public setShader(pShader: Shader): void;
+    public setShader(pVertexShader: Shader, pFragmentShader: Shader): void;
+    public setShader(pShader: Shader, pFragmentShader?: Shader): void {
+        // Validate vertex shader.
+        if (!pShader.vertexEntryPoint) {
+            throw new Exception('Vertex shader has no entry point.', this);
+        }
+
+        // Validate optional vertex shader.
+        if (pFragmentShader) {
+            // Invalid set fragment shader.
+            if (pFragmentShader.fragmentEntryPoint) {
+                throw new Exception('Fragment shader has no entry point.', this);
+            }
+
+            this.mFragmentShader = pFragmentShader;
+        } else if (pShader.fragmentEntryPoint) {
+            // Set fragment shader from base shader when no fragment shader is set and base shader has an fragment entry point.
+            this.mFragmentShader = pShader;
+        }
+
+        this.mVertexShader = pShader;
+
+        // Set data changed flag.
+        this.mPipelineDataChangeState.shader = true;
+    }
+
+
+    /**
+     * Free storage of native object.
+     * @param _pNativeObject - Native object. 
+     */
+    protected async destroyNative(_pNativeObject: GPURenderPipeline): Promise<void> {
+        // Nothing to destroy.
+    }
+
+    /**
+     * Generate native render pipeline.
+     */
+    protected async generate(): Promise<GPURenderPipeline> {
         // Check valid entry points.
-        if (!this.mShader.vertexEntryPoint) {
+        if (!this.mVertexShader) {
             throw new Exception('Shadermodule has no vertex entry point.', this);
         }
-        if (!this.mShader.fragmentEntryPoint) {
-            throw new Exception('Shadermodule has no fragment entry point.', this);
+
+        // Generate pipeline layout from bind group layouts.
+        const lPipelineLayout: GPUPipelineLayoutDescriptor = { bindGroupLayouts: new Array<GPUBindGroupLayout>() };
+        for (const lBindGroupLayout of this.mBindGoupList) {
+            (<Array<GPUBindGroupLayout>>lPipelineLayout.bindGroupLayouts).push(await lBindGroupLayout.native());
         }
 
-        // Generate fragment targets.
-        const lFragmentTargetList: Array<GPUColorTargetState> = new Array<GPUColorTargetState>();
-        for (const lRenderTarget of this.mRenderTargetList) {
-            lFragmentTargetList.push({
-                format: lRenderTarget.format,
-                // blend?: GPUBlendState;
-                // writeMask?: GPUColorWriteFlags;
-            });
+        // Generate vertex buffer layouts.
+        let lVertexAttributeCount: number = 0;
+        const lVertexBufferLayoutList: Array<GPUVertexBufferLayout> = new Array<GPUVertexBufferLayout>();
+        for (const lAttribute of this.mAttributeList) {
+            // Set location offset based on previous  vertex attributes.
+            lAttribute.locationOffset = lVertexAttributeCount;
+            lVertexBufferLayoutList.push(await lAttribute.native());
+
+            // Increase vertx atttribute count.
+            lVertexAttributeCount += lAttribute.count;
         }
 
-        return this.mGpu.device.createRenderPipeline({
-            layout: 'auto', // TODO: layout.
+        // Construct basic GPURenderPipelineDescriptor.
+        const lPipelineDescriptor: GPURenderPipelineDescriptor = {
+            layout: this.gpu.device.createPipelineLayout(lPipelineLayout),
             vertex: {
-                module: this.mShader.shaderModule,
-                entryPoint: this.mShader.vertexEntryPoint,
-                buffers: this.mAttributeList.map((pAttribute) => { return pAttribute.generateBufferLayout(); })
-                // TODO: constants.
-            },
-            fragment: {
-                module: this.mShader.shaderModule,
-                entryPoint: this.mShader.fragmentEntryPoint,
-                targets: lFragmentTargetList
-            },
-            depthStencil: {
-                depthWriteEnabled: true,
-                depthCompare: 'less',
-                format: this.mDepthAttachment.format,
-                // TODO: Stencil settings. 
+                module: this.mVertexShader.shaderModule,
+                entryPoint: this.mVertexShader.vertexEntryPoint!, // It allways should has an entry point.
+                buffers: lVertexBufferLayoutList
+                // No constants. Yes.
             },
             primitive: this.mPrimitive
-        });
-    }
-
-    public render(pEncoder: GPUCommandEncoder, pIndexBuffer: BaseBuffer<Uint16Array>): void {
-        const lEncoder: GPURenderPassEncoder = pEncoder.beginRenderPass(this.generatePassDescriptor());
-        lEncoder.setPipeline(this.generatePipeline());
-
-        // Add bind groups.
-        for (let lIndex: number = 0; lIndex < this.mBindGoupList.length; lIndex++) {
-            const lBindGroup = this.mBindGoupList[lIndex];
-            lEncoder.setBindGroup(lIndex, lBindGroup.generateBindGroup());
-        }
-
-        // Add vertex attribute buffer.
-        for (let lIndex: number = 0; lIndex < this.mAttributeList.length; lIndex++) {
-            const lAttribute = this.mAttributeList[lIndex];
-            lEncoder.setVertexBuffer(lIndex, lAttribute.buffer!.buffer);
-        }
-
-        lEncoder.setIndexBuffer(pIndexBuffer.buffer, 'uint16');
-        lEncoder.drawIndexed(pIndexBuffer.itemCount);
-        lEncoder.end();
-    }
-
-    private generatePassDescriptor(): GPURenderPassDescriptor {
-        return {
-            colorAttachments: this.mRenderTargetList.map((pAttachment) => pAttachment.renderPassAttachment()),
-            depthStencilAttachment: this.mDepthAttachment.renderPassAttachment()
         };
+
+        // Optional fragment state.
+        if (this.mFragmentShader) {
+            // Generate fragment targets only when fragment state is needed.
+            const lFragmentTargetList: Array<GPUColorTargetState> = new Array<GPUColorTargetState>();
+            for (const lRenderTarget of this.mRenderTargetList) {
+                lFragmentTargetList.push({
+                    format: lRenderTarget.format,
+                    // blend?: GPUBlendState;
+                    // writeMask?: GPUColorWriteFlags;
+                });
+            }
+
+            lPipelineDescriptor.fragment = {
+                module: this.mFragmentShader.shaderModule,
+                entryPoint: this.mFragmentShader.fragmentEntryPoint!, // It allways should has an entry point.
+                targets: lFragmentTargetList
+            };
+        }
+
+        // Setup optional depth attachment.
+        if (this.mDepthAttachment) {
+            lPipelineDescriptor.depthStencil = {
+                depthWriteEnabled: this.mDepthWriteEnabled,
+                depthCompare: this.mDepthCompare,
+                format: this.mDepthAttachment.format,
+                // TODO: Stencil settings. 
+            };
+        }
+
+        // Async is none GPU stalling.
+        return this.gpu.device.createRenderPipelineAsync(lPipelineDescriptor);
+    }
+
+    /**
+     * Invalidate on data change or native data change.s
+     */
+    protected override async validateState(): Promise<boolean> {
+        // Go for the fast checks first.
+        for (const lChangeState in this.mPipelineDataChangeState) {
+            if ((<{ [changeState: string]: boolean; }>this.mPipelineDataChangeState)[lChangeState]) {
+                return false;
+            }
+        }
+
+        // TODO: Validate native states.
+
+        return true;
     }
 }
+
+type PipelineDataChangeState = {
+    primitive: boolean;
+    shader: boolean;
+    attachments: boolean;
+    attributes: boolean;
+    bindGroups: boolean;
+    depthAttachment: boolean;
+};

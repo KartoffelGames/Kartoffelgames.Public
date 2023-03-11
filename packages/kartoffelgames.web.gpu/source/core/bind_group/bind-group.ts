@@ -1,83 +1,181 @@
-import { Exception, TypedArray } from '@kartoffelgames/core.data';
-import { BaseBuffer } from '../../buffer/base-buffer';
-import { Gpu } from '../../gpu';
-import { BindType } from './bind-group-layout';
+import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core.data';
+import { BindType } from '../enum/bind-type.enum';
+import { Gpu } from '../gpu';
+import { GpuNativeObject } from '../gpu-native-object';
+import { BaseBuffer } from '../resource/buffer/base-buffer';
+import { ExternalTexture } from '../resource/external-texture';
+import { TextureSampler } from '../resource/texture-sampler';
+import { TextureView } from '../resource/texture/texture-view';
+import { BindGroupLayout } from './bind-group-layout';
 
-export class BindGroup {
-    private readonly mBindList: Array<Bind>;
-    private readonly mGpu: Gpu;
-    private readonly mLayout: GPUBindGroupLayout;
+export class BindGroup extends GpuNativeObject<GPUBindGroup>{
+    private readonly mBindData: Dictionary<string, Bind>;
+    private mCurrentGeneratedLayout: GPUBindGroupLayout | null;
+    private readonly mLayout: BindGroupLayout;
+    private readonly mNativeData: WeakMap<object, string>;
 
     /**
      * Constructor.
-     * @param pLayout - Layout
-     * @param pBindList - Bind list.
+     * @param pGpu - GPU.
+     * @param pLayout - Bind group layout.
      */
-    public constructor(pGpu: Gpu, pLayout: GPUBindGroupLayout, pBindList: Array<BindDefinition>) {
-        this.mGpu = pGpu;
-        this.mLayout = pLayout;
-        this.mBindList = new Array<Bind>();
+    public constructor(pGpu: Gpu, pLayout: BindGroupLayout) {
+        super(pGpu);
 
-        // Extend bind definition by data.
-        for (const lDefinition of pBindList) {
-            this.mBindList.push({
-                name: lDefinition.name,
-                type: lDefinition.type,
-                data: null
-            });
-        }
+        this.mLayout = pLayout;
+        this.mBindData = new Dictionary<string, Bind>();
+        this.mNativeData = new WeakMap<object, string>();
+        this.mCurrentGeneratedLayout = null;
     }
 
-    public generateBindGroup(): GPUBindGroup {
-        const lEntryList: Array<GPUBindGroupEntry> = new Array<GPUBindGroupEntry>();
+    /**
+     * Set data to layout binding.
+     * @param pBindName - Bind layout entry name.
+     * @param pData - Bind data.
+     * @param pForcedType - Forced type. Can be used to differ for Texture and StorageTexture.
+     */
+    public setData(pBindName: string, pData: BindData, pForcedType?: BindType): void {
+        const lLayout = this.mLayout.getBind(pBindName);
+        const lDataBindType: BindType = pForcedType ?? this.bindTypeOfData(pData);
 
-        for (let lIndex: number = 0; lIndex < this.mBindList.length; lIndex++) {
-            const lBind = this.mBindList[lIndex];
-
-            if (!lBind.data) {
-                throw new Exception(`Bind data "${lBind.data}" not set.`, this);
-            }
-
-            if (lBind instanceof BaseBuffer) {
-                lEntryList.push({
-                    binding: lIndex,
-                    resource: {
-                        buffer: (<BaseBuffer<TypedArray>>lBind.data).buffer
-                    }
-                });
-            } else {
-                lEntryList.push({
-                    binding: lIndex,
-                    resource: <GPUTextureView>lBind.data
-                });
-            }
+        // Validate bind type with data type.
+        if (lLayout.bindType !== lDataBindType) {
+            throw new Exception(`Bind data "${pBindName}" has wrong type`, this);
         }
 
-        return this.mGpu.device.createBindGroup({
-            layout: this.mLayout,
+        // Set bind type to Teture for TS type check shutup.
+        this.mBindData.set(pBindName, { type: <BindType.Texture>lDataBindType, name: pBindName, data: <TextureView>pData });
+    }
+
+    /**
+     * Free storage of native object.
+     * @param _pNativeObject - Native object. 
+     */
+    protected async destroyNative(_pNativeObject: GPUBindGroup): Promise<void> {
+        // Nothing to destroy.
+    }
+
+    /**
+     * Generate native bind group.
+     */
+    protected async generate(): Promise<GPUBindGroup> {
+        const lEntryList: Array<GPUBindGroupEntry> = new Array<GPUBindGroupEntry>();
+
+        for (const lBindLayout of this.mLayout.binds) {
+            const lBindData: Bind | undefined = this.mBindData.get(lBindLayout.name);
+
+            // Check for 
+            if (!lBindData) {
+                throw new Exception(`Bind data "${lBindLayout.name}" not set.`, this);
+            }
+
+            // Check for type change.
+            if (lBindData.type !== lBindLayout.type) {
+                throw new Exception(`Bind data "${lBindLayout.name}" has wrong type. The Layout might has been changed.`, this);
+            }
+
+            // Set resource to group entry for each 
+            const lGroupEntry: GPUBindGroupEntry = { binding: lBindLayout.index, resource: <any>null };
+            switch (lBindData.type) {
+                case BindType.Buffer: {
+                    lGroupEntry.resource = { buffer: await lBindData.data.native() };
+                    break;
+                }
+                case BindType.ExternalTexture: {
+                    lGroupEntry.resource = await lBindData.data.native();
+                    break;
+                }
+                case BindType.Sampler: {
+                    lGroupEntry.resource = await lBindData.data.native();
+                    break;
+                }
+                case BindType.StorageTexture: {
+                    lGroupEntry.resource = await lBindData.data.native();
+                    break;
+                }
+                case BindType.Texture: {
+                    lGroupEntry.resource = await lBindData.data.native();
+                    break;
+                }
+                default: {
+                    throw new Exception(`Type "${(<Bind>lBindData).type}" not supported on bind group`, this);
+                }
+            }
+
+            // Save generated native for validation state.
+            this.mNativeData.set(await lBindData.data.native(), lBindLayout.name);
+
+            lEntryList.push(lGroupEntry);
+        }
+
+        // Update last bind group layout.
+        this.mCurrentGeneratedLayout = await this.mLayout.native();
+
+        return this.gpu.device.createBindGroup({
+            layout: await this.mLayout.native(),
             entries: lEntryList
         });
     }
 
-    public setData(pBindName: string, pData: GPUTextureView | BaseBuffer<TypedArray>): void {
-        const lBind = this.mBindList.find((pBind) => { return pBind.name === pBindName; });
-        if (!lBind) {
-            throw new Exception(`Bind "${pBindName}" not found.`, this);
+    /**
+     * Invalidate bind group when layout changes.
+     */
+    protected override async validateState(): Promise<boolean> {
+        // Validate changed layout. 
+        if (this.mCurrentGeneratedLayout !== await this.mLayout.native()) {
+            return false;
         }
 
-        // TODO: Validate datatype for bind type.
+        // Validate binded native.
+        for (const lData of this.mBindData.values()) {
+            // Check if native data is still assigned to bind slot by name.
+            if (this.mNativeData.get(await lData.data.native()) === lData.name) {
+                return false;
+            }
+        }
 
-        lBind.data = pData;
+        return true;
+    }
+
+    /**
+     * Get type of bind data.
+     * @param pData - Data object.
+     */
+    private bindTypeOfData(pData: BindData): BindType {
+        if (pData instanceof TextureView) {
+            return BindType.Texture;
+        } else if (pData instanceof BaseBuffer) {
+            return BindType.Buffer;
+        } else if (pData instanceof ExternalTexture) {
+            return BindType.ExternalTexture;
+        } if (pData instanceof TextureSampler) {
+            return BindType.Sampler;
+        }
+
+        throw new Exception(`Bind data "${(<any>pData).name}" not supported`, this);
     }
 }
 
-type Bind = {
-    name: string,
-    type: BindType,
-    data: GPUTextureView | BaseBuffer<TypedArray> | null;
-};
+type BindData = TextureView | BaseBuffer<TypedArray> | ExternalTexture | TextureSampler;
 
-export type BindDefinition = {
+type Bind = {
+    type: BindType.Buffer,
     name: string,
-    type: BindType,
+    data: BaseBuffer<TypedArray>;
+} | {
+    type: BindType.ExternalTexture,
+    name: string,
+    data: ExternalTexture;
+} | {
+    type: BindType.Sampler,
+    name: string,
+    data: TextureSampler;
+} | {
+    type: BindType.StorageTexture,
+    name: string,
+    data: TextureView;
+} | {
+    type: BindType.Texture,
+    name: string,
+    data: TextureView;
 };

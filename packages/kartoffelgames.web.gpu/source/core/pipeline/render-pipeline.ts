@@ -255,6 +255,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
 
         // Construct basic GPURenderPipelineDescriptor.
         const lPipelineDescriptor: GPURenderPipelineDescriptor = {
+            label: this.label,
             layout: this.gpu.device.createPipelineLayout(lPipelineLayout),
             vertex: {
                 module: this.mVertexShader.shaderModule,

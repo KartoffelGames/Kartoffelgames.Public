@@ -32,7 +32,8 @@ export class DepthStencilAttachment extends BaseAttachment<GPURenderPassDepthSte
 
         // Generate view.
         const lView: GPUTextureView = lTexture.createView({
-            dimension: this.attachment.dimension,
+            label: 'Texture-View' + this.attachment.frame.label,
+            dimension: '2d',
             baseArrayLayer: this.attachment.baseArrayLayer,
             arrayLayerCount: this.attachment.layers,
         });

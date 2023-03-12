@@ -41,7 +41,7 @@ export class Attachments {
 
         // Validate canvas settings.
         if ('canvas' in pAttachment) {
-            if (pAttachment.layers !== 1) {
+            if (typeof pAttachment.layers !== 'undefined' && pAttachment.layers !== 1) {
                 throw new Exception('Invalid layer count on canvas attachment. Only one layer allowed.', this);
             }
         }
@@ -53,7 +53,7 @@ export class Attachments {
         let lType: AttachmentType = pAttachment.type;
         let lCanvas: HTMLCanvasElement | null = null;
         if ('canvas' in pAttachment) {
-            lType &= AttachmentType.Canvas; // Inject canvas type.
+            lType |= AttachmentType.Canvas; // Inject canvas type.
             lCanvas = pAttachment.canvas;
         }
 
@@ -67,7 +67,6 @@ export class Attachments {
             storeOp: pAttachment.storeOp ?? 'store', // Apply default value.
             format: lFormat,
             layers: pAttachment.layers ?? 1, // Apply default value.
-            dimension: pAttachment.dimension ?? '2d', // Apply default value.
             baseArrayLayer: null,
             canvas: lCanvas
         };
@@ -222,6 +221,7 @@ export class Attachments {
                 let lTexture: ITexture;
                 if (lGroup.canvas !== null) {
                     const lCanvasTexture: CanvasTexture = new CanvasTexture(this.mGpu, lGroup.canvas, lGroup.format, TextureUsage.RenderAttachment | TextureUsage.TextureBinding);
+                    lCanvasTexture.label = lGroup.name;
                     lCanvasTexture.width = this.mSize.width;
                     lCanvasTexture.height = this.mSize.height;
                     lCanvasTexture.label = lGroup.name;
@@ -229,7 +229,8 @@ export class Attachments {
                     lTexture = lCanvasTexture;
                 } else {
                     // Create fixed texture.
-                    const lFixedTexture: Texture = new Texture(this.mGpu, lGroup.format, TextureUsage.RenderAttachment | TextureUsage.TextureBinding, '3d');
+                    const lFixedTexture: Texture = new Texture(this.mGpu, lGroup.format, TextureUsage.RenderAttachment | TextureUsage.TextureBinding, '2d');
+                    lFixedTexture.label = lGroup.name;
                     lFixedTexture.width = this.mSize.width;
                     lFixedTexture.height = this.mSize.height;
                     lFixedTexture.layer = lTextureLayerCount;
@@ -276,7 +277,6 @@ type AttachmentData = {
     storeOp: GPUStoreOp;
     format: GPUTextureFormat;
     layers: GPUIntegerCoordinate;
-    dimension: GPUTextureViewDimension;
     baseArrayLayer: number | null;
     canvas: HTMLCanvasElement | null;
 };
@@ -297,7 +297,6 @@ export type CanvasAttachmentDescription = {
     storeOp?: GPUStoreOp;
     format?: GPUTextureFormat;
     layers?: GPUIntegerCoordinate;
-    dimension?: GPUTextureViewDimension;
 };
 export type TextureAttachmentDescription = {
     type: AttachmentType.Color | AttachmentType.Depth | AttachmentType.Stencil,

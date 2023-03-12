@@ -16,18 +16,36 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
     private mFragmentShader: Shader | null;
     private readonly mPipelineDataChangeState: PipelineDataChangeState;
     private readonly mPrimitive: GPUPrimitiveState;
-    private readonly mRenderTargetList: Array<ColorAttachment>;
+    private readonly mRenderAttachmentList: Array<ColorAttachment>;
     private mVertexShader: Shader | null;
 
     /**
-     * Set depth attachment.
+     * Render attachments.
      */
-    public set depthAttachment(pAttachment: DepthStencilAttachment) {
+    public get attachments(): Readonly<Array<ColorAttachment>> {
+        return this.mRenderAttachmentList;
+    }
+
+    /**
+     * Bind groups.
+     */
+    public get bindGoups(): Readonly<Array<BindGroupLayout>> {
+        return this.mBindGoupList;
+    }
+
+    /**
+     * Depth attachment.
+     */
+    public get depthAttachment(): DepthStencilAttachment | null {
+        return this.mDepthAttachment;
+    } set depthAttachment(pAttachment: DepthStencilAttachment | null) {
         // Unregister old and register new depth attachment.
-        if(this.mDepthAttachment){
+        if (this.mDepthAttachment) {
             this.unregisterInternalNative(this.mDepthAttachment);
         }
-        this.registerInternalNative(pAttachment);
+        if (pAttachment) {
+            this.registerInternalNative(pAttachment);
+        }
 
         // Set attachment.
         this.mDepthAttachment = pAttachment;
@@ -82,6 +100,13 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
     }
 
     /**
+     * Pipeline vertex attributes.
+     */
+    public get vertexAttributes(): Readonly<Array<VertexAttributes<TypedArray>>> {
+        return this.mAttributeList;
+    }
+
+    /**
      * Set depth write enabled / disabled.
      */
     public get writeDepth(): boolean {
@@ -123,7 +148,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
 
         // Init lists.
         this.mAttributeList = new Array<VertexAttributes<any>>();
-        this.mRenderTargetList = new Array<ColorAttachment>();
+        this.mRenderAttachmentList = new Array<ColorAttachment>();
         this.mBindGoupList = new Array<BindGroupLayout>();
     }
 
@@ -135,7 +160,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
         // Register attachment as internal.
         this.registerInternalNative(pAttachment);
 
-        return this.mRenderTargetList.push(pAttachment) - 1;
+        return this.mRenderAttachmentList.push(pAttachment) - 1;
     }
 
     /**
@@ -244,7 +269,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
         if (this.mFragmentShader) {
             // Generate fragment targets only when fragment state is needed.
             const lFragmentTargetList: Array<GPUColorTargetState> = new Array<GPUColorTargetState>();
-            for (const lRenderTarget of this.mRenderTargetList) {
+            for (const lRenderTarget of this.mRenderAttachmentList) {
                 lFragmentTargetList.push({
                     format: lRenderTarget.format,
                     // blend?: GPUBlendState;

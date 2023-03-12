@@ -14,6 +14,13 @@ export class BindGroup extends GpuNativeObject<GPUBindGroup>{
     private readonly mNativeData: WeakMap<object, string>;
 
     /**
+     * Layout of bind group.
+     */
+    public get layout(): BindGroupLayout {
+        return this.mLayout;
+    }
+
+    /**
      * Constructor.
      * @param pGpu - GPU.
      * @param pLayout - Bind group layout.

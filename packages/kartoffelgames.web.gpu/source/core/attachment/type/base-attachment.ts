@@ -26,7 +26,7 @@ export abstract class BaseAttachment<TAttachment extends GPURenderPassColorAttac
      * @param pAttachment - Attachment.
      */
     public constructor(pGpu: Gpu, pAttachment: AttachmentDefinition) {
-        super(pGpu);
+        super(pGpu, 'ATTACHMENT');
         this.mAttachment = pAttachment;
         this.mOldTextureId = '';
     }
@@ -40,8 +40,8 @@ export abstract class BaseAttachment<TAttachment extends GPURenderPassColorAttac
         // So checking for changes with the nativeId is the fastes way, without generating the native texture.
 
         // Validate for new generated texture.
-        if (this.mAttachment.frame.nativeId !== this.mOldTextureId) {
-            this.mOldTextureId = this.mAttachment.frame.nativeId;
+        if (await this.mAttachment.frame.nativeId() !== this.mOldTextureId) {
+            this.mOldTextureId = await this.mAttachment.frame.nativeId();
             return false;
         }
 

@@ -39,6 +39,11 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
     public get depthAttachment(): DepthStencilAttachment | null {
         return this.mDepthAttachment;
     } set depthAttachment(pAttachment: DepthStencilAttachment | null) {
+        // Do nothing on assigning old an value.
+        if(this.mDepthAttachment === pAttachment){
+            return;
+        }
+
         // Unregister old and register new depth attachment.
         if (this.mDepthAttachment) {
             this.unregisterInternalNative(this.mDepthAttachment);
@@ -57,6 +62,11 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
     public get depthCompare(): GPUCompareFunction {
         return this.mDepthCompare;
     } set depthCompare(pValue: GPUCompareFunction) {
+        // Do nothing on assigning old an value.
+        if(this.mDepthCompare === pValue){
+            return;
+        }
+
         this.mDepthCompare = pValue;
 
         // Set data changed flag.
@@ -69,6 +79,11 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
     public get primitiveCullMode(): GPUCullMode {
         return this.mPrimitive.cullMode!;
     } set primitiveCullMode(pValue: GPUCullMode) {
+        // Do nothing on assigning old an value.
+        if(this.mPrimitive.cullMode === pValue){
+            return;
+        }
+
         this.mPrimitive.cullMode = pValue;
 
         // Set data changed flag.
@@ -81,6 +96,11 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
     public get primitiveFrontFace(): GPUFrontFace {
         return this.mPrimitive.frontFace!;
     } set primitiveFrontFace(pValue: GPUFrontFace) {
+        // Do nothing on assigning old an value.
+        if(this.mPrimitive.frontFace === pValue){
+            return;
+        }
+
         this.mPrimitive.frontFace = pValue;
 
         // Set data changed flag.
@@ -93,6 +113,11 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
     public get primitiveTopology(): GPUPrimitiveTopology {
         return this.mPrimitive.topology!;
     } set primitiveTopology(pValue: GPUPrimitiveTopology) {
+        // Do nothing on assigning old an value.
+        if(this.mPrimitive.topology === pValue){
+            return;
+        }
+
         this.mPrimitive.topology = pValue;
 
         // Set data changed flag.
@@ -112,6 +137,11 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
     public get writeDepth(): boolean {
         return this.mDepthWriteEnabled;
     } set writeDepth(pValue: boolean) {
+        // Do nothing on assigning old an value.
+        if(this.mDepthWriteEnabled === pValue){
+            return;
+        }
+
         this.mDepthWriteEnabled = pValue;
 
         // Set data changed flag.
@@ -123,7 +153,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
      * @param pGpu - GPU.
      */
     public constructor(pGpu: Gpu) {
-        super(pGpu);
+        super(pGpu, 'RENDER_PIPELINE');
 
         // Init unassigned properties.
         this.mVertexShader = null;
@@ -143,7 +173,8 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
         this.mPipelineDataChangeState = {
             primitive: false,
             shader: false,
-            depthAttachment: false
+            depthAttachment: false,
+            attachment: true
         };
 
         // Init lists.
@@ -157,8 +188,9 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
      * @param pAttachment - Attachment.
      */
     public addAttachment(pAttachment: ColorAttachment): number {
-        // Register attachment as internal.
-        this.registerInternalNative(pAttachment);
+        // Dont register attachment as an canvas attachment refreshes every frame.
+        // The Pipeline would refresh every frame. 
+        this.mPipelineDataChangeState.attachment = true;
 
         return this.mRenderAttachmentList.push(pAttachment) - 1;
     }
@@ -295,6 +327,11 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
             };
         }
 
+        // Reset change states.
+        for (const lChangeState in this.mPipelineDataChangeState) {
+            (<{ [changeState: string]: boolean; }>this.mPipelineDataChangeState)[lChangeState] = false;
+        }
+
         // Async is none GPU stalling.
         return this.gpu.device.createRenderPipelineAsync(lPipelineDescriptor);
     }
@@ -320,4 +357,5 @@ type PipelineDataChangeState = {
     primitive: boolean;
     shader: boolean;
     depthAttachment: boolean;
+    attachment: boolean;
 };

@@ -21,7 +21,7 @@ export class ExternalTexture extends GpuNativeObject<GPUExternalTexture> {
      * @param pGpu - GPU.
      */
     public constructor(pGpu: Gpu) {
-        super(pGpu);
+        super(pGpu, 'EXTERNAL_TEXTURE');
         this.mVideoElement = null;
     }
 

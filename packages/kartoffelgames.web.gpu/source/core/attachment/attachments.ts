@@ -120,6 +120,11 @@ export class Attachments {
      * @param pHeight - New height.
      */
     public resize(pWidth: number, pHeight: number): void {
+        // Only resize on actual size change.
+        if (this.mSize.width === pWidth && this.mSize.height === pHeight) {
+            return;
+        }
+
         // Set size.
         this.mSize.width = pWidth;
         this.mSize.height = pHeight;

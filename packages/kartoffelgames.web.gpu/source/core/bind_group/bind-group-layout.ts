@@ -34,7 +34,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
      * @param pGpu - GPU.
      */
     public constructor(pGpu: Gpu) {
-        super(pGpu);
+        super(pGpu, 'BIND_GROUP_LAYOUT');
         this.mGroupBinds = new Dictionary<string, BindLayout>();
         this.mRequestUpdate = false;
     }
@@ -142,9 +142,9 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     /**
      * Create bind group based on this layout.
      */
-    public createBindGroup(): BindGroup{
+    public createBindGroup(): BindGroup {
         const lBindGroup = new BindGroup(this.gpu, this);
-        lBindGroup.label = 'BindGroup-' + this.label;
+        lBindGroup.label = this.label;
 
         return lBindGroup;
     }
@@ -165,10 +165,10 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
      * Remove bind.
      */
     public removeBind(pName: string): void {
-        this.mGroupBinds.delete(pName);
-
-        // Request native object update.
-        this.mRequestUpdate = true;
+        if (this.mGroupBinds.delete(pName)) {
+            // Request native object update.
+            this.mRequestUpdate = true;
+        }
     }
 
     /**

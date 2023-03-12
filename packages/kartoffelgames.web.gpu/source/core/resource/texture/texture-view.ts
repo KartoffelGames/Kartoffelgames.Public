@@ -18,6 +18,11 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
     public get aspect(): GPUTextureAspect {
         return this.mAspect;
     } set aspect(pAspect: GPUTextureAspect) {
+        // Do nothing on assigning old an value.
+        if(this.mAspect === pAspect){
+            return;
+        }
+
         this.mAspect = pAspect;
         this.mUpdateRequested = true;
     }
@@ -35,6 +40,11 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
     public get baseMipLevel(): GPUIntegerCoordinate {
         return this.mBaseMipLevel;
     } set baseMipLevel(pLevel: GPUIntegerCoordinate) {
+        // Do nothing on assigning old an value.
+        if(this.mBaseMipLevel === pLevel){
+            return;
+        }
+
         this.mBaseMipLevel = pLevel;
         this.mUpdateRequested = true;
     }
@@ -45,6 +55,11 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
     public get dimension(): GPUTextureViewDimension {
         return this.mDimension;
     } set dimension(pDimension: GPUTextureViewDimension) {
+        // Do nothing on assigning old an value.
+        if(this.mDimension === pDimension){
+            return;
+        }
+
         this.mDimension = pDimension;
         this.mUpdateRequested = true;
     }
@@ -64,6 +79,11 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
     public get mipLevelCount(): GPUIntegerCoordinate {
         return this.mMipLevelCount;
     } set mipLevelCount(pLevel: GPUIntegerCoordinate) {
+        // Do nothing on assigning old an value.
+        if(this.mMipLevelCount === pLevel){
+            return;
+        }
+
         this.mMipLevelCount = pLevel;
         this.mUpdateRequested = true;
     }
@@ -76,7 +96,7 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
      * @param pLayerCount - Depth of view.
      */
     public constructor(pGpu: Gpu, pTexture: ITexture, pBaseLayer?: number, pLayerCount?: number) {
-        super(pGpu);
+        super(pGpu, 'TEXTURE_VIEW');
         this.mUpdateRequested = false;
 
         this.mTexture = pTexture;

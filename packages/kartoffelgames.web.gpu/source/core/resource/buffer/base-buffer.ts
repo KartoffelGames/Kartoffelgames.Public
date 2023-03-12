@@ -36,7 +36,7 @@ export abstract class BaseBuffer<T extends TypedArray> extends GpuNativeObject<G
      * @param pData  - Inital data. Can be empty.
      */
     public constructor(pGpu: Gpu, pUsage: GPUFlagsConstant, pData: T) {
-        super(pGpu);
+        super(pGpu, 'BUFFER');
 
         this.mBufferUsage = pUsage;
         this.mInitData = pData;

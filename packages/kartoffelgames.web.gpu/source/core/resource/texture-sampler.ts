@@ -18,6 +18,11 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
     public get compare(): GPUCompareFunction | null {
         return this.mCompare;
     } set compare(pValue: GPUCompareFunction | null) {
+        // Do nothing on assigning old an value.
+        if(this.mCompare === pValue){
+            return;
+        }
+
         this.mCompare = pValue;
 
         // Request native rebuild.
@@ -30,6 +35,11 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
     public get fitMode(): GPUAddressMode {
         return this.mFitMode;
     } set fitMode(pValue: GPUAddressMode) {
+        // Do nothing on assigning old an value.
+        if(this.mFitMode === pValue){
+            return;
+        }
+
         this.mFitMode = pValue;
 
         // Request native rebuild.
@@ -42,6 +52,11 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
     public get lodMaxClamp(): number {
         return this.mLodMaxClamp;
     } set lodMaxClamp(pValue: number) {
+        // Do nothing on assigning old an value.
+        if(this.mLodMaxClamp === pValue){
+            return;
+        }
+
         this.mLodMaxClamp = pValue;
         
         // Request native rebuild.
@@ -54,6 +69,11 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
     public get lodMinClamp(): number {
         return this.mLodMinClamp;
     } set lodMinClamp(pValue: number) {
+        // Do nothing on assigning old an value.
+        if(this.mLodMinClamp === pValue){
+            return;
+        }
+
         this.mLodMinClamp = pValue;
         
         // Request native rebuild.
@@ -66,6 +86,11 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
     public get magFilter(): GPUFilterMode {
         return this.mMagFilter;
     } set magFilter(pValue: GPUFilterMode) {
+        // Do nothing on assigning old an value.
+        if(this.mMagFilter === pValue){
+            return;
+        }
+
         this.mMagFilter = pValue;
         
         // Request native rebuild.
@@ -78,6 +103,11 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
     public get maxAnisotropy(): number {
         return this.mMaxAnisotropy;
     } set maxAnisotropy(pValue: number) {
+        // Do nothing on assigning old an value.
+        if(this.mMaxAnisotropy === pValue){
+            return;
+        }
+
         this.mMaxAnisotropy = pValue;
         
         // Request native rebuild.
@@ -90,6 +120,11 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
     public get minFilter(): GPUFilterMode {
         return this.mMinFilter;
     } set minFilter(pValue: GPUFilterMode) {
+        // Do nothing on assigning old an value.
+        if(this.mMinFilter === pValue){
+            return;
+        }
+
         this.mMinFilter = pValue;
         
         // Request native rebuild.
@@ -102,6 +137,11 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
     public get mipmapFilter(): GPUMipmapFilterMode {
         return this.mMipmapFilter;
     } set mipmapFilter(pValue: GPUMipmapFilterMode) {
+        // Do nothing on assigning old an value.
+        if(this.mMipmapFilter === pValue){
+            return;
+        }
+
         this.mMipmapFilter = pValue;
         
         // Request native rebuild.
@@ -113,7 +153,7 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
      * @param pGpu - GPU.
      */
     public constructor(pGpu: Gpu) {
-        super(pGpu);
+        super(pGpu, 'TEXTURE_SAMPLER');
 
         this.mUpdateRequested = false;
 

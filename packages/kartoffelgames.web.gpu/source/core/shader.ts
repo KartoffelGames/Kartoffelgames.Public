@@ -1,5 +1,7 @@
 import { Gpu } from './gpu';
 
+// TODO: Add VertexAttributes for vertex shader.
+
 export class Shader {
     private readonly mEntryPoints: EntryPoints;
     private readonly mShaderModule: GPUShaderModule;

@@ -9,6 +9,7 @@ export abstract class GpuNativeObject<T> {
     private readonly mInternalNatives: Dictionary<GpuNativeObject<any>, boolean>;
     private mLabel: string;
     private mNativeChanged: boolean;
+    private readonly mNativeName: string;
     private mNativeObject: T | null;
     private mNativeObjectId: string;
     private readonly mUpdateListener: Dictionary<GpuNativeObject<any>, GenericListener>;
@@ -18,13 +19,9 @@ export abstract class GpuNativeObject<T> {
      * Debug label.
      */
     public get label(): string {
-        return this.mLabel;
+        return this.mNativeName + '->' + this.mLabel;
     } set label(pLabel: string) {
         this.mLabel = pLabel;
-    }
-
-    public get nativeId(): string {
-        return this.mNativeObjectId;
     }
 
     /**
@@ -37,11 +34,13 @@ export abstract class GpuNativeObject<T> {
     /**
      * Constructor.
      * @param pGpu - Gpu object.
+     * @param pNativeName - Name of native label.
      */
-    public constructor(pGpu: Gpu) {
+    public constructor(pGpu: Gpu, pNativeName: string) {
         this.mGpu = pGpu;
         this.mNativeObject = null;
         this.mLabel = '';
+        this.mNativeName = pNativeName;
         this.mNativeChanged = false;
 
         this.mInternalNatives = new Dictionary<GpuNativeObject<any>, boolean>();
@@ -72,7 +71,7 @@ export abstract class GpuNativeObject<T> {
      */
     public async native(): Promise<T> {
         // Generate new native object when not already created.
-        if (!this.mNativeObject || this.mNativeChanged || await this.validateState(this.mNativeObject)) {
+        if (!this.mNativeObject || this.mNativeChanged || !(await this.validateState(this.mNativeObject))) {
             // Destroy old native object.
             await this.destroy();
 
@@ -92,6 +91,16 @@ export abstract class GpuNativeObject<T> {
         }
 
         return this.mNativeObject;
+    }
+
+    /**
+     * Get native object id.
+     */
+    public async nativeId(): Promise<string> {
+        // Trigger native object refresh. 
+        await this.native();
+
+        return this.mNativeObjectId;
     }
 
     /**

@@ -44,7 +44,7 @@ export class VertexAttributes<T extends TypedArray> extends GpuNativeObject<GPUV
      * @param pBuffer - Buffer.
      */
     public constructor(pGpu: Gpu, pType: BufferDataType<T>) {
-        super(pGpu);
+        super(pGpu, 'VERTEX_ATTRIBUTE');
 
         this.mStrideLength = 0;
         this.mLocationOffset = 0;
@@ -111,7 +111,7 @@ export class VertexAttributes<T extends TypedArray> extends GpuNativeObject<GPUV
         const lLastArrayStrideLength: number | undefined = pGeneratedNative.arrayStride;
         const lCurrentArrayStideLength: number = this.mBufferDataType.BYTES_PER_ELEMENT * this.mStrideLength;
 
-        return lLastArrayStrideLength === lCurrentArrayStideLength;
+        return lLastArrayStrideLength === lCurrentArrayStideLength; // TODO: LocationOffset.
     }
 }
 

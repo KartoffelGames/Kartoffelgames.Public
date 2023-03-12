@@ -74,20 +74,22 @@ export class CanvasTexture extends GpuNativeObject<GPUTexture> implements ITextu
      * @param pUsage - Texture usage.
      */
     public constructor(pGpu: Gpu, pCanvas: HTMLCanvasElement, pFormat: GPUTextureFormat, pUsage: TextureUsage) {
-        super(pGpu);
+        super(pGpu, 'CANVAS_TEXTURE');
 
         this.mCanvas = pCanvas;
         this.mFormat = pFormat;
         this.mUsage = pUsage;
 
         // Get and configure context.
-        this.mContext = pCanvas.getContext('webgpu')!;
+        this.mContext = <GPUCanvasContext><any>pCanvas.getContext('webgpu')!;
         this.mContext.configure({
             device: this.gpu.device,
             format: pFormat,
             usage: pUsage,
             alphaMode: 'opaque'
         });
+
+        (<any>window).aaa = this.mContext;
     }
 
     /**
@@ -95,7 +97,7 @@ export class CanvasTexture extends GpuNativeObject<GPUTexture> implements ITextu
      */
     public async view(pBaseLayer?: number, pLayerCount?: number): Promise<TextureView> {
         const lView = new TextureView(this.gpu, this, pBaseLayer, pLayerCount);
-        lView.label = 'TextureView-' + this.label;
+        lView.label = this.label;
 
         return lView;
     }
@@ -121,7 +123,7 @@ export class CanvasTexture extends GpuNativeObject<GPUTexture> implements ITextu
     /**
      * Allways invalidate current texture to generate latest texture.
      */
-    protected override async validateState(): Promise<boolean> {
-        return false;
+    protected override async validateState(pNativeObject: GPUTexture): Promise<boolean> {
+        return this.mContext.getCurrentTexture() === pNativeObject;
     }
 }

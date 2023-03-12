@@ -26,7 +26,7 @@ export class BindGroup extends GpuNativeObject<GPUBindGroup>{
      * @param pLayout - Bind group layout.
      */
     public constructor(pGpu: Gpu, pLayout: BindGroupLayout) {
-        super(pGpu);
+        super(pGpu, 'BIND_GROUP');
 
         this.mLayout = pLayout;
         this.mBindData = new Dictionary<string, Bind>();

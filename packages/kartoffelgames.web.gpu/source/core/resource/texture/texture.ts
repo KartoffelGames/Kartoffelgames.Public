@@ -83,7 +83,7 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
      * @param pDimension - Texture dimension.
      */
     public constructor(pGpu: Gpu, pFormat: GPUTextureFormat, pUsage: TextureUsage, pDimension: GPUTextureDimension = '2d') {
-        super(pGpu);
+        super(pGpu, 'TEXTURE');
 
         this.mFormat = pFormat;
         this.mUsage = pUsage;
@@ -123,7 +123,7 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
      */
     public async view(pBaseLayer?: number, pLayerCount?: number): Promise<TextureView> {
         const lView = new TextureView(this.gpu, this, pBaseLayer, pLayerCount);
-        lView.label = 'TextureView-' + this.label;
+        lView.label = this.label;
 
         return lView;
     }

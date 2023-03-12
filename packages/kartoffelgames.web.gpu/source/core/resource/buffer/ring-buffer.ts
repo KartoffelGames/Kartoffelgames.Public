@@ -29,6 +29,7 @@ export class RingBuffer<T extends TypedArray> extends BaseBuffer<T> {
         let lStagingBuffer: GPUBuffer;
         if (this.mReadyBufferList.length === 0) {
             lStagingBuffer = this.gpu.device.createBuffer({
+                label: 'RingBuffer-WaveBuffer-' + this.label,
                 size: this.size,
                 usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
                 mappedAtCreation: true,

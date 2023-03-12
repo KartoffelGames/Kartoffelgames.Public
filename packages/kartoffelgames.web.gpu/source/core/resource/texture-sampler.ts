@@ -141,6 +141,7 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
      */
     protected async generate(): Promise<GPUSampler> {
         const lSamplerOptions: GPUSamplerDescriptor = {
+            label: this.label,
             addressModeU: this.mFitMode,
             addressModeV: this.mFitMode,
             addressModeW: this.mFitMode,

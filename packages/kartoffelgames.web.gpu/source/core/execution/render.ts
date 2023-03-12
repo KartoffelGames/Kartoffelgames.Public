@@ -10,7 +10,6 @@ export class Render {
     private readonly mBindGroups: List<BindGroup>;
     private readonly mGpu: Gpu;
     private mMesh: RenderMesh | null;
-    private mPassDescriptor: GPURenderPassDescriptor | null;
     private mPipeline: RenderPipeline | null;
 
     // TODO: Set  GPURenderPassEncoder.setScissorRect
@@ -25,7 +24,6 @@ export class Render {
         this.mBindGroups = new List<BindGroup>();
         this.mMesh = null;
         this.mPipeline = null;
-        this.mPassDescriptor = null;
     }
 
     /**
@@ -41,8 +39,23 @@ export class Render {
             throw new Exception('Pipeline not set', this);
         }
 
+        // Create color attachments.
+        const lColorAttachmentList: Array<GPURenderPassColorAttachment> = new Array<GPURenderPassColorAttachment>();
+        for (const lAttachment of this.mPipeline.attachments) {
+            lColorAttachmentList.push(await lAttachment.native());
+        }
+        // Generate pass descriptor once per set pipeline.
+        const lPassDescriptor: GPURenderPassDescriptor = {
+            colorAttachments: lColorAttachmentList
+        };
+
+        // Set optional depth attachmet.
+        if (this.mPipeline.depthAttachment) {
+            lPassDescriptor.depthStencilAttachment = await this.mPipeline.depthAttachment.native();
+        }
+
         // Pass descriptor is set, when the pipeline ist set.
-        const lEncoder: GPURenderPassEncoder = pEncoder.beginRenderPass(this.mPassDescriptor!);
+        const lEncoder: GPURenderPassEncoder = pEncoder.beginRenderPass(lPassDescriptor);
         lEncoder.setPipeline(await this.mPipeline.native());
 
         // Add bind groups.
@@ -124,20 +137,5 @@ export class Render {
 
         // Clear binds.
         this.mBindGroups.clear();
-
-        // Create color attachments.
-        const lColorAttachmentList: Array<GPURenderPassColorAttachment> = new Array<GPURenderPassColorAttachment>();
-        for (const lAttachment of this.mPipeline.attachments) {
-            lColorAttachmentList.push(await lAttachment.native());
-        }
-        // Generate pass descriptor once per set pipeline.
-        this.mPassDescriptor = {
-            colorAttachments: lColorAttachmentList
-        };
-
-        // Set optional depth attachmet.
-        if (this.mPipeline.depthAttachment) {
-            this.mPassDescriptor.depthStencilAttachment = await this.mPipeline.depthAttachment.native();
-        }
     }
 } 

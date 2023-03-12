@@ -122,7 +122,10 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
      * Create view of this texture.
      */
     public async view(pBaseLayer?: number, pLayerCount?: number): Promise<TextureView> {
-        return new TextureView(this.gpu, this, pBaseLayer, pLayerCount);
+        const lView = new TextureView(this.gpu, this, pBaseLayer, pLayerCount);
+        lView.label = 'TextureView-' + this.label;
+
+        return lView;
     }
 
     /**
@@ -145,6 +148,7 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
 
         // Create texture with set size, format and usage.
         const lTexture: GPUTexture = this.gpu.device.createTexture({
+            label: this.label,
             size: [this.mWidth, this.mHeight, this.mLayerCount],
             format: this.mFormat,
             usage: lUsage,

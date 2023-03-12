@@ -123,6 +123,7 @@ export class BindGroup extends GpuNativeObject<GPUBindGroup>{
         }
 
         return this.gpu.device.createBindGroup({
+            label: this.label,
             layout: await this.mLayout.native(),
             entries: lEntryList
         });

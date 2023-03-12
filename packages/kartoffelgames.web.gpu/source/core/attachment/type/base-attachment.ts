@@ -58,6 +58,5 @@ export type AttachmentDefinition = {
     storeOp: GPUStoreOp;
     format: GPUTextureFormat;
     layers: GPUIntegerCoordinate;
-    dimension: GPUTextureViewDimension;
     baseArrayLayer: number;
 };

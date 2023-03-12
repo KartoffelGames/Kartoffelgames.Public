@@ -110,6 +110,7 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
 
         const lTexture: GPUTexture = await this.mTexture.native();
         return lTexture.createView({
+            label: this.label,
             format: this.mTexture.format,
             dimension: this.mDimension,
             aspect: this.mAspect,

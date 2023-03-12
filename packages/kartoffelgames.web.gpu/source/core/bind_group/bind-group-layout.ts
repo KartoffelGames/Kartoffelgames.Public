@@ -143,7 +143,10 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
      * Create bind group based on this layout.
      */
     public createBindGroup(): BindGroup{
-        return new BindGroup(this.gpu, this);
+        const lBindGroup = new BindGroup(this.gpu, this);
+        lBindGroup.label = 'BindGroup-' + this.label;
+
+        return lBindGroup;
     }
 
     /**
@@ -243,6 +246,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
 
         // Create binding group layout.
         return this.gpu.device.createBindGroupLayout({
+            label: this.label,
             entries: lEntryList
         });
     }

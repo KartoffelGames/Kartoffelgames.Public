@@ -61,15 +61,9 @@ export class ExternalTexture extends GpuNativeObject<GPUExternalTexture> {
         }
 
         return this.gpu.device.importExternalTexture({
+            label: this.label,
             source: this.mVideoElement,
             colorSpace: 'srgb'
         });
-    }
-
-    /**
-     * Invalidate on expired texture.
-     */
-    protected override async validateState(pGeneratedNative: GPUExternalTexture): Promise<boolean> {
-        return pGeneratedNative.expired;
     }
 }

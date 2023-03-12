@@ -1,6 +1,6 @@
 export enum AttachmentType {
-    Canvas = 0,
-    Color = 1,
-    Depth = 2,
-    Stencil = 4
+    Canvas = 1,
+    Color = 2,
+    Depth = 4,
+    Stencil = 8
 }

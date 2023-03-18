@@ -65,7 +65,7 @@ export abstract class BaseBuffer<T extends TypedArray> extends GpuNativeObject<G
         const lBuffer: GPUBuffer = this.gpu.device.createBuffer({
             label: this.label,
             size: this.size,
-            usage: this.mBufferUsage | GPUBufferUsage.COPY_DST,
+            usage: this.mBufferUsage,
             mappedAtCreation: this.mInitData.length > 0 // Map data when buffer would receive initial data.
         });
 

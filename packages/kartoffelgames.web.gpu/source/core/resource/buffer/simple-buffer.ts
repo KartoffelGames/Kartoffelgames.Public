@@ -10,7 +10,7 @@ export class SimpleBuffer<T extends TypedArray> extends BaseBuffer<T> {
      * @param pInitialData  - Inital data. Can be empty.
      */
     public constructor(pGpu: Gpu, pUsage: GPUFlagsConstant, pInitialData: T) {
-        super(pGpu, pUsage, pInitialData);
+        super(pGpu, pUsage | GPUBufferUsage.COPY_DST, pInitialData);
     }
 
     /**
@@ -20,14 +20,11 @@ export class SimpleBuffer<T extends TypedArray> extends BaseBuffer<T> {
     public async write(pBufferCallback: (pBuffer: T) => Promise<void>): Promise<void> {
         const lBuffer: GPUBuffer = await this.native();
 
-        // Map buffer.
-        return lBuffer.mapAsync(GPUMapMode.WRITE).then(async () => {
-            // Execute write operations.
-            const lBufferArray: T = new this.type(lBuffer.getMappedRange());
-            await pBufferCallback(lBufferArray);
+        // Create new typed array and add new data to this new array.
+        const lSourceBuffer: T = new this.type(this.length);
+        await pBufferCallback(lSourceBuffer);
 
-            // Unmap buffer after write action.
-            lBuffer.unmap();
-        });
+        // Write copied buffer.
+        this.gpu.device.queue.writeBuffer(lBuffer, 0, lSourceBuffer, 0, lSourceBuffer.length);
     }
 }

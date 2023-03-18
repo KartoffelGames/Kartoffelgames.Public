@@ -13,7 +13,7 @@ export class RingBuffer<T extends TypedArray> extends BaseBuffer<T> {
      * @param pInitialData  - Inital data. Can be empty.
      */
     public constructor(pGpu: Gpu, pUsage: GPUFlagsConstant, pInitialData: T) {
-        super(pGpu, pUsage, pInitialData);
+        super(pGpu, pUsage | GPUBufferUsage.COPY_DST, pInitialData);
 
         // Waving buffer list.
         this.mReadyBufferList = new Array<GPUBuffer>();

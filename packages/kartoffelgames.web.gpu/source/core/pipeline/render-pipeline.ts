@@ -276,7 +276,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
             label: this.label,
             layout: this.gpu.device.createPipelineLayout(lPipelineLayout),
             vertex: {
-                module: this.mVertexShader.shaderModule,
+                module: await this.mVertexShader.native(),
                 entryPoint: this.mVertexShader.vertexEntryPoint!, // It allways should has an entry point.
                 buffers: lVertexBufferLayoutList
                 // No constants. Yes.
@@ -297,7 +297,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
             }
 
             lPipelineDescriptor.fragment = {
-                module: this.mFragmentShader.shaderModule,
+                module: await this.mFragmentShader.native(),
                 entryPoint: this.mFragmentShader.fragmentEntryPoint!, // It allways should has an entry point.
                 targets: lFragmentTargetList
             };

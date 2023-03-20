@@ -48,7 +48,7 @@ export abstract class BaseBuffer<T extends TypedArray> extends GpuNativeObject<G
      * Destroy native object.
      * @param pNativeObject - Native object.
      */
-    protected async destroyNative(pNativeObject: GPUBuffer): Promise<void>{
+    protected async destroyNative(pNativeObject: GPUBuffer): Promise<void> {
         pNativeObject.destroy();
     }
 

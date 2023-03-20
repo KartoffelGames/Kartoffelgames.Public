@@ -16,13 +16,11 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
         const lResult: Array<BindInformation> = new Array<BindInformation>();
 
         // Fetch general and basic information from group bind.
-        const lBindList: Array<BindLayout> = [...this.mGroupBinds.values()];
-        for (let lIndex: number = 0; lIndex < lBindList.length; lIndex++) {
-            const lBind = lBindList[lIndex];
+        for (const lBind of this.mGroupBinds.values()) {
             lResult.push({
                 name: lBind.name,
                 type: lBind.bindType,
-                index: lIndex
+                index: lBind.index
             });
         }
 
@@ -42,13 +40,15 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     /**
      * Add buffer bind.
      * @param pName - Bind name.
+     * @param pIndex - Bind index.
      * @param pVisibility - Visibility.
      * @param pBindingType - Bind type.
      * @param pHasDynamicOffset - Has dynamic offset.
      * @param pMinBindingSize - min binding size.
      */
-    public addBuffer(pName: string, pVisibility: ShaderStage, pBindingType: GPUBufferBindingType = 'uniform', pHasDynamicOffset: boolean = false, pMinBindingSize: GPUSize64 = 0): void {
+    public addBuffer(pName: string, pIndex: number, pVisibility: ShaderStage, pBindingType: GPUBufferBindingType = 'uniform', pHasDynamicOffset: boolean = false, pMinBindingSize: GPUSize64 = 0): void {
         this.mGroupBinds.set(pName, {
+            index: pIndex,
             bindType: BindType.Buffer,
             name: pName,
             visibility: pVisibility,
@@ -64,10 +64,12 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     /**
      * Add external texture bind.
      * @param pName - Bind name.
+     * @param pIndex - Bind index.
      * @param pVisibility - Visibility.
      */
-    public addExternalTexture(pName: string, pVisibility: ShaderStage): void {
+    public addExternalTexture(pName: string, pIndex: number, pVisibility: ShaderStage): void {
         this.mGroupBinds.set(pName, {
+            index: pIndex,
             bindType: BindType.ExternalTexture,
             name: pName,
             visibility: pVisibility,
@@ -80,11 +82,13 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     /**
      * Add sampler bind.
      * @param pName - Bind name.
+     * @param pIndex - Bind index.
      * @param pVisibility - Visibility.
      * @param pSampleType - Sample type.
      */
-    public addSampler(pName: string, pVisibility: ShaderStage, pSampleType: GPUSamplerBindingType = 'filtering'): void {
+    public addSampler(pName: string, pIndex: number, pVisibility: ShaderStage, pSampleType: GPUSamplerBindingType = 'filtering'): void {
         this.mGroupBinds.set(pName, {
+            index: pIndex,
             bindType: BindType.Sampler,
             name: pName,
             visibility: pVisibility,
@@ -98,14 +102,16 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     /**
      * Add storage texture bind.
      * @param pName - Bind name.
+     * @param pIndex - Bind index.
      * @param pVisibility - Visibility.
      * @param pFormat - Color format.
      * @param storageAccess - Storage access.
      * @param pDimension - Texture dimension.
      */
-    public addStorageTexture(pName: string, pVisibility: ShaderStage, pFormat: GPUTextureFormat, pStorageAccess: GPUStorageTextureAccess = 'write-only', pDimension: GPUTextureViewDimension = '2d'): void {
+    public addStorageTexture(pName: string, pIndex: number, pVisibility: ShaderStage, pFormat: GPUTextureFormat, pStorageAccess: GPUStorageTextureAccess = 'write-only', pDimension: GPUTextureViewDimension = '2d'): void {
         this.mGroupBinds.set(pName, {
             name: pName,
+            index: pIndex,
             bindType: BindType.StorageTexture,
             visibility: pVisibility,
             access: pStorageAccess,
@@ -120,14 +126,16 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     /**
      * Add texture bind.
      * @param pName - Bind name.
+     * @param pIndex - Bind index.
      * @param pVisibility - Visibility.
      * @param pSampleType - Sample type.
      * @param pViewDimension - View dimension.
      * @param pMultisampled - Is multisampled.
      */
-    public addTexture(pName: string, pVisibility: ShaderStage, pSampleType: GPUTextureSampleType = 'float', pViewDimension: GPUTextureViewDimension = '2d', pMultisampled: boolean = false): void {
+    public addTexture(pName: string, pIndex: number, pVisibility: ShaderStage, pSampleType: GPUTextureSampleType = 'float', pViewDimension: GPUTextureViewDimension = '2d', pMultisampled: boolean = false): void {
         this.mGroupBinds.set(pName, {
             name: pName,
+            index: pIndex,
             bindType: BindType.Texture,
             visibility: pVisibility,
             sampleType: pSampleType,
@@ -186,14 +194,11 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
         const lEntryList: Array<GPUBindGroupLayoutEntry> = new Array<GPUBindGroupLayoutEntry>();
 
         // Generate layout entry for each binding.
-        const lBindList: Array<BindLayout> = [...this.mGroupBinds.values()];
-        for (let lIndex: number = 0; lIndex < lBindList.length; lIndex++) {
-            const lEntry = lBindList[lIndex];
-
+        for (const lEntry of this.mGroupBinds.values()) {
             // Generate default properties.
             const lLayoutEntry: GPUBindGroupLayoutEntry = {
                 visibility: lEntry.visibility,
-                binding: lIndex
+                binding: lEntry.index
             };
 
             switch (lEntry.bindType) {
@@ -260,6 +265,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
 }
 
 interface BaseBindLayout {
+    index: number;
     name: string;
     bindType: BindType;
     visibility: ShaderStage;

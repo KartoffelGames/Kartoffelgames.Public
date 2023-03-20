@@ -1,7 +1,7 @@
 import { Exception, TypedArray } from '@kartoffelgames/core.data';
 import { ColorAttachment } from '../attachment/type/color-attachment';
 import { DepthStencilAttachment } from '../attachment/type/depth-stencil-attachment';
-import { BindGroupLayout } from '../bind_group/bind-group-layout';
+import { BindGroups } from '../bind_group/bind-groups';
 import { Gpu } from '../gpu';
 import { GpuNativeObject } from '../gpu-native-object';
 import { Shader } from '../shader';
@@ -9,7 +9,7 @@ import { VertexAttributes } from './vertex-attributes';
 
 export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
     private readonly mAttributeList: Array<VertexAttributes<TypedArray>>;
-    private readonly mBindGoupList: Array<BindGroupLayout>;
+    private readonly mBindGroups: BindGroups;
     private mDepthAttachment: DepthStencilAttachment | null;
     private mDepthCompare: GPUCompareFunction;
     private mDepthWriteEnabled: boolean;
@@ -29,8 +29,8 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
     /**
      * Bind groups.
      */
-    public get bindGoups(): Readonly<Array<BindGroupLayout>> {
-        return this.mBindGoupList;
+    public get bindGoups(): BindGroups {
+        return this.mBindGroups;
     }
 
     /**
@@ -40,7 +40,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
         return this.mDepthAttachment;
     } set depthAttachment(pAttachment: DepthStencilAttachment | null) {
         // Do nothing on assigning old an value.
-        if(this.mDepthAttachment === pAttachment){
+        if (this.mDepthAttachment === pAttachment) {
             return;
         }
 
@@ -63,7 +63,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
         return this.mDepthCompare;
     } set depthCompare(pValue: GPUCompareFunction) {
         // Do nothing on assigning old an value.
-        if(this.mDepthCompare === pValue){
+        if (this.mDepthCompare === pValue) {
             return;
         }
 
@@ -80,7 +80,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
         return this.mPrimitive.cullMode!;
     } set primitiveCullMode(pValue: GPUCullMode) {
         // Do nothing on assigning old an value.
-        if(this.mPrimitive.cullMode === pValue){
+        if (this.mPrimitive.cullMode === pValue) {
             return;
         }
 
@@ -97,7 +97,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
         return this.mPrimitive.frontFace!;
     } set primitiveFrontFace(pValue: GPUFrontFace) {
         // Do nothing on assigning old an value.
-        if(this.mPrimitive.frontFace === pValue){
+        if (this.mPrimitive.frontFace === pValue) {
             return;
         }
 
@@ -114,7 +114,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
         return this.mPrimitive.topology!;
     } set primitiveTopology(pValue: GPUPrimitiveTopology) {
         // Do nothing on assigning old an value.
-        if(this.mPrimitive.topology === pValue){
+        if (this.mPrimitive.topology === pValue) {
             return;
         }
 
@@ -138,7 +138,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
         return this.mDepthWriteEnabled;
     } set writeDepth(pValue: boolean) {
         // Do nothing on assigning old an value.
-        if(this.mDepthWriteEnabled === pValue){
+        if (this.mDepthWriteEnabled === pValue) {
             return;
         }
 
@@ -180,7 +180,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
         // Init lists.
         this.mAttributeList = new Array<VertexAttributes<any>>();
         this.mRenderAttachmentList = new Array<ColorAttachment>();
-        this.mBindGoupList = new Array<BindGroupLayout>();
+        this.mBindGroups = new BindGroups(this.gpu);
     }
 
     /**
@@ -204,17 +204,6 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
 
         // Register attribute as internal.
         this.registerInternalNative(pAttribute);
-    }
-
-    /**
-     * Add bind group layout.
-     * @param pBindGroupLayout - Bind group layout.
-     */
-    public addBindGroup(pBindGroupLayout: BindGroupLayout): void {
-        this.mBindGoupList.push(pBindGroupLayout);
-
-        // Register bind group as internal.
-        this.registerInternalNative(pBindGroupLayout);
     }
 
     /**
@@ -268,10 +257,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
         }
 
         // Generate pipeline layout from bind group layouts.
-        const lPipelineLayout: GPUPipelineLayoutDescriptor = { bindGroupLayouts: new Array<GPUBindGroupLayout>() };
-        for (const lBindGroupLayout of this.mBindGoupList) {
-            (<Array<GPUBindGroupLayout>>lPipelineLayout.bindGroupLayouts).push(await lBindGroupLayout.native());
-        }
+        const lPipelineLayout: GPUPipelineLayoutDescriptor = await this.mBindGroups.native();
 
         // Generate vertex buffer layouts.
         let lVertexAttributeCount: number = 0;

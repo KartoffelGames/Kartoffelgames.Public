@@ -7,6 +7,13 @@ export class BindGroups extends GpuNativeObject<GPUPipelineLayoutDescriptor>{
     private readonly mBindGroups: Dictionary<number, BindGroupLayout>;
 
     /**
+     * Bind group count.
+     */
+    public get count(): number {
+        return this.mBindGroups.size;
+    }
+
+    /**
      * Constructor.
      * @param pGpu  - Gpu.
      */

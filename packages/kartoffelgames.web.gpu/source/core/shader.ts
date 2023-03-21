@@ -1,7 +1,12 @@
+import { Dictionary, Exception } from '@kartoffelgames/core.data';
+import { BindGroupLayout } from './bind_group/bind-group-layout';
 import { BindGroups } from './bind_group/bind-groups';
+import { ShaderStage } from './enum/shader-stage.enum';
 import { Gpu } from './gpu';
 import { GpuNativeObject } from './gpu-native-object';
-import { WgslTypeDefinition } from './type_handler/type-handler';
+import { TypeHandler, WgslTypeDefinition } from './type_handler/type-handler';
+import { WgslTypeMatrix, WgslTypeNumbers, WgslTypeVectors } from './type_handler/type-information';
+import { WgslType } from './type_handler/wgsl-type.enum';
 
 // TODO: Add VertexAttributes for vertex shader.
 
@@ -72,22 +77,72 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
         return this.gpu.device.createShaderModule({ code: this.mSource });
     }
 
+    /**
+     * Create bind layout from shader code.
+     * @param pSource - Shader source code as string.
+     */
     private getBindInformation(pSource: string): BindGroups {
         // Regex for binding index, group index, modifier, variable name and type.
-        const lBindInformationRegex: RegExp = /^(?:\s*@group\((?<group>\d+)\)|\s*@binding\((?<binding>\d+)\)){2}\s+var(?:<(?<addressspace>[\w,\s]+)>)?\s*(?<name>\w+)\s*:\s*(?<type>[\w,\s<>]*[\w,<>]).*$/gm;
+        const lBindInformationRegex: RegExp = /^\s*@group\((?<group>\d+)\)\s*@binding\((?<binding>\d+)\)\s+var(?:<(?<addressspace>[\w,\s]+)>)?\s*(?<name>\w+)\s*:\s*(?<type>[\w,\s<>]*[\w,<>]).*$/gm;
 
         const lBindInformationList: Array<BindGroupInformation> = new Array<BindGroupInformation>();
 
         // Get bind information for every group binding.
         let lMatch: RegExpExecArray | null;
         while ((lMatch = lBindInformationRegex.exec(pSource)) !== null) {
-            // TODO: Create bind layout from typehandler.
+            lBindInformationList.push({
+                groupIndex: parseInt(lMatch.groups!['group']),
+                bindingIndex: parseInt(lMatch.groups!['binding']),
+                addressSpace: <GPUBufferBindingType>lMatch.groups!['addressspace'] ?? null,
+                variableName: lMatch.groups!['name'],
+                type: TypeHandler.typeInformationByString(lMatch.groups!['type'])
+            });
         }
 
+        // Group bind information by group and bind index.
+        const lGroups: Dictionary<number, Array<BindGroupInformation>> = new Dictionary<number, Array<BindGroupInformation>>();
+        for (const lBind of lBindInformationList) {
+            let lGroupList: Array<BindGroupInformation> | undefined = lGroups.get(lBind.groupIndex);
+            if (!lGroupList) {
+                lGroupList = new Array<BindGroupInformation>();
+                lGroups.set(lBind.groupIndex, lGroupList);
+            }
+
+            lGroupList.push(lBind);
+        }
+
+        // Add BindGroupInformation to bind group.
         const lBindGroups: BindGroups = new BindGroups(this.gpu);
-        // TODO: Add BindGroupInformation to bind group.
+        for (const [lGroupIndex, lBindList] of lGroups) {
+            const lBindGroup: BindGroupLayout = lBindGroups.addGroup(lGroupIndex);
+            for (const lBind of lBindList) {
+                this.setBindBasedOnType(lBindGroup, lBind);
+            }
+        }
 
         return lBindGroups;
+    }
+
+    /**
+     * Adds bind to bind group based on binding information.
+     * @param pBindGroup - Bind group.
+     * @param pBindInformation - Bind information.
+     */
+    private setBindBasedOnType(pBindGroup: BindGroupLayout, pBindInformation: BindGroupInformation): void {
+        // TODO: Calculate correct shaderstage.
+        const lShaderStage: ShaderStage = ShaderStage.Vertex | ShaderStage.Fragment | ShaderStage.Compute;
+
+        // Buffer types.
+        if ([...WgslTypeNumbers, ...WgslTypeMatrix, ...WgslTypeVectors, WgslType.Array, WgslType.Any].includes(pBindInformation.type.type)) {
+            // Validate address space.
+            if (!pBindInformation.addressSpace) {
+                throw new Exception(`Buffer bind type needs to be set for buffer bindings (${pBindInformation.variableName}).`, this);
+            }
+
+            pBindGroup.addBuffer(pBindInformation.variableName, pBindInformation.bindingIndex, lShaderStage, pBindInformation.addressSpace);
+        } else {
+            throw new Exception('Not implemented. Upps', this);
+        }
     }
 }
 

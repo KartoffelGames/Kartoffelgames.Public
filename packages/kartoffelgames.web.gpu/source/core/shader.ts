@@ -10,6 +10,12 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
     private readonly mEntryPoints: EntryPoints;
     private readonly mSource: string;
 
+    /**
+     * Get bind groups of shader.
+     */
+    public get bindGroups(): BindGroups {
+        return this.mBindGroups;
+    }
 
     /**
      * Compute entry point name.

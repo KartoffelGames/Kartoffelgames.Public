@@ -1,7 +1,6 @@
 import { Exception, TypedArray } from '@kartoffelgames/core.data';
 import { ColorAttachment } from '../attachment/type/color-attachment';
 import { DepthStencilAttachment } from '../attachment/type/depth-stencil-attachment';
-import { BindGroups } from '../bind_group/bind-groups';
 import { Gpu } from '../gpu';
 import { GpuNativeObject } from '../gpu-native-object';
 import { Shader } from '../shader';
@@ -9,28 +8,19 @@ import { VertexAttributes } from './vertex-attributes';
 
 export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
     private readonly mAttributeList: Array<VertexAttributes<TypedArray>>;
-    private readonly mBindGroups: BindGroups;
     private mDepthAttachment: DepthStencilAttachment | null;
     private mDepthCompare: GPUCompareFunction;
     private mDepthWriteEnabled: boolean;
-    private mFragmentShader: Shader | null;
     private readonly mPipelineDataChangeState: PipelineDataChangeState;
     private readonly mPrimitive: GPUPrimitiveState;
     private readonly mRenderAttachmentList: Array<ColorAttachment>;
-    private mVertexShader: Shader | null;
+    private mShader: Shader | null;
 
     /**
      * Render attachments.
      */
     public get attachments(): Readonly<Array<ColorAttachment>> {
         return this.mRenderAttachmentList;
-    }
-
-    /**
-     * Bind groups.
-     */
-    public get bindGoups(): BindGroups {
-        return this.mBindGroups;
     }
 
     /**
@@ -125,6 +115,16 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
     }
 
     /**
+     * Shader.
+     */
+    public get shader(): Shader {
+        if (!this.mShader) {
+            throw new Exception('Shader is not set for this pipeline', this);
+        }
+        return this.mShader;
+    }
+
+    /**
      * Pipeline vertex attributes.
      */
     public get vertexAttributes(): Readonly<Array<VertexAttributes<TypedArray>>> {
@@ -156,8 +156,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
         super(pGpu, 'RENDER_PIPELINE');
 
         // Init unassigned properties.
-        this.mVertexShader = null;
-        this.mFragmentShader = null;
+        this.mShader = null;
         this.mDepthAttachment = null;
 
         // Set default values.
@@ -180,7 +179,6 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
         // Init lists.
         this.mAttributeList = new Array<VertexAttributes<any>>();
         this.mRenderAttachmentList = new Array<ColorAttachment>();
-        this.mBindGroups = new BindGroups(this.gpu);
     }
 
     /**
@@ -209,30 +207,14 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
     /**
      * Set Shader programms for pipeline.
      * @param pShader - Vertex with optional fragement shader.
-     * @param pFragmentShader - Fragment shader.
      */
-    public setShader(pShader: Shader): void;
-    public setShader(pVertexShader: Shader, pFragmentShader: Shader): void;
-    public setShader(pShader: Shader, pFragmentShader?: Shader): void {
+    public setShader(pShader: Shader): void {
         // Validate vertex shader.
         if (!pShader.vertexEntryPoint) {
             throw new Exception('Vertex shader has no entry point.', this);
         }
 
-        // Validate optional vertex shader.
-        if (pFragmentShader) {
-            // Invalid set fragment shader.
-            if (pFragmentShader.fragmentEntryPoint) {
-                throw new Exception('Fragment shader has no entry point.', this);
-            }
-
-            this.mFragmentShader = pFragmentShader;
-        } else if (pShader.fragmentEntryPoint) {
-            // Set fragment shader from base shader when no fragment shader is set and base shader has an fragment entry point.
-            this.mFragmentShader = pShader;
-        }
-
-        this.mVertexShader = pShader;
+        this.mShader = pShader;
 
         // Set data changed flag.
         this.mPipelineDataChangeState.shader = true;
@@ -252,12 +234,12 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
      */
     protected async generate(): Promise<GPURenderPipeline> {
         // Check valid entry points.
-        if (!this.mVertexShader) {
+        if (!this.mShader) {
             throw new Exception('Shadermodule has no vertex entry point.', this);
         }
 
         // Generate pipeline layout from bind group layouts.
-        const lPipelineLayout: GPUPipelineLayoutDescriptor = await this.mBindGroups.native();
+        const lPipelineLayout: GPUPipelineLayoutDescriptor = await this.mShader.bindGroups.native();
 
         // Generate vertex buffer layouts.
         let lVertexAttributeCount: number = 0;
@@ -276,8 +258,8 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
             label: this.label,
             layout: this.gpu.device.createPipelineLayout(lPipelineLayout),
             vertex: {
-                module: await this.mVertexShader.native(),
-                entryPoint: this.mVertexShader.vertexEntryPoint!, // It allways should has an entry point.
+                module: await this.mShader.native(),
+                entryPoint: this.mShader.vertexEntryPoint!, // It allways should has an entry point.
                 buffers: lVertexBufferLayoutList
                 // No constants. Yes.
             },
@@ -285,7 +267,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
         };
 
         // Optional fragment state.
-        if (this.mFragmentShader) {
+        if (this.mShader.fragmentEntryPoint) {
             // Generate fragment targets only when fragment state is needed.
             const lFragmentTargetList: Array<GPUColorTargetState> = new Array<GPUColorTargetState>();
             for (const lRenderTarget of this.mRenderAttachmentList) {
@@ -297,8 +279,8 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
             }
 
             lPipelineDescriptor.fragment = {
-                module: await this.mFragmentShader.native(),
-                entryPoint: this.mFragmentShader.fragmentEntryPoint!, // It allways should has an entry point.
+                module: await this.mShader.native(),
+                entryPoint: this.mShader.fragmentEntryPoint!, // It allways should has an entry point.
                 targets: lFragmentTargetList
             };
         }

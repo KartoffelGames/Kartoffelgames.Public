@@ -59,7 +59,7 @@ export class Render {
         lEncoder.setPipeline(await this.mPipeline.native());
 
         // Add bind groups.
-        for (let lIndex: number = 0; lIndex < this.mPipeline.bindGoups.count; lIndex++) {
+        for (let lIndex: number = 0; lIndex < this.mPipeline.shader.bindGroups.count; lIndex++) {
             const lBindGroup: BindGroup = this.mBindGroups[lIndex];
             if (!lBindGroup) {
                 throw new Exception(`Missing bind group for pipeline bind group layout (index ${lIndex})`, this);
@@ -94,7 +94,7 @@ export class Render {
         }
 
         // Validate bind group layout.
-        if (this.mPipeline.bindGoups.getGroup(pIndex) !== pBindGroup.layout) {
+        if (this.mPipeline.shader.bindGroups.getGroup(pIndex) !== pBindGroup.layout) {
             throw new Exception(`Bind data layout not matched with pipeline bind group layout.`, this);
         }
 

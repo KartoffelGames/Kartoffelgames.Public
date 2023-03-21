@@ -1,9 +1,9 @@
 import { Dictionary, EnumUtil, Exception } from '@kartoffelgames/core.data';
-import { WgslTypeInformation, TypeToWgsl } from './type-information';
+import { WgslTypeInformation, WgslTypeRestrictions } from './type-information';
 import { WgslType } from './wgsl-type.enum';
 
 export class TypeHandler {
-    private static readonly mTypeStorage: Dictionary<WgslType, WgslTypeInformation> = TypeToWgsl;
+    private static readonly mTypeStorage: Dictionary<WgslType, WgslTypeInformation> = WgslTypeRestrictions;
 
     /**
      * Type by name.

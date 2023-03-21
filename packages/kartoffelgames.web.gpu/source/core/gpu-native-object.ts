@@ -6,7 +6,6 @@ import { Gpu } from './gpu';
  */
 export abstract class GpuNativeObject<T> {
     private readonly mGpu: Gpu;
-    private readonly mInternalNatives: Dictionary<GpuNativeObject<any>, boolean>;
     private mLabel: string;
     private mNativeChanged: boolean;
     private readonly mNativeName: string;
@@ -14,12 +13,15 @@ export abstract class GpuNativeObject<T> {
     private mNativeObjectId: string;
     private readonly mUpdateListener: Dictionary<GpuNativeObject<any>, GenericListener>;
 
-
     /**
      * Debug label.
      */
     public get label(): string {
-        return this.mNativeName + '->' + this.mLabel;
+        let lLabel: string = this.mNativeName;
+        if (this.mLabel) {
+            lLabel += '->' + this.mLabel;
+        }
+        return lLabel;
     } set label(pLabel: string) {
         this.mLabel = pLabel;
     }
@@ -43,7 +45,6 @@ export abstract class GpuNativeObject<T> {
         this.mNativeName = pNativeName;
         this.mNativeChanged = false;
 
-        this.mInternalNatives = new Dictionary<GpuNativeObject<any>, boolean>();
         this.mUpdateListener = new Dictionary<GpuNativeObject<any>, GenericListener>();
 
         // Basic ununique id for uninitialized state.
@@ -64,6 +65,14 @@ export abstract class GpuNativeObject<T> {
             // Set new id.
             this.mNativeObjectId = globalThis.crypto.randomUUID();
         }
+    }
+
+    /**
+     * Equal objects.
+     * @param pObject - Object. 
+     */
+    public equal(pObject: any): boolean {
+        return this === pObject;
     }
 
     /**

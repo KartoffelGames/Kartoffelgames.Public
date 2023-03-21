@@ -6,7 +6,8 @@ export const WgslTypeIntegerNumbers: Array<WgslType> = [WgslType.Integer32, Wgsl
 export const WgslTypeNumbers: Array<WgslType> = [...WgslTypeFloatNumbers, ...WgslTypeIntegerNumbers];
 export const WgslTypeAccessModes: Array<WgslType> = [WgslType.AccessModeRead, WgslType.AccessModeWrite, WgslType.AccessModeReadWrite];
 export const WgslTypeAddressSpaces: Array<WgslType> = [WgslType.AddressSpaceFunction, WgslType.AddressSpacePrivate, WgslType.AddressSpaceStorage, WgslType.AddressSpaceUniform, WgslType.AddressSpaceWorkgroup];
-
+export const WgslTypeVectors: Array<WgslType> = [WgslType.Vector2, WgslType.Vector3, WgslType.Vector4];
+export const WgslTypeMatrix: Array<WgslType> = [WgslType.Matrix22, WgslType.Matrix23, WgslType.Matrix24, WgslType.Matrix32, WgslType.Matrix33, WgslType.Matrix34, WgslType.Matrix42, WgslType.Matrix43, WgslType.Matrix44];
 
 export const WgslTypeRestrictions: Dictionary<WgslType, WgslTypeInformation> = (() => {
     const lTypeList: Dictionary<WgslType, WgslTypeInformation> = new Dictionary<WgslType, WgslTypeInformation>();

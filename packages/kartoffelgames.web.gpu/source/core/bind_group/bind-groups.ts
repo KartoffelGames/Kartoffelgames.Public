@@ -9,8 +9,8 @@ export class BindGroups extends GpuNativeObject<GPUPipelineLayoutDescriptor>{
     /**
      * Bind group count.
      */
-    public get count(): number {
-        return this.mBindGroups.size;
+    public get groups(): Array<number> {
+        return [...this.mBindGroups.keys()];
     }
 
     /**
@@ -76,12 +76,10 @@ export class BindGroups extends GpuNativeObject<GPUPipelineLayoutDescriptor>{
         }
 
         // Validate continunity.
-        for (const lEntry of lPipelineLayout.bindGroupLayouts) {
-            if (!lEntry) {
-                throw new Exception(`Bind group gap detected. Group not set.`, this);
-            }
+        if (this.mBindGroups.size !== lPipelineLayout.bindGroupLayouts.length) {
+            throw new Exception(`Bind group gap detected. Group not set.`, this);
         }
-
+        
         return lPipelineLayout;
     }
 }

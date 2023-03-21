@@ -1,4 +1,4 @@
-import { Exception, List, TypedArray } from '@kartoffelgames/core.data';
+import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core.data';
 import { BindGroup } from '../bind_group/bind-group';
 import { Gpu } from '../gpu';
 import { RenderPipeline } from '../pipeline/render-pipeline';
@@ -7,7 +7,7 @@ import { BaseBuffer } from '../resource/buffer/base-buffer';
 import { RenderMesh } from './data/render-mesh';
 
 export class Render {
-    private readonly mBindGroups: List<BindGroup>;
+    private readonly mBindGroups: Dictionary<number, BindGroup>;
     private readonly mGpu: Gpu;
     private mMesh: RenderMesh | null;
     private mPipeline: RenderPipeline | null;
@@ -21,7 +21,7 @@ export class Render {
     public constructor(pGpu: Gpu) {
         this.mGpu = pGpu;
 
-        this.mBindGroups = new List<BindGroup>();
+        this.mBindGroups = new Dictionary<number, BindGroup>();
         this.mMesh = null;
         this.mPipeline = null;
     }
@@ -59,8 +59,8 @@ export class Render {
         lEncoder.setPipeline(await this.mPipeline.native());
 
         // Add bind groups.
-        for (let lIndex: number = 0; lIndex < this.mPipeline.shader.bindGroups.count; lIndex++) {
-            const lBindGroup: BindGroup = this.mBindGroups[lIndex];
+        for (const lIndex of this.mPipeline.shader.bindGroups.groups) {
+            const lBindGroup: BindGroup | undefined = this.mBindGroups.get(lIndex);
             if (!lBindGroup) {
                 throw new Exception(`Missing bind group for pipeline bind group layout (index ${lIndex})`, this);
             }
@@ -98,7 +98,7 @@ export class Render {
             throw new Exception(`Bind data layout not matched with pipeline bind group layout.`, this);
         }
 
-        this.mBindGroups[pIndex] = pBindGroup;
+        this.mBindGroups.set(pIndex, pBindGroup);
     }
 
     /**

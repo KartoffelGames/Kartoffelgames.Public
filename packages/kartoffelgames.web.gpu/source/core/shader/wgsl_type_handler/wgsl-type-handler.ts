@@ -1,9 +1,9 @@
 import { Dictionary, EnumUtil, Exception } from '@kartoffelgames/core.data';
-import { WgslTypeDepthTexture, WgslTypeDepthTextures, WgslTypeInformation, WgslTypeRestrictions, WgslTypeStorageTexture, WgslTypeTexture, WgslTypeTextures } from './type-information';
+import { WgslTypeDepthTexture, WgslTypeDepthTextures, WgslTypeInformation, WgslTypeRestrictions, WgslTypeStorageTexture, WgslTypeTexture, WgslTypeTextures } from './wgsl-type-collection';
 import { WgslEnum } from './wgsl-enum.enum';
 import { WgslType } from './wgsl-type.enum';
 
-export class TypeHandler {
+export class WgslTypeHandler {
     private static readonly mTypeStorage: Dictionary<WgslType, WgslTypeInformation> = WgslTypeRestrictions;
 
     /**
@@ -27,7 +27,7 @@ export class TypeHandler {
      */
     public static getTextureSampleTypeFromGeneric(pTypeDefinition: WgslTypeDefinition): GPUTextureSampleType {
         if (![...WgslTypeTextures, ...WgslTypeDepthTextures].includes(<WgslTypeDepthTexture | WgslTypeTexture>pTypeDefinition.type)) {
-            throw new Exception(`Type "${pTypeDefinition.type}" not suported for GPUTextureSampleType`, TypeHandler);
+            throw new Exception(`Type "${pTypeDefinition.type}" not suported for GPUTextureSampleType`, WgslTypeHandler);
         }
 
         // Color textures. Based on generic type.
@@ -117,7 +117,7 @@ export class TypeHandler {
         // Match type information.
         const lMatch: RegExpMatchArray | null = pTypeString.match(lTypeRegex);
         if (!lMatch) {
-            throw new Exception(`Type "${pTypeString}" can't be parsed.`, TypeHandler);
+            throw new Exception(`Type "${pTypeString}" can't be parsed.`, WgslTypeHandler);
         }
 
         // Scrape generic information of the string.
@@ -131,31 +131,31 @@ export class TypeHandler {
                 const lGenericName: string = lGenericMatch.groups!['generictype'];
 
                 // Check if generic is a enum type.
-                const lGenericEnum: WgslEnum = TypeHandler.enumByName(lGenericName);
+                const lGenericEnum: WgslEnum = WgslTypeHandler.enumByName(lGenericName);
                 if (lGenericEnum !== WgslEnum.Unknown) {
                     lGenericList.push(lGenericEnum);
                     continue;
                 }
 
                 // Recursive resolve for wgsl types.
-                const lGenericTypeInformation: WgslTypeDefinition = TypeHandler.typeInformationByString(lGenericName);
+                const lGenericTypeInformation: WgslTypeDefinition = WgslTypeHandler.typeInformationByString(lGenericName);
                 lGenericList.push(lGenericTypeInformation);
 
             }
         }
 
         // Validate type.
-        const lType: WgslType = TypeHandler.typeByName(lMatch.groups!['typename']);
-        const lTypeInformation: WgslTypeInformation | undefined = TypeHandler.mTypeStorage.get(lType);
+        const lType: WgslType = WgslTypeHandler.typeByName(lMatch.groups!['typename']);
+        const lTypeInformation: WgslTypeInformation | undefined = WgslTypeHandler.mTypeStorage.get(lType);
         if (!lTypeInformation) {
-            throw new Exception(`Type "${lMatch.groups!['typename']}" has no definition.`, TypeHandler);
+            throw new Exception(`Type "${lMatch.groups!['typename']}" has no definition.`, WgslTypeHandler);
         }
 
         // Skip generic validation for any types.
         if (lTypeInformation.type !== WgslType.Any) {
             // Validate generic count.
             if (lTypeInformation.genericTypes.length !== lGenericList.length) {
-                throw new Exception(`Generic count does not match definition (${lTypeInformation.genericTypes.length} => ${lGenericList.length})`, TypeHandler);
+                throw new Exception(`Generic count does not match definition (${lTypeInformation.genericTypes.length} => ${lGenericList.length})`, WgslTypeHandler);
             }
 
             // Validate generics.
@@ -169,7 +169,7 @@ export class TypeHandler {
 
                 // Compare valid list with set target generic.
                 if (!lValidGenerics.includes(lTargetGenericType)) {
-                    throw new Exception(`Generic type to definition missmatch. (Type "${lTypeInformation.type}" generic index ${lGenericIndex})`, TypeHandler);
+                    throw new Exception(`Generic type to definition missmatch. (Type "${lTypeInformation.type}" generic index ${lGenericIndex})`, WgslTypeHandler);
                 }
             }
         }

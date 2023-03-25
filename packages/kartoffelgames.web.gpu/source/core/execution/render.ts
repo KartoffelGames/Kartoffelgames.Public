@@ -112,14 +112,14 @@ export class Render {
         }
 
         // Validate mesh and pipeline attributes length.
-        if (pMesh.vertexAttributes.length !== this.mPipeline.vertexAttributes.length) {
-            throw new Exception(`Mesh attributes (length:${pMesh.vertexAttributes.length}) does not match pipeline attributes (length${this.mPipeline.vertexAttributes.length})`, this);
+        if (pMesh.vertexAttributes.length !== this.mPipeline.shader.vertexEntryPoint?.attributes.length) {
+            throw new Exception(`Mesh attributes (length:${pMesh.vertexAttributes.length}) does not match pipeline attributes (length${this.mPipeline.shader.vertexEntryPoint?.attributes.length})`, this);
         }
 
         // Validate mesh and pipeline attributes content.
         for (let lAttributeIndex = 0; lAttributeIndex < pMesh.vertexAttributes.length; lAttributeIndex++) {
             const lMeshAttribute: VertexAttributes<TypedArray> = pMesh.vertexAttributes[lAttributeIndex];
-            const lPipelineAttribute: VertexAttributes<TypedArray> = this.mPipeline.vertexAttributes[lAttributeIndex];
+            const lPipelineAttribute: VertexAttributes<TypedArray> = this.mPipeline.shader.vertexEntryPoint.attributes[lAttributeIndex];
             if (lMeshAttribute !== lPipelineAttribute) {
                 throw new Exception(`Mesh attributes does not match pipeline attributes`, this);
             }

@@ -5,7 +5,7 @@ import { ShaderStage } from './enum/shader-stage.enum';
 import { Gpu } from './gpu';
 import { GpuNativeObject } from './gpu-native-object';
 import { TypeHandler, WgslTypeDefinition } from './type_handler/type-handler';
-import { WgslTypeMatrix, WgslTypeNumbers, WgslTypeVectors } from './type_handler/type-information';
+import { WgslTypeDepthTexture, WgslTypeDepthTextures, WgslTypeMatrices, WgslTypeNumbers, WgslTypeStorageTexture, WgslTypeStorageTextures, WgslTypeTexelFormat, WgslTypeTexture, WgslTypeTextures, WgslTypeVectors } from './type_handler/type-information';
 import { WgslType } from './type_handler/wgsl-type.enum';
 
 // TODO: Add VertexAttributes for vertex shader.
@@ -95,7 +95,7 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
                 bindingIndex: parseInt(lMatch.groups!['binding']),
                 addressSpace: <GPUBufferBindingType>lMatch.groups!['addressspace'] ?? null,
                 variableName: lMatch.groups!['name'],
-                type: TypeHandler.typeInformationByString(lMatch.groups!['type'])
+                typeDefinition: TypeHandler.typeInformationByString(lMatch.groups!['type'])
             });
         }
 
@@ -129,20 +129,86 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
      * @param pBindInformation - Bind information.
      */
     private setBindBasedOnType(pBindGroup: BindGroupLayout, pBindInformation: BindGroupInformation): void {
-        // TODO: Calculate correct shaderstage.
-        const lShaderStage: ShaderStage = ShaderStage.Vertex | ShaderStage.Fragment | ShaderStage.Compute;
+        // Available shader states based on entry points.
+        // Not the best, but better than nothing.
+        let lShaderStage: ShaderStage = 0;
+        if (this.mEntryPoints.compute) {
+            lShaderStage |= ShaderStage.Compute;
+        }
+        if (this.mEntryPoints.fragment) {
+            lShaderStage |= ShaderStage.Fragment;
+        }
+        if (this.mEntryPoints.vertex) {
+            lShaderStage |= ShaderStage.Vertex;
+        }
 
         // Buffer types.
-        if ([...WgslTypeNumbers, ...WgslTypeMatrix, ...WgslTypeVectors, WgslType.Array, WgslType.Any].includes(pBindInformation.type.type)) {
+        // Number, matrix, vector and array types.
+        if ([...WgslTypeNumbers, ...WgslTypeMatrices, ...WgslTypeVectors, WgslType.Array, WgslType.Any].includes(pBindInformation.typeDefinition.type)) {
             // Validate address space.
             if (!pBindInformation.addressSpace) {
                 throw new Exception(`Buffer bind type needs to be set for buffer bindings (${pBindInformation.variableName}).`, this);
             }
 
+            // Bind 
             pBindGroup.addBuffer(pBindInformation.variableName, pBindInformation.bindingIndex, lShaderStage, pBindInformation.addressSpace);
-        } else {
-            throw new Exception('Not implemented. Upps', this);
+
+            // Exit.
+            return;
         }
+
+        // Bind only external textures.
+        if (pBindInformation.typeDefinition.type === WgslType.TextureExternal) {
+            // Bind.
+            pBindGroup.addExternalTexture(pBindInformation.variableName, pBindInformation.bindingIndex, lShaderStage);
+
+            // Exit.
+            return;
+        }
+
+        // Sampler types.
+        else if ([WgslType.Sampler, WgslType.SamplerComparison].includes(pBindInformation.typeDefinition.type)) {
+            // Sampler bind type by sampler or comparison type.
+            if (pBindInformation.typeDefinition.type === WgslType.Sampler) {
+                pBindGroup.addSampler(pBindInformation.variableName, pBindInformation.bindingIndex, lShaderStage, 'filtering');
+            } else if (pBindInformation.typeDefinition.type === WgslType.SamplerComparison) {
+                pBindGroup.addSampler(pBindInformation.variableName, pBindInformation.bindingIndex, lShaderStage, 'comparison');
+            }
+
+            // Exit.
+            return;
+        }
+
+        // Storage texture.
+        if (WgslTypeStorageTextures.includes(<WgslTypeStorageTexture>pBindInformation.typeDefinition.type)) {
+            // Storage texture first generics is allways the texel format.
+            const lTexelFormat: GPUTextureFormat = <WgslTypeTexelFormat>pBindInformation.typeDefinition.generics[0];
+            const lTextureAccess: GPUStorageTextureAccess = 'write-only';
+            const lTextureDimension: GPUTextureViewDimension = TypeHandler.getTexureDimensionFromType(<WgslTypeStorageTexture>pBindInformation.typeDefinition.type);
+
+            // Bind storage texture.
+            pBindGroup.addStorageTexture(pBindInformation.variableName, pBindInformation.bindingIndex, lShaderStage, lTexelFormat, lTextureAccess, lTextureDimension);
+
+            // Exit.
+            return;
+        }
+
+        // Depth or color texture.
+        if ([...WgslTypeTextures, ...WgslTypeDepthTextures].includes(<WgslTypeDepthTexture | WgslTypeTexture>pBindInformation.typeDefinition.type)) {
+            const lTextureDimension: GPUTextureViewDimension = TypeHandler.getTexureDimensionFromType(<WgslTypeDepthTexture | WgslTypeTexture>pBindInformation.typeDefinition.type);
+            const lTextureSampleType: GPUTextureSampleType = TypeHandler.getTextureSampleTypeFromGeneric(pBindInformation.typeDefinition);
+
+            if ([WgslType.TextureMultisampled2d, WgslType.TextureDepthMultisampled2d].includes(pBindInformation.typeDefinition.type)) {
+                pBindGroup.addTexture(pBindInformation.variableName, pBindInformation.bindingIndex, lShaderStage, lTextureSampleType, lTextureDimension, true);
+            } else {
+                pBindGroup.addTexture(pBindInformation.variableName, pBindInformation.bindingIndex, lShaderStage, lTextureSampleType, lTextureDimension, false);
+            }
+
+            // Exit.
+            return;
+        }
+
+        throw new Exception(`Not implemented. Upps "${pBindInformation.typeDefinition.type}"`, this);
     }
 }
 
@@ -151,7 +217,7 @@ type BindGroupInformation = {
     bindingIndex: number;
     addressSpace: GPUBufferBindingType | null;
     variableName: string;
-    type: WgslTypeDefinition;
+    typeDefinition: WgslTypeDefinition;
 };
 
 type EntryPoints = {

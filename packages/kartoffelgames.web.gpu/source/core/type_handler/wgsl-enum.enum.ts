@@ -1,4 +1,6 @@
 export enum WgslEnum {
+    Unknown = '*',
+
     // Enum.
     AccessModeRead = 'read',
     AccessModeWrite = 'write',

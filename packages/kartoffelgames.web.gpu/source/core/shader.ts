@@ -50,9 +50,8 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
      */
     public constructor(pGpu: Gpu, pSource: string) {
         super(pGpu, 'SHADER');
-
+        
         this.mSource = pSource;
-        this.mBindGroups = this.getBindInformation(pSource);
 
         // Fetch entry points.
         this.mEntryPoints = {
@@ -60,6 +59,8 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
             vertex: /(@vertex(.|\r?\n)*?fn )(\w*)/gm.exec(pSource)?.[3],
             compute: /(@compute(.|\r?\n)*?fn )(\w*)/gm.exec(pSource)?.[3]
         };
+
+        this.mBindGroups = this.getBindInformation(pSource);
     }
 
     /**

@@ -3,7 +3,7 @@ import { WgslEnum } from './wgsl-enum.enum';
 import { WgslTypeDepthTexture, WgslTypeDepthTextures, WgslTypeInformation, WgslTypeRestrictions, WgslTypeStorageTexture, WgslTypeTexture, WgslTypeTextures } from './wgsl-type-collection';
 import { WgslType } from './wgsl-type.enum';
 
-export class WgslTypeHandler {
+export class WgslTypeDictionary {
     private static readonly mTypeStorage: Dictionary<WgslType, WgslTypeInformation> = WgslTypeRestrictions;
 
     /**
@@ -27,7 +27,7 @@ export class WgslTypeHandler {
      */
     public static textureSampleTypeFromGeneric(pType: WgslType, pTextureType?: WgslType): GPUTextureSampleType {
         if (![...WgslTypeTextures, ...WgslTypeDepthTextures].includes(<WgslTypeDepthTexture | WgslTypeTexture>pType)) {
-            throw new Exception(`Type "${pType}" not suported for GPUTextureSampleType`, WgslTypeHandler);
+            throw new Exception(`Type "${pType}" not suported for GPUTextureSampleType`, WgslTypeDictionary);
         }
 
         // Color textures. Based on generic type.
@@ -110,6 +110,6 @@ export class WgslTypeHandler {
      * @returns 
      */
     public static typeInformation(pType: WgslType): WgslTypeInformation | undefined {
-        return WgslTypeHandler.mTypeStorage.get(pType);
+        return WgslTypeDictionary.mTypeStorage.get(pType);
     }
 }

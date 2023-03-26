@@ -1,6 +1,6 @@
 import { Dictionary, EnumUtil, Exception } from '@kartoffelgames/core.data';
-import { WgslTypeDepthTexture, WgslTypeDepthTextures, WgslTypeInformation, WgslTypeRestrictions, WgslTypeStorageTexture, WgslTypeTexture, WgslTypeTextures } from './wgsl-type-collection';
 import { WgslEnum } from './wgsl-enum.enum';
+import { WgslTypeDepthTexture, WgslTypeDepthTextures, WgslTypeInformation, WgslTypeRestrictions, WgslTypeStorageTexture, WgslTypeTexture, WgslTypeTextures } from './wgsl-type-collection';
 import { WgslType } from './wgsl-type.enum';
 
 export class WgslTypeHandler {
@@ -23,17 +23,16 @@ export class WgslTypeHandler {
     /**
      * Get sample type from type definition.
      * Uses type and generics for getting texture sample type.
-     * @param pTypeDefinition - Type definition.
+     * @param pType - Type definition.
      */
-    public static getTextureSampleTypeFromGeneric(pTypeDefinition: WgslTypeDefinition): GPUTextureSampleType {
-        if (![...WgslTypeTextures, ...WgslTypeDepthTextures].includes(<WgslTypeDepthTexture | WgslTypeTexture>pTypeDefinition.type)) {
-            throw new Exception(`Type "${pTypeDefinition.type}" not suported for GPUTextureSampleType`, WgslTypeHandler);
+    public static textureSampleTypeFromGeneric(pType: WgslType, pTextureType?: WgslType): GPUTextureSampleType {
+        if (![...WgslTypeTextures, ...WgslTypeDepthTextures].includes(<WgslTypeDepthTexture | WgslTypeTexture>pType)) {
+            throw new Exception(`Type "${pType}" not suported for GPUTextureSampleType`, WgslTypeHandler);
         }
 
         // Color textures. Based on generic type.
-        if (WgslTypeTextures.includes(<WgslTypeTexture>pTypeDefinition.type)) {
-            const lGenericType: WgslType = (<WgslTypeDefinition>pTypeDefinition.generics[0]).type;
-            switch (lGenericType) {
+        if (WgslTypeTextures.includes(<WgslTypeTexture>pType)) {
+            switch (pTextureType) {
                 case WgslType.Float32: {
                     return 'float';
                 }
@@ -58,7 +57,7 @@ export class WgslTypeHandler {
      * Get view dimension based on WGSL texture type.
      * @param pTextureType - Texture type.
      */
-    public static getTexureDimensionFromType(pTextureType: WgslTypeDepthTexture | WgslTypeTexture | WgslTypeStorageTexture): GPUTextureViewDimension {
+    public static texureDimensionFromType(pTextureType: WgslTypeDepthTexture | WgslTypeTexture | WgslTypeStorageTexture): GPUTextureViewDimension {
         // Map every texture type for view dimension.
         switch (pTextureType) {
             case WgslType.Texture1d:
@@ -106,82 +105,11 @@ export class WgslTypeHandler {
     }
 
     /**
-     * Get nested type definition from string.
-     * Does validate allowed generic types of all depths.
-     * @param pTypeString - Type string with optional nested generics.
+     * Get type information for WGSL type.
+     * @param pType - WGSL type.
+     * @returns 
      */
-    public static typeInformationByString(pTypeString: string): WgslTypeDefinition {
-        const lTypeRegex: RegExp = /^(?<typename>\w+)(?:<(?<generics>.+)>)?$/;
-        const lGenericRegex: RegExp = /(?<generictype>(?:\w+(?:<.+>)?))[,\s]*/g;
-
-        // Match type information.
-        const lMatch: RegExpMatchArray | null = pTypeString.match(lTypeRegex);
-        if (!lMatch) {
-            throw new Exception(`Type "${pTypeString}" can't be parsed.`, WgslTypeHandler);
-        }
-
-        // Scrape generic information of the string.
-        const lGenericList: Array<WgslTypeDefinition | WgslEnum> = new Array<WgslTypeDefinition | WgslEnum>();
-        if (lMatch.groups!['generics']) {
-            const lGenerics: string = lMatch.groups!['generics'];
-
-            // Execute recursion for all found generic types.
-            let lGenericMatch: RegExpMatchArray | null;
-            while ((lGenericMatch = lGenericRegex.exec(lGenerics)) !== null) {
-                const lGenericName: string = lGenericMatch.groups!['generictype'];
-
-                // Check if generic is a enum type.
-                const lGenericEnum: WgslEnum = WgslTypeHandler.enumByName(lGenericName);
-                if (lGenericEnum !== WgslEnum.Unknown) {
-                    lGenericList.push(lGenericEnum);
-                    continue;
-                }
-
-                // Recursive resolve for wgsl types.
-                const lGenericTypeInformation: WgslTypeDefinition = WgslTypeHandler.typeInformationByString(lGenericName);
-                lGenericList.push(lGenericTypeInformation);
-
-            }
-        }
-
-        // Validate type.
-        const lType: WgslType = WgslTypeHandler.typeByName(lMatch.groups!['typename']);
-        const lTypeInformation: WgslTypeInformation | undefined = WgslTypeHandler.mTypeStorage.get(lType);
-        if (!lTypeInformation) {
-            throw new Exception(`Type "${lMatch.groups!['typename']}" has no definition.`, WgslTypeHandler);
-        }
-
-        // Skip generic validation for any types.
-        if (lTypeInformation.type !== WgslType.Any) {
-            // Validate generic count.
-            if (lTypeInformation.genericTypes.length !== lGenericList.length) {
-                throw new Exception(`Generic count does not match definition (${lTypeInformation.genericTypes.length} => ${lGenericList.length})`, WgslTypeHandler);
-            }
-
-            // Validate generics.
-            for (let lGenericIndex: number = 0; lGenericIndex < lTypeInformation.genericTypes.length; lGenericIndex++) {
-                // Target generic.
-                const lTargetGeneric: WgslTypeDefinition | WgslEnum = lGenericList[lGenericIndex];
-                const lTargetGenericType: WgslType | WgslEnum = (typeof lTargetGeneric === 'string') ? lTargetGeneric : lTargetGeneric.type;
-
-                // Valid generic types or enums.
-                const lValidGenerics: Array<WgslType | WgslEnum> = lTypeInformation.genericTypes[lGenericIndex];
-
-                // Compare valid list with set target generic.
-                if (!lValidGenerics.includes(lTargetGenericType)) {
-                    throw new Exception(`Generic type to definition missmatch. (Type "${lTypeInformation.type}" generic index ${lGenericIndex})`, WgslTypeHandler);
-                }
-            }
-        }
-
-        return {
-            type: lType,
-            generics: lGenericList
-        };
+    public static typeInformation(pType: WgslType): WgslTypeInformation | undefined {
+        return WgslTypeHandler.mTypeStorage.get(pType);
     }
 }
-
-export type WgslTypeDefinition = {
-    type: WgslType;
-    generics: Array<WgslTypeDefinition | WgslEnum>;
-};

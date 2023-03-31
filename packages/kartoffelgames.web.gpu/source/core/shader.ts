@@ -3,11 +3,12 @@ import { BindGroups } from './bind_group/bind-groups';
 import { Gpu } from './gpu';
 import { GpuNativeObject } from './gpu-native-object';
 import { VertexAttributes } from './pipeline/vertex-attributes';
-import { ShaderAnalyzer } from './shader/shader-analyzer';
+import { ShaderAnalyzer, ShaderInformation } from './shader/shader-analyzer';
 
 export class Shader extends GpuNativeObject<GPUShaderModule>{
     private readonly mBindGroups: BindGroups;
     private readonly mEntryPoints: EntryPoints;
+    private readonly mShaderInformation: ShaderInformation;
     private readonly mSource: string;
 
     /**
@@ -47,15 +48,12 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
         super(pGpu, 'SHADER');
 
         this.mSource = pSource;
+        this.mShaderInformation = new ShaderInformation(pSource);
 
-        // Fetch entry points.
-        this.mEntryPoints = {
-            fragment: /(@fragment(.|\r?\n)*?fn )(\w*)/gm.exec(pSource)?.[3],
-            vertex: /(@vertex(.|\r?\n)*?fn )(\w*)/gm.exec(pSource)?.[3],
-            compute: /(@compute(.|\r?\n)*?fn )(\w*)/gm.exec(pSource)?.[3]
-        };
 
-        this.mBindGroups = ShaderAnalyzer.getBindInformation(pGpu, pSource);
+        // TODO: 
+        this.mEntryPoints = <any>null;
+        this.mBindGroups = <any>null;
     }
 
     /**

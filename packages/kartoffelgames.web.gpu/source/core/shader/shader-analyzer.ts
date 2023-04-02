@@ -297,7 +297,7 @@ export class ShaderInformation {
         };
 
         // Generate property informations of every property.
-        for (const lProperty of lStructBody.matchAll(/[^,{}<>]+(<.+>)?/gm)) {
+        for (const lProperty of lStructBody.matchAll(/[^,{}<>\n\r]+(<.+>)?/gm)) {
             const lVariableDescription = this.getVariableDescription(lProperty[0]);
             lStructInformation.properties.push(lVariableDescription);
         }
@@ -314,14 +314,14 @@ export class ShaderInformation {
         const lVariableRegex: RegExp = /^\s*(?<attributes>(?:@[\w]+(?:\([^)]*\))?\s+)+)?(?:var(?:<(?<access>[\w\s,]+)?>)?\s+)?(?:(?<variable>\w+)\s*:\s*)?(?<type>(?<typename>\w+)(?:<(?<generics>.+)>)?)/gm;
 
         // Match regex and validate match.
-        const lMatch: RegExpMatchArray | null = pVariableDefinitionSource.match(lVariableRegex);
+        const lMatch: RegExpMatchArray | null = lVariableRegex.exec(pVariableDefinitionSource);
         if (!lMatch) {
             throw new Exception(`Can't parse variable definition "${pVariableDefinitionSource}"`, this);
         }
 
         // Parse optional attributes.
         const lWgslAttributeList: Array<WgslAttribute> = new Array<WgslAttribute>();
-        if (lMatch.groups?.['attributes']) {
+        if (lMatch.groups!['attributes']) {
             const lAttributeString: string = lMatch.groups!['attributes'];
             const lAttributeRegex: RegExp = /@(?<name>[\w]+)\((?<values>[^)]*)\)/g;
 
@@ -343,7 +343,7 @@ export class ShaderInformation {
 
         // Parse optional cccess modifier.
         let lAccess: { addressSpace: WgslEnum; accessMode: WgslEnum | null; } | null = null;
-        if (lMatch.groups?.['access']) {
+        if (lMatch.groups!['access']) {
             const lAccessList: Array<string> = lMatch.groups!['access'].split(',').map((pValue: string) => pValue.trim()).filter((pValue: string) => pValue.length);
 
             // var<addressSpace [,accessMode]>
@@ -416,7 +416,7 @@ export class ShaderInformation {
         const lGenericRegex: RegExp = /(?<generictype>(?:\w+(?:<.+>)?))[,\s]*/g;
 
         // Match type information.
-        const lMatch: RegExpMatchArray | null = pTypeString.match(lTypeRegex);
+        const lMatch: RegExpMatchArray | null = lTypeRegex.exec(pTypeString);
         if (!lMatch) {
             throw new Exception(`Type "${pTypeString}" can't be parsed.`, WgslTypeDictionary);
         }

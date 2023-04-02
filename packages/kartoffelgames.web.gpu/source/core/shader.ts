@@ -3,7 +3,7 @@ import { BindGroups } from './bind_group/bind-groups';
 import { Gpu } from './gpu';
 import { GpuNativeObject } from './gpu-native-object';
 import { VertexAttributes } from './pipeline/vertex-attributes';
-import { ShaderAnalyzer, ShaderInformation } from './shader/shader-analyzer';
+import { ShaderInformation } from './shader/shader-analyzer';
 
 export class Shader extends GpuNativeObject<GPUShaderModule>{
     private readonly mBindGroups: BindGroups;
@@ -51,7 +51,7 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
         this.mShaderInformation = new ShaderInformation(pSource);
 
 
-        // TODO: 
+        // TODO: Generate from ShaderInformation.
         this.mEntryPoints = <any>null;
         this.mBindGroups = <any>null;
     }

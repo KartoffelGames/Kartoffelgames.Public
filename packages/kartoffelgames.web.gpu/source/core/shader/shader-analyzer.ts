@@ -186,13 +186,14 @@ export class ShaderInformation {
             const lShaderEntryPoint: ShaderEntryPointFunction = {
                 type: EnumUtil.enumKeyByValue(WgslEntryPoint, lEntryPointMatch.groups!['entrytype'])!,
                 name: lEntryPointMatch.groups!['name'],
-                parameter: new Array<ShaderFunctionParameter>(),
-                returnValue: null
+                parameter: new Array<ShaderFunctionLocation>(),
+                returnValue: []
             };
 
             // Parse result type.
             if (lEntryPointMatch.groups!['result']) {
-                lShaderEntryPoint.returnValue = this.getVariableDescription(lEntryPointMatch.groups!['result']);
+                const lResultType: WgslVariableDescription = this.getVariableDescription(lEntryPointMatch.groups!['result']);
+                lShaderEntryPoint.returnValue = this.resolveNestedTypes(lResultType, pSource);
             }
 
             // Parse paramerer.
@@ -202,56 +203,7 @@ export class ShaderInformation {
                 // Generate property informations of every property.
                 for (const lParameter of lEntryPointParameter.matchAll(/[^,{}<>]+(<.+>)?/gm)) {
                     const lParameterDescription: WgslVariableDescription = this.getVariableDescription(lParameter[0]);
-
-                    // Get shader function parameter from wgsl variable defintion, Excluded Structs.
-                    const lGenerateShaderFunctionParameter = (pParameterDescription: WgslVariableDescription, pNamePrefix: string = ''): ShaderFunctionParameter => {
-                        const lLocationAttribute: WgslAttribute | undefined = pParameterDescription.attributes.find(pAttribute => pAttribute.name === 'location');
-                        const lBuiltinAttribute: WgslAttribute | undefined = pParameterDescription.attributes.find(pAttribute => pAttribute.name === 'builtin');
-
-                        // Function parameter frame.
-                        const lFunctionParameter: ShaderFunctionParameter = {
-                            name: pNamePrefix + pParameterDescription.name,
-                            type: <WgslTypeDescription>pParameterDescription.type,
-                            location: ''
-                        };
-
-                        // Get location from builtin or location attribute.
-                        if (lLocationAttribute) {
-                            lFunctionParameter.location = lLocationAttribute.parameter[0];
-                        } else if (lBuiltinAttribute) {
-                            lFunctionParameter.location = lBuiltinAttribute.parameter[0];
-                        } else {
-                            throw new Exception(`No buffer location for attribute "${pParameterDescription.name}" found.`, this);
-                        }
-
-                        return lFunctionParameter;
-                    };
-
-                    // Resolve nested struct parameter as shader function parameter.
-                    const lResolveNestedParameter = (pParameterDescription: WgslVariableDescription, pNamePrefix: string = ''): Array<ShaderFunctionParameter> => {
-                        const lShaderFunctionParameterList: Array<ShaderFunctionParameter> = new Array<ShaderFunctionParameter>();
-
-                        const lVariableLocationName: string = pNamePrefix + pParameterDescription.name;
-
-                        // Resolve nested structs.
-                        if (pParameterDescription.valueType === WgslValueType.Struct) {
-                            // Get struct information.
-                            const lStruct = this.getStructDescription(pSource, <string>pParameterDescription.type);
-                            for (const lStuctProperty of lStruct.properties) {
-                                if (lStuctProperty.valueType === WgslValueType.Struct) {
-                                    lShaderFunctionParameterList.push(...lResolveNestedParameter(lStuctProperty, lVariableLocationName));
-                                } else {
-                                    lShaderFunctionParameterList.push(lGenerateShaderFunctionParameter(lStuctProperty, lVariableLocationName + lStuctProperty.name));
-                                }
-                            }
-                        } else {
-                            lShaderFunctionParameterList.push(lGenerateShaderFunctionParameter(pParameterDescription, lVariableLocationName));
-                        }
-
-                        return lShaderFunctionParameterList;
-                    };
-
-                    lShaderEntryPoint.parameter.push(...lResolveNestedParameter(lParameterDescription));
+                    lShaderEntryPoint.parameter.push(...this.resolveNestedTypes(lParameterDescription, pSource));
                 }
             }
 
@@ -367,7 +319,7 @@ export class ShaderInformation {
         }
 
         // "Parse" variable name.
-        const lVariableName: string | null = lMatch.groups!['variable'] ?? null;
+        const lVariableName: string = lMatch.groups!['variable'] ?? '';
 
         // Find value type.
         let lValueType: WgslValueType;
@@ -404,6 +356,65 @@ export class ShaderInformation {
             valueType: lValueType,
             access: lAccess
         };
+    }
+
+    /**
+     * Resolve nested structs and types.
+     * Get all locations.
+     * @param pVariable - Variable description.
+     * @param pSource - Source.
+     * @returns 
+     */
+    private resolveNestedTypes(pVariable: WgslVariableDescription, pSource: string): Array<ShaderFunctionLocation> {
+        // Get shader function parameter from wgsl variable defintion, Excluded Structs.
+        const lGenerateShaderFunctionParameter = (pParameterDescription: WgslVariableDescription, pNamePrefix: string = ''): ShaderFunctionLocation => {
+            const lLocationAttribute: WgslAttribute | undefined = pParameterDescription.attributes.find(pAttribute => pAttribute.name === 'location');
+            const lBuiltinAttribute: WgslAttribute | undefined = pParameterDescription.attributes.find(pAttribute => pAttribute.name === 'builtin');
+
+            // Function parameter frame.
+            const lFunctionParameter: ShaderFunctionLocation = {
+                name: pNamePrefix + pParameterDescription.name,
+                type: <WgslTypeDescription>pParameterDescription.type,
+                location: ''
+            };
+
+            // Get location from builtin or location attribute.
+            if (lLocationAttribute) {
+                lFunctionParameter.location = parseInt(lLocationAttribute.parameter[0]);
+            } else if (lBuiltinAttribute) {
+                lFunctionParameter.location = lBuiltinAttribute.parameter[0];
+            } else {
+                throw new Exception(`No buffer location for attribute "${pParameterDescription.name}" found.`, this);
+            }
+
+            return lFunctionParameter;
+        };
+
+        // Resolve nested struct parameter as shader function parameter.
+        const lResolveNestedParameter = (pParameterDescription: WgslVariableDescription, pNamePrefix: string = ''): Array<ShaderFunctionLocation> => {
+            const lShaderFunctionParameterList: Array<ShaderFunctionLocation> = new Array<ShaderFunctionLocation>();
+
+            const lVariableLocationName: string = pNamePrefix + pParameterDescription.name;
+
+            // Resolve nested structs.
+            if (pParameterDescription.valueType === WgslValueType.Struct) {
+                // Get struct information.
+                const lStruct = this.getStructDescription(pSource, <string>pParameterDescription.type);
+                for (const lStuctProperty of lStruct.properties) {
+                    if (lStuctProperty.valueType === WgslValueType.Struct) {
+                        lShaderFunctionParameterList.push(...lResolveNestedParameter(lStuctProperty, lVariableLocationName));
+                    } else {
+                        lShaderFunctionParameterList.push(lGenerateShaderFunctionParameter(lStuctProperty, lVariableLocationName));
+                    }
+                }
+            } else {
+                lShaderFunctionParameterList.push(lGenerateShaderFunctionParameter(pParameterDescription, lVariableLocationName));
+            }
+
+            return lShaderFunctionParameterList;
+        };
+
+        return lResolveNestedParameter(pVariable);
     }
 
     /**
@@ -510,17 +521,22 @@ type ShaderEntryPoints = {
     compute?: ShaderEntryPointFunction | undefined;
 };
 
-type ShaderFunctionParameter = {
+type ShaderFunctionLocation = {
     location: number | string;
     type: WgslTypeDescription;
     name: string;
 };
 
+type ShaderFunctionResult = {
+    location: number | string;
+    type: WgslTypeDescription;
+};
+
 export type ShaderEntryPointFunction = {
     type: WgslEntryPoint;
     name: string,
-    parameter: Array<ShaderFunctionParameter>;
-    returnValue: WgslVariableDescription | null;
+    parameter: Array<ShaderFunctionLocation>;
+    returnValue: Array<ShaderFunctionResult>;
 };
 
 type ShaderBindInformation = {

@@ -291,7 +291,7 @@ interface ExternalTextureBindLayout extends BaseBindLayout, Required<GPUExternal
     bindType: BindType.ExternalTexture;
 }
 
-export type BindLayout = BufferBindLayout | SamplerBindLayout | TextureBindLayout | StorageTextureBindLayout | ExternalTextureBindLayout;
+type BindLayout = BufferBindLayout | SamplerBindLayout | TextureBindLayout | StorageTextureBindLayout | ExternalTextureBindLayout;
 
 export type BindInformation = {
     name: string,

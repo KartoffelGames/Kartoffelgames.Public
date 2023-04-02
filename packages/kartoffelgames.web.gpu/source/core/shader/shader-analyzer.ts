@@ -1,28 +1,180 @@
 import { Dictionary, EnumUtil, Exception } from '@kartoffelgames/core.data';
-import { BindGroupLayout } from '../bind_group/bind-group-layout';
-import { BindGroups } from '../bind_group/bind-groups';
+import { BindType } from '../enum/bind-type.enum';
 import { ShaderStage } from '../enum/shader-stage.enum';
-import { Gpu } from '../gpu';
-import { WgslTypeDictionary } from './wgsl_type_handler/wgsl-type-dictionary';
-import { WgslTypeAccessMode, WgslTypeAccessModes, WgslTypeAddressSpace, WgslTypeAddressSpaces, WgslTypeDepthTexture, WgslTypeDepthTextures, WgslTypeInformation, WgslTypeMatrices, WgslTypeNumbers, WgslTypeStorageTexture, WgslTypeStorageTextures, WgslTypeTexelFormat, WgslTypeTexture, WgslTypeTextures, WgslTypeVectors } from './wgsl_type_handler/wgsl-type-collection';
-import { WgslType } from './wgsl_type_handler/wgsl-type.enum';
-import { WgslEnum } from './wgsl_type_handler/wgsl-enum.enum';
-import { WgslValueType } from './wgsl_type_handler/wgsl-value-type.enum';
 import { WgslEntryPoint } from './wgsl_type_handler/wgsl-entry-point.enum';
+import { WgslEnum } from './wgsl_type_handler/wgsl-enum.enum';
+import { WgslTypeAccessMode, WgslTypeAccessModes, WgslTypeAddressSpace, WgslTypeAddressSpaces, WgslTypeDepthTexture, WgslTypeDepthTextures, WgslTypeInformation, WgslTypeMatrices, WgslTypeNumbers, WgslTypeStorageTexture, WgslTypeStorageTextures, WgslTypeTexelFormat, WgslTypeTexture, WgslTypeTextures, WgslTypeVectors } from './wgsl_type_handler/wgsl-type-collection';
+import { WgslTypeDictionary } from './wgsl_type_handler/wgsl-type-dictionary';
+import { WgslType } from './wgsl_type_handler/wgsl-type.enum';
+import { WgslValueType } from './wgsl_type_handler/wgsl-value-type.enum';
 
 export class ShaderInformation {
-    private static readonly mComputeNameRegex: RegExp = /(@compute(.|\r?\n)*?fn )(?<name>\w*)/gm;
-    private static readonly mFragmentNameRegex: RegExp = /(@fragment(.|\r?\n)*?fn )(?<name>\w*)/gm;
-    private static readonly mVertexNameRegex: RegExp = /(@vertex(.|\r?\n)*?fn )(?<name>\w*)/gm;
+    private readonly mBindings: Array<ShaderBindGroup>;
+    private readonly mEntryPoints: ShaderEntryPoints;
 
-    private readonly mEntryPoints: EntryPoints;
-    private readonly m;
-
+    /**
+     * Constructor.
+     * @param pSource - WGSL Source code.
+     */
     public constructor(pSource: string) {
-        // TODO: Find entry points and attributes. 
+        this.mEntryPoints = this.getEntryPointDefinitions(pSource);
+        this.mBindings = this.getBindGroups(pSource);
     }
 
-    private getEntryPointDefinitions(pSource: string): EntryPoints {
+    /**
+     * Get bind based on binding information.
+     * @param pBindGroup - Bind group.
+     * @param pBindInformation - Bind information.
+     */
+    private getBindBasedOnType(pBindInformation: ShaderBindInformation, pShaderState: ShaderStage): ShaderBind {
+        // Buffer types.
+        // Number, matrix, vector and array types.
+        if ([...WgslTypeNumbers, ...WgslTypeMatrices, ...WgslTypeVectors, WgslType.Array, WgslType.Any].includes(pBindInformation.typeDescription.type)) {
+            // Validate address space.
+            if (!pBindInformation.addressSpace) {
+                throw new Exception(`Buffer bind type needs to be set for buffer bindings (${pBindInformation.name}).`, this);
+            }
+
+            // Bind 
+            return <ShaderBufferBind>{
+                bindType: BindType.Buffer,
+                index: pBindInformation.bindingIndex,
+                name: pBindInformation.name,
+                visibility: pShaderState,
+                type: pBindInformation.addressSpace,
+                hasDynamicOffset: false,
+                minBindingSize: 0
+            };
+        }
+
+        // Bind only external textures.
+        if (pBindInformation.typeDescription.type === WgslType.TextureExternal) {
+            return <ShaderExternalTextureBind>{
+                bindType: BindType.ExternalTexture,
+                index: pBindInformation.bindingIndex,
+                name: pBindInformation.name,
+                visibility: pShaderState
+            };
+        }
+
+        // Sampler types.
+        else if ([WgslType.Sampler, WgslType.SamplerComparison].includes(pBindInformation.typeDescription.type)) {
+            // Sampler bind type by sampler or comparison type.
+            const lFilterType: GPUSamplerBindingType = (pBindInformation.typeDescription.type === WgslType.Sampler) ? 'filtering' : 'comparison';
+
+            // Exit.
+            return <ShaderSamplerBind>{
+                bindType: BindType.Sampler,
+                index: pBindInformation.bindingIndex,
+                name: pBindInformation.name,
+                visibility: pShaderState,
+                type: lFilterType
+            };
+        }
+
+        // Storage texture.
+        if (WgslTypeStorageTextures.includes(<WgslTypeStorageTexture>pBindInformation.typeDescription.type)) {
+            // Storage texture first generics is allways the texel format.
+            const lTexelFormat: GPUTextureFormat = <WgslTypeTexelFormat>pBindInformation.typeDescription.generics[0];
+            const lTextureAccess: GPUStorageTextureAccess = 'write-only';
+            const lTextureDimension: GPUTextureViewDimension = WgslTypeDictionary.texureDimensionFromType(<WgslTypeStorageTexture>pBindInformation.typeDescription.type);
+
+            // Bind.
+            return <ShaderStorageTextureBind>{
+                bindType: BindType.StorageTexture,
+                index: pBindInformation.bindingIndex,
+                name: pBindInformation.name,
+                visibility: pShaderState,
+                access: lTextureAccess,
+                format: lTexelFormat,
+                viewDimension: lTextureDimension
+            };
+        }
+
+        // Depth or color texture.
+        if ([...WgslTypeTextures, ...WgslTypeDepthTextures].includes(<WgslTypeDepthTexture | WgslTypeTexture>pBindInformation.typeDescription.type)) {
+            const lTextureDimension: GPUTextureViewDimension = WgslTypeDictionary.texureDimensionFromType(<WgslTypeDepthTexture | WgslTypeTexture>pBindInformation.typeDescription.type);
+            const lMultisampled: boolean = [WgslType.TextureMultisampled2d, WgslType.TextureDepthMultisampled2d].includes(pBindInformation.typeDescription.type);
+
+            // First generic texture is a wgsl type on color textures or nothing on depth textures.
+            const lTextureWgslType: WgslType | undefined = (<WgslTypeDescription | undefined>pBindInformation.typeDescription.generics[0])?.type;
+            const lTextureSampleType: GPUTextureSampleType = WgslTypeDictionary.textureSampleTypeFromGeneric(pBindInformation.typeDescription.type, lTextureWgslType);
+
+            // Exit.
+            return <ShaderTextureBind>{
+                bindType: BindType.Texture,
+                index: pBindInformation.bindingIndex,
+                name: pBindInformation.name,
+                visibility: pShaderState,
+                sampleType: lTextureSampleType,
+                viewDimension: lTextureDimension,
+                multisampled: lMultisampled
+            };
+        }
+
+        throw new Exception(`Not implemented. Upps "${pBindInformation.typeDescription.type}"`, this);
+    }
+
+    /**
+     * Create bind layout from shader code.
+     * @param pSource - Shader source code as string.
+     */
+    private getBindGroups(pSource: string): Array<ShaderBindGroup> {
+        // Regex for binding index, group index, modifier, variable name and type.
+        const lBindInformationRegex: RegExp = /^\s*@group\((?<group>\d+)\)\s*@binding\((?<binding>\d+)\)\s+var(?:<(?<addressspace>[\w,\s]+)>)?\s*(?<name>\w+)\s*:\s*(?<type>[\w,\s<>]*[\w,<>]).*$/gm;
+
+        const lComputeNameRegex: RegExp = /(@compute(.|\r?\n)*?fn )(?<name>\w*)/gm;
+        const lFragmentNameRegex: RegExp = /(@fragment(.|\r?\n)*?fn )(?<name>\w*)/gm;
+        const lVertexNameRegex: RegExp = /(@vertex(.|\r?\n)*?fn )(?<name>\w*)/gm;
+
+        // Available shader states based on entry points.
+        // Not the best, but better than nothing.
+        let lShaderStage: ShaderStage = 0;
+        if (lComputeNameRegex.test(pSource)) {
+            lShaderStage |= ShaderStage.Compute;
+        }
+        if (lFragmentNameRegex.test(pSource)) {
+            lShaderStage |= ShaderStage.Fragment;
+        }
+        if (lVertexNameRegex.test(pSource)) {
+            lShaderStage |= ShaderStage.Vertex;
+        }
+
+        // Get bind information for every group binding.
+        const lGroups: Dictionary<number, Array<ShaderBind>> = new Dictionary<number, Array<ShaderBind>>();
+        for (const lMatch of pSource.matchAll(lBindInformationRegex)) {
+            const lGroupIndex: number = parseInt(lMatch.groups!['group']);
+
+            let lGroupList: Array<ShaderBind> | undefined = lGroups.get(lGroupIndex);
+            if (!lGroupList) {
+                lGroupList = new Array<ShaderBind>();
+                lGroups.set(lGroupIndex, lGroupList);
+            }
+
+            const lShaderBindInformation: ShaderBindInformation = {
+                bindingIndex: parseInt(lMatch.groups!['binding']),
+                addressSpace: <GPUBufferBindingType>lMatch.groups!['addressspace'] ?? null,
+                name: lMatch.groups!['name'],
+                typeDescription: this.typeDescriptionByString(lMatch.groups!['type'])
+            };
+
+            lGroupList.push(this.getBindBasedOnType(lShaderBindInformation, lShaderStage));
+        }
+
+        // Add BindGroupInformation to bind group.
+        const lBindGroupList: Array<ShaderBindGroup> = new Array<ShaderBindGroup>();
+        for (const [lGroupIndex, lBindList] of lGroups) {
+            lBindGroupList.push({ groupIndex: lGroupIndex, binds: lBindList });
+        }
+
+        return lBindGroupList;
+    }
+
+    /**
+     * Get first appearance of every entry point type with its, when possible, vertex variables.
+     * @param pSource - Source code.
+     */
+    private getEntryPointDefinitions(pSource: string): ShaderEntryPoints {
         // Entry point regex. With name, entry point type, parameter and result type.
         const lEntryPoint: RegExp = /@(?<entrytype>vertex|fragment|compute)(?:.|\r?\n)*?fn\s+(?<name>\w*)\s*\((?<parameter>(?:.|\r?\n)*?)\)(?:\s*->\s*(?<result>[^{]+))?\s*{/gm;
 
@@ -34,7 +186,7 @@ export class ShaderInformation {
             const lShaderEntryPoint: ShaderEntryPointFunction = {
                 type: EnumUtil.enumKeyByValue(WgslEntryPoint, lEntryPointMatch.groups!['entrytype'])!,
                 name: lEntryPointMatch.groups!['name'],
-                attributes: new Array<ShaderFunctionParameter>(),
+                parameter: new Array<ShaderFunctionParameter>(),
                 returnValue: null
             };
 
@@ -48,11 +200,63 @@ export class ShaderInformation {
                 const lEntryPointParameter: string = lEntryPointMatch.groups!['parameter'];
 
                 // Generate property informations of every property.
-                for (const lProperty of lEntryPointParameter.matchAll(/[^,{}<>]+(<.+>)?/gm)) {
-                    const lVariableDescription = this.getVariableDescription(lProperty[0]);
-                    lStructInformation.properties[lVariableDescription.name] = lVariableDescription; // TODO: Generate location 
+                for (const lParameter of lEntryPointParameter.matchAll(/[^,{}<>]+(<.+>)?/gm)) {
+                    const lParameterDescription: WgslVariableDescription = this.getVariableDescription(lParameter[0]);
+
+                    // Get shader function parameter from wgsl variable defintion, Excluded Structs.
+                    const lGenerateShaderFunctionParameter = (pParameterDescription: WgslVariableDescription, pNamePrefix: string = ''): ShaderFunctionParameter => {
+                        const lLocationAttribute: WgslAttribute | undefined = pParameterDescription.attributes.find(pAttribute => pAttribute.name === 'location');
+                        const lBuiltinAttribute: WgslAttribute | undefined = pParameterDescription.attributes.find(pAttribute => pAttribute.name === 'builtin');
+
+                        // Function parameter frame.
+                        const lFunctionParameter: ShaderFunctionParameter = {
+                            name: pNamePrefix + pParameterDescription.name,
+                            type: <WgslTypeDescription>pParameterDescription.type,
+                            location: ''
+                        };
+
+                        // Get location from builtin or location attribute.
+                        if (lLocationAttribute) {
+                            lFunctionParameter.location = lLocationAttribute.parameter[0];
+                        } else if (lBuiltinAttribute) {
+                            lFunctionParameter.location = lBuiltinAttribute.parameter[0];
+                        } else {
+                            throw new Exception(`No buffer location for attribute "${pParameterDescription.name}" found.`, this);
+                        }
+
+                        return lFunctionParameter;
+                    };
+
+                    // Resolve nested struct parameter as shader function parameter.
+                    const lResolveNestedParameter = (pParameterDescription: WgslVariableDescription, pNamePrefix: string = ''): Array<ShaderFunctionParameter> => {
+                        const lShaderFunctionParameterList: Array<ShaderFunctionParameter> = new Array<ShaderFunctionParameter>();
+
+                        const lVariableLocationName: string = pNamePrefix + pParameterDescription.name;
+
+                        // Resolve nested structs.
+                        if (pParameterDescription.valueType === WgslValueType.Struct) {
+                            // Get struct information.
+                            const lStruct = this.getStructDescription(pSource, <string>pParameterDescription.type);
+                            for (const lStuctProperty of lStruct.properties) {
+                                if (lStuctProperty.valueType === WgslValueType.Struct) {
+                                    lShaderFunctionParameterList.push(...lResolveNestedParameter(lStuctProperty, lVariableLocationName));
+                                } else {
+                                    lShaderFunctionParameterList.push(lGenerateShaderFunctionParameter(lStuctProperty, lVariableLocationName + lStuctProperty.name));
+                                }
+                            }
+                        } else {
+                            lShaderFunctionParameterList.push(lGenerateShaderFunctionParameter(pParameterDescription, lVariableLocationName));
+                        }
+
+                        return lShaderFunctionParameterList;
+                    };
+
+                    lShaderEntryPoint.parameter.push(...lResolveNestedParameter(lParameterDescription));
                 }
             }
+
+            // Add found entry point to entry point list.
+            lEntryPointList.push(lShaderEntryPoint);
         }
 
         // Get first entry point of each type.
@@ -64,145 +268,11 @@ export class ShaderInformation {
     }
 
     /**
-     * Create bind layout from shader code.
-     * @param pSource - Shader source code as string.
-     */
-    public getBindGroups(pGpu: Gpu, pSource: string): BindGroups { // TODO: Store all BindGroup information without setting BindGroups
-        // Regex for binding index, group index, modifier, variable name and type.
-        const lBindInformationRegex: RegExp = /^\s*@group\((?<group>\d+)\)\s*@binding\((?<binding>\d+)\)\s+var(?:<(?<addressspace>[\w,\s]+)>)?\s*(?<name>\w+)\s*:\s*(?<type>[\w,\s<>]*[\w,<>]).*$/gm;
-
-        const lBindInformationList: Array<BindGroupInformation> = new Array<BindGroupInformation>();
-
-        // Get bind information for every group binding.
-        let lMatch: RegExpExecArray | null;
-        for (const lMatch of pSource.matchAll(lBindInformationRegex)) {
-            lBindInformationList.push({ // With WgslTypeDescription
-                groupIndex: parseInt(lMatch.groups!['group']),
-                bindingIndex: parseInt(lMatch.groups!['binding']),
-                addressSpace: <GPUBufferBindingType>lMatch.groups!['addressspace'] ?? null,
-                variableName: lMatch.groups!['name'],
-                typeDefinition: WgslTypeDictionary.typeDesciptionByString(lMatch.groups!['type'])
-            });
-        }
-
-        // Group bind information by group and bind index.
-        const lGroups: Dictionary<number, Array<BindGroupInformation>> = new Dictionary<number, Array<BindGroupInformation>>();
-        for (const lBind of lBindInformationList) {
-            let lGroupList: Array<BindGroupInformation> | undefined = lGroups.get(lBind.groupIndex);
-            if (!lGroupList) {
-                lGroupList = new Array<BindGroupInformation>();
-                lGroups.set(lBind.groupIndex, lGroupList);
-            }
-
-            lGroupList.push(lBind);
-        }
-
-        // Available shader states based on entry points.
-        // Not the best, but better than nothing.
-        let lShaderStage: ShaderStage = 0;
-        if (ShaderInformation.mComputeNameRegex.test(pSource)) {
-            lShaderStage |= ShaderStage.Compute;
-        }
-        if (ShaderInformation.mFragmentNameRegex.test(pSource)) {
-            lShaderStage |= ShaderStage.Fragment;
-        }
-        if (ShaderInformation.mVertexNameRegex.test(pSource)) {
-            lShaderStage |= ShaderStage.Vertex;
-        }
-
-        // Add BindGroupInformation to bind group.
-        const lBindGroups: BindGroups = new BindGroups(pGpu);
-        for (const [lGroupIndex, lBindList] of lGroups) {
-            const lBindGroup: BindGroupLayout = lBindGroups.addGroup(lGroupIndex);
-            for (const lBind of lBindList) {
-                ShaderInformation.setBindBasedOnType(lBindGroup, lBind, lShaderStage);
-            }
-        }
-
-        return lBindGroups;
-    }
-
-    /**
-     * Adds bind to bind group based on binding information.
-     * @param pBindGroup - Bind group.
-     * @param pBindInformation - Bind information.
-     */
-    private setBindBasedOnType(pBindGroup: BindGroupLayout, pBindInformation: BindGroupInformation, pShaderState: ShaderStage): void {
-        // Buffer types.
-        // Number, matrix, vector and array types.
-        if ([...WgslTypeNumbers, ...WgslTypeMatrices, ...WgslTypeVectors, WgslType.Array, WgslType.Any].includes(pBindInformation.typeDefinition.type)) {
-            // Validate address space.
-            if (!pBindInformation.addressSpace) {
-                throw new Exception(`Buffer bind type needs to be set for buffer bindings (${pBindInformation.variableName}).`, this);
-            }
-
-            // Bind 
-            pBindGroup.addBuffer(pBindInformation.variableName, pBindInformation.bindingIndex, pShaderState, pBindInformation.addressSpace);
-
-            // Exit.
-            return;
-        }
-
-        // Bind only external textures.
-        if (pBindInformation.typeDefinition.type === WgslType.TextureExternal) {
-            // Bind.
-            pBindGroup.addExternalTexture(pBindInformation.variableName, pBindInformation.bindingIndex, pShaderState);
-
-            // Exit.
-            return;
-        }
-
-        // Sampler types.
-        else if ([WgslType.Sampler, WgslType.SamplerComparison].includes(pBindInformation.typeDefinition.type)) {
-            // Sampler bind type by sampler or comparison type.
-            if (pBindInformation.typeDefinition.type === WgslType.Sampler) {
-                pBindGroup.addSampler(pBindInformation.variableName, pBindInformation.bindingIndex, pShaderState, 'filtering');
-            } else if (pBindInformation.typeDefinition.type === WgslType.SamplerComparison) {
-                pBindGroup.addSampler(pBindInformation.variableName, pBindInformation.bindingIndex, pShaderState, 'comparison');
-            }
-
-            // Exit.
-            return;
-        }
-
-        // Storage texture.
-        if (WgslTypeStorageTextures.includes(<WgslTypeStorageTexture>pBindInformation.typeDefinition.type)) {
-            // Storage texture first generics is allways the texel format.
-            const lTexelFormat: GPUTextureFormat = <WgslTypeTexelFormat>pBindInformation.typeDefinition.generics[0];
-            const lTextureAccess: GPUStorageTextureAccess = 'write-only';
-            const lTextureDimension: GPUTextureViewDimension = WgslTypeDictionary.texureDimensionFromType(<WgslTypeStorageTexture>pBindInformation.typeDefinition.type);
-
-            // Bind storage texture.
-            pBindGroup.addStorageTexture(pBindInformation.variableName, pBindInformation.bindingIndex, pShaderState, lTexelFormat, lTextureAccess, lTextureDimension);
-
-            // Exit.
-            return;
-        }
-
-        // Depth or color texture.
-        if ([...WgslTypeTextures, ...WgslTypeDepthTextures].includes(<WgslTypeDepthTexture | WgslTypeTexture>pBindInformation.typeDefinition.type)) {
-            const lTextureDimension: GPUTextureViewDimension = WgslTypeDictionary.texureDimensionFromType(<WgslTypeDepthTexture | WgslTypeTexture>pBindInformation.typeDefinition.type);
-            const lTextureSampleType: GPUTextureSampleType = WgslTypeDictionary.textureSampleTypeFromGeneric(pBindInformation.typeDefinition);
-
-            if ([WgslType.TextureMultisampled2d, WgslType.TextureDepthMultisampled2d].includes(pBindInformation.typeDefinition.type)) {
-                pBindGroup.addTexture(pBindInformation.variableName, pBindInformation.bindingIndex, pShaderState, lTextureSampleType, lTextureDimension, true);
-            } else {
-                pBindGroup.addTexture(pBindInformation.variableName, pBindInformation.bindingIndex, pShaderState, lTextureSampleType, lTextureDimension, false);
-            }
-
-            // Exit.
-            return;
-        }
-
-        throw new Exception(`Not implemented. Upps "${pBindInformation.typeDefinition.type}"`, this);
-    }
-
-    /**
      * Get struct information of struct name.
      * @param pSource - Source.
      * @param pStructName - Struct name.
      */
-    private getStructDescription(pSource: string, pStructName: string): StructInformation {
+    private getStructDescription(pSource: string, pStructName: string): WgslStructInformation {
         const lStuctRegex: RegExp = /^\s*struct\s+(?<name>\w+)\s*{(?<typeinfo>[^}]*)}$/smg;
 
         let lStructBody: string | null = null;
@@ -221,15 +291,15 @@ export class ShaderInformation {
         }
 
         // Struct information frame.
-        const lStructInformation: StructInformation = {
+        const lStructInformation: WgslStructInformation = {
             name: pStructName,
-            properties: {}
+            properties: []
         };
 
         // Generate property informations of every property.
         for (const lProperty of lStructBody.matchAll(/[^,{}<>]+(<.+>)?/gm)) {
             const lVariableDescription = this.getVariableDescription(lProperty[0]);
-            lStructInformation.properties[lVariableDescription.name!] = lVariableDescription;
+            lStructInformation.properties.push(lVariableDescription);
         }
 
         return lStructInformation;
@@ -409,16 +479,20 @@ export class ShaderInformation {
             generics: lGenericList
         };
     }
-
 }
 
-type StructInformation = {
+type WgslStructInformation = {
     name: string,
-    properties: { [VariableName: string]: WgslVariableDescription; };
+    properties: Array<WgslVariableDescription>;
+};
+
+type WgslTypeDescription = {
+    type: WgslType;
+    generics: Array<WgslTypeDescription | WgslEnum>;
 };
 
 type WgslVariableDescription = {
-    name: string | null,
+    name: string,
     type: WgslTypeDescription | WgslEnum | string;
     attributes: Array<WgslAttribute>;
     valueType: WgslValueType;
@@ -430,40 +504,62 @@ type WgslAttribute = {
     parameter: Array<string>;
 };
 
-type WgslTypeDescription = {
-    type: WgslType;
-    generics: Array<WgslTypeDescription | WgslEnum>;
-};
-
-
-
-
-
-
-
-
-type BindGroupInformation = {
-    groupIndex: number;
-    bindingIndex: number;
-    addressSpace: GPUBufferBindingType | null;
-    variableName: string;
-    typeDefinition: WgslTypeDescription;
-};
-
-export type ShaderEntryPointFunction = {
-    type: WgslEntryPoint;
-    name: string,
-    attributes: Array<ShaderFunctionParameter>;
-    returnValue: WgslVariableDescription | null;
+type ShaderEntryPoints = {
+    fragment?: ShaderEntryPointFunction | undefined;
+    vertex?: ShaderEntryPointFunction | undefined;
+    compute?: ShaderEntryPointFunction | undefined;
 };
 
 type ShaderFunctionParameter = {
     location: number | string;
     type: WgslTypeDescription;
+    name: string;
 };
 
-type EntryPoints = {
-    fragment?: ShaderEntryPointFunction | undefined;
-    vertex?: ShaderEntryPointFunction | undefined;
-    compute?: ShaderEntryPointFunction | undefined;
+export type ShaderEntryPointFunction = {
+    type: WgslEntryPoint;
+    name: string,
+    parameter: Array<ShaderFunctionParameter>;
+    returnValue: WgslVariableDescription | null;
+};
+
+type ShaderBindInformation = {
+    bindingIndex: number,
+    addressSpace: GPUBufferBindingType | null,
+    name: string,
+    typeDescription: WgslTypeDescription;
+};
+
+interface ShaderBaseBind {
+    index: number;
+    name: string;
+    bindType: BindType;
+    visibility: ShaderStage;
+}
+
+interface ShaderBufferBind extends ShaderBaseBind, Required<GPUBufferBindingLayout> {
+    bindType: BindType.Buffer;
+}
+
+interface ShaderSamplerBind extends ShaderBaseBind, Required<GPUSamplerBindingLayout> {
+    bindType: BindType.Sampler;
+}
+
+interface ShaderTextureBind extends ShaderBaseBind, Required<GPUTextureBindingLayout> {
+    bindType: BindType.Texture;
+}
+
+interface ShaderStorageTextureBind extends ShaderBaseBind, Required<GPUStorageTextureBindingLayout> {
+    bindType: BindType.StorageTexture;
+}
+
+interface ShaderExternalTextureBind extends ShaderBaseBind, Required<GPUExternalTextureBindingLayout> {
+    bindType: BindType.ExternalTexture;
+}
+
+export type ShaderBind = ShaderBufferBind | ShaderSamplerBind | ShaderTextureBind | ShaderStorageTextureBind | ShaderExternalTextureBind;
+
+export type ShaderBindGroup = {
+    groupIndex: number;
+    binds: Array<ShaderBind>;
 };

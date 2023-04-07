@@ -17,6 +17,13 @@ export class VertexAttribute extends GpuNativeObject<GPUVertexBufferLayout> {
     }
 
     /**
+     * Get attribute location.
+     */
+    public get location(): number {
+        return this.mAttribute.location;
+    }
+
+    /**
      * Attribute name.
      */
     public get name(): string {

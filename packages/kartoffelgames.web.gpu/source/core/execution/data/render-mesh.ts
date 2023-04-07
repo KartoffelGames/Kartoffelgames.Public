@@ -1,4 +1,4 @@
-import { TypedArray } from '@kartoffelgames/core.data';
+import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core.data';
 import { Gpu } from '../../gpu';
 import { BaseBuffer } from '../../resource/buffer/base-buffer';
 import { SimpleBuffer } from '../../resource/buffer/simple-buffer';
@@ -6,13 +6,13 @@ import { SimpleBuffer } from '../../resource/buffer/simple-buffer';
 export class RenderMesh {
     private readonly mHighestVerticleIndex: number;
     private readonly mIndexBuffer: SimpleBuffer<Uint16Array>;
-    private readonly mVertexBufferList: Array<BaseBuffer<TypedArray>>;
+    private readonly mVertexBuffer: Dictionary<string, BaseBuffer<TypedArray>>;
 
     /**
      * Vertex attributes count.
      */
     public get attributesCount(): number {
-        return this.mVertexBufferList.length;
+        return this.mVertexBuffer.size;
     }
 
     /**
@@ -20,13 +20,6 @@ export class RenderMesh {
      */
     public get indexBuffer(): SimpleBuffer<Uint16Array> {
         return this.mIndexBuffer;
-    }
-
-    /**
-     * Vertex buffer.
-     */
-    public get vertexBuffer(): Array<BaseBuffer<TypedArray>> {
-        return this.mVertexBufferList;
     }
 
     /**
@@ -38,7 +31,7 @@ export class RenderMesh {
      * @param pVertexIndices - Vertex indices.
      */
     public constructor(pGpu: Gpu, pVertexIndices: Array<number>) {
-        this.mVertexBufferList = new Array<BaseBuffer<TypedArray>>();
+        this.mVertexBuffer = new Dictionary<string, BaseBuffer<TypedArray>>();
 
         // Get highest verticle index.
         this.mHighestVerticleIndex = Math.max(...pVertexIndices);
@@ -49,11 +42,25 @@ export class RenderMesh {
     }
 
     /**
+     * Get buffer by attribute name
+     * @param pName - Vertex attribute name.
+     */
+    public getVertexBuffer(pName: string): BaseBuffer<TypedArray> {
+        const lBuffer: BaseBuffer<TypedArray> | undefined = this.mVertexBuffer.get(pName);
+        if (!lBuffer) {
+            throw new Exception(`Vertex buffer for attribute "${pName}" not found`, this);
+        }
+
+        return lBuffer;
+    }
+
+    /**
      * Add vertex buffer for vertex attributes.
      * Order matters. Vaidates assigned buffer with vertex attributes. 
+     * @param pName - Attribute name.
      * @param pVertexBuffer 
      */
-    public addVertexBuffer(pVertexBuffer: BaseBuffer<any>): void {
-        this.mVertexBufferList.push(pVertexBuffer);
+    public setVertexBuffer(pName: string, pVertexBuffer: BaseBuffer<any>): void {
+        this.mVertexBuffer.set(pName, pVertexBuffer);
     }
 }

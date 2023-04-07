@@ -13,6 +13,20 @@ export class ShaderInformation {
     private readonly mEntryPoints: ShaderEntryPoints;
 
     /**
+     * Binding information.
+     */
+    public get bindings(): Array<ShaderBindGroup> {
+        return this.mBindings;
+    }
+
+    /**
+     * Shader entry points.
+     */
+    public get entryPoints(): ShaderEntryPoints {
+        return this.mEntryPoints;
+    }
+
+    /**
      * Constructor.
      * @param pSource - WGSL Source code.
      */
@@ -497,7 +511,7 @@ type WgslStructInformation = {
     properties: Array<WgslVariableDescription>;
 };
 
-type WgslTypeDescription = {
+export type WgslTypeDescription = {
     type: WgslType;
     generics: Array<WgslTypeDescription | WgslEnum>;
 };

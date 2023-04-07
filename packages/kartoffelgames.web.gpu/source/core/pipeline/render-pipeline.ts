@@ -220,15 +220,10 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
         const lPipelineLayout: GPUPipelineLayoutDescriptor = await this.mShader.bindGroups.native();
 
         // Generate vertex buffer layouts.
-        let lVertexAttributeCount: number = 0;
         const lVertexBufferLayoutList: Array<GPUVertexBufferLayout> = new Array<GPUVertexBufferLayout>();
         for (const lAttribute of this.mShader.vertexEntryPoint.attributes) {
             // Set location offset based on previous  vertex attributes.
-            lAttribute.locationOffset = lVertexAttributeCount;
             lVertexBufferLayoutList.push(await lAttribute.native());
-
-            // Increase vertx atttribute count.
-            lVertexAttributeCount += lAttribute.count;
         }
 
         // Construct basic GPURenderPipelineDescriptor.

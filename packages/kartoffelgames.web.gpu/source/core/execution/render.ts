@@ -2,7 +2,6 @@ import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core.data';
 import { BindGroup } from '../bind_group/bind-group';
 import { Gpu } from '../gpu';
 import { RenderPipeline } from '../pipeline/render-pipeline';
-import { VertexAttribute } from '../pipeline/vertex-attribute';
 import { BaseBuffer } from '../resource/buffer/base-buffer';
 import { RenderMesh } from './data/render-mesh';
 
@@ -68,14 +67,10 @@ export class Render {
         }
 
         // Add vertex attribute buffer.
-        for (let lIndex: number = 0; lIndex < this.mMesh.attributesCount; lIndex++) {
-            const lAttributeBuffer: BaseBuffer<TypedArray> | null = this.mMesh.vertexBuffer[lIndex];
+        for (const lAttribute of this.mPipeline.shader.vertexEntryPoint!.attributes) {
+            const lAttributeBuffer: BaseBuffer<TypedArray> = this.mMesh.getVertexBuffer(lAttribute.name);
 
-            if (!lAttributeBuffer) {
-                throw new Exception(`Vertext attribute buffer (index${lIndex}) not set.`, this);
-            }
-
-            lEncoder.setVertexBuffer(lIndex, await lAttributeBuffer.native());
+            lEncoder.setVertexBuffer(lAttribute.location, await lAttributeBuffer.native());
         }
 
         lEncoder.setIndexBuffer(await this.mMesh.indexBuffer.native(), 'uint16');
@@ -117,10 +112,10 @@ export class Render {
         }
 
         // Validate mesh and pipeline attributes content.
-        for (let lAttributeIndex = 0; lAttributeIndex < pMesh.attributesCount; lAttributeIndex++) {
-            const lMeshAttribute: BaseBuffer<TypedArray> = pMesh.vertexBuffer[lAttributeIndex];
-            const lPipelineAttribute: VertexAttribute = this.mPipeline.shader.vertexEntryPoint.attributes[lAttributeIndex];
-            if (lMeshAttribute.type !== lPipelineAttribute.bufferDataType) {
+        for (const lAttribute of this.mPipeline.shader.vertexEntryPoint!.attributes) {
+            const lMeshAttributeBuffer: BaseBuffer<TypedArray> = pMesh.getVertexBuffer(lAttribute.name);
+
+            if (lMeshAttributeBuffer.type !== lAttribute.bufferDataType) {
                 throw new Exception(`Mesh attributes does not match pipeline attributes`, this);
             }
         }

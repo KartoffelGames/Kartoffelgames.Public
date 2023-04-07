@@ -2,7 +2,7 @@ import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core.data';
 import { BindGroup } from '../bind_group/bind-group';
 import { Gpu } from '../gpu';
 import { RenderPipeline } from '../pipeline/render-pipeline';
-import { VertexAttributes } from '../pipeline/vertex-attributes';
+import { VertexAttribute } from '../pipeline/vertex-attribute';
 import { BaseBuffer } from '../resource/buffer/base-buffer';
 import { RenderMesh } from './data/render-mesh';
 
@@ -68,7 +68,7 @@ export class Render {
         }
 
         // Add vertex attribute buffer.
-        for (let lIndex: number = 0; lIndex < this.mMesh.vertexAttributes.length; lIndex++) {
+        for (let lIndex: number = 0; lIndex < this.mMesh.attributesCount; lIndex++) {
             const lAttributeBuffer: BaseBuffer<TypedArray> | null = this.mMesh.vertexBuffer[lIndex];
 
             if (!lAttributeBuffer) {
@@ -112,15 +112,15 @@ export class Render {
         }
 
         // Validate mesh and pipeline attributes length.
-        if (pMesh.vertexAttributes.length !== this.mPipeline.shader.vertexEntryPoint?.attributes.length) {
-            throw new Exception(`Mesh attributes (length:${pMesh.vertexAttributes.length}) does not match pipeline attributes (length${this.mPipeline.shader.vertexEntryPoint?.attributes.length})`, this);
+        if (pMesh.attributesCount !== this.mPipeline.shader.vertexEntryPoint?.attributes.length) {
+            throw new Exception(`Mesh attributes (length:${pMesh.attributesCount}) does not match pipeline attributes (length${this.mPipeline.shader.vertexEntryPoint?.attributes.length})`, this);
         }
 
         // Validate mesh and pipeline attributes content.
-        for (let lAttributeIndex = 0; lAttributeIndex < pMesh.vertexAttributes.length; lAttributeIndex++) {
-            const lMeshAttribute: VertexAttributes<TypedArray> = pMesh.vertexAttributes[lAttributeIndex];
-            const lPipelineAttribute: VertexAttributes<TypedArray> = this.mPipeline.shader.vertexEntryPoint.attributes[lAttributeIndex];
-            if (lMeshAttribute !== lPipelineAttribute) {
+        for (let lAttributeIndex = 0; lAttributeIndex < pMesh.attributesCount; lAttributeIndex++) {
+            const lMeshAttribute: BaseBuffer<TypedArray> = pMesh.vertexBuffer[lAttributeIndex];
+            const lPipelineAttribute: VertexAttribute = this.mPipeline.shader.vertexEntryPoint.attributes[lAttributeIndex];
+            if (lMeshAttribute.type !== lPipelineAttribute.bufferDataType) {
                 throw new Exception(`Mesh attributes does not match pipeline attributes`, this);
             }
         }

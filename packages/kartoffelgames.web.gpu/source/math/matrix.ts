@@ -36,8 +36,12 @@ export class Matrix {
      */
     public get dataArray(): Array<number> {
         const lData: Array<number> = new Array<number>();
-        for (let lRowIndex = 0; lRowIndex < this.height; lRowIndex++) {
-            lData.push(...this.mData[lRowIndex]);
+
+        // Read from columns to rows.
+        for (let lColumnIndex = 0; lColumnIndex < this.width; lColumnIndex++) {
+            for (let lRowIndex = 0; lRowIndex < this.height; lRowIndex++) {
+                lData.push(this.mData[lRowIndex][lColumnIndex]);
+            }
         }
 
         return lData;
@@ -125,7 +129,7 @@ export class Matrix {
                     // Multiplicate target row with source column components.
                     // Iteration length is eighter target.height or source.width.
                     let lProduct: number = 0;
-                    for(let lComponentIndex = 0; lComponentIndex < this.height; lComponentIndex++){
+                    for (let lComponentIndex = 0; lComponentIndex < this.height; lComponentIndex++) {
                         lProduct += this.mData[lRowIndex][lComponentIndex] * pMultData.data[lComponentIndex][lColumnIndex];
                     }
                     lRowData[lColumnIndex] = lProduct;

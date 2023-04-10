@@ -480,7 +480,7 @@ export class ShaderInformation {
         if (lTypeInformation.type !== WgslType.Any) {
             // Validate generic count.
             if (lTypeInformation.genericTypes.length !== lGenericList.length) {
-                throw new Exception(`Generic count does not match definition (${lTypeInformation.genericTypes.length} => ${lGenericList.length})`, WgslTypeDictionary);
+                throw new Exception(`Generic count does not match definition "${lTypeInformation.type.toString()}" (Should:${lTypeInformation.genericTypes.length}, Has:${lGenericList.length})`, WgslTypeDictionary);
             }
 
             // Validate generics.

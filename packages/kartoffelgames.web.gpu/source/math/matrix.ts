@@ -2,6 +2,31 @@ import { Exception } from '@kartoffelgames/core.data';
 
 export class Matrix {
     /**
+     * Create matrix from data array.
+     * Direction from reading columns than rows.
+     * @param pArray - Array data. 
+     * @param pHeight 
+     * @param pWidth 
+     * @returns 
+     */
+    public static fromArray(pArray: Array<number>, pHeight: number, pWidth: number): Matrix {
+        const lData: Array<Array<number>> = new Array<Array<number>>();
+
+        for (let lRowIndex = 0; lRowIndex < pHeight; lRowIndex++) {
+            const lRowData: Array<number> = new Array<number>(pWidth);
+
+            for (let lColumnIndex = 0; lColumnIndex < pWidth; lColumnIndex++) {
+                lRowData[lColumnIndex] = pArray[(lColumnIndex * pHeight) + lRowIndex];
+            }
+
+            // Add row to data array.
+            lData.push(lRowData);
+        }
+
+        return new Matrix(lData);
+    }
+
+    /**
      * Create identity matrix.
      * @param pSize - Matix size: nxn
      * @param pValue - Value of identity. 

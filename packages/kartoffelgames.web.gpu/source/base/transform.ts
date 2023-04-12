@@ -1,7 +1,8 @@
 import { Matrix } from '../math/matrix';
+import { Quaternion } from '../math/quaternion';
 
 export class Transform {
-    private readonly mRotation: Matrix;
+    private mRotation: Quaternion;
     private readonly mScale: Matrix;
     private mTransformationMatrix: Matrix | null;
     private readonly mTranslation: Matrix;
@@ -37,7 +38,7 @@ export class Transform {
         // Recalulate transformation matrix.
         if (!this.mTransformationMatrix) {
             // First scale, second rotate, third translate.
-            this.mTransformationMatrix = this.mTranslation.mult(this.mRotation.mult(this.mScale));
+            this.mTransformationMatrix = this.mTranslation.mult(this.mRotation.asMatrix().mult(this.mScale));
         }
 
         return this.mTransformationMatrix;
@@ -97,7 +98,16 @@ export class Transform {
     public constructor() {
         this.mScale = Matrix.identity(4, 1);
         this.mTranslation = Matrix.identity(4, 1);
-        this.mRotation = Matrix.identity(4, 1);
+        this.mRotation = new Quaternion(1, 0, 0, 0);
+        this.mTransformationMatrix = null;
+    }
+
+    public addRotation(pRoll: number, pPitch: number, pYaw: number): void {
+        // Create quaternion from euler rotation and multiplicate with current orientation.
+        const lQuaternion: Quaternion = Quaternion.fromEuler(pRoll, pPitch, pYaw);
+        this.mRotation = this.mRotation.mult(lQuaternion);
+
+        // Reset calculated transformation matrix.
         this.mTransformationMatrix = null;
     }
 }

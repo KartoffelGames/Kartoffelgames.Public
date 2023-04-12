@@ -82,7 +82,7 @@ export class Quaternion {
     }
 
     public asMatrix(): Matrix {
-        const lIdentRow: number = 1 - 2 * (Math.pow(this.mY, 2) + Math.pow(this.mZ, 2));
+        const lIdentRow: number = 2 * (Math.pow(this.mW, 2) + Math.pow(this.mX, 2)) - 1;
         const lTwoXy = 2 * this.mX * this.mY;
         const lTwoWz = 2 * this.mW * this.mZ;
         const lTwoWy = 2 * this.mW * this.mY;
@@ -90,9 +90,6 @@ export class Quaternion {
         const lTwoXz = 2 * this.mX * this.mZ;
         const lTwoWx = 2 * this.mW * this.mX;
 
-        // 1 - 2y² - 2z² ||  2xy - 2wz   || 2xy + 2wy
-        // 2xy + 2wz     ||  1 - 2x² 2z² || 2yz - 2wx
-        // 2xz - 2wy     ||  2yz + 2wx   || 1 - 2x² 2z²
         return new Matrix([
             [lIdentRow, lTwoXy - lTwoWz, lTwoWy + lTwoXz, 0],
             [lTwoXy + lTwoWz, lIdentRow, lTwoYz - lTwoWx, 0],

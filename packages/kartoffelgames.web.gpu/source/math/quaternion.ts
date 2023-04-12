@@ -89,20 +89,39 @@ export class Quaternion {
      * Convert quaternion to a 4x4 rotation matrix.
      */
     public asMatrix(): Matrix {
-        const lIdentRow: number = 2 * (Math.pow(this.mW, 2) + Math.pow(this.mX, 2)) - 1;
-        const lTwoXy = 2 * this.mX * this.mY;
-        const lTwoWz = 2 * this.mW * this.mZ;
-        const lTwoWy = 2 * this.mW * this.mY;
-        const lTwoYz = 2 * this.mY * this.mZ;
-        const lTwoXz = 2 * this.mX * this.mZ;
-        const lTwoWx = 2 * this.mW * this.mX;
+        /*
+            1 - 2*qy² - 2*qz²	2*qx*qy - 2*qz*qw	2*qx*qz + 2*qy*qw
+            2*qx*qy + 2*qz*qw	1 - 2*qx² - 2*qz²	2*qy*qz - 2*qx*qw
+            2*qx*qz - 2*qy*qw	2*qy*qz + 2*qx*qw	1 - 2*qx² - 2*qy²
+        */
+        // Sqares
+        const lSquareX: number = 2 * Math.pow(this.mX, 2);
+        const lSquareY: number = 2 * Math.pow(this.mY, 2);
+        const lSquareZ: number = 2 * Math.pow(this.mZ, 2);
 
-        return new Matrix([
-            [lIdentRow, lTwoXy - lTwoWz, lTwoWy + lTwoXz, 0],
-            [lTwoXy + lTwoWz, lIdentRow, lTwoYz - lTwoWx, 0],
-            [lTwoXz - lTwoWy, lTwoWx + lTwoYz, lIdentRow, 0],
-            [0, 0, 0, 1],
-        ]);
+        // Products.
+        const lProductXy: number = 2 * this.mX * this.mY;
+        const lProductZw: number = 2 * this.mZ * this.mW;
+        const lProductXz: number = 2 * this.mX * this.mZ;
+        const lProductYw: number = 2 * this.mY * this.mW;
+        const lProductYz: number = 2 * this.mY * this.mZ;
+        const lProductXw: number = 2 * this.mX * this.mW;
+
+        // Fill matrix
+        const lMatrix: Matrix = Matrix.identity(4, 1);
+        lMatrix.data[0][0] = 1 - lSquareY - lSquareZ;
+        lMatrix.data[0][1] = lProductXy - lProductZw;
+        lMatrix.data[0][2] = lProductXz + lProductYw;
+
+        lMatrix.data[1][0] = lProductXy + lProductZw;
+        lMatrix.data[1][1] = 1 - lSquareX - lSquareZ;
+        lMatrix.data[1][2] = lProductYz - lProductXw;
+
+        lMatrix.data[2][0] = lProductXz - lProductYw;
+        lMatrix.data[2][1] = lProductYz + lProductXw;
+        lMatrix.data[2][2] = 1 - lSquareX - lSquareY;
+
+        return lMatrix;
     }
 
     /**

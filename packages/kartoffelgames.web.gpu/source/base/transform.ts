@@ -2,11 +2,12 @@ import { Matrix } from '../math/matrix';
 import { Quaternion } from '../math/quaternion';
 
 export class Transform {
+    private readonly mPivot: Matrix;
     private mRotation: Quaternion;
     private readonly mScale: Matrix;
     private mTransformationMatrix: Matrix | null;
     private readonly mTranslation: Matrix;
-
+    
     /**
      * Rotation on X angle.
      */
@@ -26,6 +27,42 @@ export class Transform {
      */
     public get axisRotationAngleZ(): number {
         return this.mRotation.z / Math.sqrt(1 - Math.pow(this.mRotation.w, 2));
+    }
+
+    /**
+     * X pivot point.
+     */
+    public get pivotX(): number {
+        return this.mPivot.data[0][3];
+    } set pivotX(pValue: number) {
+        this.mPivot.data[0][3] = pValue;
+
+        // Reset calculated transformation matrix.
+        this.mTransformationMatrix = null;
+    }
+
+    /**
+     * Y pivot point.
+     */
+    public get pivotY(): number {
+        return this.mPivot.data[1][3];
+    } set pivotY(pValue: number) {
+        this.mPivot.data[1][3] = pValue;
+
+        // Reset calculated transformation matrix.
+        this.mTransformationMatrix = null;
+    }
+
+    /**
+     * Z pivot point.
+     */
+    public get pivotZ(): number {
+        return this.mPivot.data[2][3];
+    } set pivotZ(pValue: number) {
+        this.mPivot.data[2][3] = pValue;
+
+        // Reset calculated transformation matrix.
+        this.mTransformationMatrix = null;
     }
 
     /**
@@ -120,6 +157,7 @@ export class Transform {
         this.mScale = Matrix.identity(4, 1);
         this.mTranslation = Matrix.identity(4, 1);
         this.mRotation = new Quaternion(1, 0, 0, 0);
+        this.mPivot = Matrix.identity(4, 1);
         this.mTransformationMatrix = null;
     }
 

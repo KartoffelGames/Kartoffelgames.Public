@@ -81,6 +81,9 @@ export class Quaternion {
         this.mW = pW;
     }
 
+    /**
+     * Convert quaternion to a 4x4 rotation matrix.
+     */
     public asMatrix(): Matrix {
         const lIdentRow: number = 2 * (Math.pow(this.mW, 2) + Math.pow(this.mX, 2)) - 1;
         const lTwoXy = 2 * this.mX * this.mY;
@@ -116,7 +119,7 @@ export class Quaternion {
      */
     public normalize(): Quaternion {
         // Calculate length.
-        const lLength = Math.sqrt(Math.pow(this.mW, 2) + Math.pow(this.mX, 2) + Math.pow(this.mY, 2) + Math.pow(this.mZ, 2));
+        const lLength = Math.hypot(Math.pow(this.mW, 2), Math.pow(this.mX, 2), Math.pow(this.mY, 2), Math.pow(this.mZ, 2));
 
         // Create new quaternion by dividing each dimension by length.
         return new Quaternion(this.mW / lLength, this.mX / lLength, this.mY / lLength, this.mZ / lLength);

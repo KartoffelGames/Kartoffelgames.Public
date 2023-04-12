@@ -49,15 +49,8 @@ export class Vector {
      * Get length of vector.
      */
     public length(): number {
-        let lSquareSum: number = 0;
-
-        // Square all items and add all to the same sum.
-        for (const lItem of this.mData) {
-            lSquareSum += Math.pow(lItem, 2);
-        }
-
         // Square root sum.
-        return Math.sqrt(lSquareSum);
+        return Math.hypot(...this.mData);
     }
 
     /**

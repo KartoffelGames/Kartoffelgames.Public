@@ -187,6 +187,23 @@ export class Matrix {
     }
 
     /**
+     * Inverse matrix.
+     */
+    public inverse(): Matrix {
+        const lAdjoint: Matrix = this.adjoint();
+        const lDeterminant: number = this.determinant();
+
+        // Devide each adjoint matrix component by determinant.
+        for (let lColumIndex = 0; lColumIndex < this.width; lColumIndex++) {
+            for (let lRowIndex = 0; lRowIndex < this.height; lRowIndex++) {
+                lAdjoint.data[lRowIndex][lColumIndex] /= lDeterminant;
+            }
+        }
+
+        return lAdjoint;
+    }
+
+    /**
      * Multiplicate matrix.
      * @param pMultData - Matrix or scalar value.
      */

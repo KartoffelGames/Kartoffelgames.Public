@@ -8,11 +8,32 @@ export class Transform {
     private readonly mTranslation: Matrix;
 
     /**
+     * Rotation on X angle.
+     */
+    public get axisRotationAngleX(): number {
+        return this.mRotation.x / Math.sqrt(1 - Math.pow(this.mRotation.w, 2));
+    }
+
+    /**
+     * Rotation on Y angle.
+     */
+    public get axisRotationAngleY(): number {
+        return this.mRotation.y / Math.sqrt(1 - Math.pow(this.mRotation.w, 2));
+    }
+
+    /**
+     * Rotation on Z angle.
+     */
+    public get axisRotationAngleZ(): number {
+        return this.mRotation.z / Math.sqrt(1 - Math.pow(this.mRotation.w, 2));
+    }
+
+    /**
      * Depth scale.
      */
-    public get depth(): number {
+    public get scaleDepth(): number {
         return this.mScale.data[2][2];
-    } set depth(pValue: number) {
+    } set scaleDepth(pValue: number) {
         this.mScale.data[2][2] = pValue;
 
         // Reset calculated transformation matrix.
@@ -22,10 +43,22 @@ export class Transform {
     /**
      * Height scale.
      */
-    public get height(): number {
+    public get scaleHeight(): number {
         return this.mScale.data[1][1];
-    } set height(pValue: number) {
+    } set scaleHeight(pValue: number) {
         this.mScale.data[1][1] = pValue;
+
+        // Reset calculated transformation matrix.
+        this.mTransformationMatrix = null;
+    }
+
+    /**
+     * Width scale.
+     */
+    public get scaleWidth(): number {
+        return this.mScale.data[0][0];
+    } set scaleWidth(pValue: number) {
+        this.mScale.data[0][0] = pValue;
 
         // Reset calculated transformation matrix.
         this.mTransformationMatrix = null;
@@ -38,30 +71,18 @@ export class Transform {
         // Recalulate transformation matrix.
         if (!this.mTransformationMatrix) {
             // First scale, second rotate, third translate.
-            this.mTransformationMatrix = this.mTranslation.mult(this.mRotation.asMatrix().mult(this.mScale));
+            this.mTransformationMatrix = this.mTranslation.mult(this.mRotation.asMatrix()).mult(this.mScale);
         }
 
         return this.mTransformationMatrix;
     }
 
     /**
-     * Width scale.
-     */
-    public get width(): number {
-        return this.mScale.data[0][0];
-    } set width(pValue: number) {
-        this.mScale.data[0][0] = pValue;
-
-        // Reset calculated transformation matrix.
-        this.mTransformationMatrix = null;
-    }
-
-    /**
      * X translation.
      */
-    public get x(): number {
+    public get translationX(): number {
         return this.mTranslation.data[0][3];
-    } set x(pValue: number) {
+    } set translationX(pValue: number) {
         this.mTranslation.data[0][3] = pValue;
 
         // Reset calculated transformation matrix.
@@ -71,9 +92,9 @@ export class Transform {
     /**
      * Y translation.
      */
-    public get y(): number {
+    public get translationY(): number {
         return this.mTranslation.data[1][3];
-    } set y(pValue: number) {
+    } set translationY(pValue: number) {
         this.mTranslation.data[1][3] = pValue;
 
         // Reset calculated transformation matrix.
@@ -83,9 +104,9 @@ export class Transform {
     /**
      * Z translation.
      */
-    public get z(): number {
+    public get translationZ(): number {
         return this.mTranslation.data[2][3];
-    } set z(pValue: number) {
+    } set translationZ(pValue: number) {
         this.mTranslation.data[2][3] = pValue;
 
         // Reset calculated transformation matrix.
@@ -102,10 +123,29 @@ export class Transform {
         this.mTransformationMatrix = null;
     }
 
+    /**
+     * Add rotation.
+     * @param pRoll - Roll degree.
+     * @param pPitch - Pitch degree.
+     * @param pYaw - Yaw degree.
+     */
     public addRotation(pRoll: number, pPitch: number, pYaw: number): void {
-        // Create quaternion from euler rotation and multiplicate with current orientation.
-        const lQuaternion: Quaternion = Quaternion.fromEuler(pRoll, pPitch, pYaw);
-        this.mRotation = this.mRotation.mult(lQuaternion);
+        // Apply rotation to current rotation.
+        this.mRotation = Quaternion.fromEuler(pRoll, pPitch, pYaw).mult(this.mRotation);
+
+        // Reset calculated transformation matrix.
+        this.mTransformationMatrix = null;
+    }
+
+    /**
+     * Set absolute rotation.
+     * @param pRoll - Roll degree.
+     * @param pPitch - Pitch degree.
+     * @param pYaw - Yaw degree.
+     */
+    public setRotation(pRoll: number, pPitch: number, pYaw: number): void {
+        // Apply rotation to current rotation.
+        this.mRotation = Quaternion.fromEuler(pRoll, pPitch, pYaw).mult(this.mRotation);
 
         // Reset calculated transformation matrix.
         this.mTransformationMatrix = null;

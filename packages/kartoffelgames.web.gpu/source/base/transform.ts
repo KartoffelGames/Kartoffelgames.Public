@@ -7,26 +7,26 @@ export class Transform {
     private readonly mScale: Matrix;
     private mTransformationMatrix: Matrix | null;
     private readonly mTranslation: Matrix;
-    
+
     /**
      * Rotation on X angle.
      */
     public get axisRotationAngleX(): number {
-        return this.mRotation.x / Math.sqrt(1 - Math.pow(this.mRotation.w, 2));
+        return (this.mRotation.x / Math.sqrt(1 - Math.pow(this.mRotation.w, 2))) * 180 / Math.PI;
     }
 
     /**
      * Rotation on Y angle.
      */
     public get axisRotationAngleY(): number {
-        return this.mRotation.y / Math.sqrt(1 - Math.pow(this.mRotation.w, 2));
+        return (this.mRotation.y / Math.sqrt(1 - Math.pow(this.mRotation.w, 2))) * 180 / Math.PI;
     }
 
     /**
      * Rotation on Z angle.
      */
     public get axisRotationAngleZ(): number {
-        return this.mRotation.z / Math.sqrt(1 - Math.pow(this.mRotation.w, 2));
+        return (this.mRotation.z / Math.sqrt(1 - Math.pow(this.mRotation.w, 2))) * 180 / Math.PI;
     }
 
     /**

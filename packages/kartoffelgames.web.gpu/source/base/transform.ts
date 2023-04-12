@@ -107,8 +107,10 @@ export class Transform {
     public get transformationMatrix(): Matrix {
         // Recalulate transformation matrix.
         if (!this.mTransformationMatrix) {
+            const lRotation = this.mPivot.inverse().mult(this.mRotation.asMatrix()).mult(this.mPivot)
+
             // First scale, second rotate, third translate.
-            this.mTransformationMatrix = this.mTranslation.mult(this.mRotation.asMatrix()).mult(this.mScale);
+            this.mTransformationMatrix = this.mTranslation.mult(lRotation).mult(this.mScale);
         }
 
         return this.mTransformationMatrix;

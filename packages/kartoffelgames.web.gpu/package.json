@@ -20,9 +20,9 @@
         "@kartoffelgames/core.data": "^0.0.34"
     },
     "scripts": {
-        "build": "kg build Kartoffelgames.Web.Potato_Render && kg page Kartoffelgames.Web.Potato_Render --build-only",
-        "test": "kg test Kartoffelgames.Web.Potato_Render",
-        "page": "kg page Kartoffelgames.Web.Potato_Render --build-only"
+        "build": "kg build Kartoffelgames.Web.Gpu && kg page Kartoffelgames.Web.Gpu --build-only",
+        "test": "kg test Kartoffelgames.Web.Gpu",
+        "page": "kg page Kartoffelgames.Web.Gpu --build-only"
     },
     "repository": {
         "type": "git",

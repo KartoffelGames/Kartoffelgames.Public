@@ -133,6 +133,49 @@ export class Matrix {
     }
 
     /**
+     * Calculate determant of matrix.
+     */
+    public determinant(): number {
+        // Super fast determinant calculation of a 1x1 matrix.
+        if (this.height === 1 && this.width === 1) {
+            return this.data[0][0];
+        }
+
+        let lDeterminant: number = 0;
+        for (let lIterationIndex = 0; lIterationIndex < this.width; lIterationIndex++) {
+            // Get number of row iteration to detect if any calculation musst be done.
+            let lSignedNumber: number = this.data[0][lIterationIndex];
+            lSignedNumber *= (lIterationIndex % 2) ? -1 : 1; // Toggle sign between iteration. Begin with plus.
+
+            // Check if any calculation needs to be done. Zero multiplicated is allways zero.
+            if (lSignedNumber !== 0) {
+                // Create new Matrix without row and column.
+                const lMatrixData: Array<Array<number>> = new Array<Array<number>>();
+
+                // Allways use first row and iterate over columns.
+                for (let lRowIndex = 1; lRowIndex < this.height; lRowIndex++) {
+                    const lMatrixRow: Array<number> = new Array<number>();
+                    for (let lColumIndex = 0; lColumIndex < this.width; lColumIndex++) {
+                        // Skip column of
+                        if (lColumIndex !== lIterationIndex) {
+                            lMatrixRow.push(this.data[lRowIndex][lColumIndex]);
+                        }
+                    }
+
+                    // Add row to matrix data.
+                    lMatrixData.push(lMatrixRow);
+                }
+
+                // Calculate determinant of new matrix.
+                const lDeterminantMatrix: Matrix = new Matrix(lMatrixData);
+                lDeterminant += lSignedNumber * lDeterminantMatrix.determinant();
+            }
+        }
+
+        return lDeterminant;
+    }
+
+    /**
      * Multiplicate matrix.
      * @param pMultData - Matrix or scalar value.
      */
@@ -213,5 +256,25 @@ export class Matrix {
         }
 
         return new Matrix(lData);
+    }
+
+    /**
+     * Transpose matrix.
+     */
+    public transpose(): Matrix {
+        const lMatrixData: Array<Array<number>> = new Array<Array<number>>();
+
+        // Transpose by copying column into row.
+        for (let lColumIndex = 0; lColumIndex < this.width; lColumIndex++) {
+            const lMatrixRow: Array<number> = new Array<number>();
+            for (let lRowIndex = 0; lRowIndex < this.height; lRowIndex++) {
+                lMatrixRow.push(this.data[lRowIndex][lColumIndex]);
+            }
+
+            // Add row to matrix data.
+            lMatrixData.push(lMatrixRow);
+        }
+
+        return new Matrix(lMatrixData);
     }
 }

@@ -54,7 +54,7 @@ export class Vector {
     }
 
     /**
-     * Calulate cross product if two vector3.
+     * Calulate cross product of two vector3.
      * @param pVector - Vector3.
      */
     public multCross(pVector: Vector): Vector {

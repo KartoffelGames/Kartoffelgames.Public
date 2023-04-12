@@ -110,4 +110,15 @@ export class Quaternion {
 
         return new Quaternion(lW, lX, lY, lZ);
     }
+
+    /**
+     * Normalize quaternion.
+     */
+    public normalize(): Quaternion {
+        // Calculate length.
+        const lLength = Math.sqrt(Math.pow(this.mW, 2) + Math.pow(this.mX, 2) + Math.pow(this.mY, 2) + Math.pow(this.mZ, 2));
+
+        // Create new quaternion by dividing each dimension by length.
+        return new Quaternion(this.mW / lLength, this.mX / lLength, this.mY / lLength, this.mZ / lLength);
+    }
 }

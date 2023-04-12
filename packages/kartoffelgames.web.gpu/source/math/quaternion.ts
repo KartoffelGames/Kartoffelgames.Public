@@ -9,21 +9,25 @@ export class Quaternion {
      * @param pYaw - Yaw.
      */
     public static fromEuler(pRoll: number, pPitch: number, pYaw: number): Quaternion {
-        // Cached calculations.
-        const lCosRoll = Math.cos(pRoll * 0.5);
-        const lSinRoll = Math.sin(pRoll * 0.5);
-        const lCosPitch = Math.cos(pPitch * 0.5);
-        const lSinPitch = Math.sin(pPitch * 0.5);
-        const lCosYaw = Math.cos(pYaw * 0.5);
-        const lSinYaw = Math.sin(pYaw * 0.5);
+        // Calculate roll quaternian.
+        const lRollRadian = Math.sin(pRoll * Math.PI / 180);
+        const lRollQuaternion = new Quaternion(0, 0, 0, 0);
+        lRollQuaternion.w = Math.cos(lRollRadian);
+        lRollQuaternion.x = Math.sin(lRollRadian);
 
-        const lQuaternion: Quaternion = new Quaternion(0, 0, 0, 0);
-        lQuaternion.w = lCosRoll * lCosPitch * lCosYaw + lSinRoll * lSinPitch * lSinYaw;
-        lQuaternion.x = lSinRoll * lCosPitch * lCosYaw - lCosRoll * lSinPitch * lSinYaw;
-        lQuaternion.y = lCosRoll * lSinPitch * lCosYaw + lSinRoll * lCosPitch * lSinYaw;
-        lQuaternion.z = lCosRoll * lCosPitch * lSinYaw - lSinRoll * lSinPitch * lCosYaw;
+        // Calculate pitch quaternian.
+        const lPitchRadian = Math.sin(pPitch * Math.PI / 180);
+        const lPitchQuaternion = new Quaternion(0, 0, 0, 0);
+        lPitchQuaternion.w = Math.cos(lPitchRadian);
+        lPitchQuaternion.y = Math.sin(lPitchRadian);
 
-        return lQuaternion;
+        // Calculate pitch quaternian.
+        const lYawRadian = Math.sin(pYaw * Math.PI / 180);
+        const lYawQuaternion = new Quaternion(0, 0, 0, 0);
+        lYawQuaternion.w = Math.cos(lYawRadian);
+        lYawQuaternion.z = Math.sin(lYawRadian);
+
+        return lYawQuaternion.mult(lPitchQuaternion).mult(lRollQuaternion);
     }
 
     public mW: number;

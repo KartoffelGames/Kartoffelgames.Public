@@ -132,6 +132,8 @@ export class Matrix {
         return new Matrix(lData);
     }
 
+
+
     /**
      * Calculate determant of matrix.
      */
@@ -149,25 +151,8 @@ export class Matrix {
 
             // Check if any calculation needs to be done. Zero multiplicated is allways zero.
             if (lSignedNumber !== 0) {
-                // Create new Matrix without row and column.
-                const lMatrixData: Array<Array<number>> = new Array<Array<number>>();
-
-                // Allways use first row and iterate over columns.
-                for (let lRowIndex = 1; lRowIndex < this.height; lRowIndex++) {
-                    const lMatrixRow: Array<number> = new Array<number>();
-                    for (let lColumIndex = 0; lColumIndex < this.width; lColumIndex++) {
-                        // Skip column of
-                        if (lColumIndex !== lIterationIndex) {
-                            lMatrixRow.push(this.data[lRowIndex][lColumIndex]);
-                        }
-                    }
-
-                    // Add row to matrix data.
-                    lMatrixData.push(lMatrixRow);
-                }
-
-                // Calculate determinant of new matrix.
-                const lDeterminantMatrix: Matrix = new Matrix(lMatrixData);
+                // Calculate determinant of new matrix. Allways use first row.
+                const lDeterminantMatrix: Matrix = this.omit(0, lIterationIndex);
                 lDeterminant += lSignedNumber * lDeterminantMatrix.determinant();
             }
         }
@@ -218,6 +203,33 @@ export class Matrix {
         }
 
         return new Matrix(lData);
+    }
+
+    /**
+     * Omit row and column from matrix.
+     * @param pOmitRow - Omitting row.
+     * @param pOmitColumn - Omiting column
+     */
+    public omit(pOmitRow: number, pOmitColumn: number): Matrix {
+        const lMatrixData: Array<Array<number>> = new Array<Array<number>>();
+
+        // Allways use first row and iterate over columns.
+        for (let lRowIndex = 1; lRowIndex < this.height; lRowIndex++) {
+            if (lRowIndex !== pOmitRow) {
+                const lMatrixRow: Array<number> = new Array<number>();
+                for (let lColumIndex = 0; lColumIndex < this.width; lColumIndex++) {
+                    // Skip column of
+                    if (lColumIndex !== pOmitColumn) {
+                        lMatrixRow.push(this.data[lRowIndex][lColumIndex]);
+                    }
+                }
+
+                // Add row to matrix data.
+                lMatrixData.push(lMatrixRow);
+            }
+        }
+
+        return new Matrix(lMatrixData);
     }
 
     /**

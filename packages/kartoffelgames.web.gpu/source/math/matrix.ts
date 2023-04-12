@@ -132,7 +132,33 @@ export class Matrix {
         return new Matrix(lData);
     }
 
+    /**
+     * Adjoint matrix.
+     */
+    public adjoint(): Matrix {
+        const lMatrixData: Array<Array<number>> = new Array<Array<number>>();
 
+        // Allways use first row and iterate over columns.
+        for (let lRowIndex = 0; lRowIndex < this.height; lRowIndex++) {
+            const lMatrixRow: Array<number> = new Array<number>();
+            for (let lColumIndex = 0; lColumIndex < this.width; lColumIndex++) {
+                // Calculate determant of matrix with omitted column and row.
+                // Toggle sign on each new row or column.
+                let lDeterminant: number = this.omit(lRowIndex, lColumIndex).determinant();
+                lDeterminant *= Math.pow(-1, (lRowIndex + 1) + (lColumIndex + 1));
+
+                
+                lMatrixRow.push(lDeterminant);
+            }
+
+            // Add row to matrix data.
+            lMatrixData.push(lMatrixRow);
+        }
+
+        // Calculate transpose from cofactor matrix to get adjoint. 
+        const lCofactorMatrix = new Matrix(lMatrixData);
+        return lCofactorMatrix.transpose();
+    }
 
     /**
      * Calculate determant of matrix.
@@ -214,7 +240,7 @@ export class Matrix {
         const lMatrixData: Array<Array<number>> = new Array<Array<number>>();
 
         // Allways use first row and iterate over columns.
-        for (let lRowIndex = 1; lRowIndex < this.height; lRowIndex++) {
+        for (let lRowIndex = 0; lRowIndex < this.height; lRowIndex++) {
             if (lRowIndex !== pOmitRow) {
                 const lMatrixRow: Array<number> = new Array<number>();
                 for (let lColumIndex = 0; lColumIndex < this.width; lColumIndex++) {

@@ -1,3 +1,4 @@
+import { Euler } from './euler';
 import { Matrix } from './matrix';
 import { Vector } from './vector';
 
@@ -11,9 +12,9 @@ export class Quaternion {
      */
     public static fromRotation(pPitch: number, pYaw: number, pRoll: number): Quaternion {
         // Conversion to radian.
-        const lPitchRadian: number = pPitch * Math.PI / 180;
-        const lYawRadian: number = pYaw * Math.PI / 180;
-        const lRollRadian: number =  pRoll  * Math.PI / 180;
+        const lPitchRadian: number = (pPitch % 360) * Math.PI / 180;
+        const lYawRadian: number = (pYaw % 360) * Math.PI / 180;
+        const lRollRadian: number = (pRoll % 360) * Math.PI / 180;
 
         // Pre calculate.
         const lCosPitch = Math.cos(lPitchRadian * 0.5);
@@ -151,6 +152,47 @@ export class Quaternion {
         this.mY = pY;
         this.mZ = pZ;
         this.mW = pW;
+    }
+
+    /**
+     * Add angles to current euler rotation.
+     * @param pPitch - Pitch degree.
+     * @param pYaw - Yaw degree.
+     * @param pRoll - Roll degree.
+     */
+    public addEulerRotation(pPitch: number, pYaw: number, pRoll: number): Quaternion {
+        // Apply current rotation after setting new rotation to apply rotation as absolute euler rotation and not as relative quaternion.
+        return this.mult(Quaternion.fromRotation(pPitch, pYaw, pRoll));
+    }
+
+    /**
+     * Quaternion rotation as euler rotation
+     */
+    public asEuler(): Euler {
+        const lEuler: Euler = new Euler();
+
+        // Pitch (x-axis rotation)
+        const lSinPitchCosYaw = 2 * (this.mW * this.mX + this.mY * this.mZ);
+        const lCosPitchCosYaw = 1 - 2 * (this.mX * this.mX + this.mY * this.mY);
+        const lPitchRadian = Math.atan2(lSinPitchCosYaw, lCosPitchCosYaw);
+        const lPitchDegree = (lPitchRadian * 180 / Math.PI) % 360;
+        lEuler.x = (lPitchDegree < 0) ? lPitchDegree + 360 : lPitchDegree;
+
+        // Yaw (y-axis rotation)
+        const lSinYaw = Math.sqrt(1 + 2 * (this.mW * this.mY - this.mX * this.mZ));
+        const lCosYaw = Math.sqrt(1 - 2 * (this.mW * this.mY - this.mX * this.mZ));
+        const lYawRadian = 2 * Math.atan2(lSinYaw, lCosYaw) - Math.PI / 2;
+        const lYawDegree = (lYawRadian * 180 / Math.PI) % 360;
+        lEuler.y = (lYawDegree < 0) ? lYawDegree + 360 : lYawDegree;
+
+        // Roll (z-axis rotation)
+        const lSinRollCosYaw = 2 * (this.mW * this.mZ + this.mX * this.mY);
+        const lCosRollCosYaw = 1 - 2 * (this.mY * this.mY + this.mZ * this.mZ);
+        const lRollRadian = Math.atan2(lSinRollCosYaw, lCosRollCosYaw);
+        const lRollDegree = (lRollRadian * 180 / Math.PI) % 360;
+        lEuler.z = (lRollDegree < 0) ? lRollDegree + 360 : lRollDegree;
+
+        return lEuler;
     }
 
     /**

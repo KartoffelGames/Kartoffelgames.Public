@@ -14,23 +14,41 @@ export class Transform {
 
     /**
      * Rotation on X angle.
+     * Pitch.
      */
     public get axisRotationAngleX(): number {
-        return (this.mRotation.x / Math.sqrt(1 - Math.pow(this.mRotation.w, 2))) * 180 / Math.PI;
+        // Pitch (x-axis rotation)
+        const lSinPitchCosYaw = 2 * (this.mRotation.w * this.mRotation.x + this.mRotation.y * this.mRotation.z);
+        const lCosPitchCosYaw = 1 - 2 * (this.mRotation.x * this.mRotation.x + this.mRotation.y * this.mRotation.y);
+        const lPitchRadian = Math.atan2(lSinPitchCosYaw, lCosPitchCosYaw);
+
+        return lPitchRadian * 180 / Math.PI;
     }
 
     /**
      * Rotation on Y angle.
+     * Yaw.
      */
     public get axisRotationAngleY(): number {
-        return (this.mRotation.y / Math.sqrt(1 - Math.pow(this.mRotation.w, 2))) * 180 / Math.PI;
+        // Yaw (y-axis rotation)
+        const lSin = Math.sqrt(1 + 2 * (this.mRotation.w * this.mRotation.y - this.mRotation.x * this.mRotation.z));
+        const lCos = Math.sqrt(1 - 2 * (this.mRotation.w * this.mRotation.y - this.mRotation.x * this.mRotation.z));
+        const lYawRadian = 2 * Math.atan2(lSin, lCos) - Math.PI / 2;
+
+        return lYawRadian * 180 / Math.PI;
     }
 
     /**
      * Rotation on Z angle.
+     * Roll.
      */
     public get axisRotationAngleZ(): number {
-        return (this.mRotation.z / Math.sqrt(1 - Math.pow(this.mRotation.w, 2))) * 180 / Math.PI;
+        // Roll (z-axis rotation)
+        const lSinRollCosYaw = 2 * (this.mRotation.w * this.mRotation.z + this.mRotation.x * this.mRotation.y);
+        const lCosRollCosYaw = 1 - 2 * (this.mRotation.y * this.mRotation.y + this.mRotation.z * this.mRotation.z);
+        const lRollRadian = Math.atan2(lSinRollCosYaw, lCosRollCosYaw);
+
+        return lRollRadian * 180 / Math.PI;
     }
 
     /**
@@ -208,8 +226,29 @@ export class Transform {
      * @param pYaw - Yaw degree.
      */
     public absoluteRotation(pRoll: number, pPitch: number, pYaw: number): void {
-        // Apply rotation to current rotation.
+        // Create new rotation.
         this.mRotation = Quaternion.fromEuler(pRoll, pPitch, pYaw);
+
+        // Reset calculated transformation matrix and rotation matrix.
+        this.mCacheRotation = null;
+        this.mCachePivitRotation = null;
+        this.mCacheTransformationMatrix = null;
+    }
+
+    /**
+     * Add angles to current rotation angles.
+     * @param pRoll - Roll degree.
+     * @param pPitch - Pitch degree.
+     * @param pYaw - Yaw degree.
+     */
+    public addRotation(pRoll: number, pPitch: number, pYaw: number): void {
+        // Add rotation to current 
+        const lRoll: number = this.axisRotationAngleZ + pRoll;
+        const lPitch: number = this.axisRotationAngleX + pPitch;
+        const lYaw: number = this.axisRotationAngleY + pYaw;
+
+        // Apply rotation to current rotation.
+        this.mRotation = Quaternion.fromEuler(lRoll, lPitch, lYaw);
 
         // Reset calculated transformation matrix and rotation matrix.
         this.mCacheRotation = null;

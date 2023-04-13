@@ -1,4 +1,5 @@
 import { Matrix } from './matrix';
+import { Vector } from './vector';
 
 export class Quaternion {
     /**
@@ -34,6 +35,64 @@ export class Quaternion {
     public mX: number;
     public mY: number;
     public mZ: number;
+
+    /**
+     * Rotation forward vector.
+     */
+    public get vectorForward(): Vector {
+        // Products.
+        const lSquareX: number = 2 * Math.pow(this.mX, 2);
+        const lSquareY: number = 2 * Math.pow(this.mY, 2);
+        const lProductXz: number = 2 * this.mX * this.mZ;
+        const lProductYw: number = 2 * this.mY * this.mW;
+        const lProductYz: number = 2 * this.mY * this.mZ;
+        const lProductXw: number = 2 * this.mX * this.mW;
+
+        const lX: number = lProductXz + lProductYw;
+        const lY: number = lProductYz - lProductXw;
+        const lZ: number = 1 - lSquareX - lSquareY;
+
+        return new Vector([lX, lY, lZ]);
+    }
+
+    /**
+     * Rotation vector right.
+     */
+    public get vectorRight(): Vector {
+        // Products.
+        const lSquareY: number = 2 * Math.pow(this.mY, 2);
+        const lSquareZ: number = 2 * Math.pow(this.mZ, 2);
+        const lProductXy: number = 2 * this.mX * this.mY;
+        const lProductZw: number = 2 * this.mZ * this.mW;
+        const lProductYz: number = 2 * this.mY * this.mZ;
+        const lProductXw: number = 2 * this.mX * this.mW;
+
+        const lX: number = 1 - lSquareY - lSquareZ;
+        const lY: number = lProductXy + lProductZw;
+        const lZ: number = lProductYz + lProductXw;
+
+        return new Vector([lX, lY, lZ]);
+    }
+
+    /**
+     * Rotation up vector.
+     */
+    public get vectorUp(): Vector {
+        // Products.
+        const lSquareX: number = 2 * Math.pow(this.mX, 2);
+        const lSquareZ: number = 2 * Math.pow(this.mZ, 2);
+        const lProductXy: number = 2 * this.mX * this.mY;
+        const lProductZw: number = 2 * this.mZ * this.mW;
+
+        const lProductYz: number = 2 * this.mY * this.mZ;
+        const lProductXw: number = 2 * this.mX * this.mW;
+
+        const lX: number = lProductXy - lProductZw;
+        const lY: number = 1 - lSquareX - lSquareZ;
+        const lZ: number = lProductYz + lProductXw;
+
+        return new Vector([lX, lY, lZ]);
+    }
 
     /**
      * Get w value.

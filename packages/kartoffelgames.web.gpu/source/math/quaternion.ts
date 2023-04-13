@@ -108,7 +108,7 @@ export class Quaternion {
         const lProductXw: number = 2 * this.mX * this.mW;
 
         // Fill matrix
-        const lMatrix: Matrix = Matrix.identity(4, 1);
+        const lMatrix: Matrix = Matrix.identity(4);
         lMatrix.data[0][0] = 1 - lSquareY - lSquareZ;
         lMatrix.data[0][1] = lProductXy - lProductZw;
         lMatrix.data[0][2] = lProductXz + lProductYw;

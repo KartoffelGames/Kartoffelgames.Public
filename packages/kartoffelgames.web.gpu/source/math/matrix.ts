@@ -31,14 +31,14 @@ export class Matrix {
      * @param pSize - Matix size: nxn
      * @param pValue - Value of identity. 
      */
-    public static identity(pSize: number, pValue: number): Matrix {
+    public static identity(pSize: number): Matrix {
         const lData: Array<Array<number>> = new Array<Array<number>>();
         for (let lRowIndex = 0; lRowIndex < pSize; lRowIndex++) {
             // Create Array filled with zeros.
             const lRowData: Array<number> = new Array<number>(pSize).fill(0);
 
             // Set identity column to value.
-            lRowData[lRowIndex] = pValue;
+            lRowData[lRowIndex] = 1;
 
             // Add row to data array.
             lData.push(lRowData);

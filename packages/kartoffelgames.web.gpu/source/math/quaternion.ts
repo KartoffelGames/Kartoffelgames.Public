@@ -3,13 +3,13 @@ import { Vector } from './vector';
 
 export class Quaternion {
     /**
-     * Create new quaternion from euler rotation.
+     * Create new quaternion from degree rotation.
      * Rotate order XYZ (Pitch, Yaw, Roll)
      * @param pPitch - Pitch degree.
      * @param pYaw - Yaw degree.
      * @param pRoll - Roll degree.
      */
-    public static fromEuler(pPitch: number, pYaw: number, pRoll: number): Quaternion {
+    public static fromRotation(pPitch: number, pYaw: number, pRoll: number): Quaternion {
         // Conversion to radian.
         const lPitchRadian: number = pPitch * Math.PI / 180;
         const lYawRadian: number = pYaw * Math.PI / 180;

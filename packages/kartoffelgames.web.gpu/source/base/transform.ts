@@ -226,7 +226,7 @@ export class Transform {
      */
     public absoluteRotation(pPitch: number, pYaw: number, pRoll: number): void {
         // Create new rotation.
-        this.mRotation = Quaternion.fromEuler(pPitch, pYaw, pRoll);
+        this.mRotation = Quaternion.fromRotation(pPitch, pYaw, pRoll);
 
         // Reset calculated transformation matrix and rotation matrix.
         this.mCacheRotation = null;
@@ -247,7 +247,7 @@ export class Transform {
         const lYaw: number = this.axisRotationAngleY + pYaw;
 
         // Apply rotation to current rotation.
-        this.mRotation = Quaternion.fromEuler(lPitch, lYaw, lRoll);
+        this.mRotation = Quaternion.fromRotation(lPitch, lYaw, lRoll);
 
         // Reset calculated transformation matrix and rotation matrix.
         this.mCacheRotation = null;
@@ -263,7 +263,7 @@ export class Transform {
      */
     public relativeRotation(pPitch: number, pYaw: number, pRoll: number): void {
         // Apply rotation to current rotation.
-        this.mRotation = Quaternion.fromEuler(pPitch, pYaw, pRoll).mult(this.mRotation);
+        this.mRotation = Quaternion.fromRotation(pPitch, pYaw, pRoll).mult(this.mRotation);
 
         // Reset calculated transformation matrix and rotation matrix.
         this.mCacheRotation = null;

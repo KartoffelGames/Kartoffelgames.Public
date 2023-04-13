@@ -4,30 +4,31 @@ import { Vector } from './vector';
 export class Quaternion {
     /**
      * Create new quaternion from euler rotation.
-     * @param pRoll - Roll in degree.
-     * @param pPitch - Pitch in degree.
-     * @param pYaw - Yaw in degree.
+     * Rotate order XYZ (Pitch, Yaw, Roll)
+     * @param pPitch - Pitch degree.
+     * @param pYaw - Yaw degree.
+     * @param pRoll - Roll degree.
      */
-    public static fromEuler(pRoll: number, pPitch: number, pYaw: number): Quaternion {
+    public static fromEuler(pPitch: number, pYaw: number, pRoll: number): Quaternion {
         // Conversion to radian.
-        const lRollRadian: number = pRoll * Math.PI / 180;
         const lPitchRadian: number = pPitch * Math.PI / 180;
         const lYawRadian: number = pYaw * Math.PI / 180;
+        const lRollRadian: number =  pRoll  * Math.PI / 180;
 
         // Pre calculate.
-        const lCosRoll = Math.cos(lRollRadian * 0.5);
-        const lSinRoll = Math.sin(lRollRadian * 0.5);
         const lCosPitch = Math.cos(lPitchRadian * 0.5);
         const lSinPitch = Math.sin(lPitchRadian * 0.5);
-        const lCosyaw = Math.cos(lYawRadian * 0.5);
+        const lCosYaw = Math.cos(lYawRadian * 0.5);
         const lSinYaw = Math.sin(lYawRadian * 0.5);
+        const lCosRoll = Math.cos(lRollRadian * 0.5);
+        const lSinRoll = Math.sin(lRollRadian * 0.5);
 
         // Create quaternion.
         const lQuaternion = Quaternion.identity();
-        lQuaternion.w = lCosRoll * lCosPitch * lCosyaw + lSinRoll * lSinPitch * lSinYaw;
-        lQuaternion.x = lSinRoll * lCosPitch * lCosyaw - lCosRoll * lSinPitch * lSinYaw;
-        lQuaternion.y = lCosRoll * lSinPitch * lCosyaw + lSinRoll * lCosPitch * lSinYaw;
-        lQuaternion.z = lCosRoll * lCosPitch * lSinYaw - lSinRoll * lSinPitch * lCosyaw;
+        lQuaternion.w = lCosPitch * lCosYaw * lCosRoll + lSinPitch * lSinYaw * lSinRoll;
+        lQuaternion.x = lSinPitch * lCosYaw * lCosRoll - lCosPitch * lSinYaw * lSinRoll;
+        lQuaternion.y = lCosPitch * lSinYaw * lCosRoll + lSinPitch * lCosYaw * lSinRoll;
+        lQuaternion.z = lCosPitch * lCosYaw * lSinRoll - lSinPitch * lSinYaw * lCosRoll;
 
         return lQuaternion;
     }

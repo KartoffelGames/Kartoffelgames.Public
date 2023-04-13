@@ -22,7 +22,8 @@ export class Transform {
         const lCosPitchCosYaw = 1 - 2 * (this.mRotation.x * this.mRotation.x + this.mRotation.y * this.mRotation.y);
         const lPitchRadian = Math.atan2(lSinPitchCosYaw, lCosPitchCosYaw);
 
-        return lPitchRadian * 180 / Math.PI;
+        const lPitchDegree = (lPitchRadian * 180 / Math.PI) % 360;
+        return (lPitchDegree < 0) ? lPitchDegree + 360 : lPitchDegree;
     }
 
     /**
@@ -35,7 +36,8 @@ export class Transform {
         const lCos = Math.sqrt(1 - 2 * (this.mRotation.w * this.mRotation.y - this.mRotation.x * this.mRotation.z));
         const lYawRadian = 2 * Math.atan2(lSin, lCos) - Math.PI / 2;
 
-        return lYawRadian * 180 / Math.PI;
+        const lYawDegree = (lYawRadian * 180 / Math.PI) % 360;
+        return (lYawDegree < 0) ? lYawDegree + 360 : lYawDegree;
     }
 
     /**
@@ -48,7 +50,8 @@ export class Transform {
         const lCosRollCosYaw = 1 - 2 * (this.mRotation.y * this.mRotation.y + this.mRotation.z * this.mRotation.z);
         const lRollRadian = Math.atan2(lSinRollCosYaw, lCosRollCosYaw);
 
-        return lRollRadian * 180 / Math.PI;
+        const lRollDegree = (lRollRadian * 180 / Math.PI) % 360;
+        return (lRollDegree < 0) ? lRollDegree + 360 : lRollDegree;
     }
 
     /**
@@ -133,10 +136,6 @@ export class Transform {
      * Get transformation matrix.
      */
     public get transformationMatrix(): Matrix {
-        // private mCachePivitInverse: Matrix | null;
-        // private mCachePivitRotation: Matrix | null;
-
-
         // Recalulate transformation matrix.
         if (!this.mCacheTransformationMatrix) {
             // Check rotation change.
@@ -221,13 +220,13 @@ export class Transform {
 
     /**
      * Reset current rotation and set new rotation.
-     * @param pRoll - Roll degree.
      * @param pPitch - Pitch degree.
      * @param pYaw - Yaw degree.
+     * @param pRoll - Roll degree.
      */
-    public absoluteRotation(pRoll: number, pPitch: number, pYaw: number): void {
+    public absoluteRotation(pPitch: number, pYaw: number, pRoll: number): void {
         // Create new rotation.
-        this.mRotation = Quaternion.fromEuler(pRoll, pPitch, pYaw);
+        this.mRotation = Quaternion.fromEuler(pPitch, pYaw, pRoll);
 
         // Reset calculated transformation matrix and rotation matrix.
         this.mCacheRotation = null;
@@ -237,18 +236,18 @@ export class Transform {
 
     /**
      * Add angles to current rotation angles.
-     * @param pRoll - Roll degree.
      * @param pPitch - Pitch degree.
      * @param pYaw - Yaw degree.
+     * @param pRoll - Roll degree.
      */
-    public addRotation(pRoll: number, pPitch: number, pYaw: number): void {
+    public addRotation(pPitch: number, pYaw: number, pRoll: number): void {
         // Add rotation to current 
         const lRoll: number = this.axisRotationAngleZ + pRoll;
         const lPitch: number = this.axisRotationAngleX + pPitch;
         const lYaw: number = this.axisRotationAngleY + pYaw;
 
         // Apply rotation to current rotation.
-        this.mRotation = Quaternion.fromEuler(lRoll, lPitch, lYaw);
+        this.mRotation = Quaternion.fromEuler(lPitch, lYaw, lRoll);
 
         // Reset calculated transformation matrix and rotation matrix.
         this.mCacheRotation = null;
@@ -258,13 +257,13 @@ export class Transform {
 
     /**
      * Add rotation to already rotated object.
-     * @param pRoll - Roll degree.
      * @param pPitch - Pitch degree.
      * @param pYaw - Yaw degree.
+     * @param pRoll - Roll degree.
      */
-    public relativeRotation(pRoll: number, pPitch: number, pYaw: number): void {
+    public relativeRotation(pPitch: number, pYaw: number, pRoll: number): void {
         // Apply rotation to current rotation.
-        this.mRotation = Quaternion.fromEuler(pRoll, pPitch, pYaw).mult(this.mRotation);
+        this.mRotation = Quaternion.fromEuler(pPitch, pYaw, pRoll).mult(this.mRotation);
 
         // Reset calculated transformation matrix and rotation matrix.
         this.mCacheRotation = null;

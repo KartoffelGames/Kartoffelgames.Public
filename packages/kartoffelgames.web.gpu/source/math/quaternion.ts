@@ -31,6 +31,13 @@ export class Quaternion {
         return lYawQuaternion.mult(lPitchQuaternion).mult(lRollQuaternion);
     }
 
+    /**
+     * Create identity quaternion.
+     */
+    public static identity(): Quaternion {
+        return new Quaternion(1, 0, 0, 0);
+    }
+
     public mW: number;
     public mX: number;
     public mY: number;

@@ -202,14 +202,14 @@ export class Transform {
     }
 
     /**
-     * Add rotation.
+     * Reset current rotation and set new rotation.
      * @param pRoll - Roll degree.
      * @param pPitch - Pitch degree.
      * @param pYaw - Yaw degree.
      */
-    public addRotation(pRoll: number, pPitch: number, pYaw: number): void {
+    public absoluteRotation(pRoll: number, pPitch: number, pYaw: number): void {
         // Apply rotation to current rotation.
-        this.mRotation = Quaternion.fromEuler(pRoll, pPitch, pYaw).mult(this.mRotation);
+        this.mRotation = Quaternion.fromEuler(pRoll, pPitch, pYaw);
 
         // Reset calculated transformation matrix and rotation matrix.
         this.mCacheRotation = null;
@@ -218,12 +218,12 @@ export class Transform {
     }
 
     /**
-     * Set absolute rotation.
+     * Add rotation to already rotated object.
      * @param pRoll - Roll degree.
      * @param pPitch - Pitch degree.
      * @param pYaw - Yaw degree.
      */
-    public setRotation(pRoll: number, pPitch: number, pYaw: number): void {
+    public relativeRotation(pRoll: number, pPitch: number, pYaw: number): void {
         // Apply rotation to current rotation.
         this.mRotation = Quaternion.fromEuler(pRoll, pPitch, pYaw).mult(this.mRotation);
 

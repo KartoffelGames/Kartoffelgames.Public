@@ -189,10 +189,10 @@ export class Transform {
      * Constructor.
      */
     public constructor() {
-        this.mScale = Matrix.identity(4, 1);
-        this.mTranslation = Matrix.identity(4, 1);
+        this.mScale = Matrix.identity(4);
+        this.mTranslation = Matrix.identity(4);
         this.mRotation = new Quaternion(1, 0, 0, 0);
-        this.mPivot = Matrix.identity(4, 1);
+        this.mPivot = Matrix.identity(4);
 
         // Matrix caches.
         this.mCachePivitInverse = null;

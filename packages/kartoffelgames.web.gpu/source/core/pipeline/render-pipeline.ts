@@ -122,6 +122,20 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
         return this.mShader;
     }
 
+    public get unclipedDepth(): boolean {
+        return this.mPrimitive.unclippedDepth ?? false;
+    } set unclipedDepth(pValue: boolean) {
+        // Do nothing on assigning old an value.
+        if (this.mPrimitive.unclippedDepth === pValue) {
+            return;
+        }
+
+        this.mPrimitive.unclippedDepth = pValue;
+
+        // Set data changed flag.
+        this.mPipelineDataChangeState.primitive = true;
+    }
+
     /**
      * Set depth write enabled / disabled.
      */
@@ -154,7 +168,8 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
         this.mPrimitive = {
             frontFace: 'cw',
             cullMode: 'back',
-            topology: 'triangle-list'
+            topology: 'triangle-list',
+            unclippedDepth: false
         };
         this.mDepthWriteEnabled = true;
         this.mDepthCompare = 'less';

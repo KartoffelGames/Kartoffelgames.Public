@@ -1,4 +1,5 @@
 import { Exception } from '@kartoffelgames/core.data';
+import { Vector } from './vector';
 
 export class Matrix {
     /**
@@ -147,7 +148,7 @@ export class Matrix {
                 let lDeterminant: number = this.omit(lRowIndex, lColumIndex).determinant();
                 lDeterminant *= Math.pow(-1, (lRowIndex + 1) + (lColumIndex + 1));
 
-                
+
                 lMatrixRow.push(lDeterminant);
             }
 
@@ -213,7 +214,7 @@ export class Matrix {
         if (pMultData instanceof Matrix) {
             // Restrict on same length.
             if (this.width !== pMultData.height) {
-                throw new Exception('Matrices A height and B width must match for multiplication.', this);
+                throw new Exception('Matrices A width and B height must match for multiplication.', this);
             }
 
             // Iterate rows and extend data dynamicly by pushing new data rows.
@@ -331,5 +332,33 @@ export class Matrix {
         }
 
         return new Matrix(lMatrixData);
+    }
+
+    /**
+     * Multiplicate matrix with vector.
+     * @param pMultData - Vector.
+     * @returns 
+     */
+    public vectorMult(pMultData: Vector): Vector {
+        // Restrict on same length.
+        if (this.width !== pMultData.data.length) {
+            throw new Exception('Matrices A width and B height must match for multiplication.', this);
+        }
+
+        // Convert vector to matrix by creating a 
+        const lMatrixData: Array<Array<number>> = new Array<Array<number>>();
+        for (const lVectorComponent of pMultData.data) {
+            lMatrixData.push([lVectorComponent]);
+        }
+
+        // Multiplicate
+        const lMutiplicatedMatrix = this.mult(new Matrix(lMatrixData));
+
+        const lVectorData: Array<number> = new Array<number>();
+        for (let lRowIndex = 0; lRowIndex < lMutiplicatedMatrix.height; lRowIndex++) {
+            lVectorData.push(lMutiplicatedMatrix.data[lRowIndex][0]);
+        }
+
+        return new Vector(lVectorData);
     }
 }

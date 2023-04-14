@@ -212,7 +212,7 @@ export class Matrix {
 
         if (pMultData instanceof Matrix) {
             // Restrict on same length.
-            if (this.height !== pMultData.width) {
+            if (this.width !== pMultData.height) {
                 throw new Exception('Matrices A height and B width must match for multiplication.', this);
             }
 

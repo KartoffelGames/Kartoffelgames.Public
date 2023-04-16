@@ -30,7 +30,7 @@ import shader from './shader.txt';
 
     // Create depth and color attachments.
     const lAttachments: Attachments = new Attachments(lGpu);
-    lAttachments.resize(640, 640);
+    lAttachments.resize(1200, 640);
     lAttachments.addAttachment({
         canvas: lCanvas,
         type: AttachmentType.Color,
@@ -126,18 +126,18 @@ import shader from './shader.txt';
 
     // Transformation.
     const lPerspectiveProjection: PerspectiveProjection = new PerspectiveProjection();
-    lPerspectiveProjection.angleOfView = 120;
-    lPerspectiveProjection.nearPlane = 1;
-    lPerspectiveProjection.farPlane = 100;
-    lPerspectiveProjection.aspectRatio = 640 / 640;
+    lPerspectiveProjection.aspectRatio = lAttachments.width / lAttachments.height;
+    lPerspectiveProjection.angleOfView = 72;
+    lPerspectiveProjection.near = 0.1;
+    lPerspectiveProjection.far = 9999999;
 
     const lOrtoProjection: OrthographicProjection = new OrthographicProjection();
+    lOrtoProjection.aspectRatio = lAttachments.width / lAttachments.height;
     lOrtoProjection.width = 2;
-    lOrtoProjection.aspectRatio = 640 / 640;
     lOrtoProjection.near = 0;
     lOrtoProjection.far = 999999;
 
-    const lCamera: Camera = new Camera(lOrtoProjection);
+    const lCamera: Camera = new Camera(lPerspectiveProjection);
     lCamera.translationZ = -4;
 
     // Transformation buffer.
@@ -186,6 +186,10 @@ import shader from './shader.txt';
     lRegisterCameraHandler('cameraPivotY', (pData) => { lCamera.pivotY = pData; }, () => { return lCamera.pivotY; });
     lRegisterCameraHandler('cameraPivotZ', (pData) => { lCamera.pivotZ = pData; }, () => { return lCamera.pivotZ; });
 
+    // Camera.
+    lRegisterCameraHandler('cameraNear', (pData) => { lPerspectiveProjection.near = pData; }, () => { return lPerspectiveProjection.near; });
+    lRegisterCameraHandler('cameraFar', (pData) => { lPerspectiveProjection.far = pData; }, () => { return lPerspectiveProjection.far; });
+    lRegisterCameraHandler('cameraAngleOfView', (pData) => { lPerspectiveProjection.angleOfView = pData; }, () => { return lPerspectiveProjection.angleOfView; });
 
     // Create bind group.
     const lBindGroup = lShader.bindGroups.getGroup(0).createBindGroup();

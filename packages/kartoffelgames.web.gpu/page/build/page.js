@@ -228,7 +228,7 @@ _asyncToGenerator(function* () {
   lPipeline.setShader(lShader);
   // Create depth and color attachments.
   var lAttachments = new attachments_1.Attachments(lGpu);
-  lAttachments.resize(640, 640);
+  lAttachments.resize(1200, 640);
   lAttachments.addAttachment({
     canvas: lCanvas,
     type: attachment_type_enum_1.AttachmentType.Color,
@@ -382,16 +382,16 @@ _asyncToGenerator(function* () {
   });
   // Transformation.
   var lPerspectiveProjection = new perspective_projection_1.PerspectiveProjection();
-  lPerspectiveProjection.angleOfView = 120;
-  lPerspectiveProjection.nearPlane = 1;
-  lPerspectiveProjection.farPlane = 100;
-  lPerspectiveProjection.aspectRatio = 640 / 640;
+  lPerspectiveProjection.aspectRatio = lAttachments.width / lAttachments.height;
+  lPerspectiveProjection.angleOfView = 72;
+  lPerspectiveProjection.near = 0.1;
+  lPerspectiveProjection.far = 9999999;
   var lOrtoProjection = new orthographic__projection_1.OrthographicProjection();
+  lOrtoProjection.aspectRatio = lAttachments.width / lAttachments.height;
   lOrtoProjection.width = 2;
-  lOrtoProjection.aspectRatio = 640 / 640;
   lOrtoProjection.near = 0;
   lOrtoProjection.far = 999999;
-  var lCamera = new camera_1.Camera(lOrtoProjection);
+  var lCamera = new camera_1.Camera(lPerspectiveProjection);
   lCamera.translationZ = -4;
   // Transformation buffer.
   var lCameraBuffer = new simple_buffer_1.SimpleBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lCamera.viewProjectionMatrix.dataArray));
@@ -475,6 +475,22 @@ _asyncToGenerator(function* () {
     lCamera.pivotZ = pData;
   }, () => {
     return lCamera.pivotZ;
+  });
+  // Camera.
+  lRegisterCameraHandler('cameraNear', pData => {
+    lPerspectiveProjection.near = pData;
+  }, () => {
+    return lPerspectiveProjection.near;
+  });
+  lRegisterCameraHandler('cameraFar', pData => {
+    lPerspectiveProjection.far = pData;
+  }, () => {
+    return lPerspectiveProjection.far;
+  });
+  lRegisterCameraHandler('cameraAngleOfView', pData => {
+    lPerspectiveProjection.angleOfView = pData;
+  }, () => {
+    return lPerspectiveProjection.angleOfView;
   });
   // Create bind group.
   var lBindGroup = lShader.bindGroups.getGroup(0).createBindGroup();
@@ -835,8 +851,8 @@ class PerspectiveProjection {
    */
   constructor() {
     this.mAngleOfView = 0;
-    this.mNearPlane = 0;
-    this.mFarPlane = 0;
+    this.mNear = 0;
+    this.mFar = 0;
     this.mAspectRatio = 0;
     // Cache.
     this.mCacheProjectionMatrix = null;
@@ -849,6 +865,8 @@ class PerspectiveProjection {
   }
   set angleOfView(pValue) {
     this.mAngleOfView = pValue;
+    // Reset cached matrix.
+    this.mCacheProjectionMatrix = null;
   }
   /**
    * Angle of view.
@@ -858,24 +876,30 @@ class PerspectiveProjection {
   }
   set aspectRatio(pValue) {
     this.mAspectRatio = pValue;
+    // Reset cached matrix.
+    this.mCacheProjectionMatrix = null;
   }
   /**
    * Far plane.
    */
-  get farPlane() {
-    return this.mFarPlane;
+  get far() {
+    return this.mFar;
   }
-  set farPlane(pValue) {
-    this.mFarPlane = pValue;
+  set far(pValue) {
+    this.mFar = pValue;
+    // Reset cached matrix.
+    this.mCacheProjectionMatrix = null;
   }
   /**
    * Near plane.
    */
-  get nearPlane() {
-    return this.mNearPlane;
+  get near() {
+    return this.mNear;
   }
-  set nearPlane(pValue) {
-    this.mNearPlane = pValue;
+  set near(pValue) {
+    this.mNear = pValue;
+    // Reset cached matrix.
+    this.mCacheProjectionMatrix = null;
   }
   /**
    * Projection matrix.
@@ -896,19 +920,58 @@ class PerspectiveProjection {
     lMatrix.data[1][1] = 0;
     lMatrix.data[2][2] = 0;
     lMatrix.data[3][3] = 0;
-    // 1 / tan(angleAsRadian / 2)
-    var lScale = 1.0 / Math.tan(this.angleOfView * Math.PI / 180 / 2);
-    lMatrix.data[0][0] = lScale / this.mAspectRatio;
-    lMatrix.data[1][1] = lScale;
-    lMatrix.data[2][3] = -1;
-    if (this.mFarPlane !== Infinity) {
-      var lNearFar = 1 / (this.mNearPlane - this.mFarPlane);
-      lMatrix.data[2][2] = this.mFarPlane * lNearFar;
-      lMatrix.data[3][2] = this.mFarPlane * this.mNearPlane * lNearFar;
-    } else {
-      lMatrix.data[2][2] = -1;
-      lMatrix.data[3][2] = -this.mNearPlane;
-    }
+    // Calculate planes with centered camera on z-plane.
+    var lFar = this.mFar;
+    var lNear = this.mNear;
+    // Top bottom calculated by get height from vertical angle of view.
+    // Half angle is from y=>0 to top plane, as the angle descripes the distance between top and bottom plane.
+    // Tan(angleOfView / 2) = Top / Near => Near * Tan(angleOfView / 2) = Top
+    var lTop = this.mNear * Math.tan(this.angleOfView * Math.PI / 180 / 2);
+    var lBottom = -lTop;
+    // Left right calculated from aspect ratio.
+    var lRight = lTop * this.aspectRatio;
+    var lLeft = -lRight;
+    // We need to set VectorZ to VectorW to devide VectorX and VectorY by the VectorZ.
+    // So planes are smaller the further ways they are.
+    // And scale VectorX and VectorY with the near plane to start the projection not on Z=0 but on Z=Near.
+    // ┌ N  0  0   0  ┐   ┌ 1 ┐   ┌ 1 ┐
+    // | 0  N  0   0  |   | 2 |   | 2 |
+    // | 0  0  M1  M2 | x | 3 | = | 3 |
+    // └ 0  0  1   0  ┘   └ 1 ┘   └ 3 ┘
+    // Problem is: The VectorZ get also divided by VectorX and VectorW.
+    // To fix the problem set VectorZ to VectorZ² with only M1 and M2 available.
+    // As as M1 is the Scaling(M1 * Z) and M2 is Translating(M2 + Z) we get:
+    // M1*Z + M2 = Z² => Quadratic means two solutions. But we need one.
+    // So we constrains the equation to be only valid between Near and Far. So we set Z=Near or Z=Far.
+    // All other Z Values are calculated quadratic ranging from Near to Far.
+    // So we get:
+    // M1*Near + M2 = Near²  => M1 = Far + Near
+    // M1*Far  + M2 = Far²   => M2 = -(Far * Near)
+    // ┌ N  0      0         0     ┐
+    // | 0  N      0         0     |
+    // | 0  0    F + N   -(F * N)  |
+    // └ 0  0      1         0     ┘
+    // Multiplicate this perspectiv matrix with the orthigraphic to center the camera.
+    // ┌  2/(R-L)    0         0    -(R+L)/(R-L) ┐   ┌ N  0      0         0     ┐
+    // |     0     2/(T-B)     0    -(T+B)/(T-B) |   | 0  N      0         0     |
+    // |     0        0     1/(F-N)   -N/(F-N)   | x | 0  0    F + N   -(F * N)  |
+    // └     0        0        0          1      ┘   └ 0  0      1         0     ┘
+    // And we get.
+    // ┌  2N/(R-L)    0        -(R+L)/(R-L)           0      ┐
+    // |     0     2N/(T-B)    -(T+B)/(T-B)           0      |
+    // |     0        0          F/(F-N)       -(F*N)/(F-N) |
+    // └     0        0             1                0      ┘
+    // Set matrix data. Row 1:
+    lMatrix.data[0][0] = 2 * lNear / (lRight - lLeft);
+    lMatrix.data[0][2] = -(lRight + lLeft) / (lRight - lLeft);
+    // Set matrix data. Row 2:
+    lMatrix.data[1][1] = 2 * lNear / (lTop - lBottom);
+    lMatrix.data[1][2] = -(lTop + lBottom) / (lTop - lBottom);
+    // Set matrix data. Row 3:
+    lMatrix.data[2][2] = lFar / (lFar - lNear);
+    lMatrix.data[2][3] = -(lFar * lNear) / (lFar - lNear);
+    // Set matrix data. Row 4:
+    lMatrix.data[3][2] = 1;
     return lMatrix;
   }
 }
@@ -1206,6 +1269,18 @@ class Attachments {
       width: 1,
       height: 1
     };
+  }
+  /**
+   * Attachment height.
+   */
+  get height() {
+    return this.mSize.height;
+  }
+  /**
+   * Attachment width.
+   */
+  get width() {
+    return this.mSize.width;
   }
   /**
    * Add attachment. Forces rebuild of some groups.
@@ -9672,7 +9747,7 @@ exports.TypeUtil = TypeUtil;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("a0ef5eb71c84c04b7f52")
+/******/ 		__webpack_require__.h = () => ("48a47f00dd8288af5586")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

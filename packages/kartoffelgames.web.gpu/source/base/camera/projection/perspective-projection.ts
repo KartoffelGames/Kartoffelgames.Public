@@ -15,6 +15,9 @@ export class PerspectiveProjection implements IProjection {
         return this.mAngleOfView;
     } set angleOfView(pValue: number) {
         this.mAngleOfView = pValue;
+
+        // Reset cached matrix.
+        this.mCacheProjectionMatrix = null;
     }
 
     /**
@@ -24,6 +27,9 @@ export class PerspectiveProjection implements IProjection {
         return this.mAspectRatio;
     } set aspectRatio(pValue: number) {
         this.mAspectRatio = pValue;
+
+        // Reset cached matrix.
+        this.mCacheProjectionMatrix = null;
     }
 
     /**
@@ -33,6 +39,9 @@ export class PerspectiveProjection implements IProjection {
         return this.mFar;
     } set far(pValue: number) {
         this.mFar = pValue;
+
+        // Reset cached matrix.
+        this.mCacheProjectionMatrix = null;
     }
 
     /**
@@ -42,6 +51,9 @@ export class PerspectiveProjection implements IProjection {
         return this.mNear;
     } set near(pValue: number) {
         this.mNear = pValue;
+
+        // Reset cached matrix.
+        this.mCacheProjectionMatrix = null;
     }
 
     /**

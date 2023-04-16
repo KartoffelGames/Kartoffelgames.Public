@@ -17,6 +17,20 @@ export class Attachments {
     private readonly mTextureGroup: Dictionary<string, ITexture>;
 
     /**
+     * Attachment height.
+     */
+    public get height(): number {
+        return this.mSize.height;
+    }
+
+    /**
+     * Attachment width.
+     */
+    public get width(): number {
+        return this.mSize.width;
+    }
+
+    /**
      * Constructor.
      * @param pGpu - GPU.
      */

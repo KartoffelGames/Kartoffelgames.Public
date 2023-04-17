@@ -209,7 +209,8 @@ var transform_1 = __webpack_require__(/*! ../../source/base/transform */ "./sour
 var attachment_type_enum_1 = __webpack_require__(/*! ../../source/core/attachment/attachment-type.enum */ "./source/core/attachment/attachment-type.enum.ts");
 var attachments_1 = __webpack_require__(/*! ../../source/core/attachment/attachments */ "./source/core/attachment/attachments.ts");
 var render_mesh_1 = __webpack_require__(/*! ../../source/core/execution/data/render-mesh */ "./source/core/execution/data/render-mesh.ts");
-var render_1 = __webpack_require__(/*! ../../source/core/execution/render */ "./source/core/execution/render.ts");
+var instruction_executer_1 = __webpack_require__(/*! ../../source/core/execution/instruction-executer */ "./source/core/execution/instruction-executer.ts");
+var render_single_instruction_1 = __webpack_require__(/*! ../../source/core/execution/instruction/render-single-instruction */ "./source/core/execution/instruction/render-single-instruction.ts");
 var gpu_1 = __webpack_require__(/*! ../../source/core/gpu */ "./source/core/gpu.ts");
 var render_pipeline_1 = __webpack_require__(/*! ../../source/core/pipeline/render-pipeline */ "./source/core/pipeline/render-pipeline.ts");
 var simple_buffer_1 = __webpack_require__(/*! ../../source/core/resource/buffer/simple-buffer */ "./source/core/resource/buffer/simple-buffer.ts");
@@ -522,16 +523,18 @@ _asyncToGenerator(function* () {
   7, 6, 2, 7, 2, 3]);
   lMesh.setVertexBuffer('vertexposition', lVertexPositionBuffer);
   lMesh.setVertexBuffer('vertexcolor', lVertexColorBuffer);
-  var lRenderer = new render_1.Render(lGpu);
-  yield lRenderer.setPipeline(lPipeline);
-  yield lRenderer.setMesh(lMesh);
-  lRenderer.setBindGroup(0, lBindGroup);
+  // Setup renderer.
+  var lInstructionExecutioner = new instruction_executer_1.InstructionExecuter(lGpu);
+  // Setup object render.
+  var lObjectRenderInstruction = new render_single_instruction_1.RenderSingleInstruction();
+  yield lObjectRenderInstruction.setPipeline(lPipeline);
+  yield lObjectRenderInstruction.setMesh(lMesh);
+  lObjectRenderInstruction.setBindGroup(0, lBindGroup);
+  lInstructionExecutioner.addInstruction(lObjectRenderInstruction);
   var lRender = /*#__PURE__*/function () {
     var _ref5 = _asyncToGenerator(function* () {
       // Generate encoder and add render commands.
-      var lEncoder = lGpu.device.createCommandEncoder();
-      yield lRenderer.render(lEncoder);
-      lGpu.device.queue.submit([lEncoder.finish()]);
+      yield lInstructionExecutioner.execute();
       // Refresh canvas
       requestAnimationFrame(lRender);
     });
@@ -2262,14 +2265,10 @@ class RenderMesh {
    * Constructor.
    *
    * @param pGpu - GPU.
-   * @param pVertexAttribute - Vertex attribute.
-   * @param pVertexBuffer - Vertex buffer.
    * @param pVertexIndices - Vertex indices.
    */
   constructor(pGpu, pVertexIndices) {
     this.mVertexBuffer = new core_data_1.Dictionary();
-    // Get highest verticle index.
-    this.mHighestVerticleIndex = Math.max(...pVertexIndices);
     // Init index buffer.
     var lIndexData = new Uint16Array(pVertexIndices);
     this.mIndexBuffer = new simple_buffer_1.SimpleBuffer(pGpu, GPUBufferUsage.INDEX, lIndexData);
@@ -2311,10 +2310,10 @@ exports.RenderMesh = RenderMesh;
 
 /***/ }),
 
-/***/ "./source/core/execution/render.ts":
-/*!*****************************************!*\
-  !*** ./source/core/execution/render.ts ***!
-  \*****************************************/
+/***/ "./source/core/execution/instruction-executer.ts":
+/*!*******************************************************!*\
+  !*** ./source/core/execution/instruction-executer.ts ***!
+  \*******************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2325,36 +2324,50 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.Render = void 0;
+exports.InstructionExecuter = void 0;
 var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-class Render {
-  // TODO: Set  GPURenderPassEncoder.setScissorRect
+var render_single_instruction_1 = __webpack_require__(/*! ./instruction/render-single-instruction */ "./source/core/execution/instruction/render-single-instruction.ts");
+class InstructionExecuter {
   /**
    * Constructor.
-   * @param pGpu - GPU.
+   * @param pGpu - Gpu.
    */
   constructor(pGpu) {
     this.mGpu = pGpu;
-    this.mBindGroups = new core_data_1.Dictionary();
-    this.mMesh = null;
-    this.mPipeline = null;
+    // Instruction sets.
+    this.mRenderInstructionList = new core_data_1.List();
+  }
+  addInstruction(pInstruction) {
+    if (pInstruction instanceof render_single_instruction_1.RenderSingleInstruction) {
+      this.mRenderInstructionList.push(pInstruction);
+    }
+  }
+  clearInstructions() {
+    this.mRenderInstructionList.clear();
+  }
+  execute() {
+    var _this = this;
+    return _asyncToGenerator(function* () {
+      // Generate encoder and add render commands.
+      var lEncoder = _this.mGpu.device.createCommandEncoder();
+      // TODO: DOSTUFFF...
+      for (var lRenderInstruction of _this.mRenderInstructionList) {
+        yield _this.render(lEncoder, lRenderInstruction);
+      }
+      _this.mGpu.device.queue.submit([lEncoder.finish()]);
+    })();
   }
   /**
    * Render set mesh with set pipeline.
-   * @param pEncoder - Encoder.
+   * @param lRenderPassEncoder - Encoder.
    */
-  render(pEncoder) {
-    var _this = this;
+  render(pEncoder, pRenderInstruction) {
+    var _this2 = this;
     return _asyncToGenerator(function* () {
-      if (!_this.mMesh) {
-        throw new core_data_1.Exception('Mesh not set', _this);
-      }
-      if (!_this.mPipeline) {
-        throw new core_data_1.Exception('Pipeline not set', _this);
-      }
+      // TODO: pRenderInstruction.validate()
       // Create color attachments.
       var lColorAttachmentList = new Array();
-      for (var lAttachment of _this.mPipeline.attachments) {
+      for (var lAttachment of pRenderInstruction.pipeline.attachments) {
         lColorAttachmentList.push(yield lAttachment.native());
       }
       // Generate pass descriptor once per set pipeline.
@@ -2362,46 +2375,105 @@ class Render {
         colorAttachments: lColorAttachmentList
       };
       // Set optional depth attachmet.
-      if (_this.mPipeline.depthAttachment) {
-        lPassDescriptor.depthStencilAttachment = yield _this.mPipeline.depthAttachment.native();
+      if (pRenderInstruction.pipeline.depthAttachment) {
+        lPassDescriptor.depthStencilAttachment = yield pRenderInstruction.pipeline.depthAttachment.native();
       }
       // Pass descriptor is set, when the pipeline ist set.
-      var lEncoder = pEncoder.beginRenderPass(lPassDescriptor);
-      lEncoder.setPipeline(yield _this.mPipeline.native());
+      var lRenderPassEncoder = pEncoder.beginRenderPass(lPassDescriptor);
+      lRenderPassEncoder.setPipeline(yield pRenderInstruction.pipeline.native());
       // Add bind groups.
-      for (var lIndex of _this.mPipeline.shader.bindGroups.groups) {
-        var lBindGroup = _this.mBindGroups.get(lIndex);
+      for (var lIndex of pRenderInstruction.pipeline.shader.bindGroups.groups) {
+        var lBindGroup = pRenderInstruction.bindGroups[lIndex];
         if (!lBindGroup) {
-          throw new core_data_1.Exception("Missing bind group for pipeline bind group layout (index ".concat(lIndex, ")"), _this);
+          throw new core_data_1.Exception("Missing bind group for pipeline bind group layout (index ".concat(lIndex, ")"), _this2);
         }
-        lEncoder.setBindGroup(lIndex, yield lBindGroup.native());
+        lRenderPassEncoder.setBindGroup(lIndex, yield lBindGroup.native());
       }
       // Add vertex attribute buffer.
-      for (var lAttribute of _this.mPipeline.shader.vertexEntryPoint.attributes) {
-        var lAttributeBuffer = _this.mMesh.getVertexBuffer(lAttribute.name);
-        lEncoder.setVertexBuffer(lAttribute.location, yield lAttributeBuffer.native());
+      for (var lAttribute of pRenderInstruction.pipeline.shader.vertexEntryPoint.attributes) {
+        var lAttributeBuffer = pRenderInstruction.mesh.getVertexBuffer(lAttribute.name);
+        lRenderPassEncoder.setVertexBuffer(lAttribute.location, yield lAttributeBuffer.native());
       }
-      lEncoder.setIndexBuffer(yield _this.mMesh.indexBuffer.native(), 'uint16');
-      lEncoder.drawIndexed(_this.mMesh.indexBuffer.length);
-      lEncoder.end();
+      lRenderPassEncoder.setIndexBuffer(yield pRenderInstruction.mesh.indexBuffer.native(), 'uint16');
+      lRenderPassEncoder.drawIndexed(pRenderInstruction.mesh.indexBuffer.length);
+      lRenderPassEncoder.end();
     })();
+  }
+}
+exports.InstructionExecuter = InstructionExecuter;
+
+/***/ }),
+
+/***/ "./source/core/execution/instruction/render-single-instruction.ts":
+/*!************************************************************************!*\
+  !*** ./source/core/execution/instruction/render-single-instruction.ts ***!
+  \************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.RenderSingleInstruction = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+class RenderSingleInstruction {
+  /**
+   * Constructor.
+   */
+  constructor() {
+    this.mBindGroups = new core_data_1.Dictionary();
+    this.mMesh = null;
+    this.mPipeline = null;
+  }
+  // TODO: Set  GPURenderPassEncoder.setScissorRect
+  /**
+   * Get bind groups.
+   */
+  get bindGroups() {
+    var lBindGroupList = new Array();
+    for (var [lIndex, lBindGroup] of this.mBindGroups) {
+      lBindGroupList[lIndex] = lBindGroup;
+    }
+    return lBindGroupList;
+  }
+  /**
+   * Instruction mesh.
+   */
+  get mesh() {
+    if (!this.mMesh) {
+      throw new core_data_1.Exception('Mesh not set.', this);
+    }
+    return this.mMesh;
+  }
+  /**
+   * Instructions render pipeline.
+   */
+  get pipeline() {
+    if (!this.mPipeline) {
+      throw new core_data_1.Exception('Pipeline not set.', this);
+    }
+    return this.mPipeline;
   }
   /**
    * Set bind group of pipeline.
    * @param pBindGroup - Bind group.
    */
   setBindGroup(pIndex, pBindGroup) {
-    var _this2 = this;
+    var _this = this;
     return _asyncToGenerator(function* () {
       // Validate pipeline existance.
-      if (!_this2.mPipeline) {
-        throw new core_data_1.Exception("Can't set bind group without set pipeline.", _this2);
+      if (!_this.mPipeline) {
+        throw new core_data_1.Exception("Can't set bind group without set pipeline.", _this);
       }
       // Validate bind group layout.
-      if (_this2.mPipeline.shader.bindGroups.getGroup(pIndex) !== pBindGroup.layout) {
-        throw new core_data_1.Exception("Bind data layout not matched with pipeline bind group layout.", _this2);
+      if (_this.mPipeline.shader.bindGroups.getGroup(pIndex) !== pBindGroup.layout) {
+        throw new core_data_1.Exception("Bind data layout not matched with pipeline bind group layout.", _this);
       }
-      _this2.mBindGroups.set(pIndex, pBindGroup);
+      _this.mBindGroups.set(pIndex, pBindGroup);
     })();
   }
   /**
@@ -2409,26 +2481,26 @@ class Render {
    * @param pMesh - Mesh to render.
    */
   setMesh(pMesh) {
-    var _this3 = this;
+    var _this2 = this;
     return _asyncToGenerator(function* () {
-      var _this3$mPipeline$shad;
+      var _this2$mPipeline$shad;
       // Validate pipeline existance.
-      if (!_this3.mPipeline) {
-        throw new core_data_1.Exception("Can't set mesh without set pipeline.", _this3);
+      if (!_this2.mPipeline) {
+        throw new core_data_1.Exception("Can't set mesh without set pipeline.", _this2);
       }
       // Validate mesh and pipeline attributes length.
-      if (pMesh.attributesCount !== ((_this3$mPipeline$shad = _this3.mPipeline.shader.vertexEntryPoint) === null || _this3$mPipeline$shad === void 0 ? void 0 : _this3$mPipeline$shad.attributes.length)) {
-        var _this3$mPipeline$shad2;
-        throw new core_data_1.Exception("Mesh attributes (length:".concat(pMesh.attributesCount, ") does not match pipeline attributes (length").concat((_this3$mPipeline$shad2 = _this3.mPipeline.shader.vertexEntryPoint) === null || _this3$mPipeline$shad2 === void 0 ? void 0 : _this3$mPipeline$shad2.attributes.length, ")"), _this3);
+      if (pMesh.attributesCount !== ((_this2$mPipeline$shad = _this2.mPipeline.shader.vertexEntryPoint) === null || _this2$mPipeline$shad === void 0 ? void 0 : _this2$mPipeline$shad.attributes.length)) {
+        var _this2$mPipeline$shad2;
+        throw new core_data_1.Exception("Mesh attributes (length:".concat(pMesh.attributesCount, ") does not match pipeline attributes (length").concat((_this2$mPipeline$shad2 = _this2.mPipeline.shader.vertexEntryPoint) === null || _this2$mPipeline$shad2 === void 0 ? void 0 : _this2$mPipeline$shad2.attributes.length, ")"), _this2);
       }
       // Validate mesh and pipeline attributes content.
-      for (var lAttribute of _this3.mPipeline.shader.vertexEntryPoint.attributes) {
+      for (var lAttribute of _this2.mPipeline.shader.vertexEntryPoint.attributes) {
         var lMeshAttributeBuffer = pMesh.getVertexBuffer(lAttribute.name);
         if (lMeshAttributeBuffer.type !== lAttribute.bufferDataType) {
-          throw new core_data_1.Exception("Mesh attributes does not match pipeline attributes", _this3);
+          throw new core_data_1.Exception("Mesh attributes does not match pipeline attributes", _this2);
         }
       }
-      _this3.mMesh = pMesh;
+      _this2.mMesh = pMesh;
     })();
   }
   /**
@@ -2436,15 +2508,15 @@ class Render {
    * @param pPipeline - Render pipeline.
    */
   setPipeline(pPipeline) {
-    var _this4 = this;
+    var _this3 = this;
     return _asyncToGenerator(function* () {
-      _this4.mPipeline = pPipeline;
+      _this3.mPipeline = pPipeline;
       // Clear binds.
-      _this4.mBindGroups.clear();
+      _this3.mBindGroups.clear();
     })();
   }
 }
-exports.Render = Render;
+exports.RenderSingleInstruction = RenderSingleInstruction;
 
 /***/ }),
 
@@ -2569,6 +2641,8 @@ class GpuNativeObject {
     pInternalNative.registerChangeListener(() => {
       this.mNativeChanged = true;
     }, this);
+    // Trigger change.
+    this.mNativeChanged = true;
   }
   /**
    * Unregister internal native object.
@@ -2576,6 +2650,8 @@ class GpuNativeObject {
    */
   unregisterInternalNative(pInternalNative) {
     pInternalNative.unregisterChangeListener(this);
+    // Trigger change.
+    this.mNativeChanged = true;
   }
   /**
    * Validate native object. Refresh native on negative state.
@@ -2682,298 +2758,10 @@ Gpu.mDevices = new core_data_1.Dictionary();
 
 /***/ }),
 
-/***/ "./source/core/pipeline/render-pipeline.ts":
-/*!*************************************************!*\
-  !*** ./source/core/pipeline/render-pipeline.ts ***!
-  \*************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.RenderPipeline = void 0;
-var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-var gpu_native_object_1 = __webpack_require__(/*! ../gpu-native-object */ "./source/core/gpu-native-object.ts");
-class RenderPipeline extends gpu_native_object_1.GpuNativeObject {
-  /**
-   * Constructor.
-   * @param pGpu - GPU.
-   */
-  constructor(pGpu) {
-    super(pGpu, 'RENDER_PIPELINE');
-    // Init unassigned properties.
-    this.mShader = null;
-    this.mDepthAttachment = null;
-    // Set default values.
-    this.mPrimitive = {
-      frontFace: 'cw',
-      cullMode: 'back',
-      topology: 'triangle-list',
-      unclippedDepth: false
-    };
-    this.mDepthWriteEnabled = true;
-    this.mDepthCompare = 'less';
-    // Unchanged change state.
-    this.mPipelineDataChangeState = {
-      primitive: false,
-      shader: false,
-      depthAttachment: false,
-      attachment: true
-    };
-    // Init lists.
-    this.mRenderAttachmentList = new Array();
-  }
-  /**
-   * Render attachments.
-   */
-  get attachments() {
-    return this.mRenderAttachmentList;
-  }
-  /**
-   * Depth attachment.
-   */
-  get depthAttachment() {
-    return this.mDepthAttachment;
-  }
-  set depthAttachment(pAttachment) {
-    // Do nothing on assigning old an value.
-    if (this.mDepthAttachment === pAttachment) {
-      return;
-    }
-    // Unregister old and register new depth attachment.
-    if (this.mDepthAttachment) {
-      this.unregisterInternalNative(this.mDepthAttachment);
-    }
-    if (pAttachment) {
-      this.registerInternalNative(pAttachment);
-    }
-    // Set attachment.
-    this.mDepthAttachment = pAttachment;
-  }
-  /**
-   * Set depth compare function.
-   */
-  get depthCompare() {
-    return this.mDepthCompare;
-  }
-  set depthCompare(pValue) {
-    // Do nothing on assigning old an value.
-    if (this.mDepthCompare === pValue) {
-      return;
-    }
-    this.mDepthCompare = pValue;
-    // Set data changed flag.
-    this.mPipelineDataChangeState.depthAttachment = true;
-  }
-  /**
-   * Defines which polygon orientation will be culled.
-   */
-  get primitiveCullMode() {
-    return this.mPrimitive.cullMode;
-  }
-  set primitiveCullMode(pValue) {
-    // Do nothing on assigning old an value.
-    if (this.mPrimitive.cullMode === pValue) {
-      return;
-    }
-    this.mPrimitive.cullMode = pValue;
-    // Set data changed flag.
-    this.mPipelineDataChangeState.primitive = true;
-  }
-  /**
-   * Defines which polygons are considered front-facing.
-   */
-  get primitiveFrontFace() {
-    return this.mPrimitive.frontFace;
-  }
-  set primitiveFrontFace(pValue) {
-    // Do nothing on assigning old an value.
-    if (this.mPrimitive.frontFace === pValue) {
-      return;
-    }
-    this.mPrimitive.frontFace = pValue;
-    // Set data changed flag.
-    this.mPipelineDataChangeState.primitive = true;
-  }
-  /**
-   * The type of primitive to be constructed from the vertex inputs.
-   */
-  get primitiveTopology() {
-    return this.mPrimitive.topology;
-  }
-  set primitiveTopology(pValue) {
-    // Do nothing on assigning old an value.
-    if (this.mPrimitive.topology === pValue) {
-      return;
-    }
-    this.mPrimitive.topology = pValue;
-    // Set data changed flag.
-    this.mPipelineDataChangeState.primitive = true;
-  }
-  /**
-   * Shader.
-   */
-  get shader() {
-    if (!this.mShader) {
-      throw new core_data_1.Exception('Shader is not set for this pipeline', this);
-    }
-    return this.mShader;
-  }
-  get unclipedDepth() {
-    var _this$mPrimitive$uncl;
-    return (_this$mPrimitive$uncl = this.mPrimitive.unclippedDepth) !== null && _this$mPrimitive$uncl !== void 0 ? _this$mPrimitive$uncl : false;
-  }
-  set unclipedDepth(pValue) {
-    // Do nothing on assigning old an value.
-    if (this.mPrimitive.unclippedDepth === pValue) {
-      return;
-    }
-    this.mPrimitive.unclippedDepth = pValue;
-    // Set data changed flag.
-    this.mPipelineDataChangeState.primitive = true;
-  }
-  /**
-   * Set depth write enabled / disabled.
-   */
-  get writeDepth() {
-    return this.mDepthWriteEnabled;
-  }
-  set writeDepth(pValue) {
-    // Do nothing on assigning old an value.
-    if (this.mDepthWriteEnabled === pValue) {
-      return;
-    }
-    this.mDepthWriteEnabled = pValue;
-    // Set data changed flag.
-    this.mPipelineDataChangeState.depthAttachment = true;
-  }
-  /**
-   * Add attachment. Return attachment index.
-   * @param pAttachment - Attachment.
-   */
-  addAttachment(pAttachment) {
-    // Dont register attachment as an canvas attachment refreshes every frame.
-    // The Pipeline would refresh every frame. 
-    this.mPipelineDataChangeState.attachment = true;
-    return this.mRenderAttachmentList.push(pAttachment) - 1;
-  }
-  /**
-   * Set Shader programms for pipeline.
-   * @param pShader - Vertex with optional fragement shader.
-   */
-  setShader(pShader) {
-    // Validate vertex shader.
-    if (!pShader.vertexEntryPoint) {
-      throw new core_data_1.Exception('Vertex shader has no entry point.', this);
-    }
-    this.mShader = pShader;
-    // Set data changed flag.
-    this.mPipelineDataChangeState.shader = true;
-  }
-  /**
-   * Free storage of native object.
-   * @param _pNativeObject - Native object.
-   */
-  destroyNative(_pNativeObject) {
-    return _asyncToGenerator(function* () {})();
-  } // Nothing to destroy.
-  /**
-   * Generate native render pipeline.
-   */
-  generate() {
-    var _this = this;
-    return _asyncToGenerator(function* () {
-      var _this$mShader;
-      // Check valid entry points.
-      if (!((_this$mShader = _this.mShader) !== null && _this$mShader !== void 0 && _this$mShader.vertexEntryPoint)) {
-        throw new core_data_1.Exception('Shadermodule has no vertex entry point.', _this);
-      }
-      // Generate pipeline layout from bind group layouts.
-      var lPipelineLayout = yield _this.mShader.bindGroups.native();
-      // Generate vertex buffer layouts.
-      var lVertexBufferLayoutList = new Array();
-      for (var lAttribute of _this.mShader.vertexEntryPoint.attributes) {
-        // Set location offset based on previous  vertex attributes.
-        lVertexBufferLayoutList.push(yield lAttribute.native());
-      }
-      // Construct basic GPURenderPipelineDescriptor.
-      var lPipelineDescriptor = {
-        label: _this.label,
-        layout: _this.gpu.device.createPipelineLayout(lPipelineLayout),
-        vertex: {
-          module: yield _this.mShader.native(),
-          entryPoint: _this.mShader.vertexEntryPoint.name,
-          buffers: lVertexBufferLayoutList
-          // No constants. Yes.
-        },
-
-        primitive: _this.mPrimitive
-      };
-      // Optional fragment state.
-      if (_this.mShader.fragmentEntryPoint) {
-        // Generate fragment targets only when fragment state is needed.
-        var lFragmentTargetList = new Array();
-        for (var lRenderTarget of _this.mRenderAttachmentList) {
-          lFragmentTargetList.push({
-            format: lRenderTarget.format
-            // blend?: GPUBlendState;
-            // writeMask?: GPUColorWriteFlags;
-          });
-        }
-
-        lPipelineDescriptor.fragment = {
-          module: yield _this.mShader.native(),
-          entryPoint: _this.mShader.fragmentEntryPoint.name,
-          targets: lFragmentTargetList
-        };
-      }
-      // Setup optional depth attachment.
-      if (_this.mDepthAttachment) {
-        lPipelineDescriptor.depthStencil = {
-          depthWriteEnabled: _this.mDepthWriteEnabled,
-          depthCompare: _this.mDepthCompare,
-          format: _this.mDepthAttachment.format
-          // TODO: Stencil settings. 
-        };
-      }
-      // Reset change states.
-      for (var lChangeState in _this.mPipelineDataChangeState) {
-        _this.mPipelineDataChangeState[lChangeState] = false;
-      }
-      // Async is none GPU stalling.
-      return _this.gpu.device.createRenderPipelineAsync(lPipelineDescriptor);
-    })();
-  }
-  /**
-   * Invalidate on data change or native data change.s
-   */
-  validateState() {
-    var _this2 = this;
-    return _asyncToGenerator(function* () {
-      // Go for the fast checks first.
-      for (var lChangeState in _this2.mPipelineDataChangeState) {
-        if (_this2.mPipelineDataChangeState[lChangeState]) {
-          return false;
-        }
-      }
-      // Native objects are validated over internal natives.
-      return true;
-    })();
-  }
-}
-exports.RenderPipeline = RenderPipeline;
-
-/***/ }),
-
-/***/ "./source/core/pipeline/vertex-attribute.ts":
-/*!**************************************************!*\
-  !*** ./source/core/pipeline/vertex-attribute.ts ***!
-  \**************************************************/
+/***/ "./source/core/pipeline/data/vertex-attribute.ts":
+/*!*******************************************************!*\
+  !*** ./source/core/pipeline/data/vertex-attribute.ts ***!
+  \*******************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2986,8 +2774,8 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.VertexAttribute = void 0;
 var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-var gpu_native_object_1 = __webpack_require__(/*! ../gpu-native-object */ "./source/core/gpu-native-object.ts");
-var wgsl_type_enum_1 = __webpack_require__(/*! ../shader/wgsl_type_handler/wgsl-type.enum */ "./source/core/shader/wgsl_type_handler/wgsl-type.enum.ts");
+var gpu_native_object_1 = __webpack_require__(/*! ../../gpu-native-object */ "./source/core/gpu-native-object.ts");
+var wgsl_type_enum_1 = __webpack_require__(/*! ../../shader/wgsl_type_handler/wgsl-type.enum */ "./source/core/shader/wgsl_type_handler/wgsl-type.enum.ts");
 class VertexAttribute extends gpu_native_object_1.GpuNativeObject {
   /**
    * Constructor.
@@ -3176,6 +2964,301 @@ var gTypeToBufferType = {
     }
   }
 };
+
+/***/ }),
+
+/***/ "./source/core/pipeline/render-pipeline.ts":
+/*!*************************************************!*\
+  !*** ./source/core/pipeline/render-pipeline.ts ***!
+  \*************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.RenderPipeline = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+var gpu_native_object_1 = __webpack_require__(/*! ../gpu-native-object */ "./source/core/gpu-native-object.ts");
+class RenderPipeline extends gpu_native_object_1.GpuNativeObject {
+  /**
+   * Constructor.
+   * @param pGpu - GPU.
+   */
+  constructor(pGpu) {
+    super(pGpu, 'RENDER_PIPELINE');
+    // Init unassigned properties.
+    this.mShader = null;
+    this.mDepthAttachment = null;
+    // Set default values.
+    this.mPrimitive = {
+      frontFace: 'cw',
+      cullMode: 'back',
+      topology: 'triangle-list',
+      unclippedDepth: false
+    };
+    this.mDepthWriteEnabled = true;
+    this.mDepthCompare = 'less';
+    // Unchanged change state.
+    this.mPipelineDataChangeState = {
+      primitive: false,
+      depthAttachment: false,
+      attachment: true
+    };
+    // Init lists.
+    this.mRenderAttachmentList = new Array();
+  }
+  /**
+   * Render attachments.
+   */
+  get attachments() {
+    return this.mRenderAttachmentList;
+  }
+  /**
+   * Depth attachment.
+   */
+  get depthAttachment() {
+    return this.mDepthAttachment;
+  }
+  set depthAttachment(pAttachment) {
+    // Do nothing on assigning old an value.
+    if (this.mDepthAttachment === pAttachment) {
+      return;
+    }
+    // Unregister old and register new depth attachment.
+    if (this.mDepthAttachment) {
+      this.unregisterInternalNative(this.mDepthAttachment);
+    }
+    if (pAttachment) {
+      this.registerInternalNative(pAttachment);
+    }
+    // Set attachment.
+    this.mDepthAttachment = pAttachment;
+  }
+  /**
+   * Set depth compare function.
+   */
+  get depthCompare() {
+    return this.mDepthCompare;
+  }
+  set depthCompare(pValue) {
+    // Do nothing on assigning old an value.
+    if (this.mDepthCompare === pValue) {
+      return;
+    }
+    this.mDepthCompare = pValue;
+    // Set data changed flag.
+    this.mPipelineDataChangeState.depthAttachment = true;
+  }
+  /**
+   * Defines which polygon orientation will be culled.
+   */
+  get primitiveCullMode() {
+    return this.mPrimitive.cullMode;
+  }
+  set primitiveCullMode(pValue) {
+    // Do nothing on assigning old an value.
+    if (this.mPrimitive.cullMode === pValue) {
+      return;
+    }
+    this.mPrimitive.cullMode = pValue;
+    // Set data changed flag.
+    this.mPipelineDataChangeState.primitive = true;
+  }
+  /**
+   * Defines which polygons are considered front-facing.
+   */
+  get primitiveFrontFace() {
+    return this.mPrimitive.frontFace;
+  }
+  set primitiveFrontFace(pValue) {
+    // Do nothing on assigning old an value.
+    if (this.mPrimitive.frontFace === pValue) {
+      return;
+    }
+    this.mPrimitive.frontFace = pValue;
+    // Set data changed flag.
+    this.mPipelineDataChangeState.primitive = true;
+  }
+  /**
+   * The type of primitive to be constructed from the vertex inputs.
+   */
+  get primitiveTopology() {
+    return this.mPrimitive.topology;
+  }
+  set primitiveTopology(pValue) {
+    // Do nothing on assigning old an value.
+    if (this.mPrimitive.topology === pValue) {
+      return;
+    }
+    this.mPrimitive.topology = pValue;
+    // Set data changed flag.
+    this.mPipelineDataChangeState.primitive = true;
+  }
+  /**
+   * Shader.
+   */
+  get shader() {
+    if (!this.mShader) {
+      throw new core_data_1.Exception('Shader is not set for this pipeline', this);
+    }
+    return this.mShader;
+  }
+  /**
+   * Set depth to never clip.
+   */
+  get unclipedDepth() {
+    var _this$mPrimitive$uncl;
+    return (_this$mPrimitive$uncl = this.mPrimitive.unclippedDepth) !== null && _this$mPrimitive$uncl !== void 0 ? _this$mPrimitive$uncl : false;
+  }
+  set unclipedDepth(pValue) {
+    // Do nothing on assigning old an value.
+    if (this.mPrimitive.unclippedDepth === pValue) {
+      return;
+    }
+    this.mPrimitive.unclippedDepth = pValue;
+    // Set data changed flag.
+    this.mPipelineDataChangeState.primitive = true;
+  }
+  /**
+   * Set depth write enabled / disabled.
+   */
+  get writeDepth() {
+    return this.mDepthWriteEnabled;
+  }
+  set writeDepth(pValue) {
+    // Do nothing on assigning old an value.
+    if (this.mDepthWriteEnabled === pValue) {
+      return;
+    }
+    this.mDepthWriteEnabled = pValue;
+    // Set data changed flag.
+    this.mPipelineDataChangeState.depthAttachment = true;
+  }
+  /**
+   * Add attachment. Return attachment index.
+   * @param pAttachment - Attachment.
+   */
+  addAttachment(pAttachment) {
+    // Dont register attachment as an canvas attachment refreshes every frame.
+    // The Pipeline would refresh every frame. 
+    this.mPipelineDataChangeState.attachment = true;
+    return this.mRenderAttachmentList.push(pAttachment) - 1;
+  }
+  /**
+   * Set Shader programms for pipeline.
+   * @param pShader - Vertex with optional fragement shader.
+   */
+  setShader(pShader) {
+    // Validate vertex shader.
+    if (!pShader.vertexEntryPoint) {
+      throw new core_data_1.Exception('Vertex shader has no entry point.', this);
+    }
+    // Unregister old shader and register new.
+    if (this.mShader) {
+      this.unregisterInternalNative(this.mShader);
+    }
+    if (pShader) {
+      this.registerInternalNative(pShader);
+    }
+    this.mShader = pShader;
+  }
+  /**
+   * Free storage of native object.
+   * @param _pNativeObject - Native object.
+   */
+  destroyNative(_pNativeObject) {
+    return _asyncToGenerator(function* () {})();
+  } // Nothing to destroy.
+  /**
+   * Generate native render pipeline.
+   */
+  generate() {
+    var _this = this;
+    return _asyncToGenerator(function* () {
+      var _this$mShader;
+      // Check valid entry points.
+      if (!((_this$mShader = _this.mShader) !== null && _this$mShader !== void 0 && _this$mShader.vertexEntryPoint)) {
+        throw new core_data_1.Exception('Shadermodule has no vertex entry point.', _this);
+      }
+      // Generate pipeline layout from bind group layouts.
+      var lPipelineLayout = yield _this.mShader.bindGroups.native();
+      // Generate vertex buffer layouts.
+      var lVertexBufferLayoutList = new Array();
+      for (var lAttribute of _this.mShader.vertexEntryPoint.attributes) {
+        // Set location offset based on previous  vertex attributes.
+        lVertexBufferLayoutList.push(yield lAttribute.native());
+      }
+      // Construct basic GPURenderPipelineDescriptor.
+      var lPipelineDescriptor = {
+        label: _this.label,
+        layout: _this.gpu.device.createPipelineLayout(lPipelineLayout),
+        vertex: {
+          module: yield _this.mShader.native(),
+          entryPoint: _this.mShader.vertexEntryPoint.name,
+          buffers: lVertexBufferLayoutList
+          // No constants. Yes.
+        },
+
+        primitive: _this.mPrimitive
+      };
+      // Optional fragment state.
+      if (_this.mShader.fragmentEntryPoint) {
+        // Generate fragment targets only when fragment state is needed.
+        var lFragmentTargetList = new Array();
+        for (var lRenderTarget of _this.mRenderAttachmentList) {
+          lFragmentTargetList.push({
+            format: lRenderTarget.format
+            // blend?: GPUBlendState;
+            // writeMask?: GPUColorWriteFlags;
+          });
+        }
+
+        lPipelineDescriptor.fragment = {
+          module: yield _this.mShader.native(),
+          entryPoint: _this.mShader.fragmentEntryPoint.name,
+          targets: lFragmentTargetList
+        };
+      }
+      // Setup optional depth attachment.
+      if (_this.mDepthAttachment) {
+        lPipelineDescriptor.depthStencil = {
+          depthWriteEnabled: _this.mDepthWriteEnabled,
+          depthCompare: _this.mDepthCompare,
+          format: _this.mDepthAttachment.format
+          // TODO: Stencil settings. 
+        };
+      }
+      // Reset change states.
+      for (var lChangeState in _this.mPipelineDataChangeState) {
+        _this.mPipelineDataChangeState[lChangeState] = false;
+      }
+      // Async is none GPU stalling.
+      return _this.gpu.device.createRenderPipelineAsync(lPipelineDescriptor);
+    })();
+  }
+  /**
+   * Invalidate on data change or native data change.s
+   */
+  validateState() {
+    var _this2 = this;
+    return _asyncToGenerator(function* () {
+      // Go for the fast checks first.
+      for (var lChangeState in _this2.mPipelineDataChangeState) {
+        if (_this2.mPipelineDataChangeState[lChangeState]) {
+          return false;
+        }
+      }
+      // Native objects are validated over internal natives.
+      return true;
+    })();
+  }
+}
+exports.RenderPipeline = RenderPipeline;
 
 /***/ }),
 
@@ -4134,7 +4217,7 @@ var bind_groups_1 = __webpack_require__(/*! ./bind_group/bind-groups */ "./sourc
 var bind_type_enum_1 = __webpack_require__(/*! ./enum/bind-type.enum */ "./source/core/enum/bind-type.enum.ts");
 var shader_stage_enum_1 = __webpack_require__(/*! ./enum/shader-stage.enum */ "./source/core/enum/shader-stage.enum.ts");
 var gpu_native_object_1 = __webpack_require__(/*! ./gpu-native-object */ "./source/core/gpu-native-object.ts");
-var vertex_attribute_1 = __webpack_require__(/*! ./pipeline/vertex-attribute */ "./source/core/pipeline/vertex-attribute.ts");
+var vertex_attribute_1 = __webpack_require__(/*! ./pipeline/data/vertex-attribute */ "./source/core/pipeline/data/vertex-attribute.ts");
 var shader_analyzer_1 = __webpack_require__(/*! ./shader/shader-analyzer */ "./source/core/shader/shader-analyzer.ts");
 class Shader extends gpu_native_object_1.GpuNativeObject {
   /**
@@ -9747,7 +9830,7 @@ exports.TypeUtil = TypeUtil;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("48a47f00dd8288af5586")
+/******/ 		__webpack_require__.h = () => ("a415e288cb57df44662f")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

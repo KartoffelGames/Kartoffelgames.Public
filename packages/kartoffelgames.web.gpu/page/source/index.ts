@@ -5,7 +5,8 @@ import { Transform } from '../../source/base/transform';
 import { AttachmentType } from '../../source/core/attachment/attachment-type.enum';
 import { Attachments } from '../../source/core/attachment/attachments';
 import { RenderMesh } from '../../source/core/execution/data/render-mesh';
-import { Render } from '../../source/core/execution/render';
+import { InstructionExecuter } from '../../source/core/execution/instruction-executer';
+import { RenderSingleInstruction } from '../../source/core/execution/instruction/render-single-instruction';
 import { Gpu } from '../../source/core/gpu';
 import { RenderPipeline } from '../../source/core/pipeline/render-pipeline';
 import { SimpleBuffer } from '../../source/core/resource/buffer/simple-buffer';
@@ -248,18 +249,21 @@ import shader from './shader.txt';
     lMesh.setVertexBuffer('vertexposition', lVertexPositionBuffer);
     lMesh.setVertexBuffer('vertexcolor', lVertexColorBuffer);
 
-    const lRenderer: Render = new Render(lGpu);
-    await lRenderer.setPipeline(lPipeline);
-    await lRenderer.setMesh(lMesh);
-    lRenderer.setBindGroup(0, lBindGroup);
+    // Setup renderer.
+    const lInstructionExecutioner: InstructionExecuter = new InstructionExecuter(lGpu);
+
+
+    // Setup object render.
+    const lObjectRenderInstruction: RenderSingleInstruction = new RenderSingleInstruction();
+    await lObjectRenderInstruction.setPipeline(lPipeline);
+    await lObjectRenderInstruction.setMesh(lMesh);
+    lObjectRenderInstruction.setBindGroup(0, lBindGroup);
+
+    lInstructionExecutioner.addInstruction(lObjectRenderInstruction);
 
     const lRender = async () => {
         // Generate encoder and add render commands.
-        const lEncoder = lGpu.device.createCommandEncoder();
-
-        await lRenderer.render(lEncoder);
-
-        lGpu.device.queue.submit([lEncoder.finish()]);
+        await lInstructionExecutioner.execute();
 
         // Refresh canvas
         requestAnimationFrame(lRender);

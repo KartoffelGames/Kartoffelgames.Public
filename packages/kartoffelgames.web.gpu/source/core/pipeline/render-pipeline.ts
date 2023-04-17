@@ -4,8 +4,9 @@ import { DepthStencilAttachment } from '../attachment/type/depth-stencil-attachm
 import { Gpu } from '../gpu';
 import { GpuNativeObject } from '../gpu-native-object';
 import { Shader } from '../shader';
+import { IPipeline } from './i-pipeline.interface';
 
-export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
+export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implements IPipeline{
     private mDepthAttachment: DepthStencilAttachment | null;
     private mDepthCompare: GPUCompareFunction;
     private mDepthWriteEnabled: boolean;

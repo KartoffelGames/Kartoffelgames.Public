@@ -4,7 +4,7 @@ import { BindType } from './enum/bind-type.enum';
 import { ShaderStage } from './enum/shader-stage.enum';
 import { Gpu } from './gpu';
 import { GpuNativeObject } from './gpu-native-object';
-import { VertexAttribute } from './pipeline/vertex-attribute';
+import { VertexAttribute } from './pipeline/data/vertex-attribute';
 import { ShaderEntryPointFunction, ShaderInformation, WgslTypeDescription } from './shader/shader-analyzer';
 import { WgslTypeNumber } from './shader/wgsl_type_handler/wgsl-type-collection';
 import { WgslType } from './shader/wgsl_type_handler/wgsl-type.enum';

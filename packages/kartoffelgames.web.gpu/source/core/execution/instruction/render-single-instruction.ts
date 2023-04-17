@@ -5,7 +5,7 @@ import { BaseBuffer } from '../../resource/buffer/base-buffer';
 import { RenderMesh } from '../data/render-mesh';
 import { IInstruction } from './i-instruction.interface';
 
-export class Render implements IInstruction{
+export class RenderSingleInstruction implements IInstruction {
     private readonly mBindGroups: Dictionary<number, BindGroup>;
     private mMesh: RenderMesh | null;
     private mPipeline: RenderPipeline | null;
@@ -17,7 +17,7 @@ export class Render implements IInstruction{
      */
     public get bindGroups(): Array<BindGroup> {
         const lBindGroupList: Array<BindGroup> = new Array<BindGroup>();
-        for(const [lIndex, lBindGroup] of this.mBindGroups){
+        for (const [lIndex, lBindGroup] of this.mBindGroups) {
             lBindGroupList[lIndex] = lBindGroup;
         }
 
@@ -25,10 +25,21 @@ export class Render implements IInstruction{
     }
 
     /**
+     * Instruction mesh.
+     */
+    public get mesh(): RenderMesh {
+        if (!this.mMesh) {
+            throw new Exception('Mesh not set.', this);
+        }
+
+        return this.mMesh;
+    }
+
+    /**
      * Instructions render pipeline.
      */
     public get pipeline(): RenderPipeline {
-        if(!this.mPipeline){
+        if (!this.mPipeline) {
             throw new Exception('Pipeline not set.', this);
         }
 

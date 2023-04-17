@@ -2,8 +2,9 @@ import { Exception } from '@kartoffelgames/core.data';
 import { Gpu } from '../gpu';
 import { GpuNativeObject } from '../gpu-native-object';
 import { Shader } from '../shader';
+import { IPipeline } from './i-pipeline.interface';
 
-export class ComputePipeline extends GpuNativeObject<GPUComputePipeline>{
+export class ComputePipeline extends GpuNativeObject<GPUComputePipeline> implements IPipeline{
     private mShader: Shader | null;
     private mShaderChanged: boolean;
 

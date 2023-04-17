@@ -4,7 +4,6 @@ import { BaseBuffer } from '../../resource/buffer/base-buffer';
 import { SimpleBuffer } from '../../resource/buffer/simple-buffer';
 
 export class RenderMesh {
-    private readonly mHighestVerticleIndex: number;
     private readonly mIndexBuffer: SimpleBuffer<Uint16Array>;
     private readonly mVertexBuffer: Dictionary<string, BaseBuffer<TypedArray>>;
 
@@ -26,15 +25,10 @@ export class RenderMesh {
      * Constructor.
      * 
      * @param pGpu - GPU.
-     * @param pVertexAttribute - Vertex attribute. 
-     * @param pVertexBuffer - Vertex buffer.
      * @param pVertexIndices - Vertex indices.
      */
     public constructor(pGpu: Gpu, pVertexIndices: Array<number>) {
         this.mVertexBuffer = new Dictionary<string, BaseBuffer<TypedArray>>();
-
-        // Get highest verticle index.
-        this.mHighestVerticleIndex = Math.max(...pVertexIndices);
 
         // Init index buffer.
         const lIndexData: Uint16Array = new Uint16Array(pVertexIndices);

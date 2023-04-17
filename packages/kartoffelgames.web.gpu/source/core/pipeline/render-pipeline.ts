@@ -122,6 +122,9 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
         return this.mShader;
     }
 
+    /**
+     * Set depth to never clip.
+     */
     public get unclipedDepth(): boolean {
         return this.mPrimitive.unclippedDepth ?? false;
     } set unclipedDepth(pValue: boolean) {
@@ -177,7 +180,6 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
         // Unchanged change state.
         this.mPipelineDataChangeState = {
             primitive: false,
-            shader: false,
             depthAttachment: false,
             attachment: true
         };
@@ -208,10 +210,15 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
             throw new Exception('Vertex shader has no entry point.', this);
         }
 
-        this.mShader = pShader;
+        // Unregister old shader and register new.
+        if (this.mShader) {
+            this.unregisterInternalNative(this.mShader);
+        }
+        if (pShader) {
+            this.registerInternalNative(pShader);
+        }
 
-        // Set data changed flag.
-        this.mPipelineDataChangeState.shader = true;
+        this.mShader = pShader;
     }
 
     /**
@@ -311,7 +318,6 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline>{
 
 type PipelineDataChangeState = {
     primitive: boolean;
-    shader: boolean;
     depthAttachment: boolean;
     attachment: boolean;
 };

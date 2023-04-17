@@ -24,5 +24,7 @@ export interface IInstruction {
      * @param pPipeline - Pipeline.
      */
     setPipeline(pPipeline: IPipeline): Promise<void>
+
+    // TODO: Validate...
 }
 

@@ -232,8 +232,8 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
             for (const lRenderTarget of this.mRenderPass.colorAttachments) {
                 lFragmentTargetList.push({
                     format: lRenderTarget.format,
-                    // blend?: GPUBlendState;   // TODO:
-                    // writeMask?: GPUColorWriteFlags; // TODO:
+                    // blend?: GPUBlendState;   // TODO: GPUBlendState
+                    // writeMask?: GPUColorWriteFlags; // TODO: GPUColorWriteFlags
                 });
             }
 

@@ -10,7 +10,7 @@ import { RenderSingleInstruction } from '../../source/core/execution/instruction
 import { Gpu } from '../../source/core/gpu';
 import { RenderPipeline } from '../../source/core/pipeline/render-pipeline';
 import { SimpleBuffer } from '../../source/core/resource/buffer/simple-buffer';
-import { Shader } from '../../source/core/shader';
+import { Shader } from '../../source/core/shader/shader';
 import shader from './shader.txt';
 
 (async () => {

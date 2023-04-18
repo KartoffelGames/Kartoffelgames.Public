@@ -1,13 +1,12 @@
-import { BindGroupLayout } from './bind_group/bind-group-layout';
-import { BindGroups } from './bind_group/bind-groups';
-import { BindType } from './enum/bind-type.enum';
-import { ShaderStage } from './enum/shader-stage.enum';
-import { Gpu } from './gpu';
-import { GpuNativeObject } from './gpu-native-object';
-import { VertexAttribute } from './pipeline/data/vertex-attribute';
-import { ShaderEntryPointFunction, ShaderInformation, WgslTypeDescription } from './shader/shader-analyzer';
-import { WgslTypeNumber } from './shader/wgsl_type_handler/wgsl-type-collection';
-import { WgslType } from './shader/wgsl_type_handler/wgsl-type.enum';
+import { BindGroupLayout } from '../bind_group/bind-group-layout';
+import { BindGroups } from '../bind_group/bind-groups';
+import { BindType } from '../enum/bind-type.enum';
+import { Gpu } from '../gpu';
+import { GpuNativeObject } from '../gpu-native-object';
+import { VertexAttribute } from '../pipeline/data/vertex-attribute';
+import { ShaderEntryPointFunction, ShaderInformation, WgslTypeDescription } from './shader-analyzer';
+import { WgslTypeNumber } from './wgsl_type_handler/wgsl-type-collection';
+import { WgslType } from './wgsl_type_handler/wgsl-type.enum';
 
 export class Shader extends GpuNativeObject<GPUShaderModule>{
     private readonly mBindGroups: BindGroups;
@@ -25,21 +24,21 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
     /**
      * Compute entry point name.
      */
-    public get computeEntryPoint(): ShaderEntryPoint | undefined {
+    public get computeEntryPoint(): ShaderComputeEntryPoint | undefined {
         return this.mEntryPoints.compute;
     }
 
     /**
      * Fragment entry point name.
      */
-    public get fragmentEntryPoint(): ShaderEntryPoint | undefined {
+    public get fragmentEntryPoint(): ShaderFragmentEntryPoint | undefined {
         return this.mEntryPoints.fragment;
     }
 
     /**
      * Vertex entry point name.
      */
-    public get vertexEntryPoint(): ShaderEntryPoint | undefined {
+    public get vertexEntryPoint(): ShaderVertexEntryPoint | undefined {
         return this.mEntryPoints.vertex;
     }
 
@@ -57,9 +56,9 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
         // Generate from ShaderInformation. 
         this.mBindGroups = this.generateBindGroups(this.mShaderInformation);
         this.mEntryPoints = {
-            vertex: this.generateEntryPoint(this.mShaderInformation, ShaderStage.Vertex),
-            fragment: this.generateEntryPoint(this.mShaderInformation, ShaderStage.Fragment),
-            compute: this.generateEntryPoint(this.mShaderInformation, ShaderStage.Compute),
+            vertex: this.generateVertexEntryPoint(this.mShaderInformation),
+            fragment: this.generateFragmentEntryPoint(this.mShaderInformation),
+            compute: this.generateComputeEntryPoint(this.mShaderInformation)
         };
     }
 
@@ -120,52 +119,69 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
     }
 
     /**
-     * Generate entry point.
+     * Generate compute entry point.
      * @param pShaderInformation - Shader information.
-     * @param pShaderEntryPoint - Entry point that should be generated.
      */
-    private generateEntryPoint(pShaderInformation: ShaderInformation, pShaderEntryPoint: ShaderStage): ShaderEntryPoint | undefined {
+    private generateComputeEntryPoint(pShaderInformation: ShaderInformation): ShaderComputeEntryPoint | undefined {
         // Find entry point information.
-        let lShaderEntryPointFunction: ShaderEntryPointFunction | undefined;
-        switch (pShaderEntryPoint) {
-            case ShaderStage.Vertex: {
-                lShaderEntryPointFunction = pShaderInformation.entryPoints.vertex;
-                break;
-            }
-            case ShaderStage.Fragment: {
-                lShaderEntryPointFunction = pShaderInformation.entryPoints.fragment;
-                break;
-            }
-            case ShaderStage.Compute: {
-                lShaderEntryPointFunction = pShaderInformation.entryPoints.compute;
-                break;
-            }
-        }
-
-        // Exit on not set entry point.
+        const lShaderEntryPointFunction: ShaderEntryPointFunction | undefined = pShaderInformation.entryPoints.compute;
         if (!lShaderEntryPointFunction) {
             return undefined;
         }
 
-        const lShaderEntryPoint: ShaderEntryPoint = {
+        const lShaderEntryPoint: ShaderComputeEntryPoint = {
+            name: lShaderEntryPointFunction.name
+        };
+
+        return lShaderEntryPoint;
+    }
+
+    /**
+     * Generate compute entry point.
+     * @param pShaderInformation - Shader information.
+     */
+    private generateFragmentEntryPoint(pShaderInformation: ShaderInformation): ShaderFragmentEntryPoint | undefined {
+        // Find entry point information.
+        const lShaderEntryPointFunction: ShaderEntryPointFunction | undefined = pShaderInformation.entryPoints.fragment;
+        if (!lShaderEntryPointFunction) {
+            return undefined;
+        }
+
+        const lShaderEntryPoint: ShaderFragmentEntryPoint = {
+            name: lShaderEntryPointFunction.name,
+            renderTargetCount: lShaderEntryPointFunction.returnValues.length
+        };
+
+        return lShaderEntryPoint;
+    }
+
+    /**
+     * Generate vertex entry point.
+     * @param pShaderInformation - Shader information.
+     */
+    private generateVertexEntryPoint(pShaderInformation: ShaderInformation): ShaderVertexEntryPoint | undefined {
+        // Find entry point information.
+        const lShaderEntryPointFunction: ShaderEntryPointFunction | undefined = pShaderInformation.entryPoints.vertex;
+        if (!lShaderEntryPointFunction) {
+            return undefined;
+        }
+
+        const lShaderEntryPoint: ShaderVertexEntryPoint = {
             name: lShaderEntryPointFunction.name,
             attributes: new Array<VertexAttribute>()
         };
 
-        // Generate vertex attributes for vertex entry points.
-        if (pShaderEntryPoint === ShaderStage.Vertex) {
-            // Generate new vertex attribute for each location.
-            for (const lAttribute of lShaderEntryPointFunction.parameter) {
-                if (typeof lAttribute.location === 'number') {
-                    const lVertexAttribute: VertexAttribute = new VertexAttribute(this.gpu, lAttribute.name);
+        // Generate new vertex attribute for each location.
+        for (const lAttribute of lShaderEntryPointFunction.parameter) {
+            if (typeof lAttribute.location === 'number') {
+                const lVertexAttribute: VertexAttribute = new VertexAttribute(this.gpu, lAttribute.name);
 
-                    // Set attribute based on type and generic.
-                    const lGeneric: WgslType | undefined = (<WgslTypeDescription | undefined>lAttribute.type.generics[0])?.type;
-                    lVertexAttribute.setAttributeLocation(lAttribute.type.type, <WgslTypeNumber>lGeneric ?? null, lAttribute.location);
+                // Set attribute based on type and generic.
+                const lGeneric: WgslType | undefined = (<WgslTypeDescription | undefined>lAttribute.type.generics[0])?.type;
+                lVertexAttribute.setAttributeLocation(lAttribute.type.type, <WgslTypeNumber>lGeneric ?? null, lAttribute.location);
 
-                    // Add generated attribute to shader entry point.
-                    lShaderEntryPoint.attributes.push(lVertexAttribute);
-                }
+                // Add generated attribute to shader entry point.
+                lShaderEntryPoint.attributes.push(lVertexAttribute);
             }
         }
 
@@ -173,13 +189,23 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
     }
 }
 
-export type ShaderEntryPoint = {
+export type ShaderVertexEntryPoint = {
     name: string,
     attributes: Array<VertexAttribute>;
 };
 
+export type ShaderFragmentEntryPoint = {
+    name: string,
+    renderTargetCount: number;
+};
+
+export type ShaderComputeEntryPoint = {
+    name: string,
+    // TODO: Compute sizes.
+};
+
 type EntryPoints = {
-    fragment?: ShaderEntryPoint | undefined;
-    vertex?: ShaderEntryPoint | undefined;
-    compute?: ShaderEntryPoint | undefined;
+    fragment?: ShaderFragmentEntryPoint | undefined;
+    vertex?: ShaderVertexEntryPoint | undefined;
+    compute?: ShaderComputeEntryPoint | undefined;
 };

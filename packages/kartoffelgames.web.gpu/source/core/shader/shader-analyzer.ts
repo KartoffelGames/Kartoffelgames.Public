@@ -201,13 +201,13 @@ export class ShaderInformation {
                 type: EnumUtil.enumKeyByValue(WgslEntryPoint, lEntryPointMatch.groups!['entrytype'])!,
                 name: lEntryPointMatch.groups!['name'],
                 parameter: new Array<ShaderFunctionLocation>(),
-                returnValue: []
+                returnValues: []
             };
 
             // Parse result type.
             if (lEntryPointMatch.groups!['result']) {
                 const lResultType: WgslVariableDescription = this.getVariableDescription(lEntryPointMatch.groups!['result']);
-                lShaderEntryPoint.returnValue = this.resolveNestedTypes(lResultType, pSource);
+                lShaderEntryPoint.returnValues = this.resolveNestedTypes(lResultType, pSource);
             }
 
             // Parse paramerer.
@@ -550,7 +550,7 @@ export type ShaderEntryPointFunction = {
     type: WgslEntryPoint;
     name: string,
     parameter: Array<ShaderFunctionLocation>;
-    returnValue: Array<ShaderFunctionResult>;
+    returnValues: Array<ShaderFunctionResult>;
 };
 
 type ShaderBindInformation = {

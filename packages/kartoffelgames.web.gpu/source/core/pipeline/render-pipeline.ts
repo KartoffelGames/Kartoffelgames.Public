@@ -3,7 +3,7 @@ import { ColorAttachment } from '../attachment/type/color-attachment';
 import { DepthStencilAttachment } from '../attachment/type/depth-stencil-attachment';
 import { Gpu } from '../gpu';
 import { GpuNativeObject } from '../gpu-native-object';
-import { Shader } from '../shader';
+import { Shader } from '../shader/shader';
 import { IPipeline } from './i-pipeline.interface';
 
 export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implements IPipeline{

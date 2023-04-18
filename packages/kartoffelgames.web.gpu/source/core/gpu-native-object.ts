@@ -119,9 +119,17 @@ export abstract class GpuNativeObject<T> {
      */
     protected registerInternalNative(pInternalNative: GpuNativeObject<any>): void {
         pInternalNative.registerChangeListener(() => {
-            this.mNativeChanged = true;
+            this.triggerChange();
         }, this);
 
+        // Trigger change.
+        this.triggerChange();
+    }
+
+    /**
+     * Trigger native change.
+     */
+    protected triggerChange(): void {
         // Trigger change.
         this.mNativeChanged = true;
     }
@@ -134,7 +142,7 @@ export abstract class GpuNativeObject<T> {
         pInternalNative.unregisterChangeListener(this);
 
         // Trigger change.
-        this.mNativeChanged = true;
+        this.triggerChange();
     }
 
     /**

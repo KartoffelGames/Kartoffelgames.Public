@@ -1,49 +1,18 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { ColorAttachment } from '../pass_descriptor/type/color-attachment';
-import { DepthStencilAttachment } from '../pass_descriptor/type/depth-stencil-attachment';
 import { Gpu } from '../gpu';
 import { GpuNativeObject } from '../gpu-native-object';
 import { Shader } from '../shader/shader';
 import { IPipeline } from './i-pipeline.interface';
+import { RenderPassDescriptor } from '../pass_descriptor/render-pass-descriptor';
+import { Attachment } from '../pass_descriptor/type/attachment';
 
-export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implements IPipeline{
-    private mDepthAttachment: DepthStencilAttachment | null;
+export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implements IPipeline {
     private mDepthCompare: GPUCompareFunction;
     private mDepthWriteEnabled: boolean;
     private readonly mPipelineDataChangeState: PipelineDataChangeState;
     private readonly mPrimitive: GPUPrimitiveState;
-    private readonly mRenderAttachmentList: Array<ColorAttachment>;
+    private readonly mRenderPass: RenderPassDescriptor;
     private mShader: Shader | null;
-
-    /**
-     * Render attachments.
-     */
-    public get attachments(): Readonly<Array<ColorAttachment>> {
-        return this.mRenderAttachmentList;
-    }
-
-    /**
-     * Depth attachment.
-     */
-    public get depthAttachment(): DepthStencilAttachment | null {
-        return this.mDepthAttachment;
-    } set depthAttachment(pAttachment: DepthStencilAttachment | null) {
-        // Do nothing on assigning old an value.
-        if (this.mDepthAttachment === pAttachment) {
-            return;
-        }
-
-        // Unregister old and register new depth attachment.
-        if (this.mDepthAttachment) {
-            this.unregisterInternalNative(this.mDepthAttachment);
-        }
-        if (pAttachment) {
-            this.registerInternalNative(pAttachment);
-        }
-
-        // Set attachment.
-        this.mDepthAttachment = pAttachment;
-    }
 
     /**
      * Set depth compare function.
@@ -114,6 +83,13 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
     }
 
     /**
+     * Render pass of pipeline.
+     */
+    public get renderPass(): RenderPassDescriptor {
+        return this.mRenderPass;
+    }
+
+    /**
      * Shader.
      */
     public get shader(): Shader {
@@ -161,12 +137,14 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
      * Constructor.
      * @param pGpu - GPU.
      */
-    public constructor(pGpu: Gpu) {
+    public constructor(pGpu: Gpu, pRenderPass: RenderPassDescriptor) {
         super(pGpu, 'RENDER_PIPELINE');
+
+        // Set statics.
+        this.mRenderPass = pRenderPass;
 
         // Init unassigned properties.
         this.mShader = null;
-        this.mDepthAttachment = null;
 
         // Set default values.
         this.mPrimitive = {
@@ -184,21 +162,6 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
             depthAttachment: false,
             attachment: true
         };
-
-        // Init lists.
-        this.mRenderAttachmentList = new Array<ColorAttachment>();
-    }
-
-    /**
-     * Add attachment. Return attachment index.
-     * @param pAttachment - Attachment.
-     */
-    public addAttachment(pAttachment: ColorAttachment): number {
-        // Dont register attachment as an canvas attachment refreshes every frame.
-        // The Pipeline would refresh every frame. 
-        this.mPipelineDataChangeState.attachment = true;
-
-        return this.mRenderAttachmentList.push(pAttachment) - 1;
     }
 
     /**
@@ -266,11 +229,11 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
         if (this.mShader.fragmentEntryPoint) {
             // Generate fragment targets only when fragment state is needed.
             const lFragmentTargetList: Array<GPUColorTargetState> = new Array<GPUColorTargetState>();
-            for (const lRenderTarget of this.mRenderAttachmentList) {
+            for (const lRenderTarget of this.mRenderPass.colorAttachments) {
                 lFragmentTargetList.push({
                     format: lRenderTarget.format,
-                    // blend?: GPUBlendState;
-                    // writeMask?: GPUColorWriteFlags;
+                    // blend?: GPUBlendState;   // TODO:
+                    // writeMask?: GPUColorWriteFlags; // TODO:
                 });
             }
 
@@ -282,11 +245,12 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
         }
 
         // Setup optional depth attachment.
-        if (this.mDepthAttachment) {
+        const lDepthAttachment: Attachment | undefined = this.mRenderPass.depthAttachment;
+        if (lDepthAttachment) {
             lPipelineDescriptor.depthStencil = {
                 depthWriteEnabled: this.mDepthWriteEnabled,
                 depthCompare: this.mDepthCompare,
-                format: this.mDepthAttachment.format,
+                format: lDepthAttachment.format,
                 // TODO: Stencil settings. 
             };
         }

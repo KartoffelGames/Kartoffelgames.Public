@@ -3,7 +3,7 @@ import { GpuNativeObject } from '../../gpu-native-object';
 import { ITexture } from '../../resource/texture/i-texture.interface';
 import { AttachmentType } from '../attachment-type.enum';
 
-export abstract class BaseAttachment<TAttachment extends GPURenderPassColorAttachment | GPURenderPassDepthStencilAttachment> extends GpuNativeObject<TAttachment>{
+export class Attachment extends GpuNativeObject<GPUTextureView>{
     private readonly mAttachment: AttachmentDefinition;
     private mOldTextureId: string;
 
@@ -32,6 +32,31 @@ export abstract class BaseAttachment<TAttachment extends GPURenderPassColorAttac
     }
 
     /**
+     * Destory native object.
+     * @param _pNativeObject - Native object.
+     */
+    protected async destroyNative(_pNativeObject: GPUTextureView): Promise<void> {
+        // Nothing needed here.
+    }
+
+    /**
+     * Generate color attachment.
+     */
+    protected async generate(): Promise<GPUTextureView> {
+        const lTexture: GPUTexture = await this.attachment.frame.native();
+
+        // Generate view.
+        const lView: GPUTextureView = lTexture.createView({
+            label: 'Texture-View' + this.attachment.frame.label,
+            dimension: '2d',
+            baseArrayLayer: this.attachment.baseArrayLayer,
+            arrayLayerCount: this.attachment.layers,
+        });
+
+        return lView;
+    }
+
+    /**
      * Validate native object. Refresh native on negative state.
      */
     protected override async validateState(): Promise<boolean> {
@@ -53,9 +78,6 @@ export type AttachmentDefinition = {
     type: AttachmentType,
     frame: ITexture;
     name: string,
-    clearValue: GPUColor;
-    loadOp: GPULoadOp;
-    storeOp: GPUStoreOp;
     format: GPUTextureFormat;
     layers: GPUIntegerCoordinate;
     baseArrayLayer: number;

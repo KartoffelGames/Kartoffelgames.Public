@@ -5,8 +5,7 @@ import { ITexture } from '../resource/texture/i-texture.interface';
 import { Texture } from '../resource/texture/texture';
 import { TextureUsage } from '../resource/texture/texture-usage.enum';
 import { AttachmentType } from './attachment-type.enum';
-import { ColorAttachment } from './type/color-attachment';
-import { DepthStencilAttachment } from './type/depth-stencil-attachment';
+import { Attachment } from './type/attachment';
 
 export class Attachments {
     private readonly mAttachmentGroup: Dictionary<string, number>;
@@ -76,9 +75,6 @@ export class Attachments {
             type: lType,
             frame: null,
             name: pAttachment.name,
-            clearValue: pAttachment.clearValue,
-            loadOp: pAttachment.loadOp ?? 'clear', // Apply default value.
-            storeOp: pAttachment.storeOp ?? 'store', // Apply default value.
             format: lFormat,
             layers: pAttachment.layers ?? 1, // Apply default value.
             baseArrayLayer: null,
@@ -95,11 +91,8 @@ export class Attachments {
     /**
      * Get attachment by name.
      * @param pName - Attachment name.
-     * @param pType - Type of attachment.
      */
-    public getAttachment(pName: string, pType: AttachmentType.Color): ColorAttachment;
-    public getAttachment(pName: string, pType: AttachmentType.Depth | AttachmentType.Stencil): DepthStencilAttachment;
-    public getAttachment(pName: string, pType: AttachmentType): DepthStencilAttachment | ColorAttachment {
+    public getAttachment(pName: string): Attachment {
         // Rebuild textures.
         if (this.mRebuildRequested) {
             this.rebuildTetures();
@@ -111,21 +104,16 @@ export class Attachments {
             throw new Exception(`No attachment "${pName}" found.`, this);
         }
 
-        // Type match bitwise.
-        if ((lAttachment.type & pType) === 0) {
-            throw new Exception(`Attachment "${pName}" has invalid type.`, this);
-        }
+        // TODO: Cache created attachments.
+        return new Attachment(this.mGpu, <ExportAttachmentData>lAttachment);
+    }
 
-        switch (pType) {
-            case AttachmentType.Color:
-            case AttachmentType.Canvas: {
-                return new ColorAttachment(this.mGpu, <ExportAttachmentData>lAttachment);
-            }
-            case AttachmentType.Depth:
-            case AttachmentType.Stencil: {
-                return new DepthStencilAttachment(this.mGpu, <ExportAttachmentData>lAttachment);
-            }
-        }
+    /**
+     * Check attachment by name.
+     * @param pName - Attachment name.
+     */
+    public hasAttachment(pName: string): boolean {
+        return this.mAttachments.has(pName);
     }
 
     /**
@@ -291,9 +279,6 @@ type AttachmentData = {
     type: AttachmentType,
     frame: ITexture | null;
     name: string,
-    clearValue: GPUColor;
-    loadOp: GPULoadOp;
-    storeOp: GPUStoreOp;
     format: GPUTextureFormat;
     layers: GPUIntegerCoordinate;
     baseArrayLayer: number | null;
@@ -311,18 +296,12 @@ export type CanvasAttachmentDescription = {
     type: AttachmentType.Color | AttachmentType.Depth | AttachmentType.Stencil,
     canvas: HTMLCanvasElement;
     name: string,
-    clearValue: GPUColor;
-    loadOp?: GPULoadOp;
-    storeOp?: GPUStoreOp;
     format?: GPUTextureFormat;
     layers?: GPUIntegerCoordinate;
 };
 export type TextureAttachmentDescription = {
     type: AttachmentType.Color | AttachmentType.Depth | AttachmentType.Stencil,
     name: string,
-    clearValue: GPUColor;
-    loadOp?: GPULoadOp;
-    storeOp?: GPUStoreOp;
     format: GPUTextureFormat;
     layers?: GPUIntegerCoordinate;
     dimension?: GPUTextureViewDimension;

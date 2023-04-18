@@ -12,6 +12,7 @@ import { RenderPipeline } from '../../source/core/pipeline/render-pipeline';
 import { SimpleBuffer } from '../../source/core/resource/buffer/simple-buffer';
 import { Shader } from '../../source/core/shader/shader';
 import shader from './shader.txt';
+import { RenderPassDescriptor } from '../../source/core/pass_descriptor/render-pass-descriptor';
 
 (async () => {
     const lColorPicker: HTMLInputElement = <HTMLInputElement>document.querySelector('#color');
@@ -25,29 +26,28 @@ import shader from './shader.txt';
     // Init shader.
     const lShader: Shader = new Shader(lGpu, shader);
 
-    // Init pipeline.
-    const lPipeline: RenderPipeline = new RenderPipeline(lGpu);
-    lPipeline.setShader(lShader);
-
     // Create depth and color attachments.
     const lAttachments: Attachments = new Attachments(lGpu);
     lAttachments.resize(1200, 640);
     lAttachments.addAttachment({
         canvas: lCanvas,
         type: AttachmentType.Color,
-        name: 'Canvas',
-        clearValue: { r: 0.5, g: 0.5, b: 0.5, a: 1 },
+        name: 'Canvas'
     });
     lAttachments.addAttachment({
         type: AttachmentType.Depth,
         name: 'Depth',
-        clearValue: { r: 1, g: 1, b: 1, a: 1 },
-        format: 'depth24plus',
+        format: 'depth24plus'
     });
 
-    // Set pipeline attachments.
-    lPipeline.depthAttachment = lAttachments.getAttachment('Depth', AttachmentType.Depth);
-    lPipeline.addAttachment(lAttachments.getAttachment('Canvas', AttachmentType.Color));
+    // Setup render pass.
+    const lRenderPassDescription: RenderPassDescriptor = new RenderPassDescriptor(lGpu, lAttachments);
+    lRenderPassDescription.setDepthAttachment('Depth', 1);
+    lRenderPassDescription.setColorAttachment(0, 'Canvas', { r: 0.5, g: 0.5, b: 0.5, a: 1 });
+
+    // Init pipeline.
+    const lPipeline: RenderPipeline = new RenderPipeline(lGpu, lRenderPassDescription);
+    lPipeline.setShader(lShader);
     lPipeline.primitiveCullMode = 'back';
 
     // Color buffer.

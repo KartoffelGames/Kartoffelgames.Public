@@ -51,20 +51,8 @@ export class InstructionExecuter {
     private async render(pEncoder: GPUCommandEncoder, pRenderInstruction: RenderSingleInstruction): Promise<void> {
         // TODO: pRenderInstruction.validate()
 
-        // Create color attachments.
-        const lColorAttachmentList: Array<GPURenderPassColorAttachment> = new Array<GPURenderPassColorAttachment>();
-        for (const lAttachment of pRenderInstruction.pipeline.attachments) {
-            lColorAttachmentList.push(await lAttachment.native());
-        }
         // Generate pass descriptor once per set pipeline.
-        const lPassDescriptor: GPURenderPassDescriptor = {
-            colorAttachments: lColorAttachmentList
-        };
-
-        // Set optional depth attachmet.
-        if (pRenderInstruction.pipeline.depthAttachment) {
-            lPassDescriptor.depthStencilAttachment = await pRenderInstruction.pipeline.depthAttachment.native();
-        }
+        const lPassDescriptor: GPURenderPassDescriptor = await pRenderInstruction.pipeline.renderPass.native();
 
         // Pass descriptor is set, when the pipeline ist set.
         const lRenderPassEncoder: GPURenderPassEncoder = pEncoder.beginRenderPass(lPassDescriptor);

@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { ColorAttachment } from '../attachment/type/color-attachment';
-import { DepthStencilAttachment } from '../attachment/type/depth-stencil-attachment';
+import { ColorAttachment } from '../pass_descriptor/type/color-attachment';
+import { DepthStencilAttachment } from '../pass_descriptor/type/depth-stencil-attachment';
 import { Gpu } from '../gpu';
 import { GpuNativeObject } from '../gpu-native-object';
 import { Shader } from '../shader/shader';

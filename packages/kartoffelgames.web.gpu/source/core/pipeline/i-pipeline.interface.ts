@@ -1,4 +1,4 @@
-import { Shader } from '../shader';
+import { Shader } from '../shader/shader';
 
 export interface IPipeline {
     /**

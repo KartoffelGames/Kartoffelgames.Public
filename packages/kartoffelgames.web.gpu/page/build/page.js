@@ -206,16 +206,17 @@ var camera_1 = __webpack_require__(/*! ../../source/base/camera/camera */ "./sou
 var orthographic__projection_1 = __webpack_require__(/*! ../../source/base/camera/projection/orthographic -projection */ "./source/base/camera/projection/orthographic -projection.ts");
 var perspective_projection_1 = __webpack_require__(/*! ../../source/base/camera/projection/perspective-projection */ "./source/base/camera/projection/perspective-projection.ts");
 var transform_1 = __webpack_require__(/*! ../../source/base/transform */ "./source/base/transform.ts");
-var attachment_type_enum_1 = __webpack_require__(/*! ../../source/core/attachment/attachment-type.enum */ "./source/core/attachment/attachment-type.enum.ts");
-var attachments_1 = __webpack_require__(/*! ../../source/core/attachment/attachments */ "./source/core/attachment/attachments.ts");
+var attachment_type_enum_1 = __webpack_require__(/*! ../../source/core/pass_descriptor/attachment-type.enum */ "./source/core/pass_descriptor/attachment-type.enum.ts");
+var attachments_1 = __webpack_require__(/*! ../../source/core/pass_descriptor/attachments */ "./source/core/pass_descriptor/attachments.ts");
 var render_mesh_1 = __webpack_require__(/*! ../../source/core/execution/data/render-mesh */ "./source/core/execution/data/render-mesh.ts");
 var instruction_executer_1 = __webpack_require__(/*! ../../source/core/execution/instruction-executer */ "./source/core/execution/instruction-executer.ts");
 var render_single_instruction_1 = __webpack_require__(/*! ../../source/core/execution/instruction/render-single-instruction */ "./source/core/execution/instruction/render-single-instruction.ts");
 var gpu_1 = __webpack_require__(/*! ../../source/core/gpu */ "./source/core/gpu.ts");
 var render_pipeline_1 = __webpack_require__(/*! ../../source/core/pipeline/render-pipeline */ "./source/core/pipeline/render-pipeline.ts");
 var simple_buffer_1 = __webpack_require__(/*! ../../source/core/resource/buffer/simple-buffer */ "./source/core/resource/buffer/simple-buffer.ts");
-var shader_1 = __webpack_require__(/*! ../../source/core/shader */ "./source/core/shader.ts");
+var shader_1 = __webpack_require__(/*! ../../source/core/shader/shader */ "./source/core/shader/shader.ts");
 var shader_txt_1 = __webpack_require__(/*! ./shader.txt */ "./page/source/shader.txt");
+var render_pass_descriptor_1 = __webpack_require__(/*! ../../source/core/pass_descriptor/render-pass-descriptor */ "./source/core/pass_descriptor/render-pass-descriptor.ts");
 _asyncToGenerator(function* () {
   var lColorPicker = document.querySelector('#color');
   // Create gpu.
@@ -224,37 +225,31 @@ _asyncToGenerator(function* () {
   var lCanvas = document.getElementById('canvas');
   // Init shader.
   var lShader = new shader_1.Shader(lGpu, shader_txt_1.default);
-  // Init pipeline.
-  var lPipeline = new render_pipeline_1.RenderPipeline(lGpu);
-  lPipeline.setShader(lShader);
   // Create depth and color attachments.
   var lAttachments = new attachments_1.Attachments(lGpu);
   lAttachments.resize(1200, 640);
   lAttachments.addAttachment({
     canvas: lCanvas,
     type: attachment_type_enum_1.AttachmentType.Color,
-    name: 'Canvas',
-    clearValue: {
-      r: 0.5,
-      g: 0.5,
-      b: 0.5,
-      a: 1
-    }
+    name: 'Canvas'
   });
   lAttachments.addAttachment({
     type: attachment_type_enum_1.AttachmentType.Depth,
     name: 'Depth',
-    clearValue: {
-      r: 1,
-      g: 1,
-      b: 1,
-      a: 1
-    },
     format: 'depth24plus'
   });
-  // Set pipeline attachments.
-  lPipeline.depthAttachment = lAttachments.getAttachment('Depth', attachment_type_enum_1.AttachmentType.Depth);
-  lPipeline.addAttachment(lAttachments.getAttachment('Canvas', attachment_type_enum_1.AttachmentType.Color));
+  // Setup render pass.
+  var lRenderPassDescription = new render_pass_descriptor_1.RenderPassDescriptor(lGpu, lAttachments);
+  lRenderPassDescription.setDepthAttachment('Depth', 1);
+  lRenderPassDescription.setColorAttachment(0, 'Canvas', {
+    r: 0.5,
+    g: 0.5,
+    b: 0.5,
+    a: 1
+  });
+  // Init pipeline.
+  var lPipeline = new render_pipeline_1.RenderPipeline(lGpu, lRenderPassDescription);
+  lPipeline.setShader(lShader);
   lPipeline.primitiveCullMode = 'back';
   // Color buffer.
   var lColorBuffer = new simple_buffer_1.SimpleBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array([1, 1, 1, 1]));
@@ -1214,462 +1209,6 @@ exports.Transform = Transform;
 
 /***/ }),
 
-/***/ "./source/core/attachment/attachment-type.enum.ts":
-/*!********************************************************!*\
-  !*** ./source/core/attachment/attachment-type.enum.ts ***!
-  \********************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.AttachmentType = void 0;
-var AttachmentType;
-(function (AttachmentType) {
-  AttachmentType[AttachmentType["Canvas"] = 1] = "Canvas";
-  AttachmentType[AttachmentType["Color"] = 2] = "Color";
-  AttachmentType[AttachmentType["Depth"] = 4] = "Depth";
-  AttachmentType[AttachmentType["Stencil"] = 8] = "Stencil";
-})(AttachmentType = exports.AttachmentType || (exports.AttachmentType = {}));
-
-/***/ }),
-
-/***/ "./source/core/attachment/attachments.ts":
-/*!***********************************************!*\
-  !*** ./source/core/attachment/attachments.ts ***!
-  \***********************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.Attachments = void 0;
-var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-var canvas_texture_1 = __webpack_require__(/*! ../resource/texture/canvas-texture */ "./source/core/resource/texture/canvas-texture.ts");
-var texture_1 = __webpack_require__(/*! ../resource/texture/texture */ "./source/core/resource/texture/texture.ts");
-var texture_usage_enum_1 = __webpack_require__(/*! ../resource/texture/texture-usage.enum */ "./source/core/resource/texture/texture-usage.enum.ts");
-var attachment_type_enum_1 = __webpack_require__(/*! ./attachment-type.enum */ "./source/core/attachment/attachment-type.enum.ts");
-var color_attachment_1 = __webpack_require__(/*! ./type/color-attachment */ "./source/core/attachment/type/color-attachment.ts");
-var depth_stencil_attachment_1 = __webpack_require__(/*! ./type/depth-stencil-attachment */ "./source/core/attachment/type/depth-stencil-attachment.ts");
-class Attachments {
-  /**
-   * Constructor.
-   * @param pGpu - GPU.
-   */
-  constructor(pGpu) {
-    this.mAttachments = new core_data_1.Dictionary();
-    this.mAttachmentGroup = new core_data_1.Dictionary();
-    this.mTextureGroup = new core_data_1.Dictionary();
-    this.mGpu = pGpu;
-    this.mRebuildRequested = false;
-    this.mSize = {
-      width: 1,
-      height: 1
-    };
-  }
-  /**
-   * Attachment height.
-   */
-  get height() {
-    return this.mSize.height;
-  }
-  /**
-   * Attachment width.
-   */
-  get width() {
-    return this.mSize.width;
-  }
-  /**
-   * Add attachment. Forces rebuild of some groups.
-   * @param pAttachment - Attachment.
-   */
-  addAttachment(pAttachment) {
-    var _pAttachment$format, _pAttachment$loadOp, _pAttachment$storeOp, _pAttachment$layers;
-    // Filter dublicates.
-    if (this.mAttachments.has(pAttachment.name)) {
-      throw new core_data_1.Exception("Attachment \"".concat(pAttachment.name, "\" already exists."), this);
-    }
-    // Validate canvas settings.
-    if ('canvas' in pAttachment) {
-      if (typeof pAttachment.layers !== 'undefined' && pAttachment.layers !== 1) {
-        throw new core_data_1.Exception('Invalid layer count on canvas attachment. Only one layer allowed.', this);
-      }
-    }
-    // Auto detect format.
-    var lFormat = (_pAttachment$format = pAttachment.format) !== null && _pAttachment$format !== void 0 ? _pAttachment$format : window.navigator.gpu.getPreferredCanvasFormat();
-    // Special canvas treatment for fixed properties.
-    var lType = pAttachment.type;
-    var lCanvas = null;
-    if ('canvas' in pAttachment) {
-      lType |= attachment_type_enum_1.AttachmentType.Canvas; // Inject canvas type.
-      lCanvas = pAttachment.canvas;
-    }
-    // Force default for attachment
-    var lAttachment = {
-      type: lType,
-      frame: null,
-      name: pAttachment.name,
-      clearValue: pAttachment.clearValue,
-      loadOp: (_pAttachment$loadOp = pAttachment.loadOp) !== null && _pAttachment$loadOp !== void 0 ? _pAttachment$loadOp : 'clear',
-      storeOp: (_pAttachment$storeOp = pAttachment.storeOp) !== null && _pAttachment$storeOp !== void 0 ? _pAttachment$storeOp : 'store',
-      format: lFormat,
-      layers: (_pAttachment$layers = pAttachment.layers) !== null && _pAttachment$layers !== void 0 ? _pAttachment$layers : 1,
-      baseArrayLayer: null,
-      canvas: lCanvas
-    };
-    // Set attachment.
-    this.mAttachments.set(pAttachment.name, lAttachment);
-    // Set refresh flag to refresh all textures on next load.
-    this.mRebuildRequested = true;
-  }
-  getAttachment(pName, pType) {
-    // Rebuild textures.
-    if (this.mRebuildRequested) {
-      this.rebuildTetures();
-    }
-    // Try to get attachment
-    var lAttachment = this.mAttachments.get(pName);
-    if (!lAttachment) {
-      throw new core_data_1.Exception("No attachment \"".concat(pName, "\" found."), this);
-    }
-    // Type match bitwise.
-    if ((lAttachment.type & pType) === 0) {
-      throw new core_data_1.Exception("Attachment \"".concat(pName, "\" has invalid type."), this);
-    }
-    switch (pType) {
-      case attachment_type_enum_1.AttachmentType.Color:
-      case attachment_type_enum_1.AttachmentType.Canvas:
-        {
-          return new color_attachment_1.ColorAttachment(this.mGpu, lAttachment);
-        }
-      case attachment_type_enum_1.AttachmentType.Depth:
-      case attachment_type_enum_1.AttachmentType.Stencil:
-        {
-          return new depth_stencil_attachment_1.DepthStencilAttachment(this.mGpu, lAttachment);
-        }
-    }
-  }
-  /**
-   * Resize all attachments.
-   * @param pWidth - New width.
-   * @param pHeight - New height.
-   */
-  resize(pWidth, pHeight) {
-    // Only resize on actual size change.
-    if (this.mSize.width === pWidth && this.mSize.height === pHeight) {
-      return;
-    }
-    // Set size.
-    this.mSize.width = pWidth;
-    this.mSize.height = pHeight;
-    // Apply with to all created textures.
-    for (var lAttachment of this.mAttachments.values()) {
-      if (lAttachment.frame !== null) {
-        lAttachment.frame.width = this.mSize.width;
-        lAttachment.frame.height = this.mSize.height;
-      }
-    }
-  }
-  /**
-   * Group attachments by texture format.
-   * @param pAttachmentList - Attachments.
-   */
-  groupAttachments(pAttachmentList) {
-    var lGroups = new core_data_1.Dictionary();
-    for (var lAttachment of pAttachmentList) {
-      // Get group name by format. 
-      // Exclude canvas by setting unique group names as they should never be grouped.
-      var lGroupName = lAttachment.format;
-      var lCanvas = null;
-      if ((lAttachment.type & attachment_type_enum_1.AttachmentType.Canvas) > 0) {
-        lGroupName = "CANVAS--".concat(lAttachment.name, "--").concat(lGroupName);
-        lCanvas = lAttachment.canvas;
-      }
-      // Create new group when not already created.
-      if (!lGroups.has(lGroupName)) {
-        lGroups.set(lGroupName, {
-          name: lGroupName,
-          format: lAttachment.format,
-          attachments: new Array(),
-          updatedNeeded: false,
-          canvas: lCanvas
-        });
-      }
-      // Get group and add attachment.
-      var lGroup = lGroups.get(lGroupName);
-      lGroup.attachments.push(lAttachment);
-      // Check for group changes only when the group is not already set for an update.
-      if (!lGroup.updatedNeeded && lAttachment.frame === null) {
-        lGroup.updatedNeeded = true;
-      }
-    }
-    // Check empty attachment groups.
-    for (var _lGroupName of this.mAttachmentGroup.keys()) {
-      if (!lGroups.has(_lGroupName)) {
-        // Set empty default group.
-        lGroups.set(_lGroupName, {
-          name: _lGroupName,
-          format: 'bgra8unorm',
-          attachments: new Array(),
-          updatedNeeded: true,
-          canvas: null
-        });
-      }
-    }
-    // Check attachment count difference since last grouping.
-    for (var _lGroup of lGroups.values()) {
-      if (_lGroup.attachments.length !== this.mAttachmentGroup.get(_lGroup.name)) {
-        _lGroup.updatedNeeded = true;
-        // Update group value.
-        this.mAttachmentGroup.set(_lGroup.name, _lGroup.attachments.length);
-      }
-    }
-    return [...lGroups.values()];
-  }
-  /**
-   * Rebuild textures that are outdated.
-   */
-  rebuildTetures() {
-    // Group textures.
-    for (var lGroup of this.groupAttachments([...this.mAttachments.values()])) {
-      var _this$mTextureGroup$g;
-      // Continue when group has not been updated.
-      if (!lGroup.updatedNeeded) {
-        continue;
-      }
-      // Destory old texture.
-      (_this$mTextureGroup$g = this.mTextureGroup.get(lGroup.name)) === null || _this$mTextureGroup$g === void 0 ? void 0 : _this$mTextureGroup$g.destroy();
-      // Build new texture or clear old one.
-      if (lGroup.attachments.length > 0) {
-        // Count layers of group.
-        var lTextureLayerCount = lGroup.attachments.reduce((pCurrent, pNext) => {
-          return pCurrent + pNext.layers;
-        }, 0);
-        // Create texture and set size and concat debug label.
-        var lTexture = void 0;
-        if (lGroup.canvas !== null) {
-          var lCanvasTexture = new canvas_texture_1.CanvasTexture(this.mGpu, lGroup.canvas, lGroup.format, texture_usage_enum_1.TextureUsage.RenderAttachment | texture_usage_enum_1.TextureUsage.TextureBinding);
-          lCanvasTexture.label = lGroup.name;
-          lCanvasTexture.width = this.mSize.width;
-          lCanvasTexture.height = this.mSize.height;
-          lCanvasTexture.label = lGroup.name;
-          lTexture = lCanvasTexture;
-        } else {
-          // Create fixed texture.
-          var lFixedTexture = new texture_1.Texture(this.mGpu, lGroup.format, texture_usage_enum_1.TextureUsage.RenderAttachment | texture_usage_enum_1.TextureUsage.TextureBinding, '2d');
-          lFixedTexture.label = lGroup.name;
-          lFixedTexture.width = this.mSize.width;
-          lFixedTexture.height = this.mSize.height;
-          lFixedTexture.layer = lTextureLayerCount;
-          lFixedTexture.label = lGroup.attachments.reduce((pCurrent, pNext) => {
-            return "".concat(pCurrent).concat(pNext.name, "-");
-          }, '-');
-          lTexture = lFixedTexture;
-        }
-        // Create views from same texture.
-        var lCurrentLayer = 0;
-        for (var lAttachment of lGroup.attachments) {
-          lAttachment.frame = lTexture;
-          lAttachment.baseArrayLayer = lCurrentLayer;
-          // Increment layer.
-          lCurrentLayer += lAttachment.layers;
-        }
-        // Update group texture.
-        this.mTextureGroup.set(lGroup.name, lTexture);
-      } else {
-        // Remove group texture.
-        this.mTextureGroup.delete(lGroup.name);
-      }
-    }
-  }
-}
-exports.Attachments = Attachments;
-
-/***/ }),
-
-/***/ "./source/core/attachment/type/base-attachment.ts":
-/*!********************************************************!*\
-  !*** ./source/core/attachment/type/base-attachment.ts ***!
-  \********************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.BaseAttachment = void 0;
-var gpu_native_object_1 = __webpack_require__(/*! ../../gpu-native-object */ "./source/core/gpu-native-object.ts");
-class BaseAttachment extends gpu_native_object_1.GpuNativeObject {
-  /**
-   * constructor.
-   * @param pAttachment - Attachment.
-   */
-  constructor(pGpu, pAttachment) {
-    super(pGpu, 'ATTACHMENT');
-    this.mAttachment = pAttachment;
-    this.mOldTextureId = '';
-  }
-  /**
-   * Get texture format.
-   */
-  get format() {
-    return this.mAttachment.format;
-  }
-  /**
-   * Attachment definition.
-   */
-  get attachment() {
-    return this.mAttachment;
-  }
-  /**
-   * Validate native object. Refresh native on negative state.
-   */
-  validateState() {
-    var _this = this;
-    return _asyncToGenerator(function* () {
-      // Problem can not be solved with native object change listener,
-      // as attachment.frame is not readonly and can be replaced with other textures when needed.
-      // So checking for changes with the nativeId is the fastes way, without generating the native texture.
-      // Validate for new generated texture.
-      if ((yield _this.mAttachment.frame.nativeId()) !== _this.mOldTextureId) {
-        _this.mOldTextureId = yield _this.mAttachment.frame.nativeId();
-        return false;
-      }
-      return true;
-    })();
-  }
-}
-exports.BaseAttachment = BaseAttachment;
-
-/***/ }),
-
-/***/ "./source/core/attachment/type/color-attachment.ts":
-/*!*********************************************************!*\
-  !*** ./source/core/attachment/type/color-attachment.ts ***!
-  \*********************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.ColorAttachment = void 0;
-var base_attachment_1 = __webpack_require__(/*! ./base-attachment */ "./source/core/attachment/type/base-attachment.ts");
-class ColorAttachment extends base_attachment_1.BaseAttachment {
-  /**
-   * Destory native object.
-   * @param _pNativeObject - Native object.
-   */
-  destroyNative(_pNativeObject) {
-    return _asyncToGenerator(function* () {})();
-  } // Nothing needed here.
-  /**
-   * Generate color attachment.
-   */
-  generate() {
-    var _this = this;
-    return _asyncToGenerator(function* () {
-      var lTexture = yield _this.attachment.frame.native();
-      // Generate view.
-      var lView = lTexture.createView({
-        label: 'Texture-View' + _this.attachment.frame.label,
-        dimension: '2d',
-        baseArrayLayer: _this.attachment.baseArrayLayer,
-        arrayLayerCount: _this.attachment.layers
-      });
-      return {
-        view: lView,
-        clearValue: _this.attachment.clearValue,
-        loadOp: _this.attachment.loadOp,
-        storeOp: _this.attachment.storeOp
-      };
-    })();
-  }
-}
-exports.ColorAttachment = ColorAttachment;
-
-/***/ }),
-
-/***/ "./source/core/attachment/type/depth-stencil-attachment.ts":
-/*!*****************************************************************!*\
-  !*** ./source/core/attachment/type/depth-stencil-attachment.ts ***!
-  \*****************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.DepthStencilAttachment = void 0;
-var base_attachment_1 = __webpack_require__(/*! ./base-attachment */ "./source/core/attachment/type/base-attachment.ts");
-class DepthStencilAttachment extends base_attachment_1.BaseAttachment {
-  /**
-   * Destory native object.
-   * @param _pNativeObject - Native object.
-   */
-  destroyNative(_pNativeObject) {
-    return _asyncToGenerator(function* () {})();
-  } // Nothing needed here.
-  /**
-   * Generate depth attachment.
-   */
-  generate() {
-    var _this = this;
-    return _asyncToGenerator(function* () {
-      // Convert color to number.
-      var lClearValue = 0;
-      if ('r' in _this.attachment.clearValue) {
-        var lColorDict = _this.attachment.clearValue;
-        lClearValue = (lColorDict.r + lColorDict.g + lColorDict.b + lColorDict.a) / 4;
-      } else {
-        var lValueCount = 0;
-        for (var lValue of _this.attachment.clearValue) {
-          lClearValue += lValue;
-          lValueCount++;
-        }
-        lClearValue /= lValueCount;
-      }
-      // Generate native gpu texture.
-      var lTexture = yield _this.attachment.frame.native();
-      // Generate view.
-      var lView = lTexture.createView({
-        label: 'Texture-View' + _this.attachment.frame.label,
-        dimension: '2d',
-        baseArrayLayer: _this.attachment.baseArrayLayer,
-        arrayLayerCount: _this.attachment.layers
-      });
-      // Convert to depth stencil attachment,
-      return {
-        view: lView,
-        depthClearValue: lClearValue,
-        depthLoadOp: _this.attachment.loadOp,
-        depthStoreOp: _this.attachment.storeOp
-      };
-    })();
-  }
-}
-exports.DepthStencilAttachment = DepthStencilAttachment;
-
-/***/ }),
-
 /***/ "./source/core/bind_group/bind-group-layout.ts":
 /*!*****************************************************!*\
   !*** ./source/core/bind_group/bind-group-layout.ts ***!
@@ -2365,19 +1904,8 @@ class InstructionExecuter {
     var _this2 = this;
     return _asyncToGenerator(function* () {
       // TODO: pRenderInstruction.validate()
-      // Create color attachments.
-      var lColorAttachmentList = new Array();
-      for (var lAttachment of pRenderInstruction.pipeline.attachments) {
-        lColorAttachmentList.push(yield lAttachment.native());
-      }
       // Generate pass descriptor once per set pipeline.
-      var lPassDescriptor = {
-        colorAttachments: lColorAttachmentList
-      };
-      // Set optional depth attachmet.
-      if (pRenderInstruction.pipeline.depthAttachment) {
-        lPassDescriptor.depthStencilAttachment = yield pRenderInstruction.pipeline.depthAttachment.native();
-      }
+      var lPassDescriptor = yield pRenderInstruction.pipeline.renderPass.native();
       // Pass descriptor is set, when the pipeline ist set.
       var lRenderPassEncoder = pEncoder.beginRenderPass(lPassDescriptor);
       lRenderPassEncoder.setPipeline(yield pRenderInstruction.pipeline.native());
@@ -2639,8 +2167,15 @@ class GpuNativeObject {
    */
   registerInternalNative(pInternalNative) {
     pInternalNative.registerChangeListener(() => {
-      this.mNativeChanged = true;
+      this.triggerChange();
     }, this);
+    // Trigger change.
+    this.triggerChange();
+  }
+  /**
+   * Trigger native change.
+   */
+  triggerChange() {
     // Trigger change.
     this.mNativeChanged = true;
   }
@@ -2651,7 +2186,7 @@ class GpuNativeObject {
   unregisterInternalNative(pInternalNative) {
     pInternalNative.unregisterChangeListener(this);
     // Trigger change.
-    this.mNativeChanged = true;
+    this.triggerChange();
   }
   /**
    * Validate native object. Refresh native on negative state.
@@ -2755,6 +2290,508 @@ class Gpu {
 exports.Gpu = Gpu;
 Gpu.mAdapters = new core_data_1.Dictionary();
 Gpu.mDevices = new core_data_1.Dictionary();
+
+/***/ }),
+
+/***/ "./source/core/pass_descriptor/attachment-type.enum.ts":
+/*!*************************************************************!*\
+  !*** ./source/core/pass_descriptor/attachment-type.enum.ts ***!
+  \*************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.AttachmentType = void 0;
+var AttachmentType;
+(function (AttachmentType) {
+  AttachmentType[AttachmentType["Canvas"] = 1] = "Canvas";
+  AttachmentType[AttachmentType["Color"] = 2] = "Color";
+  AttachmentType[AttachmentType["Depth"] = 4] = "Depth";
+  AttachmentType[AttachmentType["Stencil"] = 8] = "Stencil";
+})(AttachmentType = exports.AttachmentType || (exports.AttachmentType = {}));
+
+/***/ }),
+
+/***/ "./source/core/pass_descriptor/attachments.ts":
+/*!****************************************************!*\
+  !*** ./source/core/pass_descriptor/attachments.ts ***!
+  \****************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.Attachments = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+var canvas_texture_1 = __webpack_require__(/*! ../resource/texture/canvas-texture */ "./source/core/resource/texture/canvas-texture.ts");
+var texture_1 = __webpack_require__(/*! ../resource/texture/texture */ "./source/core/resource/texture/texture.ts");
+var texture_usage_enum_1 = __webpack_require__(/*! ../resource/texture/texture-usage.enum */ "./source/core/resource/texture/texture-usage.enum.ts");
+var attachment_type_enum_1 = __webpack_require__(/*! ./attachment-type.enum */ "./source/core/pass_descriptor/attachment-type.enum.ts");
+var attachment_1 = __webpack_require__(/*! ./type/attachment */ "./source/core/pass_descriptor/type/attachment.ts");
+class Attachments {
+  /**
+   * Constructor.
+   * @param pGpu - GPU.
+   */
+  constructor(pGpu) {
+    this.mAttachments = new core_data_1.Dictionary();
+    this.mAttachmentGroup = new core_data_1.Dictionary();
+    this.mTextureGroup = new core_data_1.Dictionary();
+    this.mGpu = pGpu;
+    this.mRebuildRequested = false;
+    this.mSize = {
+      width: 1,
+      height: 1
+    };
+  }
+  /**
+   * Attachment height.
+   */
+  get height() {
+    return this.mSize.height;
+  }
+  /**
+   * Attachment width.
+   */
+  get width() {
+    return this.mSize.width;
+  }
+  /**
+   * Add attachment. Forces rebuild of some groups.
+   * @param pAttachment - Attachment.
+   */
+  addAttachment(pAttachment) {
+    var _pAttachment$format, _pAttachment$layers;
+    // Filter dublicates.
+    if (this.mAttachments.has(pAttachment.name)) {
+      throw new core_data_1.Exception("Attachment \"".concat(pAttachment.name, "\" already exists."), this);
+    }
+    // Validate canvas settings.
+    if ('canvas' in pAttachment) {
+      if (typeof pAttachment.layers !== 'undefined' && pAttachment.layers !== 1) {
+        throw new core_data_1.Exception('Invalid layer count on canvas attachment. Only one layer allowed.', this);
+      }
+    }
+    // Auto detect format.
+    var lFormat = (_pAttachment$format = pAttachment.format) !== null && _pAttachment$format !== void 0 ? _pAttachment$format : window.navigator.gpu.getPreferredCanvasFormat();
+    // Special canvas treatment for fixed properties.
+    var lType = pAttachment.type;
+    var lCanvas = null;
+    if ('canvas' in pAttachment) {
+      lType |= attachment_type_enum_1.AttachmentType.Canvas; // Inject canvas type.
+      lCanvas = pAttachment.canvas;
+    }
+    // Force default for attachment
+    var lAttachment = {
+      type: lType,
+      frame: null,
+      name: pAttachment.name,
+      format: lFormat,
+      layers: (_pAttachment$layers = pAttachment.layers) !== null && _pAttachment$layers !== void 0 ? _pAttachment$layers : 1,
+      baseArrayLayer: null,
+      canvas: lCanvas
+    };
+    // Set attachment.
+    this.mAttachments.set(pAttachment.name, lAttachment);
+    // Set refresh flag to refresh all textures on next load.
+    this.mRebuildRequested = true;
+  }
+  /**
+   * Get attachment by name.
+   * @param pName - Attachment name.
+   */
+  getAttachment(pName) {
+    // Rebuild textures.
+    if (this.mRebuildRequested) {
+      this.rebuildTetures();
+    }
+    // Try to get attachment
+    var lAttachment = this.mAttachments.get(pName);
+    if (!lAttachment) {
+      throw new core_data_1.Exception("No attachment \"".concat(pName, "\" found."), this);
+    }
+    // TODO: Cache created attachments.
+    return new attachment_1.Attachment(this.mGpu, lAttachment);
+  }
+  /**
+   * Check attachment by name.
+   * @param pName - Attachment name.
+   */
+  hasAttachment(pName) {
+    return this.mAttachments.has(pName);
+  }
+  /**
+   * Resize all attachments.
+   * @param pWidth - New width.
+   * @param pHeight - New height.
+   */
+  resize(pWidth, pHeight) {
+    // Only resize on actual size change.
+    if (this.mSize.width === pWidth && this.mSize.height === pHeight) {
+      return;
+    }
+    // Set size.
+    this.mSize.width = pWidth;
+    this.mSize.height = pHeight;
+    // Apply with to all created textures.
+    for (var lAttachment of this.mAttachments.values()) {
+      if (lAttachment.frame !== null) {
+        lAttachment.frame.width = this.mSize.width;
+        lAttachment.frame.height = this.mSize.height;
+      }
+    }
+  }
+  /**
+   * Group attachments by texture format.
+   * @param pAttachmentList - Attachments.
+   */
+  groupAttachments(pAttachmentList) {
+    var lGroups = new core_data_1.Dictionary();
+    for (var lAttachment of pAttachmentList) {
+      // Get group name by format. 
+      // Exclude canvas by setting unique group names as they should never be grouped.
+      var lGroupName = lAttachment.format;
+      var lCanvas = null;
+      if ((lAttachment.type & attachment_type_enum_1.AttachmentType.Canvas) > 0) {
+        lGroupName = "CANVAS--".concat(lAttachment.name, "--").concat(lGroupName);
+        lCanvas = lAttachment.canvas;
+      }
+      // Create new group when not already created.
+      if (!lGroups.has(lGroupName)) {
+        lGroups.set(lGroupName, {
+          name: lGroupName,
+          format: lAttachment.format,
+          attachments: new Array(),
+          updatedNeeded: false,
+          canvas: lCanvas
+        });
+      }
+      // Get group and add attachment.
+      var lGroup = lGroups.get(lGroupName);
+      lGroup.attachments.push(lAttachment);
+      // Check for group changes only when the group is not already set for an update.
+      if (!lGroup.updatedNeeded && lAttachment.frame === null) {
+        lGroup.updatedNeeded = true;
+      }
+    }
+    // Check empty attachment groups.
+    for (var _lGroupName of this.mAttachmentGroup.keys()) {
+      if (!lGroups.has(_lGroupName)) {
+        // Set empty default group.
+        lGroups.set(_lGroupName, {
+          name: _lGroupName,
+          format: 'bgra8unorm',
+          attachments: new Array(),
+          updatedNeeded: true,
+          canvas: null
+        });
+      }
+    }
+    // Check attachment count difference since last grouping.
+    for (var _lGroup of lGroups.values()) {
+      if (_lGroup.attachments.length !== this.mAttachmentGroup.get(_lGroup.name)) {
+        _lGroup.updatedNeeded = true;
+        // Update group value.
+        this.mAttachmentGroup.set(_lGroup.name, _lGroup.attachments.length);
+      }
+    }
+    return [...lGroups.values()];
+  }
+  /**
+   * Rebuild textures that are outdated.
+   */
+  rebuildTetures() {
+    // Group textures.
+    for (var lGroup of this.groupAttachments([...this.mAttachments.values()])) {
+      var _this$mTextureGroup$g;
+      // Continue when group has not been updated.
+      if (!lGroup.updatedNeeded) {
+        continue;
+      }
+      // Destory old texture.
+      (_this$mTextureGroup$g = this.mTextureGroup.get(lGroup.name)) === null || _this$mTextureGroup$g === void 0 ? void 0 : _this$mTextureGroup$g.destroy();
+      // Build new texture or clear old one.
+      if (lGroup.attachments.length > 0) {
+        // Count layers of group.
+        var lTextureLayerCount = lGroup.attachments.reduce((pCurrent, pNext) => {
+          return pCurrent + pNext.layers;
+        }, 0);
+        // Create texture and set size and concat debug label.
+        var lTexture = void 0;
+        if (lGroup.canvas !== null) {
+          var lCanvasTexture = new canvas_texture_1.CanvasTexture(this.mGpu, lGroup.canvas, lGroup.format, texture_usage_enum_1.TextureUsage.RenderAttachment | texture_usage_enum_1.TextureUsage.TextureBinding);
+          lCanvasTexture.label = lGroup.name;
+          lCanvasTexture.width = this.mSize.width;
+          lCanvasTexture.height = this.mSize.height;
+          lCanvasTexture.label = lGroup.name;
+          lTexture = lCanvasTexture;
+        } else {
+          // Create fixed texture.
+          var lFixedTexture = new texture_1.Texture(this.mGpu, lGroup.format, texture_usage_enum_1.TextureUsage.RenderAttachment | texture_usage_enum_1.TextureUsage.TextureBinding, '2d');
+          lFixedTexture.label = lGroup.name;
+          lFixedTexture.width = this.mSize.width;
+          lFixedTexture.height = this.mSize.height;
+          lFixedTexture.layer = lTextureLayerCount;
+          lFixedTexture.label = lGroup.attachments.reduce((pCurrent, pNext) => {
+            return "".concat(pCurrent).concat(pNext.name, "-");
+          }, '-');
+          lTexture = lFixedTexture;
+        }
+        // Create views from same texture.
+        var lCurrentLayer = 0;
+        for (var lAttachment of lGroup.attachments) {
+          lAttachment.frame = lTexture;
+          lAttachment.baseArrayLayer = lCurrentLayer;
+          // Increment layer.
+          lCurrentLayer += lAttachment.layers;
+        }
+        // Update group texture.
+        this.mTextureGroup.set(lGroup.name, lTexture);
+      } else {
+        // Remove group texture.
+        this.mTextureGroup.delete(lGroup.name);
+      }
+    }
+  }
+}
+exports.Attachments = Attachments;
+
+/***/ }),
+
+/***/ "./source/core/pass_descriptor/render-pass-descriptor.ts":
+/*!***************************************************************!*\
+  !*** ./source/core/pass_descriptor/render-pass-descriptor.ts ***!
+  \***************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.RenderPassDescriptor = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+var gpu_native_object_1 = __webpack_require__(/*! ../gpu-native-object */ "./source/core/gpu-native-object.ts");
+class RenderPassDescriptor extends gpu_native_object_1.GpuNativeObject {
+  /**
+   * Constructor.
+   * @param pGpu - Gpu.
+   * @param pAttachments - Attachments.
+   */
+  constructor(pGpu, pAttachments) {
+    super(pGpu, 'RENDER_PASS_DESCRIPTOR');
+    // Set statics.
+    this.mAttachments = pAttachments;
+    // Init lists and defaults.
+    this.mColorAttachments = new Array();
+    this.mDepthStencilAttachment = null;
+  }
+  /**
+   * Get render targets.
+   */
+  get colorAttachments() {
+    var lTargets = new Array();
+    for (var lColorAttachment of this.mColorAttachments) {
+      lTargets.push(this.mAttachments.getAttachment(lColorAttachment.attachmentName));
+    }
+    return lTargets;
+  }
+  /**
+   * Get depth attachment of render pass.
+   */
+  get depthAttachment() {
+    if (!this.mDepthStencilAttachment) {
+      return undefined;
+    }
+    return this.mAttachments.getAttachment(this.mDepthStencilAttachment.attachmentName);
+  }
+  /**
+   * Set color attachment.
+   * @param pAttachmentName - Attachment name.
+   * @param pClearValue - Clear value.
+   * @param pLoadOp - Load operation.
+   * @param pStoreOp - Store operation.
+   */
+  setColorAttachment(pLocation, pAttachmentName, pClearValue, pLoadOp, pStoreOp) {
+    // Validate attachment existence.
+    if (!this.mAttachments.hasAttachment(pAttachmentName)) {
+      throw new core_data_1.Exception("Attachment \"".concat(pAttachmentName, "\" does not exist."), this);
+    }
+    // Setup depth attachment.
+    this.mColorAttachments[pLocation] = {
+      attachmentName: pAttachmentName,
+      clearValue: pClearValue,
+      loadOp: pLoadOp !== null && pLoadOp !== void 0 ? pLoadOp : 'clear',
+      storeOp: pStoreOp !== null && pStoreOp !== void 0 ? pStoreOp : 'store' // Apply default value.
+    };
+
+    this.triggerChange();
+  }
+  /**
+   * Set depth attachment.
+   * @param pAttachmentName - Attachment name.
+   * @param pClearValue - Clear value.
+   * @param pLoadOp - Load operation.
+   * @param pStoreOp - Store operation.
+   */
+  setDepthAttachment(pAttachmentName, pClearValue, pLoadOp, pStoreOp) {
+    // Validate attachment existence.
+    if (!this.mAttachments.hasAttachment(pAttachmentName)) {
+      throw new core_data_1.Exception("Attachment \"".concat(pAttachmentName, "\" does not exist."), this);
+    }
+    // Setup depth attachment.
+    this.mDepthStencilAttachment = {
+      attachmentName: pAttachmentName,
+      clearValue: pClearValue,
+      loadOp: pLoadOp !== null && pLoadOp !== void 0 ? pLoadOp : 'clear',
+      storeOp: pStoreOp !== null && pStoreOp !== void 0 ? pStoreOp : 'store' // Apply default value.
+    };
+
+    this.triggerChange();
+  }
+  /**
+   * Destory native object.
+   * @param _pNativeObject - Native object.
+   */
+  destroyNative(_pNativeObject) {
+    return _asyncToGenerator(function* () {})();
+  } // Nothing to destroy.
+  /**
+   * Generate render pass descriptor.
+   */
+  generate() {
+    var _this = this;
+    return _asyncToGenerator(function* () {
+      // Create color attachments.
+      var lColorAttachments = new Array();
+      for (var lColorAttachment of _this.mColorAttachments) {
+        var lAttachment = _this.mAttachments.getAttachment(lColorAttachment.attachmentName);
+        lColorAttachments.push({
+          view: yield lAttachment.native(),
+          clearValue: lColorAttachment.clearValue,
+          loadOp: lColorAttachment.loadOp,
+          storeOp: lColorAttachment.storeOp
+        });
+      }
+      // Create descriptor with color attachments.
+      var lDescriptor = {
+        colorAttachments: lColorAttachments
+      };
+      // Set optional depth attachment.
+      if (_this.mDepthStencilAttachment) {
+        var _lAttachment = _this.mAttachments.getAttachment(_this.mDepthStencilAttachment.attachmentName);
+        lDescriptor.depthStencilAttachment = {
+          view: yield _lAttachment.native(),
+          depthClearValue: _this.mDepthStencilAttachment.clearValue,
+          depthLoadOp: _this.mDepthStencilAttachment.loadOp,
+          depthStoreOp: _this.mDepthStencilAttachment.storeOp
+        };
+      }
+      return lDescriptor;
+    })();
+  }
+  validateState(_pNativeObject) {
+    return _asyncToGenerator(function* () {
+      return false; // TODO: Register attachment as native.
+    })();
+  }
+}
+
+exports.RenderPassDescriptor = RenderPassDescriptor;
+
+/***/ }),
+
+/***/ "./source/core/pass_descriptor/type/attachment.ts":
+/*!********************************************************!*\
+  !*** ./source/core/pass_descriptor/type/attachment.ts ***!
+  \********************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.Attachment = void 0;
+var gpu_native_object_1 = __webpack_require__(/*! ../../gpu-native-object */ "./source/core/gpu-native-object.ts");
+class Attachment extends gpu_native_object_1.GpuNativeObject {
+  /**
+   * constructor.
+   * @param pAttachment - Attachment.
+   */
+  constructor(pGpu, pAttachment) {
+    super(pGpu, 'ATTACHMENT');
+    this.mAttachment = pAttachment;
+    this.mOldTextureId = '';
+  }
+  /**
+   * Get texture format.
+   */
+  get format() {
+    return this.mAttachment.format;
+  }
+  /**
+   * Attachment definition.
+   */
+  get attachment() {
+    return this.mAttachment;
+  }
+  /**
+   * Destory native object.
+   * @param _pNativeObject - Native object.
+   */
+  destroyNative(_pNativeObject) {
+    return _asyncToGenerator(function* () {})();
+  } // Nothing needed here.
+  /**
+   * Generate color attachment.
+   */
+  generate() {
+    var _this = this;
+    return _asyncToGenerator(function* () {
+      var lTexture = yield _this.attachment.frame.native();
+      // Generate view.
+      var lView = lTexture.createView({
+        label: 'Texture-View' + _this.attachment.frame.label,
+        dimension: '2d',
+        baseArrayLayer: _this.attachment.baseArrayLayer,
+        arrayLayerCount: _this.attachment.layers
+      });
+      return lView;
+    })();
+  }
+  /**
+   * Validate native object. Refresh native on negative state.
+   */
+  validateState() {
+    var _this2 = this;
+    return _asyncToGenerator(function* () {
+      // Problem can not be solved with native object change listener,
+      // as attachment.frame is not readonly and can be replaced with other textures when needed.
+      // So checking for changes with the nativeId is the fastes way, without generating the native texture.
+      // Validate for new generated texture.
+      if ((yield _this2.mAttachment.frame.nativeId()) !== _this2.mOldTextureId) {
+        _this2.mOldTextureId = yield _this2.mAttachment.frame.nativeId();
+        return false;
+      }
+      return true;
+    })();
+  }
+}
+exports.Attachment = Attachment;
 
 /***/ }),
 
@@ -2989,11 +3026,12 @@ class RenderPipeline extends gpu_native_object_1.GpuNativeObject {
    * Constructor.
    * @param pGpu - GPU.
    */
-  constructor(pGpu) {
+  constructor(pGpu, pRenderPass) {
     super(pGpu, 'RENDER_PIPELINE');
+    // Set statics.
+    this.mRenderPass = pRenderPass;
     // Init unassigned properties.
     this.mShader = null;
-    this.mDepthAttachment = null;
     // Set default values.
     this.mPrimitive = {
       frontFace: 'cw',
@@ -3009,35 +3047,6 @@ class RenderPipeline extends gpu_native_object_1.GpuNativeObject {
       depthAttachment: false,
       attachment: true
     };
-    // Init lists.
-    this.mRenderAttachmentList = new Array();
-  }
-  /**
-   * Render attachments.
-   */
-  get attachments() {
-    return this.mRenderAttachmentList;
-  }
-  /**
-   * Depth attachment.
-   */
-  get depthAttachment() {
-    return this.mDepthAttachment;
-  }
-  set depthAttachment(pAttachment) {
-    // Do nothing on assigning old an value.
-    if (this.mDepthAttachment === pAttachment) {
-      return;
-    }
-    // Unregister old and register new depth attachment.
-    if (this.mDepthAttachment) {
-      this.unregisterInternalNative(this.mDepthAttachment);
-    }
-    if (pAttachment) {
-      this.registerInternalNative(pAttachment);
-    }
-    // Set attachment.
-    this.mDepthAttachment = pAttachment;
   }
   /**
    * Set depth compare function.
@@ -3100,6 +3109,12 @@ class RenderPipeline extends gpu_native_object_1.GpuNativeObject {
     this.mPipelineDataChangeState.primitive = true;
   }
   /**
+   * Render pass of pipeline.
+   */
+  get renderPass() {
+    return this.mRenderPass;
+  }
+  /**
    * Shader.
    */
   get shader() {
@@ -3138,16 +3153,6 @@ class RenderPipeline extends gpu_native_object_1.GpuNativeObject {
     this.mDepthWriteEnabled = pValue;
     // Set data changed flag.
     this.mPipelineDataChangeState.depthAttachment = true;
-  }
-  /**
-   * Add attachment. Return attachment index.
-   * @param pAttachment - Attachment.
-   */
-  addAttachment(pAttachment) {
-    // Dont register attachment as an canvas attachment refreshes every frame.
-    // The Pipeline would refresh every frame. 
-    this.mPipelineDataChangeState.attachment = true;
-    return this.mRenderAttachmentList.push(pAttachment) - 1;
   }
   /**
    * Set Shader programms for pipeline.
@@ -3210,11 +3215,11 @@ class RenderPipeline extends gpu_native_object_1.GpuNativeObject {
       if (_this.mShader.fragmentEntryPoint) {
         // Generate fragment targets only when fragment state is needed.
         var lFragmentTargetList = new Array();
-        for (var lRenderTarget of _this.mRenderAttachmentList) {
+        for (var lRenderTarget of _this.mRenderPass.colorAttachments) {
           lFragmentTargetList.push({
             format: lRenderTarget.format
-            // blend?: GPUBlendState;
-            // writeMask?: GPUColorWriteFlags;
+            // blend?: GPUBlendState;   // TODO:
+            // writeMask?: GPUColorWriteFlags; // TODO:
           });
         }
 
@@ -3225,11 +3230,12 @@ class RenderPipeline extends gpu_native_object_1.GpuNativeObject {
         };
       }
       // Setup optional depth attachment.
-      if (_this.mDepthAttachment) {
+      var lDepthAttachment = _this.mRenderPass.depthAttachment;
+      if (lDepthAttachment) {
         lPipelineDescriptor.depthStencil = {
           depthWriteEnabled: _this.mDepthWriteEnabled,
           depthCompare: _this.mDepthCompare,
-          format: _this.mDepthAttachment.format
+          format: lDepthAttachment.format
           // TODO: Stencil settings. 
         };
       }
@@ -4198,184 +4204,6 @@ exports.Texture = Texture;
 
 /***/ }),
 
-/***/ "./source/core/shader.ts":
-/*!*******************************!*\
-  !*** ./source/core/shader.ts ***!
-  \*******************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.Shader = void 0;
-var bind_groups_1 = __webpack_require__(/*! ./bind_group/bind-groups */ "./source/core/bind_group/bind-groups.ts");
-var bind_type_enum_1 = __webpack_require__(/*! ./enum/bind-type.enum */ "./source/core/enum/bind-type.enum.ts");
-var shader_stage_enum_1 = __webpack_require__(/*! ./enum/shader-stage.enum */ "./source/core/enum/shader-stage.enum.ts");
-var gpu_native_object_1 = __webpack_require__(/*! ./gpu-native-object */ "./source/core/gpu-native-object.ts");
-var vertex_attribute_1 = __webpack_require__(/*! ./pipeline/data/vertex-attribute */ "./source/core/pipeline/data/vertex-attribute.ts");
-var shader_analyzer_1 = __webpack_require__(/*! ./shader/shader-analyzer */ "./source/core/shader/shader-analyzer.ts");
-class Shader extends gpu_native_object_1.GpuNativeObject {
-  /**
-   * Constructor.
-   * @param pGpu - GPU.
-   * @param pSource - Shader module source code.
-   */
-  constructor(pGpu, pSource) {
-    super(pGpu, 'SHADER');
-    this.mSource = pSource;
-    this.mShaderInformation = new shader_analyzer_1.ShaderInformation(pSource);
-    // Generate from ShaderInformation. 
-    this.mBindGroups = this.generateBindGroups(this.mShaderInformation);
-    this.mEntryPoints = {
-      vertex: this.generateEntryPoint(this.mShaderInformation, shader_stage_enum_1.ShaderStage.Vertex),
-      fragment: this.generateEntryPoint(this.mShaderInformation, shader_stage_enum_1.ShaderStage.Fragment),
-      compute: this.generateEntryPoint(this.mShaderInformation, shader_stage_enum_1.ShaderStage.Compute)
-    };
-  }
-  /**
-   * Get bind groups of shader.
-   */
-  get bindGroups() {
-    return this.mBindGroups;
-  }
-  /**
-   * Compute entry point name.
-   */
-  get computeEntryPoint() {
-    return this.mEntryPoints.compute;
-  }
-  /**
-   * Fragment entry point name.
-   */
-  get fragmentEntryPoint() {
-    return this.mEntryPoints.fragment;
-  }
-  /**
-   * Vertex entry point name.
-   */
-  get vertexEntryPoint() {
-    return this.mEntryPoints.vertex;
-  }
-  /**
-   * Destory native object.
-   * @param _pNativeObject - Native object.
-   */
-  destroyNative(_pNativeObject) {
-    return _asyncToGenerator(function* () {})();
-  } /* Nothing to destroy */
-  /***
-   * Generate shader module.
-   */
-  generate() {
-    var _this = this;
-    return _asyncToGenerator(function* () {
-      return _this.gpu.device.createShaderModule({
-        code: _this.mSource
-      });
-    })();
-  }
-  /**
-   * Generate bind groups based on shader information.
-   * @param pShaderInformation - Shader information.
-   */
-  generateBindGroups(pShaderInformation) {
-    var lBindGroups = new bind_groups_1.BindGroups(this.gpu);
-    // Create new bing groups.
-    for (var lBindGroupInformation of pShaderInformation.bindings) {
-      var lBindGroup = lBindGroups.addGroup(lBindGroupInformation.groupIndex);
-      // Create each binding of group.
-      for (var lBind of lBindGroupInformation.binds) {
-        switch (lBind.bindType) {
-          case bind_type_enum_1.BindType.Texture:
-            {
-              lBindGroup.addTexture(lBind.name, lBind.index, lBind.visibility, lBind.sampleType, lBind.viewDimension, lBind.multisampled);
-              break;
-            }
-          case bind_type_enum_1.BindType.Buffer:
-            {
-              lBindGroup.addBuffer(lBind.name, lBind.index, lBind.visibility, lBind.type, lBind.hasDynamicOffset, lBind.minBindingSize);
-              break;
-            }
-          case bind_type_enum_1.BindType.Sampler:
-            {
-              lBindGroup.addSampler(lBind.name, lBind.index, lBind.visibility, lBind.type);
-              break;
-            }
-          case bind_type_enum_1.BindType.StorageTexture:
-            {
-              lBindGroup.addStorageTexture(lBind.name, lBind.index, lBind.visibility, lBind.format, lBind.access, lBind.viewDimension);
-              break;
-            }
-          case bind_type_enum_1.BindType.ExternalTexture:
-            {
-              lBindGroup.addExternalTexture(lBind.name, lBind.index, lBind.visibility);
-              break;
-            }
-        }
-      }
-    }
-    return lBindGroups;
-  }
-  /**
-   * Generate entry point.
-   * @param pShaderInformation - Shader information.
-   * @param pShaderEntryPoint - Entry point that should be generated.
-   */
-  generateEntryPoint(pShaderInformation, pShaderEntryPoint) {
-    // Find entry point information.
-    var lShaderEntryPointFunction;
-    switch (pShaderEntryPoint) {
-      case shader_stage_enum_1.ShaderStage.Vertex:
-        {
-          lShaderEntryPointFunction = pShaderInformation.entryPoints.vertex;
-          break;
-        }
-      case shader_stage_enum_1.ShaderStage.Fragment:
-        {
-          lShaderEntryPointFunction = pShaderInformation.entryPoints.fragment;
-          break;
-        }
-      case shader_stage_enum_1.ShaderStage.Compute:
-        {
-          lShaderEntryPointFunction = pShaderInformation.entryPoints.compute;
-          break;
-        }
-    }
-    // Exit on not set entry point.
-    if (!lShaderEntryPointFunction) {
-      return undefined;
-    }
-    var lShaderEntryPoint = {
-      name: lShaderEntryPointFunction.name,
-      attributes: new Array()
-    };
-    // Generate vertex attributes for vertex entry points.
-    if (pShaderEntryPoint === shader_stage_enum_1.ShaderStage.Vertex) {
-      // Generate new vertex attribute for each location.
-      for (var lAttribute of lShaderEntryPointFunction.parameter) {
-        if (typeof lAttribute.location === 'number') {
-          var _lAttribute$type$gene;
-          var lVertexAttribute = new vertex_attribute_1.VertexAttribute(this.gpu, lAttribute.name);
-          // Set attribute based on type and generic.
-          var lGeneric = (_lAttribute$type$gene = lAttribute.type.generics[0]) === null || _lAttribute$type$gene === void 0 ? void 0 : _lAttribute$type$gene.type;
-          lVertexAttribute.setAttributeLocation(lAttribute.type.type, lGeneric !== null && lGeneric !== void 0 ? lGeneric : null, lAttribute.location);
-          // Add generated attribute to shader entry point.
-          lShaderEntryPoint.attributes.push(lVertexAttribute);
-        }
-      }
-    }
-    return lShaderEntryPoint;
-  }
-}
-exports.Shader = Shader;
-
-/***/ }),
-
 /***/ "./source/core/shader/shader-analyzer.ts":
 /*!***********************************************!*\
   !*** ./source/core/shader/shader-analyzer.ts ***!
@@ -4588,12 +4416,12 @@ class ShaderInformation {
         type: core_data_1.EnumUtil.enumKeyByValue(wgsl_entry_point_enum_1.WgslEntryPoint, lEntryPointMatch.groups['entrytype']),
         name: lEntryPointMatch.groups['name'],
         parameter: new Array(),
-        returnValue: []
+        returnValues: []
       };
       // Parse result type.
       if (lEntryPointMatch.groups['result']) {
         var lResultType = this.getVariableDescription(lEntryPointMatch.groups['result']);
-        lShaderEntryPoint.returnValue = this.resolveNestedTypes(lResultType, pSource);
+        lShaderEntryPoint.returnValues = this.resolveNestedTypes(lResultType, pSource);
       }
       // Parse paramerer.
       if (lEntryPointMatch.groups['parameter']) {
@@ -4870,6 +4698,192 @@ class ShaderInformation {
   }
 }
 exports.ShaderInformation = ShaderInformation;
+
+/***/ }),
+
+/***/ "./source/core/shader/shader.ts":
+/*!**************************************!*\
+  !*** ./source/core/shader/shader.ts ***!
+  \**************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.Shader = void 0;
+var bind_groups_1 = __webpack_require__(/*! ../bind_group/bind-groups */ "./source/core/bind_group/bind-groups.ts");
+var bind_type_enum_1 = __webpack_require__(/*! ../enum/bind-type.enum */ "./source/core/enum/bind-type.enum.ts");
+var gpu_native_object_1 = __webpack_require__(/*! ../gpu-native-object */ "./source/core/gpu-native-object.ts");
+var vertex_attribute_1 = __webpack_require__(/*! ../pipeline/data/vertex-attribute */ "./source/core/pipeline/data/vertex-attribute.ts");
+var shader_analyzer_1 = __webpack_require__(/*! ./shader-analyzer */ "./source/core/shader/shader-analyzer.ts");
+class Shader extends gpu_native_object_1.GpuNativeObject {
+  /**
+   * Constructor.
+   * @param pGpu - GPU.
+   * @param pSource - Shader module source code.
+   */
+  constructor(pGpu, pSource) {
+    super(pGpu, 'SHADER');
+    this.mSource = pSource;
+    this.mShaderInformation = new shader_analyzer_1.ShaderInformation(pSource);
+    // Generate from ShaderInformation. 
+    this.mBindGroups = this.generateBindGroups(this.mShaderInformation);
+    this.mEntryPoints = {
+      vertex: this.generateVertexEntryPoint(this.mShaderInformation),
+      fragment: this.generateFragmentEntryPoint(this.mShaderInformation),
+      compute: this.generateComputeEntryPoint(this.mShaderInformation)
+    };
+  }
+  /**
+   * Get bind groups of shader.
+   */
+  get bindGroups() {
+    return this.mBindGroups;
+  }
+  /**
+   * Compute entry point name.
+   */
+  get computeEntryPoint() {
+    return this.mEntryPoints.compute;
+  }
+  /**
+   * Fragment entry point name.
+   */
+  get fragmentEntryPoint() {
+    return this.mEntryPoints.fragment;
+  }
+  /**
+   * Vertex entry point name.
+   */
+  get vertexEntryPoint() {
+    return this.mEntryPoints.vertex;
+  }
+  /**
+   * Destory native object.
+   * @param _pNativeObject - Native object.
+   */
+  destroyNative(_pNativeObject) {
+    return _asyncToGenerator(function* () {})();
+  } /* Nothing to destroy */
+  /***
+   * Generate shader module.
+   */
+  generate() {
+    var _this = this;
+    return _asyncToGenerator(function* () {
+      return _this.gpu.device.createShaderModule({
+        code: _this.mSource
+      });
+    })();
+  }
+  /**
+   * Generate bind groups based on shader information.
+   * @param pShaderInformation - Shader information.
+   */
+  generateBindGroups(pShaderInformation) {
+    var lBindGroups = new bind_groups_1.BindGroups(this.gpu);
+    // Create new bing groups.
+    for (var lBindGroupInformation of pShaderInformation.bindings) {
+      var lBindGroup = lBindGroups.addGroup(lBindGroupInformation.groupIndex);
+      // Create each binding of group.
+      for (var lBind of lBindGroupInformation.binds) {
+        switch (lBind.bindType) {
+          case bind_type_enum_1.BindType.Texture:
+            {
+              lBindGroup.addTexture(lBind.name, lBind.index, lBind.visibility, lBind.sampleType, lBind.viewDimension, lBind.multisampled);
+              break;
+            }
+          case bind_type_enum_1.BindType.Buffer:
+            {
+              lBindGroup.addBuffer(lBind.name, lBind.index, lBind.visibility, lBind.type, lBind.hasDynamicOffset, lBind.minBindingSize);
+              break;
+            }
+          case bind_type_enum_1.BindType.Sampler:
+            {
+              lBindGroup.addSampler(lBind.name, lBind.index, lBind.visibility, lBind.type);
+              break;
+            }
+          case bind_type_enum_1.BindType.StorageTexture:
+            {
+              lBindGroup.addStorageTexture(lBind.name, lBind.index, lBind.visibility, lBind.format, lBind.access, lBind.viewDimension);
+              break;
+            }
+          case bind_type_enum_1.BindType.ExternalTexture:
+            {
+              lBindGroup.addExternalTexture(lBind.name, lBind.index, lBind.visibility);
+              break;
+            }
+        }
+      }
+    }
+    return lBindGroups;
+  }
+  /**
+   * Generate compute entry point.
+   * @param pShaderInformation - Shader information.
+   */
+  generateComputeEntryPoint(pShaderInformation) {
+    // Find entry point information.
+    var lShaderEntryPointFunction = pShaderInformation.entryPoints.compute;
+    if (!lShaderEntryPointFunction) {
+      return undefined;
+    }
+    var lShaderEntryPoint = {
+      name: lShaderEntryPointFunction.name
+    };
+    return lShaderEntryPoint;
+  }
+  /**
+   * Generate compute entry point.
+   * @param pShaderInformation - Shader information.
+   */
+  generateFragmentEntryPoint(pShaderInformation) {
+    // Find entry point information.
+    var lShaderEntryPointFunction = pShaderInformation.entryPoints.fragment;
+    if (!lShaderEntryPointFunction) {
+      return undefined;
+    }
+    var lShaderEntryPoint = {
+      name: lShaderEntryPointFunction.name,
+      renderTargetCount: lShaderEntryPointFunction.returnValues.length
+    };
+    return lShaderEntryPoint;
+  }
+  /**
+   * Generate vertex entry point.
+   * @param pShaderInformation - Shader information.
+   */
+  generateVertexEntryPoint(pShaderInformation) {
+    // Find entry point information.
+    var lShaderEntryPointFunction = pShaderInformation.entryPoints.vertex;
+    if (!lShaderEntryPointFunction) {
+      return undefined;
+    }
+    var lShaderEntryPoint = {
+      name: lShaderEntryPointFunction.name,
+      attributes: new Array()
+    };
+    // Generate new vertex attribute for each location.
+    for (var lAttribute of lShaderEntryPointFunction.parameter) {
+      if (typeof lAttribute.location === 'number') {
+        var _lAttribute$type$gene;
+        var lVertexAttribute = new vertex_attribute_1.VertexAttribute(this.gpu, lAttribute.name);
+        // Set attribute based on type and generic.
+        var lGeneric = (_lAttribute$type$gene = lAttribute.type.generics[0]) === null || _lAttribute$type$gene === void 0 ? void 0 : _lAttribute$type$gene.type;
+        lVertexAttribute.setAttributeLocation(lAttribute.type.type, lGeneric !== null && lGeneric !== void 0 ? lGeneric : null, lAttribute.location);
+        // Add generated attribute to shader entry point.
+        lShaderEntryPoint.attributes.push(lVertexAttribute);
+      }
+    }
+    return lShaderEntryPoint;
+  }
+}
+exports.Shader = Shader;
 
 /***/ }),
 
@@ -9830,7 +9844,7 @@ exports.TypeUtil = TypeUtil;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("a415e288cb57df44662f")
+/******/ 		__webpack_require__.h = () => ("fb35861c8fb11717eaf0")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

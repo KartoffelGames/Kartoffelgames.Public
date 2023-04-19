@@ -2078,8 +2078,10 @@ class GpuNativeObject {
     this.mNativeObject = null;
     this.mLabel = '';
     this.mNativeName = pNativeName;
-    this.mNativeChanged = false;
-    this.mUpdateListener = new core_data_1.Dictionary();
+    this.mInternalNativeChanged = false;
+    // Init internal native change detection.
+    this.mChangeListener = new core_data_1.Dictionary();
+    this.mInternalNativeList = new Set();
     // Basic ununique id for uninitialized state.
     this.mNativeObjectId = globalThis.crypto.randomUUID();
   }
@@ -2119,32 +2121,23 @@ class GpuNativeObject {
     })();
   }
   /**
-   * Equal objects.
-   * @param pObject - Object.
-   */
-  equal(pObject) {
-    return this === pObject;
-  }
-  /**
    * Get native object.
    */
   native() {
     var _this2 = this;
     return _asyncToGenerator(function* () {
       // Generate new native object when not already created.
-      if (!_this2.mNativeObject || _this2.mNativeChanged || !(yield _this2.validateState(_this2.mNativeObject))) {
-        // Destroy old native object.
-        yield _this2.destroy();
+      if (!(yield _this2.isValid())) {
         // Generate new native object.
         _this2.mNativeObject = yield _this2.generate();
         // Generate new id for new generated 
         _this2.mNativeObjectId = globalThis.crypto.randomUUID();
         // Execute one way listener on new generated.
-        for (var lListener of _this2.mUpdateListener.values()) {
+        for (var lListener of _this2.mChangeListener.values()) {
           lListener();
         }
         // Reset change listener when changes where made.
-        _this2.mNativeChanged = false;
+        _this2.mInternalNativeChanged = false;
       }
       return _this2.mNativeObject;
     })();
@@ -2166,6 +2159,9 @@ class GpuNativeObject {
    * @param pInternalNative - Internal used native.
    */
   registerInternalNative(pInternalNative) {
+    // Save internal native.
+    this.mInternalNativeList.add(pInternalNative);
+    // Register change listener on internal native.
     pInternalNative.registerChangeListener(() => {
       this.triggerChange();
     }, this);
@@ -2177,13 +2173,16 @@ class GpuNativeObject {
    */
   triggerChange() {
     // Trigger change.
-    this.mNativeChanged = true;
+    this.mInternalNativeChanged = true;
   }
   /**
    * Unregister internal native object.
    * @param pInternalNative - Internal used native.
    */
   unregisterInternalNative(pInternalNative) {
+    // Delete saved native.
+    this.mInternalNativeList.delete(pInternalNative);
+    // Unregister change listener on internal native.
     pInternalNative.unregisterChangeListener(this);
     // Trigger change.
     this.triggerChange();
@@ -2198,14 +2197,41 @@ class GpuNativeObject {
     })();
   }
   /**
+   * Check validation of internal objects.
+   */
+  isValid() {
+    var _this4 = this;
+    return _asyncToGenerator(function* () {
+      var lNativeChanged = false;
+      // Check internal object state.
+      if (!_this4.mNativeObject || _this4.mInternalNativeChanged || !(yield _this4.validateState(_this4.mNativeObject))) {
+        lNativeChanged = true;
+      }
+      // Check internal natives.
+      if (!lNativeChanged) {
+        for (var lInternalNative of _this4.mInternalNativeList) {
+          if (!(yield lInternalNative.isValid())) {
+            lNativeChanged = true;
+            break;
+          }
+        }
+      }
+      // Remove native on invalidation to cache change state for future isValidate calls.
+      if (lNativeChanged) {
+        yield _this4.destroy();
+      }
+      return !lNativeChanged;
+    })();
+  }
+  /**
    * Sets listener for changes.
    * Does not set new listener when referer has allready an registered listener.
    * @param pListener - Change listener.
    * @param pReferrer - Referer.
    */
   registerChangeListener(pListener, pReferrer) {
-    if (!this.mUpdateListener.has(pReferrer)) {
-      this.mUpdateListener.set(pReferrer, pListener);
+    if (!this.mChangeListener.has(pReferrer)) {
+      this.mChangeListener.set(pReferrer, pListener);
     }
   }
   /**
@@ -2215,7 +2241,7 @@ class GpuNativeObject {
    * @param pReferrer - Referer.
    */
   unregisterChangeListener(pReferrer) {
-    this.mUpdateListener.delete(pReferrer);
+    this.mChangeListener.delete(pReferrer);
   }
 }
 exports.GpuNativeObject = GpuNativeObject;
@@ -2373,12 +2399,6 @@ class Attachments {
     if (this.mAttachments.has(pAttachment.name)) {
       throw new core_data_1.Exception("Attachment \"".concat(pAttachment.name, "\" already exists."), this);
     }
-    // Validate canvas settings.
-    if ('canvas' in pAttachment) {
-      if (typeof pAttachment.layers !== 'undefined' && pAttachment.layers !== 1) {
-        throw new core_data_1.Exception('Invalid layer count on canvas attachment. Only one layer allowed.', this);
-      }
-    }
     // Auto detect format.
     var lFormat = (_pAttachment$format = pAttachment.format) !== null && _pAttachment$format !== void 0 ? _pAttachment$format : window.navigator.gpu.getPreferredCanvasFormat();
     // Special canvas treatment for fixed properties.
@@ -2388,15 +2408,16 @@ class Attachments {
       lType |= attachment_type_enum_1.AttachmentType.Canvas; // Inject canvas type.
       lCanvas = pAttachment.canvas;
     }
+    // Apply default value for layer count.
+    var lLayerCount = (_pAttachment$layers = pAttachment.layers) !== null && _pAttachment$layers !== void 0 ? _pAttachment$layers : 1;
     // Force default for attachment
     var lAttachment = {
       type: lType,
-      frame: null,
       name: pAttachment.name,
       format: lFormat,
-      layers: (_pAttachment$layers = pAttachment.layers) !== null && _pAttachment$layers !== void 0 ? _pAttachment$layers : 1,
-      baseArrayLayer: null,
-      canvas: lCanvas
+      layers: lLayerCount,
+      canvas: lCanvas,
+      attachment: new attachment_1.Attachment(this.mGpu, lFormat, lLayerCount)
     };
     // Set attachment.
     this.mAttachments.set(pAttachment.name, lAttachment);
@@ -2417,8 +2438,8 @@ class Attachments {
     if (!lAttachment) {
       throw new core_data_1.Exception("No attachment \"".concat(pName, "\" found."), this);
     }
-    // TODO: Cache created attachments.
-    return new attachment_1.Attachment(this.mGpu, lAttachment);
+    // Read cached attachments.
+    return lAttachment.attachment;
   }
   /**
    * Check attachment by name.
@@ -2441,11 +2462,9 @@ class Attachments {
     this.mSize.width = pWidth;
     this.mSize.height = pHeight;
     // Apply with to all created textures.
-    for (var lAttachment of this.mAttachments.values()) {
-      if (lAttachment.frame !== null) {
-        lAttachment.frame.width = this.mSize.width;
-        lAttachment.frame.height = this.mSize.height;
-      }
+    for (var lTexture of this.mTextureGroup.values()) {
+      lTexture.width = this.mSize.width;
+      lTexture.height = this.mSize.height;
     }
   }
   /**
@@ -2474,32 +2493,15 @@ class Attachments {
         });
       }
       // Get group and add attachment.
-      var lGroup = lGroups.get(lGroupName);
-      lGroup.attachments.push(lAttachment);
-      // Check for group changes only when the group is not already set for an update.
-      if (!lGroup.updatedNeeded && lAttachment.frame === null) {
-        lGroup.updatedNeeded = true;
-      }
+      lGroups.get(lGroupName).attachments.push(lAttachment);
     }
-    // Check empty attachment groups.
-    for (var _lGroupName of this.mAttachmentGroup.keys()) {
-      if (!lGroups.has(_lGroupName)) {
-        // Set empty default group.
-        lGroups.set(_lGroupName, {
-          name: _lGroupName,
-          format: 'bgra8unorm',
-          attachments: new Array(),
-          updatedNeeded: true,
-          canvas: null
-        });
-      }
-    }
+    // Groups cant be empty, as there is no detele attachment.
     // Check attachment count difference since last grouping.
-    for (var _lGroup of lGroups.values()) {
-      if (_lGroup.attachments.length !== this.mAttachmentGroup.get(_lGroup.name)) {
-        _lGroup.updatedNeeded = true;
+    for (var lGroup of lGroups.values()) {
+      if (lGroup.attachments.length !== this.mAttachmentGroup.get(lGroup.name)) {
+        lGroup.updatedNeeded = true;
         // Update group value.
-        this.mAttachmentGroup.set(_lGroup.name, _lGroup.attachments.length);
+        this.mAttachmentGroup.set(lGroup.name, lGroup.attachments.length);
       }
     }
     return [...lGroups.values()];
@@ -2547,8 +2549,8 @@ class Attachments {
         // Create views from same texture.
         var lCurrentLayer = 0;
         for (var lAttachment of lGroup.attachments) {
-          lAttachment.frame = lTexture;
-          lAttachment.baseArrayLayer = lCurrentLayer;
+          // Update attachment texture.
+          lAttachment.attachment.updateTexture(lTexture, lCurrentLayer);
           // Increment layer.
           lCurrentLayer += lAttachment.layers;
         }
@@ -2726,28 +2728,36 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Attachment = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
 var gpu_native_object_1 = __webpack_require__(/*! ../../gpu-native-object */ "./source/core/gpu-native-object.ts");
 class Attachment extends gpu_native_object_1.GpuNativeObject {
   /**
    * constructor.
    * @param pAttachment - Attachment.
    */
-  constructor(pGpu, pAttachment) {
+  constructor(pGpu, pFormat, pLayers) {
     super(pGpu, 'ATTACHMENT');
-    this.mAttachment = pAttachment;
-    this.mOldTextureId = '';
+    this.mFormat = pFormat;
+    this.mLayers = pLayers;
+    // Set default.
+    this.mTexture = null;
+    this.mBaseArrayLayer = 0;
   }
   /**
    * Get texture format.
    */
   get format() {
-    return this.mAttachment.format;
+    return this.mFormat;
   }
-  /**
-   * Attachment definition.
-   */
-  get attachment() {
-    return this.mAttachment;
+  updateTexture(pTexture, pBaseArrayLayer) {
+    // Remove old and add new texture as internal native.
+    if (this.mTexture) {
+      this.unregisterInternalNative(this.mTexture);
+    }
+    this.registerInternalNative(pTexture);
+    // Set new texture informations.
+    this.mBaseArrayLayer = pBaseArrayLayer;
+    this.mTexture = pTexture;
   }
   /**
    * Destory native object.
@@ -2762,32 +2772,19 @@ class Attachment extends gpu_native_object_1.GpuNativeObject {
   generate() {
     var _this = this;
     return _asyncToGenerator(function* () {
-      var lTexture = yield _this.attachment.frame.native();
+      // Validate texture.
+      if (!_this.mTexture) {
+        throw new core_data_1.Exception("Attachment \"".concat(_this.label, "\" has no texture."), _this);
+      }
+      var lTexture = yield _this.mTexture.native();
       // Generate view.
       var lView = lTexture.createView({
-        label: 'Texture-View' + _this.attachment.frame.label,
+        label: 'Texture-View' + _this.mTexture.label,
         dimension: '2d',
-        baseArrayLayer: _this.attachment.baseArrayLayer,
-        arrayLayerCount: _this.attachment.layers
+        baseArrayLayer: _this.mBaseArrayLayer,
+        arrayLayerCount: _this.mLayers
       });
       return lView;
-    })();
-  }
-  /**
-   * Validate native object. Refresh native on negative state.
-   */
-  validateState() {
-    var _this2 = this;
-    return _asyncToGenerator(function* () {
-      // Problem can not be solved with native object change listener,
-      // as attachment.frame is not readonly and can be replaced with other textures when needed.
-      // So checking for changes with the nativeId is the fastes way, without generating the native texture.
-      // Validate for new generated texture.
-      if ((yield _this2.mAttachment.frame.nativeId()) !== _this2.mOldTextureId) {
-        _this2.mOldTextureId = yield _this2.mAttachment.frame.nativeId();
-        return false;
-      }
-      return true;
     })();
   }
 }
@@ -3218,8 +3215,8 @@ class RenderPipeline extends gpu_native_object_1.GpuNativeObject {
         for (var lRenderTarget of _this.mRenderPass.colorAttachments) {
           lFragmentTargetList.push({
             format: lRenderTarget.format
-            // blend?: GPUBlendState;   // TODO:
-            // writeMask?: GPUColorWriteFlags; // TODO:
+            // blend?: GPUBlendState;   // TODO: GPUBlendState
+            // writeMask?: GPUColorWriteFlags; // TODO: GPUColorWriteFlags
           });
         }
 
@@ -9844,7 +9841,7 @@ exports.TypeUtil = TypeUtil;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("fb35861c8fb11717eaf0")
+/******/ 		__webpack_require__.h = () => ("02bdc23b96fddd67f828")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

@@ -52,13 +52,6 @@ export class Attachments {
             throw new Exception(`Attachment "${pAttachment.name}" already exists.`, this);
         }
 
-        // Validate canvas settings.
-        if ('canvas' in pAttachment) {
-            if (typeof pAttachment.layers !== 'undefined' && pAttachment.layers !== 1) {
-                throw new Exception('Invalid layer count on canvas attachment. Only one layer allowed.', this);
-            }
-        }
-
         // Auto detect format.
         const lFormat: GPUTextureFormat = pAttachment.format ?? window.navigator.gpu.getPreferredCanvasFormat();
 
@@ -70,15 +63,17 @@ export class Attachments {
             lCanvas = pAttachment.canvas;
         }
 
+        // Apply default value for layer count.
+        const lLayerCount: number = (<TextureAttachmentDescription>pAttachment).layers ?? 1;
+
         // Force default for attachment
         const lAttachment: AttachmentData = {
             type: lType,
-            frame: null,
             name: pAttachment.name,
             format: lFormat,
-            layers: pAttachment.layers ?? 1, // Apply default value.
-            baseArrayLayer: null,
-            canvas: lCanvas
+            layers: lLayerCount,
+            canvas: lCanvas,
+            attachment: new Attachment(this.mGpu, lFormat, lLayerCount)
         };
 
         // Set attachment.
@@ -104,8 +99,8 @@ export class Attachments {
             throw new Exception(`No attachment "${pName}" found.`, this);
         }
 
-        // TODO: Cache created attachments.
-        return new Attachment(this.mGpu, <ExportAttachmentData>lAttachment);
+        // Read cached attachments.
+        return lAttachment.attachment;
     }
 
     /**
@@ -132,11 +127,9 @@ export class Attachments {
         this.mSize.height = pHeight;
 
         // Apply with to all created textures.
-        for (const lAttachment of this.mAttachments.values()) {
-            if (lAttachment.frame !== null) {
-                lAttachment.frame.width = this.mSize.width;
-                lAttachment.frame.height = this.mSize.height;
-            }
+        for (const lTexture of this.mTextureGroup.values()) {
+            lTexture.width = this.mSize.width;
+            lTexture.height = this.mSize.height;
         }
     }
 
@@ -169,28 +162,10 @@ export class Attachments {
             }
 
             // Get group and add attachment.
-            const lGroup = lGroups.get(lGroupName)!;
-            lGroup.attachments.push(lAttachment);
-
-            // Check for group changes only when the group is not already set for an update.
-            if (!lGroup.updatedNeeded && lAttachment.frame === null) {
-                lGroup.updatedNeeded = true;
-            }
+            lGroups.get(lGroupName)!.attachments.push(lAttachment);
         }
 
-        // Check empty attachment groups.
-        for (const lGroupName of this.mAttachmentGroup.keys()) {
-            if (!lGroups.has(lGroupName)) {
-                // Set empty default group.
-                lGroups.set(lGroupName, {
-                    name: lGroupName,
-                    format: 'bgra8unorm',
-                    attachments: new Array<AttachmentData>(),
-                    updatedNeeded: true,
-                    canvas: null
-                });
-            }
-        }
+        // Groups cant be empty, as there is no detele attachment.
 
         // Check attachment count difference since last grouping.
         for (const lGroup of lGroups.values()) {
@@ -249,8 +224,8 @@ export class Attachments {
                 // Create views from same texture.
                 let lCurrentLayer: number = 0;
                 for (const lAttachment of lGroup.attachments) {
-                    lAttachment.frame = lTexture;
-                    lAttachment.baseArrayLayer = lCurrentLayer;
+                    // Update attachment texture.
+                    lAttachment.attachment.updateTexture(lTexture, lCurrentLayer);
 
                     // Increment layer.
                     lCurrentLayer += lAttachment.layers;
@@ -277,18 +252,11 @@ type AttachmentGroup = {
 
 type AttachmentData = {
     type: AttachmentType,
-    frame: ITexture | null;
     name: string,
     format: GPUTextureFormat;
     layers: GPUIntegerCoordinate;
-    baseArrayLayer: number | null;
     canvas: HTMLCanvasElement | null;
-};
-
-// Exported attachment data has never any nullish frame or canvas information.
-type ExportAttachmentData = Omit<Omit<Omit<AttachmentData, 'baseArrayLayer'>, 'canvas'>, 'frame'> & {
-    frame: ITexture;
-    baseArrayLayer: number;
+    attachment: Attachment;
 };
 
 // Descriptive data.
@@ -297,7 +265,6 @@ export type CanvasAttachmentDescription = {
     canvas: HTMLCanvasElement;
     name: string,
     format?: GPUTextureFormat;
-    layers?: GPUIntegerCoordinate;
 };
 export type TextureAttachmentDescription = {
     type: AttachmentType.Color | AttachmentType.Depth | AttachmentType.Stencil,

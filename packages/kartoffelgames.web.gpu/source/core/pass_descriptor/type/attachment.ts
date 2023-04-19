@@ -1,34 +1,45 @@
+import { Exception } from '@kartoffelgames/core.data';
 import { Gpu } from '../../gpu';
 import { GpuNativeObject } from '../../gpu-native-object';
 import { ITexture } from '../../resource/texture/i-texture.interface';
-import { AttachmentType } from '../attachment-type.enum';
 
 export class Attachment extends GpuNativeObject<GPUTextureView>{
-    private readonly mAttachment: AttachmentDefinition;
-    private mOldTextureId: string;
+    private mBaseArrayLayer: number;
+    private readonly mFormat: GPUTextureFormat;
+    private readonly mLayers: GPUIntegerCoordinate;
+    private mTexture: ITexture | null;
 
     /**
      * Get texture format.
      */
     public get format(): GPUTextureFormat {
-        return this.mAttachment.format;
-    }
-
-    /**
-     * Attachment definition.
-     */
-    protected get attachment(): AttachmentDefinition {
-        return this.mAttachment;
+        return this.mFormat;
     }
 
     /**
      * constructor.
      * @param pAttachment - Attachment.
      */
-    public constructor(pGpu: Gpu, pAttachment: AttachmentDefinition) {
+    public constructor(pGpu: Gpu, pFormat: GPUTextureFormat, pLayers: number) {
         super(pGpu, 'ATTACHMENT');
-        this.mAttachment = pAttachment;
-        this.mOldTextureId = '';
+        this.mFormat = pFormat;
+        this.mLayers = pLayers;
+
+        // Set default.
+        this.mTexture = null;
+        this.mBaseArrayLayer = 0;
+    }
+
+    public updateTexture(pTexture: ITexture, pBaseArrayLayer: number): void {
+        // Remove old and add new texture as internal native.
+        if (this.mTexture) {
+            this.unregisterInternalNative(this.mTexture);
+        }
+        this.registerInternalNative(pTexture);
+
+        // Set new texture informations.
+        this.mBaseArrayLayer = pBaseArrayLayer;
+        this.mTexture = pTexture;
     }
 
     /**
@@ -43,41 +54,27 @@ export class Attachment extends GpuNativeObject<GPUTextureView>{
      * Generate color attachment.
      */
     protected async generate(): Promise<GPUTextureView> {
-        const lTexture: GPUTexture = await this.attachment.frame.native();
+        // Validate texture.
+        if (!this.mTexture) {
+            throw new Exception(`Attachment "${this.label}" has no texture.`, this);
+        }
+
+        const lTexture: GPUTexture = await this.mTexture.native();
 
         // Generate view.
         const lView: GPUTextureView = lTexture.createView({
-            label: 'Texture-View' + this.attachment.frame.label,
+            label: 'Texture-View' + this.mTexture.label,
             dimension: '2d',
-            baseArrayLayer: this.attachment.baseArrayLayer,
-            arrayLayerCount: this.attachment.layers,
+            baseArrayLayer: this.mBaseArrayLayer,
+            arrayLayerCount: this.mLayers,
         });
 
         return lView;
     }
-
-    /**
-     * Validate native object. Refresh native on negative state.
-     */
-    protected override async validateState(): Promise<boolean> {
-        // Problem can not be solved with native object change listener,
-        // as attachment.frame is not readonly and can be replaced with other textures when needed.
-        // So checking for changes with the nativeId is the fastes way, without generating the native texture.
-
-        // Validate for new generated texture.
-        if (await this.mAttachment.frame.nativeId() !== this.mOldTextureId) {
-            this.mOldTextureId = await this.mAttachment.frame.nativeId();
-            return false;
-        }
-
-        return true;
-    }
 }
 
 export type AttachmentDefinition = {
-    type: AttachmentType,
     frame: ITexture;
-    name: string,
     format: GPUTextureFormat;
     layers: GPUIntegerCoordinate;
     baseArrayLayer: number;

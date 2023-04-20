@@ -180,14 +180,6 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     }
 
     /**
-     * Destory and free storage of native object.
-     * @param _pNativeObject - Native layout object.
-     */
-    protected async destroyNative(_pNativeObject: GPUBindGroupLayout): Promise<void> {
-        // No action needed.
-    }
-
-    /**
      * Generate layout.
      */
     protected async generate(): Promise<GPUBindGroupLayout> {

@@ -169,14 +169,6 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
     }
 
     /**
-     * Destroy texture sampler.
-     * @param _pNativeObject - Native object. 
-     */
-    protected async destroyNative(_pNativeObject: GPUSampler): Promise<void> {
-        // No action needed.
-    }
-
-    /**
      * Generate txture sampler.
      */
     protected async generate(): Promise<GPUSampler> {

@@ -45,14 +45,6 @@ export class ExternalTexture extends GpuNativeObject<GPUExternalTexture> {
     }
 
     /**
-     * Destroy external texture.
-     * @param _pNativeObject - Native object. 
-     */
-    protected async destroyNative(_pNativeObject: GPUExternalTexture): Promise<void> {
-        // No action needed.
-    }
-
-    /**
      * Generate new external texture.
      */
     protected async generate(): Promise<GPUExternalTexture> {

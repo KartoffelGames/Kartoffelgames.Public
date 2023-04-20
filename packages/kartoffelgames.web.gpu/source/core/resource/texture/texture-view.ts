@@ -114,14 +114,6 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
     }
 
     /**
-     * Destroy native view object.
-     * @param _pNativeObject - Native view object.
-     */
-    protected async destroyNative(_pNativeObject: GPUTextureView): Promise<void> {
-        // No action needed.
-    }
-
-    /**
      * Generate new texture view.
      */
     protected async generate(): Promise<GPUTextureView> {

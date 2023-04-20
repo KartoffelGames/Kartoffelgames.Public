@@ -43,14 +43,6 @@ export class Attachment extends GpuNativeObject<GPUTextureView>{
     }
 
     /**
-     * Destory native object.
-     * @param _pNativeObject - Native object.
-     */
-    protected async destroyNative(_pNativeObject: GPUTextureView): Promise<void> {
-        // Nothing needed here.
-    }
-
-    /**
      * Generate color attachment.
      */
     protected async generate(): Promise<GPUTextureView> {

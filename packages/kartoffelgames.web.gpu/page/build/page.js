@@ -2604,7 +2604,7 @@ class RenderPassDescriptor extends gpu_native_object_1.GpuNativeObject {
   get colorAttachments() {
     var lTargets = new Array();
     for (var lColorAttachment of this.mColorAttachments) {
-      lTargets.push(this.mAttachments.getAttachment(lColorAttachment.attachmentName));
+      lTargets.push(lColorAttachment.attachment);
     }
     return lTargets;
   }
@@ -2615,7 +2615,7 @@ class RenderPassDescriptor extends gpu_native_object_1.GpuNativeObject {
     if (!this.mDepthStencilAttachment) {
       return undefined;
     }
-    return this.mAttachments.getAttachment(this.mDepthStencilAttachment.attachmentName);
+    return this.mDepthStencilAttachment.attachment;
   }
   /**
    * Set color attachment.
@@ -2629,9 +2629,15 @@ class RenderPassDescriptor extends gpu_native_object_1.GpuNativeObject {
     if (!this.mAttachments.hasAttachment(pAttachmentName)) {
       throw new core_data_1.Exception("Attachment \"".concat(pAttachmentName, "\" does not exist."), this);
     }
+    var lAttachment = this.mAttachments.getAttachment(pAttachmentName);
+    // Update internal object.
+    if (this.mColorAttachments[pLocation]) {
+      this.unregisterInternalNative(this.mColorAttachments[pLocation].attachment);
+    }
+    this.registerInternalNative(lAttachment);
     // Setup depth attachment.
     this.mColorAttachments[pLocation] = {
-      attachmentName: pAttachmentName,
+      attachment: lAttachment,
       clearValue: pClearValue,
       loadOp: pLoadOp !== null && pLoadOp !== void 0 ? pLoadOp : 'clear',
       storeOp: pStoreOp !== null && pStoreOp !== void 0 ? pStoreOp : 'store' // Apply default value.
@@ -2651,9 +2657,15 @@ class RenderPassDescriptor extends gpu_native_object_1.GpuNativeObject {
     if (!this.mAttachments.hasAttachment(pAttachmentName)) {
       throw new core_data_1.Exception("Attachment \"".concat(pAttachmentName, "\" does not exist."), this);
     }
+    var lAttachment = this.mAttachments.getAttachment(pAttachmentName);
+    // Update internal object.
+    if (this.mDepthStencilAttachment) {
+      this.unregisterInternalNative(this.mDepthStencilAttachment.attachment);
+    }
+    this.registerInternalNative(lAttachment);
     // Setup depth attachment.
     this.mDepthStencilAttachment = {
-      attachmentName: pAttachmentName,
+      attachment: lAttachment,
       clearValue: pClearValue,
       loadOp: pLoadOp !== null && pLoadOp !== void 0 ? pLoadOp : 'clear',
       storeOp: pStoreOp !== null && pStoreOp !== void 0 ? pStoreOp : 'store' // Apply default value.
@@ -2677,9 +2689,8 @@ class RenderPassDescriptor extends gpu_native_object_1.GpuNativeObject {
       // Create color attachments.
       var lColorAttachments = new Array();
       for (var lColorAttachment of _this.mColorAttachments) {
-        var lAttachment = _this.mAttachments.getAttachment(lColorAttachment.attachmentName);
         lColorAttachments.push({
-          view: yield lAttachment.native(),
+          view: yield lColorAttachment.attachment.native(),
           clearValue: lColorAttachment.clearValue,
           loadOp: lColorAttachment.loadOp,
           storeOp: lColorAttachment.storeOp
@@ -2691,9 +2702,8 @@ class RenderPassDescriptor extends gpu_native_object_1.GpuNativeObject {
       };
       // Set optional depth attachment.
       if (_this.mDepthStencilAttachment) {
-        var _lAttachment = _this.mAttachments.getAttachment(_this.mDepthStencilAttachment.attachmentName);
         lDescriptor.depthStencilAttachment = {
-          view: yield _lAttachment.native(),
+          view: yield _this.mDepthStencilAttachment.attachment.native(),
           depthClearValue: _this.mDepthStencilAttachment.clearValue,
           depthLoadOp: _this.mDepthStencilAttachment.loadOp,
           depthStoreOp: _this.mDepthStencilAttachment.storeOp
@@ -2702,13 +2712,7 @@ class RenderPassDescriptor extends gpu_native_object_1.GpuNativeObject {
       return lDescriptor;
     })();
   }
-  validateState(_pNativeObject) {
-    return _asyncToGenerator(function* () {
-      return false; // TODO: Register attachment as native.
-    })();
-  }
 }
-
 exports.RenderPassDescriptor = RenderPassDescriptor;
 
 /***/ }),
@@ -9841,7 +9845,7 @@ exports.TypeUtil = TypeUtil;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("02bdc23b96fddd67f828")
+/******/ 		__webpack_require__.h = () => ("e314e1a123aee60f947e")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

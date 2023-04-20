@@ -132,7 +132,7 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
      * Destroy native object.
      * @param pNativeObject - Native object.
      */
-    protected async destroyNative(pNativeObject: GPUTexture): Promise<void> {
+    protected override async destroyNative(pNativeObject: GPUTexture): Promise<void> {
         pNativeObject.destroy();
     }
 

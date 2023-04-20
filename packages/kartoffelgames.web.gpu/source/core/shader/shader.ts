@@ -62,14 +62,6 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
         };
     }
 
-    /**
-     * Destory native object.
-     * @param _pNativeObject - Native object.
-     */
-    protected async destroyNative(_pNativeObject: GPUShaderModule): Promise<void> {
-        /* Nothing to destroy */
-    }
-
     /***
      * Generate shader module.
      */

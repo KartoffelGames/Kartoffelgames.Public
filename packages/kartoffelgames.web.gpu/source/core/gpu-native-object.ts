@@ -4,7 +4,7 @@ import { Gpu } from './gpu';
 /**
  * Gpu native object.
  */
-export abstract class GpuNativeObject<T> {
+export abstract class GpuNativeObject<T extends object> {
     private readonly mChangeListener: Dictionary<GpuNativeObject<any>, GenericListener>;
     private readonly mGpu: Gpu;
     private mInternalNativeChanged: boolean;
@@ -102,6 +102,13 @@ export abstract class GpuNativeObject<T> {
         await this.native();
 
         return this.mNativeObjectId;
+    }
+
+    /**
+     * Destroy object.
+     */
+    protected async destroyNative(_pNativeObject: T): Promise<void> {
+        // Nothing to destroy. :)
     }
 
     /**
@@ -203,11 +210,6 @@ export abstract class GpuNativeObject<T> {
     private unregisterChangeListener(pReferrer: GpuNativeObject<any>): void {
         this.mChangeListener.delete(pReferrer);
     }
-
-    /**
-     * Destory object.
-     */
-    protected abstract destroyNative(pNativeObject: T): Promise<void>;
 
     /**
      * Generate native object.

@@ -186,14 +186,6 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
     }
 
     /**
-     * Free storage of native object.
-     * @param _pNativeObject - Native object. 
-     */
-    protected async destroyNative(_pNativeObject: GPURenderPipeline): Promise<void> {
-        // Nothing to destroy.
-    }
-
-    /**
      * Generate native render pipeline.
      */
     protected async generate(): Promise<GPURenderPipeline> {

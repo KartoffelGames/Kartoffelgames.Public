@@ -58,14 +58,6 @@ export class BindGroups extends GpuNativeObject<GPUPipelineLayoutDescriptor>{
     }
 
     /**
-     * Ddesctroy native object.
-     * @param _pNativeObject - Native object.
-     */
-    protected async destroyNative(_pNativeObject: GPUPipelineLayoutDescriptor): Promise<void> {
-        /* Nothing to destroy. */
-    }
-
-    /**
      * Generate native object.
      */
     protected async generate(): Promise<GPUPipelineLayoutDescriptor> {

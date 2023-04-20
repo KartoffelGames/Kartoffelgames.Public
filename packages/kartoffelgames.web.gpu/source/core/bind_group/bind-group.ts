@@ -62,14 +62,6 @@ export class BindGroup extends GpuNativeObject<GPUBindGroup>{
     }
 
     /**
-     * Free storage of native object.
-     * @param _pNativeObject - Native object. 
-     */
-    protected async destroyNative(_pNativeObject: GPUBindGroup): Promise<void> {
-        // Nothing to destroy.
-    }
-
-    /**
      * Generate native bind group.
      */
     protected async generate(): Promise<GPUBindGroup> {

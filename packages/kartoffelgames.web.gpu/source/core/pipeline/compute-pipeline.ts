@@ -52,14 +52,6 @@ export class ComputePipeline extends GpuNativeObject<GPUComputePipeline> impleme
     }
 
     /**
-     * Free storage of native object.
-     * @param _pNativeObject - Native object. 
-     */
-    protected async destroyNative(_pNativeObject: GPUComputePipeline): Promise<void> {
-        // Nothing to destroy.
-    }
-
-    /**
      * Generate native render pipeline.
      */
     protected async generate(): Promise<GPUComputePipeline> {

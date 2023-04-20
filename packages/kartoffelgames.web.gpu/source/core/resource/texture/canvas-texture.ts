@@ -103,14 +103,6 @@ export class CanvasTexture extends GpuNativeObject<GPUTexture> implements ITextu
     }
 
     /**
-     * Destory native gpu texture.
-     * @param _pNativeObject - Native gpu texture.
-     */
-    protected async destroyNative(_pNativeObject: GPUTexture): Promise<void> {
-        // No Action needed for Canvas generated textures.
-    }
-
-    /**
      * Get current canvas texture.
      */
     protected async generate(): Promise<GPUTexture> {

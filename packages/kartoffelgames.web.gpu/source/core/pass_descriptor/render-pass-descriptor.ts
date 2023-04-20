@@ -113,14 +113,6 @@ export class RenderPassDescriptor extends GpuNativeObject<GPURenderPassDescripto
     }
 
     /**
-     * Destory native object.
-     * @param _pNativeObject - Native object.
-     */
-    protected override async destroyNative(_pNativeObject: GPURenderPassDescriptor): Promise<void> {
-        // Nothing to destroy.
-    }
-
-    /**
      * Generate render pass descriptor.
      */
     protected override async generate(): Promise<GPURenderPassDescriptor> {

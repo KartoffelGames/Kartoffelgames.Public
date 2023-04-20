@@ -15,7 +15,7 @@ export class RenderPassDescriptor extends GpuNativeObject<GPURenderPassDescripto
     public get colorAttachments(): Array<Attachment> {
         const lTargets: Array<Attachment> = new Array<Attachment>();
         for (const lColorAttachment of this.mColorAttachments) {
-            lTargets.push(this.mAttachments.getAttachment(lColorAttachment.attachmentName));
+            lTargets.push(lColorAttachment.attachment);
         }
 
         return lTargets;
@@ -29,7 +29,7 @@ export class RenderPassDescriptor extends GpuNativeObject<GPURenderPassDescripto
             return undefined;
         }
 
-        return this.mAttachments.getAttachment(this.mDepthStencilAttachment.attachmentName);
+        return this.mDepthStencilAttachment.attachment;
     }
 
     /**
@@ -61,9 +61,17 @@ export class RenderPassDescriptor extends GpuNativeObject<GPURenderPassDescripto
             throw new Exception(`Attachment "${pAttachmentName}" does not exist.`, this);
         }
 
+        const lAttachment: Attachment = this.mAttachments.getAttachment(pAttachmentName);
+
+        // Update internal object.
+        if (this.mColorAttachments[pLocation]) {
+            this.unregisterInternalNative(this.mColorAttachments[pLocation].attachment);
+        }
+        this.registerInternalNative(lAttachment);
+
         // Setup depth attachment.
         this.mColorAttachments[pLocation] = {
-            attachmentName: pAttachmentName,
+            attachment: lAttachment,
             clearValue: pClearValue,
             loadOp: pLoadOp ?? 'clear', // Apply default value.
             storeOp: pStoreOp ?? 'store', // Apply default value.
@@ -85,9 +93,17 @@ export class RenderPassDescriptor extends GpuNativeObject<GPURenderPassDescripto
             throw new Exception(`Attachment "${pAttachmentName}" does not exist.`, this);
         }
 
+        const lAttachment: Attachment = this.mAttachments.getAttachment(pAttachmentName);
+
+        // Update internal object.
+        if (this.mDepthStencilAttachment) {
+            this.unregisterInternalNative(this.mDepthStencilAttachment.attachment);
+        }
+        this.registerInternalNative(lAttachment);
+
         // Setup depth attachment.
         this.mDepthStencilAttachment = {
-            attachmentName: pAttachmentName,
+            attachment: lAttachment,
             clearValue: pClearValue,
             loadOp: pLoadOp ?? 'clear', // Apply default value.
             storeOp: pStoreOp ?? 'store', // Apply default value.
@@ -111,9 +127,8 @@ export class RenderPassDescriptor extends GpuNativeObject<GPURenderPassDescripto
         // Create color attachments.
         const lColorAttachments: Array<GPURenderPassColorAttachment> = new Array<GPURenderPassColorAttachment>();
         for (const lColorAttachment of this.mColorAttachments) {
-            const lAttachment: Attachment = this.mAttachments.getAttachment(lColorAttachment.attachmentName);
             lColorAttachments.push({
-                view: await lAttachment.native(),
+                view: await lColorAttachment.attachment.native(),
                 clearValue: lColorAttachment.clearValue,
                 loadOp: lColorAttachment.loadOp,
                 storeOp: lColorAttachment.storeOp
@@ -127,9 +142,8 @@ export class RenderPassDescriptor extends GpuNativeObject<GPURenderPassDescripto
 
         // Set optional depth attachment.
         if (this.mDepthStencilAttachment) {
-            const lAttachment: Attachment = this.mAttachments.getAttachment(this.mDepthStencilAttachment.attachmentName);
             lDescriptor.depthStencilAttachment = {
-                view: await lAttachment.native(),
+                view: await this.mDepthStencilAttachment.attachment.native(),
                 depthClearValue: this.mDepthStencilAttachment.clearValue,
                 depthLoadOp: this.mDepthStencilAttachment.loadOp,
                 depthStoreOp: this.mDepthStencilAttachment.storeOp
@@ -138,21 +152,17 @@ export class RenderPassDescriptor extends GpuNativeObject<GPURenderPassDescripto
 
         return lDescriptor;
     }
-
-    protected override async validateState(_pNativeObject: GPURenderPassDescriptor): Promise<boolean> {
-        return false; // TODO: Register attachment as native.
-    }
 }
 
 type RenderPassColorAttachment = {
-    attachmentName: string,
+    attachment: Attachment,
     clearValue: GPUColor;
     loadOp: GPULoadOp;
     storeOp: GPUStoreOp;
 };
 
 type RenderPassDepthStencilAttachment = {
-    attachmentName: string,
+    attachment: Attachment,
     clearValue: number;
     loadOp: GPULoadOp;
     storeOp: GPUStoreOp;

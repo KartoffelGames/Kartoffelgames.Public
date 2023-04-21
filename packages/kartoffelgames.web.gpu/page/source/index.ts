@@ -254,9 +254,7 @@ import { RenderPassDescriptor } from '../../source/core/pass_descriptor/render-p
 
 
     // Setup object render.
-    const lObjectRenderInstruction: RenderSingleInstruction = new RenderSingleInstruction();
-    await lObjectRenderInstruction.setPipeline(lPipeline);
-    await lObjectRenderInstruction.setMesh(lMesh);
+    const lObjectRenderInstruction: RenderSingleInstruction = new RenderSingleInstruction(lPipeline, lMesh);
     lObjectRenderInstruction.setBindGroup(0, lBindGroup);
 
     lInstructionExecutioner.addInstruction(lObjectRenderInstruction);

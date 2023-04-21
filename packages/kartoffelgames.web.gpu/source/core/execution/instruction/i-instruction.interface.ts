@@ -19,12 +19,6 @@ export interface IInstruction {
      */
     setBindGroup(pIndex: number, pBindGroup: BindGroup): Promise<void>
 
-    /**
-     * Set instruction pipeline.
-     * @param pPipeline - Pipeline.
-     */
-    setPipeline(pPipeline: IPipeline): Promise<void>
-
     // TODO: Validate...
 }
 

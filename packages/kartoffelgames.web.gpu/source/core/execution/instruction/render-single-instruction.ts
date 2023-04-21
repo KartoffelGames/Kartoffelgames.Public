@@ -7,8 +7,8 @@ import { IInstruction } from './i-instruction.interface';
 
 export class RenderSingleInstruction implements IInstruction {
     private readonly mBindGroups: Dictionary<number, BindGroup>;
-    private mMesh: RenderMesh | null;
-    private mPipeline: RenderPipeline | null;
+    private readonly mMesh: RenderMesh;
+    private readonly mPipeline: RenderPipeline;
 
     // TODO: Set  GPURenderPassEncoder.setScissorRect
 
@@ -28,10 +28,6 @@ export class RenderSingleInstruction implements IInstruction {
      * Instruction mesh.
      */
     public get mesh(): RenderMesh {
-        if (!this.mMesh) {
-            throw new Exception('Mesh not set.', this);
-        }
-
         return this.mMesh;
     }
 
@@ -39,49 +35,16 @@ export class RenderSingleInstruction implements IInstruction {
      * Instructions render pipeline.
      */
     public get pipeline(): RenderPipeline {
-        if (!this.mPipeline) {
-            throw new Exception('Pipeline not set.', this);
-        }
-
         return this.mPipeline;
     }
 
     /**
      * Constructor.
      */
-    public constructor() {
+    public constructor(pPipeline: RenderPipeline, pMesh: RenderMesh) {
         this.mBindGroups = new Dictionary<number, BindGroup>();
-        this.mMesh = null;
-        this.mPipeline = null;
-    }
-
-    /**
-     * Set bind group of pipeline.
-     * @param pBindGroup - Bind group.
-     */
-    public async setBindGroup(pIndex: number, pBindGroup: BindGroup): Promise<void> {
-        // Validate pipeline existance.
-        if (!this.mPipeline) {
-            throw new Exception(`Can't set bind group without set pipeline.`, this);
-        }
-
-        // Validate bind group layout.
-        if (this.mPipeline.shader.bindGroups.getGroup(pIndex) !== pBindGroup.layout) {
-            throw new Exception(`Bind data layout not matched with pipeline bind group layout.`, this);
-        }
-
-        this.mBindGroups.set(pIndex, pBindGroup);
-    }
-
-    /**
-     * Set mesh to render.
-     * @param pMesh - Mesh to render.
-     */
-    public async setMesh(pMesh: RenderMesh): Promise<void> {
-        // Validate pipeline existance.
-        if (!this.mPipeline) {
-            throw new Exception(`Can't set mesh without set pipeline.`, this);
-        }
+        this.mMesh = pMesh;
+        this.mPipeline = pPipeline;
 
         // Validate mesh and pipeline attributes length.
         if (pMesh.attributesCount !== this.mPipeline.shader.vertexEntryPoint?.attributes.length) {
@@ -96,18 +59,18 @@ export class RenderSingleInstruction implements IInstruction {
                 throw new Exception(`Mesh attributes does not match pipeline attributes`, this);
             }
         }
-
-        this.mMesh = pMesh;
     }
 
     /**
-     * Set render pipeline. Clears group binds.
-     * @param pPipeline - Render pipeline.
+     * Set bind group of pipeline.
+     * @param pBindGroup - Bind group.
      */
-    public async setPipeline(pPipeline: RenderPipeline): Promise<void> {
-        this.mPipeline = pPipeline;
+    public async setBindGroup(pIndex: number, pBindGroup: BindGroup): Promise<void> {
+        // Validate bind group layout.
+        if (this.mPipeline.shader.bindGroups.getGroup(pIndex) !== pBindGroup.layout) {
+            throw new Exception(`Bind data layout not matched with pipeline bind group layout.`, this);
+        }
 
-        // Clear binds.
-        this.mBindGroups.clear();
+        this.mBindGroups.set(pIndex, pBindGroup);
     }
 } 

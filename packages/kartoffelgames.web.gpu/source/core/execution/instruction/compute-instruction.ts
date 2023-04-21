@@ -5,7 +5,7 @@ import { IInstruction } from './i-instruction.interface';
 
 export class ComputeShader implements IInstruction {
     private readonly mBindGroups: Dictionary<number, BindGroup>;
-    private mPipeline: ComputePipeline | null;
+    private readonly mPipeline: ComputePipeline;
 
     /**
      * Get bind groups.
@@ -23,19 +23,15 @@ export class ComputeShader implements IInstruction {
      * Instructions compute pipeline.
      */
     public get pipeline(): ComputePipeline {
-        if(!this.mPipeline){
-            throw new Exception('Pipeline not set.', this);
-        }
-
         return this.mPipeline;
     }
 
     /**
      * Constructor.
      */
-    public constructor() {
+    public constructor(pPipeline: ComputePipeline) {
         this.mBindGroups = new Dictionary<number, BindGroup>();
-        this.mPipeline = null;
+        this.mPipeline = pPipeline;
     }
 
     /**
@@ -43,27 +39,11 @@ export class ComputeShader implements IInstruction {
      * @param pBindGroup - Bind group.
      */
     public async setBindGroup(pIndex: number, pBindGroup: BindGroup): Promise<void> {
-        // Validate pipeline existance.
-        if (!this.mPipeline) {
-            throw new Exception(`Can't set bind group without set pipeline.`, this);
-        }
-
         // Validate bind group layout.
         if (this.mPipeline.shader.bindGroups.getGroup(pIndex) !== pBindGroup.layout) {
             throw new Exception(`Bind data layout not matched with pipeline bind group layout.`, this);
         }
 
         this.mBindGroups.set(pIndex, pBindGroup);
-    }
-
-    /**
-     * Set compute pipeline. Clears group binds.
-     * @param pPipeline - Compute pipeline.
-     */
-    public async setPipeline(pPipeline: ComputePipeline): Promise<void> {
-        this.mPipeline = pPipeline;
-
-        // Clear binds.
-        this.mBindGroups.clear();
     }
 }

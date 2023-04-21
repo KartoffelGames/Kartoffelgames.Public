@@ -12,7 +12,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
     private readonly mPipelineDataChangeState: PipelineDataChangeState;
     private readonly mPrimitive: GPUPrimitiveState;
     private readonly mRenderPass: RenderPassDescriptor;
-    private mShader: Shader | null;
+    private readonly mShader: Shader;
 
     /**
      * Set depth compare function.
@@ -93,9 +93,6 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
      * Shader.
      */
     public get shader(): Shader {
-        if (!this.mShader) {
-            throw new Exception('Shader is not set for this pipeline', this);
-        }
         return this.mShader;
     }
 
@@ -137,14 +134,16 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
      * Constructor.
      * @param pGpu - GPU.
      */
-    public constructor(pGpu: Gpu, pRenderPass: RenderPassDescriptor) {
+    public constructor(pGpu: Gpu, pShader: Shader, pRenderPass: RenderPassDescriptor) {
         super(pGpu, 'RENDER_PIPELINE');
 
         // Set statics.
         this.mRenderPass = pRenderPass;
+        this.registerInternalNative(pRenderPass);
 
-        // Init unassigned properties.
-        this.mShader = null;
+        // Set and register shader.
+        this.mShader = pShader;
+        this.registerInternalNative(pShader);
 
         // Set default values.
         this.mPrimitive = {
@@ -162,27 +161,18 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
             depthAttachment: false,
             attachment: true
         };
-    }
 
-    /**
-     * Set Shader programms for pipeline.
-     * @param pShader - Vertex with optional fragement shader.
-     */
-    public setShader(pShader: Shader): void {
         // Validate vertex shader.
         if (!pShader.vertexEntryPoint) {
             throw new Exception('Vertex shader has no entry point.', this);
         }
 
-        // Unregister old shader and register new.
-        if (this.mShader) {
-            this.unregisterInternalNative(this.mShader);
+        // Validate render pass to has same render target count as fragment.
+        if (pShader.fragmentEntryPoint) {
+            if (pRenderPass.colorAttachments.length !== pShader.fragmentEntryPoint.renderTargetCount) {
+                throw new Exception(`Render pass(${pRenderPass.colorAttachments.length}) and shader(${pShader.fragmentEntryPoint.renderTargetCount}) are having unmatching render targets`, this);
+            }
         }
-        if (pShader) {
-            this.registerInternalNative(pShader);
-        }
-
-        this.mShader = pShader;
     }
 
     /**

@@ -179,17 +179,12 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
      * Generate native render pipeline.
      */
     protected async generate(): Promise<GPURenderPipeline> {
-        // Check valid entry points.
-        if (!this.mShader?.vertexEntryPoint) {
-            throw new Exception('Shadermodule has no vertex entry point.', this);
-        }
-
         // Generate pipeline layout from bind group layouts.
         const lPipelineLayout: GPUPipelineLayoutDescriptor = await this.mShader.bindGroups.native();
 
         // Generate vertex buffer layouts.
         const lVertexBufferLayoutList: Array<GPUVertexBufferLayout> = new Array<GPUVertexBufferLayout>();
-        for (const lAttribute of this.mShader.vertexEntryPoint.attributes) {
+        for (const lAttribute of this.mShader.vertexEntryPoint!.attributes) {
             // Set location offset based on previous  vertex attributes.
             lVertexBufferLayoutList.push(await lAttribute.native());
         }

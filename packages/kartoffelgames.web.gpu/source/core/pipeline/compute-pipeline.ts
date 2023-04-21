@@ -4,17 +4,13 @@ import { GpuNativeObject } from '../gpu-native-object';
 import { Shader } from '../shader/shader';
 import { IPipeline } from './i-pipeline.interface';
 
-export class ComputePipeline extends GpuNativeObject<GPUComputePipeline> implements IPipeline{
-    private mShader: Shader | null;
-    private mShaderChanged: boolean;
+export class ComputePipeline extends GpuNativeObject<GPUComputePipeline> implements IPipeline {
+    private readonly mShader: Shader;
 
     /**
      * Shader.
      */
     public get shader(): Shader {
-        if (!this.mShader) {
-            throw new Exception('Shader is not set for this pipeline', this);
-        }
         return this.mShader;
     }
 
@@ -22,33 +18,12 @@ export class ComputePipeline extends GpuNativeObject<GPUComputePipeline> impleme
      * Constructor.
      * @param pGpu - GPU.
      */
-    public constructor(pGpu: Gpu) {
+    public constructor(pGpu: Gpu, pShader: Shader) {
         super(pGpu, 'COMPUTE_PIPELINE');
 
-        // Init unassigned properties.
-        this.mShaderChanged = true;
-        this.mShader = null;
-    }
-
-    /**
-     * Set Shader programms for pipeline.
-     * @param pShader - Vertex with optional fragement shader.
-     */
-    public setShader(pShader: Shader): void {
-        // Validate vertex shader.
-        if (!pShader.computeEntryPoint) {
-            throw new Exception('Compute shader has no entry point.', this);
-        }
-
-        // Unregister old shader and register new.
-        if (this.mShader) {
-            this.unregisterInternalNative(this.mShader);
-        }
-        if (pShader) {
-            this.registerInternalNative(pShader);
-        }
-
+        // Set and register internal.
         this.mShader = pShader;
+        this.registerInternalNative(pShader);
     }
 
     /**
@@ -74,19 +49,7 @@ export class ComputePipeline extends GpuNativeObject<GPUComputePipeline> impleme
             }
         };
 
-        // Reset change flags.
-        this.mShaderChanged = false;
-
         // Async is none GPU stalling.
         return this.gpu.device.createComputePipelineAsync(lPipelineDescriptor);
-    }
-
-    /**
-     * Invalidate on data change or native data change.s
-     */
-    protected override async validateState(): Promise<boolean> {
-        // Native objects are validated over internal natives.
-
-        return !this.mShaderChanged;
     }
 }

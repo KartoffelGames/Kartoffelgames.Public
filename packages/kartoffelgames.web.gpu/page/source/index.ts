@@ -46,8 +46,7 @@ import { RenderPassDescriptor } from '../../source/core/pass_descriptor/render-p
     lRenderPassDescription.setColorAttachment(0, 'Canvas', { r: 0.5, g: 0.5, b: 0.5, a: 1 });
 
     // Init pipeline.
-    const lPipeline: RenderPipeline = new RenderPipeline(lGpu, lRenderPassDescription);
-    lPipeline.setShader(lShader);
+    const lPipeline: RenderPipeline = new RenderPipeline(lGpu, lShader, lRenderPassDescription);
     lPipeline.primitiveCullMode = 'back';
 
     // Color buffer.

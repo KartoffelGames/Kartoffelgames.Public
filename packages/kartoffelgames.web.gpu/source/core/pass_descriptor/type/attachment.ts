@@ -30,6 +30,11 @@ export class Attachment extends GpuNativeObject<GPUTextureView>{
         this.mBaseArrayLayer = 0;
     }
 
+    /**
+     * Update attachment texture.
+     * @param pTexture - Attachment texture.
+     * @param pBaseArrayLayer - Starting index of first texture layer. 
+     */
     public updateTexture(pTexture: ITexture, pBaseArrayLayer: number): void {
         // Remove old and add new texture as internal native.
         if (this.mTexture) {

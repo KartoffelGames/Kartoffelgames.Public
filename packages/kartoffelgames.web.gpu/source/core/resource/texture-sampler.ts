@@ -10,7 +10,6 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
     private mMaxAnisotropy: number;
     private mMinFilter: GPUFilterMode;
     private mMipmapFilter: GPUMipmapFilterMode;
-    private mUpdateRequested: boolean;
 
     /**
      * When provided the sampler will be a comparison sampler with the specified compare function.
@@ -26,7 +25,7 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
         this.mCompare = pValue;
 
         // Request native rebuild.
-        this.mUpdateRequested = true;
+        this.triggerChange();
     }
 
     /**
@@ -43,7 +42,7 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
         this.mFitMode = pValue;
 
         // Request native rebuild.
-        this.mUpdateRequested = true;
+        this.triggerChange();
     }
 
     /**
@@ -60,7 +59,7 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
         this.mLodMaxClamp = pValue;
         
         // Request native rebuild.
-        this.mUpdateRequested = true;
+        this.triggerChange();
     }
 
     /**
@@ -77,7 +76,7 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
         this.mLodMinClamp = pValue;
         
         // Request native rebuild.
-        this.mUpdateRequested = true;
+        this.triggerChange();
     }
 
     /**
@@ -94,7 +93,7 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
         this.mMagFilter = pValue;
         
         // Request native rebuild.
-        this.mUpdateRequested = true;
+        this.triggerChange();
     }
 
     /**
@@ -111,7 +110,7 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
         this.mMaxAnisotropy = pValue;
         
         // Request native rebuild.
-        this.mUpdateRequested = true;
+        this.triggerChange();
     }
 
     /**
@@ -128,7 +127,7 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
         this.mMinFilter = pValue;
         
         // Request native rebuild.
-        this.mUpdateRequested = true;
+        this.triggerChange();
     }
 
     /**
@@ -145,7 +144,7 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
         this.mMipmapFilter = pValue;
         
         // Request native rebuild.
-        this.mUpdateRequested = true;
+        this.triggerChange();
     }
 
     /**
@@ -154,8 +153,6 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
      */
     public constructor(pGpu: Gpu) {
         super(pGpu, 'TEXTURE_SAMPLER');
-
-        this.mUpdateRequested = false;
 
         // Set defaults.
         this.mCompare = null;
@@ -190,12 +187,5 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
         }
 
         return this.gpu.device.createSampler(lSamplerOptions);
-    }
-
-    /**
-     * Invalidate generated object when proeprties has changed.
-     */
-    protected override async validateState(): Promise<boolean> {
-        return !this.mUpdateRequested;
     }
 }

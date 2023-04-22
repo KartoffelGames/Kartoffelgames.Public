@@ -10,7 +10,6 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
     private readonly mLayerCount: GPUIntegerCoordinate;
     private mMipLevelCount: GPUIntegerCoordinate;
     private readonly mTexture: ITexture;
-    private mUpdateRequested: boolean;
 
     /**
      * Which aspecs of the texture are accessible to the texture view.
@@ -24,7 +23,9 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
         }
 
         this.mAspect = pAspect;
-        this.mUpdateRequested = true;
+        
+        // Trigger update.
+        this.triggerChange();
     }
 
     /**
@@ -46,7 +47,9 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
         }
 
         this.mBaseMipLevel = pLevel;
-        this.mUpdateRequested = true;
+        
+        // Trigger update.
+        this.triggerChange();
     }
 
     /**
@@ -61,7 +64,9 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
         }
 
         this.mDimension = pDimension;
-        this.mUpdateRequested = true;
+        
+        // Trigger update.
+        this.triggerChange();
     }
 
     /**
@@ -85,7 +90,9 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
         }
 
         this.mMipLevelCount = pLevel;
-        this.mUpdateRequested = true;
+        
+        // Trigger update.
+        this.triggerChange();
     }
 
     /**
@@ -97,7 +104,6 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
      */
     public constructor(pGpu: Gpu, pTexture: ITexture, pBaseLayer?: number, pLayerCount?: number) {
         super(pGpu, 'TEXTURE_VIEW');
-        this.mUpdateRequested = false;
 
         this.mTexture = pTexture;
         this.mBaseLayer = pBaseLayer ?? 0;
@@ -117,9 +123,6 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
      * Generate new texture view.
      */
     protected async generate(): Promise<GPUTextureView> {
-        // Update flags.
-        this.mUpdateRequested = false;
-
         const lTexture: GPUTexture = await this.mTexture.native();
         return lTexture.createView({
             label: this.label,
@@ -131,12 +134,5 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
             baseArrayLayer: this.mBaseLayer,
             arrayLayerCount: this.mLayerCount
         });
-    }
-
-    /**
-     * Invalidate generated object when proeprties has changed.
-     */
-    protected override async validateState(): Promise<boolean> {
-        return !this.mUpdateRequested;
     }
 }

@@ -7,7 +7,6 @@ import { BindGroup } from './bind-group';
 
 export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     private readonly mGroupBinds: Dictionary<string, BindLayout>;
-    private mRequestUpdate: boolean;
 
     /**
      * Get basic information of group binds.
@@ -34,7 +33,6 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     public constructor(pGpu: Gpu) {
         super(pGpu, 'BIND_GROUP_LAYOUT');
         this.mGroupBinds = new Dictionary<string, BindLayout>();
-        this.mRequestUpdate = false;
     }
 
     /**
@@ -58,7 +56,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
         });
 
         // Request native object update.
-        this.mRequestUpdate = true;
+        this.triggerChange();
     }
 
     /**
@@ -76,7 +74,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
         });
 
         // Request native object update.
-        this.mRequestUpdate = true;
+        this.triggerChange();
     }
 
     /**
@@ -96,7 +94,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
         });
 
         // Request native object update.
-        this.mRequestUpdate = true;
+        this.triggerChange();
     }
 
     /**
@@ -120,7 +118,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
         });
 
         // Request native object update.
-        this.mRequestUpdate = true;
+        this.triggerChange();
     }
 
     /**
@@ -144,7 +142,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
         });
 
         // Request native object update.
-        this.mRequestUpdate = true;
+        this.triggerChange();
     }
 
     /**
@@ -175,7 +173,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     public removeBind(pName: string): void {
         if (this.mGroupBinds.delete(pName)) {
             // Request native object update.
-            this.mRequestUpdate = true;
+            this.triggerChange();
         }
     }
 
@@ -238,21 +236,11 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
             lEntryList.push(lLayoutEntry);
         }
 
-        // Reset update request.
-        this.mRequestUpdate = false;
-
         // Create binding group layout.
         return this.gpu.device.createBindGroupLayout({
             label: this.label,
             entries: lEntryList
         });
-    }
-
-    /**
-     * Invalidate native object when binding group changes. 
-     */
-    protected override async validateState(): Promise<boolean> {
-        return !this.mRequestUpdate;
     }
 }
 

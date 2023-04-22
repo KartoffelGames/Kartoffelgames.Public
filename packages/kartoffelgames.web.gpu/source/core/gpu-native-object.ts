@@ -5,14 +5,13 @@ import { Gpu } from './gpu';
  * Gpu native object.
  */
 export abstract class GpuNativeObject<T extends object> {
-    private readonly mChangeListener: Dictionary<GpuNativeObject<any>, GenericListener>;
     private readonly mGpu: Gpu;
-    private mInternalNativeChanged: boolean;
-    private readonly mInternalNativeList: Set<GpuNativeObject<any>>;
+    private readonly mInternalNatives: Dictionary<GpuNativeObject<any>, string>;
     private mLabel: string;
     private readonly mNativeName: string;
     private mNativeObject: T | null;
     private mNativeObjectId: string;
+    private mObjectInvalid: boolean;
 
     /**
      * Debug label.
@@ -44,14 +43,13 @@ export abstract class GpuNativeObject<T extends object> {
         this.mNativeObject = null;
         this.mLabel = '';
         this.mNativeName = pNativeName;
-        this.mInternalNativeChanged = false;
+        this.mObjectInvalid = false;
 
         // Init internal native change detection.
-        this.mChangeListener = new Dictionary<GpuNativeObject<any>, GenericListener>();
-        this.mInternalNativeList = new Set<GpuNativeObject<any>>();
+        this.mInternalNatives = new Dictionary<GpuNativeObject<any>, string>();
 
         // Basic ununique id for uninitialized state.
-        this.mNativeObjectId = globalThis.crypto.randomUUID();
+        this.mNativeObjectId = '';
     }
 
     /**
@@ -64,9 +62,6 @@ export abstract class GpuNativeObject<T extends object> {
 
             // Remove destroyed native.
             this.mNativeObject = null;
-
-            // Set new id.
-            this.mNativeObjectId = globalThis.crypto.randomUUID();
         }
     }
 
@@ -76,19 +71,28 @@ export abstract class GpuNativeObject<T extends object> {
     public async native(): Promise<T> {
         // Generate new native object when not already created.
         if (!(await this.isValid())) {
+            // Destroy native.
+            await this.destroy();
+
             // Generate new native object.
             this.mNativeObject = await this.generate();
 
             // Generate new id for new generated 
             this.mNativeObjectId = globalThis.crypto.randomUUID();
 
-            // Execute one way listener on new generated.
-            for (const lListener of this.mChangeListener.values()) {
-                lListener();
-            }
+            // Reset object invalidation.
+            this.mObjectInvalid = false;
 
-            // Reset change listener when changes where made.
-            this.mInternalNativeChanged = false;
+            // Check internal natives.
+            for (const [lInternalObject, lLastInternalId] of this.mInternalNatives) {
+                const lCurrentInternalId: string = lInternalObject.mNativeObjectId;
+
+                // Compare saved and current native id of all natives.
+                if (lCurrentInternalId !== lLastInternalId) {
+                    // Update saved id.
+                    this.mInternalNatives.set(lInternalObject, lCurrentInternalId);
+                }
+            }
         }
 
         return <T>this.mNativeObject;
@@ -118,15 +122,7 @@ export abstract class GpuNativeObject<T extends object> {
      */
     protected registerInternalNative(pInternalNative: GpuNativeObject<any>): void {
         // Save internal native.
-        this.mInternalNativeList.add(pInternalNative);
-
-        // Register change listener on internal native.
-        pInternalNative.registerChangeListener(() => {
-            this.triggerChange();
-        }, this);
-
-        // Trigger change.
-        this.triggerChange();
+        this.mInternalNatives.set(pInternalNative, '');
     }
 
     /**
@@ -134,7 +130,7 @@ export abstract class GpuNativeObject<T extends object> {
      */
     protected triggerChange(): void {
         // Trigger change.
-        this.mInternalNativeChanged = true;
+        this.mObjectInvalid = true;
     }
 
     /**
@@ -143,13 +139,7 @@ export abstract class GpuNativeObject<T extends object> {
      */
     protected unregisterInternalNative(pInternalNative: GpuNativeObject<any>): void {
         // Delete saved native.
-        this.mInternalNativeList.delete(pInternalNative);
-
-        // Unregister change listener on internal native.
-        pInternalNative.unregisterChangeListener(this);
-
-        // Trigger change.
-        this.triggerChange();
+        this.mInternalNatives.delete(pInternalNative);
     }
 
     /**
@@ -166,49 +156,29 @@ export abstract class GpuNativeObject<T extends object> {
     private async isValid(): Promise<boolean> {
         let lNativeChanged: boolean = false;
 
-        // Check internal object state.
-        if (!this.mNativeObject || this.mInternalNativeChanged || !(await this.validateState(this.mNativeObject))) {
+        // Check object state.
+        if (!this.mNativeObject || this.mObjectInvalid || !(await this.validateState(this.mNativeObject))) {
             lNativeChanged = true;
         }
 
         // Check internal natives.
-        if (!lNativeChanged) {
-            for (const lInternalNative of this.mInternalNativeList) {
-                if (!await lInternalNative.isValid()) {
-                    lNativeChanged = true;
-                    break;
-                }
+        for (const [lInternalObject, lLastInternalId] of this.mInternalNatives) {
+            const lCurrentInternalId: string = await lInternalObject.nativeId();
+
+            // Compare saved and current native id of all natives.
+            if (lCurrentInternalId !== lLastInternalId) {
+                // Trigger generation.
+                lNativeChanged = true;
+                break;
             }
         }
 
         // Remove native on invalidation to cache change state for future isValidate calls.
         if (lNativeChanged) {
-            await this.destroy();
+            this.triggerChange();
         }
 
         return !lNativeChanged;
-    }
-
-    /**
-     * Sets listener for changes.
-     * Does not set new listener when referer has allready an registered listener.
-     * @param pListener - Change listener.
-     * @param pReferrer - Referer.
-     */
-    private registerChangeListener(pListener: GenericListener, pReferrer: GpuNativeObject<any>): void {
-        if (!this.mChangeListener.has(pReferrer)) {
-            this.mChangeListener.set(pReferrer, pListener);
-        }
-    }
-
-    /**
-     * Sets one way listener for changes.
-     * Does not set new listener when referer has allready an registered listener.
-     * @param pListener - Change listener.
-     * @param pReferrer - Referer.
-     */
-    private unregisterChangeListener(pReferrer: GpuNativeObject<any>): void {
-        this.mChangeListener.delete(pReferrer);
     }
 
     /**
@@ -216,5 +186,3 @@ export abstract class GpuNativeObject<T extends object> {
      */
     protected abstract generate(): Promise<T>;
 }
-
-type GenericListener = () => void;

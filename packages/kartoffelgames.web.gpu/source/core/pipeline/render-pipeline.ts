@@ -9,7 +9,6 @@ import { Attachment } from '../pass_descriptor/type/attachment';
 export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implements IPipeline {
     private mDepthCompare: GPUCompareFunction;
     private mDepthWriteEnabled: boolean;
-    private readonly mPipelineDataChangeState: PipelineDataChangeState;
     private readonly mPrimitive: GPUPrimitiveState;
     private readonly mRenderPass: RenderPassDescriptor;
     private readonly mShader: Shader;
@@ -20,15 +19,10 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
     public get depthCompare(): GPUCompareFunction {
         return this.mDepthCompare;
     } set depthCompare(pValue: GPUCompareFunction) {
-        // Do nothing on assigning old an value.
-        if (this.mDepthCompare === pValue) {
-            return;
-        }
-
         this.mDepthCompare = pValue;
 
         // Set data changed flag.
-        this.mPipelineDataChangeState.depthAttachment = true;
+        this.triggerChange();
     }
 
     /**
@@ -37,15 +31,10 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
     public get primitiveCullMode(): GPUCullMode {
         return this.mPrimitive.cullMode!;
     } set primitiveCullMode(pValue: GPUCullMode) {
-        // Do nothing on assigning old an value.
-        if (this.mPrimitive.cullMode === pValue) {
-            return;
-        }
-
         this.mPrimitive.cullMode = pValue;
 
         // Set data changed flag.
-        this.mPipelineDataChangeState.primitive = true;
+        this.triggerChange();
     }
 
     /**
@@ -54,15 +43,10 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
     public get primitiveFrontFace(): GPUFrontFace {
         return this.mPrimitive.frontFace!;
     } set primitiveFrontFace(pValue: GPUFrontFace) {
-        // Do nothing on assigning old an value.
-        if (this.mPrimitive.frontFace === pValue) {
-            return;
-        }
-
         this.mPrimitive.frontFace = pValue;
 
         // Set data changed flag.
-        this.mPipelineDataChangeState.primitive = true;
+        this.triggerChange();
     }
 
     /**
@@ -71,15 +55,10 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
     public get primitiveTopology(): GPUPrimitiveTopology {
         return this.mPrimitive.topology!;
     } set primitiveTopology(pValue: GPUPrimitiveTopology) {
-        // Do nothing on assigning old an value.
-        if (this.mPrimitive.topology === pValue) {
-            return;
-        }
-
         this.mPrimitive.topology = pValue;
 
         // Set data changed flag.
-        this.mPipelineDataChangeState.primitive = true;
+        this.triggerChange();
     }
 
     /**
@@ -102,15 +81,10 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
     public get unclipedDepth(): boolean {
         return this.mPrimitive.unclippedDepth ?? false;
     } set unclipedDepth(pValue: boolean) {
-        // Do nothing on assigning old an value.
-        if (this.mPrimitive.unclippedDepth === pValue) {
-            return;
-        }
-
         this.mPrimitive.unclippedDepth = pValue;
 
         // Set data changed flag.
-        this.mPipelineDataChangeState.primitive = true;
+        this.triggerChange();
     }
 
     /**
@@ -119,15 +93,10 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
     public get writeDepth(): boolean {
         return this.mDepthWriteEnabled;
     } set writeDepth(pValue: boolean) {
-        // Do nothing on assigning old an value.
-        if (this.mDepthWriteEnabled === pValue) {
-            return;
-        }
-
         this.mDepthWriteEnabled = pValue;
 
         // Set data changed flag.
-        this.mPipelineDataChangeState.depthAttachment = true;
+        this.triggerChange();
     }
 
     /**
@@ -145,23 +114,6 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
         this.mShader = pShader;
         this.registerInternalNative(pShader);
 
-        // Set default values.
-        this.mPrimitive = {
-            frontFace: 'cw',
-            cullMode: 'back',
-            topology: 'triangle-list',
-            unclippedDepth: false
-        };
-        this.mDepthWriteEnabled = true;
-        this.mDepthCompare = 'less';
-
-        // Unchanged change state.
-        this.mPipelineDataChangeState = {
-            primitive: false,
-            depthAttachment: false,
-            attachment: true
-        };
-
         // Validate vertex shader.
         if (!pShader.vertexEntryPoint) {
             throw new Exception('Vertex shader has no entry point.', this);
@@ -173,6 +125,16 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
                 throw new Exception(`Render pass(${pRenderPass.colorAttachments.length}) and shader(${pShader.fragmentEntryPoint.renderTargetCount}) are having unmatching render targets`, this);
             }
         }
+
+        // Set default values.
+        this.mPrimitive = {
+            frontFace: 'cw',
+            cullMode: 'back',
+            topology: 'triangle-list',
+            unclippedDepth: false
+        };
+        this.mDepthWriteEnabled = true;
+        this.mDepthCompare = 'less';
     }
 
     /**
@@ -216,7 +178,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
 
             lPipelineDescriptor.fragment = {
                 module: await this.mShader.native(),
-                entryPoint: this.mShader.fragmentEntryPoint!.name, // It allways should has an entry point.
+                entryPoint: this.mShader.fragmentEntryPoint.name,
                 targets: lFragmentTargetList
             };
         }
@@ -232,34 +194,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
             };
         }
 
-        // Reset change states.
-        for (const lChangeState in this.mPipelineDataChangeState) {
-            (<{ [changeState: string]: boolean; }>this.mPipelineDataChangeState)[lChangeState] = false;
-        }
-
         // Async is none GPU stalling.
         return this.gpu.device.createRenderPipelineAsync(lPipelineDescriptor);
     }
-
-    /**
-     * Invalidate on data change or native data change.s
-     */
-    protected override async validateState(): Promise<boolean> {
-        // Go for the fast checks first.
-        for (const lChangeState in this.mPipelineDataChangeState) {
-            if ((<{ [changeState: string]: boolean; }>this.mPipelineDataChangeState)[lChangeState]) {
-                return false;
-            }
-        }
-
-        // Native objects are validated over internal natives.
-
-        return true;
-    }
 }
-
-type PipelineDataChangeState = {
-    primitive: boolean;
-    depthAttachment: boolean;
-    attachment: boolean;
-};

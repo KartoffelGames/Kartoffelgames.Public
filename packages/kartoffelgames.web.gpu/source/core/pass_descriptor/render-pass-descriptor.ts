@@ -55,19 +55,33 @@ export class RenderPassDescriptor extends GpuNativeObject<GPURenderPassDescripto
      * @param pLoadOp - Load operation.
      * @param pStoreOp - Store operation.
      */
-    public setColorAttachment(pLocation: number, pAttachmentName: string, pClearValue: GPUColor, pLoadOp?: GPULoadOp, pStoreOp?: GPUStoreOp,): void {
+    public setColorAttachment(pLocation: number, pAttachmentName: string, pClearValue: GPUColor, pLoadOp?: GPULoadOp, pStoreOp?: GPUStoreOp, pResolveAttachmentName?: string): void {
         // Validate attachment existence.
         if (!this.mAttachments.hasAttachment(pAttachmentName)) {
             throw new Exception(`Attachment "${pAttachmentName}" does not exist.`, this);
         }
+        if (pResolveAttachmentName && !this.mAttachments.hasAttachment(pResolveAttachmentName)) {
+            throw new Exception(`Resolve attachment "${pResolveAttachmentName}" does not exist.`, this);
+        }
 
+        // Update internal attachment object.
         const lAttachment: Attachment = this.mAttachments.getAttachment(pAttachmentName);
-
-        // Update internal object.
         if (this.mColorAttachments[pLocation]) {
             this.unregisterInternalNative(this.mColorAttachments[pLocation].attachment);
         }
         this.registerInternalNative(lAttachment);
+
+        // Update internal resolve attachment object.
+        let lResolveAttachment: Attachment | null = null;
+        if (pResolveAttachmentName) {
+            lResolveAttachment = this.mAttachments.getAttachment(pResolveAttachmentName);
+            if (this.mColorAttachments[pLocation] && this.mColorAttachments[pLocation].resolveTarget) {
+                this.unregisterInternalNative(this.mColorAttachments[pLocation].resolveTarget!);
+            }
+        }
+        if (lResolveAttachment) {
+            this.registerInternalNative(lResolveAttachment);
+        }
 
         // Setup depth attachment.
         this.mColorAttachments[pLocation] = {
@@ -75,6 +89,7 @@ export class RenderPassDescriptor extends GpuNativeObject<GPURenderPassDescripto
             clearValue: pClearValue,
             loadOp: pLoadOp ?? 'clear', // Apply default value.
             storeOp: pStoreOp ?? 'store', // Apply default value.
+            resolveTarget: lResolveAttachment
         };
     }
 
@@ -115,12 +130,19 @@ export class RenderPassDescriptor extends GpuNativeObject<GPURenderPassDescripto
         // Create color attachments.
         const lColorAttachments: Array<GPURenderPassColorAttachment> = new Array<GPURenderPassColorAttachment>();
         for (const lColorAttachment of this.mColorAttachments) {
-            lColorAttachments.push({
+            const lPassColorAttachment: GPURenderPassColorAttachment = {
                 view: await lColorAttachment.attachment.native(),
                 clearValue: lColorAttachment.clearValue,
                 loadOp: lColorAttachment.loadOp,
                 storeOp: lColorAttachment.storeOp
-            });
+            };
+
+            // Resolve optional resolve attachment.
+            if (lColorAttachment.resolveTarget) {
+                lPassColorAttachment.resolveTarget = await lColorAttachment.resolveTarget.native();
+            }
+
+            lColorAttachments.push(lPassColorAttachment);
         }
 
         // Create descriptor with color attachments.
@@ -147,6 +169,7 @@ type RenderPassColorAttachment = {
     clearValue: GPUColor;
     loadOp: GPULoadOp;
     storeOp: GPUStoreOp;
+    resolveTarget: Attachment | null;
 };
 
 type RenderPassDepthStencilAttachment = {

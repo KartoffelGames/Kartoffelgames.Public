@@ -152,7 +152,8 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
             size: [this.mWidth, this.mHeight, this.mLayerCount],
             format: this.mFormat,
             usage: lUsage,
-            dimension: this.mDimension
+            dimension: this.mDimension,
+            sampleCount: this.mMultiSampleLevel
         });
 
         // Copy bitmap into texture.

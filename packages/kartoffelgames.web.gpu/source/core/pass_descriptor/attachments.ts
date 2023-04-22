@@ -11,6 +11,7 @@ export class Attachments {
     private readonly mAttachmentGroup: Dictionary<string, number>;
     private readonly mAttachments: Dictionary<string, AttachmentData>;
     private readonly mGpu: Gpu;
+    private readonly mMultiSampleLevel: number;
     private mRebuildRequested: boolean;
     private readonly mSize: TextureDimension;
     private readonly mTextureGroup: Dictionary<string, ITexture>;
@@ -33,13 +34,14 @@ export class Attachments {
      * Constructor.
      * @param pGpu - GPU.
      */
-    public constructor(pGpu: Gpu,) {
+    public constructor(pGpu: Gpu, pMultiSampleLevel: number = 1) {
         this.mAttachments = new Dictionary<string, AttachmentData>();
         this.mAttachmentGroup = new Dictionary<string, number>();
         this.mTextureGroup = new Dictionary<string, ITexture>();
         this.mGpu = pGpu;
         this.mRebuildRequested = false;
         this.mSize = { width: 1, height: 1 };
+        this.mMultiSampleLevel = pMultiSampleLevel;
     }
 
     /**
@@ -141,9 +143,10 @@ export class Attachments {
         const lGroups: Dictionary<string, AttachmentGroup> = new Dictionary<string, AttachmentGroup>();
 
         for (const lAttachment of pAttachmentList) {
-            // Get group name by format. 
+            // Get group name by format and multisamples.         
+            let lGroupName: string = `Format: ${lAttachment.format}`;
+
             // Exclude canvas by setting unique group names as they should never be grouped.
-            let lGroupName: string = lAttachment.format;
             let lCanvas: HTMLCanvasElement | null = null;
             if ((lAttachment.type & AttachmentType.Canvas) > 0) {
                 lGroupName = `CANVAS--${lAttachment.name}--${lGroupName}`;
@@ -217,6 +220,7 @@ export class Attachments {
                     lFixedTexture.height = this.mSize.height;
                     lFixedTexture.layer = lTextureLayerCount;
                     lFixedTexture.label = lGroup.attachments.reduce((pCurrent, pNext) => { return `${pCurrent}${pNext.name}-`; }, '-');
+                    lFixedTexture.multiSampleLevel = this.mMultiSampleLevel;
 
                     lTexture = lFixedTexture;
                 }

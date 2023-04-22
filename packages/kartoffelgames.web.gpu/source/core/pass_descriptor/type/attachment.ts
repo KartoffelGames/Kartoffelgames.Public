@@ -17,6 +17,13 @@ export class Attachment extends GpuNativeObject<GPUTextureView>{
     }
 
     /**
+     * Multisample level of attachment.
+     */
+    public get multiSampleLevel(): number {
+        return this.mTexture?.multiSampleLevel ?? 1;
+    }
+
+    /**
      * constructor.
      * @param pAttachment - Attachment.
      */

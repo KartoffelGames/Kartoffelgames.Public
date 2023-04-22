@@ -173,6 +173,9 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
             color: new Array<GPUTextureFormat>()
         };
 
+        // Save highest multisample count.
+        let lMultisampleCount: number = 1;
+
         // Optional fragment state.
         if (this.mShader.fragmentEntryPoint) {
             // Generate fragment targets only when fragment state is needed.
@@ -183,6 +186,11 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
                     // blend?: GPUBlendState;   // TODO: GPUBlendState
                     // writeMask?: GPUColorWriteFlags; // TODO: GPUColorWriteFlags
                 });
+
+                // Save highest multisample count.
+                if (lMultisampleCount < lRenderTarget.multiSampleLevel) {
+                    lMultisampleCount = lRenderTarget.multiSampleLevel;
+                }
 
                 // Save last render pass targets.
                 lRenderPassBuffer.color.push(lRenderTarget.format);
@@ -207,6 +215,13 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
 
             // Save last render pass depth.
             lRenderPassBuffer.depth = lDepthAttachment.format;
+        }
+
+        // Set multisample count.
+        if (lMultisampleCount > 1) {
+            lPipelineDescriptor.multisample = {
+                count: lMultisampleCount
+            };
         }
 
         // Save render pass formats.

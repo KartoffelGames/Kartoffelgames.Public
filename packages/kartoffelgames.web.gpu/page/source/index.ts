@@ -27,8 +27,13 @@ import { RenderPassDescriptor } from '../../source/core/pass_descriptor/render-p
     const lShader: Shader = new Shader(lGpu, shader);
 
     // Create depth and color attachments.
-    const lAttachments: Attachments = new Attachments(lGpu);
+    const lAttachments: Attachments = new Attachments(lGpu, 4);
     lAttachments.resize(1200, 640);
+    lAttachments.addAttachment({
+        type: AttachmentType.Color,
+        name: 'MultisampleTarget',
+        format: lGpu.preferredFormat
+    });
     lAttachments.addAttachment({
         canvas: lCanvas,
         type: AttachmentType.Color,
@@ -43,7 +48,7 @@ import { RenderPassDescriptor } from '../../source/core/pass_descriptor/render-p
     // Setup render pass.
     const lRenderPassDescription: RenderPassDescriptor = new RenderPassDescriptor(lGpu, lAttachments);
     lRenderPassDescription.setDepthAttachment('Depth', 1);
-    lRenderPassDescription.setColorAttachment(0, 'Canvas', { r: 0.5, g: 0.5, b: 0.5, a: 1 });
+    lRenderPassDescription.setColorAttachment(0, 'MultisampleTarget', { r: 0.5, g: 0.5, b: 0.5, a: 1 }, 'clear', 'store', 'Canvas');
 
     // Init pipeline.
     const lPipeline: RenderPipeline = new RenderPipeline(lGpu, lShader, lRenderPassDescription);

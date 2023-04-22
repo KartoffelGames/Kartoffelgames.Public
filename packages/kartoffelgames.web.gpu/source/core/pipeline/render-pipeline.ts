@@ -9,6 +9,7 @@ import { Attachment } from '../pass_descriptor/type/attachment';
 export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implements IPipeline {
     private mDepthCompare: GPUCompareFunction;
     private mDepthWriteEnabled: boolean;
+    private mLastRenderPass: RenderpassFormats;
     private readonly mPrimitive: GPUPrimitiveState;
     private readonly mRenderPass: RenderPassDescriptor;
     private readonly mShader: Shader;
@@ -108,7 +109,6 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
 
         // Set statics.
         this.mRenderPass = pRenderPass;
-        this.registerInternalNative(pRenderPass);
 
         // Set and register shader.
         this.mShader = pShader;
@@ -135,6 +135,10 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
         };
         this.mDepthWriteEnabled = true;
         this.mDepthCompare = 'less';
+
+        this.mLastRenderPass = {
+            color: new Array<GPUTextureFormat>()
+        };
     }
 
     /**
@@ -164,6 +168,11 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
             primitive: this.mPrimitive
         };
 
+        // Buffer render pass formats.
+        const lRenderPassBuffer: RenderpassFormats = {
+            color: new Array<GPUTextureFormat>()
+        };
+
         // Optional fragment state.
         if (this.mShader.fragmentEntryPoint) {
             // Generate fragment targets only when fragment state is needed.
@@ -174,6 +183,9 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
                     // blend?: GPUBlendState;   // TODO: GPUBlendState
                     // writeMask?: GPUColorWriteFlags; // TODO: GPUColorWriteFlags
                 });
+
+                // Save last render pass targets.
+                lRenderPassBuffer.color.push(lRenderTarget.format);
             }
 
             lPipelineDescriptor.fragment = {
@@ -192,9 +204,50 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
                 format: lDepthAttachment.format,
                 // TODO: Stencil settings. 
             };
+
+            // Save last render pass depth.
+            lRenderPassBuffer.depth = lDepthAttachment.format;
         }
+
+        // Save render pass formats.
+        this.mLastRenderPass = lRenderPassBuffer;
 
         // Async is none GPU stalling.
         return this.gpu.device.createRenderPipelineAsync(lPipelineDescriptor);
     }
+
+    /**
+     * Special validation for renderpass.
+     * Renderpass can not be used as internal native.
+     * Renderpass has frequent texture changes. Pipeline can be unchanged for ever. 
+     * @param _pNativeObject - Not used.
+     */
+    protected override async validateState(_pNativeObject: GPURenderPipeline): Promise<boolean> {
+        // Validate changed color targets of render pass.
+        if (this.mShader.fragmentEntryPoint) {
+            const lColorTargetList: Array<Attachment> = this.mRenderPass.colorAttachments;
+            if (lColorTargetList.length !== this.mLastRenderPass.color.length) {
+                return false;
+            }
+
+            for (let lIndex: number = 0; lIndex < lColorTargetList.length; lIndex++) {
+                if (lColorTargetList[lIndex].format !== this.mLastRenderPass.color[lIndex]) {
+                    return false;
+                }
+            }
+        }
+
+        // Setup optional depth attachment.
+        const lDepthAttachment: Attachment | undefined = this.mRenderPass.depthAttachment;
+        if (lDepthAttachment && this.mLastRenderPass.depth !== lDepthAttachment.format) {
+            return false;
+        }
+
+        return true;
+    }
 }
+
+type RenderpassFormats = {
+    color: Array<GPUTextureFormat>;
+    depth?: GPUTextureFormat;
+};

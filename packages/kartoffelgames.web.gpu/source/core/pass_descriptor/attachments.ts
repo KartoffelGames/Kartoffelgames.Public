@@ -238,6 +238,8 @@ export class Attachments {
                 this.mTextureGroup.delete(lGroup.name);
             }
         }
+
+        this.mRebuildRequested = false;
     }
 }
 

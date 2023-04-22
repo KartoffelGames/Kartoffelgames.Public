@@ -46,6 +46,13 @@ export class Gpu {
     }
 
     /**
+     * Preferred texture format.
+     */
+    public get preferredFormat(): GPUTextureFormat {
+        return window.navigator.gpu.getPreferredCanvasFormat();
+    }
+
+    /**
      * Constructor.
      * @param pGpuAdapter - Gpu adapter. 
      * @param pGpuDevice - Gpu device.

@@ -10,8 +10,8 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
     private readonly mFormat: GPUTextureFormat;
     private mHeight: number;
     private mImageBitmapList: Array<ImageBitmap>;
-    private mLayerCount: number;
-    private mMultiSampleLevel: number;
+    private readonly mLayerCount: number;
+    private readonly mMultiSampleLevel: number;
     private readonly mUsage: TextureUsage;
     private mWidth: number;
 
@@ -43,8 +43,6 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
      */
     public get layer(): number {
         return this.mLayerCount;
-    } set layer(pDepth: number) {
-        this.mLayerCount = pDepth;
     }
 
     /**
@@ -52,12 +50,6 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
      */
     public get multiSampleLevel(): number {
         return this.mMultiSampleLevel;
-    } set multiSampleLevel(pLevel: number) {
-        if (pLevel < 1) {
-            throw new Exception('Multi sample level must be greater than zero.', this);
-        }
-
-        this.mMultiSampleLevel = pLevel;
     }
 
     /**
@@ -82,14 +74,20 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
      * @param pFormat - Texture format.
      * @param pDimension - Texture dimension.
      */
-    public constructor(pGpu: Gpu, pFormat: GPUTextureFormat, pUsage: TextureUsage, pDimension: GPUTextureDimension = '2d') {
+    public constructor(pGpu: Gpu, pFormat: GPUTextureFormat, pUsage: TextureUsage, pDimension: GPUTextureDimension = '2d', pMultiSampleLevel: number = 1, pLayerCount: number = 1) {
         super(pGpu, 'TEXTURE');
 
         this.mFormat = pFormat;
         this.mUsage = pUsage;
         this.mImageBitmapList = new Array<ImageBitmap>();
         this.mDimension = pDimension;
-        this.mMultiSampleLevel = 1;
+        this.mLayerCount = pLayerCount;
+
+        // Set and validate multisample level.
+        this.mMultiSampleLevel = pMultiSampleLevel;
+        if (pMultiSampleLevel < 1) {
+            throw new Exception('Multi sample level must be greater than zero.', this);
+        }
 
         // Set defaults.
         this.mHeight = 1;

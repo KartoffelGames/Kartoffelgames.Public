@@ -209,18 +209,14 @@ export class Attachments {
                     lCanvasTexture.label = lGroup.name;
                     lCanvasTexture.width = this.mSize.width;
                     lCanvasTexture.height = this.mSize.height;
-                    lCanvasTexture.label = lGroup.name;
 
                     lTexture = lCanvasTexture;
                 } else {
                     // Create fixed texture.
-                    const lFixedTexture: Texture = new Texture(this.mGpu, lGroup.format, TextureUsage.RenderAttachment | TextureUsage.TextureBinding, '2d');
+                    const lFixedTexture: Texture = new Texture(this.mGpu, lGroup.format, TextureUsage.RenderAttachment | TextureUsage.TextureBinding, '2d', this.mMultiSampleLevel, lTextureLayerCount);
                     lFixedTexture.label = lGroup.name;
                     lFixedTexture.width = this.mSize.width;
                     lFixedTexture.height = this.mSize.height;
-                    lFixedTexture.layer = lTextureLayerCount;
-                    lFixedTexture.label = lGroup.attachments.reduce((pCurrent, pNext) => { return `${pCurrent}${pNext.name}-`; }, '-');
-                    lFixedTexture.multiSampleLevel = this.mMultiSampleLevel;
 
                     lTexture = lFixedTexture;
                 }

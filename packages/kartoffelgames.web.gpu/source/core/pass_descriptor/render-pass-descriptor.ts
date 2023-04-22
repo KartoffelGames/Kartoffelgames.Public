@@ -76,8 +76,6 @@ export class RenderPassDescriptor extends GpuNativeObject<GPURenderPassDescripto
             loadOp: pLoadOp ?? 'clear', // Apply default value.
             storeOp: pStoreOp ?? 'store', // Apply default value.
         };
-
-        this.triggerChange();
     }
 
     /**
@@ -108,8 +106,6 @@ export class RenderPassDescriptor extends GpuNativeObject<GPURenderPassDescripto
             loadOp: pLoadOp ?? 'clear', // Apply default value.
             storeOp: pStoreOp ?? 'store', // Apply default value.
         };
-
-        this.triggerChange();
     }
 
     /**

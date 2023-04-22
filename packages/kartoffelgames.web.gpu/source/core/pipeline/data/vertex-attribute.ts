@@ -73,6 +73,9 @@ export class VertexAttribute extends GpuNativeObject<GPUVertexBufferLayout> {
             itemStride: lFormatStride.stride,
             type: lFormatStride.type
         };
+
+        // Trigger change.
+        this.triggerChange();
     }
 
     /**
@@ -95,16 +98,6 @@ export class VertexAttribute extends GpuNativeObject<GPUVertexBufferLayout> {
             stepMode: 'vertex',
             attributes: lAttributes
         };
-    }
-
-    /**
-     * Invalidate native object on different stride lengths.
-     */
-    protected override async validateState(pGeneratedNative: GPUVertexBufferLayout): Promise<boolean> {
-        const lLastArrayStrideLength: number | undefined = pGeneratedNative.arrayStride;
-        const lCurrentArrayStideLength: number = this.mAttribute.type.BYTES_PER_ELEMENT * this.mAttribute.itemStride;
-
-        return lLastArrayStrideLength === lCurrentArrayStideLength;
     }
 }
 

@@ -18,15 +18,15 @@
                 <div style="display: flex; justify-content: space-around;">
                     <div>
                         <div>Width</div>
-                        <input value="1" max="1" min="0.1" step="0.001" type="range" id="scaleWidth">
+                        <input value="1" min="-1" max="1" min="0.1" step="0.001" type="range" id="scaleWidth">
                     </div>
                     <div>
                         <div>Height</div>
-                        <input value="1" max="1" min="0.1" step="0.001" type="range" id="scaleHeight">
+                        <input value="1" min="-1" max="1" min="0.1" step="0.001" type="range" id="scaleHeight">
                     </div>
                     <div>
                         <div>Depth</div>
-                        <input value="1" max="1" min="0.1" step="0.001" type="range" id="scaleDepth">
+                        <input value="1" min="-1" max="1" min="0.1" step="0.001" type="range" id="scaleDepth">
                     </div>
                 </div>
                 <div style="display: flex; justify-content: space-around;">
@@ -50,7 +50,7 @@
                     </div>
                     <div>
                         <div>Z</div>
-                        <input value="1" max="10" min="-10" step="0.001" type="range" id="translateZ">
+                        <input value="1" max="10" min="-1" step="0.001" type="range" id="translateZ">
                     </div>
                 </div>
                 <div style="display: flex; justify-content: space-around;">
@@ -189,7 +189,7 @@
                 <div style="display: flex; justify-content: space-around;">
                     <div>
                         <div>Near</div>
-                        <input value="1"  max="20" min="0" step="0.001" type="range" id="cameraNear">
+                        <input value="1" max="20" min="0" step="0.001" type="range" id="cameraNear">
                     </div>
                     <div>
                         <div>Far</div>
@@ -215,6 +215,9 @@
     <div>Color</div>
     <input type="color" value="#ffffff" id="color" />
 
+    <div>
+        FPS: <span id="fpsCounter">0</span>
+    </div>
     <div>
         <canvas width="640" height="640" id="canvas"></canvas>
     </div>

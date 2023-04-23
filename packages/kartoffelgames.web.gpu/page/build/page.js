@@ -217,8 +217,13 @@ var simple_buffer_1 = __webpack_require__(/*! ../../source/core/resource/buffer/
 var shader_1 = __webpack_require__(/*! ../../source/core/shader/shader */ "./source/core/shader/shader.ts");
 var shader_txt_1 = __webpack_require__(/*! ./shader.txt */ "./page/source/shader.txt");
 var render_pass_descriptor_1 = __webpack_require__(/*! ../../source/core/pass_descriptor/render-pass-descriptor */ "./source/core/pass_descriptor/render-pass-descriptor.ts");
+var render_instruction_set_1 = __webpack_require__(/*! ../../source/core/execution/instruction_set/render-instruction-set */ "./source/core/execution/instruction_set/render-instruction-set.ts");
+var gHeight = 10;
+var gWidth = 10;
+var gDepth = 10;
 _asyncToGenerator(function* () {
   var lColorPicker = document.querySelector('#color');
+  var lFpsCounter = document.querySelector('#fpsCounter');
   // Create gpu.
   var lGpu = yield gpu_1.Gpu.create('high-performance');
   // Init canvas.
@@ -226,8 +231,13 @@ _asyncToGenerator(function* () {
   // Init shader.
   var lShader = new shader_1.Shader(lGpu, shader_txt_1.default);
   // Create depth and color attachments.
-  var lAttachments = new attachments_1.Attachments(lGpu);
+  var lAttachments = new attachments_1.Attachments(lGpu, 4);
   lAttachments.resize(1200, 640);
+  lAttachments.addAttachment({
+    type: attachment_type_enum_1.AttachmentType.Color,
+    name: 'MultisampleTarget',
+    format: lGpu.preferredFormat
+  });
   lAttachments.addAttachment({
     canvas: lCanvas,
     type: attachment_type_enum_1.AttachmentType.Color,
@@ -241,15 +251,14 @@ _asyncToGenerator(function* () {
   // Setup render pass.
   var lRenderPassDescription = new render_pass_descriptor_1.RenderPassDescriptor(lGpu, lAttachments);
   lRenderPassDescription.setDepthAttachment('Depth', 1);
-  lRenderPassDescription.setColorAttachment(0, 'Canvas', {
+  lRenderPassDescription.setColorAttachment(0, 'MultisampleTarget', {
     r: 0.5,
     g: 0.5,
     b: 0.5,
     a: 1
-  });
+  }, 'clear', 'store', 'Canvas');
   // Init pipeline.
-  var lPipeline = new render_pipeline_1.RenderPipeline(lGpu, lRenderPassDescription);
-  lPipeline.setShader(lShader);
+  var lPipeline = new render_pipeline_1.RenderPipeline(lGpu, lShader, lRenderPassDescription);
   lPipeline.primitiveCullMode = 'back';
   // Color buffer.
   var lColorBuffer = new simple_buffer_1.SimpleBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array([1, 1, 1, 1]));
@@ -269,41 +278,89 @@ _asyncToGenerator(function* () {
       };
     }());
   });
-  // Transformation.
-  var lTransformation = new transform_1.Transform();
-  lTransformation.scaleDepth = 0.1;
-  lTransformation.scaleHeight = 0.1;
-  lTransformation.scaleWidth = 0.1;
-  //lTransformation.translationZ = 0.18;
-  lTransformation.absoluteRotation(0, 0, 0);
+  var lTransformationList = new Array();
+  for (var lWidthIndex = 0; lWidthIndex < gWidth; lWidthIndex++) {
+    for (var lHeightIndex = 0; lHeightIndex < gHeight; lHeightIndex++) {
+      for (var lDepthIndex = 0; lDepthIndex < gDepth; lDepthIndex++) {
+        var lTransformation = {
+          x: lWidthIndex,
+          y: lHeightIndex,
+          z: lDepthIndex
+        };
+        // Transformation.
+        var lTransform = new transform_1.Transform();
+        lTransform.scaleDepth = 0.1;
+        lTransform.scaleHeight = 0.1;
+        lTransform.scaleWidth = 0.1;
+        lTransform.translationX = lTransformation.x;
+        lTransform.translationY = lTransformation.y;
+        lTransform.translationZ = lTransformation.z;
+        lTransform.absoluteRotation(0, 0, 0);
+        lTransformationList.push({
+          transform: lTransform,
+          transformation: {
+            x: lWidthIndex,
+            y: lHeightIndex,
+            z: lDepthIndex
+          },
+          buffer: new simple_buffer_1.SimpleBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lTransform.transformationMatrix.dataArray))
+        });
+      }
+    }
+  }
   // Transformation buffer.
-  var lTransformationBuffer = new simple_buffer_1.SimpleBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lTransformation.transformationMatrix.dataArray));
   var lUpdaterFunctions = new Array();
   var lRegisterObjectHandler = (pId, pSet, pGet) => {
     var lSlider = document.getElementById(pId);
     var lInput = document.getElementById(pId + 'Display');
     var lUpdater = () => {
-      lInput.value = pGet();
+      lInput.value = pGet(lTransformationList[0].transform);
     };
     lUpdaterFunctions.push(lUpdater);
     lUpdater();
-    var lSetData = pData => {
-      pSet(parseFloat(pData) || 1);
+    var lCurrentData = 0;
+    var lSetData = pStringData => {
+      var lNumberData = parseFloat(pStringData) || 1;
+      lCurrentData += lNumberData;
+      for (var _lTransformation of lTransformationList) {
+        pSet(_lTransformation.transform, lCurrentData);
+      }
       // Reset slider.
       lSlider.value = 0;
       // Set real data.
       for (var _lUpdater of lUpdaterFunctions) {
         _lUpdater();
       }
+      // Update translation if it is all the same.
+      if (lTransformationList[lTransformationList.length - 1].transform.translationX === lCurrentData) {
+        for (var _lTransformation2 of lTransformationList) {
+          _lTransformation2.transform.translationX += _lTransformation2.transformation.x;
+        }
+      }
+      if (lTransformationList[lTransformationList.length - 1].transform.translationY === lCurrentData) {
+        for (var _lTransformation3 of lTransformationList) {
+          _lTransformation3.transform.translationY += _lTransformation3.transformation.y;
+        }
+      }
+      if (lTransformationList[lTransformationList.length - 1].transform.translationZ === lCurrentData) {
+        for (var _lTransformation4 of lTransformationList) {
+          _lTransformation4.transform.translationZ += _lTransformation4.transformation.z;
+        }
+      }
       // Update transformation buffer.
-      lTransformationBuffer.write( /*#__PURE__*/function () {
-        var _ref3 = _asyncToGenerator(function* (pBuffer) {
-          pBuffer.set(lTransformation.transformationMatrix.dataArray);
-        });
-        return function (_x2) {
-          return _ref3.apply(this, arguments);
-        };
-      }());
+      var _loop = function _loop(_lTransformation5) {
+        _lTransformation5.buffer.write( /*#__PURE__*/function () {
+          var _ref3 = _asyncToGenerator(function* (pBuffer) {
+            pBuffer.set(_lTransformation5.transform.transformationMatrix.dataArray);
+          });
+          return function (_x2) {
+            return _ref3.apply(this, arguments);
+          };
+        }());
+      };
+      for (var _lTransformation5 of lTransformationList) {
+        _loop(_lTransformation5);
+      }
     };
     lSlider.addEventListener('input', pEvent => {
       lSetData(pEvent.target.value);
@@ -313,68 +370,68 @@ _asyncToGenerator(function* () {
     });
   };
   // Scale handler.
-  lRegisterObjectHandler('scaleHeight', pData => {
-    lTransformation.scaleHeight = pData;
-  }, () => {
-    return lTransformation.scaleHeight;
+  lRegisterObjectHandler('scaleHeight', (pTransform, pData) => {
+    pTransform.scaleHeight = pData;
+  }, pTransform => {
+    return pTransform.scaleHeight;
   });
-  lRegisterObjectHandler('scaleWidth', pData => {
-    lTransformation.scaleWidth = pData;
-  }, () => {
-    return lTransformation.scaleWidth;
+  lRegisterObjectHandler('scaleWidth', (pTransform, pData) => {
+    pTransform.scaleWidth = pData;
+  }, pTransform => {
+    return pTransform.scaleWidth;
   });
-  lRegisterObjectHandler('scaleDepth', pData => {
-    lTransformation.scaleDepth = pData;
-  }, () => {
-    return lTransformation.scaleDepth;
+  lRegisterObjectHandler('scaleDepth', (pTransform, pData) => {
+    pTransform.scaleDepth = pData;
+  }, pTransform => {
+    return pTransform.scaleDepth;
   });
   // Translate.
-  lRegisterObjectHandler('translateX', pData => {
-    lTransformation.translationX = pData;
-  }, () => {
-    return lTransformation.translationX;
+  lRegisterObjectHandler('translateX', (pTransform, pData) => {
+    pTransform.translationX = pData;
+  }, pTransform => {
+    return pTransform.translationX;
   });
-  lRegisterObjectHandler('translateY', pData => {
-    lTransformation.translationY = pData;
-  }, () => {
-    return lTransformation.translationY;
+  lRegisterObjectHandler('translateY', (pTransform, pData) => {
+    pTransform.translationY = pData;
+  }, pTransform => {
+    return pTransform.translationY;
   });
-  lRegisterObjectHandler('translateZ', pData => {
-    lTransformation.translationZ = pData;
-  }, () => {
-    return lTransformation.translationZ;
+  lRegisterObjectHandler('translateZ', (pTransform, pData) => {
+    pTransform.translationZ = pData;
+  }, pTransform => {
+    return pTransform.translationZ;
   });
   // Rotate.
-  lRegisterObjectHandler('rotatePitch', pData => {
-    lTransformation.addRotation(pData, 0, 0);
-  }, () => {
-    return lTransformation.axisRotationAngleX;
+  lRegisterObjectHandler('rotatePitch', (pTransform, pData) => {
+    pTransform.addRotation(pData, 0, 0);
+  }, pTransform => {
+    return pTransform.axisRotationAngleX;
   });
-  lRegisterObjectHandler('rotateYaw', pData => {
-    lTransformation.addRotation(0, pData, 0);
-  }, () => {
-    return lTransformation.axisRotationAngleY;
+  lRegisterObjectHandler('rotateYaw', (pTransform, pData) => {
+    pTransform.addRotation(0, pData, 0);
+  }, pTransform => {
+    return pTransform.axisRotationAngleY;
   });
-  lRegisterObjectHandler('rotateRoll', pData => {
-    lTransformation.addRotation(0, 0, pData);
-  }, () => {
-    return lTransformation.axisRotationAngleZ;
+  lRegisterObjectHandler('rotateRoll', (pTransform, pData) => {
+    pTransform.addRotation(0, 0, pData);
+  }, pTransform => {
+    return pTransform.axisRotationAngleZ;
   });
   // Translate.
-  lRegisterObjectHandler('pivotX', pData => {
-    lTransformation.pivotX = pData;
-  }, () => {
-    return lTransformation.pivotX;
+  lRegisterObjectHandler('pivotX', (pTransform, pData) => {
+    pTransform.pivotX = pData;
+  }, pTransform => {
+    return pTransform.pivotX;
   });
-  lRegisterObjectHandler('pivotY', pData => {
-    lTransformation.pivotY = pData;
-  }, () => {
-    return lTransformation.pivotY;
+  lRegisterObjectHandler('pivotY', (pTransform, pData) => {
+    pTransform.pivotY = pData;
+  }, pTransform => {
+    return pTransform.pivotY;
   });
-  lRegisterObjectHandler('pivotZ', pData => {
-    lTransformation.pivotZ = pData;
-  }, () => {
-    return lTransformation.pivotZ;
+  lRegisterObjectHandler('pivotZ', (pTransform, pData) => {
+    pTransform.pivotZ = pData;
+  }, pTransform => {
+    return pTransform.pivotZ;
   });
   // Transformation.
   var lPerspectiveProjection = new perspective_projection_1.PerspectiveProjection();
@@ -488,11 +545,6 @@ _asyncToGenerator(function* () {
   }, () => {
     return lPerspectiveProjection.angleOfView;
   });
-  // Create bind group.
-  var lBindGroup = lShader.bindGroups.getGroup(0).createBindGroup();
-  lBindGroup.setData('color', lColorBuffer);
-  lBindGroup.setData('transformationMatrix', lTransformationBuffer);
-  lBindGroup.setData('viewProjectionMatrix', lCameraBuffer);
   // Create attributes data.
   var lVertexPositionData = new Float32Array([
   // Back
@@ -520,20 +572,32 @@ _asyncToGenerator(function* () {
   lMesh.setVertexBuffer('vertexcolor', lVertexColorBuffer);
   // Setup renderer.
   var lInstructionExecutioner = new instruction_executer_1.InstructionExecuter(lGpu);
+  // Setup instruction set.
+  var lInstructionSet = new render_instruction_set_1.RenderInstructionSet(lRenderPassDescription);
+  lInstructionExecutioner.addInstructionSet(lInstructionSet);
   // Setup object render.
-  var lObjectRenderInstruction = new render_single_instruction_1.RenderSingleInstruction();
-  yield lObjectRenderInstruction.setPipeline(lPipeline);
-  yield lObjectRenderInstruction.setMesh(lMesh);
-  lObjectRenderInstruction.setBindGroup(0, lBindGroup);
-  lInstructionExecutioner.addInstruction(lObjectRenderInstruction);
+  for (var lCube of lTransformationList) {
+    // Create bind group.
+    var lBindGroup = lShader.bindGroups.getGroup(0).createBindGroup();
+    lBindGroup.setData('color', lColorBuffer);
+    lBindGroup.setData('transformationMatrix', lCube.buffer);
+    lBindGroup.setData('viewProjectionMatrix', lCameraBuffer);
+    var lObjectRenderInstruction = new render_single_instruction_1.RenderSingleInstruction(lPipeline, lMesh);
+    lObjectRenderInstruction.setBindGroup(0, lBindGroup);
+    lInstructionSet.addInstruction(lObjectRenderInstruction);
+  }
+  var lLastTime = 0;
   var lRender = /*#__PURE__*/function () {
-    var _ref5 = _asyncToGenerator(function* () {
+    var _ref5 = _asyncToGenerator(function* (pTime) {
       // Generate encoder and add render commands.
       yield lInstructionExecutioner.execute();
+      var lFps = 1000 / (pTime - lLastTime);
+      lFpsCounter.textContent = lFps.toString();
+      lLastTime = pTime;
       // Refresh canvas
       requestAnimationFrame(lRender);
     });
-    return function lRender() {
+    return function lRender(_x4) {
       return _ref5.apply(this, arguments);
     };
   }();
@@ -1236,7 +1300,6 @@ class BindGroupLayout extends gpu_native_object_1.GpuNativeObject {
   constructor(pGpu) {
     super(pGpu, 'BIND_GROUP_LAYOUT');
     this.mGroupBinds = new core_data_1.Dictionary();
-    this.mRequestUpdate = false;
   }
   /**
    * Get basic information of group binds.
@@ -1276,7 +1339,7 @@ class BindGroupLayout extends gpu_native_object_1.GpuNativeObject {
       minBindingSize: pMinBindingSize
     });
     // Request native object update.
-    this.mRequestUpdate = true;
+    this.triggerChange();
   }
   /**
    * Add external texture bind.
@@ -1292,7 +1355,7 @@ class BindGroupLayout extends gpu_native_object_1.GpuNativeObject {
       visibility: pVisibility
     });
     // Request native object update.
-    this.mRequestUpdate = true;
+    this.triggerChange();
   }
   /**
    * Add sampler bind.
@@ -1311,7 +1374,7 @@ class BindGroupLayout extends gpu_native_object_1.GpuNativeObject {
       type: pSampleType
     });
     // Request native object update.
-    this.mRequestUpdate = true;
+    this.triggerChange();
   }
   /**
    * Add storage texture bind.
@@ -1335,7 +1398,7 @@ class BindGroupLayout extends gpu_native_object_1.GpuNativeObject {
       viewDimension: pDimension
     });
     // Request native object update.
-    this.mRequestUpdate = true;
+    this.triggerChange();
   }
   /**
    * Add texture bind.
@@ -1360,7 +1423,7 @@ class BindGroupLayout extends gpu_native_object_1.GpuNativeObject {
       multisampled: pMultisampled
     });
     // Request native object update.
-    this.mRequestUpdate = true;
+    this.triggerChange();
   }
   /**
    * Create bind group based on this layout.
@@ -1386,16 +1449,9 @@ class BindGroupLayout extends gpu_native_object_1.GpuNativeObject {
   removeBind(pName) {
     if (this.mGroupBinds.delete(pName)) {
       // Request native object update.
-      this.mRequestUpdate = true;
+      this.triggerChange();
     }
   }
-  /**
-   * Destory and free storage of native object.
-   * @param _pNativeObject - Native layout object.
-   */
-  destroyNative(_pNativeObject) {
-    return _asyncToGenerator(function* () {})();
-  } // No action needed.
   /**
    * Generate layout.
    */
@@ -1458,22 +1514,11 @@ class BindGroupLayout extends gpu_native_object_1.GpuNativeObject {
         }
         lEntryList.push(lLayoutEntry);
       }
-      // Reset update request.
-      _this.mRequestUpdate = false;
       // Create binding group layout.
       return _this.gpu.device.createBindGroupLayout({
         label: _this.label,
         entries: lEntryList
       });
-    })();
-  }
-  /**
-   * Invalidate native object when binding group changes.
-   */
-  validateState() {
-    var _this2 = this;
-    return _asyncToGenerator(function* () {
-      return !_this2.mRequestUpdate;
     })();
   }
 }
@@ -1548,13 +1593,6 @@ class BindGroup extends gpu_native_object_1.GpuNativeObject {
       data: pData
     });
   }
-  /**
-   * Free storage of native object.
-   * @param _pNativeObject - Native object.
-   */
-  destroyNative(_pNativeObject) {
-    return _asyncToGenerator(function* () {})();
-  } // Nothing to destroy.
   /**
    * Generate native bind group.
    */
@@ -1707,13 +1745,6 @@ class BindGroups extends gpu_native_object_1.GpuNativeObject {
     return this.mBindGroups.get(pIndex);
   }
   /**
-   * Ddesctroy native object.
-   * @param _pNativeObject - Native object.
-   */
-  destroyNative(_pNativeObject) {
-    return _asyncToGenerator(function* () {})();
-  } /* Nothing to destroy. */
-  /**
    * Generate native object.
    */
   generate() {
@@ -1865,7 +1896,6 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.InstructionExecuter = void 0;
 var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-var render_single_instruction_1 = __webpack_require__(/*! ./instruction/render-single-instruction */ "./source/core/execution/instruction/render-single-instruction.ts");
 class InstructionExecuter {
   /**
    * Constructor.
@@ -1874,57 +1904,31 @@ class InstructionExecuter {
   constructor(pGpu) {
     this.mGpu = pGpu;
     // Instruction sets.
-    this.mRenderInstructionList = new core_data_1.List();
+    this.mInstructionSetList = new core_data_1.List();
   }
-  addInstruction(pInstruction) {
-    if (pInstruction instanceof render_single_instruction_1.RenderSingleInstruction) {
-      this.mRenderInstructionList.push(pInstruction);
-    }
+  /**
+   * Add instruction set.
+   * @param pSet - New instruction net.
+   */
+  addInstructionSet(pSet) {
+    this.mInstructionSetList.push(pSet);
   }
+  /**
+   * Remove all instruction sets.
+   */
   clearInstructions() {
-    this.mRenderInstructionList.clear();
+    this.mInstructionSetList.clear();
   }
   execute() {
     var _this = this;
     return _asyncToGenerator(function* () {
       // Generate encoder and add render commands.
       var lEncoder = _this.mGpu.device.createCommandEncoder();
-      // TODO: DOSTUFFF...
-      for (var lRenderInstruction of _this.mRenderInstructionList) {
-        yield _this.render(lEncoder, lRenderInstruction);
+      // Execute instruction sets.
+      for (var lInstructionSet of _this.mInstructionSetList) {
+        yield lInstructionSet.execute(lEncoder);
       }
       _this.mGpu.device.queue.submit([lEncoder.finish()]);
-    })();
-  }
-  /**
-   * Render set mesh with set pipeline.
-   * @param lRenderPassEncoder - Encoder.
-   */
-  render(pEncoder, pRenderInstruction) {
-    var _this2 = this;
-    return _asyncToGenerator(function* () {
-      // TODO: pRenderInstruction.validate()
-      // Generate pass descriptor once per set pipeline.
-      var lPassDescriptor = yield pRenderInstruction.pipeline.renderPass.native();
-      // Pass descriptor is set, when the pipeline ist set.
-      var lRenderPassEncoder = pEncoder.beginRenderPass(lPassDescriptor);
-      lRenderPassEncoder.setPipeline(yield pRenderInstruction.pipeline.native());
-      // Add bind groups.
-      for (var lIndex of pRenderInstruction.pipeline.shader.bindGroups.groups) {
-        var lBindGroup = pRenderInstruction.bindGroups[lIndex];
-        if (!lBindGroup) {
-          throw new core_data_1.Exception("Missing bind group for pipeline bind group layout (index ".concat(lIndex, ")"), _this2);
-        }
-        lRenderPassEncoder.setBindGroup(lIndex, yield lBindGroup.native());
-      }
-      // Add vertex attribute buffer.
-      for (var lAttribute of pRenderInstruction.pipeline.shader.vertexEntryPoint.attributes) {
-        var lAttributeBuffer = pRenderInstruction.mesh.getVertexBuffer(lAttribute.name);
-        lRenderPassEncoder.setVertexBuffer(lAttribute.location, yield lAttributeBuffer.native());
-      }
-      lRenderPassEncoder.setIndexBuffer(yield pRenderInstruction.mesh.indexBuffer.native(), 'uint16');
-      lRenderPassEncoder.drawIndexed(pRenderInstruction.mesh.indexBuffer.length);
-      lRenderPassEncoder.end();
     })();
   }
 }
@@ -1952,12 +1956,24 @@ class RenderSingleInstruction {
   /**
    * Constructor.
    */
-  constructor() {
+  constructor(pPipeline, pMesh) {
+    var _this$mPipeline$shade;
     this.mBindGroups = new core_data_1.Dictionary();
-    this.mMesh = null;
-    this.mPipeline = null;
+    this.mMesh = pMesh;
+    this.mPipeline = pPipeline;
+    // Validate mesh and pipeline attributes length.
+    if (pMesh.attributesCount !== ((_this$mPipeline$shade = this.mPipeline.shader.vertexEntryPoint) === null || _this$mPipeline$shade === void 0 ? void 0 : _this$mPipeline$shade.attributes.length)) {
+      var _this$mPipeline$shade2;
+      throw new core_data_1.Exception("Mesh attributes (length:".concat(pMesh.attributesCount, ") does not match pipeline attributes (length").concat((_this$mPipeline$shade2 = this.mPipeline.shader.vertexEntryPoint) === null || _this$mPipeline$shade2 === void 0 ? void 0 : _this$mPipeline$shade2.attributes.length, ")"), this);
+    }
+    // Validate mesh and pipeline attributes content.
+    for (var lAttribute of this.mPipeline.shader.vertexEntryPoint.attributes) {
+      var lMeshAttributeBuffer = pMesh.getVertexBuffer(lAttribute.name);
+      if (lMeshAttributeBuffer.type !== lAttribute.bufferDataType) {
+        throw new core_data_1.Exception("Mesh attributes does not match pipeline attributes", this);
+      }
+    }
   }
-  // TODO: Set  GPURenderPassEncoder.setScissorRect
   /**
    * Get bind groups.
    */
@@ -1972,18 +1988,12 @@ class RenderSingleInstruction {
    * Instruction mesh.
    */
   get mesh() {
-    if (!this.mMesh) {
-      throw new core_data_1.Exception('Mesh not set.', this);
-    }
     return this.mMesh;
   }
   /**
    * Instructions render pipeline.
    */
   get pipeline() {
-    if (!this.mPipeline) {
-      throw new core_data_1.Exception('Pipeline not set.', this);
-    }
     return this.mPipeline;
   }
   /**
@@ -1993,10 +2003,6 @@ class RenderSingleInstruction {
   setBindGroup(pIndex, pBindGroup) {
     var _this = this;
     return _asyncToGenerator(function* () {
-      // Validate pipeline existance.
-      if (!_this.mPipeline) {
-        throw new core_data_1.Exception("Can't set bind group without set pipeline.", _this);
-      }
       // Validate bind group layout.
       if (_this.mPipeline.shader.bindGroups.getGroup(pIndex) !== pBindGroup.layout) {
         throw new core_data_1.Exception("Bind data layout not matched with pipeline bind group layout.", _this);
@@ -2005,46 +2011,122 @@ class RenderSingleInstruction {
     })();
   }
   /**
-   * Set mesh to render.
-   * @param pMesh - Mesh to render.
+   * Validate instruction.
+   * Validate with execptions.
    */
-  setMesh(pMesh) {
+  validate() {
     var _this2 = this;
     return _asyncToGenerator(function* () {
-      var _this2$mPipeline$shad;
-      // Validate pipeline existance.
-      if (!_this2.mPipeline) {
-        throw new core_data_1.Exception("Can't set mesh without set pipeline.", _this2);
-      }
-      // Validate mesh and pipeline attributes length.
-      if (pMesh.attributesCount !== ((_this2$mPipeline$shad = _this2.mPipeline.shader.vertexEntryPoint) === null || _this2$mPipeline$shad === void 0 ? void 0 : _this2$mPipeline$shad.attributes.length)) {
-        var _this2$mPipeline$shad2;
-        throw new core_data_1.Exception("Mesh attributes (length:".concat(pMesh.attributesCount, ") does not match pipeline attributes (length").concat((_this2$mPipeline$shad2 = _this2.mPipeline.shader.vertexEntryPoint) === null || _this2$mPipeline$shad2 === void 0 ? void 0 : _this2$mPipeline$shad2.attributes.length, ")"), _this2);
-      }
-      // Validate mesh and pipeline attributes content.
-      for (var lAttribute of _this2.mPipeline.shader.vertexEntryPoint.attributes) {
-        var lMeshAttributeBuffer = pMesh.getVertexBuffer(lAttribute.name);
-        if (lMeshAttributeBuffer.type !== lAttribute.bufferDataType) {
-          throw new core_data_1.Exception("Mesh attributes does not match pipeline attributes", _this2);
+      // Add bind groups.
+      for (var lIndex of _this2.mPipeline.shader.bindGroups.groups) {
+        if (!_this2.bindGroups[lIndex]) {
+          throw new core_data_1.Exception("Missing bind group for pipeline bind group layout (index ".concat(lIndex, ")"), _this2);
         }
       }
-      _this2.mMesh = pMesh;
-    })();
-  }
-  /**
-   * Set render pipeline. Clears group binds.
-   * @param pPipeline - Render pipeline.
-   */
-  setPipeline(pPipeline) {
-    var _this3 = this;
-    return _asyncToGenerator(function* () {
-      _this3.mPipeline = pPipeline;
-      // Clear binds.
-      _this3.mBindGroups.clear();
     })();
   }
 }
 exports.RenderSingleInstruction = RenderSingleInstruction;
+
+/***/ }),
+
+/***/ "./source/core/execution/instruction_set/render-instruction-set.ts":
+/*!*************************************************************************!*\
+  !*** ./source/core/execution/instruction_set/render-instruction-set.ts ***!
+  \*************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.RenderInstructionSet = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+class RenderInstructionSet {
+  // TODO: Set  GPURenderPassEncoder.setScissorRect
+  /**
+   * Constructor.
+   * @param pRenderPass - Render pass.
+   */
+  constructor(pRenderPass) {
+    this.mRenderPass = pRenderPass;
+    this.mInstructionList = new Array();
+  }
+  /**
+   * Add render instruction.
+   * @param pInstruction - Render instruction.
+   */
+  addInstruction(pInstruction) {
+    // Validate instruction.
+    if (pInstruction.pipeline.renderPass !== this.mRenderPass) {
+      throw new core_data_1.Exception('Instruction render pass not valid for instruction set.', this);
+    }
+    // Add instruction.
+    this.mInstructionList.push(pInstruction);
+  }
+  /**
+   * Execute instruction set.
+   * @param pCommandEncoder - Command encoder.
+   */
+  execute(pCommandEncoder) {
+    var _this = this;
+    return _asyncToGenerator(function* () {
+      // Generate pass descriptor once per set pipeline.
+      var lPassDescriptor = yield _this.mRenderPass.native();
+      // Pass descriptor is set, when the pipeline ist set.
+      var lRenderPassEncoder = pCommandEncoder.beginRenderPass(lPassDescriptor);
+      // Instruction cache.
+      var lPipeline = null;
+      var lBindGroupList = new Array();
+      var lVertexBufferList = new core_data_1.Dictionary();
+      var lIndexBuffer = null;
+      // Execute instructions.
+      for (var lInstruction of _this.mInstructionList) {
+        // Validate instruction.
+        yield lInstruction.validate();
+        // Use cached pipeline or use new.
+        if (lInstruction.pipeline !== lPipeline) {
+          lPipeline = lInstruction.pipeline;
+          lRenderPassEncoder.setPipeline(yield lInstruction.pipeline.native());
+        }
+        // Add bind groups.
+        for (var lIndex of lPipeline.shader.bindGroups.groups) {
+          var lNewBindGroup = lInstruction.bindGroups[lIndex];
+          var lCurrentBindGroup = lBindGroupList[lIndex];
+          // Use cached bind group or use new.
+          if (lNewBindGroup !== lCurrentBindGroup) {
+            lBindGroupList[lIndex] = lNewBindGroup;
+            if (lNewBindGroup) {
+              lRenderPassEncoder.setBindGroup(lIndex, yield lNewBindGroup.native());
+            }
+          }
+        }
+        // Add vertex attribute buffer.
+        for (var lAttribute of lInstruction.pipeline.shader.vertexEntryPoint.attributes) {
+          var lNewAttributeBuffer = lInstruction.mesh.getVertexBuffer(lAttribute.name);
+          var lCurrentAttributeBuffer = lVertexBufferList.get(lAttribute.location);
+          // Use cached vertex buffer or use new.
+          if (lNewAttributeBuffer !== lCurrentAttributeBuffer) {
+            lVertexBufferList.set(lAttribute.location, lNewAttributeBuffer);
+            lRenderPassEncoder.setVertexBuffer(lAttribute.location, yield lNewAttributeBuffer.native());
+          }
+        }
+        // Use cached index buffer or use new.
+        if (lInstruction.mesh.indexBuffer !== lIndexBuffer) {
+          lIndexBuffer = lInstruction.mesh.indexBuffer;
+          lRenderPassEncoder.setIndexBuffer(yield lInstruction.mesh.indexBuffer.native(), 'uint16');
+        }
+        lRenderPassEncoder.drawIndexed(lInstruction.mesh.indexBuffer.length);
+      }
+      lRenderPassEncoder.end();
+    })();
+  }
+}
+exports.RenderInstructionSet = RenderInstructionSet;
 
 /***/ }),
 
@@ -2078,12 +2160,12 @@ class GpuNativeObject {
     this.mNativeObject = null;
     this.mLabel = '';
     this.mNativeName = pNativeName;
-    this.mInternalNativeChanged = false;
+    this.mObjectInvalid = false;
     // Init internal native change detection.
     this.mChangeListener = new core_data_1.Dictionary();
     this.mInternalNativeList = new Set();
     // Basic ununique id for uninitialized state.
-    this.mNativeObjectId = globalThis.crypto.randomUUID();
+    this.mNativeObjectId = '';
   }
   /**
    * Debug label.
@@ -2115,8 +2197,6 @@ class GpuNativeObject {
         yield _this.destroyNative(_this.mNativeObject);
         // Remove destroyed native.
         _this.mNativeObject = null;
-        // Set new id.
-        _this.mNativeObjectId = globalThis.crypto.randomUUID();
       }
     })();
   }
@@ -2128,16 +2208,18 @@ class GpuNativeObject {
     return _asyncToGenerator(function* () {
       // Generate new native object when not already created.
       if (!(yield _this2.isValid())) {
+        // Destroy native.
+        yield _this2.destroy();
         // Generate new native object.
         _this2.mNativeObject = yield _this2.generate();
         // Generate new id for new generated 
         _this2.mNativeObjectId = globalThis.crypto.randomUUID();
-        // Execute one way listener on new generated.
+        // Reset object invalidation.
+        _this2.mObjectInvalid = false;
+        // Execute change listener.
         for (var lListener of _this2.mChangeListener.values()) {
           lListener();
         }
-        // Reset change listener when changes where made.
-        _this2.mInternalNativeChanged = false;
       }
       return _this2.mNativeObject;
     })();
@@ -2154,26 +2236,29 @@ class GpuNativeObject {
     })();
   }
   /**
+   * Destroy object.
+   */
+  destroyNative(_pNativeObject) {
+    return _asyncToGenerator(function* () {})();
+  } // Nothing to destroy. :)
+  /**
    * Register internal native object.
    * Invalidated native when internal changes.
    * @param pInternalNative - Internal used native.
    */
   registerInternalNative(pInternalNative) {
     // Save internal native.
-    this.mInternalNativeList.add(pInternalNative);
-    // Register change listener on internal native.
-    pInternalNative.registerChangeListener(() => {
-      this.triggerChange();
+    pInternalNative.addChangeListener(() => {
+      this.mObjectInvalid = true;
     }, this);
-    // Trigger change.
-    this.triggerChange();
+    this.mInternalNativeList.add(pInternalNative);
   }
   /**
    * Trigger native change.
    */
   triggerChange() {
     // Trigger change.
-    this.mInternalNativeChanged = true;
+    this.mObjectInvalid = true;
   }
   /**
    * Unregister internal native object.
@@ -2181,11 +2266,8 @@ class GpuNativeObject {
    */
   unregisterInternalNative(pInternalNative) {
     // Delete saved native.
+    pInternalNative.removeChangeListener(this);
     this.mInternalNativeList.delete(pInternalNative);
-    // Unregister change listener on internal native.
-    pInternalNative.unregisterChangeListener(this);
-    // Trigger change.
-    this.triggerChange();
   }
   /**
    * Validate native object. Refresh native on negative state.
@@ -2197,50 +2279,44 @@ class GpuNativeObject {
     })();
   }
   /**
+   * Add change listener.
+   * @param pListener - Change listener.
+   * @param pReferrer - Referrer object.
+   */
+  addChangeListener(pListener, pReferrer) {
+    this.mChangeListener.set(pReferrer, pListener);
+  }
+  /**
    * Check validation of internal objects.
    */
   isValid() {
     var _this4 = this;
     return _asyncToGenerator(function* () {
       var lNativeChanged = false;
-      // Check internal object state.
-      if (!_this4.mNativeObject || _this4.mInternalNativeChanged || !(yield _this4.validateState(_this4.mNativeObject))) {
+      // Check object state.
+      if (_this4.mObjectInvalid || !_this4.mNativeObject || !(yield _this4.validateState(_this4.mNativeObject))) {
         lNativeChanged = true;
       }
-      // Check internal natives.
-      if (!lNativeChanged) {
-        for (var lInternalNative of _this4.mInternalNativeList) {
-          if (!(yield lInternalNative.isValid())) {
-            lNativeChanged = true;
-            break;
-          }
-        }
+      // Generate all internal natives and force change listener execution.
+      for (var lInternalNative of _this4.mInternalNativeList) {
+        yield lInternalNative.native();
+      }
+      // Check object invalidation again.
+      if (_this4.mObjectInvalid) {
+        lNativeChanged = true;
       }
       // Remove native on invalidation to cache change state for future isValidate calls.
       if (lNativeChanged) {
-        yield _this4.destroy();
+        _this4.triggerChange();
       }
       return !lNativeChanged;
     })();
   }
   /**
-   * Sets listener for changes.
-   * Does not set new listener when referer has allready an registered listener.
-   * @param pListener - Change listener.
-   * @param pReferrer - Referer.
+   * Remove change listener.
+   * @param pReferrer - Referrer object.
    */
-  registerChangeListener(pListener, pReferrer) {
-    if (!this.mChangeListener.has(pReferrer)) {
-      this.mChangeListener.set(pReferrer, pListener);
-    }
-  }
-  /**
-   * Sets one way listener for changes.
-   * Does not set new listener when referer has allready an registered listener.
-   * @param pListener - Change listener.
-   * @param pReferrer - Referer.
-   */
-  unregisterChangeListener(pReferrer) {
+  removeChangeListener(pReferrer) {
     this.mChangeListener.delete(pReferrer);
   }
 }
@@ -2312,6 +2388,12 @@ class Gpu {
   get device() {
     return this.mGpuDevice;
   }
+  /**
+   * Preferred texture format.
+   */
+  get preferredFormat() {
+    return window.navigator.gpu.getPreferredCanvasFormat();
+  }
 }
 exports.Gpu = Gpu;
 Gpu.mAdapters = new core_data_1.Dictionary();
@@ -2367,6 +2449,7 @@ class Attachments {
    * @param pGpu - GPU.
    */
   constructor(pGpu) {
+    var pMultiSampleLevel = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
     this.mAttachments = new core_data_1.Dictionary();
     this.mAttachmentGroup = new core_data_1.Dictionary();
     this.mTextureGroup = new core_data_1.Dictionary();
@@ -2376,6 +2459,7 @@ class Attachments {
       width: 1,
       height: 1
     };
+    this.mMultiSampleLevel = pMultiSampleLevel;
   }
   /**
    * Attachment height.
@@ -2474,9 +2558,9 @@ class Attachments {
   groupAttachments(pAttachmentList) {
     var lGroups = new core_data_1.Dictionary();
     for (var lAttachment of pAttachmentList) {
-      // Get group name by format. 
+      // Get group name by format and multisamples.         
+      var lGroupName = "Format: ".concat(lAttachment.format);
       // Exclude canvas by setting unique group names as they should never be grouped.
-      var lGroupName = lAttachment.format;
       var lCanvas = null;
       if ((lAttachment.type & attachment_type_enum_1.AttachmentType.Canvas) > 0) {
         lGroupName = "CANVAS--".concat(lAttachment.name, "--").concat(lGroupName);
@@ -2532,18 +2616,13 @@ class Attachments {
           lCanvasTexture.label = lGroup.name;
           lCanvasTexture.width = this.mSize.width;
           lCanvasTexture.height = this.mSize.height;
-          lCanvasTexture.label = lGroup.name;
           lTexture = lCanvasTexture;
         } else {
           // Create fixed texture.
-          var lFixedTexture = new texture_1.Texture(this.mGpu, lGroup.format, texture_usage_enum_1.TextureUsage.RenderAttachment | texture_usage_enum_1.TextureUsage.TextureBinding, '2d');
+          var lFixedTexture = new texture_1.Texture(this.mGpu, lGroup.format, texture_usage_enum_1.TextureUsage.RenderAttachment | texture_usage_enum_1.TextureUsage.TextureBinding, '2d', this.mMultiSampleLevel, lTextureLayerCount);
           lFixedTexture.label = lGroup.name;
           lFixedTexture.width = this.mSize.width;
           lFixedTexture.height = this.mSize.height;
-          lFixedTexture.layer = lTextureLayerCount;
-          lFixedTexture.label = lGroup.attachments.reduce((pCurrent, pNext) => {
-            return "".concat(pCurrent).concat(pNext.name, "-");
-          }, '-');
           lTexture = lFixedTexture;
         }
         // Create views from same texture.
@@ -2561,6 +2640,7 @@ class Attachments {
         this.mTextureGroup.delete(lGroup.name);
       }
     }
+    this.mRebuildRequested = false;
   }
 }
 exports.Attachments = Attachments;
@@ -2624,26 +2704,39 @@ class RenderPassDescriptor extends gpu_native_object_1.GpuNativeObject {
    * @param pLoadOp - Load operation.
    * @param pStoreOp - Store operation.
    */
-  setColorAttachment(pLocation, pAttachmentName, pClearValue, pLoadOp, pStoreOp) {
+  setColorAttachment(pLocation, pAttachmentName, pClearValue, pLoadOp, pStoreOp, pResolveAttachmentName) {
     // Validate attachment existence.
     if (!this.mAttachments.hasAttachment(pAttachmentName)) {
       throw new core_data_1.Exception("Attachment \"".concat(pAttachmentName, "\" does not exist."), this);
     }
+    if (pResolveAttachmentName && !this.mAttachments.hasAttachment(pResolveAttachmentName)) {
+      throw new core_data_1.Exception("Resolve attachment \"".concat(pResolveAttachmentName, "\" does not exist."), this);
+    }
+    // Update internal attachment object.
     var lAttachment = this.mAttachments.getAttachment(pAttachmentName);
-    // Update internal object.
     if (this.mColorAttachments[pLocation]) {
       this.unregisterInternalNative(this.mColorAttachments[pLocation].attachment);
     }
     this.registerInternalNative(lAttachment);
+    // Update internal resolve attachment object.
+    var lResolveAttachment = null;
+    if (pResolveAttachmentName) {
+      lResolveAttachment = this.mAttachments.getAttachment(pResolveAttachmentName);
+      if (this.mColorAttachments[pLocation] && this.mColorAttachments[pLocation].resolveTarget) {
+        this.unregisterInternalNative(this.mColorAttachments[pLocation].resolveTarget);
+      }
+    }
+    if (lResolveAttachment) {
+      this.registerInternalNative(lResolveAttachment);
+    }
     // Setup depth attachment.
     this.mColorAttachments[pLocation] = {
       attachment: lAttachment,
       clearValue: pClearValue,
       loadOp: pLoadOp !== null && pLoadOp !== void 0 ? pLoadOp : 'clear',
-      storeOp: pStoreOp !== null && pStoreOp !== void 0 ? pStoreOp : 'store' // Apply default value.
+      storeOp: pStoreOp !== null && pStoreOp !== void 0 ? pStoreOp : 'store',
+      resolveTarget: lResolveAttachment
     };
-
-    this.triggerChange();
   }
   /**
    * Set depth attachment.
@@ -2670,16 +2763,7 @@ class RenderPassDescriptor extends gpu_native_object_1.GpuNativeObject {
       loadOp: pLoadOp !== null && pLoadOp !== void 0 ? pLoadOp : 'clear',
       storeOp: pStoreOp !== null && pStoreOp !== void 0 ? pStoreOp : 'store' // Apply default value.
     };
-
-    this.triggerChange();
   }
-  /**
-   * Destory native object.
-   * @param _pNativeObject - Native object.
-   */
-  destroyNative(_pNativeObject) {
-    return _asyncToGenerator(function* () {})();
-  } // Nothing to destroy.
   /**
    * Generate render pass descriptor.
    */
@@ -2689,12 +2773,17 @@ class RenderPassDescriptor extends gpu_native_object_1.GpuNativeObject {
       // Create color attachments.
       var lColorAttachments = new Array();
       for (var lColorAttachment of _this.mColorAttachments) {
-        lColorAttachments.push({
+        var lPassColorAttachment = {
           view: yield lColorAttachment.attachment.native(),
           clearValue: lColorAttachment.clearValue,
           loadOp: lColorAttachment.loadOp,
           storeOp: lColorAttachment.storeOp
-        });
+        };
+        // Resolve optional resolve attachment.
+        if (lColorAttachment.resolveTarget) {
+          lPassColorAttachment.resolveTarget = yield lColorAttachment.resolveTarget.native();
+        }
+        lColorAttachments.push(lPassColorAttachment);
       }
       // Create descriptor with color attachments.
       var lDescriptor = {
@@ -2753,6 +2842,18 @@ class Attachment extends gpu_native_object_1.GpuNativeObject {
   get format() {
     return this.mFormat;
   }
+  /**
+   * Multisample level of attachment.
+   */
+  get multiSampleLevel() {
+    var _this$mTexture$multiS, _this$mTexture;
+    return (_this$mTexture$multiS = (_this$mTexture = this.mTexture) === null || _this$mTexture === void 0 ? void 0 : _this$mTexture.multiSampleLevel) !== null && _this$mTexture$multiS !== void 0 ? _this$mTexture$multiS : 1;
+  }
+  /**
+   * Update attachment texture.
+   * @param pTexture - Attachment texture.
+   * @param pBaseArrayLayer - Starting index of first texture layer.
+   */
   updateTexture(pTexture, pBaseArrayLayer) {
     // Remove old and add new texture as internal native.
     if (this.mTexture) {
@@ -2763,13 +2864,6 @@ class Attachment extends gpu_native_object_1.GpuNativeObject {
     this.mBaseArrayLayer = pBaseArrayLayer;
     this.mTexture = pTexture;
   }
-  /**
-   * Destory native object.
-   * @param _pNativeObject - Native object.
-   */
-  destroyNative(_pNativeObject) {
-    return _asyncToGenerator(function* () {})();
-  } // Nothing needed here.
   /**
    * Generate color attachment.
    */
@@ -2872,14 +2966,9 @@ class VertexAttribute extends gpu_native_object_1.GpuNativeObject {
       itemStride: lFormatStride.stride,
       type: lFormatStride.type
     };
+    // Trigger change.
+    this.triggerChange();
   }
-  /**
-   * Free storage of native object.
-   * @param _pNativeObject - Native object.
-   */
-  destroyNative(_pNativeObject) {
-    return _asyncToGenerator(function* () {})();
-  } // Nothing to destroy.
   /**
    * Generate native object.
    */
@@ -2900,17 +2989,6 @@ class VertexAttribute extends gpu_native_object_1.GpuNativeObject {
         stepMode: 'vertex',
         attributes: lAttributes
       };
-    })();
-  }
-  /**
-   * Invalidate native object on different stride lengths.
-   */
-  validateState(pGeneratedNative) {
-    var _this2 = this;
-    return _asyncToGenerator(function* () {
-      var lLastArrayStrideLength = pGeneratedNative.arrayStride;
-      var lCurrentArrayStideLength = _this2.mAttribute.type.BYTES_PER_ELEMENT * _this2.mAttribute.itemStride;
-      return lLastArrayStrideLength === lCurrentArrayStideLength;
     })();
   }
 }
@@ -3027,12 +3105,23 @@ class RenderPipeline extends gpu_native_object_1.GpuNativeObject {
    * Constructor.
    * @param pGpu - GPU.
    */
-  constructor(pGpu, pRenderPass) {
+  constructor(pGpu, pShader, pRenderPass) {
     super(pGpu, 'RENDER_PIPELINE');
     // Set statics.
     this.mRenderPass = pRenderPass;
-    // Init unassigned properties.
-    this.mShader = null;
+    // Set and register shader.
+    this.mShader = pShader;
+    this.registerInternalNative(pShader);
+    // Validate vertex shader.
+    if (!pShader.vertexEntryPoint) {
+      throw new core_data_1.Exception('Vertex shader has no entry point.', this);
+    }
+    // Validate render pass to has same render target count as fragment.
+    if (pShader.fragmentEntryPoint) {
+      if (pRenderPass.colorAttachments.length !== pShader.fragmentEntryPoint.renderTargetCount) {
+        throw new core_data_1.Exception("Render pass(".concat(pRenderPass.colorAttachments.length, ") and shader(").concat(pShader.fragmentEntryPoint.renderTargetCount, ") are having unmatching render targets"), this);
+      }
+    }
     // Set default values.
     this.mPrimitive = {
       frontFace: 'cw',
@@ -3042,11 +3131,8 @@ class RenderPipeline extends gpu_native_object_1.GpuNativeObject {
     };
     this.mDepthWriteEnabled = true;
     this.mDepthCompare = 'less';
-    // Unchanged change state.
-    this.mPipelineDataChangeState = {
-      primitive: false,
-      depthAttachment: false,
-      attachment: true
+    this.mLastRenderPass = {
+      color: new Array()
     };
   }
   /**
@@ -3056,13 +3142,9 @@ class RenderPipeline extends gpu_native_object_1.GpuNativeObject {
     return this.mDepthCompare;
   }
   set depthCompare(pValue) {
-    // Do nothing on assigning old an value.
-    if (this.mDepthCompare === pValue) {
-      return;
-    }
     this.mDepthCompare = pValue;
     // Set data changed flag.
-    this.mPipelineDataChangeState.depthAttachment = true;
+    this.triggerChange();
   }
   /**
    * Defines which polygon orientation will be culled.
@@ -3071,13 +3153,9 @@ class RenderPipeline extends gpu_native_object_1.GpuNativeObject {
     return this.mPrimitive.cullMode;
   }
   set primitiveCullMode(pValue) {
-    // Do nothing on assigning old an value.
-    if (this.mPrimitive.cullMode === pValue) {
-      return;
-    }
     this.mPrimitive.cullMode = pValue;
     // Set data changed flag.
-    this.mPipelineDataChangeState.primitive = true;
+    this.triggerChange();
   }
   /**
    * Defines which polygons are considered front-facing.
@@ -3086,13 +3164,9 @@ class RenderPipeline extends gpu_native_object_1.GpuNativeObject {
     return this.mPrimitive.frontFace;
   }
   set primitiveFrontFace(pValue) {
-    // Do nothing on assigning old an value.
-    if (this.mPrimitive.frontFace === pValue) {
-      return;
-    }
     this.mPrimitive.frontFace = pValue;
     // Set data changed flag.
-    this.mPipelineDataChangeState.primitive = true;
+    this.triggerChange();
   }
   /**
    * The type of primitive to be constructed from the vertex inputs.
@@ -3101,13 +3175,9 @@ class RenderPipeline extends gpu_native_object_1.GpuNativeObject {
     return this.mPrimitive.topology;
   }
   set primitiveTopology(pValue) {
-    // Do nothing on assigning old an value.
-    if (this.mPrimitive.topology === pValue) {
-      return;
-    }
     this.mPrimitive.topology = pValue;
     // Set data changed flag.
-    this.mPipelineDataChangeState.primitive = true;
+    this.triggerChange();
   }
   /**
    * Render pass of pipeline.
@@ -3119,9 +3189,6 @@ class RenderPipeline extends gpu_native_object_1.GpuNativeObject {
    * Shader.
    */
   get shader() {
-    if (!this.mShader) {
-      throw new core_data_1.Exception('Shader is not set for this pipeline', this);
-    }
     return this.mShader;
   }
   /**
@@ -3132,13 +3199,9 @@ class RenderPipeline extends gpu_native_object_1.GpuNativeObject {
     return (_this$mPrimitive$uncl = this.mPrimitive.unclippedDepth) !== null && _this$mPrimitive$uncl !== void 0 ? _this$mPrimitive$uncl : false;
   }
   set unclipedDepth(pValue) {
-    // Do nothing on assigning old an value.
-    if (this.mPrimitive.unclippedDepth === pValue) {
-      return;
-    }
     this.mPrimitive.unclippedDepth = pValue;
     // Set data changed flag.
-    this.mPipelineDataChangeState.primitive = true;
+    this.triggerChange();
   }
   /**
    * Set depth write enabled / disabled.
@@ -3147,50 +3210,16 @@ class RenderPipeline extends gpu_native_object_1.GpuNativeObject {
     return this.mDepthWriteEnabled;
   }
   set writeDepth(pValue) {
-    // Do nothing on assigning old an value.
-    if (this.mDepthWriteEnabled === pValue) {
-      return;
-    }
     this.mDepthWriteEnabled = pValue;
     // Set data changed flag.
-    this.mPipelineDataChangeState.depthAttachment = true;
+    this.triggerChange();
   }
-  /**
-   * Set Shader programms for pipeline.
-   * @param pShader - Vertex with optional fragement shader.
-   */
-  setShader(pShader) {
-    // Validate vertex shader.
-    if (!pShader.vertexEntryPoint) {
-      throw new core_data_1.Exception('Vertex shader has no entry point.', this);
-    }
-    // Unregister old shader and register new.
-    if (this.mShader) {
-      this.unregisterInternalNative(this.mShader);
-    }
-    if (pShader) {
-      this.registerInternalNative(pShader);
-    }
-    this.mShader = pShader;
-  }
-  /**
-   * Free storage of native object.
-   * @param _pNativeObject - Native object.
-   */
-  destroyNative(_pNativeObject) {
-    return _asyncToGenerator(function* () {})();
-  } // Nothing to destroy.
   /**
    * Generate native render pipeline.
    */
   generate() {
     var _this = this;
     return _asyncToGenerator(function* () {
-      var _this$mShader;
-      // Check valid entry points.
-      if (!((_this$mShader = _this.mShader) !== null && _this$mShader !== void 0 && _this$mShader.vertexEntryPoint)) {
-        throw new core_data_1.Exception('Shadermodule has no vertex entry point.', _this);
-      }
       // Generate pipeline layout from bind group layouts.
       var lPipelineLayout = yield _this.mShader.bindGroups.native();
       // Generate vertex buffer layouts.
@@ -3212,6 +3241,12 @@ class RenderPipeline extends gpu_native_object_1.GpuNativeObject {
 
         primitive: _this.mPrimitive
       };
+      // Buffer render pass formats.
+      var lRenderPassBuffer = {
+        color: new Array()
+      };
+      // Save highest multisample count.
+      var lMultisampleCount = 1;
       // Optional fragment state.
       if (_this.mShader.fragmentEntryPoint) {
         // Generate fragment targets only when fragment state is needed.
@@ -3222,8 +3257,13 @@ class RenderPipeline extends gpu_native_object_1.GpuNativeObject {
             // blend?: GPUBlendState;   // TODO: GPUBlendState
             // writeMask?: GPUColorWriteFlags; // TODO: GPUColorWriteFlags
           });
+          // Save highest multisample count.
+          if (lMultisampleCount < lRenderTarget.multiSampleLevel) {
+            lMultisampleCount = lRenderTarget.multiSampleLevel;
+          }
+          // Save last render pass targets.
+          lRenderPassBuffer.color.push(lRenderTarget.format);
         }
-
         lPipelineDescriptor.fragment = {
           module: yield _this.mShader.native(),
           entryPoint: _this.mShader.fragmentEntryPoint.name,
@@ -3239,28 +3279,47 @@ class RenderPipeline extends gpu_native_object_1.GpuNativeObject {
           format: lDepthAttachment.format
           // TODO: Stencil settings. 
         };
+        // Save last render pass depth.
+        lRenderPassBuffer.depth = lDepthAttachment.format;
       }
-      // Reset change states.
-      for (var lChangeState in _this.mPipelineDataChangeState) {
-        _this.mPipelineDataChangeState[lChangeState] = false;
+      // Set multisample count.
+      if (lMultisampleCount > 1) {
+        lPipelineDescriptor.multisample = {
+          count: lMultisampleCount
+        };
       }
+      // Save render pass formats.
+      _this.mLastRenderPass = lRenderPassBuffer;
       // Async is none GPU stalling.
       return _this.gpu.device.createRenderPipelineAsync(lPipelineDescriptor);
     })();
   }
   /**
-   * Invalidate on data change or native data change.s
+   * Special validation for renderpass.
+   * Renderpass can not be used as internal native.
+   * Renderpass has frequent texture changes. Pipeline can be unchanged for ever.
+   * @param _pNativeObject - Not used.
    */
-  validateState() {
+  validateState(_pNativeObject) {
     var _this2 = this;
     return _asyncToGenerator(function* () {
-      // Go for the fast checks first.
-      for (var lChangeState in _this2.mPipelineDataChangeState) {
-        if (_this2.mPipelineDataChangeState[lChangeState]) {
+      // Validate changed color targets of render pass.
+      if (_this2.mShader.fragmentEntryPoint) {
+        var lColorTargetList = _this2.mRenderPass.colorAttachments;
+        if (lColorTargetList.length !== _this2.mLastRenderPass.color.length) {
           return false;
         }
+        for (var lIndex = 0; lIndex < lColorTargetList.length; lIndex++) {
+          if (lColorTargetList[lIndex].format !== _this2.mLastRenderPass.color[lIndex]) {
+            return false;
+          }
+        }
       }
-      // Native objects are validated over internal natives.
+      // Setup optional depth attachment.
+      var lDepthAttachment = _this2.mRenderPass.depthAttachment;
+      if (lDepthAttachment && _this2.mLastRenderPass.depth !== lDepthAttachment.format) {
+        return false;
+      }
       return true;
     })();
   }
@@ -3467,13 +3526,6 @@ class ExternalTexture extends gpu_native_object_1.GpuNativeObject {
     })();
   }
   /**
-   * Destroy external texture.
-   * @param _pNativeObject - Native object.
-   */
-  destroyNative(_pNativeObject) {
-    return _asyncToGenerator(function* () {})();
-  } // No action needed.
-  /**
    * Generate new external texture.
    */
   generate() {
@@ -3517,7 +3569,6 @@ class TextureSampler extends gpu_native_object_1.GpuNativeObject {
    */
   constructor(pGpu) {
     super(pGpu, 'TEXTURE_SAMPLER');
-    this.mUpdateRequested = false;
     // Set defaults.
     this.mCompare = null;
     this.mFitMode = 'clamp-to-edge';
@@ -3541,7 +3592,7 @@ class TextureSampler extends gpu_native_object_1.GpuNativeObject {
     }
     this.mCompare = pValue;
     // Request native rebuild.
-    this.mUpdateRequested = true;
+    this.triggerChange();
   }
   /**
    * Texture sampler edge fit mode.
@@ -3556,7 +3607,7 @@ class TextureSampler extends gpu_native_object_1.GpuNativeObject {
     }
     this.mFitMode = pValue;
     // Request native rebuild.
-    this.mUpdateRequested = true;
+    this.triggerChange();
   }
   /**
    * Specifies the maximum levels of detail, respectively, used internally when sampling a texture.
@@ -3571,7 +3622,7 @@ class TextureSampler extends gpu_native_object_1.GpuNativeObject {
     }
     this.mLodMaxClamp = pValue;
     // Request native rebuild.
-    this.mUpdateRequested = true;
+    this.triggerChange();
   }
   /**
    * Specifies the minimum levels of detail, respectively, used internally when sampling a texture.
@@ -3586,7 +3637,7 @@ class TextureSampler extends gpu_native_object_1.GpuNativeObject {
     }
     this.mLodMinClamp = pValue;
     // Request native rebuild.
-    this.mUpdateRequested = true;
+    this.triggerChange();
   }
   /**
    * How the texture is sampled when a texel covers more than one pixel.
@@ -3601,7 +3652,7 @@ class TextureSampler extends gpu_native_object_1.GpuNativeObject {
     }
     this.mMagFilter = pValue;
     // Request native rebuild.
-    this.mUpdateRequested = true;
+    this.triggerChange();
   }
   /**
    * Specifies the maximum anisotropy value clamp used by the sampler.
@@ -3616,7 +3667,7 @@ class TextureSampler extends gpu_native_object_1.GpuNativeObject {
     }
     this.mMaxAnisotropy = pValue;
     // Request native rebuild.
-    this.mUpdateRequested = true;
+    this.triggerChange();
   }
   /**
    * How the texture is sampled when a texel covers less than one pixel.
@@ -3631,7 +3682,7 @@ class TextureSampler extends gpu_native_object_1.GpuNativeObject {
     }
     this.mMinFilter = pValue;
     // Request native rebuild.
-    this.mUpdateRequested = true;
+    this.triggerChange();
   }
   /**
    * Specifies behavior for sampling between mipmap levels.
@@ -3646,15 +3697,8 @@ class TextureSampler extends gpu_native_object_1.GpuNativeObject {
     }
     this.mMipmapFilter = pValue;
     // Request native rebuild.
-    this.mUpdateRequested = true;
+    this.triggerChange();
   }
-  /**
-   * Destroy texture sampler.
-   * @param _pNativeObject - Native object.
-   */
-  destroyNative(_pNativeObject) {
-    return _asyncToGenerator(function* () {})();
-  } // No action needed.
   /**
    * Generate txture sampler.
    */
@@ -3677,15 +3721,6 @@ class TextureSampler extends gpu_native_object_1.GpuNativeObject {
         lSamplerOptions.compare = _this.compare;
       }
       return _this.gpu.device.createSampler(lSamplerOptions);
-    })();
-  }
-  /**
-   * Invalidate generated object when proeprties has changed.
-   */
-  validateState() {
-    var _this2 = this;
-    return _asyncToGenerator(function* () {
-      return !_this2.mUpdateRequested;
     })();
   }
 }
@@ -3796,13 +3831,6 @@ class CanvasTexture extends gpu_native_object_1.GpuNativeObject {
     })();
   }
   /**
-   * Destory native gpu texture.
-   * @param _pNativeObject - Native gpu texture.
-   */
-  destroyNative(_pNativeObject) {
-    return _asyncToGenerator(function* () {})();
-  } // No Action needed for Canvas generated textures.
-  /**
    * Get current canvas texture.
    */
   generate() {
@@ -3877,7 +3905,6 @@ class TextureView extends gpu_native_object_1.GpuNativeObject {
    */
   constructor(pGpu, pTexture, pBaseLayer, pLayerCount) {
     super(pGpu, 'TEXTURE_VIEW');
-    this.mUpdateRequested = false;
     this.mTexture = pTexture;
     this.mBaseLayer = pBaseLayer !== null && pBaseLayer !== void 0 ? pBaseLayer : 0;
     this.mLayerCount = pLayerCount !== null && pLayerCount !== void 0 ? pLayerCount : this.mTexture.layer;
@@ -3901,7 +3928,8 @@ class TextureView extends gpu_native_object_1.GpuNativeObject {
       return;
     }
     this.mAspect = pAspect;
-    this.mUpdateRequested = true;
+    // Trigger update.
+    this.triggerChange();
   }
   /**
    * The index of the first array layer accessible to the texture view.
@@ -3921,7 +3949,8 @@ class TextureView extends gpu_native_object_1.GpuNativeObject {
       return;
     }
     this.mBaseMipLevel = pLevel;
-    this.mUpdateRequested = true;
+    // Trigger update.
+    this.triggerChange();
   }
   /**
    * The dimension to view the texture as.
@@ -3935,7 +3964,8 @@ class TextureView extends gpu_native_object_1.GpuNativeObject {
       return;
     }
     this.mDimension = pDimension;
-    this.mUpdateRequested = true;
+    // Trigger update.
+    this.triggerChange();
   }
   /**
    * How many array layers, starting with {@link TextureView#baseLayer}, are accessible
@@ -3957,23 +3987,15 @@ class TextureView extends gpu_native_object_1.GpuNativeObject {
       return;
     }
     this.mMipLevelCount = pLevel;
-    this.mUpdateRequested = true;
+    // Trigger update.
+    this.triggerChange();
   }
-  /**
-   * Destroy native view object.
-   * @param _pNativeObject - Native view object.
-   */
-  destroyNative(_pNativeObject) {
-    return _asyncToGenerator(function* () {})();
-  } // No action needed.
   /**
    * Generate new texture view.
    */
   generate() {
     var _this = this;
     return _asyncToGenerator(function* () {
-      // Update flags.
-      _this.mUpdateRequested = false;
       var lTexture = yield _this.mTexture.native();
       return lTexture.createView({
         label: _this.label,
@@ -3985,15 +4007,6 @@ class TextureView extends gpu_native_object_1.GpuNativeObject {
         baseArrayLayer: _this.mBaseLayer,
         arrayLayerCount: _this.mLayerCount
       });
-    })();
-  }
-  /**
-   * Invalidate generated object when proeprties has changed.
-   */
-  validateState() {
-    var _this2 = this;
-    return _asyncToGenerator(function* () {
-      return !_this2.mUpdateRequested;
     })();
   }
 }
@@ -4029,12 +4042,19 @@ class Texture extends gpu_native_object_1.GpuNativeObject {
    */
   constructor(pGpu, pFormat, pUsage) {
     var pDimension = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '2d';
+    var pMultiSampleLevel = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 1;
+    var pLayerCount = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 1;
     super(pGpu, 'TEXTURE');
     this.mFormat = pFormat;
     this.mUsage = pUsage;
     this.mImageBitmapList = new Array();
     this.mDimension = pDimension;
-    this.mMultiSampleLevel = 1;
+    this.mLayerCount = pLayerCount;
+    // Set and validate multisample level.
+    this.mMultiSampleLevel = pMultiSampleLevel;
+    if (pMultiSampleLevel < 1) {
+      throw new core_data_1.Exception('Multi sample level must be greater than zero.', this);
+    }
     // Set defaults.
     this.mHeight = 1;
     this.mWidth = 1;
@@ -4067,20 +4087,11 @@ class Texture extends gpu_native_object_1.GpuNativeObject {
   get layer() {
     return this.mLayerCount;
   }
-  set layer(pDepth) {
-    this.mLayerCount = pDepth;
-  }
   /**
    * Texture multi sample level.
    */
   get multiSampleLevel() {
     return this.mMultiSampleLevel;
-  }
-  set multiSampleLevel(pLevel) {
-    if (pLevel < 1) {
-      throw new core_data_1.Exception('Multi sample level must be greater than zero.', this);
-    }
-    this.mMultiSampleLevel = pLevel;
   }
   /**
    * Texture usage.
@@ -4160,7 +4171,8 @@ class Texture extends gpu_native_object_1.GpuNativeObject {
         size: [_this3.mWidth, _this3.mHeight, _this3.mLayerCount],
         format: _this3.mFormat,
         usage: lUsage,
-        dimension: _this3.mDimension
+        dimension: _this3.mDimension,
+        sampleCount: _this3.mMultiSampleLevel
       });
       // Copy bitmap into texture.
       if (_this3.mImageBitmapList.length > 0) {
@@ -4764,13 +4776,6 @@ class Shader extends gpu_native_object_1.GpuNativeObject {
   get vertexEntryPoint() {
     return this.mEntryPoints.vertex;
   }
-  /**
-   * Destory native object.
-   * @param _pNativeObject - Native object.
-   */
-  destroyNative(_pNativeObject) {
-    return _asyncToGenerator(function* () {})();
-  } /* Nothing to destroy */
   /***
    * Generate shader module.
    */
@@ -9845,7 +9850,7 @@ exports.TypeUtil = TypeUtil;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("e314e1a123aee60f947e")
+/******/ 		__webpack_require__.h = () => ("1a940b90126205761af2")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

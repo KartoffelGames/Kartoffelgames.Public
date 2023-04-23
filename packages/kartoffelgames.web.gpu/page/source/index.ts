@@ -13,9 +13,15 @@ import { SimpleBuffer } from '../../source/core/resource/buffer/simple-buffer';
 import { Shader } from '../../source/core/shader/shader';
 import shader from './shader.txt';
 import { RenderPassDescriptor } from '../../source/core/pass_descriptor/render-pass-descriptor';
+import { RenderInstructionSet } from '../../source/core/execution/instruction_set/render-instruction-set';
+
+const gHeight: number = 10;
+const gWidth: number = 10;
+const gDepth: number = 10;
 
 (async () => {
     const lColorPicker: HTMLInputElement = <HTMLInputElement>document.querySelector('#color');
+    const lFpsCounter: HTMLSpanElement = <HTMLInputElement>document.querySelector('#fpsCounter');
 
     // Create gpu.
     const lGpu: Gpu = await Gpu.create('high-performance');
@@ -69,29 +75,58 @@ import { RenderPassDescriptor } from '../../source/core/pass_descriptor/render-p
         });
     });
 
-    // Transformation.
-    const lTransformation: Transform = new Transform();
-    lTransformation.scaleDepth = 0.1;
-    lTransformation.scaleHeight = 0.1;
-    lTransformation.scaleWidth = 0.1;
-    //lTransformation.translationZ = 0.18;
-    lTransformation.absoluteRotation(0, 0, 0);
+    type CubeInstance = {
+        transformation: { x: number, y: number, z: number; },
+        transform: Transform,
+        buffer: SimpleBuffer<Float32Array>;
+    };
+
+    const lTransformationList: Array<CubeInstance> = new Array<CubeInstance>();
+    for (let lWidthIndex: number = 0; lWidthIndex < gWidth; lWidthIndex++) {
+        for (let lHeightIndex: number = 0; lHeightIndex < gHeight; lHeightIndex++) {
+            for (let lDepthIndex: number = 0; lDepthIndex < gDepth; lDepthIndex++) {
+                const lTransformation = { x: lWidthIndex, y: lHeightIndex, z: lDepthIndex };
+
+                // Transformation.
+                const lTransform: Transform = new Transform();
+                lTransform.scaleDepth = 0.1;
+                lTransform.scaleHeight = 0.1;
+                lTransform.scaleWidth = 0.1;
+                lTransform.translationX = lTransformation.x;
+                lTransform.translationY = lTransformation.y;
+                lTransform.translationZ = lTransformation.z;
+                lTransform.absoluteRotation(0, 0, 0);
+
+                lTransformationList.push({
+                    transform: lTransform,
+                    transformation: { x: lWidthIndex, y: lHeightIndex, z: lDepthIndex },
+                    buffer: new SimpleBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lTransform.transformationMatrix.dataArray))
+                });
+            }
+        }
+    }
 
     // Transformation buffer.
-    const lTransformationBuffer = new SimpleBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lTransformation.transformationMatrix.dataArray));
     const lUpdaterFunctions: Array<() => void> = new Array<() => void>();
-    const lRegisterObjectHandler = (pId: string, pSet: (pData: number) => void, pGet: () => number) => {
+    const lRegisterObjectHandler = (pId: string, pSet: (pTransform: Transform, pData: number) => void, pGet: (pTransform: Transform) => number) => {
         const lSlider: HTMLInputElement = <HTMLInputElement>document.getElementById(pId);
         const lInput: HTMLInputElement = <HTMLInputElement>document.getElementById(pId + 'Display');
 
         const lUpdater = () => {
-            lInput.value = <any>pGet();
+            lInput.value = <any>pGet(lTransformationList[0].transform);
         };
         lUpdaterFunctions.push(lUpdater);
         lUpdater();
 
-        const lSetData = (pData: any) => {
-            pSet(parseFloat(pData) || 1);
+        let lCurrentData: number = 0;
+
+        const lSetData = (pStringData: string) => {
+            const lNumberData: number = parseFloat(pStringData) || 1;
+            lCurrentData += lNumberData;
+
+            for (const lTransformation of lTransformationList) {
+                pSet(lTransformation.transform, lCurrentData);
+            }
 
             // Reset slider.
             lSlider.value = <any>0;
@@ -101,8 +136,27 @@ import { RenderPassDescriptor } from '../../source/core/pass_descriptor/render-p
                 lUpdater();
             }
 
+            // Update translation if it is all the same.
+            if (lTransformationList[lTransformationList.length - 1].transform.translationX === lCurrentData) {
+                for (const lTransformation of lTransformationList) {
+                    lTransformation.transform.translationX += lTransformation.transformation.x;
+                }
+            }
+            if (lTransformationList[lTransformationList.length - 1].transform.translationY === lCurrentData) {
+                for (const lTransformation of lTransformationList) {
+                    lTransformation.transform.translationY += lTransformation.transformation.y;
+                }
+            }
+            if (lTransformationList[lTransformationList.length - 1].transform.translationZ === lCurrentData) {
+                for (const lTransformation of lTransformationList) {
+                    lTransformation.transform.translationZ += lTransformation.transformation.z;
+                }
+            }
+
             // Update transformation buffer.
-            lTransformationBuffer.write(async (pBuffer) => { pBuffer.set(lTransformation.transformationMatrix.dataArray); });
+            for (const lTransformation of lTransformationList) {
+                lTransformation.buffer.write(async (pBuffer) => { pBuffer.set(lTransformation.transform.transformationMatrix.dataArray); });
+            }
         };
 
         lSlider.addEventListener('input', (pEvent) => { lSetData((<any>pEvent.target).value); });
@@ -110,24 +164,24 @@ import { RenderPassDescriptor } from '../../source/core/pass_descriptor/render-p
     };
 
     // Scale handler.
-    lRegisterObjectHandler('scaleHeight', (pData) => { lTransformation.scaleHeight = pData; }, () => { return lTransformation.scaleHeight; });
-    lRegisterObjectHandler('scaleWidth', (pData) => { lTransformation.scaleWidth = pData; }, () => { return lTransformation.scaleWidth; });
-    lRegisterObjectHandler('scaleDepth', (pData) => { lTransformation.scaleDepth = pData; }, () => { return lTransformation.scaleDepth; });
+    lRegisterObjectHandler('scaleHeight', (pTransform: Transform, pData) => { pTransform.scaleHeight = pData; }, (pTransform: Transform) => { return pTransform.scaleHeight; });
+    lRegisterObjectHandler('scaleWidth', (pTransform: Transform, pData) => { pTransform.scaleWidth = pData; }, (pTransform: Transform) => { return pTransform.scaleWidth; });
+    lRegisterObjectHandler('scaleDepth', (pTransform: Transform, pData) => { pTransform.scaleDepth = pData; }, (pTransform: Transform) => { return pTransform.scaleDepth; });
 
     // Translate.
-    lRegisterObjectHandler('translateX', (pData) => { lTransformation.translationX = pData; }, () => { return lTransformation.translationX; });
-    lRegisterObjectHandler('translateY', (pData) => { lTransformation.translationY = pData; }, () => { return lTransformation.translationY; });
-    lRegisterObjectHandler('translateZ', (pData) => { lTransformation.translationZ = pData; }, () => { return lTransformation.translationZ; });
+    lRegisterObjectHandler('translateX', (pTransform: Transform, pData) => { pTransform.translationX = pData; }, (pTransform: Transform) => { return pTransform.translationX; });
+    lRegisterObjectHandler('translateY', (pTransform: Transform, pData) => { pTransform.translationY = pData; }, (pTransform: Transform) => { return pTransform.translationY; });
+    lRegisterObjectHandler('translateZ', (pTransform: Transform, pData) => { pTransform.translationZ = pData; }, (pTransform: Transform) => { return pTransform.translationZ; });
 
     // Rotate.
-    lRegisterObjectHandler('rotatePitch', (pData) => { lTransformation.addRotation(pData, 0, 0); }, () => { return lTransformation.axisRotationAngleX; });
-    lRegisterObjectHandler('rotateYaw', (pData) => { lTransformation.addRotation(0, pData, 0); }, () => { return lTransformation.axisRotationAngleY; });
-    lRegisterObjectHandler('rotateRoll', (pData) => { lTransformation.addRotation(0, 0, pData); }, () => { return lTransformation.axisRotationAngleZ; });
+    lRegisterObjectHandler('rotatePitch', (pTransform: Transform, pData) => { pTransform.addRotation(pData, 0, 0); }, (pTransform: Transform) => { return pTransform.axisRotationAngleX; });
+    lRegisterObjectHandler('rotateYaw', (pTransform: Transform, pData) => { pTransform.addRotation(0, pData, 0); }, (pTransform: Transform) => { return pTransform.axisRotationAngleY; });
+    lRegisterObjectHandler('rotateRoll', (pTransform: Transform, pData) => { pTransform.addRotation(0, 0, pData); }, (pTransform: Transform) => { return pTransform.axisRotationAngleZ; });
 
     // Translate.
-    lRegisterObjectHandler('pivotX', (pData) => { lTransformation.pivotX = pData; }, () => { return lTransformation.pivotX; });
-    lRegisterObjectHandler('pivotY', (pData) => { lTransformation.pivotY = pData; }, () => { return lTransformation.pivotY; });
-    lRegisterObjectHandler('pivotZ', (pData) => { lTransformation.pivotZ = pData; }, () => { return lTransformation.pivotZ; });
+    lRegisterObjectHandler('pivotX', (pTransform: Transform, pData) => { pTransform.pivotX = pData; }, (pTransform: Transform) => { return pTransform.pivotX; });
+    lRegisterObjectHandler('pivotY', (pTransform: Transform, pData) => { pTransform.pivotY = pData; }, (pTransform: Transform) => { return pTransform.pivotY; });
+    lRegisterObjectHandler('pivotZ', (pTransform: Transform, pData) => { pTransform.pivotZ = pData; }, (pTransform: Transform) => { return pTransform.pivotZ; });
 
     // Transformation.
     const lPerspectiveProjection: PerspectiveProjection = new PerspectiveProjection();
@@ -196,12 +250,6 @@ import { RenderPassDescriptor } from '../../source/core/pass_descriptor/render-p
     lRegisterCameraHandler('cameraFar', (pData) => { lPerspectiveProjection.far = pData; }, () => { return lPerspectiveProjection.far; });
     lRegisterCameraHandler('cameraAngleOfView', (pData) => { lPerspectiveProjection.angleOfView = pData; }, () => { return lPerspectiveProjection.angleOfView; });
 
-    // Create bind group.
-    const lBindGroup = lShader.bindGroups.getGroup(0).createBindGroup();
-    lBindGroup.setData('color', lColorBuffer);
-    lBindGroup.setData('transformationMatrix', lTransformationBuffer);
-    lBindGroup.setData('viewProjectionMatrix', lCameraBuffer);
-
     // Create attributes data.
     const lVertexPositionData: Float32Array = new Float32Array([ // 4x Position
         // Back
@@ -256,16 +304,31 @@ import { RenderPassDescriptor } from '../../source/core/pass_descriptor/render-p
     // Setup renderer.
     const lInstructionExecutioner: InstructionExecuter = new InstructionExecuter(lGpu);
 
+    // Setup instruction set.
+    const lInstructionSet: RenderInstructionSet = new RenderInstructionSet(lRenderPassDescription);
+    lInstructionExecutioner.addInstructionSet(lInstructionSet);
 
     // Setup object render.
-    const lObjectRenderInstruction: RenderSingleInstruction = new RenderSingleInstruction(lPipeline, lMesh);
-    lObjectRenderInstruction.setBindGroup(0, lBindGroup);
+    for (const lCube of lTransformationList) {
+        // Create bind group.
+        const lBindGroup = lShader.bindGroups.getGroup(0).createBindGroup();
+        lBindGroup.setData('color', lColorBuffer);
+        lBindGroup.setData('transformationMatrix', lCube.buffer);
+        lBindGroup.setData('viewProjectionMatrix', lCameraBuffer);
 
-    lInstructionExecutioner.addInstruction(lObjectRenderInstruction);
+        const lObjectRenderInstruction: RenderSingleInstruction = new RenderSingleInstruction(lPipeline, lMesh);
+        lObjectRenderInstruction.setBindGroup(0, lBindGroup);
+        lInstructionSet.addInstruction(lObjectRenderInstruction);
+    }
 
-    const lRender = async () => {
+    let lLastTime: number = 0;
+    const lRender = async (pTime: number) => {
         // Generate encoder and add render commands.
         await lInstructionExecutioner.execute();
+
+        const lFps: number = 1000 / (pTime - lLastTime);
+        lFpsCounter.textContent = lFps.toString();
+        lLastTime = pTime;
 
         // Refresh canvas
         requestAnimationFrame(lRender);

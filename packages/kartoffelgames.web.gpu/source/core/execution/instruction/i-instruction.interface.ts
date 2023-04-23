@@ -17,8 +17,12 @@ export interface IInstruction {
      * @param pIndex - Bind group index.
      * @param pBindGroup - Bind group. Musst match shader bind groups.
      */
-    setBindGroup(pIndex: number, pBindGroup: BindGroup): Promise<void>
+    setBindGroup(pIndex: number, pBindGroup: BindGroup): Promise<void>;
 
-    // TODO: Validate...
+    /**
+     * Validate instruction.
+     * Validate with execptions.
+     */
+    validate(): Promise<void>;
 }
 

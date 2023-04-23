@@ -12,7 +12,7 @@ export class ComputeShader implements IInstruction {
      */
     public get bindGroups(): Array<BindGroup> {
         const lBindGroupList: Array<BindGroup> = new Array<BindGroup>();
-        for(const [lIndex, lBindGroup] of this.mBindGroups){
+        for (const [lIndex, lBindGroup] of this.mBindGroups) {
             lBindGroupList[lIndex] = lBindGroup;
         }
 
@@ -45,5 +45,18 @@ export class ComputeShader implements IInstruction {
         }
 
         this.mBindGroups.set(pIndex, pBindGroup);
+    }
+
+    /**
+     * Validate instruction.
+     * Validate with execptions.
+     */
+    public async validate(): Promise<void> {
+        // Add bind groups.
+        for (const lIndex of this.mPipeline.shader.bindGroups.groups) {
+            if (!this.bindGroups[lIndex]) {
+                throw new Exception(`Missing bind group for pipeline bind group layout (index ${lIndex})`, this);
+            }
+        }
     }
 }

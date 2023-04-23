@@ -5,8 +5,9 @@ import { Gpu } from './gpu';
  * Gpu native object.
  */
 export abstract class GpuNativeObject<T extends object> {
+    private readonly mChangeListener: Dictionary<GpuNativeObject<any>, GenericListener>;
     private readonly mGpu: Gpu;
-    private readonly mInternalNatives: Dictionary<GpuNativeObject<any>, string>;
+    private readonly mInternalNativeList: Set<GpuNativeObject<any>>;
     private mLabel: string;
     private readonly mNativeName: string;
     private mNativeObject: T | null;
@@ -46,7 +47,8 @@ export abstract class GpuNativeObject<T extends object> {
         this.mObjectInvalid = false;
 
         // Init internal native change detection.
-        this.mInternalNatives = new Dictionary<GpuNativeObject<any>, string>();
+        this.mChangeListener = new Dictionary<GpuNativeObject<any>, GenericListener>();
+        this.mInternalNativeList = new Set<GpuNativeObject<any>>();
 
         // Basic ununique id for uninitialized state.
         this.mNativeObjectId = '';
@@ -83,15 +85,9 @@ export abstract class GpuNativeObject<T extends object> {
             // Reset object invalidation.
             this.mObjectInvalid = false;
 
-            // Check internal natives.
-            for (const [lInternalObject, lLastInternalId] of this.mInternalNatives) {
-                const lCurrentInternalId: string = lInternalObject.mNativeObjectId;
-
-                // Compare saved and current native id of all natives.
-                if (lCurrentInternalId !== lLastInternalId) {
-                    // Update saved id.
-                    this.mInternalNatives.set(lInternalObject, lCurrentInternalId);
-                }
+            // Execute change listener.
+            for (const lListener of this.mChangeListener.values()) {
+                lListener();
             }
         }
 
@@ -122,7 +118,10 @@ export abstract class GpuNativeObject<T extends object> {
      */
     protected registerInternalNative(pInternalNative: GpuNativeObject<any>): void {
         // Save internal native.
-        this.mInternalNatives.set(pInternalNative, '');
+        pInternalNative.addChangeListener(() => {
+            this.mObjectInvalid = true;
+        }, this);
+        this.mInternalNativeList.add(pInternalNative);
     }
 
     /**
@@ -139,7 +138,8 @@ export abstract class GpuNativeObject<T extends object> {
      */
     protected unregisterInternalNative(pInternalNative: GpuNativeObject<any>): void {
         // Delete saved native.
-        this.mInternalNatives.delete(pInternalNative);
+        pInternalNative.removeChangeListener(this);
+        this.mInternalNativeList.delete(pInternalNative);
     }
 
     /**
@@ -151,26 +151,33 @@ export abstract class GpuNativeObject<T extends object> {
     }
 
     /**
+     * Add change listener.
+     * @param pListener - Change listener.
+     * @param pReferrer - Referrer object.
+     */
+    private addChangeListener(pListener: GenericListener, pReferrer: GpuNativeObject<any>) {
+        this.mChangeListener.set(pReferrer, pListener);
+    }
+
+    /**
      * Check validation of internal objects.
      */
     private async isValid(): Promise<boolean> {
         let lNativeChanged: boolean = false;
 
         // Check object state.
-        if (!this.mNativeObject || this.mObjectInvalid || !(await this.validateState(this.mNativeObject))) {
+        if (this.mObjectInvalid || !this.mNativeObject || !(await this.validateState(this.mNativeObject))) {
             lNativeChanged = true;
         }
 
-        // Check internal natives.
-        for (const [lInternalObject, lLastInternalId] of this.mInternalNatives) {
-            const lCurrentInternalId: string = await lInternalObject.nativeId();
+        // Generate all internal natives and force change listener execution.
+        for (const lInternalNative of this.mInternalNativeList) {
+            await lInternalNative.native();
+        }
 
-            // Compare saved and current native id of all natives.
-            if (lCurrentInternalId !== lLastInternalId) {
-                // Trigger generation.
-                lNativeChanged = true;
-                break;
-            }
+        // Check object invalidation again.
+        if (this.mObjectInvalid) {
+            lNativeChanged = true;
         }
 
         // Remove native on invalidation to cache change state for future isValidate calls.
@@ -182,7 +189,17 @@ export abstract class GpuNativeObject<T extends object> {
     }
 
     /**
+     * Remove change listener.
+     * @param pReferrer - Referrer object.
+     */
+    private removeChangeListener(pReferrer: GpuNativeObject<any>) {
+        this.mChangeListener.delete(pReferrer);
+    }
+
+    /**
      * Generate native object.
      */
     protected abstract generate(): Promise<T>;
 }
+
+type GenericListener = () => void;

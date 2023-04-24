@@ -102,7 +102,7 @@ export abstract class GpuNativeObject<T extends object> {
     protected registerInternalNative(pInternalNative: GpuNativeObject<any>): void {
         // Save internal native.
         pInternalNative.addChangeListener(() => {
-            this.mObjectInvalid = true;
+            this.triggerChange();
         }, this);
         this.mInternalList.add(pInternalNative);
         this.triggerChange();
@@ -159,6 +159,7 @@ export abstract class GpuNativeObject<T extends object> {
             lInternal.invalidate();
         }
 
+        // Validate only when there is somthing to validate.
         if (!this.mObjectInvalid && this.mNativeObject) {
             if (!this.validate(this.mNativeObject)) {
                 this.triggerChange();

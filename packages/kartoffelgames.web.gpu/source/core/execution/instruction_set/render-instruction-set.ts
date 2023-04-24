@@ -40,9 +40,9 @@ export class RenderInstructionSet implements IInstructionSet {
      * Execute instruction set.
      * @param pCommandEncoder - Command encoder.
      */
-    public async execute(pCommandEncoder: GPUCommandEncoder): Promise<void> {
+    public execute(pCommandEncoder: GPUCommandEncoder): void {
         // Generate pass descriptor once per set pipeline.
-        const lPassDescriptor: GPURenderPassDescriptor = await this.mRenderPass.native();
+        const lPassDescriptor: GPURenderPassDescriptor = this.mRenderPass.native();
 
         // Pass descriptor is set, when the pipeline ist set.
         const lRenderPassEncoder: GPURenderPassEncoder = pCommandEncoder.beginRenderPass(lPassDescriptor);
@@ -55,13 +55,10 @@ export class RenderInstructionSet implements IInstructionSet {
 
         // Execute instructions.
         for (const lInstruction of this.mInstructionList) {
-            // Validate instruction.
-            await lInstruction.validate();
-
             // Use cached pipeline or use new.
             if (lInstruction.pipeline !== lPipeline) {
                 lPipeline = lInstruction.pipeline;
-                lRenderPassEncoder.setPipeline(await lInstruction.pipeline.native()!);
+                lRenderPassEncoder.setPipeline(lInstruction.pipeline.native()!);
             }
 
             // Add bind groups.
@@ -74,7 +71,7 @@ export class RenderInstructionSet implements IInstructionSet {
                     lBindGroupList[lIndex] = lNewBindGroup;
 
                     if (lNewBindGroup) {
-                        lRenderPassEncoder.setBindGroup(lIndex, await lNewBindGroup.native());
+                        lRenderPassEncoder.setBindGroup(lIndex, lNewBindGroup.native());
                     }
                 }
             }
@@ -87,14 +84,14 @@ export class RenderInstructionSet implements IInstructionSet {
                 // Use cached vertex buffer or use new.
                 if (lNewAttributeBuffer !== lCurrentAttributeBuffer) {
                     lVertexBufferList.set(lAttribute.location, lNewAttributeBuffer);
-                    lRenderPassEncoder.setVertexBuffer(lAttribute.location, await lNewAttributeBuffer.native());
+                    lRenderPassEncoder.setVertexBuffer(lAttribute.location, lNewAttributeBuffer.native());
                 }
             }
 
             // Use cached index buffer or use new.
             if (lInstruction.mesh.indexBuffer !== lIndexBuffer) {
                 lIndexBuffer = lInstruction.mesh.indexBuffer;
-                lRenderPassEncoder.setIndexBuffer(await lInstruction.mesh.indexBuffer.native(), 'uint16');
+                lRenderPassEncoder.setIndexBuffer(lInstruction.mesh.indexBuffer.native(), 'uint16');
             }
 
             lRenderPassEncoder.drawIndexed(lInstruction.mesh.indexBuffer.length);

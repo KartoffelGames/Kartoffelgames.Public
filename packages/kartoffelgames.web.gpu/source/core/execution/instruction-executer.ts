@@ -33,13 +33,13 @@ export class InstructionExecuter {
         this.mInstructionSetList.clear();
     }
 
-    public async execute(): Promise<void> {
+    public execute(): void {
         // Generate encoder and add render commands.
         const lEncoder = this.mGpu.device.createCommandEncoder();
 
         // Execute instruction sets.
         for (const lInstructionSet of this.mInstructionSetList) {
-            await lInstructionSet.execute(lEncoder);
+            lInstructionSet.execute(lEncoder);
         }
 
         this.mGpu.device.queue.submit([lEncoder.finish()]);

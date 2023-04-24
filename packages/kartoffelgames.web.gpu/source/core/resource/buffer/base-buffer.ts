@@ -55,7 +55,7 @@ export abstract class BaseBuffer<T extends TypedArray> extends GpuNativeObject<G
     /**
      * Generate native object.
      */
-    protected async generate(): Promise<GPUBuffer> {
+    protected generate(): GPUBuffer {
         // Generate new empty init data.
         if (!this.mInitData) {
             this.mInitData = new this.mDataType(this.mBufferLength);

@@ -9,7 +9,6 @@ import { Attachment } from '../pass_descriptor/type/attachment';
 export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implements IPipeline {
     private mDepthCompare: GPUCompareFunction;
     private mDepthWriteEnabled: boolean;
-    private mLastRenderPass: RenderpassFormats;
     private readonly mPrimitive: GPUPrimitiveState;
     private readonly mRenderPass: RenderPassDescriptor;
     private readonly mShader: Shader;
@@ -135,24 +134,20 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
         };
         this.mDepthWriteEnabled = true;
         this.mDepthCompare = 'less';
-
-        this.mLastRenderPass = {
-            color: new Array<GPUTextureFormat>()
-        };
     }
 
     /**
      * Generate native render pipeline.
      */
-    protected async generate(): Promise<GPURenderPipeline> {
+    protected generate(): GPURenderPipeline {
         // Generate pipeline layout from bind group layouts.
-        const lPipelineLayout: GPUPipelineLayoutDescriptor = await this.mShader.bindGroups.native();
+        const lPipelineLayout: GPUPipelineLayoutDescriptor = this.mShader.bindGroups.native();
 
         // Generate vertex buffer layouts.
         const lVertexBufferLayoutList: Array<GPUVertexBufferLayout> = new Array<GPUVertexBufferLayout>();
         for (const lAttribute of this.mShader.vertexEntryPoint!.attributes) {
             // Set location offset based on previous  vertex attributes.
-            lVertexBufferLayoutList.push(await lAttribute.native());
+            lVertexBufferLayoutList.push(lAttribute.native());
         }
 
         // Construct basic GPURenderPipelineDescriptor.
@@ -160,7 +155,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
             label: this.label,
             layout: this.gpu.device.createPipelineLayout(lPipelineLayout),
             vertex: {
-                module: await this.mShader.native(),
+                module: this.mShader.native(),
                 entryPoint: this.mShader.vertexEntryPoint!.name, // It allways should has an entry point.
                 buffers: lVertexBufferLayoutList
                 // No constants. Yes.
@@ -197,7 +192,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
             }
 
             lPipelineDescriptor.fragment = {
-                module: await this.mShader.native(),
+                module: this.mShader.native(),
                 entryPoint: this.mShader.fragmentEntryPoint.name,
                 targets: lFragmentTargetList
             };
@@ -224,41 +219,8 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
             };
         }
 
-        // Save render pass formats.
-        this.mLastRenderPass = lRenderPassBuffer;
-
         // Async is none GPU stalling.
-        return this.gpu.device.createRenderPipelineAsync(lPipelineDescriptor);
-    }
-
-    /**
-     * Special validation for renderpass.
-     * Renderpass can not be used as internal native.
-     * Renderpass has frequent texture changes. Pipeline can be unchanged for ever. 
-     * @param _pNativeObject - Not used.
-     */
-    protected override async validateState(_pNativeObject: GPURenderPipeline): Promise<boolean> {
-        // Validate changed color targets of render pass.
-        if (this.mShader.fragmentEntryPoint) {
-            const lColorTargetList: Array<Attachment> = this.mRenderPass.colorAttachments;
-            if (lColorTargetList.length !== this.mLastRenderPass.color.length) {
-                return false;
-            }
-
-            for (let lIndex: number = 0; lIndex < lColorTargetList.length; lIndex++) {
-                if (lColorTargetList[lIndex].format !== this.mLastRenderPass.color[lIndex]) {
-                    return false;
-                }
-            }
-        }
-
-        // Setup optional depth attachment.
-        const lDepthAttachment: Attachment | undefined = this.mRenderPass.depthAttachment;
-        if (lDepthAttachment && this.mLastRenderPass.depth !== lDepthAttachment.format) {
-            return false;
-        }
-
-        return true;
+        return this.gpu.device.createRenderPipeline(lPipelineDescriptor); // TODO: Async somehow.
     }
 }
 

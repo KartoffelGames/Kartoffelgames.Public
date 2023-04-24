@@ -64,7 +64,7 @@ export class BindGroup extends GpuNativeObject<GPUBindGroup>{
     /**
      * Generate native bind group.
      */
-    protected async generate(): Promise<GPUBindGroup> {
+    protected generate(): GPUBindGroup {
         const lEntryList: Array<GPUBindGroupEntry> = new Array<GPUBindGroupEntry>();
 
         for (const lBindLayout of this.mLayout.binds) {
@@ -84,23 +84,23 @@ export class BindGroup extends GpuNativeObject<GPUBindGroup>{
             const lGroupEntry: GPUBindGroupEntry = { binding: lBindLayout.index, resource: <any>null };
             switch (lBindData.type) {
                 case BindType.Buffer: {
-                    lGroupEntry.resource = { buffer: await lBindData.data.native() };
+                    lGroupEntry.resource = { buffer: lBindData.data.native() };
                     break;
                 }
                 case BindType.ExternalTexture: {
-                    lGroupEntry.resource = await lBindData.data.native();
+                    lGroupEntry.resource = lBindData.data.native();
                     break;
                 }
                 case BindType.Sampler: {
-                    lGroupEntry.resource = await lBindData.data.native();
+                    lGroupEntry.resource = lBindData.data.native();
                     break;
                 }
                 case BindType.StorageTexture: {
-                    lGroupEntry.resource = await lBindData.data.native();
+                    lGroupEntry.resource = lBindData.data.native();
                     break;
                 }
                 case BindType.Texture: {
-                    lGroupEntry.resource = await lBindData.data.native();
+                    lGroupEntry.resource = lBindData.data.native();
                     break;
                 }
                 default: {
@@ -109,14 +109,14 @@ export class BindGroup extends GpuNativeObject<GPUBindGroup>{
             }
 
             // Save generated native for validation state.
-            this.mNativeData.set(await lBindData.data.native(), lBindLayout.name);
+            this.mNativeData.set(lBindData.data.native(), lBindLayout.name);
 
             lEntryList.push(lGroupEntry);
         }
 
         return this.gpu.device.createBindGroup({
             label: this.label,
-            layout: await this.mLayout.native(),
+            layout: this.mLayout.native(),
             entries: lEntryList
         });
     }

@@ -29,27 +29,27 @@ export class ComputePipeline extends GpuNativeObject<GPUComputePipeline> impleme
     /**
      * Generate native render pipeline.
      */
-    protected async generate(): Promise<GPUComputePipeline> {
+    protected generate(): GPUComputePipeline {
         // Check valid entry points.
         if (!this.mShader?.computeEntryPoint) {
             throw new Exception('Shadermodule has no compute entry point.', this);
         }
 
         // Generate pipeline layout from bind group layouts.
-        const lPipelineLayout: GPUPipelineLayoutDescriptor = await this.mShader.bindGroups.native();
+        const lPipelineLayout: GPUPipelineLayoutDescriptor = this.mShader.bindGroups.native();
 
         // Construct basic GPURenderPipelineDescriptor.
         const lPipelineDescriptor: GPUComputePipelineDescriptor = {
             label: this.label,
             layout: this.gpu.device.createPipelineLayout(lPipelineLayout),
             compute: {
-                module: await this.mShader.native(),
+                module: this.mShader.native(),
                 entryPoint: this.mShader.vertexEntryPoint!.name, // It allways should has an entry point.
                 // No constants. Yes.
             }
         };
 
         // Async is none GPU stalling.
-        return this.gpu.device.createComputePipelineAsync(lPipelineDescriptor);
+        return this.gpu.device.createComputePipeline(lPipelineDescriptor); // TODO: Async somehow.
     }
 }

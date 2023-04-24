@@ -60,11 +60,11 @@ export class BindGroups extends GpuNativeObject<GPUPipelineLayoutDescriptor>{
     /**
      * Generate native object.
      */
-    protected async generate(): Promise<GPUPipelineLayoutDescriptor> {
+    protected generate(): GPUPipelineLayoutDescriptor {
         // Generate pipeline layout from bind group layouts.
         const lPipelineLayout = { bindGroupLayouts: new Array<GPUBindGroupLayout>() };
         for (const [lIndex, lBindGroupLayout] of this.mBindGroups) {
-            lPipelineLayout.bindGroupLayouts[lIndex] = await lBindGroupLayout.native();
+            lPipelineLayout.bindGroupLayouts[lIndex] = lBindGroupLayout.native();
         }
 
         // Validate continunity.

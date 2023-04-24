@@ -47,7 +47,7 @@ export class ExternalTexture extends GpuNativeObject<GPUExternalTexture> {
     /**
      * Generate new external texture.
      */
-    protected async generate(): Promise<GPUExternalTexture> {
+    protected generate(): GPUExternalTexture {
         if (!this.mVideoElement) {
             throw new Exception('No video element is loaded or old video is expired.', this);
         }

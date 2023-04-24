@@ -126,12 +126,12 @@ export class RenderPassDescriptor extends GpuNativeObject<GPURenderPassDescripto
     /**
      * Generate render pass descriptor.
      */
-    protected override async generate(): Promise<GPURenderPassDescriptor> {
+    protected generate(): GPURenderPassDescriptor {
         // Create color attachments.
         const lColorAttachments: Array<GPURenderPassColorAttachment> = new Array<GPURenderPassColorAttachment>();
         for (const lColorAttachment of this.mColorAttachments) {
             const lPassColorAttachment: GPURenderPassColorAttachment = {
-                view: await lColorAttachment.attachment.native(),
+                view: lColorAttachment.attachment.native(),
                 clearValue: lColorAttachment.clearValue,
                 loadOp: lColorAttachment.loadOp,
                 storeOp: lColorAttachment.storeOp
@@ -139,7 +139,7 @@ export class RenderPassDescriptor extends GpuNativeObject<GPURenderPassDescripto
 
             // Resolve optional resolve attachment.
             if (lColorAttachment.resolveTarget) {
-                lPassColorAttachment.resolveTarget = await lColorAttachment.resolveTarget.native();
+                lPassColorAttachment.resolveTarget = lColorAttachment.resolveTarget.native();
             }
 
             lColorAttachments.push(lPassColorAttachment);
@@ -153,7 +153,7 @@ export class RenderPassDescriptor extends GpuNativeObject<GPURenderPassDescripto
         // Set optional depth attachment.
         if (this.mDepthStencilAttachment) {
             lDescriptor.depthStencilAttachment = {
-                view: await this.mDepthStencilAttachment.attachment.native(),
+                view: this.mDepthStencilAttachment.attachment.native(),
                 depthClearValue: this.mDepthStencilAttachment.clearValue,
                 depthLoadOp: this.mDepthStencilAttachment.loadOp,
                 depthStoreOp: this.mDepthStencilAttachment.storeOp

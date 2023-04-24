@@ -3,5 +3,5 @@ export interface IInstructionSet {
      * Execute instruction set.
      * @param pCommandEncoder - Command encoder.
      */
-    execute(pCommandEncoder: GPUCommandEncoder): Promise<void>
+    execute(pCommandEncoder: GPUCommandEncoder): void
 }

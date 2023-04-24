@@ -180,7 +180,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     /**
      * Generate layout.
      */
-    protected async generate(): Promise<GPUBindGroupLayout> {
+    protected generate(): GPUBindGroupLayout {
         const lEntryList: Array<GPUBindGroupLayoutEntry> = new Array<GPUBindGroupLayoutEntry>();
 
         // Generate layout entry for each binding.

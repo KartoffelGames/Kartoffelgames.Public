@@ -65,7 +65,7 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
     /***
      * Generate shader module.
      */
-    protected async generate(): Promise<GPUShaderModule> {
+    protected generate(): GPUShaderModule {
         return this.gpu.device.createShaderModule({ code: this.mSource });
     }
 

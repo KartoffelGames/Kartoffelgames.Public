@@ -81,7 +81,7 @@ export class VertexAttribute extends GpuNativeObject<GPUVertexBufferLayout> {
     /**
      * Generate native object.
      */
-    protected async generate(): Promise<GPUVertexBufferLayout> {
+    protected generate(): GPUVertexBufferLayout {
         // Generate attributes.
         const lAttributes: Array<GPUVertexAttribute> = new Array<GPUVertexAttribute>();
         lAttributes.push({

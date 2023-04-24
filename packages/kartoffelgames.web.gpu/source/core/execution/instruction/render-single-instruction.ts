@@ -71,17 +71,4 @@ export class RenderSingleInstruction implements IInstruction {
 
         this.mBindGroups.set(pIndex, pBindGroup);
     }
-
-    /**
-     * Validate instruction.
-     * Validate with execptions.
-     */
-    public async validate(): Promise<void> {
-        // Add bind groups.
-        for (const lIndex of this.mPipeline.shader.bindGroups.groups) {
-            if (!this.bindGroups[lIndex]) {
-                throw new Exception(`Missing bind group for pipeline bind group layout (index ${lIndex})`, this);
-            }
-        }
-    }
 } 

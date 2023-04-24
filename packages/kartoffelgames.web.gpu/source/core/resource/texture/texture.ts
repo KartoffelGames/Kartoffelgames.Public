@@ -36,6 +36,9 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
         return this.mHeight;
     } set height(pHeight: number) {
         this.mHeight = pHeight;
+
+        // Trigger change.
+        this.triggerChange();
     }
 
     /**
@@ -66,6 +69,9 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
         return this.mWidth;
     } set width(pWidth: number) {
         this.mWidth = pWidth;
+
+        // Trigger change.
+        this.triggerChange();
     }
 
     /**
@@ -114,6 +120,9 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
 
         // Resolve all bitmaps.
         this.mImageBitmapList = await Promise.all(lBitmapResolvePromiseList);
+
+        // Trigger change.
+        this.triggerChange();
     }
 
     /**
@@ -137,7 +146,7 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
     /**
      * Generate texture based on parameters.
      */
-    protected async generate(): Promise<GPUTexture> {
+    protected generate(): GPUTexture {
         // Extend usage by CopyDestination when a bitmap should be copied into the texture.
         let lUsage: TextureUsage = this.mUsage;
         if (this.mImageBitmapList.length > 0) {
@@ -176,22 +185,5 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
         this.mImageBitmapList = new Array<ImageBitmap>();
 
         return lTexture;
-    }
-
-    /**
-     * Validate native object state for a refresh.
-     */
-    protected override async validateState(pGeneratedNative: GPUTexture): Promise<boolean> {
-        // Validate changed size.
-        if (this.mHeight !== pGeneratedNative.height || this.mWidth !== pGeneratedNative.width || this.mLayerCount !== pGeneratedNative.depthOrArrayLayers || this.mMultiSampleLevel !== pGeneratedNative.sampleCount) {
-            return false;
-        }
-
-        // Validate data to copy.
-        if (this.mImageBitmapList.length > 0) {
-            return false;
-        }
-
-        return true;
     }
 }

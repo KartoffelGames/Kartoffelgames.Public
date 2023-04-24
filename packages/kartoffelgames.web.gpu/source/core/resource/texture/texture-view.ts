@@ -122,8 +122,8 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
     /**
      * Generate new texture view.
      */
-    protected async generate(): Promise<GPUTextureView> {
-        const lTexture: GPUTexture = await this.mTexture.native();
+    protected generate(): GPUTextureView {
+        const lTexture: GPUTexture = this.mTexture.native();
         return lTexture.createView({
             label: this.label,
             format: this.mTexture.format,

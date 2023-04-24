@@ -105,7 +105,7 @@ export class CanvasTexture extends GpuNativeObject<GPUTexture> implements ITextu
     /**
      * Get current canvas texture.
      */
-    protected async generate(): Promise<GPUTexture> {
+    protected generate(): GPUTexture {
         const lTexture = this.mContext.getCurrentTexture();
         lTexture.label = this.label;
 
@@ -115,7 +115,7 @@ export class CanvasTexture extends GpuNativeObject<GPUTexture> implements ITextu
     /**
      * Allways invalidate current texture to generate latest texture.
      */
-    protected override async validateState(pNativeObject: GPUTexture): Promise<boolean> {
+    protected override validate(pNativeObject: GPUTexture): boolean {
         return this.mContext.getCurrentTexture() === pNativeObject;
     }
 }

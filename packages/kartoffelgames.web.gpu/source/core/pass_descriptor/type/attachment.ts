@@ -57,13 +57,13 @@ export class Attachment extends GpuNativeObject<GPUTextureView>{
     /**
      * Generate color attachment.
      */
-    protected async generate(): Promise<GPUTextureView> {
+    protected generate(): GPUTextureView {
         // Validate texture.
         if (!this.mTexture) {
             throw new Exception(`Attachment "${this.label}" has no texture.`, this);
         }
 
-        const lTexture: GPUTexture = await this.mTexture.native();
+        const lTexture: GPUTexture = this.mTexture.native();
 
         // Generate view.
         const lView: GPUTextureView = lTexture.createView({

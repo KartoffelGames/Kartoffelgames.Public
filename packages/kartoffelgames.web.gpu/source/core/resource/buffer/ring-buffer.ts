@@ -50,7 +50,7 @@ export class RingBuffer<T extends TypedArray> extends BaseBuffer<T> {
 
         // Copy buffer data from staging into wavig buffer.
         const lCommandDecoder: GPUCommandEncoder = this.gpu.device.createCommandEncoder();
-        lCommandDecoder.copyBufferToBuffer(lStagingBuffer, 0, await this.native(), 0, this.size);
+        lCommandDecoder.copyBufferToBuffer(lStagingBuffer, 0, this.native(), 0, this.size);
         this.gpu.device.queue.submit([lCommandDecoder.finish()]);
 
         // Shedule staging buffer remaping.

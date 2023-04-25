@@ -14,6 +14,7 @@ import { Shader } from '../../source/core/shader/shader';
 import shader from './shader.txt';
 import { RenderPassDescriptor } from '../../source/core/pass_descriptor/render-pass-descriptor';
 import { RenderInstructionSet } from '../../source/core/execution/instruction_set/render-instruction-set';
+import { RingBuffer } from '../../source/core/resource/buffer/ring-buffer';
 
 const gHeight: number = 10;
 const gWidth: number = 10;
@@ -100,7 +101,7 @@ const gDepth: number = 10;
                 lTransformationList.push({
                     transform: lTransform,
                     transformation: { x: lWidthIndex, y: lHeightIndex, z: lDepthIndex },
-                    buffer: new SimpleBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lTransform.transformationMatrix.dataArray))
+                    buffer: new RingBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lTransform.transformationMatrix.dataArray))
                 });
             }
         }

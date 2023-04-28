@@ -63,7 +63,7 @@ export class RenderSingleInstruction implements IInstruction {
      * Set bind group of pipeline.
      * @param pBindGroup - Bind group.
      */
-    public async setBindGroup(pIndex: number, pBindGroup: BindGroup): Promise<void> {
+    public setBindGroup(pIndex: number, pBindGroup: BindGroup): void {
         // Validate bind group layout.
         if (this.mPipeline.shader.bindGroups.getGroup(pIndex) !== pBindGroup.layout) {
             throw new Exception(`Bind data layout not matched with pipeline bind group layout.`, this);

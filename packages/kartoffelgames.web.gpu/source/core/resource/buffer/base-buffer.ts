@@ -48,7 +48,7 @@ export abstract class BaseBuffer<T extends TypedArray> extends GpuNativeObject<G
      * Destroy native object.
      * @param pNativeObject - Native object.
      */
-    protected override async destroyNative(pNativeObject: GPUBuffer): Promise<void> {
+    protected override destroyNative(pNativeObject: GPUBuffer): void {
         pNativeObject.destroy();
     }
 
@@ -92,7 +92,7 @@ export abstract class BaseBuffer<T extends TypedArray> extends GpuNativeObject<G
      * Request buffer write.
      * @param pBufferCallback - Callback called on buffer access.
      */
-    public abstract write(pBufferCallback: (pBuffer: T) => Promise<void>): Promise<void>;
+    public abstract write(pBufferCallback: (pBuffer: T) => void): void;
 }
 
 export type BufferDataType<T extends TypedArray> = {

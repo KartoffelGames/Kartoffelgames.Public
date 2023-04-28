@@ -17,12 +17,12 @@ export class SimpleBuffer<T extends TypedArray> extends BaseBuffer<T> {
      * Request buffer write.
      * @param pBufferCallback - Callback called on buffer access.
      */
-    public async write(pBufferCallback: (pBuffer: T) => Promise<void>): Promise<void> {
+    public write(pBufferCallback: (pBuffer: T) => void): void {
         const lBuffer: GPUBuffer = this.native();
 
         // Create new typed array and add new data to this new array.
         const lSourceBuffer: T = new this.type(this.length);
-        await pBufferCallback(lSourceBuffer);
+        pBufferCallback(lSourceBuffer);
 
         // Write copied buffer.
         this.gpu.device.queue.writeBuffer(lBuffer, 0, lSourceBuffer, 0, lSourceBuffer.length);

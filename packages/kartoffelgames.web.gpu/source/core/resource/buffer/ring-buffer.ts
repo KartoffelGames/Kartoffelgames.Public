@@ -24,7 +24,7 @@ export class RingBuffer<T extends TypedArray> extends BaseBuffer<T> {
      * Request buffer write.
      * @param pBufferCallback - Callback called on buffer access.
      */
-    public async write(pBufferCallback: (pBuffer: T) => Promise<void>): Promise<void> {
+    public write(pBufferCallback: (pBuffer: T) => void): void {
         // Create new buffer when no mapped buffer is available. 
         let lStagingBuffer: GPUBuffer;
         if (this.mReadyBufferList.length === 0) {
@@ -43,7 +43,7 @@ export class RingBuffer<T extends TypedArray> extends BaseBuffer<T> {
 
         // Execute write operations.
         const lBufferArray: T = new this.type(lStagingBuffer.getMappedRange());
-        await pBufferCallback(lBufferArray);
+        pBufferCallback(lBufferArray);
 
         // Unmap for copying data.
         lStagingBuffer.unmap();
@@ -63,7 +63,7 @@ export class RingBuffer<T extends TypedArray> extends BaseBuffer<T> {
      * Destory all buffers.
      * @param pNativeObject - Native buffer object.
      */
-    protected override async destroyNative(pNativeObject: GPUBuffer): Promise<void> {
+    protected override destroyNative(pNativeObject: GPUBuffer): void {
         super.destroyNative(pNativeObject);
 
         // Destroy all wave buffer and clear list.

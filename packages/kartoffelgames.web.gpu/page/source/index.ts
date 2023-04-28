@@ -323,9 +323,9 @@ const gDepth: number = 10;
     }
 
     let lLastTime: number = 0;
-    const lRender = async (pTime: number) => {
+    const lRender = (pTime: number) => {
         // Generate encoder and add render commands.
-        await lInstructionExecutioner.execute();
+        lInstructionExecutioner.execute();
 
         const lFps: number = 1000 / (pTime - lLastTime);
         lFpsCounter.textContent = lFps.toString();

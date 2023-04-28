@@ -128,7 +128,7 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
     /**
      * Create view of this texture.
      */
-    public async view(pBaseLayer?: number, pLayerCount?: number): Promise<TextureView> {
+    public view(pBaseLayer?: number, pLayerCount?: number): TextureView {
         const lView = new TextureView(this.gpu, this, pBaseLayer, pLayerCount);
         lView.label = this.label;
 
@@ -139,7 +139,7 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
      * Destroy native object.
      * @param pNativeObject - Native object.
      */
-    protected override async destroyNative(pNativeObject: GPUTexture): Promise<void> {
+    protected override destroyNative(pNativeObject: GPUTexture): void {
         pNativeObject.destroy();
     }
 

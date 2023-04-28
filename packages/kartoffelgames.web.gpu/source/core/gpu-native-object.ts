@@ -55,7 +55,7 @@ export abstract class GpuNativeObject<T extends object> {
     /**
      * Destroy generated native object.
      */
-    public async destroy(): Promise<void> {
+    public destroy(): void {
         // Destroy old native object.
         if (this.mNativeObject) {
             this.destroyNative(this.mNativeObject);

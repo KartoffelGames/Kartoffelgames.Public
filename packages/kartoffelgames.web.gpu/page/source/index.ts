@@ -11,7 +11,7 @@ import { Gpu } from '../../source/core/gpu';
 import { RenderPipeline } from '../../source/core/pipeline/render-pipeline';
 import { SimpleBuffer } from '../../source/core/resource/buffer/simple-buffer';
 import { Shader } from '../../source/core/shader/shader';
-import shader from './shader.txt';
+import shader from './shader.wgsl';
 import { RenderPassDescriptor } from '../../source/core/pass_descriptor/render-pass-descriptor';
 import { RenderInstructionSet } from '../../source/core/execution/instruction_set/render-instruction-set';
 import { RingBuffer } from '../../source/core/resource/buffer/ring-buffer';

@@ -113,7 +113,7 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
         this.mDimension = '2d';
         this.mAspect = 'all';
         this.mBaseMipLevel = 0;
-        this.mMipLevelCount = 0;
+        this.mMipLevelCount = 1;
 
         // Register texture as internal.
         this.registerInternalNative(pTexture);

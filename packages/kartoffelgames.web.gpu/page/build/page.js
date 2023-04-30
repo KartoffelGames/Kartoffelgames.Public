@@ -305,7 +305,7 @@ _asyncToGenerator(function* () {
             y: lHeightIndex,
             z: lDepthIndex
           },
-          buffer: new ring_buffer_1.RingBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lTransform.getMatrix(transform_1.TransformationMatrix.Transformation).dataArray))
+          buffer: new ring_buffer_1.RingBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lTransform.getMatrix(transform_1.TransformMatrix.Transformation).dataArray))
         });
       }
     }
@@ -353,7 +353,7 @@ _asyncToGenerator(function* () {
       var _loop = function _loop(_lTransformation5) {
         _lTransformation5.buffer.write( /*#__PURE__*/function () {
           var _ref3 = _asyncToGenerator(function* (pBuffer) {
-            pBuffer.set(_lTransformation5.transform.getMatrix(transform_1.TransformationMatrix.Transformation).dataArray);
+            pBuffer.set(_lTransformation5.transform.getMatrix(transform_1.TransformMatrix.Transformation).dataArray);
           });
           return function (_x2) {
             return _ref3.apply(this, arguments);
@@ -447,9 +447,9 @@ _asyncToGenerator(function* () {
   lOrtoProjection.near = 0;
   lOrtoProjection.far = 999999;
   var lCamera = new camera_1.Camera(lPerspectiveProjection);
-  lCamera.translationZ = -4;
+  lCamera.transformation.setTranslation(0, 0, -4);
   // Transformation buffer.
-  var lCameraBuffer = new simple_buffer_1.SimpleBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lCamera.viewProjectionMatrix.dataArray));
+  var lCameraBuffer = new simple_buffer_1.SimpleBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lCamera.getMatrix(camera_1.CameraMatrix.ViewProjection).dataArray));
   var lRegisterCameraHandler = (pId, pSet, pGet) => {
     var lSlider = document.getElementById(pId);
     var lInput = document.getElementById(pId + 'Display');
@@ -469,7 +469,7 @@ _asyncToGenerator(function* () {
       // Update transformation buffer.
       lCameraBuffer.write( /*#__PURE__*/function () {
         var _ref4 = _asyncToGenerator(function* (pBuffer) {
-          pBuffer.set(lCamera.viewProjectionMatrix.dataArray);
+          pBuffer.set(lCamera.getMatrix(camera_1.CameraMatrix.ViewProjection).dataArray);
         });
         return function (_x3) {
           return _ref4.apply(this, arguments);
@@ -485,19 +485,19 @@ _asyncToGenerator(function* () {
   };
   // Translate.
   lRegisterCameraHandler('cameraPivotX', pData => {
-    lCamera.pivotX = pData;
+    lCamera.transformation.pivotX = pData;
   }, () => {
-    return lCamera.pivotX;
+    return lCamera.transformation.pivotX;
   });
   lRegisterCameraHandler('cameraPivotY', pData => {
-    lCamera.pivotY = pData;
+    lCamera.transformation.pivotY = pData;
   }, () => {
-    return lCamera.pivotY;
+    return lCamera.transformation.pivotY;
   });
   lRegisterCameraHandler('cameraPivotZ', pData => {
-    lCamera.pivotZ = pData;
+    lCamera.transformation.pivotZ = pData;
   }, () => {
-    return lCamera.pivotZ;
+    return lCamera.transformation.pivotZ;
   });
   // Camera.
   lRegisterCameraHandler('cameraNear', pData => {
@@ -537,44 +537,45 @@ _asyncToGenerator(function* () {
     lCurrentActionValue.set(pEvent.action, pEvent.state);
   });
   window.setInterval(() => {
+    var lSpeed = 3;
     // Z Axis
     if (lCurrentActionValue.get('Forward') > 0) {
-      lCamera.translationZ += lCurrentActionValue.get('Forward') / 50;
+      lCamera.transformation.translateInDirection(lCurrentActionValue.get('Forward') / 50 * lSpeed, 0, 0);
     }
     if (lCurrentActionValue.get('Back') > 0) {
-      lCamera.translationZ -= lCurrentActionValue.get('Back') / 50;
+      lCamera.transformation.translateInDirection(-(lCurrentActionValue.get('Back') / 50) * lSpeed, 0, 0);
     }
     // X Axis
     if (lCurrentActionValue.get('Right') > 0) {
-      lCamera.translationX += lCurrentActionValue.get('Right') / 50;
+      lCamera.transformation.translateInDirection(0, lCurrentActionValue.get('Right') / 50 * lSpeed, 0);
     }
     if (lCurrentActionValue.get('Left') > 0) {
-      lCamera.translationX -= lCurrentActionValue.get('Left') / 50;
+      lCamera.transformation.translateInDirection(0, -(lCurrentActionValue.get('Left') / 50) * lSpeed, 0);
     }
     // Y Axis
     if (lCurrentActionValue.get('Up') > 0) {
-      lCamera.translationY += lCurrentActionValue.get('Up') / 50;
+      lCamera.transformation.translateInDirection(0, 0, lCurrentActionValue.get('Up') / 50 * lSpeed);
     }
     if (lCurrentActionValue.get('Down') > 0) {
-      lCamera.translationY -= lCurrentActionValue.get('Down') / 50;
+      lCamera.transformation.translateInDirection(0, 0, -(lCurrentActionValue.get('Down') / 50) * lSpeed);
     }
     // Rotation.
     if (lCurrentActionValue.get('Yaw') > 0 || lCurrentActionValue.get('Yaw') < 0) {
-      lCamera.rotate(0, lCurrentActionValue.get('Yaw'), 0);
+      lCamera.transformation.addEulerRotation(0, lCurrentActionValue.get('Yaw') * lSpeed, 0);
     }
     if (lCurrentActionValue.get('Pitch') > 0 || lCurrentActionValue.get('Pitch') < 0) {
-      lCamera.rotate(lCurrentActionValue.get('Pitch'), 0, 0);
+      lCamera.transformation.addEulerRotation(lCurrentActionValue.get('Pitch') * lSpeed, 0, 0);
     }
     if (lCurrentActionValue.get('RotateLeft') > 0) {
-      lCamera.rotate(0, 0, -lCurrentActionValue.get('RotateLeft'));
+      lCamera.transformation.addEulerRotation(0, 0, lCurrentActionValue.get('RotateLeft') * lSpeed);
     }
     if (lCurrentActionValue.get('RotateRight') > 0) {
-      lCamera.rotate(0, 0, lCurrentActionValue.get('RotateRight'));
+      lCamera.transformation.addEulerRotation(0, 0, -lCurrentActionValue.get('RotateRight') * lSpeed);
     }
     // Update transformation buffer.
     lCameraBuffer.write( /*#__PURE__*/function () {
       var _ref5 = _asyncToGenerator(function* (pBuffer) {
-        pBuffer.set(lCamera.viewProjectionMatrix.dataArray);
+        pBuffer.set(lCamera.getMatrix(camera_1.CameraMatrix.ViewProjection).dataArray);
       });
       return function (_x4) {
         return _ref5.apply(this, arguments);
@@ -691,141 +692,75 @@ _asyncToGenerator(function* () {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.Camera = void 0;
-var matrix_1 = __webpack_require__(/*! ../../math/matrix */ "./source/math/matrix.ts");
-var quaternion_1 = __webpack_require__(/*! ../../math/quaternion */ "./source/math/quaternion.ts");
+exports.CameraMatrix = exports.Camera = void 0;
+var transform_1 = __webpack_require__(/*! ../transform */ "./source/base/transform.ts");
 class Camera {
   /**
    * Constructor.
    */
   constructor(pProjection) {
     this.mProjection = pProjection;
-    this.mRotation = quaternion_1.Quaternion.identity();
-    this.mTranslation = matrix_1.Matrix.identity(4);
-    this.mPivot = matrix_1.Matrix.identity(4);
-    // Caches.
-    this.mCacheView = null;
-    this.mCacheProjection = null;
-    this.mCacheViewProjection = null;
+    this.mTransformation = new transform_1.Transform();
   }
   /**
-   * X pivot point.
+   * Camera projection.
    */
-  get pivotX() {
-    return this.mPivot.data[0][3];
-  }
-  set pivotX(pValue) {
-    this.mPivot.data[0][3] = pValue;
-    // Clear view cache.
-    this.mCacheView = null;
+  get projection() {
+    return this.mProjection;
   }
   /**
-   * Y pivot point.
+   * Camera transformation.
    */
-  get pivotY() {
-    return this.mPivot.data[1][3];
-  }
-  set pivotY(pValue) {
-    this.mPivot.data[1][3] = pValue;
-    // Clear view cache.
-    this.mCacheView = null;
+  get transformation() {
+    return this.mTransformation;
   }
   /**
-   * Z pivot point.
+   * Get camera matrix.
+   * @param pType - Matrix type.
    */
-  get pivotZ() {
-    return this.mPivot.data[2][3];
-  }
-  set pivotZ(pValue) {
-    this.mPivot.data[2][3] = pValue;
-    // Clear view cache.
-    this.mCacheView = null;
-  }
-  /**
-   * Camera rotation as euler rotation.
-   */
-  get rotation() {
-    return this.mRotation.asEuler();
-  }
-  /**
-   * X translation.
-   */
-  get translationX() {
-    return this.mTranslation.data[0][3];
-  }
-  set translationX(pValue) {
-    this.mTranslation.data[0][3] = pValue;
-    // Clear view cache.
-    this.mCacheView = null;
-  }
-  /**
-   * Y translation.
-   */
-  get translationY() {
-    return this.mTranslation.data[1][3];
-  }
-  set translationY(pValue) {
-    this.mTranslation.data[1][3] = pValue;
-    // Clear view cache.
-    this.mCacheView = null;
-  }
-  /**
-   * Z translation.
-   */
-  get translationZ() {
-    return this.mTranslation.data[2][3];
-  }
-  set translationZ(pValue) {
-    this.mTranslation.data[2][3] = pValue;
-    // Clear view cache.
-    this.mCacheView = null;
-  }
-  /**
-   * Get cameras projection view matrix.
-   * Caches calculated matrix.
-   */
-  get viewProjectionMatrix() {
-    var lCacheChanged = false;
-    // Validate view matrix,
-    if (this.mCacheView === null) {
-      this.mCacheView = this.mTranslation.mult(this.mRotation.asMatrix()).inverse();
-      lCacheChanged = true;
+  getMatrix(pType) {
+    switch (pType) {
+      case CameraMatrix.Translation:
+        {
+          return this.mTransformation.getMatrix(transform_1.TransformMatrix.Translation);
+        }
+      case CameraMatrix.Rotation:
+        {
+          return this.mTransformation.getMatrix(transform_1.TransformMatrix.Rotation);
+        }
+      case CameraMatrix.PivotRotation:
+        {
+          return this.mTransformation.getMatrix(transform_1.TransformMatrix.PivotRotation);
+        }
+      case CameraMatrix.Projection:
+        {
+          return this.mProjection.projectionMatrix;
+        }
+      case CameraMatrix.View:
+        {
+          var lTranslation = this.getMatrix(CameraMatrix.Translation);
+          var lRotation = this.getMatrix(CameraMatrix.Rotation);
+          return lTranslation.mult(lRotation).inverse();
+        }
+      case CameraMatrix.ViewProjection:
+        {
+          var lView = this.getMatrix(CameraMatrix.View);
+          var lProjection = this.getMatrix(CameraMatrix.Projection);
+          return lProjection.mult(lView);
+        }
     }
-    // Check for projection changes.
-    if (this.mCacheProjection !== this.mProjection.projectionMatrix) {
-      this.mCacheProjection = this.mProjection.projectionMatrix;
-      lCacheChanged = true;
-    }
-    // Recalculate projection view matrix on cache change.
-    if (lCacheChanged || this.mCacheViewProjection === null) {
-      this.mCacheViewProjection = this.mCacheProjection.mult(this.mCacheView);
-    }
-    return this.mCacheViewProjection;
-  }
-  /**
-   * Rotate camera.
-   * @param pPitch - Pitch degree.
-   * @param pYaw - Yaw degree.
-   * @param pRoll - Roll degree.
-   */
-  rotate(pPitch, pYaw, pRoll) {
-    this.mRotation = this.mRotation.addEulerRotation(pPitch, pYaw, pRoll);
-    // Clear view cache.
-    this.mCacheView = null;
-  }
-  /**
-   * Set absolute camera rotation.
-   * @param pPitch - Pitch degree.
-   * @param pYaw - Yaw degree.
-   * @param pRoll - Roll degree.
-   */
-  setRotation(pPitch, pYaw, pRoll) {
-    this.mRotation = quaternion_1.Quaternion.fromRotation(pPitch, pYaw, pRoll);
-    // Clear view cache.
-    this.mCacheView = null;
   }
 }
 exports.Camera = Camera;
+var CameraMatrix;
+(function (CameraMatrix) {
+  CameraMatrix[CameraMatrix["Translation"] = 1] = "Translation";
+  CameraMatrix[CameraMatrix["Rotation"] = 2] = "Rotation";
+  CameraMatrix[CameraMatrix["PivotRotation"] = 3] = "PivotRotation";
+  CameraMatrix[CameraMatrix["Projection"] = 4] = "Projection";
+  CameraMatrix[CameraMatrix["View"] = 5] = "View";
+  CameraMatrix[CameraMatrix["ViewProjection"] = 6] = "ViewProjection";
+})(CameraMatrix = exports.CameraMatrix || (exports.CameraMatrix = {}));
 
 /***/ }),
 
@@ -1126,7 +1061,7 @@ exports.PerspectiveProjection = PerspectiveProjection;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.TransformationMatrix = exports.Transform = void 0;
+exports.TransformMatrix = exports.Transform = void 0;
 var matrix_1 = __webpack_require__(/*! ../math/matrix */ "./source/math/matrix.ts");
 var quaternion_1 = __webpack_require__(/*! ../math/quaternion */ "./source/math/quaternion.ts");
 var vector_1 = __webpack_require__(/*! ../math/vector */ "./source/math/vector.ts");
@@ -1139,11 +1074,6 @@ class Transform {
     this.mTranslation = matrix_1.Matrix.identity(4);
     this.mRotation = new quaternion_1.Quaternion(1, 0, 0, 0);
     this.mPivot = matrix_1.Matrix.identity(4);
-    // Matrix caches.
-    this.mCachePivitInverse = null;
-    this.mCachePivitRotation = null;
-    this.mCacheTransformationMatrix = null;
-    this.mCacheRotation = null;
   }
   /**
    * X pivot point.
@@ -1153,10 +1083,6 @@ class Transform {
   }
   set pivotX(pValue) {
     this.mPivot.data[0][3] = pValue;
-    // Reset calculated transformation matrix and pivot caches.
-    this.mCachePivitInverse = null;
-    this.mCachePivitRotation = null;
-    this.mCacheTransformationMatrix = null;
   }
   /**
    * Y pivot point.
@@ -1166,10 +1092,6 @@ class Transform {
   }
   set pivotY(pValue) {
     this.mPivot.data[1][3] = pValue;
-    // Reset calculated transformation matrix and pivot caches.
-    this.mCachePivitInverse = null;
-    this.mCachePivitRotation = null;
-    this.mCacheTransformationMatrix = null;
   }
   /**
    * Z pivot point.
@@ -1179,10 +1101,6 @@ class Transform {
   }
   set pivotZ(pValue) {
     this.mPivot.data[2][3] = pValue;
-    // Reset calculated transformation matrix and pivot caches.
-    this.mCachePivitInverse = null;
-    this.mCachePivitRotation = null;
-    this.mCacheTransformationMatrix = null;
   }
   /**
    * Rotation on X angle.
@@ -1250,10 +1168,6 @@ class Transform {
   addEulerRotation(pPitch, pYaw, pRoll) {
     // Apply rotation to current rotation.
     this.mRotation = this.mRotation.addEulerRotation(pPitch, pYaw, pRoll);
-    // Reset calculated transformation matrix and rotation matrix.
-    this.mCacheRotation = null;
-    this.mCachePivitRotation = null;
-    this.mCacheTransformationMatrix = null;
   }
   /**
    * Add rotation to already rotated object.
@@ -1264,10 +1178,6 @@ class Transform {
   addRotation(pPitch, pYaw, pRoll) {
     // Apply rotation to current rotation.
     this.mRotation = quaternion_1.Quaternion.fromRotation(pPitch, pYaw, pRoll).mult(this.mRotation);
-    // Reset calculated transformation matrix and rotation matrix.
-    this.mCacheRotation = null;
-    this.mCachePivitRotation = null;
-    this.mCacheTransformationMatrix = null;
   }
   /**
    * Add scale.
@@ -1279,8 +1189,6 @@ class Transform {
     this.mScale.data[0][0] += pWidth;
     this.mScale.data[1][1] += pHeight;
     this.mScale.data[2][2] += pDepth;
-    // Reset calculated transformation matrix.
-    this.mCacheTransformationMatrix = null;
   }
   /**
    * Add translation.
@@ -1292,59 +1200,44 @@ class Transform {
     this.mTranslation.data[0][3] += pX;
     this.mTranslation.data[1][3] += pY;
     this.mTranslation.data[2][3] += pZ;
-    // Reset calculated transformation matrix.
-    this.mCacheTransformationMatrix = null;
   }
   /**
    * Get transformation matrix.
    */
   getMatrix(pType) {
     switch (pType) {
-      case TransformationMatrix.Scale:
+      case TransformMatrix.Scale:
         {
           return this.mScale;
         }
-      case TransformationMatrix.Translation:
+      case TransformMatrix.Translation:
         {
           return this.mTranslation;
         }
-      case TransformationMatrix.Rotation:
+      case TransformMatrix.Rotation:
         {
-          // Check rotation change.
-          if (this.mCacheRotation === null) {
-            this.mCacheRotation = this.mRotation.asMatrix();
-          }
-          return this.mCacheRotation;
+          return this.mRotation.asMatrix();
         }
-      case TransformationMatrix.PivotRotation:
+      case TransformMatrix.PivotRotation:
         {
-          var lRotationMatrix = this.getMatrix(TransformationMatrix.Rotation);
-          // Check pivit and rotation cache.
-          if (this.mCachePivitRotation === null) {
-            // Check if pivit point is used.
-            if (this.pivotX !== 0 || this.pivotY !== 0 || this.pivotZ !== 0) {
-              // Check pivit inverse cache.
-              if (this.mCachePivitInverse === null) {
-                this.mCachePivitInverse = this.mPivot.inverse();
-              }
-              // Translate pivot => rotate => reverse pivate translation.
-              this.mCachePivitRotation = this.mCachePivitInverse.mult(lRotationMatrix).mult(this.mPivot);
-            } else {
-              this.mCachePivitRotation = lRotationMatrix;
-            }
+          var lRotationMatrix = this.getMatrix(TransformMatrix.Rotation);
+          // Check if pivit point is used.
+          var lPivotRotation;
+          if (this.pivotX !== 0 || this.pivotY !== 0 || this.pivotZ !== 0) {
+            // Translate pivot => rotate => reverse pivate translation.
+            lPivotRotation = this.mPivot.inverse().mult(lRotationMatrix).mult(this.mPivot);
+          } else {
+            lPivotRotation = lRotationMatrix;
           }
-          return this.mCachePivitRotation;
+          return lPivotRotation;
         }
-      case TransformationMatrix.Transformation:
+      case TransformMatrix.Transformation:
         {
-          if (!this.mCacheTransformationMatrix) {
-            var lScale = this.getMatrix(TransformationMatrix.Scale);
-            var lTranslation = this.getMatrix(TransformationMatrix.Translation);
-            var lRotation = this.getMatrix(TransformationMatrix.PivotRotation);
-            // First scale, second rotate, third translate.
-            this.mCacheTransformationMatrix = lTranslation.mult(lRotation).mult(lScale);
-          }
-          return this.mCacheTransformationMatrix;
+          var lScale = this.getMatrix(TransformMatrix.Scale);
+          var lTranslation = this.getMatrix(TransformMatrix.Translation);
+          var lRotation = this.getMatrix(TransformMatrix.PivotRotation);
+          // First scale, second rotate, third translate.
+          return lTranslation.mult(lRotation).mult(lScale);
         }
     }
   }
@@ -1360,10 +1253,6 @@ class Transform {
     var lRoll = pRoll !== null && pRoll !== void 0 ? pRoll : this.rotationRoll;
     // Create new rotation.
     this.mRotation = quaternion_1.Quaternion.fromRotation(lPitch, lYaw, lRoll);
-    // Reset calculated transformation matrix and rotation matrix.
-    this.mCacheRotation = null;
-    this.mCachePivitRotation = null;
-    this.mCacheTransformationMatrix = null;
   }
   /**
    * Set scale.
@@ -1375,8 +1264,6 @@ class Transform {
     this.mScale.data[0][0] = pWidth !== null && pWidth !== void 0 ? pWidth : this.scaleWidth;
     this.mScale.data[1][1] = pHeight !== null && pHeight !== void 0 ? pHeight : this.scaleHeight;
     this.mScale.data[2][2] = pDepth !== null && pDepth !== void 0 ? pDepth : this.scaleDepth;
-    // Reset calculated transformation matrix.
-    this.mCacheTransformationMatrix = null;
   }
   /**
    * Set translation.
@@ -1388,8 +1275,6 @@ class Transform {
     this.mTranslation.data[0][3] = pX !== null && pX !== void 0 ? pX : this.translationX;
     this.mTranslation.data[1][3] = pY !== null && pY !== void 0 ? pY : this.translationY;
     this.mTranslation.data[2][3] = pZ !== null && pZ !== void 0 ? pZ : this.translationZ;
-    // Reset calculated transformation matrix.
-    this.mCacheTransformationMatrix = null;
   }
   /**
    * Translate into rotation direction.
@@ -1399,20 +1284,20 @@ class Transform {
    */
   translateInDirection(pForward, pRight, pUp) {
     var lTranslationVector = new vector_1.Vector([pRight, pUp, pForward, 1]);
-    var lDirectionVector = this.getMatrix(TransformationMatrix.Rotation).vectorMult(lTranslationVector);
+    var lDirectionVector = this.getMatrix(TransformMatrix.Rotation).vectorMult(lTranslationVector);
     // Add direction.
     this.addTranslation(lDirectionVector.x, lDirectionVector.y, lDirectionVector.z);
   }
 }
 exports.Transform = Transform;
-var TransformationMatrix;
-(function (TransformationMatrix) {
-  TransformationMatrix[TransformationMatrix["Rotation"] = 1] = "Rotation";
-  TransformationMatrix[TransformationMatrix["PivotRotation"] = 2] = "PivotRotation";
-  TransformationMatrix[TransformationMatrix["Translation"] = 3] = "Translation";
-  TransformationMatrix[TransformationMatrix["Scale"] = 4] = "Scale";
-  TransformationMatrix[TransformationMatrix["Transformation"] = 5] = "Transformation";
-})(TransformationMatrix = exports.TransformationMatrix || (exports.TransformationMatrix = {}));
+var TransformMatrix;
+(function (TransformMatrix) {
+  TransformMatrix[TransformMatrix["Rotation"] = 1] = "Rotation";
+  TransformMatrix[TransformMatrix["PivotRotation"] = 2] = "PivotRotation";
+  TransformMatrix[TransformMatrix["Translation"] = 3] = "Translation";
+  TransformMatrix[TransformMatrix["Scale"] = 4] = "Scale";
+  TransformMatrix[TransformMatrix["Transformation"] = 5] = "Transformation";
+})(TransformMatrix = exports.TransformMatrix || (exports.TransformMatrix = {}));
 
 /***/ }),
 
@@ -11345,7 +11230,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("12dc3f2d1cc0e98e5dcf")
+/******/ 		__webpack_require__.h = () => ("86dd9cd3e4657e6a2224")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

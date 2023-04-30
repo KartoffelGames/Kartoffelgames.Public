@@ -1,7 +1,7 @@
-import { Camera } from '../../source/base/camera/camera';
+import { Camera, CameraMatrix } from '../../source/base/camera/camera';
 import { OrthographicProjection } from '../../source/base/camera/projection/orthographic -projection';
 import { PerspectiveProjection } from '../../source/base/camera/projection/perspective-projection';
-import { Transform, TransformationMatrix } from '../../source/base/transform';
+import { Transform, TransformMatrix } from '../../source/base/transform';
 import { AttachmentType } from '../../source/core/pass_descriptor/attachment-type.enum';
 import { Attachments } from '../../source/core/pass_descriptor/attachments';
 import { RenderMesh } from '../../source/core/execution/data/render-mesh';
@@ -102,7 +102,7 @@ const gDepth: number = 10;
                 lTransformationList.push({
                     transform: lTransform,
                     transformation: { x: lWidthIndex, y: lHeightIndex, z: lDepthIndex },
-                    buffer: new RingBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lTransform.getMatrix(TransformationMatrix.Transformation).dataArray))
+                    buffer: new RingBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lTransform.getMatrix(TransformMatrix.Transformation).dataArray))
                 });
             }
         }
@@ -157,7 +157,7 @@ const gDepth: number = 10;
 
             // Update transformation buffer.
             for (const lTransformation of lTransformationList) {
-                lTransformation.buffer.write(async (pBuffer) => { pBuffer.set(lTransformation.transform.getMatrix(TransformationMatrix.Transformation).dataArray); });
+                lTransformation.buffer.write(async (pBuffer) => { pBuffer.set(lTransformation.transform.getMatrix(TransformMatrix.Transformation).dataArray); });
             }
         };
 
@@ -199,10 +199,10 @@ const gDepth: number = 10;
     lOrtoProjection.far = 999999;
 
     const lCamera: Camera = new Camera(lPerspectiveProjection);
-    lCamera.translationZ = -4;
+    lCamera.transformation.setTranslation(0, 0, -4);
 
     // Transformation buffer.
-    const lCameraBuffer = new SimpleBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lCamera.viewProjectionMatrix.dataArray));
+    const lCameraBuffer = new SimpleBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lCamera.getMatrix(CameraMatrix.ViewProjection).dataArray));
     const lRegisterCameraHandler = (pId: string, pSet: (pData: number) => void, pGet: () => number) => {
         const lSlider: HTMLInputElement = <HTMLInputElement>document.getElementById(pId);
         const lInput: HTMLInputElement = <HTMLInputElement>document.getElementById(pId + 'Display');
@@ -225,16 +225,16 @@ const gDepth: number = 10;
             }
 
             // Update transformation buffer.
-            lCameraBuffer.write(async (pBuffer) => { pBuffer.set(lCamera.viewProjectionMatrix.dataArray); });
+            lCameraBuffer.write(async (pBuffer) => { pBuffer.set(lCamera.getMatrix(CameraMatrix.ViewProjection).dataArray); });
         };
 
         lSlider.addEventListener('input', (pEvent) => { lSetData((<any>pEvent.target).value); });
         lInput.addEventListener('input', (pEvent) => { lSetData((<any>pEvent.target).value); });
     };
     // Translate.
-    lRegisterCameraHandler('cameraPivotX', (pData) => { lCamera.pivotX = pData; }, () => { return lCamera.pivotX; });
-    lRegisterCameraHandler('cameraPivotY', (pData) => { lCamera.pivotY = pData; }, () => { return lCamera.pivotY; });
-    lRegisterCameraHandler('cameraPivotZ', (pData) => { lCamera.pivotZ = pData; }, () => { return lCamera.pivotZ; });
+    lRegisterCameraHandler('cameraPivotX', (pData) => { lCamera.transformation.pivotX = pData; }, () => { return lCamera.transformation.pivotX; });
+    lRegisterCameraHandler('cameraPivotY', (pData) => { lCamera.transformation.pivotY = pData; }, () => { return lCamera.transformation.pivotY; });
+    lRegisterCameraHandler('cameraPivotZ', (pData) => { lCamera.transformation.pivotZ = pData; }, () => { return lCamera.transformation.pivotZ; });
 
     // Camera.
     lRegisterCameraHandler('cameraNear', (pData) => { lPerspectiveProjection.near = pData; }, () => { return lPerspectiveProjection.near; });
@@ -264,46 +264,48 @@ const gDepth: number = 10;
         lCurrentActionValue.set(pEvent.action, pEvent.state);
     });
     window.setInterval(() => {
+        const lSpeed = 3;
+
         // Z Axis
         if (lCurrentActionValue.get('Forward')! > 0) {
-            lCamera.translationZ += (lCurrentActionValue.get('Forward')! / 50);
+            lCamera.transformation.translateInDirection((lCurrentActionValue.get('Forward')! / 50) * lSpeed, 0, 0);
         }
         if (lCurrentActionValue.get('Back')! > 0) {
-            lCamera.translationZ -= (lCurrentActionValue.get('Back')! / 50);
+            lCamera.transformation.translateInDirection(-(lCurrentActionValue.get('Back')! / 50) * lSpeed, 0, 0);
         }
 
         // X Axis
         if (lCurrentActionValue.get('Right')! > 0) {
-            lCamera.translationX += (lCurrentActionValue.get('Right')! / 50);
+            lCamera.transformation.translateInDirection(0, (lCurrentActionValue.get('Right')! / 50) * lSpeed, 0);
         }
         if (lCurrentActionValue.get('Left')! > 0) {
-            lCamera.translationX -= (lCurrentActionValue.get('Left')! / 50);
+            lCamera.transformation.translateInDirection(0, -(lCurrentActionValue.get('Left')! / 50) * lSpeed, 0);
         }
 
         // Y Axis
         if (lCurrentActionValue.get('Up')! > 0) {
-            lCamera.translationY += (lCurrentActionValue.get('Up')! / 50);
+            lCamera.transformation.translateInDirection(0, 0, (lCurrentActionValue.get('Up')! / 50) * lSpeed);
         }
         if (lCurrentActionValue.get('Down')! > 0) {
-            lCamera.translationY -= (lCurrentActionValue.get('Down')! / 50);
+            lCamera.transformation.translateInDirection(0, 0, -(lCurrentActionValue.get('Down')! / 50) * lSpeed);
         }
 
         // Rotation.
         if (lCurrentActionValue.get('Yaw')! > 0 || lCurrentActionValue.get('Yaw')! < 0) {
-            lCamera.rotate(0, lCurrentActionValue.get('Yaw')!, 0);
+            lCamera.transformation.addEulerRotation(0, lCurrentActionValue.get('Yaw')! * lSpeed, 0);
         }
         if (lCurrentActionValue.get('Pitch')! > 0 || lCurrentActionValue.get('Pitch')! < 0) {
-            lCamera.rotate(lCurrentActionValue.get('Pitch')!, 0, 0);
+            lCamera.transformation.addEulerRotation(lCurrentActionValue.get('Pitch')! * lSpeed, 0, 0);
         }
         if (lCurrentActionValue.get('RotateLeft')! > 0) {
-            lCamera.rotate(0, 0, -lCurrentActionValue.get('RotateLeft')!);
+            lCamera.transformation.addEulerRotation(0, 0, lCurrentActionValue.get('RotateLeft')! * lSpeed);
         }
         if (lCurrentActionValue.get('RotateRight')! > 0) {
-            lCamera.rotate(0, 0, lCurrentActionValue.get('RotateRight')!);
+            lCamera.transformation.addEulerRotation(0, 0, -lCurrentActionValue.get('RotateRight')! * lSpeed);
         }
 
         // Update transformation buffer.
-        lCameraBuffer.write(async (pBuffer) => { pBuffer.set(lCamera.viewProjectionMatrix.dataArray); });
+        lCameraBuffer.write(async (pBuffer) => { pBuffer.set(lCamera.getMatrix(CameraMatrix.ViewProjection).dataArray); });
     }, 50);
     lCanvas.addEventListener('click', () => {
         lCanvas.requestPointerLock();

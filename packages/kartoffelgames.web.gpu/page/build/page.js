@@ -295,13 +295,9 @@ _asyncToGenerator(function* () {
         };
         // Transformation.
         var lTransform = new transform_1.Transform();
-        lTransform.scaleDepth = 0.1;
-        lTransform.scaleHeight = 0.1;
-        lTransform.scaleWidth = 0.1;
-        lTransform.translationX = lTransformation.x;
-        lTransform.translationY = lTransformation.y;
-        lTransform.translationZ = lTransformation.z;
-        lTransform.absoluteRotation(0, 0, 0);
+        lTransform.setScale(0.1, 0.1, 0.1);
+        lTransform.setTranslation(lTransformation.x, lTransformation.y, lTransformation.z);
+        lTransform.setRotation(0, 0, 0);
         lTransformationList.push({
           transform: lTransform,
           transformation: {
@@ -309,7 +305,7 @@ _asyncToGenerator(function* () {
             y: lHeightIndex,
             z: lDepthIndex
           },
-          buffer: new ring_buffer_1.RingBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lTransform.transformationMatrix.dataArray))
+          buffer: new ring_buffer_1.RingBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lTransform.getMatrix(transform_1.TransformationMatrix.Transformation).dataArray))
         });
       }
     }
@@ -340,24 +336,24 @@ _asyncToGenerator(function* () {
       // Update translation if it is all the same.
       if (lTransformationList[lTransformationList.length - 1].transform.translationX === lCurrentData) {
         for (var _lTransformation2 of lTransformationList) {
-          _lTransformation2.transform.translationX += _lTransformation2.transformation.x;
+          _lTransformation2.transform.addTranslation(_lTransformation2.transformation.x, 0, 0);
         }
       }
       if (lTransformationList[lTransformationList.length - 1].transform.translationY === lCurrentData) {
         for (var _lTransformation3 of lTransformationList) {
-          _lTransformation3.transform.translationY += _lTransformation3.transformation.y;
+          _lTransformation3.transform.addTranslation(0, _lTransformation3.transformation.y, 0);
         }
       }
       if (lTransformationList[lTransformationList.length - 1].transform.translationZ === lCurrentData) {
         for (var _lTransformation4 of lTransformationList) {
-          _lTransformation4.transform.translationZ += _lTransformation4.transformation.z;
+          _lTransformation4.transform.addTranslation(0, 0, _lTransformation4.transformation.z);
         }
       }
       // Update transformation buffer.
       var _loop = function _loop(_lTransformation5) {
         _lTransformation5.buffer.write( /*#__PURE__*/function () {
           var _ref3 = _asyncToGenerator(function* (pBuffer) {
-            pBuffer.set(_lTransformation5.transform.transformationMatrix.dataArray);
+            pBuffer.set(_lTransformation5.transform.getMatrix(transform_1.TransformationMatrix.Transformation).dataArray);
           });
           return function (_x2) {
             return _ref3.apply(this, arguments);
@@ -376,52 +372,52 @@ _asyncToGenerator(function* () {
     });
   };
   // Scale handler.
-  lRegisterObjectHandler('scaleHeight', (pTransform, pData) => {
-    pTransform.scaleHeight = pData;
-  }, pTransform => {
-    return pTransform.scaleHeight;
-  });
   lRegisterObjectHandler('scaleWidth', (pTransform, pData) => {
-    pTransform.scaleWidth = pData;
+    pTransform.setScale(pData, null, null);
   }, pTransform => {
     return pTransform.scaleWidth;
   });
+  lRegisterObjectHandler('scaleHeight', (pTransform, pData) => {
+    pTransform.setScale(null, pData, null);
+  }, pTransform => {
+    return pTransform.scaleHeight;
+  });
   lRegisterObjectHandler('scaleDepth', (pTransform, pData) => {
-    pTransform.scaleDepth = pData;
+    pTransform.setScale(null, null, pData);
   }, pTransform => {
     return pTransform.scaleDepth;
   });
   // Translate.
   lRegisterObjectHandler('translateX', (pTransform, pData) => {
-    pTransform.translationX = pData;
+    pTransform.setTranslation(pData, null, null);
   }, pTransform => {
     return pTransform.translationX;
   });
   lRegisterObjectHandler('translateY', (pTransform, pData) => {
-    pTransform.translationY = pData;
+    pTransform.setTranslation(null, pData, null);
   }, pTransform => {
     return pTransform.translationY;
   });
   lRegisterObjectHandler('translateZ', (pTransform, pData) => {
-    pTransform.translationZ = pData;
+    pTransform.setTranslation(null, null, pData);
   }, pTransform => {
     return pTransform.translationZ;
   });
   // Rotate.
   lRegisterObjectHandler('rotatePitch', (pTransform, pData) => {
-    pTransform.addRotation(pData, 0, 0);
+    pTransform.setRotation(pData, null, null);
   }, pTransform => {
-    return pTransform.axisRotationAngleX;
+    return pTransform.rotationPitch;
   });
   lRegisterObjectHandler('rotateYaw', (pTransform, pData) => {
-    pTransform.addRotation(0, pData, 0);
+    pTransform.setRotation(null, pData, null);
   }, pTransform => {
-    return pTransform.axisRotationAngleY;
+    return pTransform.rotationYaw;
   });
   lRegisterObjectHandler('rotateRoll', (pTransform, pData) => {
-    pTransform.addRotation(0, 0, pData);
+    pTransform.setRotation(null, null, pData);
   }, pTransform => {
-    return pTransform.axisRotationAngleZ;
+    return pTransform.rotationRoll;
   });
   // Translate.
   lRegisterObjectHandler('pivotX', (pTransform, pData) => {
@@ -1130,9 +1126,10 @@ exports.PerspectiveProjection = PerspectiveProjection;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.Transform = void 0;
+exports.TransformationMatrix = exports.Transform = void 0;
 var matrix_1 = __webpack_require__(/*! ../math/matrix */ "./source/math/matrix.ts");
 var quaternion_1 = __webpack_require__(/*! ../math/quaternion */ "./source/math/quaternion.ts");
+var vector_1 = __webpack_require__(/*! ../math/vector */ "./source/math/vector.ts");
 class Transform {
   /**
    * Constructor.
@@ -1147,27 +1144,6 @@ class Transform {
     this.mCachePivitRotation = null;
     this.mCacheTransformationMatrix = null;
     this.mCacheRotation = null;
-  }
-  /**
-   * Rotation on X angle.
-   * Pitch.
-   */
-  get axisRotationAngleX() {
-    return this.mRotation.asEuler().x;
-  }
-  /**
-   * Rotation on Y angle.
-   * Yaw.
-   */
-  get axisRotationAngleY() {
-    return this.mRotation.asEuler().y;
-  }
-  /**
-   * Rotation on Z angle.
-   * Roll.
-   */
-  get axisRotationAngleZ() {
-    return this.mRotation.asEuler().z;
   }
   /**
    * X pivot point.
@@ -1209,15 +1185,31 @@ class Transform {
     this.mCacheTransformationMatrix = null;
   }
   /**
+   * Rotation on X angle.
+   * Pitch.
+   */
+  get rotationPitch() {
+    return this.mRotation.asEuler().x;
+  }
+  /**
+   * Rotation on Z angle.
+   * Roll.
+   */
+  get rotationRoll() {
+    return this.mRotation.asEuler().z;
+  }
+  /**
+   * Rotation on Y angle.
+   * Yaw.
+   */
+  get rotationYaw() {
+    return this.mRotation.asEuler().y;
+  }
+  /**
    * Depth scale.
    */
   get scaleDepth() {
     return this.mScale.data[2][2];
-  }
-  set scaleDepth(pValue) {
-    this.mScale.data[2][2] = pValue;
-    // Reset calculated transformation matrix.
-    this.mCacheTransformationMatrix = null;
   }
   /**
    * Height scale.
@@ -1225,50 +1217,11 @@ class Transform {
   get scaleHeight() {
     return this.mScale.data[1][1];
   }
-  set scaleHeight(pValue) {
-    this.mScale.data[1][1] = pValue;
-    // Reset calculated transformation matrix.
-    this.mCacheTransformationMatrix = null;
-  }
   /**
    * Width scale.
    */
   get scaleWidth() {
     return this.mScale.data[0][0];
-  }
-  set scaleWidth(pValue) {
-    this.mScale.data[0][0] = pValue;
-    // Reset calculated transformation matrix.
-    this.mCacheTransformationMatrix = null;
-  }
-  /**
-   * Get transformation matrix.
-   */
-  get transformationMatrix() {
-    // Recalulate transformation matrix.
-    if (!this.mCacheTransformationMatrix) {
-      // Check rotation change.
-      if (this.mCacheRotation === null) {
-        this.mCacheRotation = this.mRotation.asMatrix();
-      }
-      // Check pivit and rotation cache.
-      if (this.mCachePivitRotation === null) {
-        // Check if pivit point is used.
-        if (this.pivotX !== 0 || this.pivotY !== 0 || this.pivotZ !== 0) {
-          // Check pivit inverse cache.
-          if (this.mCachePivitInverse === null) {
-            this.mCachePivitInverse = this.mPivot.inverse();
-          }
-          // Translate pivot => rotate => reverse pivate translation.
-          this.mCachePivitRotation = this.mCachePivitInverse.mult(this.mCacheRotation).mult(this.mPivot);
-        } else {
-          this.mCachePivitRotation = this.mCacheRotation;
-        }
-      }
-      // First scale, second rotate, third translate.
-      this.mCacheTransformationMatrix = this.mTranslation.mult(this.mCachePivitRotation).mult(this.mScale);
-    }
-    return this.mCacheTransformationMatrix;
   }
   /**
    * X translation.
@@ -1276,21 +1229,11 @@ class Transform {
   get translationX() {
     return this.mTranslation.data[0][3];
   }
-  set translationX(pValue) {
-    this.mTranslation.data[0][3] = pValue;
-    // Reset calculated transformation matrix.
-    this.mCacheTransformationMatrix = null;
-  }
   /**
    * Y translation.
    */
   get translationY() {
     return this.mTranslation.data[1][3];
-  }
-  set translationY(pValue) {
-    this.mTranslation.data[1][3] = pValue;
-    // Reset calculated transformation matrix.
-    this.mCacheTransformationMatrix = null;
   }
   /**
    * Z translation.
@@ -1298,32 +1241,13 @@ class Transform {
   get translationZ() {
     return this.mTranslation.data[2][3];
   }
-  set translationZ(pValue) {
-    this.mTranslation.data[2][3] = pValue;
-    // Reset calculated transformation matrix.
-    this.mCacheTransformationMatrix = null;
-  }
   /**
-   * Reset current rotation and set new rotation.
+   * Add angles to current euler rotation angles.
    * @param pPitch - Pitch degree.
    * @param pYaw - Yaw degree.
    * @param pRoll - Roll degree.
    */
-  absoluteRotation(pPitch, pYaw, pRoll) {
-    // Create new rotation.
-    this.mRotation = quaternion_1.Quaternion.fromRotation(pPitch, pYaw, pRoll);
-    // Reset calculated transformation matrix and rotation matrix.
-    this.mCacheRotation = null;
-    this.mCachePivitRotation = null;
-    this.mCacheTransformationMatrix = null;
-  }
-  /**
-   * Add angles to current rotation angles.
-   * @param pPitch - Pitch degree.
-   * @param pYaw - Yaw degree.
-   * @param pRoll - Roll degree.
-   */
-  addRotation(pPitch, pYaw, pRoll) {
+  addEulerRotation(pPitch, pYaw, pRoll) {
     // Apply rotation to current rotation.
     this.mRotation = this.mRotation.addEulerRotation(pPitch, pYaw, pRoll);
     // Reset calculated transformation matrix and rotation matrix.
@@ -1337,7 +1261,7 @@ class Transform {
    * @param pYaw - Yaw degree.
    * @param pRoll - Roll degree.
    */
-  relativeRotation(pPitch, pYaw, pRoll) {
+  addRotation(pPitch, pYaw, pRoll) {
     // Apply rotation to current rotation.
     this.mRotation = quaternion_1.Quaternion.fromRotation(pPitch, pYaw, pRoll).mult(this.mRotation);
     // Reset calculated transformation matrix and rotation matrix.
@@ -1345,8 +1269,150 @@ class Transform {
     this.mCachePivitRotation = null;
     this.mCacheTransformationMatrix = null;
   }
+  /**
+   * Add scale.
+   * @param pWidth - Width multiplier.
+   * @param pHeight - Height multiplier.
+   * @param pDepth - Depth multiplier.
+   */
+  addScale(pWidth, pHeight, pDepth) {
+    this.mScale.data[0][0] += pWidth;
+    this.mScale.data[1][1] += pHeight;
+    this.mScale.data[2][2] += pDepth;
+    // Reset calculated transformation matrix.
+    this.mCacheTransformationMatrix = null;
+  }
+  /**
+   * Add translation.
+   * @param pX - Movement on worlds X axis.
+   * @param pY - Movement on worlds Y axis.
+   * @param pZ - Movement on worlds Z axis.
+   */
+  addTranslation(pX, pY, pZ) {
+    this.mTranslation.data[0][3] += pX;
+    this.mTranslation.data[1][3] += pY;
+    this.mTranslation.data[2][3] += pZ;
+    // Reset calculated transformation matrix.
+    this.mCacheTransformationMatrix = null;
+  }
+  /**
+   * Get transformation matrix.
+   */
+  getMatrix(pType) {
+    switch (pType) {
+      case TransformationMatrix.Scale:
+        {
+          return this.mScale;
+        }
+      case TransformationMatrix.Translation:
+        {
+          return this.mTranslation;
+        }
+      case TransformationMatrix.Rotation:
+        {
+          // Check rotation change.
+          if (this.mCacheRotation === null) {
+            this.mCacheRotation = this.mRotation.asMatrix();
+          }
+          return this.mCacheRotation;
+        }
+      case TransformationMatrix.PivotRotation:
+        {
+          var lRotationMatrix = this.getMatrix(TransformationMatrix.Rotation);
+          // Check pivit and rotation cache.
+          if (this.mCachePivitRotation === null) {
+            // Check if pivit point is used.
+            if (this.pivotX !== 0 || this.pivotY !== 0 || this.pivotZ !== 0) {
+              // Check pivit inverse cache.
+              if (this.mCachePivitInverse === null) {
+                this.mCachePivitInverse = this.mPivot.inverse();
+              }
+              // Translate pivot => rotate => reverse pivate translation.
+              this.mCachePivitRotation = this.mCachePivitInverse.mult(lRotationMatrix).mult(this.mPivot);
+            } else {
+              this.mCachePivitRotation = lRotationMatrix;
+            }
+          }
+          return this.mCachePivitRotation;
+        }
+      case TransformationMatrix.Transformation:
+        {
+          if (!this.mCacheTransformationMatrix) {
+            var lScale = this.getMatrix(TransformationMatrix.Scale);
+            var lTranslation = this.getMatrix(TransformationMatrix.Translation);
+            var lRotation = this.getMatrix(TransformationMatrix.PivotRotation);
+            // First scale, second rotate, third translate.
+            this.mCacheTransformationMatrix = lTranslation.mult(lRotation).mult(lScale);
+          }
+          return this.mCacheTransformationMatrix;
+        }
+    }
+  }
+  /**
+   * Reset current rotation and set new rotation.
+   * @param pPitch - Pitch degree.
+   * @param pYaw - Yaw degree.
+   * @param pRoll - Roll degree.
+   */
+  setRotation(pPitch, pYaw, pRoll) {
+    var lPitch = pPitch !== null && pPitch !== void 0 ? pPitch : this.rotationPitch;
+    var lYaw = pYaw !== null && pYaw !== void 0 ? pYaw : this.rotationYaw;
+    var lRoll = pRoll !== null && pRoll !== void 0 ? pRoll : this.rotationRoll;
+    // Create new rotation.
+    this.mRotation = quaternion_1.Quaternion.fromRotation(lPitch, lYaw, lRoll);
+    // Reset calculated transformation matrix and rotation matrix.
+    this.mCacheRotation = null;
+    this.mCachePivitRotation = null;
+    this.mCacheTransformationMatrix = null;
+  }
+  /**
+   * Set scale.
+   * @param pWidth - Width multiplier.
+   * @param pHeight - Height multiplier.
+   * @param pDepth - Depth multiplier.
+   */
+  setScale(pWidth, pHeight, pDepth) {
+    this.mScale.data[0][0] = pWidth !== null && pWidth !== void 0 ? pWidth : this.scaleWidth;
+    this.mScale.data[1][1] = pHeight !== null && pHeight !== void 0 ? pHeight : this.scaleHeight;
+    this.mScale.data[2][2] = pDepth !== null && pDepth !== void 0 ? pDepth : this.scaleDepth;
+    // Reset calculated transformation matrix.
+    this.mCacheTransformationMatrix = null;
+  }
+  /**
+   * Set translation.
+   * @param pX - Movement on worlds X axis.
+   * @param pY - Movement on worlds Y axis.
+   * @param pZ - Movement on worlds Z axis.
+   */
+  setTranslation(pX, pY, pZ) {
+    this.mTranslation.data[0][3] = pX !== null && pX !== void 0 ? pX : this.translationX;
+    this.mTranslation.data[1][3] = pY !== null && pY !== void 0 ? pY : this.translationY;
+    this.mTranslation.data[2][3] = pZ !== null && pZ !== void 0 ? pZ : this.translationZ;
+    // Reset calculated transformation matrix.
+    this.mCacheTransformationMatrix = null;
+  }
+  /**
+   * Translate into rotation direction.
+   * @param pForward - Forward movement.
+   * @param pRight - Right movement.
+   * @param pUp - Up movement.
+   */
+  translateInDirection(pForward, pRight, pUp) {
+    var lTranslationVector = new vector_1.Vector([pRight, pUp, pForward, 1]);
+    var lDirectionVector = this.getMatrix(TransformationMatrix.Rotation).vectorMult(lTranslationVector);
+    // Add direction.
+    this.addTranslation(lDirectionVector.x, lDirectionVector.y, lDirectionVector.z);
+  }
 }
 exports.Transform = Transform;
+var TransformationMatrix;
+(function (TransformationMatrix) {
+  TransformationMatrix[TransformationMatrix["Rotation"] = 1] = "Rotation";
+  TransformationMatrix[TransformationMatrix["PivotRotation"] = 2] = "PivotRotation";
+  TransformationMatrix[TransformationMatrix["Translation"] = 3] = "Translation";
+  TransformationMatrix[TransformationMatrix["Scale"] = 4] = "Scale";
+  TransformationMatrix[TransformationMatrix["Transformation"] = 5] = "Transformation";
+})(TransformationMatrix = exports.TransformationMatrix || (exports.TransformationMatrix = {}));
 
 /***/ }),
 
@@ -6130,6 +6196,30 @@ class Vector {
    */
   get data() {
     return this.mData;
+  }
+  /**
+   * W value quick access.
+   */
+  get w() {
+    return this.mData[3];
+  }
+  /**
+   * X value quick access.
+   */
+  get x() {
+    return this.mData[0];
+  }
+  /**
+   * Y value quick access.
+   */
+  get y() {
+    return this.mData[1];
+  }
+  /**
+   * Z value quick access.
+   */
+  get z() {
+    return this.mData[2];
   }
   /**
    * Add two vectors.
@@ -11255,7 +11345,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("1967e191b390b43a87d2")
+/******/ 		__webpack_require__.h = () => ("12dc3f2d1cc0e98e5dcf")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

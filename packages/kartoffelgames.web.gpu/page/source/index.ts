@@ -1,7 +1,7 @@
 import { Camera } from '../../source/base/camera/camera';
 import { OrthographicProjection } from '../../source/base/camera/projection/orthographic -projection';
 import { PerspectiveProjection } from '../../source/base/camera/projection/perspective-projection';
-import { Transform } from '../../source/base/transform';
+import { Transform, TransformationMatrix } from '../../source/base/transform';
 import { AttachmentType } from '../../source/core/pass_descriptor/attachment-type.enum';
 import { Attachments } from '../../source/core/pass_descriptor/attachments';
 import { RenderMesh } from '../../source/core/execution/data/render-mesh';
@@ -95,18 +95,14 @@ const gDepth: number = 10;
 
                 // Transformation.
                 const lTransform: Transform = new Transform();
-                lTransform.scaleDepth = 0.1;
-                lTransform.scaleHeight = 0.1;
-                lTransform.scaleWidth = 0.1;
-                lTransform.translationX = lTransformation.x;
-                lTransform.translationY = lTransformation.y;
-                lTransform.translationZ = lTransformation.z;
-                lTransform.absoluteRotation(0, 0, 0);
+                lTransform.setScale(0.1, 0.1, 0.1);
+                lTransform.setTranslation(lTransformation.x, lTransformation.y, lTransformation.z);
+                lTransform.setRotation(0, 0, 0);
 
                 lTransformationList.push({
                     transform: lTransform,
                     transformation: { x: lWidthIndex, y: lHeightIndex, z: lDepthIndex },
-                    buffer: new RingBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lTransform.transformationMatrix.dataArray))
+                    buffer: new RingBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lTransform.getMatrix(TransformationMatrix.Transformation).dataArray))
                 });
             }
         }
@@ -145,23 +141,23 @@ const gDepth: number = 10;
             // Update translation if it is all the same.
             if (lTransformationList[lTransformationList.length - 1].transform.translationX === lCurrentData) {
                 for (const lTransformation of lTransformationList) {
-                    lTransformation.transform.translationX += lTransformation.transformation.x;
+                    lTransformation.transform.addTranslation(lTransformation.transformation.x, 0, 0);
                 }
             }
             if (lTransformationList[lTransformationList.length - 1].transform.translationY === lCurrentData) {
                 for (const lTransformation of lTransformationList) {
-                    lTransformation.transform.translationY += lTransformation.transformation.y;
+                    lTransformation.transform.addTranslation(0, lTransformation.transformation.y, 0);
                 }
             }
             if (lTransformationList[lTransformationList.length - 1].transform.translationZ === lCurrentData) {
                 for (const lTransformation of lTransformationList) {
-                    lTransformation.transform.translationZ += lTransformation.transformation.z;
+                    lTransformation.transform.addTranslation(0, 0, lTransformation.transformation.z);
                 }
             }
 
             // Update transformation buffer.
             for (const lTransformation of lTransformationList) {
-                lTransformation.buffer.write(async (pBuffer) => { pBuffer.set(lTransformation.transform.transformationMatrix.dataArray); });
+                lTransformation.buffer.write(async (pBuffer) => { pBuffer.set(lTransformation.transform.getMatrix(TransformationMatrix.Transformation).dataArray); });
             }
         };
 
@@ -170,19 +166,19 @@ const gDepth: number = 10;
     };
 
     // Scale handler.
-    lRegisterObjectHandler('scaleHeight', (pTransform: Transform, pData) => { pTransform.scaleHeight = pData; }, (pTransform: Transform) => { return pTransform.scaleHeight; });
-    lRegisterObjectHandler('scaleWidth', (pTransform: Transform, pData) => { pTransform.scaleWidth = pData; }, (pTransform: Transform) => { return pTransform.scaleWidth; });
-    lRegisterObjectHandler('scaleDepth', (pTransform: Transform, pData) => { pTransform.scaleDepth = pData; }, (pTransform: Transform) => { return pTransform.scaleDepth; });
+    lRegisterObjectHandler('scaleWidth', (pTransform: Transform, pData) => { pTransform.setScale(pData, null, null); }, (pTransform: Transform) => { return pTransform.scaleWidth; });
+    lRegisterObjectHandler('scaleHeight', (pTransform: Transform, pData) => { pTransform.setScale(null, pData, null); }, (pTransform: Transform) => { return pTransform.scaleHeight; });
+    lRegisterObjectHandler('scaleDepth', (pTransform: Transform, pData) => { pTransform.setScale(null, null, pData); }, (pTransform: Transform) => { return pTransform.scaleDepth; });
 
     // Translate.
-    lRegisterObjectHandler('translateX', (pTransform: Transform, pData) => { pTransform.translationX = pData; }, (pTransform: Transform) => { return pTransform.translationX; });
-    lRegisterObjectHandler('translateY', (pTransform: Transform, pData) => { pTransform.translationY = pData; }, (pTransform: Transform) => { return pTransform.translationY; });
-    lRegisterObjectHandler('translateZ', (pTransform: Transform, pData) => { pTransform.translationZ = pData; }, (pTransform: Transform) => { return pTransform.translationZ; });
+    lRegisterObjectHandler('translateX', (pTransform: Transform, pData) => { pTransform.setTranslation(pData, null, null); }, (pTransform: Transform) => { return pTransform.translationX; });
+    lRegisterObjectHandler('translateY', (pTransform: Transform, pData) => { pTransform.setTranslation(null, pData, null); }, (pTransform: Transform) => { return pTransform.translationY; });
+    lRegisterObjectHandler('translateZ', (pTransform: Transform, pData) => { pTransform.setTranslation(null, null, pData); }, (pTransform: Transform) => { return pTransform.translationZ; });
 
     // Rotate.
-    lRegisterObjectHandler('rotatePitch', (pTransform: Transform, pData) => { pTransform.addRotation(pData, 0, 0); }, (pTransform: Transform) => { return pTransform.axisRotationAngleX; });
-    lRegisterObjectHandler('rotateYaw', (pTransform: Transform, pData) => { pTransform.addRotation(0, pData, 0); }, (pTransform: Transform) => { return pTransform.axisRotationAngleY; });
-    lRegisterObjectHandler('rotateRoll', (pTransform: Transform, pData) => { pTransform.addRotation(0, 0, pData); }, (pTransform: Transform) => { return pTransform.axisRotationAngleZ; });
+    lRegisterObjectHandler('rotatePitch', (pTransform: Transform, pData) => { pTransform.setRotation(pData, null, null); }, (pTransform: Transform) => { return pTransform.rotationPitch; });
+    lRegisterObjectHandler('rotateYaw', (pTransform: Transform, pData) => { pTransform.setRotation(null, pData, null); }, (pTransform: Transform) => { return pTransform.rotationYaw; });
+    lRegisterObjectHandler('rotateRoll', (pTransform: Transform, pData) => { pTransform.setRotation(null, null, pData); }, (pTransform: Transform) => { return pTransform.rotationRoll; });
 
     // Translate.
     lRegisterObjectHandler('pivotX', (pTransform: Transform, pData) => { pTransform.pivotX = pData; }, (pTransform: Transform) => { return pTransform.pivotX; });

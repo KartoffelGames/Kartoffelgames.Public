@@ -19,7 +19,7 @@ export class Camera {
         return this.mPivot.data[0][3];
     } set pivotX(pValue: number) {
         this.mPivot.data[0][3] = pValue;
-        
+
         // Clear view cache.
         this.mCacheView = null;
     }
@@ -31,7 +31,7 @@ export class Camera {
         return this.mPivot.data[1][3];
     } set pivotY(pValue: number) {
         this.mPivot.data[1][3] = pValue;
-        
+
         // Clear view cache.
         this.mCacheView = null;
     }
@@ -43,7 +43,7 @@ export class Camera {
         return this.mPivot.data[2][3];
     } set pivotZ(pValue: number) {
         this.mPivot.data[2][3] = pValue;
-        
+
         // Clear view cache.
         this.mCacheView = null;
     }
@@ -62,7 +62,7 @@ export class Camera {
         return this.mTranslation.data[0][3];
     } set translationX(pValue: number) {
         this.mTranslation.data[0][3] = pValue;
-        
+
         // Clear view cache.
         this.mCacheView = null;
     }
@@ -74,7 +74,7 @@ export class Camera {
         return this.mTranslation.data[1][3];
     } set translationY(pValue: number) {
         this.mTranslation.data[1][3] = pValue;
-        
+
         // Clear view cache.
         this.mCacheView = null;
     }
@@ -86,7 +86,7 @@ export class Camera {
         return this.mTranslation.data[2][3];
     } set translationZ(pValue: number) {
         this.mTranslation.data[2][3] = pValue;
-  
+
         // Clear view cache.
         this.mCacheView = null;
     }
@@ -99,19 +99,19 @@ export class Camera {
         let lCacheChanged: boolean = false;
 
         // Validate view matrix,
-        if(this.mCacheView === null) {
+        if (this.mCacheView === null) {
             this.mCacheView = this.mTranslation.mult(this.mRotation.asMatrix()).inverse();
             lCacheChanged = true;
         }
 
         // Check for projection changes.
-        if(this.mCacheProjection !== this.mProjection.projectionMatrix){
+        if (this.mCacheProjection !== this.mProjection.projectionMatrix) {
             this.mCacheProjection = this.mProjection.projectionMatrix;
             lCacheChanged = true;
         }
-        
+
         // Recalculate projection view matrix on cache change.
-        if(lCacheChanged || this.mCacheViewProjection === null){
+        if (lCacheChanged || this.mCacheViewProjection === null) {
             this.mCacheViewProjection = this.mCacheProjection.mult(this.mCacheView);
         }
 
@@ -136,12 +136,12 @@ export class Camera {
 
     /**
      * Rotate camera.
-     * @param pRoll - Roll degree.
      * @param pPitch - Pitch degree.
      * @param pYaw - Yaw degree.
+     * @param pRoll - Roll degree.
      */
-    public rotate(pRoll: number, pPitch: number, pYaw: number): void {
-        this.mRotation = this.mRotation.addEulerRotation(pRoll, pPitch, pYaw);
+    public rotate(pPitch: number, pYaw: number, pRoll: number): void {
+        this.mRotation = this.mRotation.addEulerRotation(pPitch, pYaw, pRoll);
 
         // Clear view cache.
         this.mCacheView = null;
@@ -149,13 +149,13 @@ export class Camera {
 
     /**
      * Set absolute camera rotation.
-     * @param pRoll - Roll degree.
      * @param pPitch - Pitch degree.
      * @param pYaw - Yaw degree.
+     * @param pRoll - Roll degree.
      */
-    public setRotation(pRoll: number, pPitch: number, pYaw: number): void {
-        this.mRotation = Quaternion.fromRotation(pRoll, pPitch, pYaw);
-        
+    public setRotation(pPitch: number, pYaw: number, pRoll: number): void {
+        this.mRotation = Quaternion.fromRotation(pPitch, pYaw, pRoll);
+
         // Clear view cache.
         this.mCacheView = null;
     }

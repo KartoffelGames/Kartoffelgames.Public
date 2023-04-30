@@ -15,6 +15,9 @@ import shader from './shader.wgsl';
 import { RenderPassDescriptor } from '../../source/core/pass_descriptor/render-pass-descriptor';
 import { RenderInstructionSet } from '../../source/core/execution/instruction_set/render-instruction-set';
 import { RingBuffer } from '../../source/core/resource/buffer/ring-buffer';
+import { Texture } from '../../source/core/resource/texture/texture';
+import { TextureUsage } from '../../source/core/resource/texture/texture-usage.enum';
+import { TextureSampler } from '../../source/core/resource/texture-sampler';
 
 const gHeight: number = 10;
 const gWidth: number = 10;
@@ -251,6 +254,16 @@ const gDepth: number = 10;
     lRegisterCameraHandler('cameraFar', (pData) => { lPerspectiveProjection.far = pData; }, () => { return lPerspectiveProjection.far; });
     lRegisterCameraHandler('cameraAngleOfView', (pData) => { lPerspectiveProjection.angleOfView = pData; }, () => { return lPerspectiveProjection.angleOfView; });
 
+    // Setup Texture.
+    const lCubeTexture: Texture = new Texture(lGpu, lGpu.preferredFormat, TextureUsage.TextureBinding | TextureUsage.RenderAttachment | TextureUsage.CopyDestination);
+    lCubeTexture.height = 200;
+    lCubeTexture.width = 150;
+    lCubeTexture.label = 'Cube Texture';
+    await lCubeTexture.load(['/source/cube.png']);
+
+    // Setup Sampler.
+    const lCubeSampler: TextureSampler = new TextureSampler(lGpu);
+
     // Create attributes data.
     const lVertexPositionData: Float32Array = new Float32Array([ // 4x Position
         // Back
@@ -277,6 +290,20 @@ const gDepth: number = 10;
         0.5, 0.0, 1.0, 1.0
     ]);
     const lVertexColorBuffer: SimpleBuffer<Float32Array> = new SimpleBuffer(lGpu, GPUBufferUsage.VERTEX, lVertexColorData);
+    const lVertexUvData: Float32Array = new Float32Array([ // 4x Position
+        // Back
+        0.33, 1,
+        0.66, 1,
+        0,66, 0.75, 
+        0.33, 0.75,
+
+        // Front
+        0.33, 0.25,
+        0.66, 0.25,
+        0.66, 0.50,
+        0.33, 0.50,
+    ]);
+    const lVertexUvBuffer: SimpleBuffer<Float32Array> = new SimpleBuffer(lGpu, GPUBufferUsage.VERTEX, lVertexUvData);
 
     // Create mesh.
     const lMesh = new RenderMesh(lGpu, [
@@ -301,6 +328,9 @@ const gDepth: number = 10;
     ]);
     lMesh.setVertexBuffer('vertexposition', lVertexPositionBuffer);
     lMesh.setVertexBuffer('vertexcolor', lVertexColorBuffer);
+    lMesh.setVertexBuffer('vertexuv', lVertexUvBuffer);
+
+    
 
     // Setup renderer.
     const lInstructionExecutioner: InstructionExecuter = new InstructionExecuter(lGpu);
@@ -309,16 +339,26 @@ const gDepth: number = 10;
     const lInstructionSet: RenderInstructionSet = new RenderInstructionSet(lRenderPassDescription);
     lInstructionExecutioner.addInstructionSet(lInstructionSet);
 
+    // Create camera bind group.
+    const lCameraAndColorBindGroup = lShader.bindGroups.getGroup(1).createBindGroup();
+    lCameraAndColorBindGroup.setData('color', lColorBuffer);
+    lCameraAndColorBindGroup.setData('viewProjectionMatrix', lCameraBuffer);
+
+    const lTextureBindGroup = lShader.bindGroups.getGroup(2).createBindGroup();
+    lTextureBindGroup.setData('cubetextureSampler', lCubeSampler);
+    lTextureBindGroup.setData('cubeTexture', lCubeTexture.view());
+
     // Setup object render.
     for (const lCube of lTransformationList) {
-        // Create bind group.
-        const lBindGroup = lShader.bindGroups.getGroup(0).createBindGroup();
-        lBindGroup.setData('color', lColorBuffer);
-        lBindGroup.setData('transformationMatrix', lCube.buffer);
-        lBindGroup.setData('viewProjectionMatrix', lCameraBuffer);
+        // Create
+        const lTransformationBindGroup = lShader.bindGroups.getGroup(0).createBindGroup();
+        lTransformationBindGroup.setData('transformationMatrix', lCube.buffer);
 
         const lObjectRenderInstruction: RenderSingleInstruction = new RenderSingleInstruction(lPipeline, lMesh);
-        lObjectRenderInstruction.setBindGroup(0, lBindGroup);
+        lObjectRenderInstruction.setBindGroup(0, lTransformationBindGroup);
+        lObjectRenderInstruction.setBindGroup(1, lCameraAndColorBindGroup);
+        lObjectRenderInstruction.setBindGroup(2, lTextureBindGroup);
+
         lInstructionSet.addInstruction(lObjectRenderInstruction);
     }
 

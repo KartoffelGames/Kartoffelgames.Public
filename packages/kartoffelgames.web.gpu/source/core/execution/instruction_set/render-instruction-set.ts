@@ -5,7 +5,6 @@ import { IInstructionSet } from './i-instruction-set';
 import { RenderPipeline } from '../../pipeline/render-pipeline';
 import { BaseBuffer } from '../../resource/buffer/base-buffer';
 import { BindGroup } from '../../bind_group/bind-group';
-import { SimpleBuffer } from '../../resource/buffer/simple-buffer';
 
 export class RenderInstructionSet implements IInstructionSet {
     private readonly mInstructionList: Array<RenderInstruction>;
@@ -51,7 +50,6 @@ export class RenderInstructionSet implements IInstructionSet {
         let lPipeline: RenderPipeline | null = null;
         const lBindGroupList: Array<BindGroup | undefined> = new Array<BindGroup | undefined>();
         const lVertexBufferList: Dictionary<number, BaseBuffer<TypedArray>> = new Dictionary<number, BaseBuffer<TypedArray>>();
-        let lIndexBuffer: SimpleBuffer<Uint16Array> | null = null;
 
         // Execute instructions.
         for (const lInstruction of this.mInstructionList) {
@@ -78,7 +76,7 @@ export class RenderInstructionSet implements IInstructionSet {
 
             // Add vertex attribute buffer.
             for (const lAttribute of lInstruction.pipeline.shader.vertexEntryPoint!.attributes) {
-                const lNewAttributeBuffer: BaseBuffer<TypedArray> = lInstruction.mesh.getVertexBuffer(lAttribute.name);
+                const lNewAttributeBuffer: BaseBuffer<TypedArray> = lInstruction.mesh.getBuffer(lAttribute.name);
                 const lCurrentAttributeBuffer: BaseBuffer<TypedArray> | undefined = lVertexBufferList.get(lAttribute.location);
 
                 // Use cached vertex buffer or use new.
@@ -88,13 +86,7 @@ export class RenderInstructionSet implements IInstructionSet {
                 }
             }
 
-            // Use cached index buffer or use new.
-            if (lInstruction.mesh.indexBuffer !== lIndexBuffer) {
-                lIndexBuffer = lInstruction.mesh.indexBuffer;
-                lRenderPassEncoder.setIndexBuffer(lInstruction.mesh.indexBuffer.native(), 'uint16');
-            }
-
-            lRenderPassEncoder.drawIndexed(lInstruction.mesh.indexBuffer.length);
+            lRenderPassEncoder.draw(lInstruction.mesh.indexCount);
         }
 
         lRenderPassEncoder.end();

@@ -14,9 +14,9 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
     /**
      * When provided the sampler will be a comparison sampler with the specified compare function.
      */
-    public get compare(): GPUCompareFunction | null {
+    public get compareFunction(): GPUCompareFunction | null {
         return this.mCompare;
-    } set compare(pValue: GPUCompareFunction | null) {
+    } set compareFunction(pValue: GPUCompareFunction | null) {
         // Do nothing on assigning old an value.
         if (this.mCompare === pValue) {
             return;
@@ -182,8 +182,8 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
             maxAnisotropy: this.mMaxAnisotropy
         };
 
-        if (this.compare) {
-            lSamplerOptions.compare = this.compare;
+        if (this.compareFunction) {
+            lSamplerOptions.compare = this.compareFunction;
         }
 
         return this.gpu.device.createSampler(lSamplerOptions);

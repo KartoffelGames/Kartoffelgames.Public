@@ -65,7 +65,7 @@ export class RenderSingleInstruction implements IInstruction {
      */
     public setBindGroup(pIndex: number, pBindGroup: BindGroup): void {
         // Validate bind group layout.
-        if (this.mPipeline.shader.bindGroups.getGroup(pIndex) !== pBindGroup.layout) {
+        if (!this.mPipeline.shader.bindGroups.getGroup(pIndex).equal(pBindGroup.layout)) {
             throw new Exception(`Bind data layout not matched with pipeline bind group layout.`, this);
         }
 

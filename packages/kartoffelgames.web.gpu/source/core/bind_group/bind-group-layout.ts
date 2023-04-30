@@ -177,6 +177,30 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
         }
     }
 
+    protected override compare(pObject: this): boolean {
+        // Compare bind group size.
+        if (this.mGroupBinds.size !== pObject.mGroupBinds.size) {
+            return false;
+        }
+
+        for (const lBindName of this.mGroupBinds.keys()) {
+            const lTarget: BindLayout | undefined = pObject.mGroupBinds.get(lBindName);
+            const lSource: BindLayout | undefined = this.mGroupBinds.get(lBindName);
+
+            // Validate bind layout existance.
+            if (!lTarget || !lSource) {
+                return false;
+            }
+
+            // Validate bind layout properties.
+            if (lTarget.bindType !== lSource.bindType || lTarget.index !== lSource.index || lTarget.name !== lSource.name || lTarget.visibility !== lSource.visibility) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * Generate layout.
      */

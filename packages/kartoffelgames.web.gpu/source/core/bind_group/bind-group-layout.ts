@@ -177,6 +177,10 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
         }
     }
 
+    /**
+     * Compare inner binds configurations.
+     * @param pObject - Target object.
+     */
     protected override compare(pObject: this): boolean {
         // Compare bind group size.
         if (this.mGroupBinds.size !== pObject.mGroupBinds.size) {

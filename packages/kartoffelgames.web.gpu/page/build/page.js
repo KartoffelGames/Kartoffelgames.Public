@@ -222,6 +222,8 @@ var ring_buffer_1 = __webpack_require__(/*! ../../source/core/resource/buffer/ri
 var texture_1 = __webpack_require__(/*! ../../source/core/resource/texture/texture */ "./source/core/resource/texture/texture.ts");
 var texture_usage_enum_1 = __webpack_require__(/*! ../../source/core/resource/texture/texture-usage.enum */ "./source/core/resource/texture/texture-usage.enum.ts");
 var texture_sampler_1 = __webpack_require__(/*! ../../source/core/resource/texture-sampler */ "./source/core/resource/texture-sampler.ts");
+var web_game_input_1 = __webpack_require__(/*! @kartoffelgames/web.game-input */ "../kartoffelgames.web.game_input/library/source/index.js");
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
 var gHeight = 10;
 var gWidth = 10;
 var gDepth = 10;
@@ -486,38 +488,6 @@ _asyncToGenerator(function* () {
     });
   };
   // Translate.
-  lRegisterCameraHandler('cameraTranslateX', pData => {
-    lCamera.translationX = pData;
-  }, () => {
-    return lCamera.translationX;
-  });
-  lRegisterCameraHandler('cameraTranslateY', pData => {
-    lCamera.translationY = pData;
-  }, () => {
-    return lCamera.translationY;
-  });
-  lRegisterCameraHandler('cameraTranslateZ', pData => {
-    lCamera.translationZ = pData;
-  }, () => {
-    return lCamera.translationZ;
-  });
-  // Rotate.
-  lRegisterCameraHandler('cameraRotatePitch', pData => {
-    lCamera.rotate(pData, 0, 0);
-  }, () => {
-    return lCamera.rotation.x;
-  });
-  lRegisterCameraHandler('cameraRotateYaw', pData => {
-    lCamera.rotate(0, pData, 0);
-  }, () => {
-    return lCamera.rotation.y;
-  });
-  lRegisterCameraHandler('cameraRotateRoll', pData => {
-    lCamera.rotate(0, 0, pData);
-  }, () => {
-    return lCamera.rotation.z;
-  });
-  // Translate.
   lRegisterCameraHandler('cameraPivotX', pData => {
     lCamera.pivotX = pData;
   }, () => {
@@ -548,6 +518,75 @@ _asyncToGenerator(function* () {
     lPerspectiveProjection.angleOfView = pData;
   }, () => {
     return lPerspectiveProjection.angleOfView;
+  });
+  // Register keyboard mouse movements.
+  var lDefaultConfiguaration = new web_game_input_1.DeviceConfiguration();
+  lDefaultConfiguaration.addAction('Forward', [web_game_input_1.KeyboardButton.KeyW]);
+  lDefaultConfiguaration.addAction('Back', [web_game_input_1.KeyboardButton.KeyS]);
+  lDefaultConfiguaration.addAction('Left', [web_game_input_1.KeyboardButton.KeyA]);
+  lDefaultConfiguaration.addAction('Right', [web_game_input_1.KeyboardButton.KeyD]);
+  lDefaultConfiguaration.addAction('Up', [web_game_input_1.KeyboardButton.ShiftLeft]);
+  lDefaultConfiguaration.addAction('Down', [web_game_input_1.KeyboardButton.ControlLeft]);
+  lDefaultConfiguaration.addAction('RotateLeft', [web_game_input_1.KeyboardButton.KeyQ]);
+  lDefaultConfiguaration.addAction('RotateRight', [web_game_input_1.KeyboardButton.KeyE]);
+  lDefaultConfiguaration.addAction('Yaw', [web_game_input_1.MouseButton.Xaxis]);
+  lDefaultConfiguaration.addAction('Pitch', [web_game_input_1.MouseButton.Yaxis]);
+  lDefaultConfiguaration.triggerTolerance = 0.2;
+  var lInputConfiguration = new web_game_input_1.InputConfiguration(lDefaultConfiguaration);
+  var lInputDevices = new web_game_input_1.InputDevices(lInputConfiguration);
+  lInputDevices.registerConnector(new web_game_input_1.MouseKeyboardConnector());
+  var lCurrentActionValue = new core_data_1.Dictionary();
+  var lKeyboard = lInputDevices.devices[0];
+  lKeyboard.addEventListener('actionstatechange', pEvent => {
+    lCurrentActionValue.set(pEvent.action, pEvent.state);
+  });
+  window.setInterval(() => {
+    // Z Axis
+    if (lCurrentActionValue.get('Forward') > 0) {
+      lCamera.translationZ += lCurrentActionValue.get('Forward') / 50;
+    }
+    if (lCurrentActionValue.get('Back') > 0) {
+      lCamera.translationZ -= lCurrentActionValue.get('Back') / 50;
+    }
+    // X Axis
+    if (lCurrentActionValue.get('Right') > 0) {
+      lCamera.translationX += lCurrentActionValue.get('Right') / 50;
+    }
+    if (lCurrentActionValue.get('Left') > 0) {
+      lCamera.translationX -= lCurrentActionValue.get('Left') / 50;
+    }
+    // Y Axis
+    if (lCurrentActionValue.get('Up') > 0) {
+      lCamera.translationY += lCurrentActionValue.get('Up') / 50;
+    }
+    if (lCurrentActionValue.get('Down') > 0) {
+      lCamera.translationY -= lCurrentActionValue.get('Down') / 50;
+    }
+    // Rotation.
+    if (lCurrentActionValue.get('Yaw') > 0 || lCurrentActionValue.get('Yaw') < 0) {
+      lCamera.rotate(0, lCurrentActionValue.get('Yaw'), 0);
+    }
+    if (lCurrentActionValue.get('Pitch') > 0 || lCurrentActionValue.get('Pitch') < 0) {
+      lCamera.rotate(lCurrentActionValue.get('Pitch'), 0, 0);
+    }
+    if (lCurrentActionValue.get('RotateLeft') > 0) {
+      lCamera.rotate(0, 0, -lCurrentActionValue.get('RotateLeft'));
+    }
+    if (lCurrentActionValue.get('RotateRight') > 0) {
+      lCamera.rotate(0, 0, lCurrentActionValue.get('RotateRight'));
+    }
+    // Update transformation buffer.
+    lCameraBuffer.write( /*#__PURE__*/function () {
+      var _ref5 = _asyncToGenerator(function* (pBuffer) {
+        pBuffer.set(lCamera.viewProjectionMatrix.dataArray);
+      });
+      return function (_x4) {
+        return _ref5.apply(this, arguments);
+      };
+    }());
+  }, 50);
+  lCanvas.addEventListener('click', () => {
+    lCanvas.requestPointerLock();
   });
   // Setup Texture.
   var lCubeTexture = new texture_1.Texture(lGpu, lGpu.preferredFormat, texture_usage_enum_1.TextureUsage.TextureBinding | texture_usage_enum_1.TextureUsage.RenderAttachment | texture_usage_enum_1.TextureUsage.CopyDestination);
@@ -769,23 +808,23 @@ class Camera {
   }
   /**
    * Rotate camera.
-   * @param pRoll - Roll degree.
    * @param pPitch - Pitch degree.
    * @param pYaw - Yaw degree.
+   * @param pRoll - Roll degree.
    */
-  rotate(pRoll, pPitch, pYaw) {
-    this.mRotation = this.mRotation.addEulerRotation(pRoll, pPitch, pYaw);
+  rotate(pPitch, pYaw, pRoll) {
+    this.mRotation = this.mRotation.addEulerRotation(pPitch, pYaw, pRoll);
     // Clear view cache.
     this.mCacheView = null;
   }
   /**
    * Set absolute camera rotation.
-   * @param pRoll - Roll degree.
    * @param pPitch - Pitch degree.
    * @param pYaw - Yaw degree.
+   * @param pRoll - Roll degree.
    */
-  setRotation(pRoll, pPitch, pYaw) {
-    this.mRotation = quaternion_1.Quaternion.fromRotation(pRoll, pPitch, pYaw);
+  setRotation(pPitch, pYaw, pRoll) {
+    this.mRotation = quaternion_1.Quaternion.fromRotation(pPitch, pYaw, pRoll);
     // Clear view cache.
     this.mCacheView = null;
   }
@@ -9955,6 +9994,1180 @@ class TypeUtil {
 exports.TypeUtil = TypeUtil;
 //# sourceMappingURL=type-util.js.map
 
+/***/ }),
+
+/***/ "../kartoffelgames.web.game_input/library/source/configuration/device-configuration.js":
+/*!*********************************************************************************************!*\
+  !*** ../kartoffelgames.web.game_input/library/source/configuration/device-configuration.js ***!
+  \*********************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DeviceConfiguration = void 0;
+const core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+class DeviceConfiguration {
+    /**
+     * Constructor.
+     */
+    constructor() {
+        this.mTriggerTolerance = 0;
+        this.mButtonActions = new core_data_1.Dictionary();
+        this.mActionsButtons = new core_data_1.Dictionary();
+    }
+    /**
+     * Get all key actions.
+     */
+    get keyActions() {
+        return this.mButtonActions.map((pKey, pValue) => {
+            return { name: pKey, buttons: [...pValue] };
+        });
+    }
+    /**
+     * Tolerance on wich buttons and axis are marked as pressed.
+     */
+    get triggerTolerance() {
+        return this.mTriggerTolerance;
+    }
+    set triggerTolerance(pTolerance) {
+        this.mTriggerTolerance = pTolerance;
+    }
+    /**
+     * Add key actions.
+     * @param pName - Action name.
+     * @param pButtons - Buttons binded to action.
+     */
+    addAction(pName, pButtons) {
+        this.mButtonActions.set(pName, new Set(pButtons));
+        // Map keys to actions. 
+        for (const lKey of pButtons) {
+            // Init action list.
+            if (!this.mActionsButtons.has(lKey)) {
+                this.mActionsButtons.set(lKey, new Set());
+            }
+            this.mActionsButtons.get(lKey).add(pName);
+        }
+    }
+    /**
+     * Clone device configuration.
+     */
+    clone() {
+        const lClone = new DeviceConfiguration();
+        // Trigger tolerance.
+        lClone.triggerTolerance = this.triggerTolerance;
+        // Copy actions.
+        for (const lAction of this.mButtonActions) {
+            lClone.addAction(lAction[0], [...lAction[1]]);
+        }
+        return lClone;
+    }
+    /**
+     * Get keys of actions.
+     * @param pActionName - Action name.
+     */
+    getActionButtons(pActionName) {
+        return [...(this.mButtonActions.get(pActionName) ?? [])];
+    }
+    /**
+     * Get all actions asigned to button.
+     * @param pButton - Button.
+     */
+    getActionOfButton(pButton) {
+        // Copy Set to array.
+        return [...(this.mActionsButtons.get(pButton) ?? [])];
+    }
+}
+exports.DeviceConfiguration = DeviceConfiguration;
+//# sourceMappingURL=device-configuration.js.map
+
+/***/ }),
+
+/***/ "../kartoffelgames.web.game_input/library/source/configuration/gamepad-button-mapping.js":
+/*!***********************************************************************************************!*\
+  !*** ../kartoffelgames.web.game_input/library/source/configuration/gamepad-button-mapping.js ***!
+  \***********************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GamepadButtonMapping = void 0;
+const core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+const button_value_type_enum_1 = __webpack_require__(/*! ../enum/button-value-type.enum */ "../kartoffelgames.web.game_input/library/source/enum/button-value-type.enum.js");
+/**
+ * Gamepad mapping.
+ */
+class GamepadButtonMapping {
+    /**
+     * Constructor.
+     */
+    constructor(pMapping) {
+        this.mMapping = new core_data_1.Dictionary();
+        // Apply optional mapping.
+        if (pMapping) {
+            for (const lButton of Object.keys(pMapping)) {
+                const lButtonMapping = pMapping[lButton];
+                this.addMapping(lButton, lButtonMapping.type, lButtonMapping.index);
+            }
+        }
+    }
+    /**
+     * Add button mapping.
+     * @param pButton - Button.
+     * @param pButtonType - Type of button.
+     * @param pButtonIndex - Mapped index.
+     */
+    addMapping(pButton, pButtonType, pButtonIndex) {
+        this.mMapping.set(pButton, { type: pButtonType, index: pButtonIndex });
+    }
+    /**
+     * Get button value of mapped button.
+     * Unmapped buttons return allways zero.
+     * @param pButton - Button.
+     * @param pGamepad - Gamepad data.
+     */
+    executeMapping(pButton, pGamepad) {
+        const lButtonMapping = this.mMapping.get(pButton);
+        // Return unpressed value on all unmapped buttons. 
+        if (!lButtonMapping) {
+            return 0;
+        }
+        // Access correct button array for axis or button  buttons.
+        if (lButtonMapping.type === button_value_type_enum_1.ButtonValueType.Button) {
+            return pGamepad.buttons[lButtonMapping.index]?.value ?? 0;
+        }
+        else { // Axis.   
+            return pGamepad.axes[lButtonMapping.index] ?? 0;
+        }
+    }
+}
+exports.GamepadButtonMapping = GamepadButtonMapping;
+//# sourceMappingURL=gamepad-button-mapping.js.map
+
+/***/ }),
+
+/***/ "../kartoffelgames.web.game_input/library/source/configuration/input-configuration.js":
+/*!********************************************************************************************!*\
+  !*** ../kartoffelgames.web.game_input/library/source/configuration/input-configuration.js ***!
+  \********************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.InputConfiguration = void 0;
+const core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+const button_value_type_enum_1 = __webpack_require__(/*! ../enum/button-value-type.enum */ "../kartoffelgames.web.game_input/library/source/enum/button-value-type.enum.js");
+const gamepad_button_mapping_1 = __webpack_require__(/*! ./gamepad-button-mapping */ "../kartoffelgames.web.game_input/library/source/configuration/gamepad-button-mapping.js");
+class InputConfiguration {
+    /**
+     * Constructor.
+     */
+    constructor(pDefault) {
+        this.mGampadMappingList = new Array();
+        this.mDeviceSettings = new core_data_1.Dictionary();
+        this.mDefaultDevice = pDefault;
+        // Gamepad mapping.
+        this.mGampadMappingList = new Array();
+        this.mStandardGamepadMapping = new gamepad_button_mapping_1.GamepadButtonMapping({
+            clusterButtonBottom: { type: button_value_type_enum_1.ButtonValueType.Button, index: 0 },
+            clusterButtonRight: { type: button_value_type_enum_1.ButtonValueType.Button, index: 1 },
+            clusterButtonLeft: { type: button_value_type_enum_1.ButtonValueType.Button, index: 2 },
+            clusterButtonTop: { type: button_value_type_enum_1.ButtonValueType.Button, index: 3 },
+            buttonLeft: { type: button_value_type_enum_1.ButtonValueType.Button, index: 4 },
+            buttonRight: { type: button_value_type_enum_1.ButtonValueType.Button, index: 5 },
+            triggerLeft: { type: button_value_type_enum_1.ButtonValueType.Button, index: 6 },
+            triggerRight: { type: button_value_type_enum_1.ButtonValueType.Button, index: 7 },
+            selectButton: { type: button_value_type_enum_1.ButtonValueType.Button, index: 8 },
+            startButton: { type: button_value_type_enum_1.ButtonValueType.Button, index: 9 },
+            homeButton: { type: button_value_type_enum_1.ButtonValueType.Button, index: 16 },
+            directionalPadTop: { type: button_value_type_enum_1.ButtonValueType.Button, index: 12 },
+            directionalPadBottom: { type: button_value_type_enum_1.ButtonValueType.Button, index: 13 },
+            directionalPadRight: { type: button_value_type_enum_1.ButtonValueType.Button, index: 15 },
+            directionalPadLeft: { type: button_value_type_enum_1.ButtonValueType.Button, index: 14 },
+            leftThumbStickButton: { type: button_value_type_enum_1.ButtonValueType.Button, index: 10 },
+            leftThumbStickXaxis: { type: button_value_type_enum_1.ButtonValueType.Axis, index: 0 },
+            leftThumbStickYaxis: { type: button_value_type_enum_1.ButtonValueType.Axis, index: 1 },
+            rightThumbStickButton: { type: button_value_type_enum_1.ButtonValueType.Button, index: 11 },
+            rightThumbStickXaxis: { type: button_value_type_enum_1.ButtonValueType.Axis, index: 2 },
+            rightThumbStickYaxis: { type: button_value_type_enum_1.ButtonValueType.Axis, index: 3 },
+        });
+    }
+    /**
+     * Add gamepad mapping by id matching.
+     * @param pIdAssignment - Regex for assigning to matching gamepad ids.
+     * @param pMapping - Gamepad mapping.
+     */
+    addGamepadMapping(pIdAssignment, pMapping) {
+        this.mGampadMappingList.push({ mapping: pMapping, idMatch: pIdAssignment });
+    }
+    /**
+     * Get device settings.
+     * @param pDeviceId - Device id.
+     */
+    deviceConfiguration(pDeviceId) {
+        // Init device with cloned default configuration.
+        if (!this.mDeviceSettings.has(pDeviceId)) {
+            const lDefaultClone = this.mDefaultDevice.clone();
+            this.mDeviceSettings.set(pDeviceId, lDefaultClone);
+        }
+        return this.mDeviceSettings.get(pDeviceId);
+    }
+    /**
+     * Get mapping of gamepad.
+     * @param pGamepadId - Manufacturer id of gamepad.
+     */
+    getGampadMapping(pGamepadId, pGamepadMappingType) {
+        for (const lMappingAssignment of this.mGampadMappingList) {
+            if (lMappingAssignment.idMatch.test(pGamepadId)) {
+                return lMappingAssignment.mapping;
+            }
+        }
+        // Map with gamepad mapping type.
+        if (pGamepadMappingType === 'standard') {
+            return this.mStandardGamepadMapping;
+        }
+        return this.mStandardGamepadMapping;
+    }
+}
+exports.InputConfiguration = InputConfiguration;
+//# sourceMappingURL=input-configuration.js.map
+
+/***/ }),
+
+/***/ "../kartoffelgames.web.game_input/library/source/connector/gamepad-connector.js":
+/*!**************************************************************************************!*\
+  !*** ../kartoffelgames.web.game_input/library/source/connector/gamepad-connector.js ***!
+  \**************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GamepadConnector = void 0;
+const core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+const gamepad_input_device_1 = __webpack_require__(/*! ../device/gamepad-input-device */ "../kartoffelgames.web.game_input/library/source/device/gamepad-input-device.js");
+/**
+ * Handles connect and disconnection of gamepads.
+ */
+class GamepadConnector {
+    /**
+     * Constructor.
+     * Initialize connecting and disconnecting gamepads.
+     */
+    init(pDevices) {
+        // Init connected gamepads.
+        window.addEventListener('gamepadconnected', (pEvent) => {
+            this.connectGamepad(pEvent.gamepad, pDevices);
+        });
+        // Deconstruct disconnected gamepads.
+        window.addEventListener('gamepaddisconnected', (pEvent) => {
+            this.disconnectGamepad(pEvent.gamepad, pDevices);
+        });
+        // Init gamepads that are connected before constructor call.
+        for (const lGamepad of globalThis.navigator.getGamepads()) {
+            if (lGamepad !== null) {
+                this.connectGamepad(lGamepad, pDevices);
+            }
+        }
+    }
+    /**
+     * Init gamepad.
+     * Applies gamepad button mapping.
+     * @param pGamepad - Gamepad
+     */
+    connectGamepad(pGamepad, pDevices) {
+        // Enable gamepad when already created.
+        if (GamepadConnector.mGamepads.has(pGamepad.index)) {
+            pDevices.registerDevice(GamepadConnector.mGamepads.get(pGamepad.index));
+            return;
+        }
+        // Try to find mappig by id assignment.
+        const lFoundMapping = pDevices.configuration.getGampadMapping(pGamepad.id, pGamepad.mapping);
+        // Build general gamepad information.
+        const lGamepadInformation = {
+            index: pGamepad.index,
+            id: pGamepad.id,
+            mapping: lFoundMapping
+        };
+        const lGamepadInput = new gamepad_input_device_1.GamepadInputDevice(lGamepadInformation, pDevices.configuration);
+        // Add GamepadGameInput to local store.
+        GamepadConnector.mGamepads.add(pGamepad.index, lGamepadInput);
+        // Add gamepad to global input devices.
+        pDevices.registerDevice(lGamepadInput);
+    }
+    /**
+     * Desconstruct gamepad.
+     * @param pGamepad - Gamepad.
+     */
+    disconnectGamepad(pGamepad, pDevices) {
+        // Only disconnect GamepadInput
+        if (GamepadConnector.mGamepads.has(pGamepad.index)) {
+            pDevices.unregisterDevice(GamepadConnector.mGamepads.get(pGamepad.index));
+        }
+    }
+}
+exports.GamepadConnector = GamepadConnector;
+GamepadConnector.mGamepads = new core_data_1.Dictionary();
+//# sourceMappingURL=gamepad-connector.js.map
+
+/***/ }),
+
+/***/ "../kartoffelgames.web.game_input/library/source/connector/mouse-keyboard-connector.js":
+/*!*********************************************************************************************!*\
+  !*** ../kartoffelgames.web.game_input/library/source/connector/mouse-keyboard-connector.js ***!
+  \*********************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.MouseKeyboardConnector = void 0;
+const mouse_keyboard_input_device_1 = __webpack_require__(/*! ../device/mouse-keyboard-input-device */ "../kartoffelgames.web.game_input/library/source/device/mouse-keyboard-input-device.js");
+class MouseKeyboardConnector {
+    /**
+     * Init keyboard and mouse input devices.
+     */
+    init(pDevices) {
+        pDevices.registerDevice(new mouse_keyboard_input_device_1.MouseKeyboardInputDevice(pDevices.configuration));
+    }
+}
+exports.MouseKeyboardConnector = MouseKeyboardConnector;
+//# sourceMappingURL=mouse-keyboard-connector.js.map
+
+/***/ }),
+
+/***/ "../kartoffelgames.web.game_input/library/source/device/base-input-device.js":
+/*!***********************************************************************************!*\
+  !*** ../kartoffelgames.web.game_input/library/source/device/base-input-device.js ***!
+  \***********************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.BaseInputDevice = void 0;
+const core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+const input_action_event_1 = __webpack_require__(/*! ../event/input-action-event */ "../kartoffelgames.web.game_input/library/source/event/input-action-event.js");
+const input_button_event_1 = __webpack_require__(/*! ../event/input-button-event */ "../kartoffelgames.web.game_input/library/source/event/input-button-event.js");
+class BaseInputDevice extends EventTarget {
+    /**
+     * Constructor.s
+     * @param pId - Game input id.
+     */
+    constructor(pId, pDeviceType, pDeviceConfiguration) {
+        super();
+        this.mId = pId;
+        this.mConnected = false;
+        this.mDeviceType = pDeviceType;
+        this.mButtonState = new core_data_1.Dictionary();
+        this.mActionStates = new core_data_1.Dictionary();
+        this.mDeviceConfiguration = pDeviceConfiguration;
+    }
+    /**
+     * Get connection state.
+     */
+    get connected() {
+        return this.mConnected;
+    }
+    set connected(pConnected) {
+        this.mConnected = pConnected;
+        // Call state change method.
+        this.onConnectionStateChange();
+    }
+    /**
+     * Device configuration.
+     */
+    get deviceConfiguration() {
+        return this.mDeviceConfiguration;
+    }
+    /**
+     * Device type.
+     */
+    get deviceType() {
+        return this.mDeviceType;
+    }
+    /**
+     * Unique game input id.
+     * Consistent on reconnect.
+     */
+    get id() {
+        return this.mId;
+    }
+    addEventListener(pType, pCallback, pOptions) {
+        super.addEventListener(pType, pCallback, pOptions);
+    }
+    /**
+     * Get float value of button state. Range between 0..1.
+     * @param pButton - Button
+     */
+    getButtonState(pButton) {
+        return this.mButtonState.get(pButton) ?? 0;
+    }
+    /**
+     * Check for button pressed.
+     * @param pButton - Button.
+     */
+    isPressed(pButton) {
+        return this.getButtonState(pButton) !== 0;
+    }
+    /**
+     * Set button state.
+     * Updates states of alias buttons.
+     * @param pButton - Target button.
+     * @param pValue - New state value of button.
+     */
+    setButtonState(pButton, pValue) {
+        // Exit when input is not connected.
+        if (!this.connected) {
+            return;
+        }
+        // Save current state.
+        const lLastButtonState = this.mButtonState.get(pButton) ?? 0;
+        // Apply tolerance. Absolute values for negative axis.
+        let lButtonState = pValue;
+        if (Math.abs(lButtonState) < this.mDeviceConfiguration.triggerTolerance) {
+            lButtonState = 0;
+        }
+        // Exit when values has not changed.
+        if (lLastButtonState === lButtonState) {
+            return;
+        }
+        // Set next target button state and trigger button change.
+        this.mButtonState.set(pButton, lButtonState);
+        this.dispatchButtonChangeEvent(pButton, lButtonState, lLastButtonState);
+        // Check all actions of this buttons.
+        for (const lAction of this.deviceConfiguration.getActionOfButton(pButton)) {
+            const lActionButtonList = this.deviceConfiguration.getActionButtons(lAction);
+            // Get lowest state of all alias buttons.
+            const lActionState = lActionButtonList.reduce((pCurrentValue, pNextValue) => {
+                const lNextValue = this.mButtonState.get(pNextValue) ?? 0;
+                // Save changes closer to zero.
+                if (Math.abs(lNextValue) < Math.abs(pCurrentValue)) {
+                    return lNextValue;
+                }
+                else {
+                    return pCurrentValue;
+                }
+            }, 999);
+            // Set highest state to alias target state.
+            const lActionLastState = this.mActionStates.get(lAction) ?? 0;
+            // Exit when values has not changed.
+            if (lActionLastState === lActionState) {
+                return;
+            }
+            // Update action state.
+            this.mActionStates.set(lAction, lActionState);
+            // Trigger events.
+            this.dispatchActionChangeEvent(lAction, lActionState, lActionLastState, lActionButtonList);
+        }
+    }
+    /**
+     * Dispatch action events based on changed state.
+     * @param pAction - Target action.
+     * @param pCurrentState - Current set state.
+     * @param pLastState - Last state.
+     */
+    dispatchActionChangeEvent(pAction, pCurrentState, pLastState, pAffectedButtons) {
+        // Trigger pressed event when last state was zero.
+        if (pLastState === 0) {
+            this.dispatchEvent(new input_action_event_1.InputActionEvent('actiondown', pAction, pCurrentState, pAffectedButtons));
+        }
+        else if (Math.abs(pLastState) > 0 && pCurrentState === 0) {
+            this.dispatchEvent(new input_action_event_1.InputActionEvent('actionup', pAction, pCurrentState, pAffectedButtons));
+        }
+        // Trigger value change event.
+        this.dispatchEvent(new input_action_event_1.InputActionEvent('actionstatechange', pAction, pCurrentState, pAffectedButtons));
+        return true;
+    }
+    /**
+     * Dispatch button events based on changed state.
+     * @param pButton - Target button.
+     * @param pCurrentState - Current set state.
+     * @param pLastState - Last state.
+     */
+    dispatchButtonChangeEvent(pButton, pCurrentState, pLastState) {
+        // Trigger pressed event when last state was zero.
+        if (pLastState === 0) {
+            this.dispatchEvent(new input_button_event_1.InputButtonEvent('buttondown', pButton, pCurrentState));
+        }
+        else if (Math.abs(pLastState) > 0 && pCurrentState === 0) {
+            this.dispatchEvent(new input_button_event_1.InputButtonEvent('buttonup', pButton, pCurrentState));
+        }
+        // Trigger value change event.
+        this.dispatchEvent(new input_button_event_1.InputButtonEvent('buttonstatechange', pButton, pCurrentState));
+        return true;
+    }
+}
+exports.BaseInputDevice = BaseInputDevice;
+//# sourceMappingURL=base-input-device.js.map
+
+/***/ }),
+
+/***/ "../kartoffelgames.web.game_input/library/source/device/gamepad-input-device.js":
+/*!**************************************************************************************!*\
+  !*** ../kartoffelgames.web.game_input/library/source/device/gamepad-input-device.js ***!
+  \**************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GamepadInputDevice = void 0;
+const core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+const gamepad_button_enum_1 = __webpack_require__(/*! ../enum/gamepad-button.enum */ "../kartoffelgames.web.game_input/library/source/enum/gamepad-button.enum.js");
+const input_device_enum_1 = __webpack_require__(/*! ../enum/input-device.enum */ "../kartoffelgames.web.game_input/library/source/enum/input-device.enum.js");
+const base_input_device_1 = __webpack_require__(/*! ./base-input-device */ "../kartoffelgames.web.game_input/library/source/device/base-input-device.js");
+class GamepadInputDevice extends base_input_device_1.BaseInputDevice {
+    /**
+     * Constructor.
+     * @param pGamepad - Gamepad object.
+     */
+    constructor(pGamepad, pConfiguration) {
+        const lDeviceId = `gamepad_${pGamepad.index}`;
+        const lDeviceConfiguration = pConfiguration.deviceConfiguration(lDeviceId);
+        super(lDeviceId, input_device_enum_1.InputDevice.Gamepad, lDeviceConfiguration);
+        this.mGamepadInformation = pGamepad;
+        this.mLoopRunning = false;
+    }
+    /**
+     * On connection state change.
+     */
+    onConnectionStateChange() {
+        if (this.connected && !this.mLoopRunning) {
+            this.startScanLoop();
+        }
+    }
+    /**
+     * Start scanning for pressed buttons.
+     */
+    startScanLoop() {
+        // Get all gamepad buttons.
+        const lGamepadButtonList = core_data_1.EnumUtil.enumValuesToArray(gamepad_button_enum_1.GamepadButton);
+        const lLoop = () => {
+            // Only scan on connected gamepads.
+            if (this.connected) {
+                // Find connected gamepad. Gamepad does allways exists. Even after disconnect.
+                const lGamepad = globalThis.navigator.getGamepads().find((pGamepad) => {
+                    return pGamepad.index === this.mGamepadInformation.index;
+                });
+                // Scan each gamepad button.
+                for (const lButton of lGamepadButtonList) {
+                    // Read button value.
+                    const lButtonValue = this.mGamepadInformation.mapping.executeMapping(lButton, lGamepad);
+                    // Set button value.
+                    this.setButtonState(lButton, lButtonValue);
+                }
+            }
+            // Stop loop on disconnect.
+            if (this.connected) {
+                globalThis.requestAnimationFrame(lLoop);
+            }
+            else {
+                this.mLoopRunning = false;
+            }
+        };
+        // Request starting animation frame.
+        globalThis.requestAnimationFrame(lLoop);
+        this.mLoopRunning = true;
+    }
+}
+exports.GamepadInputDevice = GamepadInputDevice;
+//# sourceMappingURL=gamepad-input-device.js.map
+
+/***/ }),
+
+/***/ "../kartoffelgames.web.game_input/library/source/device/mouse-keyboard-input-device.js":
+/*!*********************************************************************************************!*\
+  !*** ../kartoffelgames.web.game_input/library/source/device/mouse-keyboard-input-device.js ***!
+  \*********************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.MouseKeyboardInputDevice = void 0;
+const input_device_enum_1 = __webpack_require__(/*! ../enum/input-device.enum */ "../kartoffelgames.web.game_input/library/source/enum/input-device.enum.js");
+const mouse_button_enum_1 = __webpack_require__(/*! ../enum/mouse-button.enum */ "../kartoffelgames.web.game_input/library/source/enum/mouse-button.enum.js");
+const base_input_device_1 = __webpack_require__(/*! ./base-input-device */ "../kartoffelgames.web.game_input/library/source/device/base-input-device.js");
+class MouseKeyboardInputDevice extends base_input_device_1.BaseInputDevice {
+    /**
+     * Constructor.
+     * @param pConfiguration - Iput configuration.
+     */
+    constructor(pConfiguration) {
+        const lDeviceId = 'KEYBOARD_MOUSE_1';
+        const lDeviceConfiguration = pConfiguration.deviceConfiguration(lDeviceId);
+        super(lDeviceId, input_device_enum_1.InputDevice.MouseKeyboard, lDeviceConfiguration);
+        this.mMovementX = 0;
+        this.mMovementY = 0;
+        this.mLoopRunning = false;
+        this.setupCaptureListener();
+    }
+    /**
+     * On connection state change.
+     */
+    onConnectionStateChange() {
+        if (this.connected && !this.mLoopRunning) {
+            this.startMouseMoveScanLoop();
+        }
+    }
+    /**
+     * Set value of mouse button.
+     * @param pButtonNumber - Button number of MouseEvent.button.
+     * @param pValue - Button values.
+     */
+    setMouseButtonValue(pButtonNumber, pValue) {
+        switch (pButtonNumber) {
+            case 0: {
+                this.setButtonState(mouse_button_enum_1.MouseButton.MainLeft, pValue);
+                break;
+            }
+            case 1: {
+                this.setButtonState(mouse_button_enum_1.MouseButton.MainMiddle, pValue);
+                break;
+            }
+            case 2: {
+                this.setButtonState(mouse_button_enum_1.MouseButton.MainRight, pValue);
+                break;
+            }
+            case 3: {
+                this.setButtonState(mouse_button_enum_1.MouseButton.SecondaryBack, pValue);
+                break;
+            }
+            case 4: {
+                this.setButtonState(mouse_button_enum_1.MouseButton.SecondaryForward, pValue);
+                break;
+            }
+        }
+    }
+    /**
+     * Setup event listener for keyboard and mouse events.
+     */
+    setupCaptureListener() {
+        // Capture mouse movement for next frame.
+        document.addEventListener('mousemove', (pMouseEvent) => {
+            this.mMovementX += pMouseEvent.movementX;
+            this.mMovementY += pMouseEvent.movementY;
+        });
+        // Mouse button events.
+        document.addEventListener('mouseup', (pMouseEvent) => {
+            this.setMouseButtonValue(pMouseEvent.button, 0);
+        });
+        document.addEventListener('mousedown', (pMouseEvent) => {
+            this.setMouseButtonValue(pMouseEvent.button, 1);
+        });
+        // Keyboard event.
+        document.addEventListener('keydown', (pKeyboardEvent) => {
+            const lInputKey = pKeyboardEvent.code;
+            this.setButtonState(lInputKey, 1);
+        });
+        document.addEventListener('keyup', (pKeyboardEvent) => {
+            const lInputKey = pKeyboardEvent.code;
+            this.setButtonState(lInputKey, 0);
+        });
+    }
+    /**
+     * Start scanning mouse movements.
+     */
+    startMouseMoveScanLoop() {
+        // Reset mouse movement.
+        this.mMovementX = 0;
+        this.mMovementY = 0;
+        const lMouseMoveReport = () => {
+            // Calculate to axis value by set base value to 10 pixels.
+            this.setButtonState(mouse_button_enum_1.MouseButton.Xaxis, this.mMovementX / 10);
+            this.setButtonState(mouse_button_enum_1.MouseButton.Yaxis, this.mMovementY / 10);
+            // Reset mouse movement.
+            this.mMovementX = 0;
+            this.mMovementY = 0;
+            if (this.connected) {
+                globalThis.requestAnimationFrame(lMouseMoveReport);
+            }
+            else {
+                this.mLoopRunning = false;
+            }
+        };
+        globalThis.requestAnimationFrame(lMouseMoveReport);
+        this.mLoopRunning = true;
+    }
+}
+exports.MouseKeyboardInputDevice = MouseKeyboardInputDevice;
+//# sourceMappingURL=mouse-keyboard-input-device.js.map
+
+/***/ }),
+
+/***/ "../kartoffelgames.web.game_input/library/source/enum/button-value-type.enum.js":
+/*!**************************************************************************************!*\
+  !*** ../kartoffelgames.web.game_input/library/source/enum/button-value-type.enum.js ***!
+  \**************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ButtonValueType = void 0;
+var ButtonValueType;
+(function (ButtonValueType) {
+    ButtonValueType[ButtonValueType["Button"] = 1] = "Button";
+    ButtonValueType[ButtonValueType["Axis"] = 2] = "Axis";
+})(ButtonValueType = exports.ButtonValueType || (exports.ButtonValueType = {}));
+//# sourceMappingURL=button-value-type.enum.js.map
+
+/***/ }),
+
+/***/ "../kartoffelgames.web.game_input/library/source/enum/gamepad-button.enum.js":
+/*!***********************************************************************************!*\
+  !*** ../kartoffelgames.web.game_input/library/source/enum/gamepad-button.enum.js ***!
+  \***********************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GamepadButton = void 0;
+var GamepadButton;
+(function (GamepadButton) {
+    GamepadButton["ClusterButtonBottom"] = "clusterButtonBottom";
+    GamepadButton["ClusterButtonRight"] = "clusterButtonRight";
+    GamepadButton["ClusterButtonLeft"] = "clusterButtonLeft";
+    GamepadButton["ClusterButtonTop"] = "clusterButtonTop";
+    GamepadButton["ButtonLeft"] = "buttonLeft";
+    GamepadButton["ButtonRight"] = "buttonRight";
+    GamepadButton["TriggerLeft"] = "triggerLeft";
+    GamepadButton["TriggerRight"] = "triggerRight";
+    GamepadButton["SelectButton"] = "selectButton";
+    GamepadButton["StartButton"] = "startButton";
+    GamepadButton["HomeButton"] = "homeButton";
+    GamepadButton["DirectionalPadTop"] = "directionalPadTop";
+    GamepadButton["DirectionalPadBottom"] = "directionalPadBottom";
+    GamepadButton["DirectionalPadRight"] = "directionalPadRight";
+    GamepadButton["DirectionalPadLeft"] = "directionalPadLeft";
+    GamepadButton["LeftThumbStickButton"] = "leftThumbStickButton";
+    GamepadButton["LeftThumbStickXaxis"] = "leftThumbStickXaxis";
+    GamepadButton["LeftThumbStickYaxis"] = "leftThumbStickYaxis";
+    GamepadButton["RightThumbStickButton"] = "rightThumbStickButton";
+    GamepadButton["RightThumbStickXaxis"] = "rightThumbStickXaxis";
+    GamepadButton["RightThumbStickYaxis"] = "rightThumbStickYaxis";
+})(GamepadButton = exports.GamepadButton || (exports.GamepadButton = {}));
+//# sourceMappingURL=gamepad-button.enum.js.map
+
+/***/ }),
+
+/***/ "../kartoffelgames.web.game_input/library/source/enum/input-device.enum.js":
+/*!*********************************************************************************!*\
+  !*** ../kartoffelgames.web.game_input/library/source/enum/input-device.enum.js ***!
+  \*********************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.InputDevice = void 0;
+var InputDevice;
+(function (InputDevice) {
+    InputDevice[InputDevice["MouseKeyboard"] = 1] = "MouseKeyboard";
+    InputDevice[InputDevice["Gamepad"] = 2] = "Gamepad";
+})(InputDevice = exports.InputDevice || (exports.InputDevice = {}));
+//# sourceMappingURL=input-device.enum.js.map
+
+/***/ }),
+
+/***/ "../kartoffelgames.web.game_input/library/source/enum/keyboard-button.enum.js":
+/*!************************************************************************************!*\
+  !*** ../kartoffelgames.web.game_input/library/source/enum/keyboard-button.enum.js ***!
+  \************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.KeyboardButton = void 0;
+var KeyboardButton;
+(function (KeyboardButton) {
+    // Letter keys.
+    KeyboardButton["KeyA"] = "KeyA";
+    KeyboardButton["KeyB"] = "KeyB";
+    KeyboardButton["KeyC"] = "KeyC";
+    KeyboardButton["KeyD"] = "KeyD";
+    KeyboardButton["KeyE"] = "KeyE";
+    KeyboardButton["KeyF"] = "KeyF";
+    KeyboardButton["KeyG"] = "KeyG";
+    KeyboardButton["KeyH"] = "KeyH";
+    KeyboardButton["KeyI"] = "KeyI";
+    KeyboardButton["KeyJ"] = "KeyJ";
+    KeyboardButton["KeyK"] = "KeyK";
+    KeyboardButton["KeyL"] = "KeyL";
+    KeyboardButton["KeyM"] = "KeyM";
+    KeyboardButton["KeyN"] = "KeyN";
+    KeyboardButton["KeyO"] = "KeyO";
+    KeyboardButton["KeyP"] = "KeyP";
+    KeyboardButton["KeyQ"] = "KeyQ";
+    KeyboardButton["KeyR"] = "KeyR";
+    KeyboardButton["KeyS"] = "KeyS";
+    KeyboardButton["KeyT"] = "KeyT";
+    KeyboardButton["KeyU"] = "KeyU";
+    KeyboardButton["KeyV"] = "KeyV";
+    KeyboardButton["KeyW"] = "KeyW";
+    KeyboardButton["KeyX"] = "KeyX";
+    KeyboardButton["KeyY"] = "KeyY";
+    KeyboardButton["KeyZ"] = "KeyZ";
+    // Digit keys.
+    KeyboardButton["Digit0"] = "Digit0";
+    KeyboardButton["Digit1"] = "Digit1";
+    KeyboardButton["Digit2"] = "Digit2";
+    KeyboardButton["Digit3"] = "Digit3";
+    KeyboardButton["Digit4"] = "Digit4";
+    KeyboardButton["Digit5"] = "Digit5";
+    KeyboardButton["Digit6"] = "Digit6";
+    KeyboardButton["Digit7"] = "Digit7";
+    KeyboardButton["Digit8"] = "Digit8";
+    KeyboardButton["Digit9"] = "Digit9";
+    // Numberpad key.
+    KeyboardButton["NumLock"] = "NumLock";
+    KeyboardButton["Numpad0"] = "Numpad0";
+    KeyboardButton["Numpad1"] = "Numpad1";
+    KeyboardButton["Numpad2"] = "Numpad2";
+    KeyboardButton["Numpad3"] = "Numpad3";
+    KeyboardButton["Numpad4"] = "Numpad4";
+    KeyboardButton["Numpad5"] = "Numpad5";
+    KeyboardButton["Numpad6"] = "Numpad6";
+    KeyboardButton["Numpad7"] = "Numpad7";
+    KeyboardButton["Numpad8"] = "Numpad8";
+    KeyboardButton["Numpad9"] = "Numpad9";
+    KeyboardButton["NumpadAdd"] = "NumpadAdd";
+    KeyboardButton["NumpadComma"] = "NumpadComma";
+    KeyboardButton["NumpadDecimal"] = "NumpadDecimal";
+    KeyboardButton["NumpadDivide"] = "NumpadDivide";
+    KeyboardButton["NumpadEnter"] = "NumpadEnter";
+    KeyboardButton["NumpadMultiply"] = "NumpadMultiply";
+    KeyboardButton["NumpadSubtract"] = "NumpadSubtract";
+    // Function keys.
+    KeyboardButton["F1"] = "F1";
+    KeyboardButton["F2"] = "F2";
+    KeyboardButton["F3"] = "F3";
+    KeyboardButton["F4"] = "F4";
+    KeyboardButton["F5"] = "F5";
+    KeyboardButton["F6"] = "F6";
+    KeyboardButton["F7"] = "F7";
+    KeyboardButton["F8"] = "F8";
+    KeyboardButton["F9"] = "F9";
+    KeyboardButton["F10"] = "F10";
+    KeyboardButton["F11"] = "F11";
+    KeyboardButton["F12"] = "F12";
+    KeyboardButton["F13"] = "F13";
+    KeyboardButton["F14"] = "F14";
+    KeyboardButton["F15"] = "F15";
+    KeyboardButton["F16"] = "F16";
+    KeyboardButton["F17"] = "F17";
+    KeyboardButton["F18"] = "F18";
+    KeyboardButton["F19"] = "F19";
+    KeyboardButton["F20"] = "F20";
+    KeyboardButton["F21"] = "F21";
+    KeyboardButton["F22"] = "F22";
+    KeyboardButton["F23"] = "F23";
+    KeyboardButton["F24"] = "F24";
+    // Arrow keys.
+    KeyboardButton["ArrowDown"] = "ArrowDown";
+    KeyboardButton["ArrowLeft"] = "ArrowLeft";
+    KeyboardButton["ArrowRight"] = "ArrowRight";
+    KeyboardButton["ArrowUp"] = "ArrowUp";
+    // Main metas
+    KeyboardButton["Escape"] = "Escape";
+    KeyboardButton["AltLeft"] = "AltLeft";
+    KeyboardButton["AltRight"] = "AltRight";
+    KeyboardButton["CapsLock"] = "CapsLock";
+    KeyboardButton["MetaLeft"] = "MetaLeft";
+    KeyboardButton["MetaRight"] = "MetaRight";
+    KeyboardButton["OsLeft"] = "OSLeft";
+    KeyboardButton["OsRight"] = "OSRight";
+    KeyboardButton["ShiftLeft"] = "ShiftLeft";
+    KeyboardButton["ShiftRight"] = "ShiftRight";
+    KeyboardButton["ControlLeft"] = "ControlLeft";
+    KeyboardButton["ControlRight"] = "ControlRight";
+    // White space key.s
+    KeyboardButton["Enter"] = "Enter";
+    KeyboardButton["Space"] = "Space";
+    KeyboardButton["Tab"] = "Tab";
+    // Center meta
+    KeyboardButton["Delete"] = "Delete";
+    KeyboardButton["End"] = "End";
+    KeyboardButton["PageDown"] = "PageDown";
+    KeyboardButton["PageUp"] = "PageUp";
+    KeyboardButton["Insert"] = "Insert";
+    KeyboardButton["ScrollLock"] = "ScrollLock";
+    // Media keys.
+    KeyboardButton["AudioVolumeUp"] = "AudioVolumeUp";
+    KeyboardButton["Home"] = "Home";
+    KeyboardButton["ContextMenu"] = "ContextMenu";
+    // Brackes, slash and dot keys.
+    KeyboardButton["Backquote"] = "Backquote";
+    KeyboardButton["Backslash"] = "Backslash";
+    KeyboardButton["Backspace"] = "Backspace";
+    KeyboardButton["BracketLeft"] = "BracketLeft";
+    KeyboardButton["BracketRight"] = "BracketRight";
+    KeyboardButton["Comma"] = "Comma";
+    KeyboardButton["IntlBackslash"] = "IntlBackslash";
+    KeyboardButton["Period"] = "Period";
+    KeyboardButton["Quote"] = "Quote";
+    KeyboardButton["Semicolon"] = "Semicolon";
+    KeyboardButton["Slash"] = "Slash";
+    KeyboardButton["Minus"] = "Minus";
+    KeyboardButton["Equal"] = "Equal";
+})(KeyboardButton = exports.KeyboardButton || (exports.KeyboardButton = {}));
+//# sourceMappingURL=keyboard-button.enum.js.map
+
+/***/ }),
+
+/***/ "../kartoffelgames.web.game_input/library/source/enum/mouse-button.enum.js":
+/*!*********************************************************************************!*\
+  !*** ../kartoffelgames.web.game_input/library/source/enum/mouse-button.enum.js ***!
+  \*********************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.MouseButton = void 0;
+var MouseButton;
+(function (MouseButton) {
+    // Main trigger.
+    MouseButton["MainLeft"] = "mainLeft";
+    MouseButton["MainRight"] = "mainRight";
+    MouseButton["MainMiddle"] = "mainMiddle";
+    MouseButton["SecondaryBack"] = "secondaryBack";
+    MouseButton["SecondaryForward"] = "secondaryForward";
+    // Axis.
+    MouseButton["Xaxis"] = "xAxis";
+    MouseButton["Yaxis"] = "yAxis";
+})(MouseButton = exports.MouseButton || (exports.MouseButton = {}));
+//# sourceMappingURL=mouse-button.enum.js.map
+
+/***/ }),
+
+/***/ "../kartoffelgames.web.game_input/library/source/event/input-action-event.js":
+/*!***********************************************************************************!*\
+  !*** ../kartoffelgames.web.game_input/library/source/event/input-action-event.js ***!
+  \***********************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.InputActionEvent = void 0;
+class InputActionEvent extends Event {
+    /**
+     * Constructor.
+     * @param pType - Event type.
+     * @param pState - Button state.
+     */
+    constructor(pType, pAction, pState, pButtons) {
+        super(pType);
+        this.mAction = pAction;
+        this.mState = pState;
+        this.mButtons = pButtons;
+    }
+    /**
+     * Triggered action.
+     */
+    get action() {
+        return this.mAction;
+    }
+    /**
+     * Action Buttons.
+     */
+    get buttons() {
+        return this.mButtons;
+    }
+    /**
+     * Button pressed state.
+     */
+    get isPressed() {
+        return this.mState > 0;
+    }
+    /**
+     * Button state.
+     */
+    get state() {
+        return this.mState;
+    }
+}
+exports.InputActionEvent = InputActionEvent;
+//# sourceMappingURL=input-action-event.js.map
+
+/***/ }),
+
+/***/ "../kartoffelgames.web.game_input/library/source/event/input-button-event.js":
+/*!***********************************************************************************!*\
+  !*** ../kartoffelgames.web.game_input/library/source/event/input-button-event.js ***!
+  \***********************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.InputButtonEvent = void 0;
+class InputButtonEvent extends Event {
+    /**
+     * Constructor.
+     * @param pType - Event type.
+     * @param pState - Button state.
+     */
+    constructor(pType, pButton, pState) {
+        super(pType);
+        this.mState = pState;
+        this.mButton = pButton;
+    }
+    /**
+     * Button.
+     */
+    get button() {
+        return this.mButton;
+    }
+    /**
+     * Button pressed state.
+     */
+    get isPressed() {
+        return this.mState > 0;
+    }
+    /**
+     * Button state.
+     */
+    get state() {
+        return this.mState;
+    }
+}
+exports.InputButtonEvent = InputButtonEvent;
+//# sourceMappingURL=input-button-event.js.map
+
+/***/ }),
+
+/***/ "../kartoffelgames.web.game_input/library/source/index.js":
+/*!****************************************************************!*\
+  !*** ../kartoffelgames.web.game_input/library/source/index.js ***!
+  \****************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+/* istanbul ignore file */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GamepadButton = exports.MouseButton = exports.KeyboardButton = exports.InputButtonEvent = exports.InputActionEvent = exports.BaseInputDevice = exports.InputConfiguration = exports.InputDevices = exports.GamepadConnector = exports.MouseKeyboardConnector = exports.DeviceConfiguration = void 0;
+var device_configuration_1 = __webpack_require__(/*! ./configuration/device-configuration */ "../kartoffelgames.web.game_input/library/source/configuration/device-configuration.js");
+Object.defineProperty(exports, "DeviceConfiguration", ({ enumerable: true, get: function () { return device_configuration_1.DeviceConfiguration; } }));
+var mouse_keyboard_connector_1 = __webpack_require__(/*! ./connector/mouse-keyboard-connector */ "../kartoffelgames.web.game_input/library/source/connector/mouse-keyboard-connector.js");
+Object.defineProperty(exports, "MouseKeyboardConnector", ({ enumerable: true, get: function () { return mouse_keyboard_connector_1.MouseKeyboardConnector; } }));
+var gamepad_connector_1 = __webpack_require__(/*! ./connector/gamepad-connector */ "../kartoffelgames.web.game_input/library/source/connector/gamepad-connector.js");
+Object.defineProperty(exports, "GamepadConnector", ({ enumerable: true, get: function () { return gamepad_connector_1.GamepadConnector; } }));
+var input_devices_1 = __webpack_require__(/*! ./input-devices */ "../kartoffelgames.web.game_input/library/source/input-devices.js");
+Object.defineProperty(exports, "InputDevices", ({ enumerable: true, get: function () { return input_devices_1.InputDevices; } }));
+var input_configuration_1 = __webpack_require__(/*! ./configuration/input-configuration */ "../kartoffelgames.web.game_input/library/source/configuration/input-configuration.js");
+Object.defineProperty(exports, "InputConfiguration", ({ enumerable: true, get: function () { return input_configuration_1.InputConfiguration; } }));
+var base_input_device_1 = __webpack_require__(/*! ./device/base-input-device */ "../kartoffelgames.web.game_input/library/source/device/base-input-device.js");
+Object.defineProperty(exports, "BaseInputDevice", ({ enumerable: true, get: function () { return base_input_device_1.BaseInputDevice; } }));
+var input_action_event_1 = __webpack_require__(/*! ./event/input-action-event */ "../kartoffelgames.web.game_input/library/source/event/input-action-event.js");
+Object.defineProperty(exports, "InputActionEvent", ({ enumerable: true, get: function () { return input_action_event_1.InputActionEvent; } }));
+var input_button_event_1 = __webpack_require__(/*! ./event/input-button-event */ "../kartoffelgames.web.game_input/library/source/event/input-button-event.js");
+Object.defineProperty(exports, "InputButtonEvent", ({ enumerable: true, get: function () { return input_button_event_1.InputButtonEvent; } }));
+var keyboard_button_enum_1 = __webpack_require__(/*! ./enum/keyboard-button.enum */ "../kartoffelgames.web.game_input/library/source/enum/keyboard-button.enum.js");
+Object.defineProperty(exports, "KeyboardButton", ({ enumerable: true, get: function () { return keyboard_button_enum_1.KeyboardButton; } }));
+var mouse_button_enum_1 = __webpack_require__(/*! ./enum/mouse-button.enum */ "../kartoffelgames.web.game_input/library/source/enum/mouse-button.enum.js");
+Object.defineProperty(exports, "MouseButton", ({ enumerable: true, get: function () { return mouse_button_enum_1.MouseButton; } }));
+var gamepad_button_enum_1 = __webpack_require__(/*! ./enum/gamepad-button.enum */ "../kartoffelgames.web.game_input/library/source/enum/gamepad-button.enum.js");
+Object.defineProperty(exports, "GamepadButton", ({ enumerable: true, get: function () { return gamepad_button_enum_1.GamepadButton; } }));
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ "../kartoffelgames.web.game_input/library/source/input-devices.js":
+/*!************************************************************************!*\
+  !*** ../kartoffelgames.web.game_input/library/source/input-devices.js ***!
+  \************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.InputDevices = void 0;
+const core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+class InputDevices {
+    /**
+     * Constructor.
+     * @param pConfiguration - input configuration.
+     */
+    constructor(pConfiguration) {
+        this.mConnectionChangeListenerList = new Array();
+        this.mInputDevices = new core_data_1.Dictionary();
+        this.mConfiguration = pConfiguration;
+    }
+    /**
+     * Get input device configuration.
+     */
+    get configuration() {
+        return this.mConfiguration;
+    }
+    /**
+     * Get all input devices.
+     */
+    get devices() {
+        return [...this.mInputDevices.values()];
+    }
+    /**
+     * On connection change.
+     * @param pListener - Connection change listener.
+     */
+    onConnectionChange(pListener) {
+        this.mConnectionChangeListenerList.push(pListener);
+    }
+    /**
+     * Register input connector.
+     * @param pConnector - Input connector.
+     */
+    registerConnector(pConnector) {
+        pConnector.init(this);
+    }
+    /**
+     * Register new device.
+     * @param pDevice - Device.
+     */
+    registerDevice(pDevice) {
+        let lDevice;
+        // Init new device or reconnect old.
+        if (this.mInputDevices.has(pDevice.id)) {
+            lDevice = this.mInputDevices.get(pDevice.id);
+        }
+        else {
+            this.mInputDevices.set(pDevice.id, pDevice);
+            lDevice = pDevice;
+        }
+        lDevice.connected = true;
+        this.dispatchConnectionChangeEvent(lDevice);
+    }
+    /**
+     * Unregister device.
+     * @param pDevice - Device.
+     */
+    unregisterDevice(pDevice) {
+        if (this.mInputDevices.has(pDevice.id)) {
+            const lDevice = this.mInputDevices.get(pDevice.id);
+            lDevice.connected = false;
+            this.dispatchConnectionChangeEvent(lDevice);
+        }
+    }
+    /**
+     * Call all connection change listener.
+     * @param pDevice - Changed device.
+     */
+    dispatchConnectionChangeEvent(pDevice) {
+        for (const lCallback of this.mConnectionChangeListenerList) {
+            lCallback.apply(this, [pDevice]);
+        }
+    }
+}
+exports.InputDevices = InputDevices;
+//# sourceMappingURL=input-devices.js.map
+
 /***/ })
 
 /******/ 	});
@@ -10042,7 +11255,7 @@ exports.TypeUtil = TypeUtil;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("f6db76910e0ba8a9be31")
+/******/ 		__webpack_require__.h = () => ("1967e191b390b43a87d2")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

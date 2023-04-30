@@ -3,10 +3,6 @@ import { Quaternion } from '../math/quaternion';
 import { Vector } from '../math/vector';
 
 export class Transform {
-    private mCachePivitInverse: Matrix | null;
-    private mCachePivitRotation: Matrix | null;
-    private mCacheRotation: Matrix | null;
-    private mCacheTransformationMatrix: Matrix | null;
     private readonly mPivot: Matrix;
     private mRotation: Quaternion;
     private readonly mScale: Matrix;
@@ -19,11 +15,6 @@ export class Transform {
         return this.mPivot.data[0][3];
     } set pivotX(pValue: number) {
         this.mPivot.data[0][3] = pValue;
-
-        // Reset calculated transformation matrix and pivot caches.
-        this.mCachePivitInverse = null;
-        this.mCachePivitRotation = null;
-        this.mCacheTransformationMatrix = null;
     }
 
     /**
@@ -33,11 +24,6 @@ export class Transform {
         return this.mPivot.data[1][3];
     } set pivotY(pValue: number) {
         this.mPivot.data[1][3] = pValue;
-
-        // Reset calculated transformation matrix and pivot caches.
-        this.mCachePivitInverse = null;
-        this.mCachePivitRotation = null;
-        this.mCacheTransformationMatrix = null;
     }
 
     /**
@@ -47,11 +33,6 @@ export class Transform {
         return this.mPivot.data[2][3];
     } set pivotZ(pValue: number) {
         this.mPivot.data[2][3] = pValue;
-
-        // Reset calculated transformation matrix and pivot caches.
-        this.mCachePivitInverse = null;
-        this.mCachePivitRotation = null;
-        this.mCacheTransformationMatrix = null;
     }
 
     /**
@@ -128,12 +109,6 @@ export class Transform {
         this.mTranslation = Matrix.identity(4);
         this.mRotation = new Quaternion(1, 0, 0, 0);
         this.mPivot = Matrix.identity(4);
-
-        // Matrix caches.
-        this.mCachePivitInverse = null;
-        this.mCachePivitRotation = null;
-        this.mCacheTransformationMatrix = null;
-        this.mCacheRotation = null;
     }
 
     /**
@@ -145,11 +120,6 @@ export class Transform {
     public addEulerRotation(pPitch: number, pYaw: number, pRoll: number): void {
         // Apply rotation to current rotation.
         this.mRotation = this.mRotation.addEulerRotation(pPitch, pYaw, pRoll);
-
-        // Reset calculated transformation matrix and rotation matrix.
-        this.mCacheRotation = null;
-        this.mCachePivitRotation = null;
-        this.mCacheTransformationMatrix = null;
     }
 
     /**
@@ -161,11 +131,6 @@ export class Transform {
     public addRotation(pPitch: number, pYaw: number, pRoll: number): void {
         // Apply rotation to current rotation.
         this.mRotation = Quaternion.fromRotation(pPitch, pYaw, pRoll).mult(this.mRotation);
-
-        // Reset calculated transformation matrix and rotation matrix.
-        this.mCacheRotation = null;
-        this.mCachePivitRotation = null;
-        this.mCacheTransformationMatrix = null;
     }
 
     /**
@@ -178,9 +143,6 @@ export class Transform {
         this.mScale.data[0][0] += pWidth;
         this.mScale.data[1][1] += pHeight;
         this.mScale.data[2][2] += pDepth;
-
-        // Reset calculated transformation matrix.
-        this.mCacheTransformationMatrix = null;
     }
 
     /**
@@ -193,62 +155,43 @@ export class Transform {
         this.mTranslation.data[0][3] += pX;
         this.mTranslation.data[1][3] += pY;
         this.mTranslation.data[2][3] += pZ;
-
-        // Reset calculated transformation matrix.
-        this.mCacheTransformationMatrix = null;
     }
 
     /**
      * Get transformation matrix.
      */
-    public getMatrix(pType: TransformationMatrix): Matrix {
+    public getMatrix(pType: TransformMatrix): Matrix {
         switch (pType) {
-            case TransformationMatrix.Scale: {
+            case TransformMatrix.Scale: {
                 return this.mScale;
             }
-            case TransformationMatrix.Translation: {
+            case TransformMatrix.Translation: {
                 return this.mTranslation;
             }
-            case TransformationMatrix.Rotation: {
-                // Check rotation change.
-                if (this.mCacheRotation === null) {
-                    this.mCacheRotation = this.mRotation.asMatrix();
-                }
-
-                return this.mCacheRotation;
+            case TransformMatrix.Rotation: {
+                return this.mRotation.asMatrix();
             }
-            case TransformationMatrix.PivotRotation: {
-                const lRotationMatrix: Matrix = this.getMatrix(TransformationMatrix.Rotation);
+            case TransformMatrix.PivotRotation: {
+                const lRotationMatrix: Matrix = this.getMatrix(TransformMatrix.Rotation);
 
-                // Check pivit and rotation cache.
-                if (this.mCachePivitRotation === null) {
-                    // Check if pivit point is used.
-                    if (this.pivotX !== 0 || this.pivotY !== 0 || this.pivotZ !== 0) {
-                        // Check pivit inverse cache.
-                        if (this.mCachePivitInverse === null) {
-                            this.mCachePivitInverse = this.mPivot.inverse();
-                        }
-
-                        // Translate pivot => rotate => reverse pivate translation.
-                        this.mCachePivitRotation = this.mCachePivitInverse.mult(lRotationMatrix).mult(this.mPivot);
-                    } else {
-                        this.mCachePivitRotation = lRotationMatrix;
-                    }
+                // Check if pivit point is used.
+                let lPivotRotation: Matrix;
+                if (this.pivotX !== 0 || this.pivotY !== 0 || this.pivotZ !== 0) {
+                    // Translate pivot => rotate => reverse pivate translation.
+                    lPivotRotation = this.mPivot.inverse().mult(lRotationMatrix).mult(this.mPivot);
+                } else {
+                    lPivotRotation = lRotationMatrix;
                 }
 
-                return this.mCachePivitRotation;
+                return lPivotRotation;
             }
-            case TransformationMatrix.Transformation: {
-                if (!this.mCacheTransformationMatrix) {
-                    const lScale: Matrix = this.getMatrix(TransformationMatrix.Scale);
-                    const lTranslation: Matrix = this.getMatrix(TransformationMatrix.Translation);
-                    const lRotation: Matrix = this.getMatrix(TransformationMatrix.PivotRotation);
+            case TransformMatrix.Transformation: {
+                const lScale: Matrix = this.getMatrix(TransformMatrix.Scale);
+                const lTranslation: Matrix = this.getMatrix(TransformMatrix.Translation);
+                const lRotation: Matrix = this.getMatrix(TransformMatrix.PivotRotation);
 
-                    // First scale, second rotate, third translate.
-                    this.mCacheTransformationMatrix = lTranslation.mult(lRotation).mult(lScale);
-                }
-
-                return this.mCacheTransformationMatrix;
+                // First scale, second rotate, third translate.
+                return lTranslation.mult(lRotation).mult(lScale);
             }
         }
     }
@@ -266,11 +209,6 @@ export class Transform {
 
         // Create new rotation.
         this.mRotation = Quaternion.fromRotation(lPitch, lYaw, lRoll);
-
-        // Reset calculated transformation matrix and rotation matrix.
-        this.mCacheRotation = null;
-        this.mCachePivitRotation = null;
-        this.mCacheTransformationMatrix = null;
     }
 
     /**
@@ -283,9 +221,6 @@ export class Transform {
         this.mScale.data[0][0] = pWidth ?? this.scaleWidth;
         this.mScale.data[1][1] = pHeight ?? this.scaleHeight;
         this.mScale.data[2][2] = pDepth ?? this.scaleDepth;
-
-        // Reset calculated transformation matrix.
-        this.mCacheTransformationMatrix = null;
     }
 
     /**
@@ -298,9 +233,6 @@ export class Transform {
         this.mTranslation.data[0][3] = pX ?? this.translationX;
         this.mTranslation.data[1][3] = pY ?? this.translationY;
         this.mTranslation.data[2][3] = pZ ?? this.translationZ;
-
-        // Reset calculated transformation matrix.
-        this.mCacheTransformationMatrix = null;
     }
 
     /**
@@ -311,14 +243,14 @@ export class Transform {
      */
     public translateInDirection(pForward: number, pRight: number, pUp: number): void {
         const lTranslationVector: Vector = new Vector([pRight, pUp, pForward, 1]);
-        const lDirectionVector: Vector = this.getMatrix(TransformationMatrix.Rotation).vectorMult(lTranslationVector);
+        const lDirectionVector: Vector = this.getMatrix(TransformMatrix.Rotation).vectorMult(lTranslationVector);
 
         // Add direction.
         this.addTranslation(lDirectionVector.x, lDirectionVector.y, lDirectionVector.z);
     }
 }
 
-export enum TransformationMatrix {
+export enum TransformMatrix {
     Rotation = 1,
     PivotRotation = 2,
     Translation = 3,

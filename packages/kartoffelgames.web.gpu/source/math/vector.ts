@@ -11,6 +11,35 @@ export class Vector {
     }
 
     /**
+     * W value quick access. 
+     */
+    public get w(): number {
+        return this.mData[3];
+    }
+
+    /**
+     * X value quick access. 
+     */
+    public get x(): number {
+        return this.mData[0];
+    }
+
+    /**
+     * Y value quick access. 
+     */
+    public get y(): number {
+        return this.mData[1];
+    }
+
+    /**
+     * Z value quick access. 
+     */
+    public get z(): number {
+        return this.mData[2];
+    }
+    
+
+    /**
      * Constructor.
      * @param pData - Vector data.
      */

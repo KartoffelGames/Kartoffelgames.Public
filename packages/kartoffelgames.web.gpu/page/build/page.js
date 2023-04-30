@@ -551,27 +551,44 @@ _asyncToGenerator(function* () {
   });
   // Setup Texture.
   var lCubeTexture = new texture_1.Texture(lGpu, lGpu.preferredFormat, texture_usage_enum_1.TextureUsage.TextureBinding | texture_usage_enum_1.TextureUsage.RenderAttachment | texture_usage_enum_1.TextureUsage.CopyDestination);
-  lCubeTexture.height = 200;
-  lCubeTexture.width = 150;
+  lCubeTexture.height = 2048;
+  lCubeTexture.width = 1536;
   lCubeTexture.label = 'Cube Texture';
-  yield lCubeTexture.load(['/source/cube.png']);
+  yield lCubeTexture.load(['/source/cube_texture/cube-texture.png']);
   // Setup Sampler.
   var lCubeSampler = new texture_sampler_1.TextureSampler(lGpu);
   // Create attributes data.
-  var lVertexPositionData = new Float32Array([
+  var lVertexPositionData = [
   // Back
   -1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0,
   // Front
-  -1.0, 1.0, -1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, -1.0, -1.0, -1.0, 1.0]);
-  var lVertexPositionBuffer = new simple_buffer_1.SimpleBuffer(lGpu, GPUBufferUsage.VERTEX, lVertexPositionData);
-  var lVertexColorData = new Float32Array([1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.5, 0.0, 1.0, 1.0]);
-  var lVertexColorBuffer = new simple_buffer_1.SimpleBuffer(lGpu, GPUBufferUsage.VERTEX, lVertexColorData);
-  var lVertexUvData = new Float32Array([
-  // Back
-  0.33, 1, 0.66, 1, 0, 66, 0.75, 0.33, 0.75,
-  // Front
-  0.33, 0.25, 0.66, 0.25, 0.66, 0.50, 0.33, 0.50]);
-  var lVertexUvBuffer = new simple_buffer_1.SimpleBuffer(lGpu, GPUBufferUsage.VERTEX, lVertexUvData);
+  -1.0, 1.0, -1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, -1.0, -1.0, -1.0, 1.0];
+  var lVertexColorData = [1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.5, 0.0, 1.0, 1.0];
+  var lVertexUvData = [
+  // Front 4,5,6
+  0.33333, 0.25, 0.66666, 0.25, 0.66666, 0.50,
+  // Front 4,6,7
+  0.33333, 0.25, 0.66666, 0.50, 0.33333, 0.50,
+  // Back 1,0,3
+  0.66666, 1, 0.33333, 1, 0.33333, 0.75,
+  // Back 1,3,2
+  0.66666, 1, 0.33333, 0.75, 0.66666, 0.75,
+  // Left 0,4,7
+  0, 0.25, 0.33333, 0.25, 0.33333, 0.50,
+  // Left 0,7,3
+  0, 0.25, 0.33333, 0.50, 0, 0.50,
+  // Right 5,1,2
+  0.66666, 0.25, 1, 0.25, 1, 0.50,
+  // Right 5,2,6
+  0.66666, 0.25, 1, 0.50, 0.66666, 0.50,
+  // Top 0,1,5
+  0.33333, 0, 0.66666, 0, 0.66666, 0.25,
+  // Top 0,5,4
+  0.33333, 0, 0.66666, 0.25, 0.33333, 0.25,
+  // Bottom 7,6,2
+  0.33333, 0.50, 0.66666, 0.50, 0.66666, 0.75,
+  // Bottom 7,2,3
+  0.33333, 0.50, 0.66666, 0.75, 0.33333, 0.75];
   // Create mesh.
   var lMesh = new render_mesh_1.RenderMesh(lGpu, [
   // Front
@@ -586,9 +603,9 @@ _asyncToGenerator(function* () {
   0, 1, 5, 0, 5, 4,
   // Bottom
   7, 6, 2, 7, 2, 3]);
-  lMesh.setVertexBuffer('vertexposition', lVertexPositionBuffer);
-  lMesh.setVertexBuffer('vertexcolor', lVertexColorBuffer);
-  lMesh.setVertexBuffer('vertexuv', lVertexUvBuffer);
+  lMesh.setVertexData('vertexposition', lVertexPositionData, 4);
+  lMesh.setVertexData('vertexcolor', lVertexColorData, 4);
+  lMesh.setIndexData('vertexuv', lVertexUvData, 2);
   // Setup renderer.
   var lInstructionExecutioner = new instruction_executer_1.InstructionExecuter(lGpu);
   // Setup instruction set.
@@ -1862,15 +1879,14 @@ var simple_buffer_1 = __webpack_require__(/*! ../../resource/buffer/simple-buffe
 class RenderMesh {
   /**
    * Constructor.
-   *
    * @param pGpu - GPU.
    * @param pVertexIndices - Vertex indices.
    */
   constructor(pGpu, pVertexIndices) {
+    this.mGpu = pGpu;
     this.mVertexBuffer = new core_data_1.Dictionary();
-    // Init index buffer.
-    var lIndexData = new Uint16Array(pVertexIndices);
-    this.mIndexBuffer = new simple_buffer_1.SimpleBuffer(pGpu, GPUBufferUsage.INDEX, lIndexData);
+    this.mIndexData = pVertexIndices;
+    this.mMaxIndex = Math.max(...pVertexIndices);
   }
   /**
    * Vertex attributes count.
@@ -1879,30 +1895,65 @@ class RenderMesh {
     return this.mVertexBuffer.size;
   }
   /**
-   * Index buffer.
+   * Get index count.
+   * Size of vertex data.
    */
-  get indexBuffer() {
-    return this.mIndexBuffer;
+  get indexCount() {
+    return this.mIndexData.length;
+  }
+  /**
+   * Get index count.
+   * Size of vertex data.
+   */
+  get maxIndex() {
+    return this.mMaxIndex;
   }
   /**
    * Get buffer by attribute name
    * @param pName - Vertex attribute name.
    */
-  getVertexBuffer(pName) {
+  getBuffer(pName) {
     var lBuffer = this.mVertexBuffer.get(pName);
     if (!lBuffer) {
-      throw new core_data_1.Exception("Vertex buffer for attribute \"".concat(pName, "\" not found"), this);
+      throw new core_data_1.Exception("Vertex buffer for attribute \"".concat(pName, "\" not set"), this);
     }
     return lBuffer;
   }
   /**
-   * Add vertex buffer for vertex attributes.
-   * Order matters. Vaidates assigned buffer with vertex attributes.
+   * Add data for each index.
    * @param pName - Attribute name.
-   * @param pVertexBuffer
+   * @param pData - Data array.
+   * @param pStrideLength - Data stride length for one value.
    */
-  setVertexBuffer(pName, pVertexBuffer) {
-    this.mVertexBuffer.set(pName, pVertexBuffer);
+  setIndexData(pName, pData, pStrideLength) {
+    // Validate.
+    if (pData.length % pStrideLength !== 0) {
+      throw new core_data_1.Exception('Vertex data length offset.', this);
+    }
+    this.mVertexBuffer.set(pName, new simple_buffer_1.SimpleBuffer(this.mGpu, GPUBufferUsage.VERTEX, new Float32Array(pData)));
+  }
+  /**
+   * Adds data for each vertex.
+   * Converts vertex data into index data by dublicating vertex data for each index.
+   * @param pName - Attribute name.
+   * @param pData - Data array.
+   * @param pStrideLength - Data stride length for one value.
+   */
+  setVertexData(pName, pData, pStrideLength) {
+    // Validate data strides.
+    if (pData.length % pStrideLength !== 0) {
+      throw new core_data_1.Exception("Vertex data length offset: ".concat(pName, "(length: ").concat(pData.length, ", offset: ").concat(pData.length % pStrideLength, ")"), this);
+    }
+    if ((this.mMaxIndex + 1) * pStrideLength !== pData.length) {
+      throw new core_data_1.Exception("Index data ".concat(pName, "(").concat(pData.length, ") does not meet needed data length of (max index: ").concat(this.mMaxIndex, ", needed length: ").concat((this.mMaxIndex + 1) * pStrideLength, ")"), this);
+    }
+    // Dublicate index data into vertex data.
+    var lIndexData = new Array();
+    for (var lIndex of this.mIndexData) {
+      // Copy data stride for index.
+      lIndexData.push(...pData.slice(lIndex * pStrideLength, (lIndex + 1) * pStrideLength));
+    }
+    this.mVertexBuffer.set(pName, new simple_buffer_1.SimpleBuffer(this.mGpu, GPUBufferUsage.VERTEX, new Float32Array(lIndexData)));
   }
 }
 exports.RenderMesh = RenderMesh;
@@ -1990,7 +2041,7 @@ class RenderSingleInstruction {
     }
     // Validate mesh and pipeline attributes content.
     for (var lAttribute of this.mPipeline.shader.vertexEntryPoint.attributes) {
-      var lMeshAttributeBuffer = pMesh.getVertexBuffer(lAttribute.name);
+      var lMeshAttributeBuffer = pMesh.getBuffer(lAttribute.name);
       if (lMeshAttributeBuffer.type !== lAttribute.bufferDataType) {
         throw new core_data_1.Exception("Mesh attributes does not match pipeline attributes", this);
       }
@@ -2083,7 +2134,6 @@ class RenderInstructionSet {
     var lPipeline = null;
     var lBindGroupList = new Array();
     var lVertexBufferList = new core_data_1.Dictionary();
-    var lIndexBuffer = null;
     // Execute instructions.
     for (var lInstruction of this.mInstructionList) {
       // Use cached pipeline or use new.
@@ -2105,7 +2155,7 @@ class RenderInstructionSet {
       }
       // Add vertex attribute buffer.
       for (var lAttribute of lInstruction.pipeline.shader.vertexEntryPoint.attributes) {
-        var lNewAttributeBuffer = lInstruction.mesh.getVertexBuffer(lAttribute.name);
+        var lNewAttributeBuffer = lInstruction.mesh.getBuffer(lAttribute.name);
         var lCurrentAttributeBuffer = lVertexBufferList.get(lAttribute.location);
         // Use cached vertex buffer or use new.
         if (lNewAttributeBuffer !== lCurrentAttributeBuffer) {
@@ -2113,12 +2163,7 @@ class RenderInstructionSet {
           lRenderPassEncoder.setVertexBuffer(lAttribute.location, lNewAttributeBuffer.native());
         }
       }
-      // Use cached index buffer or use new.
-      if (lInstruction.mesh.indexBuffer !== lIndexBuffer) {
-        lIndexBuffer = lInstruction.mesh.indexBuffer;
-        lRenderPassEncoder.setIndexBuffer(lInstruction.mesh.indexBuffer.native(), 'uint16');
-      }
-      lRenderPassEncoder.drawIndexed(lInstruction.mesh.indexBuffer.length);
+      lRenderPassEncoder.draw(lInstruction.mesh.indexCount);
     }
     lRenderPassEncoder.end();
   }
@@ -9997,7 +10042,7 @@ exports.TypeUtil = TypeUtil;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("50a9dbef27f666a826ff")
+/******/ 		__webpack_require__.h = () => ("f6db76910e0ba8a9be31")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

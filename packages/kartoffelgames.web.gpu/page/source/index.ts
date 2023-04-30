@@ -256,16 +256,16 @@ const gDepth: number = 10;
 
     // Setup Texture.
     const lCubeTexture: Texture = new Texture(lGpu, lGpu.preferredFormat, TextureUsage.TextureBinding | TextureUsage.RenderAttachment | TextureUsage.CopyDestination);
-    lCubeTexture.height = 200;
-    lCubeTexture.width = 150;
+    lCubeTexture.height = 2048;
+    lCubeTexture.width = 1536;
     lCubeTexture.label = 'Cube Texture';
-    await lCubeTexture.load(['/source/cube.png']);
+    await lCubeTexture.load(['/source/cube_texture/cube-texture.png']);
 
     // Setup Sampler.
     const lCubeSampler: TextureSampler = new TextureSampler(lGpu);
 
     // Create attributes data.
-    const lVertexPositionData: Float32Array = new Float32Array([ // 4x Position
+    const lVertexPositionData: Array<number> = [ // 4x Position
         // Back
         -1.0, 1.0, 1.0, 1.0,
         1.0, 1.0, 1.0, 1.0,
@@ -277,9 +277,8 @@ const gDepth: number = 10;
         1.0, 1.0, -1.0, 1.0,
         1.0, -1.0, -1.0, 1.0,
         -1.0, -1.0, -1.0, 1.0
-    ]);
-    const lVertexPositionBuffer: SimpleBuffer<Float32Array> = new SimpleBuffer(lGpu, GPUBufferUsage.VERTEX, lVertexPositionData);
-    const lVertexColorData: Float32Array = new Float32Array([ // 4x Color
+    ];
+    const lVertexColorData: Array<number> = [ // 4x Color
         1.0, 1.0, 1.0, 1.0,
         0.0, 1.0, 1.0, 1.0,
         1.0, 0.0, 1.0, 1.0,
@@ -288,22 +287,62 @@ const gDepth: number = 10;
         0.0, 1.0, 0.0, 1.0,
         1.0, 0.0, 0.0, 1.0,
         0.5, 0.0, 1.0, 1.0
-    ]);
-    const lVertexColorBuffer: SimpleBuffer<Float32Array> = new SimpleBuffer(lGpu, GPUBufferUsage.VERTEX, lVertexColorData);
-    const lVertexUvData: Float32Array = new Float32Array([ // 4x Position
-        // Back
-        0.33, 1,
-        0.66, 1,
-        0,66, 0.75, 
-        0.33, 0.75,
+    ];
+    const lVertexUvData: Array<number> = [ // 4x Position
+        // Front 4,5,6
+        0.33333, 0.25,
+        0.66666, 0.25,
+        0.66666, 0.50,
+        // Front 4,6,7
+        0.33333, 0.25,
+        0.66666, 0.50,
+        0.33333, 0.50,
 
-        // Front
-        0.33, 0.25,
-        0.66, 0.25,
-        0.66, 0.50,
-        0.33, 0.50,
-    ]);
-    const lVertexUvBuffer: SimpleBuffer<Float32Array> = new SimpleBuffer(lGpu, GPUBufferUsage.VERTEX, lVertexUvData);
+        // Back 1,0,3
+        0.66666, 1,
+        0.33333, 1,
+        0.33333, 0.75,
+        // Back 1,3,2
+        0.66666, 1,
+        0.33333, 0.75,
+        0.66666, 0.75,
+
+        // Left 0,4,7
+        0, 0.25,
+        0.33333, 0.25,
+        0.33333, 0.50,
+        // Left 0,7,3
+        0, 0.25,
+        0.33333, 0.50,
+        0, 0.50,
+
+        // Right 5,1,2
+        0.66666, 0.25,
+        1, 0.25,
+        1, 0.50,
+        // Right 5,2,6
+        0.66666, 0.25,
+        1, 0.50,
+        0.66666, 0.50,
+
+        // Top 0,1,5
+        0.33333, 0,
+        0.66666, 0,
+        0.66666, 0.25,
+        // Top 0,5,4
+        0.33333, 0,
+        0.66666, 0.25,
+        0.33333, 0.25,
+
+        // Bottom 7,6,2
+        0.33333, 0.50,
+        0.66666, 0.50,
+        0.66666, 0.75,
+        // Bottom 7,2,3
+        0.33333, 0.50,
+        0.66666, 0.75,
+        0.33333, 0.75,
+    ];
 
     // Create mesh.
     const lMesh = new RenderMesh(lGpu, [
@@ -326,11 +365,11 @@ const gDepth: number = 10;
         7, 6, 2,
         7, 2, 3
     ]);
-    lMesh.setVertexBuffer('vertexposition', lVertexPositionBuffer);
-    lMesh.setVertexBuffer('vertexcolor', lVertexColorBuffer);
-    lMesh.setVertexBuffer('vertexuv', lVertexUvBuffer);
+    lMesh.setVertexData('vertexposition', lVertexPositionData, 4);
+    lMesh.setVertexData('vertexcolor', lVertexColorData, 4);
+    lMesh.setIndexData('vertexuv', lVertexUvData, 2);
 
-    
+
 
     // Setup renderer.
     const lInstructionExecutioner: InstructionExecuter = new InstructionExecuter(lGpu);

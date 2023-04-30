@@ -219,6 +219,9 @@ var shader_wgsl_1 = __webpack_require__(/*! ./shader.wgsl */ "./page/source/shad
 var render_pass_descriptor_1 = __webpack_require__(/*! ../../source/core/pass_descriptor/render-pass-descriptor */ "./source/core/pass_descriptor/render-pass-descriptor.ts");
 var render_instruction_set_1 = __webpack_require__(/*! ../../source/core/execution/instruction_set/render-instruction-set */ "./source/core/execution/instruction_set/render-instruction-set.ts");
 var ring_buffer_1 = __webpack_require__(/*! ../../source/core/resource/buffer/ring-buffer */ "./source/core/resource/buffer/ring-buffer.ts");
+var texture_1 = __webpack_require__(/*! ../../source/core/resource/texture/texture */ "./source/core/resource/texture/texture.ts");
+var texture_usage_enum_1 = __webpack_require__(/*! ../../source/core/resource/texture/texture-usage.enum */ "./source/core/resource/texture/texture-usage.enum.ts");
+var texture_sampler_1 = __webpack_require__(/*! ../../source/core/resource/texture-sampler */ "./source/core/resource/texture-sampler.ts");
 var gHeight = 10;
 var gWidth = 10;
 var gDepth = 10;
@@ -546,6 +549,14 @@ _asyncToGenerator(function* () {
   }, () => {
     return lPerspectiveProjection.angleOfView;
   });
+  // Setup Texture.
+  var lCubeTexture = new texture_1.Texture(lGpu, lGpu.preferredFormat, texture_usage_enum_1.TextureUsage.TextureBinding | texture_usage_enum_1.TextureUsage.RenderAttachment | texture_usage_enum_1.TextureUsage.CopyDestination);
+  lCubeTexture.height = 200;
+  lCubeTexture.width = 150;
+  lCubeTexture.label = 'Cube Texture';
+  yield lCubeTexture.load(['/source/cube.png']);
+  // Setup Sampler.
+  var lCubeSampler = new texture_sampler_1.TextureSampler(lGpu);
   // Create attributes data.
   var lVertexPositionData = new Float32Array([
   // Back
@@ -555,6 +566,12 @@ _asyncToGenerator(function* () {
   var lVertexPositionBuffer = new simple_buffer_1.SimpleBuffer(lGpu, GPUBufferUsage.VERTEX, lVertexPositionData);
   var lVertexColorData = new Float32Array([1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.5, 0.0, 1.0, 1.0]);
   var lVertexColorBuffer = new simple_buffer_1.SimpleBuffer(lGpu, GPUBufferUsage.VERTEX, lVertexColorData);
+  var lVertexUvData = new Float32Array([
+  // Back
+  0.33, 1, 0.66, 1, 0, 66, 0.75, 0.33, 0.75,
+  // Front
+  0.33, 0.25, 0.66, 0.25, 0.66, 0.50, 0.33, 0.50]);
+  var lVertexUvBuffer = new simple_buffer_1.SimpleBuffer(lGpu, GPUBufferUsage.VERTEX, lVertexUvData);
   // Create mesh.
   var lMesh = new render_mesh_1.RenderMesh(lGpu, [
   // Front
@@ -571,20 +588,28 @@ _asyncToGenerator(function* () {
   7, 6, 2, 7, 2, 3]);
   lMesh.setVertexBuffer('vertexposition', lVertexPositionBuffer);
   lMesh.setVertexBuffer('vertexcolor', lVertexColorBuffer);
+  lMesh.setVertexBuffer('vertexuv', lVertexUvBuffer);
   // Setup renderer.
   var lInstructionExecutioner = new instruction_executer_1.InstructionExecuter(lGpu);
   // Setup instruction set.
   var lInstructionSet = new render_instruction_set_1.RenderInstructionSet(lRenderPassDescription);
   lInstructionExecutioner.addInstructionSet(lInstructionSet);
+  // Create camera bind group.
+  var lCameraAndColorBindGroup = lShader.bindGroups.getGroup(1).createBindGroup();
+  lCameraAndColorBindGroup.setData('color', lColorBuffer);
+  lCameraAndColorBindGroup.setData('viewProjectionMatrix', lCameraBuffer);
+  var lTextureBindGroup = lShader.bindGroups.getGroup(2).createBindGroup();
+  lTextureBindGroup.setData('cubetextureSampler', lCubeSampler);
+  lTextureBindGroup.setData('cubeTexture', lCubeTexture.view());
   // Setup object render.
   for (var lCube of lTransformationList) {
-    // Create bind group.
-    var lBindGroup = lShader.bindGroups.getGroup(0).createBindGroup();
-    lBindGroup.setData('color', lColorBuffer);
-    lBindGroup.setData('transformationMatrix', lCube.buffer);
-    lBindGroup.setData('viewProjectionMatrix', lCameraBuffer);
+    // Create
+    var lTransformationBindGroup = lShader.bindGroups.getGroup(0).createBindGroup();
+    lTransformationBindGroup.setData('transformationMatrix', lCube.buffer);
     var lObjectRenderInstruction = new render_single_instruction_1.RenderSingleInstruction(lPipeline, lMesh);
-    lObjectRenderInstruction.setBindGroup(0, lBindGroup);
+    lObjectRenderInstruction.setBindGroup(0, lTransformationBindGroup);
+    lObjectRenderInstruction.setBindGroup(1, lCameraAndColorBindGroup);
+    lObjectRenderInstruction.setBindGroup(2, lTextureBindGroup);
     lInstructionSet.addInstruction(lObjectRenderInstruction);
   }
   var lLastTime = 0;
@@ -1447,6 +1472,29 @@ class BindGroupLayout extends gpu_native_object_1.GpuNativeObject {
     }
   }
   /**
+   * Compare inner binds configurations.
+   * @param pObject - Target object.
+   */
+  compare(pObject) {
+    // Compare bind group size.
+    if (this.mGroupBinds.size !== pObject.mGroupBinds.size) {
+      return false;
+    }
+    for (var lBindName of this.mGroupBinds.keys()) {
+      var lTarget = pObject.mGroupBinds.get(lBindName);
+      var lSource = this.mGroupBinds.get(lBindName);
+      // Validate bind layout existance.
+      if (!lTarget || !lSource) {
+        return false;
+      }
+      // Validate bind layout properties.
+      if (lTarget.bindType !== lSource.bindType || lTarget.index !== lSource.index || lTarget.name !== lSource.name || lTarget.visibility !== lSource.visibility) {
+        return false;
+      }
+    }
+    return true;
+  }
+  /**
    * Generate layout.
    */
   generate() {
@@ -1976,7 +2024,7 @@ class RenderSingleInstruction {
    */
   setBindGroup(pIndex, pBindGroup) {
     // Validate bind group layout.
-    if (this.mPipeline.shader.bindGroups.getGroup(pIndex) !== pBindGroup.layout) {
+    if (!this.mPipeline.shader.bindGroups.getGroup(pIndex).equal(pBindGroup.layout)) {
       throw new core_data_1.Exception("Bind data layout not matched with pipeline bind group layout.", this);
     }
     this.mBindGroups.set(pIndex, pBindGroup);
@@ -2144,6 +2192,13 @@ class GpuNativeObject {
     }
   }
   /**
+   * Compare two native objects.
+   * @param pObject - Target object.
+   */
+  equal(pObject) {
+    return this.compare(pObject);
+  }
+  /**
    * Get native object.
    */
   native() {
@@ -2159,6 +2214,13 @@ class GpuNativeObject {
       this.mNativeObject = this.generate();
     }
     return this.mNativeObject;
+  }
+  /**
+   * Compare objects.
+   * @param pObject - Target compare object.
+   */
+  compare(pObject) {
+    return this === pObject;
   }
   /**
    * Destroy object.
@@ -3512,10 +3574,10 @@ class TextureSampler extends gpu_native_object_1.GpuNativeObject {
   /**
    * When provided the sampler will be a comparison sampler with the specified compare function.
    */
-  get compare() {
+  get compareFunction() {
     return this.mCompare;
   }
-  set compare(pValue) {
+  set compareFunction(pValue) {
     // Do nothing on assigning old an value.
     if (this.mCompare === pValue) {
       return;
@@ -3645,8 +3707,8 @@ class TextureSampler extends gpu_native_object_1.GpuNativeObject {
       lodMinClamp: this.lodMinClamp,
       maxAnisotropy: this.mMaxAnisotropy
     };
-    if (this.compare) {
-      lSamplerOptions.compare = this.compare;
+    if (this.compareFunction) {
+      lSamplerOptions.compare = this.compareFunction;
     }
     return this.gpu.device.createSampler(lSamplerOptions);
   }
@@ -3826,7 +3888,7 @@ class TextureView extends gpu_native_object_1.GpuNativeObject {
     this.mDimension = '2d';
     this.mAspect = 'all';
     this.mBaseMipLevel = 0;
-    this.mMipLevelCount = 0;
+    this.mMipLevelCount = 1;
     // Register texture as internal.
     this.registerInternalNative(pTexture);
   }
@@ -6840,7 +6902,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("@group(0) @binding(0) var<uniform> color: vec4<f32>;\r\n@group(0) @binding(1) var<uniform> transformationMatrix: mat4x4<f32>;\r\n@group(0) @binding(2) var<uniform> viewProjectionMatrix: mat4x4<f32>;\r\n\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) color: vec4<f32>\r\n}\r\n\r\nstruct VertexIn {\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) color: vec4<f32>\r\n}\r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    var out: VertexOut;\r\n    out.position = viewProjectionMatrix * transformationMatrix * vertex.position;\r\n    out.color = vertex.color;\r\n\r\n    return out;\r\n}\r\n\r\n@fragment\r\nfn fragment_main(@location(0) vertexcolor: vec4<f32>) -> @location(0) vec4<f32> {\r\n  return color * vertexcolor;\r\n}");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n\r\n@group(1) @binding(0) var<uniform> color: vec4<f32>;\r\n@group(1) @binding(1) var<uniform> viewProjectionMatrix: mat4x4<f32>;\r\n\r\n@group(2) @binding(0) var cubetextureSampler: sampler;\r\n@group(2) @binding(1) var cubeTexture: texture_2d<f32>;\r\n\r\n\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) color: vec4<f32>,\r\n    @location(1) uv: vec2<f32>\r\n}\r\n\r\nstruct VertexIn {\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) color: vec4<f32>,\r\n    @location(2) uv: vec2<f32>\r\n}\r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    var out: VertexOut;\r\n    out.position = viewProjectionMatrix * transformationMatrix * vertex.position;\r\n    out.color = vertex.color;\r\n    out.uv = vertex.uv;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) color: vec4<f32>,\r\n    @location(1) uv: vec2<f32>\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n  return textureSample(cubeTexture, cubetextureSampler, fragment.uv) * color * fragment.color;\r\n}");
 
 /***/ }),
 
@@ -9935,7 +9997,7 @@ exports.TypeUtil = TypeUtil;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("da5b568c0e32431f69b7")
+/******/ 		__webpack_require__.h = () => ("50a9dbef27f666a826ff")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

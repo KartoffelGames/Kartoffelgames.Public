@@ -51,7 +51,7 @@ export class RenderSingleInstruction implements IInstruction {
 
         // Validate mesh and pipeline attributes content.
         for (const lAttribute of this.mPipeline.shader.vertexEntryPoint!.attributes) {
-            const lMeshAttributeBuffer: BaseBuffer<TypedArray> = pMesh.getVertexBuffer(lAttribute.name);
+            const lMeshAttributeBuffer: BaseBuffer<TypedArray> = pMesh.getBuffer(lAttribute.name);
 
             if (lMeshAttributeBuffer.type !== lAttribute.bufferDataType) {
                 throw new Exception(`Mesh attributes does not match pipeline attributes`, this);

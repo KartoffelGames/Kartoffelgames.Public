@@ -66,6 +66,14 @@ export abstract class GpuNativeObject<T extends object> {
     }
 
     /**
+     * Compare two native objects.
+     * @param pObject - Target object.
+     */
+    public equal(pObject: this): boolean {
+        return this.compare(pObject);
+    }
+
+    /**
      * Get native object.
      */
     public native(): T {
@@ -86,6 +94,14 @@ export abstract class GpuNativeObject<T extends object> {
 
         return <T>this.mNativeObject;
     }
+
+    /**
+     * Compare objects.
+     * @param pObject - Target compare object.
+     */
+    protected compare(pObject: this): boolean {
+        return this === pObject;
+    }  
 
     /**
      * Destroy object.

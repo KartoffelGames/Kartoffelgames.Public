@@ -18,6 +18,8 @@ import { RingBuffer } from '../../source/core/resource/buffer/ring-buffer';
 import { Texture } from '../../source/core/resource/texture/texture';
 import { TextureUsage } from '../../source/core/resource/texture/texture-usage.enum';
 import { TextureSampler } from '../../source/core/resource/texture-sampler';
+import { BaseInputDevice, DeviceConfiguration, InputConfiguration, InputDevices, KeyboardButton, MouseButton, MouseKeyboardConnector } from '@kartoffelgames/web.game-input';
+import { Dictionary } from '@kartoffelgames/core.data';
 
 const gHeight: number = 10;
 const gWidth: number = 10;
@@ -233,17 +235,6 @@ const gDepth: number = 10;
         lSlider.addEventListener('input', (pEvent) => { lSetData((<any>pEvent.target).value); });
         lInput.addEventListener('input', (pEvent) => { lSetData((<any>pEvent.target).value); });
     };
-
-    // Translate.
-    lRegisterCameraHandler('cameraTranslateX', (pData) => { lCamera.translationX = pData; }, () => { return lCamera.translationX; });
-    lRegisterCameraHandler('cameraTranslateY', (pData) => { lCamera.translationY = pData; }, () => { return lCamera.translationY; });
-    lRegisterCameraHandler('cameraTranslateZ', (pData) => { lCamera.translationZ = pData; }, () => { return lCamera.translationZ; });
-
-    // Rotate.
-    lRegisterCameraHandler('cameraRotatePitch', (pData) => { lCamera.rotate(pData, 0, 0); }, () => { return lCamera.rotation.x; });
-    lRegisterCameraHandler('cameraRotateYaw', (pData) => { lCamera.rotate(0, pData, 0); }, () => { return lCamera.rotation.y; });
-    lRegisterCameraHandler('cameraRotateRoll', (pData) => { lCamera.rotate(0, 0, pData); }, () => { return lCamera.rotation.z; });
-
     // Translate.
     lRegisterCameraHandler('cameraPivotX', (pData) => { lCamera.pivotX = pData; }, () => { return lCamera.pivotX; });
     lRegisterCameraHandler('cameraPivotY', (pData) => { lCamera.pivotY = pData; }, () => { return lCamera.pivotY; });
@@ -253,6 +244,74 @@ const gDepth: number = 10;
     lRegisterCameraHandler('cameraNear', (pData) => { lPerspectiveProjection.near = pData; }, () => { return lPerspectiveProjection.near; });
     lRegisterCameraHandler('cameraFar', (pData) => { lPerspectiveProjection.far = pData; }, () => { return lPerspectiveProjection.far; });
     lRegisterCameraHandler('cameraAngleOfView', (pData) => { lPerspectiveProjection.angleOfView = pData; }, () => { return lPerspectiveProjection.angleOfView; });
+
+    // Register keyboard mouse movements.
+    const lDefaultConfiguaration: DeviceConfiguration = new DeviceConfiguration();
+    lDefaultConfiguaration.addAction('Forward', [KeyboardButton.KeyW]);
+    lDefaultConfiguaration.addAction('Back', [KeyboardButton.KeyS]);
+    lDefaultConfiguaration.addAction('Left', [KeyboardButton.KeyA]);
+    lDefaultConfiguaration.addAction('Right', [KeyboardButton.KeyD]);
+    lDefaultConfiguaration.addAction('Up', [KeyboardButton.ShiftLeft]);
+    lDefaultConfiguaration.addAction('Down', [KeyboardButton.ControlLeft]);
+    lDefaultConfiguaration.addAction('RotateLeft', [KeyboardButton.KeyQ]);
+    lDefaultConfiguaration.addAction('RotateRight', [KeyboardButton.KeyE]);
+    lDefaultConfiguaration.addAction('Yaw', [MouseButton.Xaxis]);
+    lDefaultConfiguaration.addAction('Pitch', [MouseButton.Yaxis]);
+    lDefaultConfiguaration.triggerTolerance = 0.2;
+    const lInputConfiguration: InputConfiguration = new InputConfiguration(lDefaultConfiguaration);
+    const lInputDevices: InputDevices = new InputDevices(lInputConfiguration);
+    lInputDevices.registerConnector(new MouseKeyboardConnector());
+
+    const lCurrentActionValue: Dictionary<string, number> = new Dictionary<string, number>();
+    const lKeyboard: BaseInputDevice = lInputDevices.devices[0];
+    lKeyboard.addEventListener('actionstatechange', (pEvent) => {
+        lCurrentActionValue.set(pEvent.action, pEvent.state);
+    });
+    window.setInterval(() => {
+        // Z Axis
+        if (lCurrentActionValue.get('Forward')! > 0) {
+            lCamera.translationZ += (lCurrentActionValue.get('Forward')! / 50);
+        }
+        if (lCurrentActionValue.get('Back')! > 0) {
+            lCamera.translationZ -= (lCurrentActionValue.get('Back')! / 50);
+        }
+
+        // X Axis
+        if (lCurrentActionValue.get('Right')! > 0) {
+            lCamera.translationX += (lCurrentActionValue.get('Right')! / 50);
+        }
+        if (lCurrentActionValue.get('Left')! > 0) {
+            lCamera.translationX -= (lCurrentActionValue.get('Left')! / 50);
+        }
+
+        // Y Axis
+        if (lCurrentActionValue.get('Up')! > 0) {
+            lCamera.translationY += (lCurrentActionValue.get('Up')! / 50);
+        }
+        if (lCurrentActionValue.get('Down')! > 0) {
+            lCamera.translationY -= (lCurrentActionValue.get('Down')! / 50);
+        }
+
+        // Rotation.
+        if (lCurrentActionValue.get('Yaw')! > 0 || lCurrentActionValue.get('Yaw')! < 0) {
+            lCamera.rotate(0, lCurrentActionValue.get('Yaw')!, 0);
+        }
+        if (lCurrentActionValue.get('Pitch')! > 0 || lCurrentActionValue.get('Pitch')! < 0) {
+            lCamera.rotate(lCurrentActionValue.get('Pitch')!, 0, 0);
+        }
+        if (lCurrentActionValue.get('RotateLeft')! > 0) {
+            lCamera.rotate(0, 0, -lCurrentActionValue.get('RotateLeft')!);
+        }
+        if (lCurrentActionValue.get('RotateRight')! > 0) {
+            lCamera.rotate(0, 0, lCurrentActionValue.get('RotateRight')!);
+        }
+
+        // Update transformation buffer.
+        lCameraBuffer.write(async (pBuffer) => { pBuffer.set(lCamera.viewProjectionMatrix.dataArray); });
+    }, 50);
+    lCanvas.addEventListener('click', () => {
+        lCanvas.requestPointerLock();
+    });
 
     // Setup Texture.
     const lCubeTexture: Texture = new Texture(lGpu, lGpu.preferredFormat, TextureUsage.TextureBinding | TextureUsage.RenderAttachment | TextureUsage.CopyDestination);

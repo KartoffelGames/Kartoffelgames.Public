@@ -107,6 +107,9 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
      * @param pSourceList - Image source list.
      */
     public async load(pSourceList: Array<string>): Promise<void> {
+        let lHeight: number = 0;
+        let lWidth: number = 0;
+
         // Parallel load images.
         const lBitmapResolvePromiseList: Array<Promise<ImageBitmap>> = pSourceList.map(async (pSource) => {
             // Load image with html image element.
@@ -114,12 +117,27 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
             lImage.src = pSource;
             await lImage.decode();
 
+            // Init size.
+            if (lHeight === 0 || lWidth === 0) {
+                lWidth = lImage.naturalWidth;
+                lHeight = lImage.naturalHeight;
+            }
+
+            // Validate same image size for all layers.
+            if (lHeight !== lImage.naturalHeight || lWidth !== lImage.naturalWidth) {
+                throw new Exception(`Texture image layers are not the same size. (${lImage.naturalWidth}, ${lImage.naturalHeight}) needs (${lWidth}, ${lHeight}).`, this);
+            }
+
             // Resolve image into bitmap.
             return createImageBitmap(lImage);
         });
 
         // Resolve all bitmaps.
         this.mImageBitmapList = await Promise.all(lBitmapResolvePromiseList);
+
+        // Set new size.
+        this.width = lWidth;
+        this.height = lHeight;
 
         // Trigger change.
         this.triggerChange();

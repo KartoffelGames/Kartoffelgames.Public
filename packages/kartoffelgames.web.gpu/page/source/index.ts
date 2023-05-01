@@ -6,7 +6,7 @@ import { AttachmentType } from '../../source/core/pass_descriptor/attachment-typ
 import { Attachments } from '../../source/core/pass_descriptor/attachments';
 import { RenderMesh } from '../../source/core/execution/data/render-mesh';
 import { InstructionExecuter } from '../../source/core/execution/instruction-executer';
-import { RenderSingleInstruction } from '../../source/core/execution/instruction/render-single-instruction';
+import { RenderInstruction } from '../../source/core/execution/instruction/render-instruction';
 import { Gpu } from '../../source/core/gpu';
 import { RenderPipeline } from '../../source/core/pipeline/render-pipeline';
 import { SimpleBuffer } from '../../source/core/resource/buffer/simple-buffer';
@@ -81,32 +81,21 @@ const gDepth: number = 10;
         });
     });
 
-    type CubeInstance = {
-        transformation: { x: number, y: number, z: number; },
-        transform: Transform,
-        buffer: SimpleBuffer<Float32Array>;
-    };
+    // Transformation.
+    const lCubeTransform: Transform = new Transform();
+    lCubeTransform.setScale(0.1, 0.1, 0.1);
+    const lCubeTransformationBuffer = new RingBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lCubeTransform.getMatrix(TransformMatrix.Transformation).dataArray));
 
-    const lTransformationList: Array<CubeInstance> = new Array<CubeInstance>();
+    // Create instanced transformation buffer.
+    const lCubeInstanceTransformationData: Array<number> = new Array<number>();
     for (let lWidthIndex: number = 0; lWidthIndex < gWidth; lWidthIndex++) {
         for (let lHeightIndex: number = 0; lHeightIndex < gHeight; lHeightIndex++) {
             for (let lDepthIndex: number = 0; lDepthIndex < gDepth; lDepthIndex++) {
-                const lTransformation = { x: lWidthIndex, y: lHeightIndex, z: lDepthIndex };
-
-                // Transformation.
-                const lTransform: Transform = new Transform();
-                lTransform.setScale(0.1, 0.1, 0.1);
-                lTransform.setTranslation(lTransformation.x, lTransformation.y, lTransformation.z);
-                lTransform.setRotation(0, 0, 0);
-
-                lTransformationList.push({
-                    transform: lTransform,
-                    transformation: { x: lWidthIndex, y: lHeightIndex, z: lDepthIndex },
-                    buffer: new RingBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lTransform.getMatrix(TransformMatrix.Transformation).dataArray))
-                });
+                lCubeInstanceTransformationData.push(lWidthIndex, lHeightIndex, lDepthIndex, 1);
             }
         }
     }
+    const lCubeInstanceTransformationBuffer = new SimpleBuffer(lGpu, GPUBufferUsage.STORAGE, new Float32Array(lCubeInstanceTransformationData));
 
     // Transformation buffer.
     const lUpdaterFunctions: Array<() => void> = new Array<() => void>();
@@ -115,7 +104,7 @@ const gDepth: number = 10;
         const lInput: HTMLInputElement = <HTMLInputElement>document.getElementById(pId + 'Display');
 
         const lUpdater = () => {
-            lInput.value = <any>pGet(lTransformationList[0].transform);
+            lInput.value = <any>pGet(lCubeTransform);
         };
         lUpdaterFunctions.push(lUpdater);
         lUpdater();
@@ -126,9 +115,7 @@ const gDepth: number = 10;
             const lNumberData: number = parseFloat(pStringData) || 1;
             lCurrentData += lNumberData;
 
-            for (const lTransformation of lTransformationList) {
-                pSet(lTransformation.transform, lCurrentData);
-            }
+            pSet(lCubeTransform, lCurrentData);
 
             // Reset slider.
             lSlider.value = <any>0;
@@ -138,27 +125,8 @@ const gDepth: number = 10;
                 lUpdater();
             }
 
-            // Update translation if it is all the same.
-            if (lTransformationList[lTransformationList.length - 1].transform.translationX === lCurrentData) {
-                for (const lTransformation of lTransformationList) {
-                    lTransformation.transform.addTranslation(lTransformation.transformation.x, 0, 0);
-                }
-            }
-            if (lTransformationList[lTransformationList.length - 1].transform.translationY === lCurrentData) {
-                for (const lTransformation of lTransformationList) {
-                    lTransformation.transform.addTranslation(0, lTransformation.transformation.y, 0);
-                }
-            }
-            if (lTransformationList[lTransformationList.length - 1].transform.translationZ === lCurrentData) {
-                for (const lTransformation of lTransformationList) {
-                    lTransformation.transform.addTranslation(0, 0, lTransformation.transformation.z);
-                }
-            }
-
             // Update transformation buffer.
-            for (const lTransformation of lTransformationList) {
-                lTransformation.buffer.write(async (pBuffer) => { pBuffer.set(lTransformation.transform.getMatrix(TransformMatrix.Transformation).dataArray); });
-            }
+            lCubeTransformationBuffer.write(async (pBuffer) => { pBuffer.set(lCubeTransform.getMatrix(TransformMatrix.Transformation).dataArray); });
         };
 
         lSlider.addEventListener('input', (pEvent) => { lSetData((<any>pEvent.target).value); });
@@ -313,8 +281,6 @@ const gDepth: number = 10;
 
     // Setup Texture.
     const lCubeTexture: Texture = new Texture(lGpu, lGpu.preferredFormat, TextureUsage.TextureBinding | TextureUsage.RenderAttachment | TextureUsage.CopyDestination);
-    lCubeTexture.height = 2048;
-    lCubeTexture.width = 1536;
     lCubeTexture.label = 'Cube Texture';
     await lCubeTexture.load(['/source/cube_texture/cube-texture.png']);
 
@@ -426,8 +392,6 @@ const gDepth: number = 10;
     lMesh.setVertexData('vertexcolor', lVertexColorData, 4);
     lMesh.setIndexData('vertexuv', lVertexUvData, 2);
 
-
-
     // Setup renderer.
     const lInstructionExecutioner: InstructionExecuter = new InstructionExecuter(lGpu);
 
@@ -436,27 +400,25 @@ const gDepth: number = 10;
     lInstructionExecutioner.addInstructionSet(lInstructionSet);
 
     // Create camera bind group.
-    const lCameraAndColorBindGroup = lShader.bindGroups.getGroup(1).createBindGroup();
-    lCameraAndColorBindGroup.setData('color', lColorBuffer);
-    lCameraAndColorBindGroup.setData('viewProjectionMatrix', lCameraBuffer);
+    const lWorldValueBindGroup = lShader.bindGroups.getGroup(1).createBindGroup();
+    lWorldValueBindGroup.setData('viewProjectionMatrix', lCameraBuffer);
 
-    const lTextureBindGroup = lShader.bindGroups.getGroup(2).createBindGroup();
-    lTextureBindGroup.setData('cubetextureSampler', lCubeSampler);
-    lTextureBindGroup.setData('cubeTexture', lCubeTexture.view());
+    const lUserInputBindGroup = lShader.bindGroups.getGroup(2).createBindGroup();
+    lUserInputBindGroup.setData('cubetextureSampler', lCubeSampler);
+    lUserInputBindGroup.setData('cubeTexture', lCubeTexture.view());
+    lUserInputBindGroup.setData('color', lColorBuffer);
 
-    // Setup object render.
-    for (const lCube of lTransformationList) {
-        // Create
-        const lTransformationBindGroup = lShader.bindGroups.getGroup(0).createBindGroup();
-        lTransformationBindGroup.setData('transformationMatrix', lCube.buffer);
+    const lObjectBindGroup = lShader.bindGroups.getGroup(0).createBindGroup();
+    lObjectBindGroup.setData('transformationMatrix', lCubeTransformationBuffer);
+    lObjectBindGroup.setData('instancePositions', lCubeInstanceTransformationBuffer);
 
-        const lObjectRenderInstruction: RenderSingleInstruction = new RenderSingleInstruction(lPipeline, lMesh);
-        lObjectRenderInstruction.setBindGroup(0, lTransformationBindGroup);
-        lObjectRenderInstruction.setBindGroup(1, lCameraAndColorBindGroup);
-        lObjectRenderInstruction.setBindGroup(2, lTextureBindGroup);
+    const lObjectRenderInstruction: RenderInstruction = new RenderInstruction(lPipeline, lMesh, gWidth * gHeight * gDepth);
+    lObjectRenderInstruction.setBindGroup(0, lObjectBindGroup);
+    lObjectRenderInstruction.setBindGroup(1, lWorldValueBindGroup);
+    lObjectRenderInstruction.setBindGroup(2, lUserInputBindGroup);
 
-        lInstructionSet.addInstruction(lObjectRenderInstruction);
-    }
+    lInstructionSet.addInstruction(lObjectRenderInstruction);
+
 
     let lLastTime: number = 0;
     const lRender = (pTime: number) => {

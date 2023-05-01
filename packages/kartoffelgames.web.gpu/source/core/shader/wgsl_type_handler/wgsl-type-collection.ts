@@ -59,7 +59,7 @@ export const WgslTypeRestrictions: Dictionary<WgslType, WgslTypeInformation> = (
 
     // Special
     lAddType({ type: WgslType.Atomic, generic: true, genericTypes: [WgslTypeIntegerNumbers] });
-    lAddType({ type: WgslType.Array, generic: true, genericTypes: [lAnyType, lAnyType] });
+    lAddType({ type: WgslType.Array, generic: true, genericTypes: [lAnyType, [WgslType.Any, WgslType.Optional]] });
     lAddType({ type: WgslType.Pointer, generic: true, genericTypes: [WgslTypeAddressSpaces, lAnyType, WgslTypeAccessModes] });
     lAddType({ type: WgslType.Reference, generic: true, genericTypes: [WgslTypeAddressSpaces, lAnyType, WgslTypeAccessModes] });
 

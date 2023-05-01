@@ -1,5 +1,6 @@
 export enum WgslType {
     Any = '*',
+    Optional = '_',
     Struct = '_STRUCT',
 
     // Scalar types.

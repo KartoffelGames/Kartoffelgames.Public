@@ -269,7 +269,7 @@ _asyncToGenerator(function* () {
   lPipeline.primitiveCullMode = 'back';
   // Ambient light buffer.
   var lAmbientLight = new ambient_light_1.AmbientLight();
-  lAmbientLight.setColor(1, 1, 1);
+  lAmbientLight.setColor(0.1, 0.1, 0.1);
   var lAmbientLightBuffer = new simple_buffer_1.SimpleBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lAmbientLight.data));
   lColorPicker.addEventListener('input', pEvent => {
     var lBigint = parseInt(pEvent.target.value.replace('#', ''), 16);
@@ -287,6 +287,7 @@ _asyncToGenerator(function* () {
       };
     }());
   });
+  var lPointLightBuffer = new simple_buffer_1.SimpleBuffer(lGpu, GPUBufferUsage.STORAGE, new Float32Array([/* Position */1, 1, 1, 1, /* Color */1, 0, 0, 1, /* Range */200, 0, 0, 0, /* Position */10, 10, 10, 1, /* Color */0, 0, 1, 1, /* Range */200, 0, 0, 0]));
   // Transformation.
   var lCubeTransform = new transform_1.Transform();
   lCubeTransform.setScale(0.1, 0.1, 0.1);
@@ -505,7 +506,7 @@ _asyncToGenerator(function* () {
     lCurrentActionValue.set(pEvent.action, pEvent.state);
   });
   window.setInterval(() => {
-    var lSpeed = 3;
+    var lSpeed = 1;
     // Z Axis
     if (lCurrentActionValue.get('Forward') > 0) {
       lCamera.transformation.translateInDirection(lCurrentActionValue.get('Forward') / 50 * lSpeed, 0, 0);
@@ -549,7 +550,7 @@ _asyncToGenerator(function* () {
         return _ref5.apply(this, arguments);
       };
     }());
-  }, 50);
+  }, 8);
   lCanvas.addEventListener('click', () => {
     lCanvas.requestPointerLock();
   });
@@ -565,7 +566,6 @@ _asyncToGenerator(function* () {
   -1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0,
   // Front
   -1.0, 1.0, -1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, -1.0, -1.0, -1.0, 1.0];
-  var lVertexColorData = [1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.5, 0.0, 1.0, 1.0];
   var lVertexUvData = [
   // Front 4,5,6
   0.33333, 0.25, 0.66666, 0.25, 0.66666, 0.50,
@@ -591,6 +591,19 @@ _asyncToGenerator(function* () {
   0.33333, 0.50, 0.66666, 0.50, 0.66666, 0.75,
   // Bottom 7,2,3
   0.33333, 0.50, 0.66666, 0.75, 0.33333, 0.75];
+  var lVertexNormalData = [
+  // Front
+  0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0,
+  // Back 1,0,3
+  0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0,
+  // Left 0,4,7
+  -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0,
+  // Right 5,1,2
+  1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+  // Top 0,1,5
+  0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0,
+  // Bottom 7,6,2
+  0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0];
   // Create mesh.
   var lMesh = new render_mesh_1.RenderMesh(lGpu, [
   // Front
@@ -606,8 +619,8 @@ _asyncToGenerator(function* () {
   // Bottom
   7, 6, 2, 7, 2, 3]);
   lMesh.setVertexData('vertexposition', lVertexPositionData, 4);
-  lMesh.setVertexData('vertexcolor', lVertexColorData, 4);
   lMesh.setIndexData('vertexuv', lVertexUvData, 2);
+  lMesh.setIndexData('vertexnormal', lVertexNormalData, 4);
   // Setup renderer.
   var lInstructionExecutioner = new instruction_executer_1.InstructionExecuter(lGpu);
   // Setup instruction set.
@@ -617,6 +630,7 @@ _asyncToGenerator(function* () {
   var lWorldValueBindGroup = lShader.bindGroups.getGroup(1).createBindGroup();
   lWorldValueBindGroup.setData('viewProjectionMatrix', lCameraBuffer);
   lWorldValueBindGroup.setData('ambientLight', lAmbientLightBuffer);
+  lWorldValueBindGroup.setData('pointLights', lPointLightBuffer);
   var lUserInputBindGroup = lShader.bindGroups.getGroup(2).createBindGroup();
   lUserInputBindGroup.setData('cubetextureSampler', lCubeSampler);
   lUserInputBindGroup.setData('cubeTexture', lCubeTexture.view());
@@ -7002,7 +7016,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n@group(0) @binding(1) var<storage, read> instancePositions: array<vec4<f32>>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\n@group(1) @binding(0) var<uniform> viewProjectionMatrix: mat4x4<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- User Inputs ------------------------ //\r\n@group(2) @binding(0) var cubetextureSampler: sampler;\r\n@group(2) @binding(1) var cubeTexture: texture_2d<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// --------------------- Light calculations --------------------- //\r\nstruct AmbientLight {\r\n    color: vec3<f32>\r\n}\r\n@group(1) @binding(1) var<uniform> ambientLight: AmbientLight;\r\n\r\n// struct DirectionalLight {\r\n//     position: vec4<f32>,\r\n//     color: vec3<f32>,\r\n//     range: f32\r\n// }\r\n// @group(1) @binding(2) var<storage, read_write> directionalLights: array<DirectionalLight>;\r\n\r\n/**\r\n * Apply lights to fragment color.\r\n */\r\nfn applyLight(colorIn: vec4<f32>) -> vec4<f32> {\r\n    return colorIn * vec4<f32>(ambientLight.color, 1.0);\r\n}\r\n// -------------------------------------------------------------- //\r\n\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) color: vec4<f32>,\r\n    @location(1) uv: vec2<f32>\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) color: vec4<f32>,\r\n    @location(2) uv: vec2<f32>\r\n}\r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    var instancePosition: vec4<f32> = instancePositions[vertex.instanceId];\r\n    var instancePositionMatrix: mat4x4<f32> = mat4x4<f32>(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, instancePosition.x * 5, instancePosition.y * 5, instancePosition.z * 5, 1);\r\n\r\n    var out: VertexOut;\r\n    out.position = viewProjectionMatrix * transformationMatrix * instancePositionMatrix * vertex.position;\r\n    out.color = vertex.color;\r\n    out.uv = vertex.uv;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) color: vec4<f32>,\r\n    @location(1) uv: vec2<f32>\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n  return applyLight(textureSample(cubeTexture, cubetextureSampler, fragment.uv) * fragment.color);\r\n}");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n@group(0) @binding(1) var<storage, read> instancePositions: array<vec4<f32>>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\n@group(1) @binding(0) var<uniform> viewProjectionMatrix: mat4x4<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- User Inputs ------------------------ //\r\n@group(2) @binding(0) var cubetextureSampler: sampler;\r\n@group(2) @binding(1) var cubeTexture: texture_2d<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// --------------------- Light calculations --------------------- //\r\nstruct AmbientLight {\r\n    color: vec4<f32>\r\n}\r\n@group(1) @binding(1) var<uniform> ambientLight: AmbientLight;\r\n\r\nstruct PointLight {\r\n    position: vec4<f32>,\r\n    color: vec4<f32>,\r\n    range: f32\r\n}\r\n@group(1) @binding(2) var<storage, read> pointLights: array<PointLight>;\r\n\r\n/**\r\n * Calculate point light output.\r\n */\r\nfn calculatePointLights(fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    // Count of point lights.\r\n    let pointLightCount: u32 = arrayLength(&pointLights);\r\n\r\n    var lightResult: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    for (var index: u32 = 0; index < pointLightCount; index++) {\r\n        var pointLight: PointLight = pointLights[index];\r\n\r\n        // Calculate light strength based on angle of incidence.\r\n        let lightDirection: vec4<f32> = normalize(pointLight.position - fragmentPosition);\r\n        let diffuse: f32 = max(dot(normal, lightDirection), 0.0);\r\n\r\n        lightResult += pointLight.color * diffuse;\r\n    }\r\n\r\n    return lightResult;\r\n}\r\n\r\n/**\r\n * Apply lights to fragment color.\r\n */\r\nfn applyLight(colorIn: vec4<f32>, fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {\r\n    var lightColor: vec4<f32> = vec4<f32>(0, 0, 0, 1);\r\n\r\n    lightColor += ambientLight.color;\r\n    lightColor += calculatePointLights(fragmentPosition, normal);\r\n\r\n    return lightColor * colorIn;\r\n}\r\n// -------------------------------------------------------------- //\r\n\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) uv: vec2<f32>,\r\n    @location(2) normal: vec4<f32>\r\n}\r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    var instancePosition: vec4<f32> = instancePositions[vertex.instanceId];\r\n    var instancePositionMatrix: mat4x4<f32> = mat4x4<f32>(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, instancePosition.x * 5, instancePosition.y * 5, instancePosition.z * 5, 1);\r\n\r\n    var out: VertexOut;\r\n    out.position = viewProjectionMatrix * transformationMatrix * instancePositionMatrix * vertex.position;\r\n    out.uv = vertex.uv;\r\n    out.normal = vertex.normal;\r\n    out.fragmentPosition = transformationMatrix * instancePositionMatrix * vertex.position;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) uv: vec2<f32>,\r\n    @location(1) normal: vec4<f32>,\r\n    @location(2) fragmentPosition: vec4<f32>\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n    return applyLight(textureSample(cubeTexture, cubetextureSampler, fragment.uv), fragment.fragmentPosition, fragment.normal);\r\n}");
 
 /***/ }),
 
@@ -11271,7 +11285,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("9883c25edf7745beee67")
+/******/ 		__webpack_require__.h = () => ("c0579249d0fd33da06b0")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

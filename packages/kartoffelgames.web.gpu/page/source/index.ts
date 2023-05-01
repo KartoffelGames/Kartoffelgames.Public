@@ -69,7 +69,7 @@ const gDepth: number = 10;
 
     // Ambient light buffer.
     const lAmbientLight: AmbientLight = new AmbientLight();
-    lAmbientLight.setColor(1, 1, 1);
+    lAmbientLight.setColor(0.1, 0.1, 0.1);
 
     const lAmbientLightBuffer = new SimpleBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lAmbientLight.data));
     lColorPicker.addEventListener('input', (pEvent) => {
@@ -82,6 +82,11 @@ const gDepth: number = 10;
         lAmbientLight.setColor(lRed, lGreen, lBlue);
         lAmbientLightBuffer.write(async (pBuffer) => { pBuffer.set(lAmbientLight.data); });
     });
+
+    const lPointLightBuffer = new SimpleBuffer(lGpu, GPUBufferUsage.STORAGE, new Float32Array([
+        /* Position */1, 1, 1, 1, /* Color */1, 0, 0, 1,/* Range */ 200, 0, 0, 0,
+        /* Position */10, 10, 10, 1, /* Color */0, 0, 1, 1,/* Range */ 200, 0, 0, 0
+    ]));
 
     // Transformation.
     const lCubeTransform: Transform = new Transform();
@@ -234,7 +239,7 @@ const gDepth: number = 10;
         lCurrentActionValue.set(pEvent.action, pEvent.state);
     });
     window.setInterval(() => {
-        const lSpeed = 3;
+        const lSpeed = 1;
 
         // Z Axis
         if (lCurrentActionValue.get('Forward')! > 0) {
@@ -276,7 +281,7 @@ const gDepth: number = 10;
 
         // Update transformation buffer.
         lCameraBuffer.write(async (pBuffer) => { pBuffer.set(lCamera.getMatrix(CameraMatrix.ViewProjection).dataArray); });
-    }, 50);
+    }, 8);
     lCanvas.addEventListener('click', () => {
         lCanvas.requestPointerLock();
     });
@@ -302,16 +307,6 @@ const gDepth: number = 10;
         1.0, 1.0, -1.0, 1.0,
         1.0, -1.0, -1.0, 1.0,
         -1.0, -1.0, -1.0, 1.0
-    ];
-    const lVertexColorData: Array<number> = [ // 4x Color
-        1.0, 1.0, 1.0, 1.0,
-        0.0, 1.0, 1.0, 1.0,
-        1.0, 0.0, 1.0, 1.0,
-        0.0, 0.0, 1.0, 1.0,
-        1.0, 1.0, 0.0, 1.0,
-        0.0, 1.0, 0.0, 1.0,
-        1.0, 0.0, 0.0, 1.0,
-        0.5, 0.0, 1.0, 1.0
     ];
     const lVertexUvData: Array<number> = [ // 4x Position
         // Front 4,5,6
@@ -368,6 +363,55 @@ const gDepth: number = 10;
         0.66666, 0.75,
         0.33333, 0.75,
     ];
+    const lVertexNormalData: Array<number> = [ // 4x Position
+        // Front
+        0, 0, -1, 0,
+        0, 0, -1, 0,
+        0, 0, -1, 0,
+        0, 0, -1, 0,
+        0, 0, -1, 0,
+        0, 0, -1, 0,
+
+        // Back 1,0,3
+        0, 0, 1, 0,
+        0, 0, 1, 0,
+        0, 0, 1, 0,
+        0, 0, 1, 0,
+        0, 0, 1, 0,
+        0, 0, 1, 0,
+
+        // Left 0,4,7
+        -1, 0, 0, 0,
+        -1, 0, 0, 0,
+        -1, 0, 0, 0,
+        -1, 0, 0, 0,
+        -1, 0, 0, 0,
+        -1, 0, 0, 0,
+
+        // Right 5,1,2
+        1, 0, 0, 0,
+        1, 0, 0, 0,
+        1, 0, 0, 0,
+        1, 0, 0, 0,
+        1, 0, 0, 0,
+        1, 0, 0, 0,
+
+        // Top 0,1,5
+        0, 1, 0, 0,
+        0, 1, 0, 0,
+        0, 1, 0, 0,
+        0, 1, 0, 0,
+        0, 1, 0, 0,
+        0, 1, 0, 0,
+
+        // Bottom 7,6,2
+        0, -1, 0, 0,
+        0, -1, 0, 0,
+        0, -1, 0, 0,
+        0, -1, 0, 0,
+        0, -1, 0, 0,
+        0, -1, 0, 0,
+    ];
 
     // Create mesh.
     const lMesh = new RenderMesh(lGpu, [
@@ -391,8 +435,8 @@ const gDepth: number = 10;
         7, 2, 3
     ]);
     lMesh.setVertexData('vertexposition', lVertexPositionData, 4);
-    lMesh.setVertexData('vertexcolor', lVertexColorData, 4);
     lMesh.setIndexData('vertexuv', lVertexUvData, 2);
+    lMesh.setIndexData('vertexnormal', lVertexNormalData, 4);
 
     // Setup renderer.
     const lInstructionExecutioner: InstructionExecuter = new InstructionExecuter(lGpu);
@@ -405,6 +449,7 @@ const gDepth: number = 10;
     const lWorldValueBindGroup = lShader.bindGroups.getGroup(1).createBindGroup();
     lWorldValueBindGroup.setData('viewProjectionMatrix', lCameraBuffer);
     lWorldValueBindGroup.setData('ambientLight', lAmbientLightBuffer);
+    lWorldValueBindGroup.setData('pointLights', lPointLightBuffer);
 
     const lUserInputBindGroup = lShader.bindGroups.getGroup(2).createBindGroup();
     lUserInputBindGroup.setData('cubetextureSampler', lCubeSampler);
@@ -420,7 +465,6 @@ const gDepth: number = 10;
     lObjectRenderInstruction.setBindGroup(2, lUserInputBindGroup);
 
     lInstructionSet.addInstruction(lObjectRenderInstruction);
-
 
     let lLastTime: number = 0;
     const lRender = (pTime: number) => {

@@ -12,15 +12,14 @@
 // ------------------------- User Inputs ------------------------ //
 @group(2) @binding(0) var cubetextureSampler: sampler;
 @group(2) @binding(1) var cubeTexture: texture_2d<f32>;
-@group(2) @binding(2) var<uniform> color: vec4<f32>;
 // -------------------------------------------------------------- //
 
 
 // --------------------- Light calculations --------------------- //
-//struct AmbientLight {
-//    color: vec3<f32>
-//}
-//@group(1) @binding(1) var<uniform> ambientLight: AmbientLight;
+struct AmbientLight {
+    color: vec3<f32>
+}
+@group(1) @binding(1) var<uniform> ambientLight: AmbientLight;
 
 // struct DirectionalLight {
 //     position: vec4<f32>,
@@ -32,9 +31,9 @@
 /**
  * Apply lights to fragment color.
  */
-//fn applyLight(colorIn: vec4<f32>) -> vec4<f32> {
-//    return colorIn * vec4<f32>(ambientLight.color, 1.0);
-//}
+fn applyLight(colorIn: vec4<f32>) -> vec4<f32> {
+    return colorIn * vec4<f32>(ambientLight.color, 1.0);
+}
 // -------------------------------------------------------------- //
 
 struct VertexOut {
@@ -70,5 +69,5 @@ struct FragmentIn {
 
 @fragment
 fn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {
-  return textureSample(cubeTexture, cubetextureSampler, fragment.uv) * color * fragment.color;
+  return applyLight(textureSample(cubeTexture, cubetextureSampler, fragment.uv) * fragment.color);
 }

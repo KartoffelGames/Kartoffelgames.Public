@@ -20,6 +20,7 @@ import { TextureUsage } from '../../source/core/resource/texture/texture-usage.e
 import { TextureSampler } from '../../source/core/resource/texture-sampler';
 import { BaseInputDevice, DeviceConfiguration, InputConfiguration, InputDevices, KeyboardButton, MouseButton, MouseKeyboardConnector } from '@kartoffelgames/web.game-input';
 import { Dictionary } from '@kartoffelgames/core.data';
+import { AmbientLight } from '../../source/base/light/ambient-light';
 
 const gHeight: number = 10;
 const gWidth: number = 10;
@@ -66,19 +67,20 @@ const gDepth: number = 10;
     const lPipeline: RenderPipeline = new RenderPipeline(lGpu, lShader, lRenderPassDescription);
     lPipeline.primitiveCullMode = 'back';
 
-    // Color buffer.
-    const lColorBuffer = new SimpleBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array([1, 1, 1, 1]));
+    // Ambient light buffer.
+    const lAmbientLight: AmbientLight = new AmbientLight();
+    lAmbientLight.setColor(1, 1, 1);
+
+    const lAmbientLightBuffer = new SimpleBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lAmbientLight.data));
     lColorPicker.addEventListener('input', (pEvent) => {
         const lBigint = parseInt((<any>pEvent.target).value.replace('#', ''), 16);
-        const lRed = (lBigint >> 16) & 255;
-        const lGreen = (lBigint >> 8) & 255;
-        const lBlue = lBigint & 255;
+        const lRed = ((lBigint >> 16) & 255) / 255;
+        const lGreen = ((lBigint >> 8) & 255) / 255;
+        const lBlue = (lBigint & 255) / 255;
 
-        lColorBuffer.write(async (pBuffer) => {
-            pBuffer[0] = lRed / 255;
-            pBuffer[1] = lGreen / 255;
-            pBuffer[2] = lBlue / 255;
-        });
+        // Set color to ambient light and update buffer.
+        lAmbientLight.setColor(lRed, lGreen, lBlue);
+        lAmbientLightBuffer.write(async (pBuffer) => { pBuffer.set(lAmbientLight.data); });
     });
 
     // Transformation.
@@ -402,11 +404,11 @@ const gDepth: number = 10;
     // Create camera bind group.
     const lWorldValueBindGroup = lShader.bindGroups.getGroup(1).createBindGroup();
     lWorldValueBindGroup.setData('viewProjectionMatrix', lCameraBuffer);
+    lWorldValueBindGroup.setData('ambientLight', lAmbientLightBuffer);
 
     const lUserInputBindGroup = lShader.bindGroups.getGroup(2).createBindGroup();
     lUserInputBindGroup.setData('cubetextureSampler', lCubeSampler);
     lUserInputBindGroup.setData('cubeTexture', lCubeTexture.view());
-    lUserInputBindGroup.setData('color', lColorBuffer);
 
     const lObjectBindGroup = lShader.bindGroups.getGroup(0).createBindGroup();
     lObjectBindGroup.setData('transformationMatrix', lCubeTransformationBuffer);

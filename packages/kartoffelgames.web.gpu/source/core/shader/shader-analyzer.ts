@@ -135,7 +135,7 @@ export class ShaderInformation {
      */
     private getBindGroups(pSource: string): Array<ShaderBindGroup> {
         // Regex for binding index, group index, modifier, variable name and type.
-        const lBindInformationRegex: RegExp = /^\s*@group\((?<group>\d+)\)\s*@binding\((?<binding>\d+)\)\s+var(?:<(?<addressspace>[\w,\s]+)>)?\s*(?<name>\w+)\s*:\s*(?<type>[\w,\s<>]*[\w,<>]).*$/gm;
+        const lBindInformationRegex: RegExp = /^\s*@group\((?<group>\d+)\)\s*@binding\((?<binding>\d+)\)\s+var(?:<(?<addressspace>[\w\s]+)(?:\s*,\s*(?<access>[\w\s]+))?>)?\s*(?<name>\w+)\s*:\s*(?<type>[\w,\s<>]*[\w,<>]).*$/gm;
 
         const lComputeNameRegex: RegExp = /(@compute(.|\r?\n)*?fn )(?<name>\w*)/gm;
         const lFragmentNameRegex: RegExp = /(@fragment(.|\r?\n)*?fn )(?<name>\w*)/gm;
@@ -169,8 +169,14 @@ export class ShaderInformation {
                 bindingIndex: parseInt(lMatch.groups!['binding']),
                 addressSpace: <GPUBufferBindingType>lMatch.groups!['addressspace'] ?? null,
                 name: lMatch.groups!['name'],
+                memoryAccess: <any>lMatch.groups!['access'] ?? 'read',
                 typeDescription: this.typeDescriptionByString(lMatch.groups!['type'])
             };
+
+            // Update address space for readonly storage. 
+            if (lShaderBindInformation.addressSpace === 'storage' && lShaderBindInformation.memoryAccess === 'read') {
+                lShaderBindInformation.addressSpace = 'read-only-storage';
+            }
 
             lGroupList.push(this.getBindBasedOnType(lShaderBindInformation, lShaderStage));
         }
@@ -478,13 +484,16 @@ export class ShaderInformation {
 
         // Skip generic validation for any types.
         if (lTypeInformation.type !== WgslType.Any) {
+            const lMinGenericCount: number = lTypeInformation.genericTypes.filter((pGeneric) => !pGeneric.includes(WgslType.Optional)).length;
+            const lMaxGenericCount: number = lTypeInformation.genericTypes.length;
+
             // Validate generic count.
-            if (lTypeInformation.genericTypes.length !== lGenericList.length) {
-                throw new Exception(`Generic count does not match definition "${lTypeInformation.type.toString()}" (Should:${lTypeInformation.genericTypes.length}, Has:${lGenericList.length})`, WgslTypeDictionary);
+            if (lGenericList.length < lMinGenericCount || lGenericList.length > lMaxGenericCount) {
+                throw new Exception(`Generic count does not match definition "${lTypeInformation.type.toString()}" (Should:[${lMinGenericCount} - ${lMaxGenericCount}], Has:${lGenericList.length})`, WgslTypeDictionary);
             }
 
             // Validate generics.
-            for (let lGenericIndex: number = 0; lGenericIndex < lTypeInformation.genericTypes.length; lGenericIndex++) {
+            for (let lGenericIndex: number = 0; lGenericIndex < lGenericList.length; lGenericIndex++) {
                 // Target generic.
                 const lTargetGeneric: WgslTypeDescription | WgslEnum = lGenericList[lGenericIndex];
                 const lTargetGenericType: WgslType | WgslEnum = (typeof lTargetGeneric === 'string') ? lTargetGeneric : lTargetGeneric.type;
@@ -493,7 +502,7 @@ export class ShaderInformation {
                 const lValidGenerics: Array<WgslType | WgslEnum> = lTypeInformation.genericTypes[lGenericIndex];
 
                 // Compare valid list with set target generic.
-                if (!lValidGenerics.includes(lTargetGenericType)) {
+                if (!lValidGenerics.includes(lTargetGenericType) && !lValidGenerics.includes(WgslType.Any)) {
                     throw new Exception(`Generic type to definition missmatch. (Type "${lTypeInformation.type}" generic index ${lGenericIndex})`, WgslTypeDictionary);
                 }
             }
@@ -556,6 +565,7 @@ export type ShaderEntryPointFunction = {
 type ShaderBindInformation = {
     bindingIndex: number,
     addressSpace: GPUBufferBindingType | null,
+    memoryAccess: 'read' | 'write' | 'read_write';
     name: string,
     typeDescription: WgslTypeDescription;
 };

@@ -1,6 +1,6 @@
 import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core.data';
 import { RenderPassDescriptor } from '../../pass_descriptor/render-pass-descriptor';
-import { RenderSingleInstruction } from '../instruction/render-single-instruction';
+import { RenderInstruction } from '../instruction/render-instruction';
 import { IInstructionSet } from './i-instruction-set';
 import { RenderPipeline } from '../../pipeline/render-pipeline';
 import { BaseBuffer } from '../../resource/buffer/base-buffer';
@@ -86,11 +86,9 @@ export class RenderInstructionSet implements IInstructionSet {
                 }
             }
 
-            lRenderPassEncoder.draw(lInstruction.mesh.indexCount);
+            lRenderPassEncoder.draw(lInstruction.mesh.indexCount, lInstruction.instanceCount);
         }
 
         lRenderPassEncoder.end();
     }
 }
-
-type RenderInstruction = RenderSingleInstruction;

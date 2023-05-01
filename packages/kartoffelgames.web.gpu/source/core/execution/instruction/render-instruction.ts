@@ -5,11 +5,12 @@ import { BaseBuffer } from '../../resource/buffer/base-buffer';
 import { RenderMesh } from '../data/render-mesh';
 import { IInstruction } from './i-instruction.interface';
 
-export class RenderSingleInstruction implements IInstruction {
+export class RenderInstruction implements IInstruction {
     private readonly mBindGroups: Dictionary<number, BindGroup>;
+    private readonly mInstanceCount: number;
     private readonly mMesh: RenderMesh;
     private readonly mPipeline: RenderPipeline;
-
+    
     /**
      * Get bind groups.
      */
@@ -20,6 +21,13 @@ export class RenderSingleInstruction implements IInstruction {
         }
 
         return lBindGroupList;
+    }
+
+    /**
+     * Instance count.
+     */
+    public get instanceCount(): number {
+        return this.mInstanceCount;
     }
 
     /**
@@ -39,10 +47,11 @@ export class RenderSingleInstruction implements IInstruction {
     /**
      * Constructor.
      */
-    public constructor(pPipeline: RenderPipeline, pMesh: RenderMesh) {
+    public constructor(pPipeline: RenderPipeline, pMesh: RenderMesh, pInstanceCount: number = 1) {
         this.mBindGroups = new Dictionary<number, BindGroup>();
         this.mMesh = pMesh;
         this.mPipeline = pPipeline;
+        this.mInstanceCount = pInstanceCount;
 
         // Validate mesh and pipeline attributes length.
         if (pMesh.attributesCount !== this.mPipeline.shader.vertexEntryPoint?.attributes.length) {

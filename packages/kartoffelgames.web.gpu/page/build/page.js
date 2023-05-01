@@ -224,6 +224,7 @@ var texture_usage_enum_1 = __webpack_require__(/*! ../../source/core/resource/te
 var texture_sampler_1 = __webpack_require__(/*! ../../source/core/resource/texture-sampler */ "./source/core/resource/texture-sampler.ts");
 var web_game_input_1 = __webpack_require__(/*! @kartoffelgames/web.game-input */ "../kartoffelgames.web.game_input/library/source/index.js");
 var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+var ambient_light_1 = __webpack_require__(/*! ../../source/base/light/ambient-light */ "./source/base/light/ambient-light.ts");
 var gHeight = 10;
 var gWidth = 10;
 var gDepth = 10;
@@ -266,18 +267,20 @@ _asyncToGenerator(function* () {
   // Init pipeline.
   var lPipeline = new render_pipeline_1.RenderPipeline(lGpu, lShader, lRenderPassDescription);
   lPipeline.primitiveCullMode = 'back';
-  // Color buffer.
-  var lColorBuffer = new simple_buffer_1.SimpleBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array([1, 1, 1, 1]));
+  // Ambient light buffer.
+  var lAmbientLight = new ambient_light_1.AmbientLight();
+  lAmbientLight.setColor(1, 1, 1);
+  var lAmbientLightBuffer = new simple_buffer_1.SimpleBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lAmbientLight.data));
   lColorPicker.addEventListener('input', pEvent => {
     var lBigint = parseInt(pEvent.target.value.replace('#', ''), 16);
-    var lRed = lBigint >> 16 & 255;
-    var lGreen = lBigint >> 8 & 255;
-    var lBlue = lBigint & 255;
-    lColorBuffer.write( /*#__PURE__*/function () {
+    var lRed = (lBigint >> 16 & 255) / 255;
+    var lGreen = (lBigint >> 8 & 255) / 255;
+    var lBlue = (lBigint & 255) / 255;
+    // Set color to ambient light and update buffer.
+    lAmbientLight.setColor(lRed, lGreen, lBlue);
+    lAmbientLightBuffer.write( /*#__PURE__*/function () {
       var _ref2 = _asyncToGenerator(function* (pBuffer) {
-        pBuffer[0] = lRed / 255;
-        pBuffer[1] = lGreen / 255;
-        pBuffer[2] = lBlue / 255;
+        pBuffer.set(lAmbientLight.data);
       });
       return function (_x) {
         return _ref2.apply(this, arguments);
@@ -613,10 +616,10 @@ _asyncToGenerator(function* () {
   // Create camera bind group.
   var lWorldValueBindGroup = lShader.bindGroups.getGroup(1).createBindGroup();
   lWorldValueBindGroup.setData('viewProjectionMatrix', lCameraBuffer);
+  lWorldValueBindGroup.setData('ambientLight', lAmbientLightBuffer);
   var lUserInputBindGroup = lShader.bindGroups.getGroup(2).createBindGroup();
   lUserInputBindGroup.setData('cubetextureSampler', lCubeSampler);
   lUserInputBindGroup.setData('cubeTexture', lCubeTexture.view());
-  lUserInputBindGroup.setData('color', lColorBuffer);
   var lObjectBindGroup = lShader.bindGroups.getGroup(0).createBindGroup();
   lObjectBindGroup.setData('transformationMatrix', lCubeTransformationBuffer);
   lObjectBindGroup.setData('instancePositions', lCubeInstanceTransformationBuffer);
@@ -1006,6 +1009,53 @@ class PerspectiveProjection {
   }
 }
 exports.PerspectiveProjection = PerspectiveProjection;
+
+/***/ }),
+
+/***/ "./source/base/light/ambient-light.ts":
+/*!********************************************!*\
+  !*** ./source/base/light/ambient-light.ts ***!
+  \********************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.AmbientLight = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+var vector_1 = __webpack_require__(/*! ../../math/vector */ "./source/math/vector.ts");
+class AmbientLight {
+  /**
+   * Constructor.
+   */
+  constructor() {
+    this.mColor = new vector_1.Vector([1, 1, 1, 1]);
+  }
+  /**
+   * Ambient light Vector4 data.
+   */
+  get data() {
+    return this.mColor.data;
+  }
+  /**
+   * Set ambient light color.
+   * @param pRed - Red.
+   * @param pGreen - Green.
+   * @param pBlue - Blue.
+   */
+  setColor(pRed, pGreen, pBlue) {
+    if (pRed > 1 || pRed < 0 || pGreen > 1 || pGreen < 0 || pBlue > 1 || pBlue < 0) {
+      throw new core_data_1.Exception("Color values need to be in 0 to 1 range. (R:".concat(pRed, ", G:").concat(pGreen, ", B:").concat(pBlue, ")"), this);
+    }
+    this.mColor.data[0] = pRed;
+    this.mColor.data[1] = pGreen;
+    this.mColor.data[2] = pBlue;
+  }
+}
+exports.AmbientLight = AmbientLight;
 
 /***/ }),
 
@@ -6952,7 +7002,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n@group(0) @binding(1) var<storage, read> instancePositions: array<vec4<f32>>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\n@group(1) @binding(0) var<uniform> viewProjectionMatrix: mat4x4<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- User Inputs ------------------------ //\r\n@group(2) @binding(0) var cubetextureSampler: sampler;\r\n@group(2) @binding(1) var cubeTexture: texture_2d<f32>;\r\n@group(2) @binding(2) var<uniform> color: vec4<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// --------------------- Light calculations --------------------- //\r\n//struct AmbientLight {\r\n//    color: vec3<f32>\r\n//}\r\n//@group(1) @binding(1) var<uniform> ambientLight: AmbientLight;\r\n\r\n// struct DirectionalLight {\r\n//     position: vec4<f32>,\r\n//     color: vec3<f32>,\r\n//     range: f32\r\n// }\r\n// @group(1) @binding(2) var<storage, read_write> directionalLights: array<DirectionalLight>;\r\n\r\n/**\r\n * Apply lights to fragment color.\r\n */\r\n//fn applyLight(colorIn: vec4<f32>) -> vec4<f32> {\r\n//    return colorIn * vec4<f32>(ambientLight.color, 1.0);\r\n//}\r\n// -------------------------------------------------------------- //\r\n\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) color: vec4<f32>,\r\n    @location(1) uv: vec2<f32>\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) color: vec4<f32>,\r\n    @location(2) uv: vec2<f32>\r\n}\r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    var instancePosition: vec4<f32> = instancePositions[vertex.instanceId];\r\n    var instancePositionMatrix: mat4x4<f32> = mat4x4<f32>(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, instancePosition.x * 5, instancePosition.y * 5, instancePosition.z * 5, 1);\r\n\r\n    var out: VertexOut;\r\n    out.position = viewProjectionMatrix * transformationMatrix * instancePositionMatrix * vertex.position;\r\n    out.color = vertex.color;\r\n    out.uv = vertex.uv;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) color: vec4<f32>,\r\n    @location(1) uv: vec2<f32>\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n  return textureSample(cubeTexture, cubetextureSampler, fragment.uv) * color * fragment.color;\r\n}");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// ------------------------- Object Values ---------------------- //\r\n@group(0) @binding(0) var<uniform> transformationMatrix: mat4x4<f32>;\r\n@group(0) @binding(1) var<storage, read> instancePositions: array<vec4<f32>>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- World Values ---------------------- //\r\n@group(1) @binding(0) var<uniform> viewProjectionMatrix: mat4x4<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// ------------------------- User Inputs ------------------------ //\r\n@group(2) @binding(0) var cubetextureSampler: sampler;\r\n@group(2) @binding(1) var cubeTexture: texture_2d<f32>;\r\n// -------------------------------------------------------------- //\r\n\r\n\r\n// --------------------- Light calculations --------------------- //\r\nstruct AmbientLight {\r\n    color: vec3<f32>\r\n}\r\n@group(1) @binding(1) var<uniform> ambientLight: AmbientLight;\r\n\r\n// struct DirectionalLight {\r\n//     position: vec4<f32>,\r\n//     color: vec3<f32>,\r\n//     range: f32\r\n// }\r\n// @group(1) @binding(2) var<storage, read_write> directionalLights: array<DirectionalLight>;\r\n\r\n/**\r\n * Apply lights to fragment color.\r\n */\r\nfn applyLight(colorIn: vec4<f32>) -> vec4<f32> {\r\n    return colorIn * vec4<f32>(ambientLight.color, 1.0);\r\n}\r\n// -------------------------------------------------------------- //\r\n\r\nstruct VertexOut {\r\n    @builtin(position) position: vec4<f32>,\r\n    @location(0) color: vec4<f32>,\r\n    @location(1) uv: vec2<f32>\r\n}\r\n\r\nstruct VertexIn {\r\n    @builtin(instance_index) instanceId : u32,\r\n    @location(0) position: vec4<f32>,\r\n    @location(1) color: vec4<f32>,\r\n    @location(2) uv: vec2<f32>\r\n}\r\n\r\n@vertex\r\nfn vertex_main(vertex: VertexIn) -> VertexOut {\r\n    var instancePosition: vec4<f32> = instancePositions[vertex.instanceId];\r\n    var instancePositionMatrix: mat4x4<f32> = mat4x4<f32>(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, instancePosition.x * 5, instancePosition.y * 5, instancePosition.z * 5, 1);\r\n\r\n    var out: VertexOut;\r\n    out.position = viewProjectionMatrix * transformationMatrix * instancePositionMatrix * vertex.position;\r\n    out.color = vertex.color;\r\n    out.uv = vertex.uv;\r\n\r\n    return out;\r\n}\r\n\r\nstruct FragmentIn {\r\n    @location(0) color: vec4<f32>,\r\n    @location(1) uv: vec2<f32>\r\n}\r\n\r\n@fragment\r\nfn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {\r\n  return applyLight(textureSample(cubeTexture, cubetextureSampler, fragment.uv) * fragment.color);\r\n}");
 
 /***/ }),
 
@@ -11221,7 +11271,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("c35f32337d84948a34cd")
+/******/ 		__webpack_require__.h = () => ("9883c25edf7745beee67")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

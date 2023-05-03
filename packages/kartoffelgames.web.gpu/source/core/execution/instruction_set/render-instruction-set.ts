@@ -76,7 +76,7 @@ export class RenderInstructionSet implements IInstructionSet {
 
             // Add vertex attribute buffer.
             for (const lAttribute of lInstruction.pipeline.shader.vertexEntryPoint!.attributes) {
-                const lNewAttributeBuffer: BaseBuffer<TypedArray> = lInstruction.mesh.getBuffer(lAttribute.name);
+                const lNewAttributeBuffer: BaseBuffer<TypedArray> = lInstruction.parameter.getBuffer(lAttribute.name);
                 const lCurrentAttributeBuffer: BaseBuffer<TypedArray> | undefined = lVertexBufferList.get(lAttribute.location);
 
                 // Use cached vertex buffer or use new.
@@ -86,7 +86,7 @@ export class RenderInstructionSet implements IInstructionSet {
                 }
             }
 
-            lRenderPassEncoder.draw(lInstruction.mesh.indexCount, lInstruction.instanceCount);
+            lRenderPassEncoder.draw(lInstruction.parameter.indexCount, lInstruction.instanceCount);
         }
 
         lRenderPassEncoder.end();

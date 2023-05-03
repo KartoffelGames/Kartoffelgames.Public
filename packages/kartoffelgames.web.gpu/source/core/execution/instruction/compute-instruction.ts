@@ -2,9 +2,11 @@ import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { BindGroup } from '../../bind_group/bind-group';
 import { ComputePipeline } from '../../pipeline/compute-pipeline';
 import { IInstruction } from './i-instruction.interface';
+import { ComputeParameter } from '../parameter/compute-parameter';
 
-export class ComputeShader implements IInstruction {
+export class ComputeInstruction implements IInstruction {
     private readonly mBindGroups: Dictionary<number, BindGroup>;
+    private readonly mComputeParameter: ComputeParameter;
     private readonly mPipeline: ComputePipeline;
 
     /**
@@ -20,6 +22,13 @@ export class ComputeShader implements IInstruction {
     }
 
     /**
+     * Instruction parameter.
+     */
+    public get parameter(): ComputeParameter {
+        return this.mComputeParameter;
+    }
+
+    /**
      * Instructions compute pipeline.
      */
     public get pipeline(): ComputePipeline {
@@ -29,9 +38,10 @@ export class ComputeShader implements IInstruction {
     /**
      * Constructor.
      */
-    public constructor(pPipeline: ComputePipeline) {
+    public constructor(pPipeline: ComputePipeline, pComputeParameter: ComputeParameter) {
         this.mBindGroups = new Dictionary<number, BindGroup>();
         this.mPipeline = pPipeline;
+        this.mComputeParameter = pComputeParameter;
     }
 
     /**

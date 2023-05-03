@@ -4,7 +4,7 @@ import { PerspectiveProjection } from '../../source/base/camera/projection/persp
 import { Transform, TransformMatrix } from '../../source/base/transform';
 import { AttachmentType } from '../../source/core/pass_descriptor/attachment-type.enum';
 import { Attachments } from '../../source/core/pass_descriptor/attachments';
-import { RenderMesh } from '../../source/core/execution/data/render-mesh';
+import { RenderParameter } from '../../source/core/execution/parameter/render-parameter';
 import { InstructionExecuter } from '../../source/core/execution/instruction-executer';
 import { RenderInstruction } from '../../source/core/execution/instruction/render-instruction';
 import { Gpu } from '../../source/core/gpu';
@@ -414,7 +414,7 @@ const gDepth: number = 10;
     ];
 
     // Create mesh.
-    const lMesh = new RenderMesh(lGpu, [
+    const lMesh = new RenderParameter(lGpu, [
         // Front
         4, 5, 6,
         4, 6, 7,

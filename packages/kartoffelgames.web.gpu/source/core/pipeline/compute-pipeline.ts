@@ -21,6 +21,11 @@ export class ComputePipeline extends GpuNativeObject<GPUComputePipeline> impleme
     public constructor(pGpu: Gpu, pShader: Shader) {
         super(pGpu, 'COMPUTE_PIPELINE');
 
+        // Check valid entry points.
+        if (!pShader.computeEntryPoint) {
+            throw new Exception('Shadermodule has no compute entry point.', this);
+        }
+
         // Set and register internal.
         this.mShader = pShader;
         this.registerInternalNative(pShader);
@@ -30,11 +35,6 @@ export class ComputePipeline extends GpuNativeObject<GPUComputePipeline> impleme
      * Generate native render pipeline.
      */
     protected generate(): GPUComputePipeline {
-        // Check valid entry points.
-        if (!this.mShader?.computeEntryPoint) {
-            throw new Exception('Shadermodule has no compute entry point.', this);
-        }
-
         // Generate pipeline layout from bind group layouts.
         const lPipelineLayout: GPUPipelineLayoutDescriptor = this.mShader.bindGroups.native();
 

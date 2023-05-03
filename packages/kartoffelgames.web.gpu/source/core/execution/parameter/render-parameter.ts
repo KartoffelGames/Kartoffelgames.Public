@@ -3,7 +3,7 @@ import { Gpu } from '../../gpu';
 import { BaseBuffer } from '../../resource/buffer/base-buffer';
 import { SimpleBuffer } from '../../resource/buffer/simple-buffer';
 
-export class RenderMesh {
+export class RenderParameter {
     private readonly mGpu: Gpu;
     private readonly mIndexData: Array<number>;
     private readonly mMaxIndex: number;

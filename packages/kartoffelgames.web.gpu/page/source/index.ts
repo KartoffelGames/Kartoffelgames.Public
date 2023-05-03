@@ -1,6 +1,6 @@
-import { Camera, CameraMatrix } from '../../source/base/camera/camera';
-import { OrthographicProjection } from '../../source/base/camera/projection/orthographic -projection';
-import { PerspectiveProjection } from '../../source/base/camera/projection/perspective-projection';
+import { ViewProjection, CameraMatrix } from '../../source/base/view_projection/view-projection';
+import { OrthographicProjection } from '../../source/base/view_projection/projection/orthographic -projection';
+import { PerspectiveProjection } from '../../source/base/view_projection/projection/perspective-projection';
 import { Transform, TransformMatrix } from '../../source/base/transform';
 import { AttachmentType } from '../../source/core/pass_descriptor/attachment-type.enum';
 import { Attachments } from '../../source/core/pass_descriptor/attachments';
@@ -173,7 +173,7 @@ const gDepth: number = 10;
     lOrtoProjection.near = 0;
     lOrtoProjection.far = 999999;
 
-    const lCamera: Camera = new Camera(lPerspectiveProjection);
+    const lCamera: ViewProjection = new ViewProjection(lPerspectiveProjection);
     lCamera.transformation.setTranslation(0, 0, -4);
 
     // Transformation buffer.

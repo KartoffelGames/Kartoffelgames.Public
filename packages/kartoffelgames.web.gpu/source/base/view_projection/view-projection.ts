@@ -2,7 +2,7 @@ import { Matrix } from '../../math/matrix';
 import { Transform, TransformMatrix } from '../transform';
 import { IProjection } from './projection/i-projection.interface';
 
-export class Camera {
+export class ViewProjection {
     private readonly mProjection: IProjection;
     private readonly mTransformation: Transform;
 

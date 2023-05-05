@@ -1,38 +1,4 @@
-export enum WgslEnum {
-    Unknown = '*',
-
-    // Enum.
-    AccessModeRead = 'read',
-    AccessModeWrite = 'write',
-    AccessModeReadWrite = 'read_write',
-
-    AddressSpaceFunction = 'function',
-    AddressSpacePrivate = 'private',
-    AddressSpaceWorkgroup = 'workgroup',
-    AddressSpaceUniform = 'uniform',
-    AddressSpaceStorage = 'storage',
-
-    InterpolationTypePerspective = 'perspective',
-    InterpolationTypeLinear = 'linear',
-    InterpolationTypeFlat = 'flat',
-
-    InterpolationSamplingCenter = 'center',
-    InterpolationSamplingCentroid = 'centroid',
-    InterpolationSamplingSample = 'sample',
-
-    BuiltInValueVertexIndex = 'vertex_index',
-    BuiltInValueInstanceIndex = 'instance_index',
-    BuiltInValuePosition = 'position',
-    BuiltInValueFrontFacing = 'front_facing',
-    BuiltInValueFragmentDepth = 'frag_depth',
-    BuiltInValueLocalInvocationId = 'local_invocation_id',
-    BuiltInValueLocalInvocationIndex = 'local_invocation_index',
-    BuiltInValueGlobalInvovationId = 'global_invocation_id',
-    BuiltInValueWorkgroupId = 'workgroup_id',
-    BuiltInValueNumverWorkgroups = 'num_workgroups',
-    BuiltInValueSampleIndex = 'sample_index',
-    BuiltInValueSampleMask = 'sample_mask',
-
+export enum WgslTextelFormat {
     TexelFormatRgba8unorm = 'rgba8unorm',
     TexelFormatRgba8snorm = 'rgba8snorm',
     TexelFormatRgba8uint = 'rgba8uint',
@@ -50,4 +16,24 @@ export enum WgslEnum {
     TexelFormatRgba32sint = 'rgba32sint',
     TexelFormatRgba32float = 'rgba32float',
     TexelFormatBgra8unorm = 'bgra8unorm',
+}
+
+export enum WgslBindingType {
+    Uniform = 'uniform',
+    Storage = 'storage',
+    ReadonlyStorage = 'read-only-storage'
+}
+
+
+export enum WgslShaderStage {
+    Fragment = GPUShaderStage.FRAGMENT,
+    Vertex = GPUShaderStage.VERTEX,
+    Compute = GPUShaderStage.COMPUTE,
+}
+
+
+export enum WgslAccessMode {
+    AccessModeRead = 'read',
+    AccessModeWrite = 'write',
+    AccessModeReadWrite = 'read_write',
 }

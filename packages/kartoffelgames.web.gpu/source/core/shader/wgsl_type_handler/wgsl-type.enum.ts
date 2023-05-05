@@ -1,8 +1,7 @@
 export enum WgslType {
     Any = '*',
     Optional = '_',
-    Struct = '_STRUCT',
-
+    
     // Scalar types.
     Boolean = 'bool',
     Integer32 = 'i32',
@@ -26,8 +25,11 @@ export enum WgslType {
     Matrix43 = 'mat4x3',
     Matrix44 = 'mat4x4',
 
-    //Special.
+    // Container.
+    Struct = 'struct',
     Atomic = 'atomic',
+
+    //Special.
     Array = 'array',
     Pointer = 'ptr',
     Reference = 'ref',

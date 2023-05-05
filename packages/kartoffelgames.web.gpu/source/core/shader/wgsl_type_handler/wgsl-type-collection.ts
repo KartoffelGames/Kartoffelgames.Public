@@ -99,20 +99,80 @@ export type WgslTypeInformation = {
     genericTypes: Array<Array<WgslType | WgslEnum>>;
 };
 
-// Type type collections.
-export type WgslTypeFloatNumber = WgslType.Float16 | WgslType.Float32;
-export type WgslTypeIntegerNumber = WgslType.Integer32 | WgslType.UnsignedInteger32;
-export type WgslTypeNumber = WgslTypeFloatNumber | WgslTypeIntegerNumber;
-export type WgslTypeVector = WgslType.Vector2 | WgslType.Vector3 | WgslType.Vector4;
-export type WgslTypeMatrix = WgslType.Matrix22 | WgslType.Matrix23 | WgslType.Matrix24 | WgslType.Matrix32 | WgslType.Matrix33 | WgslType.Matrix34 | WgslType.Matrix42 | WgslType.Matrix43 | WgslType.Matrix44;
-export type WgslTypeStorageTexture = WgslType.TextureStorage1d | WgslType.TextureStorage2d | WgslType.TextureStorage2dArray | WgslType.TextureStorage3d;
-export type WgslTypeTexture = WgslType.Texture1d | WgslType.Texture2d | WgslType.Texture2dArray | WgslType.Texture3d | WgslType.TextureCube | WgslType.TextureCubeArray | WgslType.TextureMultisampled2d;
-export type WgslTypeDepthTexture = WgslType.TextureDepth2d | WgslType.TextureDepth2dArray | WgslType.TextureDepthCube | WgslType.TextureDepthCube | WgslType.TextureDepthMultisampled2d;
 
-// Enum type collections.
-export type WgslTypeAccessMode = WgslEnum.AccessModeRead | WgslEnum.AccessModeWrite | WgslEnum.AccessModeReadWrite;
-export type WgslTypeAddressSpace = WgslEnum.AddressSpaceFunction | WgslEnum.AddressSpacePrivate | WgslEnum.AddressSpaceStorage | WgslEnum.AddressSpaceUniform | WgslEnum.AddressSpaceWorkgroup;
-export type WgslTypeTexelFormat = WgslEnum.TexelFormatRgba8unorm | WgslEnum.TexelFormatRgba8snorm | WgslEnum.TexelFormatRgba8uint | WgslEnum.TexelFormatRgba8sint |
-    WgslEnum.TexelFormatRgba16uint | WgslEnum.TexelFormatRgba16sint | WgslEnum.TexelFormatRgba16float | WgslEnum.TexelFormatR32uint |
-    WgslEnum.TexelFormatR32sint | WgslEnum.TexelFormatR32float | WgslEnum.TexelFormatRg32uint | WgslEnum.TexelFormatRg32sint |
-    WgslEnum.TexelFormatRg32float | WgslEnum.TexelFormatRgba32uint | WgslEnum.TexelFormatRgba32sint | WgslEnum.TexelFormatRgba32float | WgslEnum.TexelFormatBgra8unorm;
+
+
+
+
+
+
+export const WgslTypes: Record<WgslType, Array<WgslTypeSetting>> = (() => {
+    const lTypes: Record<WgslType, Array<WgslTypeSetting>> = {};
+
+    // Scalar types.
+    lTypes['bool'] = {};
+    lTypes['i32'] = {};
+    lTypes['u32'] = {};
+    lTypes['f32'] = {};
+    lTypes['f16'] = {};
+
+    // Vector types.
+    lTypes['vec2'] = {};
+    lTypes['vec3'] = {};
+    lTypes['vec4'] = {};
+
+    // Matrix types.
+    lTypes['mat2x2'] = {};
+    lTypes['mat2x3'] = {};
+    lTypes['mat2x4'] = {};
+    lTypes['mat3x2'] = {};
+    lTypes['mat3x3'] = {};
+    lTypes['mat3x4'] = {};
+    lTypes['mat4x2'] = {};
+    lTypes['mat4x3'] = {};
+    lTypes['mat4x4'] = {};
+
+    lTypes['array'] = {};
+    lTypes['struct'] = {};
+
+    lTypes['atomic'] = {};
+    // Type alias.
+    // TODO:
+
+    // None buffer types.
+    //-------------------
+
+    //Special.
+    lTypes['ptr'] = [{ size: -1, align: 0 }];
+    lTypes['ref'] = [{ size: -1, align: 0 }];
+
+    // Textures.
+    lTypes['texture_1d'] = [{ size: -1, align: 0 }];
+    lTypes['texture_2d'] = [{ size: -1, align: 0 }];
+    lTypes['texture_2d_array'] = [{ size: -1, align: 0 }];
+    lTypes['texture_3d'] = [{ size: -1, align: 0 }];
+    lTypes['texture_cube'] = [{ size: -1, align: 0 }];
+    lTypes['texture_cube_array'] = [{ size: -1, align: 0 }];
+    lTypes['texture_multisampled_2d'] = [{ size: -1, align: 0 }];
+    lTypes['texture_external'] = [{ size: -1, align: 0 }];
+
+    // Depth texture.
+    lTypes['texture_depth_2d'] = [{ size: -1, align: 0 }];
+    lTypes['texture_depth_2d_array'] = [{ size: -1, align: 0 }];
+    lTypes['texture_depth_cube'] = [{ size: -1, align: 0 }];
+    lTypes['texture_depth_cube_array'] = [{ size: -1, align: 0 }];
+    lTypes['texture_depth_multisampled_2d'] = [{ size: -1, align: 0 }];
+
+    // Storage textures.
+    lTypes['texture_storage_1d'] = [{ size: -1, align: 0, generic: ['*', '*'] }];
+    lTypes['texture_storage_2d'] = [{ size: -1, align: 0, generic: ['*', '*'] }];
+    lTypes['texture_storage_2d_array'] = [{ size: -1, align: 0, generic: ['*', '*'] }];
+    lTypes['texture_storage_3d'] = [{ size: -1, align: 0, generic: ['*', '*'] }];
+
+    // Sampler.
+    lTypes['sampler'] = [{ size: -1, align: 0 }];
+    lTypes['sampler_comparison'] = [{ size: -1, align: 0 }];
+})();
+
+type WgslTypeSetting = { size: number, align: number, generic?: Array<string>; };
+

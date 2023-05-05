@@ -2,11 +2,12 @@ import { Dictionary, EnumUtil, Exception } from '@kartoffelgames/core.data';
 import { BindType } from '../enum/bind-type.enum';
 import { ShaderStage } from '../enum/shader-stage.enum';
 import { WgslEntryPoint } from './wgsl_type_handler/wgsl-entry-point.enum';
-import { WgslEnum } from './wgsl_type_handler/wgsl-enum.enum';
+import { WgslBindingType, WgslEnum, WgslMemoryAccess, WgslShaderStage } from './wgsl_type_handler/wgsl-enum.enum';
 import { WgslTypeAccessMode, WgslTypeAccessModes, WgslTypeAddressSpace, WgslTypeAddressSpaces, WgslTypeDepthTexture, WgslTypeDepthTextures, WgslTypeInformation, WgslTypeMatrices, WgslTypeNumbers, WgslTypeStorageTexture, WgslTypeStorageTextures, WgslTypeTexelFormat, WgslTypeTexture, WgslTypeTextures, WgslTypeVectors } from './wgsl_type_handler/wgsl-type-collection';
 import { WgslTypeDictionary } from './wgsl_type_handler/wgsl-type-dictionary';
 import { WgslType } from './wgsl_type_handler/wgsl-type.enum';
 import { WgslValueType } from './wgsl_type_handler/wgsl-value-type.enum';
+import { WgslType } from './wgsl_type_handler/wgsl-type-handler';
 
 export class ShaderInformation {
     private readonly mBindings: Array<ShaderBindGroup>;
@@ -603,3 +604,38 @@ export type ShaderBindGroup = {
     groupIndex: number;
     binds: Array<ShaderBind>;
 };
+
+
+
+
+
+
+type WgslEntryPoint = {
+    type: WgslEntryPoint,
+    function: WgslFunction;
+};
+
+type WgslBind = {
+    visibility: WgslShaderStage;
+    variable: WgslVariable;
+    index: number;
+    bindingType: WgslBindingType;
+};
+
+type WgslBindGroup = {
+    group: number;
+    binds: Array<WgslBind>;
+};
+
+type WgslFunction = {
+    name: string;
+    parameter: Array<WgslVariable>;
+    return: WgslVariable;
+};
+
+type WgslVariable = {
+    name: string;
+    type: WgslType;
+    location: number;
+}
+

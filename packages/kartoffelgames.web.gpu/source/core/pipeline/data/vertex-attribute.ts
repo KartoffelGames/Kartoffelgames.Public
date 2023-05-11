@@ -3,7 +3,7 @@ import { Gpu } from '../../gpu';
 import { GpuNativeObject } from '../../gpu-native-object';
 import { BufferDataType } from '../../resource/buffer/base-buffer';
 import { WgslTypeNumber } from '../../shader/wgsl_type_handler/wgsl-type-collection';
-import { WgslType } from '../../shader/wgsl_type_handler/wgsl-type.enum';
+import { WgslType } from '../../shader/enum/wgsl-type.enum';
 
 export class VertexAttribute extends GpuNativeObject<GPUVertexBufferLayout> {
     private mAttribute: AttributeFormatDefinition;

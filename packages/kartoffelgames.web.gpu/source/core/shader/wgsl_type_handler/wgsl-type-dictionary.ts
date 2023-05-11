@@ -1,7 +1,7 @@
 import { Dictionary, EnumUtil, Exception } from '@kartoffelgames/core.data';
 import { WgslEnum } from './wgsl-enum.enum';
 import { WgslTypeDepthTexture, WgslTypeDepthTextures, WgslTypeInformation, WgslTypeRestrictions, WgslTypeStorageTexture, WgslTypeTexture, WgslTypeTextures } from './wgsl-type-collection';
-import { WgslType } from './wgsl-type.enum';
+import { WgslType } from '../enum/wgsl-type.enum';
 
 export class WgslTypeDictionary {
     private static readonly mTypeStorage: Dictionary<WgslType, WgslTypeInformation> = WgslTypeRestrictions;

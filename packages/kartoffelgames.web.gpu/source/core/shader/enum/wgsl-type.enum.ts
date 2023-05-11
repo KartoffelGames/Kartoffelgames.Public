@@ -1,6 +1,6 @@
 export enum WgslType {
-    Any = '*',
-    Optional = '_',
+    Any = '_Any',
+    Enum = '_Enum',
     
     // Scalar types.
     Boolean = 'bool',

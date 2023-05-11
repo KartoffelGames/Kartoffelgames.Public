@@ -1,4 +1,4 @@
-export enum WgslTextelFormat {
+export enum WgslTexelFormat {
     TexelFormatRgba8unorm = 'rgba8unorm',
     TexelFormatRgba8snorm = 'rgba8snorm',
     TexelFormatRgba8uint = 'rgba8uint',
@@ -16,24 +16,4 @@ export enum WgslTextelFormat {
     TexelFormatRgba32sint = 'rgba32sint',
     TexelFormatRgba32float = 'rgba32float',
     TexelFormatBgra8unorm = 'bgra8unorm',
-}
-
-export enum WgslBindingType {
-    Uniform = 'uniform',
-    Storage = 'storage',
-    ReadonlyStorage = 'read-only-storage'
-}
-
-
-export enum WgslShaderStage {
-    Fragment = GPUShaderStage.FRAGMENT,
-    Vertex = GPUShaderStage.VERTEX,
-    Compute = GPUShaderStage.COMPUTE,
-}
-
-
-export enum WgslAccessMode {
-    AccessModeRead = 'read',
-    AccessModeWrite = 'write',
-    AccessModeReadWrite = 'read_write',
 }

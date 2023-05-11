@@ -33,7 +33,7 @@ export class ArrayBufferType extends BufferType {
      */
     public get size(): number {
         if (this.mArraySize === -1) {
-            return -1;
+            return this.mArraySize;
         }
 
         return this.mInnerType.size * this.mArraySize;
@@ -53,7 +53,7 @@ export class ArrayBufferType extends BufferType {
      */
     public constructor(pInnerType: BufferType, pSize?: number, pAccessMode?: WgslAccessMode, pBindType?: WgslBindingType) {
         super(pAccessMode, pBindType);
-        
+
         this.mInnerType = pInnerType;
         this.mArraySize = pSize ?? -1;
     }

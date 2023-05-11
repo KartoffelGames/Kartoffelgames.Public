@@ -1,7 +1,5 @@
-export enum ShaderStage {
+export enum WgslShaderStage {
     Fragment = GPUShaderStage.FRAGMENT,
     Vertex = GPUShaderStage.VERTEX,
     Compute = GPUShaderStage.COMPUTE,
 }
-
-// TODO: REMOVE use wgsl shader stage enum.

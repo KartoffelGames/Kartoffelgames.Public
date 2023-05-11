@@ -6,7 +6,7 @@ import { GpuNativeObject } from '../gpu-native-object';
 import { VertexAttribute } from '../pipeline/data/vertex-attribute';
 import { ShaderEntryPointFunction, ShaderInformation, WgslTypeDescription } from './shader-analyzer';
 import { WgslTypeNumber } from './wgsl_type_handler/wgsl-type-collection';
-import { WgslType } from './wgsl_type_handler/wgsl-type.enum';
+import { WgslType } from './enum/wgsl-type.enum';
 
 export class Shader extends GpuNativeObject<GPUShaderModule>{
     private readonly mBindGroups: BindGroups;

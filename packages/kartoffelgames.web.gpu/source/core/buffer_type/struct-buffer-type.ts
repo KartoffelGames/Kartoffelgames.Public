@@ -33,8 +33,8 @@ export class StructBufferType extends BufferType {
     /**
      * Constructor.
      */
-    public constructor(pAccessMode?: WgslAccessMode, pBindType?: WgslBindingType) {
-        super(pAccessMode, pBindType);
+    public constructor(pName: string, pAccessMode?: WgslAccessMode, pBindType?: WgslBindingType, pLocation: number | null = null) {
+        super(pName, pAccessMode, pBindType, pLocation);
 
         this.mAlignment = 0;
         this.mSize = 0;
@@ -72,5 +72,25 @@ export class StructBufferType extends BufferType {
         }
 
         this.mSize = lCurrentOffset;
+    }
+
+    /**
+     * Get types of properties with set location.
+     */
+    public innerLocations(): Array<BufferType> {
+        const lLocationTypes: Array<BufferType> = new Array<BufferType>();
+        for (const [, lPropertyType] of this.mInnerTypes.values()) {
+            // Set property as location when set.
+            if (lPropertyType.location) {
+                lLocationTypes.push(lPropertyType);
+            }
+
+            // Get all inner locations when property is a struct type.
+            if (lPropertyType instanceof StructBufferType) {
+                lLocationTypes.push(...lPropertyType.innerLocations());
+            }
+        }
+
+        return lLocationTypes;
     }
 }

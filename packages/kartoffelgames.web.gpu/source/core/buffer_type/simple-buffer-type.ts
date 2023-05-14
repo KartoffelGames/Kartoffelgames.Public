@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { EnumUtil, Exception } from '@kartoffelgames/core.data';
 import { WgslType } from '../shader/enum/wgsl-type.enum';
 import { BufferType } from './buffer-type';
 import { WgslAccessMode } from '../shader/enum/wgsl-access-mode.enum';
@@ -171,6 +171,7 @@ export class SimpleBufferType extends BufferType {
 
     private readonly mAlignment: number;
     private readonly mGenericList: Array<WgslType>;
+    private readonly mGenericRawList: Array<WgslType | string>;
     private readonly mSize: number;
     private readonly mType: WgslType;
 
@@ -186,6 +187,13 @@ export class SimpleBufferType extends BufferType {
      */
     public get generics(): Array<WgslType> {
         return this.mGenericList;
+    }
+
+    /**
+     * Type generics.
+     */
+    public get genericsRaw(): Array<string> {
+        return this.mGenericRawList;
     }
 
     /**
@@ -207,12 +215,21 @@ export class SimpleBufferType extends BufferType {
      * @param pType - Simple type. Scalar, Atomic, Vector and Matrix types.
      * @param pGenerics - Generics of type.
      */
-    public constructor(pType: WgslType, pGenerics?: Array<WgslType>, pAccessMode?: WgslAccessMode, pBindType?: WgslBindingType) {
-        super(pAccessMode, pBindType);
+    public constructor(pName: string, pType: WgslType, pGenerics?: Array<WgslType | string>, pAccessMode?: WgslAccessMode, pBindType?: WgslBindingType, pLocation: number | null = null) {
+        super(pName, pAccessMode, pBindType, pLocation);
 
         // Static properties.
         this.mType = pType;
-        this.mGenericList = pGenerics ?? [];
+        this.mGenericRawList = pGenerics ?? [];
+
+        // Filter enum of generic list.
+        this.mGenericList = this.mGenericRawList.map(pGeneric => {
+            if (!EnumUtil.enumKeyByValue(WgslType, pGeneric)) {
+                return WgslType.Enum;
+            }
+
+            return <WgslType>pGeneric;
+        });
 
         // Get type restrictions.
         const lRestrictionList: Array<WgslTypeSetting> | undefined = SimpleBufferType.mTypeRestrictions[pType];
@@ -220,7 +237,7 @@ export class SimpleBufferType extends BufferType {
             throw new Exception(`Type ${pType} not supported.`, this);
         }
 
-        // Find corresponding restrictions.
+        // Find corresponding restrictions. // TODO: Check for enum or struct or any types.
         const lRestriction: WgslTypeSetting | undefined = lRestrictionList.find((pRestriction) => pRestriction.generic?.toString() === pGenerics?.toString());
         if (!lRestriction) {
             throw new Exception(`No type (${pType}) restriction for generics [${pGenerics}] found.`, this);

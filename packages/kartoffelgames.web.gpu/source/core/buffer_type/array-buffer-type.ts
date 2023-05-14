@@ -51,8 +51,8 @@ export class ArrayBufferType extends BufferType {
      * @param pInnerType - Type of array.
      * @param pSize - Optional array size.
      */
-    public constructor(pInnerType: BufferType, pSize?: number, pAccessMode?: WgslAccessMode, pBindType?: WgslBindingType) {
-        super(pAccessMode, pBindType);
+    public constructor(pName: string, pInnerType: BufferType, pSize?: number, pAccessMode?: WgslAccessMode, pBindType?: WgslBindingType, pLocation: number | null = null) {
+        super(pName, pAccessMode, pBindType, pLocation);
 
         this.mInnerType = pInnerType;
         this.mArraySize = pSize ?? -1;

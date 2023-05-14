@@ -1,26 +1,27 @@
 import { Exception, TypedArray } from '@kartoffelgames/core.data';
+import { BufferType } from '../../buffer_type/buffer-type';
+import { SimpleBufferType } from '../../buffer_type/simple-buffer-type';
 import { Gpu } from '../../gpu';
 import { GpuNativeObject } from '../../gpu-native-object';
 import { BufferDataType } from '../../resource/buffer/base-buffer';
-import { WgslTypeNumber } from '../../shader/wgsl_type_handler/wgsl-type-collection';
 import { WgslType } from '../../shader/enum/wgsl-type.enum';
 
 export class VertexAttribute extends GpuNativeObject<GPUVertexBufferLayout> {
-    private mAttribute: AttributeFormatDefinition;
+    private readonly mAttribute: AttributeFormatDefinition;
     private readonly mName: string;
 
     /**
      * Get underlying type of buffer.
      */
     public get bufferDataType(): BufferDataType<TypedArray> {
-        return this.mAttribute.type;
+        return this.mAttribute.dataType;
     }
 
     /**
      * Get attribute location.
      */
     public get location(): number {
-        return this.mAttribute.location;
+        return this.mAttribute.type.location!;
     }
 
     /**
@@ -31,51 +32,27 @@ export class VertexAttribute extends GpuNativeObject<GPUVertexBufferLayout> {
     }
 
     /**
-     * Get buffer item length that the assigned buffer should have.
-     */
-    public get strideLength(): number {
-        return this.mAttribute.itemStride;
-    }
-
-    /**
      * Constructor.
      * @param pBuffer - Buffer.
      */
-    public constructor(pGpu: Gpu, pName: string) {
+    public constructor(pGpu: Gpu, pType: SimpleBufferType) {
         super(pGpu, 'VERTEX_ATTRIBUTE');
 
-        this.mName = pName;
-        this.mAttribute = {
-            location: 0,
-            type: Int32Array,
-            itemStride: 1,
-            format: 'uint32'
-        };
-    }
-
-    /**
-     * Add vertex attribute.
-     * @param pFormat - Attribute format.
-     */
-    public setAttributeLocation(pType: WgslType, pGeneric: WgslTypeNumber | null, pLocation: number): void {
         // Format by type.
-        const lFormatStride: { format: GPUVertexFormat, stride: number, type: BufferDataType<TypedArray>; } | undefined = gTypeToBufferType[pType]?.[pGeneric!];
+        const lGeneric: WgslType | undefined = pType.generics.at(0);
+        const lFormatStride: { format: GPUVertexFormat, type: BufferDataType<TypedArray>; } | undefined = gTypeToBufferType[pType.type]?.[lGeneric!];
 
         // Throw on invalid parameter.
         if (!lFormatStride) {
-            throw new Exception(`Invalid attribute type for "${pType}<${pGeneric}>"`, this);
+            throw new Exception(`Invalid attribute type for "${pType}<${lGeneric}>"`, this);
         }
 
-        // Add attribute.
+        this.mName = pType.name;
         this.mAttribute = {
-            location: pLocation,
-            format: lFormatStride.format,
-            itemStride: lFormatStride.stride,
-            type: lFormatStride.type
+            type: pType,
+            dataType: lFormatStride.type,
+            format: lFormatStride.format
         };
-
-        // Trigger change.
-        this.triggerChange();
     }
 
     /**
@@ -87,56 +64,52 @@ export class VertexAttribute extends GpuNativeObject<GPUVertexBufferLayout> {
         lAttributes.push({
             format: this.mAttribute.format,
             offset: 0, // Current counter of bytes.
-            shaderLocation: this.mAttribute.location
+            shaderLocation: this.mAttribute.type.location!
         });
 
-        // Overall used bytes.
-        const lTotalBytes: number = this.mAttribute.type.BYTES_PER_ELEMENT * this.mAttribute.itemStride;
-
         return {
-            arrayStride: lTotalBytes,
+            arrayStride: this.mAttribute.type.size,
             stepMode: 'vertex',
             attributes: lAttributes
         };
     }
 }
 
-const gTypeToBufferType: { [type: string]: { [generic: string]: { format: GPUVertexFormat, stride: number; type: BufferDataType<TypedArray>; }; }; } = {
+const gTypeToBufferType: { [type: string]: { [generic: string]: { format: GPUVertexFormat, type: BufferDataType<TypedArray>; }; }; } = {
     // Single types.
     [WgslType.Float32]: {
-        [WgslType.Any]: { format: 'float32', stride: 1, type: Float32Array }
+        [WgslType.Any]: { format: 'float32', type: Float32Array }
     },
     [WgslType.Integer32]: {
-        [WgslType.Any]: { format: 'sint32', stride: 1, type: Int32Array }
+        [WgslType.Any]: { format: 'sint32', type: Int32Array }
     },
     [WgslType.UnsignedInteger32]: {
-        [WgslType.Any]: { format: 'uint32', stride: 1, type: Uint32Array }
+        [WgslType.Any]: { format: 'uint32', type: Uint32Array }
     },
 
     // Vector types.
     [WgslType.Vector2]: {
-        [WgslType.Float16]: { format: 'float16x2', stride: 2, type: Float32Array },
-        [WgslType.Float32]: { format: 'float32x2', stride: 2, type: Float32Array },
-        [WgslType.Integer32]: { format: 'sint32x2', stride: 2, type: Int32Array },
-        [WgslType.UnsignedInteger32]: { format: 'uint32x2', stride: 2, type: Uint32Array }
+        [WgslType.Float16]: { format: 'float16x2', type: Float32Array },
+        [WgslType.Float32]: { format: 'float32x2', type: Float32Array },
+        [WgslType.Integer32]: { format: 'sint32x2', type: Int32Array },
+        [WgslType.UnsignedInteger32]: { format: 'uint32x2', type: Uint32Array }
     },
     [WgslType.Vector3]: {
         // [WgslType.Float16]: { format: 'float16x3', stride: 3 },
-        [WgslType.Float32]: { format: 'float32x3', stride: 3, type: Float32Array },
-        [WgslType.Integer32]: { format: 'sint32x3', stride: 3, type: Int32Array },
-        [WgslType.UnsignedInteger32]: { format: 'uint32x3', stride: 3, type: Uint32Array }
+        [WgslType.Float32]: { format: 'float32x3', type: Float32Array },
+        [WgslType.Integer32]: { format: 'sint32x3', type: Int32Array },
+        [WgslType.UnsignedInteger32]: { format: 'uint32x3', type: Uint32Array }
     },
     [WgslType.Vector4]: {
-        [WgslType.Float16]: { format: 'float16x4', stride: 4, type: Float32Array },
-        [WgslType.Float32]: { format: 'float32x4', stride: 4, type: Float32Array },
-        [WgslType.Integer32]: { format: 'sint32x4', stride: 4, type: Int32Array },
-        [WgslType.UnsignedInteger32]: { format: 'uint32x3', stride: 3, type: Uint32Array }
+        [WgslType.Float16]: { format: 'float16x4', type: Float32Array },
+        [WgslType.Float32]: { format: 'float32x4', type: Float32Array },
+        [WgslType.Integer32]: { format: 'sint32x4', type: Int32Array },
+        [WgslType.UnsignedInteger32]: { format: 'uint32x3', type: Uint32Array }
     }
 };
 
 type AttributeFormatDefinition = {
-    location: number;
+    type: BufferType;
     format: GPUVertexFormat;
-    itemStride: number;
-    type: BufferDataType<TypedArray>;
+    dataType: BufferDataType<TypedArray>;
 };

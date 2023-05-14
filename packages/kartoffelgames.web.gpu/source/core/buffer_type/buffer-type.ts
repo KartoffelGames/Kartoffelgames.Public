@@ -7,10 +7,22 @@ export abstract class BufferType {
     private readonly mAccessMode: WgslAccessMode | null;
     private readonly mAttributes: Dictionary<string, BufferTypeAttribute>;
     private readonly mBindingType: WgslBindingType | null;
+    private readonly mLocation: number | null;
+    private readonly mName: string;
 
-    // Calculated properties.
+    /**
+     * Type byte alignment.
+     */
     public abstract readonly alignment: number;
+
+    /**
+     * Buffer size in bytes.
+     */
     public abstract readonly size: number;
+
+    /**
+     * Wgsl type.
+     */
     public abstract readonly type: WgslType;
 
     /**
@@ -28,12 +40,28 @@ export abstract class BufferType {
     }
 
     /**
+     * Get buffer location index as parameter.
+     */
+    public get location(): number | null {
+        return this.mLocation;
+    }
+
+    /**
+     * Variable name of buffer.
+     */
+    public get name(): string {
+        return this.mName;
+    }
+
+    /**
      * Constructor.
      */
-    public constructor(pAccessMode?: WgslAccessMode, pBindType?: WgslBindingType) {
+    public constructor(pName: string, pAccessMode?: WgslAccessMode, pBindType?: WgslBindingType, pLocation: number | null = null) {
         this.mAttributes = new Dictionary<string, BufferTypeAttribute>();
 
         // Static properties.
+        this.mName = pName;
+        this.mLocation = pLocation;
         this.mAccessMode = pAccessMode ?? null;
         this.mBindingType = pBindType ?? null;
     }

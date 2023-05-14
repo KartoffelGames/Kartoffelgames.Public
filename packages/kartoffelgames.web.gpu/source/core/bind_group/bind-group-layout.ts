@@ -1,9 +1,9 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { BindType } from '../enum/bind-type.enum';
-import { ShaderStage } from '../enum/shader-stage.enum';
 import { Gpu } from '../gpu';
 import { GpuNativeObject } from '../gpu-native-object';
 import { BindGroup } from './bind-group';
+import { WgslShaderStage } from '../shader/enum/wgsl-shader-stage.enum';
 
 export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     private readonly mGroupBinds: Dictionary<string, BindLayout>;
@@ -44,7 +44,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
      * @param pHasDynamicOffset - Has dynamic offset.
      * @param pMinBindingSize - min binding size.
      */
-    public addBuffer(pName: string, pIndex: number, pVisibility: ShaderStage, pBindingType: GPUBufferBindingType = 'uniform', pHasDynamicOffset: boolean = false, pMinBindingSize: GPUSize64 = 0): void {
+    public addBuffer(pName: string, pIndex: number, pVisibility: WgslShaderStage, pBindingType: GPUBufferBindingType = 'uniform', pHasDynamicOffset: boolean = false, pMinBindingSize: GPUSize64 = 0): void {
         this.mGroupBinds.set(pName, {
             index: pIndex,
             bindType: BindType.Buffer,
@@ -65,7 +65,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
      * @param pIndex - Bind index.
      * @param pVisibility - Visibility.
      */
-    public addExternalTexture(pName: string, pIndex: number, pVisibility: ShaderStage): void {
+    public addExternalTexture(pName: string, pIndex: number, pVisibility: WgslShaderStage): void {
         this.mGroupBinds.set(pName, {
             index: pIndex,
             bindType: BindType.ExternalTexture,
@@ -84,7 +84,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
      * @param pVisibility - Visibility.
      * @param pSampleType - Sample type.
      */
-    public addSampler(pName: string, pIndex: number, pVisibility: ShaderStage, pSampleType: GPUSamplerBindingType = 'filtering'): void {
+    public addSampler(pName: string, pIndex: number, pVisibility: WgslShaderStage, pSampleType: GPUSamplerBindingType = 'filtering'): void {
         this.mGroupBinds.set(pName, {
             index: pIndex,
             bindType: BindType.Sampler,
@@ -106,7 +106,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
      * @param storageAccess - Storage access.
      * @param pDimension - Texture dimension.
      */
-    public addStorageTexture(pName: string, pIndex: number, pVisibility: ShaderStage, pFormat: GPUTextureFormat, pStorageAccess: GPUStorageTextureAccess = 'write-only', pDimension: GPUTextureViewDimension = '2d'): void {
+    public addStorageTexture(pName: string, pIndex: number, pVisibility: WgslShaderStage, pFormat: GPUTextureFormat, pStorageAccess: GPUStorageTextureAccess = 'write-only', pDimension: GPUTextureViewDimension = '2d'): void {
         this.mGroupBinds.set(pName, {
             name: pName,
             index: pIndex,
@@ -130,7 +130,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
      * @param pViewDimension - View dimension.
      * @param pMultisampled - Is multisampled.
      */
-    public addTexture(pName: string, pIndex: number, pVisibility: ShaderStage, pSampleType: GPUTextureSampleType = 'float', pViewDimension: GPUTextureViewDimension = '2d', pMultisampled: boolean = false): void {
+    public addTexture(pName: string, pIndex: number, pVisibility: WgslShaderStage, pSampleType: GPUTextureSampleType = 'float', pViewDimension: GPUTextureViewDimension = '2d', pMultisampled: boolean = false): void {
         this.mGroupBinds.set(pName, {
             name: pName,
             index: pIndex,
@@ -276,7 +276,7 @@ interface BaseBindLayout {
     index: number;
     name: string;
     bindType: BindType;
-    visibility: ShaderStage;
+    visibility: WgslShaderStage;
 }
 
 interface BufferBindLayout extends BaseBindLayout, Required<GPUBufferBindingLayout> {

@@ -1950,15 +1950,21 @@ class BufferType {
    * @param pName - Attribute name.
    */
   getAttribute(pName) {
-    var _this$mAttributes$get;
-    return (_this$mAttributes$get = this.mAttributes.get(pName)) !== null && _this$mAttributes$get !== void 0 ? _this$mAttributes$get : null;
+    var lParameter = this.mAttributes.get(pName);
+    if (!lParameter) {
+      return null;
+    }
+    return {
+      name: pName,
+      parameter: lParameter
+    };
   }
   /**
    * Set attribute
    * @param pAttribute - Attribute.
    */
-  setAttribute(pAttribute) {
-    this.mAttributes.set(pAttribute.name, pAttribute);
+  setAttribute(pAttributeName, pParameter) {
+    this.mAttributes.set(pAttributeName, pParameter);
   }
 }
 exports.BufferType = BufferType;
@@ -2007,8 +2013,29 @@ class SimpleBufferType extends buffer_type_1.BufferType {
     }
     // Find corresponding restrictions. // TODO: Check for enum or struct or any types.
     var lRestriction = lRestrictionList.find(pRestriction => {
-      var _pRestriction$generic;
-      return ((_pRestriction$generic = pRestriction.generic) === null || _pRestriction$generic === void 0 ? void 0 : _pRestriction$generic.toString()) === (pGenerics === null || pGenerics === void 0 ? void 0 : pGenerics.toString());
+      // Restriction has no generics.
+      if (!pRestriction.generic && this.mGenericRawList.length > 0) {
+        return false;
+      }
+      // No Generic restriction.
+      if (!pRestriction.generic && this.mGenericRawList.length === 0) {
+        return true;
+      }
+      // Validate each restriction.
+      for (var lGenericIndex = 0; lGenericIndex < pRestriction.generic.length; lGenericIndex++) {
+        var _lRestriction = pRestriction.generic[lGenericIndex];
+        if (_lRestriction === wgsl_type_enum_1.WgslType.Any) {
+          continue;
+        }
+        var lRawGeneric = this.mGenericRawList[lGenericIndex];
+        if (_lRestriction === wgsl_type_enum_1.WgslType.Enum && lRawGeneric) {
+          continue;
+        }
+        if (_lRestriction !== lRawGeneric) {
+          return false;
+        }
+      }
+      return true;
     });
     if (!lRestriction) {
       throw new core_data_1.Exception("No type (".concat(pType, ") restriction for generics [").concat(pGenerics, "] found."), this);
@@ -2479,9 +2506,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.StructBufferType = void 0;
-var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-var buffer_type_1 = __webpack_require__(/*! ./buffer-type */ "./source/core/buffer_type/buffer-type.ts");
 var wgsl_type_enum_1 = __webpack_require__(/*! ../shader/enum/wgsl-type.enum */ "./source/core/shader/enum/wgsl-type.enum.ts");
+var buffer_type_1 = __webpack_require__(/*! ./buffer-type */ "./source/core/buffer_type/buffer-type.ts");
 class StructBufferType extends buffer_type_1.BufferType {
   /**
    * Constructor.
@@ -2491,7 +2517,7 @@ class StructBufferType extends buffer_type_1.BufferType {
     super(pName, pAccessMode, pBindType, pLocation);
     this.mAlignment = 0;
     this.mSize = 0;
-    this.mInnerTypes = new core_data_1.Dictionary();
+    this.mInnerTypes = new Array();
   }
   /**
    * Alignment of type.
@@ -2514,20 +2540,20 @@ class StructBufferType extends buffer_type_1.BufferType {
   /**
    * Add property to struct.
    * @param pName - Property name.
-   * @param pIndex - Index of property.
+   * @param pOrder - Index of property.
    * @param pType - Property type.
    */
-  addProperty(pName, pIndex, pType) {
-    this.mInnerTypes.add(pName, [pIndex, pType]);
+  addProperty(pOrder, pType) {
+    this.mInnerTypes.push([pOrder, pType]);
     // Recalculate alignment.
     if (pType.alignment > this.mAlignment) {
       this.mAlignment = pType.alignment;
     }
     // Get ordered types.
-    var lOrderedTypeList = [...this.mInnerTypes.values()].sort((_ref, _ref2) => {
-      var [pIndexA] = _ref;
-      var [pIndexB] = _ref2;
-      return pIndexA - pIndexB;
+    var lOrderedTypeList = this.mInnerTypes.sort((_ref, _ref2) => {
+      var [pOrderA] = _ref;
+      var [pOrderB] = _ref2;
+      return pOrderA - pOrderB;
     }).map(_ref3 => {
       var [, pType] = _ref3;
       return pType;
@@ -5133,17 +5159,43 @@ class ShaderInformation {
       if (!lBindingType) {
         throw new core_data_1.Exception("Bind type \"".concat(pVariable.access.bindingType, "\" does not exist."), this);
       }
-      lAccessMode = core_data_1.EnumUtil.enumKeyByValue(wgsl_access_mode_enum_1.WgslAccessMode, pVariable.access.accessMode);
-      if (!lAccessMode) {
-        throw new core_data_1.Exception("Access mode \"".concat(pVariable.access.accessMode, "\" does not exist."), this);
+      if (pVariable.access.accessMode) {
+        lAccessMode = core_data_1.EnumUtil.enumKeyByValue(wgsl_access_mode_enum_1.WgslAccessMode, pVariable.access.accessMode);
+        if (!lAccessMode) {
+          throw new core_data_1.Exception("Access mode \"".concat(pVariable.access.accessMode, "\" does not exist."), this);
+        }
       }
+    }
+    // Parse attributes of variable.
+    var lAttributes = new core_data_1.Dictionary();
+    for (var lAttribute of pVariable.attributes) {
+      var lAttributeMatch = /*#__PURE__*/_wrapRegExp(/@(\w+)(\(([^)]*)\))?/g, {
+        name: 1,
+        parameter: 3
+      }).exec(lAttribute);
+      if (!lAttributeMatch) {
+        throw new core_data_1.Exception("Somthing is not right with \"".concat(lAttribute, "\". Dont know what."), this);
+      }
+      var lAttributeParameterList = new Array();
+      if (lAttributeMatch.groups['parameter']) {
+        var lParameterPartList = lAttributeMatch.groups['parameter'].split(',');
+        for (var lPart of lParameterPartList) {
+          if (isNaN(lPart)) {
+            lAttributeParameterList.push(lPart);
+          } else {
+            lAttributeParameterList.push(parseInt(lPart));
+          }
+        }
+      }
+      lAttributes.set(lAttributeMatch.groups['name'], lAttributeParameterList);
     }
     // Try to get location from attributes.
     var lLocationIndex = null;
-    var lLocationValue = (_pVariable$attributes = (_pVariable$attributes2 = pVariable.attributes.find(pAttribute => pAttribute.startsWith('@location'))) === null || _pVariable$attributes2 === void 0 ? void 0 : _pVariable$attributes2.replace(/[^\\d]+/g, '')) !== null && _pVariable$attributes !== void 0 ? _pVariable$attributes : '';
+    var lLocationValue = (_pVariable$attributes = (_pVariable$attributes2 = pVariable.attributes.find(pAttribute => pAttribute.startsWith('@location'))) === null || _pVariable$attributes2 === void 0 ? void 0 : _pVariable$attributes2.replace(/[^\d]+/g, '')) !== null && _pVariable$attributes !== void 0 ? _pVariable$attributes : '';
     if (isNaN(lLocationValue)) {
       lLocationIndex = parseInt(lLocationValue);
     }
+    var lBufferType;
     switch (lType) {
       case wgsl_type_enum_1.WgslType.Struct:
         {
@@ -5153,9 +5205,10 @@ class ShaderInformation {
           this.fetchVariableDefinitions(lStructBody).forEach((pPropertyVariable, pIndex) => {
             var lProperyBufferType = this.createBufferType(pPropertyVariable);
             // Add property to struct buffer type.
-            lStructType.addProperty(pPropertyVariable.name, pIndex, lProperyBufferType);
+            lStructType.addProperty(pIndex, lProperyBufferType);
           });
-          return lStructType;
+          lBufferType = lStructType;
+          break;
         }
       case wgsl_type_enum_1.WgslType.Array:
         {
@@ -5175,7 +5228,8 @@ class ShaderInformation {
             lSizeGeneric = parseInt(pVariable.generics.at(1));
           }
           // Create array buffer type.
-          return new array_buffer_type_1.ArrayBufferType(pVariable.name, lTypeGenericBufferType, lSizeGeneric, lAccessMode, lBindingType, lLocationIndex);
+          lBufferType = new array_buffer_type_1.ArrayBufferType(pVariable.name, lTypeGenericBufferType, lSizeGeneric, lAccessMode, lBindingType, lLocationIndex);
+          break;
         }
       default:
         {
@@ -5187,9 +5241,15 @@ class ShaderInformation {
           var lGenericList = lPseudoVariableList.map(pVariable => {
             return this.wgslTypeByName(pVariable.type);
           });
-          return new simple_buffer_type_1.SimpleBufferType(pVariable.name, lType, lGenericList, lAccessMode, lBindingType, lLocationIndex);
+          lBufferType = new simple_buffer_type_1.SimpleBufferType(pVariable.name, lType, lGenericList, lAccessMode, lBindingType, lLocationIndex);
+          break;
         }
     }
+    // Add attributes to buffer type.
+    for (var [lAttributeName, _lAttributeParameterList] of lAttributes) {
+      lBufferType.setAttribute(lAttributeName, _lAttributeParameterList);
+    }
+    return lBufferType;
   }
   /**
    * Fetch all bind groups of source.
@@ -5197,7 +5257,7 @@ class ShaderInformation {
   fetchBindGroups() {
     // Get only lines with group attributes.
     var lAllGroupLines = [...this.mSource.matchAll(/^.*@group.*$/gm)].reduce((pCurrent, pLine) => {
-      return pCurrent + pLine;
+      return pCurrent + pLine[0];
     }, '');
     // Available shader states based on entry points.
     // Not the best, but better than nothing.
@@ -5219,8 +5279,8 @@ class ShaderInformation {
       if (!lGroupAttribute || !lBindAttribute) {
         throw new core_data_1.Exception('Bindind variable needs an binding and group attribute.', this);
       }
-      var lGroupIndex = parseInt(lGroupAttribute.replace(/[^\\d]+/g, ''));
-      var lBindIndex = parseInt(lBindAttribute.replace(/[^\\d]+/g, ''));
+      var lGroupIndex = parseInt(lGroupAttribute.replace(/[^\d]+/g, ''));
+      var lBindIndex = parseInt(lBindAttribute.replace(/[^\d]+/g, ''));
       // Init group.
       if (!lBindGroups.has(lGroupIndex)) {
         lBindGroups.set(lGroupIndex, new Array());
@@ -5280,7 +5340,7 @@ class ShaderInformation {
       var lAttributeList = new Array();
       if (lFunctionMatch.groups['attributes']) {
         // Split string of multiple attributes.
-        for (var lAttributeMatch of lFunctionMatch.groups['attributes'].matchAll(/@[\w]+\([^)]*\)/g)) {
+        for (var lAttributeMatch of lFunctionMatch.groups['attributes'].matchAll(/@[\w]+(\([^)]*\))?/g)) {
           lAttributeList.push(lAttributeMatch[0]);
         }
       }
@@ -5336,7 +5396,7 @@ class ShaderInformation {
         var lAccessList = lDefinitionMatch.groups['access'].split(',').map(pValue => pValue.trim()).filter(pValue => pValue.length);
         lAccess = {
           bindingType: lAccessList[0],
-          accessMode: (_lAccessList$ = lAccessList[1]) !== null && _lAccessList$ !== void 0 ? _lAccessList$ : ''
+          accessMode: (_lAccessList$ = lAccessList[1]) !== null && _lAccessList$ !== void 0 ? _lAccessList$ : null
         };
       }
       // Split generic types.
@@ -5438,6 +5498,7 @@ class Shader extends gpu_native_object_1.GpuNativeObject {
     super(pGpu, 'SHADER');
     this.mSource = pSource;
     this.mShaderInformation = new shader_analyzer_1.ShaderInformation(pSource);
+    console.log(this.mShaderInformation);
     // Generate from ShaderInformation. 
     this.mBindGroups = this.generateBindGroups(this.mShaderInformation);
     this.mEntryPoints = {
@@ -11556,7 +11617,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("2f59fc4360d34aca6ef8")
+/******/ 		__webpack_require__.h = () => ("ff4834b0401c37b3447c")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

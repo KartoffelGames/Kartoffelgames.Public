@@ -57,7 +57,7 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
 
         this.mSource = pSource;
         this.mShaderInformation = new ShaderInformation(pSource);
-
+        console.log(this.mShaderInformation)
         // Generate from ShaderInformation. 
         this.mBindGroups = this.generateBindGroups(this.mShaderInformation);
         this.mEntryPoints = {

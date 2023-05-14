@@ -57,19 +57,46 @@ export class ShaderInformation {
             if (!lBindingType) {
                 throw new Exception(`Bind type "${pVariable.access.bindingType}" does not exist.`, this);
             }
-            lAccessMode = EnumUtil.enumKeyByValue(WgslAccessMode, pVariable.access.accessMode);
-            if (!lAccessMode) {
-                throw new Exception(`Access mode "${pVariable.access.accessMode}" does not exist.`, this);
+            if (pVariable.access.accessMode) {
+                lAccessMode = EnumUtil.enumKeyByValue(WgslAccessMode, pVariable.access.accessMode);
+                if (!lAccessMode) {
+                    throw new Exception(`Access mode "${pVariable.access.accessMode}" does not exist.`, this);
+                }
             }
+
+        }
+
+        // Parse attributes of variable.
+        const lAttributes: Dictionary<string, Array<string | number>> = new Dictionary<string, Array<string | number>>();
+        for (const lAttribute of pVariable.attributes) {
+            const lAttributeMatch: RegExpExecArray | null = /@(?<name>\w+)(\((?<parameter>[^)]*)\))?/g.exec(lAttribute);
+            if (!lAttributeMatch) {
+                throw new Exception(`Somthing is not right with "${lAttribute}". Dont know what.`, this);
+            }
+
+            const lAttributeParameterList: Array<string | number> = new Array<string | number>();
+            if (lAttributeMatch.groups!['parameter']) {
+                const lParameterPartList: Array<string> = lAttributeMatch.groups!['parameter'].split(',');
+                for (const lPart of lParameterPartList) {
+                    if (isNaN(<any>lPart)) {
+                        lAttributeParameterList.push(lPart);
+                    } else {
+                        lAttributeParameterList.push(parseInt(lPart));
+                    }
+                }
+            }
+
+            lAttributes.set(lAttributeMatch.groups!['name'], lAttributeParameterList);
         }
 
         // Try to get location from attributes.
         let lLocationIndex: number | null = null;
-        const lLocationValue: string = pVariable.attributes.find(pAttribute => pAttribute.startsWith('@location'))?.replace(/[^\\d]+/g, '') ?? '';
+        const lLocationValue: string = pVariable.attributes.find(pAttribute => pAttribute.startsWith('@location'))?.replace(/[^\d]+/g, '') ?? '';
         if (isNaN(<any>lLocationValue)) {
             lLocationIndex = parseInt(lLocationValue);
         }
 
+        let lBufferType: BufferType;
         switch (lType) {
             case WgslType.Struct: {
                 const lStructType: StructBufferType = new StructBufferType(pVariable.name, lAccessMode, lBindingType, lLocationIndex);
@@ -80,10 +107,11 @@ export class ShaderInformation {
                     const lProperyBufferType: BufferType = this.createBufferType(pPropertyVariable);
 
                     // Add property to struct buffer type.
-                    lStructType.addProperty(pPropertyVariable.name, pIndex, lProperyBufferType);
+                    lStructType.addProperty(pIndex, lProperyBufferType);
                 });
 
-                return lStructType;
+                lBufferType = lStructType;
+                break;
             }
             case WgslType.Array: {
                 // Validate generic range.
@@ -105,7 +133,8 @@ export class ShaderInformation {
                 }
 
                 // Create array buffer type.
-                return new ArrayBufferType(pVariable.name, lTypeGenericBufferType, lSizeGeneric, lAccessMode, lBindingType, lLocationIndex);
+                lBufferType = new ArrayBufferType(pVariable.name, lTypeGenericBufferType, lSizeGeneric, lAccessMode, lBindingType, lLocationIndex);
+                break;
             }
             default: {
                 // Map generics to struct like body. Fetch variable definitions and save only type.
@@ -115,9 +144,17 @@ export class ShaderInformation {
                 const lPseudoVariableList: Array<WgslVariable> = this.fetchVariableDefinitions(lPseudoStructBody);
                 const lGenericList: Array<WgslType> = lPseudoVariableList.map((pVariable) => { return this.wgslTypeByName(pVariable.type); });
 
-                return new SimpleBufferType(pVariable.name, lType, lGenericList, lAccessMode, lBindingType, lLocationIndex);
+                lBufferType = new SimpleBufferType(pVariable.name, lType, lGenericList, lAccessMode, lBindingType, lLocationIndex);
+                break;
             }
         }
+
+        // Add attributes to buffer type.
+        for (const [lAttributeName, lAttributeParameterList] of lAttributes) {
+            lBufferType.setAttribute(lAttributeName, lAttributeParameterList);
+        }
+
+        return lBufferType;
     }
 
     /**
@@ -126,7 +163,7 @@ export class ShaderInformation {
     private fetchBindGroups(): Array<WgslBindGroup> {
         // Get only lines with group attributes.
         const lAllGroupLines: string = [...this.mSource.matchAll(/^.*@group.*$/gm)].reduce((pCurrent, pLine) => {
-            return pCurrent + pLine;
+            return pCurrent + pLine[0];
         }, '');
 
         // Available shader states based on entry points.
@@ -151,8 +188,8 @@ export class ShaderInformation {
                 throw new Exception('Bindind variable needs an binding and group attribute.', this);
             }
 
-            const lGroupIndex: number = parseInt(lGroupAttribute.replace(/[^\\d]+/g, ''));
-            const lBindIndex: number = parseInt(lBindAttribute.replace(/[^\\d]+/g, ''));
+            const lGroupIndex: number = parseInt(lGroupAttribute.replace(/[^\d]+/g, ''));
+            const lBindIndex: number = parseInt(lBindAttribute.replace(/[^\d]+/g, ''));
 
             // Init group.
             if (!lBindGroups.has(lGroupIndex)) {
@@ -213,7 +250,7 @@ export class ShaderInformation {
             const lAttributeList: Array<string> = new Array<string>();
             if (lFunctionMatch.groups!['attributes']) {
                 // Split string of multiple attributes.
-                for (const lAttributeMatch of lFunctionMatch.groups!['attributes'].matchAll(/@[\w]+\([^)]*\)/g)) {
+                for (const lAttributeMatch of lFunctionMatch.groups!['attributes'].matchAll(/@[\w]+(\([^)]*\))?/g)) {
                     lAttributeList.push(lAttributeMatch[0]);
                 }
             }
@@ -259,13 +296,13 @@ export class ShaderInformation {
             }
 
             // Parse optional acccess modifier.
-            let lAccess: { bindingType: string; accessMode: string; } | null = null;
+            let lAccess: { bindingType: string; accessMode: string | null; } | null = null;
             if (lDefinitionMatch.groups!['access']) {
                 // var<addressSpace [,accessMode]>
                 const lAccessList: Array<string> = lDefinitionMatch.groups!['access'].split(',').map((pValue: string) => pValue.trim()).filter((pValue: string) => pValue.length);
                 lAccess = {
                     bindingType: lAccessList[0],
-                    accessMode: lAccessList[1] ?? ''
+                    accessMode: lAccessList[1] ?? null
                 };
             }
 
@@ -360,5 +397,5 @@ type WgslVariable = {
     type: string;
     generics: Array<string>;
     attributes: Array<string>;
-    access: { bindingType: string; accessMode: string; } | null;
+    access: { bindingType: string; accessMode: string | null; } | null;
 };

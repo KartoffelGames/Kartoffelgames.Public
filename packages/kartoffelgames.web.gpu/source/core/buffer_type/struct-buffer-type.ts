@@ -1,12 +1,11 @@
-import { Dictionary } from '@kartoffelgames/core.data';
-import { BufferType } from './buffer-type';
-import { WgslType } from '../shader/enum/wgsl-type.enum';
 import { WgslAccessMode } from '../shader/enum/wgsl-access-mode.enum';
 import { WgslBindingType } from '../shader/enum/wgsl-binding-type.enum';
+import { WgslType } from '../shader/enum/wgsl-type.enum';
+import { BufferType } from './buffer-type';
 
 export class StructBufferType extends BufferType {
     private mAlignment: number;
-    private readonly mInnerTypes: Dictionary<string, [number, BufferType]>;
+    private readonly mInnerTypes: Array<[number, BufferType]>;
     private mSize: number;
 
     /**
@@ -38,17 +37,17 @@ export class StructBufferType extends BufferType {
 
         this.mAlignment = 0;
         this.mSize = 0;
-        this.mInnerTypes = new Dictionary<string, [number, BufferType]>();
+        this.mInnerTypes = new Array<[number, BufferType]>();
     }
 
     /**
      * Add property to struct.
      * @param pName - Property name.
-     * @param pIndex - Index of property.
+     * @param pOrder - Index of property.
      * @param pType - Property type.
      */
-    public addProperty(pName: string, pIndex: number, pType: BufferType): void {
-        this.mInnerTypes.add(pName, [pIndex, pType]);
+    public addProperty(pOrder: number, pType: BufferType): void {
+        this.mInnerTypes.push([pOrder, pType]);
 
         // Recalculate alignment.
         if (pType.alignment > this.mAlignment) {
@@ -56,8 +55,8 @@ export class StructBufferType extends BufferType {
         }
 
         // Get ordered types.
-        const lOrderedTypeList: Array<BufferType> = [...this.mInnerTypes.values()].sort(([pIndexA], [pIndexB]) => {
-            return pIndexA - pIndexB;
+        const lOrderedTypeList: Array<BufferType> = this.mInnerTypes.sort(([pOrderA], [pOrderB]) => {
+            return pOrderA - pOrderB;
         }).map(([, pType]) => pType);
 
         // Recalculate size.

@@ -238,7 +238,35 @@ export class SimpleBufferType extends BufferType {
         }
 
         // Find corresponding restrictions. // TODO: Check for enum or struct or any types.
-        const lRestriction: WgslTypeSetting | undefined = lRestrictionList.find((pRestriction) => pRestriction.generic?.toString() === pGenerics?.toString());
+        const lRestriction: WgslTypeSetting | undefined = lRestrictionList.find((pRestriction) => {
+            // Restriction has no generics.
+            if (!pRestriction.generic && this.mGenericRawList.length > 0) {
+                return false;
+            }
+
+            // No Generic restriction.
+            if (!pRestriction.generic && this.mGenericRawList.length === 0){
+                return true;
+            }
+
+            // Validate each restriction.
+            for(let lGenericIndex: number = 0; lGenericIndex < pRestriction.generic!.length; lGenericIndex++){
+                const lRestriction: WgslType = pRestriction.generic![lGenericIndex];
+                if(lRestriction === WgslType.Any){
+                    continue;
+                }
+
+                const lRawGeneric: string = this.mGenericRawList[lGenericIndex];
+                if(lRestriction === WgslType.Enum && lRawGeneric){
+                    continue;
+                }
+
+                if(lRestriction !== lRawGeneric){
+                    return false;
+                }
+            }
+            return true;
+        });
         if (!lRestriction) {
             throw new Exception(`No type (${pType}) restriction for generics [${pGenerics}] found.`, this);
         }

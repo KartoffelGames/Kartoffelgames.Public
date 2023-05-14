@@ -5,7 +5,7 @@ import { WgslType } from '../shader/enum/wgsl-type.enum';
 
 export abstract class BufferType {
     private readonly mAccessMode: WgslAccessMode | null;
-    private readonly mAttributes: Dictionary<string, BufferTypeAttribute>;
+    private readonly mAttributes: Dictionary<string, Array<string | number>>;
     private readonly mBindingType: WgslBindingType | null;
     private readonly mLocation: number | null;
     private readonly mName: string;
@@ -57,7 +57,7 @@ export abstract class BufferType {
      * Constructor.
      */
     public constructor(pName: string, pAccessMode?: WgslAccessMode, pBindType?: WgslBindingType, pLocation: number | null = null) {
-        this.mAttributes = new Dictionary<string, BufferTypeAttribute>();
+        this.mAttributes = new Dictionary<string, Array<string | number>>();
 
         // Static properties.
         this.mName = pName;
@@ -71,19 +71,27 @@ export abstract class BufferType {
      * @param pName - Attribute name.
      */
     public getAttribute(pName: string): BufferTypeAttribute | null {
-        return this.mAttributes.get(pName) ?? null;
+        const lParameter: Array<string | number> | undefined = this.mAttributes.get(pName);
+        if (!lParameter) {
+            return null;
+        }
+
+        return {
+            name: pName,
+            parameter: lParameter
+        };
     }
 
     /**
      * Set attribute
      * @param pAttribute - Attribute.
      */
-    public setAttribute(pAttribute: BufferTypeAttribute): void {
-        this.mAttributes.set(pAttribute.name, pAttribute);
+    public setAttribute(pAttributeName: string, pParameter: Array<string | number>): void {
+        this.mAttributes.set(pAttributeName, pParameter);
     }
 }
 
 export type BufferTypeAttribute = {
     name: string;
-    parameter: Array<string>;
+    parameter: Array<string | number>;
 }; 

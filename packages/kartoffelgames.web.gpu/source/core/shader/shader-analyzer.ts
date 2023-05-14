@@ -64,6 +64,10 @@ export class ShaderInformation {
                 }
             }
 
+            // Set bind type to read only storage if it is in fact a read only storage.
+            if (lBindingType === WgslBindingType.Storage && lAccessMode === WgslAccessMode.AccessModeRead) {
+                lBindingType = WgslBindingType.ReadonlyStorage;
+            }
         }
 
         // Parse attributes of variable.

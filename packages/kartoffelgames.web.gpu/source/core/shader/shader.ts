@@ -187,7 +187,6 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
             }
         }
 
-
         // Generate new vertex attribute for each location.
         for (const lParameter of lParameterLocationTypes) {
             if (!(lParameter instanceof SimpleBufferType)) {

@@ -5191,6 +5191,10 @@ class ShaderInformation {
           throw new core_data_1.Exception("Access mode \"".concat(pVariable.access.accessMode, "\" does not exist."), this);
         }
       }
+      // Set bind type to read only storage if it is in fact a read only storage.
+      if (lBindingType === wgsl_binding_type_enum_1.WgslBindingType.Storage && lAccessMode === wgsl_access_mode_enum_1.WgslAccessMode.AccessModeRead) {
+        lBindingType = wgsl_binding_type_enum_1.WgslBindingType.ReadonlyStorage;
+      }
     }
     // Parse attributes of variable.
     var lAttributes = new core_data_1.Dictionary();
@@ -11642,7 +11646,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("18266323f4d463180802")
+/******/ 		__webpack_require__.h = () => ("263ef3321888fc576b58")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

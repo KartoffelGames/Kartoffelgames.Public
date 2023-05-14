@@ -57,7 +57,7 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
 
         this.mSource = pSource;
         this.mShaderInformation = new ShaderInformation(pSource);
-        console.log(this.mShaderInformation)
+
         // Generate from ShaderInformation. 
         this.mBindGroups = this.generateBindGroups(this.mShaderInformation);
         this.mEntryPoints = {
@@ -165,7 +165,7 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
      */
     private generateVertexEntryPoint(pShaderInformation: ShaderInformation): ShaderVertexEntryPoint | undefined {
         // Find entry point information.
-        const lShaderEntryPointFunction: WgslFunction | undefined = pShaderInformation.entryPoints.get(WgslShaderStage.Fragment);
+        const lShaderEntryPointFunction: WgslFunction | undefined = pShaderInformation.entryPoints.get(WgslShaderStage.Vertex);
         if (!lShaderEntryPointFunction) {
             return undefined;
         }

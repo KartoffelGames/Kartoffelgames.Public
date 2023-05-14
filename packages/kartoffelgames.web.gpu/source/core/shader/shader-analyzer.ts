@@ -92,14 +92,14 @@ export class ShaderInformation {
         // Try to get location from attributes.
         let lLocationIndex: number | null = null;
         const lLocationValue: string = pVariable.attributes.find(pAttribute => pAttribute.startsWith('@location'))?.replace(/[^\d]+/g, '') ?? '';
-        if (isNaN(<any>lLocationValue)) {
+        if (lLocationValue && !isNaN(<any>lLocationValue)) {
             lLocationIndex = parseInt(lLocationValue);
         }
 
         let lBufferType: BufferType;
         switch (lType) {
             case WgslType.Struct: {
-                const lStructType: StructBufferType = new StructBufferType(pVariable.name, lAccessMode, lBindingType, lLocationIndex);
+                const lStructType: StructBufferType = new StructBufferType(pVariable.name, pVariable.type, lAccessMode, lBindingType, lLocationIndex);
 
                 // Get struct body and fetch types.
                 const lStructBody: string = this.getStructBody(pVariable.type);

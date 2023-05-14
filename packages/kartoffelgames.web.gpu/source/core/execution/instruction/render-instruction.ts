@@ -55,7 +55,7 @@ export class RenderInstruction implements IInstruction {
 
         // Validate mesh and pipeline attributes length.
         if (pRenderParameter.attributesCount !== this.mPipeline.shader.vertexEntryPoint?.attributes.length) {
-            throw new Exception(`Mesh attributes (length:${pRenderParameter.attributesCount}) does not match pipeline attributes (length${this.mPipeline.shader.vertexEntryPoint?.attributes.length})`, this);
+            throw new Exception(`Mesh attributes (length:${pRenderParameter.attributesCount}) does not match pipeline attributes (length: ${this.mPipeline.shader.vertexEntryPoint?.attributes.length})`, this);
         }
 
         // Validate mesh and pipeline attributes content.

@@ -55,6 +55,8 @@ export class ArrayBufferType extends BufferType {
         super(pName, pAccessMode, pBindType, pLocation);
 
         this.mInnerType = pInnerType;
+        this.mInnerType.parent = this;
+        
         this.mArraySize = pSize ?? -1;
     }
 }

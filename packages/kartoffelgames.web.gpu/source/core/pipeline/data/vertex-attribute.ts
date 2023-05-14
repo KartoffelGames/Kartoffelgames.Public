@@ -47,7 +47,15 @@ export class VertexAttribute extends GpuNativeObject<GPUVertexBufferLayout> {
             throw new Exception(`Invalid attribute type for "${pType}<${lGeneric}>"`, this);
         }
 
-        this.mName = pType.name;
+        // Build name.
+        let lAttributeName: string = '';
+        let lCurrentPathType: BufferType | null = pType;
+        do {
+            lAttributeName = lCurrentPathType.name + lAttributeName;
+            lCurrentPathType = lCurrentPathType.parent;
+        } while (lCurrentPathType !== null);
+
+        this.mName = lAttributeName;
         this.mAttribute = {
             type: pType,
             dataType: lFormatStride.type,

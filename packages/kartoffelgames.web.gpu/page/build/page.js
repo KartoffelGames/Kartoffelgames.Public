@@ -1854,6 +1854,7 @@ class ArrayBufferType extends buffer_type_1.BufferType {
     var pLocation = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : null;
     super(pName, pAccessMode, pBindType, pLocation);
     this.mInnerType = pInnerType;
+    this.mInnerType.parent = this;
     this.mArraySize = pSize !== null && pSize !== void 0 ? pSize : -1;
   }
   /**
@@ -1920,6 +1921,7 @@ class BufferType {
     this.mLocation = pLocation;
     this.mAccessMode = pAccessMode !== null && pAccessMode !== void 0 ? pAccessMode : null;
     this.mBindingType = pBindType !== null && pBindType !== void 0 ? pBindType : null;
+    this.mParent = null;
   }
   /**
    * Buffer type access mode.
@@ -1944,6 +1946,15 @@ class BufferType {
    */
   get name() {
     return this.mName;
+  }
+  /**
+   * Parent type. Stuct or Array.
+   */
+  get parent() {
+    return this.mParent;
+  }
+  set parent(pValue) {
+    this.mParent = pValue;
   }
   /**
    * Get attribute by name.
@@ -2512,9 +2523,10 @@ class StructBufferType extends buffer_type_1.BufferType {
   /**
    * Constructor.
    */
-  constructor(pName, pAccessMode, pBindType) {
-    var pLocation = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+  constructor(pName, pStructName, pAccessMode, pBindType) {
+    var pLocation = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : null;
     super(pName, pAccessMode, pBindType, pLocation);
+    this.mStructName = pStructName;
     this.mAlignment = 0;
     this.mSize = 0;
     this.mInnerTypes = new Array();
@@ -2532,6 +2544,12 @@ class StructBufferType extends buffer_type_1.BufferType {
     return this.mSize;
   }
   /**
+   * Struct name.
+   */
+  get structName() {
+    return this.mStructName;
+  }
+  /**
    * Wgsl type.
    */
   get type() {
@@ -2545,6 +2563,7 @@ class StructBufferType extends buffer_type_1.BufferType {
    */
   addProperty(pOrder, pType) {
     this.mInnerTypes.push([pOrder, pType]);
+    pType.parent = this;
     // Recalculate alignment.
     if (pType.alignment > this.mAlignment) {
       this.mAlignment = pType.alignment;
@@ -2576,7 +2595,7 @@ class StructBufferType extends buffer_type_1.BufferType {
     var lLocationTypes = new Array();
     for (var [, lPropertyType] of this.mInnerTypes.values()) {
       // Set property as location when set.
-      if (lPropertyType.location) {
+      if (lPropertyType.location !== null) {
         lLocationTypes.push(lPropertyType);
       }
       // Get all inner locations when property is a struct type.
@@ -2694,7 +2713,7 @@ class RenderInstruction {
     // Validate mesh and pipeline attributes length.
     if (pRenderParameter.attributesCount !== ((_this$mPipeline$shade = this.mPipeline.shader.vertexEntryPoint) === null || _this$mPipeline$shade === void 0 ? void 0 : _this$mPipeline$shade.attributes.length)) {
       var _this$mPipeline$shade2;
-      throw new core_data_1.Exception("Mesh attributes (length:".concat(pRenderParameter.attributesCount, ") does not match pipeline attributes (length").concat((_this$mPipeline$shade2 = this.mPipeline.shader.vertexEntryPoint) === null || _this$mPipeline$shade2 === void 0 ? void 0 : _this$mPipeline$shade2.attributes.length, ")"), this);
+      throw new core_data_1.Exception("Mesh attributes (length:".concat(pRenderParameter.attributesCount, ") does not match pipeline attributes (length: ").concat((_this$mPipeline$shade2 = this.mPipeline.shader.vertexEntryPoint) === null || _this$mPipeline$shade2 === void 0 ? void 0 : _this$mPipeline$shade2.attributes.length, ")"), this);
     }
     // Validate mesh and pipeline attributes content.
     for (var lAttribute of this.mPipeline.shader.vertexEntryPoint.attributes) {
@@ -3699,7 +3718,14 @@ class VertexAttribute extends gpu_native_object_1.GpuNativeObject {
     if (!lFormatStride) {
       throw new core_data_1.Exception("Invalid attribute type for \"".concat(pType, "<").concat(lGeneric, ">\""), this);
     }
-    this.mName = pType.name;
+    // Build name.
+    var lAttributeName = '';
+    var lCurrentPathType = pType;
+    do {
+      lAttributeName = lCurrentPathType.name + lAttributeName;
+      lCurrentPathType = lCurrentPathType.parent;
+    } while (lCurrentPathType !== null);
+    this.mName = lAttributeName;
     this.mAttribute = {
       type: pType,
       dataType: lFormatStride.type,
@@ -5192,14 +5218,14 @@ class ShaderInformation {
     // Try to get location from attributes.
     var lLocationIndex = null;
     var lLocationValue = (_pVariable$attributes = (_pVariable$attributes2 = pVariable.attributes.find(pAttribute => pAttribute.startsWith('@location'))) === null || _pVariable$attributes2 === void 0 ? void 0 : _pVariable$attributes2.replace(/[^\d]+/g, '')) !== null && _pVariable$attributes !== void 0 ? _pVariable$attributes : '';
-    if (isNaN(lLocationValue)) {
+    if (lLocationValue && !isNaN(lLocationValue)) {
       lLocationIndex = parseInt(lLocationValue);
     }
     var lBufferType;
     switch (lType) {
       case wgsl_type_enum_1.WgslType.Struct:
         {
-          var lStructType = new struct_buffer_type_1.StructBufferType(pVariable.name, lAccessMode, lBindingType, lLocationIndex);
+          var lStructType = new struct_buffer_type_1.StructBufferType(pVariable.name, pVariable.type, lAccessMode, lBindingType, lLocationIndex);
           // Get struct body and fetch types.
           var lStructBody = this.getStructBody(pVariable.type);
           this.fetchVariableDefinitions(lStructBody).forEach((pPropertyVariable, pIndex) => {
@@ -5498,7 +5524,6 @@ class Shader extends gpu_native_object_1.GpuNativeObject {
     super(pGpu, 'SHADER');
     this.mSource = pSource;
     this.mShaderInformation = new shader_analyzer_1.ShaderInformation(pSource);
-    console.log(this.mShaderInformation);
     // Generate from ShaderInformation. 
     this.mBindGroups = this.generateBindGroups(this.mShaderInformation);
     this.mEntryPoints = {
@@ -5624,7 +5649,7 @@ class Shader extends gpu_native_object_1.GpuNativeObject {
    */
   generateVertexEntryPoint(pShaderInformation) {
     // Find entry point information.
-    var lShaderEntryPointFunction = pShaderInformation.entryPoints.get(wgsl_shader_stage_enum_1.WgslShaderStage.Fragment);
+    var lShaderEntryPointFunction = pShaderInformation.entryPoints.get(wgsl_shader_stage_enum_1.WgslShaderStage.Vertex);
     if (!lShaderEntryPointFunction) {
       return undefined;
     }
@@ -11617,7 +11642,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("ff4834b0401c37b3447c")
+/******/ 		__webpack_require__.h = () => ("18266323f4d463180802")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

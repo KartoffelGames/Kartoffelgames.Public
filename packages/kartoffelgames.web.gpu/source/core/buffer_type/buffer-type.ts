@@ -9,6 +9,7 @@ export abstract class BufferType {
     private readonly mBindingType: WgslBindingType | null;
     private readonly mLocation: number | null;
     private readonly mName: string;
+    private mParent: BufferType | null;
 
     /**
      * Type byte alignment.
@@ -54,6 +55,15 @@ export abstract class BufferType {
     }
 
     /**
+     * Parent type. Stuct or Array.
+     */
+    public get parent(): BufferType | null {
+        return this.mParent;
+    } set parent(pValue: BufferType | null) {
+        this.mParent = pValue;
+    }
+
+    /**
      * Constructor.
      */
     public constructor(pName: string, pAccessMode?: WgslAccessMode, pBindType?: WgslBindingType, pLocation: number | null = null) {
@@ -64,6 +74,7 @@ export abstract class BufferType {
         this.mLocation = pLocation;
         this.mAccessMode = pAccessMode ?? null;
         this.mBindingType = pBindType ?? null;
+        this.mParent = null;
     }
 
     /**

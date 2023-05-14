@@ -7,6 +7,7 @@ export class StructBufferType extends BufferType {
     private mAlignment: number;
     private readonly mInnerTypes: Array<[number, BufferType]>;
     private mSize: number;
+    private readonly mStructName: string;
 
     /**
      * Alignment of type.
@@ -23,6 +24,13 @@ export class StructBufferType extends BufferType {
     }
 
     /**
+     * Struct name.
+     */
+    public get structName(): string {
+        return this.mStructName;
+    }
+
+    /**
      * Wgsl type.
      */
     public get type(): WgslType {
@@ -32,9 +40,10 @@ export class StructBufferType extends BufferType {
     /**
      * Constructor.
      */
-    public constructor(pName: string, pAccessMode?: WgslAccessMode, pBindType?: WgslBindingType, pLocation: number | null = null) {
+    public constructor(pName: string, pStructName: string, pAccessMode?: WgslAccessMode, pBindType?: WgslBindingType, pLocation: number | null = null) {
         super(pName, pAccessMode, pBindType, pLocation);
 
+        this.mStructName = pStructName;
         this.mAlignment = 0;
         this.mSize = 0;
         this.mInnerTypes = new Array<[number, BufferType]>();
@@ -48,6 +57,7 @@ export class StructBufferType extends BufferType {
      */
     public addProperty(pOrder: number, pType: BufferType): void {
         this.mInnerTypes.push([pOrder, pType]);
+        pType.parent = this;
 
         // Recalculate alignment.
         if (pType.alignment > this.mAlignment) {
@@ -80,7 +90,7 @@ export class StructBufferType extends BufferType {
         const lLocationTypes: Array<BufferType> = new Array<BufferType>();
         for (const [, lPropertyType] of this.mInnerTypes.values()) {
             // Set property as location when set.
-            if (lPropertyType.location) {
+            if (lPropertyType.location !== null) {
                 lLocationTypes.push(lPropertyType);
             }
 

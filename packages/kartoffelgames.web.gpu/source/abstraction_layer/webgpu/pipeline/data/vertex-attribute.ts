@@ -48,14 +48,14 @@ export class VertexAttribute extends GpuNativeObject<GPUVertexBufferLayout> {
         }
 
         // Build name.
-        let lAttributeName: string = '';
+        const lAttributeNameParts: Array<string> = new Array<string>();
         let lCurrentPathType: BufferType | null = pType;
         do {
-            lAttributeName = lCurrentPathType.name + lAttributeName;
+            lAttributeNameParts.push(lCurrentPathType.name);
             lCurrentPathType = lCurrentPathType.parent;
         } while (lCurrentPathType !== null);
 
-        this.mName = lAttributeName;
+        this.mName = lAttributeNameParts.reverse().join('.');
         this.mAttribute = {
             type: pType,
             dataType: lFormatStride.type,

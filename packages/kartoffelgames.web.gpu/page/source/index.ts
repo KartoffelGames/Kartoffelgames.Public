@@ -434,9 +434,9 @@ const gDepth: number = 10;
         7, 6, 2,
         7, 2, 3
     ]);
-    lMesh.setVertexData('vertexposition', lVertexPositionData, 4);
-    lMesh.setIndexData('vertexuv', lVertexUvData, 2);
-    lMesh.setIndexData('vertexnormal', lVertexNormalData, 4);
+    lMesh.setVertexData('vertex.position', lVertexPositionData, 4);
+    lMesh.setIndexData('vertex.uv', lVertexUvData, 2);
+    lMesh.setIndexData('vertex.normal', lVertexNormalData, 4);
 
     // Setup renderer.
     const lInstructionExecutioner: InstructionExecuter = new InstructionExecuter(lGpu);

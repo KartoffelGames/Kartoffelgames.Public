@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { Gpu } from '../../gpu';
 import { GpuNativeObject } from '../../gpu-native-object';
-import { ITexture } from '../../resource/texture/i-texture.interface';
+import { ITexture } from '../../texture_resource/texture/i-texture.interface';
 
 export class Attachment extends GpuNativeObject<GPUTextureView>{
     private mBaseArrayLayer: number;

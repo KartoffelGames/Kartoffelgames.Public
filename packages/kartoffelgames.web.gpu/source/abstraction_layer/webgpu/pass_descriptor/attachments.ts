@@ -1,9 +1,9 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { Gpu } from '../gpu';
-import { CanvasTexture } from '../resource/texture/canvas-texture';
-import { ITexture } from '../resource/texture/i-texture.interface';
-import { Texture } from '../resource/texture/texture';
-import { TextureUsage } from '../resource/texture/texture-usage.enum';
+import { CanvasTexture } from '../texture_resource/texture/canvas-texture';
+import { ITexture } from '../texture_resource/texture/i-texture.interface';
+import { Texture } from '../texture_resource/texture/texture';
+import { TextureUsage } from '../texture_resource/texture/texture-usage.enum';
 import { AttachmentType } from './attachment-type.enum';
 import { Attachment } from './type/attachment';
 

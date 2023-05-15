@@ -1,8 +1,8 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core.data';
-import { WgslType } from '../shader/enum/wgsl-type.enum';
+import { WgslType } from '../../shader/enum/wgsl-type.enum';
 import { BufferType } from './buffer-type';
-import { WgslAccessMode } from '../shader/enum/wgsl-access-mode.enum';
-import { WgslBindingType } from '../shader/enum/wgsl-binding-type.enum';
+import { WgslAccessMode } from '../../shader/enum/wgsl-access-mode.enum';
+import { WgslBindingType } from '../../shader/enum/wgsl-binding-type.enum';
 
 export class SimpleBufferType extends BufferType {
     private static readonly mTypeRestrictions: Record<WgslType, Array<WgslTypeSetting>> = (() => {

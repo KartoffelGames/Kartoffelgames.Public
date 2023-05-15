@@ -1,9 +1,9 @@
 import { Exception, TypedArray } from '@kartoffelgames/core.data';
-import { BufferType } from '../../buffer_type/buffer-type';
-import { SimpleBufferType } from '../../buffer_type/simple-buffer-type';
+import { BufferType } from '../../buffer/buffer_type/buffer-type';
+import { SimpleBufferType } from '../../buffer/buffer_type/simple-buffer-type';
 import { Gpu } from '../../gpu';
 import { GpuNativeObject } from '../../gpu-native-object';
-import { BufferDataType } from '../../resource/buffer/base-buffer';
+import { BufferDataType } from '../../buffer/base-buffer';
 import { WgslType } from '../../shader/enum/wgsl-type.enum';
 
 export class VertexAttribute extends GpuNativeObject<GPUVertexBufferLayout> {

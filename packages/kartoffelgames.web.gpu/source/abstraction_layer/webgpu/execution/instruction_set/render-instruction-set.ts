@@ -3,7 +3,7 @@ import { RenderPassDescriptor } from '../../pass_descriptor/render-pass-descript
 import { RenderInstruction } from '../instruction/render-instruction';
 import { IInstructionSet } from './i-instruction-set';
 import { RenderPipeline } from '../../pipeline/render-pipeline';
-import { BaseBuffer } from '../../resource/buffer/base-buffer';
+import { BaseBuffer } from '../../buffer/base-buffer';
 import { BindGroup } from '../../bind_group/bind-group';
 
 export class RenderInstructionSet implements IInstructionSet {

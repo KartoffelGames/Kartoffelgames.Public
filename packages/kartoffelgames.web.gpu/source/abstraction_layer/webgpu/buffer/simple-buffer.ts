@@ -1,5 +1,5 @@
 import { TypedArray } from '@kartoffelgames/core.data';
-import { Gpu } from '../../gpu';
+import { Gpu } from '../gpu';
 import { BaseBuffer } from './base-buffer';
 
 export class SimpleBuffer<T extends TypedArray> extends BaseBuffer<T> {

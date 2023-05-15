@@ -1,5 +1,5 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
-import { BindType } from '../enum/bind-type.enum';
+import { BindType } from './bind-type.enum';
 import { Gpu } from '../gpu';
 import { GpuNativeObject } from '../gpu-native-object';
 import { BindGroup } from './bind-group';

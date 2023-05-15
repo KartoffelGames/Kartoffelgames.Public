@@ -1,7 +1,7 @@
 import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core.data';
 import { BindGroup } from '../../bind_group/bind-group';
 import { RenderPipeline } from '../../pipeline/render-pipeline';
-import { BaseBuffer } from '../../resource/buffer/base-buffer';
+import { BaseBuffer } from '../../buffer/base-buffer';
 import { RenderParameter } from '../parameter/render-parameter';
 import { IInstruction } from './i-instruction.interface';
 

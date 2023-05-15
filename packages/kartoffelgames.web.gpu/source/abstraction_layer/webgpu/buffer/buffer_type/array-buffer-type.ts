@@ -1,6 +1,6 @@
-import { WgslAccessMode } from '../shader/enum/wgsl-access-mode.enum';
-import { WgslBindingType } from '../shader/enum/wgsl-binding-type.enum';
-import { WgslType } from '../shader/enum/wgsl-type.enum';
+import { WgslAccessMode } from '../../shader/enum/wgsl-access-mode.enum';
+import { WgslBindingType } from '../../shader/enum/wgsl-binding-type.enum';
+import { WgslType } from '../../shader/enum/wgsl-type.enum';
 import { BufferType } from './buffer-type';
 
 export class ArrayBufferType extends BufferType {

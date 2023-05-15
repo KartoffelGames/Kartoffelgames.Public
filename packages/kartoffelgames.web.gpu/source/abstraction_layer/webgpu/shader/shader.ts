@@ -1,10 +1,10 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { BindGroupLayout } from '../bind_group/bind-group-layout';
 import { BindGroups } from '../bind_group/bind-groups';
-import { BufferType } from '../buffer_type/buffer-type';
-import { SimpleBufferType } from '../buffer_type/simple-buffer-type';
-import { StructBufferType } from '../buffer_type/struct-buffer-type';
-import { BindType } from '../enum/bind-type.enum';
+import { BufferType } from '../buffer/buffer_type/buffer-type';
+import { SimpleBufferType } from '../buffer/buffer_type/simple-buffer-type';
+import { StructBufferType } from '../buffer/buffer_type/struct-buffer-type';
+import { BindType } from '../bind_group/bind-type.enum';
 import { Gpu } from '../gpu';
 import { GpuNativeObject } from '../gpu-native-object';
 import { VertexAttribute } from '../pipeline/data/vertex-attribute';

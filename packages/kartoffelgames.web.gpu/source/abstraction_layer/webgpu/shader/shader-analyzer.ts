@@ -1,8 +1,8 @@
 import { Dictionary, EnumUtil, Exception } from '@kartoffelgames/core.data';
-import { ArrayBufferType } from '../buffer_type/array-buffer-type';
-import { BufferType } from '../buffer_type/buffer-type';
-import { SimpleBufferType } from '../buffer_type/simple-buffer-type';
-import { StructBufferType } from '../buffer_type/struct-buffer-type';
+import { ArrayBufferType } from '../buffer/buffer_type/array-buffer-type';
+import { BufferType } from '../buffer/buffer_type/buffer-type';
+import { SimpleBufferType } from '../buffer/buffer_type/simple-buffer-type';
+import { StructBufferType } from '../buffer/buffer_type/struct-buffer-type';
 import { WgslAccessMode } from './enum/wgsl-access-mode.enum';
 import { WgslBindingType } from './enum/wgsl-binding-type.enum';
 import { WgslShaderStage } from './enum/wgsl-shader-stage.enum';

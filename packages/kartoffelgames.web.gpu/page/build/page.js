@@ -206,22 +206,22 @@ var view_projection_1 = __webpack_require__(/*! ../../source/base/view_projectio
 var orthographic__projection_1 = __webpack_require__(/*! ../../source/base/view_projection/projection/orthographic -projection */ "./source/base/view_projection/projection/orthographic -projection.ts");
 var perspective_projection_1 = __webpack_require__(/*! ../../source/base/view_projection/projection/perspective-projection */ "./source/base/view_projection/projection/perspective-projection.ts");
 var transform_1 = __webpack_require__(/*! ../../source/base/transform */ "./source/base/transform.ts");
-var attachment_type_enum_1 = __webpack_require__(/*! ../../source/core/pass_descriptor/attachment-type.enum */ "./source/core/pass_descriptor/attachment-type.enum.ts");
-var attachments_1 = __webpack_require__(/*! ../../source/core/pass_descriptor/attachments */ "./source/core/pass_descriptor/attachments.ts");
-var render_parameter_1 = __webpack_require__(/*! ../../source/core/execution/parameter/render-parameter */ "./source/core/execution/parameter/render-parameter.ts");
-var instruction_executer_1 = __webpack_require__(/*! ../../source/core/execution/instruction-executer */ "./source/core/execution/instruction-executer.ts");
-var render_instruction_1 = __webpack_require__(/*! ../../source/core/execution/instruction/render-instruction */ "./source/core/execution/instruction/render-instruction.ts");
-var gpu_1 = __webpack_require__(/*! ../../source/core/gpu */ "./source/core/gpu.ts");
-var render_pipeline_1 = __webpack_require__(/*! ../../source/core/pipeline/render-pipeline */ "./source/core/pipeline/render-pipeline.ts");
-var simple_buffer_1 = __webpack_require__(/*! ../../source/core/resource/buffer/simple-buffer */ "./source/core/resource/buffer/simple-buffer.ts");
-var shader_1 = __webpack_require__(/*! ../../source/core/shader/shader */ "./source/core/shader/shader.ts");
+var attachment_type_enum_1 = __webpack_require__(/*! ../../source/abstraction_layer/webgpu/pass_descriptor/attachment-type.enum */ "./source/abstraction_layer/webgpu/pass_descriptor/attachment-type.enum.ts");
+var attachments_1 = __webpack_require__(/*! ../../source/abstraction_layer/webgpu/pass_descriptor/attachments */ "./source/abstraction_layer/webgpu/pass_descriptor/attachments.ts");
+var render_parameter_1 = __webpack_require__(/*! ../../source/abstraction_layer/webgpu/execution/parameter/render-parameter */ "./source/abstraction_layer/webgpu/execution/parameter/render-parameter.ts");
+var instruction_executer_1 = __webpack_require__(/*! ../../source/abstraction_layer/webgpu/execution/instruction-executer */ "./source/abstraction_layer/webgpu/execution/instruction-executer.ts");
+var render_instruction_1 = __webpack_require__(/*! ../../source/abstraction_layer/webgpu/execution/instruction/render-instruction */ "./source/abstraction_layer/webgpu/execution/instruction/render-instruction.ts");
+var gpu_1 = __webpack_require__(/*! ../../source/abstraction_layer/webgpu/gpu */ "./source/abstraction_layer/webgpu/gpu.ts");
+var render_pipeline_1 = __webpack_require__(/*! ../../source/abstraction_layer/webgpu/pipeline/render-pipeline */ "./source/abstraction_layer/webgpu/pipeline/render-pipeline.ts");
+var simple_buffer_1 = __webpack_require__(/*! ../../source/abstraction_layer/webgpu/resource/buffer/simple-buffer */ "./source/abstraction_layer/webgpu/resource/buffer/simple-buffer.ts");
+var shader_1 = __webpack_require__(/*! ../../source/abstraction_layer/webgpu/shader/shader */ "./source/abstraction_layer/webgpu/shader/shader.ts");
 var shader_wgsl_1 = __webpack_require__(/*! ./shader.wgsl */ "./page/source/shader.wgsl");
-var render_pass_descriptor_1 = __webpack_require__(/*! ../../source/core/pass_descriptor/render-pass-descriptor */ "./source/core/pass_descriptor/render-pass-descriptor.ts");
-var render_instruction_set_1 = __webpack_require__(/*! ../../source/core/execution/instruction_set/render-instruction-set */ "./source/core/execution/instruction_set/render-instruction-set.ts");
-var ring_buffer_1 = __webpack_require__(/*! ../../source/core/resource/buffer/ring-buffer */ "./source/core/resource/buffer/ring-buffer.ts");
-var texture_1 = __webpack_require__(/*! ../../source/core/resource/texture/texture */ "./source/core/resource/texture/texture.ts");
-var texture_usage_enum_1 = __webpack_require__(/*! ../../source/core/resource/texture/texture-usage.enum */ "./source/core/resource/texture/texture-usage.enum.ts");
-var texture_sampler_1 = __webpack_require__(/*! ../../source/core/resource/texture-sampler */ "./source/core/resource/texture-sampler.ts");
+var render_pass_descriptor_1 = __webpack_require__(/*! ../../source/abstraction_layer/webgpu/pass_descriptor/render-pass-descriptor */ "./source/abstraction_layer/webgpu/pass_descriptor/render-pass-descriptor.ts");
+var render_instruction_set_1 = __webpack_require__(/*! ../../source/abstraction_layer/webgpu/execution/instruction_set/render-instruction-set */ "./source/abstraction_layer/webgpu/execution/instruction_set/render-instruction-set.ts");
+var ring_buffer_1 = __webpack_require__(/*! ../../source/abstraction_layer/webgpu/resource/buffer/ring-buffer */ "./source/abstraction_layer/webgpu/resource/buffer/ring-buffer.ts");
+var texture_1 = __webpack_require__(/*! ../../source/abstraction_layer/webgpu/resource/texture/texture */ "./source/abstraction_layer/webgpu/resource/texture/texture.ts");
+var texture_usage_enum_1 = __webpack_require__(/*! ../../source/abstraction_layer/webgpu/resource/texture/texture-usage.enum */ "./source/abstraction_layer/webgpu/resource/texture/texture-usage.enum.ts");
+var texture_sampler_1 = __webpack_require__(/*! ../../source/abstraction_layer/webgpu/resource/texture-sampler */ "./source/abstraction_layer/webgpu/resource/texture-sampler.ts");
 var web_game_input_1 = __webpack_require__(/*! @kartoffelgames/web.game-input */ "../kartoffelgames.web.game_input/library/source/index.js");
 var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
 var ambient_light_1 = __webpack_require__(/*! ../../source/base/light/ambient-light */ "./source/base/light/ambient-light.ts");
@@ -618,9 +618,9 @@ _asyncToGenerator(function* () {
   0, 1, 5, 0, 5, 4,
   // Bottom
   7, 6, 2, 7, 2, 3]);
-  lMesh.setVertexData('vertexposition', lVertexPositionData, 4);
-  lMesh.setIndexData('vertexuv', lVertexUvData, 2);
-  lMesh.setIndexData('vertexnormal', lVertexNormalData, 4);
+  lMesh.setVertexData('vertex.position', lVertexPositionData, 4);
+  lMesh.setIndexData('vertex.uv', lVertexUvData, 2);
+  lMesh.setIndexData('vertex.normal', lVertexNormalData, 4);
   // Setup renderer.
   var lInstructionExecutioner = new instruction_executer_1.InstructionExecuter(lGpu);
   // Setup instruction set.
@@ -654,6 +654,4538 @@ _asyncToGenerator(function* () {
   };
   requestAnimationFrame(lRender);
 })();
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/bind_group/bind-group-layout.ts":
+/*!*************************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/bind_group/bind-group-layout.ts ***!
+  \*************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.BindGroupLayout = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+var bind_type_enum_1 = __webpack_require__(/*! ../enum/bind-type.enum */ "./source/abstraction_layer/webgpu/enum/bind-type.enum.ts");
+var gpu_native_object_1 = __webpack_require__(/*! ../gpu-native-object */ "./source/abstraction_layer/webgpu/gpu-native-object.ts");
+var bind_group_1 = __webpack_require__(/*! ./bind-group */ "./source/abstraction_layer/webgpu/bind_group/bind-group.ts");
+class BindGroupLayout extends gpu_native_object_1.GpuNativeObject {
+  /**
+   * Constructor.
+   * @param pGpu - GPU.
+   */
+  constructor(pGpu) {
+    super(pGpu, 'BIND_GROUP_LAYOUT');
+    this.mGroupBinds = new core_data_1.Dictionary();
+  }
+  /**
+   * Get basic information of group binds.
+   */
+  get binds() {
+    var lResult = new Array();
+    // Fetch general and basic information from group bind.
+    for (var lBind of this.mGroupBinds.values()) {
+      lResult.push({
+        name: lBind.name,
+        type: lBind.bindType,
+        index: lBind.index
+      });
+    }
+    return lResult;
+  }
+  /**
+   * Add buffer bind.
+   * @param pName - Bind name.
+   * @param pIndex - Bind index.
+   * @param pVisibility - Visibility.
+   * @param pBindingType - Bind type.
+   * @param pHasDynamicOffset - Has dynamic offset.
+   * @param pMinBindingSize - min binding size.
+   */
+  addBuffer(pName, pIndex, pVisibility) {
+    var pBindingType = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 'uniform';
+    var pHasDynamicOffset = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : false;
+    var pMinBindingSize = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 0;
+    this.mGroupBinds.set(pName, {
+      index: pIndex,
+      bindType: bind_type_enum_1.BindType.Buffer,
+      name: pName,
+      visibility: pVisibility,
+      type: pBindingType,
+      hasDynamicOffset: pHasDynamicOffset,
+      minBindingSize: pMinBindingSize
+    });
+    // Request native object update.
+    this.triggerChange();
+  }
+  /**
+   * Add external texture bind.
+   * @param pName - Bind name.
+   * @param pIndex - Bind index.
+   * @param pVisibility - Visibility.
+   */
+  addExternalTexture(pName, pIndex, pVisibility) {
+    this.mGroupBinds.set(pName, {
+      index: pIndex,
+      bindType: bind_type_enum_1.BindType.ExternalTexture,
+      name: pName,
+      visibility: pVisibility
+    });
+    // Request native object update.
+    this.triggerChange();
+  }
+  /**
+   * Add sampler bind.
+   * @param pName - Bind name.
+   * @param pIndex - Bind index.
+   * @param pVisibility - Visibility.
+   * @param pSampleType - Sample type.
+   */
+  addSampler(pName, pIndex, pVisibility) {
+    var pSampleType = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 'filtering';
+    this.mGroupBinds.set(pName, {
+      index: pIndex,
+      bindType: bind_type_enum_1.BindType.Sampler,
+      name: pName,
+      visibility: pVisibility,
+      type: pSampleType
+    });
+    // Request native object update.
+    this.triggerChange();
+  }
+  /**
+   * Add storage texture bind.
+   * @param pName - Bind name.
+   * @param pIndex - Bind index.
+   * @param pVisibility - Visibility.
+   * @param pFormat - Color format.
+   * @param storageAccess - Storage access.
+   * @param pDimension - Texture dimension.
+   */
+  addStorageTexture(pName, pIndex, pVisibility, pFormat) {
+    var pStorageAccess = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 'write-only';
+    var pDimension = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : '2d';
+    this.mGroupBinds.set(pName, {
+      name: pName,
+      index: pIndex,
+      bindType: bind_type_enum_1.BindType.StorageTexture,
+      visibility: pVisibility,
+      access: pStorageAccess,
+      format: pFormat,
+      viewDimension: pDimension
+    });
+    // Request native object update.
+    this.triggerChange();
+  }
+  /**
+   * Add texture bind.
+   * @param pName - Bind name.
+   * @param pIndex - Bind index.
+   * @param pVisibility - Visibility.
+   * @param pSampleType - Sample type.
+   * @param pViewDimension - View dimension.
+   * @param pMultisampled - Is multisampled.
+   */
+  addTexture(pName, pIndex, pVisibility) {
+    var pSampleType = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 'float';
+    var pViewDimension = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : '2d';
+    var pMultisampled = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : false;
+    this.mGroupBinds.set(pName, {
+      name: pName,
+      index: pIndex,
+      bindType: bind_type_enum_1.BindType.Texture,
+      visibility: pVisibility,
+      sampleType: pSampleType,
+      viewDimension: pViewDimension,
+      multisampled: pMultisampled
+    });
+    // Request native object update.
+    this.triggerChange();
+  }
+  /**
+   * Create bind group based on this layout.
+   */
+  createBindGroup() {
+    var lBindGroup = new bind_group_1.BindGroup(this.gpu, this);
+    lBindGroup.label = this.label;
+    return lBindGroup;
+  }
+  /**
+   * Get full bind information.
+   * @param pName - Bind name.
+   */
+  getBind(pName) {
+    if (!this.mGroupBinds.has(pName)) {
+      throw new core_data_1.Exception("Bind ".concat(pName, " does not exist."), this);
+    }
+    return this.mGroupBinds.get(pName);
+  }
+  /**
+   * Remove bind.
+   */
+  removeBind(pName) {
+    if (this.mGroupBinds.delete(pName)) {
+      // Request native object update.
+      this.triggerChange();
+    }
+  }
+  /**
+   * Compare inner binds configurations.
+   * @param pObject - Target object.
+   */
+  compare(pObject) {
+    // Compare bind group size.
+    if (this.mGroupBinds.size !== pObject.mGroupBinds.size) {
+      return false;
+    }
+    for (var lBindName of this.mGroupBinds.keys()) {
+      var lTarget = pObject.mGroupBinds.get(lBindName);
+      var lSource = this.mGroupBinds.get(lBindName);
+      // Validate bind layout existance.
+      if (!lTarget || !lSource) {
+        return false;
+      }
+      // Validate bind layout properties.
+      if (lTarget.bindType !== lSource.bindType || lTarget.index !== lSource.index || lTarget.name !== lSource.name || lTarget.visibility !== lSource.visibility) {
+        return false;
+      }
+    }
+    return true;
+  }
+  /**
+   * Generate layout.
+   */
+  generate() {
+    var lEntryList = new Array();
+    // Generate layout entry for each binding.
+    for (var lEntry of this.mGroupBinds.values()) {
+      // Generate default properties.
+      var lLayoutEntry = {
+        visibility: lEntry.visibility,
+        binding: lEntry.index
+      };
+      switch (lEntry.bindType) {
+        case bind_type_enum_1.BindType.Buffer:
+          {
+            var lBufferLayout = {
+              type: lEntry.type,
+              minBindingSize: lEntry.minBindingSize,
+              hasDynamicOffset: lEntry.hasDynamicOffset
+            };
+            lLayoutEntry.buffer = lBufferLayout;
+            break;
+          }
+        case bind_type_enum_1.BindType.Texture:
+          {
+            var lTextureLayout = {
+              sampleType: lEntry.sampleType,
+              multisampled: lEntry.multisampled,
+              viewDimension: lEntry.viewDimension
+            };
+            lLayoutEntry.texture = lTextureLayout;
+            break;
+          }
+        case bind_type_enum_1.BindType.ExternalTexture:
+          {
+            var lExternalTextureLayout = {};
+            lLayoutEntry.externalTexture = lExternalTextureLayout;
+            break;
+          }
+        case bind_type_enum_1.BindType.StorageTexture:
+          {
+            var lStorageTextureLayout = {
+              access: lEntry.access,
+              format: lEntry.format,
+              viewDimension: lEntry.viewDimension
+            };
+            lLayoutEntry.storageTexture = lStorageTextureLayout;
+            break;
+          }
+        case bind_type_enum_1.BindType.Sampler:
+          {
+            var lSamplerLayout = {
+              type: lEntry.type
+            };
+            lLayoutEntry.sampler = lSamplerLayout;
+            break;
+          }
+      }
+      lEntryList.push(lLayoutEntry);
+    }
+    // Create binding group layout.
+    return this.gpu.device.createBindGroupLayout({
+      label: this.label,
+      entries: lEntryList
+    });
+  }
+}
+exports.BindGroupLayout = BindGroupLayout;
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/bind_group/bind-group.ts":
+/*!******************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/bind_group/bind-group.ts ***!
+  \******************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.BindGroup = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+var bind_type_enum_1 = __webpack_require__(/*! ../enum/bind-type.enum */ "./source/abstraction_layer/webgpu/enum/bind-type.enum.ts");
+var gpu_native_object_1 = __webpack_require__(/*! ../gpu-native-object */ "./source/abstraction_layer/webgpu/gpu-native-object.ts");
+var base_buffer_1 = __webpack_require__(/*! ../resource/buffer/base-buffer */ "./source/abstraction_layer/webgpu/resource/buffer/base-buffer.ts");
+var external_texture_1 = __webpack_require__(/*! ../resource/external-texture */ "./source/abstraction_layer/webgpu/resource/external-texture.ts");
+var texture_sampler_1 = __webpack_require__(/*! ../resource/texture-sampler */ "./source/abstraction_layer/webgpu/resource/texture-sampler.ts");
+var texture_view_1 = __webpack_require__(/*! ../resource/texture/texture-view */ "./source/abstraction_layer/webgpu/resource/texture/texture-view.ts");
+class BindGroup extends gpu_native_object_1.GpuNativeObject {
+  /**
+   * Constructor.
+   * @param pGpu - GPU.
+   * @param pLayout - Bind group layout.
+   */
+  constructor(pGpu, pLayout) {
+    super(pGpu, 'BIND_GROUP');
+    this.mLayout = pLayout;
+    this.mBindData = new core_data_1.Dictionary();
+    this.mNativeData = new WeakMap();
+    // Register layout as internal.
+    this.registerInternalNative(pLayout);
+  }
+  /**
+   * Layout of bind group.
+   */
+  get layout() {
+    return this.mLayout;
+  }
+  /**
+   * Set data to layout binding.
+   * @param pBindName - Bind layout entry name.
+   * @param pData - Bind data.
+   * @param pForcedType - Forced type. Can be used to differ for Texture and StorageTexture.
+   */
+  setData(pBindName, pData, pForcedType) {
+    var lLayout = this.mLayout.getBind(pBindName);
+    var lDataBindType = pForcedType !== null && pForcedType !== void 0 ? pForcedType : this.bindTypeOfData(pData);
+    // Validate bind type with data type.
+    if (lLayout.bindType !== lDataBindType) {
+      throw new core_data_1.Exception("Bind data \"".concat(pBindName, "\" has wrong type"), this);
+    }
+    // Unregister possible old data and register new.
+    if (this.mBindData.has(pBindName)) {
+      this.unregisterInternalNative(this.mBindData.get(pBindName).data);
+    }
+    this.registerInternalNative(pData);
+    // Set bind type to Teture for TS type check shutup.
+    this.mBindData.set(pBindName, {
+      type: lDataBindType,
+      name: pBindName,
+      data: pData
+    });
+  }
+  /**
+   * Generate native bind group.
+   */
+  generate() {
+    var lEntryList = new Array();
+    for (var lBindLayout of this.mLayout.binds) {
+      var lBindData = this.mBindData.get(lBindLayout.name);
+      // Check for 
+      if (!lBindData) {
+        throw new core_data_1.Exception("Bind data \"".concat(lBindLayout.name, "\" not set."), this);
+      }
+      // Check for type change.
+      if (lBindData.type !== lBindLayout.type) {
+        throw new core_data_1.Exception("Bind data \"".concat(lBindLayout.name, "\" has wrong type. The Layout might has been changed."), this);
+      }
+      // Set resource to group entry for each 
+      var lGroupEntry = {
+        binding: lBindLayout.index,
+        resource: null
+      };
+      switch (lBindData.type) {
+        case bind_type_enum_1.BindType.Buffer:
+          {
+            lGroupEntry.resource = {
+              buffer: lBindData.data.native()
+            };
+            break;
+          }
+        case bind_type_enum_1.BindType.ExternalTexture:
+          {
+            lGroupEntry.resource = lBindData.data.native();
+            break;
+          }
+        case bind_type_enum_1.BindType.Sampler:
+          {
+            lGroupEntry.resource = lBindData.data.native();
+            break;
+          }
+        case bind_type_enum_1.BindType.StorageTexture:
+          {
+            lGroupEntry.resource = lBindData.data.native();
+            break;
+          }
+        case bind_type_enum_1.BindType.Texture:
+          {
+            lGroupEntry.resource = lBindData.data.native();
+            break;
+          }
+        default:
+          {
+            throw new core_data_1.Exception("Type \"".concat(lBindData.type, "\" not supported on bind group"), this);
+          }
+      }
+      // Save generated native for validation state.
+      this.mNativeData.set(lBindData.data.native(), lBindLayout.name);
+      lEntryList.push(lGroupEntry);
+    }
+    return this.gpu.device.createBindGroup({
+      label: this.label,
+      layout: this.mLayout.native(),
+      entries: lEntryList
+    });
+  }
+  /**
+   * Get type of bind data.
+   * @param pData - Data object.
+   */
+  bindTypeOfData(pData) {
+    if (pData instanceof texture_view_1.TextureView) {
+      return bind_type_enum_1.BindType.Texture;
+    } else if (pData instanceof base_buffer_1.BaseBuffer) {
+      return bind_type_enum_1.BindType.Buffer;
+    } else if (pData instanceof external_texture_1.ExternalTexture) {
+      return bind_type_enum_1.BindType.ExternalTexture;
+    }
+    if (pData instanceof texture_sampler_1.TextureSampler) {
+      return bind_type_enum_1.BindType.Sampler;
+    }
+    throw new core_data_1.Exception("Bind data \"".concat(pData.name, "\" not supported"), this);
+  }
+}
+exports.BindGroup = BindGroup;
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/bind_group/bind-groups.ts":
+/*!*******************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/bind_group/bind-groups.ts ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.BindGroups = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+var gpu_native_object_1 = __webpack_require__(/*! ../gpu-native-object */ "./source/abstraction_layer/webgpu/gpu-native-object.ts");
+var bind_group_layout_1 = __webpack_require__(/*! ./bind-group-layout */ "./source/abstraction_layer/webgpu/bind_group/bind-group-layout.ts");
+class BindGroups extends gpu_native_object_1.GpuNativeObject {
+  /**
+   * Constructor.
+   * @param pGpu  - Gpu.
+   */
+  constructor(pGpu) {
+    super(pGpu, 'PIPELINE_LAYOUT_DESCRIPTOR');
+    this.mBindGroups = new core_data_1.Dictionary();
+  }
+  /**
+   * Bind group count.
+   */
+  get groups() {
+    return [...this.mBindGroups.keys()];
+  }
+  /**
+   * Create bind group.
+   * @param pIndex - Group index.
+   * @param pLayout - [Optional] Bind group Layout.
+   */
+  addGroup(pIndex, pLayout) {
+    // Create and add bind group layout.
+    var lBindLayout;
+    if (pLayout) {
+      lBindLayout = pLayout;
+    } else {
+      lBindLayout = new bind_group_layout_1.BindGroupLayout(this.gpu);
+    }
+    this.mBindGroups.add(pIndex, lBindLayout);
+    // Register native object.
+    this.registerInternalNative(lBindLayout);
+    return lBindLayout;
+  }
+  /**
+   * Get created bind group layout.
+   * @param pIndex - Group index.
+   */
+  getGroup(pIndex) {
+    // Throw on unaccessable group.
+    if (!this.mBindGroups.has(pIndex)) {
+      throw new core_data_1.Exception("Bind group layout (".concat(pIndex, ") does not exists."), this);
+    }
+    // Bind group should allways exist.
+    return this.mBindGroups.get(pIndex);
+  }
+  /**
+   * Generate native object.
+   */
+  generate() {
+    // Generate pipeline layout from bind group layouts.
+    var lPipelineLayout = {
+      bindGroupLayouts: new Array()
+    };
+    for (var [lIndex, lBindGroupLayout] of this.mBindGroups) {
+      lPipelineLayout.bindGroupLayouts[lIndex] = lBindGroupLayout.native();
+    }
+    // Validate continunity.
+    if (this.mBindGroups.size !== lPipelineLayout.bindGroupLayouts.length) {
+      throw new core_data_1.Exception("Bind group gap detected. Group not set.", this);
+    }
+    return lPipelineLayout;
+  }
+}
+exports.BindGroups = BindGroups;
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/buffer_type/array-buffer-type.ts":
+/*!**************************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/buffer_type/array-buffer-type.ts ***!
+  \**************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.ArrayBufferType = void 0;
+var wgsl_type_enum_1 = __webpack_require__(/*! ../shader/enum/wgsl-type.enum */ "./source/abstraction_layer/webgpu/shader/enum/wgsl-type.enum.ts");
+var buffer_type_1 = __webpack_require__(/*! ./buffer-type */ "./source/abstraction_layer/webgpu/buffer_type/buffer-type.ts");
+class ArrayBufferType extends buffer_type_1.BufferType {
+  /**
+   * Constructor.
+   * @param pInnerType - Type of array.
+   * @param pSize - Optional array size.
+   */
+  constructor(pName, pInnerType, pSize, pAccessMode, pBindType) {
+    var pLocation = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : null;
+    super(pName, pAccessMode, pBindType, pLocation);
+    this.mInnerType = pInnerType;
+    this.mInnerType.parent = this;
+    this.mArraySize = pSize !== null && pSize !== void 0 ? pSize : -1;
+  }
+  /**
+   * Alignment of type.
+   */
+  get alignment() {
+    return this.mInnerType.alignment;
+  }
+  /**
+   * Array size.
+   */
+  get arraySize() {
+    return this.mArraySize;
+  }
+  /**
+   * Array type.
+   */
+  get innerType() {
+    return this.mInnerType;
+  }
+  /**
+   * Type size in byte.
+   */
+  get size() {
+    if (this.mArraySize === -1) {
+      return this.mArraySize;
+    }
+    return this.mInnerType.size * this.mArraySize;
+  }
+  /**
+   * Wgsl type.
+   */
+  get type() {
+    return wgsl_type_enum_1.WgslType.Array;
+  }
+}
+exports.ArrayBufferType = ArrayBufferType;
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/buffer_type/buffer-type.ts":
+/*!********************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/buffer_type/buffer-type.ts ***!
+  \********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.BufferType = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+class BufferType {
+  /**
+   * Constructor.
+   */
+  constructor(pName, pAccessMode, pBindType) {
+    var pLocation = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+    this.mAttributes = new core_data_1.Dictionary();
+    // Static properties.
+    this.mName = pName;
+    this.mLocation = pLocation;
+    this.mAccessMode = pAccessMode !== null && pAccessMode !== void 0 ? pAccessMode : null;
+    this.mBindingType = pBindType !== null && pBindType !== void 0 ? pBindType : null;
+    this.mParent = null;
+  }
+  /**
+   * Buffer type access mode.
+   */
+  get accessMode() {
+    return this.mAccessMode;
+  }
+  /**
+   * Buffer bind type.
+   */
+  get bindingType() {
+    return this.mBindingType;
+  }
+  /**
+   * Get buffer location index as parameter.
+   */
+  get location() {
+    return this.mLocation;
+  }
+  /**
+   * Variable name of buffer.
+   */
+  get name() {
+    return this.mName;
+  }
+  /**
+   * Parent type. Stuct or Array.
+   */
+  get parent() {
+    return this.mParent;
+  }
+  set parent(pValue) {
+    this.mParent = pValue;
+  }
+  /**
+   * Get attribute by name.
+   * @param pName - Attribute name.
+   */
+  getAttribute(pName) {
+    var lParameter = this.mAttributes.get(pName);
+    if (!lParameter) {
+      return null;
+    }
+    return {
+      name: pName,
+      parameter: lParameter
+    };
+  }
+  /**
+   * Set attribute
+   * @param pAttribute - Attribute.
+   */
+  setAttribute(pAttributeName, pParameter) {
+    this.mAttributes.set(pAttributeName, pParameter);
+  }
+}
+exports.BufferType = BufferType;
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/buffer_type/simple-buffer-type.ts":
+/*!***************************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/buffer_type/simple-buffer-type.ts ***!
+  \***************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.SimpleBufferType = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+var wgsl_type_enum_1 = __webpack_require__(/*! ../shader/enum/wgsl-type.enum */ "./source/abstraction_layer/webgpu/shader/enum/wgsl-type.enum.ts");
+var buffer_type_1 = __webpack_require__(/*! ./buffer-type */ "./source/abstraction_layer/webgpu/buffer_type/buffer-type.ts");
+class SimpleBufferType extends buffer_type_1.BufferType {
+  /**
+   * Constructor.
+   * @param pType - Simple type. Scalar, Atomic, Vector and Matrix types.
+   * @param pGenerics - Generics of type.
+   */
+  constructor(pName, pType, pGenerics, pAccessMode, pBindType) {
+    var pLocation = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : null;
+    super(pName, pAccessMode, pBindType, pLocation);
+    // Static properties.
+    this.mType = pType;
+    this.mGenericRawList = pGenerics !== null && pGenerics !== void 0 ? pGenerics : [];
+    // Filter enum of generic list.
+    this.mGenericList = this.mGenericRawList.map(pGeneric => {
+      if (!core_data_1.EnumUtil.enumKeyByValue(wgsl_type_enum_1.WgslType, pGeneric)) {
+        return wgsl_type_enum_1.WgslType.Enum;
+      }
+      return pGeneric;
+    });
+    // Get type restrictions.
+    var lRestrictionList = SimpleBufferType.mTypeRestrictions[pType];
+    if (!lRestrictionList) {
+      throw new core_data_1.Exception("Type ".concat(pType, " not supported."), this);
+    }
+    // Find corresponding restrictions. // TODO: Check for enum or struct or any types.
+    var lRestriction = lRestrictionList.find(pRestriction => {
+      // Restriction has no generics.
+      if (!pRestriction.generic && this.mGenericRawList.length > 0) {
+        return false;
+      }
+      // No Generic restriction.
+      if (!pRestriction.generic && this.mGenericRawList.length === 0) {
+        return true;
+      }
+      // Validate each restriction.
+      for (var lGenericIndex = 0; lGenericIndex < pRestriction.generic.length; lGenericIndex++) {
+        var _lRestriction = pRestriction.generic[lGenericIndex];
+        if (_lRestriction === wgsl_type_enum_1.WgslType.Any) {
+          continue;
+        }
+        var lRawGeneric = this.mGenericRawList[lGenericIndex];
+        if (_lRestriction === wgsl_type_enum_1.WgslType.Enum && lRawGeneric) {
+          continue;
+        }
+        if (_lRestriction !== lRawGeneric) {
+          return false;
+        }
+      }
+      return true;
+    });
+    if (!lRestriction) {
+      throw new core_data_1.Exception("No type (".concat(pType, ") restriction for generics [").concat(pGenerics, "] found."), this);
+    }
+    this.mAlignment = lRestriction.align;
+    this.mSize = lRestriction.size;
+  }
+  /**
+   * Alignment of type.
+   */
+  get alignment() {
+    return this.mAlignment;
+  }
+  /**
+   * Type generics.
+   */
+  get generics() {
+    return this.mGenericList;
+  }
+  /**
+   * Type generics.
+   */
+  get genericsRaw() {
+    return this.mGenericRawList;
+  }
+  /**
+   * Type size in byte.
+   */
+  get size() {
+    return this.mSize;
+  }
+  /**
+   * Wgsl type.
+   */
+  get type() {
+    return this.mType;
+  }
+}
+exports.SimpleBufferType = SimpleBufferType;
+SimpleBufferType.mTypeRestrictions = (() => {
+  var lTypes = {};
+  // Scalar types.
+  lTypes[wgsl_type_enum_1.WgslType.Boolean] = [{
+    size: 1,
+    align: 1
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.Integer32] = [{
+    size: 4,
+    align: 4
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.UnsignedInteger32] = [{
+    size: 4,
+    align: 4
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.Float32] = [{
+    size: 4,
+    align: 4
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.Float16] = [{
+    size: 2,
+    align: 2
+  }];
+  // Vector types.
+  lTypes[wgsl_type_enum_1.WgslType.Vector2] = [{
+    size: 8,
+    align: 8,
+    generic: [wgsl_type_enum_1.WgslType.Integer32]
+  }, {
+    size: 8,
+    align: 8,
+    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
+  }, {
+    size: 8,
+    align: 8,
+    generic: [wgsl_type_enum_1.WgslType.Float32]
+  }, {
+    size: 4,
+    align: 4,
+    generic: [wgsl_type_enum_1.WgslType.Float16]
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.Vector3] = [{
+    size: 12,
+    align: 16,
+    generic: [wgsl_type_enum_1.WgslType.Integer32]
+  }, {
+    size: 12,
+    align: 16,
+    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
+  }, {
+    size: 12,
+    align: 16,
+    generic: [wgsl_type_enum_1.WgslType.Float32]
+  }, {
+    size: 6,
+    align: 8,
+    generic: [wgsl_type_enum_1.WgslType.Float16]
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.Vector4] = [{
+    size: 16,
+    align: 16,
+    generic: [wgsl_type_enum_1.WgslType.Integer32]
+  }, {
+    size: 16,
+    align: 16,
+    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
+  }, {
+    size: 16,
+    align: 16,
+    generic: [wgsl_type_enum_1.WgslType.Float32]
+  }, {
+    size: 8,
+    align: 8,
+    generic: [wgsl_type_enum_1.WgslType.Float16]
+  }];
+  // Matrix types.
+  lTypes[wgsl_type_enum_1.WgslType.Matrix22] = [{
+    size: 16,
+    align: 8,
+    generic: [wgsl_type_enum_1.WgslType.Integer32]
+  }, {
+    size: 16,
+    align: 8,
+    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
+  }, {
+    size: 16,
+    align: 8,
+    generic: [wgsl_type_enum_1.WgslType.Float32]
+  }, {
+    size: 8,
+    align: 4,
+    generic: [wgsl_type_enum_1.WgslType.Float16]
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.Matrix23] = [{
+    size: 32,
+    align: 16,
+    generic: [wgsl_type_enum_1.WgslType.Integer32]
+  }, {
+    size: 32,
+    align: 16,
+    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
+  }, {
+    size: 32,
+    align: 16,
+    generic: [wgsl_type_enum_1.WgslType.Float32]
+  }, {
+    size: 16,
+    align: 8,
+    generic: [wgsl_type_enum_1.WgslType.Float16]
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.Matrix24] = [{
+    size: 32,
+    align: 16,
+    generic: [wgsl_type_enum_1.WgslType.Integer32]
+  }, {
+    size: 32,
+    align: 16,
+    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
+  }, {
+    size: 32,
+    align: 16,
+    generic: [wgsl_type_enum_1.WgslType.Float32]
+  }, {
+    size: 16,
+    align: 8,
+    generic: [wgsl_type_enum_1.WgslType.Float16]
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.Matrix32] = [{
+    size: 24,
+    align: 8,
+    generic: [wgsl_type_enum_1.WgslType.Integer32]
+  }, {
+    size: 24,
+    align: 8,
+    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
+  }, {
+    size: 24,
+    align: 8,
+    generic: [wgsl_type_enum_1.WgslType.Float32]
+  }, {
+    size: 12,
+    align: 4,
+    generic: [wgsl_type_enum_1.WgslType.Float16]
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.Matrix33] = [{
+    size: 48,
+    align: 16,
+    generic: [wgsl_type_enum_1.WgslType.Integer32]
+  }, {
+    size: 48,
+    align: 16,
+    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
+  }, {
+    size: 48,
+    align: 16,
+    generic: [wgsl_type_enum_1.WgslType.Float32]
+  }, {
+    size: 24,
+    align: 8,
+    generic: [wgsl_type_enum_1.WgslType.Float16]
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.Matrix34] = [{
+    size: 48,
+    align: 16,
+    generic: [wgsl_type_enum_1.WgslType.Integer32]
+  }, {
+    size: 48,
+    align: 16,
+    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
+  }, {
+    size: 48,
+    align: 16,
+    generic: [wgsl_type_enum_1.WgslType.Float32]
+  }, {
+    size: 24,
+    align: 8,
+    generic: [wgsl_type_enum_1.WgslType.Float16]
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.Matrix42] = [{
+    size: 32,
+    align: 8,
+    generic: [wgsl_type_enum_1.WgslType.Integer32]
+  }, {
+    size: 32,
+    align: 8,
+    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
+  }, {
+    size: 32,
+    align: 8,
+    generic: [wgsl_type_enum_1.WgslType.Float32]
+  }, {
+    size: 16,
+    align: 4,
+    generic: [wgsl_type_enum_1.WgslType.Float16]
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.Matrix43] = [{
+    size: 64,
+    align: 16,
+    generic: [wgsl_type_enum_1.WgslType.Integer32]
+  }, {
+    size: 64,
+    align: 16,
+    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
+  }, {
+    size: 64,
+    align: 16,
+    generic: [wgsl_type_enum_1.WgslType.Float32]
+  }, {
+    size: 32,
+    align: 8,
+    generic: [wgsl_type_enum_1.WgslType.Float16]
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.Matrix44] = [{
+    size: 64,
+    align: 16,
+    generic: [wgsl_type_enum_1.WgslType.Integer32]
+  }, {
+    size: 64,
+    align: 16,
+    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
+  }, {
+    size: 64,
+    align: 16,
+    generic: [wgsl_type_enum_1.WgslType.Float32]
+  }, {
+    size: 32,
+    align: 8,
+    generic: [wgsl_type_enum_1.WgslType.Float16]
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.Array] = [{
+    size: -1,
+    align: -1,
+    generic: [wgsl_type_enum_1.WgslType.Any]
+  }, {
+    size: -1,
+    align: -1,
+    generic: [wgsl_type_enum_1.WgslType.Any, wgsl_type_enum_1.WgslType.UnsignedInteger32]
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.Struct] = [{
+    size: -1,
+    align: -1
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.Atomic] = [{
+    size: 4,
+    align: 4,
+    generic: [wgsl_type_enum_1.WgslType.Integer32]
+  }, {
+    size: 4,
+    align: 4,
+    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
+  }];
+  // Type alias.
+  // TODO:
+  // None buffer types.
+  //-------------------
+  //Special.
+  lTypes[wgsl_type_enum_1.WgslType.Pointer] = [{
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.Enum, wgsl_type_enum_1.WgslType.Any, wgsl_type_enum_1.WgslType.Enum]
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.Reference] = [{
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.Enum, wgsl_type_enum_1.WgslType.Any, wgsl_type_enum_1.WgslType.Enum]
+  }];
+  // Textures.
+  lTypes[wgsl_type_enum_1.WgslType.Texture1d] = [{
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.Integer32]
+  }, {
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
+  }, {
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.Float32]
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.Texture2d] = [{
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.Integer32]
+  }, {
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
+  }, {
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.Float32]
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.Texture2dArray] = [{
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.Integer32]
+  }, {
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
+  }, {
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.Float32]
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.Texture3d] = [{
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.Integer32]
+  }, {
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
+  }, {
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.Float32]
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.TextureCube] = [{
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.Integer32]
+  }, {
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
+  }, {
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.Float32]
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.TextureCubeArray] = [{
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.Integer32]
+  }, {
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
+  }, {
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.Float32]
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.TextureMultisampled2d] = [{
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.Integer32]
+  }, {
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
+  }, {
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.Float32]
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.TextureExternal] = [{
+    size: -1,
+    align: 0
+  }];
+  // Depth texture.
+  lTypes[wgsl_type_enum_1.WgslType.TextureDepth2d] = [{
+    size: -1,
+    align: 0
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.TextureDepth2dArray] = [{
+    size: -1,
+    align: 0
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.TextureDepthCube] = [{
+    size: -1,
+    align: 0
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.TextureDepthCubeArray] = [{
+    size: -1,
+    align: 0
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.TextureDepthMultisampled2d] = [{
+    size: -1,
+    align: 0
+  }];
+  // Storage textures.
+  lTypes[wgsl_type_enum_1.WgslType.TextureStorage1d] = [{
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.Enum, wgsl_type_enum_1.WgslType.Enum]
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.TextureStorage2d] = [{
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.Enum, wgsl_type_enum_1.WgslType.Enum]
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.TextureStorage2dArray] = [{
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.Enum, wgsl_type_enum_1.WgslType.Enum]
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.TextureStorage3d] = [{
+    size: -1,
+    align: 0,
+    generic: [wgsl_type_enum_1.WgslType.Enum, wgsl_type_enum_1.WgslType.Enum]
+  }];
+  // Sampler.
+  lTypes[wgsl_type_enum_1.WgslType.Sampler] = [{
+    size: -1,
+    align: 0
+  }];
+  lTypes[wgsl_type_enum_1.WgslType.SamplerComparison] = [{
+    size: -1,
+    align: 0
+  }];
+  return lTypes;
+})();
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/buffer_type/struct-buffer-type.ts":
+/*!***************************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/buffer_type/struct-buffer-type.ts ***!
+  \***************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.StructBufferType = void 0;
+var wgsl_type_enum_1 = __webpack_require__(/*! ../shader/enum/wgsl-type.enum */ "./source/abstraction_layer/webgpu/shader/enum/wgsl-type.enum.ts");
+var buffer_type_1 = __webpack_require__(/*! ./buffer-type */ "./source/abstraction_layer/webgpu/buffer_type/buffer-type.ts");
+class StructBufferType extends buffer_type_1.BufferType {
+  /**
+   * Constructor.
+   */
+  constructor(pName, pStructName, pAccessMode, pBindType) {
+    var pLocation = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : null;
+    super(pName, pAccessMode, pBindType, pLocation);
+    this.mStructName = pStructName;
+    this.mAlignment = 0;
+    this.mSize = 0;
+    this.mInnerTypes = new Array();
+  }
+  /**
+   * Alignment of type.
+   */
+  get alignment() {
+    return this.mAlignment;
+  }
+  /**
+   * Type size in byte.
+   */
+  get size() {
+    return this.mSize;
+  }
+  /**
+   * Struct name.
+   */
+  get structName() {
+    return this.mStructName;
+  }
+  /**
+   * Wgsl type.
+   */
+  get type() {
+    return wgsl_type_enum_1.WgslType.Struct;
+  }
+  /**
+   * Add property to struct.
+   * @param pName - Property name.
+   * @param pOrder - Index of property.
+   * @param pType - Property type.
+   */
+  addProperty(pOrder, pType) {
+    this.mInnerTypes.push([pOrder, pType]);
+    pType.parent = this;
+    // Recalculate alignment.
+    if (pType.alignment > this.mAlignment) {
+      this.mAlignment = pType.alignment;
+    }
+    // Get ordered types.
+    var lOrderedTypeList = this.mInnerTypes.sort((_ref, _ref2) => {
+      var [pOrderA] = _ref;
+      var [pOrderB] = _ref2;
+      return pOrderA - pOrderB;
+    }).map(_ref3 => {
+      var [, pType] = _ref3;
+      return pType;
+    });
+    // Recalculate size.
+    var lCurrentOffset = 0;
+    for (var lType of lOrderedTypeList) {
+      // Increase offset when alignment does not match.
+      // When alignment matches the modulo calculation is zero.
+      lCurrentOffset += lCurrentOffset % lType.alignment;
+      // Increase offset for type.
+      lCurrentOffset += lType.size;
+    }
+    this.mSize = lCurrentOffset;
+  }
+  /**
+   * Get types of properties with set location.
+   */
+  innerLocations() {
+    var lLocationTypes = new Array();
+    for (var [, lPropertyType] of this.mInnerTypes.values()) {
+      // Set property as location when set.
+      if (lPropertyType.location !== null) {
+        lLocationTypes.push(lPropertyType);
+      }
+      // Get all inner locations when property is a struct type.
+      if (lPropertyType instanceof StructBufferType) {
+        lLocationTypes.push(...lPropertyType.innerLocations());
+      }
+    }
+    return lLocationTypes;
+  }
+}
+exports.StructBufferType = StructBufferType;
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/enum/bind-type.enum.ts":
+/*!****************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/enum/bind-type.enum.ts ***!
+  \****************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.BindType = void 0;
+var BindType;
+(function (BindType) {
+  BindType["Texture"] = "Texture";
+  BindType["Buffer"] = "Buffer";
+  BindType["Sampler"] = "Sampler";
+  BindType["StorageTexture"] = "StorageTexture";
+  BindType["ExternalTexture"] = "ExternalTexture";
+})(BindType = exports.BindType || (exports.BindType = {}));
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/execution/instruction-executer.ts":
+/*!***************************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/execution/instruction-executer.ts ***!
+  \***************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.InstructionExecuter = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+class InstructionExecuter {
+  /**
+   * Constructor.
+   * @param pGpu - Gpu.
+   */
+  constructor(pGpu) {
+    this.mGpu = pGpu;
+    // Instruction sets.
+    this.mInstructionSetList = new core_data_1.List();
+  }
+  /**
+   * Add instruction set.
+   * @param pSet - New instruction net.
+   */
+  addInstructionSet(pSet) {
+    this.mInstructionSetList.push(pSet);
+  }
+  /**
+   * Remove all instruction sets.
+   */
+  clearInstructions() {
+    this.mInstructionSetList.clear();
+  }
+  execute() {
+    // Generate encoder and add render commands.
+    var lEncoder = this.mGpu.device.createCommandEncoder();
+    // Execute instruction sets.
+    for (var lInstructionSet of this.mInstructionSetList) {
+      lInstructionSet.execute(lEncoder);
+    }
+    this.mGpu.device.queue.submit([lEncoder.finish()]);
+  }
+}
+exports.InstructionExecuter = InstructionExecuter;
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/execution/instruction/render-instruction.ts":
+/*!*************************************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/execution/instruction/render-instruction.ts ***!
+  \*************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.RenderInstruction = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+class RenderInstruction {
+  /**
+   * Constructor.
+   */
+  constructor(pPipeline, pRenderParameter) {
+    var _this$mPipeline$shade;
+    var pInstanceCount = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
+    this.mBindGroups = new core_data_1.Dictionary();
+    this.mRenderParameter = pRenderParameter;
+    this.mPipeline = pPipeline;
+    this.mInstanceCount = pInstanceCount;
+    // Validate mesh and pipeline attributes length.
+    if (pRenderParameter.attributesCount !== ((_this$mPipeline$shade = this.mPipeline.shader.vertexEntryPoint) === null || _this$mPipeline$shade === void 0 ? void 0 : _this$mPipeline$shade.attributes.length)) {
+      var _this$mPipeline$shade2;
+      throw new core_data_1.Exception("Mesh attributes (length:".concat(pRenderParameter.attributesCount, ") does not match pipeline attributes (length: ").concat((_this$mPipeline$shade2 = this.mPipeline.shader.vertexEntryPoint) === null || _this$mPipeline$shade2 === void 0 ? void 0 : _this$mPipeline$shade2.attributes.length, ")"), this);
+    }
+    // Validate mesh and pipeline attributes content.
+    for (var lAttribute of this.mPipeline.shader.vertexEntryPoint.attributes) {
+      var lMeshAttributeBuffer = pRenderParameter.getBuffer(lAttribute.name);
+      if (lMeshAttributeBuffer.type !== lAttribute.bufferDataType) {
+        throw new core_data_1.Exception("Mesh attributes does not match pipeline attributes", this);
+      }
+    }
+  }
+  /**
+   * Get bind groups.
+   */
+  get bindGroups() {
+    var lBindGroupList = new Array();
+    for (var [lIndex, lBindGroup] of this.mBindGroups) {
+      lBindGroupList[lIndex] = lBindGroup;
+    }
+    return lBindGroupList;
+  }
+  /**
+   * Instance count.
+   */
+  get instanceCount() {
+    return this.mInstanceCount;
+  }
+  /**
+   * Instruction parameter.
+   */
+  get parameter() {
+    return this.mRenderParameter;
+  }
+  /**
+   * Instructions render pipeline.
+   */
+  get pipeline() {
+    return this.mPipeline;
+  }
+  /**
+   * Set bind group of pipeline.
+   * @param pBindGroup - Bind group.
+   */
+  setBindGroup(pIndex, pBindGroup) {
+    // Validate bind group layout.
+    if (!this.mPipeline.shader.bindGroups.getGroup(pIndex).equal(pBindGroup.layout)) {
+      throw new core_data_1.Exception("Bind data layout not matched with pipeline bind group layout.", this);
+    }
+    this.mBindGroups.set(pIndex, pBindGroup);
+  }
+}
+exports.RenderInstruction = RenderInstruction;
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/execution/instruction_set/render-instruction-set.ts":
+/*!*********************************************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/execution/instruction_set/render-instruction-set.ts ***!
+  \*********************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.RenderInstructionSet = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+class RenderInstructionSet {
+  // TODO: Set  GPURenderPassEncoder.setScissorRect
+  /**
+   * Constructor.
+   * @param pRenderPass - Render pass.
+   */
+  constructor(pRenderPass) {
+    this.mRenderPass = pRenderPass;
+    this.mInstructionList = new Array();
+  }
+  /**
+   * Add render instruction.
+   * @param pInstruction - Render instruction.
+   */
+  addInstruction(pInstruction) {
+    // Validate instruction.
+    if (pInstruction.pipeline.renderPass !== this.mRenderPass) {
+      throw new core_data_1.Exception('Instruction render pass not valid for instruction set.', this);
+    }
+    // Add instruction.
+    this.mInstructionList.push(pInstruction);
+  }
+  /**
+   * Execute instruction set.
+   * @param pCommandEncoder - Command encoder.
+   */
+  execute(pCommandEncoder) {
+    // Generate pass descriptor once per set pipeline.
+    var lPassDescriptor = this.mRenderPass.native();
+    // Pass descriptor is set, when the pipeline ist set.
+    var lRenderPassEncoder = pCommandEncoder.beginRenderPass(lPassDescriptor);
+    // Instruction cache.
+    var lPipeline = null;
+    var lBindGroupList = new Array();
+    var lVertexBufferList = new core_data_1.Dictionary();
+    // Execute instructions.
+    for (var lInstruction of this.mInstructionList) {
+      // Use cached pipeline or use new.
+      if (lInstruction.pipeline !== lPipeline) {
+        lPipeline = lInstruction.pipeline;
+        lRenderPassEncoder.setPipeline(lInstruction.pipeline.native());
+      }
+      // Add bind groups.
+      for (var lIndex of lPipeline.shader.bindGroups.groups) {
+        var lNewBindGroup = lInstruction.bindGroups[lIndex];
+        var lCurrentBindGroup = lBindGroupList[lIndex];
+        // Use cached bind group or use new.
+        if (lNewBindGroup !== lCurrentBindGroup) {
+          lBindGroupList[lIndex] = lNewBindGroup;
+          if (lNewBindGroup) {
+            lRenderPassEncoder.setBindGroup(lIndex, lNewBindGroup.native());
+          }
+        }
+      }
+      // Add vertex attribute buffer.
+      for (var lAttribute of lInstruction.pipeline.shader.vertexEntryPoint.attributes) {
+        var lNewAttributeBuffer = lInstruction.parameter.getBuffer(lAttribute.name);
+        var lCurrentAttributeBuffer = lVertexBufferList.get(lAttribute.location);
+        // Use cached vertex buffer or use new.
+        if (lNewAttributeBuffer !== lCurrentAttributeBuffer) {
+          lVertexBufferList.set(lAttribute.location, lNewAttributeBuffer);
+          lRenderPassEncoder.setVertexBuffer(lAttribute.location, lNewAttributeBuffer.native());
+        }
+      }
+      lRenderPassEncoder.draw(lInstruction.parameter.indexCount, lInstruction.instanceCount);
+    }
+    lRenderPassEncoder.end();
+  }
+}
+exports.RenderInstructionSet = RenderInstructionSet;
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/execution/parameter/render-parameter.ts":
+/*!*********************************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/execution/parameter/render-parameter.ts ***!
+  \*********************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.RenderParameter = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+var simple_buffer_1 = __webpack_require__(/*! ../../resource/buffer/simple-buffer */ "./source/abstraction_layer/webgpu/resource/buffer/simple-buffer.ts");
+class RenderParameter {
+  /**
+   * Constructor.
+   * @param pGpu - GPU.
+   * @param pVertexIndices - Vertex indices.
+   */
+  constructor(pGpu, pVertexIndices) {
+    this.mGpu = pGpu;
+    this.mVertexBuffer = new core_data_1.Dictionary();
+    this.mIndexData = pVertexIndices;
+    this.mMaxIndex = Math.max(...pVertexIndices);
+  }
+  /**
+   * Vertex attributes count.
+   */
+  get attributesCount() {
+    return this.mVertexBuffer.size;
+  }
+  /**
+   * Get index count.
+   * Size of vertex data.
+   */
+  get indexCount() {
+    return this.mIndexData.length;
+  }
+  /**
+   * Get index count.
+   * Size of vertex data.
+   */
+  get maxIndex() {
+    return this.mMaxIndex;
+  }
+  /**
+   * Get buffer by attribute name
+   * @param pName - Vertex attribute name.
+   */
+  getBuffer(pName) {
+    var lBuffer = this.mVertexBuffer.get(pName);
+    if (!lBuffer) {
+      throw new core_data_1.Exception("Vertex buffer for attribute \"".concat(pName, "\" not set"), this);
+    }
+    return lBuffer;
+  }
+  /**
+   * Add data for each index.
+   * @param pName - Attribute name.
+   * @param pData - Data array.
+   * @param pStrideLength - Data stride length for one value.
+   */
+  setIndexData(pName, pData, pStrideLength) {
+    // Validate.
+    if (pData.length % pStrideLength !== 0) {
+      throw new core_data_1.Exception('Vertex data length offset.', this);
+    }
+    this.mVertexBuffer.set(pName, new simple_buffer_1.SimpleBuffer(this.mGpu, GPUBufferUsage.VERTEX, new Float32Array(pData)));
+  }
+  /**
+   * Adds data for each vertex.
+   * Converts vertex data into index data by dublicating vertex data for each index.
+   * @param pName - Attribute name.
+   * @param pData - Data array.
+   * @param pStrideLength - Data stride length for one value.
+   */
+  setVertexData(pName, pData, pStrideLength) {
+    // Validate data strides.
+    if (pData.length % pStrideLength !== 0) {
+      throw new core_data_1.Exception("Vertex data length offset: ".concat(pName, "(length: ").concat(pData.length, ", offset: ").concat(pData.length % pStrideLength, ")"), this);
+    }
+    if ((this.mMaxIndex + 1) * pStrideLength !== pData.length) {
+      throw new core_data_1.Exception("Index data ".concat(pName, "(").concat(pData.length, ") does not meet needed data length of (max index: ").concat(this.mMaxIndex, ", needed length: ").concat((this.mMaxIndex + 1) * pStrideLength, ")"), this);
+    }
+    // Dublicate index data into vertex data.
+    var lIndexData = new Array();
+    for (var lIndex of this.mIndexData) {
+      // Copy data stride for index.
+      lIndexData.push(...pData.slice(lIndex * pStrideLength, (lIndex + 1) * pStrideLength));
+    }
+    this.mVertexBuffer.set(pName, new simple_buffer_1.SimpleBuffer(this.mGpu, GPUBufferUsage.VERTEX, new Float32Array(lIndexData)));
+  }
+}
+exports.RenderParameter = RenderParameter;
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/gpu-native-object.ts":
+/*!**************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/gpu-native-object.ts ***!
+  \**************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.GpuNativeObject = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+/**
+ * Gpu native object.
+ */
+class GpuNativeObject {
+  /**
+   * Constructor.
+   * @param pGpu - Gpu object.
+   * @param pNativeName - Name of native label.
+   */
+  constructor(pGpu, pNativeName) {
+    this.mGpu = pGpu;
+    this.mNativeObject = null;
+    this.mLabel = '';
+    this.mNativeName = pNativeName;
+    // Trigger refresh on creation.
+    this.mObjectInvalid = true;
+    // Init internal native change detection.
+    this.mChangeListener = new core_data_1.Dictionary();
+    this.mInternalList = new Set();
+  }
+  /**
+   * Debug label.
+   */
+  get label() {
+    var lLabel = this.mNativeName;
+    if (this.mLabel) {
+      lLabel += '->' + this.mLabel;
+    }
+    return lLabel;
+  }
+  set label(pLabel) {
+    this.mLabel = pLabel;
+  }
+  /**
+   * Get global gpu.
+   */
+  get gpu() {
+    return this.mGpu;
+  }
+  /**
+   * Destroy generated native object.
+   */
+  destroy() {
+    // Destroy old native object.
+    if (this.mNativeObject) {
+      this.destroyNative(this.mNativeObject);
+      // Remove destroyed native.
+      this.mNativeObject = null;
+    }
+  }
+  /**
+   * Compare two native objects.
+   * @param pObject - Target object.
+   */
+  equal(pObject) {
+    return this.compare(pObject);
+  }
+  /**
+   * Get native object.
+   */
+  native() {
+    // Invalidate oject when needed.
+    this.invalidate();
+    // Generate new native object when not already created.
+    if (this.mObjectInvalid) {
+      // Destroy native.
+      this.destroy();
+      // Reset object invalidation.
+      this.mObjectInvalid = false;
+      // Generate new native object.
+      this.mNativeObject = this.generate();
+    }
+    return this.mNativeObject;
+  }
+  /**
+   * Compare objects.
+   * @param pObject - Target compare object.
+   */
+  compare(pObject) {
+    return this === pObject;
+  }
+  /**
+   * Destroy object.
+   */
+  destroyNative(_pNativeObject) {
+    // Nothing to destroy. :)
+  }
+  /**
+   * Register internal native object.
+   * Invalidated native when internal changes.
+   * @param pInternalNative - Internal used native.
+   */
+  registerInternalNative(pInternalNative) {
+    // Save internal native.
+    pInternalNative.addChangeListener(() => {
+      this.triggerChange();
+    }, this);
+    this.mInternalList.add(pInternalNative);
+    this.triggerChange();
+  }
+  /**
+   * Trigger native change.
+   */
+  triggerChange() {
+    // Trigger change.
+    if (!this.mObjectInvalid) {
+      this.mObjectInvalid = true;
+      // Execute change listener.
+      for (var lListener of this.mChangeListener.values()) {
+        lListener();
+      }
+    }
+  }
+  /**
+   * Unregister internal native object.
+   * @param pInternalNative - Internal used native.
+   */
+  unregisterInternalNative(pInternalNative) {
+    // Delete saved native.
+    pInternalNative.removeChangeListener(this);
+    this.mInternalList.delete(pInternalNative);
+    this.triggerChange();
+  }
+  /**
+   * Validate native object.
+   */
+  validate(_pNativeObject) {
+    return true;
+  }
+  /**
+   * Add change listener.
+   * @param pListener - Change listener.
+   * @param pReferrer - Referrer object.
+   */
+  addChangeListener(pListener, pReferrer) {
+    this.mChangeListener.set(pReferrer, pListener);
+  }
+  /**
+   * Invalidate native object.
+   */
+  invalidate() {
+    // Invalidate internals.
+    for (var lInternal of this.mInternalList) {
+      lInternal.invalidate();
+    }
+    // Validate only when there is somthing to validate.
+    if (!this.mObjectInvalid && this.mNativeObject) {
+      if (!this.validate(this.mNativeObject)) {
+        this.triggerChange();
+      }
+    }
+  }
+  /**
+   * Remove change listener.
+   * @param pReferrer - Referrer object.
+   */
+  removeChangeListener(pReferrer) {
+    this.mChangeListener.delete(pReferrer);
+  }
+}
+exports.GpuNativeObject = GpuNativeObject;
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/gpu.ts":
+/*!************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/gpu.ts ***!
+  \************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.Gpu = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+class Gpu {
+  /**
+   * Constructor.
+   * @param pGpuAdapter - Gpu adapter.
+   * @param pGpuDevice - Gpu device.
+   */
+  constructor(pGpuAdapter, pGpuDevice) {
+    this.mGpuAdapter = pGpuAdapter;
+    this.mGpuDevice = pGpuDevice;
+  }
+  /**
+   * Create GPU device.
+   * @param pMode - Prefered device mode.
+   */
+  static create(pMode) {
+    return _asyncToGenerator(function* () {
+      var _Gpu$mAdapters$get, _Gpu$mDevices$get;
+      // Try to load cached adapter. When not cached, request new one.
+      var lAdapter = (_Gpu$mAdapters$get = Gpu.mAdapters.get(pMode)) !== null && _Gpu$mAdapters$get !== void 0 ? _Gpu$mAdapters$get : yield window.navigator.gpu.requestAdapter({
+        powerPreference: pMode
+      });
+      if (lAdapter) {
+        Gpu.mAdapters.set(pMode, lAdapter);
+      } else {
+        throw new core_data_1.Exception('Error requesting GPU adapter', Gpu);
+      }
+      // Try to load cached device. When not cached, request new one.
+      var lDevice = (_Gpu$mDevices$get = Gpu.mDevices.get(lAdapter)) !== null && _Gpu$mDevices$get !== void 0 ? _Gpu$mDevices$get : yield lAdapter.requestDevice();
+      if (lAdapter) {
+        Gpu.mDevices.set(lAdapter, lDevice);
+      } else {
+        throw new core_data_1.Exception('Error requesting GPU device', Gpu);
+      }
+      return new Gpu(lAdapter, lDevice);
+    })();
+  }
+  /**
+   * GPU adapter.
+   */
+  get adapter() {
+    return this.mGpuAdapter;
+  }
+  /**
+   * GPU device.
+   */
+  get device() {
+    return this.mGpuDevice;
+  }
+  /**
+   * Preferred texture format.
+   */
+  get preferredFormat() {
+    return window.navigator.gpu.getPreferredCanvasFormat();
+  }
+}
+exports.Gpu = Gpu;
+Gpu.mAdapters = new core_data_1.Dictionary();
+Gpu.mDevices = new core_data_1.Dictionary();
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/pass_descriptor/attachment-type.enum.ts":
+/*!*********************************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/pass_descriptor/attachment-type.enum.ts ***!
+  \*********************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.AttachmentType = void 0;
+var AttachmentType;
+(function (AttachmentType) {
+  AttachmentType[AttachmentType["Canvas"] = 1] = "Canvas";
+  AttachmentType[AttachmentType["Color"] = 2] = "Color";
+  AttachmentType[AttachmentType["Depth"] = 4] = "Depth";
+  AttachmentType[AttachmentType["Stencil"] = 8] = "Stencil";
+})(AttachmentType = exports.AttachmentType || (exports.AttachmentType = {}));
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/pass_descriptor/attachments.ts":
+/*!************************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/pass_descriptor/attachments.ts ***!
+  \************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.Attachments = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+var canvas_texture_1 = __webpack_require__(/*! ../resource/texture/canvas-texture */ "./source/abstraction_layer/webgpu/resource/texture/canvas-texture.ts");
+var texture_1 = __webpack_require__(/*! ../resource/texture/texture */ "./source/abstraction_layer/webgpu/resource/texture/texture.ts");
+var texture_usage_enum_1 = __webpack_require__(/*! ../resource/texture/texture-usage.enum */ "./source/abstraction_layer/webgpu/resource/texture/texture-usage.enum.ts");
+var attachment_type_enum_1 = __webpack_require__(/*! ./attachment-type.enum */ "./source/abstraction_layer/webgpu/pass_descriptor/attachment-type.enum.ts");
+var attachment_1 = __webpack_require__(/*! ./type/attachment */ "./source/abstraction_layer/webgpu/pass_descriptor/type/attachment.ts");
+class Attachments {
+  /**
+   * Constructor.
+   * @param pGpu - GPU.
+   */
+  constructor(pGpu) {
+    var pMultiSampleLevel = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+    this.mAttachments = new core_data_1.Dictionary();
+    this.mAttachmentGroup = new core_data_1.Dictionary();
+    this.mTextureGroup = new core_data_1.Dictionary();
+    this.mGpu = pGpu;
+    this.mRebuildRequested = false;
+    this.mSize = {
+      width: 1,
+      height: 1
+    };
+    this.mMultiSampleLevel = pMultiSampleLevel;
+  }
+  /**
+   * Attachment height.
+   */
+  get height() {
+    return this.mSize.height;
+  }
+  /**
+   * Attachment width.
+   */
+  get width() {
+    return this.mSize.width;
+  }
+  /**
+   * Add attachment. Forces rebuild of some groups.
+   * @param pAttachment - Attachment.
+   */
+  addAttachment(pAttachment) {
+    var _pAttachment$format, _pAttachment$layers;
+    // Filter dublicates.
+    if (this.mAttachments.has(pAttachment.name)) {
+      throw new core_data_1.Exception("Attachment \"".concat(pAttachment.name, "\" already exists."), this);
+    }
+    // Auto detect format.
+    var lFormat = (_pAttachment$format = pAttachment.format) !== null && _pAttachment$format !== void 0 ? _pAttachment$format : window.navigator.gpu.getPreferredCanvasFormat();
+    // Special canvas treatment for fixed properties.
+    var lType = pAttachment.type;
+    var lCanvas = null;
+    if ('canvas' in pAttachment) {
+      lType |= attachment_type_enum_1.AttachmentType.Canvas; // Inject canvas type.
+      lCanvas = pAttachment.canvas;
+    }
+    // Apply default value for layer count.
+    var lLayerCount = (_pAttachment$layers = pAttachment.layers) !== null && _pAttachment$layers !== void 0 ? _pAttachment$layers : 1;
+    // Force default for attachment
+    var lAttachment = {
+      type: lType,
+      name: pAttachment.name,
+      format: lFormat,
+      layers: lLayerCount,
+      canvas: lCanvas,
+      attachment: new attachment_1.Attachment(this.mGpu, lFormat, lLayerCount)
+    };
+    // Set attachment.
+    this.mAttachments.set(pAttachment.name, lAttachment);
+    // Set refresh flag to refresh all textures on next load.
+    this.mRebuildRequested = true;
+  }
+  /**
+   * Get attachment by name.
+   * @param pName - Attachment name.
+   */
+  getAttachment(pName) {
+    // Rebuild textures.
+    if (this.mRebuildRequested) {
+      this.rebuildTetures();
+    }
+    // Try to get attachment
+    var lAttachment = this.mAttachments.get(pName);
+    if (!lAttachment) {
+      throw new core_data_1.Exception("No attachment \"".concat(pName, "\" found."), this);
+    }
+    // Read cached attachments.
+    return lAttachment.attachment;
+  }
+  /**
+   * Check attachment by name.
+   * @param pName - Attachment name.
+   */
+  hasAttachment(pName) {
+    return this.mAttachments.has(pName);
+  }
+  /**
+   * Resize all attachments.
+   * @param pWidth - New width.
+   * @param pHeight - New height.
+   */
+  resize(pWidth, pHeight) {
+    // Only resize on actual size change.
+    if (this.mSize.width === pWidth && this.mSize.height === pHeight) {
+      return;
+    }
+    // Set size.
+    this.mSize.width = pWidth;
+    this.mSize.height = pHeight;
+    // Apply with to all created textures.
+    for (var lTexture of this.mTextureGroup.values()) {
+      lTexture.width = this.mSize.width;
+      lTexture.height = this.mSize.height;
+    }
+  }
+  /**
+   * Group attachments by texture format.
+   * @param pAttachmentList - Attachments.
+   */
+  groupAttachments(pAttachmentList) {
+    var lGroups = new core_data_1.Dictionary();
+    for (var lAttachment of pAttachmentList) {
+      // Get group name by format and multisamples.         
+      var lGroupName = "Format: ".concat(lAttachment.format);
+      // Exclude canvas by setting unique group names as they should never be grouped.
+      var lCanvas = null;
+      if ((lAttachment.type & attachment_type_enum_1.AttachmentType.Canvas) > 0) {
+        lGroupName = "CANVAS--".concat(lAttachment.name, "--").concat(lGroupName);
+        lCanvas = lAttachment.canvas;
+      }
+      // Create new group when not already created.
+      if (!lGroups.has(lGroupName)) {
+        lGroups.set(lGroupName, {
+          name: lGroupName,
+          format: lAttachment.format,
+          attachments: new Array(),
+          updatedNeeded: false,
+          canvas: lCanvas
+        });
+      }
+      // Get group and add attachment.
+      lGroups.get(lGroupName).attachments.push(lAttachment);
+    }
+    // Groups cant be empty, as there is no detele attachment.
+    // Check attachment count difference since last grouping.
+    for (var lGroup of lGroups.values()) {
+      if (lGroup.attachments.length !== this.mAttachmentGroup.get(lGroup.name)) {
+        lGroup.updatedNeeded = true;
+        // Update group value.
+        this.mAttachmentGroup.set(lGroup.name, lGroup.attachments.length);
+      }
+    }
+    return [...lGroups.values()];
+  }
+  /**
+   * Rebuild textures that are outdated.
+   */
+  rebuildTetures() {
+    // Group textures.
+    for (var lGroup of this.groupAttachments([...this.mAttachments.values()])) {
+      var _this$mTextureGroup$g;
+      // Continue when group has not been updated.
+      if (!lGroup.updatedNeeded) {
+        continue;
+      }
+      // Destory old texture.
+      (_this$mTextureGroup$g = this.mTextureGroup.get(lGroup.name)) === null || _this$mTextureGroup$g === void 0 ? void 0 : _this$mTextureGroup$g.destroy();
+      // Build new texture or clear old one.
+      if (lGroup.attachments.length > 0) {
+        // Count layers of group.
+        var lTextureLayerCount = lGroup.attachments.reduce((pCurrent, pNext) => {
+          return pCurrent + pNext.layers;
+        }, 0);
+        // Create texture and set size and concat debug label.
+        var lTexture = void 0;
+        if (lGroup.canvas !== null) {
+          var lCanvasTexture = new canvas_texture_1.CanvasTexture(this.mGpu, lGroup.canvas, lGroup.format, texture_usage_enum_1.TextureUsage.RenderAttachment | texture_usage_enum_1.TextureUsage.TextureBinding);
+          lCanvasTexture.label = lGroup.name;
+          lCanvasTexture.width = this.mSize.width;
+          lCanvasTexture.height = this.mSize.height;
+          lTexture = lCanvasTexture;
+        } else {
+          // Create fixed texture.
+          var lFixedTexture = new texture_1.Texture(this.mGpu, lGroup.format, texture_usage_enum_1.TextureUsage.RenderAttachment | texture_usage_enum_1.TextureUsage.TextureBinding, '2d', this.mMultiSampleLevel, lTextureLayerCount);
+          lFixedTexture.label = lGroup.name;
+          lFixedTexture.width = this.mSize.width;
+          lFixedTexture.height = this.mSize.height;
+          lTexture = lFixedTexture;
+        }
+        // Create views from same texture.
+        var lCurrentLayer = 0;
+        for (var lAttachment of lGroup.attachments) {
+          // Update attachment texture.
+          lAttachment.attachment.updateTexture(lTexture, lCurrentLayer);
+          // Increment layer.
+          lCurrentLayer += lAttachment.layers;
+        }
+        // Update group texture.
+        this.mTextureGroup.set(lGroup.name, lTexture);
+      } else {
+        // Remove group texture.
+        this.mTextureGroup.delete(lGroup.name);
+      }
+    }
+    this.mRebuildRequested = false;
+  }
+}
+exports.Attachments = Attachments;
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/pass_descriptor/render-pass-descriptor.ts":
+/*!***********************************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/pass_descriptor/render-pass-descriptor.ts ***!
+  \***********************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.RenderPassDescriptor = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+var gpu_native_object_1 = __webpack_require__(/*! ../gpu-native-object */ "./source/abstraction_layer/webgpu/gpu-native-object.ts");
+class RenderPassDescriptor extends gpu_native_object_1.GpuNativeObject {
+  /**
+   * Constructor.
+   * @param pGpu - Gpu.
+   * @param pAttachments - Attachments.
+   */
+  constructor(pGpu, pAttachments) {
+    super(pGpu, 'RENDER_PASS_DESCRIPTOR');
+    // Set statics.
+    this.mAttachments = pAttachments;
+    // Init lists and defaults.
+    this.mColorAttachments = new Array();
+    this.mDepthStencilAttachment = null;
+  }
+  /**
+   * Get render targets.
+   */
+  get colorAttachments() {
+    var lTargets = new Array();
+    for (var lColorAttachment of this.mColorAttachments) {
+      lTargets.push(lColorAttachment.attachment);
+    }
+    return lTargets;
+  }
+  /**
+   * Get depth attachment of render pass.
+   */
+  get depthAttachment() {
+    if (!this.mDepthStencilAttachment) {
+      return undefined;
+    }
+    return this.mDepthStencilAttachment.attachment;
+  }
+  /**
+   * Set color attachment.
+   * @param pAttachmentName - Attachment name.
+   * @param pClearValue - Clear value.
+   * @param pLoadOp - Load operation.
+   * @param pStoreOp - Store operation.
+   */
+  setColorAttachment(pLocation, pAttachmentName, pClearValue, pLoadOp, pStoreOp, pResolveAttachmentName) {
+    // Validate attachment existence.
+    if (!this.mAttachments.hasAttachment(pAttachmentName)) {
+      throw new core_data_1.Exception("Attachment \"".concat(pAttachmentName, "\" does not exist."), this);
+    }
+    if (pResolveAttachmentName && !this.mAttachments.hasAttachment(pResolveAttachmentName)) {
+      throw new core_data_1.Exception("Resolve attachment \"".concat(pResolveAttachmentName, "\" does not exist."), this);
+    }
+    // Update internal attachment object.
+    var lAttachment = this.mAttachments.getAttachment(pAttachmentName);
+    if (this.mColorAttachments[pLocation]) {
+      this.unregisterInternalNative(this.mColorAttachments[pLocation].attachment);
+    }
+    this.registerInternalNative(lAttachment);
+    // Update internal resolve attachment object.
+    var lResolveAttachment = null;
+    if (pResolveAttachmentName) {
+      lResolveAttachment = this.mAttachments.getAttachment(pResolveAttachmentName);
+      if (this.mColorAttachments[pLocation] && this.mColorAttachments[pLocation].resolveTarget) {
+        this.unregisterInternalNative(this.mColorAttachments[pLocation].resolveTarget);
+      }
+    }
+    if (lResolveAttachment) {
+      this.registerInternalNative(lResolveAttachment);
+    }
+    // Setup depth attachment.
+    this.mColorAttachments[pLocation] = {
+      attachment: lAttachment,
+      clearValue: pClearValue,
+      loadOp: pLoadOp !== null && pLoadOp !== void 0 ? pLoadOp : 'clear',
+      storeOp: pStoreOp !== null && pStoreOp !== void 0 ? pStoreOp : 'store',
+      resolveTarget: lResolveAttachment
+    };
+  }
+  /**
+   * Set depth attachment.
+   * @param pAttachmentName - Attachment name.
+   * @param pClearValue - Clear value.
+   * @param pLoadOp - Load operation.
+   * @param pStoreOp - Store operation.
+   */
+  setDepthAttachment(pAttachmentName, pClearValue, pLoadOp, pStoreOp) {
+    // Validate attachment existence.
+    if (!this.mAttachments.hasAttachment(pAttachmentName)) {
+      throw new core_data_1.Exception("Attachment \"".concat(pAttachmentName, "\" does not exist."), this);
+    }
+    var lAttachment = this.mAttachments.getAttachment(pAttachmentName);
+    // Update internal object.
+    if (this.mDepthStencilAttachment) {
+      this.unregisterInternalNative(this.mDepthStencilAttachment.attachment);
+    }
+    this.registerInternalNative(lAttachment);
+    // Setup depth attachment.
+    this.mDepthStencilAttachment = {
+      attachment: lAttachment,
+      clearValue: pClearValue,
+      loadOp: pLoadOp !== null && pLoadOp !== void 0 ? pLoadOp : 'clear',
+      storeOp: pStoreOp !== null && pStoreOp !== void 0 ? pStoreOp : 'store' // Apply default value.
+    };
+  }
+  /**
+   * Generate render pass descriptor.
+   */
+  generate() {
+    // Create color attachments.
+    var lColorAttachments = new Array();
+    for (var lColorAttachment of this.mColorAttachments) {
+      var lPassColorAttachment = {
+        view: lColorAttachment.attachment.native(),
+        clearValue: lColorAttachment.clearValue,
+        loadOp: lColorAttachment.loadOp,
+        storeOp: lColorAttachment.storeOp
+      };
+      // Resolve optional resolve attachment.
+      if (lColorAttachment.resolveTarget) {
+        lPassColorAttachment.resolveTarget = lColorAttachment.resolveTarget.native();
+      }
+      lColorAttachments.push(lPassColorAttachment);
+    }
+    // Create descriptor with color attachments.
+    var lDescriptor = {
+      colorAttachments: lColorAttachments
+    };
+    // Set optional depth attachment.
+    if (this.mDepthStencilAttachment) {
+      lDescriptor.depthStencilAttachment = {
+        view: this.mDepthStencilAttachment.attachment.native(),
+        depthClearValue: this.mDepthStencilAttachment.clearValue,
+        depthLoadOp: this.mDepthStencilAttachment.loadOp,
+        depthStoreOp: this.mDepthStencilAttachment.storeOp
+      };
+    }
+    return lDescriptor;
+  }
+}
+exports.RenderPassDescriptor = RenderPassDescriptor;
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/pass_descriptor/type/attachment.ts":
+/*!****************************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/pass_descriptor/type/attachment.ts ***!
+  \****************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.Attachment = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+var gpu_native_object_1 = __webpack_require__(/*! ../../gpu-native-object */ "./source/abstraction_layer/webgpu/gpu-native-object.ts");
+class Attachment extends gpu_native_object_1.GpuNativeObject {
+  /**
+   * constructor.
+   * @param pAttachment - Attachment.
+   */
+  constructor(pGpu, pFormat, pLayers) {
+    super(pGpu, 'ATTACHMENT');
+    this.mFormat = pFormat;
+    this.mLayers = pLayers;
+    // Set default.
+    this.mTexture = null;
+    this.mBaseArrayLayer = 0;
+  }
+  /**
+   * Get texture format.
+   */
+  get format() {
+    return this.mFormat;
+  }
+  /**
+   * Multisample level of attachment.
+   */
+  get multiSampleLevel() {
+    var _this$mTexture$multiS, _this$mTexture;
+    return (_this$mTexture$multiS = (_this$mTexture = this.mTexture) === null || _this$mTexture === void 0 ? void 0 : _this$mTexture.multiSampleLevel) !== null && _this$mTexture$multiS !== void 0 ? _this$mTexture$multiS : 1;
+  }
+  /**
+   * Update attachment texture.
+   * @param pTexture - Attachment texture.
+   * @param pBaseArrayLayer - Starting index of first texture layer.
+   */
+  updateTexture(pTexture, pBaseArrayLayer) {
+    // Remove old and add new texture as internal native.
+    if (this.mTexture) {
+      this.unregisterInternalNative(this.mTexture);
+    }
+    this.registerInternalNative(pTexture);
+    // Set new texture informations.
+    this.mBaseArrayLayer = pBaseArrayLayer;
+    this.mTexture = pTexture;
+  }
+  /**
+   * Generate color attachment.
+   */
+  generate() {
+    // Validate texture.
+    if (!this.mTexture) {
+      throw new core_data_1.Exception("Attachment \"".concat(this.label, "\" has no texture."), this);
+    }
+    var lTexture = this.mTexture.native();
+    // Generate view.
+    var lView = lTexture.createView({
+      label: 'Texture-View' + this.mTexture.label,
+      dimension: '2d',
+      baseArrayLayer: this.mBaseArrayLayer,
+      arrayLayerCount: this.mLayers
+    });
+    return lView;
+  }
+}
+exports.Attachment = Attachment;
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/pipeline/data/vertex-attribute.ts":
+/*!***************************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/pipeline/data/vertex-attribute.ts ***!
+  \***************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.VertexAttribute = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+var gpu_native_object_1 = __webpack_require__(/*! ../../gpu-native-object */ "./source/abstraction_layer/webgpu/gpu-native-object.ts");
+var wgsl_type_enum_1 = __webpack_require__(/*! ../../shader/enum/wgsl-type.enum */ "./source/abstraction_layer/webgpu/shader/enum/wgsl-type.enum.ts");
+class VertexAttribute extends gpu_native_object_1.GpuNativeObject {
+  /**
+   * Constructor.
+   * @param pBuffer - Buffer.
+   */
+  constructor(pGpu, pType) {
+    var _gTypeToBufferType$pT;
+    super(pGpu, 'VERTEX_ATTRIBUTE');
+    // Format by type.
+    var lGeneric = pType.generics.at(0);
+    var lFormatStride = (_gTypeToBufferType$pT = gTypeToBufferType[pType.type]) === null || _gTypeToBufferType$pT === void 0 ? void 0 : _gTypeToBufferType$pT[lGeneric];
+    // Throw on invalid parameter.
+    if (!lFormatStride) {
+      throw new core_data_1.Exception("Invalid attribute type for \"".concat(pType, "<").concat(lGeneric, ">\""), this);
+    }
+    // Build name.
+    var lAttributeNameParts = new Array();
+    var lCurrentPathType = pType;
+    do {
+      lAttributeNameParts.push(lCurrentPathType.name);
+      lCurrentPathType = lCurrentPathType.parent;
+    } while (lCurrentPathType !== null);
+    this.mName = lAttributeNameParts.reverse().join('.');
+    this.mAttribute = {
+      type: pType,
+      dataType: lFormatStride.type,
+      format: lFormatStride.format
+    };
+  }
+  /**
+   * Get underlying type of buffer.
+   */
+  get bufferDataType() {
+    return this.mAttribute.dataType;
+  }
+  /**
+   * Get attribute location.
+   */
+  get location() {
+    return this.mAttribute.type.location;
+  }
+  /**
+   * Attribute name.
+   */
+  get name() {
+    return this.mName;
+  }
+  /**
+   * Generate native object.
+   */
+  generate() {
+    // Generate attributes.
+    var lAttributes = new Array();
+    lAttributes.push({
+      format: this.mAttribute.format,
+      offset: 0,
+      shaderLocation: this.mAttribute.type.location
+    });
+    return {
+      arrayStride: this.mAttribute.type.size,
+      stepMode: 'vertex',
+      attributes: lAttributes
+    };
+  }
+}
+exports.VertexAttribute = VertexAttribute;
+var gTypeToBufferType = {
+  // Single types.
+  [wgsl_type_enum_1.WgslType.Float32]: {
+    [wgsl_type_enum_1.WgslType.Any]: {
+      format: 'float32',
+      type: Float32Array
+    }
+  },
+  [wgsl_type_enum_1.WgslType.Integer32]: {
+    [wgsl_type_enum_1.WgslType.Any]: {
+      format: 'sint32',
+      type: Int32Array
+    }
+  },
+  [wgsl_type_enum_1.WgslType.UnsignedInteger32]: {
+    [wgsl_type_enum_1.WgslType.Any]: {
+      format: 'uint32',
+      type: Uint32Array
+    }
+  },
+  // Vector types.
+  [wgsl_type_enum_1.WgslType.Vector2]: {
+    [wgsl_type_enum_1.WgslType.Float16]: {
+      format: 'float16x2',
+      type: Float32Array
+    },
+    [wgsl_type_enum_1.WgslType.Float32]: {
+      format: 'float32x2',
+      type: Float32Array
+    },
+    [wgsl_type_enum_1.WgslType.Integer32]: {
+      format: 'sint32x2',
+      type: Int32Array
+    },
+    [wgsl_type_enum_1.WgslType.UnsignedInteger32]: {
+      format: 'uint32x2',
+      type: Uint32Array
+    }
+  },
+  [wgsl_type_enum_1.WgslType.Vector3]: {
+    // [WgslType.Float16]: { format: 'float16x3', stride: 3 },
+    [wgsl_type_enum_1.WgslType.Float32]: {
+      format: 'float32x3',
+      type: Float32Array
+    },
+    [wgsl_type_enum_1.WgslType.Integer32]: {
+      format: 'sint32x3',
+      type: Int32Array
+    },
+    [wgsl_type_enum_1.WgslType.UnsignedInteger32]: {
+      format: 'uint32x3',
+      type: Uint32Array
+    }
+  },
+  [wgsl_type_enum_1.WgslType.Vector4]: {
+    [wgsl_type_enum_1.WgslType.Float16]: {
+      format: 'float16x4',
+      type: Float32Array
+    },
+    [wgsl_type_enum_1.WgslType.Float32]: {
+      format: 'float32x4',
+      type: Float32Array
+    },
+    [wgsl_type_enum_1.WgslType.Integer32]: {
+      format: 'sint32x4',
+      type: Int32Array
+    },
+    [wgsl_type_enum_1.WgslType.UnsignedInteger32]: {
+      format: 'uint32x3',
+      type: Uint32Array
+    }
+  }
+};
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/pipeline/render-pipeline.ts":
+/*!*********************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/pipeline/render-pipeline.ts ***!
+  \*********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.RenderPipeline = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+var gpu_native_object_1 = __webpack_require__(/*! ../gpu-native-object */ "./source/abstraction_layer/webgpu/gpu-native-object.ts");
+class RenderPipeline extends gpu_native_object_1.GpuNativeObject {
+  /**
+   * Constructor.
+   * @param pGpu - GPU.
+   */
+  constructor(pGpu, pShader, pRenderPass) {
+    super(pGpu, 'RENDER_PIPELINE');
+    // Set statics.
+    this.mRenderPass = pRenderPass;
+    // Set and register shader.
+    this.mShader = pShader;
+    this.registerInternalNative(pShader);
+    // Validate vertex shader.
+    if (!pShader.vertexEntryPoint) {
+      throw new core_data_1.Exception('Vertex shader has no entry point.', this);
+    }
+    // Validate render pass to has same render target count as fragment.
+    if (pShader.fragmentEntryPoint) {
+      if (pRenderPass.colorAttachments.length !== pShader.fragmentEntryPoint.renderTargetCount) {
+        throw new core_data_1.Exception("Render pass(".concat(pRenderPass.colorAttachments.length, ") and shader(").concat(pShader.fragmentEntryPoint.renderTargetCount, ") are having unmatching render targets"), this);
+      }
+    }
+    // Set default values.
+    this.mPrimitive = {
+      frontFace: 'cw',
+      cullMode: 'back',
+      topology: 'triangle-list',
+      unclippedDepth: false
+    };
+    this.mDepthWriteEnabled = true;
+    this.mDepthCompare = 'less';
+  }
+  /**
+   * Set depth compare function.
+   */
+  get depthCompare() {
+    return this.mDepthCompare;
+  }
+  set depthCompare(pValue) {
+    this.mDepthCompare = pValue;
+    // Set data changed flag.
+    this.triggerChange();
+  }
+  /**
+   * Defines which polygon orientation will be culled.
+   */
+  get primitiveCullMode() {
+    return this.mPrimitive.cullMode;
+  }
+  set primitiveCullMode(pValue) {
+    this.mPrimitive.cullMode = pValue;
+    // Set data changed flag.
+    this.triggerChange();
+  }
+  /**
+   * Defines which polygons are considered front-facing.
+   */
+  get primitiveFrontFace() {
+    return this.mPrimitive.frontFace;
+  }
+  set primitiveFrontFace(pValue) {
+    this.mPrimitive.frontFace = pValue;
+    // Set data changed flag.
+    this.triggerChange();
+  }
+  /**
+   * The type of primitive to be constructed from the vertex inputs.
+   */
+  get primitiveTopology() {
+    return this.mPrimitive.topology;
+  }
+  set primitiveTopology(pValue) {
+    this.mPrimitive.topology = pValue;
+    // Set data changed flag.
+    this.triggerChange();
+  }
+  /**
+   * Render pass of pipeline.
+   */
+  get renderPass() {
+    return this.mRenderPass;
+  }
+  /**
+   * Shader.
+   */
+  get shader() {
+    return this.mShader;
+  }
+  /**
+   * Set depth to never clip.
+   */
+  get unclipedDepth() {
+    var _this$mPrimitive$uncl;
+    return (_this$mPrimitive$uncl = this.mPrimitive.unclippedDepth) !== null && _this$mPrimitive$uncl !== void 0 ? _this$mPrimitive$uncl : false;
+  }
+  set unclipedDepth(pValue) {
+    this.mPrimitive.unclippedDepth = pValue;
+    // Set data changed flag.
+    this.triggerChange();
+  }
+  /**
+   * Set depth write enabled / disabled.
+   */
+  get writeDepth() {
+    return this.mDepthWriteEnabled;
+  }
+  set writeDepth(pValue) {
+    this.mDepthWriteEnabled = pValue;
+    // Set data changed flag.
+    this.triggerChange();
+  }
+  /**
+   * Generate native render pipeline.
+   */
+  generate() {
+    // Generate pipeline layout from bind group layouts.
+    var lPipelineLayout = this.mShader.bindGroups.native();
+    // Generate vertex buffer layouts.
+    var lVertexBufferLayoutList = new Array();
+    for (var lAttribute of this.mShader.vertexEntryPoint.attributes) {
+      // Set location offset based on previous  vertex attributes.
+      lVertexBufferLayoutList.push(lAttribute.native());
+    }
+    // Construct basic GPURenderPipelineDescriptor.
+    var lPipelineDescriptor = {
+      label: this.label,
+      layout: this.gpu.device.createPipelineLayout(lPipelineLayout),
+      vertex: {
+        module: this.mShader.native(),
+        entryPoint: this.mShader.vertexEntryPoint.name,
+        buffers: lVertexBufferLayoutList
+        // No constants. Yes.
+      },
+
+      primitive: this.mPrimitive
+    };
+    // Buffer render pass formats.
+    var lRenderPassBuffer = {
+      color: new Array()
+    };
+    // Save highest multisample count.
+    var lMultisampleCount = 1;
+    // Optional fragment state.
+    if (this.mShader.fragmentEntryPoint) {
+      // Generate fragment targets only when fragment state is needed.
+      var lFragmentTargetList = new Array();
+      for (var lRenderTarget of this.mRenderPass.colorAttachments) {
+        lFragmentTargetList.push({
+          format: lRenderTarget.format
+          // blend?: GPUBlendState;   // TODO: GPUBlendState
+          // writeMask?: GPUColorWriteFlags; // TODO: GPUColorWriteFlags
+        });
+        // Save highest multisample count.
+        if (lMultisampleCount < lRenderTarget.multiSampleLevel) {
+          lMultisampleCount = lRenderTarget.multiSampleLevel;
+        }
+        // Save last render pass targets.
+        lRenderPassBuffer.color.push(lRenderTarget.format);
+      }
+      lPipelineDescriptor.fragment = {
+        module: this.mShader.native(),
+        entryPoint: this.mShader.fragmentEntryPoint.name,
+        targets: lFragmentTargetList
+      };
+    }
+    // Setup optional depth attachment.
+    var lDepthAttachment = this.mRenderPass.depthAttachment;
+    if (lDepthAttachment) {
+      lPipelineDescriptor.depthStencil = {
+        depthWriteEnabled: this.mDepthWriteEnabled,
+        depthCompare: this.mDepthCompare,
+        format: lDepthAttachment.format
+        // TODO: Stencil settings. 
+      };
+      // Save last render pass depth.
+      lRenderPassBuffer.depth = lDepthAttachment.format;
+    }
+    // Set multisample count.
+    if (lMultisampleCount > 1) {
+      lPipelineDescriptor.multisample = {
+        count: lMultisampleCount
+      };
+    }
+    // Async is none GPU stalling.
+    return this.gpu.device.createRenderPipeline(lPipelineDescriptor); // TODO: Async somehow.
+  }
+}
+
+exports.RenderPipeline = RenderPipeline;
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/resource/buffer/base-buffer.ts":
+/*!************************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/resource/buffer/base-buffer.ts ***!
+  \************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.BaseBuffer = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+var gpu_native_object_1 = __webpack_require__(/*! ../../gpu-native-object */ "./source/abstraction_layer/webgpu/gpu-native-object.ts");
+class BaseBuffer extends gpu_native_object_1.GpuNativeObject {
+  /**
+   * Constructor.
+   * @param pGpu - GPU.
+   * @param pUsage - Buffer usage beside COPY_DST.
+   * @param pData  - Inital data. Can be empty.
+   */
+  constructor(pGpu, pUsage, pData) {
+    super(pGpu, 'BUFFER');
+    this.mBufferUsage = pUsage;
+    this.mInitData = pData;
+    this.mBufferLength = pData.length;
+    this.mDataType = pData.constructor;
+  }
+  /**
+   * Buffer size in items.
+   */
+  get length() {
+    return this.mBufferLength;
+  }
+  /**
+   * Buffer size in bytes aligned to 4 bytes.
+   */
+  get size() {
+    return this.mBufferLength * this.type.BYTES_PER_ELEMENT + 3 & ~3;
+  }
+  /**
+   * Underlying data type.
+   */
+  get type() {
+    return this.mDataType;
+  }
+  /**
+   * Destroy native object.
+   * @param pNativeObject - Native object.
+   */
+  destroyNative(pNativeObject) {
+    pNativeObject.destroy();
+  }
+  /**
+   * Generate native object.
+   */
+  generate() {
+    // Generate new empty init data.
+    if (!this.mInitData) {
+      this.mInitData = new this.mDataType(this.mBufferLength);
+    }
+    // Create gpu buffer mapped
+    var lBuffer = this.gpu.device.createBuffer({
+      label: this.label,
+      size: this.size,
+      usage: this.mBufferUsage,
+      mappedAtCreation: this.mInitData.length > 0 // Map data when buffer would receive initial data.
+    });
+    // Copy only when data is available.
+    if (this.mInitData.length > 0) {
+      if (this.mInitData.length > this.size) {
+        throw new core_data_1.Exception('Buffer data exeedes buffer size.', this);
+      }
+      var lData = new this.mDataType(lBuffer.getMappedRange());
+      lData.set(this.mInitData, 0);
+      // unmap buffer.
+      lBuffer.unmap();
+    }
+    // Clear init data.
+    this.mInitData = null;
+    return lBuffer;
+  }
+}
+exports.BaseBuffer = BaseBuffer;
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/resource/buffer/ring-buffer.ts":
+/*!************************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/resource/buffer/ring-buffer.ts ***!
+  \************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.RingBuffer = void 0;
+var base_buffer_1 = __webpack_require__(/*! ./base-buffer */ "./source/abstraction_layer/webgpu/resource/buffer/base-buffer.ts");
+class RingBuffer extends base_buffer_1.BaseBuffer {
+  /**
+   * Constructor.
+   * @param pGpu - GPU.
+   * @param pUsage - Buffer usage beside COPY_DST.
+   * @param pInitialData  - Inital data. Can be empty.
+   */
+  constructor(pGpu, pUsage, pInitialData) {
+    super(pGpu, pUsage | GPUBufferUsage.COPY_DST, pInitialData);
+    // Waving buffer list.
+    this.mReadyBufferList = new Array();
+    this.mWavingBufferList = new Array();
+  }
+  /**
+   * Request buffer write.
+   * @param pBufferCallback - Callback called on buffer access.
+   */
+  write(pBufferCallback) {
+    // Create new buffer when no mapped buffer is available. 
+    var lStagingBuffer;
+    if (this.mReadyBufferList.length === 0) {
+      lStagingBuffer = this.gpu.device.createBuffer({
+        label: 'RingBuffer-WaveBuffer-' + this.label,
+        size: this.size,
+        usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
+        mappedAtCreation: true
+      });
+      // Add new buffer to complete list.
+      this.mWavingBufferList.push(lStagingBuffer);
+    } else {
+      lStagingBuffer = this.mReadyBufferList.pop();
+    }
+    // Execute write operations.
+    var lBufferArray = new this.type(lStagingBuffer.getMappedRange());
+    pBufferCallback(lBufferArray);
+    // Unmap for copying data.
+    lStagingBuffer.unmap();
+    // Copy buffer data from staging into wavig buffer.
+    var lCommandDecoder = this.gpu.device.createCommandEncoder();
+    lCommandDecoder.copyBufferToBuffer(lStagingBuffer, 0, this.native(), 0, this.size);
+    this.gpu.device.queue.submit([lCommandDecoder.finish()]);
+    // Shedule staging buffer remaping.
+    lStagingBuffer.mapAsync(GPUMapMode.WRITE).then(() => {
+      this.mReadyBufferList.push(lStagingBuffer);
+    });
+  }
+  /**
+   * Destory all buffers.
+   * @param pNativeObject - Native buffer object.
+   */
+  destroyNative(pNativeObject) {
+    super.destroyNative(pNativeObject);
+    // Destroy all wave buffer and clear list.
+    for (var lCount = 0; this.mWavingBufferList.length < lCount; lCount++) {
+      var _this$mWavingBufferLi;
+      (_this$mWavingBufferLi = this.mWavingBufferList.pop()) === null || _this$mWavingBufferLi === void 0 ? void 0 : _this$mWavingBufferLi.destroy();
+    }
+    // Clear ready buffer list.
+    for (var _lCount = 0; this.mReadyBufferList.length < _lCount; _lCount++) {
+      this.mReadyBufferList.pop();
+    }
+  }
+}
+exports.RingBuffer = RingBuffer;
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/resource/buffer/simple-buffer.ts":
+/*!**************************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/resource/buffer/simple-buffer.ts ***!
+  \**************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.SimpleBuffer = void 0;
+var base_buffer_1 = __webpack_require__(/*! ./base-buffer */ "./source/abstraction_layer/webgpu/resource/buffer/base-buffer.ts");
+class SimpleBuffer extends base_buffer_1.BaseBuffer {
+  /**
+   * Constructor.
+   * @param pGpu - GPU.
+   * @param pUsage - Buffer usage beside COPY_DST.
+   * @param pInitialData  - Inital data. Can be empty.
+   */
+  constructor(pGpu, pUsage, pInitialData) {
+    super(pGpu, pUsage | GPUBufferUsage.COPY_DST, pInitialData);
+  }
+  /**
+   * Request buffer write.
+   * @param pBufferCallback - Callback called on buffer access.
+   */
+  write(pBufferCallback) {
+    var lBuffer = this.native();
+    // Create new typed array and add new data to this new array.
+    var lSourceBuffer = new this.type(this.length);
+    pBufferCallback(lSourceBuffer);
+    // Write copied buffer.
+    this.gpu.device.queue.writeBuffer(lBuffer, 0, lSourceBuffer, 0, lSourceBuffer.length);
+  }
+}
+exports.SimpleBuffer = SimpleBuffer;
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/resource/external-texture.ts":
+/*!**********************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/resource/external-texture.ts ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.ExternalTexture = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+var gpu_native_object_1 = __webpack_require__(/*! ../gpu-native-object */ "./source/abstraction_layer/webgpu/gpu-native-object.ts");
+class ExternalTexture extends gpu_native_object_1.GpuNativeObject {
+  /**
+   * Constructor.
+   * @param pGpu - GPU.
+   */
+  constructor(pGpu) {
+    super(pGpu, 'EXTERNAL_TEXTURE');
+    this.mVideoElement = null;
+  }
+  /**
+   * Loaded video element.
+   */
+  get video() {
+    if (!this.mVideoElement) {
+      throw new core_data_1.Exception('No video element is loaded or old video is expired.', this);
+    }
+    return this.mVideoElement;
+  }
+  /**
+   *
+   * @param pSource - Video source.
+   * @param pLoop - Loop video.
+   * @param pMuted - Mute video.
+   */
+  load(pSource) {
+    var _this = this;
+    var pLoop = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+    var pMuted = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+    return _asyncToGenerator(function* () {
+      var lVideo = new HTMLVideoElement();
+      lVideo.loop = pLoop;
+      lVideo.muted = pMuted;
+      lVideo.src = pSource;
+      // Wait for resource load and pause right after.
+      yield lVideo.play();
+      lVideo.pause();
+      _this.mVideoElement = lVideo;
+    })();
+  }
+  /**
+   * Generate new external texture.
+   */
+  generate() {
+    if (!this.mVideoElement) {
+      throw new core_data_1.Exception('No video element is loaded or old video is expired.', this);
+    }
+    return this.gpu.device.importExternalTexture({
+      label: this.label,
+      source: this.mVideoElement,
+      colorSpace: 'srgb'
+    });
+  }
+}
+exports.ExternalTexture = ExternalTexture;
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/resource/texture-sampler.ts":
+/*!*********************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/resource/texture-sampler.ts ***!
+  \*********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.TextureSampler = void 0;
+var gpu_native_object_1 = __webpack_require__(/*! ../gpu-native-object */ "./source/abstraction_layer/webgpu/gpu-native-object.ts");
+class TextureSampler extends gpu_native_object_1.GpuNativeObject {
+  /**
+   * Constructor.
+   * @param pGpu - GPU.
+   */
+  constructor(pGpu) {
+    super(pGpu, 'TEXTURE_SAMPLER');
+    // Set defaults.
+    this.mCompare = null;
+    this.mFitMode = 'clamp-to-edge';
+    this.mMagFilter = 'nearest';
+    this.mMinFilter = 'nearest';
+    this.mMipmapFilter = 'nearest';
+    this.mLodMinClamp = 0;
+    this.mLodMaxClamp = 32;
+    this.mMaxAnisotropy = 1;
+  }
+  /**
+   * When provided the sampler will be a comparison sampler with the specified compare function.
+   */
+  get compareFunction() {
+    return this.mCompare;
+  }
+  set compareFunction(pValue) {
+    // Do nothing on assigning old an value.
+    if (this.mCompare === pValue) {
+      return;
+    }
+    this.mCompare = pValue;
+    // Request native rebuild.
+    this.triggerChange();
+  }
+  /**
+   * Texture sampler edge fit mode.
+   */
+  get fitMode() {
+    return this.mFitMode;
+  }
+  set fitMode(pValue) {
+    // Do nothing on assigning old an value.
+    if (this.mFitMode === pValue) {
+      return;
+    }
+    this.mFitMode = pValue;
+    // Request native rebuild.
+    this.triggerChange();
+  }
+  /**
+   * Specifies the maximum levels of detail, respectively, used internally when sampling a texture.
+   */
+  get lodMaxClamp() {
+    return this.mLodMaxClamp;
+  }
+  set lodMaxClamp(pValue) {
+    // Do nothing on assigning old an value.
+    if (this.mLodMaxClamp === pValue) {
+      return;
+    }
+    this.mLodMaxClamp = pValue;
+    // Request native rebuild.
+    this.triggerChange();
+  }
+  /**
+   * Specifies the minimum levels of detail, respectively, used internally when sampling a texture.
+   */
+  get lodMinClamp() {
+    return this.mLodMinClamp;
+  }
+  set lodMinClamp(pValue) {
+    // Do nothing on assigning old an value.
+    if (this.mLodMinClamp === pValue) {
+      return;
+    }
+    this.mLodMinClamp = pValue;
+    // Request native rebuild.
+    this.triggerChange();
+  }
+  /**
+   * How the texture is sampled when a texel covers more than one pixel.
+   */
+  get magFilter() {
+    return this.mMagFilter;
+  }
+  set magFilter(pValue) {
+    // Do nothing on assigning old an value.
+    if (this.mMagFilter === pValue) {
+      return;
+    }
+    this.mMagFilter = pValue;
+    // Request native rebuild.
+    this.triggerChange();
+  }
+  /**
+   * Specifies the maximum anisotropy value clamp used by the sampler.
+   */
+  get maxAnisotropy() {
+    return this.mMaxAnisotropy;
+  }
+  set maxAnisotropy(pValue) {
+    // Do nothing on assigning old an value.
+    if (this.mMaxAnisotropy === pValue) {
+      return;
+    }
+    this.mMaxAnisotropy = pValue;
+    // Request native rebuild.
+    this.triggerChange();
+  }
+  /**
+   * How the texture is sampled when a texel covers less than one pixel.
+   */
+  get minFilter() {
+    return this.mMinFilter;
+  }
+  set minFilter(pValue) {
+    // Do nothing on assigning old an value.
+    if (this.mMinFilter === pValue) {
+      return;
+    }
+    this.mMinFilter = pValue;
+    // Request native rebuild.
+    this.triggerChange();
+  }
+  /**
+   * Specifies behavior for sampling between mipmap levels.
+   */
+  get mipmapFilter() {
+    return this.mMipmapFilter;
+  }
+  set mipmapFilter(pValue) {
+    // Do nothing on assigning old an value.
+    if (this.mMipmapFilter === pValue) {
+      return;
+    }
+    this.mMipmapFilter = pValue;
+    // Request native rebuild.
+    this.triggerChange();
+  }
+  /**
+   * Generate txture sampler.
+   */
+  generate() {
+    var lSamplerOptions = {
+      label: this.label,
+      addressModeU: this.mFitMode,
+      addressModeV: this.mFitMode,
+      addressModeW: this.mFitMode,
+      magFilter: this.magFilter,
+      minFilter: this.minFilter,
+      mipmapFilter: this.mipmapFilter,
+      lodMaxClamp: this.lodMaxClamp,
+      lodMinClamp: this.lodMinClamp,
+      maxAnisotropy: this.mMaxAnisotropy
+    };
+    if (this.compareFunction) {
+      lSamplerOptions.compare = this.compareFunction;
+    }
+    return this.gpu.device.createSampler(lSamplerOptions);
+  }
+}
+exports.TextureSampler = TextureSampler;
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/resource/texture/canvas-texture.ts":
+/*!****************************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/resource/texture/canvas-texture.ts ***!
+  \****************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.CanvasTexture = void 0;
+var gpu_native_object_1 = __webpack_require__(/*! ../../gpu-native-object */ "./source/abstraction_layer/webgpu/gpu-native-object.ts");
+var texture_view_1 = __webpack_require__(/*! ./texture-view */ "./source/abstraction_layer/webgpu/resource/texture/texture-view.ts");
+class CanvasTexture extends gpu_native_object_1.GpuNativeObject {
+  /**
+   * Constructor.
+   * @param pGpu - GPU.
+   * @param pCanvas - HTML Canvas.
+   * @param pFormat - Texture color format.
+   * @param pUsage - Texture usage.
+   */
+  constructor(pGpu, pCanvas, pFormat, pUsage) {
+    super(pGpu, 'CANVAS_TEXTURE');
+    this.mCanvas = pCanvas;
+    this.mFormat = pFormat;
+    this.mUsage = pUsage;
+    // Get and configure context.
+    this.mContext = pCanvas.getContext('webgpu');
+    this.mContext.configure({
+      device: this.gpu.device,
+      format: pFormat,
+      usage: pUsage,
+      alphaMode: 'opaque'
+    });
+    window.aaa = this.mContext;
+  }
+  /**
+   * Texture dimension.
+   * Fixed to 2D.
+   */
+  get dimension() {
+    return '2d';
+  }
+  /**
+   * Texture format.
+   */
+  get format() {
+    return this.mFormat;
+  }
+  /**
+   * Texture and canvas height.
+   */
+  get height() {
+    return this.mCanvas.height;
+  }
+  set height(pHeight) {
+    this.mCanvas.height = pHeight;
+  }
+  /**
+   * Texture layers.
+   * Fixed to one.
+   */
+  get layer() {
+    return 1;
+  }
+  /**
+   * Texture multi sample level.
+   * Fixed to one.
+   */
+  get multiSampleLevel() {
+    return 1;
+  }
+  /**
+   * Texture usage.
+   */
+  get usage() {
+    return this.mUsage;
+  }
+  /**
+   * Texture and canvas height.
+   */
+  get width() {
+    return this.mCanvas.width;
+  }
+  set width(pWidth) {
+    this.mCanvas.width = pWidth;
+  }
+  /**
+   * Create view of this texture.
+   */
+  view(pBaseLayer, pLayerCount) {
+    var lView = new texture_view_1.TextureView(this.gpu, this, pBaseLayer, pLayerCount);
+    lView.label = this.label;
+    return lView;
+  }
+  /**
+   * Get current canvas texture.
+   */
+  generate() {
+    var lTexture = this.mContext.getCurrentTexture();
+    lTexture.label = this.label;
+    return lTexture;
+  }
+  /**
+   * Allways invalidate current texture to generate latest texture.
+   */
+  validate(pNativeObject) {
+    return this.mContext.getCurrentTexture() === pNativeObject;
+  }
+}
+exports.CanvasTexture = CanvasTexture;
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/resource/texture/texture-usage.enum.ts":
+/*!********************************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/resource/texture/texture-usage.enum.ts ***!
+  \********************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.TextureUsage = void 0;
+var TextureUsage;
+(function (TextureUsage) {
+  TextureUsage[TextureUsage["CopySource"] = GPUTextureUsage.COPY_SRC] = "CopySource";
+  TextureUsage[TextureUsage["CopyDestination"] = GPUTextureUsage.COPY_DST] = "CopyDestination";
+  TextureUsage[TextureUsage["TextureBinding"] = GPUTextureUsage.TEXTURE_BINDING] = "TextureBinding";
+  TextureUsage[TextureUsage["StorageBinding"] = GPUTextureUsage.STORAGE_BINDING] = "StorageBinding";
+  TextureUsage[TextureUsage["RenderAttachment"] = GPUTextureUsage.RENDER_ATTACHMENT] = "RenderAttachment";
+})(TextureUsage = exports.TextureUsage || (exports.TextureUsage = {}));
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/resource/texture/texture-view.ts":
+/*!**************************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/resource/texture/texture-view.ts ***!
+  \**************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.TextureView = void 0;
+var gpu_native_object_1 = __webpack_require__(/*! ../../gpu-native-object */ "./source/abstraction_layer/webgpu/gpu-native-object.ts");
+class TextureView extends gpu_native_object_1.GpuNativeObject {
+  /**
+   * Constructor.
+   * @param pGpu - GPU.
+   * @param pTexture - Texture of view.
+   * @param pBaseLayer - Base layer of view.
+   * @param pLayerCount - Depth of view.
+   */
+  constructor(pGpu, pTexture, pBaseLayer, pLayerCount) {
+    super(pGpu, 'TEXTURE_VIEW');
+    this.mTexture = pTexture;
+    this.mBaseLayer = pBaseLayer !== null && pBaseLayer !== void 0 ? pBaseLayer : 0;
+    this.mLayerCount = pLayerCount !== null && pLayerCount !== void 0 ? pLayerCount : this.mTexture.layer;
+    // Set default values.
+    this.mDimension = '2d';
+    this.mAspect = 'all';
+    this.mBaseMipLevel = 0;
+    this.mMipLevelCount = 1;
+    // Register texture as internal.
+    this.registerInternalNative(pTexture);
+  }
+  /**
+   * Which aspecs of the texture are accessible to the texture view.
+   */
+  get aspect() {
+    return this.mAspect;
+  }
+  set aspect(pAspect) {
+    // Do nothing on assigning old an value.
+    if (this.mAspect === pAspect) {
+      return;
+    }
+    this.mAspect = pAspect;
+    // Trigger update.
+    this.triggerChange();
+  }
+  /**
+   * The index of the first array layer accessible to the texture view.
+   */
+  get baseLayer() {
+    return this.mBaseLayer;
+  }
+  /**
+   * The first (most detailed) mipmap level accessible to the texture view.
+   */
+  get baseMipLevel() {
+    return this.mBaseMipLevel;
+  }
+  set baseMipLevel(pLevel) {
+    // Do nothing on assigning old an value.
+    if (this.mBaseMipLevel === pLevel) {
+      return;
+    }
+    this.mBaseMipLevel = pLevel;
+    // Trigger update.
+    this.triggerChange();
+  }
+  /**
+   * The dimension to view the texture as.
+   */
+  get dimension() {
+    return this.mDimension;
+  }
+  set dimension(pDimension) {
+    // Do nothing on assigning old an value.
+    if (this.mDimension === pDimension) {
+      return;
+    }
+    this.mDimension = pDimension;
+    // Trigger update.
+    this.triggerChange();
+  }
+  /**
+   * How many array layers, starting with {@link TextureView#baseLayer}, are accessible
+   * to the texture view.
+   */
+  get layerCount() {
+    return this.mBaseLayer;
+  }
+  /**
+   * How many mipmap levels, starting with {@link TextureView#baseMipLevel}, are accessible to
+   * the texture view.
+   */
+  get mipLevelCount() {
+    return this.mMipLevelCount;
+  }
+  set mipLevelCount(pLevel) {
+    // Do nothing on assigning old an value.
+    if (this.mMipLevelCount === pLevel) {
+      return;
+    }
+    this.mMipLevelCount = pLevel;
+    // Trigger update.
+    this.triggerChange();
+  }
+  /**
+   * Generate new texture view.
+   */
+  generate() {
+    var lTexture = this.mTexture.native();
+    return lTexture.createView({
+      label: this.label,
+      format: this.mTexture.format,
+      dimension: this.mDimension,
+      aspect: this.mAspect,
+      baseMipLevel: this.mBaseMipLevel,
+      mipLevelCount: this.mMipLevelCount,
+      baseArrayLayer: this.mBaseLayer,
+      arrayLayerCount: this.mLayerCount
+    });
+  }
+}
+exports.TextureView = TextureView;
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/resource/texture/texture.ts":
+/*!*********************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/resource/texture/texture.ts ***!
+  \*********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.Texture = void 0;
+var texture_usage_enum_1 = __webpack_require__(/*! ./texture-usage.enum */ "./source/abstraction_layer/webgpu/resource/texture/texture-usage.enum.ts");
+var gpu_native_object_1 = __webpack_require__(/*! ../../gpu-native-object */ "./source/abstraction_layer/webgpu/gpu-native-object.ts");
+var texture_view_1 = __webpack_require__(/*! ./texture-view */ "./source/abstraction_layer/webgpu/resource/texture/texture-view.ts");
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+class Texture extends gpu_native_object_1.GpuNativeObject {
+  /**
+   * Constructor.
+   * @param pGpu - Gpu.
+   * @param pFormat - Texture format.
+   * @param pDimension - Texture dimension.
+   */
+  constructor(pGpu, pFormat, pUsage) {
+    var pDimension = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '2d';
+    var pMultiSampleLevel = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 1;
+    var pLayerCount = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 1;
+    super(pGpu, 'TEXTURE');
+    this.mFormat = pFormat;
+    this.mUsage = pUsage;
+    this.mImageBitmapList = new Array();
+    this.mDimension = pDimension;
+    this.mLayerCount = pLayerCount;
+    // Set and validate multisample level.
+    this.mMultiSampleLevel = pMultiSampleLevel;
+    if (pMultiSampleLevel < 1) {
+      throw new core_data_1.Exception('Multi sample level must be greater than zero.', this);
+    }
+    // Set defaults.
+    this.mHeight = 1;
+    this.mWidth = 1;
+    this.mLayerCount = 1;
+  }
+  /**
+   * Texture dimension.
+   */
+  get dimension() {
+    return this.mDimension;
+  }
+  /**
+   * Texture format.
+   */
+  get format() {
+    return this.mFormat;
+  }
+  /**
+   * Texture height.
+   */
+  get height() {
+    return this.mHeight;
+  }
+  set height(pHeight) {
+    this.mHeight = pHeight;
+    // Trigger change.
+    this.triggerChange();
+  }
+  /**
+   * Texture depth.
+   */
+  get layer() {
+    return this.mLayerCount;
+  }
+  /**
+   * Texture multi sample level.
+   */
+  get multiSampleLevel() {
+    return this.mMultiSampleLevel;
+  }
+  /**
+   * Texture usage.
+   */
+  get usage() {
+    return this.mUsage;
+  }
+  /**
+   * Texture width.
+   */
+  get width() {
+    return this.mWidth;
+  }
+  set width(pWidth) {
+    this.mWidth = pWidth;
+    // Trigger change.
+    this.triggerChange();
+  }
+  /**
+   * Load images into texture.
+   * Each image get loaded into seperate depth layer.
+   * @param pSourceList - Image source list.
+   */
+  load(pSourceList) {
+    var _this = this;
+    return _asyncToGenerator(function* () {
+      var lHeight = 0;
+      var lWidth = 0;
+      // Parallel load images.
+      var lBitmapResolvePromiseList = pSourceList.map( /*#__PURE__*/function () {
+        var _ref = _asyncToGenerator(function* (pSource) {
+          // Load image with html image element.
+          var lImage = new Image();
+          lImage.src = pSource;
+          yield lImage.decode();
+          // Init size.
+          if (lHeight === 0 || lWidth === 0) {
+            lWidth = lImage.naturalWidth;
+            lHeight = lImage.naturalHeight;
+          }
+          // Validate same image size for all layers.
+          if (lHeight !== lImage.naturalHeight || lWidth !== lImage.naturalWidth) {
+            throw new core_data_1.Exception("Texture image layers are not the same size. (".concat(lImage.naturalWidth, ", ").concat(lImage.naturalHeight, ") needs (").concat(lWidth, ", ").concat(lHeight, ")."), _this);
+          }
+          // Resolve image into bitmap.
+          return createImageBitmap(lImage);
+        });
+        return function (_x) {
+          return _ref.apply(this, arguments);
+        };
+      }());
+      // Resolve all bitmaps.
+      _this.mImageBitmapList = yield Promise.all(lBitmapResolvePromiseList);
+      // Set new size.
+      _this.width = lWidth;
+      _this.height = lHeight;
+      // Trigger change.
+      _this.triggerChange();
+    })();
+  }
+  /**
+   * Create view of this texture.
+   */
+  view(pBaseLayer, pLayerCount) {
+    var lView = new texture_view_1.TextureView(this.gpu, this, pBaseLayer, pLayerCount);
+    lView.label = this.label;
+    return lView;
+  }
+  /**
+   * Destroy native object.
+   * @param pNativeObject - Native object.
+   */
+  destroyNative(pNativeObject) {
+    pNativeObject.destroy();
+  }
+  /**
+   * Generate texture based on parameters.
+   */
+  generate() {
+    // Extend usage by CopyDestination when a bitmap should be copied into the texture.
+    var lUsage = this.mUsage;
+    if (this.mImageBitmapList.length > 0) {
+      lUsage |= texture_usage_enum_1.TextureUsage.CopyDestination;
+    }
+    // Create texture with set size, format and usage.
+    var lTexture = this.gpu.device.createTexture({
+      label: this.label,
+      size: [this.mWidth, this.mHeight, this.mLayerCount],
+      format: this.mFormat,
+      usage: lUsage,
+      dimension: this.mDimension,
+      sampleCount: this.mMultiSampleLevel
+    });
+    // Copy bitmap into texture.
+    if (this.mImageBitmapList.length > 0) {
+      // Loop image bitmaps for each layer.
+      for (var lBitmapIndex = 0; lBitmapIndex < this.mImageBitmapList.length; lBitmapIndex++) {
+        var lBitmap = this.mImageBitmapList[lBitmapIndex];
+        // Copy image into depth layer.
+        this.gpu.device.queue.copyExternalImageToTexture({
+          source: lBitmap
+        }, {
+          texture: lTexture,
+          origin: [0, 0, lBitmapIndex]
+        }, [lBitmap.width, lBitmap.height]);
+        // Release image data.
+        lBitmap.close();
+      }
+    }
+    // Clear closed bitmap list.
+    this.mImageBitmapList = new Array();
+    return lTexture;
+  }
+}
+exports.Texture = Texture;
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/shader/enum/wgsl-access-mode.enum.ts":
+/*!******************************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/shader/enum/wgsl-access-mode.enum.ts ***!
+  \******************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.WgslAccessMode = void 0;
+var WgslAccessMode;
+(function (WgslAccessMode) {
+  WgslAccessMode["None"] = "_None";
+  WgslAccessMode["AccessModeRead"] = "read";
+  WgslAccessMode["AccessModeWrite"] = "write";
+  WgslAccessMode["AccessModeReadWrite"] = "read_write";
+})(WgslAccessMode = exports.WgslAccessMode || (exports.WgslAccessMode = {}));
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/shader/enum/wgsl-binding-type.enum.ts":
+/*!*******************************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/shader/enum/wgsl-binding-type.enum.ts ***!
+  \*******************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.WgslBindingType = void 0;
+var WgslBindingType;
+(function (WgslBindingType) {
+  WgslBindingType["None"] = "_None";
+  WgslBindingType["Uniform"] = "uniform";
+  WgslBindingType["Storage"] = "storage";
+  WgslBindingType["ReadonlyStorage"] = "read-only-storage";
+})(WgslBindingType = exports.WgslBindingType || (exports.WgslBindingType = {}));
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/shader/enum/wgsl-shader-stage.enum.ts":
+/*!*******************************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/shader/enum/wgsl-shader-stage.enum.ts ***!
+  \*******************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.WgslShaderStage = void 0;
+var WgslShaderStage;
+(function (WgslShaderStage) {
+  WgslShaderStage[WgslShaderStage["Fragment"] = GPUShaderStage.FRAGMENT] = "Fragment";
+  WgslShaderStage[WgslShaderStage["Vertex"] = GPUShaderStage.VERTEX] = "Vertex";
+  WgslShaderStage[WgslShaderStage["Compute"] = GPUShaderStage.COMPUTE] = "Compute";
+})(WgslShaderStage = exports.WgslShaderStage || (exports.WgslShaderStage = {}));
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/shader/enum/wgsl-type.enum.ts":
+/*!***********************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/shader/enum/wgsl-type.enum.ts ***!
+  \***********************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.WgslType = void 0;
+var WgslType;
+(function (WgslType) {
+  WgslType["Any"] = "_Any";
+  WgslType["Enum"] = "_Enum";
+  // Scalar types.
+  WgslType["Boolean"] = "bool";
+  WgslType["Integer32"] = "i32";
+  WgslType["UnsignedInteger32"] = "u32";
+  WgslType["Float32"] = "f32";
+  WgslType["Float16"] = "f16";
+  // Vector types.
+  WgslType["Vector2"] = "vec2";
+  WgslType["Vector3"] = "vec3";
+  WgslType["Vector4"] = "vec4";
+  // Matrix types.
+  WgslType["Matrix22"] = "mat2x2";
+  WgslType["Matrix23"] = "mat2x3";
+  WgslType["Matrix24"] = "mat2x4";
+  WgslType["Matrix32"] = "mat3x2";
+  WgslType["Matrix33"] = "mat3x3";
+  WgslType["Matrix34"] = "mat3x4";
+  WgslType["Matrix42"] = "mat4x2";
+  WgslType["Matrix43"] = "mat4x3";
+  WgslType["Matrix44"] = "mat4x4";
+  // Container.
+  WgslType["Struct"] = "struct";
+  WgslType["Atomic"] = "atomic";
+  //Special.
+  WgslType["Array"] = "array";
+  WgslType["Pointer"] = "ptr";
+  WgslType["Reference"] = "ref";
+  // Textures.
+  WgslType["Texture1d"] = "texture_1d";
+  WgslType["Texture2d"] = "texture_2d";
+  WgslType["Texture2dArray"] = "texture_2d_array";
+  WgslType["Texture3d"] = "texture_3d";
+  WgslType["TextureCube"] = "texture_cube";
+  WgslType["TextureCubeArray"] = "texture_cube_array";
+  WgslType["TextureMultisampled2d"] = "texture_multisampled_2d";
+  WgslType["TextureExternal"] = "texture_external";
+  // Depth texture.
+  WgslType["TextureDepth2d"] = "texture_depth_2d";
+  WgslType["TextureDepth2dArray"] = "texture_depth_2d_array";
+  WgslType["TextureDepthCube"] = "texture_depth_cube";
+  WgslType["TextureDepthCubeArray"] = "texture_depth_cube_array";
+  WgslType["TextureDepthMultisampled2d"] = "texture_depth_multisampled_2d";
+  // Storage textures.
+  WgslType["TextureStorage1d"] = "texture_storage_1d";
+  WgslType["TextureStorage2d"] = "texture_storage_2d";
+  WgslType["TextureStorage2dArray"] = "texture_storage_2d_array";
+  WgslType["TextureStorage3d"] = "texture_storage_3d";
+  // Sampler.
+  WgslType["Sampler"] = "sampler";
+  WgslType["SamplerComparison"] = "sampler_comparison";
+})(WgslType = exports.WgslType || (exports.WgslType = {}));
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/shader/shader-analyzer.ts":
+/*!*******************************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/shader/shader-analyzer.ts ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+function _wrapRegExp() { _wrapRegExp = function _wrapRegExp(re, groups) { return new BabelRegExp(re, void 0, groups); }; var _super = RegExp.prototype, _groups = new WeakMap(); function BabelRegExp(re, flags, groups) { var _this = new RegExp(re, flags); return _groups.set(_this, groups || _groups.get(re)), _setPrototypeOf(_this, BabelRegExp.prototype); } function buildGroups(result, re) { var g = _groups.get(re); return Object.keys(g).reduce(function (groups, name) { var i = g[name]; if ("number" == typeof i) groups[name] = result[i];else { for (var k = 0; void 0 === result[i[k]] && k + 1 < i.length;) k++; groups[name] = result[i[k]]; } return groups; }, Object.create(null)); } return _inherits(BabelRegExp, RegExp), BabelRegExp.prototype.exec = function (str) { var result = _super.exec.call(this, str); if (result) { result.groups = buildGroups(result, this); var indices = result.indices; indices && (indices.groups = buildGroups(indices, this)); } return result; }, BabelRegExp.prototype[Symbol.replace] = function (str, substitution) { if ("string" == typeof substitution) { var groups = _groups.get(this); return _super[Symbol.replace].call(this, str, substitution.replace(/\$<([^>]+)>/g, function (_, name) { var group = groups[name]; return "$" + (Array.isArray(group) ? group.join("$") : group); })); } if ("function" == typeof substitution) { var _this = this; return _super[Symbol.replace].call(this, str, function () { var args = arguments; return "object" != typeof args[args.length - 1] && (args = [].slice.call(args)).push(buildGroups(args, _this)), substitution.apply(this, args); }); } return _super[Symbol.replace].call(this, str, substitution); }, _wrapRegExp.apply(this, arguments); }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.ShaderInformation = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+var array_buffer_type_1 = __webpack_require__(/*! ../buffer_type/array-buffer-type */ "./source/abstraction_layer/webgpu/buffer_type/array-buffer-type.ts");
+var simple_buffer_type_1 = __webpack_require__(/*! ../buffer_type/simple-buffer-type */ "./source/abstraction_layer/webgpu/buffer_type/simple-buffer-type.ts");
+var struct_buffer_type_1 = __webpack_require__(/*! ../buffer_type/struct-buffer-type */ "./source/abstraction_layer/webgpu/buffer_type/struct-buffer-type.ts");
+var wgsl_access_mode_enum_1 = __webpack_require__(/*! ./enum/wgsl-access-mode.enum */ "./source/abstraction_layer/webgpu/shader/enum/wgsl-access-mode.enum.ts");
+var wgsl_binding_type_enum_1 = __webpack_require__(/*! ./enum/wgsl-binding-type.enum */ "./source/abstraction_layer/webgpu/shader/enum/wgsl-binding-type.enum.ts");
+var wgsl_shader_stage_enum_1 = __webpack_require__(/*! ./enum/wgsl-shader-stage.enum */ "./source/abstraction_layer/webgpu/shader/enum/wgsl-shader-stage.enum.ts");
+var wgsl_type_enum_1 = __webpack_require__(/*! ./enum/wgsl-type.enum */ "./source/abstraction_layer/webgpu/shader/enum/wgsl-type.enum.ts");
+class ShaderInformation {
+  /**
+   * Constructor.
+   * @param pSource - WGSL Source code.
+   */
+  constructor(pSource) {
+    this.mSource = pSource;
+    this.mEntryPoints = this.fetchEntryPoints();
+    this.mBindings = this.fetchBindGroups();
+  }
+  /**
+   * Binding information.
+   */
+  get bindings() {
+    return this.mBindings;
+  }
+  /**
+   * Shader entry points.
+   */
+  get entryPoints() {
+    return this.mEntryPoints;
+  }
+  /**
+   * Create buffer type from variable definition.
+   * @param pVariable - Variable definition.
+   */
+  createBufferType(pVariable) {
+    var _pVariable$attributes, _pVariable$attributes2;
+    // String to type. Undefined must be an struct type.
+    var lType = this.wgslTypeByName(pVariable.type);
+    if (lType === wgsl_type_enum_1.WgslType.Enum) {
+      throw new core_data_1.Exception('Enum cant be fetched as variable type.', this);
+    }
+    // Try to parse access and bind setings. Set with defaults.
+    var lBindingType = wgsl_binding_type_enum_1.WgslBindingType.None;
+    var lAccessMode = wgsl_access_mode_enum_1.WgslAccessMode.None;
+    if (pVariable.access) {
+      lBindingType = core_data_1.EnumUtil.enumKeyByValue(wgsl_binding_type_enum_1.WgslBindingType, pVariable.access.bindingType);
+      if (!lBindingType) {
+        throw new core_data_1.Exception("Bind type \"".concat(pVariable.access.bindingType, "\" does not exist."), this);
+      }
+      if (pVariable.access.accessMode) {
+        lAccessMode = core_data_1.EnumUtil.enumKeyByValue(wgsl_access_mode_enum_1.WgslAccessMode, pVariable.access.accessMode);
+        if (!lAccessMode) {
+          throw new core_data_1.Exception("Access mode \"".concat(pVariable.access.accessMode, "\" does not exist."), this);
+        }
+      }
+      // Set bind type to read only storage if it is in fact a read only storage.
+      if (lBindingType === wgsl_binding_type_enum_1.WgslBindingType.Storage && lAccessMode === wgsl_access_mode_enum_1.WgslAccessMode.AccessModeRead) {
+        lBindingType = wgsl_binding_type_enum_1.WgslBindingType.ReadonlyStorage;
+      }
+    }
+    // Parse attributes of variable.
+    var lAttributes = new core_data_1.Dictionary();
+    for (var lAttribute of pVariable.attributes) {
+      var lAttributeMatch = /*#__PURE__*/_wrapRegExp(/@(\w+)(\(([^)]*)\))?/g, {
+        name: 1,
+        parameter: 3
+      }).exec(lAttribute);
+      if (!lAttributeMatch) {
+        throw new core_data_1.Exception("Somthing is not right with \"".concat(lAttribute, "\". Dont know what."), this);
+      }
+      var lAttributeParameterList = new Array();
+      if (lAttributeMatch.groups['parameter']) {
+        var lParameterPartList = lAttributeMatch.groups['parameter'].split(',');
+        for (var lPart of lParameterPartList) {
+          if (isNaN(lPart)) {
+            lAttributeParameterList.push(lPart);
+          } else {
+            lAttributeParameterList.push(parseInt(lPart));
+          }
+        }
+      }
+      lAttributes.set(lAttributeMatch.groups['name'], lAttributeParameterList);
+    }
+    // Try to get location from attributes.
+    var lLocationIndex = null;
+    var lLocationValue = (_pVariable$attributes = (_pVariable$attributes2 = pVariable.attributes.find(pAttribute => pAttribute.startsWith('@location'))) === null || _pVariable$attributes2 === void 0 ? void 0 : _pVariable$attributes2.replace(/[^\d]+/g, '')) !== null && _pVariable$attributes !== void 0 ? _pVariable$attributes : '';
+    if (lLocationValue && !isNaN(lLocationValue)) {
+      lLocationIndex = parseInt(lLocationValue);
+    }
+    var lBufferType;
+    switch (lType) {
+      case wgsl_type_enum_1.WgslType.Struct:
+        {
+          var lStructType = new struct_buffer_type_1.StructBufferType(pVariable.name, pVariable.type, lAccessMode, lBindingType, lLocationIndex);
+          // Get struct body and fetch types.
+          var lStructBody = this.getStructBody(pVariable.type);
+          this.fetchVariableDefinitions(lStructBody).forEach((pPropertyVariable, pIndex) => {
+            var lProperyBufferType = this.createBufferType(pPropertyVariable);
+            // Add property to struct buffer type.
+            lStructType.addProperty(pIndex, lProperyBufferType);
+          });
+          lBufferType = lStructType;
+          break;
+        }
+      case wgsl_type_enum_1.WgslType.Array:
+        {
+          // Validate generic range.
+          if (pVariable.generics.length !== 1 && pVariable.generics.length !== 2) {
+            throw new core_data_1.Exception('Array type must have one or two generic types.', this);
+          }
+          // Fetch first generic by extending generic type to a variable definition and parse recursive.
+          var lTypeGeneric = this.fetchVariableDefinitions("PLACEHOLDER: ".concat(pVariable.generics.at(0), ";")).at(0);
+          var lTypeGenericBufferType = this.createBufferType(lTypeGeneric);
+          // Fetch optional size gerneric.
+          var lSizeGeneric = -1;
+          if (pVariable.generics.at(1)) {
+            if (!isNaN(pVariable.generics.at(1))) {
+              throw new core_data_1.Exception('Array size parameter needs to be a number.', this);
+            }
+            lSizeGeneric = parseInt(pVariable.generics.at(1));
+          }
+          // Create array buffer type.
+          lBufferType = new array_buffer_type_1.ArrayBufferType(pVariable.name, lTypeGenericBufferType, lSizeGeneric, lAccessMode, lBindingType, lLocationIndex);
+          break;
+        }
+      default:
+        {
+          // Map generics to struct like body. Fetch variable definitions and save only type.
+          var lPseudoStructBody = pVariable.generics.reduce((pCurrent, pGeneric) => {
+            return pCurrent + "PLACEHOLDER: ".concat(pGeneric, ";");
+          }, '');
+          var lPseudoVariableList = this.fetchVariableDefinitions(lPseudoStructBody);
+          var lGenericList = lPseudoVariableList.map(pVariable => {
+            return this.wgslTypeByName(pVariable.type);
+          });
+          lBufferType = new simple_buffer_type_1.SimpleBufferType(pVariable.name, lType, lGenericList, lAccessMode, lBindingType, lLocationIndex);
+          break;
+        }
+    }
+    // Add attributes to buffer type.
+    for (var [lAttributeName, _lAttributeParameterList] of lAttributes) {
+      lBufferType.setAttribute(lAttributeName, _lAttributeParameterList);
+    }
+    return lBufferType;
+  }
+  /**
+   * Fetch all bind groups of source.
+   */
+  fetchBindGroups() {
+    // Get only lines with group attributes.
+    var lAllGroupLines = [...this.mSource.matchAll(/^.*@group.*$/gm)].reduce((pCurrent, pLine) => {
+      return pCurrent + pLine[0];
+    }, '');
+    // Available shader states based on entry points.
+    // Not the best, but better than nothing.
+    var lShaderStage = 0;
+    if (/(@compute(.|\r?\n)*?fn )(\w*)/gm.test(this.mSource)) {
+      lShaderStage |= wgsl_shader_stage_enum_1.WgslShaderStage.Compute;
+    }
+    if (/(@fragment(.|\r?\n)*?fn )(\w*)/gm.test(this.mSource)) {
+      lShaderStage |= wgsl_shader_stage_enum_1.WgslShaderStage.Fragment;
+    }
+    if (/(@vertex(.|\r?\n)*?fn )(\w*)/gm.test(this.mSource)) {
+      lShaderStage |= wgsl_shader_stage_enum_1.WgslShaderStage.Vertex;
+    }
+    // Fetch all group variables.
+    var lBindGroups = new core_data_1.Dictionary();
+    for (var lVariable of this.fetchVariableDefinitions(lAllGroupLines)) {
+      var lGroupAttribute = lVariable.attributes.find(pAttribute => pAttribute.startsWith('@group'));
+      var lBindAttribute = lVariable.attributes.find(pAttribute => pAttribute.startsWith('@binding'));
+      if (!lGroupAttribute || !lBindAttribute) {
+        throw new core_data_1.Exception('Bindind variable needs an binding and group attribute.', this);
+      }
+      var lGroupIndex = parseInt(lGroupAttribute.replace(/[^\d]+/g, ''));
+      var lBindIndex = parseInt(lBindAttribute.replace(/[^\d]+/g, ''));
+      // Init group.
+      if (!lBindGroups.has(lGroupIndex)) {
+        lBindGroups.set(lGroupIndex, new Array());
+      }
+      // Append bind.
+      lBindGroups.get(lGroupIndex).push({
+        visibility: lShaderStage,
+        variable: this.createBufferType(lVariable),
+        index: lBindIndex
+      });
+    }
+    // Add BindGroupInformation to bind group.
+    var lBindGroupList = new Array();
+    for (var [_lGroupIndex, lBindList] of lBindGroups) {
+      lBindGroupList.push({
+        group: _lGroupIndex,
+        binds: lBindList
+      });
+    }
+    return lBindGroupList;
+  }
+  /**
+   * Fetch entry points.
+   */
+  fetchEntryPoints() {
+    // Get all functions.
+    var lFunctionList = this.fetchFunctions(this.mSource);
+    var lEntryPoints = new core_data_1.Dictionary();
+    for (var lFunction of lFunctionList) {
+      // Assemble shaderstage.
+      if (lFunction.attributes.find(pAttribute => pAttribute.startsWith('@compute'))) {
+        lEntryPoints.set(wgsl_shader_stage_enum_1.WgslShaderStage.Compute, lFunction);
+      }
+      if (lFunction.attributes.find(pAttribute => pAttribute.startsWith('@fragment'))) {
+        lEntryPoints.set(wgsl_shader_stage_enum_1.WgslShaderStage.Fragment, lFunction);
+      }
+      if (lFunction.attributes.find(pAttribute => pAttribute.startsWith('@vertex'))) {
+        lEntryPoints.set(wgsl_shader_stage_enum_1.WgslShaderStage.Vertex, lFunction);
+      }
+    }
+    return lEntryPoints;
+  }
+  /**
+   * Fetch all function declarations of source snipped.
+   * @param pSourceSnipped - Source snipped with function declarations.
+   */
+  fetchFunctions(pSourceSnipped) {
+    var lFunctionRegex = /*#__PURE__*/_wrapRegExp(/((?:@[\w]+(?:\([^)]*\))?\s+)+)?(?:\s)*?fn\s+(\w*)\s*\(((?:.|\r?\n)*?)\)(?:\s*\x2D>\s*([^{]+))?\s*\{/gm, {
+      attributes: 1,
+      name: 2,
+      parameter: 3,
+      result: 4
+    });
+    var lFunctionList = new Array();
+    for (var lFunctionMatch of pSourceSnipped.matchAll(lFunctionRegex)) {
+      // Fetch attributes.
+      var lAttributeList = new Array();
+      if (lFunctionMatch.groups['attributes']) {
+        // Split string of multiple attributes.
+        for (var lAttributeMatch of lFunctionMatch.groups['attributes'].matchAll(/@[\w]+(\([^)]*\))?/g)) {
+          lAttributeList.push(lAttributeMatch[0]);
+        }
+      }
+      // Fetch Parameter.
+      var lParameterVariableList = this.fetchVariableDefinitions(lFunctionMatch.groups['parameter']);
+      var lParameterList = lParameterVariableList.map(pVariable => {
+        return this.createBufferType(pVariable);
+      });
+      // Fetch result type.
+      var lResult = null;
+      if (lFunctionMatch.groups['result']) {
+        var lResultVariable = this.fetchVariableDefinitions(lFunctionMatch.groups['result']).at(0);
+        lResult = this.createBufferType(lResultVariable);
+      }
+      lFunctionList.push({
+        name: lFunctionMatch.groups['name'],
+        return: lResult,
+        parameter: lParameterList,
+        attributes: lAttributeList
+      });
+    }
+    return lFunctionList;
+  }
+  /**
+   * Find all variable definitions and fetch data.
+   * @param pSourceSnipped - Source snipped with variables.
+   */
+  fetchVariableDefinitions(pSourceSnipped) {
+    var lDefinitionRegex = /*#__PURE__*/_wrapRegExp(/((?:@[\w]+(?:\([^)]*\))?\s+)+)?(?:var(?:<([\w\s,]+)?>)?\s+)?(?:(\w+)\s*:\s*)?((\w+)(?:<([<>\w\s,]+)>)?)/gm, {
+      attributes: 1,
+      access: 2,
+      variable: 3,
+      type: 4,
+      typename: 5,
+      generics: 6
+    });
+    var lVariableList = new Array();
+    for (var lDefinitionMatch of pSourceSnipped.matchAll(lDefinitionRegex)) {
+      var _lDefinitionMatch$gro;
+      // Fetch attributes.
+      var lAttributes = new Array();
+      if (lDefinitionMatch.groups['attributes']) {
+        // Split string of multiple attributes.
+        for (var lAttributeMatch of lDefinitionMatch.groups['attributes'].matchAll(/@[\w]+\([^)]*\)/g)) {
+          lAttributes.push(lAttributeMatch[0]);
+        }
+      }
+      // Parse optional acccess modifier.
+      var lAccess = null;
+      if (lDefinitionMatch.groups['access']) {
+        var _lAccessList$;
+        // var<addressSpace [,accessMode]>
+        var lAccessList = lDefinitionMatch.groups['access'].split(',').map(pValue => pValue.trim()).filter(pValue => pValue.length);
+        lAccess = {
+          bindingType: lAccessList[0],
+          accessMode: (_lAccessList$ = lAccessList[1]) !== null && _lAccessList$ !== void 0 ? _lAccessList$ : null
+        };
+      }
+      // Split generic types.
+      var lGenericList = new Array();
+      if (lDefinitionMatch.groups['generics']) {
+        for (var lGenericMatch of lDefinitionMatch.groups['generics'].matchAll( /*#__PURE__*/_wrapRegExp(/((?:\w+(?:<.+>)?))[,\s]*/g, {
+          generictype: 1
+        }))) {
+          lGenericList.push(lGenericMatch.groups['generictype']);
+        }
+      }
+      lVariableList.push({
+        name: (_lDefinitionMatch$gro = lDefinitionMatch.groups['variable']) !== null && _lDefinitionMatch$gro !== void 0 ? _lDefinitionMatch$gro : '',
+        type: lDefinitionMatch.groups['typename'],
+        generics: lGenericList,
+        attributes: lAttributes,
+        access: lAccess
+      });
+    }
+    return lVariableList;
+  }
+  /**
+   * Get struct information of struct name.
+   * @param pSource - Source.
+   * @param pStructName - Struct name.
+   */
+  getStructBody(pStructName) {
+    var lStuctRegex = /*#__PURE__*/_wrapRegExp(/^\s*struct\s+(\w+)\s*\{([^}]*)\}$/mg, {
+      name: 1,
+      typeinfo: 2
+    });
+    var lStructBody = null;
+    // Find struct name and body.
+    for (var lStructMatch of this.mSource.matchAll(lStuctRegex)) {
+      if (lStructMatch.groups['name'] === pStructName) {
+        lStructBody = lStructMatch.groups['typeinfo'];
+        break;
+      }
+    }
+    // Validate found struct body.
+    if (!lStructBody) {
+      throw new core_data_1.Exception("Struct \"".concat(pStructName, "\" not found."), this);
+    }
+    return lStructBody;
+  }
+  /**
+   * Get wgsl type by name without generics.
+   * @param pName - Type name.
+   */
+  wgslTypeByName(pName) {
+    var lType = core_data_1.EnumUtil.enumKeyByValue(wgsl_type_enum_1.WgslType, pName);
+    if (!lType) {
+      try {
+        // Try to find struct. Throws error on missing struct declaration.
+        this.getStructBody(pName);
+        lType = wgsl_type_enum_1.WgslType.Struct;
+      } catch (_ex) {
+        // On error (when struct not found). It can only be an enum.
+        lType = wgsl_type_enum_1.WgslType.Enum;
+      }
+    }
+    return lType;
+  }
+}
+exports.ShaderInformation = ShaderInformation;
+
+/***/ }),
+
+/***/ "./source/abstraction_layer/webgpu/shader/shader.ts":
+/*!**********************************************************!*\
+  !*** ./source/abstraction_layer/webgpu/shader/shader.ts ***!
+  \**********************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.Shader = void 0;
+var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
+var bind_groups_1 = __webpack_require__(/*! ../bind_group/bind-groups */ "./source/abstraction_layer/webgpu/bind_group/bind-groups.ts");
+var simple_buffer_type_1 = __webpack_require__(/*! ../buffer_type/simple-buffer-type */ "./source/abstraction_layer/webgpu/buffer_type/simple-buffer-type.ts");
+var struct_buffer_type_1 = __webpack_require__(/*! ../buffer_type/struct-buffer-type */ "./source/abstraction_layer/webgpu/buffer_type/struct-buffer-type.ts");
+var bind_type_enum_1 = __webpack_require__(/*! ../enum/bind-type.enum */ "./source/abstraction_layer/webgpu/enum/bind-type.enum.ts");
+var gpu_native_object_1 = __webpack_require__(/*! ../gpu-native-object */ "./source/abstraction_layer/webgpu/gpu-native-object.ts");
+var vertex_attribute_1 = __webpack_require__(/*! ../pipeline/data/vertex-attribute */ "./source/abstraction_layer/webgpu/pipeline/data/vertex-attribute.ts");
+var wgsl_shader_stage_enum_1 = __webpack_require__(/*! ./enum/wgsl-shader-stage.enum */ "./source/abstraction_layer/webgpu/shader/enum/wgsl-shader-stage.enum.ts");
+var wgsl_type_enum_1 = __webpack_require__(/*! ./enum/wgsl-type.enum */ "./source/abstraction_layer/webgpu/shader/enum/wgsl-type.enum.ts");
+var shader_analyzer_1 = __webpack_require__(/*! ./shader-analyzer */ "./source/abstraction_layer/webgpu/shader/shader-analyzer.ts");
+class Shader extends gpu_native_object_1.GpuNativeObject {
+  /**
+   * Constructor.
+   * @param pGpu - GPU.
+   * @param pSource - Shader module source code.
+   */
+  constructor(pGpu, pSource) {
+    super(pGpu, 'SHADER');
+    this.mSource = pSource;
+    this.mShaderInformation = new shader_analyzer_1.ShaderInformation(pSource);
+    // Generate from ShaderInformation. 
+    this.mBindGroups = this.generateBindGroups(this.mShaderInformation);
+    this.mEntryPoints = {
+      vertex: this.generateVertexEntryPoint(this.mShaderInformation),
+      fragment: this.generateFragmentEntryPoint(this.mShaderInformation),
+      compute: this.generateComputeEntryPoint(this.mShaderInformation)
+    };
+  }
+  /**
+   * Get bind groups of shader.
+   */
+  get bindGroups() {
+    return this.mBindGroups;
+  }
+  /**
+   * Compute entry point name.
+   */
+  get computeEntryPoint() {
+    return this.mEntryPoints.compute;
+  }
+  /**
+   * Fragment entry point name.
+   */
+  get fragmentEntryPoint() {
+    return this.mEntryPoints.fragment;
+  }
+  /**
+   * Vertex entry point name.
+   */
+  get vertexEntryPoint() {
+    return this.mEntryPoints.vertex;
+  }
+  /***
+   * Generate shader module.
+   */
+  generate() {
+    return this.gpu.device.createShaderModule({
+      code: this.mSource
+    });
+  }
+  /**
+   * Generate bind groups based on shader information.
+   * @param pShaderInformation - Shader information.
+   */
+  generateBindGroups(pShaderInformation) {
+    var lBindGroups = new bind_groups_1.BindGroups(this.gpu);
+    // Create new bing groups.
+    for (var lBindGroupInformation of pShaderInformation.bindings) {
+      var lBindGroup = lBindGroups.addGroup(lBindGroupInformation.group);
+      // Create each binding of group.
+      for (var lWgslBind of lBindGroupInformation.binds) {
+        var lShaderBind = this.getBindBasedOnType(lWgslBind);
+        switch (lShaderBind.bindType) {
+          case bind_type_enum_1.BindType.Texture:
+            {
+              lBindGroup.addTexture(lShaderBind.name, lShaderBind.index, lShaderBind.visibility, lShaderBind.sampleType, lShaderBind.viewDimension, lShaderBind.multisampled);
+              break;
+            }
+          case bind_type_enum_1.BindType.Buffer:
+            {
+              lBindGroup.addBuffer(lShaderBind.name, lShaderBind.index, lShaderBind.visibility, lShaderBind.type, lShaderBind.hasDynamicOffset, lShaderBind.minBindingSize);
+              break;
+            }
+          case bind_type_enum_1.BindType.Sampler:
+            {
+              lBindGroup.addSampler(lShaderBind.name, lShaderBind.index, lShaderBind.visibility, lShaderBind.type);
+              break;
+            }
+          case bind_type_enum_1.BindType.StorageTexture:
+            {
+              lBindGroup.addStorageTexture(lShaderBind.name, lShaderBind.index, lShaderBind.visibility, lShaderBind.format, lShaderBind.access, lShaderBind.viewDimension);
+              break;
+            }
+          case bind_type_enum_1.BindType.ExternalTexture:
+            {
+              lBindGroup.addExternalTexture(lShaderBind.name, lShaderBind.index, lShaderBind.visibility);
+              break;
+            }
+        }
+      }
+    }
+    return lBindGroups;
+  }
+  /**
+   * Generate compute entry point.
+   * @param pShaderInformation - Shader information.
+   */
+  generateComputeEntryPoint(pShaderInformation) {
+    // Find entry point information.
+    var lShaderEntryPointFunction = pShaderInformation.entryPoints.get(wgsl_shader_stage_enum_1.WgslShaderStage.Compute);
+    if (!lShaderEntryPointFunction) {
+      return undefined;
+    }
+    var lShaderEntryPoint = {
+      name: lShaderEntryPointFunction.name
+    };
+    return lShaderEntryPoint;
+  }
+  /**
+   * Generate compute entry point.
+   * @param pShaderInformation - Shader information.
+   */
+  generateFragmentEntryPoint(pShaderInformation) {
+    // Find entry point information.
+    var lShaderEntryPointFunction = pShaderInformation.entryPoints.get(wgsl_shader_stage_enum_1.WgslShaderStage.Fragment);
+    if (!lShaderEntryPointFunction) {
+      return undefined;
+    }
+    // Get count of all result types with location attribute.
+    var lResultLength = 1;
+    if (lShaderEntryPointFunction.return instanceof struct_buffer_type_1.StructBufferType) {
+      lResultLength = lShaderEntryPointFunction.return.innerLocations().length;
+    }
+    var lShaderEntryPoint = {
+      name: lShaderEntryPointFunction.name,
+      renderTargetCount: lResultLength
+    };
+    return lShaderEntryPoint;
+  }
+  /**
+   * Generate vertex entry point.
+   * @param pShaderInformation - Shader information.
+   */
+  generateVertexEntryPoint(pShaderInformation) {
+    // Find entry point information.
+    var lShaderEntryPointFunction = pShaderInformation.entryPoints.get(wgsl_shader_stage_enum_1.WgslShaderStage.Vertex);
+    if (!lShaderEntryPointFunction) {
+      return undefined;
+    }
+    var lShaderEntryPoint = {
+      name: lShaderEntryPointFunction.name,
+      attributes: new Array()
+    };
+    // Get all parameter locations of entry point.
+    var lParameterLocationTypes = new Array();
+    for (var lParameter of lShaderEntryPointFunction.parameter) {
+      if (lParameter instanceof struct_buffer_type_1.StructBufferType) {
+        for (var lType of lParameter.innerLocations()) {
+          lParameterLocationTypes.push(lType);
+        }
+      } else if (lParameter !== null && lParameter !== void 0 && lParameter.location) {
+        lParameterLocationTypes.push(lParameter);
+      }
+    }
+    // Generate new vertex attribute for each location.
+    for (var _lParameter of lParameterLocationTypes) {
+      if (!(_lParameter instanceof simple_buffer_type_1.SimpleBufferType)) {
+        throw new core_data_1.Exception('Vertex attributes can only be of a simple type.', this);
+      }
+      // Add generated attribute to shader entry point.
+      lShaderEntryPoint.attributes.push(new vertex_attribute_1.VertexAttribute(this.gpu, _lParameter));
+    }
+    return lShaderEntryPoint;
+  }
+  /**
+   * Get bind based on binding information.
+   * @param pBindGroup - Bind group.
+   * @param pBindInformation - Bind information.
+   */
+  getBindBasedOnType(pBind) {
+    var lNumberTypeList = [wgsl_type_enum_1.WgslType.Boolean, wgsl_type_enum_1.WgslType.Integer32, wgsl_type_enum_1.WgslType.UnsignedInteger32, wgsl_type_enum_1.WgslType.Float32, wgsl_type_enum_1.WgslType.Float16];
+    var lVectorTypeList = [wgsl_type_enum_1.WgslType.Vector2, wgsl_type_enum_1.WgslType.Vector3, wgsl_type_enum_1.WgslType.Vector4];
+    var lMatrixTypeList = [wgsl_type_enum_1.WgslType.Matrix22, wgsl_type_enum_1.WgslType.Matrix23, wgsl_type_enum_1.WgslType.Matrix24, wgsl_type_enum_1.WgslType.Matrix32, wgsl_type_enum_1.WgslType.Matrix33, wgsl_type_enum_1.WgslType.Matrix34, wgsl_type_enum_1.WgslType.Matrix42, wgsl_type_enum_1.WgslType.Matrix43, wgsl_type_enum_1.WgslType.Matrix44];
+    var lTextureStorageTypeList = [wgsl_type_enum_1.WgslType.TextureStorage1d, wgsl_type_enum_1.WgslType.TextureStorage2d, wgsl_type_enum_1.WgslType.TextureStorage2dArray, wgsl_type_enum_1.WgslType.TextureStorage3d];
+    var lTextureTypeList = [wgsl_type_enum_1.WgslType.Texture1d, wgsl_type_enum_1.WgslType.Texture2d, wgsl_type_enum_1.WgslType.Texture2dArray, wgsl_type_enum_1.WgslType.Texture3d, wgsl_type_enum_1.WgslType.TextureCube, wgsl_type_enum_1.WgslType.TextureCubeArray, wgsl_type_enum_1.WgslType.TextureMultisampled2d, wgsl_type_enum_1.WgslType.TextureExternal];
+    var lDepthTextureTypeList = [wgsl_type_enum_1.WgslType.TextureDepth2d, wgsl_type_enum_1.WgslType.TextureDepth2dArray, wgsl_type_enum_1.WgslType.TextureDepthCube, wgsl_type_enum_1.WgslType.TextureDepthCubeArray, wgsl_type_enum_1.WgslType.TextureDepthMultisampled2d];
+    // Buffer types.
+    // Number, matrix, vector and array types.
+    if ([...lNumberTypeList, ...lVectorTypeList, ...lMatrixTypeList, wgsl_type_enum_1.WgslType.Array, wgsl_type_enum_1.WgslType.Struct].includes(pBind.variable.type)) {
+      // Validate address space.
+      if (!pBind.variable.bindingType) {
+        throw new core_data_1.Exception("Buffer bind type needs to be set for buffer bindings (".concat(pBind.variable.name, ")."), this);
+      }
+      // Bind 
+      return {
+        bindType: bind_type_enum_1.BindType.Buffer,
+        index: pBind.index,
+        name: pBind.variable.name,
+        visibility: pBind.visibility,
+        type: pBind.variable.bindingType,
+        hasDynamicOffset: false,
+        minBindingSize: 0
+      };
+    }
+    // Bind only external textures.
+    if (pBind.variable.type === wgsl_type_enum_1.WgslType.TextureExternal) {
+      return {
+        bindType: bind_type_enum_1.BindType.ExternalTexture,
+        index: pBind.index,
+        name: pBind.variable.name,
+        visibility: pBind.visibility
+      };
+    }
+    // Sampler types.
+    else if ([wgsl_type_enum_1.WgslType.Sampler, wgsl_type_enum_1.WgslType.SamplerComparison].includes(pBind.variable.type)) {
+      // Sampler bind type by sampler or comparison type.
+      var lFilterType = pBind.variable.type === wgsl_type_enum_1.WgslType.Sampler ? 'filtering' : 'comparison';
+      // Exit.
+      return {
+        bindType: bind_type_enum_1.BindType.Sampler,
+        index: pBind.index,
+        name: pBind.variable.name,
+        visibility: pBind.visibility,
+        type: lFilterType
+      };
+    }
+    // First generic texture is a wgsl type on color textures or nothing on depth textures.
+    if (!(pBind.variable instanceof simple_buffer_type_1.SimpleBufferType)) {
+      throw new core_data_1.Exception('Texture buffers can only be of simple buffer type', this);
+    }
+    // Storage texture.
+    if (lTextureStorageTypeList.includes(pBind.variable.type)) {
+      if (pBind.variable.generics.at(0) !== wgsl_type_enum_1.WgslType.Enum) {
+        throw new core_data_1.Exception('Storage texture needs texel enum as first generic.', this);
+      }
+      // Storage texture first generics is allways the texel format.
+      var lTexelFormat = pBind.variable.genericsRaw.at(0);
+      var lTextureAccess = 'write-only';
+      var lTextureDimension = this.texureDimensionFromType(pBind.variable.type);
+      // Bind.
+      return {
+        bindType: bind_type_enum_1.BindType.StorageTexture,
+        index: pBind.index,
+        name: pBind.variable.name,
+        visibility: pBind.visibility,
+        access: lTextureAccess,
+        format: lTexelFormat,
+        viewDimension: lTextureDimension
+      };
+    }
+    // Depth or color texture.
+    if ([...lTextureTypeList, ...lDepthTextureTypeList].includes(pBind.variable.type)) {
+      var _lTextureDimension = this.texureDimensionFromType(pBind.variable.type);
+      var lMultisampled = [wgsl_type_enum_1.WgslType.TextureMultisampled2d, wgsl_type_enum_1.WgslType.TextureDepthMultisampled2d].includes(pBind.variable.type);
+      var lTextureWgslType = pBind.variable.generics.at(0);
+      var lTextureSampleType;
+      // Color textures. Based on generic type.
+      if (lTextureTypeList.includes(pBind.variable.type)) {
+        switch (lTextureWgslType) {
+          case wgsl_type_enum_1.WgslType.Float32:
+            {
+              lTextureSampleType = 'float';
+              break;
+            }
+          case wgsl_type_enum_1.WgslType.Integer32:
+            {
+              lTextureSampleType = 'sint';
+              break;
+            }
+          case wgsl_type_enum_1.WgslType.UnsignedInteger32:
+            {
+              lTextureSampleType = 'uint';
+              break;
+            }
+          default:
+            {
+              // Ignored "unfiltered float"
+              lTextureSampleType = 'unfilterable-float';
+              break;
+            }
+        }
+      } else {
+        // Musst be and depth type.
+        lTextureSampleType = 'depth';
+      }
+      // Exit.
+      return {
+        bindType: bind_type_enum_1.BindType.Texture,
+        index: pBind.index,
+        name: pBind.variable.name,
+        visibility: pBind.visibility,
+        sampleType: lTextureSampleType,
+        viewDimension: _lTextureDimension,
+        multisampled: lMultisampled
+      };
+    }
+    throw new core_data_1.Exception("Not implemented. Upps \"".concat(pBind.variable.type, "\""), this);
+  }
+  /**
+   * Get view dimension based on WGSL texture type.
+   * @param pTextureType - Texture type.
+   */
+  texureDimensionFromType(pTextureType) {
+    // Map every texture type for view dimension.
+    switch (pTextureType) {
+      case wgsl_type_enum_1.WgslType.Texture1d:
+      case wgsl_type_enum_1.WgslType.TextureStorage1d:
+        {
+          return '1d';
+        }
+      case wgsl_type_enum_1.WgslType.TextureDepth2d:
+      case wgsl_type_enum_1.WgslType.Texture2d:
+      case wgsl_type_enum_1.WgslType.TextureStorage2d:
+      case wgsl_type_enum_1.WgslType.TextureDepthMultisampled2d:
+      case wgsl_type_enum_1.WgslType.TextureMultisampled2d:
+        {
+          return '2d';
+        }
+      case wgsl_type_enum_1.WgslType.TextureDepth2dArray:
+      case wgsl_type_enum_1.WgslType.Texture2dArray:
+      case wgsl_type_enum_1.WgslType.TextureStorage2dArray:
+        {
+          return '2d-array';
+        }
+      case wgsl_type_enum_1.WgslType.Texture3d:
+      case wgsl_type_enum_1.WgslType.TextureStorage3d:
+        {
+          return '3d';
+        }
+      case wgsl_type_enum_1.WgslType.TextureCube:
+      case wgsl_type_enum_1.WgslType.TextureDepthCube:
+        {
+          return 'cube';
+        }
+      case wgsl_type_enum_1.WgslType.TextureCubeArray:
+        {
+          return 'cube-array';
+        }
+      default:
+        {
+          throw new core_data_1.Exception("Texture type \"".concat(pTextureType, "\" not supported for any dimension."), this);
+        }
+    }
+  }
+}
+exports.Shader = Shader;
 
 /***/ }),
 
@@ -1322,4538 +5854,6 @@ var CameraMatrix;
   CameraMatrix[CameraMatrix["View"] = 5] = "View";
   CameraMatrix[CameraMatrix["ViewProjection"] = 6] = "ViewProjection";
 })(CameraMatrix = exports.CameraMatrix || (exports.CameraMatrix = {}));
-
-/***/ }),
-
-/***/ "./source/core/bind_group/bind-group-layout.ts":
-/*!*****************************************************!*\
-  !*** ./source/core/bind_group/bind-group-layout.ts ***!
-  \*****************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.BindGroupLayout = void 0;
-var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-var bind_type_enum_1 = __webpack_require__(/*! ../enum/bind-type.enum */ "./source/core/enum/bind-type.enum.ts");
-var gpu_native_object_1 = __webpack_require__(/*! ../gpu-native-object */ "./source/core/gpu-native-object.ts");
-var bind_group_1 = __webpack_require__(/*! ./bind-group */ "./source/core/bind_group/bind-group.ts");
-class BindGroupLayout extends gpu_native_object_1.GpuNativeObject {
-  /**
-   * Constructor.
-   * @param pGpu - GPU.
-   */
-  constructor(pGpu) {
-    super(pGpu, 'BIND_GROUP_LAYOUT');
-    this.mGroupBinds = new core_data_1.Dictionary();
-  }
-  /**
-   * Get basic information of group binds.
-   */
-  get binds() {
-    var lResult = new Array();
-    // Fetch general and basic information from group bind.
-    for (var lBind of this.mGroupBinds.values()) {
-      lResult.push({
-        name: lBind.name,
-        type: lBind.bindType,
-        index: lBind.index
-      });
-    }
-    return lResult;
-  }
-  /**
-   * Add buffer bind.
-   * @param pName - Bind name.
-   * @param pIndex - Bind index.
-   * @param pVisibility - Visibility.
-   * @param pBindingType - Bind type.
-   * @param pHasDynamicOffset - Has dynamic offset.
-   * @param pMinBindingSize - min binding size.
-   */
-  addBuffer(pName, pIndex, pVisibility) {
-    var pBindingType = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 'uniform';
-    var pHasDynamicOffset = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : false;
-    var pMinBindingSize = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 0;
-    this.mGroupBinds.set(pName, {
-      index: pIndex,
-      bindType: bind_type_enum_1.BindType.Buffer,
-      name: pName,
-      visibility: pVisibility,
-      type: pBindingType,
-      hasDynamicOffset: pHasDynamicOffset,
-      minBindingSize: pMinBindingSize
-    });
-    // Request native object update.
-    this.triggerChange();
-  }
-  /**
-   * Add external texture bind.
-   * @param pName - Bind name.
-   * @param pIndex - Bind index.
-   * @param pVisibility - Visibility.
-   */
-  addExternalTexture(pName, pIndex, pVisibility) {
-    this.mGroupBinds.set(pName, {
-      index: pIndex,
-      bindType: bind_type_enum_1.BindType.ExternalTexture,
-      name: pName,
-      visibility: pVisibility
-    });
-    // Request native object update.
-    this.triggerChange();
-  }
-  /**
-   * Add sampler bind.
-   * @param pName - Bind name.
-   * @param pIndex - Bind index.
-   * @param pVisibility - Visibility.
-   * @param pSampleType - Sample type.
-   */
-  addSampler(pName, pIndex, pVisibility) {
-    var pSampleType = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 'filtering';
-    this.mGroupBinds.set(pName, {
-      index: pIndex,
-      bindType: bind_type_enum_1.BindType.Sampler,
-      name: pName,
-      visibility: pVisibility,
-      type: pSampleType
-    });
-    // Request native object update.
-    this.triggerChange();
-  }
-  /**
-   * Add storage texture bind.
-   * @param pName - Bind name.
-   * @param pIndex - Bind index.
-   * @param pVisibility - Visibility.
-   * @param pFormat - Color format.
-   * @param storageAccess - Storage access.
-   * @param pDimension - Texture dimension.
-   */
-  addStorageTexture(pName, pIndex, pVisibility, pFormat) {
-    var pStorageAccess = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 'write-only';
-    var pDimension = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : '2d';
-    this.mGroupBinds.set(pName, {
-      name: pName,
-      index: pIndex,
-      bindType: bind_type_enum_1.BindType.StorageTexture,
-      visibility: pVisibility,
-      access: pStorageAccess,
-      format: pFormat,
-      viewDimension: pDimension
-    });
-    // Request native object update.
-    this.triggerChange();
-  }
-  /**
-   * Add texture bind.
-   * @param pName - Bind name.
-   * @param pIndex - Bind index.
-   * @param pVisibility - Visibility.
-   * @param pSampleType - Sample type.
-   * @param pViewDimension - View dimension.
-   * @param pMultisampled - Is multisampled.
-   */
-  addTexture(pName, pIndex, pVisibility) {
-    var pSampleType = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 'float';
-    var pViewDimension = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : '2d';
-    var pMultisampled = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : false;
-    this.mGroupBinds.set(pName, {
-      name: pName,
-      index: pIndex,
-      bindType: bind_type_enum_1.BindType.Texture,
-      visibility: pVisibility,
-      sampleType: pSampleType,
-      viewDimension: pViewDimension,
-      multisampled: pMultisampled
-    });
-    // Request native object update.
-    this.triggerChange();
-  }
-  /**
-   * Create bind group based on this layout.
-   */
-  createBindGroup() {
-    var lBindGroup = new bind_group_1.BindGroup(this.gpu, this);
-    lBindGroup.label = this.label;
-    return lBindGroup;
-  }
-  /**
-   * Get full bind information.
-   * @param pName - Bind name.
-   */
-  getBind(pName) {
-    if (!this.mGroupBinds.has(pName)) {
-      throw new core_data_1.Exception("Bind ".concat(pName, " does not exist."), this);
-    }
-    return this.mGroupBinds.get(pName);
-  }
-  /**
-   * Remove bind.
-   */
-  removeBind(pName) {
-    if (this.mGroupBinds.delete(pName)) {
-      // Request native object update.
-      this.triggerChange();
-    }
-  }
-  /**
-   * Compare inner binds configurations.
-   * @param pObject - Target object.
-   */
-  compare(pObject) {
-    // Compare bind group size.
-    if (this.mGroupBinds.size !== pObject.mGroupBinds.size) {
-      return false;
-    }
-    for (var lBindName of this.mGroupBinds.keys()) {
-      var lTarget = pObject.mGroupBinds.get(lBindName);
-      var lSource = this.mGroupBinds.get(lBindName);
-      // Validate bind layout existance.
-      if (!lTarget || !lSource) {
-        return false;
-      }
-      // Validate bind layout properties.
-      if (lTarget.bindType !== lSource.bindType || lTarget.index !== lSource.index || lTarget.name !== lSource.name || lTarget.visibility !== lSource.visibility) {
-        return false;
-      }
-    }
-    return true;
-  }
-  /**
-   * Generate layout.
-   */
-  generate() {
-    var lEntryList = new Array();
-    // Generate layout entry for each binding.
-    for (var lEntry of this.mGroupBinds.values()) {
-      // Generate default properties.
-      var lLayoutEntry = {
-        visibility: lEntry.visibility,
-        binding: lEntry.index
-      };
-      switch (lEntry.bindType) {
-        case bind_type_enum_1.BindType.Buffer:
-          {
-            var lBufferLayout = {
-              type: lEntry.type,
-              minBindingSize: lEntry.minBindingSize,
-              hasDynamicOffset: lEntry.hasDynamicOffset
-            };
-            lLayoutEntry.buffer = lBufferLayout;
-            break;
-          }
-        case bind_type_enum_1.BindType.Texture:
-          {
-            var lTextureLayout = {
-              sampleType: lEntry.sampleType,
-              multisampled: lEntry.multisampled,
-              viewDimension: lEntry.viewDimension
-            };
-            lLayoutEntry.texture = lTextureLayout;
-            break;
-          }
-        case bind_type_enum_1.BindType.ExternalTexture:
-          {
-            var lExternalTextureLayout = {};
-            lLayoutEntry.externalTexture = lExternalTextureLayout;
-            break;
-          }
-        case bind_type_enum_1.BindType.StorageTexture:
-          {
-            var lStorageTextureLayout = {
-              access: lEntry.access,
-              format: lEntry.format,
-              viewDimension: lEntry.viewDimension
-            };
-            lLayoutEntry.storageTexture = lStorageTextureLayout;
-            break;
-          }
-        case bind_type_enum_1.BindType.Sampler:
-          {
-            var lSamplerLayout = {
-              type: lEntry.type
-            };
-            lLayoutEntry.sampler = lSamplerLayout;
-            break;
-          }
-      }
-      lEntryList.push(lLayoutEntry);
-    }
-    // Create binding group layout.
-    return this.gpu.device.createBindGroupLayout({
-      label: this.label,
-      entries: lEntryList
-    });
-  }
-}
-exports.BindGroupLayout = BindGroupLayout;
-
-/***/ }),
-
-/***/ "./source/core/bind_group/bind-group.ts":
-/*!**********************************************!*\
-  !*** ./source/core/bind_group/bind-group.ts ***!
-  \**********************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.BindGroup = void 0;
-var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-var bind_type_enum_1 = __webpack_require__(/*! ../enum/bind-type.enum */ "./source/core/enum/bind-type.enum.ts");
-var gpu_native_object_1 = __webpack_require__(/*! ../gpu-native-object */ "./source/core/gpu-native-object.ts");
-var base_buffer_1 = __webpack_require__(/*! ../resource/buffer/base-buffer */ "./source/core/resource/buffer/base-buffer.ts");
-var external_texture_1 = __webpack_require__(/*! ../resource/external-texture */ "./source/core/resource/external-texture.ts");
-var texture_sampler_1 = __webpack_require__(/*! ../resource/texture-sampler */ "./source/core/resource/texture-sampler.ts");
-var texture_view_1 = __webpack_require__(/*! ../resource/texture/texture-view */ "./source/core/resource/texture/texture-view.ts");
-class BindGroup extends gpu_native_object_1.GpuNativeObject {
-  /**
-   * Constructor.
-   * @param pGpu - GPU.
-   * @param pLayout - Bind group layout.
-   */
-  constructor(pGpu, pLayout) {
-    super(pGpu, 'BIND_GROUP');
-    this.mLayout = pLayout;
-    this.mBindData = new core_data_1.Dictionary();
-    this.mNativeData = new WeakMap();
-    // Register layout as internal.
-    this.registerInternalNative(pLayout);
-  }
-  /**
-   * Layout of bind group.
-   */
-  get layout() {
-    return this.mLayout;
-  }
-  /**
-   * Set data to layout binding.
-   * @param pBindName - Bind layout entry name.
-   * @param pData - Bind data.
-   * @param pForcedType - Forced type. Can be used to differ for Texture and StorageTexture.
-   */
-  setData(pBindName, pData, pForcedType) {
-    var lLayout = this.mLayout.getBind(pBindName);
-    var lDataBindType = pForcedType !== null && pForcedType !== void 0 ? pForcedType : this.bindTypeOfData(pData);
-    // Validate bind type with data type.
-    if (lLayout.bindType !== lDataBindType) {
-      throw new core_data_1.Exception("Bind data \"".concat(pBindName, "\" has wrong type"), this);
-    }
-    // Unregister possible old data and register new.
-    if (this.mBindData.has(pBindName)) {
-      this.unregisterInternalNative(this.mBindData.get(pBindName).data);
-    }
-    this.registerInternalNative(pData);
-    // Set bind type to Teture for TS type check shutup.
-    this.mBindData.set(pBindName, {
-      type: lDataBindType,
-      name: pBindName,
-      data: pData
-    });
-  }
-  /**
-   * Generate native bind group.
-   */
-  generate() {
-    var lEntryList = new Array();
-    for (var lBindLayout of this.mLayout.binds) {
-      var lBindData = this.mBindData.get(lBindLayout.name);
-      // Check for 
-      if (!lBindData) {
-        throw new core_data_1.Exception("Bind data \"".concat(lBindLayout.name, "\" not set."), this);
-      }
-      // Check for type change.
-      if (lBindData.type !== lBindLayout.type) {
-        throw new core_data_1.Exception("Bind data \"".concat(lBindLayout.name, "\" has wrong type. The Layout might has been changed."), this);
-      }
-      // Set resource to group entry for each 
-      var lGroupEntry = {
-        binding: lBindLayout.index,
-        resource: null
-      };
-      switch (lBindData.type) {
-        case bind_type_enum_1.BindType.Buffer:
-          {
-            lGroupEntry.resource = {
-              buffer: lBindData.data.native()
-            };
-            break;
-          }
-        case bind_type_enum_1.BindType.ExternalTexture:
-          {
-            lGroupEntry.resource = lBindData.data.native();
-            break;
-          }
-        case bind_type_enum_1.BindType.Sampler:
-          {
-            lGroupEntry.resource = lBindData.data.native();
-            break;
-          }
-        case bind_type_enum_1.BindType.StorageTexture:
-          {
-            lGroupEntry.resource = lBindData.data.native();
-            break;
-          }
-        case bind_type_enum_1.BindType.Texture:
-          {
-            lGroupEntry.resource = lBindData.data.native();
-            break;
-          }
-        default:
-          {
-            throw new core_data_1.Exception("Type \"".concat(lBindData.type, "\" not supported on bind group"), this);
-          }
-      }
-      // Save generated native for validation state.
-      this.mNativeData.set(lBindData.data.native(), lBindLayout.name);
-      lEntryList.push(lGroupEntry);
-    }
-    return this.gpu.device.createBindGroup({
-      label: this.label,
-      layout: this.mLayout.native(),
-      entries: lEntryList
-    });
-  }
-  /**
-   * Get type of bind data.
-   * @param pData - Data object.
-   */
-  bindTypeOfData(pData) {
-    if (pData instanceof texture_view_1.TextureView) {
-      return bind_type_enum_1.BindType.Texture;
-    } else if (pData instanceof base_buffer_1.BaseBuffer) {
-      return bind_type_enum_1.BindType.Buffer;
-    } else if (pData instanceof external_texture_1.ExternalTexture) {
-      return bind_type_enum_1.BindType.ExternalTexture;
-    }
-    if (pData instanceof texture_sampler_1.TextureSampler) {
-      return bind_type_enum_1.BindType.Sampler;
-    }
-    throw new core_data_1.Exception("Bind data \"".concat(pData.name, "\" not supported"), this);
-  }
-}
-exports.BindGroup = BindGroup;
-
-/***/ }),
-
-/***/ "./source/core/bind_group/bind-groups.ts":
-/*!***********************************************!*\
-  !*** ./source/core/bind_group/bind-groups.ts ***!
-  \***********************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.BindGroups = void 0;
-var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-var gpu_native_object_1 = __webpack_require__(/*! ../gpu-native-object */ "./source/core/gpu-native-object.ts");
-var bind_group_layout_1 = __webpack_require__(/*! ./bind-group-layout */ "./source/core/bind_group/bind-group-layout.ts");
-class BindGroups extends gpu_native_object_1.GpuNativeObject {
-  /**
-   * Constructor.
-   * @param pGpu  - Gpu.
-   */
-  constructor(pGpu) {
-    super(pGpu, 'PIPELINE_LAYOUT_DESCRIPTOR');
-    this.mBindGroups = new core_data_1.Dictionary();
-  }
-  /**
-   * Bind group count.
-   */
-  get groups() {
-    return [...this.mBindGroups.keys()];
-  }
-  /**
-   * Create bind group.
-   * @param pIndex - Group index.
-   * @param pLayout - [Optional] Bind group Layout.
-   */
-  addGroup(pIndex, pLayout) {
-    // Create and add bind group layout.
-    var lBindLayout;
-    if (pLayout) {
-      lBindLayout = pLayout;
-    } else {
-      lBindLayout = new bind_group_layout_1.BindGroupLayout(this.gpu);
-    }
-    this.mBindGroups.add(pIndex, lBindLayout);
-    // Register native object.
-    this.registerInternalNative(lBindLayout);
-    return lBindLayout;
-  }
-  /**
-   * Get created bind group layout.
-   * @param pIndex - Group index.
-   */
-  getGroup(pIndex) {
-    // Throw on unaccessable group.
-    if (!this.mBindGroups.has(pIndex)) {
-      throw new core_data_1.Exception("Bind group layout (".concat(pIndex, ") does not exists."), this);
-    }
-    // Bind group should allways exist.
-    return this.mBindGroups.get(pIndex);
-  }
-  /**
-   * Generate native object.
-   */
-  generate() {
-    // Generate pipeline layout from bind group layouts.
-    var lPipelineLayout = {
-      bindGroupLayouts: new Array()
-    };
-    for (var [lIndex, lBindGroupLayout] of this.mBindGroups) {
-      lPipelineLayout.bindGroupLayouts[lIndex] = lBindGroupLayout.native();
-    }
-    // Validate continunity.
-    if (this.mBindGroups.size !== lPipelineLayout.bindGroupLayouts.length) {
-      throw new core_data_1.Exception("Bind group gap detected. Group not set.", this);
-    }
-    return lPipelineLayout;
-  }
-}
-exports.BindGroups = BindGroups;
-
-/***/ }),
-
-/***/ "./source/core/buffer_type/array-buffer-type.ts":
-/*!******************************************************!*\
-  !*** ./source/core/buffer_type/array-buffer-type.ts ***!
-  \******************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.ArrayBufferType = void 0;
-var wgsl_type_enum_1 = __webpack_require__(/*! ../shader/enum/wgsl-type.enum */ "./source/core/shader/enum/wgsl-type.enum.ts");
-var buffer_type_1 = __webpack_require__(/*! ./buffer-type */ "./source/core/buffer_type/buffer-type.ts");
-class ArrayBufferType extends buffer_type_1.BufferType {
-  /**
-   * Constructor.
-   * @param pInnerType - Type of array.
-   * @param pSize - Optional array size.
-   */
-  constructor(pName, pInnerType, pSize, pAccessMode, pBindType) {
-    var pLocation = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : null;
-    super(pName, pAccessMode, pBindType, pLocation);
-    this.mInnerType = pInnerType;
-    this.mInnerType.parent = this;
-    this.mArraySize = pSize !== null && pSize !== void 0 ? pSize : -1;
-  }
-  /**
-   * Alignment of type.
-   */
-  get alignment() {
-    return this.mInnerType.alignment;
-  }
-  /**
-   * Array size.
-   */
-  get arraySize() {
-    return this.mArraySize;
-  }
-  /**
-   * Array type.
-   */
-  get innerType() {
-    return this.mInnerType;
-  }
-  /**
-   * Type size in byte.
-   */
-  get size() {
-    if (this.mArraySize === -1) {
-      return this.mArraySize;
-    }
-    return this.mInnerType.size * this.mArraySize;
-  }
-  /**
-   * Wgsl type.
-   */
-  get type() {
-    return wgsl_type_enum_1.WgslType.Array;
-  }
-}
-exports.ArrayBufferType = ArrayBufferType;
-
-/***/ }),
-
-/***/ "./source/core/buffer_type/buffer-type.ts":
-/*!************************************************!*\
-  !*** ./source/core/buffer_type/buffer-type.ts ***!
-  \************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.BufferType = void 0;
-var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-class BufferType {
-  /**
-   * Constructor.
-   */
-  constructor(pName, pAccessMode, pBindType) {
-    var pLocation = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
-    this.mAttributes = new core_data_1.Dictionary();
-    // Static properties.
-    this.mName = pName;
-    this.mLocation = pLocation;
-    this.mAccessMode = pAccessMode !== null && pAccessMode !== void 0 ? pAccessMode : null;
-    this.mBindingType = pBindType !== null && pBindType !== void 0 ? pBindType : null;
-    this.mParent = null;
-  }
-  /**
-   * Buffer type access mode.
-   */
-  get accessMode() {
-    return this.mAccessMode;
-  }
-  /**
-   * Buffer bind type.
-   */
-  get bindingType() {
-    return this.mBindingType;
-  }
-  /**
-   * Get buffer location index as parameter.
-   */
-  get location() {
-    return this.mLocation;
-  }
-  /**
-   * Variable name of buffer.
-   */
-  get name() {
-    return this.mName;
-  }
-  /**
-   * Parent type. Stuct or Array.
-   */
-  get parent() {
-    return this.mParent;
-  }
-  set parent(pValue) {
-    this.mParent = pValue;
-  }
-  /**
-   * Get attribute by name.
-   * @param pName - Attribute name.
-   */
-  getAttribute(pName) {
-    var lParameter = this.mAttributes.get(pName);
-    if (!lParameter) {
-      return null;
-    }
-    return {
-      name: pName,
-      parameter: lParameter
-    };
-  }
-  /**
-   * Set attribute
-   * @param pAttribute - Attribute.
-   */
-  setAttribute(pAttributeName, pParameter) {
-    this.mAttributes.set(pAttributeName, pParameter);
-  }
-}
-exports.BufferType = BufferType;
-
-/***/ }),
-
-/***/ "./source/core/buffer_type/simple-buffer-type.ts":
-/*!*******************************************************!*\
-  !*** ./source/core/buffer_type/simple-buffer-type.ts ***!
-  \*******************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.SimpleBufferType = void 0;
-var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-var wgsl_type_enum_1 = __webpack_require__(/*! ../shader/enum/wgsl-type.enum */ "./source/core/shader/enum/wgsl-type.enum.ts");
-var buffer_type_1 = __webpack_require__(/*! ./buffer-type */ "./source/core/buffer_type/buffer-type.ts");
-class SimpleBufferType extends buffer_type_1.BufferType {
-  /**
-   * Constructor.
-   * @param pType - Simple type. Scalar, Atomic, Vector and Matrix types.
-   * @param pGenerics - Generics of type.
-   */
-  constructor(pName, pType, pGenerics, pAccessMode, pBindType) {
-    var pLocation = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : null;
-    super(pName, pAccessMode, pBindType, pLocation);
-    // Static properties.
-    this.mType = pType;
-    this.mGenericRawList = pGenerics !== null && pGenerics !== void 0 ? pGenerics : [];
-    // Filter enum of generic list.
-    this.mGenericList = this.mGenericRawList.map(pGeneric => {
-      if (!core_data_1.EnumUtil.enumKeyByValue(wgsl_type_enum_1.WgslType, pGeneric)) {
-        return wgsl_type_enum_1.WgslType.Enum;
-      }
-      return pGeneric;
-    });
-    // Get type restrictions.
-    var lRestrictionList = SimpleBufferType.mTypeRestrictions[pType];
-    if (!lRestrictionList) {
-      throw new core_data_1.Exception("Type ".concat(pType, " not supported."), this);
-    }
-    // Find corresponding restrictions. // TODO: Check for enum or struct or any types.
-    var lRestriction = lRestrictionList.find(pRestriction => {
-      // Restriction has no generics.
-      if (!pRestriction.generic && this.mGenericRawList.length > 0) {
-        return false;
-      }
-      // No Generic restriction.
-      if (!pRestriction.generic && this.mGenericRawList.length === 0) {
-        return true;
-      }
-      // Validate each restriction.
-      for (var lGenericIndex = 0; lGenericIndex < pRestriction.generic.length; lGenericIndex++) {
-        var _lRestriction = pRestriction.generic[lGenericIndex];
-        if (_lRestriction === wgsl_type_enum_1.WgslType.Any) {
-          continue;
-        }
-        var lRawGeneric = this.mGenericRawList[lGenericIndex];
-        if (_lRestriction === wgsl_type_enum_1.WgslType.Enum && lRawGeneric) {
-          continue;
-        }
-        if (_lRestriction !== lRawGeneric) {
-          return false;
-        }
-      }
-      return true;
-    });
-    if (!lRestriction) {
-      throw new core_data_1.Exception("No type (".concat(pType, ") restriction for generics [").concat(pGenerics, "] found."), this);
-    }
-    this.mAlignment = lRestriction.align;
-    this.mSize = lRestriction.size;
-  }
-  /**
-   * Alignment of type.
-   */
-  get alignment() {
-    return this.mAlignment;
-  }
-  /**
-   * Type generics.
-   */
-  get generics() {
-    return this.mGenericList;
-  }
-  /**
-   * Type generics.
-   */
-  get genericsRaw() {
-    return this.mGenericRawList;
-  }
-  /**
-   * Type size in byte.
-   */
-  get size() {
-    return this.mSize;
-  }
-  /**
-   * Wgsl type.
-   */
-  get type() {
-    return this.mType;
-  }
-}
-exports.SimpleBufferType = SimpleBufferType;
-SimpleBufferType.mTypeRestrictions = (() => {
-  var lTypes = {};
-  // Scalar types.
-  lTypes[wgsl_type_enum_1.WgslType.Boolean] = [{
-    size: 1,
-    align: 1
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.Integer32] = [{
-    size: 4,
-    align: 4
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.UnsignedInteger32] = [{
-    size: 4,
-    align: 4
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.Float32] = [{
-    size: 4,
-    align: 4
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.Float16] = [{
-    size: 2,
-    align: 2
-  }];
-  // Vector types.
-  lTypes[wgsl_type_enum_1.WgslType.Vector2] = [{
-    size: 8,
-    align: 8,
-    generic: [wgsl_type_enum_1.WgslType.Integer32]
-  }, {
-    size: 8,
-    align: 8,
-    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
-  }, {
-    size: 8,
-    align: 8,
-    generic: [wgsl_type_enum_1.WgslType.Float32]
-  }, {
-    size: 4,
-    align: 4,
-    generic: [wgsl_type_enum_1.WgslType.Float16]
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.Vector3] = [{
-    size: 12,
-    align: 16,
-    generic: [wgsl_type_enum_1.WgslType.Integer32]
-  }, {
-    size: 12,
-    align: 16,
-    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
-  }, {
-    size: 12,
-    align: 16,
-    generic: [wgsl_type_enum_1.WgslType.Float32]
-  }, {
-    size: 6,
-    align: 8,
-    generic: [wgsl_type_enum_1.WgslType.Float16]
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.Vector4] = [{
-    size: 16,
-    align: 16,
-    generic: [wgsl_type_enum_1.WgslType.Integer32]
-  }, {
-    size: 16,
-    align: 16,
-    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
-  }, {
-    size: 16,
-    align: 16,
-    generic: [wgsl_type_enum_1.WgslType.Float32]
-  }, {
-    size: 8,
-    align: 8,
-    generic: [wgsl_type_enum_1.WgslType.Float16]
-  }];
-  // Matrix types.
-  lTypes[wgsl_type_enum_1.WgslType.Matrix22] = [{
-    size: 16,
-    align: 8,
-    generic: [wgsl_type_enum_1.WgslType.Integer32]
-  }, {
-    size: 16,
-    align: 8,
-    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
-  }, {
-    size: 16,
-    align: 8,
-    generic: [wgsl_type_enum_1.WgslType.Float32]
-  }, {
-    size: 8,
-    align: 4,
-    generic: [wgsl_type_enum_1.WgslType.Float16]
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.Matrix23] = [{
-    size: 32,
-    align: 16,
-    generic: [wgsl_type_enum_1.WgslType.Integer32]
-  }, {
-    size: 32,
-    align: 16,
-    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
-  }, {
-    size: 32,
-    align: 16,
-    generic: [wgsl_type_enum_1.WgslType.Float32]
-  }, {
-    size: 16,
-    align: 8,
-    generic: [wgsl_type_enum_1.WgslType.Float16]
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.Matrix24] = [{
-    size: 32,
-    align: 16,
-    generic: [wgsl_type_enum_1.WgslType.Integer32]
-  }, {
-    size: 32,
-    align: 16,
-    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
-  }, {
-    size: 32,
-    align: 16,
-    generic: [wgsl_type_enum_1.WgslType.Float32]
-  }, {
-    size: 16,
-    align: 8,
-    generic: [wgsl_type_enum_1.WgslType.Float16]
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.Matrix32] = [{
-    size: 24,
-    align: 8,
-    generic: [wgsl_type_enum_1.WgslType.Integer32]
-  }, {
-    size: 24,
-    align: 8,
-    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
-  }, {
-    size: 24,
-    align: 8,
-    generic: [wgsl_type_enum_1.WgslType.Float32]
-  }, {
-    size: 12,
-    align: 4,
-    generic: [wgsl_type_enum_1.WgslType.Float16]
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.Matrix33] = [{
-    size: 48,
-    align: 16,
-    generic: [wgsl_type_enum_1.WgslType.Integer32]
-  }, {
-    size: 48,
-    align: 16,
-    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
-  }, {
-    size: 48,
-    align: 16,
-    generic: [wgsl_type_enum_1.WgslType.Float32]
-  }, {
-    size: 24,
-    align: 8,
-    generic: [wgsl_type_enum_1.WgslType.Float16]
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.Matrix34] = [{
-    size: 48,
-    align: 16,
-    generic: [wgsl_type_enum_1.WgslType.Integer32]
-  }, {
-    size: 48,
-    align: 16,
-    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
-  }, {
-    size: 48,
-    align: 16,
-    generic: [wgsl_type_enum_1.WgslType.Float32]
-  }, {
-    size: 24,
-    align: 8,
-    generic: [wgsl_type_enum_1.WgslType.Float16]
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.Matrix42] = [{
-    size: 32,
-    align: 8,
-    generic: [wgsl_type_enum_1.WgslType.Integer32]
-  }, {
-    size: 32,
-    align: 8,
-    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
-  }, {
-    size: 32,
-    align: 8,
-    generic: [wgsl_type_enum_1.WgslType.Float32]
-  }, {
-    size: 16,
-    align: 4,
-    generic: [wgsl_type_enum_1.WgslType.Float16]
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.Matrix43] = [{
-    size: 64,
-    align: 16,
-    generic: [wgsl_type_enum_1.WgslType.Integer32]
-  }, {
-    size: 64,
-    align: 16,
-    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
-  }, {
-    size: 64,
-    align: 16,
-    generic: [wgsl_type_enum_1.WgslType.Float32]
-  }, {
-    size: 32,
-    align: 8,
-    generic: [wgsl_type_enum_1.WgslType.Float16]
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.Matrix44] = [{
-    size: 64,
-    align: 16,
-    generic: [wgsl_type_enum_1.WgslType.Integer32]
-  }, {
-    size: 64,
-    align: 16,
-    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
-  }, {
-    size: 64,
-    align: 16,
-    generic: [wgsl_type_enum_1.WgslType.Float32]
-  }, {
-    size: 32,
-    align: 8,
-    generic: [wgsl_type_enum_1.WgslType.Float16]
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.Array] = [{
-    size: -1,
-    align: -1,
-    generic: [wgsl_type_enum_1.WgslType.Any]
-  }, {
-    size: -1,
-    align: -1,
-    generic: [wgsl_type_enum_1.WgslType.Any, wgsl_type_enum_1.WgslType.UnsignedInteger32]
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.Struct] = [{
-    size: -1,
-    align: -1
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.Atomic] = [{
-    size: 4,
-    align: 4,
-    generic: [wgsl_type_enum_1.WgslType.Integer32]
-  }, {
-    size: 4,
-    align: 4,
-    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
-  }];
-  // Type alias.
-  // TODO:
-  // None buffer types.
-  //-------------------
-  //Special.
-  lTypes[wgsl_type_enum_1.WgslType.Pointer] = [{
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.Enum, wgsl_type_enum_1.WgslType.Any, wgsl_type_enum_1.WgslType.Enum]
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.Reference] = [{
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.Enum, wgsl_type_enum_1.WgslType.Any, wgsl_type_enum_1.WgslType.Enum]
-  }];
-  // Textures.
-  lTypes[wgsl_type_enum_1.WgslType.Texture1d] = [{
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.Integer32]
-  }, {
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
-  }, {
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.Float32]
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.Texture2d] = [{
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.Integer32]
-  }, {
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
-  }, {
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.Float32]
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.Texture2dArray] = [{
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.Integer32]
-  }, {
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
-  }, {
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.Float32]
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.Texture3d] = [{
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.Integer32]
-  }, {
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
-  }, {
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.Float32]
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.TextureCube] = [{
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.Integer32]
-  }, {
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
-  }, {
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.Float32]
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.TextureCubeArray] = [{
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.Integer32]
-  }, {
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
-  }, {
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.Float32]
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.TextureMultisampled2d] = [{
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.Integer32]
-  }, {
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.UnsignedInteger32]
-  }, {
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.Float32]
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.TextureExternal] = [{
-    size: -1,
-    align: 0
-  }];
-  // Depth texture.
-  lTypes[wgsl_type_enum_1.WgslType.TextureDepth2d] = [{
-    size: -1,
-    align: 0
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.TextureDepth2dArray] = [{
-    size: -1,
-    align: 0
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.TextureDepthCube] = [{
-    size: -1,
-    align: 0
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.TextureDepthCubeArray] = [{
-    size: -1,
-    align: 0
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.TextureDepthMultisampled2d] = [{
-    size: -1,
-    align: 0
-  }];
-  // Storage textures.
-  lTypes[wgsl_type_enum_1.WgslType.TextureStorage1d] = [{
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.Enum, wgsl_type_enum_1.WgslType.Enum]
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.TextureStorage2d] = [{
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.Enum, wgsl_type_enum_1.WgslType.Enum]
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.TextureStorage2dArray] = [{
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.Enum, wgsl_type_enum_1.WgslType.Enum]
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.TextureStorage3d] = [{
-    size: -1,
-    align: 0,
-    generic: [wgsl_type_enum_1.WgslType.Enum, wgsl_type_enum_1.WgslType.Enum]
-  }];
-  // Sampler.
-  lTypes[wgsl_type_enum_1.WgslType.Sampler] = [{
-    size: -1,
-    align: 0
-  }];
-  lTypes[wgsl_type_enum_1.WgslType.SamplerComparison] = [{
-    size: -1,
-    align: 0
-  }];
-  return lTypes;
-})();
-
-/***/ }),
-
-/***/ "./source/core/buffer_type/struct-buffer-type.ts":
-/*!*******************************************************!*\
-  !*** ./source/core/buffer_type/struct-buffer-type.ts ***!
-  \*******************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.StructBufferType = void 0;
-var wgsl_type_enum_1 = __webpack_require__(/*! ../shader/enum/wgsl-type.enum */ "./source/core/shader/enum/wgsl-type.enum.ts");
-var buffer_type_1 = __webpack_require__(/*! ./buffer-type */ "./source/core/buffer_type/buffer-type.ts");
-class StructBufferType extends buffer_type_1.BufferType {
-  /**
-   * Constructor.
-   */
-  constructor(pName, pStructName, pAccessMode, pBindType) {
-    var pLocation = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : null;
-    super(pName, pAccessMode, pBindType, pLocation);
-    this.mStructName = pStructName;
-    this.mAlignment = 0;
-    this.mSize = 0;
-    this.mInnerTypes = new Array();
-  }
-  /**
-   * Alignment of type.
-   */
-  get alignment() {
-    return this.mAlignment;
-  }
-  /**
-   * Type size in byte.
-   */
-  get size() {
-    return this.mSize;
-  }
-  /**
-   * Struct name.
-   */
-  get structName() {
-    return this.mStructName;
-  }
-  /**
-   * Wgsl type.
-   */
-  get type() {
-    return wgsl_type_enum_1.WgslType.Struct;
-  }
-  /**
-   * Add property to struct.
-   * @param pName - Property name.
-   * @param pOrder - Index of property.
-   * @param pType - Property type.
-   */
-  addProperty(pOrder, pType) {
-    this.mInnerTypes.push([pOrder, pType]);
-    pType.parent = this;
-    // Recalculate alignment.
-    if (pType.alignment > this.mAlignment) {
-      this.mAlignment = pType.alignment;
-    }
-    // Get ordered types.
-    var lOrderedTypeList = this.mInnerTypes.sort((_ref, _ref2) => {
-      var [pOrderA] = _ref;
-      var [pOrderB] = _ref2;
-      return pOrderA - pOrderB;
-    }).map(_ref3 => {
-      var [, pType] = _ref3;
-      return pType;
-    });
-    // Recalculate size.
-    var lCurrentOffset = 0;
-    for (var lType of lOrderedTypeList) {
-      // Increase offset when alignment does not match.
-      // When alignment matches the modulo calculation is zero.
-      lCurrentOffset += lCurrentOffset % lType.alignment;
-      // Increase offset for type.
-      lCurrentOffset += lType.size;
-    }
-    this.mSize = lCurrentOffset;
-  }
-  /**
-   * Get types of properties with set location.
-   */
-  innerLocations() {
-    var lLocationTypes = new Array();
-    for (var [, lPropertyType] of this.mInnerTypes.values()) {
-      // Set property as location when set.
-      if (lPropertyType.location !== null) {
-        lLocationTypes.push(lPropertyType);
-      }
-      // Get all inner locations when property is a struct type.
-      if (lPropertyType instanceof StructBufferType) {
-        lLocationTypes.push(...lPropertyType.innerLocations());
-      }
-    }
-    return lLocationTypes;
-  }
-}
-exports.StructBufferType = StructBufferType;
-
-/***/ }),
-
-/***/ "./source/core/enum/bind-type.enum.ts":
-/*!********************************************!*\
-  !*** ./source/core/enum/bind-type.enum.ts ***!
-  \********************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.BindType = void 0;
-var BindType;
-(function (BindType) {
-  BindType["Texture"] = "Texture";
-  BindType["Buffer"] = "Buffer";
-  BindType["Sampler"] = "Sampler";
-  BindType["StorageTexture"] = "StorageTexture";
-  BindType["ExternalTexture"] = "ExternalTexture";
-})(BindType = exports.BindType || (exports.BindType = {}));
-
-/***/ }),
-
-/***/ "./source/core/execution/instruction-executer.ts":
-/*!*******************************************************!*\
-  !*** ./source/core/execution/instruction-executer.ts ***!
-  \*******************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.InstructionExecuter = void 0;
-var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-class InstructionExecuter {
-  /**
-   * Constructor.
-   * @param pGpu - Gpu.
-   */
-  constructor(pGpu) {
-    this.mGpu = pGpu;
-    // Instruction sets.
-    this.mInstructionSetList = new core_data_1.List();
-  }
-  /**
-   * Add instruction set.
-   * @param pSet - New instruction net.
-   */
-  addInstructionSet(pSet) {
-    this.mInstructionSetList.push(pSet);
-  }
-  /**
-   * Remove all instruction sets.
-   */
-  clearInstructions() {
-    this.mInstructionSetList.clear();
-  }
-  execute() {
-    // Generate encoder and add render commands.
-    var lEncoder = this.mGpu.device.createCommandEncoder();
-    // Execute instruction sets.
-    for (var lInstructionSet of this.mInstructionSetList) {
-      lInstructionSet.execute(lEncoder);
-    }
-    this.mGpu.device.queue.submit([lEncoder.finish()]);
-  }
-}
-exports.InstructionExecuter = InstructionExecuter;
-
-/***/ }),
-
-/***/ "./source/core/execution/instruction/render-instruction.ts":
-/*!*****************************************************************!*\
-  !*** ./source/core/execution/instruction/render-instruction.ts ***!
-  \*****************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.RenderInstruction = void 0;
-var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-class RenderInstruction {
-  /**
-   * Constructor.
-   */
-  constructor(pPipeline, pRenderParameter) {
-    var _this$mPipeline$shade;
-    var pInstanceCount = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
-    this.mBindGroups = new core_data_1.Dictionary();
-    this.mRenderParameter = pRenderParameter;
-    this.mPipeline = pPipeline;
-    this.mInstanceCount = pInstanceCount;
-    // Validate mesh and pipeline attributes length.
-    if (pRenderParameter.attributesCount !== ((_this$mPipeline$shade = this.mPipeline.shader.vertexEntryPoint) === null || _this$mPipeline$shade === void 0 ? void 0 : _this$mPipeline$shade.attributes.length)) {
-      var _this$mPipeline$shade2;
-      throw new core_data_1.Exception("Mesh attributes (length:".concat(pRenderParameter.attributesCount, ") does not match pipeline attributes (length: ").concat((_this$mPipeline$shade2 = this.mPipeline.shader.vertexEntryPoint) === null || _this$mPipeline$shade2 === void 0 ? void 0 : _this$mPipeline$shade2.attributes.length, ")"), this);
-    }
-    // Validate mesh and pipeline attributes content.
-    for (var lAttribute of this.mPipeline.shader.vertexEntryPoint.attributes) {
-      var lMeshAttributeBuffer = pRenderParameter.getBuffer(lAttribute.name);
-      if (lMeshAttributeBuffer.type !== lAttribute.bufferDataType) {
-        throw new core_data_1.Exception("Mesh attributes does not match pipeline attributes", this);
-      }
-    }
-  }
-  /**
-   * Get bind groups.
-   */
-  get bindGroups() {
-    var lBindGroupList = new Array();
-    for (var [lIndex, lBindGroup] of this.mBindGroups) {
-      lBindGroupList[lIndex] = lBindGroup;
-    }
-    return lBindGroupList;
-  }
-  /**
-   * Instance count.
-   */
-  get instanceCount() {
-    return this.mInstanceCount;
-  }
-  /**
-   * Instruction parameter.
-   */
-  get parameter() {
-    return this.mRenderParameter;
-  }
-  /**
-   * Instructions render pipeline.
-   */
-  get pipeline() {
-    return this.mPipeline;
-  }
-  /**
-   * Set bind group of pipeline.
-   * @param pBindGroup - Bind group.
-   */
-  setBindGroup(pIndex, pBindGroup) {
-    // Validate bind group layout.
-    if (!this.mPipeline.shader.bindGroups.getGroup(pIndex).equal(pBindGroup.layout)) {
-      throw new core_data_1.Exception("Bind data layout not matched with pipeline bind group layout.", this);
-    }
-    this.mBindGroups.set(pIndex, pBindGroup);
-  }
-}
-exports.RenderInstruction = RenderInstruction;
-
-/***/ }),
-
-/***/ "./source/core/execution/instruction_set/render-instruction-set.ts":
-/*!*************************************************************************!*\
-  !*** ./source/core/execution/instruction_set/render-instruction-set.ts ***!
-  \*************************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.RenderInstructionSet = void 0;
-var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-class RenderInstructionSet {
-  // TODO: Set  GPURenderPassEncoder.setScissorRect
-  /**
-   * Constructor.
-   * @param pRenderPass - Render pass.
-   */
-  constructor(pRenderPass) {
-    this.mRenderPass = pRenderPass;
-    this.mInstructionList = new Array();
-  }
-  /**
-   * Add render instruction.
-   * @param pInstruction - Render instruction.
-   */
-  addInstruction(pInstruction) {
-    // Validate instruction.
-    if (pInstruction.pipeline.renderPass !== this.mRenderPass) {
-      throw new core_data_1.Exception('Instruction render pass not valid for instruction set.', this);
-    }
-    // Add instruction.
-    this.mInstructionList.push(pInstruction);
-  }
-  /**
-   * Execute instruction set.
-   * @param pCommandEncoder - Command encoder.
-   */
-  execute(pCommandEncoder) {
-    // Generate pass descriptor once per set pipeline.
-    var lPassDescriptor = this.mRenderPass.native();
-    // Pass descriptor is set, when the pipeline ist set.
-    var lRenderPassEncoder = pCommandEncoder.beginRenderPass(lPassDescriptor);
-    // Instruction cache.
-    var lPipeline = null;
-    var lBindGroupList = new Array();
-    var lVertexBufferList = new core_data_1.Dictionary();
-    // Execute instructions.
-    for (var lInstruction of this.mInstructionList) {
-      // Use cached pipeline or use new.
-      if (lInstruction.pipeline !== lPipeline) {
-        lPipeline = lInstruction.pipeline;
-        lRenderPassEncoder.setPipeline(lInstruction.pipeline.native());
-      }
-      // Add bind groups.
-      for (var lIndex of lPipeline.shader.bindGroups.groups) {
-        var lNewBindGroup = lInstruction.bindGroups[lIndex];
-        var lCurrentBindGroup = lBindGroupList[lIndex];
-        // Use cached bind group or use new.
-        if (lNewBindGroup !== lCurrentBindGroup) {
-          lBindGroupList[lIndex] = lNewBindGroup;
-          if (lNewBindGroup) {
-            lRenderPassEncoder.setBindGroup(lIndex, lNewBindGroup.native());
-          }
-        }
-      }
-      // Add vertex attribute buffer.
-      for (var lAttribute of lInstruction.pipeline.shader.vertexEntryPoint.attributes) {
-        var lNewAttributeBuffer = lInstruction.parameter.getBuffer(lAttribute.name);
-        var lCurrentAttributeBuffer = lVertexBufferList.get(lAttribute.location);
-        // Use cached vertex buffer or use new.
-        if (lNewAttributeBuffer !== lCurrentAttributeBuffer) {
-          lVertexBufferList.set(lAttribute.location, lNewAttributeBuffer);
-          lRenderPassEncoder.setVertexBuffer(lAttribute.location, lNewAttributeBuffer.native());
-        }
-      }
-      lRenderPassEncoder.draw(lInstruction.parameter.indexCount, lInstruction.instanceCount);
-    }
-    lRenderPassEncoder.end();
-  }
-}
-exports.RenderInstructionSet = RenderInstructionSet;
-
-/***/ }),
-
-/***/ "./source/core/execution/parameter/render-parameter.ts":
-/*!*************************************************************!*\
-  !*** ./source/core/execution/parameter/render-parameter.ts ***!
-  \*************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.RenderParameter = void 0;
-var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-var simple_buffer_1 = __webpack_require__(/*! ../../resource/buffer/simple-buffer */ "./source/core/resource/buffer/simple-buffer.ts");
-class RenderParameter {
-  /**
-   * Constructor.
-   * @param pGpu - GPU.
-   * @param pVertexIndices - Vertex indices.
-   */
-  constructor(pGpu, pVertexIndices) {
-    this.mGpu = pGpu;
-    this.mVertexBuffer = new core_data_1.Dictionary();
-    this.mIndexData = pVertexIndices;
-    this.mMaxIndex = Math.max(...pVertexIndices);
-  }
-  /**
-   * Vertex attributes count.
-   */
-  get attributesCount() {
-    return this.mVertexBuffer.size;
-  }
-  /**
-   * Get index count.
-   * Size of vertex data.
-   */
-  get indexCount() {
-    return this.mIndexData.length;
-  }
-  /**
-   * Get index count.
-   * Size of vertex data.
-   */
-  get maxIndex() {
-    return this.mMaxIndex;
-  }
-  /**
-   * Get buffer by attribute name
-   * @param pName - Vertex attribute name.
-   */
-  getBuffer(pName) {
-    var lBuffer = this.mVertexBuffer.get(pName);
-    if (!lBuffer) {
-      throw new core_data_1.Exception("Vertex buffer for attribute \"".concat(pName, "\" not set"), this);
-    }
-    return lBuffer;
-  }
-  /**
-   * Add data for each index.
-   * @param pName - Attribute name.
-   * @param pData - Data array.
-   * @param pStrideLength - Data stride length for one value.
-   */
-  setIndexData(pName, pData, pStrideLength) {
-    // Validate.
-    if (pData.length % pStrideLength !== 0) {
-      throw new core_data_1.Exception('Vertex data length offset.', this);
-    }
-    this.mVertexBuffer.set(pName, new simple_buffer_1.SimpleBuffer(this.mGpu, GPUBufferUsage.VERTEX, new Float32Array(pData)));
-  }
-  /**
-   * Adds data for each vertex.
-   * Converts vertex data into index data by dublicating vertex data for each index.
-   * @param pName - Attribute name.
-   * @param pData - Data array.
-   * @param pStrideLength - Data stride length for one value.
-   */
-  setVertexData(pName, pData, pStrideLength) {
-    // Validate data strides.
-    if (pData.length % pStrideLength !== 0) {
-      throw new core_data_1.Exception("Vertex data length offset: ".concat(pName, "(length: ").concat(pData.length, ", offset: ").concat(pData.length % pStrideLength, ")"), this);
-    }
-    if ((this.mMaxIndex + 1) * pStrideLength !== pData.length) {
-      throw new core_data_1.Exception("Index data ".concat(pName, "(").concat(pData.length, ") does not meet needed data length of (max index: ").concat(this.mMaxIndex, ", needed length: ").concat((this.mMaxIndex + 1) * pStrideLength, ")"), this);
-    }
-    // Dublicate index data into vertex data.
-    var lIndexData = new Array();
-    for (var lIndex of this.mIndexData) {
-      // Copy data stride for index.
-      lIndexData.push(...pData.slice(lIndex * pStrideLength, (lIndex + 1) * pStrideLength));
-    }
-    this.mVertexBuffer.set(pName, new simple_buffer_1.SimpleBuffer(this.mGpu, GPUBufferUsage.VERTEX, new Float32Array(lIndexData)));
-  }
-}
-exports.RenderParameter = RenderParameter;
-
-/***/ }),
-
-/***/ "./source/core/gpu-native-object.ts":
-/*!******************************************!*\
-  !*** ./source/core/gpu-native-object.ts ***!
-  \******************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.GpuNativeObject = void 0;
-var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-/**
- * Gpu native object.
- */
-class GpuNativeObject {
-  /**
-   * Constructor.
-   * @param pGpu - Gpu object.
-   * @param pNativeName - Name of native label.
-   */
-  constructor(pGpu, pNativeName) {
-    this.mGpu = pGpu;
-    this.mNativeObject = null;
-    this.mLabel = '';
-    this.mNativeName = pNativeName;
-    // Trigger refresh on creation.
-    this.mObjectInvalid = true;
-    // Init internal native change detection.
-    this.mChangeListener = new core_data_1.Dictionary();
-    this.mInternalList = new Set();
-  }
-  /**
-   * Debug label.
-   */
-  get label() {
-    var lLabel = this.mNativeName;
-    if (this.mLabel) {
-      lLabel += '->' + this.mLabel;
-    }
-    return lLabel;
-  }
-  set label(pLabel) {
-    this.mLabel = pLabel;
-  }
-  /**
-   * Get global gpu.
-   */
-  get gpu() {
-    return this.mGpu;
-  }
-  /**
-   * Destroy generated native object.
-   */
-  destroy() {
-    // Destroy old native object.
-    if (this.mNativeObject) {
-      this.destroyNative(this.mNativeObject);
-      // Remove destroyed native.
-      this.mNativeObject = null;
-    }
-  }
-  /**
-   * Compare two native objects.
-   * @param pObject - Target object.
-   */
-  equal(pObject) {
-    return this.compare(pObject);
-  }
-  /**
-   * Get native object.
-   */
-  native() {
-    // Invalidate oject when needed.
-    this.invalidate();
-    // Generate new native object when not already created.
-    if (this.mObjectInvalid) {
-      // Destroy native.
-      this.destroy();
-      // Reset object invalidation.
-      this.mObjectInvalid = false;
-      // Generate new native object.
-      this.mNativeObject = this.generate();
-    }
-    return this.mNativeObject;
-  }
-  /**
-   * Compare objects.
-   * @param pObject - Target compare object.
-   */
-  compare(pObject) {
-    return this === pObject;
-  }
-  /**
-   * Destroy object.
-   */
-  destroyNative(_pNativeObject) {
-    // Nothing to destroy. :)
-  }
-  /**
-   * Register internal native object.
-   * Invalidated native when internal changes.
-   * @param pInternalNative - Internal used native.
-   */
-  registerInternalNative(pInternalNative) {
-    // Save internal native.
-    pInternalNative.addChangeListener(() => {
-      this.triggerChange();
-    }, this);
-    this.mInternalList.add(pInternalNative);
-    this.triggerChange();
-  }
-  /**
-   * Trigger native change.
-   */
-  triggerChange() {
-    // Trigger change.
-    if (!this.mObjectInvalid) {
-      this.mObjectInvalid = true;
-      // Execute change listener.
-      for (var lListener of this.mChangeListener.values()) {
-        lListener();
-      }
-    }
-  }
-  /**
-   * Unregister internal native object.
-   * @param pInternalNative - Internal used native.
-   */
-  unregisterInternalNative(pInternalNative) {
-    // Delete saved native.
-    pInternalNative.removeChangeListener(this);
-    this.mInternalList.delete(pInternalNative);
-    this.triggerChange();
-  }
-  /**
-   * Validate native object.
-   */
-  validate(_pNativeObject) {
-    return true;
-  }
-  /**
-   * Add change listener.
-   * @param pListener - Change listener.
-   * @param pReferrer - Referrer object.
-   */
-  addChangeListener(pListener, pReferrer) {
-    this.mChangeListener.set(pReferrer, pListener);
-  }
-  /**
-   * Invalidate native object.
-   */
-  invalidate() {
-    // Invalidate internals.
-    for (var lInternal of this.mInternalList) {
-      lInternal.invalidate();
-    }
-    // Validate only when there is somthing to validate.
-    if (!this.mObjectInvalid && this.mNativeObject) {
-      if (!this.validate(this.mNativeObject)) {
-        this.triggerChange();
-      }
-    }
-  }
-  /**
-   * Remove change listener.
-   * @param pReferrer - Referrer object.
-   */
-  removeChangeListener(pReferrer) {
-    this.mChangeListener.delete(pReferrer);
-  }
-}
-exports.GpuNativeObject = GpuNativeObject;
-
-/***/ }),
-
-/***/ "./source/core/gpu.ts":
-/*!****************************!*\
-  !*** ./source/core/gpu.ts ***!
-  \****************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.Gpu = void 0;
-var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-class Gpu {
-  /**
-   * Constructor.
-   * @param pGpuAdapter - Gpu adapter.
-   * @param pGpuDevice - Gpu device.
-   */
-  constructor(pGpuAdapter, pGpuDevice) {
-    this.mGpuAdapter = pGpuAdapter;
-    this.mGpuDevice = pGpuDevice;
-  }
-  /**
-   * Create GPU device.
-   * @param pMode - Prefered device mode.
-   */
-  static create(pMode) {
-    return _asyncToGenerator(function* () {
-      var _Gpu$mAdapters$get, _Gpu$mDevices$get;
-      // Try to load cached adapter. When not cached, request new one.
-      var lAdapter = (_Gpu$mAdapters$get = Gpu.mAdapters.get(pMode)) !== null && _Gpu$mAdapters$get !== void 0 ? _Gpu$mAdapters$get : yield window.navigator.gpu.requestAdapter({
-        powerPreference: pMode
-      });
-      if (lAdapter) {
-        Gpu.mAdapters.set(pMode, lAdapter);
-      } else {
-        throw new core_data_1.Exception('Error requesting GPU adapter', Gpu);
-      }
-      // Try to load cached device. When not cached, request new one.
-      var lDevice = (_Gpu$mDevices$get = Gpu.mDevices.get(lAdapter)) !== null && _Gpu$mDevices$get !== void 0 ? _Gpu$mDevices$get : yield lAdapter.requestDevice();
-      if (lAdapter) {
-        Gpu.mDevices.set(lAdapter, lDevice);
-      } else {
-        throw new core_data_1.Exception('Error requesting GPU device', Gpu);
-      }
-      return new Gpu(lAdapter, lDevice);
-    })();
-  }
-  /**
-   * GPU adapter.
-   */
-  get adapter() {
-    return this.mGpuAdapter;
-  }
-  /**
-   * GPU device.
-   */
-  get device() {
-    return this.mGpuDevice;
-  }
-  /**
-   * Preferred texture format.
-   */
-  get preferredFormat() {
-    return window.navigator.gpu.getPreferredCanvasFormat();
-  }
-}
-exports.Gpu = Gpu;
-Gpu.mAdapters = new core_data_1.Dictionary();
-Gpu.mDevices = new core_data_1.Dictionary();
-
-/***/ }),
-
-/***/ "./source/core/pass_descriptor/attachment-type.enum.ts":
-/*!*************************************************************!*\
-  !*** ./source/core/pass_descriptor/attachment-type.enum.ts ***!
-  \*************************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.AttachmentType = void 0;
-var AttachmentType;
-(function (AttachmentType) {
-  AttachmentType[AttachmentType["Canvas"] = 1] = "Canvas";
-  AttachmentType[AttachmentType["Color"] = 2] = "Color";
-  AttachmentType[AttachmentType["Depth"] = 4] = "Depth";
-  AttachmentType[AttachmentType["Stencil"] = 8] = "Stencil";
-})(AttachmentType = exports.AttachmentType || (exports.AttachmentType = {}));
-
-/***/ }),
-
-/***/ "./source/core/pass_descriptor/attachments.ts":
-/*!****************************************************!*\
-  !*** ./source/core/pass_descriptor/attachments.ts ***!
-  \****************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.Attachments = void 0;
-var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-var canvas_texture_1 = __webpack_require__(/*! ../resource/texture/canvas-texture */ "./source/core/resource/texture/canvas-texture.ts");
-var texture_1 = __webpack_require__(/*! ../resource/texture/texture */ "./source/core/resource/texture/texture.ts");
-var texture_usage_enum_1 = __webpack_require__(/*! ../resource/texture/texture-usage.enum */ "./source/core/resource/texture/texture-usage.enum.ts");
-var attachment_type_enum_1 = __webpack_require__(/*! ./attachment-type.enum */ "./source/core/pass_descriptor/attachment-type.enum.ts");
-var attachment_1 = __webpack_require__(/*! ./type/attachment */ "./source/core/pass_descriptor/type/attachment.ts");
-class Attachments {
-  /**
-   * Constructor.
-   * @param pGpu - GPU.
-   */
-  constructor(pGpu) {
-    var pMultiSampleLevel = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-    this.mAttachments = new core_data_1.Dictionary();
-    this.mAttachmentGroup = new core_data_1.Dictionary();
-    this.mTextureGroup = new core_data_1.Dictionary();
-    this.mGpu = pGpu;
-    this.mRebuildRequested = false;
-    this.mSize = {
-      width: 1,
-      height: 1
-    };
-    this.mMultiSampleLevel = pMultiSampleLevel;
-  }
-  /**
-   * Attachment height.
-   */
-  get height() {
-    return this.mSize.height;
-  }
-  /**
-   * Attachment width.
-   */
-  get width() {
-    return this.mSize.width;
-  }
-  /**
-   * Add attachment. Forces rebuild of some groups.
-   * @param pAttachment - Attachment.
-   */
-  addAttachment(pAttachment) {
-    var _pAttachment$format, _pAttachment$layers;
-    // Filter dublicates.
-    if (this.mAttachments.has(pAttachment.name)) {
-      throw new core_data_1.Exception("Attachment \"".concat(pAttachment.name, "\" already exists."), this);
-    }
-    // Auto detect format.
-    var lFormat = (_pAttachment$format = pAttachment.format) !== null && _pAttachment$format !== void 0 ? _pAttachment$format : window.navigator.gpu.getPreferredCanvasFormat();
-    // Special canvas treatment for fixed properties.
-    var lType = pAttachment.type;
-    var lCanvas = null;
-    if ('canvas' in pAttachment) {
-      lType |= attachment_type_enum_1.AttachmentType.Canvas; // Inject canvas type.
-      lCanvas = pAttachment.canvas;
-    }
-    // Apply default value for layer count.
-    var lLayerCount = (_pAttachment$layers = pAttachment.layers) !== null && _pAttachment$layers !== void 0 ? _pAttachment$layers : 1;
-    // Force default for attachment
-    var lAttachment = {
-      type: lType,
-      name: pAttachment.name,
-      format: lFormat,
-      layers: lLayerCount,
-      canvas: lCanvas,
-      attachment: new attachment_1.Attachment(this.mGpu, lFormat, lLayerCount)
-    };
-    // Set attachment.
-    this.mAttachments.set(pAttachment.name, lAttachment);
-    // Set refresh flag to refresh all textures on next load.
-    this.mRebuildRequested = true;
-  }
-  /**
-   * Get attachment by name.
-   * @param pName - Attachment name.
-   */
-  getAttachment(pName) {
-    // Rebuild textures.
-    if (this.mRebuildRequested) {
-      this.rebuildTetures();
-    }
-    // Try to get attachment
-    var lAttachment = this.mAttachments.get(pName);
-    if (!lAttachment) {
-      throw new core_data_1.Exception("No attachment \"".concat(pName, "\" found."), this);
-    }
-    // Read cached attachments.
-    return lAttachment.attachment;
-  }
-  /**
-   * Check attachment by name.
-   * @param pName - Attachment name.
-   */
-  hasAttachment(pName) {
-    return this.mAttachments.has(pName);
-  }
-  /**
-   * Resize all attachments.
-   * @param pWidth - New width.
-   * @param pHeight - New height.
-   */
-  resize(pWidth, pHeight) {
-    // Only resize on actual size change.
-    if (this.mSize.width === pWidth && this.mSize.height === pHeight) {
-      return;
-    }
-    // Set size.
-    this.mSize.width = pWidth;
-    this.mSize.height = pHeight;
-    // Apply with to all created textures.
-    for (var lTexture of this.mTextureGroup.values()) {
-      lTexture.width = this.mSize.width;
-      lTexture.height = this.mSize.height;
-    }
-  }
-  /**
-   * Group attachments by texture format.
-   * @param pAttachmentList - Attachments.
-   */
-  groupAttachments(pAttachmentList) {
-    var lGroups = new core_data_1.Dictionary();
-    for (var lAttachment of pAttachmentList) {
-      // Get group name by format and multisamples.         
-      var lGroupName = "Format: ".concat(lAttachment.format);
-      // Exclude canvas by setting unique group names as they should never be grouped.
-      var lCanvas = null;
-      if ((lAttachment.type & attachment_type_enum_1.AttachmentType.Canvas) > 0) {
-        lGroupName = "CANVAS--".concat(lAttachment.name, "--").concat(lGroupName);
-        lCanvas = lAttachment.canvas;
-      }
-      // Create new group when not already created.
-      if (!lGroups.has(lGroupName)) {
-        lGroups.set(lGroupName, {
-          name: lGroupName,
-          format: lAttachment.format,
-          attachments: new Array(),
-          updatedNeeded: false,
-          canvas: lCanvas
-        });
-      }
-      // Get group and add attachment.
-      lGroups.get(lGroupName).attachments.push(lAttachment);
-    }
-    // Groups cant be empty, as there is no detele attachment.
-    // Check attachment count difference since last grouping.
-    for (var lGroup of lGroups.values()) {
-      if (lGroup.attachments.length !== this.mAttachmentGroup.get(lGroup.name)) {
-        lGroup.updatedNeeded = true;
-        // Update group value.
-        this.mAttachmentGroup.set(lGroup.name, lGroup.attachments.length);
-      }
-    }
-    return [...lGroups.values()];
-  }
-  /**
-   * Rebuild textures that are outdated.
-   */
-  rebuildTetures() {
-    // Group textures.
-    for (var lGroup of this.groupAttachments([...this.mAttachments.values()])) {
-      var _this$mTextureGroup$g;
-      // Continue when group has not been updated.
-      if (!lGroup.updatedNeeded) {
-        continue;
-      }
-      // Destory old texture.
-      (_this$mTextureGroup$g = this.mTextureGroup.get(lGroup.name)) === null || _this$mTextureGroup$g === void 0 ? void 0 : _this$mTextureGroup$g.destroy();
-      // Build new texture or clear old one.
-      if (lGroup.attachments.length > 0) {
-        // Count layers of group.
-        var lTextureLayerCount = lGroup.attachments.reduce((pCurrent, pNext) => {
-          return pCurrent + pNext.layers;
-        }, 0);
-        // Create texture and set size and concat debug label.
-        var lTexture = void 0;
-        if (lGroup.canvas !== null) {
-          var lCanvasTexture = new canvas_texture_1.CanvasTexture(this.mGpu, lGroup.canvas, lGroup.format, texture_usage_enum_1.TextureUsage.RenderAttachment | texture_usage_enum_1.TextureUsage.TextureBinding);
-          lCanvasTexture.label = lGroup.name;
-          lCanvasTexture.width = this.mSize.width;
-          lCanvasTexture.height = this.mSize.height;
-          lTexture = lCanvasTexture;
-        } else {
-          // Create fixed texture.
-          var lFixedTexture = new texture_1.Texture(this.mGpu, lGroup.format, texture_usage_enum_1.TextureUsage.RenderAttachment | texture_usage_enum_1.TextureUsage.TextureBinding, '2d', this.mMultiSampleLevel, lTextureLayerCount);
-          lFixedTexture.label = lGroup.name;
-          lFixedTexture.width = this.mSize.width;
-          lFixedTexture.height = this.mSize.height;
-          lTexture = lFixedTexture;
-        }
-        // Create views from same texture.
-        var lCurrentLayer = 0;
-        for (var lAttachment of lGroup.attachments) {
-          // Update attachment texture.
-          lAttachment.attachment.updateTexture(lTexture, lCurrentLayer);
-          // Increment layer.
-          lCurrentLayer += lAttachment.layers;
-        }
-        // Update group texture.
-        this.mTextureGroup.set(lGroup.name, lTexture);
-      } else {
-        // Remove group texture.
-        this.mTextureGroup.delete(lGroup.name);
-      }
-    }
-    this.mRebuildRequested = false;
-  }
-}
-exports.Attachments = Attachments;
-
-/***/ }),
-
-/***/ "./source/core/pass_descriptor/render-pass-descriptor.ts":
-/*!***************************************************************!*\
-  !*** ./source/core/pass_descriptor/render-pass-descriptor.ts ***!
-  \***************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.RenderPassDescriptor = void 0;
-var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-var gpu_native_object_1 = __webpack_require__(/*! ../gpu-native-object */ "./source/core/gpu-native-object.ts");
-class RenderPassDescriptor extends gpu_native_object_1.GpuNativeObject {
-  /**
-   * Constructor.
-   * @param pGpu - Gpu.
-   * @param pAttachments - Attachments.
-   */
-  constructor(pGpu, pAttachments) {
-    super(pGpu, 'RENDER_PASS_DESCRIPTOR');
-    // Set statics.
-    this.mAttachments = pAttachments;
-    // Init lists and defaults.
-    this.mColorAttachments = new Array();
-    this.mDepthStencilAttachment = null;
-  }
-  /**
-   * Get render targets.
-   */
-  get colorAttachments() {
-    var lTargets = new Array();
-    for (var lColorAttachment of this.mColorAttachments) {
-      lTargets.push(lColorAttachment.attachment);
-    }
-    return lTargets;
-  }
-  /**
-   * Get depth attachment of render pass.
-   */
-  get depthAttachment() {
-    if (!this.mDepthStencilAttachment) {
-      return undefined;
-    }
-    return this.mDepthStencilAttachment.attachment;
-  }
-  /**
-   * Set color attachment.
-   * @param pAttachmentName - Attachment name.
-   * @param pClearValue - Clear value.
-   * @param pLoadOp - Load operation.
-   * @param pStoreOp - Store operation.
-   */
-  setColorAttachment(pLocation, pAttachmentName, pClearValue, pLoadOp, pStoreOp, pResolveAttachmentName) {
-    // Validate attachment existence.
-    if (!this.mAttachments.hasAttachment(pAttachmentName)) {
-      throw new core_data_1.Exception("Attachment \"".concat(pAttachmentName, "\" does not exist."), this);
-    }
-    if (pResolveAttachmentName && !this.mAttachments.hasAttachment(pResolveAttachmentName)) {
-      throw new core_data_1.Exception("Resolve attachment \"".concat(pResolveAttachmentName, "\" does not exist."), this);
-    }
-    // Update internal attachment object.
-    var lAttachment = this.mAttachments.getAttachment(pAttachmentName);
-    if (this.mColorAttachments[pLocation]) {
-      this.unregisterInternalNative(this.mColorAttachments[pLocation].attachment);
-    }
-    this.registerInternalNative(lAttachment);
-    // Update internal resolve attachment object.
-    var lResolveAttachment = null;
-    if (pResolveAttachmentName) {
-      lResolveAttachment = this.mAttachments.getAttachment(pResolveAttachmentName);
-      if (this.mColorAttachments[pLocation] && this.mColorAttachments[pLocation].resolveTarget) {
-        this.unregisterInternalNative(this.mColorAttachments[pLocation].resolveTarget);
-      }
-    }
-    if (lResolveAttachment) {
-      this.registerInternalNative(lResolveAttachment);
-    }
-    // Setup depth attachment.
-    this.mColorAttachments[pLocation] = {
-      attachment: lAttachment,
-      clearValue: pClearValue,
-      loadOp: pLoadOp !== null && pLoadOp !== void 0 ? pLoadOp : 'clear',
-      storeOp: pStoreOp !== null && pStoreOp !== void 0 ? pStoreOp : 'store',
-      resolveTarget: lResolveAttachment
-    };
-  }
-  /**
-   * Set depth attachment.
-   * @param pAttachmentName - Attachment name.
-   * @param pClearValue - Clear value.
-   * @param pLoadOp - Load operation.
-   * @param pStoreOp - Store operation.
-   */
-  setDepthAttachment(pAttachmentName, pClearValue, pLoadOp, pStoreOp) {
-    // Validate attachment existence.
-    if (!this.mAttachments.hasAttachment(pAttachmentName)) {
-      throw new core_data_1.Exception("Attachment \"".concat(pAttachmentName, "\" does not exist."), this);
-    }
-    var lAttachment = this.mAttachments.getAttachment(pAttachmentName);
-    // Update internal object.
-    if (this.mDepthStencilAttachment) {
-      this.unregisterInternalNative(this.mDepthStencilAttachment.attachment);
-    }
-    this.registerInternalNative(lAttachment);
-    // Setup depth attachment.
-    this.mDepthStencilAttachment = {
-      attachment: lAttachment,
-      clearValue: pClearValue,
-      loadOp: pLoadOp !== null && pLoadOp !== void 0 ? pLoadOp : 'clear',
-      storeOp: pStoreOp !== null && pStoreOp !== void 0 ? pStoreOp : 'store' // Apply default value.
-    };
-  }
-  /**
-   * Generate render pass descriptor.
-   */
-  generate() {
-    // Create color attachments.
-    var lColorAttachments = new Array();
-    for (var lColorAttachment of this.mColorAttachments) {
-      var lPassColorAttachment = {
-        view: lColorAttachment.attachment.native(),
-        clearValue: lColorAttachment.clearValue,
-        loadOp: lColorAttachment.loadOp,
-        storeOp: lColorAttachment.storeOp
-      };
-      // Resolve optional resolve attachment.
-      if (lColorAttachment.resolveTarget) {
-        lPassColorAttachment.resolveTarget = lColorAttachment.resolveTarget.native();
-      }
-      lColorAttachments.push(lPassColorAttachment);
-    }
-    // Create descriptor with color attachments.
-    var lDescriptor = {
-      colorAttachments: lColorAttachments
-    };
-    // Set optional depth attachment.
-    if (this.mDepthStencilAttachment) {
-      lDescriptor.depthStencilAttachment = {
-        view: this.mDepthStencilAttachment.attachment.native(),
-        depthClearValue: this.mDepthStencilAttachment.clearValue,
-        depthLoadOp: this.mDepthStencilAttachment.loadOp,
-        depthStoreOp: this.mDepthStencilAttachment.storeOp
-      };
-    }
-    return lDescriptor;
-  }
-}
-exports.RenderPassDescriptor = RenderPassDescriptor;
-
-/***/ }),
-
-/***/ "./source/core/pass_descriptor/type/attachment.ts":
-/*!********************************************************!*\
-  !*** ./source/core/pass_descriptor/type/attachment.ts ***!
-  \********************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.Attachment = void 0;
-var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-var gpu_native_object_1 = __webpack_require__(/*! ../../gpu-native-object */ "./source/core/gpu-native-object.ts");
-class Attachment extends gpu_native_object_1.GpuNativeObject {
-  /**
-   * constructor.
-   * @param pAttachment - Attachment.
-   */
-  constructor(pGpu, pFormat, pLayers) {
-    super(pGpu, 'ATTACHMENT');
-    this.mFormat = pFormat;
-    this.mLayers = pLayers;
-    // Set default.
-    this.mTexture = null;
-    this.mBaseArrayLayer = 0;
-  }
-  /**
-   * Get texture format.
-   */
-  get format() {
-    return this.mFormat;
-  }
-  /**
-   * Multisample level of attachment.
-   */
-  get multiSampleLevel() {
-    var _this$mTexture$multiS, _this$mTexture;
-    return (_this$mTexture$multiS = (_this$mTexture = this.mTexture) === null || _this$mTexture === void 0 ? void 0 : _this$mTexture.multiSampleLevel) !== null && _this$mTexture$multiS !== void 0 ? _this$mTexture$multiS : 1;
-  }
-  /**
-   * Update attachment texture.
-   * @param pTexture - Attachment texture.
-   * @param pBaseArrayLayer - Starting index of first texture layer.
-   */
-  updateTexture(pTexture, pBaseArrayLayer) {
-    // Remove old and add new texture as internal native.
-    if (this.mTexture) {
-      this.unregisterInternalNative(this.mTexture);
-    }
-    this.registerInternalNative(pTexture);
-    // Set new texture informations.
-    this.mBaseArrayLayer = pBaseArrayLayer;
-    this.mTexture = pTexture;
-  }
-  /**
-   * Generate color attachment.
-   */
-  generate() {
-    // Validate texture.
-    if (!this.mTexture) {
-      throw new core_data_1.Exception("Attachment \"".concat(this.label, "\" has no texture."), this);
-    }
-    var lTexture = this.mTexture.native();
-    // Generate view.
-    var lView = lTexture.createView({
-      label: 'Texture-View' + this.mTexture.label,
-      dimension: '2d',
-      baseArrayLayer: this.mBaseArrayLayer,
-      arrayLayerCount: this.mLayers
-    });
-    return lView;
-  }
-}
-exports.Attachment = Attachment;
-
-/***/ }),
-
-/***/ "./source/core/pipeline/data/vertex-attribute.ts":
-/*!*******************************************************!*\
-  !*** ./source/core/pipeline/data/vertex-attribute.ts ***!
-  \*******************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.VertexAttribute = void 0;
-var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-var gpu_native_object_1 = __webpack_require__(/*! ../../gpu-native-object */ "./source/core/gpu-native-object.ts");
-var wgsl_type_enum_1 = __webpack_require__(/*! ../../shader/enum/wgsl-type.enum */ "./source/core/shader/enum/wgsl-type.enum.ts");
-class VertexAttribute extends gpu_native_object_1.GpuNativeObject {
-  /**
-   * Constructor.
-   * @param pBuffer - Buffer.
-   */
-  constructor(pGpu, pType) {
-    var _gTypeToBufferType$pT;
-    super(pGpu, 'VERTEX_ATTRIBUTE');
-    // Format by type.
-    var lGeneric = pType.generics.at(0);
-    var lFormatStride = (_gTypeToBufferType$pT = gTypeToBufferType[pType.type]) === null || _gTypeToBufferType$pT === void 0 ? void 0 : _gTypeToBufferType$pT[lGeneric];
-    // Throw on invalid parameter.
-    if (!lFormatStride) {
-      throw new core_data_1.Exception("Invalid attribute type for \"".concat(pType, "<").concat(lGeneric, ">\""), this);
-    }
-    // Build name.
-    var lAttributeName = '';
-    var lCurrentPathType = pType;
-    do {
-      lAttributeName = lCurrentPathType.name + lAttributeName;
-      lCurrentPathType = lCurrentPathType.parent;
-    } while (lCurrentPathType !== null);
-    this.mName = lAttributeName;
-    this.mAttribute = {
-      type: pType,
-      dataType: lFormatStride.type,
-      format: lFormatStride.format
-    };
-  }
-  /**
-   * Get underlying type of buffer.
-   */
-  get bufferDataType() {
-    return this.mAttribute.dataType;
-  }
-  /**
-   * Get attribute location.
-   */
-  get location() {
-    return this.mAttribute.type.location;
-  }
-  /**
-   * Attribute name.
-   */
-  get name() {
-    return this.mName;
-  }
-  /**
-   * Generate native object.
-   */
-  generate() {
-    // Generate attributes.
-    var lAttributes = new Array();
-    lAttributes.push({
-      format: this.mAttribute.format,
-      offset: 0,
-      shaderLocation: this.mAttribute.type.location
-    });
-    return {
-      arrayStride: this.mAttribute.type.size,
-      stepMode: 'vertex',
-      attributes: lAttributes
-    };
-  }
-}
-exports.VertexAttribute = VertexAttribute;
-var gTypeToBufferType = {
-  // Single types.
-  [wgsl_type_enum_1.WgslType.Float32]: {
-    [wgsl_type_enum_1.WgslType.Any]: {
-      format: 'float32',
-      type: Float32Array
-    }
-  },
-  [wgsl_type_enum_1.WgslType.Integer32]: {
-    [wgsl_type_enum_1.WgslType.Any]: {
-      format: 'sint32',
-      type: Int32Array
-    }
-  },
-  [wgsl_type_enum_1.WgslType.UnsignedInteger32]: {
-    [wgsl_type_enum_1.WgslType.Any]: {
-      format: 'uint32',
-      type: Uint32Array
-    }
-  },
-  // Vector types.
-  [wgsl_type_enum_1.WgslType.Vector2]: {
-    [wgsl_type_enum_1.WgslType.Float16]: {
-      format: 'float16x2',
-      type: Float32Array
-    },
-    [wgsl_type_enum_1.WgslType.Float32]: {
-      format: 'float32x2',
-      type: Float32Array
-    },
-    [wgsl_type_enum_1.WgslType.Integer32]: {
-      format: 'sint32x2',
-      type: Int32Array
-    },
-    [wgsl_type_enum_1.WgslType.UnsignedInteger32]: {
-      format: 'uint32x2',
-      type: Uint32Array
-    }
-  },
-  [wgsl_type_enum_1.WgslType.Vector3]: {
-    // [WgslType.Float16]: { format: 'float16x3', stride: 3 },
-    [wgsl_type_enum_1.WgslType.Float32]: {
-      format: 'float32x3',
-      type: Float32Array
-    },
-    [wgsl_type_enum_1.WgslType.Integer32]: {
-      format: 'sint32x3',
-      type: Int32Array
-    },
-    [wgsl_type_enum_1.WgslType.UnsignedInteger32]: {
-      format: 'uint32x3',
-      type: Uint32Array
-    }
-  },
-  [wgsl_type_enum_1.WgslType.Vector4]: {
-    [wgsl_type_enum_1.WgslType.Float16]: {
-      format: 'float16x4',
-      type: Float32Array
-    },
-    [wgsl_type_enum_1.WgslType.Float32]: {
-      format: 'float32x4',
-      type: Float32Array
-    },
-    [wgsl_type_enum_1.WgslType.Integer32]: {
-      format: 'sint32x4',
-      type: Int32Array
-    },
-    [wgsl_type_enum_1.WgslType.UnsignedInteger32]: {
-      format: 'uint32x3',
-      type: Uint32Array
-    }
-  }
-};
-
-/***/ }),
-
-/***/ "./source/core/pipeline/render-pipeline.ts":
-/*!*************************************************!*\
-  !*** ./source/core/pipeline/render-pipeline.ts ***!
-  \*************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.RenderPipeline = void 0;
-var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-var gpu_native_object_1 = __webpack_require__(/*! ../gpu-native-object */ "./source/core/gpu-native-object.ts");
-class RenderPipeline extends gpu_native_object_1.GpuNativeObject {
-  /**
-   * Constructor.
-   * @param pGpu - GPU.
-   */
-  constructor(pGpu, pShader, pRenderPass) {
-    super(pGpu, 'RENDER_PIPELINE');
-    // Set statics.
-    this.mRenderPass = pRenderPass;
-    // Set and register shader.
-    this.mShader = pShader;
-    this.registerInternalNative(pShader);
-    // Validate vertex shader.
-    if (!pShader.vertexEntryPoint) {
-      throw new core_data_1.Exception('Vertex shader has no entry point.', this);
-    }
-    // Validate render pass to has same render target count as fragment.
-    if (pShader.fragmentEntryPoint) {
-      if (pRenderPass.colorAttachments.length !== pShader.fragmentEntryPoint.renderTargetCount) {
-        throw new core_data_1.Exception("Render pass(".concat(pRenderPass.colorAttachments.length, ") and shader(").concat(pShader.fragmentEntryPoint.renderTargetCount, ") are having unmatching render targets"), this);
-      }
-    }
-    // Set default values.
-    this.mPrimitive = {
-      frontFace: 'cw',
-      cullMode: 'back',
-      topology: 'triangle-list',
-      unclippedDepth: false
-    };
-    this.mDepthWriteEnabled = true;
-    this.mDepthCompare = 'less';
-  }
-  /**
-   * Set depth compare function.
-   */
-  get depthCompare() {
-    return this.mDepthCompare;
-  }
-  set depthCompare(pValue) {
-    this.mDepthCompare = pValue;
-    // Set data changed flag.
-    this.triggerChange();
-  }
-  /**
-   * Defines which polygon orientation will be culled.
-   */
-  get primitiveCullMode() {
-    return this.mPrimitive.cullMode;
-  }
-  set primitiveCullMode(pValue) {
-    this.mPrimitive.cullMode = pValue;
-    // Set data changed flag.
-    this.triggerChange();
-  }
-  /**
-   * Defines which polygons are considered front-facing.
-   */
-  get primitiveFrontFace() {
-    return this.mPrimitive.frontFace;
-  }
-  set primitiveFrontFace(pValue) {
-    this.mPrimitive.frontFace = pValue;
-    // Set data changed flag.
-    this.triggerChange();
-  }
-  /**
-   * The type of primitive to be constructed from the vertex inputs.
-   */
-  get primitiveTopology() {
-    return this.mPrimitive.topology;
-  }
-  set primitiveTopology(pValue) {
-    this.mPrimitive.topology = pValue;
-    // Set data changed flag.
-    this.triggerChange();
-  }
-  /**
-   * Render pass of pipeline.
-   */
-  get renderPass() {
-    return this.mRenderPass;
-  }
-  /**
-   * Shader.
-   */
-  get shader() {
-    return this.mShader;
-  }
-  /**
-   * Set depth to never clip.
-   */
-  get unclipedDepth() {
-    var _this$mPrimitive$uncl;
-    return (_this$mPrimitive$uncl = this.mPrimitive.unclippedDepth) !== null && _this$mPrimitive$uncl !== void 0 ? _this$mPrimitive$uncl : false;
-  }
-  set unclipedDepth(pValue) {
-    this.mPrimitive.unclippedDepth = pValue;
-    // Set data changed flag.
-    this.triggerChange();
-  }
-  /**
-   * Set depth write enabled / disabled.
-   */
-  get writeDepth() {
-    return this.mDepthWriteEnabled;
-  }
-  set writeDepth(pValue) {
-    this.mDepthWriteEnabled = pValue;
-    // Set data changed flag.
-    this.triggerChange();
-  }
-  /**
-   * Generate native render pipeline.
-   */
-  generate() {
-    // Generate pipeline layout from bind group layouts.
-    var lPipelineLayout = this.mShader.bindGroups.native();
-    // Generate vertex buffer layouts.
-    var lVertexBufferLayoutList = new Array();
-    for (var lAttribute of this.mShader.vertexEntryPoint.attributes) {
-      // Set location offset based on previous  vertex attributes.
-      lVertexBufferLayoutList.push(lAttribute.native());
-    }
-    // Construct basic GPURenderPipelineDescriptor.
-    var lPipelineDescriptor = {
-      label: this.label,
-      layout: this.gpu.device.createPipelineLayout(lPipelineLayout),
-      vertex: {
-        module: this.mShader.native(),
-        entryPoint: this.mShader.vertexEntryPoint.name,
-        buffers: lVertexBufferLayoutList
-        // No constants. Yes.
-      },
-
-      primitive: this.mPrimitive
-    };
-    // Buffer render pass formats.
-    var lRenderPassBuffer = {
-      color: new Array()
-    };
-    // Save highest multisample count.
-    var lMultisampleCount = 1;
-    // Optional fragment state.
-    if (this.mShader.fragmentEntryPoint) {
-      // Generate fragment targets only when fragment state is needed.
-      var lFragmentTargetList = new Array();
-      for (var lRenderTarget of this.mRenderPass.colorAttachments) {
-        lFragmentTargetList.push({
-          format: lRenderTarget.format
-          // blend?: GPUBlendState;   // TODO: GPUBlendState
-          // writeMask?: GPUColorWriteFlags; // TODO: GPUColorWriteFlags
-        });
-        // Save highest multisample count.
-        if (lMultisampleCount < lRenderTarget.multiSampleLevel) {
-          lMultisampleCount = lRenderTarget.multiSampleLevel;
-        }
-        // Save last render pass targets.
-        lRenderPassBuffer.color.push(lRenderTarget.format);
-      }
-      lPipelineDescriptor.fragment = {
-        module: this.mShader.native(),
-        entryPoint: this.mShader.fragmentEntryPoint.name,
-        targets: lFragmentTargetList
-      };
-    }
-    // Setup optional depth attachment.
-    var lDepthAttachment = this.mRenderPass.depthAttachment;
-    if (lDepthAttachment) {
-      lPipelineDescriptor.depthStencil = {
-        depthWriteEnabled: this.mDepthWriteEnabled,
-        depthCompare: this.mDepthCompare,
-        format: lDepthAttachment.format
-        // TODO: Stencil settings. 
-      };
-      // Save last render pass depth.
-      lRenderPassBuffer.depth = lDepthAttachment.format;
-    }
-    // Set multisample count.
-    if (lMultisampleCount > 1) {
-      lPipelineDescriptor.multisample = {
-        count: lMultisampleCount
-      };
-    }
-    // Async is none GPU stalling.
-    return this.gpu.device.createRenderPipeline(lPipelineDescriptor); // TODO: Async somehow.
-  }
-}
-
-exports.RenderPipeline = RenderPipeline;
-
-/***/ }),
-
-/***/ "./source/core/resource/buffer/base-buffer.ts":
-/*!****************************************************!*\
-  !*** ./source/core/resource/buffer/base-buffer.ts ***!
-  \****************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.BaseBuffer = void 0;
-var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-var gpu_native_object_1 = __webpack_require__(/*! ../../gpu-native-object */ "./source/core/gpu-native-object.ts");
-class BaseBuffer extends gpu_native_object_1.GpuNativeObject {
-  /**
-   * Constructor.
-   * @param pGpu - GPU.
-   * @param pUsage - Buffer usage beside COPY_DST.
-   * @param pData  - Inital data. Can be empty.
-   */
-  constructor(pGpu, pUsage, pData) {
-    super(pGpu, 'BUFFER');
-    this.mBufferUsage = pUsage;
-    this.mInitData = pData;
-    this.mBufferLength = pData.length;
-    this.mDataType = pData.constructor;
-  }
-  /**
-   * Buffer size in items.
-   */
-  get length() {
-    return this.mBufferLength;
-  }
-  /**
-   * Buffer size in bytes aligned to 4 bytes.
-   */
-  get size() {
-    return this.mBufferLength * this.type.BYTES_PER_ELEMENT + 3 & ~3;
-  }
-  /**
-   * Underlying data type.
-   */
-  get type() {
-    return this.mDataType;
-  }
-  /**
-   * Destroy native object.
-   * @param pNativeObject - Native object.
-   */
-  destroyNative(pNativeObject) {
-    pNativeObject.destroy();
-  }
-  /**
-   * Generate native object.
-   */
-  generate() {
-    // Generate new empty init data.
-    if (!this.mInitData) {
-      this.mInitData = new this.mDataType(this.mBufferLength);
-    }
-    // Create gpu buffer mapped
-    var lBuffer = this.gpu.device.createBuffer({
-      label: this.label,
-      size: this.size,
-      usage: this.mBufferUsage,
-      mappedAtCreation: this.mInitData.length > 0 // Map data when buffer would receive initial data.
-    });
-    // Copy only when data is available.
-    if (this.mInitData.length > 0) {
-      if (this.mInitData.length > this.size) {
-        throw new core_data_1.Exception('Buffer data exeedes buffer size.', this);
-      }
-      var lData = new this.mDataType(lBuffer.getMappedRange());
-      lData.set(this.mInitData, 0);
-      // unmap buffer.
-      lBuffer.unmap();
-    }
-    // Clear init data.
-    this.mInitData = null;
-    return lBuffer;
-  }
-}
-exports.BaseBuffer = BaseBuffer;
-
-/***/ }),
-
-/***/ "./source/core/resource/buffer/ring-buffer.ts":
-/*!****************************************************!*\
-  !*** ./source/core/resource/buffer/ring-buffer.ts ***!
-  \****************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.RingBuffer = void 0;
-var base_buffer_1 = __webpack_require__(/*! ./base-buffer */ "./source/core/resource/buffer/base-buffer.ts");
-class RingBuffer extends base_buffer_1.BaseBuffer {
-  /**
-   * Constructor.
-   * @param pGpu - GPU.
-   * @param pUsage - Buffer usage beside COPY_DST.
-   * @param pInitialData  - Inital data. Can be empty.
-   */
-  constructor(pGpu, pUsage, pInitialData) {
-    super(pGpu, pUsage | GPUBufferUsage.COPY_DST, pInitialData);
-    // Waving buffer list.
-    this.mReadyBufferList = new Array();
-    this.mWavingBufferList = new Array();
-  }
-  /**
-   * Request buffer write.
-   * @param pBufferCallback - Callback called on buffer access.
-   */
-  write(pBufferCallback) {
-    // Create new buffer when no mapped buffer is available. 
-    var lStagingBuffer;
-    if (this.mReadyBufferList.length === 0) {
-      lStagingBuffer = this.gpu.device.createBuffer({
-        label: 'RingBuffer-WaveBuffer-' + this.label,
-        size: this.size,
-        usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
-        mappedAtCreation: true
-      });
-      // Add new buffer to complete list.
-      this.mWavingBufferList.push(lStagingBuffer);
-    } else {
-      lStagingBuffer = this.mReadyBufferList.pop();
-    }
-    // Execute write operations.
-    var lBufferArray = new this.type(lStagingBuffer.getMappedRange());
-    pBufferCallback(lBufferArray);
-    // Unmap for copying data.
-    lStagingBuffer.unmap();
-    // Copy buffer data from staging into wavig buffer.
-    var lCommandDecoder = this.gpu.device.createCommandEncoder();
-    lCommandDecoder.copyBufferToBuffer(lStagingBuffer, 0, this.native(), 0, this.size);
-    this.gpu.device.queue.submit([lCommandDecoder.finish()]);
-    // Shedule staging buffer remaping.
-    lStagingBuffer.mapAsync(GPUMapMode.WRITE).then(() => {
-      this.mReadyBufferList.push(lStagingBuffer);
-    });
-  }
-  /**
-   * Destory all buffers.
-   * @param pNativeObject - Native buffer object.
-   */
-  destroyNative(pNativeObject) {
-    super.destroyNative(pNativeObject);
-    // Destroy all wave buffer and clear list.
-    for (var lCount = 0; this.mWavingBufferList.length < lCount; lCount++) {
-      var _this$mWavingBufferLi;
-      (_this$mWavingBufferLi = this.mWavingBufferList.pop()) === null || _this$mWavingBufferLi === void 0 ? void 0 : _this$mWavingBufferLi.destroy();
-    }
-    // Clear ready buffer list.
-    for (var _lCount = 0; this.mReadyBufferList.length < _lCount; _lCount++) {
-      this.mReadyBufferList.pop();
-    }
-  }
-}
-exports.RingBuffer = RingBuffer;
-
-/***/ }),
-
-/***/ "./source/core/resource/buffer/simple-buffer.ts":
-/*!******************************************************!*\
-  !*** ./source/core/resource/buffer/simple-buffer.ts ***!
-  \******************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.SimpleBuffer = void 0;
-var base_buffer_1 = __webpack_require__(/*! ./base-buffer */ "./source/core/resource/buffer/base-buffer.ts");
-class SimpleBuffer extends base_buffer_1.BaseBuffer {
-  /**
-   * Constructor.
-   * @param pGpu - GPU.
-   * @param pUsage - Buffer usage beside COPY_DST.
-   * @param pInitialData  - Inital data. Can be empty.
-   */
-  constructor(pGpu, pUsage, pInitialData) {
-    super(pGpu, pUsage | GPUBufferUsage.COPY_DST, pInitialData);
-  }
-  /**
-   * Request buffer write.
-   * @param pBufferCallback - Callback called on buffer access.
-   */
-  write(pBufferCallback) {
-    var lBuffer = this.native();
-    // Create new typed array and add new data to this new array.
-    var lSourceBuffer = new this.type(this.length);
-    pBufferCallback(lSourceBuffer);
-    // Write copied buffer.
-    this.gpu.device.queue.writeBuffer(lBuffer, 0, lSourceBuffer, 0, lSourceBuffer.length);
-  }
-}
-exports.SimpleBuffer = SimpleBuffer;
-
-/***/ }),
-
-/***/ "./source/core/resource/external-texture.ts":
-/*!**************************************************!*\
-  !*** ./source/core/resource/external-texture.ts ***!
-  \**************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.ExternalTexture = void 0;
-var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-var gpu_native_object_1 = __webpack_require__(/*! ../gpu-native-object */ "./source/core/gpu-native-object.ts");
-class ExternalTexture extends gpu_native_object_1.GpuNativeObject {
-  /**
-   * Constructor.
-   * @param pGpu - GPU.
-   */
-  constructor(pGpu) {
-    super(pGpu, 'EXTERNAL_TEXTURE');
-    this.mVideoElement = null;
-  }
-  /**
-   * Loaded video element.
-   */
-  get video() {
-    if (!this.mVideoElement) {
-      throw new core_data_1.Exception('No video element is loaded or old video is expired.', this);
-    }
-    return this.mVideoElement;
-  }
-  /**
-   *
-   * @param pSource - Video source.
-   * @param pLoop - Loop video.
-   * @param pMuted - Mute video.
-   */
-  load(pSource) {
-    var _this = this;
-    var pLoop = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-    var pMuted = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-    return _asyncToGenerator(function* () {
-      var lVideo = new HTMLVideoElement();
-      lVideo.loop = pLoop;
-      lVideo.muted = pMuted;
-      lVideo.src = pSource;
-      // Wait for resource load and pause right after.
-      yield lVideo.play();
-      lVideo.pause();
-      _this.mVideoElement = lVideo;
-    })();
-  }
-  /**
-   * Generate new external texture.
-   */
-  generate() {
-    if (!this.mVideoElement) {
-      throw new core_data_1.Exception('No video element is loaded or old video is expired.', this);
-    }
-    return this.gpu.device.importExternalTexture({
-      label: this.label,
-      source: this.mVideoElement,
-      colorSpace: 'srgb'
-    });
-  }
-}
-exports.ExternalTexture = ExternalTexture;
-
-/***/ }),
-
-/***/ "./source/core/resource/texture-sampler.ts":
-/*!*************************************************!*\
-  !*** ./source/core/resource/texture-sampler.ts ***!
-  \*************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.TextureSampler = void 0;
-var gpu_native_object_1 = __webpack_require__(/*! ../gpu-native-object */ "./source/core/gpu-native-object.ts");
-class TextureSampler extends gpu_native_object_1.GpuNativeObject {
-  /**
-   * Constructor.
-   * @param pGpu - GPU.
-   */
-  constructor(pGpu) {
-    super(pGpu, 'TEXTURE_SAMPLER');
-    // Set defaults.
-    this.mCompare = null;
-    this.mFitMode = 'clamp-to-edge';
-    this.mMagFilter = 'nearest';
-    this.mMinFilter = 'nearest';
-    this.mMipmapFilter = 'nearest';
-    this.mLodMinClamp = 0;
-    this.mLodMaxClamp = 32;
-    this.mMaxAnisotropy = 1;
-  }
-  /**
-   * When provided the sampler will be a comparison sampler with the specified compare function.
-   */
-  get compareFunction() {
-    return this.mCompare;
-  }
-  set compareFunction(pValue) {
-    // Do nothing on assigning old an value.
-    if (this.mCompare === pValue) {
-      return;
-    }
-    this.mCompare = pValue;
-    // Request native rebuild.
-    this.triggerChange();
-  }
-  /**
-   * Texture sampler edge fit mode.
-   */
-  get fitMode() {
-    return this.mFitMode;
-  }
-  set fitMode(pValue) {
-    // Do nothing on assigning old an value.
-    if (this.mFitMode === pValue) {
-      return;
-    }
-    this.mFitMode = pValue;
-    // Request native rebuild.
-    this.triggerChange();
-  }
-  /**
-   * Specifies the maximum levels of detail, respectively, used internally when sampling a texture.
-   */
-  get lodMaxClamp() {
-    return this.mLodMaxClamp;
-  }
-  set lodMaxClamp(pValue) {
-    // Do nothing on assigning old an value.
-    if (this.mLodMaxClamp === pValue) {
-      return;
-    }
-    this.mLodMaxClamp = pValue;
-    // Request native rebuild.
-    this.triggerChange();
-  }
-  /**
-   * Specifies the minimum levels of detail, respectively, used internally when sampling a texture.
-   */
-  get lodMinClamp() {
-    return this.mLodMinClamp;
-  }
-  set lodMinClamp(pValue) {
-    // Do nothing on assigning old an value.
-    if (this.mLodMinClamp === pValue) {
-      return;
-    }
-    this.mLodMinClamp = pValue;
-    // Request native rebuild.
-    this.triggerChange();
-  }
-  /**
-   * How the texture is sampled when a texel covers more than one pixel.
-   */
-  get magFilter() {
-    return this.mMagFilter;
-  }
-  set magFilter(pValue) {
-    // Do nothing on assigning old an value.
-    if (this.mMagFilter === pValue) {
-      return;
-    }
-    this.mMagFilter = pValue;
-    // Request native rebuild.
-    this.triggerChange();
-  }
-  /**
-   * Specifies the maximum anisotropy value clamp used by the sampler.
-   */
-  get maxAnisotropy() {
-    return this.mMaxAnisotropy;
-  }
-  set maxAnisotropy(pValue) {
-    // Do nothing on assigning old an value.
-    if (this.mMaxAnisotropy === pValue) {
-      return;
-    }
-    this.mMaxAnisotropy = pValue;
-    // Request native rebuild.
-    this.triggerChange();
-  }
-  /**
-   * How the texture is sampled when a texel covers less than one pixel.
-   */
-  get minFilter() {
-    return this.mMinFilter;
-  }
-  set minFilter(pValue) {
-    // Do nothing on assigning old an value.
-    if (this.mMinFilter === pValue) {
-      return;
-    }
-    this.mMinFilter = pValue;
-    // Request native rebuild.
-    this.triggerChange();
-  }
-  /**
-   * Specifies behavior for sampling between mipmap levels.
-   */
-  get mipmapFilter() {
-    return this.mMipmapFilter;
-  }
-  set mipmapFilter(pValue) {
-    // Do nothing on assigning old an value.
-    if (this.mMipmapFilter === pValue) {
-      return;
-    }
-    this.mMipmapFilter = pValue;
-    // Request native rebuild.
-    this.triggerChange();
-  }
-  /**
-   * Generate txture sampler.
-   */
-  generate() {
-    var lSamplerOptions = {
-      label: this.label,
-      addressModeU: this.mFitMode,
-      addressModeV: this.mFitMode,
-      addressModeW: this.mFitMode,
-      magFilter: this.magFilter,
-      minFilter: this.minFilter,
-      mipmapFilter: this.mipmapFilter,
-      lodMaxClamp: this.lodMaxClamp,
-      lodMinClamp: this.lodMinClamp,
-      maxAnisotropy: this.mMaxAnisotropy
-    };
-    if (this.compareFunction) {
-      lSamplerOptions.compare = this.compareFunction;
-    }
-    return this.gpu.device.createSampler(lSamplerOptions);
-  }
-}
-exports.TextureSampler = TextureSampler;
-
-/***/ }),
-
-/***/ "./source/core/resource/texture/canvas-texture.ts":
-/*!********************************************************!*\
-  !*** ./source/core/resource/texture/canvas-texture.ts ***!
-  \********************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.CanvasTexture = void 0;
-var gpu_native_object_1 = __webpack_require__(/*! ../../gpu-native-object */ "./source/core/gpu-native-object.ts");
-var texture_view_1 = __webpack_require__(/*! ./texture-view */ "./source/core/resource/texture/texture-view.ts");
-class CanvasTexture extends gpu_native_object_1.GpuNativeObject {
-  /**
-   * Constructor.
-   * @param pGpu - GPU.
-   * @param pCanvas - HTML Canvas.
-   * @param pFormat - Texture color format.
-   * @param pUsage - Texture usage.
-   */
-  constructor(pGpu, pCanvas, pFormat, pUsage) {
-    super(pGpu, 'CANVAS_TEXTURE');
-    this.mCanvas = pCanvas;
-    this.mFormat = pFormat;
-    this.mUsage = pUsage;
-    // Get and configure context.
-    this.mContext = pCanvas.getContext('webgpu');
-    this.mContext.configure({
-      device: this.gpu.device,
-      format: pFormat,
-      usage: pUsage,
-      alphaMode: 'opaque'
-    });
-    window.aaa = this.mContext;
-  }
-  /**
-   * Texture dimension.
-   * Fixed to 2D.
-   */
-  get dimension() {
-    return '2d';
-  }
-  /**
-   * Texture format.
-   */
-  get format() {
-    return this.mFormat;
-  }
-  /**
-   * Texture and canvas height.
-   */
-  get height() {
-    return this.mCanvas.height;
-  }
-  set height(pHeight) {
-    this.mCanvas.height = pHeight;
-  }
-  /**
-   * Texture layers.
-   * Fixed to one.
-   */
-  get layer() {
-    return 1;
-  }
-  /**
-   * Texture multi sample level.
-   * Fixed to one.
-   */
-  get multiSampleLevel() {
-    return 1;
-  }
-  /**
-   * Texture usage.
-   */
-  get usage() {
-    return this.mUsage;
-  }
-  /**
-   * Texture and canvas height.
-   */
-  get width() {
-    return this.mCanvas.width;
-  }
-  set width(pWidth) {
-    this.mCanvas.width = pWidth;
-  }
-  /**
-   * Create view of this texture.
-   */
-  view(pBaseLayer, pLayerCount) {
-    var lView = new texture_view_1.TextureView(this.gpu, this, pBaseLayer, pLayerCount);
-    lView.label = this.label;
-    return lView;
-  }
-  /**
-   * Get current canvas texture.
-   */
-  generate() {
-    var lTexture = this.mContext.getCurrentTexture();
-    lTexture.label = this.label;
-    return lTexture;
-  }
-  /**
-   * Allways invalidate current texture to generate latest texture.
-   */
-  validate(pNativeObject) {
-    return this.mContext.getCurrentTexture() === pNativeObject;
-  }
-}
-exports.CanvasTexture = CanvasTexture;
-
-/***/ }),
-
-/***/ "./source/core/resource/texture/texture-usage.enum.ts":
-/*!************************************************************!*\
-  !*** ./source/core/resource/texture/texture-usage.enum.ts ***!
-  \************************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.TextureUsage = void 0;
-var TextureUsage;
-(function (TextureUsage) {
-  TextureUsage[TextureUsage["CopySource"] = GPUTextureUsage.COPY_SRC] = "CopySource";
-  TextureUsage[TextureUsage["CopyDestination"] = GPUTextureUsage.COPY_DST] = "CopyDestination";
-  TextureUsage[TextureUsage["TextureBinding"] = GPUTextureUsage.TEXTURE_BINDING] = "TextureBinding";
-  TextureUsage[TextureUsage["StorageBinding"] = GPUTextureUsage.STORAGE_BINDING] = "StorageBinding";
-  TextureUsage[TextureUsage["RenderAttachment"] = GPUTextureUsage.RENDER_ATTACHMENT] = "RenderAttachment";
-})(TextureUsage = exports.TextureUsage || (exports.TextureUsage = {}));
-
-/***/ }),
-
-/***/ "./source/core/resource/texture/texture-view.ts":
-/*!******************************************************!*\
-  !*** ./source/core/resource/texture/texture-view.ts ***!
-  \******************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.TextureView = void 0;
-var gpu_native_object_1 = __webpack_require__(/*! ../../gpu-native-object */ "./source/core/gpu-native-object.ts");
-class TextureView extends gpu_native_object_1.GpuNativeObject {
-  /**
-   * Constructor.
-   * @param pGpu - GPU.
-   * @param pTexture - Texture of view.
-   * @param pBaseLayer - Base layer of view.
-   * @param pLayerCount - Depth of view.
-   */
-  constructor(pGpu, pTexture, pBaseLayer, pLayerCount) {
-    super(pGpu, 'TEXTURE_VIEW');
-    this.mTexture = pTexture;
-    this.mBaseLayer = pBaseLayer !== null && pBaseLayer !== void 0 ? pBaseLayer : 0;
-    this.mLayerCount = pLayerCount !== null && pLayerCount !== void 0 ? pLayerCount : this.mTexture.layer;
-    // Set default values.
-    this.mDimension = '2d';
-    this.mAspect = 'all';
-    this.mBaseMipLevel = 0;
-    this.mMipLevelCount = 1;
-    // Register texture as internal.
-    this.registerInternalNative(pTexture);
-  }
-  /**
-   * Which aspecs of the texture are accessible to the texture view.
-   */
-  get aspect() {
-    return this.mAspect;
-  }
-  set aspect(pAspect) {
-    // Do nothing on assigning old an value.
-    if (this.mAspect === pAspect) {
-      return;
-    }
-    this.mAspect = pAspect;
-    // Trigger update.
-    this.triggerChange();
-  }
-  /**
-   * The index of the first array layer accessible to the texture view.
-   */
-  get baseLayer() {
-    return this.mBaseLayer;
-  }
-  /**
-   * The first (most detailed) mipmap level accessible to the texture view.
-   */
-  get baseMipLevel() {
-    return this.mBaseMipLevel;
-  }
-  set baseMipLevel(pLevel) {
-    // Do nothing on assigning old an value.
-    if (this.mBaseMipLevel === pLevel) {
-      return;
-    }
-    this.mBaseMipLevel = pLevel;
-    // Trigger update.
-    this.triggerChange();
-  }
-  /**
-   * The dimension to view the texture as.
-   */
-  get dimension() {
-    return this.mDimension;
-  }
-  set dimension(pDimension) {
-    // Do nothing on assigning old an value.
-    if (this.mDimension === pDimension) {
-      return;
-    }
-    this.mDimension = pDimension;
-    // Trigger update.
-    this.triggerChange();
-  }
-  /**
-   * How many array layers, starting with {@link TextureView#baseLayer}, are accessible
-   * to the texture view.
-   */
-  get layerCount() {
-    return this.mBaseLayer;
-  }
-  /**
-   * How many mipmap levels, starting with {@link TextureView#baseMipLevel}, are accessible to
-   * the texture view.
-   */
-  get mipLevelCount() {
-    return this.mMipLevelCount;
-  }
-  set mipLevelCount(pLevel) {
-    // Do nothing on assigning old an value.
-    if (this.mMipLevelCount === pLevel) {
-      return;
-    }
-    this.mMipLevelCount = pLevel;
-    // Trigger update.
-    this.triggerChange();
-  }
-  /**
-   * Generate new texture view.
-   */
-  generate() {
-    var lTexture = this.mTexture.native();
-    return lTexture.createView({
-      label: this.label,
-      format: this.mTexture.format,
-      dimension: this.mDimension,
-      aspect: this.mAspect,
-      baseMipLevel: this.mBaseMipLevel,
-      mipLevelCount: this.mMipLevelCount,
-      baseArrayLayer: this.mBaseLayer,
-      arrayLayerCount: this.mLayerCount
-    });
-  }
-}
-exports.TextureView = TextureView;
-
-/***/ }),
-
-/***/ "./source/core/resource/texture/texture.ts":
-/*!*************************************************!*\
-  !*** ./source/core/resource/texture/texture.ts ***!
-  \*************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.Texture = void 0;
-var texture_usage_enum_1 = __webpack_require__(/*! ./texture-usage.enum */ "./source/core/resource/texture/texture-usage.enum.ts");
-var gpu_native_object_1 = __webpack_require__(/*! ../../gpu-native-object */ "./source/core/gpu-native-object.ts");
-var texture_view_1 = __webpack_require__(/*! ./texture-view */ "./source/core/resource/texture/texture-view.ts");
-var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-class Texture extends gpu_native_object_1.GpuNativeObject {
-  /**
-   * Constructor.
-   * @param pGpu - Gpu.
-   * @param pFormat - Texture format.
-   * @param pDimension - Texture dimension.
-   */
-  constructor(pGpu, pFormat, pUsage) {
-    var pDimension = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '2d';
-    var pMultiSampleLevel = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 1;
-    var pLayerCount = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 1;
-    super(pGpu, 'TEXTURE');
-    this.mFormat = pFormat;
-    this.mUsage = pUsage;
-    this.mImageBitmapList = new Array();
-    this.mDimension = pDimension;
-    this.mLayerCount = pLayerCount;
-    // Set and validate multisample level.
-    this.mMultiSampleLevel = pMultiSampleLevel;
-    if (pMultiSampleLevel < 1) {
-      throw new core_data_1.Exception('Multi sample level must be greater than zero.', this);
-    }
-    // Set defaults.
-    this.mHeight = 1;
-    this.mWidth = 1;
-    this.mLayerCount = 1;
-  }
-  /**
-   * Texture dimension.
-   */
-  get dimension() {
-    return this.mDimension;
-  }
-  /**
-   * Texture format.
-   */
-  get format() {
-    return this.mFormat;
-  }
-  /**
-   * Texture height.
-   */
-  get height() {
-    return this.mHeight;
-  }
-  set height(pHeight) {
-    this.mHeight = pHeight;
-    // Trigger change.
-    this.triggerChange();
-  }
-  /**
-   * Texture depth.
-   */
-  get layer() {
-    return this.mLayerCount;
-  }
-  /**
-   * Texture multi sample level.
-   */
-  get multiSampleLevel() {
-    return this.mMultiSampleLevel;
-  }
-  /**
-   * Texture usage.
-   */
-  get usage() {
-    return this.mUsage;
-  }
-  /**
-   * Texture width.
-   */
-  get width() {
-    return this.mWidth;
-  }
-  set width(pWidth) {
-    this.mWidth = pWidth;
-    // Trigger change.
-    this.triggerChange();
-  }
-  /**
-   * Load images into texture.
-   * Each image get loaded into seperate depth layer.
-   * @param pSourceList - Image source list.
-   */
-  load(pSourceList) {
-    var _this = this;
-    return _asyncToGenerator(function* () {
-      var lHeight = 0;
-      var lWidth = 0;
-      // Parallel load images.
-      var lBitmapResolvePromiseList = pSourceList.map( /*#__PURE__*/function () {
-        var _ref = _asyncToGenerator(function* (pSource) {
-          // Load image with html image element.
-          var lImage = new Image();
-          lImage.src = pSource;
-          yield lImage.decode();
-          // Init size.
-          if (lHeight === 0 || lWidth === 0) {
-            lWidth = lImage.naturalWidth;
-            lHeight = lImage.naturalHeight;
-          }
-          // Validate same image size for all layers.
-          if (lHeight !== lImage.naturalHeight || lWidth !== lImage.naturalWidth) {
-            throw new core_data_1.Exception("Texture image layers are not the same size. (".concat(lImage.naturalWidth, ", ").concat(lImage.naturalHeight, ") needs (").concat(lWidth, ", ").concat(lHeight, ")."), _this);
-          }
-          // Resolve image into bitmap.
-          return createImageBitmap(lImage);
-        });
-        return function (_x) {
-          return _ref.apply(this, arguments);
-        };
-      }());
-      // Resolve all bitmaps.
-      _this.mImageBitmapList = yield Promise.all(lBitmapResolvePromiseList);
-      // Set new size.
-      _this.width = lWidth;
-      _this.height = lHeight;
-      // Trigger change.
-      _this.triggerChange();
-    })();
-  }
-  /**
-   * Create view of this texture.
-   */
-  view(pBaseLayer, pLayerCount) {
-    var lView = new texture_view_1.TextureView(this.gpu, this, pBaseLayer, pLayerCount);
-    lView.label = this.label;
-    return lView;
-  }
-  /**
-   * Destroy native object.
-   * @param pNativeObject - Native object.
-   */
-  destroyNative(pNativeObject) {
-    pNativeObject.destroy();
-  }
-  /**
-   * Generate texture based on parameters.
-   */
-  generate() {
-    // Extend usage by CopyDestination when a bitmap should be copied into the texture.
-    var lUsage = this.mUsage;
-    if (this.mImageBitmapList.length > 0) {
-      lUsage |= texture_usage_enum_1.TextureUsage.CopyDestination;
-    }
-    // Create texture with set size, format and usage.
-    var lTexture = this.gpu.device.createTexture({
-      label: this.label,
-      size: [this.mWidth, this.mHeight, this.mLayerCount],
-      format: this.mFormat,
-      usage: lUsage,
-      dimension: this.mDimension,
-      sampleCount: this.mMultiSampleLevel
-    });
-    // Copy bitmap into texture.
-    if (this.mImageBitmapList.length > 0) {
-      // Loop image bitmaps for each layer.
-      for (var lBitmapIndex = 0; lBitmapIndex < this.mImageBitmapList.length; lBitmapIndex++) {
-        var lBitmap = this.mImageBitmapList[lBitmapIndex];
-        // Copy image into depth layer.
-        this.gpu.device.queue.copyExternalImageToTexture({
-          source: lBitmap
-        }, {
-          texture: lTexture,
-          origin: [0, 0, lBitmapIndex]
-        }, [lBitmap.width, lBitmap.height]);
-        // Release image data.
-        lBitmap.close();
-      }
-    }
-    // Clear closed bitmap list.
-    this.mImageBitmapList = new Array();
-    return lTexture;
-  }
-}
-exports.Texture = Texture;
-
-/***/ }),
-
-/***/ "./source/core/shader/enum/wgsl-access-mode.enum.ts":
-/*!**********************************************************!*\
-  !*** ./source/core/shader/enum/wgsl-access-mode.enum.ts ***!
-  \**********************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.WgslAccessMode = void 0;
-var WgslAccessMode;
-(function (WgslAccessMode) {
-  WgslAccessMode["None"] = "_None";
-  WgslAccessMode["AccessModeRead"] = "read";
-  WgslAccessMode["AccessModeWrite"] = "write";
-  WgslAccessMode["AccessModeReadWrite"] = "read_write";
-})(WgslAccessMode = exports.WgslAccessMode || (exports.WgslAccessMode = {}));
-
-/***/ }),
-
-/***/ "./source/core/shader/enum/wgsl-binding-type.enum.ts":
-/*!***********************************************************!*\
-  !*** ./source/core/shader/enum/wgsl-binding-type.enum.ts ***!
-  \***********************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.WgslBindingType = void 0;
-var WgslBindingType;
-(function (WgslBindingType) {
-  WgslBindingType["None"] = "_None";
-  WgslBindingType["Uniform"] = "uniform";
-  WgslBindingType["Storage"] = "storage";
-  WgslBindingType["ReadonlyStorage"] = "read-only-storage";
-})(WgslBindingType = exports.WgslBindingType || (exports.WgslBindingType = {}));
-
-/***/ }),
-
-/***/ "./source/core/shader/enum/wgsl-shader-stage.enum.ts":
-/*!***********************************************************!*\
-  !*** ./source/core/shader/enum/wgsl-shader-stage.enum.ts ***!
-  \***********************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.WgslShaderStage = void 0;
-var WgslShaderStage;
-(function (WgslShaderStage) {
-  WgslShaderStage[WgslShaderStage["Fragment"] = GPUShaderStage.FRAGMENT] = "Fragment";
-  WgslShaderStage[WgslShaderStage["Vertex"] = GPUShaderStage.VERTEX] = "Vertex";
-  WgslShaderStage[WgslShaderStage["Compute"] = GPUShaderStage.COMPUTE] = "Compute";
-})(WgslShaderStage = exports.WgslShaderStage || (exports.WgslShaderStage = {}));
-
-/***/ }),
-
-/***/ "./source/core/shader/enum/wgsl-type.enum.ts":
-/*!***************************************************!*\
-  !*** ./source/core/shader/enum/wgsl-type.enum.ts ***!
-  \***************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.WgslType = void 0;
-var WgslType;
-(function (WgslType) {
-  WgslType["Any"] = "_Any";
-  WgslType["Enum"] = "_Enum";
-  // Scalar types.
-  WgslType["Boolean"] = "bool";
-  WgslType["Integer32"] = "i32";
-  WgslType["UnsignedInteger32"] = "u32";
-  WgslType["Float32"] = "f32";
-  WgslType["Float16"] = "f16";
-  // Vector types.
-  WgslType["Vector2"] = "vec2";
-  WgslType["Vector3"] = "vec3";
-  WgslType["Vector4"] = "vec4";
-  // Matrix types.
-  WgslType["Matrix22"] = "mat2x2";
-  WgslType["Matrix23"] = "mat2x3";
-  WgslType["Matrix24"] = "mat2x4";
-  WgslType["Matrix32"] = "mat3x2";
-  WgslType["Matrix33"] = "mat3x3";
-  WgslType["Matrix34"] = "mat3x4";
-  WgslType["Matrix42"] = "mat4x2";
-  WgslType["Matrix43"] = "mat4x3";
-  WgslType["Matrix44"] = "mat4x4";
-  // Container.
-  WgslType["Struct"] = "struct";
-  WgslType["Atomic"] = "atomic";
-  //Special.
-  WgslType["Array"] = "array";
-  WgslType["Pointer"] = "ptr";
-  WgslType["Reference"] = "ref";
-  // Textures.
-  WgslType["Texture1d"] = "texture_1d";
-  WgslType["Texture2d"] = "texture_2d";
-  WgslType["Texture2dArray"] = "texture_2d_array";
-  WgslType["Texture3d"] = "texture_3d";
-  WgslType["TextureCube"] = "texture_cube";
-  WgslType["TextureCubeArray"] = "texture_cube_array";
-  WgslType["TextureMultisampled2d"] = "texture_multisampled_2d";
-  WgslType["TextureExternal"] = "texture_external";
-  // Depth texture.
-  WgslType["TextureDepth2d"] = "texture_depth_2d";
-  WgslType["TextureDepth2dArray"] = "texture_depth_2d_array";
-  WgslType["TextureDepthCube"] = "texture_depth_cube";
-  WgslType["TextureDepthCubeArray"] = "texture_depth_cube_array";
-  WgslType["TextureDepthMultisampled2d"] = "texture_depth_multisampled_2d";
-  // Storage textures.
-  WgslType["TextureStorage1d"] = "texture_storage_1d";
-  WgslType["TextureStorage2d"] = "texture_storage_2d";
-  WgslType["TextureStorage2dArray"] = "texture_storage_2d_array";
-  WgslType["TextureStorage3d"] = "texture_storage_3d";
-  // Sampler.
-  WgslType["Sampler"] = "sampler";
-  WgslType["SamplerComparison"] = "sampler_comparison";
-})(WgslType = exports.WgslType || (exports.WgslType = {}));
-
-/***/ }),
-
-/***/ "./source/core/shader/shader-analyzer.ts":
-/*!***********************************************!*\
-  !*** ./source/core/shader/shader-analyzer.ts ***!
-  \***********************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-function _wrapRegExp() { _wrapRegExp = function _wrapRegExp(re, groups) { return new BabelRegExp(re, void 0, groups); }; var _super = RegExp.prototype, _groups = new WeakMap(); function BabelRegExp(re, flags, groups) { var _this = new RegExp(re, flags); return _groups.set(_this, groups || _groups.get(re)), _setPrototypeOf(_this, BabelRegExp.prototype); } function buildGroups(result, re) { var g = _groups.get(re); return Object.keys(g).reduce(function (groups, name) { var i = g[name]; if ("number" == typeof i) groups[name] = result[i];else { for (var k = 0; void 0 === result[i[k]] && k + 1 < i.length;) k++; groups[name] = result[i[k]]; } return groups; }, Object.create(null)); } return _inherits(BabelRegExp, RegExp), BabelRegExp.prototype.exec = function (str) { var result = _super.exec.call(this, str); if (result) { result.groups = buildGroups(result, this); var indices = result.indices; indices && (indices.groups = buildGroups(indices, this)); } return result; }, BabelRegExp.prototype[Symbol.replace] = function (str, substitution) { if ("string" == typeof substitution) { var groups = _groups.get(this); return _super[Symbol.replace].call(this, str, substitution.replace(/\$<([^>]+)>/g, function (_, name) { var group = groups[name]; return "$" + (Array.isArray(group) ? group.join("$") : group); })); } if ("function" == typeof substitution) { var _this = this; return _super[Symbol.replace].call(this, str, function () { var args = arguments; return "object" != typeof args[args.length - 1] && (args = [].slice.call(args)).push(buildGroups(args, _this)), substitution.apply(this, args); }); } return _super[Symbol.replace].call(this, str, substitution); }, _wrapRegExp.apply(this, arguments); }
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.ShaderInformation = void 0;
-var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-var array_buffer_type_1 = __webpack_require__(/*! ../buffer_type/array-buffer-type */ "./source/core/buffer_type/array-buffer-type.ts");
-var simple_buffer_type_1 = __webpack_require__(/*! ../buffer_type/simple-buffer-type */ "./source/core/buffer_type/simple-buffer-type.ts");
-var struct_buffer_type_1 = __webpack_require__(/*! ../buffer_type/struct-buffer-type */ "./source/core/buffer_type/struct-buffer-type.ts");
-var wgsl_access_mode_enum_1 = __webpack_require__(/*! ./enum/wgsl-access-mode.enum */ "./source/core/shader/enum/wgsl-access-mode.enum.ts");
-var wgsl_binding_type_enum_1 = __webpack_require__(/*! ./enum/wgsl-binding-type.enum */ "./source/core/shader/enum/wgsl-binding-type.enum.ts");
-var wgsl_shader_stage_enum_1 = __webpack_require__(/*! ./enum/wgsl-shader-stage.enum */ "./source/core/shader/enum/wgsl-shader-stage.enum.ts");
-var wgsl_type_enum_1 = __webpack_require__(/*! ./enum/wgsl-type.enum */ "./source/core/shader/enum/wgsl-type.enum.ts");
-class ShaderInformation {
-  /**
-   * Constructor.
-   * @param pSource - WGSL Source code.
-   */
-  constructor(pSource) {
-    this.mSource = pSource;
-    this.mEntryPoints = this.fetchEntryPoints();
-    this.mBindings = this.fetchBindGroups();
-  }
-  /**
-   * Binding information.
-   */
-  get bindings() {
-    return this.mBindings;
-  }
-  /**
-   * Shader entry points.
-   */
-  get entryPoints() {
-    return this.mEntryPoints;
-  }
-  /**
-   * Create buffer type from variable definition.
-   * @param pVariable - Variable definition.
-   */
-  createBufferType(pVariable) {
-    var _pVariable$attributes, _pVariable$attributes2;
-    // String to type. Undefined must be an struct type.
-    var lType = this.wgslTypeByName(pVariable.type);
-    if (lType === wgsl_type_enum_1.WgslType.Enum) {
-      throw new core_data_1.Exception('Enum cant be fetched as variable type.', this);
-    }
-    // Try to parse access and bind setings. Set with defaults.
-    var lBindingType = wgsl_binding_type_enum_1.WgslBindingType.None;
-    var lAccessMode = wgsl_access_mode_enum_1.WgslAccessMode.None;
-    if (pVariable.access) {
-      lBindingType = core_data_1.EnumUtil.enumKeyByValue(wgsl_binding_type_enum_1.WgslBindingType, pVariable.access.bindingType);
-      if (!lBindingType) {
-        throw new core_data_1.Exception("Bind type \"".concat(pVariable.access.bindingType, "\" does not exist."), this);
-      }
-      if (pVariable.access.accessMode) {
-        lAccessMode = core_data_1.EnumUtil.enumKeyByValue(wgsl_access_mode_enum_1.WgslAccessMode, pVariable.access.accessMode);
-        if (!lAccessMode) {
-          throw new core_data_1.Exception("Access mode \"".concat(pVariable.access.accessMode, "\" does not exist."), this);
-        }
-      }
-      // Set bind type to read only storage if it is in fact a read only storage.
-      if (lBindingType === wgsl_binding_type_enum_1.WgslBindingType.Storage && lAccessMode === wgsl_access_mode_enum_1.WgslAccessMode.AccessModeRead) {
-        lBindingType = wgsl_binding_type_enum_1.WgslBindingType.ReadonlyStorage;
-      }
-    }
-    // Parse attributes of variable.
-    var lAttributes = new core_data_1.Dictionary();
-    for (var lAttribute of pVariable.attributes) {
-      var lAttributeMatch = /*#__PURE__*/_wrapRegExp(/@(\w+)(\(([^)]*)\))?/g, {
-        name: 1,
-        parameter: 3
-      }).exec(lAttribute);
-      if (!lAttributeMatch) {
-        throw new core_data_1.Exception("Somthing is not right with \"".concat(lAttribute, "\". Dont know what."), this);
-      }
-      var lAttributeParameterList = new Array();
-      if (lAttributeMatch.groups['parameter']) {
-        var lParameterPartList = lAttributeMatch.groups['parameter'].split(',');
-        for (var lPart of lParameterPartList) {
-          if (isNaN(lPart)) {
-            lAttributeParameterList.push(lPart);
-          } else {
-            lAttributeParameterList.push(parseInt(lPart));
-          }
-        }
-      }
-      lAttributes.set(lAttributeMatch.groups['name'], lAttributeParameterList);
-    }
-    // Try to get location from attributes.
-    var lLocationIndex = null;
-    var lLocationValue = (_pVariable$attributes = (_pVariable$attributes2 = pVariable.attributes.find(pAttribute => pAttribute.startsWith('@location'))) === null || _pVariable$attributes2 === void 0 ? void 0 : _pVariable$attributes2.replace(/[^\d]+/g, '')) !== null && _pVariable$attributes !== void 0 ? _pVariable$attributes : '';
-    if (lLocationValue && !isNaN(lLocationValue)) {
-      lLocationIndex = parseInt(lLocationValue);
-    }
-    var lBufferType;
-    switch (lType) {
-      case wgsl_type_enum_1.WgslType.Struct:
-        {
-          var lStructType = new struct_buffer_type_1.StructBufferType(pVariable.name, pVariable.type, lAccessMode, lBindingType, lLocationIndex);
-          // Get struct body and fetch types.
-          var lStructBody = this.getStructBody(pVariable.type);
-          this.fetchVariableDefinitions(lStructBody).forEach((pPropertyVariable, pIndex) => {
-            var lProperyBufferType = this.createBufferType(pPropertyVariable);
-            // Add property to struct buffer type.
-            lStructType.addProperty(pIndex, lProperyBufferType);
-          });
-          lBufferType = lStructType;
-          break;
-        }
-      case wgsl_type_enum_1.WgslType.Array:
-        {
-          // Validate generic range.
-          if (pVariable.generics.length !== 1 && pVariable.generics.length !== 2) {
-            throw new core_data_1.Exception('Array type must have one or two generic types.', this);
-          }
-          // Fetch first generic by extending generic type to a variable definition and parse recursive.
-          var lTypeGeneric = this.fetchVariableDefinitions("PLACEHOLDER: ".concat(pVariable.generics.at(0), ";")).at(0);
-          var lTypeGenericBufferType = this.createBufferType(lTypeGeneric);
-          // Fetch optional size gerneric.
-          var lSizeGeneric = -1;
-          if (pVariable.generics.at(1)) {
-            if (!isNaN(pVariable.generics.at(1))) {
-              throw new core_data_1.Exception('Array size parameter needs to be a number.', this);
-            }
-            lSizeGeneric = parseInt(pVariable.generics.at(1));
-          }
-          // Create array buffer type.
-          lBufferType = new array_buffer_type_1.ArrayBufferType(pVariable.name, lTypeGenericBufferType, lSizeGeneric, lAccessMode, lBindingType, lLocationIndex);
-          break;
-        }
-      default:
-        {
-          // Map generics to struct like body. Fetch variable definitions and save only type.
-          var lPseudoStructBody = pVariable.generics.reduce((pCurrent, pGeneric) => {
-            return pCurrent + "PLACEHOLDER: ".concat(pGeneric, ";");
-          }, '');
-          var lPseudoVariableList = this.fetchVariableDefinitions(lPseudoStructBody);
-          var lGenericList = lPseudoVariableList.map(pVariable => {
-            return this.wgslTypeByName(pVariable.type);
-          });
-          lBufferType = new simple_buffer_type_1.SimpleBufferType(pVariable.name, lType, lGenericList, lAccessMode, lBindingType, lLocationIndex);
-          break;
-        }
-    }
-    // Add attributes to buffer type.
-    for (var [lAttributeName, _lAttributeParameterList] of lAttributes) {
-      lBufferType.setAttribute(lAttributeName, _lAttributeParameterList);
-    }
-    return lBufferType;
-  }
-  /**
-   * Fetch all bind groups of source.
-   */
-  fetchBindGroups() {
-    // Get only lines with group attributes.
-    var lAllGroupLines = [...this.mSource.matchAll(/^.*@group.*$/gm)].reduce((pCurrent, pLine) => {
-      return pCurrent + pLine[0];
-    }, '');
-    // Available shader states based on entry points.
-    // Not the best, but better than nothing.
-    var lShaderStage = 0;
-    if (/(@compute(.|\r?\n)*?fn )(\w*)/gm.test(this.mSource)) {
-      lShaderStage |= wgsl_shader_stage_enum_1.WgslShaderStage.Compute;
-    }
-    if (/(@fragment(.|\r?\n)*?fn )(\w*)/gm.test(this.mSource)) {
-      lShaderStage |= wgsl_shader_stage_enum_1.WgslShaderStage.Fragment;
-    }
-    if (/(@vertex(.|\r?\n)*?fn )(\w*)/gm.test(this.mSource)) {
-      lShaderStage |= wgsl_shader_stage_enum_1.WgslShaderStage.Vertex;
-    }
-    // Fetch all group variables.
-    var lBindGroups = new core_data_1.Dictionary();
-    for (var lVariable of this.fetchVariableDefinitions(lAllGroupLines)) {
-      var lGroupAttribute = lVariable.attributes.find(pAttribute => pAttribute.startsWith('@group'));
-      var lBindAttribute = lVariable.attributes.find(pAttribute => pAttribute.startsWith('@binding'));
-      if (!lGroupAttribute || !lBindAttribute) {
-        throw new core_data_1.Exception('Bindind variable needs an binding and group attribute.', this);
-      }
-      var lGroupIndex = parseInt(lGroupAttribute.replace(/[^\d]+/g, ''));
-      var lBindIndex = parseInt(lBindAttribute.replace(/[^\d]+/g, ''));
-      // Init group.
-      if (!lBindGroups.has(lGroupIndex)) {
-        lBindGroups.set(lGroupIndex, new Array());
-      }
-      // Append bind.
-      lBindGroups.get(lGroupIndex).push({
-        visibility: lShaderStage,
-        variable: this.createBufferType(lVariable),
-        index: lBindIndex
-      });
-    }
-    // Add BindGroupInformation to bind group.
-    var lBindGroupList = new Array();
-    for (var [_lGroupIndex, lBindList] of lBindGroups) {
-      lBindGroupList.push({
-        group: _lGroupIndex,
-        binds: lBindList
-      });
-    }
-    return lBindGroupList;
-  }
-  /**
-   * Fetch entry points.
-   */
-  fetchEntryPoints() {
-    // Get all functions.
-    var lFunctionList = this.fetchFunctions(this.mSource);
-    var lEntryPoints = new core_data_1.Dictionary();
-    for (var lFunction of lFunctionList) {
-      // Assemble shaderstage.
-      if (lFunction.attributes.find(pAttribute => pAttribute.startsWith('@compute'))) {
-        lEntryPoints.set(wgsl_shader_stage_enum_1.WgslShaderStage.Compute, lFunction);
-      }
-      if (lFunction.attributes.find(pAttribute => pAttribute.startsWith('@fragment'))) {
-        lEntryPoints.set(wgsl_shader_stage_enum_1.WgslShaderStage.Fragment, lFunction);
-      }
-      if (lFunction.attributes.find(pAttribute => pAttribute.startsWith('@vertex'))) {
-        lEntryPoints.set(wgsl_shader_stage_enum_1.WgslShaderStage.Vertex, lFunction);
-      }
-    }
-    return lEntryPoints;
-  }
-  /**
-   * Fetch all function declarations of source snipped.
-   * @param pSourceSnipped - Source snipped with function declarations.
-   */
-  fetchFunctions(pSourceSnipped) {
-    var lFunctionRegex = /*#__PURE__*/_wrapRegExp(/((?:@[\w]+(?:\([^)]*\))?\s+)+)?(?:\s)*?fn\s+(\w*)\s*\(((?:.|\r?\n)*?)\)(?:\s*\x2D>\s*([^{]+))?\s*\{/gm, {
-      attributes: 1,
-      name: 2,
-      parameter: 3,
-      result: 4
-    });
-    var lFunctionList = new Array();
-    for (var lFunctionMatch of pSourceSnipped.matchAll(lFunctionRegex)) {
-      // Fetch attributes.
-      var lAttributeList = new Array();
-      if (lFunctionMatch.groups['attributes']) {
-        // Split string of multiple attributes.
-        for (var lAttributeMatch of lFunctionMatch.groups['attributes'].matchAll(/@[\w]+(\([^)]*\))?/g)) {
-          lAttributeList.push(lAttributeMatch[0]);
-        }
-      }
-      // Fetch Parameter.
-      var lParameterVariableList = this.fetchVariableDefinitions(lFunctionMatch.groups['parameter']);
-      var lParameterList = lParameterVariableList.map(pVariable => {
-        return this.createBufferType(pVariable);
-      });
-      // Fetch result type.
-      var lResult = null;
-      if (lFunctionMatch.groups['result']) {
-        var lResultVariable = this.fetchVariableDefinitions(lFunctionMatch.groups['result']).at(0);
-        lResult = this.createBufferType(lResultVariable);
-      }
-      lFunctionList.push({
-        name: lFunctionMatch.groups['name'],
-        return: lResult,
-        parameter: lParameterList,
-        attributes: lAttributeList
-      });
-    }
-    return lFunctionList;
-  }
-  /**
-   * Find all variable definitions and fetch data.
-   * @param pSourceSnipped - Source snipped with variables.
-   */
-  fetchVariableDefinitions(pSourceSnipped) {
-    var lDefinitionRegex = /*#__PURE__*/_wrapRegExp(/((?:@[\w]+(?:\([^)]*\))?\s+)+)?(?:var(?:<([\w\s,]+)?>)?\s+)?(?:(\w+)\s*:\s*)?((\w+)(?:<([<>\w\s,]+)>)?)/gm, {
-      attributes: 1,
-      access: 2,
-      variable: 3,
-      type: 4,
-      typename: 5,
-      generics: 6
-    });
-    var lVariableList = new Array();
-    for (var lDefinitionMatch of pSourceSnipped.matchAll(lDefinitionRegex)) {
-      var _lDefinitionMatch$gro;
-      // Fetch attributes.
-      var lAttributes = new Array();
-      if (lDefinitionMatch.groups['attributes']) {
-        // Split string of multiple attributes.
-        for (var lAttributeMatch of lDefinitionMatch.groups['attributes'].matchAll(/@[\w]+\([^)]*\)/g)) {
-          lAttributes.push(lAttributeMatch[0]);
-        }
-      }
-      // Parse optional acccess modifier.
-      var lAccess = null;
-      if (lDefinitionMatch.groups['access']) {
-        var _lAccessList$;
-        // var<addressSpace [,accessMode]>
-        var lAccessList = lDefinitionMatch.groups['access'].split(',').map(pValue => pValue.trim()).filter(pValue => pValue.length);
-        lAccess = {
-          bindingType: lAccessList[0],
-          accessMode: (_lAccessList$ = lAccessList[1]) !== null && _lAccessList$ !== void 0 ? _lAccessList$ : null
-        };
-      }
-      // Split generic types.
-      var lGenericList = new Array();
-      if (lDefinitionMatch.groups['generics']) {
-        for (var lGenericMatch of lDefinitionMatch.groups['generics'].matchAll( /*#__PURE__*/_wrapRegExp(/((?:\w+(?:<.+>)?))[,\s]*/g, {
-          generictype: 1
-        }))) {
-          lGenericList.push(lGenericMatch.groups['generictype']);
-        }
-      }
-      lVariableList.push({
-        name: (_lDefinitionMatch$gro = lDefinitionMatch.groups['variable']) !== null && _lDefinitionMatch$gro !== void 0 ? _lDefinitionMatch$gro : '',
-        type: lDefinitionMatch.groups['typename'],
-        generics: lGenericList,
-        attributes: lAttributes,
-        access: lAccess
-      });
-    }
-    return lVariableList;
-  }
-  /**
-   * Get struct information of struct name.
-   * @param pSource - Source.
-   * @param pStructName - Struct name.
-   */
-  getStructBody(pStructName) {
-    var lStuctRegex = /*#__PURE__*/_wrapRegExp(/^\s*struct\s+(\w+)\s*\{([^}]*)\}$/mg, {
-      name: 1,
-      typeinfo: 2
-    });
-    var lStructBody = null;
-    // Find struct name and body.
-    for (var lStructMatch of this.mSource.matchAll(lStuctRegex)) {
-      if (lStructMatch.groups['name'] === pStructName) {
-        lStructBody = lStructMatch.groups['typeinfo'];
-        break;
-      }
-    }
-    // Validate found struct body.
-    if (!lStructBody) {
-      throw new core_data_1.Exception("Struct \"".concat(pStructName, "\" not found."), this);
-    }
-    return lStructBody;
-  }
-  /**
-   * Get wgsl type by name without generics.
-   * @param pName - Type name.
-   */
-  wgslTypeByName(pName) {
-    var lType = core_data_1.EnumUtil.enumKeyByValue(wgsl_type_enum_1.WgslType, pName);
-    if (!lType) {
-      try {
-        // Try to find struct. Throws error on missing struct declaration.
-        this.getStructBody(pName);
-        lType = wgsl_type_enum_1.WgslType.Struct;
-      } catch (_ex) {
-        // On error (when struct not found). It can only be an enum.
-        lType = wgsl_type_enum_1.WgslType.Enum;
-      }
-    }
-    return lType;
-  }
-}
-exports.ShaderInformation = ShaderInformation;
-
-/***/ }),
-
-/***/ "./source/core/shader/shader.ts":
-/*!**************************************!*\
-  !*** ./source/core/shader/shader.ts ***!
-  \**************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.Shader = void 0;
-var core_data_1 = __webpack_require__(/*! @kartoffelgames/core.data */ "../kartoffelgames.core.data/library/source/index.js");
-var bind_groups_1 = __webpack_require__(/*! ../bind_group/bind-groups */ "./source/core/bind_group/bind-groups.ts");
-var simple_buffer_type_1 = __webpack_require__(/*! ../buffer_type/simple-buffer-type */ "./source/core/buffer_type/simple-buffer-type.ts");
-var struct_buffer_type_1 = __webpack_require__(/*! ../buffer_type/struct-buffer-type */ "./source/core/buffer_type/struct-buffer-type.ts");
-var bind_type_enum_1 = __webpack_require__(/*! ../enum/bind-type.enum */ "./source/core/enum/bind-type.enum.ts");
-var gpu_native_object_1 = __webpack_require__(/*! ../gpu-native-object */ "./source/core/gpu-native-object.ts");
-var vertex_attribute_1 = __webpack_require__(/*! ../pipeline/data/vertex-attribute */ "./source/core/pipeline/data/vertex-attribute.ts");
-var wgsl_shader_stage_enum_1 = __webpack_require__(/*! ./enum/wgsl-shader-stage.enum */ "./source/core/shader/enum/wgsl-shader-stage.enum.ts");
-var wgsl_type_enum_1 = __webpack_require__(/*! ./enum/wgsl-type.enum */ "./source/core/shader/enum/wgsl-type.enum.ts");
-var shader_analyzer_1 = __webpack_require__(/*! ./shader-analyzer */ "./source/core/shader/shader-analyzer.ts");
-class Shader extends gpu_native_object_1.GpuNativeObject {
-  /**
-   * Constructor.
-   * @param pGpu - GPU.
-   * @param pSource - Shader module source code.
-   */
-  constructor(pGpu, pSource) {
-    super(pGpu, 'SHADER');
-    this.mSource = pSource;
-    this.mShaderInformation = new shader_analyzer_1.ShaderInformation(pSource);
-    // Generate from ShaderInformation. 
-    this.mBindGroups = this.generateBindGroups(this.mShaderInformation);
-    this.mEntryPoints = {
-      vertex: this.generateVertexEntryPoint(this.mShaderInformation),
-      fragment: this.generateFragmentEntryPoint(this.mShaderInformation),
-      compute: this.generateComputeEntryPoint(this.mShaderInformation)
-    };
-  }
-  /**
-   * Get bind groups of shader.
-   */
-  get bindGroups() {
-    return this.mBindGroups;
-  }
-  /**
-   * Compute entry point name.
-   */
-  get computeEntryPoint() {
-    return this.mEntryPoints.compute;
-  }
-  /**
-   * Fragment entry point name.
-   */
-  get fragmentEntryPoint() {
-    return this.mEntryPoints.fragment;
-  }
-  /**
-   * Vertex entry point name.
-   */
-  get vertexEntryPoint() {
-    return this.mEntryPoints.vertex;
-  }
-  /***
-   * Generate shader module.
-   */
-  generate() {
-    return this.gpu.device.createShaderModule({
-      code: this.mSource
-    });
-  }
-  /**
-   * Generate bind groups based on shader information.
-   * @param pShaderInformation - Shader information.
-   */
-  generateBindGroups(pShaderInformation) {
-    var lBindGroups = new bind_groups_1.BindGroups(this.gpu);
-    // Create new bing groups.
-    for (var lBindGroupInformation of pShaderInformation.bindings) {
-      var lBindGroup = lBindGroups.addGroup(lBindGroupInformation.group);
-      // Create each binding of group.
-      for (var lWgslBind of lBindGroupInformation.binds) {
-        var lShaderBind = this.getBindBasedOnType(lWgslBind);
-        switch (lShaderBind.bindType) {
-          case bind_type_enum_1.BindType.Texture:
-            {
-              lBindGroup.addTexture(lShaderBind.name, lShaderBind.index, lShaderBind.visibility, lShaderBind.sampleType, lShaderBind.viewDimension, lShaderBind.multisampled);
-              break;
-            }
-          case bind_type_enum_1.BindType.Buffer:
-            {
-              lBindGroup.addBuffer(lShaderBind.name, lShaderBind.index, lShaderBind.visibility, lShaderBind.type, lShaderBind.hasDynamicOffset, lShaderBind.minBindingSize);
-              break;
-            }
-          case bind_type_enum_1.BindType.Sampler:
-            {
-              lBindGroup.addSampler(lShaderBind.name, lShaderBind.index, lShaderBind.visibility, lShaderBind.type);
-              break;
-            }
-          case bind_type_enum_1.BindType.StorageTexture:
-            {
-              lBindGroup.addStorageTexture(lShaderBind.name, lShaderBind.index, lShaderBind.visibility, lShaderBind.format, lShaderBind.access, lShaderBind.viewDimension);
-              break;
-            }
-          case bind_type_enum_1.BindType.ExternalTexture:
-            {
-              lBindGroup.addExternalTexture(lShaderBind.name, lShaderBind.index, lShaderBind.visibility);
-              break;
-            }
-        }
-      }
-    }
-    return lBindGroups;
-  }
-  /**
-   * Generate compute entry point.
-   * @param pShaderInformation - Shader information.
-   */
-  generateComputeEntryPoint(pShaderInformation) {
-    // Find entry point information.
-    var lShaderEntryPointFunction = pShaderInformation.entryPoints.get(wgsl_shader_stage_enum_1.WgslShaderStage.Compute);
-    if (!lShaderEntryPointFunction) {
-      return undefined;
-    }
-    var lShaderEntryPoint = {
-      name: lShaderEntryPointFunction.name
-    };
-    return lShaderEntryPoint;
-  }
-  /**
-   * Generate compute entry point.
-   * @param pShaderInformation - Shader information.
-   */
-  generateFragmentEntryPoint(pShaderInformation) {
-    // Find entry point information.
-    var lShaderEntryPointFunction = pShaderInformation.entryPoints.get(wgsl_shader_stage_enum_1.WgslShaderStage.Fragment);
-    if (!lShaderEntryPointFunction) {
-      return undefined;
-    }
-    // Get count of all result types with location attribute.
-    var lResultLength = 1;
-    if (lShaderEntryPointFunction.return instanceof struct_buffer_type_1.StructBufferType) {
-      lResultLength = lShaderEntryPointFunction.return.innerLocations().length;
-    }
-    var lShaderEntryPoint = {
-      name: lShaderEntryPointFunction.name,
-      renderTargetCount: lResultLength
-    };
-    return lShaderEntryPoint;
-  }
-  /**
-   * Generate vertex entry point.
-   * @param pShaderInformation - Shader information.
-   */
-  generateVertexEntryPoint(pShaderInformation) {
-    // Find entry point information.
-    var lShaderEntryPointFunction = pShaderInformation.entryPoints.get(wgsl_shader_stage_enum_1.WgslShaderStage.Vertex);
-    if (!lShaderEntryPointFunction) {
-      return undefined;
-    }
-    var lShaderEntryPoint = {
-      name: lShaderEntryPointFunction.name,
-      attributes: new Array()
-    };
-    // Get all parameter locations of entry point.
-    var lParameterLocationTypes = new Array();
-    for (var lParameter of lShaderEntryPointFunction.parameter) {
-      if (lParameter instanceof struct_buffer_type_1.StructBufferType) {
-        for (var lType of lParameter.innerLocations()) {
-          lParameterLocationTypes.push(lType);
-        }
-      } else if (lParameter !== null && lParameter !== void 0 && lParameter.location) {
-        lParameterLocationTypes.push(lParameter);
-      }
-    }
-    // Generate new vertex attribute for each location.
-    for (var _lParameter of lParameterLocationTypes) {
-      if (!(_lParameter instanceof simple_buffer_type_1.SimpleBufferType)) {
-        throw new core_data_1.Exception('Vertex attributes can only be of a simple type.', this);
-      }
-      // Add generated attribute to shader entry point.
-      lShaderEntryPoint.attributes.push(new vertex_attribute_1.VertexAttribute(this.gpu, _lParameter));
-    }
-    return lShaderEntryPoint;
-  }
-  /**
-   * Get bind based on binding information.
-   * @param pBindGroup - Bind group.
-   * @param pBindInformation - Bind information.
-   */
-  getBindBasedOnType(pBind) {
-    var lNumberTypeList = [wgsl_type_enum_1.WgslType.Boolean, wgsl_type_enum_1.WgslType.Integer32, wgsl_type_enum_1.WgslType.UnsignedInteger32, wgsl_type_enum_1.WgslType.Float32, wgsl_type_enum_1.WgslType.Float16];
-    var lVectorTypeList = [wgsl_type_enum_1.WgslType.Vector2, wgsl_type_enum_1.WgslType.Vector3, wgsl_type_enum_1.WgslType.Vector4];
-    var lMatrixTypeList = [wgsl_type_enum_1.WgslType.Matrix22, wgsl_type_enum_1.WgslType.Matrix23, wgsl_type_enum_1.WgslType.Matrix24, wgsl_type_enum_1.WgslType.Matrix32, wgsl_type_enum_1.WgslType.Matrix33, wgsl_type_enum_1.WgslType.Matrix34, wgsl_type_enum_1.WgslType.Matrix42, wgsl_type_enum_1.WgslType.Matrix43, wgsl_type_enum_1.WgslType.Matrix44];
-    var lTextureStorageTypeList = [wgsl_type_enum_1.WgslType.TextureStorage1d, wgsl_type_enum_1.WgslType.TextureStorage2d, wgsl_type_enum_1.WgslType.TextureStorage2dArray, wgsl_type_enum_1.WgslType.TextureStorage3d];
-    var lTextureTypeList = [wgsl_type_enum_1.WgslType.Texture1d, wgsl_type_enum_1.WgslType.Texture2d, wgsl_type_enum_1.WgslType.Texture2dArray, wgsl_type_enum_1.WgslType.Texture3d, wgsl_type_enum_1.WgslType.TextureCube, wgsl_type_enum_1.WgslType.TextureCubeArray, wgsl_type_enum_1.WgslType.TextureMultisampled2d, wgsl_type_enum_1.WgslType.TextureExternal];
-    var lDepthTextureTypeList = [wgsl_type_enum_1.WgslType.TextureDepth2d, wgsl_type_enum_1.WgslType.TextureDepth2dArray, wgsl_type_enum_1.WgslType.TextureDepthCube, wgsl_type_enum_1.WgslType.TextureDepthCubeArray, wgsl_type_enum_1.WgslType.TextureDepthMultisampled2d];
-    // Buffer types.
-    // Number, matrix, vector and array types.
-    if ([...lNumberTypeList, ...lVectorTypeList, ...lMatrixTypeList, wgsl_type_enum_1.WgslType.Array, wgsl_type_enum_1.WgslType.Struct].includes(pBind.variable.type)) {
-      // Validate address space.
-      if (!pBind.variable.bindingType) {
-        throw new core_data_1.Exception("Buffer bind type needs to be set for buffer bindings (".concat(pBind.variable.name, ")."), this);
-      }
-      // Bind 
-      return {
-        bindType: bind_type_enum_1.BindType.Buffer,
-        index: pBind.index,
-        name: pBind.variable.name,
-        visibility: pBind.visibility,
-        type: pBind.variable.bindingType,
-        hasDynamicOffset: false,
-        minBindingSize: 0
-      };
-    }
-    // Bind only external textures.
-    if (pBind.variable.type === wgsl_type_enum_1.WgslType.TextureExternal) {
-      return {
-        bindType: bind_type_enum_1.BindType.ExternalTexture,
-        index: pBind.index,
-        name: pBind.variable.name,
-        visibility: pBind.visibility
-      };
-    }
-    // Sampler types.
-    else if ([wgsl_type_enum_1.WgslType.Sampler, wgsl_type_enum_1.WgslType.SamplerComparison].includes(pBind.variable.type)) {
-      // Sampler bind type by sampler or comparison type.
-      var lFilterType = pBind.variable.type === wgsl_type_enum_1.WgslType.Sampler ? 'filtering' : 'comparison';
-      // Exit.
-      return {
-        bindType: bind_type_enum_1.BindType.Sampler,
-        index: pBind.index,
-        name: pBind.variable.name,
-        visibility: pBind.visibility,
-        type: lFilterType
-      };
-    }
-    // First generic texture is a wgsl type on color textures or nothing on depth textures.
-    if (!(pBind.variable instanceof simple_buffer_type_1.SimpleBufferType)) {
-      throw new core_data_1.Exception('Texture buffers can only be of simple buffer type', this);
-    }
-    // Storage texture.
-    if (lTextureStorageTypeList.includes(pBind.variable.type)) {
-      if (pBind.variable.generics.at(0) !== wgsl_type_enum_1.WgslType.Enum) {
-        throw new core_data_1.Exception('Storage texture needs texel enum as first generic.', this);
-      }
-      // Storage texture first generics is allways the texel format.
-      var lTexelFormat = pBind.variable.genericsRaw.at(0);
-      var lTextureAccess = 'write-only';
-      var lTextureDimension = this.texureDimensionFromType(pBind.variable.type);
-      // Bind.
-      return {
-        bindType: bind_type_enum_1.BindType.StorageTexture,
-        index: pBind.index,
-        name: pBind.variable.name,
-        visibility: pBind.visibility,
-        access: lTextureAccess,
-        format: lTexelFormat,
-        viewDimension: lTextureDimension
-      };
-    }
-    // Depth or color texture.
-    if ([...lTextureTypeList, ...lDepthTextureTypeList].includes(pBind.variable.type)) {
-      var _lTextureDimension = this.texureDimensionFromType(pBind.variable.type);
-      var lMultisampled = [wgsl_type_enum_1.WgslType.TextureMultisampled2d, wgsl_type_enum_1.WgslType.TextureDepthMultisampled2d].includes(pBind.variable.type);
-      var lTextureWgslType = pBind.variable.generics.at(0);
-      var lTextureSampleType;
-      // Color textures. Based on generic type.
-      if (lTextureTypeList.includes(pBind.variable.type)) {
-        switch (lTextureWgslType) {
-          case wgsl_type_enum_1.WgslType.Float32:
-            {
-              lTextureSampleType = 'float';
-              break;
-            }
-          case wgsl_type_enum_1.WgslType.Integer32:
-            {
-              lTextureSampleType = 'sint';
-              break;
-            }
-          case wgsl_type_enum_1.WgslType.UnsignedInteger32:
-            {
-              lTextureSampleType = 'uint';
-              break;
-            }
-          default:
-            {
-              // Ignored "unfiltered float"
-              lTextureSampleType = 'unfilterable-float';
-              break;
-            }
-        }
-      } else {
-        // Musst be and depth type.
-        lTextureSampleType = 'depth';
-      }
-      // Exit.
-      return {
-        bindType: bind_type_enum_1.BindType.Texture,
-        index: pBind.index,
-        name: pBind.variable.name,
-        visibility: pBind.visibility,
-        sampleType: lTextureSampleType,
-        viewDimension: _lTextureDimension,
-        multisampled: lMultisampled
-      };
-    }
-    throw new core_data_1.Exception("Not implemented. Upps \"".concat(pBind.variable.type, "\""), this);
-  }
-  /**
-   * Get view dimension based on WGSL texture type.
-   * @param pTextureType - Texture type.
-   */
-  texureDimensionFromType(pTextureType) {
-    // Map every texture type for view dimension.
-    switch (pTextureType) {
-      case wgsl_type_enum_1.WgslType.Texture1d:
-      case wgsl_type_enum_1.WgslType.TextureStorage1d:
-        {
-          return '1d';
-        }
-      case wgsl_type_enum_1.WgslType.TextureDepth2d:
-      case wgsl_type_enum_1.WgslType.Texture2d:
-      case wgsl_type_enum_1.WgslType.TextureStorage2d:
-      case wgsl_type_enum_1.WgslType.TextureDepthMultisampled2d:
-      case wgsl_type_enum_1.WgslType.TextureMultisampled2d:
-        {
-          return '2d';
-        }
-      case wgsl_type_enum_1.WgslType.TextureDepth2dArray:
-      case wgsl_type_enum_1.WgslType.Texture2dArray:
-      case wgsl_type_enum_1.WgslType.TextureStorage2dArray:
-        {
-          return '2d-array';
-        }
-      case wgsl_type_enum_1.WgslType.Texture3d:
-      case wgsl_type_enum_1.WgslType.TextureStorage3d:
-        {
-          return '3d';
-        }
-      case wgsl_type_enum_1.WgslType.TextureCube:
-      case wgsl_type_enum_1.WgslType.TextureDepthCube:
-        {
-          return 'cube';
-        }
-      case wgsl_type_enum_1.WgslType.TextureCubeArray:
-        {
-          return 'cube-array';
-        }
-      default:
-        {
-          throw new core_data_1.Exception("Texture type \"".concat(pTextureType, "\" not supported for any dimension."), this);
-        }
-    }
-  }
-}
-exports.Shader = Shader;
 
 /***/ }),
 
@@ -11646,7 +11646,7 @@ exports.InputDevices = InputDevices;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("263ef3321888fc576b58")
+/******/ 		__webpack_require__.h = () => ("3ed977fe730c94bd218d")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

@@ -1,7 +1,7 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { WgslAccessMode } from '../shader/enum/wgsl-access-mode.enum';
-import { WgslBindingType } from '../shader/enum/wgsl-binding-type.enum';
-import { WgslType } from '../shader/enum/wgsl-type.enum';
+import { WgslAccessMode } from '../../shader/enum/wgsl-access-mode.enum';
+import { WgslBindingType } from '../../shader/enum/wgsl-binding-type.enum';
+import { WgslType } from '../../shader/enum/wgsl-type.enum';
 
 export abstract class BufferType {
     private readonly mAccessMode: WgslAccessMode | null;

@@ -1,8 +1,8 @@
 import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core.data';
-import { BindType } from '../enum/bind-type.enum';
+import { BindType } from './bind-type.enum';
 import { Gpu } from '../gpu';
 import { GpuNativeObject } from '../gpu-native-object';
-import { BaseBuffer } from '../resource/buffer/base-buffer';
+import { BaseBuffer } from '../buffer/base-buffer';
 import { ExternalTexture } from '../resource/external-texture';
 import { TextureSampler } from '../resource/texture-sampler';
 import { TextureView } from '../resource/texture/texture-view';

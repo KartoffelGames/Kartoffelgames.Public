@@ -9,12 +9,12 @@ import { InstructionExecuter } from '../../source/abstraction_layer/webgpu/execu
 import { RenderInstruction } from '../../source/abstraction_layer/webgpu/execution/instruction/render-instruction';
 import { Gpu } from '../../source/abstraction_layer/webgpu/gpu';
 import { RenderPipeline } from '../../source/abstraction_layer/webgpu/pipeline/render-pipeline';
-import { SimpleBuffer } from '../../source/abstraction_layer/webgpu/resource/buffer/simple-buffer';
+import { SimpleBuffer } from '../../source/abstraction_layer/webgpu/buffer/simple-buffer';
 import { Shader } from '../../source/abstraction_layer/webgpu/shader/shader';
 import shader from './shader.wgsl';
 import { RenderPassDescriptor } from '../../source/abstraction_layer/webgpu/pass_descriptor/render-pass-descriptor';
 import { RenderInstructionSet } from '../../source/abstraction_layer/webgpu/execution/instruction_set/render-instruction-set';
-import { RingBuffer } from '../../source/abstraction_layer/webgpu/resource/buffer/ring-buffer';
+import { RingBuffer } from '../../source/abstraction_layer/webgpu/buffer/ring-buffer';
 import { Texture } from '../../source/abstraction_layer/webgpu/resource/texture/texture';
 import { TextureUsage } from '../../source/abstraction_layer/webgpu/resource/texture/texture-usage.enum';
 import { TextureSampler } from '../../source/abstraction_layer/webgpu/resource/texture-sampler';

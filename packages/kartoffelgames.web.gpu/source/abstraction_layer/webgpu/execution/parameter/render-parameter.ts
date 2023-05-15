@@ -1,7 +1,7 @@
 import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core.data';
 import { Gpu } from '../../gpu';
-import { BaseBuffer } from '../../resource/buffer/base-buffer';
-import { SimpleBuffer } from '../../resource/buffer/simple-buffer';
+import { BaseBuffer } from '../../buffer/base-buffer';
+import { SimpleBuffer } from '../../buffer/simple-buffer';
 
 export class RenderParameter {
     private readonly mGpu: Gpu;

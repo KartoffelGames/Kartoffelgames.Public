@@ -5,7 +5,7 @@ import { IBuffer } from '../../interface/buffer/i-buffer.interface';
 import { IBufferLayout } from '../../interface/buffer/i-buffer-layout.interface';
 import { BufferLayout } from './buffer_layout/buffer-layout';
 
-export class SimpleBuffer<T extends TypedArray> extends WebGpuBuffer<T> implements IBuffer<T>  {
+export class Buffer<T extends TypedArray> extends WebGpuBuffer<T> implements IBuffer<T>  {
     private readonly mLayout: BufferLayout;
 
     /**

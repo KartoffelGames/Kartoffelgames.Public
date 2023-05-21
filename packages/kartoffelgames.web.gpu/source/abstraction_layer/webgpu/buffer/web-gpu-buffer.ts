@@ -2,11 +2,16 @@ import { Exception, TypedArray } from '@kartoffelgames/core.data';
 import { WebGpuDevice } from '../web-gpu-device';
 import { GpuNativeObject } from '../gpu-native-object';
 
-export abstract class WebGpuBuffer<T extends TypedArray> extends GpuNativeObject<GPUBuffer> {
+/**
+ * Web gpu buffer. Allways uses ring buffer.
+ */
+export class WebGpuBuffer<T extends TypedArray> extends GpuNativeObject<GPUBuffer> {
     private readonly mBufferLength: number;
     private readonly mBufferUsage: GPUFlagsConstant;
     private readonly mDataType: BufferDataType<T>;
     private mInitData: T | null;
+    private readonly mReadyBufferList: Array<GPUBuffer>;
+    private readonly mWavingBufferList: Array<GPUBuffer>;
 
     /**
      * Buffer size in items.
@@ -42,6 +47,10 @@ export abstract class WebGpuBuffer<T extends TypedArray> extends GpuNativeObject
         this.mInitData = pData;
         this.mBufferLength = pData.length;
         this.mDataType = <BufferDataType<T>>pData.constructor;
+
+        // Waving buffer list.
+        this.mReadyBufferList = new Array<GPUBuffer>();
+        this.mWavingBufferList = new Array<GPUBuffer>();
     }
 
     /**
@@ -49,7 +58,7 @@ export abstract class WebGpuBuffer<T extends TypedArray> extends GpuNativeObject
      * @param pOffset - Data offset.
      * @param pSize - Data size.
      */
-    public async readData(pOffset?: number, pSize?: number): Promise<T> {
+    public async read(pOffset?: number, pSize?: number): Promise<T> {
         // Get buffer and map data.
         const lBuffer: GPUBuffer = this.native();
         await lBuffer.mapAsync(GPUMapMode.READ, pOffset, pSize);
@@ -65,17 +74,39 @@ export abstract class WebGpuBuffer<T extends TypedArray> extends GpuNativeObject
      * @param pOffset - Write offset into buffer.
      * @param pSize - Write size.
      */
-    public writeData(pBufferCallback: (pBuffer: T) => void, pOffset: number = 0, pSize?: number): void {
-        const lBuffer: GPUBuffer = this.native();
+    public write(pBufferCallback: (pBuffer: T) => void, pOffset: number = 0, pSize?: number): void {
+        // Create new buffer when no mapped buffer is available. 
+        let lStagingBuffer: GPUBuffer;
+        if (this.mReadyBufferList.length === 0) {
+            lStagingBuffer = this.gpu.device.createBuffer({
+                label: `RingBuffer-WaveBuffer-${this.label}`,
+                size: this.size,
+                usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
+                mappedAtCreation: true,
+            });
 
-        // Create new typed array and add new data to this new array.
-        const lSourceBuffer: T = new this.type(this.length);
-        pBufferCallback(lSourceBuffer);
+            // Add new buffer to complete list.
+            this.mWavingBufferList.push(lStagingBuffer);
+        } else {
+            lStagingBuffer = this.mReadyBufferList.pop()!;
+        }
 
-        const lSize: number = pSize ?? lSourceBuffer.length;
+        // Execute write operations.
+        const lBufferArray: T = new this.type(lStagingBuffer.getMappedRange(pOffset, pSize));
+        pBufferCallback(lBufferArray);
 
-        // Write copied buffer.
-        this.gpu.device.queue.writeBuffer(lBuffer, pOffset, lSourceBuffer, 0, lSize);
+        // Unmap for copying data.
+        lStagingBuffer.unmap();
+
+        // Copy buffer data from staging into wavig buffer.
+        const lCommandDecoder: GPUCommandEncoder = this.gpu.device.createCommandEncoder();
+        lCommandDecoder.copyBufferToBuffer(lStagingBuffer, 0, this.native(), 0, this.size);
+        this.gpu.device.queue.submit([lCommandDecoder.finish()]);
+
+        // Shedule staging buffer remaping.
+        lStagingBuffer.mapAsync(GPUMapMode.WRITE).then(() => {
+            this.mReadyBufferList.push(lStagingBuffer);
+        });
     }
 
     /**
@@ -84,6 +115,16 @@ export abstract class WebGpuBuffer<T extends TypedArray> extends GpuNativeObject
      */
     protected override destroyNative(pNativeObject: GPUBuffer): void {
         pNativeObject.destroy();
+
+        // Destroy all wave buffer and clear list.
+        for (let lCount: number = 0; this.mWavingBufferList.length < lCount; lCount++) {
+            this.mWavingBufferList.pop()?.destroy();
+        }
+
+        // Clear ready buffer list.
+        for (let lCount: number = 0; this.mReadyBufferList.length < lCount; lCount++) {
+            this.mReadyBufferList.pop();
+        }
     }
 
     /**

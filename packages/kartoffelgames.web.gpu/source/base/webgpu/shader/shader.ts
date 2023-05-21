@@ -1,28 +1,28 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { BindGroupLayout } from '../bind_group/bind-group-layout';
-import { BindGroups } from '../bind_group/bind-groups';
-import { BufferType } from '../buffer/buffer_type/buffer-type';
-import { SimpleBufferType } from '../buffer/buffer_type/simple-buffer-type';
-import { StructBufferType } from '../buffer/buffer_type/struct-buffer-type';
-import { BindType } from '../bind_group/bind-type.enum';
-import { Gpu } from '../gpu';
-import { GpuNativeObject } from '../gpu-native-object';
-import { VertexAttribute } from '../pipeline/data/vertex-attribute';
-import { WgslShaderStage } from './enum/wgsl-shader-stage.enum';
-import { WgslTexelFormat } from './enum/wgsl-texel-format.enum';
-import { WgslType } from './enum/wgsl-type.enum';
+import { WebGpuBindType } from '../../../abstraction_layer/webgpu/bind_group/web-gpu-bind-type.enum';
+import { WebGpuShader } from '../../../abstraction_layer/webgpu/shader/web-gpu-shader';
+import { WebGpuDevice } from '../../../abstraction_layer/webgpu/web-gpu-device';
+import { IShader } from '../../interface/i-shader.interface';
+import { WgslShaderStage } from './wgsl_enum/wgsl-shader-stage.enum';
+import { WgslType } from './wgsl_enum/wgsl-type.enum';
+import { VertexAttribute } from '../../../abstraction_layer/webgpu/pipeline/data/vertex-attribute';
+import { SimpleBufferLayout } from '../buffer/buffer_layout/simple-buffer-layout';
+import { WgslTexelFormat } from './wgsl_enum/wgsl-texel-format.enum';
 import { ShaderInformation, WgslBind, WgslFunction } from './shader-analyzer';
+import { StructBufferLayout } from '../buffer/buffer_layout/struct-buffer-layout';
+import { WebGpuBindGroupLayout } from '../../../abstraction_layer/webgpu/bind_group/web-gpu-bind-group-layout';
+import { WebGpuBindGroups } from '../../../abstraction_layer/webgpu/bind_group/web-gpu-bind-groups';
+import { BufferLayout } from '../buffer/buffer_layout/buffer-layout';
 
-export class Shader extends GpuNativeObject<GPUShaderModule>{
-    private readonly mBindGroups: BindGroups;
+export class Shader extends WebGpuShader implements IShader {
+    private readonly mBindGroups: WebGpuBindGroups;
     private readonly mEntryPoints: EntryPoints;
     private readonly mShaderInformation: ShaderInformation;
-    private readonly mSource: string;
 
     /**
      * Get bind groups of shader.
      */
-    public get bindGroups(): BindGroups {
+    public get bindGroups(): WebGpuBindGroups {
         return this.mBindGroups;
     }
 
@@ -47,15 +47,9 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
         return this.mEntryPoints.vertex;
     }
 
-    /**
-     * Constructor.
-     * @param pGpu - GPU.
-     * @param pSource - Shader module source code.
-     */
-    public constructor(pGpu: Gpu, pSource: string) {
-        super(pGpu, 'SHADER');
+    public constructor(pDevice: WebGpuDevice, pSource: string) {
+        super(pDevice, pSource);
 
-        this.mSource = pSource;
         this.mShaderInformation = new ShaderInformation(pSource);
 
         // Generate from ShaderInformation. 
@@ -67,45 +61,38 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
         };
     }
 
-    /***
-     * Generate shader module.
-     */
-    protected generate(): GPUShaderModule {
-        return this.gpu.device.createShaderModule({ code: this.mSource });
-    }
-
     /**
      * Generate bind groups based on shader information.
      * @param pShaderInformation - Shader information.
      */
-    private generateBindGroups(pShaderInformation: ShaderInformation): BindGroups {
-        const lBindGroups: BindGroups = new BindGroups(this.gpu);
+    private generateBindGroups(pShaderInformation: ShaderInformation): WebGpuBindGroups {
+        const lBindGroups: WebGpuBindGroups = new WebGpuBindGroups(this.gpu);
 
         // Create new bing groups.
         for (const lBindGroupInformation of pShaderInformation.bindings) {
-            const lBindGroup: BindGroupLayout = lBindGroups.addGroup(lBindGroupInformation.group);
+            const lBindGroup: WebGpuBindGroupLayout = lBindGroups.addGroup(lBindGroupInformation.group);
 
             // Create each binding of group.
             for (const lWgslBind of lBindGroupInformation.binds) {
                 const lShaderBind: ShaderBind = this.getBindBasedOnType(lWgslBind);
                 switch (lShaderBind.bindType) {
-                    case BindType.Texture: {
+                    case WebGpuBindType.Texture: {
                         lBindGroup.addTexture(lShaderBind.name, lShaderBind.index, lShaderBind.visibility, lShaderBind.sampleType, lShaderBind.viewDimension, lShaderBind.multisampled);
                         break;
                     }
-                    case BindType.Buffer: {
+                    case WebGpuBindType.Buffer: {
                         lBindGroup.addBuffer(lShaderBind.name, lShaderBind.index, lShaderBind.visibility, lShaderBind.type, lShaderBind.hasDynamicOffset, lShaderBind.minBindingSize);
                         break;
                     }
-                    case BindType.Sampler: {
+                    case WebGpuBindType.Sampler: {
                         lBindGroup.addSampler(lShaderBind.name, lShaderBind.index, lShaderBind.visibility, lShaderBind.type);
                         break;
                     }
-                    case BindType.StorageTexture: {
+                    case WebGpuBindType.StorageTexture: {
                         lBindGroup.addStorageTexture(lShaderBind.name, lShaderBind.index, lShaderBind.visibility, lShaderBind.format, lShaderBind.access, lShaderBind.viewDimension);
                         break;
                     }
-                    case BindType.ExternalTexture: {
+                    case WebGpuBindType.ExternalTexture: {
                         lBindGroup.addExternalTexture(lShaderBind.name, lShaderBind.index, lShaderBind.visibility);
                         break;
                     }
@@ -147,7 +134,7 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
 
         // Get count of all result types with location attribute.
         let lResultLength: number = 1;
-        if (lShaderEntryPointFunction.return instanceof StructBufferType) {
+        if (lShaderEntryPointFunction.return instanceof StructBufferLayout) {
             lResultLength = lShaderEntryPointFunction.return.innerLocations().length;
         }
 
@@ -176,9 +163,9 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
         };
 
         // Get all parameter locations of entry point.
-        const lParameterLocationTypes: Array<BufferType> = new Array<BufferType>();
+        const lParameterLocationTypes: Array<BufferLayout> = new Array<BufferLayout>();
         for (const lParameter of lShaderEntryPointFunction.parameter) {
-            if (lParameter instanceof StructBufferType) {
+            if (lParameter instanceof StructBufferLayout) {
                 for (const lType of lParameter.innerLocations()) {
                     lParameterLocationTypes.push(lType);
                 }
@@ -189,7 +176,7 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
 
         // Generate new vertex attribute for each location.
         for (const lParameter of lParameterLocationTypes) {
-            if (!(lParameter instanceof SimpleBufferType)) {
+            if (!(lParameter instanceof SimpleBufferLayout)) {
                 throw new Exception('Vertex attributes can only be of a simple type.', this);
             }
 
@@ -224,7 +211,7 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
 
             // Bind 
             return <ShaderBufferBind>{
-                bindType: BindType.Buffer,
+                bindType: WebGpuBindType.Buffer,
                 index: pBind.index,
                 name: pBind.variable.name,
                 visibility: pBind.visibility,
@@ -237,7 +224,7 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
         // Bind only external textures.
         if (pBind.variable.type === WgslType.TextureExternal) {
             return <ShaderExternalTextureBind>{
-                bindType: BindType.ExternalTexture,
+                bindType: WebGpuBindType.ExternalTexture,
                 index: pBind.index,
                 name: pBind.variable.name,
                 visibility: pBind.visibility
@@ -251,7 +238,7 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
 
             // Exit.
             return <ShaderSamplerBind>{
-                bindType: BindType.Sampler,
+                bindType: WebGpuBindType.Sampler,
                 index: pBind.index,
                 name: pBind.variable.name,
                 visibility: pBind.visibility,
@@ -260,7 +247,7 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
         }
 
         // First generic texture is a wgsl type on color textures or nothing on depth textures.
-        if (!(pBind.variable instanceof SimpleBufferType)) {
+        if (!(pBind.variable instanceof SimpleBufferLayout)) {
             throw new Exception('Texture buffers can only be of simple buffer type', this);
         }
 
@@ -277,7 +264,7 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
 
             // Bind.
             return <ShaderStorageTextureBind>{
-                bindType: BindType.StorageTexture,
+                bindType: WebGpuBindType.StorageTexture,
                 index: pBind.index,
                 name: pBind.variable.name,
                 visibility: pBind.visibility,
@@ -323,7 +310,7 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
 
             // Exit.
             return <ShaderTextureBind>{
-                bindType: BindType.Texture,
+                bindType: WebGpuBindType.Texture,
                 index: pBind.index,
                 name: pBind.variable.name,
                 visibility: pBind.visibility,
@@ -377,6 +364,7 @@ export class Shader extends GpuNativeObject<GPUShaderModule>{
     }
 }
 
+
 export type ShaderVertexEntryPoint = {
     name: string,
     attributes: Array<VertexAttribute>;
@@ -401,28 +389,28 @@ type EntryPoints = {
 interface ShaderBaseBind {
     index: number;
     name: string;
-    bindType: BindType;
+    bindType: WebGpuBindType;
     visibility: WgslShaderStage;
 }
 
 interface ShaderBufferBind extends ShaderBaseBind, Required<GPUBufferBindingLayout> {
-    bindType: BindType.Buffer;
+    bindType: WebGpuBindType.Buffer;
 }
 
 interface ShaderSamplerBind extends ShaderBaseBind, Required<GPUSamplerBindingLayout> {
-    bindType: BindType.Sampler;
+    bindType: WebGpuBindType.Sampler;
 }
 
 interface ShaderTextureBind extends ShaderBaseBind, Required<GPUTextureBindingLayout> {
-    bindType: BindType.Texture;
+    bindType: WebGpuBindType.Texture;
 }
 
 interface ShaderStorageTextureBind extends ShaderBaseBind, Required<GPUStorageTextureBindingLayout> {
-    bindType: BindType.StorageTexture;
+    bindType: WebGpuBindType.StorageTexture;
 }
 
 interface ShaderExternalTextureBind extends ShaderBaseBind, Required<GPUExternalTextureBindingLayout> {
-    bindType: BindType.ExternalTexture;
+    bindType: WebGpuBindType.ExternalTexture;
 }
 
 export type ShaderBind = ShaderBufferBind | ShaderSamplerBind | ShaderTextureBind | ShaderStorageTextureBind | ShaderExternalTextureBind;

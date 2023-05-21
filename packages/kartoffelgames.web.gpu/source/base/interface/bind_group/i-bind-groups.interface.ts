@@ -1,6 +1,7 @@
+import { IGpuObject } from '../i-gpu-object.interface';
 import { IBindGroup } from './i-bind-group.interface';
 
-export interface IBindGroups {
+export interface IBindGroups extends IGpuObject {
     /**
      * Available group indcies.
      */

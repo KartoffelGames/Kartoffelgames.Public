@@ -5,14 +5,22 @@ import { IBuffer } from '../../interface/buffer/i-buffer.interface';
 import { IBufferLayout } from '../../interface/buffer/i-buffer-layout.interface';
 import { BufferLayout } from './buffer_layout/buffer-layout';
 
-export class Buffer<T extends TypedArray> extends WebGpuBuffer<T> implements IBuffer<T>  {
+export class Buffer<T extends TypedArray> implements IBuffer<T>  {
     private readonly mLayout: BufferLayout;
+    private readonly mNativeBuffer: WebGpuBuffer<T>;
 
     /**
      * Buffer layout.
      */
     public get layout(): IBufferLayout {
         return this.mLayout;
+    }
+
+    /**
+     * Buffer size.
+     */
+    public get size(): number {
+        return this.mNativeBuffer.size;
     }
 
     /**
@@ -23,8 +31,15 @@ export class Buffer<T extends TypedArray> extends WebGpuBuffer<T> implements IBu
      * @param pInitialData  - Inital data. Can be empty.
      */
     public constructor(pGpu: WebGpuDevice, pLayout: BufferLayout, pUsage: GPUFlagsConstant, pInitialData: T) {
-        super(pGpu, pUsage | GPUBufferUsage.COPY_DST, pInitialData);
+        this.mNativeBuffer = new WebGpuBuffer<T>(pGpu, pUsage, pInitialData);
         this.mLayout = pLayout;
+    }
+
+    /**
+     * Destroy buffer object.
+     */
+    public destroy(): void {
+        this.mNativeBuffer.destroy();
     }
 
     /**
@@ -42,7 +57,7 @@ export class Buffer<T extends TypedArray> extends WebGpuBuffer<T> implements IBu
      * @param pSize - Data size.
      */
     public async readRaw(pOffset?: number, pSize?: number): Promise<T> {
-        return this.readData(pOffset, pSize);
+        return this.mNativeBuffer.read(pOffset, pSize);
     }
 
     /**
@@ -65,7 +80,7 @@ export class Buffer<T extends TypedArray> extends WebGpuBuffer<T> implements IBu
      */
     public async writeRaw(pData: T, pOffset?: number, pSize?: number): Promise<void> {
         // Data write is synchron.
-        this.writeData((pBuffer: T) => {
+        this.mNativeBuffer.write((pBuffer: T) => {
             pBuffer.set(pData);
         }, pOffset, pSize);
     }

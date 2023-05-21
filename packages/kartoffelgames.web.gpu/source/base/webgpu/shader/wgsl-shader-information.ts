@@ -8,7 +8,7 @@ import { WgslBindingType } from './wgsl_enum/wgsl-binding-type.enum';
 import { WgslShaderStage } from './wgsl_enum/wgsl-shader-stage.enum';
 import { WgslType } from './wgsl_enum/wgsl-type.enum';
 
-export class ShaderInformation {
+export class WgslShaderInformation {
     private readonly mBindings: Array<WgslBindGroup>;
     private readonly mEntryPoints: Dictionary<WgslShaderStage, WgslFunction>;
     private readonly mSource: string;

@@ -8,7 +8,7 @@ import { WgslType } from './wgsl_enum/wgsl-type.enum';
 import { VertexAttribute } from '../../../abstraction_layer/webgpu/pipeline/data/vertex-attribute';
 import { SimpleBufferLayout } from '../buffer/buffer_layout/simple-buffer-layout';
 import { WgslTexelFormat } from './wgsl_enum/wgsl-texel-format.enum';
-import { ShaderInformation, WgslBind, WgslFunction } from './shader-analyzer';
+import { WgslShaderInformation, WgslBind, WgslFunction } from './wgsl-shader-information';
 import { StructBufferLayout } from '../buffer/buffer_layout/struct-buffer-layout';
 import { WebGpuBindGroupLayout } from '../../../abstraction_layer/webgpu/bind_group/web-gpu-bind-group-layout';
 import { WebGpuBindGroups } from '../../../abstraction_layer/webgpu/bind_group/web-gpu-bind-groups';
@@ -17,7 +17,7 @@ import { BufferLayout } from '../buffer/buffer_layout/buffer-layout';
 export class Shader extends WebGpuShader implements IShader {
     private readonly mBindGroups: WebGpuBindGroups;
     private readonly mEntryPoints: EntryPoints;
-    private readonly mShaderInformation: ShaderInformation;
+    private readonly mShaderInformation: WgslShaderInformation;
 
     /**
      * Get bind groups of shader.
@@ -50,7 +50,7 @@ export class Shader extends WebGpuShader implements IShader {
     public constructor(pDevice: WebGpuDevice, pSource: string) {
         super(pDevice, pSource);
 
-        this.mShaderInformation = new ShaderInformation(pSource);
+        this.mShaderInformation = new WgslShaderInformation(pSource);
 
         // Generate from ShaderInformation. 
         this.mBindGroups = this.generateBindGroups(this.mShaderInformation);
@@ -65,7 +65,7 @@ export class Shader extends WebGpuShader implements IShader {
      * Generate bind groups based on shader information.
      * @param pShaderInformation - Shader information.
      */
-    private generateBindGroups(pShaderInformation: ShaderInformation): WebGpuBindGroups {
+    private generateBindGroups(pShaderInformation: WgslShaderInformation): WebGpuBindGroups {
         const lBindGroups: WebGpuBindGroups = new WebGpuBindGroups(this.gpu);
 
         // Create new bing groups.
@@ -107,7 +107,7 @@ export class Shader extends WebGpuShader implements IShader {
      * Generate compute entry point.
      * @param pShaderInformation - Shader information.
      */
-    private generateComputeEntryPoint(pShaderInformation: ShaderInformation): ShaderComputeEntryPoint | undefined {
+    private generateComputeEntryPoint(pShaderInformation: WgslShaderInformation): ShaderComputeEntryPoint | undefined {
         // Find entry point information.
         const lShaderEntryPointFunction: WgslFunction | undefined = pShaderInformation.entryPoints.get(WgslShaderStage.Compute);
         if (!lShaderEntryPointFunction) {
@@ -125,7 +125,7 @@ export class Shader extends WebGpuShader implements IShader {
      * Generate compute entry point.
      * @param pShaderInformation - Shader information.
      */
-    private generateFragmentEntryPoint(pShaderInformation: ShaderInformation): ShaderFragmentEntryPoint | undefined {
+    private generateFragmentEntryPoint(pShaderInformation: WgslShaderInformation): ShaderFragmentEntryPoint | undefined {
         // Find entry point information.
         const lShaderEntryPointFunction: WgslFunction | undefined = pShaderInformation.entryPoints.get(WgslShaderStage.Fragment);
         if (!lShaderEntryPointFunction) {
@@ -150,7 +150,7 @@ export class Shader extends WebGpuShader implements IShader {
      * Generate vertex entry point.
      * @param pShaderInformation - Shader information.
      */
-    private generateVertexEntryPoint(pShaderInformation: ShaderInformation): ShaderVertexEntryPoint | undefined {
+    private generateVertexEntryPoint(pShaderInformation: WgslShaderInformation): ShaderVertexEntryPoint | undefined {
         // Find entry point information.
         const lShaderEntryPointFunction: WgslFunction | undefined = pShaderInformation.entryPoints.get(WgslShaderStage.Vertex);
         if (!lShaderEntryPointFunction) {

@@ -1,4 +1,4 @@
-import { Gpu } from '../../gpu';
+import { WebGpuDevice } from '../../web-gpu-device';
 import { GpuNativeObject } from '../../gpu-native-object';
 import { ITexture } from './i-texture.interface';
 
@@ -102,7 +102,7 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
      * @param pBaseLayer - Base layer of view.
      * @param pLayerCount - Depth of view.
      */
-    public constructor(pGpu: Gpu, pTexture: ITexture, pBaseLayer?: number, pLayerCount?: number) {
+    public constructor(pGpu: WebGpuDevice, pTexture: ITexture, pBaseLayer?: number, pLayerCount?: number) {
         super(pGpu, 'TEXTURE_VIEW');
 
         this.mTexture = pTexture;

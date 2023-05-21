@@ -1,16 +1,16 @@
-import { ViewProjection, CameraMatrix } from '../../source/base/view_projection/view-projection';
-import { OrthographicProjection } from '../../source/base/view_projection/projection/orthographic -projection';
-import { PerspectiveProjection } from '../../source/base/view_projection/projection/perspective-projection';
-import { Transform, TransformMatrix } from '../../source/base/transform';
+import { ViewProjection, CameraMatrix } from '../../source/something_better/view_projection/view-projection';
+import { OrthographicProjection } from '../../source/something_better/view_projection/projection/orthographic -projection';
+import { PerspectiveProjection } from '../../source/something_better/view_projection/projection/perspective-projection';
+import { Transform, TransformMatrix } from '../../source/something_better/transform';
 import { AttachmentType } from '../../source/abstraction_layer/webgpu/pass_descriptor/attachment-type.enum';
 import { Attachments } from '../../source/abstraction_layer/webgpu/pass_descriptor/attachments';
 import { RenderParameter } from '../../source/abstraction_layer/webgpu/execution/parameter/render-parameter';
 import { InstructionExecuter } from '../../source/abstraction_layer/webgpu/execution/instruction-executer';
 import { RenderInstruction } from '../../source/abstraction_layer/webgpu/execution/instruction/render-instruction';
-import { Gpu } from '../../source/abstraction_layer/webgpu/gpu';
+import { WebGpuDevice } from '../../source/abstraction_layer/webgpu/web-gpu-device';
 import { RenderPipeline } from '../../source/abstraction_layer/webgpu/pipeline/render-pipeline';
 import { SimpleBuffer } from '../../source/abstraction_layer/webgpu/buffer/simple-buffer';
-import { Shader } from '../../source/abstraction_layer/webgpu/shader/shader';
+import { WebGpuShader } from '../../source/abstraction_layer/webgpu/shader/web-gpu-shader';
 import shader from './shader.wgsl';
 import { RenderPassDescriptor } from '../../source/abstraction_layer/webgpu/pass_descriptor/render-pass-descriptor';
 import { RenderInstructionSet } from '../../source/abstraction_layer/webgpu/execution/instruction_set/render-instruction-set';
@@ -20,7 +20,7 @@ import { TextureUsage } from '../../source/abstraction_layer/webgpu/texture_reso
 import { TextureSampler } from '../../source/abstraction_layer/webgpu/texture_resource/texture-sampler';
 import { BaseInputDevice, DeviceConfiguration, InputConfiguration, InputDevices, KeyboardButton, MouseButton, MouseKeyboardConnector } from '@kartoffelgames/web.game-input';
 import { Dictionary } from '@kartoffelgames/core.data';
-import { AmbientLight } from '../../source/base/light/ambient-light';
+import { AmbientLight } from '../../source/something_better/light/ambient-light';
 
 const gHeight: number = 10;
 const gWidth: number = 10;
@@ -31,13 +31,13 @@ const gDepth: number = 10;
     const lFpsCounter: HTMLSpanElement = <HTMLInputElement>document.querySelector('#fpsCounter');
 
     // Create gpu.
-    const lGpu: Gpu = await Gpu.create('high-performance');
+    const lGpu: WebGpuDevice = await WebGpuDevice.create('high-performance');
 
     // Init canvas.
     const lCanvas: HTMLCanvasElement = <HTMLCanvasElement>document.getElementById('canvas');
 
     // Init shader.
-    const lShader: Shader = new Shader(lGpu, shader);
+    const lShader: WebGpuShader = new WebGpuShader(lGpu, shader);
 
     // Create depth and color attachments.
     const lAttachments: Attachments = new Attachments(lGpu, 4);

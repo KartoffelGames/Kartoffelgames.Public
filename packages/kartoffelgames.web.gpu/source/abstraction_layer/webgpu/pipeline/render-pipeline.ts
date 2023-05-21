@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { Gpu } from '../gpu';
+import { WebGpuDevice } from '../web-gpu-device';
 import { GpuNativeObject } from '../gpu-native-object';
-import { Shader } from '../shader/shader';
+import { WebGpuShader } from '../shader/web-gpu-shader';
 import { IPipeline } from './i-pipeline.interface';
 import { RenderPassDescriptor } from '../pass_descriptor/render-pass-descriptor';
 import { Attachment } from '../pass_descriptor/type/attachment';
@@ -11,7 +11,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
     private mDepthWriteEnabled: boolean;
     private readonly mPrimitive: GPUPrimitiveState;
     private readonly mRenderPass: RenderPassDescriptor;
-    private readonly mShader: Shader;
+    private readonly mShader: WebGpuShader;
 
     /**
      * Set depth compare function.
@@ -71,7 +71,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
     /**
      * Shader.
      */
-    public get shader(): Shader {
+    public get shader(): WebGpuShader {
         return this.mShader;
     }
 
@@ -103,7 +103,7 @@ export class RenderPipeline extends GpuNativeObject<GPURenderPipeline> implement
      * Constructor.
      * @param pGpu - GPU.
      */
-    public constructor(pGpu: Gpu, pShader: Shader, pRenderPass: RenderPassDescriptor) {
+    public constructor(pGpu: WebGpuDevice, pShader: WebGpuShader, pRenderPass: RenderPassDescriptor) {
         super(pGpu, 'RENDER_PIPELINE');
 
         // Set statics.

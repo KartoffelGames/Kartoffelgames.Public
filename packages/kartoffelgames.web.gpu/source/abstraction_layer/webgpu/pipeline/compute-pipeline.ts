@@ -1,16 +1,16 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { Gpu } from '../gpu';
+import { WebGpuDevice } from '../web-gpu-device';
 import { GpuNativeObject } from '../gpu-native-object';
-import { Shader } from '../shader/shader';
+import { WebGpuShader } from '../shader/web-gpu-shader';
 import { IPipeline } from './i-pipeline.interface';
 
 export class ComputePipeline extends GpuNativeObject<GPUComputePipeline> implements IPipeline {
-    private readonly mShader: Shader;
+    private readonly mShader: WebGpuShader;
 
     /**
      * Shader.
      */
-    public get shader(): Shader {
+    public get shader(): WebGpuShader {
         return this.mShader;
     }
 
@@ -18,7 +18,7 @@ export class ComputePipeline extends GpuNativeObject<GPUComputePipeline> impleme
      * Constructor.
      * @param pGpu - GPU.
      */
-    public constructor(pGpu: Gpu, pShader: Shader) {
+    public constructor(pGpu: WebGpuDevice, pShader: WebGpuShader) {
         super(pGpu, 'COMPUTE_PIPELINE');
 
         // Check valid entry points.

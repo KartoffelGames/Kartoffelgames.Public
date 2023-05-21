@@ -1,5 +1,5 @@
 import { TextureUsage } from './texture-usage.enum';
-import { Gpu } from '../../gpu';
+import { WebGpuDevice } from '../../web-gpu-device';
 import { GpuNativeObject } from '../../gpu-native-object';
 import { ITexture } from './i-texture.interface';
 import { TextureView } from './texture-view';
@@ -73,7 +73,7 @@ export class CanvasTexture extends GpuNativeObject<GPUTexture> implements ITextu
      * @param pFormat - Texture color format.
      * @param pUsage - Texture usage.
      */
-    public constructor(pGpu: Gpu, pCanvas: HTMLCanvasElement, pFormat: GPUTextureFormat, pUsage: TextureUsage) {
+    public constructor(pGpu: WebGpuDevice, pCanvas: HTMLCanvasElement, pFormat: GPUTextureFormat, pUsage: TextureUsage) {
         super(pGpu, 'CANVAS_TEXTURE');
 
         this.mCanvas = pCanvas;

@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { Gpu } from '../gpu';
+import { WebGpuDevice } from '../web-gpu-device';
 import { GpuNativeObject } from '../gpu-native-object';
 import { Attachments } from './attachments';
 import { Attachment } from './type/attachment';
@@ -37,7 +37,7 @@ export class RenderPassDescriptor extends GpuNativeObject<GPURenderPassDescripto
      * @param pGpu - Gpu.
      * @param pAttachments - Attachments. 
      */
-    public constructor(pGpu: Gpu, pAttachments: Attachments) {
+    public constructor(pGpu: WebGpuDevice, pAttachments: Attachments) {
         super(pGpu, 'RENDER_PASS_DESCRIPTOR');
 
         // Set statics.

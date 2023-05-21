@@ -1,12 +1,12 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { Gpu } from './gpu';
+import { WebGpuDevice } from './web-gpu-device';
 
 /**
  * Gpu native object.
  */
 export abstract class GpuNativeObject<T extends object> {
     private readonly mChangeListener: Dictionary<GpuNativeObject<any>, GenericListener>;
-    private readonly mGpu: Gpu;
+    private readonly mGpu: WebGpuDevice;
     private readonly mInternalList: Set<GpuNativeObject<any>>;
     private mLabel: string;
     private readonly mNativeName: string;
@@ -29,7 +29,7 @@ export abstract class GpuNativeObject<T extends object> {
     /**
      * Get global gpu.
      */
-    protected get gpu(): Gpu {
+    protected get gpu(): WebGpuDevice {
         return this.mGpu;
     }
 
@@ -38,7 +38,7 @@ export abstract class GpuNativeObject<T extends object> {
      * @param pGpu - Gpu object.
      * @param pNativeName - Name of native label.
      */
-    public constructor(pGpu: Gpu, pNativeName: string) {
+    public constructor(pGpu: WebGpuDevice, pNativeName: string) {
         this.mGpu = pGpu;
         this.mNativeObject = null;
         this.mLabel = '';

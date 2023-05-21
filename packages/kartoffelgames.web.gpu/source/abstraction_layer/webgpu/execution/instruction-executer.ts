@@ -1,9 +1,9 @@
 import { List } from '@kartoffelgames/core.data';
-import { Gpu } from '../gpu';
+import { WebGpuDevice } from '../web-gpu-device';
 import { IInstructionSet } from './instruction_set/i-instruction-set';
 
 export class InstructionExecuter {
-    private readonly mGpu: Gpu;
+    private readonly mGpu: WebGpuDevice;
 
     private readonly mInstructionSetList: List<IInstructionSet>;
 
@@ -11,7 +11,7 @@ export class InstructionExecuter {
      * Constructor.
      * @param pGpu - Gpu.
      */
-    public constructor(pGpu: Gpu) {
+    public constructor(pGpu: WebGpuDevice) {
         this.mGpu = pGpu;
 
         // Instruction sets.

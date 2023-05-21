@@ -1,12 +1,12 @@
 import { Dictionary, EnumUtil, Exception } from '@kartoffelgames/core.data';
-import { ArrayBufferType } from '../buffer/buffer_type/array-buffer-type';
-import { BufferType } from '../buffer/buffer_type/buffer-type';
-import { SimpleBufferType } from '../buffer/buffer_type/simple-buffer-type';
-import { StructBufferType } from '../buffer/buffer_type/struct-buffer-type';
-import { WgslAccessMode } from './enum/wgsl-access-mode.enum';
-import { WgslBindingType } from './enum/wgsl-binding-type.enum';
-import { WgslShaderStage } from './enum/wgsl-shader-stage.enum';
-import { WgslType } from './enum/wgsl-type.enum';
+import { ArrayBufferLayout } from '../buffer/buffer_layout/array-buffer-layout';
+import { BufferLayout } from '../buffer/buffer_layout/buffer-layout';
+import { SimpleBufferLayout } from '../buffer/buffer_layout/simple-buffer-layout';
+import { StructBufferLayout } from '../buffer/buffer_layout/struct-buffer-layout';
+import { WgslAccessMode } from './wgsl_enum/wgsl-access-mode.enum';
+import { WgslBindingType } from './wgsl_enum/wgsl-binding-type.enum';
+import { WgslShaderStage } from './wgsl_enum/wgsl-shader-stage.enum';
+import { WgslType } from './wgsl_enum/wgsl-type.enum';
 
 export class ShaderInformation {
     private readonly mBindings: Array<WgslBindGroup>;
@@ -42,7 +42,7 @@ export class ShaderInformation {
      * Create buffer type from variable definition.
      * @param pVariable - Variable definition.
      */
-    private createBufferType(pVariable: WgslVariable): BufferType {
+    private createBufferType(pVariable: WgslVariable): BufferLayout {
         // String to type. Undefined must be an struct type.
         const lType: WgslType | null = this.wgslTypeByName(pVariable.type);
         if (lType === WgslType.Enum) {
@@ -100,15 +100,15 @@ export class ShaderInformation {
             lLocationIndex = parseInt(lLocationValue);
         }
 
-        let lBufferType: BufferType;
+        let lBufferType: BufferLayout;
         switch (lType) {
             case WgslType.Struct: {
-                const lStructType: StructBufferType = new StructBufferType(pVariable.name, pVariable.type, lAccessMode, lBindingType, lLocationIndex);
+                const lStructType: StructBufferLayout = new StructBufferLayout(pVariable.name, pVariable.type, lAccessMode, lBindingType, lLocationIndex);
 
                 // Get struct body and fetch types.
                 const lStructBody: string = this.getStructBody(pVariable.type);
                 this.fetchVariableDefinitions(lStructBody).forEach((pPropertyVariable, pIndex) => {
-                    const lProperyBufferType: BufferType = this.createBufferType(pPropertyVariable);
+                    const lProperyBufferType: BufferLayout = this.createBufferType(pPropertyVariable);
 
                     // Add property to struct buffer type.
                     lStructType.addProperty(pIndex, lProperyBufferType);
@@ -125,7 +125,7 @@ export class ShaderInformation {
 
                 // Fetch first generic by extending generic type to a variable definition and parse recursive.
                 const lTypeGeneric: WgslVariable | undefined = this.fetchVariableDefinitions(`PLACEHOLDER: ${pVariable.generics.at(0)!};`).at(0)!;
-                const lTypeGenericBufferType: BufferType = this.createBufferType(lTypeGeneric);
+                const lTypeGenericBufferType: BufferLayout = this.createBufferType(lTypeGeneric);
 
                 // Fetch optional size gerneric.
                 let lSizeGeneric: number = -1;
@@ -137,7 +137,7 @@ export class ShaderInformation {
                 }
 
                 // Create array buffer type.
-                lBufferType = new ArrayBufferType(pVariable.name, lTypeGenericBufferType, lSizeGeneric, lAccessMode, lBindingType, lLocationIndex);
+                lBufferType = new ArrayBufferLayout(pVariable.name, lTypeGenericBufferType, lSizeGeneric, lAccessMode, lBindingType, lLocationIndex);
                 break;
             }
             default: {
@@ -148,7 +148,7 @@ export class ShaderInformation {
                 const lPseudoVariableList: Array<WgslVariable> = this.fetchVariableDefinitions(lPseudoStructBody);
                 const lGenericList: Array<WgslType> = lPseudoVariableList.map((pVariable) => { return this.wgslTypeByName(pVariable.type); });
 
-                lBufferType = new SimpleBufferType(pVariable.name, lType, lGenericList, lAccessMode, lBindingType, lLocationIndex);
+                lBufferType = new SimpleBufferLayout(pVariable.name, lType, lGenericList, lAccessMode, lBindingType, lLocationIndex);
                 break;
             }
         }
@@ -261,10 +261,10 @@ export class ShaderInformation {
 
             // Fetch Parameter.
             const lParameterVariableList: Array<WgslVariable> = this.fetchVariableDefinitions(lFunctionMatch.groups!['parameter']!);
-            const lParameterList: Array<BufferType> = lParameterVariableList.map((pVariable) => { return this.createBufferType(pVariable); });
+            const lParameterList: Array<BufferLayout> = lParameterVariableList.map((pVariable) => { return this.createBufferType(pVariable); });
 
             // Fetch result type.
-            let lResult: BufferType | null = null;
+            let lResult: BufferLayout | null = null;
             if (lFunctionMatch.groups!['result']) {
                 const lResultVariable: WgslVariable = this.fetchVariableDefinitions(lFunctionMatch.groups!['result']!).at(0)!;
                 lResult = this.createBufferType(lResultVariable);
@@ -380,7 +380,7 @@ export class ShaderInformation {
 
 export type WgslBind = {
     visibility: WgslShaderStage;
-    variable: BufferType;
+    variable: BufferLayout;
     index: number;
 };
 
@@ -392,8 +392,8 @@ export type WgslBindGroup = {
 export type WgslFunction = {
     attributes: Array<string>;
     name: string;
-    parameter: Array<BufferType>;
-    return: BufferType | null;
+    parameter: Array<BufferLayout>;
+    return: BufferLayout | null;
 };
 
 type WgslVariable = {

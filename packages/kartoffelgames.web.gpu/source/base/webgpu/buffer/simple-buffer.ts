@@ -69,5 +69,4 @@ export class SimpleBuffer<T extends TypedArray> extends WebGpuBuffer<T> implemen
             pBuffer.set(pData);
         }, pOffset, pSize);
     }
-
 }

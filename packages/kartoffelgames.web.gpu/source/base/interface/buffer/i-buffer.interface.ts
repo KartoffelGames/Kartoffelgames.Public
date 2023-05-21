@@ -1,7 +1,8 @@
 import { TypedArray } from '@kartoffelgames/core.data';
 import { IBufferLayout } from './i-buffer-layout.interface';
+import { IGpuObject } from '../i-gpu-object.interface';
 
-export interface IBuffer<T extends TypedArray> {
+export interface IBuffer<T extends TypedArray> extends IGpuObject {
     /**
      * Buffer size in bytes.
      */

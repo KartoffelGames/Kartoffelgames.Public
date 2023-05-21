@@ -1,4 +1,6 @@
-export interface IBufferLayout {
+import { IGpuObject } from '../i-gpu-object.interface';
+
+export interface IBufferLayout extends IGpuObject {
     /**
      * Layout byte alignment.
      */

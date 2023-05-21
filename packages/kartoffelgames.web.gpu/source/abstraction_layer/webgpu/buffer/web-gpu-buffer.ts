@@ -43,7 +43,7 @@ export class WebGpuBuffer<T extends TypedArray> extends GpuNativeObject<GPUBuffe
     public constructor(pGpu: WebGpuDevice, pUsage: GPUFlagsConstant, pData: T) {
         super(pGpu, 'BUFFER');
 
-        this.mBufferUsage = pUsage;
+        this.mBufferUsage = pUsage | GPUBufferUsage.COPY_DST;
         this.mInitData = pData;
         this.mBufferLength = pData.length;
         this.mDataType = <BufferDataType<T>>pData.constructor;

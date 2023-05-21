@@ -1,6 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
 
-export class Gpu {
+export class WebGpuDevice {
     private static readonly mAdapters: Dictionary<string, GPUAdapter> = new Dictionary<string, GPUAdapter>();
     private static readonly mDevices: Dictionary<GPUAdapter, GPUDevice> = new Dictionary<GPUAdapter, GPUDevice>();
 
@@ -8,24 +8,24 @@ export class Gpu {
      * Create GPU device.
      * @param pMode - Prefered device mode.
      */
-    public static async create(pMode: GPUPowerPreference): Promise<Gpu> {
+    public static async create(pMode: GPUPowerPreference): Promise<WebGpuDevice> {
         // Try to load cached adapter. When not cached, request new one.
-        const lAdapter: GPUAdapter | null = Gpu.mAdapters.get(pMode) ?? await window.navigator.gpu.requestAdapter({ powerPreference: pMode });
+        const lAdapter: GPUAdapter | null = WebGpuDevice.mAdapters.get(pMode) ?? await window.navigator.gpu.requestAdapter({ powerPreference: pMode });
         if (lAdapter) {
-            Gpu.mAdapters.set(pMode, lAdapter);
+            WebGpuDevice.mAdapters.set(pMode, lAdapter);
         } else {
-            throw new Exception('Error requesting GPU adapter', Gpu);
+            throw new Exception('Error requesting GPU adapter', WebGpuDevice);
         }
 
         // Try to load cached device. When not cached, request new one.
-        const lDevice: GPUDevice | null = Gpu.mDevices.get(lAdapter) ?? await lAdapter.requestDevice();
+        const lDevice: GPUDevice | null = WebGpuDevice.mDevices.get(lAdapter) ?? await lAdapter.requestDevice();
         if (lAdapter) {
-            Gpu.mDevices.set(lAdapter, lDevice);
+            WebGpuDevice.mDevices.set(lAdapter, lDevice);
         } else {
-            throw new Exception('Error requesting GPU device', Gpu);
+            throw new Exception('Error requesting GPU device', WebGpuDevice);
         }
 
-        return new Gpu(lAdapter, lDevice);
+        return new WebGpuDevice(lAdapter, lDevice);
     }
 
     private readonly mGpuAdapter: GPUAdapter;

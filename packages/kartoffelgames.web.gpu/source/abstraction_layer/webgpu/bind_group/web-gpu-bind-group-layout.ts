@@ -1,11 +1,11 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
-import { BindType } from './bind-type.enum';
-import { Gpu } from '../gpu';
+import { WebGpuBindType } from './web-gpu-bind-type.enum';
+import { WebGpuDevice } from '../web-gpu-device';
 import { GpuNativeObject } from '../gpu-native-object';
-import { BindGroup } from './bind-group';
-import { WgslShaderStage } from '../shader/enum/wgsl-shader-stage.enum';
+import { WebGpuBindGroup } from './web-gpu-bind-group';
+import { WgslShaderStage } from '../../../base/webgpu/shader/wgsl_enum/wgsl-shader-stage.enum';
 
-export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
+export class WebGpuBindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     private readonly mGroupBinds: Dictionary<string, BindLayout>;
 
     /**
@@ -30,7 +30,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
      * Constructor.
      * @param pGpu - GPU.
      */
-    public constructor(pGpu: Gpu) {
+    public constructor(pGpu: WebGpuDevice) {
         super(pGpu, 'BIND_GROUP_LAYOUT');
         this.mGroupBinds = new Dictionary<string, BindLayout>();
     }
@@ -47,7 +47,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     public addBuffer(pName: string, pIndex: number, pVisibility: WgslShaderStage, pBindingType: GPUBufferBindingType = 'uniform', pHasDynamicOffset: boolean = false, pMinBindingSize: GPUSize64 = 0): void {
         this.mGroupBinds.set(pName, {
             index: pIndex,
-            bindType: BindType.Buffer,
+            bindType: WebGpuBindType.Buffer,
             name: pName,
             visibility: pVisibility,
             type: pBindingType,
@@ -68,7 +68,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     public addExternalTexture(pName: string, pIndex: number, pVisibility: WgslShaderStage): void {
         this.mGroupBinds.set(pName, {
             index: pIndex,
-            bindType: BindType.ExternalTexture,
+            bindType: WebGpuBindType.ExternalTexture,
             name: pName,
             visibility: pVisibility,
         });
@@ -87,7 +87,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     public addSampler(pName: string, pIndex: number, pVisibility: WgslShaderStage, pSampleType: GPUSamplerBindingType = 'filtering'): void {
         this.mGroupBinds.set(pName, {
             index: pIndex,
-            bindType: BindType.Sampler,
+            bindType: WebGpuBindType.Sampler,
             name: pName,
             visibility: pVisibility,
             type: pSampleType
@@ -110,7 +110,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
         this.mGroupBinds.set(pName, {
             name: pName,
             index: pIndex,
-            bindType: BindType.StorageTexture,
+            bindType: WebGpuBindType.StorageTexture,
             visibility: pVisibility,
             access: pStorageAccess,
             format: pFormat,
@@ -134,7 +134,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
         this.mGroupBinds.set(pName, {
             name: pName,
             index: pIndex,
-            bindType: BindType.Texture,
+            bindType: WebGpuBindType.Texture,
             visibility: pVisibility,
             sampleType: pSampleType,
             viewDimension: pViewDimension,
@@ -148,8 +148,8 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     /**
      * Create bind group based on this layout.
      */
-    public createBindGroup(): BindGroup {
-        const lBindGroup = new BindGroup(this.gpu, this);
+    public createBindGroup(): WebGpuBindGroup {
+        const lBindGroup = new WebGpuBindGroup(this.gpu, this);
         lBindGroup.label = this.label;
 
         return lBindGroup;
@@ -220,7 +220,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
             };
 
             switch (lEntry.bindType) {
-                case BindType.Buffer: {
+                case WebGpuBindType.Buffer: {
                     const lBufferLayout: Required<GPUBufferBindingLayout> = {
                         type: lEntry.type,
                         minBindingSize: lEntry.minBindingSize,
@@ -229,7 +229,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
                     lLayoutEntry.buffer = lBufferLayout;
                     break;
                 }
-                case BindType.Texture: {
+                case WebGpuBindType.Texture: {
                     const lTextureLayout: Required<GPUTextureBindingLayout> = {
                         sampleType: lEntry.sampleType,
                         multisampled: lEntry.multisampled,
@@ -238,12 +238,12 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
                     lLayoutEntry.texture = lTextureLayout;
                     break;
                 }
-                case BindType.ExternalTexture: {
+                case WebGpuBindType.ExternalTexture: {
                     const lExternalTextureLayout: Required<GPUExternalTextureBindingLayout> = {};
                     lLayoutEntry.externalTexture = lExternalTextureLayout;
                     break;
                 }
-                case BindType.StorageTexture: {
+                case WebGpuBindType.StorageTexture: {
                     const lStorageTextureLayout: Required<GPUStorageTextureBindingLayout> = {
                         access: lEntry.access,
                         format: lEntry.format,
@@ -252,7 +252,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
                     lLayoutEntry.storageTexture = lStorageTextureLayout;
                     break;
                 }
-                case BindType.Sampler: {
+                case WebGpuBindType.Sampler: {
                     const lSamplerLayout: Required<GPUSamplerBindingLayout> = {
                         type: lEntry.type
                     };
@@ -275,34 +275,34 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
 interface BaseBindLayout {
     index: number;
     name: string;
-    bindType: BindType;
+    bindType: WebGpuBindType;
     visibility: WgslShaderStage;
 }
 
 interface BufferBindLayout extends BaseBindLayout, Required<GPUBufferBindingLayout> {
-    bindType: BindType.Buffer;
+    bindType: WebGpuBindType.Buffer;
 }
 
 interface SamplerBindLayout extends BaseBindLayout, Required<GPUSamplerBindingLayout> {
-    bindType: BindType.Sampler;
+    bindType: WebGpuBindType.Sampler;
 }
 
 interface TextureBindLayout extends BaseBindLayout, Required<GPUTextureBindingLayout> {
-    bindType: BindType.Texture;
+    bindType: WebGpuBindType.Texture;
 }
 
 interface StorageTextureBindLayout extends BaseBindLayout, Required<GPUStorageTextureBindingLayout> {
-    bindType: BindType.StorageTexture;
+    bindType: WebGpuBindType.StorageTexture;
 }
 
 interface ExternalTextureBindLayout extends BaseBindLayout, Required<GPUExternalTextureBindingLayout> {
-    bindType: BindType.ExternalTexture;
+    bindType: WebGpuBindType.ExternalTexture;
 }
 
 type BindLayout = BufferBindLayout | SamplerBindLayout | TextureBindLayout | StorageTextureBindLayout | ExternalTextureBindLayout;
 
 export type BindInformation = {
     name: string,
-    type: BindType,
+    type: WebGpuBindType,
     index: number;
 };

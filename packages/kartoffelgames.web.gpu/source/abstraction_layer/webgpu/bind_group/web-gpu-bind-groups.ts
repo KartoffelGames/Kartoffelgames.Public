@@ -1,10 +1,10 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
-import { Gpu } from '../gpu';
+import { WebGpuDevice } from '../web-gpu-device';
 import { GpuNativeObject } from '../gpu-native-object';
-import { BindGroupLayout } from './bind-group-layout';
+import { WebGpuBindGroupLayout } from './web-gpu-bind-group-layout';
 
-export class BindGroups extends GpuNativeObject<GPUPipelineLayoutDescriptor>{
-    private readonly mBindGroups: Dictionary<number, BindGroupLayout>;
+export class WebGpuBindGroups extends GpuNativeObject<GPUPipelineLayoutDescriptor>{
+    private readonly mBindGroups: Dictionary<number, WebGpuBindGroupLayout>;
 
     /**
      * Bind group count.
@@ -17,9 +17,9 @@ export class BindGroups extends GpuNativeObject<GPUPipelineLayoutDescriptor>{
      * Constructor.
      * @param pGpu  - Gpu.
      */
-    public constructor(pGpu: Gpu) {
+    public constructor(pGpu: WebGpuDevice) {
         super(pGpu, 'PIPELINE_LAYOUT_DESCRIPTOR');
-        this.mBindGroups = new Dictionary<number, BindGroupLayout>();
+        this.mBindGroups = new Dictionary<number, WebGpuBindGroupLayout>();
     }
 
     /**
@@ -27,13 +27,13 @@ export class BindGroups extends GpuNativeObject<GPUPipelineLayoutDescriptor>{
      * @param pIndex - Group index.
      * @param pLayout - [Optional] Bind group Layout.
      */
-    public addGroup(pIndex: number, pLayout?: BindGroupLayout): BindGroupLayout {
+    public addGroup(pIndex: number, pLayout?: WebGpuBindGroupLayout): WebGpuBindGroupLayout {
         // Create and add bind group layout.
-        let lBindLayout: BindGroupLayout;
+        let lBindLayout: WebGpuBindGroupLayout;
         if (pLayout) {
             lBindLayout = pLayout;
         } else {
-            lBindLayout = new BindGroupLayout(this.gpu);
+            lBindLayout = new WebGpuBindGroupLayout(this.gpu);
         }
         this.mBindGroups.add(pIndex, lBindLayout);
 
@@ -47,7 +47,7 @@ export class BindGroups extends GpuNativeObject<GPUPipelineLayoutDescriptor>{
      * Get created bind group layout.
      * @param pIndex - Group index.
      */
-    public getGroup(pIndex: number): BindGroupLayout {
+    public getGroup(pIndex: number): WebGpuBindGroupLayout {
         // Throw on unaccessable group.
         if (!this.mBindGroups.has(pIndex)) {
             throw new Exception(`Bind group layout (${pIndex}) does not exists.`, this);

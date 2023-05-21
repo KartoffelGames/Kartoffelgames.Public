@@ -1,22 +1,22 @@
 import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core.data';
-import { BindType } from './bind-type.enum';
-import { Gpu } from '../gpu';
+import { WebGpuBindType } from './web-gpu-bind-type.enum';
+import { WebGpuDevice } from '../web-gpu-device';
 import { GpuNativeObject } from '../gpu-native-object';
-import { BaseBuffer } from '../buffer/base-buffer';
+import { WebGpuBuffer } from '../buffer/web-gpu-buffer';
 import { ExternalTexture } from '../texture_resource/external-texture';
 import { TextureSampler } from '../texture_resource/texture-sampler';
 import { TextureView } from '../texture_resource/texture/texture-view';
-import { BindGroupLayout } from './bind-group-layout';
+import { WebGpuBindGroupLayout } from './web-gpu-bind-group-layout';
 
-export class BindGroup extends GpuNativeObject<GPUBindGroup>{
+export class WebGpuBindGroup extends GpuNativeObject<GPUBindGroup>{
     private readonly mBindData: Dictionary<string, Bind>;
-    private readonly mLayout: BindGroupLayout;
+    private readonly mLayout: WebGpuBindGroupLayout;
     private readonly mNativeData: WeakMap<object, string>;
 
     /**
      * Layout of bind group.
      */
-    public get layout(): BindGroupLayout {
+    public get layout(): WebGpuBindGroupLayout {
         return this.mLayout;
     }
 
@@ -25,7 +25,7 @@ export class BindGroup extends GpuNativeObject<GPUBindGroup>{
      * @param pGpu - GPU.
      * @param pLayout - Bind group layout.
      */
-    public constructor(pGpu: Gpu, pLayout: BindGroupLayout) {
+    public constructor(pGpu: WebGpuDevice, pLayout: WebGpuBindGroupLayout) {
         super(pGpu, 'BIND_GROUP');
 
         this.mLayout = pLayout;
@@ -42,9 +42,9 @@ export class BindGroup extends GpuNativeObject<GPUBindGroup>{
      * @param pData - Bind data.
      * @param pForcedType - Forced type. Can be used to differ for Texture and StorageTexture.
      */
-    public setData(pBindName: string, pData: BindData, pForcedType?: BindType): void {
+    public setData(pBindName: string, pData: BindData, pForcedType?: WebGpuBindType): void {
         const lLayout = this.mLayout.getBind(pBindName);
-        const lDataBindType: BindType = pForcedType ?? this.bindTypeOfData(pData);
+        const lDataBindType: WebGpuBindType = pForcedType ?? this.bindTypeOfData(pData);
 
         // Validate bind type with data type.
         if (lLayout.bindType !== lDataBindType) {
@@ -58,7 +58,7 @@ export class BindGroup extends GpuNativeObject<GPUBindGroup>{
         this.registerInternalNative(pData);
 
         // Set bind type to Teture for TS type check shutup.
-        this.mBindData.set(pBindName, { type: <BindType.Texture>lDataBindType, name: pBindName, data: <TextureView>pData });
+        this.mBindData.set(pBindName, { type: <WebGpuBindType.Texture>lDataBindType, name: pBindName, data: <TextureView>pData });
     }
 
     /**
@@ -83,23 +83,23 @@ export class BindGroup extends GpuNativeObject<GPUBindGroup>{
             // Set resource to group entry for each 
             const lGroupEntry: GPUBindGroupEntry = { binding: lBindLayout.index, resource: <any>null };
             switch (lBindData.type) {
-                case BindType.Buffer: {
+                case WebGpuBindType.Buffer: {
                     lGroupEntry.resource = { buffer: lBindData.data.native() };
                     break;
                 }
-                case BindType.ExternalTexture: {
+                case WebGpuBindType.ExternalTexture: {
                     lGroupEntry.resource = lBindData.data.native();
                     break;
                 }
-                case BindType.Sampler: {
+                case WebGpuBindType.Sampler: {
                     lGroupEntry.resource = lBindData.data.native();
                     break;
                 }
-                case BindType.StorageTexture: {
+                case WebGpuBindType.StorageTexture: {
                     lGroupEntry.resource = lBindData.data.native();
                     break;
                 }
-                case BindType.Texture: {
+                case WebGpuBindType.Texture: {
                     lGroupEntry.resource = lBindData.data.native();
                     break;
                 }
@@ -125,41 +125,41 @@ export class BindGroup extends GpuNativeObject<GPUBindGroup>{
      * Get type of bind data.
      * @param pData - Data object.
      */
-    private bindTypeOfData(pData: BindData): BindType {
+    private bindTypeOfData(pData: BindData): WebGpuBindType {
         if (pData instanceof TextureView) {
-            return BindType.Texture;
-        } else if (pData instanceof BaseBuffer) {
-            return BindType.Buffer;
+            return WebGpuBindType.Texture;
+        } else if (pData instanceof WebGpuBuffer) {
+            return WebGpuBindType.Buffer;
         } else if (pData instanceof ExternalTexture) {
-            return BindType.ExternalTexture;
+            return WebGpuBindType.ExternalTexture;
         } if (pData instanceof TextureSampler) {
-            return BindType.Sampler;
+            return WebGpuBindType.Sampler;
         }
 
         throw new Exception(`Bind data "${(<any>pData).name}" not supported`, this);
     }
 }
 
-type BindData = TextureView | BaseBuffer<TypedArray> | ExternalTexture | TextureSampler;
+type BindData = TextureView | WebGpuBuffer<TypedArray> | ExternalTexture | TextureSampler;
 
 type Bind = {
-    type: BindType.Buffer,
+    type: WebGpuBindType.Buffer,
     name: string,
-    data: BaseBuffer<TypedArray>;
+    data: WebGpuBuffer<TypedArray>;
 } | {
-    type: BindType.ExternalTexture,
+    type: WebGpuBindType.ExternalTexture,
     name: string,
     data: ExternalTexture;
 } | {
-    type: BindType.Sampler,
+    type: WebGpuBindType.Sampler,
     name: string,
     data: TextureSampler;
 } | {
-    type: BindType.StorageTexture,
+    type: WebGpuBindType.StorageTexture,
     name: string,
     data: TextureView;
 } | {
-    type: BindType.Texture,
+    type: WebGpuBindType.Texture,
     name: string,
     data: TextureView;
 };

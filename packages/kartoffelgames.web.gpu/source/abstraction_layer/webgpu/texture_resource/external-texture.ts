@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { Gpu } from '../gpu';
+import { WebGpuDevice } from '../web-gpu-device';
 import { GpuNativeObject } from '../gpu-native-object';
 
 export class ExternalTexture extends GpuNativeObject<GPUExternalTexture> {
@@ -20,7 +20,7 @@ export class ExternalTexture extends GpuNativeObject<GPUExternalTexture> {
      * Constructor.
      * @param pGpu - GPU.
      */
-    public constructor(pGpu: Gpu) {
+    public constructor(pGpu: WebGpuDevice) {
         super(pGpu, 'EXTERNAL_TEXTURE');
         this.mVideoElement = null;
     }

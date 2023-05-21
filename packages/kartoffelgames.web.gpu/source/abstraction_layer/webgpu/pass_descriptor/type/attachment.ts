@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { Gpu } from '../../gpu';
+import { WebGpuDevice } from '../../web-gpu-device';
 import { GpuNativeObject } from '../../gpu-native-object';
 import { ITexture } from '../../texture_resource/texture/i-texture.interface';
 
@@ -27,7 +27,7 @@ export class Attachment extends GpuNativeObject<GPUTextureView>{
      * constructor.
      * @param pAttachment - Attachment.
      */
-    public constructor(pGpu: Gpu, pFormat: GPUTextureFormat, pLayers: number) {
+    public constructor(pGpu: WebGpuDevice, pFormat: GPUTextureFormat, pLayers: number) {
         super(pGpu, 'ATTACHMENT');
         this.mFormat = pFormat;
         this.mLayers = pLayers;

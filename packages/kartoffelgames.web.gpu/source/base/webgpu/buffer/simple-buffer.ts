@@ -29,6 +29,10 @@ export class SimpleBuffer<T extends TypedArray> extends WebGpuBuffer<T> implemen
 
 
     read(pLayoutPath: string): Promise<T> {
+        // TODO:
+        // Offset.
+        // Size.
+
         throw new Error('Method not implemented.');
     }
 
@@ -57,4 +61,5 @@ export class SimpleBuffer<T extends TypedArray> extends WebGpuBuffer<T> implemen
             pBuffer.set(pData);
         }, pOffset, pSize);
     }
+
 }

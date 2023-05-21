@@ -1,4 +1,4 @@
-import { Gpu } from '../gpu';
+import { WebGpuDevice } from '../web-gpu-device';
 import { GpuNativeObject } from '../gpu-native-object';
 
 export class TextureSampler extends GpuNativeObject<GPUSampler>{
@@ -151,7 +151,7 @@ export class TextureSampler extends GpuNativeObject<GPUSampler>{
      * Constructor.
      * @param pGpu - GPU.
      */
-    public constructor(pGpu: Gpu) {
+    public constructor(pGpu: WebGpuDevice) {
         super(pGpu, 'TEXTURE_SAMPLER');
 
         // Set defaults.

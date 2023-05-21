@@ -1,4 +1,4 @@
-import { BindGroup } from '../../bind_group/bind-group';
+import { WebGpuBindGroup } from '../../bind_group/web-gpu-bind-group';
 import { ComputePipeline } from '../../pipeline/compute-pipeline';
 import { ComputeInstruction } from '../instruction/compute-instruction';
 import { IInstructionSet } from './i-instruction-set';
@@ -32,7 +32,7 @@ export class ComputeInstructionSet implements IInstructionSet {
 
         // Instruction cache.
         let lPipeline: ComputePipeline | null = null;
-        const lBindGroupList: Array<BindGroup | undefined> = new Array<BindGroup | undefined>();
+        const lBindGroupList: Array<WebGpuBindGroup | undefined> = new Array<WebGpuBindGroup | undefined>();
 
         // Execute instructions.
         for (const lInstruction of this.mInstructionList) {
@@ -44,8 +44,8 @@ export class ComputeInstructionSet implements IInstructionSet {
 
             // Add bind groups.
             for (const lIndex of lPipeline.shader.bindGroups.groups) {
-                const lNewBindGroup: BindGroup | undefined = lInstruction.bindGroups[lIndex];
-                const lCurrentBindGroup: BindGroup | undefined = lBindGroupList[lIndex];
+                const lNewBindGroup: WebGpuBindGroup | undefined = lInstruction.bindGroups[lIndex];
+                const lCurrentBindGroup: WebGpuBindGroup | undefined = lBindGroupList[lIndex];
 
                 // Use cached bind group or use new.
                 if (lNewBindGroup !== lCurrentBindGroup) {

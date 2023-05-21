@@ -1,5 +1,5 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
-import { Gpu } from '../gpu';
+import { WebGpuDevice } from '../web-gpu-device';
 import { CanvasTexture } from '../texture_resource/texture/canvas-texture';
 import { ITexture } from '../texture_resource/texture/i-texture.interface';
 import { Texture } from '../texture_resource/texture/texture';
@@ -10,7 +10,7 @@ import { Attachment } from './type/attachment';
 export class Attachments {
     private readonly mAttachmentGroup: Dictionary<string, number>;
     private readonly mAttachments: Dictionary<string, AttachmentData>;
-    private readonly mGpu: Gpu;
+    private readonly mGpu: WebGpuDevice;
     private readonly mMultiSampleLevel: number;
     private mRebuildRequested: boolean;
     private readonly mSize: TextureDimension;
@@ -34,7 +34,7 @@ export class Attachments {
      * Constructor.
      * @param pGpu - GPU.
      */
-    public constructor(pGpu: Gpu, pMultiSampleLevel: number = 1) {
+    public constructor(pGpu: WebGpuDevice, pMultiSampleLevel: number = 1) {
         this.mAttachments = new Dictionary<string, AttachmentData>();
         this.mAttachmentGroup = new Dictionary<string, number>();
         this.mTextureGroup = new Dictionary<string, ITexture>();

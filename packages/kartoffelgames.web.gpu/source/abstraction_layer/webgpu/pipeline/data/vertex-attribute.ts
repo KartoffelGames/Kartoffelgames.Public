@@ -1,10 +1,10 @@
 import { Exception, TypedArray } from '@kartoffelgames/core.data';
-import { BufferType } from '../../buffer/buffer_type/buffer-type';
-import { SimpleBufferType } from '../../buffer/buffer_type/simple-buffer-type';
-import { Gpu } from '../../gpu';
+import { BufferLayout } from '../../../../base/webgpu/buffer/buffer_layout/buffer-layout';
+import { SimpleBufferLayout } from '../../../../base/webgpu/buffer/buffer_layout/simple-buffer-layout';
+import { WebGpuDevice } from '../../web-gpu-device';
 import { GpuNativeObject } from '../../gpu-native-object';
-import { BufferDataType } from '../../buffer/base-buffer';
-import { WgslType } from '../../shader/enum/wgsl-type.enum';
+import { BufferDataType } from '../../buffer/web-gpu-buffer';
+import { WgslType } from '../../../../base/webgpu/shader/wgsl_enum/wgsl-type.enum';
 
 export class VertexAttribute extends GpuNativeObject<GPUVertexBufferLayout> {
     private readonly mAttribute: AttributeFormatDefinition;
@@ -35,7 +35,7 @@ export class VertexAttribute extends GpuNativeObject<GPUVertexBufferLayout> {
      * Constructor.
      * @param pBuffer - Buffer.
      */
-    public constructor(pGpu: Gpu, pType: SimpleBufferType) {
+    public constructor(pGpu: WebGpuDevice, pType: SimpleBufferLayout) {
         super(pGpu, 'VERTEX_ATTRIBUTE');
 
         // Format by type.
@@ -49,7 +49,7 @@ export class VertexAttribute extends GpuNativeObject<GPUVertexBufferLayout> {
 
         // Build name.
         const lAttributeNameParts: Array<string> = new Array<string>();
-        let lCurrentPathType: BufferType | null = pType;
+        let lCurrentPathType: BufferLayout | null = pType;
         do {
             lAttributeNameParts.push(lCurrentPathType.name);
             lCurrentPathType = lCurrentPathType.parent;
@@ -117,7 +117,7 @@ const gTypeToBufferType: { [type: string]: { [generic: string]: { format: GPUVer
 };
 
 type AttributeFormatDefinition = {
-    type: BufferType;
+    type: BufferLayout;
     format: GPUVertexFormat;
     dataType: BufferDataType<TypedArray>;
 };

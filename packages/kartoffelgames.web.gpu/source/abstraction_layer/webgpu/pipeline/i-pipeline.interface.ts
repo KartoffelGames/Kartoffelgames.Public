@@ -1,8 +1,8 @@
-import { Shader } from '../shader/shader';
+import { WebGpuShader } from '../shader/web-gpu-shader';
 
 export interface IPipeline {
     /**
      * Get pipeline shader.
      */
-    readonly shader: Shader;
+    readonly shader: WebGpuShader;
 }

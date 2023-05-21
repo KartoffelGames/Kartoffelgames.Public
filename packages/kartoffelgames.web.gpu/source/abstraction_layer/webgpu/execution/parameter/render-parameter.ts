@@ -1,13 +1,13 @@
 import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core.data';
-import { Gpu } from '../../gpu';
-import { BaseBuffer } from '../../buffer/base-buffer';
+import { WebGpuDevice } from '../../web-gpu-device';
+import { WebGpuBuffer } from '../../buffer/web-gpu-buffer';
 import { SimpleBuffer } from '../../buffer/simple-buffer';
 
 export class RenderParameter {
-    private readonly mGpu: Gpu;
+    private readonly mGpu: WebGpuDevice;
     private readonly mIndexData: Array<number>;
     private readonly mMaxIndex: number;
-    private readonly mVertexBuffer: Dictionary<string, BaseBuffer<TypedArray>>;
+    private readonly mVertexBuffer: Dictionary<string, WebGpuBuffer<TypedArray>>;
 
     /**
      * Vertex attributes count.
@@ -37,9 +37,9 @@ export class RenderParameter {
      * @param pGpu - GPU.
      * @param pVertexIndices - Vertex indices.
      */
-    public constructor(pGpu: Gpu, pVertexIndices: Array<number>) {
+    public constructor(pGpu: WebGpuDevice, pVertexIndices: Array<number>) {
         this.mGpu = pGpu;
-        this.mVertexBuffer = new Dictionary<string, BaseBuffer<TypedArray>>();
+        this.mVertexBuffer = new Dictionary<string, WebGpuBuffer<TypedArray>>();
         this.mIndexData = pVertexIndices;
         this.mMaxIndex = Math.max(...pVertexIndices);
     }
@@ -48,8 +48,8 @@ export class RenderParameter {
      * Get buffer by attribute name
      * @param pName - Vertex attribute name.
      */
-    public getBuffer(pName: string): BaseBuffer<TypedArray> {
-        const lBuffer: BaseBuffer<TypedArray> | undefined = this.mVertexBuffer.get(pName);
+    public getBuffer(pName: string): WebGpuBuffer<TypedArray> {
+        const lBuffer: WebGpuBuffer<TypedArray> | undefined = this.mVertexBuffer.get(pName);
         if (!lBuffer) {
             throw new Exception(`Vertex buffer for attribute "${pName}" not set`, this);
         }

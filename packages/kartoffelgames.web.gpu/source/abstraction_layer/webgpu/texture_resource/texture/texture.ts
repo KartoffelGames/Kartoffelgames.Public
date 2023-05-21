@@ -1,5 +1,5 @@
 import { TextureUsage } from './texture-usage.enum';
-import { Gpu } from '../../gpu';
+import { WebGpuDevice } from '../../web-gpu-device';
 import { GpuNativeObject } from '../../gpu-native-object';
 import { ITexture } from './i-texture.interface';
 import { TextureView } from './texture-view';
@@ -80,7 +80,7 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
      * @param pFormat - Texture format.
      * @param pDimension - Texture dimension.
      */
-    public constructor(pGpu: Gpu, pFormat: GPUTextureFormat, pUsage: TextureUsage, pDimension: GPUTextureDimension = '2d', pMultiSampleLevel: number = 1, pLayerCount: number = 1) {
+    public constructor(pGpu: WebGpuDevice, pFormat: GPUTextureFormat, pUsage: TextureUsage, pDimension: GPUTextureDimension = '2d', pMultiSampleLevel: number = 1, pLayerCount: number = 1) {
         super(pGpu, 'TEXTURE');
 
         this.mFormat = pFormat;

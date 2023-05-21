@@ -1,5 +1,5 @@
 import { TypedArray } from '@kartoffelgames/core.data';
-import { Gpu } from '../gpu';
+import { WebGpuDevice } from '../web-gpu-device';
 import { BaseBuffer } from './base-buffer';
 
 export class RingBuffer<T extends TypedArray> extends BaseBuffer<T> {
@@ -12,7 +12,7 @@ export class RingBuffer<T extends TypedArray> extends BaseBuffer<T> {
      * @param pUsage - Buffer usage beside COPY_DST.
      * @param pInitialData  - Inital data. Can be empty.
      */
-    public constructor(pGpu: Gpu, pUsage: GPUFlagsConstant, pInitialData: T) {
+    public constructor(pGpu: WebGpuDevice, pUsage: GPUFlagsConstant, pInitialData: T) {
         super(pGpu, pUsage | GPUBufferUsage.COPY_DST, pInitialData);
 
         // Waving buffer list.

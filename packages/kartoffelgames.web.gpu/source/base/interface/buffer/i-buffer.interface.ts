@@ -31,7 +31,7 @@ export interface IBuffer<T extends TypedArray> {
      * @param pData - Data.
      * @param pLayoutPath - Path to data inside buffer layout.
      */
-    write(pData: T, pLayoutPath: Array<string>): Promise<T>;
+    write(pData: T, pLayoutPath: Array<string>): Promise<void>;
 
     /**
      * Write data into buffer.

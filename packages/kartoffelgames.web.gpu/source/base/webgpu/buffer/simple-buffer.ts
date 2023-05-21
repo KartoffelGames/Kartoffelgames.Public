@@ -27,13 +27,13 @@ export class SimpleBuffer<T extends TypedArray> extends WebGpuBuffer<T> implemen
         this.mLayout = pLayout;
     }
 
-
-    read(pLayoutPath: string): Promise<T> {
-        // TODO:
-        // Offset.
-        // Size.
-
-        throw new Error('Method not implemented.');
+    /**
+     * Read buffer on layout location.
+     * @param pLayoutPath - Layout path. 
+     */
+    public async read(pLayoutPath: Array<string>): Promise<T> {
+        const lLocation = this.mLayout.locationOf(pLayoutPath);
+        return this.readRaw(lLocation.offset, lLocation.size);
     }
 
     /**
@@ -45,8 +45,16 @@ export class SimpleBuffer<T extends TypedArray> extends WebGpuBuffer<T> implemen
         return this.readData(pOffset, pSize);
     }
 
-    write(pData: T, pLayoutPath: string): Promise<T> {
-        throw new Error('Method not implemented.');
+    /**
+     * Write data on layout location.
+     * @param pData - Data.
+     * @param pLayoutPath - Layout path.
+     */
+    public async write(pData: T, pLayoutPath: Array<string>): Promise<void> {
+        const lLocation = this.mLayout.locationOf(pLayoutPath);
+
+        // Skip new promise creation by returning original promise.
+        return this.writeRaw(pData, lLocation.offset, lLocation.size);
     }
 
     /**

@@ -4,7 +4,7 @@ import { WgslBindingType } from '../../shader/wgsl_enum/wgsl-binding-type.enum';
 import { WgslType } from '../../shader/wgsl_enum/wgsl-type.enum';
 import { BufferLayoutLocation, IBufferLayout } from '../../../interface/buffer/i-buffer-layout.interface';
 
-export abstract class BufferLayout implements IBufferLayout{
+export abstract class BufferLayout implements IBufferLayout {
     private readonly mAccessMode: WgslAccessMode | null;
     private readonly mAttributes: Dictionary<string, Array<string | number>>;
     private readonly mBindingType: WgslBindingType | null;
@@ -76,6 +76,13 @@ export abstract class BufferLayout implements IBufferLayout{
         this.mAccessMode = pAccessMode ?? null;
         this.mBindingType = pBindType ?? null;
         this.mParent = null;
+    }
+
+    /**
+     * Destroy buffer layout.
+     */
+    public destroy(): void {
+        // Nothing.
     }
 
     /**

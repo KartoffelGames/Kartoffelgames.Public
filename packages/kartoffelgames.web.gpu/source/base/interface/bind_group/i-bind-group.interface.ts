@@ -1,10 +1,13 @@
-import { IBufferLayout } from '../buffer/i-buffer-layout.interface';
-import { IGpuObject } from '../i-gpu-object.interface';
+import { TypedArray } from '@kartoffelgames/core.data';
+import { IBuffer } from '../buffer/i-buffer.interface';
 
-export interface IBindGroup extends IGpuObject {
+export interface IBindGroup {
     /**
-     * Add binding to group.
-     * @param pBufferLayout - Buffer layout of bind.
+     * Add data to bind.
+     * @param pName - Bind name.
+     * @param pData - Bind data.
      */
-    addBind(pBufferLayout: IBufferLayout): void;
+    setData(pName: string, pData: BindData): void;
 }
+
+type BindData = IBuffer<TypedArray>

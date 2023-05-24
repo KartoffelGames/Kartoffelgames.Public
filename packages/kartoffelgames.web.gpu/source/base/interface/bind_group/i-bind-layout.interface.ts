@@ -5,7 +5,7 @@ export interface IBindLayout extends IGpuObject {
     /**
      * Available group indices.
      */
-    groups: Array<number>;
+    readonly groups: Array<number>;
 
     /**
      * Get bind group.

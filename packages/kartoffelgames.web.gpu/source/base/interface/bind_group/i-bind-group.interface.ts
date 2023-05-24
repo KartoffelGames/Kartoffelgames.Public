@@ -1,5 +1,7 @@
 import { TypedArray } from '@kartoffelgames/core.data';
 import { IBuffer } from '../buffer/i-buffer.interface';
+import { ITexture } from '../texture/i-texture.interface';
+import { ITextureSampler } from '../texture/i-texture-sampler.interface';
 
 export interface IBindGroup {
     /**
@@ -10,4 +12,4 @@ export interface IBindGroup {
     setData(pName: string, pData: BindData): void;
 }
 
-type BindData = IBuffer<TypedArray>
+type BindData = IBuffer<TypedArray> | ITexture | ITextureSampler;

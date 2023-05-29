@@ -1,6 +1,6 @@
-import { CompareFunction } from '../constant/compare-function.enum';
-import { FilterMode } from '../constant/filter-mode.enum';
-import { WrappingMode } from '../constant/wrapping-mode.enum';
+import { CompareFunction } from '../../constant/compare-function.enum';
+import { FilterMode } from '../../constant/filter-mode.enum';
+import { WrappingMode } from '../../constant/wrapping-mode.enum';
 
 export interface ITextureSampler {
     /**
@@ -42,6 +42,4 @@ export interface ITextureSampler {
      * Behavior for sampling between mipmap levels.
      */
     readonly mipmapFilter: FilterMode;
-
-    
 }

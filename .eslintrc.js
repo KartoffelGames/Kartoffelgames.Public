@@ -38,7 +38,7 @@ module.exports = {
             }
         ],
         "@typescript-eslint/triple-slash-reference": "warn",
-        "@typescript-eslint/no-namespace": "warn",
+        "@typescript-eslint/no-namespace": "off",
         "@typescript-eslint/promise-function-async": "warn",
         "@typescript-eslint/await-thenable": "warn",
         "curly": "warn",

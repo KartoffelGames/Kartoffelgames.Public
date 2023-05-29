@@ -1,9 +1,10 @@
 import { TypedArray } from '@kartoffelgames/core.data';
 import { IBuffer } from '../buffer/i-buffer.interface';
-import { ITexture } from '../texture/i-texture.interface';
+import { IGpuObject } from '../gpu/i-gpu-object.interface';
 import { ITextureSampler } from '../texture/i-texture-sampler.interface';
+import { ITexture } from '../texture/i-texture.interface';
 
-export interface IBindGroup {
+export interface IBindGroup extends IGpuObject {
     /**
      * Add data to bind.
      * @param pName - Bind name.

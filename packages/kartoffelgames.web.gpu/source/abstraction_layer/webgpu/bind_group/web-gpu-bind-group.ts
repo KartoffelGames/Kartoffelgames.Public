@@ -4,7 +4,7 @@ import { WebGpuDevice } from '../web-gpu-device';
 import { GpuNativeObject } from '../gpu-native-object';
 import { WebGpuBuffer } from '../buffer/web-gpu-buffer';
 import { ExternalTexture } from '../texture_resource/external-texture';
-import { TextureSampler } from '../texture_resource/texture-sampler';
+import { WebGpuTextureSampler } from '../texture_resource/web-gpu-texture-sampler';
 import { TextureView } from '../texture_resource/texture/texture-view';
 import { WebGpuBindGroupLayout } from './web-gpu-bind-group-layout';
 
@@ -132,7 +132,7 @@ export class WebGpuBindGroup extends GpuNativeObject<GPUBindGroup>{
             return WebGpuBindType.Buffer;
         } else if (pData instanceof ExternalTexture) {
             return WebGpuBindType.ExternalTexture;
-        } if (pData instanceof TextureSampler) {
+        } if (pData instanceof WebGpuTextureSampler) {
             return WebGpuBindType.Sampler;
         }
 
@@ -140,7 +140,7 @@ export class WebGpuBindGroup extends GpuNativeObject<GPUBindGroup>{
     }
 }
 
-type BindData = TextureView | WebGpuBuffer<TypedArray> | ExternalTexture | TextureSampler;
+type BindData = TextureView | WebGpuBuffer<TypedArray> | ExternalTexture | WebGpuTextureSampler;
 
 type Bind = {
     type: WebGpuBindType.Buffer,
@@ -153,7 +153,7 @@ type Bind = {
 } | {
     type: WebGpuBindType.Sampler,
     name: string,
-    data: TextureSampler;
+    data: WebGpuTextureSampler;
 } | {
     type: WebGpuBindType.StorageTexture,
     name: string,

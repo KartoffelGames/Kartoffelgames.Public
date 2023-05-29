@@ -17,7 +17,7 @@ import { RenderInstructionSet } from '../../source/abstraction_layer/webgpu/exec
 import { RingBuffer } from '../../source/abstraction_layer/webgpu/buffer/ring-buffer';
 import { Texture } from '../../source/abstraction_layer/webgpu/texture_resource/texture/texture';
 import { TextureUsage } from '../../source/abstraction_layer/webgpu/texture_resource/texture/texture-usage.enum';
-import { TextureSampler } from '../../source/abstraction_layer/webgpu/texture_resource/texture-sampler';
+import { WebGpuTextureSampler } from '../../source/abstraction_layer/webgpu/texture_resource/web-gpu-texture-sampler';
 import { BaseInputDevice, DeviceConfiguration, InputConfiguration, InputDevices, KeyboardButton, MouseButton, MouseKeyboardConnector } from '@kartoffelgames/web.game-input';
 import { Dictionary } from '@kartoffelgames/core.data';
 import { AmbientLight } from '../../source/something_better/light/ambient-light';
@@ -292,7 +292,7 @@ const gDepth: number = 10;
     await lCubeTexture.load(['/source/cube_texture/cube-texture.png']);
 
     // Setup Sampler.
-    const lCubeSampler: TextureSampler = new TextureSampler(lGpu);
+    const lCubeSampler: WebGpuTextureSampler = new WebGpuTextureSampler(lGpu);
 
     // Create attributes data.
     const lVertexPositionData: Array<number> = [ // 4x Position

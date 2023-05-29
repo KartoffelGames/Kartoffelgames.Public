@@ -111,7 +111,7 @@ export class WebGpuTextureSampler extends GpuNativeObject<GPUSampler>{
 }
 
 type WebGpuTextureSamplerSettings = {
-    compare?: GPUCompareFunction;
+    compare?: GPUCompareFunction | undefined;
     fitMode?: GPUAddressMode;
     magFilter?: GPUFilterMode;
     minFilter?: GPUFilterMode;

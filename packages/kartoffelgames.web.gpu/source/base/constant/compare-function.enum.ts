@@ -1,6 +1,6 @@
 export enum CompareFunction {
     Never = 'never',
-    Lesse = 'less',
+    Less = 'less',
     Equal = 'equal',
     LessEqual = 'less-equal',
     Greater = 'greater',

@@ -1,95 +1,117 @@
-import { NoOptional } from '@kartoffelgames/core.data';
+import { WebGpuTextureSampler } from '../../../abstraction_layer/webgpu/texture_resource/web-gpu-texture-sampler';
+import { Base } from '../../base/export.';
 import { CompareFunction } from '../../constant/compare-function.enum';
 import { FilterMode } from '../../constant/filter-mode.enum';
 import { WrappingMode } from '../../constant/wrapping-mode.enum';
-import { ITextureSampler } from '../../interface/texture/i-texture-sampler.interface';
-import { WebGpuTextureSampler } from '../../../abstraction_layer/webgpu/texture_resource/web-gpu-texture-sampler';
-import { WebGpuDevice } from '../../../abstraction_layer/webgpu/web-gpu-device';
+import { GpuDevice } from '../gpu-device';
 
 
-export class TextureSampler implements ITextureSampler {
-    private readonly mNativeSampler: WebGpuTextureSampler;
-    private readonly mSettings: Required<TextureSamplerSettings>;
-
+export class TextureSampler extends Base.TextureSampler<GpuDevice, WebGpuTextureSampler> {
     /**
-     * When provided the sampler will be a comparison sampler with the specified compare function.
+     * Constructor.
+     * @param pDevice - Device reference.
      */
-    public get compareFunction(): CompareFunction | null {
-        return this.mSettings.compare;
+    public constructor(pDevice: GpuDevice) {
+        super(pDevice);
     }
 
     /**
-     * Texture sampler edge fit mode.
+     * Destroy native gpu object.
+     * @param pNativeObject - Native texture sampler.
      */
-    public get fitMode(): WrappingMode {
-        return this.mSettings.fitMode;
+    protected override destroyNative(pNativeObject: WebGpuTextureSampler): void {
+        pNativeObject.destroy();
     }
 
-    /**
-     * Specifies the maximum levels of detail, respectively, used internally when sampling a texture.
-     */
-    public get lodMaxClamp(): number {
-        return this.mSettings.lodMaxClamp;
-    }
+    protected override generate(): WebGpuTextureSampler {
+        // Convert compare function to native compare function.
+        let lNativeCompareFunction: GPUCompareFunction | undefined = undefined;
+        switch (this.compare) {
+            case CompareFunction.Allways: {
+                lNativeCompareFunction = 'always';
+                break;
+            }
+            case CompareFunction.Greater: {
+                lNativeCompareFunction = 'greater';
+                break;
+            }
+            case CompareFunction.Equal: {
+                lNativeCompareFunction = 'equal';
+                break;
+            }
+            case CompareFunction.GreaterEqual: {
+                lNativeCompareFunction = 'greater-equal';
+                break;
+            }
+            case CompareFunction.LessEqual: {
+                lNativeCompareFunction = 'less-equal';
+                break;
+            }
+            case CompareFunction.Less: {
+                lNativeCompareFunction = 'less';
+                break;
+            }
+            case CompareFunction.Never: {
+                lNativeCompareFunction = 'never';
+                break;
+            }
+            case CompareFunction.NotEqual: {
+                lNativeCompareFunction = 'not-equal';
+                break;
+            }
+        }
 
-    /**
-     * Specifies the minimum levels of detail, respectively, used internally when sampling a texture.
-     */
-    public get lodMinClamp(): number {
-        return this.mSettings.lodMinClamp;
-    }
+        // Convert wrap mode to native address mode.
+        let lAddressMode: GPUAddressMode = 'clamp-to-edge';
+        switch (this.wrapMode) {
+            case WrappingMode.ClampToEdge: {
+                lAddressMode = 'clamp-to-edge';
+                break;
+            }
+            case WrappingMode.MirrorRepeat: {
+                lAddressMode = 'mirror-repeat';
+                break;
+            }
+            case WrappingMode.Repeat: {
+                lAddressMode = 'repeat';
+                break;
+            }
+        }
 
-    /**
-     * How the texture is sampled when a texel covers more than one pixel.
-     */
-    public get magFilter(): FilterMode {
-        return this.mSettings.magFilter;
-    }
+        // Convert filter to native mipmap filter.
+        let lMipMapFilter: GPUMipmapFilterMode = 'linear';
+        switch (this.mipmapFilter) {
+            case FilterMode.Linear: {
+                lMipMapFilter = 'linear';
+                break;
+            }
+            case FilterMode.Nearest: {
+                lMipMapFilter = 'nearest';
+                break;
+            }
+        }
 
-    /**
-     * Specifies the maximum anisotropy value clamp used by the sampler.
-     */
-    public get maxAnisotropy(): number {
-        return this.mSettings.maxAnisotropy;
-    }
-
-    /**
-     * How the texture is sampled when a texel covers less than one pixel.
-     */
-    public get minFilter(): FilterMode {
-        return this.mSettings.minFilter;
-    }
-
-    /**
-     * Specifies behavior for sampling between mipmap levels.
-     */
-    public get mipmapFilter(): FilterMode {
-        return this.mSettings.mipmapFilter;
-    }
-
-    public constructor(pDevice: WebGpuDevice, pSettings: TextureSamplerSettings) {
-        // Set defaults.
-        this.mSettings = {
-            compare: pSettings.compare ?? null,
-            fitMode: pSettings.fitMode ?? WrappingMode.ClampToEdge,
-            magFilter: pSettings.magFilter ?? FilterMode.Nearest,
-            minFilter: pSettings.minFilter ?? FilterMode.Nearest,
-            mipmapFilter: pSettings.mipmapFilter ?? FilterMode.Nearest,
-            lodMinClamp: pSettings.lodMinClamp ?? 0,
-            lodMaxClamp: pSettings.lodMaxClamp ?? 32,
-            maxAnisotropy: pSettings.maxAnisotropy ?? 1
+        // Convert filter to native filter.
+        const lToNativeFilterMode = (pFilerMode: FilterMode) => {
+            switch (pFilerMode) {
+                case FilterMode.Linear: {
+                    return 'linear';
+                }
+                case FilterMode.Nearest: {
+                    return 'nearest';
+                }
+            }
         };
+
+        return new WebGpuTextureSampler(this.device.native, {
+            compare: lNativeCompareFunction,
+            fitMode: lAddressMode,
+            magFilter: lToNativeFilterMode(this.magFilter),
+            minFilter: lToNativeFilterMode(this.minFilter),
+            mipmapFilter: lMipMapFilter,
+            lodMinClamp: this.lodMinClamp,
+            lodMaxClamp: this.lodMaxClamp,
+            maxAnisotropy: this.maxAnisotropy
+        });
     }
 }
-
-
-type TextureSamplerSettings = {
-    compare?: CompareFunction | null;
-    fitMode?: WrappingMode;
-    magFilter?: FilterMode;
-    minFilter?: FilterMode;
-    mipmapFilter?: FilterMode;
-    lodMinClamp?: number;
-    lodMaxClamp?: number;
-    maxAnisotropy?: number;
-};

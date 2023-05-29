@@ -5,6 +5,12 @@ export interface IBufferLayout {
     readonly alignment: number;
 
     /**
+     * Location of layout.
+     * References bind location or attribute location based on layout context.
+     */
+    readonly location: number | null;
+
+    /**
      * Layout size in bytes.
      */
     readonly size: number;

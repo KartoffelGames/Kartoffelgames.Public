@@ -1,12 +1,11 @@
 import { Dictionary } from '@kartoffelgames/core.data';
+import { Base } from '../../../base/export.';
 import { AccessMode } from '../../../constant/access-mode.enum';
 import { BindType } from '../../../constant/bind-type.enum';
-import { Base } from '../../../base/export.';
 import { WgslType } from '../../shader/wgsl_enum/wgsl-type.enum';
 
 export abstract class BufferLayout extends Base.BufferLayout {
     private readonly mAttributes: Dictionary<string, Array<string | number>>;
-    private readonly mLocation: number | null;
 
     /**
      * Wgsl type.
@@ -14,22 +13,12 @@ export abstract class BufferLayout extends Base.BufferLayout {
     public abstract readonly type: WgslType;
 
     /**
-     * Get buffer location index as parameter.
-     */
-    public get location(): number | null {
-        return this.mLocation;
-    }
-
-    /**
      * Constructor.
      */
     public constructor(pName: string, pParent?: BufferLayout, pAccessMode?: AccessMode, pBindType?: BindType, pLocation: number | null = null) {
-        super(pName, pParent, pAccessMode, pBindType);
+        super(pName, pParent, pAccessMode, pBindType, pLocation);
 
         this.mAttributes = new Dictionary<string, Array<string | number>>();
-
-        // Static properties.
-        this.mLocation = pLocation;
     }
 
     /**

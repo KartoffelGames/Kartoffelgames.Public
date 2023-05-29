@@ -1,54 +1,28 @@
 import { TypedArray } from '@kartoffelgames/core.data';
 import { WebGpuBuffer } from '../../../abstraction_layer/webgpu/buffer/web-gpu-buffer';
-import { WebGpuDevice } from '../../../abstraction_layer/webgpu/web-gpu-device';
-import { IBuffer } from '../../interface/buffer/i-buffer.interface';
-import { IBufferLayout } from '../../interface/buffer/i-buffer-layout.interface';
+import { BufferUsage } from '../../constant/buffer-usage.enum';
+import { Base } from '../../base/export.';
+import { GpuDevice } from '../gpu-device';
 import { BufferLayout } from './buffer_layout/buffer-layout';
+import { BindType } from '../../constant/bind-type.enum';
 
-export class Buffer<T extends TypedArray> implements IBuffer<T>  {
-    private readonly mLayout: BufferLayout;
-    private readonly mNativeBuffer: WebGpuBuffer<T>;
-
-    /**
-     * Buffer layout.
-     */
-    public get layout(): IBufferLayout {
-        return this.mLayout;
-    }
-
+export class Buffer<T extends TypedArray> extends Base.Buffer<GpuDevice, WebGpuBuffer<T>, T>  {
     /**
      * Buffer size.
      */
     public get size(): number {
-        return this.mNativeBuffer.size;
+        return this.native.size;
     }
 
     /**
      * Constructor.
-     * @param pGpu - GPU.
+     * @param pDevice - GPU.
      * @param pLayout - Buffer layout.
      * @param pUsage - Buffer usage beside COPY_DST.
      * @param pInitialData  - Inital data. Can be empty.
      */
-    public constructor(pGpu: WebGpuDevice, pLayout: BufferLayout, pUsage: GPUFlagsConstant, pInitialData: T) {
-        this.mNativeBuffer = new WebGpuBuffer<T>(pGpu, pUsage, pInitialData);
-        this.mLayout = pLayout;
-    }
-
-    /**
-     * Destroy buffer object.
-     */
-    public destroy(): void {
-        this.mNativeBuffer.destroy();
-    }
-
-    /**
-     * Read buffer on layout location.
-     * @param pLayoutPath - Layout path. 
-     */
-    public async read(pLayoutPath: Array<string>): Promise<T> {
-        const lLocation = this.mLayout.locationOf(pLayoutPath);
-        return this.readRaw(lLocation.offset, lLocation.size);
+    public constructor(pDevice: GpuDevice, pLayout: BufferLayout, pUsage: BufferUsage, pInitialData: T) {
+        super(pDevice, pLayout, pUsage, pInitialData);
     }
 
     /**
@@ -57,19 +31,7 @@ export class Buffer<T extends TypedArray> implements IBuffer<T>  {
      * @param pSize - Data size.
      */
     public async readRaw(pOffset?: number, pSize?: number): Promise<T> {
-        return this.mNativeBuffer.read(pOffset, pSize);
-    }
-
-    /**
-     * Write data on layout location.
-     * @param pData - Data.
-     * @param pLayoutPath - Layout path.
-     */
-    public async write(pData: T, pLayoutPath: Array<string>): Promise<void> {
-        const lLocation = this.mLayout.locationOf(pLayoutPath);
-
-        // Skip new promise creation by returning original promise.
-        return this.writeRaw(pData, lLocation.offset, lLocation.size);
+        return this.native.read(pOffset, pSize);
     }
 
     /**
@@ -80,8 +42,62 @@ export class Buffer<T extends TypedArray> implements IBuffer<T>  {
      */
     public async writeRaw(pData: T, pOffset?: number, pSize?: number): Promise<void> {
         // Data write is synchron.
-        this.mNativeBuffer.write((pBuffer: T) => {
+        this.native.write((pBuffer: T) => {
             pBuffer.set(pData);
         }, pOffset, pSize);
+    }
+
+    /**
+     * Destroy buffer object.
+     */
+    protected destroyNative(pNativeObject: WebGpuBuffer<T>): void {
+        pNativeObject.destroy();
+    }
+
+    /**
+     * Generate native. Concat buffer usage bits from bind type and buffer usage.
+     */
+    protected override generate(): WebGpuBuffer<T> {
+        let lUsage: number = 0;
+
+        // Append usage type from abstract bind type.
+        switch (this.layout.bindType) {
+            case BindType.Attribute: {
+                // Just an layout indicator. Does nothing to usage type.
+                break;
+            }
+            case BindType.Index: {
+                lUsage |= GPUBufferUsage.INDEX;
+                break;
+            }
+            case BindType.Storage: {
+                lUsage |= GPUBufferUsage.STORAGE;
+                break;
+            }
+            case BindType.Uniform: {
+                lUsage |= GPUBufferUsage.UNIFORM;
+                break;
+            }
+            case BindType.Vertex: {
+                lUsage |= GPUBufferUsage.VERTEX;
+                break;
+            }
+        }
+
+        // Append usage type from abstract usage type.
+        if ((this.usage & BufferUsage.CopyDestination) !== 0) {
+            lUsage |= GPUBufferUsage.COPY_DST;
+        }
+        if ((this.usage & BufferUsage.CopySource) !== 0) {
+            lUsage |= GPUBufferUsage.COPY_SRC;
+        }
+        if ((this.usage & BufferUsage.MapRead) !== 0) {
+            lUsage |= GPUBufferUsage.MAP_READ;
+        }
+        if ((this.usage & BufferUsage.MapWrite) !== 0) {
+            lUsage |= GPUBufferUsage.MAP_WRITE;
+        }
+
+        return new WebGpuBuffer<T>(this.device.native, lUsage, this.initialData);
     }
 }

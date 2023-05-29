@@ -1,5 +1,5 @@
 import { IBufferLayout } from '../buffer/i-buffer-layout.interface';
-import { IGpuObject } from '../i-gpu-object.interface';
+import { IGpuObject } from '../gpu/i-gpu-object.interface';
 import { IBindGroup } from './i-bind-group.interface';
 
 export interface IBindGroupLayout extends IGpuObject {

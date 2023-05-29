@@ -1,4 +1,4 @@
-import { IGpuObject } from '../i-gpu-object.interface';
+import { IGpuObject } from '../gpu/i-gpu-object.interface';
 import { IBindGroupLayout } from './i-bind-group-layout.interface';
 
 export interface IBindLayout extends IGpuObject {

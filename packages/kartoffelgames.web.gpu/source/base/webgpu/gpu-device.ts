@@ -5,6 +5,8 @@ import { BufferUsage } from '../constant/buffer-usage.enum';
 import { IBuffer } from '../interface/buffer/i-buffer.interface';
 import { Buffer } from './buffer/buffer';
 import { WebGpuDevice } from '../../abstraction_layer/webgpu/web-gpu-device';
+import { TextureSampler } from './texture/texture-sampler';
+import { ITextureSampler } from '../interface/texture/i-texture-sampler.interface';
 
 export class GpuDevice extends Base.GpuDevice {
     private readonly mNative: WebGpuDevice;
@@ -34,5 +36,12 @@ export class GpuDevice extends Base.GpuDevice {
      */
     public createBuffer<T extends TypedArray>(pLayout: BufferLayout, pUsage: BufferUsage, pInitialData: T): IBuffer<T> {
         return new Buffer<T>(this, pLayout, pUsage, pInitialData);
+    }
+
+    /**
+     * Create texture sampler.
+     */
+    public createTextureSampler(): ITextureSampler {
+        return new TextureSampler(this);
     }
 }

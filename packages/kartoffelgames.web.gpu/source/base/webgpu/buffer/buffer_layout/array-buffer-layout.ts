@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core.data';
+import { AccessMode } from '../../../constant/access-mode.enum';
+import { BindType } from '../../../constant/bind-type.enum';
 import { BufferLayoutLocation, IBufferLayout } from '../../../interface/buffer/i-buffer-layout.interface';
-import { WgslAccessMode } from '../../shader/wgsl_enum/wgsl-access-mode.enum';
-import { WgslBindingType } from '../../shader/wgsl_enum/wgsl-binding-type.enum';
 import { WgslType } from '../../shader/wgsl_enum/wgsl-type.enum';
 import { BufferLayout } from './buffer-layout';
 
@@ -53,12 +53,10 @@ export class ArrayBufferLayout extends BufferLayout implements IBufferLayout {
      * @param pInnerType - Type of array.
      * @param pSize - Optional array size.
      */
-    public constructor(pName: string, pInnerType: BufferLayout, pSize?: number, pAccessMode?: WgslAccessMode, pBindType?: WgslBindingType, pLocation: number | null = null) {
-        super(pName, pAccessMode, pBindType, pLocation);
+    public constructor(pName: string, pInnerType: BufferLayout, pSize?: number, pParent?: BufferLayout, pAccessMode?: AccessMode, pBindType?: BindType, pLocation: number | null = null) {
+        super(pName, pParent, pAccessMode, pBindType, pLocation);
 
         this.mInnerType = pInnerType;
-        this.mInnerType.parent = this;
-
         this.mArraySize = pSize ?? -1;
     }
 

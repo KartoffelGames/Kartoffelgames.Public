@@ -2,9 +2,10 @@ import { IBufferLayout } from '../../interface/buffer/i-buffer-layout.interface'
 import { AccessMode } from '../../constant/access-mode.enum';
 import { BindType } from '../../constant/bind-type.enum';
 
-export abstract class BufferLayout implements IBufferLayout{
+export abstract class BufferLayout implements IBufferLayout {
     private readonly mAccessMode: AccessMode;
     private readonly mBindType: BindType;
+    private readonly mLocation: number | null;
     private readonly mName: string;
     private readonly mParent: BufferLayout | null;
 
@@ -33,6 +34,13 @@ export abstract class BufferLayout implements IBufferLayout{
     }
 
     /**
+     * Get buffer location index as parameter.
+     */
+    public get location(): number | null {
+        return this.mLocation;
+    }
+
+    /**
      * Variable name of buffer.
      */
     public get name(): string {
@@ -49,12 +57,13 @@ export abstract class BufferLayout implements IBufferLayout{
     /**
      * Constructor.
      */
-    public constructor(pName: string, pParent?: BufferLayout, pAccessMode: AccessMode = AccessMode.Read | AccessMode.Write, pBindType: BindType = BindType.Uniform) {
+    public constructor(pName: string, pParent?: BufferLayout, pAccessMode: AccessMode = AccessMode.Read | AccessMode.Write, pBindType: BindType = BindType.Uniform, pLocation: number | null = null) {
         // Static properties.
         this.mName = pName;
         this.mParent = pParent ?? null;
         this.mAccessMode = pAccessMode;
         this.mBindType = pBindType;
+        this.mLocation = pLocation;
     }
 
     /**

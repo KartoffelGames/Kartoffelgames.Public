@@ -1,9 +1,9 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core.data';
+import { AccessMode } from '../../../constant/access-mode.enum';
+import { BindType } from '../../../constant/bind-type.enum';
+import { BufferLayoutLocation, IBufferLayout } from '../../../interface/buffer/i-buffer-layout.interface';
 import { WgslType } from '../../shader/wgsl_enum/wgsl-type.enum';
 import { BufferLayout } from './buffer-layout';
-import { WgslAccessMode } from '../../shader/wgsl_enum/wgsl-access-mode.enum';
-import { WgslBindingType } from '../../shader/wgsl_enum/wgsl-binding-type.enum';
-import { BufferLayoutLocation, IBufferLayout } from '../../../interface/buffer/i-buffer-layout.interface';
 
 export class SimpleBufferLayout extends BufferLayout implements IBufferLayout {
     private static readonly mTypeRestrictions: Record<WgslType, Array<WgslTypeSetting>> = (() => {
@@ -216,8 +216,8 @@ export class SimpleBufferLayout extends BufferLayout implements IBufferLayout {
      * @param pType - Simple type. Scalar, Atomic, Vector and Matrix types.
      * @param pGenerics - Generics of type.
      */
-    public constructor(pName: string, pType: WgslType, pGenerics?: Array<WgslType | string>, pAccessMode?: WgslAccessMode, pBindType?: WgslBindingType, pLocation: number | null = null) {
-        super(pName, pAccessMode, pBindType, pLocation);
+    public constructor(pName: string, pType: WgslType, pGenerics?: Array<WgslType | string>, pParent?: BufferLayout, pAccessMode?: AccessMode, pBindType?: BindType, pLocation: number | null = null) {
+        super(pName, pParent, pAccessMode, pBindType, pLocation);
 
         // Static properties.
         this.mType = pType;

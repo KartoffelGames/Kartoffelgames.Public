@@ -1,10 +1,10 @@
 import { TextureFormat } from '../../constant/texture-format.enum';
 import { TextureUsage } from '../../constant/texture-usage.enum';
-import { ITexture } from '../../interface/texture/i-texture.interface';
+import { IImageTexture } from '../../interface/texture/i-image-texture.interface';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 
-export abstract class Texture<TGpu extends GpuDevice, TNative extends object> extends GpuObject<TGpu, TNative> implements ITexture {
+export abstract class ImageTexture<TGpu extends GpuDevice, TNative extends object> extends GpuObject<TGpu, TNative> implements IImageTexture {
     private readonly mDepth: number;
     private readonly mFormat: TextureFormat;
     private mHeight: number;

@@ -1,4 +1,5 @@
 import { TextureFormat } from '../../constant/texture-format.enum';
+import { TextureUsage } from '../../constant/texture-usage.enum';
 import { ITexture } from '../../interface/texture/i-texture.interface';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
@@ -8,6 +9,7 @@ export abstract class Texture<TGpu extends GpuDevice, TNative extends object> ex
     private readonly mFormat: TextureFormat;
     private mHeight: number;
     private mMultiSampleLevel: number;
+    private readonly mUsage: TextureUsage;
     private mWidth: number;
 
     /**
@@ -49,6 +51,13 @@ export abstract class Texture<TGpu extends GpuDevice, TNative extends object> ex
     }
 
     /**
+     * Texture usage.
+     */
+    public get usage(): TextureUsage {
+        return this.mUsage;
+    }
+
+    /**
      * Texture width.
      */
     public get width(): number {
@@ -61,17 +70,18 @@ export abstract class Texture<TGpu extends GpuDevice, TNative extends object> ex
     }
 
     /**
-     * 
+     * Constructor.
      * @param pGpu - Device.
      * @param pFormat - Texture format.
      * @param pDepth - Texture depth.
      */
-    public constructor(pGpu: TGpu, pFormat: TextureFormat, pDepth: number = 1) {
+    public constructor(pGpu: TGpu, pFormat: TextureFormat, pUsage: TextureUsage, pDepth: number = 1) {
         super(pGpu);
 
         // Fixed values.
         this.mDepth = pDepth;
         this.mFormat = pFormat;
+        this.mUsage = pUsage;
 
         // Set defaults.
         this.mHeight = 1;

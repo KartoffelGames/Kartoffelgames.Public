@@ -1,4 +1,4 @@
-import { TextureUsage } from './texture-usage.enum';
+import { WebGpuTextureUsage } from './web-gpu-texture-usage.enum';
 import { WebGpuDevice } from '../../web-gpu-device';
 import { GpuNativeObject } from '../../gpu-native-object';
 import { IWebGpuTexture } from './i-web-gpu-texture.interface';
@@ -11,7 +11,7 @@ export class WebGpuTexture extends GpuNativeObject<GPUTexture> implements IWebGp
     private readonly mHeight: number;
     private readonly mLayerCount: number;
     private readonly mMultiSampleLevel: number;
-    private readonly mUsage: TextureUsage;
+    private readonly mUsage: WebGpuTextureUsage;
     private readonly mWidth: number;
 
     /**
@@ -52,7 +52,7 @@ export class WebGpuTexture extends GpuNativeObject<GPUTexture> implements IWebGp
     /**
      * Texture usage.
      */
-    public get usage(): TextureUsage {
+    public get usage(): WebGpuTextureUsage {
         return this.mUsage;
     }
 
@@ -69,24 +69,21 @@ export class WebGpuTexture extends GpuNativeObject<GPUTexture> implements IWebGp
      * @param pFormat - Texture format.
      * @param pDimension - Texture dimension.
      */
-    public constructor(pGpu: WebGpuDevice, pFormat: GPUTextureFormat, pUsage: TextureUsage, pDimension: GPUTextureDimension = '2d', pMultiSampleLevel: number = 1, pLayerCount: number = 1) {
+    public constructor(pGpu: WebGpuDevice, pSettings: WebGpuTextureParameter) {
         super(pGpu, 'TEXTURE');
 
-        this.mFormat = pFormat;
-        this.mUsage = pUsage;
-        this.mDimension = pDimension;
-        this.mLayerCount = pLayerCount;
+        this.mFormat = pSettings.format;
+        this.mUsage = pSettings.usage;
+        this.mDimension = pSettings.dimension;
+        this.mHeight = pSettings.height;
+        this.mWidth = pSettings.width;
+        this.mLayerCount = pSettings.layerCount;
 
         // Set and validate multisample level.
-        this.mMultiSampleLevel = pMultiSampleLevel;
-        if (pMultiSampleLevel < 1) {
+        this.mMultiSampleLevel = pSettings.multiSampleLevel;
+        if (this.mMultiSampleLevel < 1) {
             throw new Exception('Multi sample level must be greater than zero.', this);
         }
-
-        // Set defaults.
-        this.mHeight = 1;
-        this.mWidth = 1;
-        this.mLayerCount = 1;
     }
 
     /**
@@ -124,3 +121,13 @@ export class WebGpuTexture extends GpuNativeObject<GPUTexture> implements IWebGp
         return lTexture;
     }
 }
+
+type WebGpuTextureParameter = {
+    format: GPUTextureFormat;
+    usage: WebGpuTextureUsage;
+    dimension: GPUTextureDimension;
+    multiSampleLevel: number;
+    layerCount: number;
+    height: number;
+    width: number;
+};

@@ -5,7 +5,7 @@ import { TextureFormat } from '../../../constant/texture-format.enum';
 import { TextureUsage } from '../../../constant/texture-usage.enum';
 import { GpuDevice } from '../../gpu-device';
 
-export class Texture extends Base.Texture<GpuDevice, WebGpuTexture> {
+export class ImageTexture extends Base.ImageTexture<GpuDevice, WebGpuTexture> {
     /**
      * Constructor.
      * @param pGpu - Device.

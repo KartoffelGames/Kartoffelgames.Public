@@ -1,7 +1,7 @@
 import { TextureFormat } from '../../constant/texture-format.enum';
 import { TextureUsage } from '../../constant/texture-usage.enum';
 
-export interface ITexture {
+export interface IImageTexture {
     /**
      * Texture height.
      */

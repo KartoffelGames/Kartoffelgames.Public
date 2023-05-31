@@ -1,15 +1,15 @@
 import { WebGpuDevice } from '../../web-gpu-device';
 import { GpuNativeObject } from '../../gpu-native-object';
-import { ITexture } from './i-texture.interface';
+import { IWebGpuTexture } from './i-web-gpu-texture.interface';
 
-export class TextureView extends GpuNativeObject<GPUTextureView>{
+export class WebGpuTextureView extends GpuNativeObject<GPUTextureView>{
     private mAspect: GPUTextureAspect;
     private readonly mBaseLayer: GPUIntegerCoordinate;
     private mBaseMipLevel: GPUIntegerCoordinate;
     private mDimension: GPUTextureViewDimension;
     private readonly mLayerCount: GPUIntegerCoordinate;
     private mMipLevelCount: GPUIntegerCoordinate;
-    private readonly mTexture: ITexture;
+    private readonly mTexture: IWebGpuTexture;
 
     /**
      * Which aspecs of the texture are accessible to the texture view.
@@ -70,7 +70,7 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
     }
 
     /**
-     * How many array layers, starting with {@link TextureView#baseLayer}, are accessible
+     * How many array layers, starting with {@link WebGpuTextureView#baseLayer}, are accessible
      * to the texture view.
      */
     public get layerCount(): GPUIntegerCoordinate {
@@ -78,7 +78,7 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
     }
 
     /**
-     * How many mipmap levels, starting with {@link TextureView#baseMipLevel}, are accessible to
+     * How many mipmap levels, starting with {@link WebGpuTextureView#baseMipLevel}, are accessible to
      * the texture view.
      */
     public get mipLevelCount(): GPUIntegerCoordinate {
@@ -102,7 +102,7 @@ export class TextureView extends GpuNativeObject<GPUTextureView>{
      * @param pBaseLayer - Base layer of view.
      * @param pLayerCount - Depth of view.
      */
-    public constructor(pGpu: WebGpuDevice, pTexture: ITexture, pBaseLayer?: number, pLayerCount?: number) {
+    public constructor(pGpu: WebGpuDevice, pTexture: IWebGpuTexture, pBaseLayer?: number, pLayerCount?: number) {
         super(pGpu, 'TEXTURE_VIEW');
 
         this.mTexture = pTexture;

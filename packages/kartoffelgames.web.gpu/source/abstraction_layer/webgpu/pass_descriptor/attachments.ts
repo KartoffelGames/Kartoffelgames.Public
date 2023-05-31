@@ -1,8 +1,8 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { WebGpuDevice } from '../web-gpu-device';
-import { CanvasTexture } from '../texture_resource/texture/canvas-texture';
-import { ITexture } from '../texture_resource/texture/i-texture.interface';
-import { Texture } from '../texture_resource/texture/texture';
+import { WebGpuCanvasTexture } from '../texture_resource/texture/web-gpu-canvas-texture';
+import { IWebGpuTexture } from '../texture_resource/texture/i-web-gpu-texture.interface';
+import { WebGpuTexture } from '../texture_resource/texture/web-gpu-texture';
 import { TextureUsage } from '../texture_resource/texture/texture-usage.enum';
 import { AttachmentType } from './attachment-type.enum';
 import { Attachment } from './type/attachment';
@@ -14,7 +14,7 @@ export class Attachments {
     private readonly mMultiSampleLevel: number;
     private mRebuildRequested: boolean;
     private readonly mSize: TextureDimension;
-    private readonly mTextureGroup: Dictionary<string, ITexture>;
+    private readonly mTextureGroup: Dictionary<string, IWebGpuTexture>;
 
     /**
      * Attachment height.
@@ -37,7 +37,7 @@ export class Attachments {
     public constructor(pGpu: WebGpuDevice, pMultiSampleLevel: number = 1) {
         this.mAttachments = new Dictionary<string, AttachmentData>();
         this.mAttachmentGroup = new Dictionary<string, number>();
-        this.mTextureGroup = new Dictionary<string, ITexture>();
+        this.mTextureGroup = new Dictionary<string, IWebGpuTexture>();
         this.mGpu = pGpu;
         this.mRebuildRequested = false;
         this.mSize = { width: 1, height: 1 };
@@ -203,9 +203,9 @@ export class Attachments {
                 const lTextureLayerCount: number = lGroup.attachments.reduce((pCurrent, pNext) => { return pCurrent + pNext.layers; }, 0);
 
                 // Create texture and set size and concat debug label.
-                let lTexture: ITexture;
+                let lTexture: IWebGpuTexture;
                 if (lGroup.canvas !== null) {
-                    const lCanvasTexture: CanvasTexture = new CanvasTexture(this.mGpu, lGroup.canvas, lGroup.format, TextureUsage.RenderAttachment | TextureUsage.TextureBinding);
+                    const lCanvasTexture: WebGpuCanvasTexture = new WebGpuCanvasTexture(this.mGpu, lGroup.canvas, lGroup.format, TextureUsage.RenderAttachment | TextureUsage.TextureBinding);
                     lCanvasTexture.label = lGroup.name;
                     lCanvasTexture.width = this.mSize.width;
                     lCanvasTexture.height = this.mSize.height;
@@ -213,7 +213,7 @@ export class Attachments {
                     lTexture = lCanvasTexture;
                 } else {
                     // Create fixed texture.
-                    const lFixedTexture: Texture = new Texture(this.mGpu, lGroup.format, TextureUsage.RenderAttachment | TextureUsage.TextureBinding, '2d', this.mMultiSampleLevel, lTextureLayerCount);
+                    const lFixedTexture: WebGpuTexture = new WebGpuTexture(this.mGpu, lGroup.format, TextureUsage.RenderAttachment | TextureUsage.TextureBinding, '2d', this.mMultiSampleLevel, lTextureLayerCount);
                     lFixedTexture.label = lGroup.name;
                     lFixedTexture.width = this.mSize.width;
                     lFixedTexture.height = this.mSize.height;

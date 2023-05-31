@@ -1,11 +1,11 @@
 import { TextureUsage } from './texture-usage.enum';
 import { WebGpuDevice } from '../../web-gpu-device';
 import { GpuNativeObject } from '../../gpu-native-object';
-import { ITexture } from './i-texture.interface';
-import { TextureView } from './texture-view';
+import { IWebGpuTexture } from './i-web-gpu-texture.interface';
+import { WebGpuTextureView } from './web-gpu-texture-view';
 import { Exception } from '@kartoffelgames/core.data';
 
-export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
+export class WebGpuTexture extends GpuNativeObject<GPUTexture> implements IWebGpuTexture {
     private readonly mDimension: GPUTextureDimension;
     private readonly mFormat: GPUTextureFormat;
     private readonly mHeight: number;
@@ -92,8 +92,8 @@ export class Texture extends GpuNativeObject<GPUTexture> implements ITexture {
     /**
      * Create view of this texture.
      */
-    public view(pBaseLayer?: number, pLayerCount?: number): TextureView {
-        const lView = new TextureView(this.gpu, this, pBaseLayer, pLayerCount);
+    public view(pBaseLayer?: number, pLayerCount?: number): WebGpuTextureView {
+        const lView = new WebGpuTextureView(this.gpu, this, pBaseLayer, pLayerCount);
         lView.label = this.label;
 
         return lView;

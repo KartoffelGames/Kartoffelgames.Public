@@ -1,8 +1,8 @@
 import { GpuNativeObject } from '../../gpu-native-object';
 import { TextureUsage } from './texture-usage.enum';
-import { TextureView } from './texture-view';
+import { WebGpuTextureView } from './web-gpu-texture-view';
 
-export interface ITexture extends GpuNativeObject<GPUTexture> {
+export interface IWebGpuTexture extends GpuNativeObject<GPUTexture> {
     /**
      * Texture dimension.
      */
@@ -42,5 +42,5 @@ export interface ITexture extends GpuNativeObject<GPUTexture> {
     /**
      * Get texture view.
      */
-    view(pBaseLayer?: number, pLayerCount?: number): TextureView;
+    view(pBaseLayer?: number, pLayerCount?: number): WebGpuTextureView;
 }

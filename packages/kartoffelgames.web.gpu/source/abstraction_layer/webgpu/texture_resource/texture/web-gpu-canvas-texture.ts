@@ -1,10 +1,10 @@
 import { TextureUsage } from './texture-usage.enum';
 import { WebGpuDevice } from '../../web-gpu-device';
 import { GpuNativeObject } from '../../gpu-native-object';
-import { ITexture } from './i-texture.interface';
-import { TextureView } from './texture-view';
+import { IWebGpuTexture } from './i-web-gpu-texture.interface';
+import { WebGpuTextureView } from './web-gpu-texture-view';
 
-export class CanvasTexture extends GpuNativeObject<GPUTexture> implements ITexture {
+export class WebGpuCanvasTexture extends GpuNativeObject<GPUTexture> implements IWebGpuTexture {
     private readonly mCanvas: HTMLCanvasElement;
     private readonly mContext: GPUCanvasContext;
     private readonly mFormat: GPUTextureFormat;
@@ -91,8 +91,8 @@ export class CanvasTexture extends GpuNativeObject<GPUTexture> implements ITextu
     /**
      * Create view of this texture.
      */
-    public view(pBaseLayer?: number, pLayerCount?: number): TextureView {
-        const lView = new TextureView(this.gpu, this, pBaseLayer, pLayerCount);
+    public view(pBaseLayer?: number, pLayerCount?: number): WebGpuTextureView {
+        const lView = new WebGpuTextureView(this.gpu, this, pBaseLayer, pLayerCount);
         lView.label = this.label;
 
         return lView;

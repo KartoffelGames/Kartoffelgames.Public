@@ -1,13 +1,13 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { WebGpuDevice } from '../../web-gpu-device';
 import { GpuNativeObject } from '../../gpu-native-object';
-import { ITexture } from '../../texture_resource/texture/i-texture.interface';
+import { IWebGpuTexture } from '../../texture_resource/texture/i-web-gpu-texture.interface';
 
 export class Attachment extends GpuNativeObject<GPUTextureView>{
     private mBaseArrayLayer: number;
     private readonly mFormat: GPUTextureFormat;
     private readonly mLayers: GPUIntegerCoordinate;
-    private mTexture: ITexture | null;
+    private mTexture: IWebGpuTexture | null;
 
     /**
      * Get texture format.
@@ -42,7 +42,7 @@ export class Attachment extends GpuNativeObject<GPUTextureView>{
      * @param pTexture - Attachment texture.
      * @param pBaseArrayLayer - Starting index of first texture layer. 
      */
-    public updateTexture(pTexture: ITexture, pBaseArrayLayer: number): void {
+    public updateTexture(pTexture: IWebGpuTexture, pBaseArrayLayer: number): void {
         // Remove old and add new texture as internal native.
         if (this.mTexture) {
             this.unregisterInternalNative(this.mTexture);
@@ -78,7 +78,7 @@ export class Attachment extends GpuNativeObject<GPUTextureView>{
 }
 
 export type AttachmentDefinition = {
-    frame: ITexture;
+    frame: IWebGpuTexture;
     format: GPUTextureFormat;
     layers: GPUIntegerCoordinate;
     baseArrayLayer: number;

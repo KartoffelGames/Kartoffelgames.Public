@@ -1,13 +1,15 @@
+import { TextureFormat } from '../../constant/texture-format.enum';
+
 export interface ITexture {
     /**
      * Texture height.
      */
-    readonly height: number;
+    height: number;
 
     /**
      * Texture width.
      */
-    readonly width: number;
+    width: number;
 
     /**
      * Texture depth.
@@ -17,5 +19,10 @@ export interface ITexture {
     /**
      * Texture multi sample level.
      */
-    readonly multiSampleLevel: number;
+    multiSampleLevel: number;
+
+    /**
+     * Texture format.
+     */
+    readonly format: TextureFormat;
 }

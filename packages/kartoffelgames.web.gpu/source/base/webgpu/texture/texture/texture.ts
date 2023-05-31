@@ -1,11 +1,11 @@
-import { WebGpuTexture } from '../../../abstraction_layer/webgpu/texture_resource/texture/web-gpu-texture';
-import { WebGpuTextureUsage } from '../../../abstraction_layer/webgpu/texture_resource/texture/web-gpu-texture-usage.enum';
-import { Base } from '../../base/export.';
-import { TextureFormat } from '../../constant/texture-format.enum';
-import { TextureUsage } from '../../constant/texture-usage.enum';
-import { GpuDevice } from '../gpu-device';
+import { WebGpuTexture } from '../../../../abstraction_layer/webgpu/texture_resource/texture/web-gpu-texture';
+import { WebGpuTextureUsage } from '../../../../abstraction_layer/webgpu/texture_resource/texture/web-gpu-texture-usage.enum';
+import { Base } from '../../../base/export.';
+import { TextureFormat } from '../../../constant/texture-format.enum';
+import { TextureUsage } from '../../../constant/texture-usage.enum';
+import { GpuDevice } from '../../gpu-device';
 
-export class Texture extends Base.Texture<GpuDevice, WebGpuTexture>{
+export class Texture extends Base.Texture<GpuDevice, WebGpuTexture> {
     /**
      * Constructor.
      * @param pGpu - Device.

@@ -84,8 +84,6 @@ export class WebGpuCanvasTexture extends GpuNativeObject<GPUTexture> implements 
             usage: pUsage,
             alphaMode: 'opaque'
         });
-
-        (<any>window).aaa = this.mContext;
     }
 
     /**

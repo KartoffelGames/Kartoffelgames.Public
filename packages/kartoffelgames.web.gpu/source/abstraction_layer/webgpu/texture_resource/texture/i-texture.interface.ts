@@ -16,7 +16,7 @@ export interface ITexture extends GpuNativeObject<GPUTexture> {
     /**
      * Texture height.
      */
-    height: number;
+    readonly height: number;
 
     /**
      * Texture depth.
@@ -37,7 +37,7 @@ export interface ITexture extends GpuNativeObject<GPUTexture> {
     /**
      * Texture width.
      */
-    width: number;
+    readonly width: number;
 
     /**
      * Get texture view.

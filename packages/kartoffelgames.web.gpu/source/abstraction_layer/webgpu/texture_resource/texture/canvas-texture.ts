@@ -30,8 +30,6 @@ export class CanvasTexture extends GpuNativeObject<GPUTexture> implements ITextu
      */
     public get height(): number {
         return this.mCanvas.height;
-    } set height(pHeight: number) {
-        this.mCanvas.height = pHeight;
     }
 
     /**
@@ -62,8 +60,6 @@ export class CanvasTexture extends GpuNativeObject<GPUTexture> implements ITextu
      */
     public get width(): number {
         return this.mCanvas.width;
-    } set width(pWidth: number) {
-        this.mCanvas.width = pWidth;
     }
 
     /**
@@ -110,12 +106,5 @@ export class CanvasTexture extends GpuNativeObject<GPUTexture> implements ITextu
         lTexture.label = this.label;
 
         return lTexture;
-    }
-
-    /**
-     * Allways invalidate current texture to generate latest texture.
-     */
-    protected override validate(pNativeObject: GPUTexture): boolean {
-        return this.mContext.getCurrentTexture() === pNativeObject;
     }
 }

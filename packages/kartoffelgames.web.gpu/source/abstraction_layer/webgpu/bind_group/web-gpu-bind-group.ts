@@ -3,9 +3,9 @@ import { WebGpuBindType } from './web-gpu-bind-type.enum';
 import { WebGpuDevice } from '../web-gpu-device';
 import { GpuNativeObject } from '../gpu-native-object';
 import { WebGpuBuffer } from '../buffer/web-gpu-buffer';
-import { ExternalTexture } from '../texture_resource/external-texture';
+import { WebGpuExternalTexture } from '../texture_resource/web-gpu-external-texture';
 import { WebGpuTextureSampler } from '../texture_resource/web-gpu-texture-sampler';
-import { TextureView } from '../texture_resource/texture/texture-view';
+import { WebGpuTextureView } from '../texture_resource/texture/web-gpu-texture-view';
 import { WebGpuBindGroupLayout } from './web-gpu-bind-group-layout';
 
 export class WebGpuBindGroup extends GpuNativeObject<GPUBindGroup>{
@@ -58,7 +58,7 @@ export class WebGpuBindGroup extends GpuNativeObject<GPUBindGroup>{
         this.registerInternalNative(pData);
 
         // Set bind type to Teture for TS type check shutup.
-        this.mBindData.set(pBindName, { type: <WebGpuBindType.Texture>lDataBindType, name: pBindName, data: <TextureView>pData });
+        this.mBindData.set(pBindName, { type: <WebGpuBindType.Texture>lDataBindType, name: pBindName, data: <WebGpuTextureView>pData });
     }
 
     /**
@@ -126,11 +126,11 @@ export class WebGpuBindGroup extends GpuNativeObject<GPUBindGroup>{
      * @param pData - Data object.
      */
     private bindTypeOfData(pData: BindData): WebGpuBindType {
-        if (pData instanceof TextureView) {
+        if (pData instanceof WebGpuTextureView) {
             return WebGpuBindType.Texture;
         } else if (pData instanceof WebGpuBuffer) {
             return WebGpuBindType.Buffer;
-        } else if (pData instanceof ExternalTexture) {
+        } else if (pData instanceof WebGpuExternalTexture) {
             return WebGpuBindType.ExternalTexture;
         } if (pData instanceof WebGpuTextureSampler) {
             return WebGpuBindType.Sampler;
@@ -140,7 +140,7 @@ export class WebGpuBindGroup extends GpuNativeObject<GPUBindGroup>{
     }
 }
 
-type BindData = TextureView | WebGpuBuffer<TypedArray> | ExternalTexture | WebGpuTextureSampler;
+type BindData = WebGpuTextureView | WebGpuBuffer<TypedArray> | WebGpuExternalTexture | WebGpuTextureSampler;
 
 type Bind = {
     type: WebGpuBindType.Buffer,
@@ -149,7 +149,7 @@ type Bind = {
 } | {
     type: WebGpuBindType.ExternalTexture,
     name: string,
-    data: ExternalTexture;
+    data: WebGpuExternalTexture;
 } | {
     type: WebGpuBindType.Sampler,
     name: string,
@@ -157,9 +157,9 @@ type Bind = {
 } | {
     type: WebGpuBindType.StorageTexture,
     name: string,
-    data: TextureView;
+    data: WebGpuTextureView;
 } | {
     type: WebGpuBindType.Texture,
     name: string,
-    data: TextureView;
+    data: WebGpuTextureView;
 };

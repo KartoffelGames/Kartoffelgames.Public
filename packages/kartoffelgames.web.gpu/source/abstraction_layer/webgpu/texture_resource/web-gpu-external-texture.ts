@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core.data';
 import { WebGpuDevice } from '../web-gpu-device';
 import { GpuNativeObject } from '../gpu-native-object';
 
-export class ExternalTexture extends GpuNativeObject<GPUExternalTexture> {
+export class WebGpuExternalTexture extends GpuNativeObject<GPUExternalTexture> {
     private mVideoElement: HTMLVideoElement | null;
 
     /**

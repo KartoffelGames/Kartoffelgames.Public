@@ -15,7 +15,7 @@ import shader from './shader.wgsl';
 import { RenderPassDescriptor } from '../../source/abstraction_layer/webgpu/pass_descriptor/render-pass-descriptor';
 import { RenderInstructionSet } from '../../source/abstraction_layer/webgpu/execution/instruction_set/render-instruction-set';
 import { RingBuffer } from '../../source/abstraction_layer/webgpu/buffer/ring-buffer';
-import { Texture } from '../../source/abstraction_layer/webgpu/texture_resource/texture/texture';
+import { WebGpuTexture } from '../../source/abstraction_layer/webgpu/texture_resource/texture/web-gpu-texture';
 import { TextureUsage } from '../../source/abstraction_layer/webgpu/texture_resource/texture/texture-usage.enum';
 import { WebGpuTextureSampler } from '../../source/abstraction_layer/webgpu/texture_resource/web-gpu-texture-sampler';
 import { BaseInputDevice, DeviceConfiguration, InputConfiguration, InputDevices, KeyboardButton, MouseButton, MouseKeyboardConnector } from '@kartoffelgames/web.game-input';
@@ -287,7 +287,7 @@ const gDepth: number = 10;
     });
 
     // Setup Texture.
-    const lCubeTexture: Texture = new Texture(lGpu, lGpu.preferredFormat, TextureUsage.TextureBinding | TextureUsage.RenderAttachment | TextureUsage.CopyDestination);
+    const lCubeTexture: WebGpuTexture = new WebGpuTexture(lGpu, lGpu.preferredFormat, TextureUsage.TextureBinding | TextureUsage.RenderAttachment | TextureUsage.CopyDestination);
     lCubeTexture.label = 'Cube Texture';
     await lCubeTexture.load(['/source/cube_texture/cube-texture.png']);
 

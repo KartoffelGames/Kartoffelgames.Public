@@ -1,4 +1,4 @@
-import { TextureUsage } from './texture-usage.enum';
+import { WebGpuTextureUsage } from './web-gpu-texture-usage.enum';
 import { WebGpuDevice } from '../../web-gpu-device';
 import { GpuNativeObject } from '../../gpu-native-object';
 import { IWebGpuTexture } from './i-web-gpu-texture.interface';
@@ -8,7 +8,7 @@ export class WebGpuCanvasTexture extends GpuNativeObject<GPUTexture> implements 
     private readonly mCanvas: HTMLCanvasElement;
     private readonly mContext: GPUCanvasContext;
     private readonly mFormat: GPUTextureFormat;
-    private readonly mUsage: TextureUsage;
+    private readonly mUsage: WebGpuTextureUsage;
 
     /**
      * Texture dimension.
@@ -51,7 +51,7 @@ export class WebGpuCanvasTexture extends GpuNativeObject<GPUTexture> implements 
     /**
      * Texture usage.
      */
-    public get usage(): TextureUsage {
+    public get usage(): WebGpuTextureUsage {
         return this.mUsage;
     }
 
@@ -69,7 +69,7 @@ export class WebGpuCanvasTexture extends GpuNativeObject<GPUTexture> implements 
      * @param pFormat - Texture color format.
      * @param pUsage - Texture usage.
      */
-    public constructor(pGpu: WebGpuDevice, pCanvas: HTMLCanvasElement, pFormat: GPUTextureFormat, pUsage: TextureUsage) {
+    public constructor(pGpu: WebGpuDevice, pCanvas: HTMLCanvasElement, pFormat: GPUTextureFormat, pUsage: WebGpuTextureUsage) {
         super(pGpu, 'CANVAS_TEXTURE');
 
         this.mCanvas = pCanvas;

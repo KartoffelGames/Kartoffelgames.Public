@@ -3,7 +3,7 @@ import { WebGpuDevice } from '../web-gpu-device';
 import { WebGpuCanvasTexture } from '../texture_resource/texture/web-gpu-canvas-texture';
 import { IWebGpuTexture } from '../texture_resource/texture/i-web-gpu-texture.interface';
 import { WebGpuTexture } from '../texture_resource/texture/web-gpu-texture';
-import { TextureUsage } from '../texture_resource/texture/texture-usage.enum';
+import { WebGpuTextureUsage } from '../texture_resource/texture/web-gpu-texture-usage.enum';
 import { AttachmentType } from './attachment-type.enum';
 import { Attachment } from './type/attachment';
 
@@ -205,7 +205,7 @@ export class Attachments {
                 // Create texture and set size and concat debug label.
                 let lTexture: IWebGpuTexture;
                 if (lGroup.canvas !== null) {
-                    const lCanvasTexture: WebGpuCanvasTexture = new WebGpuCanvasTexture(this.mGpu, lGroup.canvas, lGroup.format, TextureUsage.RenderAttachment | TextureUsage.TextureBinding);
+                    const lCanvasTexture: WebGpuCanvasTexture = new WebGpuCanvasTexture(this.mGpu, lGroup.canvas, lGroup.format, WebGpuTextureUsage.RenderAttachment | WebGpuTextureUsage.TextureBinding);
                     lCanvasTexture.label = lGroup.name;
                     lCanvasTexture.width = this.mSize.width;
                     lCanvasTexture.height = this.mSize.height;
@@ -213,7 +213,7 @@ export class Attachments {
                     lTexture = lCanvasTexture;
                 } else {
                     // Create fixed texture.
-                    const lFixedTexture: WebGpuTexture = new WebGpuTexture(this.mGpu, lGroup.format, TextureUsage.RenderAttachment | TextureUsage.TextureBinding, '2d', this.mMultiSampleLevel, lTextureLayerCount);
+                    const lFixedTexture: WebGpuTexture = new WebGpuTexture(this.mGpu, lGroup.format, WebGpuTextureUsage.RenderAttachment | WebGpuTextureUsage.TextureBinding, '2d', this.mMultiSampleLevel, lTextureLayerCount);
                     lFixedTexture.label = lGroup.name;
                     lFixedTexture.width = this.mSize.width;
                     lFixedTexture.height = this.mSize.height;

@@ -7,6 +7,11 @@ export interface IVideoTexture {
     readonly height: number;
 
     /**
+     * If video should be looped.
+     */
+    readonly loop: boolean;
+
+    /**
      * Texture width.
      */
     readonly width: number;

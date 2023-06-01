@@ -5,6 +5,7 @@ import { GpuObject } from '../gpu/gpu-object';
 
 export abstract class VideoTexture<TGpu extends GpuDevice, TNative extends object> extends GpuObject<TGpu, TNative> implements IVideoTexture {
     private readonly mFormat: TextureFormat;
+    private readonly mLoop: boolean;
     private readonly mSource: string;
 
     /**
@@ -25,6 +26,13 @@ export abstract class VideoTexture<TGpu extends GpuDevice, TNative extends objec
     }
 
     /**
+     * If video should be looped.
+     */
+    public get loop(): boolean {
+        return this.mLoop;
+    }
+
+    /**
      * Video source.
      */
     public get source(): string {
@@ -37,12 +45,13 @@ export abstract class VideoTexture<TGpu extends GpuDevice, TNative extends objec
      * @param pFormat - Texture format.
      * @param pDepth - Texture depth.
      */
-    public constructor(pGpu: TGpu, pFormat: TextureFormat, pSource: string) {
+    public constructor(pGpu: TGpu, pFormat: TextureFormat, pSource: string, pLoop: boolean = false) {
         super(pGpu);
 
         // Fixed values.
         this.mSource = pSource;
         this.mFormat = pFormat;
+        this.mLoop = pLoop;
     }
 
     /**

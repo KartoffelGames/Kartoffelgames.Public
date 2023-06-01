@@ -1,18 +1,13 @@
-import { Exception } from '@kartoffelgames/core.data';
-import { WebGpuDevice } from '../web-gpu-device';
 import { GpuNativeObject } from '../gpu-native-object';
+import { WebGpuDevice } from '../web-gpu-device';
 
 export class WebGpuExternalTexture extends GpuNativeObject<GPUExternalTexture> {
-    private mVideoElement: HTMLVideoElement | null;
+    private readonly mVideoElement: HTMLVideoElement;
 
     /**
      * Loaded video element.
      */
     public get video(): HTMLVideoElement {
-        if (!this.mVideoElement) {
-            throw new Exception('No video element is loaded or old video is expired.', this);
-        }
-
         return this.mVideoElement;
     }
 
@@ -20,38 +15,16 @@ export class WebGpuExternalTexture extends GpuNativeObject<GPUExternalTexture> {
      * Constructor.
      * @param pGpu - GPU.
      */
-    public constructor(pGpu: WebGpuDevice) {
+    public constructor(pGpu: WebGpuDevice, pVideo: HTMLVideoElement) {
         super(pGpu, 'EXTERNAL_TEXTURE');
-        this.mVideoElement = null;
+
+        this.mVideoElement = pVideo;
     }
-
-    /**
-     * 
-     * @param pSource - Video source.
-     * @param pLoop - Loop video.
-     * @param pMuted - Mute video.
-     */
-    public async load(pSource: string, pLoop: boolean = false, pMuted: boolean = false): Promise<void> {
-        const lVideo = new HTMLVideoElement();
-        lVideo.loop = pLoop;
-        lVideo.muted = pMuted;
-        lVideo.src = pSource;
-
-        // Wait for resource load and pause right after.
-        await lVideo.play();
-        lVideo.pause();
-
-        this.mVideoElement = lVideo;
-    }
-
+    
     /**
      * Generate new external texture.
      */
     protected generate(): GPUExternalTexture {
-        if (!this.mVideoElement) {
-            throw new Exception('No video element is loaded or old video is expired.', this);
-        }
-
         return this.gpu.device.importExternalTexture({
             label: this.label,
             source: this.mVideoElement,

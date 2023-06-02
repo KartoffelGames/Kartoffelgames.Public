@@ -41,12 +41,12 @@ export abstract class VideoTexture<TGpu extends GpuDevice, TNative extends objec
 
     /**
      * Constructor.
-     * @param pGpu - Device.
+     * @param pDevice - Device.
      * @param pFormat - Texture format.
      * @param pDepth - Texture depth.
      */
-    public constructor(pGpu: TGpu, pFormat: TextureFormat, pSource: string, pLoop: boolean = false) {
-        super(pGpu);
+    public constructor(pDevice: TGpu, pFormat: TextureFormat, pSource: string, pLoop: boolean = false) {
+        super(pDevice);
 
         // Fixed values.
         this.mSource = pSource;

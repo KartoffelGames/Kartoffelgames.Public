@@ -22,12 +22,12 @@ export class VideoTexture extends Base.VideoTexture<GpuDevice, WebGpuExternalTex
 
     /**
      * Constructor.
-     * @param pGpu - Device.
+     * @param pDevice - Device.
      * @param pFormat - Texture format.
      * @param pDepth - Texture depth.
      */
-    public constructor(pGpu: GpuDevice, pFormat: TextureFormat, pSource: string, pLoop: boolean = false) {
-        super(pGpu, pFormat, pSource, pLoop);
+    public constructor(pDevice: GpuDevice, pFormat: TextureFormat, pSource: string, pLoop: boolean = false) {
+        super(pDevice, pFormat, pSource, pLoop);
 
         // Create video.
         const lVideo = new HTMLVideoElement();

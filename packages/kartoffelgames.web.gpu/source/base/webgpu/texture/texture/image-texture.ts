@@ -6,7 +6,15 @@ import { TextureUsage } from '../../../constant/texture-usage.enum';
 import { GpuDevice } from '../../gpu-device';
 
 export class ImageTexture extends Base.ImageTexture<GpuDevice, WebGpuTexture> {
-
+    /**
+     * Constructor.
+     * @param pDevice - Device.
+     * @param pFormat - Texture format.
+     * @param pDepth - Texture depth.
+     */
+    public constructor(pDevice: GpuDevice, pFormat: TextureFormat, pUsage: TextureUsage) {
+        super(pDevice, pFormat, pUsage);
+    }
 
     /**
      * Destroy native image texture.

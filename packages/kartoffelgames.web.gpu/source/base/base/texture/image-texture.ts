@@ -57,12 +57,12 @@ export abstract class ImageTexture<TGpu extends GpuDevice, TNative extends objec
 
     /**
      * Constructor.
-     * @param pGpu - Device.
+     * @param pDevice - Device.
      * @param pFormat - Texture format.
      * @param pDepth - Texture depth.
      */
-    public constructor(pGpu: TGpu, pFormat: TextureFormat, pUsage: TextureUsage) {
-        super(pGpu);
+    public constructor(pDevice: TGpu, pFormat: TextureFormat, pUsage: TextureUsage) {
+        super(pDevice);
 
         // Fixed values.
         this.mFormat = pFormat;

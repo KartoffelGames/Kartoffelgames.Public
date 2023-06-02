@@ -71,12 +71,12 @@ export abstract class FrameBufferTexture<TGpu extends GpuDevice, TNative extends
 
     /**
      * Constructor.
-     * @param pGpu - Device.
+     * @param pDevice - Device.
      * @param pFormat - Texture format.
      * @param pDepth - Texture depth.
      */
-    public constructor(pGpu: TGpu, pFormat: TextureFormat, pUsage: TextureUsage, pDepth: number = 1) {
-        super(pGpu);
+    public constructor(pDevice: TGpu, pFormat: TextureFormat, pUsage: TextureUsage, pDepth: number = 1) {
+        super(pDevice);
 
         // Fixed values.
         this.mDepth = pDepth;

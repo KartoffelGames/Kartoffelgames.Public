@@ -8,12 +8,12 @@ import { GpuDevice } from '../../gpu-device';
 export class FrameBufferTexture extends Base.FrameBufferTexture<GpuDevice, WebGpuTexture> {
     /**
      * Constructor.
-     * @param pGpu - Device.
+     * @param pDevice - Device.
      * @param pFormat - Texture format.
      * @param pDepth - Texture depth.
      */
-    public constructor(pGpu: GpuDevice, pFormat: TextureFormat, pUsage: TextureUsage, pDepth: number = 1) {
-        super(pGpu, pFormat, pUsage, pDepth);
+    public constructor(pDevice: GpuDevice, pFormat: TextureFormat, pUsage: TextureUsage, pDepth: number = 1) {
+        super(pDevice, pFormat, pUsage, pDepth);
     }
 
     /**

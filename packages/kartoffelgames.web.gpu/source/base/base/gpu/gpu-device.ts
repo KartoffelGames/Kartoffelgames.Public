@@ -22,8 +22,9 @@ export abstract class GpuDevice implements IGpuDevice {
     /**
      * Create frame buffer texture from canvas element.
      * @param pCanvas - Canvas html element.
+     * @param pUsage - Texture usage.
      */
-    public abstract createFrameBufferTexture(pCanvas: HTMLCanvasElement): IFrameBufferTexture;
+    public abstract createFrameBufferTexture(pCanvas: HTMLCanvasElement, pUsage: TextureUsage): IFrameBufferTexture;
 
     /**
      * Create frame buffer element.
@@ -38,8 +39,10 @@ export abstract class GpuDevice implements IGpuDevice {
     /**
      * Create texture from images.
      * @param pSourceList - Image source list.
+     * @param pFormat - Texture texel format.
+     * @param pUsage - Texture usage.
      */
-    public abstract createImageTexture(...pSourceList: Array<string>): Promise<IImageTexture>;
+    public abstract createImageTexture(pFormat: TextureFormat, pUsage: TextureUsage, ...pSourceList: Array<string>): Promise<IImageTexture>;
 
     /**
      * Create texture sampler.
@@ -49,6 +52,8 @@ export abstract class GpuDevice implements IGpuDevice {
     /**
      * Create texture from a video source.
      * @param pSource - Video source.
+     * @param pFormat - Texture texel format.
+     * @param pLoop - Loop video.
      */
-    public abstract createVideoTexture(pSource: string): Promise<IVideoTexture>;
+    public abstract createVideoTexture(pSource: string, pFormat: TextureFormat, pLoop: boolean): Promise<IVideoTexture>;
 }

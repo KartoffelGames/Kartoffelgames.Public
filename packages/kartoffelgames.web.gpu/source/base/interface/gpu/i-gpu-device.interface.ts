@@ -26,8 +26,9 @@ export interface IGpuDevice {
     /**
      * Create frame buffer texture from canvas element.
      * @param pCanvas - Canvas html element.
+     * @param pUsage - Texture usage.
      */
-    createFrameBufferTexture(pCanvas: HTMLCanvasElement): IFrameBufferTexture;
+    createFrameBufferTexture(pCanvas: HTMLCanvasElement, pUsage: TextureUsage): IFrameBufferTexture;
 
     /**
      * Create frame buffer element.
@@ -42,12 +43,16 @@ export interface IGpuDevice {
     /**
      * Create texture from images.
      * @param pSourceList - Image source list.
+     * @param pFormat - Texture texel format.
+     * @param pUsage - Texture usage.
      */
-    createImageTexture(...pSourceList: Array<string>): Promise<IImageTexture>;
+    createImageTexture(pFormat: TextureFormat, pUsage: TextureUsage, ...pSourceList: Array<string>): Promise<IImageTexture>;
 
     /**
      * Create texture from a video source.
      * @param pSource - Video source.
+     * @param pFormat - Texture texel format.
+     * @param pLoop - Loop video.
      */
-    createVideoTexture(pSource: string): Promise<IVideoTexture>;
+    createVideoTexture(pSource: string, pFormat: TextureFormat, pLoop: boolean): Promise<IVideoTexture>;
 }

@@ -87,6 +87,20 @@ export class WebGpuTexture extends GpuNativeObject<GPUTexture> implements IWebGp
     }
 
     /**
+     * Load image into texture layer.
+     * @param pBitmap - Image.
+     * @param pLayerIndex - Depth layer index.
+     */
+    public loadImage(pBitmap: ImageBitmap, pLayerIndex: number): void {
+        // Copy image into depth layer.
+        this.gpu.device.queue.copyExternalImageToTexture(
+            { source: pBitmap },
+            { texture: this.native(), origin: [0, 0, pLayerIndex] },
+            [pBitmap.width, pBitmap.height]
+        );
+    }
+
+    /**
      * Create view of this texture.
      */
     public view(pBaseLayer?: number, pLayerCount?: number): WebGpuTextureView {

@@ -10,7 +10,7 @@ export interface IImageTexture {
     /**
      * Loaded html image element list.
      */
-    readonly images: Array<HTMLImageElement>;
+    readonly images: Array<ImageBitmap>;
 
     /**
      * Texture width.

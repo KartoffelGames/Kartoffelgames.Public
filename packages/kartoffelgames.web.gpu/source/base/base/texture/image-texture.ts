@@ -9,7 +9,7 @@ export abstract class ImageTexture<TGpu extends GpuDevice, TNative extends objec
     private mDepth: number;
     private readonly mFormat: TextureFormat;
     private mHeight: number;
-    private mImageList: Array<HTMLImageElement>;
+    private mImageList: Array<ImageBitmap>;
     private readonly mUsage: TextureUsage;
     private mWidth: number;
 
@@ -37,7 +37,7 @@ export abstract class ImageTexture<TGpu extends GpuDevice, TNative extends objec
     /**
      * Loaded html image list.
      */
-    public get images(): Array<HTMLImageElement> {
+    public get images(): Array<ImageBitmap> {
         return this.mImageList;
     }
 
@@ -72,7 +72,7 @@ export abstract class ImageTexture<TGpu extends GpuDevice, TNative extends objec
         this.mDepth = 1;
         this.mHeight = 1;
         this.mWidth = 1;
-        this.mImageList = new Array<HTMLImageElement>();
+        this.mImageList = new Array<ImageBitmap>();
     }
 
     /**
@@ -85,7 +85,7 @@ export abstract class ImageTexture<TGpu extends GpuDevice, TNative extends objec
         let lWidth: number = 0;
 
         // Parallel load images.
-        const lImageLoadPromiseList: Array<Promise<HTMLImageElement>> = pSourceList.map(async (pSource) => {
+        const lImageLoadPromiseList: Array<Promise<ImageBitmap>> = pSourceList.map(async (pSource) => {
             // Load image with html image element.
             const lImage: HTMLImageElement = new Image();
             lImage.src = pSource;
@@ -102,7 +102,7 @@ export abstract class ImageTexture<TGpu extends GpuDevice, TNative extends objec
                 throw new Exception(`Texture image layers are not the same size. (${lImage.naturalWidth}, ${lImage.naturalHeight}) needs (${lWidth}, ${lHeight}).`, this);
             }
 
-            return lImage;
+            return createImageBitmap(lImage);
         });
 
         // Resolve all bitmaps.

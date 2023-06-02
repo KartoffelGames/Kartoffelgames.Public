@@ -4,6 +4,7 @@ import { BufferLayout as BaseBufferLayout } from './buffer/buffer-layout';
 import { TextureSampler as BaseTextureSampler } from './texture/texture-sampler';
 import { FrameBufferTexture as BaseFrameBufferTexture } from './texture/frame-buffer-texture';
 import { VideoTexture as BaseVideoTexture } from './texture/video-texture';
+import { ImageTexture as BaseImageTexture } from './texture/image-texture';
 
 export namespace Base {
     // GPU Base
@@ -17,4 +18,5 @@ export namespace Base {
     export const TextureSampler = BaseTextureSampler;
     export const FrameBufferTexture = BaseFrameBufferTexture;
     export const VideoTexture = BaseVideoTexture;
+    export const ImageTexture = BaseImageTexture;
 }

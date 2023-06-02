@@ -41,6 +41,12 @@ export class CanvasTexture extends Base.FrameBufferTexture<GpuDevice, WebGpuCanv
      * Generate native web gpu canvas texture.
      */
     protected override generate(): WebGpuCanvasTexture {
+        // Update size.
+        if (this.mCanvas.width !== this.width || this.mCanvas.height !== this.height) {
+            this.mCanvas.width = this.width;
+            this.mCanvas.height = this.height;
+        }
+
         // Convert base to web gpu texture format.
         let lFormat: GPUTextureFormat;
         switch (this.format) {

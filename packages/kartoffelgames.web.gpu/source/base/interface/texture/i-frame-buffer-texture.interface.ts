@@ -1,7 +1,7 @@
 import { TextureFormat } from '../../constant/texture-format.enum';
 import { TextureUsage } from '../../constant/texture-usage.enum';
 
-export interface IImageTexture {
+export interface IFrameBufferTexture {
     /**
      * Texture height.
      */

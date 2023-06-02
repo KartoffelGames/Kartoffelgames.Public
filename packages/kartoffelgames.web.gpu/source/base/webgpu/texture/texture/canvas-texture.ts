@@ -5,7 +5,7 @@ import { TextureFormat } from '../../../constant/texture-format.enum';
 import { TextureUsage } from '../../../constant/texture-usage.enum';
 import { GpuDevice } from '../../gpu-device';
 
-export class CanvasTexture extends Base.ImageTexture<GpuDevice, WebGpuCanvasTexture> {
+export class CanvasTexture extends Base.FrameBufferTexture<GpuDevice, WebGpuCanvasTexture> {
     private readonly mCanvas: HTMLCanvasElement;
 
     public constructor(pDevice: GpuDevice, pCanvas: HTMLCanvasElement, pUsage: TextureUsage) {

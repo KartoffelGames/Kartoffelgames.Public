@@ -1,15 +1,13 @@
-import { TextureFormat } from '../../constant/texture-format.enum';
-import { TextureUsage } from '../../constant/texture-usage.enum';
 import { IFrameBufferTexture } from '../../interface/texture/i-frame-buffer-texture.interface';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
+import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
 
 export abstract class FrameBufferTexture<TGpu extends GpuDevice, TNative extends object> extends GpuObject<TGpu, TNative> implements IFrameBufferTexture {
     private readonly mDepth: number;
-    private readonly mFormat: TextureFormat;
     private mHeight: number;
+    private readonly mMemoryLayout: TextureMemoryLayout;
     private mMultiSampleLevel: number;
-    private readonly mUsage: TextureUsage;
     private mWidth: number;
 
     /**
@@ -17,13 +15,6 @@ export abstract class FrameBufferTexture<TGpu extends GpuDevice, TNative extends
      */
     public get depth(): number {
         return this.mDepth;
-    }
-
-    /**
-     * Texture format.
-     */
-    public get format(): TextureFormat {
-        return this.mFormat;
     }
 
     /**
@@ -39,6 +30,13 @@ export abstract class FrameBufferTexture<TGpu extends GpuDevice, TNative extends
     }
 
     /**
+     * Textures memory layout.
+     */
+    public get memoryLayout(): TextureMemoryLayout {
+        return this.mMemoryLayout;
+    }
+
+    /**
      * Texture multi sample level.
      */
     public get multiSampleLevel(): number {
@@ -48,13 +46,6 @@ export abstract class FrameBufferTexture<TGpu extends GpuDevice, TNative extends
 
         // Trigger auto update.
         this.triggerAutoUpdate();
-    }
-
-    /**
-     * Texture usage.
-     */
-    public get usage(): TextureUsage {
-        return this.mUsage;
     }
 
     /**
@@ -72,16 +63,15 @@ export abstract class FrameBufferTexture<TGpu extends GpuDevice, TNative extends
     /**
      * Constructor.
      * @param pDevice - Device.
-     * @param pFormat - Texture format.
+     * @param pLayout - Texture memory layout.
      * @param pDepth - Texture depth.
      */
-    public constructor(pDevice: TGpu, pFormat: TextureFormat, pUsage: TextureUsage, pDepth: number = 1) {
+    public constructor(pDevice: TGpu, pLayout: TextureMemoryLayout, pDepth: number = 1) {
         super(pDevice);
 
         // Fixed values.
         this.mDepth = pDepth;
-        this.mFormat = pFormat;
-        this.mUsage = pUsage;
+        this.mMemoryLayout = pLayout;
 
         // Set defaults.
         this.mHeight = 1;

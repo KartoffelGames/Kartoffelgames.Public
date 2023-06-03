@@ -46,7 +46,6 @@ export interface ITextureSampler extends IGpuObject {
      */
     mipmapFilter: FilterMode;
 
-    
     /**
      * Memory layout.
      */

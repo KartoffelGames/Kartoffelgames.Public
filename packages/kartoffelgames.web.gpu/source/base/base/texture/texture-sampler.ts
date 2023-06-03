@@ -4,6 +4,7 @@ import { WrappingMode } from '../../constant/wrapping-mode.enum';
 import { ITextureSampler } from '../../interface/texture/i-texture-sampler.interface';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
+import { SamplerMemoryLayout } from '../memory_layout/sampler-memory-layout';
 
 export abstract class TextureSampler<TGpu extends GpuDevice, TNative extends object> extends GpuObject<TGpu, TNative> implements ITextureSampler {
     private mCompare: CompareFunction | null;
@@ -11,6 +12,7 @@ export abstract class TextureSampler<TGpu extends GpuDevice, TNative extends obj
     private mLodMinClamp: number;
     private mMagFilter: FilterMode;
     private mMaxAnisotropy: number;
+    private readonly mMemoryLayout: SamplerMemoryLayout;
     private mMinFilter: FilterMode;
     private mMipmapFilter: FilterMode;
     private mWrapMode: WrappingMode;
@@ -76,6 +78,13 @@ export abstract class TextureSampler<TGpu extends GpuDevice, TNative extends obj
     }
 
     /**
+     * Sampler memory layout.
+     */
+    public get memoryLayout(): SamplerMemoryLayout {
+        return this.mMemoryLayout;
+    }
+
+    /**
      * How the texture is sampled when a texel covers less than one pixel.
      */
     public get minFilter(): FilterMode {
@@ -111,8 +120,15 @@ export abstract class TextureSampler<TGpu extends GpuDevice, TNative extends obj
         this.triggerAutoUpdate();
     }
 
-    public constructor(pDevice: TGpu) {
+    /**
+     * Constructor.
+     * @param pDevice - Device.
+     * @param pLayout - Sampler memory layout.
+     */
+    public constructor(pDevice: TGpu, pLayout: SamplerMemoryLayout) {
         super(pDevice);
+
+        this.mMemoryLayout = pLayout;
 
         // Set defaults.
         this.mCompare = null;

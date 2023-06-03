@@ -13,7 +13,6 @@ export interface IImageTexture {
      */
     readonly images: Array<ImageBitmap>;
 
-    
     /**
      * Memory layout.
      */
@@ -28,16 +27,6 @@ export interface IImageTexture {
      * Texture depth.
      */
     readonly depth: number;
-
-    /**
-     * Texture format.
-     */
-    readonly format: TextureFormat;
-
-    /**
-     * Texture usage.
-     */
-    readonly usage: TextureUsage
 
     /**
      * Load image into texture.

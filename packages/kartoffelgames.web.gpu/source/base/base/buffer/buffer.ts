@@ -1,14 +1,12 @@
 import { TypedArray } from '@kartoffelgames/core.data';
-import { BufferUsage } from '../../constant/buffer-usage.enum';
-import { GpuDevice } from '../gpu/gpu-device';
-import { BufferLayout } from './buffer-layout';
-import { GpuObject } from '../gpu/gpu-object';
 import { IBuffer } from '../../interface/buffer/i-buffer.interface';
+import { GpuDevice } from '../gpu/gpu-device';
+import { GpuObject } from '../gpu/gpu-object';
+import { BufferMemoryLayout } from '../memory_layout/buffer-memory-layout';
 
 export abstract class Buffer<TGpu extends GpuDevice, TNative extends object, TType extends TypedArray> extends GpuObject<TGpu, TNative> implements IBuffer<TType> {
-    private readonly mBufferUsage: BufferUsage;
     private readonly mInitialData: TType;
-    private readonly mLayout: BufferLayout;
+    private readonly mLayout: BufferMemoryLayout;
 
     /**
      * Buffer size.
@@ -18,15 +16,8 @@ export abstract class Buffer<TGpu extends GpuDevice, TNative extends object, TTy
     /**
      * Buffer layout.
      */
-    public get layout(): BufferLayout {
+    public get memoryLayout(): BufferMemoryLayout {
         return this.mLayout;
-    }
-
-    /**
-     * Buffer usage. Bit concat of enum.
-     */
-    public get usage(): BufferUsage {
-        return this.mBufferUsage;
     }
 
     /**
@@ -43,10 +34,9 @@ export abstract class Buffer<TGpu extends GpuDevice, TNative extends object, TTy
      * @param pUsage - Buffer usage beside COPY_DST.
      * @param pInitialData  - Inital data. Can be empty.
      */
-    public constructor(pDevice: TGpu, pLayout: BufferLayout, pUsage: BufferUsage, pInitialData: TType) {
+    public constructor(pDevice: TGpu, pLayout: BufferMemoryLayout,pInitialData: TType) {
         super(pDevice);
         this.mLayout = pLayout;
-        this.mBufferUsage = pUsage;
         this.mInitialData = pInitialData;
     }
 

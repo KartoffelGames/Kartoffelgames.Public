@@ -1,16 +1,14 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { TextureFormat } from '../../constant/texture-format.enum';
-import { TextureUsage } from '../../constant/texture-usage.enum';
 import { IImageTexture } from '../../interface/texture/i-image-texture.interface';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
+import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
 
 export abstract class ImageTexture<TGpu extends GpuDevice, TNative extends object> extends GpuObject<TGpu, TNative> implements IImageTexture {
     private mDepth: number;
-    private readonly mFormat: TextureFormat;
     private mHeight: number;
     private mImageList: Array<ImageBitmap>;
-    private readonly mUsage: TextureUsage;
+    private readonly mMemoryLayout: TextureMemoryLayout;
     private mWidth: number;
 
     /**
@@ -18,13 +16,6 @@ export abstract class ImageTexture<TGpu extends GpuDevice, TNative extends objec
      */
     public get depth(): number {
         return this.mDepth;
-    }
-
-    /**
-     * Texture format.
-     */
-    public get format(): TextureFormat {
-        return this.mFormat;
     }
 
     /**
@@ -42,10 +33,10 @@ export abstract class ImageTexture<TGpu extends GpuDevice, TNative extends objec
     }
 
     /**
-     * Texture usage.
+     * Textures memory layout.
      */
-    public get usage(): TextureUsage {
-        return this.mUsage;
+    public get memoryLayout(): TextureMemoryLayout {
+        return this.mMemoryLayout;
     }
 
     /**
@@ -58,15 +49,13 @@ export abstract class ImageTexture<TGpu extends GpuDevice, TNative extends objec
     /**
      * Constructor.
      * @param pDevice - Device.
-     * @param pFormat - Texture format.
-     * @param pDepth - Texture depth.
+     * @param pLayout - Texture memory layout.
      */
-    public constructor(pDevice: TGpu, pFormat: TextureFormat, pUsage: TextureUsage) {
+    public constructor(pDevice: TGpu, pLayout: TextureMemoryLayout) {
         super(pDevice);
 
         // Fixed values.
-        this.mFormat = pFormat;
-        this.mUsage = pUsage;
+        this.mMemoryLayout = pLayout;
 
         // Set defaults.
         this.mDepth = 1;

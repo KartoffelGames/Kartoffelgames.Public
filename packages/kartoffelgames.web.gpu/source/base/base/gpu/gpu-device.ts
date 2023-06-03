@@ -1,7 +1,7 @@
 import { TypedArray } from '@kartoffelgames/core.data';
-import { BufferUsage } from '../../constant/buffer-usage.enum';
+import { MemoryType } from '../../constant/memory-type.enum';
 import { IBuffer } from '../../interface/buffer/i-buffer.interface';
-import { BufferLayout } from '../buffer/buffer-layout';
+import { BufferLayout } from '../memory_layout/buffer-memory-layout';
 import { IGpuDevice } from '../../interface/gpu/i-gpu-device.interface';
 import { ITextureSampler } from '../../interface/texture/i-texture-sampler.interface';
 import { TextureFormat } from '../../constant/texture-format.enum';
@@ -9,51 +9,53 @@ import { TextureUsage } from '../../constant/texture-usage.enum';
 import { IFrameBufferTexture } from '../../interface/texture/i-frame-buffer-texture.interface';
 import { IImageTexture } from '../../interface/texture/i-image-texture.interface';
 import { IVideoTexture } from '../../interface/texture/i-video-texture.interface';
+import { IBufferLayout } from '../../interface/memory_layout/i-buffer-memory-layout.interface';
+import { ISamplerMemoryLayout } from '../../interface/memory_layout/i-sampler-memory-layout.interface';
+import { ITextureMemoryLayout } from '../../interface/memory_layout/i-texture-memory-layout.interface';
 
 export abstract class GpuDevice implements IGpuDevice {
     /**
      * Create buffer.
-     * @param pLayout - Buffer layout.
-     * @param pUsage - Buffer usage.
+     * @param pLayout - Memory layout.
      * @param pInitialData - Initial data. Defines buffer length.
      */
-    public abstract createBuffer<T extends TypedArray>(pLayout: BufferLayout, pUsage: BufferUsage, pInitialData: T): IBuffer<T>;
+    public abstract buffer<T extends TypedArray>(pLayout: IBufferLayout, pInitialData: T): IBuffer<T>;
+
+    /**
+     * Create texture sampler.
+     * @param pLayout - Memory layout.
+     */
+    public abstract textureSampler(pLayout: ISamplerMemoryLayout): ITextureSampler;
 
     /**
      * Create frame buffer texture from canvas element.
+     * @param pLayout - Memory layout.
      * @param pCanvas - Canvas html element.
-     * @param pUsage - Texture usage.
      */
-    public abstract createFrameBufferTexture(pCanvas: HTMLCanvasElement, pUsage: TextureUsage): IFrameBufferTexture;
+    public abstract frameBufferTexture(pLayout: ITextureMemoryLayout, pCanvas: HTMLCanvasElement): IFrameBufferTexture;
 
     /**
      * Create frame buffer element.
-     * @param pFormat - Texture texel format.
-     * @param pUsage - Texture usage.
+     * @param pLayout - Memory layout.
      * @param pWidth - Texture width.
      * @param pHeight - Texture height.
      * @param pDepth - Texture depth.
      */
-    public abstract createFrameBufferTexture(pFormat: TextureFormat, pUsage: TextureUsage, pWidth: number, pHeight: number, pDepth: number): IFrameBufferTexture;
+    public abstract frameBufferTexture(pLayout: ITextureMemoryLayout, pWidth: number, pHeight: number, pDepth: number): IFrameBufferTexture;
 
     /**
      * Create texture from images.
+     * @param pLayout - Memory layout.
      * @param pSourceList - Image source list.
-     * @param pFormat - Texture texel format.
      * @param pUsage - Texture usage.
      */
-    public abstract createImageTexture(pFormat: TextureFormat, pUsage: TextureUsage, ...pSourceList: Array<string>): Promise<IImageTexture>;
-
-    /**
-     * Create texture sampler.
-     */
-    public abstract createTextureSampler(): ITextureSampler;
+    public abstract imageTexture(pLayout: ITextureMemoryLayout, ...pSourceList: Array<string>): Promise<IImageTexture>;
 
     /**
      * Create texture from a video source.
+     * @param pLayout - Memory layout.
      * @param pSource - Video source.
-     * @param pFormat - Texture texel format.
      * @param pLoop - Loop video.
      */
-    public abstract createVideoTexture(pSource: string, pFormat: TextureFormat, pLoop: boolean): Promise<IVideoTexture>;
+    public abstract videoTexture(pLayout: ITextureMemoryLayout, pSource: string, pLoop: boolean): Promise<IVideoTexture>;
 }

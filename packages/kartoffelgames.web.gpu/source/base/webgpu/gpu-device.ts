@@ -77,7 +77,7 @@ export class GpuDevice extends Base.GpuDevice {
      * @param pFormat - Texture texel format.
      * @param pUsage - Texture usage.
      */
-    public override async createImageTexture(pFormat: TextureFormat, pUsage: TextureUsage, ...pSourceList: string[]): Promise<IImageTexture> {
+    public override async createImageTexture(pFormat: TextureFormat, pUsage: TextureUsage, ...pSourceList: Array<string>): Promise<IImageTexture> {
         const lTexture: ImageTexture = new ImageTexture(this, pFormat, pUsage);
         await lTexture.load(...pSourceList);
 

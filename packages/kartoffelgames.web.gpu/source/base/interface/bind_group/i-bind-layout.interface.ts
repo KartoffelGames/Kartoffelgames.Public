@@ -3,9 +3,16 @@ import { IBindGroupLayout } from './i-bind-group-layout.interface';
 
 export interface IBindLayout extends IGpuObject {
     /**
-     * Available group indices.
+     * Available group count.
      */
-    readonly groups: Array<number>;
+    readonly groupCount: number;
+
+    /**
+     * Add bind group layout.
+     * @param pGroupIndex - Group index.
+     * @param pBindGroupLayout - Bind group layout.
+     */
+    addGroup(pGroupIndex: number, pBindGroupLayout: IBindGroupLayout): void;
 
     /**
      * Get bind group.

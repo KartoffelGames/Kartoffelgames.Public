@@ -1,17 +1,13 @@
 import { TypedArray } from '@kartoffelgames/core.data';
-import { MemoryType } from '../../constant/memory-type.enum';
 import { IBuffer } from '../../interface/buffer/i-buffer.interface';
-import { BufferLayout } from '../memory_layout/buffer-memory-layout';
 import { IGpuDevice } from '../../interface/gpu/i-gpu-device.interface';
-import { ITextureSampler } from '../../interface/texture/i-texture-sampler.interface';
-import { TextureFormat } from '../../constant/texture-format.enum';
-import { TextureUsage } from '../../constant/texture-usage.enum';
-import { IFrameBufferTexture } from '../../interface/texture/i-frame-buffer-texture.interface';
-import { IImageTexture } from '../../interface/texture/i-image-texture.interface';
-import { IVideoTexture } from '../../interface/texture/i-video-texture.interface';
 import { IBufferLayout } from '../../interface/memory_layout/i-buffer-memory-layout.interface';
 import { ISamplerMemoryLayout } from '../../interface/memory_layout/i-sampler-memory-layout.interface';
 import { ITextureMemoryLayout } from '../../interface/memory_layout/i-texture-memory-layout.interface';
+import { IFrameBufferTexture } from '../../interface/texture/i-frame-buffer-texture.interface';
+import { IImageTexture } from '../../interface/texture/i-image-texture.interface';
+import { ITextureSampler } from '../../interface/texture/i-texture-sampler.interface';
+import { IVideoTexture } from '../../interface/texture/i-video-texture.interface';
 
 export abstract class GpuDevice implements IGpuDevice {
     /**

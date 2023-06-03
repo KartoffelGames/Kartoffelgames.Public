@@ -1,5 +1,6 @@
 import { TextureFormat } from '../../constant/texture-format.enum';
 import { TextureUsage } from '../../constant/texture-usage.enum';
+import { ITextureMemoryLayout } from '../memory_layout/i-texture-memory-layout.interface';
 
 export interface IImageTexture {
     /**
@@ -11,6 +12,12 @@ export interface IImageTexture {
      * Loaded html image element list.
      */
     readonly images: Array<ImageBitmap>;
+
+    
+    /**
+     * Memory layout.
+     */
+    readonly memoryLayout: ITextureMemoryLayout;
 
     /**
      * Texture width.

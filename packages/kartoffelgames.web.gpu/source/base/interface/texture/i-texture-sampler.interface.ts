@@ -2,6 +2,7 @@ import { CompareFunction } from '../../constant/compare-function.enum';
 import { FilterMode } from '../../constant/filter-mode.enum';
 import { WrappingMode } from '../../constant/wrapping-mode.enum';
 import { IGpuObject } from '../gpu/i-gpu-object.interface';
+import { ISamplerMemoryLayout } from '../memory_layout/i-sampler-memory-layout.interface';
 
 export interface ITextureSampler extends IGpuObject {
     /**
@@ -44,4 +45,10 @@ export interface ITextureSampler extends IGpuObject {
      * Behavior for sampling between mipmap levels.
      */
     mipmapFilter: FilterMode;
+
+    
+    /**
+     * Memory layout.
+     */
+    readonly memoryLayout: ISamplerMemoryLayout;
 }

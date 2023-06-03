@@ -1,5 +1,5 @@
 export enum ComputeStage {
-    Fragment = 'fragmenbt',
-    Vertex = 'vertex',
-    Compute = 'compute'
+    Fragment = 1,
+    Vertex = 2,
+    Compute = 4
 }

@@ -1,7 +1,5 @@
 export enum TextureUsage {
-    CopySource = 1,
-    CopyDestination = 2,
-    TextureBinding = 4,
-    StorageBinding = 8,
-    RenderAttachment = 16
+    TextureBinding = 1,
+    StorageBinding = 2,
+    RenderAttachment = 4
 }

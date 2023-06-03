@@ -1,24 +1,15 @@
-export interface IBufferLayout {
+import { IMemoryLayout } from './i-memory-layout.interface';
+
+export interface IBufferLayout extends IMemoryLayout {
     /**
      * Layout byte alignment.
      */
     readonly alignment: number;
 
     /**
-     * Location of layout.
-     * References bind location or attribute location based on layout context.
-     */
-    readonly location: number | null;
-
-    /**
      * Layout size in bytes.
      */
     readonly size: number;
-
-    /**
-     * Name of layout used for path tracing.
-     */
-    readonly name: string;
 
     /**
      * Get location of path.

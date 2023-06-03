@@ -1,5 +1,6 @@
 import { TextureFormat } from '../../constant/texture-format.enum';
 import { TextureUsage } from '../../constant/texture-usage.enum';
+import { ITextureMemoryLayout } from '../memory_layout/i-texture-memory-layout.interface';
 
 export interface IFrameBufferTexture {
     /**
@@ -16,6 +17,11 @@ export interface IFrameBufferTexture {
      * Texture depth.
      */
     readonly depth: number;
+
+    /**
+     * Memory layout.
+     */
+    readonly memoryLayout: ITextureMemoryLayout;
 
     /**
      * Texture multi sample level.

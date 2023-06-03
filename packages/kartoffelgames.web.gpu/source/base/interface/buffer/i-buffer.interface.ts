@@ -9,9 +9,9 @@ export interface IBuffer<T extends TypedArray> extends IGpuObject {
     readonly size: number;
 
     /**
-     * Buffer layout.
+     * Buffer memory layout.
      */
-    readonly layout: IBufferLayout;
+    readonly memoryLayout: IBufferLayout;
 
     /**
      * Read data mapped to layout.

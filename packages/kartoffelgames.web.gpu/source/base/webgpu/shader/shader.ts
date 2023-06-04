@@ -2,13 +2,13 @@ import { Exception } from '@kartoffelgames/core.data';
 import { WebGpuBindType } from '../../../abstraction_layer/webgpu/bind_group/web-gpu-bind-type.enum';
 import { WebGpuShader } from '../../../abstraction_layer/webgpu/shader/web-gpu-shader';
 import { WebGpuDevice } from '../../../abstraction_layer/webgpu/web-gpu-device';
-import { IShader } from '../../interface/i-shader.interface';
+import { IShader } from '../../interface/shader/i-shader.interface';
 import { WgslShaderStage } from './wgsl_enum/wgsl-shader-stage.enum';
 import { WgslType } from './wgsl_enum/wgsl-type.enum';
 import { VertexAttribute } from '../../../abstraction_layer/webgpu/pipeline/data/vertex-attribute';
 import { SimpleBufferLayout } from '../memory_layout/simple-buffer-layout';
 import { WgslTexelFormat } from './wgsl_enum/wgsl-texel-format.enum';
-import { WgslShaderInformation, WgslBind, WgslFunction } from './wgsl-shader-information';
+import { ShaderInformation, WgslBind, WgslFunction } from './shader-information';
 import { StructBufferLayout } from '../memory_layout/struct-buffer-layout';
 import { WebGpuBindGroupLayout } from '../../../abstraction_layer/webgpu/bind_group/web-gpu-bind-group-layout';
 import { WebGpuBindGroups } from '../../../abstraction_layer/webgpu/bind_group/web-gpu-bind-groups';
@@ -17,7 +17,7 @@ import { BufferLayout } from '../memory_layout/buffer-memory-layout';
 export class Shader extends WebGpuShader implements IShader {
     private readonly mBindGroups: WebGpuBindGroups;
     private readonly mEntryPoints: EntryPoints;
-    private readonly mShaderInformation: WgslShaderInformation;
+    private readonly mShaderInformation: ShaderInformation;
 
     /**
      * Get bind groups of shader.
@@ -50,7 +50,7 @@ export class Shader extends WebGpuShader implements IShader {
     public constructor(pDevice: WebGpuDevice, pSource: string) {
         super(pDevice, pSource);
 
-        this.mShaderInformation = new WgslShaderInformation(pSource);
+        this.mShaderInformation = new ShaderInformation(pSource);
 
         // Generate from ShaderInformation. 
         this.mBindGroups = this.generateBindGroups(this.mShaderInformation);
@@ -65,7 +65,7 @@ export class Shader extends WebGpuShader implements IShader {
      * Generate bind groups based on shader information.
      * @param pShaderInformation - Shader information.
      */
-    private generateBindGroups(pShaderInformation: WgslShaderInformation): WebGpuBindGroups {
+    private generateBindGroups(pShaderInformation: ShaderInformation): WebGpuBindGroups {
         const lBindGroups: WebGpuBindGroups = new WebGpuBindGroups(this.gpu);
 
         // Create new bing groups.
@@ -107,7 +107,7 @@ export class Shader extends WebGpuShader implements IShader {
      * Generate compute entry point.
      * @param pShaderInformation - Shader information.
      */
-    private generateComputeEntryPoint(pShaderInformation: WgslShaderInformation): ShaderComputeEntryPoint | undefined {
+    private generateComputeEntryPoint(pShaderInformation: ShaderInformation): ShaderComputeEntryPoint | undefined {
         // Find entry point information.
         const lShaderEntryPointFunction: WgslFunction | undefined = pShaderInformation.entryPoints.get(WgslShaderStage.Compute);
         if (!lShaderEntryPointFunction) {
@@ -125,7 +125,7 @@ export class Shader extends WebGpuShader implements IShader {
      * Generate compute entry point.
      * @param pShaderInformation - Shader information.
      */
-    private generateFragmentEntryPoint(pShaderInformation: WgslShaderInformation): ShaderFragmentEntryPoint | undefined {
+    private generateFragmentEntryPoint(pShaderInformation: ShaderInformation): ShaderFragmentEntryPoint | undefined {
         // Find entry point information.
         const lShaderEntryPointFunction: WgslFunction | undefined = pShaderInformation.entryPoints.get(WgslShaderStage.Fragment);
         if (!lShaderEntryPointFunction) {
@@ -150,7 +150,7 @@ export class Shader extends WebGpuShader implements IShader {
      * Generate vertex entry point.
      * @param pShaderInformation - Shader information.
      */
-    private generateVertexEntryPoint(pShaderInformation: WgslShaderInformation): ShaderVertexEntryPoint | undefined {
+    private generateVertexEntryPoint(pShaderInformation: ShaderInformation): ShaderVertexEntryPoint | undefined {
         // Find entry point information.
         const lShaderEntryPointFunction: WgslFunction | undefined = pShaderInformation.entryPoints.get(WgslShaderStage.Vertex);
         if (!lShaderEntryPointFunction) {
@@ -321,46 +321,6 @@ export class Shader extends WebGpuShader implements IShader {
         }
 
         throw new Exception(`Not implemented. Upps "${pBind.variable.type}"`, this);
-    }
-
-    /**
-     * Get view dimension based on WGSL texture type.
-     * @param pTextureType - Texture type.
-     */
-    private texureDimensionFromType(pTextureType: WgslType): GPUTextureViewDimension {
-        // Map every texture type for view dimension.
-        switch (pTextureType) {
-            case WgslType.Texture1d:
-            case WgslType.TextureStorage1d: {
-                return '1d';
-            }
-            case WgslType.TextureDepth2d:
-            case WgslType.Texture2d:
-            case WgslType.TextureStorage2d:
-            case WgslType.TextureDepthMultisampled2d:
-            case WgslType.TextureMultisampled2d: {
-                return '2d';
-            }
-            case WgslType.TextureDepth2dArray:
-            case WgslType.Texture2dArray:
-            case WgslType.TextureStorage2dArray: {
-                return '2d-array';
-            }
-            case WgslType.Texture3d:
-            case WgslType.TextureStorage3d: {
-                return '3d';
-            }
-            case WgslType.TextureCube:
-            case WgslType.TextureDepthCube: {
-                return 'cube';
-            }
-            case WgslType.TextureCubeArray: {
-                return 'cube-array';
-            }
-            default: {
-                throw new Exception(`Texture type "${pTextureType}" not supported for any dimension.`, this);
-            }
-        }
     }
 }
 

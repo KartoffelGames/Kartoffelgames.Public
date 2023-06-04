@@ -7,6 +7,7 @@ import { TextureSampler as BaseTextureSampler } from './texture/texture-sampler'
 import { FrameBufferTexture as BaseFrameBufferTexture } from './texture/frame-buffer-texture';
 import { VideoTexture as BaseVideoTexture } from './texture/video-texture';
 import { ImageTexture as BaseImageTexture } from './texture/image-texture';
+import { ShaderInformation as BaseShaderInformation } from './shader/shader-information';
 
 export namespace Base {
     // GPU Base
@@ -25,4 +26,7 @@ export namespace Base {
     export const FrameBufferTexture = BaseFrameBufferTexture;
     export const VideoTexture = BaseVideoTexture;
     export const ImageTexture = BaseImageTexture;
+
+    // Shader.
+    export const ShaderInformation = BaseShaderInformation;
 }

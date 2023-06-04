@@ -1,48 +1,85 @@
 import { Dictionary, EnumUtil, Exception } from '@kartoffelgames/core.data';
+import { Base } from '../../base/export.';
+import { MemoryLayout } from '../../base/memory_layout/memory-layout';
+import { ComputeStage } from '../../constant/compute-stage.enum';
+import { IShaderInformation, ShaderFunction } from '../../interface/shader/i-shader-information';
 import { ArrayBufferMemoryLayout } from '../memory_layout/buffer/array-buffer-layout';
-import { BufferLayout } from '../memory_layout/buffer-memory-layout';
-import { SimpleBufferLayout } from '../memory_layout/simple-buffer-layout';
-import { StructBufferLayout } from '../memory_layout/struct-buffer-layout';
 import { WgslAccessMode } from './wgsl_enum/wgsl-access-mode.enum';
 import { WgslBindingType } from './wgsl_enum/wgsl-binding-type.enum';
 import { WgslShaderStage } from './wgsl_enum/wgsl-shader-stage.enum';
 import { WgslType } from './wgsl_enum/wgsl-type.enum';
 
-export class WgslShaderInformation {
-    private readonly mBindings: Array<WgslBindGroup>;
-    private readonly mEntryPoints: Dictionary<WgslShaderStage, WgslFunction>;
-    private readonly mSource: string;
-
+export class ShaderInformation extends Base.ShaderInformation implements IShaderInformation {
     /**
-     * Binding information.
+     * Fetch bindings.
+     * @param pSourceCode - Source code.
      */
-    public get bindings(): Array<WgslBindGroup> {
-        return this.mBindings;
+    protected override fetchBindings(pSourceCode: string): Array<[number, MemoryLayout]> {
+        // Get only lines with group attributes.
+        const lAllGroupLines: string = [...pSourceCode.matchAll(/^.*@group.*$/gm)].reduce((pCurrent, pLine) => {
+            return pCurrent + pLine[0];
+        }, '');
+
+        // Available shader states based on entry points.
+        // Not the best, but better than nothing.
+        let lShaderStage: WgslShaderStage = 0;
+        if (/(@compute(.|\r?\n)*?fn )(?<name>\w*)/gm.test(pSourceCode)) {
+            lShaderStage |= WgslShaderStage.Compute;
+        }
+        if (/(@fragment(.|\r?\n)*?fn )(?<name>\w*)/gm.test(pSourceCode)) {
+            lShaderStage |= WgslShaderStage.Fragment;
+        }
+        if (/(@vertex(.|\r?\n)*?fn )(?<name>\w*)/gm.test(pSourceCode)) {
+            lShaderStage |= WgslShaderStage.Vertex;
+        }
+
+        // Fetch all group variables.
+        const lBindingList: Array<[number, MemoryLayout]> = new Array<[number, MemoryLayout]>();
+        for (const lVariable of this.fetchVariableDefinitions(lAllGroupLines)) {
+            const lGroupAttribute: string | undefined = lVariable.attributes.find(pAttribute => pAttribute.startsWith('@group'));
+            const lBindAttribute: string | undefined = lVariable.attributes.find(pAttribute => pAttribute.startsWith('@binding'));
+            if (!lGroupAttribute || !lBindAttribute) {
+                throw new Exception('Bindind variable needs an binding and group attribute.', this);
+            }
+
+            // Parse group index.
+            const lGroupIndex: number = parseInt(lGroupAttribute.replace(/[^\d]+/g, ''));
+
+            lBindingList.push([lGroupIndex, this.createMemoryLayout(lVariable)]);
+        }
+
+        return lBindingList;
     }
 
     /**
-     * Shader entry points.
+     * Fetch entry points.
      */
-    public get entryPoints(): Dictionary<WgslShaderStage, WgslFunction> {
-        return this.mEntryPoints;
-    }
+    protected override fetchEntryPoints(pSourceCode: string): Array<[ComputeStage, ShaderFunction]> {
+        // Get all functions.
+        const lFunctionList: Array<WgslFunction> = this.fetchFunctions(pSourceCode);
 
-    /**
-     * Constructor.
-     * @param pSource - WGSL Source code.
-     */
-    public constructor(pSource: string) {
-        this.mSource = pSource;
+        const lEntryPoints: Array<[ComputeStage, ShaderFunction]> = new Array<[ComputeStage, ShaderFunction]>();
+        for (const lFunction of lFunctionList) {
+            // Assemble shaderstage.
+            if (lFunction.attributes.find(pAttribute => pAttribute.startsWith('@compute'))) {
+                lEntryPoints.push([ComputeStage.Compute, { name: lFunction.name, parameter: lFunction.parameter, return: lFunction.return }]);
+            }
+            if (lFunction.attributes.find(pAttribute => pAttribute.startsWith('@fragment'))) {
+                lEntryPoints.push([ComputeStage.Fragment, { name: lFunction.name, parameter: lFunction.parameter, return: lFunction.return }]);
+            }
+            if (lFunction.attributes.find(pAttribute => pAttribute.startsWith('@vertex'))) {
+                lEntryPoints.push([ComputeStage.Vertex, { name: lFunction.name, parameter: lFunction.parameter, return: lFunction.return }]);
+            }
+        }
 
-        this.mEntryPoints = this.fetchEntryPoints();
-        this.mBindings = this.fetchBindGroups();
+        return lEntryPoints;
     }
 
     /**
      * Create buffer type from variable definition.
      * @param pVariable - Variable definition.
      */
-    private createBufferType(pVariable: WgslVariable): BufferLayout {
+    private createMemoryLayout(pVariable: WgslVariable): MemoryLayout {
         // String to type. Undefined must be an struct type.
         const lType: WgslType | null = this.wgslTypeByName(pVariable.type);
         if (lType === WgslType.Enum) {
@@ -108,7 +145,7 @@ export class WgslShaderInformation {
                 // Get struct body and fetch types.
                 const lStructBody: string = this.getStructBody(pVariable.type);
                 this.fetchVariableDefinitions(lStructBody).forEach((pPropertyVariable, pIndex) => {
-                    const lProperyBufferType: BufferLayout = this.createBufferType(pPropertyVariable);
+                    const lProperyBufferType: BufferLayout = this.createMemoryLayout(pPropertyVariable);
 
                     // Add property to struct buffer type.
                     lStructType.addProperty(pIndex, lProperyBufferType);
@@ -125,7 +162,7 @@ export class WgslShaderInformation {
 
                 // Fetch first generic by extending generic type to a variable definition and parse recursive.
                 const lTypeGeneric: WgslVariable | undefined = this.fetchVariableDefinitions(`PLACEHOLDER: ${pVariable.generics.at(0)!};`).at(0)!;
-                const lTypeGenericBufferType: BufferLayout = this.createBufferType(lTypeGeneric);
+                const lTypeGenericBufferType: BufferLayout = this.createMemoryLayout(lTypeGeneric);
 
                 // Fetch optional size gerneric.
                 let lSizeGeneric: number = -1;
@@ -162,86 +199,6 @@ export class WgslShaderInformation {
     }
 
     /**
-     * Fetch all bind groups of source.
-     */
-    private fetchBindGroups(): Array<WgslBindGroup> {
-        // Get only lines with group attributes.
-        const lAllGroupLines: string = [...this.mSource.matchAll(/^.*@group.*$/gm)].reduce((pCurrent, pLine) => {
-            return pCurrent + pLine[0];
-        }, '');
-
-        // Available shader states based on entry points.
-        // Not the best, but better than nothing.
-        let lShaderStage: WgslShaderStage = 0;
-        if (/(@compute(.|\r?\n)*?fn )(?<name>\w*)/gm.test(this.mSource)) {
-            lShaderStage |= WgslShaderStage.Compute;
-        }
-        if (/(@fragment(.|\r?\n)*?fn )(?<name>\w*)/gm.test(this.mSource)) {
-            lShaderStage |= WgslShaderStage.Fragment;
-        }
-        if (/(@vertex(.|\r?\n)*?fn )(?<name>\w*)/gm.test(this.mSource)) {
-            lShaderStage |= WgslShaderStage.Vertex;
-        }
-
-        // Fetch all group variables.
-        const lBindGroups: Dictionary<number, Array<WgslBind>> = new Dictionary<number, Array<WgslBind>>();
-        for (const lVariable of this.fetchVariableDefinitions(lAllGroupLines)) {
-            const lGroupAttribute: string | undefined = lVariable.attributes.find(pAttribute => pAttribute.startsWith('@group'));
-            const lBindAttribute: string | undefined = lVariable.attributes.find(pAttribute => pAttribute.startsWith('@binding'));
-            if (!lGroupAttribute || !lBindAttribute) {
-                throw new Exception('Bindind variable needs an binding and group attribute.', this);
-            }
-
-            const lGroupIndex: number = parseInt(lGroupAttribute.replace(/[^\d]+/g, ''));
-            const lBindIndex: number = parseInt(lBindAttribute.replace(/[^\d]+/g, ''));
-
-            // Init group.
-            if (!lBindGroups.has(lGroupIndex)) {
-                lBindGroups.set(lGroupIndex, new Array<WgslBind>());
-            }
-
-            // Append bind.
-            lBindGroups.get(lGroupIndex)!.push({
-                visibility: lShaderStage,
-                variable: this.createBufferType(lVariable),
-                index: lBindIndex
-            });
-        }
-
-        // Add BindGroupInformation to bind group.
-        const lBindGroupList: Array<WgslBindGroup> = new Array<WgslBindGroup>();
-        for (const [lGroupIndex, lBindList] of lBindGroups) {
-            lBindGroupList.push({ group: lGroupIndex, binds: lBindList });
-        }
-
-        return lBindGroupList;
-    }
-
-    /**
-     * Fetch entry points.
-     */
-    private fetchEntryPoints(): Dictionary<WgslShaderStage, WgslFunction> {
-        // Get all functions.
-        const lFunctionList: Array<WgslFunction> = this.fetchFunctions(this.mSource);
-
-        const lEntryPoints: Dictionary<WgslShaderStage, WgslFunction> = new Dictionary<WgslShaderStage, WgslFunction>();
-        for (const lFunction of lFunctionList) {
-            // Assemble shaderstage.
-            if (lFunction.attributes.find(pAttribute => pAttribute.startsWith('@compute'))) {
-                lEntryPoints.set(WgslShaderStage.Compute, lFunction);
-            }
-            if (lFunction.attributes.find(pAttribute => pAttribute.startsWith('@fragment'))) {
-                lEntryPoints.set(WgslShaderStage.Fragment, lFunction);
-            }
-            if (lFunction.attributes.find(pAttribute => pAttribute.startsWith('@vertex'))) {
-                lEntryPoints.set(WgslShaderStage.Vertex, lFunction);
-            }
-        }
-
-        return lEntryPoints;
-    }
-
-    /**
      * Fetch all function declarations of source snipped.
      * @param pSourceSnipped - Source snipped with function declarations.
      */
@@ -261,13 +218,13 @@ export class WgslShaderInformation {
 
             // Fetch Parameter.
             const lParameterVariableList: Array<WgslVariable> = this.fetchVariableDefinitions(lFunctionMatch.groups!['parameter']!);
-            const lParameterList: Array<BufferLayout> = lParameterVariableList.map((pVariable) => { return this.createBufferType(pVariable); });
+            const lParameterList: Array<BufferLayout> = lParameterVariableList.map((pVariable) => { return this.createMemoryLayout(pVariable); });
 
             // Fetch result type.
             let lResult: BufferLayout | null = null;
             if (lFunctionMatch.groups!['result']) {
                 const lResultVariable: WgslVariable = this.fetchVariableDefinitions(lFunctionMatch.groups!['result']!).at(0)!;
-                lResult = this.createBufferType(lResultVariable);
+                lResult = this.createMemoryLayout(lResultVariable);
             }
 
             lFunctionList.push({

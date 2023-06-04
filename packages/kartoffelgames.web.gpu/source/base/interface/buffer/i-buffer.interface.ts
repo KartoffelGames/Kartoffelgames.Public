@@ -1,5 +1,5 @@
 import { TypedArray } from '@kartoffelgames/core.data';
-import { IBufferLayout } from '../memory_layout/i-buffer-memory-layout.interface';
+import { IBufferMemoryLayout } from '../memory_layout/i-buffer-memory-layout.interface';
 import { IGpuObject } from '../gpu/i-gpu-object.interface';
 
 export interface IBuffer<T extends TypedArray> extends IGpuObject {
@@ -11,7 +11,7 @@ export interface IBuffer<T extends TypedArray> extends IGpuObject {
     /**
      * Buffer memory layout.
      */
-    readonly memoryLayout: IBufferLayout;
+    readonly memoryLayout: IBufferMemoryLayout;
 
     /**
      * Read data mapped to layout.

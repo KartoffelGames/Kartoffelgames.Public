@@ -1,6 +1,6 @@
 import { IMemoryLayout } from './i-memory-layout.interface';
 
-export interface IBufferLayout extends IMemoryLayout {
+export interface IBufferMemoryLayout extends IMemoryLayout {
     /**
      * Layout byte alignment.
      */

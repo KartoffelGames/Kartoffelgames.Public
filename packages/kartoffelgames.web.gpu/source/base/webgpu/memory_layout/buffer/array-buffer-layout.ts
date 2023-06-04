@@ -1,13 +1,15 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { AccessMode } from '../../../constant/access-mode.enum';
 import { BindType } from '../../../constant/bind-type.enum';
-import { BufferLayoutLocation, IBufferLayout } from '../../../interface/buffer/i-buffer-layout.interface';
+import { ComputeStage } from '../../../constant/compute-stage.enum';
+import { MemoryType } from '../../../constant/memory-type.enum';
+import { BufferLayoutLocation, IBufferMemoryLayout } from '../../../interface/memory_layout/i-buffer-memory-layout.interface';
 import { WgslType } from '../../shader/wgsl_enum/wgsl-type.enum';
-import { BufferLayout } from './buffer-layout';
+import { BufferMemoryLayout } from './buffer-memory-layout';
 
-export class ArrayBufferLayout extends BufferLayout implements IBufferLayout {
+export class ArrayBufferMemoryLayout extends BufferMemoryLayout implements IBufferMemoryLayout {
     private readonly mArraySize: number;
-    private readonly mInnerType: BufferLayout;
+    private readonly mInnerType: BufferMemoryLayout;
 
     /**
      * Alignment of type.
@@ -26,7 +28,7 @@ export class ArrayBufferLayout extends BufferLayout implements IBufferLayout {
     /**
      * Array type.
      */
-    public get innerType(): BufferLayout {
+    public get innerType(): BufferMemoryLayout {
         return this.mInnerType;
     }
 
@@ -42,22 +44,15 @@ export class ArrayBufferLayout extends BufferLayout implements IBufferLayout {
     }
 
     /**
-     * Wgsl type.
-     */
-    public get type(): WgslType {
-        return WgslType.Array;
-    }
-
-    /**
      * Constructor.
      * @param pInnerType - Type of array.
      * @param pSize - Optional array size.
      */
-    public constructor(pName: string, pInnerType: BufferLayout, pSize?: number, pParent?: BufferLayout, pAccessMode?: AccessMode, pBindType?: BindType, pLocation: number | null = null) {
-        super(pName, pParent, pAccessMode, pBindType, pLocation);
+    public constructor(pParameter: ArrayBufferMemoryLayoutParameter) {
+        super({ ...pParameter, type: WgslType.Array });
 
-        this.mInnerType = pInnerType;
-        this.mArraySize = pSize ?? -1;
+        this.mInnerType = pParameter.innerType;
+        this.mArraySize = pParameter.size ?? -1;
     }
 
     /**
@@ -97,3 +92,18 @@ export class ArrayBufferLayout extends BufferLayout implements IBufferLayout {
         return { size: lInnerLocation.size, offset: lArrayItemOffset + lInnerLocation.offset };
     }
 }
+
+type ArrayBufferMemoryLayoutParameter = {
+    // "Interited" from MemoryLayoutParameter.
+    access: AccessMode;
+    bindType: BindType;
+    location: number | null;
+    name: string;
+    memoryType: MemoryType;
+    visibility: ComputeStage;
+    parent: BufferMemoryLayout;
+
+    // New
+    innerType: BufferMemoryLayout;
+    size?: number;
+};

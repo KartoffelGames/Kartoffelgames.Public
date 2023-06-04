@@ -1,9 +1,9 @@
 import { TypedArray } from '@kartoffelgames/core.data';
 import { WebGpuBuffer } from '../../../abstraction_layer/webgpu/buffer/web-gpu-buffer';
-import { BufferUsage } from '../../constant/buffer-usage.enum';
+import { MemoryType } from '../../constant/memory-type.enum';
 import { Base } from '../../base/export.';
 import { GpuDevice } from '../gpu-device';
-import { BufferLayout } from './buffer_layout/buffer-layout';
+import { BufferLayout } from '../memory_layout/buffer-memory-layout';
 import { BindType } from '../../constant/bind-type.enum';
 
 export class Buffer<T extends TypedArray> extends Base.Buffer<GpuDevice, WebGpuBuffer<T>, T>  {
@@ -21,7 +21,7 @@ export class Buffer<T extends TypedArray> extends Base.Buffer<GpuDevice, WebGpuB
      * @param pUsage - Buffer usage beside COPY_DST.
      * @param pInitialData  - Inital data. Can be empty.
      */
-    public constructor(pDevice: GpuDevice, pLayout: BufferLayout, pUsage: BufferUsage, pInitialData: T) {
+    public constructor(pDevice: GpuDevice, pLayout: BufferLayout, pUsage: MemoryType, pInitialData: T) {
         super(pDevice, pLayout, pUsage, pInitialData);
     }
 
@@ -61,7 +61,7 @@ export class Buffer<T extends TypedArray> extends Base.Buffer<GpuDevice, WebGpuB
         let lUsage: number = 0;
 
         // Append usage type from abstract bind type.
-        switch (this.layout.bindType) {
+        switch (this.memoryLayout.bindType) {
             case BindType.Attribute: {
                 // Just an layout indicator. Does nothing to usage type.
                 break;
@@ -85,16 +85,16 @@ export class Buffer<T extends TypedArray> extends Base.Buffer<GpuDevice, WebGpuB
         }
 
         // Append usage type from abstract usage type.
-        if ((this.usage & BufferUsage.CopyDestination) !== 0) {
+        if ((this.usage & MemoryType.CopyDestination) !== 0) {
             lUsage |= GPUBufferUsage.COPY_DST;
         }
-        if ((this.usage & BufferUsage.CopySource) !== 0) {
+        if ((this.usage & MemoryType.CopySource) !== 0) {
             lUsage |= GPUBufferUsage.COPY_SRC;
         }
-        if ((this.usage & BufferUsage.MapRead) !== 0) {
+        if ((this.usage & MemoryType.MapRead) !== 0) {
             lUsage |= GPUBufferUsage.MAP_READ;
         }
-        if ((this.usage & BufferUsage.MapWrite) !== 0) {
+        if ((this.usage & MemoryType.MapWrite) !== 0) {
             lUsage |= GPUBufferUsage.MAP_WRITE;
         }
 

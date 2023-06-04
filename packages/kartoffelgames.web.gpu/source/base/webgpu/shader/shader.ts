@@ -6,13 +6,13 @@ import { IShader } from '../../interface/i-shader.interface';
 import { WgslShaderStage } from './wgsl_enum/wgsl-shader-stage.enum';
 import { WgslType } from './wgsl_enum/wgsl-type.enum';
 import { VertexAttribute } from '../../../abstraction_layer/webgpu/pipeline/data/vertex-attribute';
-import { SimpleBufferLayout } from '../buffer/buffer_layout/simple-buffer-layout';
+import { SimpleBufferLayout } from '../memory_layout/simple-buffer-layout';
 import { WgslTexelFormat } from './wgsl_enum/wgsl-texel-format.enum';
 import { WgslShaderInformation, WgslBind, WgslFunction } from './wgsl-shader-information';
-import { StructBufferLayout } from '../buffer/buffer_layout/struct-buffer-layout';
+import { StructBufferLayout } from '../memory_layout/struct-buffer-layout';
 import { WebGpuBindGroupLayout } from '../../../abstraction_layer/webgpu/bind_group/web-gpu-bind-group-layout';
 import { WebGpuBindGroups } from '../../../abstraction_layer/webgpu/bind_group/web-gpu-bind-groups';
-import { BufferLayout } from '../buffer/buffer_layout/buffer-layout';
+import { BufferLayout } from '../memory_layout/buffer-memory-layout';
 
 export class Shader extends WebGpuShader implements IShader {
     private readonly mBindGroups: WebGpuBindGroups;

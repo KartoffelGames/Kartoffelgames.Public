@@ -1,13 +1,15 @@
 import { Exception } from '@kartoffelgames/core.data';
+import { BufferMemoryLayout } from './buffer-memory-layout';
+import { BufferLayoutLocation, IBufferMemoryLayout } from '../../../interface/memory_layout/i-buffer-memory-layout.interface';
 import { AccessMode } from '../../../constant/access-mode.enum';
 import { BindType } from '../../../constant/bind-type.enum';
-import { BufferLayoutLocation, IBufferLayout } from '../../../interface/buffer/i-buffer-layout.interface';
 import { WgslType } from '../../shader/wgsl_enum/wgsl-type.enum';
-import { BufferLayout } from './buffer-layout';
+import { ComputeStage } from '../../../constant/compute-stage.enum';
+import { MemoryType } from '../../../constant/memory-type.enum';
 
-export class StructBufferLayout extends BufferLayout implements IBufferLayout {
+export class StructBufferMemoryLayout extends BufferMemoryLayout implements IBufferMemoryLayout {
     private mAlignment: number;
-    private readonly mInnerTypes: Array<[number, BufferLayout]>;
+    private readonly mInnerTypes: Array<[number, BufferMemoryLayout]>;
     private mSize: number;
     private readonly mStructName: string;
 
@@ -33,22 +35,15 @@ export class StructBufferLayout extends BufferLayout implements IBufferLayout {
     }
 
     /**
-     * Wgsl type.
-     */
-    public get type(): WgslType {
-        return WgslType.Struct;
-    }
-
-    /**
      * Constructor.
      */
-    public constructor(pName: string, pStructName: string, pParent?: BufferLayout, pAccessMode?: AccessMode, pBindType?: BindType, pLocation: number | null = null) {
-        super(pName, pParent, pAccessMode, pBindType, pLocation);
+    public constructor(pParameter: StructBufferMemoryLayoutParameter) {
+        super({ ...pParameter, type: WgslType.Struct });
 
-        this.mStructName = pStructName;
+        this.mStructName = pParameter.structName;
         this.mAlignment = 0;
         this.mSize = 0;
-        this.mInnerTypes = new Array<[number, BufferLayout]>();
+        this.mInnerTypes = new Array<[number, BufferMemoryLayout]>();
     }
 
     /**
@@ -57,7 +52,7 @@ export class StructBufferLayout extends BufferLayout implements IBufferLayout {
      * @param pOrder - Index of property.
      * @param pType - Property type.
      */
-    public addProperty(pOrder: number, pType: BufferLayout): void {
+    public addProperty(pOrder: number, pType: BufferMemoryLayout): void {
         this.mInnerTypes.push([pOrder, pType]);
 
         // Recalculate alignment.
@@ -66,7 +61,7 @@ export class StructBufferLayout extends BufferLayout implements IBufferLayout {
         }
 
         // Get ordered types.
-        const lOrderedTypeList: Array<BufferLayout> = this.mInnerTypes.sort(([pOrderA], [pOrderB]) => {
+        const lOrderedTypeList: Array<BufferMemoryLayout> = this.mInnerTypes.sort(([pOrderA], [pOrderB]) => {
             return pOrderA - pOrderB;
         }).map(([, pType]) => pType);
 
@@ -87,8 +82,8 @@ export class StructBufferLayout extends BufferLayout implements IBufferLayout {
     /**
      * Get types of properties with set location.
      */
-    public innerLocations(): Array<BufferLayout> {
-        const lLocationTypes: Array<BufferLayout> = new Array<BufferLayout>();
+    public innerLocations(): Array<BufferMemoryLayout> {
+        const lLocationTypes: Array<BufferMemoryLayout> = new Array<BufferMemoryLayout>();
         for (const [, lPropertyType] of this.mInnerTypes.values()) {
             // Set property as location when set.
             if (lPropertyType.location !== null) {
@@ -96,7 +91,7 @@ export class StructBufferLayout extends BufferLayout implements IBufferLayout {
             }
 
             // Get all inner locations when property is a struct type.
-            if (lPropertyType instanceof StructBufferLayout) {
+            if (lPropertyType instanceof StructBufferMemoryLayout) {
                 lLocationTypes.push(...lPropertyType.innerLocations());
             }
         }
@@ -118,13 +113,13 @@ export class StructBufferLayout extends BufferLayout implements IBufferLayout {
         }
 
         // Get ordered types.
-        const lOrderedTypeList: Array<BufferLayout> = this.mInnerTypes.sort(([pOrderA], [pOrderB]) => {
+        const lOrderedTypeList: Array<BufferMemoryLayout> = this.mInnerTypes.sort(([pOrderA], [pOrderB]) => {
             return pOrderA - pOrderB;
         }).map(([, pType]) => pType);
 
         // Recalculate size.
         let lPropertyOffset: number = 0;
-        let lPropertyLayout: BufferLayout | null = null;
+        let lPropertyLayout: BufferMemoryLayout | null = null;
         for (const lProperty of lOrderedTypeList) {
             // Increase offset to needed alignment.
             lPropertyOffset = Math.ceil(lPropertyOffset / lProperty.alignment) * lProperty.alignment;
@@ -152,3 +147,17 @@ export class StructBufferLayout extends BufferLayout implements IBufferLayout {
         };
     }
 }
+
+type StructBufferMemoryLayoutParameter = {
+    // "Interited" from MemoryLayoutParameter.
+    access: AccessMode;
+    bindType: BindType;
+    location: number | null;
+    name: string;
+    memoryType: MemoryType;
+    visibility: ComputeStage;
+    parent: BufferMemoryLayout;
+
+    // New.
+    structName: string;
+};

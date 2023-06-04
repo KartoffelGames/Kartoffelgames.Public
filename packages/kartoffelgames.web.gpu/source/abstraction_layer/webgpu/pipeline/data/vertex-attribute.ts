@@ -1,6 +1,6 @@
 import { Exception, TypedArray } from '@kartoffelgames/core.data';
-import { BufferLayout } from '../../../../base/webgpu/buffer/buffer_layout/buffer-layout';
-import { SimpleBufferLayout } from '../../../../base/webgpu/buffer/buffer_layout/simple-buffer-layout';
+import { BufferLayout } from '../../../../base/webgpu/memory_layout/buffer-memory-layout';
+import { SimpleBufferLayout } from '../../../../base/webgpu/memory_layout/simple-buffer-layout';
 import { WebGpuDevice } from '../../web-gpu-device';
 import { GpuNativeObject } from '../../gpu-native-object';
 import { BufferDataType } from '../../buffer/web-gpu-buffer';

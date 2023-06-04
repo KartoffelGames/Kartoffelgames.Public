@@ -2,10 +2,10 @@ import { AccessMode } from '../../constant/access-mode.enum';
 import { BindType } from '../../constant/bind-type.enum';
 import { ComputeStage } from '../../constant/compute-stage.enum';
 import { MemoryType } from '../../constant/memory-type.enum';
-import { IBufferLayout } from '../../interface/memory_layout/i-buffer-memory-layout.interface';
+import { IBufferMemoryLayout } from '../../interface/memory_layout/i-buffer-memory-layout.interface';
 import { MemoryLayout } from './memory-layout';
 
-export abstract class BufferMemoryLayout extends MemoryLayout implements IBufferLayout {
+export abstract class BufferMemoryLayout extends MemoryLayout implements IBufferMemoryLayout {
     private readonly mParent: BufferMemoryLayout | null;
 
     /**

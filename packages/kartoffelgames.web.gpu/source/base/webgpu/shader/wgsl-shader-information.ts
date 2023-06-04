@@ -1,8 +1,8 @@
 import { Dictionary, EnumUtil, Exception } from '@kartoffelgames/core.data';
-import { ArrayBufferLayout } from '../buffer/buffer_layout/array-buffer-layout';
-import { BufferLayout } from '../buffer/buffer_layout/buffer-layout';
-import { SimpleBufferLayout } from '../buffer/buffer_layout/simple-buffer-layout';
-import { StructBufferLayout } from '../buffer/buffer_layout/struct-buffer-layout';
+import { ArrayBufferMemoryLayout } from '../memory_layout/buffer/array-buffer-layout';
+import { BufferLayout } from '../memory_layout/buffer-memory-layout';
+import { SimpleBufferLayout } from '../memory_layout/simple-buffer-layout';
+import { StructBufferLayout } from '../memory_layout/struct-buffer-layout';
 import { WgslAccessMode } from './wgsl_enum/wgsl-access-mode.enum';
 import { WgslBindingType } from './wgsl_enum/wgsl-binding-type.enum';
 import { WgslShaderStage } from './wgsl_enum/wgsl-shader-stage.enum';
@@ -137,7 +137,7 @@ export class WgslShaderInformation {
                 }
 
                 // Create array buffer type.
-                lBufferType = new ArrayBufferLayout(pVariable.name, lTypeGenericBufferType, lSizeGeneric, lAccessMode, lBindingType, lLocationIndex);
+                lBufferType = new ArrayBufferMemoryLayout(pVariable.name, lTypeGenericBufferType, lSizeGeneric, lAccessMode, lBindingType, lLocationIndex);
                 break;
             }
             default: {

@@ -1,7 +1,7 @@
 import { TypedArray } from '@kartoffelgames/core.data';
 import { IBuffer } from '../../interface/buffer/i-buffer.interface';
 import { IGpuDevice } from '../../interface/gpu/i-gpu-device.interface';
-import { IBufferLayout } from '../../interface/memory_layout/i-buffer-memory-layout.interface';
+import { IBufferMemoryLayout } from '../../interface/memory_layout/i-buffer-memory-layout.interface';
 import { ISamplerMemoryLayout } from '../../interface/memory_layout/i-sampler-memory-layout.interface';
 import { ITextureMemoryLayout } from '../../interface/memory_layout/i-texture-memory-layout.interface';
 import { IFrameBufferTexture } from '../../interface/texture/i-frame-buffer-texture.interface';
@@ -15,7 +15,7 @@ export abstract class GpuDevice implements IGpuDevice {
      * @param pLayout - Memory layout.
      * @param pInitialData - Initial data. Defines buffer length.
      */
-    public abstract buffer<T extends TypedArray>(pLayout: IBufferLayout, pInitialData: T): IBuffer<T>;
+    public abstract buffer<T extends TypedArray>(pLayout: IBufferMemoryLayout, pInitialData: T): IBuffer<T>;
 
     /**
      * Create texture sampler.

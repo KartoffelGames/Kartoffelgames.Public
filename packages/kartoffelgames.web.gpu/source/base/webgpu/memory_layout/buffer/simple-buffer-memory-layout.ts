@@ -1,11 +1,14 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core.data';
 import { AccessMode } from '../../../constant/access-mode.enum';
 import { BindType } from '../../../constant/bind-type.enum';
-import { BufferLayoutLocation, IBufferLayout } from '../../../interface/buffer/i-buffer-layout.interface';
+import { IBufferMemoryLayout, BufferLayoutLocation } from '../../../interface/memory_layout/i-buffer-memory-layout.interface';
 import { WgslType } from '../../shader/wgsl_enum/wgsl-type.enum';
-import { BufferLayout } from './buffer-layout';
+import { BufferMemoryLayout } from './buffer-memory-layout';
+import { MemoryType } from '../../../constant/memory-type.enum';
+import { ComputeStage } from '../../../constant/compute-stage.enum';
 
-export class SimpleBufferLayout extends BufferLayout implements IBufferLayout {
+
+export class SimpleBufferMemoryLayout extends BufferMemoryLayout implements IBufferMemoryLayout {
     private static readonly mTypeRestrictions: Record<WgslType, Array<WgslTypeSetting>> = (() => {
         const lTypes: Record<WgslType, Array<WgslTypeSetting>> = <any>{};
 
@@ -174,7 +177,6 @@ export class SimpleBufferLayout extends BufferLayout implements IBufferLayout {
     private readonly mGenericList: Array<WgslType>;
     private readonly mGenericRawList: Array<WgslType | string>;
     private readonly mSize: number;
-    private readonly mType: WgslType;
 
     /**
      * Alignment of type.
@@ -205,23 +207,15 @@ export class SimpleBufferLayout extends BufferLayout implements IBufferLayout {
     }
 
     /**
-     * Wgsl type.
-     */
-    public get type(): WgslType {
-        return this.mType;
-    }
-
-    /**
      * Constructor.
      * @param pType - Simple type. Scalar, Atomic, Vector and Matrix types.
      * @param pGenerics - Generics of type.
      */
-    public constructor(pName: string, pType: WgslType, pGenerics?: Array<WgslType | string>, pParent?: BufferLayout, pAccessMode?: AccessMode, pBindType?: BindType, pLocation: number | null = null) {
-        super(pName, pParent, pAccessMode, pBindType, pLocation);
+    public constructor(pParameter: SimpleBufferMemoryLayoutParameter) {
+        super(pParameter);
 
         // Static properties.
-        this.mType = pType;
-        this.mGenericRawList = pGenerics ?? [];
+        this.mGenericRawList = pParameter.generics ?? [];
 
         // Filter enum of generic list.
         this.mGenericList = this.mGenericRawList.map(pGeneric => {
@@ -233,9 +227,9 @@ export class SimpleBufferLayout extends BufferLayout implements IBufferLayout {
         });
 
         // Get type restrictions.
-        const lRestrictionList: Array<WgslTypeSetting> | undefined = SimpleBufferLayout.mTypeRestrictions[pType];
+        const lRestrictionList: Array<WgslTypeSetting> | undefined = SimpleBufferMemoryLayout.mTypeRestrictions[pParameter.type];
         if (!lRestrictionList) {
-            throw new Exception(`Type ${pType} not supported.`, this);
+            throw new Exception(`Type ${pParameter.type} not supported.`, this);
         }
 
         // Find corresponding restrictions. // TODO: Check for enum or struct or any types.
@@ -269,7 +263,7 @@ export class SimpleBufferLayout extends BufferLayout implements IBufferLayout {
             return true;
         });
         if (!lRestriction) {
-            throw new Exception(`No type (${pType}) restriction for generics [${pGenerics}] found.`, this);
+            throw new Exception(`No type (${pParameter.type}) restriction for generics [${pParameter.generics}] found.`, this);
         }
 
         this.mAlignment = lRestriction.align;
@@ -290,6 +284,18 @@ export class SimpleBufferLayout extends BufferLayout implements IBufferLayout {
     }
 }
 
-
-
 type WgslTypeSetting = { size: number, align: number, generic?: Array<WgslType>; };
+
+type SimpleBufferMemoryLayoutParameter = {
+    // "Interited" from MemoryLayoutParameter.
+    access: AccessMode;
+    bindType: BindType;
+    location: number | null;
+    name: string;
+    memoryType: MemoryType;
+    visibility: ComputeStage;
+    parent: BufferMemoryLayout;
+    type: WgslType,
+
+    generics?: Array<WgslType | string>;
+};

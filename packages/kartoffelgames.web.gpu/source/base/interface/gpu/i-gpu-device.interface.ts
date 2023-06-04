@@ -2,7 +2,7 @@ import { TypedArray } from '@kartoffelgames/core.data';
 import { MemoryType } from '../../constant/memory-type.enum';
 import { TextureFormat } from '../../constant/texture-format.enum';
 import { TextureUsage } from '../../constant/texture-usage.enum';
-import { IBufferLayout } from '../memory_layout/i-buffer-memory-layout.interface';
+import { IBufferMemoryLayout } from '../memory_layout/i-buffer-memory-layout.interface';
 import { IBuffer } from '../buffer/i-buffer.interface';
 import { IFrameBufferTexture } from '../texture/i-frame-buffer-texture.interface';
 import { IImageTexture } from '../texture/i-image-texture.interface';
@@ -17,7 +17,7 @@ export interface IGpuDevice {
      * @param pLayout - Memory layout.
      * @param pInitialData - Initial data. Defines buffer length.
      */
-    buffer<T extends TypedArray>(pLayout: IBufferLayout, pInitialData: T): IBuffer<T>;
+    buffer<T extends TypedArray>(pLayout: IBufferMemoryLayout, pInitialData: T): IBuffer<T>;
 
     /**
      * Create texture sampler.

@@ -1,9 +1,10 @@
-import { AccessMode } from '../../constant/access-mode.enum';
-import { BindType } from '../../constant/bind-type.enum';
-import { ComputeStage } from '../../constant/compute-stage.enum';
-import { MemoryType } from '../../constant/memory-type.enum';
-import { IBufferMemoryLayout } from '../../interface/memory_layout/i-buffer-memory-layout.interface';
-import { MemoryLayout } from './memory-layout';
+import { Exception } from '@kartoffelgames/core.data';
+import { AccessMode } from '../../../constant/access-mode.enum';
+import { BindType } from '../../../constant/bind-type.enum';
+import { ComputeStage } from '../../../constant/compute-stage.enum';
+import { MemoryType } from '../../../constant/memory-type.enum';
+import { IBufferMemoryLayout } from '../../../interface/memory_layout/buffer/i-buffer-memory-layout.interface';
+import { MemoryLayout } from '../memory-layout';
 
 export abstract class BufferMemoryLayout extends MemoryLayout implements IBufferMemoryLayout {
     private readonly mParent: BufferMemoryLayout | null;
@@ -40,10 +41,17 @@ export abstract class BufferMemoryLayout extends MemoryLayout implements IBuffer
      * Get location of path.
      * @param pPathName - Path name. Divided by dots.
      */
-    public abstract locationOf(pPathName: Array<string>): BufferLayoutLocation;
+    public locationOf(pPathName: Array<string>): BufferLayoutLocation {
+        // Only validate name.
+        if (pPathName.length !== 0) {
+            throw new Exception(`Simple buffer layout has no properties.`, this);
+        }
+
+        return { size: this.size, offset: 0 };
+    }
 }
 
-type BufferMemoryLayoutParameter = {
+export type BufferMemoryLayoutParameter = {
     // "Interited" from MemoryLayoutParameter.
     access: AccessMode;
     bindType: BindType;

@@ -38,7 +38,7 @@ export class TextureMemoryLayout extends MemoryLayout implements ITextureMemoryL
 
 }
 
-type TextureMemoryLayoutParameter = {
+export type TextureMemoryLayoutParameter = {
     // "Interited" from MemoryLayoutParameter.
     access: AccessMode;
     bindType: BindType;

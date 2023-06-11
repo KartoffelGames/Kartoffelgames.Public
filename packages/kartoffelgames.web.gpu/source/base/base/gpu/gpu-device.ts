@@ -1,13 +1,18 @@
 import { TypedArray } from '@kartoffelgames/core.data';
 import { IBuffer } from '../../interface/buffer/i-buffer.interface';
 import { IGpuDevice } from '../../interface/gpu/i-gpu-device.interface';
-import { IBufferMemoryLayout } from '../../interface/memory_layout/i-buffer-memory-layout.interface';
+import { IBufferMemoryLayout } from '../../interface/memory_layout/buffer/i-buffer-memory-layout.interface';
 import { ISamplerMemoryLayout } from '../../interface/memory_layout/i-sampler-memory-layout.interface';
-import { ITextureMemoryLayout } from '../../interface/memory_layout/i-texture-memory-layout.interface';
+import { ITextureMemoryLayout, TextureMemoryLayoutParameter } from '../../interface/memory_layout/i-texture-memory-layout.interface';
 import { IFrameBufferTexture } from '../../interface/texture/i-frame-buffer-texture.interface';
 import { IImageTexture } from '../../interface/texture/i-image-texture.interface';
 import { ITextureSampler } from '../../interface/texture/i-texture-sampler.interface';
 import { IVideoTexture } from '../../interface/texture/i-video-texture.interface';
+import { SamplerMemoryLayout, SamplerMemoryLayoutParameter } from '../memory_layout/sampler-memory-layout';
+import { BufferMemoryLayout, BufferMemoryLayoutParameter } from '../memory_layout/buffer/buffer-memory-layout';
+import { ArrayBufferMemoryLayoutParameter, ArrayBufferMemoryLayout } from '../memory_layout/buffer/array-buffer-memory-layout';
+import { StructBufferMemoryLayoutParameter, StructBufferMemoryLayout } from '../memory_layout/buffer/struct-buffer-memory-layout';
+import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
 
 export abstract class GpuDevice implements IGpuDevice {
     /**
@@ -54,4 +59,34 @@ export abstract class GpuDevice implements IGpuDevice {
      * @param pLoop - Loop video.
      */
     public abstract videoTexture(pLayout: ITextureMemoryLayout, pSource: string, pLoop: boolean): Promise<IVideoTexture>;
+
+    /**
+     * Create array buffer memory layout.
+     * @param pParameter - Memory layout parameter.
+     */
+    public abstract memoryLayout(pParameter: ArrayBufferMemoryLayoutParameter): ArrayBufferMemoryLayout;
+
+    /**
+     * Create struct buffer memory layout.
+     * @param pParameter - Memory layout parameter.
+     */
+    public abstract memoryLayout(pParameter: StructBufferMemoryLayoutParameter): StructBufferMemoryLayout;
+
+    /**
+     * Create array buffer memory layout.
+     * @param pParameter - Memory layout parameter.
+     */
+    public abstract memoryLayout(pParameter: BufferMemoryLayoutParameter): BufferMemoryLayout;
+
+    /**
+     * Create sampler memory layout.
+     * @param pParameter - Memory layout parameter.
+     */
+    public abstract memoryLayout(pParameter: SamplerMemoryLayoutParameter): SamplerMemoryLayout;
+
+    /**
+     * Create texture memory layout.
+     * @param pParameter - Memory layout parameter.
+     */
+    public abstract memoryLayout(pParameter: TextureMemoryLayoutParameter): TextureMemoryLayout;
 }

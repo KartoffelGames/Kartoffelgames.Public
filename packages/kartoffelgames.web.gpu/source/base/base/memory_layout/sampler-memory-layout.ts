@@ -27,7 +27,7 @@ export class SamplerMemoryLayout extends MemoryLayout implements ISamplerMemoryL
     }
 }
 
-type SamplerMemoryLayoutParameter = {
+export type SamplerMemoryLayoutParameter = {
     // "Interited" from MemoryLayoutParameter.
     access: AccessMode;
     bindType: BindType;

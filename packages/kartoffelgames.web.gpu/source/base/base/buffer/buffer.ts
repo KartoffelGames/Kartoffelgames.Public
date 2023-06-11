@@ -2,7 +2,7 @@ import { TypedArray } from '@kartoffelgames/core.data';
 import { IBuffer } from '../../interface/buffer/i-buffer.interface';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
-import { BufferMemoryLayout } from '../memory_layout/buffer-memory-layout';
+import { BufferMemoryLayout } from '../memory_layout/buffer/buffer-memory-layout';
 
 export abstract class Buffer<TGpu extends GpuDevice, TNative extends object, TType extends TypedArray> extends GpuObject<TGpu, TNative> implements IBuffer<TType> {
     private readonly mInitialData: TType;

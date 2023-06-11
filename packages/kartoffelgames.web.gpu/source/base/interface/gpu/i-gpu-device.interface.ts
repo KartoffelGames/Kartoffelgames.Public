@@ -1,17 +1,15 @@
 import { TypedArray } from '@kartoffelgames/core.data';
-import { MemoryType } from '../../constant/memory-type.enum';
-import { TextureFormat } from '../../constant/texture-format.enum';
-import { TextureUsage } from '../../constant/texture-usage.enum';
-import { BufferMemoryLayoutParameter, IBufferMemoryLayout } from '../memory_layout/buffer/i-buffer-memory-layout.interface';
 import { IBuffer } from '../buffer/i-buffer.interface';
+import { ArrayBufferMemoryLayoutParameter, IArrayBufferMemoryLayout } from '../memory_layout/buffer/i-array-buffer.memory-layout.interface';
+import { IBufferMemoryLayout } from '../memory_layout/buffer/i-buffer-memory-layout.interface';
+import { ILinearBufferMemoryLayout, LinearBufferMemoryLayoutParameter } from '../memory_layout/buffer/i-linear-buffer-memory-layout.interface';
+import { IStructBufferMemoryLayout, StructBufferMemoryLayoutParameter } from '../memory_layout/buffer/i-struct-buffer.memory-layout.interface';
+import { ISamplerMemoryLayout, SamplerMemoryLayoutParameter } from '../memory_layout/i-sampler-memory-layout.interface';
+import { ITextureMemoryLayout, TextureMemoryLayoutParameter } from '../memory_layout/i-texture-memory-layout.interface';
 import { IFrameBufferTexture } from '../texture/i-frame-buffer-texture.interface';
 import { IImageTexture } from '../texture/i-image-texture.interface';
 import { ITextureSampler } from '../texture/i-texture-sampler.interface';
 import { IVideoTexture } from '../texture/i-video-texture.interface';
-import { ISamplerMemoryLayout, SamplerMemoryLayoutParameter } from '../memory_layout/i-sampler-memory-layout.interface';
-import { ITextureMemoryLayout, TextureMemoryLayoutParameter } from '../memory_layout/i-texture-memory-layout.interface';
-import { ArrayBufferMemoryLayoutParameter, IArrayBufferMemoryLayout } from '../memory_layout/buffer/i-array-buffer.memory-layout.interface';
-import { IStructBufferMemoryLayout, StructBufferMemoryLayoutParameter } from '../memory_layout/buffer/i-struct-buffer.memory-layout.interface';
 
 export interface IGpuDevice {
     /**
@@ -77,7 +75,7 @@ export interface IGpuDevice {
      * @param pSize - Buffer size.
      * @param pAlignment - Buffer memory alignment.
      */
-    memoryLayout(pParameter: BufferMemoryLayoutParameter, pSize: number, pAlignment: string): IBufferMemoryLayout;
+    memoryLayout(pParameter: LinearBufferMemoryLayoutParameter, pSize: number, pAlignment: string): ILinearBufferMemoryLayout;
 
     /**
      * Create sampler memory layout.

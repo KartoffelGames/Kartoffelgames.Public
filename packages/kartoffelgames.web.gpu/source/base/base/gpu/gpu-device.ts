@@ -8,10 +8,10 @@ import { IFrameBufferTexture } from '../../interface/texture/i-frame-buffer-text
 import { IImageTexture } from '../../interface/texture/i-image-texture.interface';
 import { ITextureSampler } from '../../interface/texture/i-texture-sampler.interface';
 import { IVideoTexture } from '../../interface/texture/i-video-texture.interface';
+import { ArrayBufferMemoryLayout, ArrayBufferMemoryLayoutParameter } from '../memory_layout/buffer/array-buffer-memory-layout';
+import { LinearBufferMemoryLayout, LinearBufferMemoryLayoutParameter } from '../memory_layout/buffer/linear-buffer-memory-layout';
+import { StructBufferMemoryLayout, StructBufferMemoryLayoutParameter } from '../memory_layout/buffer/struct-buffer-memory-layout';
 import { SamplerMemoryLayout, SamplerMemoryLayoutParameter } from '../memory_layout/sampler-memory-layout';
-import { BufferMemoryLayout, BufferMemoryLayoutParameter } from '../memory_layout/buffer/buffer-memory-layout';
-import { ArrayBufferMemoryLayoutParameter, ArrayBufferMemoryLayout } from '../memory_layout/buffer/array-buffer-memory-layout';
-import { StructBufferMemoryLayoutParameter, StructBufferMemoryLayout } from '../memory_layout/buffer/struct-buffer-memory-layout';
 import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
 
 export abstract class GpuDevice implements IGpuDevice {
@@ -78,7 +78,7 @@ export abstract class GpuDevice implements IGpuDevice {
      * @param pSize - Buffer size.
      * @param pAlignment - Buffer memory alignment.
      */
-    public abstract memoryLayout(pParameter: BufferMemoryLayoutParameter, pSize: number, pAlignment: string): BufferMemoryLayout;
+    public abstract memoryLayout(pParameter: LinearBufferMemoryLayoutParameter, pSize: number, pAlignment: string): LinearBufferMemoryLayout;
 
     /**
      * Create sampler memory layout.

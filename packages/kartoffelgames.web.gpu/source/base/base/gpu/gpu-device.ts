@@ -75,8 +75,10 @@ export abstract class GpuDevice implements IGpuDevice {
     /**
      * Create array buffer memory layout.
      * @param pParameter - Memory layout parameter.
+     * @param pSize - Buffer size.
+     * @param pAlignment - Buffer memory alignment.
      */
-    public abstract memoryLayout(pParameter: BufferMemoryLayoutParameter): BufferMemoryLayout;
+    public abstract memoryLayout(pParameter: BufferMemoryLayoutParameter, pSize: number, pAlignment: string): BufferMemoryLayout;
 
     /**
      * Create sampler memory layout.

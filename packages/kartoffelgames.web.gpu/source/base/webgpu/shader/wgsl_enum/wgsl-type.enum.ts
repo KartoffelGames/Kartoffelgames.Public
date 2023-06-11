@@ -1,7 +1,7 @@
 export enum WgslType {
     Any = '_Any',
     Enum = '_Enum',
-    
+
     // Scalar types.
     Boolean = 'bool',
     Integer32 = 'i32',
@@ -27,10 +27,10 @@ export enum WgslType {
 
     // Container.
     Struct = 'struct',
-    Atomic = 'atomic',
+    Array = 'array',
 
     //Special.
-    Array = 'array',
+    Atomic = 'atomic',
     Pointer = 'ptr',
     Reference = 'ref',
 
@@ -61,3 +61,22 @@ export enum WgslType {
     Sampler = 'sampler',
     SamplerComparison = 'sampler_comparison'
 }
+
+export const WgslBufferTypes = [
+    WgslType.Boolean, WgslType.Integer32, WgslType.UnsignedInteger32,
+    WgslType.Float32, WgslType.Float16, WgslType.Vector2,
+    WgslType.Vector3, WgslType.Vector4, WgslType.Matrix22, WgslType.Matrix23,
+    WgslType.Matrix24, WgslType.Matrix32, WgslType.Matrix33,
+    WgslType.Matrix34, WgslType.Matrix42, WgslType.Matrix43,
+    WgslType.Matrix44, WgslType.Struct, WgslType.Array,
+];
+export const WgslTextureTypes = [
+    WgslType.Texture1d, WgslType.Texture2d, WgslType.Texture2dArray,
+    WgslType.Texture3d, WgslType.TextureCube, WgslType.TextureCubeArray,
+    WgslType.TextureMultisampled2d, WgslType.TextureExternal,
+    WgslType.TextureDepth2d, WgslType.TextureDepth2dArray,
+    WgslType.TextureDepthCube, WgslType.TextureDepthCubeArray,
+    WgslType.TextureDepthMultisampled2d, WgslType.TextureStorage1d,
+    WgslType.TextureStorage2d, WgslType.TextureStorage2dArray, WgslType.TextureStorage3d
+];
+export const WgslSamplerTypes = [WgslType.Sampler, WgslType.SamplerComparison]; 

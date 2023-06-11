@@ -11,6 +11,11 @@ export interface IStructBufferMemoryLayout extends IBufferMemoryLayout {
     readonly structName: string;
 
     /**
+     * Ordered inner properties.
+     */
+    readonly properties: Array<IBufferMemoryLayout>;
+
+    /**
      * Add property to struct.
      * @param pName - Property name.
      * @param pOrder - Index of property.

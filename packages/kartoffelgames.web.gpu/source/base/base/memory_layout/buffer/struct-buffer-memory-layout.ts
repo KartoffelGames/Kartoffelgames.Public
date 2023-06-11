@@ -5,16 +5,24 @@ import { ComputeStage } from '../../../constant/compute-stage.enum';
 import { MemoryType } from '../../../constant/memory-type.enum';
 import { IStructBufferMemoryLayout } from '../../../interface/memory_layout/buffer/i-struct-buffer.memory-layout.interface';
 import { BufferLayoutLocation, BufferMemoryLayout } from './buffer-memory-layout';
+import { Base } from '../../export.';
 
 export abstract class StructBufferMemoryLayout extends BufferMemoryLayout implements IStructBufferMemoryLayout {
     private readonly mStructName: string;
-    private readonly mInnerTypes: Array<[number, BufferMemoryLayout]>;
+    private mInnerProperties: Array<[number, BufferMemoryLayout]>;
 
     /**
      * Struct name.
      */
     public get structName(): string {
         return this.mStructName;
+    }
+
+    /**
+     * Ordered inner properties.
+     */
+    public get properties(): Array<BufferMemoryLayout> {
+        return this.mInnerProperties.map((pProperty) => pProperty[1]);
     }
 
     /**
@@ -26,7 +34,7 @@ export abstract class StructBufferMemoryLayout extends BufferMemoryLayout implem
 
         // Static properties.
         this.mStructName = pParameter.structName;
-        this.mInnerTypes = new Array<[number, BufferMemoryLayout]>();
+        this.mInnerProperties = new Array<[number, BufferMemoryLayout]>();
     }
 
     /**
@@ -34,7 +42,7 @@ export abstract class StructBufferMemoryLayout extends BufferMemoryLayout implem
      */
     public locations(): Array<BufferMemoryLayout> {
         const lLocationTypes: Array<BufferMemoryLayout> = new Array<BufferMemoryLayout>();
-        for (const [, lPropertyType] of this.mInnerTypes.values()) {
+        for (const [, lPropertyType] of this.mInnerProperties.values()) {
             // Set property as location when set.
             if (lPropertyType.location !== null) {
                 lLocationTypes.push(lPropertyType);
@@ -56,7 +64,12 @@ export abstract class StructBufferMemoryLayout extends BufferMemoryLayout implem
      * @param pType - Property type.
      */
     public addProperty(pOrder: number, pType: BufferMemoryLayout): void {
-        this.mInnerTypes.push([pOrder, pType]);
+        this.mInnerProperties.push([pOrder, pType]);
+
+        // Order properties.
+        this.mInnerProperties = this.mInnerProperties.sort((pA, pB) => {
+            return pA[0] - pB[0];
+        });
 
         // Call recalculation. Or other usefull things.
         this.onProperyAdd();
@@ -76,7 +89,7 @@ export abstract class StructBufferMemoryLayout extends BufferMemoryLayout implem
         }
 
         // Get ordered types.
-        const lOrderedTypeList: Array<BufferMemoryLayout> = this.mInnerTypes.sort(([pOrderA], [pOrderB]) => {
+        const lOrderedTypeList: Array<BufferMemoryLayout> = this.mInnerProperties.sort(([pOrderA], [pOrderB]) => {
             return pOrderA - pOrderB;
         }).map(([, pType]) => pType);
 

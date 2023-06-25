@@ -130,6 +130,8 @@ export abstract class StructBufferMemoryLayout extends BufferMemoryLayout implem
 }
 
 export type StructBufferMemoryLayoutParameter = {
+    type: 'StructBuffer';
+
     // "Interited" from BufferMemoryLayoutParameter.
     access: AccessMode;
     bindType: BindType;

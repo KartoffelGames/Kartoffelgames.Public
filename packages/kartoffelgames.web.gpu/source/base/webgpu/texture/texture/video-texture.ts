@@ -2,6 +2,7 @@ import { WebGpuExternalTexture } from '../../../../abstraction_layer/webgpu/text
 import { Base } from '../../../base/export.';
 import { TextureFormat } from '../../../constant/texture-format.enum';
 import { GpuDevice } from '../../gpu-device';
+import { TextureMemoryLayout } from '../../memory_layout/texture-memory-layout';
 
 export class VideoTexture extends Base.VideoTexture<GpuDevice, WebGpuExternalTexture> {
     private readonly mVideo: HTMLVideoElement;
@@ -23,11 +24,12 @@ export class VideoTexture extends Base.VideoTexture<GpuDevice, WebGpuExternalTex
     /**
      * Constructor.
      * @param pDevice - Device.
-     * @param pFormat - Texture format.
+     * @param pLayout - Texture layout.
+     * @param pSource - Video source.
      * @param pDepth - Texture depth.
      */
-    public constructor(pDevice: GpuDevice, pFormat: TextureFormat, pSource: string, pLoop: boolean = false) {
-        super(pDevice, pFormat, pSource, pLoop);
+    public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout, pSource: string, pLoop: boolean = false) {
+        super(pDevice, pLayout, pSource, pLoop);
 
         // Create video.
         const lVideo = new HTMLVideoElement();

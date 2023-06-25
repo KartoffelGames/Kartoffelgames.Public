@@ -1,9 +1,11 @@
 import { WebGpuTexture } from '../../../../abstraction_layer/webgpu/texture_resource/texture/web-gpu-texture';
 import { WebGpuTextureUsage } from '../../../../abstraction_layer/webgpu/texture_resource/texture/web-gpu-texture-usage.enum';
 import { Base } from '../../../base/export.';
+import { MemoryType } from '../../../constant/memory-type.enum';
 import { TextureFormat } from '../../../constant/texture-format.enum';
 import { TextureUsage } from '../../../constant/texture-usage.enum';
 import { GpuDevice } from '../../gpu-device';
+import { TextureMemoryLayout } from '../../memory_layout/texture-memory-layout';
 
 export class FrameBufferTexture extends Base.FrameBufferTexture<GpuDevice, WebGpuTexture> {
     /**
@@ -12,8 +14,8 @@ export class FrameBufferTexture extends Base.FrameBufferTexture<GpuDevice, WebGp
      * @param pFormat - Texture format.
      * @param pDepth - Texture depth.
      */
-    public constructor(pDevice: GpuDevice, pFormat: TextureFormat, pUsage: TextureUsage, pDepth: number = 1) {
-        super(pDevice, pFormat, pUsage, pDepth);
+    public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout, pDepth: number = 1) {
+        super(pDevice, pLayout, pDepth);
     }
 
     /**
@@ -30,7 +32,7 @@ export class FrameBufferTexture extends Base.FrameBufferTexture<GpuDevice, WebGp
     protected override generate(): WebGpuTexture {
         // Convert base to web gpu texture format.
         let lFormat: GPUTextureFormat;
-        switch (this.format) {
+        switch (this.memoryLayout.format) {
             case TextureFormat.BlueRedGreenAlpha: {
                 lFormat = 'bgra8unorm';
                 break;
@@ -75,19 +77,19 @@ export class FrameBufferTexture extends Base.FrameBufferTexture<GpuDevice, WebGp
 
         // Parse base to web gpu usage.
         let lUsage: WebGpuTextureUsage = 0;
-        if ((this.usage & TextureUsage.CopyDestination) !== 0) {
+        if ((this.memoryLayout.memoryType & MemoryType.CopyDestination) !== 0) {
             lUsage |= WebGpuTextureUsage.CopyDestination;
         }
-        if ((this.usage & TextureUsage.CopySource) !== 0) {
+        if ((this.memoryLayout.memoryType & MemoryType.CopySource) !== 0) {
             lUsage |= WebGpuTextureUsage.CopySource;
         }
-        if ((this.usage & TextureUsage.RenderAttachment) !== 0) {
+        if ((this.memoryLayout.usage & TextureUsage.RenderAttachment) !== 0) {
             lUsage |= WebGpuTextureUsage.RenderAttachment;
         }
-        if ((this.usage & TextureUsage.StorageBinding) !== 0) {
+        if ((this.memoryLayout.usage & TextureUsage.StorageBinding) !== 0) {
             lUsage |= WebGpuTextureUsage.StorageBinding;
         }
-        if ((this.usage & TextureUsage.TextureBinding) !== 0) {
+        if ((this.memoryLayout.usage & TextureUsage.TextureBinding) !== 0) {
             lUsage |= WebGpuTextureUsage.TextureBinding;
         }
 

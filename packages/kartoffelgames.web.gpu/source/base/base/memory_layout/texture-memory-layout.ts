@@ -4,12 +4,14 @@ import { ComputeStage } from '../../constant/compute-stage.enum';
 import { MemoryType } from '../../constant/memory-type.enum';
 import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../constant/texture-format.enum';
-import { ITextureMemoryLayout } from '../../interface/memory_layout/i-texture-memory-layout.interface';
+import { TextureUsage } from '../../constant/texture-usage.enum';
+import { ITextureMemoryLayout, TextureMemoryLayoutParameter } from '../../interface/memory_layout/i-texture-memory-layout.interface';
 import { MemoryLayout } from './memory-layout';
 
 export class TextureMemoryLayout extends MemoryLayout implements ITextureMemoryLayout {
     private readonly mDimension: TextureDimension;
     private readonly mFormat: TextureFormat;
+    private readonly mUsage: TextureUsage;
 
     /**
      * Texture dimension.
@@ -26,6 +28,13 @@ export class TextureMemoryLayout extends MemoryLayout implements ITextureMemoryL
     }
 
     /**
+     * Texture usage.
+     */
+    public get usage(): TextureUsage {
+        return this.mUsage;
+    }
+
+    /**
      * Constructor.
      * @param pParameter - Parameter.
      */
@@ -34,20 +43,7 @@ export class TextureMemoryLayout extends MemoryLayout implements ITextureMemoryL
 
         this.mDimension = pParameter.dimension;
         this.mFormat = pParameter.format;
+        this.mUsage = pParameter.usage;
     }
 
 }
-
-export type TextureMemoryLayoutParameter = {
-    // "Interited" from MemoryLayoutParameter.
-    access: AccessMode;
-    bindType: BindType;
-    location: number | null;
-    name: string;
-    memoryType: MemoryType;
-    visibility: ComputeStage;
-
-    // New 
-    dimension: TextureDimension;
-    format: TextureFormat;
-};

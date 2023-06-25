@@ -75,6 +75,8 @@ export abstract class ArrayBufferMemoryLayout extends BufferMemoryLayout impleme
 }
 
 export type ArrayBufferMemoryLayoutParameter = {
+    type: 'ArrayBuffer';
+
     // "Interited" from BufferMemoryLayoutParameter.
     access: AccessMode;
     bindType: BindType;

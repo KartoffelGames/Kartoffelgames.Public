@@ -72,10 +72,8 @@ export interface IGpuDevice {
     /**
      * Create array buffer memory layout.
      * @param pParameter - Memory layout parameter.
-     * @param pSize - Buffer size.
-     * @param pAlignment - Buffer memory alignment.
      */
-    memoryLayout(pParameter: LinearBufferMemoryLayoutParameter, pSize: number, pAlignment: string): ILinearBufferMemoryLayout;
+    memoryLayout(pParameter: LinearBufferMemoryLayoutParameter): ILinearBufferMemoryLayout;
 
     /**
      * Create sampler memory layout.

@@ -30,6 +30,8 @@ export interface IStructBufferMemoryLayout extends IBufferMemoryLayout {
 }
 
 export type StructBufferMemoryLayoutParameter = {
+    type: 'StructBuffer';
+
     // "Interited" from BufferMemoryLayoutParameter.
     access: AccessMode;
     bindType: BindType;

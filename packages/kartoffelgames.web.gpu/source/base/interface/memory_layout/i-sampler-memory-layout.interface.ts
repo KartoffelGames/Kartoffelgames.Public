@@ -13,6 +13,8 @@ export interface ISamplerMemoryLayout extends IMemoryLayout {
 }
 
 export type SamplerMemoryLayoutParameter = {
+    type: 'Sampler';
+
     // "Interited" from MemoryLayoutParameter.
     access: AccessMode;
     bindType: BindType;

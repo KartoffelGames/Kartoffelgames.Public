@@ -1,31 +1,32 @@
+import { Exception } from '@kartoffelgames/core.data';
 import { WebGpuCanvasTexture } from '../../../../abstraction_layer/webgpu/texture_resource/texture/web-gpu-canvas-texture';
 import { WebGpuTextureUsage } from '../../../../abstraction_layer/webgpu/texture_resource/texture/web-gpu-texture-usage.enum';
 import { Base } from '../../../base/export.';
 import { TextureFormat } from '../../../constant/texture-format.enum';
 import { TextureUsage } from '../../../constant/texture-usage.enum';
 import { GpuDevice } from '../../gpu-device';
+import { TextureMemoryLayout } from '../../memory_layout/texture-memory-layout';
+import { MemoryLayout } from '../../../base/memory_layout/memory-layout';
+import { MemoryType } from '../../../constant/memory-type.enum';
 
 export class CanvasTexture extends Base.FrameBufferTexture<GpuDevice, WebGpuCanvasTexture> {
     private readonly mCanvas: HTMLCanvasElement;
 
-    public constructor(pDevice: GpuDevice, pCanvas: HTMLCanvasElement, pUsage: TextureUsage) {
-        // Find preffered texture format.
-        let lPreferedFormat: TextureFormat;
-        switch (pDevice.native.preferredFormat) {
-            case 'rgba8unorm': {
-                lPreferedFormat = TextureFormat.RedGreenBlueAlpha;
-                break;
-            }
-            case 'bgra8unorm': {
-                lPreferedFormat = TextureFormat.BlueRedGreenAlpha;
-                break;
-            }
-            default: {
-                lPreferedFormat = TextureFormat.RedGreenBlueAlpha;
-            }
+    /**
+     * Constructor.
+     * @param pDevice - Device.
+     * @param pCanvas - Canvas of texture.
+     * @param pLayout - Texture layout.
+     * @param pDepth - Depth of texture. Can only be set to one.
+     */
+    public constructor(pDevice: GpuDevice, pCanvas: HTMLCanvasElement, pLayout: TextureMemoryLayout, pDepth: number) {
+        super(pDevice, pLayout, pDepth);
+
+        // Restrict canvas to single layer.
+        if (pDepth !== 1) {
+            throw new Exception('Canvas texture cant have multiple depth layer.', this);
         }
 
-        super(pDevice, lPreferedFormat, pUsage, 1);
         this.mCanvas = pCanvas;
     }
 
@@ -49,7 +50,7 @@ export class CanvasTexture extends Base.FrameBufferTexture<GpuDevice, WebGpuCanv
 
         // Convert base to web gpu texture format.
         let lFormat: GPUTextureFormat;
-        switch (this.format) {
+        switch (this.memoryLayout.format) {
             case TextureFormat.BlueRedGreenAlpha: {
                 lFormat = 'bgra8unorm';
                 break;
@@ -94,22 +95,21 @@ export class CanvasTexture extends Base.FrameBufferTexture<GpuDevice, WebGpuCanv
 
         // Parse base to web gpu usage.
         let lUsage: WebGpuTextureUsage = 0;
-        if ((this.usage & TextureUsage.CopyDestination) !== 0) {
+        if ((this.memoryLayout.memoryType & MemoryType.CopyDestination) !== 0) {
             lUsage |= WebGpuTextureUsage.CopyDestination;
         }
-        if ((this.usage & TextureUsage.CopySource) !== 0) {
+        if ((this.memoryLayout.memoryType & MemoryType.CopySource) !== 0) {
             lUsage |= WebGpuTextureUsage.CopySource;
         }
-        if ((this.usage & TextureUsage.RenderAttachment) !== 0) {
+        if ((this.memoryLayout.usage & TextureUsage.RenderAttachment) !== 0) {
             lUsage |= WebGpuTextureUsage.RenderAttachment;
         }
-        if ((this.usage & TextureUsage.StorageBinding) !== 0) {
+        if ((this.memoryLayout.usage & TextureUsage.StorageBinding) !== 0) {
             lUsage |= WebGpuTextureUsage.StorageBinding;
         }
-        if ((this.usage & TextureUsage.TextureBinding) !== 0) {
+        if ((this.memoryLayout.usage & TextureUsage.TextureBinding) !== 0) {
             lUsage |= WebGpuTextureUsage.TextureBinding;
         }
-
 
         return new WebGpuCanvasTexture(this.device.native, this.mCanvas, lFormat, lUsage);
     }

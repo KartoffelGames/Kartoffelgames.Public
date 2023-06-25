@@ -9,6 +9,8 @@ export interface ILinearBufferMemoryLayout extends IMemoryLayout {
 }
 
 export type LinearBufferMemoryLayoutParameter = {
+    type: 'LinearBuffer';
+
     access: AccessMode;
     bindType: BindType;
     location: number | null;

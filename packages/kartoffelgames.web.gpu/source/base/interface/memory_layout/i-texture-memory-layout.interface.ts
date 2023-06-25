@@ -4,6 +4,7 @@ import { ComputeStage } from '../../constant/compute-stage.enum';
 import { MemoryType } from '../../constant/memory-type.enum';
 import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../constant/texture-format.enum';
+import { TextureUsage } from '../../constant/texture-usage.enum';
 import { IMemoryLayout } from './i-memory-layout.interface';
 
 export interface ITextureMemoryLayout extends IMemoryLayout {
@@ -19,6 +20,8 @@ export interface ITextureMemoryLayout extends IMemoryLayout {
 }
 
 export type TextureMemoryLayoutParameter = {
+    type: 'Texture';
+
     // "Interited" from MemoryLayoutParameter.
     access: AccessMode;
     bindType: BindType;
@@ -30,4 +33,5 @@ export type TextureMemoryLayoutParameter = {
     // New 
     dimension: TextureDimension;
     format: TextureFormat;
+    usage: TextureUsage;
 };

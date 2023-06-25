@@ -2,6 +2,7 @@ import { Buffer as BaseBuffer } from './buffer/buffer';
 import { GpuDevice as BaseGpuDevice } from './gpu/gpu-device';
 import { ArrayBufferMemoryLayout as BaseArrayBufferMemoryLayout } from './memory_layout/buffer/array-buffer-memory-layout';
 import { BufferMemoryLayout as BaseBufferMemoryLayout } from './memory_layout/buffer/buffer-memory-layout';
+import { LinearBufferMemoryLayout as BaseLinearBufferMemoryLayout } from './memory_layout/buffer/linear-buffer-memory-layout';
 import { StructBufferMemoryLayout as BaseStructBufferMemoryLayout } from './memory_layout/buffer/struct-buffer-memory-layout';
 import { SamplerMemoryLayout as BaseSamplerMemoryLayout } from './memory_layout/sampler-memory-layout';
 import { TextureMemoryLayout as BaseTextureMemoryLayout } from './memory_layout/texture-memory-layout';
@@ -17,6 +18,7 @@ export namespace Base {
 
     // Memory layout.
     export const BufferMemoryLayout = BaseBufferMemoryLayout;
+    export const LinearBufferMemoryLayout = BaseLinearBufferMemoryLayout;
     export const ArrayBufferMemoryLayout = BaseArrayBufferMemoryLayout;
     export const StructBufferMemoryLayout = BaseStructBufferMemoryLayout;
     export const TextureMemoryLayout = BaseTextureMemoryLayout;

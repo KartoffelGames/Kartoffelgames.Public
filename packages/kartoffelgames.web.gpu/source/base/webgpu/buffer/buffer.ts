@@ -1,10 +1,12 @@
 import { TypedArray } from '@kartoffelgames/core.data';
 import { WebGpuBuffer } from '../../../abstraction_layer/webgpu/buffer/web-gpu-buffer';
-import { MemoryType } from '../../constant/memory-type.enum';
 import { Base } from '../../base/export.';
-import { GpuDevice } from '../gpu-device';
-import { BufferLayout } from '../memory_layout/buffer-memory-layout';
 import { BindType } from '../../constant/bind-type.enum';
+import { MemoryType } from '../../constant/memory-type.enum';
+import { GpuDevice } from '../gpu-device';
+import { ArrayBufferMemoryLayout } from '../memory_layout/buffer/array-buffer-memory-layout';
+import { LinearBufferMemoryLayout } from '../memory_layout/buffer/linear-buffer-memory-layout';
+import { StructBufferMemoryLayout } from '../memory_layout/buffer/struct-buffer-memory-layout';
 
 export class Buffer<T extends TypedArray> extends Base.Buffer<GpuDevice, WebGpuBuffer<T>, T>  {
     /**
@@ -18,11 +20,10 @@ export class Buffer<T extends TypedArray> extends Base.Buffer<GpuDevice, WebGpuB
      * Constructor.
      * @param pDevice - GPU.
      * @param pLayout - Buffer layout.
-     * @param pUsage - Buffer usage beside COPY_DST.
      * @param pInitialData  - Inital data. Can be empty.
      */
-    public constructor(pDevice: GpuDevice, pLayout: BufferLayout, pUsage: MemoryType, pInitialData: T) {
-        super(pDevice, pLayout, pUsage, pInitialData);
+    public constructor(pDevice: GpuDevice, pLayout: BufferMemoryLayout, pInitialData: T) {
+        super(pDevice, pLayout, pInitialData);
     }
 
     /**
@@ -85,19 +86,15 @@ export class Buffer<T extends TypedArray> extends Base.Buffer<GpuDevice, WebGpuB
         }
 
         // Append usage type from abstract usage type.
-        if ((this.usage & MemoryType.CopyDestination) !== 0) {
+        if ((this.memoryLayout.memoryType & MemoryType.CopyDestination) !== 0) {
             lUsage |= GPUBufferUsage.COPY_DST;
         }
-        if ((this.usage & MemoryType.CopySource) !== 0) {
+        if ((this.memoryLayout.memoryType & MemoryType.CopySource) !== 0) {
             lUsage |= GPUBufferUsage.COPY_SRC;
-        }
-        if ((this.usage & MemoryType.MapRead) !== 0) {
-            lUsage |= GPUBufferUsage.MAP_READ;
-        }
-        if ((this.usage & MemoryType.MapWrite) !== 0) {
-            lUsage |= GPUBufferUsage.MAP_WRITE;
         }
 
         return new WebGpuBuffer<T>(this.device.native, lUsage, this.initialData);
     }
 }
+
+export type BufferMemoryLayout = LinearBufferMemoryLayout | ArrayBufferMemoryLayout | StructBufferMemoryLayout;

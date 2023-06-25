@@ -1,18 +1,19 @@
 import { TypedArray } from '@kartoffelgames/core.data';
 import { IBuffer } from '../../interface/buffer/i-buffer.interface';
 import { IGpuDevice } from '../../interface/gpu/i-gpu-device.interface';
+import { IArrayBufferMemoryLayout } from '../../interface/memory_layout/buffer/i-array-buffer.memory-layout.interface';
 import { IBufferMemoryLayout } from '../../interface/memory_layout/buffer/i-buffer-memory-layout.interface';
-import { ISamplerMemoryLayout } from '../../interface/memory_layout/i-sampler-memory-layout.interface';
+import { ILinearBufferMemoryLayout } from '../../interface/memory_layout/buffer/i-linear-buffer-memory-layout.interface';
+import { IStructBufferMemoryLayout } from '../../interface/memory_layout/buffer/i-struct-buffer.memory-layout.interface';
+import { ISamplerMemoryLayout, SamplerMemoryLayoutParameter } from '../../interface/memory_layout/i-sampler-memory-layout.interface';
 import { ITextureMemoryLayout, TextureMemoryLayoutParameter } from '../../interface/memory_layout/i-texture-memory-layout.interface';
 import { IFrameBufferTexture } from '../../interface/texture/i-frame-buffer-texture.interface';
 import { IImageTexture } from '../../interface/texture/i-image-texture.interface';
 import { ITextureSampler } from '../../interface/texture/i-texture-sampler.interface';
 import { IVideoTexture } from '../../interface/texture/i-video-texture.interface';
-import { ArrayBufferMemoryLayout, ArrayBufferMemoryLayoutParameter } from '../memory_layout/buffer/array-buffer-memory-layout';
-import { LinearBufferMemoryLayout, LinearBufferMemoryLayoutParameter } from '../memory_layout/buffer/linear-buffer-memory-layout';
-import { StructBufferMemoryLayout, StructBufferMemoryLayoutParameter } from '../memory_layout/buffer/struct-buffer-memory-layout';
-import { SamplerMemoryLayout, SamplerMemoryLayoutParameter } from '../memory_layout/sampler-memory-layout';
-import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
+import { ArrayBufferMemoryLayoutParameter } from '../memory_layout/buffer/array-buffer-memory-layout';
+import { LinearBufferMemoryLayoutParameter } from '../memory_layout/buffer/linear-buffer-memory-layout';
+import { StructBufferMemoryLayoutParameter } from '../memory_layout/buffer/struct-buffer-memory-layout';
 
 export abstract class GpuDevice implements IGpuDevice {
     /**
@@ -64,31 +65,29 @@ export abstract class GpuDevice implements IGpuDevice {
      * Create array buffer memory layout.
      * @param pParameter - Memory layout parameter.
      */
-    public abstract memoryLayout(pParameter: ArrayBufferMemoryLayoutParameter): ArrayBufferMemoryLayout;
+    public abstract memoryLayout(pParameter: ArrayBufferMemoryLayoutParameter): IArrayBufferMemoryLayout;
 
     /**
      * Create struct buffer memory layout.
      * @param pParameter - Memory layout parameter.
      */
-    public abstract memoryLayout(pParameter: StructBufferMemoryLayoutParameter): StructBufferMemoryLayout;
+    public abstract memoryLayout(pParameter: StructBufferMemoryLayoutParameter): IStructBufferMemoryLayout;
 
     /**
      * Create array buffer memory layout.
      * @param pParameter - Memory layout parameter.
-     * @param pSize - Buffer size.
-     * @param pAlignment - Buffer memory alignment.
      */
-    public abstract memoryLayout(pParameter: LinearBufferMemoryLayoutParameter, pSize: number, pAlignment: string): LinearBufferMemoryLayout;
+    public abstract memoryLayout(pParameter: LinearBufferMemoryLayoutParameter): ILinearBufferMemoryLayout;
 
     /**
      * Create sampler memory layout.
      * @param pParameter - Memory layout parameter.
      */
-    public abstract memoryLayout(pParameter: SamplerMemoryLayoutParameter): SamplerMemoryLayout;
+    public abstract memoryLayout(pParameter: SamplerMemoryLayoutParameter): ISamplerMemoryLayout;
 
     /**
      * Create texture memory layout.
      * @param pParameter - Memory layout parameter.
      */
-    public abstract memoryLayout(pParameter: TextureMemoryLayoutParameter): TextureMemoryLayout;
+    public abstract memoryLayout(pParameter: TextureMemoryLayoutParameter): ITextureMemoryLayout;
 }

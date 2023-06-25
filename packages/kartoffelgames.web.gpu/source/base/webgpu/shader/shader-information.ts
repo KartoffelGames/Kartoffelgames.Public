@@ -3,13 +3,31 @@ import { Base } from '../../base/export.';
 import { MemoryLayout } from '../../base/memory_layout/memory-layout';
 import { ComputeStage } from '../../constant/compute-stage.enum';
 import { IShaderInformation, ShaderFunction } from '../../interface/shader/i-shader-information';
-import { ArrayBufferMemoryLayout } from '../memory_layout/buffer/array-buffer-layout';
+import { ArrayBufferMemoryLayout } from '../memory_layout/buffer/array-buffer-memory-layout';
 import { WgslAccessMode } from './wgsl_enum/wgsl-access-mode.enum';
 import { WgslBindingType } from './wgsl_enum/wgsl-binding-type.enum';
 import { WgslShaderStage } from './wgsl_enum/wgsl-shader-stage.enum';
 import { WgslType } from './wgsl_enum/wgsl-type.enum';
+import { BufferMemoryLayout } from '../memory_layout/buffer/buffer-memory-layout';
+import { SamplerMemoryLayout } from '../memory_layout/sampler-memory-layout';
+import { MemoryType } from '../../constant/memory-type.enum';
+import { AccessMode } from '../../constant/access-mode.enum';
+import { BindType } from '../../constant/bind-type.enum';
+import { SamplerType } from '../../constant/sampler-type.enum';
 
 export class ShaderInformation extends Base.ShaderInformation implements IShaderInformation {
+    private readonly mSource: string;
+
+    /**
+     * Constructor.
+     * @param pSource - Source code.
+     */
+    public constructor(pSource: string) {
+        super(pSource);
+
+        this.mSource = pSource;
+    }
+
     /**
      * Fetch bindings.
      * @param pSourceCode - Source code.
@@ -37,8 +55,7 @@ export class ShaderInformation extends Base.ShaderInformation implements IShader
         const lBindingList: Array<[number, MemoryLayout]> = new Array<[number, MemoryLayout]>();
         for (const lVariable of this.fetchVariableDefinitions(lAllGroupLines)) {
             const lGroupAttribute: string | undefined = lVariable.attributes.find(pAttribute => pAttribute.startsWith('@group'));
-            const lBindAttribute: string | undefined = lVariable.attributes.find(pAttribute => pAttribute.startsWith('@binding'));
-            if (!lGroupAttribute || !lBindAttribute) {
+            if (!lGroupAttribute) {
                 throw new Exception('Bindind variable needs an binding and group attribute.', this);
             }
 
@@ -132,12 +149,14 @@ export class ShaderInformation extends Base.ShaderInformation implements IShader
 
         // Try to get location from attributes.
         let lLocationIndex: number | null = null;
-        const lLocationValue: string = pVariable.attributes.find(pAttribute => pAttribute.startsWith('@location'))?.replace(/[^\d]+/g, '') ?? '';
-        if (lLocationValue && !isNaN(<any>lLocationValue)) {
-            lLocationIndex = parseInt(lLocationValue);
+        const lLocationValue: number = parseInt(pVariable.attributes.find(pAttribute => pAttribute.startsWith('@location'))?.replace(/[^\d]+/g, '') ?? '');
+        const lBindValue: number = parseInt(pVariable.attributes.find(pAttribute => pAttribute.startsWith('@binding'))?.replace(/[^\d]+/g, '') ?? '');
+        if (!Number.isNaN(lLocationValue) || !Number.isNaN(lBindValue)) {
+            lLocationIndex = lLocationValue || lBindValue;
         }
 
-        let lBufferType: BufferLayout;
+
+        let lBufferType: MemoryLayout;
         switch (lType) {
             case WgslType.Struct: {
                 const lStructType: StructBufferLayout = new StructBufferLayout(pVariable.name, pVariable.type, lAccessMode, lBindingType, lLocationIndex);
@@ -190,12 +209,43 @@ export class ShaderInformation extends Base.ShaderInformation implements IShader
             }
         }
 
-        // Add attributes to buffer type.
-        for (const [lAttributeName, lAttributeParameterList] of lAttributes) {
-            lBufferType.setAttribute(lAttributeName, lAttributeParameterList);
+        return lBufferType;
+    }
+
+    private createBufferMemoryLayout(pVariable: WgslVariable, pLocation: number | null): BufferMemoryLayout { }
+
+    /**
+     * Create sampler memory layout.
+     * @param pVariable - Variable definition.
+     * @param pLocation - Variable location.
+     */
+    private createSamplerMemoryLayout(pVariable: WgslVariable, pLocation: number | null): SamplerMemoryLayout {
+        // Concat visibilites from shader. No good but better than nothing.
+        let lVisibility: ComputeStage = <ComputeStage>0;
+        for (const lComputeStage of this.entryPoints.keys()) {
+            lVisibility |= lComputeStage;
         }
 
-        return lBufferType;
+        // Convert sampler type.
+        let lSamplerType: SamplerType;
+        if (pVariable.type === WgslType.Sampler) {
+            lSamplerType = SamplerType.Filter;
+        } else { // WgslType.SamplerComparison
+            lSamplerType = SamplerType.Comparison;
+        }
+
+        return new SamplerMemoryLayout({
+            access: AccessMode.Read,
+            bindType: BindType.Uniform,
+            location: pLocation,
+            name: pVariable.name,
+            memoryType: MemoryType.CopyDestination | MemoryType.CopySource,
+            visibility: lVisibility,
+            samplerType: lSamplerType
+        });
+    }
+    private createTextureMemoryLayout(pVariable: WgslVariable, pLocation: number | null): TextureMemoryLayout {
+
     }
 
     /**
@@ -218,10 +268,10 @@ export class ShaderInformation extends Base.ShaderInformation implements IShader
 
             // Fetch Parameter.
             const lParameterVariableList: Array<WgslVariable> = this.fetchVariableDefinitions(lFunctionMatch.groups!['parameter']!);
-            const lParameterList: Array<BufferLayout> = lParameterVariableList.map((pVariable) => { return this.createMemoryLayout(pVariable); });
+            const lParameterList: Array<MemoryLayout> = lParameterVariableList.map((pVariable) => { return this.createMemoryLayout(pVariable); });
 
             // Fetch result type.
-            let lResult: BufferLayout | null = null;
+            let lResult: MemoryLayout | null = null;
             if (lFunctionMatch.groups!['result']) {
                 const lResultVariable: WgslVariable = this.fetchVariableDefinitions(lFunctionMatch.groups!['result']!).at(0)!;
                 lResult = this.createMemoryLayout(lResultVariable);
@@ -333,11 +383,214 @@ export class ShaderInformation extends Base.ShaderInformation implements IShader
 
         return lType;
     }
+
+    private saveForLaterFunction(): void {
+        // Static properties.
+        this.mGenericRawList = pParameter.generics ?? [];
+
+        // Filter enum of generic list.
+        this.mGenericList = this.mGenericRawList.map(pGeneric => {
+            if (!EnumUtil.enumKeyByValue(WgslType, pGeneric)) {
+                return WgslType.Enum;
+            }
+
+            return <WgslType>pGeneric;
+        });
+
+        // Get type restrictions.
+        const lRestrictionList: Array<WgslTypeSetting> | undefined = SimpleBufferMemoryLayout.mTypeRestrictions[pParameter.type];
+        if (!lRestrictionList) {
+            throw new Exception(`Type ${pParameter.type} not supported as buffer memory layout.`, this);
+        }
+
+        // Find corresponding restrictions. // TODO: Check for enum or struct or any types.
+        const lRestriction: WgslTypeSetting | undefined = lRestrictionList.find((pRestriction) => {
+            // Restriction has no generics.
+            if (!pRestriction.generic && this.mGenericRawList.length > 0) {
+                return false;
+            }
+
+            // No Generic restriction.
+            if (!pRestriction.generic && this.mGenericRawList.length === 0) {
+                return true;
+            }
+
+            // Validate each restriction.
+            for (let lGenericIndex: number = 0; lGenericIndex < pRestriction.generic!.length; lGenericIndex++) {
+                const lRestriction: WgslType = pRestriction.generic![lGenericIndex];
+                if (lRestriction === WgslType.Any) {
+                    continue;
+                }
+
+                const lRawGeneric: string = this.mGenericRawList[lGenericIndex];
+                if (lRestriction === WgslType.Enum && lRawGeneric) {
+                    continue;
+                }
+
+                if (lRestriction !== lRawGeneric) {
+                    return false;
+                }
+            }
+            return true;
+        });
+        if (!lRestriction) {
+            throw new Exception(`No type (${pParameter.type}) restriction for generics [${pParameter.generics}] found.`, this);
+        }
+    }
+
+    private static readonly mTypeRestrictions: Record<WgslType, Array<WgslTypeSetting>> = (() => {
+        const lTypes: Record<WgslType, Array<WgslTypeSetting>> = <any>{};
+
+        // Scalar types.
+        lTypes[WgslType.Boolean] = [{ size: 1, align: 1 }];
+        lTypes[WgslType.Integer32] = [{ size: 4, align: 4 }];
+        lTypes[WgslType.UnsignedInteger32] = [{ size: 4, align: 4 }];
+        lTypes[WgslType.Float32] = [{ size: 4, align: 4 }];
+        lTypes[WgslType.Float16] = [{ size: 2, align: 2 }];
+
+        // Vector types.
+        lTypes[WgslType.Vector2] = [
+            { size: 8, align: 8, generic: [WgslType.Integer32] },
+            { size: 8, align: 8, generic: [WgslType.UnsignedInteger32] },
+            { size: 8, align: 8, generic: [WgslType.Float32] },
+            { size: 4, align: 4, generic: [WgslType.Float16] }
+        ];
+        lTypes[WgslType.Vector3] = [
+            { size: 12, align: 16, generic: [WgslType.Integer32] },
+            { size: 12, align: 16, generic: [WgslType.UnsignedInteger32] },
+            { size: 12, align: 16, generic: [WgslType.Float32] },
+            { size: 6, align: 8, generic: [WgslType.Float16] }
+        ];
+        lTypes[WgslType.Vector4] = [
+            { size: 16, align: 16, generic: [WgslType.Integer32] },
+            { size: 16, align: 16, generic: [WgslType.UnsignedInteger32] },
+            { size: 16, align: 16, generic: [WgslType.Float32] },
+            { size: 8, align: 8, generic: [WgslType.Float16] }
+        ];
+
+        // Matrix types.
+        lTypes[WgslType.Matrix22] = [
+            { size: 16, align: 8, generic: [WgslType.Integer32] },
+            { size: 16, align: 8, generic: [WgslType.UnsignedInteger32] },
+            { size: 16, align: 8, generic: [WgslType.Float32] },
+            { size: 8, align: 4, generic: [WgslType.Float16] }
+        ];
+        lTypes[WgslType.Matrix23] = [
+            { size: 32, align: 16, generic: [WgslType.Integer32] },
+            { size: 32, align: 16, generic: [WgslType.UnsignedInteger32] },
+            { size: 32, align: 16, generic: [WgslType.Float32] },
+            { size: 16, align: 8, generic: [WgslType.Float16] }
+        ];
+        lTypes[WgslType.Matrix24] = [
+            { size: 32, align: 16, generic: [WgslType.Integer32] },
+            { size: 32, align: 16, generic: [WgslType.UnsignedInteger32] },
+            { size: 32, align: 16, generic: [WgslType.Float32] },
+            { size: 16, align: 8, generic: [WgslType.Float16] }
+        ];
+        lTypes[WgslType.Matrix32] = [
+            { size: 24, align: 8, generic: [WgslType.Integer32] },
+            { size: 24, align: 8, generic: [WgslType.UnsignedInteger32] },
+            { size: 24, align: 8, generic: [WgslType.Float32] },
+            { size: 12, align: 4, generic: [WgslType.Float16] }
+        ];
+        lTypes[WgslType.Matrix33] = [
+            { size: 48, align: 16, generic: [WgslType.Integer32] },
+            { size: 48, align: 16, generic: [WgslType.UnsignedInteger32] },
+            { size: 48, align: 16, generic: [WgslType.Float32] },
+            { size: 24, align: 8, generic: [WgslType.Float16] }
+        ];
+        lTypes[WgslType.Matrix34] = [
+            { size: 48, align: 16, generic: [WgslType.Integer32] },
+            { size: 48, align: 16, generic: [WgslType.UnsignedInteger32] },
+            { size: 48, align: 16, generic: [WgslType.Float32] },
+            { size: 24, align: 8, generic: [WgslType.Float16] }
+        ];
+        lTypes[WgslType.Matrix42] = [
+            { size: 32, align: 8, generic: [WgslType.Integer32] },
+            { size: 32, align: 8, generic: [WgslType.UnsignedInteger32] },
+            { size: 32, align: 8, generic: [WgslType.Float32] },
+            { size: 16, align: 4, generic: [WgslType.Float16] }
+        ];
+        lTypes[WgslType.Matrix43] = [
+            { size: 64, align: 16, generic: [WgslType.Integer32] },
+            { size: 64, align: 16, generic: [WgslType.UnsignedInteger32] },
+            { size: 64, align: 16, generic: [WgslType.Float32] },
+            { size: 32, align: 8, generic: [WgslType.Float16] }
+        ];
+        lTypes[WgslType.Matrix44] = [
+            { size: 64, align: 16, generic: [WgslType.Integer32] },
+            { size: 64, align: 16, generic: [WgslType.UnsignedInteger32] },
+            { size: 64, align: 16, generic: [WgslType.Float32] },
+            { size: 32, align: 8, generic: [WgslType.Float16] }
+        ];
+
+        lTypes[WgslType.Array] = [
+            { size: -1, align: -1, generic: [WgslType.Any] },
+            { size: -1, align: -1, generic: [WgslType.Any, WgslType.UnsignedInteger32] }
+        ];
+        lTypes[WgslType.Struct] = [{ size: -1, align: -1 }];
+
+        lTypes[WgslType.Atomic] = [
+            { size: 4, align: 4, generic: [WgslType.Integer32] },
+            { size: 4, align: 4, generic: [WgslType.UnsignedInteger32] }
+        ];
+        // Type alias.
+        // TODO:
+
+        return lTypes;
+    })();
+
+    private someMoreForLater(): void {
+        // Map every texture type for view dimension.
+        let lDimension: TextureDimension;
+        switch (pParameter.type) {
+            case WgslType.Texture1d:
+            case WgslType.TextureStorage1d: {
+                lDimension = TextureDimension.OneDimension;
+                break;
+            }
+            case WgslType.TextureDepth2d:
+            case WgslType.Texture2d:
+            case WgslType.TextureStorage2d:
+            case WgslType.TextureDepthMultisampled2d:
+            case WgslType.TextureMultisampled2d: {
+                lDimension = TextureDimension.TwoDimension;
+                break;
+            }
+            case WgslType.TextureDepth2dArray:
+            case WgslType.Texture2dArray:
+            case WgslType.TextureStorage2dArray: {
+                lDimension = TextureDimension.TwoDimensionArray;
+                break;
+            }
+            case WgslType.Texture3d:
+            case WgslType.TextureStorage3d: {
+                lDimension = TextureDimension.ThreeDimension;
+                break;
+            }
+            case WgslType.TextureCube:
+            case WgslType.TextureDepthCube: {
+                lDimension = TextureDimension.Cube;
+                break;
+            }
+            case WgslType.TextureCubeArray: {
+                lDimension = TextureDimension.CubeArray;
+                break;
+            }
+            default: {
+                throw new Exception(`Texture type "${pParameter.type}" not supported for any texture dimension.`, null);
+            }
+        }
+
+    }
 }
+
+type WgslTypeSetting = { size: number, align: number, generic?: Array<WgslType>; };
+
 
 export type WgslBind = {
     visibility: WgslShaderStage;
-    variable: BufferLayout;
+    variable: MemoryLayout;
     index: number;
 };
 
@@ -349,8 +602,8 @@ export type WgslBindGroup = {
 export type WgslFunction = {
     attributes: Array<string>;
     name: string;
-    parameter: Array<BufferLayout>;
-    return: BufferLayout | null;
+    parameter: Array<MemoryLayout>;
+    return: MemoryLayout | null;
 };
 
 type WgslVariable = {

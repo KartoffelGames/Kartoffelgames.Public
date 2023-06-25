@@ -34,7 +34,7 @@ export abstract class Buffer<TGpu extends GpuDevice, TNative extends object, TTy
      * @param pUsage - Buffer usage beside COPY_DST.
      * @param pInitialData  - Inital data. Can be empty.
      */
-    public constructor(pDevice: TGpu, pLayout: BufferMemoryLayout,pInitialData: TType) {
+    public constructor(pDevice: TGpu, pLayout: BufferMemoryLayout, pInitialData: TType) {
         super(pDevice);
         this.mLayout = pLayout;
         this.mInitialData = pInitialData;

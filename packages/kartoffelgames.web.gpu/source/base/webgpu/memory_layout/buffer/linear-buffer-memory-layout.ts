@@ -1,42 +1,23 @@
+import { Base } from '../../../base/export.';
+import { BufferMemoryLayout } from '../../../base/memory_layout/buffer/buffer-memory-layout';
 import { AccessMode } from '../../../constant/access-mode.enum';
 import { BindType } from '../../../constant/bind-type.enum';
 import { ComputeStage } from '../../../constant/compute-stage.enum';
 import { MemoryType } from '../../../constant/memory-type.enum';
 import { ILinearBufferMemoryLayout } from '../../../interface/memory_layout/buffer/i-linear-buffer-memory-layout.interface';
-import { BufferMemoryLayout } from './buffer-memory-layout';
 
-export class LinearBufferMemoryLayout extends BufferMemoryLayout implements ILinearBufferMemoryLayout {
-    private readonly mAlignment: number;
-    private readonly mSize: number;
-
-    /**
-     * Type byte alignment.
-     */
-    public get alignment(): number {
-        return this.mAlignment;
-    }
-
-    /**
-     * Buffer size in bytes.
-     */
-    public get size(): number {
-        return this.mSize;
-    }
-
+export class LinearBufferMemoryLayout extends Base.LinearBufferMemoryLayout implements ILinearBufferMemoryLayout {
     /**
      * Constructor.
-     * @param pParameter - Parameter.
+     * @param pType - Simple type. Scalar, Atomic, Vector and Matrix types.
+     * @param pGenerics - Generics of type.
      */
     public constructor(pParameter: LinearBufferMemoryLayoutParameter) {
         super(pParameter);
-
-        // Static properties.
-        this.mAlignment = pParameter.alignment;
-        this.mSize = pParameter.size;
     }
 }
 
-export type LinearBufferMemoryLayoutParameter = {
+type LinearBufferMemoryLayoutParameter = {
     type: 'LinearBuffer';
 
     access: AccessMode;

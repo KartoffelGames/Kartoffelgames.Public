@@ -15,7 +15,7 @@ export function AddGamepad(pGamepadIndex: number, pButtonIndex: number, pType: B
 
     let lGamepad: Gamepad;
     if (!gGamepads.has(pGamepadIndex)) {
-        lGamepad = {
+        lGamepad = <Gamepad><any>{
             id: 'Gamepad_mock',
             buttons: [],
             axes: [],

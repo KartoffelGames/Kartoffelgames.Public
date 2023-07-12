@@ -15,8 +15,7 @@
     },
     "devDependencies": {
         "@types/chai": "^4.3.3",
-        "@types/mocha": "^5.2.7",
-        "typescript": "^4.8.4"
+        "@types/mocha": "^5.2.7"
     },
     "scripts": {
         "build": "kg build Kartoffelgames.Web.Game_Input && kg page Kartoffelgames.Web.Game_Input --build-only",

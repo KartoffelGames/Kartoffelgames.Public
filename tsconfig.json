@@ -32,6 +32,7 @@
     "strictFunctionTypes": true,
     "strictNullChecks": true,
     "strictPropertyInitialization": true,
+    "skipLibCheck": true,
     "target": "ES2021",
     "useUnknownInCatchVariables": true
   },
@@ -44,9 +45,6 @@
     "Library"
   ],
   "files": [
-    "node_modules/@kartoffelgames/environment.workspace-essentials/declaration/module-declaration.d.ts"
-  ],
-  "include": [
-    "./**/*.ts"
+    "./environment_settings/module-declaration.d.ts"
   ]
 }

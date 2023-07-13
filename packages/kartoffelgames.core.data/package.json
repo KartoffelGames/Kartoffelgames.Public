@@ -11,9 +11,8 @@
     "main": "library/source/index.js",
     "types": "library/source/index.d.ts",
     "devDependencies": {
-        "@types/chai": "^4.3.4",
-        "@types/mocha": "^5.2.7",
-        "typescript": "^4.8.4"
+        "@types/chai": "^4.3.5",
+        "@types/mocha": "^10.0.1"
     },
     "scripts": {
         "build": "kg build @kartoffelgames/core.data && kg page @kartoffelgames/core.data --build-only",

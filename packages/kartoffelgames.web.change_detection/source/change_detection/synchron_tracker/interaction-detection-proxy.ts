@@ -41,7 +41,7 @@ export class InteractionDetectionProxy<T extends object> {
         }
 
         // Check if object is the original but has the proxys information.
-        const lWrapper: InteractionDetectionProxy<TObject> = Reflect.get(pProxy, InteractionDetectionProxy.OBSERVER_ORIGINAL_KEY);
+        const lWrapper: InteractionDetectionProxy<TObject> = <InteractionDetectionProxy<TObject>>Reflect.get(pProxy, InteractionDetectionProxy.OBSERVER_ORIGINAL_KEY);
         if (lWrapper) {
             return lWrapper;
         }

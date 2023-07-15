@@ -17,10 +17,7 @@
                 "${workspaceFolder}/../../node_modules/**/*.js",
                 "<node_internals>/**/*.js"
             ],
-            "sourceMaps": true,
-            "sourceMapPathOverrides": {
-                "webpack://@kartoffelgames/core.serializer/*": "${workspaceFolder}/*"
-            }
+            "sourceMaps": true
         }
     ]
 }

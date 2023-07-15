@@ -3,29 +3,22 @@ import { ChangeDetection } from '../change-detection';
 import { Patcher } from '../execution_zone/patcher/patcher';
 
 export class InteractionDetectionProxy<T extends object> {
-    // Descriptor key for the fake descriptor.
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    private static readonly OBSERVER_DESCRIPTOR_KEY: symbol = Symbol('ChangeDetectionProxyDescriptor');
+    private static readonly ORIGINAL_TO_INTERACTION_MAPPING: WeakMap<object, object> = new WeakMap<object, object>();
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    private static readonly OBSERVER_ORIGINAL_KEY: symbol = Symbol('ChangeDetectionProxyWrapper');
+    private static readonly PROXY_TO_ORIGINAL_MAPPING: WeakMap<object, object> = new WeakMap<object, object>();
 
     /**
      * Get original object from InteractionDetectionProxy-Proxy.
      * @param pProxy - Possible ChangeDetectionProxy object.
      */
     public static getOriginal<TValue>(pProxy: TValue): TValue {
-        let lOriginalValue: TValue;
-
-        if (typeof pProxy === 'object' && pProxy !== null || typeof pProxy === 'function') {
-            // Try to get Proxy wrapper.
-            const lWrapper: InteractionDetectionProxy<any> | undefined = InteractionDetectionProxy.getWrapper(<any>pProxy);
-            lOriginalValue = lWrapper?.mOriginalObject ?? pProxy;
-        } else {
-            // Value can't be a proxy object.
-            lOriginalValue = pProxy;
+        // None object cant be an proxy.
+        if (typeof pProxy !== 'object' && typeof pProxy !== 'function' || pProxy === null) {
+            return pProxy;
         }
 
-        return lOriginalValue;
+        return <TValue>InteractionDetectionProxy.PROXY_TO_ORIGINAL_MAPPING.get(pProxy) ?? pProxy;
     }
 
     /**
@@ -33,20 +26,12 @@ export class InteractionDetectionProxy<T extends object> {
      * @param pProxy - Proxy object.
      * @returns InteractionDetectionProxy or null if not a InteractionDetectionProxy-proxy.
      */
-    private static getWrapper<TObject extends object>(pProxy: TObject): InteractionDetectionProxy<TObject> | undefined {
-        // Check if object is a InteractionDetectionProxy-proxy.
-        const lDesciptor: PropertyDescriptor | undefined = Object.getOwnPropertyDescriptor(pProxy, InteractionDetectionProxy.OBSERVER_DESCRIPTOR_KEY);
-        if (lDesciptor && lDesciptor.value instanceof InteractionDetectionProxy) {
-            return <InteractionDetectionProxy<TObject>>lDesciptor.value;
-        }
+    private static getWrapper<TValue extends object>(pProxy: TValue): InteractionDetectionProxy<TValue> | undefined {
+        // Get original.
+        const lOriginal: TValue = <TValue>InteractionDetectionProxy.PROXY_TO_ORIGINAL_MAPPING.get(pProxy) ?? pProxy;
 
-        // Check if object is the original but has the proxys information.
-        const lWrapper: InteractionDetectionProxy<TObject> = <InteractionDetectionProxy<TObject>>Reflect.get(pProxy, InteractionDetectionProxy.OBSERVER_ORIGINAL_KEY);
-        if (lWrapper) {
-            return lWrapper;
-        }
-
-        return undefined;
+        // Get wrapper from original.
+        return <InteractionDetectionProxy<TValue> | undefined>InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.get(lOriginal);
     }
 
     private mChangeCallback: ChangeCallback | null;
@@ -97,14 +82,6 @@ export class InteractionDetectionProxy<T extends object> {
 
         // Create new proxy object.
         this.mProxyObject = this.createProxyObject(pTarget);
-
-        // Create access to get the wrapper on the original object.
-        const lSelf: this = this;
-        Object.defineProperty(this.mOriginalObject, InteractionDetectionProxy.OBSERVER_ORIGINAL_KEY, {
-            writable: false,
-            value: lSelf,
-            enumerable: false
-        });
     }
 
     /**
@@ -112,8 +89,6 @@ export class InteractionDetectionProxy<T extends object> {
      * @param pTarget - Target object.
      */
     private createProxyObject(pTarget: T): T {
-        const lSelf: InteractionDetectionProxy<T> = this;
-
         // Create proxy handler.
         const lProxyObject: T = new Proxy(pTarget, {
             /**
@@ -123,9 +98,9 @@ export class InteractionDetectionProxy<T extends object> {
              * @param pTarget - Original object.
              * @param pPropertyName - Name of property.
              */
-            set(pTargetObject: T, pPropertyName: ObjectFieldPathPart, pNewPropertyValue: any): boolean {
+            set: (pTargetObject: T, pPropertyName: ObjectFieldPathPart, pNewPropertyValue: any): boolean => {
                 const lResult: boolean = Reflect.set(pTargetObject, pPropertyName, pNewPropertyValue);
-                lSelf.dispatchChangeEvent(pTargetObject, pPropertyName, <string>Error().stack);
+                this.dispatchChangeEvent(pTargetObject, pPropertyName, <string>Error().stack);
                 return lResult;
             },
 
@@ -136,13 +111,13 @@ export class InteractionDetectionProxy<T extends object> {
              * @param pProperty - The name or Symbol  of the property to get.
              * @param lReceiver - Either the proxy or an object that inherits from the proxy.
              */
-            get(pTarget, pProperty: ObjectFieldPathPart, _pReceiver) {
+            get: (pTarget, pProperty: ObjectFieldPathPart, _pReceiver) => {
                 const lResult: any = Reflect.get(pTarget, pProperty);
 
                 if (typeof lResult === 'object' && lResult !== null || typeof lResult === 'function') {
                     const lProxy: InteractionDetectionProxy<any> = new InteractionDetectionProxy(lResult);
                     lProxy.onChange = (pSourceObject: object, pProperty: ObjectFieldPathPart | ((...pArgs: Array<any>) => any)) => {
-                        lSelf.dispatchChangeEvent(pSourceObject, pProperty, <string>Error().stack);
+                        this.dispatchChangeEvent(pSourceObject, pProperty, <string>Error().stack);
                     };
 
                     return lProxy.proxy;
@@ -156,9 +131,9 @@ export class InteractionDetectionProxy<T extends object> {
              * @param pTarget - Original object.
              * @param pPropertyName - Name of property.
              */
-            deleteProperty(pTargetObject: T, pPropertyName: ObjectFieldPathPart): boolean {
+            deleteProperty: (pTargetObject: T, pPropertyName: ObjectFieldPathPart): boolean => {
                 Reflect.deleteProperty(pTargetObject, pPropertyName);
-                lSelf.dispatchChangeEvent(pTargetObject, pPropertyName, <string>Error().stack);
+                this.dispatchChangeEvent(pTargetObject, pPropertyName, <string>Error().stack);
                 return true;
             },
 
@@ -168,7 +143,7 @@ export class InteractionDetectionProxy<T extends object> {
              * @param pThisArgument - This argument of call.
              * @param pArgumentsList - All arguments of call.
              */
-            apply(pTargetObject: T, pThisArgument: any, pArgumentsList: Array<any>) {
+            apply: (pTargetObject: T, pThisArgument: any, pArgumentsList: Array<any>): void => {
                 const lOriginalThisObject: object = InteractionDetectionProxy.getOriginal(pThisArgument);
                 let lResult: any;
                 let lFunctionResult: any;
@@ -177,7 +152,7 @@ export class InteractionDetectionProxy<T extends object> {
                 try {
                     lFunctionResult = (<(...args: Array<any>) => any>pTargetObject).call(lOriginalThisObject, ...pArgumentsList);
                 } catch (e) {
-                    lSelf.dispatchChangeEvent(lOriginalThisObject, <(...args: Array<any>) => any>pTargetObject, <string>Error().stack);
+                    this.dispatchChangeEvent(lOriginalThisObject, <(...args: Array<any>) => any>pTargetObject, <string>Error().stack);
                     throw e;
                 }
 
@@ -195,36 +170,25 @@ export class InteractionDetectionProxy<T extends object> {
                         // Wrong: await THIS() -> Code after THIS() -> Dispatched Event.
                         // Right: await THIS() -> Dispatched Event -> Code after THIS().
                         lFunctionResult.then((pResult: any) => {
-                            lSelf.dispatchChangeEvent(lOriginalThisObject, <(...args: Array<any>) => any>pTargetObject, <string>Error().stack);
+                            this.dispatchChangeEvent(lOriginalThisObject, <(...args: Array<any>) => any>pTargetObject, <string>Error().stack);
                             pResolve(pResult);
                         }).catch((pReason: any) => {
-                            lSelf.dispatchChangeEvent(lOriginalThisObject, <(...args: Array<any>) => any>pTargetObject, <string>Error().stack);
+                            this.dispatchChangeEvent(lOriginalThisObject, <(...args: Array<any>) => any>pTargetObject, <string>Error().stack);
                             pReject(pReason);
                         });
                     });
                 } else {
-                    lSelf.dispatchChangeEvent(lOriginalThisObject, <(...args: Array<any>) => any>pTargetObject, <string>Error().stack);
+                    this.dispatchChangeEvent(lOriginalThisObject, <(...args: Array<any>) => any>pTargetObject, <string>Error().stack);
                     lResult = lFunctionResult;
                 }
 
                 return lResult;
-            },
-
-            /**
-             * Get ObjectDescriptor from object.
-             * @param pTargetObject - Original object.
-             * @param pPropertyName - Name of property.
-             */
-            getOwnPropertyDescriptor(pTargetObject: T, pPropertyName: ObjectFieldPathPart): PropertyDescriptor | undefined {
-                // Get "fake" descriptor containing this observer.
-                if (pPropertyName === InteractionDetectionProxy.OBSERVER_DESCRIPTOR_KEY) {
-                    return { configurable: true, enumerable: true, value: lSelf };
-                }
-
-                // Get real object descriptor.
-                return Object.getOwnPropertyDescriptor(pTargetObject, pPropertyName);
             }
         });
+
+        // Map proxy with real object and real object to current class.
+        InteractionDetectionProxy.PROXY_TO_ORIGINAL_MAPPING.set(lProxyObject, pTarget);
+        InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.set(pTarget, this);
 
         return lProxyObject;
     }

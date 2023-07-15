@@ -409,18 +409,6 @@ describe('InteractionDetectionProxy', () => {
                 // Evaluation.
                 expect(lResultValue?.value).to.equal(lValue);
             });
-
-            it('-- OBSERVER_DESCRIPTOR_KEY', () => {
-                // Setup.
-                const lOriginalObject: { a: number; } = { a: 22 };
-                const lChangeDetection: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
-
-                // Process.
-                const lResultValue: PropertyDescriptor | undefined = Object.getOwnPropertyDescriptor(lChangeDetection.proxy, (<any>InteractionDetectionProxy).OBSERVER_DESCRIPTOR_KEY);
-
-                // Evaluation.
-                expect(lResultValue?.value).to.equal(lChangeDetection);
-            });
         });
 
         it('-- ChangeDetection silent mode', () => {

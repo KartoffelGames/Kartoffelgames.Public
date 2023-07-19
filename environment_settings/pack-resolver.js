@@ -25,10 +25,10 @@ module.exports = class Resolver {
             const lExtensionRegex = new RegExp(lExtension.replace('.', '\\.') + '$');
 
             switch (lExtension) {
-                case '*.css':
-                case '*.html':
-                case '*.txt':
-                case '*.json': {
+                case '.css':
+                case '.html':
+                case '.txt':
+                case '.json': {
                     lLoaderList.push({
                         test: lExtensionRegex,
                         use: {
@@ -37,10 +37,10 @@ module.exports = class Resolver {
                     });
                     break;
                 }
-                case '*.png':
-                case '*.jpg':
-                case '*.jpeg':
-                case '*.gif': {
+                case '.png':
+                case '.jpg':
+                case '.jpeg':
+                case '.gif': {
                     lLoaderList.push({
                         test: lExtensionRegex,
                         use: {
@@ -49,7 +49,7 @@ module.exports = class Resolver {
                     });
                     break;
                 }
-                case '*.jsworker': {
+                case '.jsworker': {
                     lLoaderList.push({
                         test: lExtensionRegex,
                         use: {

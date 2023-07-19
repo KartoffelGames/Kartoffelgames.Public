@@ -13,7 +13,7 @@
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
     "lib": [
-      "ES2021",
+      "ES2022",
       "DOM"
     ],
     "module": "CommonJS",
@@ -33,8 +33,9 @@
     "strictNullChecks": true,
     "strictPropertyInitialization": true,
     "skipLibCheck": true,
-    "target": "ES2021",
-    "useUnknownInCatchVariables": true
+    "target": "ES2022",
+    "useUnknownInCatchVariables": true,
+    "useDefineForClassFields": false
   },
   "exclude": [
     "**/node_modules/*",

@@ -22,7 +22,7 @@ export class ExportExtension {
      * @param pTargetElementReference - Component html element reference.
      * @param pComponentManagerReference - Component manager reference.
      */
-    public constructor(pTargetElementReference: ComponentElementReference, pComponentManagerReference: ComponentManagerReference,) {
+    public constructor(pTargetElementReference: ComponentElementReference, pComponentManagerReference: ComponentManagerReference) {
         this.mHtmlElement = <HTMLElement>pTargetElementReference.value;
         this.mUserObjectHandler = pComponentManagerReference.value.userObjectHandler;
 

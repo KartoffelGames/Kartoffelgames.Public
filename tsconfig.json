@@ -34,7 +34,8 @@
     "strictPropertyInitialization": true,
     "skipLibCheck": true,
     "target": "ES2022",
-    "useUnknownInCatchVariables": true
+    "useUnknownInCatchVariables": true,
+    "useDefineForClassFields": false
   },
   "exclude": [
     "**/node_modules/*",

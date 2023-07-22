@@ -1,4 +1,3 @@
-import { MemoryLayout } from '../../base/memory_layout/memory-layout';
 import { ComputeStage } from '../../constant/compute-stage.enum';
 import { IMemoryLayout } from '../memory_layout/i-memory-layout.interface';
 
@@ -6,7 +5,7 @@ export interface IShaderInformation {
     /**
      * Shader bindings. Grouped by group.
      */
-    bindings: Map<number, Array<MemoryLayout>>;
+    bindings: Map<number, Array<IMemoryLayout>>;
 
     /**
      * Shader entry points.

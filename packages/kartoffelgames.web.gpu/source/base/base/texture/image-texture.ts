@@ -1,13 +1,12 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { ITextureMemoryLayout } from '../../interface/memory_layout/i-texture-memory-layout.interface';
-import { GpuDevice } from '../gpu/gpu-device';
+import { GpuTypes } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 
-export abstract class ImageTexture<TGpu extends GpuDevice, TNative> extends GpuObject<TGpu, TNative> {
+export abstract class ImageTexture<TGpuTypes extends GpuTypes, TNative> extends GpuObject<TGpuTypes, TNative> {
     private mDepth: number;
     private mHeight: number;
     private mImageList: Array<ImageBitmap>;
-    private readonly mMemoryLayout: ITextureMemoryLayout;
+    private readonly mMemoryLayout: TGpuTypes['textureMemoryLayout'];
     private mWidth: number;
 
     /**
@@ -34,7 +33,7 @@ export abstract class ImageTexture<TGpu extends GpuDevice, TNative> extends GpuO
     /**
      * Textures memory layout.
      */
-    public get memoryLayout(): ITextureMemoryLayout {
+    public get memoryLayout(): TGpuTypes['textureMemoryLayout'] {
         return this.mMemoryLayout;
     }
 
@@ -50,7 +49,7 @@ export abstract class ImageTexture<TGpu extends GpuDevice, TNative> extends GpuO
      * @param pDevice - Device.
      * @param pLayout - Texture memory layout.
      */
-    public constructor(pDevice: TGpu, pLayout: ITextureMemoryLayout) {
+    public constructor(pDevice: TGpuTypes['gpuDevice'], pLayout: TGpuTypes['textureMemoryLayout']) {
         super(pDevice);
 
         // Fixed values.

@@ -1,13 +1,13 @@
 import { IGpuDependent } from '../../interface/gpu/i-gpu-dependent.interface';
-import { GpuDevice } from './gpu-device';
+import { GpuTypes } from './gpu-device';
 
-export class GpuDependent<TGpu extends GpuDevice> implements IGpuDependent {
-    private readonly mDevice: TGpu;
+export class GpuDependent<TGpuTypes extends GpuTypes> implements IGpuDependent {
+    private readonly mDevice: TGpuTypes['gpuDevice'];
 
     /**
      * Gpu Device.
      */
-    public get device(): TGpu {
+    public get device(): TGpuTypes['gpuDevice'] {
         return this.mDevice;
     }
 
@@ -15,7 +15,7 @@ export class GpuDependent<TGpu extends GpuDevice> implements IGpuDependent {
      * Constructor.
      * @param pDevice - Gpu device.
      */
-    public constructor(pDevice: TGpu) {
+    public constructor(pDevice: TGpuTypes['gpuDevice']) {
         this.mDevice = pDevice;
     }
 }

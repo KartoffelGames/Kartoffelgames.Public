@@ -2,15 +2,17 @@ import { AccessMode } from '../../constant/access-mode.enum';
 import { BindType } from '../../constant/bind-type.enum';
 import { ComputeStage } from '../../constant/compute-stage.enum';
 import { MemoryType } from '../../constant/memory-type.enum';
-import { IMemoryLayout } from '../../interface/memory_layout/i-memory-layout.interface';
+import { IMemoryLayout, MemoryLayoutParameter } from '../../interface/memory_layout/i-memory-layout.interface';
+import { GpuDependent } from '../gpu/gpu-dependent';
+import { GpuDevice } from '../gpu/gpu-device';
 
-export abstract class MemoryLayout implements IMemoryLayout {
+export abstract class MemoryLayout<TGpu extends GpuDevice> extends GpuDependent<TGpu> implements IMemoryLayout{
     private readonly mAccessMode: AccessMode;
     private readonly mBindType: BindType;
     private readonly mLocation: number | null;
+    private readonly mMemoryType: MemoryType;
     private readonly mName: string;
     private readonly mVisibility: ComputeStage;
-    private readonly mMemoryType: MemoryType;
 
     /**
      * Buffer type access mode.
@@ -58,7 +60,9 @@ export abstract class MemoryLayout implements IMemoryLayout {
      * Constuctor.
      * @param pParameter - Parameter.
      */
-    public constructor(pParameter: MemoryLayoutParameter) {
+    public constructor(pGpu: TGpu, pParameter: MemoryLayoutParameter) {
+        super(pGpu);
+
         this.mAccessMode = pParameter.access;
         this.mBindType = pParameter.bindType;
         this.mLocation = pParameter.location;
@@ -67,12 +71,3 @@ export abstract class MemoryLayout implements IMemoryLayout {
         this.mMemoryType = pParameter.memoryType;
     }
 }
-
-type MemoryLayoutParameter = {
-    access: AccessMode;
-    bindType: BindType;
-    location: number | null;
-    name: string;
-    memoryType: MemoryType;
-    visibility: ComputeStage;
-};

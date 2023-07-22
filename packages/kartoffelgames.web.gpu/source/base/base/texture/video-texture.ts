@@ -1,11 +1,11 @@
+import { ITextureMemoryLayout } from '../../interface/memory_layout/i-texture-memory-layout.interface';
 import { IVideoTexture } from '../../interface/texture/i-video-texture.interface';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
-import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
 
-export abstract class VideoTexture<TGpu extends GpuDevice, TNative extends object> extends GpuObject<TGpu, TNative> implements IVideoTexture {
+export abstract class VideoTexture<TGpu extends GpuDevice, TNative> extends GpuObject<TGpu, TNative> {
     private readonly mLoop: boolean;
-    private readonly mMemoryLayout: TextureMemoryLayout;
+    private readonly mMemoryLayout: ITextureMemoryLayout;
     private readonly mSource: string;
 
     /**
@@ -28,7 +28,7 @@ export abstract class VideoTexture<TGpu extends GpuDevice, TNative extends objec
     /**
      * Textures memory layout.
      */
-    public get memoryLayout(): TextureMemoryLayout {
+    public get memoryLayout(): ITextureMemoryLayout {
         return this.mMemoryLayout;
     }
 
@@ -45,7 +45,7 @@ export abstract class VideoTexture<TGpu extends GpuDevice, TNative extends objec
      * @param pLayout - Texture memory layout.
      * @param pDepth - Texture depth.
      */
-    public constructor(pDevice: TGpu, pLayout: TextureMemoryLayout, pSource: string, pLoop: boolean = false) {
+    public constructor(pDevice: TGpu, pLayout: ITextureMemoryLayout, pSource: string, pLoop: boolean = false) {
         super(pDevice);
 
         // Fixed values.
@@ -53,6 +53,22 @@ export abstract class VideoTexture<TGpu extends GpuDevice, TNative extends objec
         this.mSource = pSource;
         this.mLoop = pLoop;
     }
+
+    /**
+     * Create texture from a video source.
+     * @param pSource - Video source.
+     * @param pLoop - Loop video.
+     */
+    public async create(pSource: string, pLoop: boolean): Promise<IVideoTexture> {
+        return this.createVideoTexture(pSource, pLoop);
+    }
+
+    /**
+     * Create texture from a video source.
+     * @param pSource - Video source.
+     * @param pLoop - Loop video.
+     */
+    public abstract createVideoTexture(pSource: string, pLoop: boolean): Promise<IVideoTexture>;
 
     /**
      * Pause video.

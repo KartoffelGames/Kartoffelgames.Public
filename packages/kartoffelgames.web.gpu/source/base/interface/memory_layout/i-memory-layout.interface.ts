@@ -35,3 +35,12 @@ export interface IMemoryLayout {
      */
     readonly visibility: ComputeStage;
 }
+
+export type MemoryLayoutParameter = {
+    access: AccessMode;
+    bindType: BindType;
+    location: number | null;
+    name: string;
+    memoryType: MemoryType;
+    visibility: ComputeStage;
+};

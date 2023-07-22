@@ -1,12 +1,11 @@
-import { IFrameBufferTexture } from '../../interface/texture/i-frame-buffer-texture.interface';
+import { ITextureMemoryLayout } from '../../interface/memory_layout/i-texture-memory-layout.interface';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
-import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
 
-export abstract class FrameBufferTexture<TGpu extends GpuDevice, TNative extends object> extends GpuObject<TGpu, TNative> implements IFrameBufferTexture {
+export abstract class FrameBufferTexture<TGpu extends GpuDevice, TNative> extends GpuObject<TGpu, TNative> {
     private readonly mDepth: number;
     private mHeight: number;
-    private readonly mMemoryLayout: TextureMemoryLayout;
+    private readonly mMemoryLayout: ITextureMemoryLayout;
     private mMultiSampleLevel: number;
     private mWidth: number;
 
@@ -32,7 +31,7 @@ export abstract class FrameBufferTexture<TGpu extends GpuDevice, TNative extends
     /**
      * Textures memory layout.
      */
-    public get memoryLayout(): TextureMemoryLayout {
+    public get memoryLayout(): ITextureMemoryLayout {
         return this.mMemoryLayout;
     }
 
@@ -66,7 +65,7 @@ export abstract class FrameBufferTexture<TGpu extends GpuDevice, TNative extends
      * @param pLayout - Texture memory layout.
      * @param pDepth - Texture depth.
      */
-    public constructor(pDevice: TGpu, pLayout: TextureMemoryLayout, pDepth: number = 1) {
+    public constructor(pDevice: TGpu, pLayout: ITextureMemoryLayout, pDepth: number = 1) {
         super(pDevice);
 
         // Fixed values.

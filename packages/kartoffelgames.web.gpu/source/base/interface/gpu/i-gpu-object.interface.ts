@@ -1,15 +1,10 @@
-import { IGpuDevice } from './i-gpu-device.interface';
+import { IGpuDependent } from './i-gpu-dependent.interface';
 
-export interface IGpuObject {
+export interface IGpuObject extends IGpuDependent {
     /**
      * Enable or disable auto update.
      */
     autoUpdate: boolean;
-
-    /**
-     * Gpu Device.
-     */
-    device: IGpuDevice;
 
     /**
      * Add update listener.

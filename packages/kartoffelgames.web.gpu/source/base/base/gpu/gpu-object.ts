@@ -1,15 +1,13 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { GpuObjectUpdateListener, IGpuObject } from '../../interface/gpu/i-gpu-object.interface';
 import { GpuDevice } from './gpu-device';
+import { GpuDependent } from './gpu-dependent';
 
-export abstract class GpuObject<TGpu extends GpuDevice, TNative extends object> implements IGpuObject {
+export abstract class GpuObject<TGpu extends GpuDevice, TNative> extends GpuDependent<TGpu> {
     private mAutoUpdate: boolean;
     private mDestroyed: boolean;
-    private readonly mDevice: TGpu;
     private mNativeObject: TNative | null;
     private readonly mUpdateListenerList: Set<GpuObjectUpdateListener>;
     private mUpdateRequested: boolean;
-
 
     /**
      * Enable or disable auto update.
@@ -18,13 +16,6 @@ export abstract class GpuObject<TGpu extends GpuDevice, TNative extends object> 
         return this.mAutoUpdate;
     } set autoUpdate(pValue: boolean) {
         this.mAutoUpdate = pValue;
-    }
-
-    /**
-     * Gpu Device.
-     */
-    public get device(): TGpu {
-        return this.mDevice;
     }
 
     /**
@@ -58,7 +49,8 @@ export abstract class GpuObject<TGpu extends GpuDevice, TNative extends object> 
      * @param pDevice - Gpu device.
      */
     public constructor(pDevice: TGpu) {
-        this.mDevice = pDevice;
+        super(pDevice);
+
         this.mNativeObject = null;
         this.mUpdateRequested = true;
         this.mAutoUpdate = true;
@@ -129,3 +121,5 @@ export abstract class GpuObject<TGpu extends GpuDevice, TNative extends object> 
      */
     protected abstract generate(): TNative;
 }
+
+export type GpuObjectUpdateListener = () => void;

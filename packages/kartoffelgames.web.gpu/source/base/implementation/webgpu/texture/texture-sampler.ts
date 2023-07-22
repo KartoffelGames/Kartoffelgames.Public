@@ -3,17 +3,17 @@ import { Base } from '../../base/export.';
 import { CompareFunction } from '../../constant/compare-function.enum';
 import { FilterMode } from '../../constant/filter-mode.enum';
 import { WrappingMode } from '../../constant/wrapping-mode.enum';
-import { GpuDevice } from '../gpu-device';
+import { WebGpuDevice } from '../web-gpu-device';
 import { SamplerMemoryLayout } from '../memory_layout/sampler-memory-layout';
 
 
-export class TextureSampler extends Base.TextureSampler<GpuDevice, WebGpuTextureSampler> {
+export class TextureSampler extends Base.TextureSampler<WebGpuDevice, WebGpuTextureSampler> {
     /**
      * Constructor.
      * @param pDevice - Device reference.
      * @param pLayout - Sampler memory layout.
      */
-    public constructor(pDevice: GpuDevice, pLayout: SamplerMemoryLayout) {
+    public constructor(pDevice: WebGpuDevice, pLayout: SamplerMemoryLayout) {
         super(pDevice, pLayout);
     }
 

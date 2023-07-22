@@ -1,13 +1,11 @@
-import { Exception } from '@kartoffelgames/core.data';
-import { AccessMode } from '../../../constant/access-mode.enum';
-import { BindType } from '../../../constant/bind-type.enum';
-import { ComputeStage } from '../../../constant/compute-stage.enum';
-import { MemoryType } from '../../../constant/memory-type.enum';
-import { IBufferMemoryLayout } from '../../../interface/memory_layout/buffer/i-buffer-memory-layout.interface';
+import { Exception, TypedArray } from '@kartoffelgames/core.data';
+import { IBuffer } from '../../../interface/buffer/i-buffer.interface';
+import { BufferLayoutLocation, BufferMemoryLayoutParameter, IBufferMemoryLayout } from '../../../interface/memory_layout/buffer/i-buffer-memory-layout.interface';
+import { GpuDevice } from '../../gpu/gpu-device';
 import { MemoryLayout } from '../memory-layout';
 
-export abstract class BufferMemoryLayout extends MemoryLayout implements IBufferMemoryLayout {
-    private readonly mParent: BufferMemoryLayout | null;
+export abstract class BufferMemoryLayout<TGpu extends GpuDevice> extends MemoryLayout<TGpu> implements IBufferMemoryLayout {
+    private readonly mParent: IBufferMemoryLayout | null;
 
     /**
      * Type byte alignment.
@@ -22,7 +20,7 @@ export abstract class BufferMemoryLayout extends MemoryLayout implements IBuffer
     /**
      * Parent type. Stuct or Array.
      */
-    public get parent(): BufferMemoryLayout | null {
+    public get parent(): IBufferMemoryLayout | null {
         return this.mParent;
     }
 
@@ -30,11 +28,19 @@ export abstract class BufferMemoryLayout extends MemoryLayout implements IBuffer
      * Constructor.
      * @param pParameter - Parameter.
      */
-    public constructor(pParameter: BufferMemoryLayoutParameter) {
-        super(pParameter);
+    public constructor(pGpu: TGpu, pParameter: BufferMemoryLayoutParameter) {
+        super(pGpu, pParameter);
 
         // Static properties.
         this.mParent = pParameter.parent;
+    }
+
+    /**
+     * Create buffer from current layout.
+     * @param pInitialData - Inital buffer data.
+     */
+    public create<TType extends TypedArray>(pInitialData: TType): IBuffer<TType> {
+        return this.createBuffer<TType>(pInitialData);
     }
 
     /**
@@ -49,22 +55,10 @@ export abstract class BufferMemoryLayout extends MemoryLayout implements IBuffer
 
         return { size: this.size, offset: 0 };
     }
+
+    /**
+     * Create buffer from layout.
+     * @param pInitialData - Inital buffer data.
+     */
+    protected abstract createBuffer<TType extends TypedArray>(pInitialData: TType): IBuffer<TType>;
 }
-
-export type BufferMemoryLayoutParameter = {
-    // "Interited" from MemoryLayoutParameter.
-    access: AccessMode;
-    bindType: BindType;
-    location: number | null;
-    name: string;
-    memoryType: MemoryType;
-    visibility: ComputeStage;
-
-    // New 
-    parent: BufferMemoryLayout;
-};
-
-export type BufferLayoutLocation = {
-    offset: number;
-    size: number;
-};

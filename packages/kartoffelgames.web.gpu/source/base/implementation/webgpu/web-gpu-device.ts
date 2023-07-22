@@ -1,4 +1,4 @@
-import { TypedArray } from '@kartoffelgames/core.data';
+import { Exception, TypedArray } from '@kartoffelgames/core.data';
 import { WebGpuDevice } from '../../abstraction_layer/webgpu/web-gpu-device';
 import { Base } from '../base/export.';
 import { IBuffer } from '../interface/buffer/i-buffer.interface';
@@ -25,26 +25,72 @@ import { StructBufferMemoryLayoutParameter } from '../base/memory_layout/buffer/
 import { LinearBufferMemoryLayoutParameter } from '../base/memory_layout/buffer/linear-buffer-memory-layout';
 import { LinearBufferMemoryLayout } from './memory_layout/buffer/linear-buffer-memory-layout';
 import { StructBufferMemoryLayout } from './memory_layout/buffer/struct-buffer-memory-layout';
+import { GpuDevice } from '../../base/gpu/gpu-device';
 
-export class GpuDevice extends Base.GpuDevice {
-    private readonly mNative: WebGpuDevice;
+export class WebGpuDevice extends GpuDevice {
+    private static readonly mAdapters: Dictionary<string, GPUAdapter> = new Dictionary<string, GPUAdapter>();
+    private static readonly mDevices: Dictionary<GPUAdapter, GPUDevice> = new Dictionary<GPUAdapter, GPUDevice>();
 
     /**
-     * Native web gpu device.
+     * Create GPU device.
+     * @param pMode - Prefered device mode.
      */
-    public get native(): WebGpuDevice {
-        return this.mNative;
+    public static async create(pMode: GPUPowerPreference): Promise<WebGpuDevice> {
+        // Try to load cached adapter. When not cached, request new one.
+        const lAdapter: GPUAdapter | null = WebGpuDevice.mAdapters.get(pMode) ?? await window.navigator.gpu.requestAdapter({ powerPreference: pMode });
+        if (lAdapter) {
+            WebGpuDevice.mAdapters.set(pMode, lAdapter);
+        } else {
+            throw new Exception('Error requesting GPU adapter', WebGpuDevice);
+        }
+
+        // Try to load cached device. When not cached, request new one.
+        const lDevice: GPUDevice | null = WebGpuDevice.mDevices.get(lAdapter) ?? await lAdapter.requestDevice();
+        if (lAdapter) {
+            WebGpuDevice.mDevices.set(lAdapter, lDevice);
+        } else {
+            throw new Exception('Error requesting GPU device', WebGpuDevice);
+        }
+
+        return new WebGpuDevice(lAdapter, lDevice);
     }
+
+    private readonly mGpuAdapter: GPUAdapter;
+    private readonly mGpuDevice: GPUDevice;
 
     /**
      * Constructor.
-     * @param pDevice - Native device.
+     * @param pGpuAdapter - Gpu adapter. 
+     * @param pGpuDevice - Gpu device.
      */
-    public constructor(pDevice: WebGpuDevice) {
+    private constructor(pGpuAdapter: GPUAdapter, pGpuDevice: GPUDevice) {
         super();
 
-        this.mNative = pDevice;
+        this.mGpuAdapter = pGpuAdapter;
+        this.mGpuDevice = pGpuDevice;
     }
+
+    /**
+     * GPU adapter.
+     */
+    public get adapter(): GPUAdapter {
+        return this.mGpuAdapter;
+    }
+
+    /**
+     * GPU device.
+     */
+    public get device(): GPUDevice {
+        return this.mGpuDevice;
+    }
+
+    /**
+     * Preferred texture format.
+     */
+    public get preferredFormat(): GPUTextureFormat {
+        return window.navigator.gpu.getPreferredCanvasFormat();
+    }
+
 
     /**
      * Create buffer.

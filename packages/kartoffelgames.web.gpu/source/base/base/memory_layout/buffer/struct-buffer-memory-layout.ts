@@ -1,15 +1,19 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { AccessMode } from '../../../constant/access-mode.enum';
-import { BindType } from '../../../constant/bind-type.enum';
-import { ComputeStage } from '../../../constant/compute-stage.enum';
-import { MemoryType } from '../../../constant/memory-type.enum';
-import { IStructBufferMemoryLayout } from '../../../interface/memory_layout/buffer/i-struct-buffer.memory-layout.interface';
-import { BufferLayoutLocation, BufferMemoryLayout } from './buffer-memory-layout';
-import { Base } from '../../export.';
+import { BufferLayoutLocation, IBufferMemoryLayout } from '../../../interface/memory_layout/buffer/i-buffer-memory-layout.interface';
+import { IStructBufferMemoryLayout, StructBufferMemoryLayoutParameter } from '../../../interface/memory_layout/buffer/i-struct-buffer.memory-layout.interface';
+import { GpuDevice } from '../../gpu/gpu-device';
+import { BufferMemoryLayout } from './buffer-memory-layout';
 
-export abstract class StructBufferMemoryLayout extends BufferMemoryLayout implements IStructBufferMemoryLayout {
+export abstract class StructBufferMemoryLayout<TGpu extends GpuDevice> extends BufferMemoryLayout<TGpu> implements IStructBufferMemoryLayout {
+    private mInnerProperties: Array<[number, IBufferMemoryLayout]>;
     private readonly mStructName: string;
-    private mInnerProperties: Array<[number, BufferMemoryLayout]>;
+
+    /**
+     * Ordered inner properties.
+     */
+    public get properties(): Array<IBufferMemoryLayout> {
+        return this.mInnerProperties.map((pProperty) => pProperty[1]);
+    }
 
     /**
      * Struct name.
@@ -19,42 +23,15 @@ export abstract class StructBufferMemoryLayout extends BufferMemoryLayout implem
     }
 
     /**
-     * Ordered inner properties.
-     */
-    public get properties(): Array<BufferMemoryLayout> {
-        return this.mInnerProperties.map((pProperty) => pProperty[1]);
-    }
-
-    /**
      * Constructor.
      * @param pParameter - Parameter.
      */
-    public constructor(pParameter: StructBufferMemoryLayoutParameter) {
-        super(pParameter);
+    public constructor(pGpu: TGpu, pParameter: StructBufferMemoryLayoutParameter) {
+        super(pGpu, pParameter);
 
         // Static properties.
         this.mStructName = pParameter.structName;
-        this.mInnerProperties = new Array<[number, BufferMemoryLayout]>();
-    }
-
-    /**
-     * Get types of properties with set location.
-     */
-    public locations(): Array<BufferMemoryLayout> {
-        const lLocationTypes: Array<BufferMemoryLayout> = new Array<BufferMemoryLayout>();
-        for (const [, lPropertyType] of this.mInnerProperties.values()) {
-            // Set property as location when set.
-            if (lPropertyType.location !== null) {
-                lLocationTypes.push(lPropertyType);
-            }
-
-            // Get all inner locations when property is a struct type.
-            if (lPropertyType instanceof StructBufferMemoryLayout) {
-                lLocationTypes.push(...lPropertyType.locations());
-            }
-        }
-
-        return lLocationTypes;
+        this.mInnerProperties = new Array<[number, IBufferMemoryLayout]>();
     }
 
     /**
@@ -63,7 +40,7 @@ export abstract class StructBufferMemoryLayout extends BufferMemoryLayout implem
      * @param pOrder - Index of property.
      * @param pType - Property type.
      */
-    public addProperty(pOrder: number, pType: BufferMemoryLayout): void {
+    public addProperty(pOrder: number, pType: IBufferMemoryLayout): void {
         this.mInnerProperties.push([pOrder, pType]);
 
         // Order properties.
@@ -89,13 +66,13 @@ export abstract class StructBufferMemoryLayout extends BufferMemoryLayout implem
         }
 
         // Get ordered types.
-        const lOrderedTypeList: Array<BufferMemoryLayout> = this.mInnerProperties.sort(([pOrderA], [pOrderB]) => {
+        const lOrderedTypeList: Array<IBufferMemoryLayout> = this.mInnerProperties.sort(([pOrderA], [pOrderB]) => {
             return pOrderA - pOrderB;
         }).map(([, pType]) => pType);
 
         // Recalculate size.
         let lPropertyOffset: number = 0;
-        let lPropertyLayout: BufferMemoryLayout | null = null;
+        let lPropertyLayout: IBufferMemoryLayout | null = null;
         for (const lProperty of lOrderedTypeList) {
             // Increase offset to needed alignment.
             lPropertyOffset = Math.ceil(lPropertyOffset / lProperty.alignment) * lProperty.alignment;
@@ -124,23 +101,27 @@ export abstract class StructBufferMemoryLayout extends BufferMemoryLayout implem
     }
 
     /**
+     * Get types of properties with set location.
+     */
+    public locations(): Array<IBufferMemoryLayout> {
+        const lLocationTypes: Array<IBufferMemoryLayout> = new Array<IBufferMemoryLayout>();
+        for (const [, lPropertyType] of this.mInnerProperties.values()) {
+            // Set property as location when set.
+            if (lPropertyType.location !== null) {
+                lLocationTypes.push(lPropertyType);
+            }
+
+            // Get all inner locations when property is a struct type.
+            if (lPropertyType instanceof StructBufferMemoryLayout) {
+                lLocationTypes.push(...lPropertyType.locations());
+            }
+        }
+
+        return lLocationTypes;
+    }
+
+    /**
      * Called on property add.
      */
     protected abstract onProperyAdd(): void;
 }
-
-export type StructBufferMemoryLayoutParameter = {
-    type: 'StructBuffer';
-
-    // "Interited" from BufferMemoryLayoutParameter.
-    access: AccessMode;
-    bindType: BindType;
-    location: number | null;
-    name: string;
-    memoryType: MemoryType;
-    visibility: ComputeStage;
-    parent: BufferMemoryLayout;
-
-    // New.
-    structName: string;
-};

@@ -1,8 +1,8 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { GpuDevice } from './gpu-device';
 import { GpuDependent } from './gpu-dependent';
+import { GpuTypes } from './gpu-device';
 
-export abstract class GpuObject<TGpu extends GpuDevice, TNative> extends GpuDependent<TGpu> {
+export abstract class GpuObject<TGpuTypes extends GpuTypes, TNative> extends GpuDependent<TGpuTypes> {
     private mAutoUpdate: boolean;
     private mDestroyed: boolean;
     private mNativeObject: TNative | null;
@@ -48,7 +48,7 @@ export abstract class GpuObject<TGpu extends GpuDevice, TNative> extends GpuDepe
      * Constructor.
      * @param pDevice - Gpu device.
      */
-    public constructor(pDevice: TGpu) {
+    public constructor(pDevice: TGpuTypes['gpuDevice']) {
         super(pDevice);
 
         this.mNativeObject = null;

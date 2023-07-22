@@ -1,11 +1,10 @@
 import { Exception, TypedArray } from '@kartoffelgames/core.data';
-import { IBuffer } from '../../../interface/buffer/i-buffer.interface';
 import { BufferLayoutLocation, BufferMemoryLayoutParameter, IBufferMemoryLayout } from '../../../interface/memory_layout/buffer/i-buffer-memory-layout.interface';
-import { GpuDevice } from '../../gpu/gpu-device';
+import { GpuTypes } from '../../gpu/gpu-device';
 import { MemoryLayout } from '../memory-layout';
 
-export abstract class BufferMemoryLayout<TGpu extends GpuDevice> extends MemoryLayout<TGpu> implements IBufferMemoryLayout {
-    private readonly mParent: IBufferMemoryLayout | null;
+export abstract class BufferMemoryLayout<TGpuType extends GpuTypes> extends MemoryLayout<TGpuType> implements IBufferMemoryLayout {
+    private readonly mParent: TGpuType['bufferMemoryLayout'] | null;
 
     /**
      * Type byte alignment.
@@ -20,7 +19,7 @@ export abstract class BufferMemoryLayout<TGpu extends GpuDevice> extends MemoryL
     /**
      * Parent type. Stuct or Array.
      */
-    public get parent(): IBufferMemoryLayout | null {
+    public get parent(): TGpuType['bufferMemoryLayout'] | null {
         return this.mParent;
     }
 
@@ -28,7 +27,7 @@ export abstract class BufferMemoryLayout<TGpu extends GpuDevice> extends MemoryL
      * Constructor.
      * @param pParameter - Parameter.
      */
-    public constructor(pGpu: TGpu, pParameter: BufferMemoryLayoutParameter) {
+    public constructor(pGpu: TGpuType['gpuDevice'], pParameter: BufferMemoryLayoutParameter) {
         super(pGpu, pParameter);
 
         // Static properties.
@@ -39,7 +38,7 @@ export abstract class BufferMemoryLayout<TGpu extends GpuDevice> extends MemoryL
      * Create buffer from current layout.
      * @param pInitialData - Inital buffer data.
      */
-    public create<TType extends TypedArray>(pInitialData: TType): IBuffer<TType> {
+    public create<TType extends TypedArray>(pInitialData: TType): TGpuType['buffer'] {
         return this.createBuffer<TType>(pInitialData);
     }
 
@@ -60,5 +59,5 @@ export abstract class BufferMemoryLayout<TGpu extends GpuDevice> extends MemoryL
      * Create buffer from layout.
      * @param pInitialData - Inital buffer data.
      */
-    protected abstract createBuffer<TType extends TypedArray>(pInitialData: TType): IBuffer<TType>;
+    protected abstract createBuffer<TType extends TypedArray>(pInitialData: TType): TGpuType['buffer'];
 }

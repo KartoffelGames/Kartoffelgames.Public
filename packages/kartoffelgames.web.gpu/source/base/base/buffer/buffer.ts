@@ -1,12 +1,10 @@
 import { TypedArray } from '@kartoffelgames/core.data';
-import { GpuDevice } from '../gpu/gpu-device';
+import { GpuTypes } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
-import { BufferMemoryLayout } from '../memory_layout/buffer/buffer-memory-layout';
-import { IBufferMemoryLayout } from '../../interface/memory_layout/buffer/i-buffer-memory-layout.interface';
 
-export abstract class Buffer<TGpu extends GpuDevice, TType extends TypedArray, TNative> extends GpuObject<TGpu, TNative> {
+export abstract class Buffer<TGpuTypes extends GpuTypes, TType extends TypedArray, TNative> extends GpuObject<TGpuTypes, TNative> {
     private readonly mInitialData: TType;
-    private readonly mLayout: BufferMemoryLayout<TGpu>;
+    private readonly mLayout: TGpuTypes['bufferMemoryLayout'];
 
     /**
      * Buffer size.
@@ -16,7 +14,7 @@ export abstract class Buffer<TGpu extends GpuDevice, TType extends TypedArray, T
     /**
      * Buffer layout.
      */
-    public get memoryLayout(): IBufferMemoryLayout {
+    public get memoryLayout(): TGpuTypes['bufferMemoryLayout'] {
         return this.mLayout;
     }
 
@@ -34,7 +32,7 @@ export abstract class Buffer<TGpu extends GpuDevice, TType extends TypedArray, T
      * @param pUsage - Buffer usage beside COPY_DST.
      * @param pInitialData  - Inital data. Can be empty.
      */
-    public constructor(pDevice: TGpu, pLayout: BufferMemoryLayout<TGpu>, pInitialData: TType) {
+    public constructor(pDevice: TGpuTypes['gpuDevice'], pLayout: TGpuTypes['bufferMemoryLayout'], pInitialData: TType) {
         super(pDevice);
         this.mLayout = pLayout;
         this.mInitialData = pInitialData;

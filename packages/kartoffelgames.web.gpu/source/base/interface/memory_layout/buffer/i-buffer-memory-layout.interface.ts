@@ -21,7 +21,7 @@ export interface IBufferMemoryLayout extends IMemoryLayout {
      * Create buffer from layout.
      * @param pInitialData - Inital buffer data.
      */
-    create<TType extends TypedArray>(pInitialData: TType): IBuffer<TType>
+    create<TType extends TypedArray>(pInitialData: TType): IBuffer<TypedArray>
 
     /**
      * Get location of path.

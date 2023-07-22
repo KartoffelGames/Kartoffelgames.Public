@@ -1,8 +1,8 @@
 import { ILinearBufferMemoryLayout, LinearBufferMemoryLayoutParameter } from '../../../interface/memory_layout/buffer/i-linear-buffer-memory-layout.interface';
-import { GpuDevice } from '../../gpu/gpu-device';
+import { GpuTypes } from '../../gpu/gpu-device';
 import { BufferMemoryLayout } from './buffer-memory-layout';
 
-export abstract class LinearBufferMemoryLayout<TGpu extends GpuDevice> extends BufferMemoryLayout<TGpu> implements ILinearBufferMemoryLayout {
+export abstract class LinearBufferMemoryLayout<TGpuTypes extends GpuTypes> extends BufferMemoryLayout<TGpuTypes> implements ILinearBufferMemoryLayout {
     private readonly mAlignment: number;
     private readonly mSize: number;
 
@@ -24,7 +24,7 @@ export abstract class LinearBufferMemoryLayout<TGpu extends GpuDevice> extends B
      * Constructor.
      * @param pParameter - Parameter.
      */
-    public constructor(pGpu: TGpu, pParameter: LinearBufferMemoryLayoutParameter) {
+    public constructor(pGpu: TGpuTypes['gpuDevice'], pParameter: LinearBufferMemoryLayoutParameter) {
         super(pGpu, pParameter);
 
         // Static properties.

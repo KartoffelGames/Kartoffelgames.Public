@@ -1,12 +1,12 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { ArrayBufferMemoryLayoutParameter, IArrayBufferMemoryLayout } from '../../../interface/memory_layout/buffer/i-array-buffer.memory-layout.interface';
-import { BufferLayoutLocation, IBufferMemoryLayout } from '../../../interface/memory_layout/buffer/i-buffer-memory-layout.interface';
-import { GpuDevice } from '../../gpu/gpu-device';
+import { BufferLayoutLocation } from '../../../interface/memory_layout/buffer/i-buffer-memory-layout.interface';
+import { GpuTypes } from '../../gpu/gpu-device';
 import { BufferMemoryLayout } from './buffer-memory-layout';
 
-export abstract class ArrayBufferMemoryLayout<TGpu extends GpuDevice> extends BufferMemoryLayout<TGpu> implements IArrayBufferMemoryLayout {
+export abstract class ArrayBufferMemoryLayout<TGpuTypes extends GpuTypes> extends BufferMemoryLayout<TGpuTypes> implements IArrayBufferMemoryLayout {
     private readonly mArraySize: number;
-    private readonly mInnerType: IBufferMemoryLayout;
+    private readonly mInnerType: TGpuTypes['bufferMemoryLayout'];
 
     /**
      * Array item count.
@@ -18,7 +18,7 @@ export abstract class ArrayBufferMemoryLayout<TGpu extends GpuDevice> extends Bu
     /**
      * Array type.
      */
-    public get innerType(): IBufferMemoryLayout {
+    public get innerType(): TGpuTypes['bufferMemoryLayout'] {
         return this.mInnerType;
     }
 
@@ -26,7 +26,7 @@ export abstract class ArrayBufferMemoryLayout<TGpu extends GpuDevice> extends Bu
      * Constructor.
      * @param pParameter - Parameter.
      */
-    public constructor(pGpu: TGpu, pParameter: ArrayBufferMemoryLayoutParameter) {
+    public constructor(pGpu: TGpuTypes['gpuDevice'], pParameter: ArrayBufferMemoryLayoutParameter) {
         super(pGpu, pParameter);
 
         // Static properties.

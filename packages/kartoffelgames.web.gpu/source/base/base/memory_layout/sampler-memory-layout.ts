@@ -1,10 +1,9 @@
 import { SamplerType } from '../../constant/sampler-type.enum';
 import { ISamplerMemoryLayout, SamplerMemoryLayoutParameter } from '../../interface/memory_layout/i-sampler-memory-layout.interface';
-import { ITextureSampler } from '../../interface/texture/i-texture-sampler.interface';
-import { GpuDevice } from '../gpu/gpu-device';
+import { GpuTypes } from '../gpu/gpu-device';
 import { MemoryLayout } from './memory-layout';
 
-export abstract class SamplerMemoryLayout<TGpu extends GpuDevice> extends MemoryLayout<TGpu> implements ISamplerMemoryLayout{
+export abstract class SamplerMemoryLayout<TGpuTypes extends GpuTypes> extends MemoryLayout<TGpuTypes> implements ISamplerMemoryLayout {
     private readonly mSamplerType: SamplerType;
 
     /**
@@ -18,7 +17,7 @@ export abstract class SamplerMemoryLayout<TGpu extends GpuDevice> extends Memory
      * Constructor.
      * @param pParameter - Parameter.
      */
-    public constructor(pGpu: TGpu, pParameter: SamplerMemoryLayoutParameter) {
+    public constructor(pGpu: TGpuTypes['gpuDevice'], pParameter: SamplerMemoryLayoutParameter) {
         super(pGpu, pParameter);
 
         this.mSamplerType = pParameter.samplerType;
@@ -27,12 +26,12 @@ export abstract class SamplerMemoryLayout<TGpu extends GpuDevice> extends Memory
     /**
      * Create texture sampler.
      */
-    public create(): ITextureSampler {
+    public create(): TGpuTypes['textureSampler'] {
         return this.createTextureSampler();
     }
 
     /**
      * Create texture sampler.
      */
-    public abstract createTextureSampler(): ITextureSampler;
+    public abstract createTextureSampler(): TGpuTypes['textureSampler'];
 }

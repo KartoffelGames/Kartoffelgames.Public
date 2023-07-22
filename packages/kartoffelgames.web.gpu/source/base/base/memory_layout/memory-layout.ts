@@ -2,11 +2,10 @@ import { AccessMode } from '../../constant/access-mode.enum';
 import { BindType } from '../../constant/bind-type.enum';
 import { ComputeStage } from '../../constant/compute-stage.enum';
 import { MemoryType } from '../../constant/memory-type.enum';
-import { IMemoryLayout, MemoryLayoutParameter } from '../../interface/memory_layout/i-memory-layout.interface';
 import { GpuDependent } from '../gpu/gpu-dependent';
 import { GpuTypes } from '../gpu/gpu-device';
 
-export abstract class MemoryLayout<TGpuTypes extends GpuTypes> extends GpuDependent<TGpuTypes> implements IMemoryLayout {
+export abstract class MemoryLayout<TGpuTypes extends GpuTypes> extends GpuDependent<TGpuTypes> {
     private readonly mAccessMode: AccessMode;
     private readonly mBindType: BindType;
     private readonly mLocation: number | null;
@@ -70,4 +69,13 @@ export abstract class MemoryLayout<TGpuTypes extends GpuTypes> extends GpuDepend
         this.mVisibility = pParameter.visibility;
         this.mMemoryType = pParameter.memoryType;
     }
+}
+
+export interface MemoryLayoutParameter {
+    access: AccessMode;
+    bindType: BindType;
+    location: number | null;
+    name: string;
+    memoryType: MemoryType;
+    visibility: ComputeStage;
 }

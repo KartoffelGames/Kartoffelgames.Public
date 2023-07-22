@@ -8,10 +8,10 @@ import { MemoryType } from '../../../constant/memory-type.enum';
 import { SamplerType } from '../../../constant/sampler-type.enum';
 import { TextureDimension } from '../../../constant/texture-dimension.enum';
 import { IShaderInformation, ShaderFunction } from '../../../interface/shader/i-shader-information';
-import { BufferMemoryLayout } from '../buffer/buffer';
-import { ArrayBufferMemoryLayout } from '../memory_layout/buffer/array-buffer-memory-layout';
-import { SamplerMemoryLayout } from '../memory_layout/sampler-memory-layout';
-import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
+import { BufferMemoryLayout } from '../buffer/web-gpu-buffer';
+import { WebGpuArrayBufferMemoryLayout } from '../memory_layout/buffer/web-gpu-array-buffer-memory-layout';
+import { WebGpuSamplerMemoryLayout } from '../memory_layout/web-gpu-sampler-memory-layout';
+import { TextureMemoryLayout } from '../memory_layout/web-gpu-texture-memory-layout';
 import { WgslAccessMode } from './wgsl_enum/wgsl-access-mode.enum';
 import { WgslBindingType } from './wgsl_enum/wgsl-binding-type.enum';
 import { WgslShaderStage } from './wgsl_enum/wgsl-shader-stage.enum';
@@ -196,7 +196,7 @@ export class ShaderInformation extends Base.ShaderInformation implements IShader
                 }
 
                 // Create array buffer type.
-                lBufferType = new ArrayBufferMemoryLayout(pVariable.name, lTypeGenericBufferType, lSizeGeneric, lAccessMode, lBindingType, lLocationIndex);
+                lBufferType = new WebGpuArrayBufferMemoryLayout(pVariable.name, lTypeGenericBufferType, lSizeGeneric, lAccessMode, lBindingType, lLocationIndex);
                 break;
             }
             default: {
@@ -222,7 +222,7 @@ export class ShaderInformation extends Base.ShaderInformation implements IShader
      * @param pVariable - Variable definition.
      * @param pLocation - Variable location.
      */
-    private createSamplerMemoryLayout(pVariable: WgslVariable, pLocation: number | null): SamplerMemoryLayout {
+    private createSamplerMemoryLayout(pVariable: WgslVariable, pLocation: number | null): WebGpuSamplerMemoryLayout {
         // Concat visibilites from shader. No good but better than nothing.
         let lVisibility: ComputeStage = <ComputeStage>0;
         for (const lComputeStage of this.entryPoints.keys()) {
@@ -237,7 +237,7 @@ export class ShaderInformation extends Base.ShaderInformation implements IShader
             lSamplerType = SamplerType.Comparison;
         }
 
-        return new SamplerMemoryLayout({
+        return new WebGpuSamplerMemoryLayout({
             access: AccessMode.Read,
             bindType: BindType.Uniform,
             location: pLocation,

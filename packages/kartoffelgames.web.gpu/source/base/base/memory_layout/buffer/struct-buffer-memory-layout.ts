@@ -1,10 +1,8 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { BufferLayoutLocation } from '../../../interface/memory_layout/buffer/i-buffer-memory-layout.interface';
-import { IStructBufferMemoryLayout, StructBufferMemoryLayoutParameter } from '../../../interface/memory_layout/buffer/i-struct-buffer.memory-layout.interface';
 import { GpuTypes } from '../../gpu/gpu-device';
-import { BufferMemoryLayout } from './buffer-memory-layout';
+import { BufferLayoutLocation, BufferMemoryLayout, BufferMemoryLayoutParameter } from './buffer-memory-layout';
 
-export abstract class StructBufferMemoryLayout<TGpuTypes extends GpuTypes,> extends BufferMemoryLayout<TGpuTypes> implements IStructBufferMemoryLayout {
+export abstract class StructBufferMemoryLayout<TGpuTypes extends GpuTypes> extends BufferMemoryLayout<TGpuTypes> {
     private mInnerProperties: Array<[number, TGpuTypes['bufferMemoryLayout']]>;
     private readonly mStructName: string;
 
@@ -26,7 +24,7 @@ export abstract class StructBufferMemoryLayout<TGpuTypes extends GpuTypes,> exte
      * Constructor.
      * @param pParameter - Parameter.
      */
-    public constructor(pGpu: TGpuTypes['gpuDevice'], pParameter: StructBufferMemoryLayoutParameter) {
+    public constructor(pGpu: TGpuTypes['gpuDevice'], pParameter: StructBufferMemoryLayoutParameter<TGpuTypes>) {
         super(pGpu, pParameter);
 
         // Static properties.
@@ -124,4 +122,8 @@ export abstract class StructBufferMemoryLayout<TGpuTypes extends GpuTypes,> exte
      * Called on property add.
      */
     protected abstract onProperyAdd(): void;
+}
+
+export interface StructBufferMemoryLayoutParameter<TGpuTypes extends GpuTypes> extends BufferMemoryLayoutParameter<TGpuTypes> {
+    structName: string;
 }

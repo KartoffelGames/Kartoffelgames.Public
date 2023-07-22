@@ -1,9 +1,8 @@
 import { Exception, TypedArray } from '@kartoffelgames/core.data';
-import { BufferLayoutLocation, BufferMemoryLayoutParameter, IBufferMemoryLayout } from '../../../interface/memory_layout/buffer/i-buffer-memory-layout.interface';
 import { GpuTypes } from '../../gpu/gpu-device';
-import { MemoryLayout } from '../memory-layout';
+import { MemoryLayout, MemoryLayoutParameter } from '../memory-layout';
 
-export abstract class BufferMemoryLayout<TGpuType extends GpuTypes> extends MemoryLayout<TGpuType> implements IBufferMemoryLayout {
+export abstract class BufferMemoryLayout<TGpuType extends GpuTypes> extends MemoryLayout<TGpuType> {
     private readonly mParent: TGpuType['bufferMemoryLayout'] | null;
 
     /**
@@ -27,7 +26,7 @@ export abstract class BufferMemoryLayout<TGpuType extends GpuTypes> extends Memo
      * Constructor.
      * @param pParameter - Parameter.
      */
-    public constructor(pGpu: TGpuType['gpuDevice'], pParameter: BufferMemoryLayoutParameter) {
+    public constructor(pGpu: TGpuType['gpuDevice'], pParameter: BufferMemoryLayoutParameter<TGpuType>) {
         super(pGpu, pParameter);
 
         // Static properties.
@@ -61,3 +60,12 @@ export abstract class BufferMemoryLayout<TGpuType extends GpuTypes> extends Memo
      */
     protected abstract createBuffer<TType extends TypedArray>(pInitialData: TType): TGpuType['buffer'];
 }
+
+export interface BufferMemoryLayoutParameter<TGpuType extends GpuTypes> extends MemoryLayoutParameter {
+    parent: TGpuType['bufferMemoryLayout'];
+}
+
+export type BufferLayoutLocation = {
+    offset: number;
+    size: number;
+};

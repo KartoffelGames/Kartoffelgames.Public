@@ -1,7 +1,6 @@
-import { IGpuDependent } from '../../interface/gpu/i-gpu-dependent.interface';
 import { GpuTypes } from './gpu-device';
 
-export class GpuDependent<TGpuTypes extends GpuTypes> implements IGpuDependent {
+export class GpuDependent<TGpuTypes extends GpuTypes> {
     private readonly mDevice: TGpuTypes['gpuDevice'];
 
     /**

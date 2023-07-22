@@ -1,30 +1,27 @@
 import { TypedArray } from '@kartoffelgames/core.data';
-import { IBuffer } from '../../interface/buffer/i-buffer.interface';
-import { IGpuDevice } from '../../interface/gpu/i-gpu-device.interface';
-import { ArrayBufferMemoryLayoutParameter, IArrayBufferMemoryLayout } from '../../interface/memory_layout/buffer/i-array-buffer.memory-layout.interface';
-import { IBufferMemoryLayout } from '../../interface/memory_layout/buffer/i-buffer-memory-layout.interface';
-import { ILinearBufferMemoryLayout, LinearBufferMemoryLayoutParameter } from '../../interface/memory_layout/buffer/i-linear-buffer-memory-layout.interface';
-import { IStructBufferMemoryLayout, StructBufferMemoryLayoutParameter } from '../../interface/memory_layout/buffer/i-struct-buffer.memory-layout.interface';
-import { IMemoryLayout } from '../../interface/memory_layout/i-memory-layout.interface';
-import { ISamplerMemoryLayout, SamplerMemoryLayoutParameter } from '../../interface/memory_layout/i-sampler-memory-layout.interface';
-import { ITextureMemoryLayout, TextureMemoryLayoutParameter } from '../../interface/memory_layout/i-texture-memory-layout.interface';
-import { IFrameBufferTexture } from '../../interface/texture/i-frame-buffer-texture.interface';
-import { IImageTexture } from '../../interface/texture/i-image-texture.interface';
-import { ITextureSampler } from '../../interface/texture/i-texture-sampler.interface';
-import { IVideoTexture } from '../../interface/texture/i-video-texture.interface';
+import { Buffer } from '../buffer/buffer';
+import { ArrayBufferMemoryLayout, ArrayBufferMemoryLayoutParameter } from '../memory_layout/buffer/array-buffer-memory-layout';
+import { LinearBufferMemoryLayout, LinearBufferMemoryLayoutParameter } from '../memory_layout/buffer/linear-buffer-memory-layout';
+import { StructBufferMemoryLayout, StructBufferMemoryLayoutParameter } from '../memory_layout/buffer/struct-buffer-memory-layout';
+import { SamplerMemoryLayout, SamplerMemoryLayoutParameter } from '../memory_layout/sampler-memory-layout';
+import { TextureMemoryLayout, TextureMemoryLayoutParameter } from '../memory_layout/texture-memory-layout';
+import { FrameBufferTexture } from '../texture/frame-buffer-texture';
+import { ImageTexture } from '../texture/image-texture';
+import { TextureSampler } from '../texture/texture-sampler';
+import { VideoTexture } from '../texture/video-texture';
 
-export abstract class GpuDevice<TGpuTypes extends GpuTypes> implements IGpuDevice {
+export abstract class GpuDevice<TGpuTypes extends GpuTypes> {
     /**
      * Create array buffer memory layout.
      * @param pParameter - Memory layout parameter.
      */
-    public abstract arrayMemoryLayout(pParameter: ArrayBufferMemoryLayoutParameter): TGpuTypes['arrayBufferMemoryLayout'];
+    public abstract arrayMemoryLayout(pParameter: ArrayBufferMemoryLayoutParameter<TGpuTypes>): TGpuTypes['arrayBufferMemoryLayout'];
 
     /**
      * Create array buffer memory layout.
      * @param pParameter - Memory layout parameter.
      */
-    public abstract linearMemoryLayout(pParameter: LinearBufferMemoryLayoutParameter): TGpuTypes['linearBufferMemoryLayout'];
+    public abstract linearMemoryLayout(pParameter: LinearBufferMemoryLayoutParameter<TGpuTypes>): TGpuTypes['linearBufferMemoryLayout'];
 
     /**
      * Create sampler memory layout.
@@ -36,7 +33,7 @@ export abstract class GpuDevice<TGpuTypes extends GpuTypes> implements IGpuDevic
      * Create struct buffer memory layout.
      * @param pParameter - Memory layout parameter.
      */
-    public abstract structMemoryLayout(pParameter: StructBufferMemoryLayoutParameter): TGpuTypes['structBufferMemoryLayout'];
+    public abstract structMemoryLayout(pParameter: StructBufferMemoryLayoutParameter<TGpuTypes>): TGpuTypes['structBufferMemoryLayout'];
 
     /**
      * Create texture memory layout.
@@ -46,24 +43,26 @@ export abstract class GpuDevice<TGpuTypes extends GpuTypes> implements IGpuDevic
 }
 
 export interface GpuTypes {
-    // Core
+    // Core.
     gpuDevice: GpuDevice<this>;
+    memoryLayout: this['bufferMemoryLayout'] | this['textureMemoryLayout'] | this['samplerMemoryLayout'];
 
-    // Layouts.
-    memoryLayout: IMemoryLayout;
-    textureMemoryLayout: ITextureMemoryLayout;
-    samplerMemoryLayout: ISamplerMemoryLayout;
-    bufferMemoryLayout: IBufferMemoryLayout;
-    arrayBufferMemoryLayout: IArrayBufferMemoryLayout;
-    linearBufferMemoryLayout: ILinearBufferMemoryLayout;
-    structBufferMemoryLayout: IStructBufferMemoryLayout;
+    // Texture Layouts. 
+    textureMemoryLayout: TextureMemoryLayout<this>;
+    samplerMemoryLayout: SamplerMemoryLayout<this>;
 
-    // Texture
-    textureSampler: ITextureSampler;
-    imageTexture: IImageTexture;
-    frameBufferTexture: IFrameBufferTexture;
-    videoTexture: IVideoTexture;
+    // Buffer Layouts.
+    bufferMemoryLayout: this['arrayBufferMemoryLayout'] | this['linearBufferMemoryLayout'] | this['structBufferMemoryLayout'];
+    arrayBufferMemoryLayout: ArrayBufferMemoryLayout<this>;
+    linearBufferMemoryLayout: LinearBufferMemoryLayout<this>;
+    structBufferMemoryLayout: StructBufferMemoryLayout<this>;
+
+    // Textures.
+    textureSampler: TextureSampler<this, any>;
+    imageTexture: ImageTexture<this, any>;
+    frameBufferTexture: FrameBufferTexture<this, any>;
+    videoTexture: VideoTexture<this, any>;
 
     // Things with generics. :(
-    buffer: IBuffer<TypedArray>;
+    buffer: Buffer<this, TypedArray, any>;
 }

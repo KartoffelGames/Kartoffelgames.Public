@@ -1,8 +1,7 @@
-import { ILinearBufferMemoryLayout, LinearBufferMemoryLayoutParameter } from '../../../interface/memory_layout/buffer/i-linear-buffer-memory-layout.interface';
 import { GpuTypes } from '../../gpu/gpu-device';
-import { BufferMemoryLayout } from './buffer-memory-layout';
+import { BufferMemoryLayout, BufferMemoryLayoutParameter } from './buffer-memory-layout';
 
-export abstract class LinearBufferMemoryLayout<TGpuTypes extends GpuTypes> extends BufferMemoryLayout<TGpuTypes> implements ILinearBufferMemoryLayout {
+export abstract class LinearBufferMemoryLayout<TGpuTypes extends GpuTypes> extends BufferMemoryLayout<TGpuTypes> {
     private readonly mAlignment: number;
     private readonly mSize: number;
 
@@ -24,11 +23,16 @@ export abstract class LinearBufferMemoryLayout<TGpuTypes extends GpuTypes> exten
      * Constructor.
      * @param pParameter - Parameter.
      */
-    public constructor(pGpu: TGpuTypes['gpuDevice'], pParameter: LinearBufferMemoryLayoutParameter) {
+    public constructor(pGpu: TGpuTypes['gpuDevice'], pParameter: LinearBufferMemoryLayoutParameter<TGpuTypes>) {
         super(pGpu, pParameter);
 
         // Static properties.
         this.mAlignment = pParameter.alignment;
         this.mSize = pParameter.size;
     }
+}
+
+export interface LinearBufferMemoryLayoutParameter<TGpuTypes extends GpuTypes> extends BufferMemoryLayoutParameter<TGpuTypes> {
+    size: number;
+    alignment: number;
 }

@@ -1,11 +1,10 @@
 import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../constant/texture-format.enum';
 import { TextureUsage } from '../../constant/texture-usage.enum';
-import { ITextureMemoryLayout, TextureMemoryLayoutParameter } from '../../interface/memory_layout/i-texture-memory-layout.interface';
 import { GpuTypes } from '../gpu/gpu-device';
-import { MemoryLayout } from './memory-layout';
+import { MemoryLayout, MemoryLayoutParameter } from './memory-layout';
 
-export abstract class TextureMemoryLayout<TGpuTypes extends GpuTypes> extends MemoryLayout<TGpuTypes> implements ITextureMemoryLayout {
+export abstract class TextureMemoryLayout<TGpuTypes extends GpuTypes> extends MemoryLayout<TGpuTypes> {
     private readonly mDimension: TextureDimension;
     private readonly mFormat: TextureFormat;
     private readonly mUsage: TextureUsage;
@@ -91,4 +90,10 @@ export abstract class TextureMemoryLayout<TGpuTypes extends GpuTypes> extends Me
      * @param pDepth - Texture depth.
      */
     protected abstract createSizedFrameBuffer(pWidth: number, pHeight: number, pDepth: number): TGpuTypes['frameBufferTexture'];
+}
+
+export interface TextureMemoryLayoutParameter extends MemoryLayoutParameter {
+    dimension: TextureDimension;
+    format: TextureFormat;
+    usage: TextureUsage;
 }

@@ -1,9 +1,8 @@
 import { SamplerType } from '../../constant/sampler-type.enum';
-import { ISamplerMemoryLayout, SamplerMemoryLayoutParameter } from '../../interface/memory_layout/i-sampler-memory-layout.interface';
 import { GpuTypes } from '../gpu/gpu-device';
-import { MemoryLayout } from './memory-layout';
+import { MemoryLayout, MemoryLayoutParameter } from './memory-layout';
 
-export abstract class SamplerMemoryLayout<TGpuTypes extends GpuTypes> extends MemoryLayout<TGpuTypes> implements ISamplerMemoryLayout {
+export abstract class SamplerMemoryLayout<TGpuTypes extends GpuTypes> extends MemoryLayout<TGpuTypes> {
     private readonly mSamplerType: SamplerType;
 
     /**
@@ -34,4 +33,8 @@ export abstract class SamplerMemoryLayout<TGpuTypes extends GpuTypes> extends Me
      * Create texture sampler.
      */
     public abstract createTextureSampler(): TGpuTypes['textureSampler'];
+}
+
+export interface SamplerMemoryLayoutParameter extends MemoryLayoutParameter {
+    samplerType: SamplerType;
 }

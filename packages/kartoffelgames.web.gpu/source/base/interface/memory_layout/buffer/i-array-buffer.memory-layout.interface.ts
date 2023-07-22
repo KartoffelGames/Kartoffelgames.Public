@@ -17,8 +17,6 @@ export interface IArrayBufferMemoryLayout extends IBufferMemoryLayout {
 }
 
 export type ArrayBufferMemoryLayoutParameter = {
-    type: 'ArrayBuffer';
-
     // "Interited" from BufferMemoryLayoutParameter.
     access: AccessMode;
     bindType: BindType;
@@ -28,7 +26,7 @@ export type ArrayBufferMemoryLayoutParameter = {
     visibility: ComputeStage;
     parent: IBufferMemoryLayout;
 
-    // New
+    // New.
     arraySize: number;
     innerType: IBufferMemoryLayout;
 };

@@ -1,16 +1,18 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { IShaderInformation, ShaderFunction } from '../../interface/shader/i-shader-information';
 import { ComputeStage } from '../../constant/compute-stage.enum';
+import { IMemoryLayout } from '../../interface/memory_layout/i-memory-layout.interface';
+import { GpuDependent } from '../gpu/gpu-dependent';
+import { GpuDevice } from '../gpu/gpu-device';
 import { MemoryLayout } from '../memory_layout/memory-layout';
 
-export abstract class ShaderInformation implements IShaderInformation {
-    private readonly mBindings: Dictionary<number, Array<MemoryLayout>>;
+export abstract class ShaderInformation<TGpu extends GpuDevice> extends GpuDependent<TGpu> {
+    private readonly mBindings: Dictionary<number, Array<MemoryLayout<TGpu>>>;
     private readonly mEntryPoints: Dictionary<ComputeStage, ShaderFunction>;
 
     /**
      * Shader bindings. Grouped by group.
      */
-    public get bindings(): Map<number, Array<MemoryLayout>> {
+    public get bindings(): Map<number, Array<IMemoryLayout>> {
         return this.mBindings;
     }
 
@@ -25,9 +27,11 @@ export abstract class ShaderInformation implements IShaderInformation {
      * Constructor.
      * @param pSourceCode - Shader source code.
      */
-    public constructor(pSourceCode: string) {
+    public constructor(pGpu: TGpu, pSourceCode: string) {
+        super(pGpu);
+
         // Set placeholder variables.
-        this.mBindings = new Dictionary<number, Array<MemoryLayout>>();
+        this.mBindings = new Dictionary<number, Array<MemoryLayout<TGpu>>>();
         this.mEntryPoints = new Dictionary<ComputeStage, ShaderFunction>();
 
         // Fetch entry points.
@@ -37,11 +41,11 @@ export abstract class ShaderInformation implements IShaderInformation {
         }
 
         // Fetch bindings.
-        const lBindList: Array<[number, MemoryLayout]> = this.fetchBindings(pSourceCode);
+        const lBindList: Array<[number, MemoryLayout<TGpu>]> = this.fetchBindings(pSourceCode);
         for (const [lBindGroupIndex, lBindLayout] of lBindList) {
             // Init new bind group.
             if (!this.mBindings.has(lBindGroupIndex)) {
-                this.mBindings.set(lBindGroupIndex, new Array<MemoryLayout>());
+                this.mBindings.set(lBindGroupIndex, new Array<MemoryLayout<TGpu>>());
             }
 
             this.mBindings.get(lBindGroupIndex)!.push(lBindLayout);
@@ -49,14 +53,20 @@ export abstract class ShaderInformation implements IShaderInformation {
     }
 
     /**
+     * Fetch shader binds.
+     * @param pSourceCode - Shader source code.
+     */
+    protected abstract fetchBindings(pSourceCode: string): Array<[number, MemoryLayout<TGpu>]>;
+
+    /**
      * Fetch entry points.
      * @param pSourceCode - Shader source code. 
      */
     protected abstract fetchEntryPoints(pSourceCode: string): Array<[ComputeStage, ShaderFunction]>;
-
-    /**
-     * Fetch shader binds.
-     * @param pSourceCode - Shader source code.
-     */
-    protected abstract fetchBindings(pSourceCode: string): Array<[number, MemoryLayout]>;
 }
+
+export type ShaderFunction = {
+    name: string;
+    parameter: Array<IMemoryLayout>;
+    return: IMemoryLayout | null;
+};

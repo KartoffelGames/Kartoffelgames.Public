@@ -3,12 +3,12 @@ import { WebGpuBuffer } from '../../../abstraction_layer/webgpu/buffer/web-gpu-b
 import { Base } from '../../base/export.';
 import { BindType } from '../../constant/bind-type.enum';
 import { MemoryType } from '../../constant/memory-type.enum';
-import { GpuDevice } from '../gpu-device';
+import { WebGpuDevice } from '../web-gpu-device';
 import { ArrayBufferMemoryLayout } from '../memory_layout/buffer/array-buffer-memory-layout';
 import { LinearBufferMemoryLayout } from '../memory_layout/buffer/linear-buffer-memory-layout';
 import { StructBufferMemoryLayout } from '../memory_layout/buffer/struct-buffer-memory-layout';
 
-export class Buffer<T extends TypedArray> extends Base.Buffer<GpuDevice, WebGpuBuffer<T>, T>  {
+export class Buffer<T extends TypedArray> extends Base.Buffer<WebGpuDevice, WebGpuBuffer<T>, T>  {
     /**
      * Buffer size.
      */
@@ -22,7 +22,7 @@ export class Buffer<T extends TypedArray> extends Base.Buffer<GpuDevice, WebGpuB
      * @param pLayout - Buffer layout.
      * @param pInitialData  - Inital data. Can be empty.
      */
-    public constructor(pDevice: GpuDevice, pLayout: BufferMemoryLayout, pInitialData: T) {
+    public constructor(pDevice: WebGpuDevice, pLayout: BufferMemoryLayout, pInitialData: T) {
         super(pDevice, pLayout, pInitialData);
     }
 

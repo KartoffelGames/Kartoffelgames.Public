@@ -1,14 +1,12 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { AccessMode } from '../../../constant/access-mode.enum';
-import { BindType } from '../../../constant/bind-type.enum';
-import { ComputeStage } from '../../../constant/compute-stage.enum';
-import { MemoryType } from '../../../constant/memory-type.enum';
-import { IArrayBufferMemoryLayout } from '../../../interface/memory_layout/buffer/i-array-buffer.memory-layout.interface';
-import { BufferLayoutLocation, BufferMemoryLayout } from './buffer-memory-layout';
+import { ArrayBufferMemoryLayoutParameter, IArrayBufferMemoryLayout } from '../../../interface/memory_layout/buffer/i-array-buffer.memory-layout.interface';
+import { BufferLayoutLocation, IBufferMemoryLayout } from '../../../interface/memory_layout/buffer/i-buffer-memory-layout.interface';
+import { GpuDevice } from '../../gpu/gpu-device';
+import { BufferMemoryLayout } from './buffer-memory-layout';
 
-export abstract class ArrayBufferMemoryLayout extends BufferMemoryLayout implements IArrayBufferMemoryLayout {
+export abstract class ArrayBufferMemoryLayout<TGpu extends GpuDevice> extends BufferMemoryLayout<TGpu> implements IArrayBufferMemoryLayout {
     private readonly mArraySize: number;
-    private readonly mInnerType: BufferMemoryLayout;
+    private readonly mInnerType: IBufferMemoryLayout;
 
     /**
      * Array item count.
@@ -20,7 +18,7 @@ export abstract class ArrayBufferMemoryLayout extends BufferMemoryLayout impleme
     /**
      * Array type.
      */
-    public get innerType(): BufferMemoryLayout {
+    public get innerType(): IBufferMemoryLayout {
         return this.mInnerType;
     }
 
@@ -28,8 +26,8 @@ export abstract class ArrayBufferMemoryLayout extends BufferMemoryLayout impleme
      * Constructor.
      * @param pParameter - Parameter.
      */
-    public constructor(pParameter: ArrayBufferMemoryLayoutParameter) {
-        super(pParameter);
+    public constructor(pGpu: TGpu, pParameter: ArrayBufferMemoryLayoutParameter) {
+        super(pGpu, pParameter);
 
         // Static properties.
         this.mArraySize = pParameter.arraySize;
@@ -73,20 +71,3 @@ export abstract class ArrayBufferMemoryLayout extends BufferMemoryLayout impleme
         return { size: lInnerLocation.size, offset: lArrayItemOffset + lInnerLocation.offset };
     }
 }
-
-export type ArrayBufferMemoryLayoutParameter = {
-    type: 'ArrayBuffer';
-
-    // "Interited" from BufferMemoryLayoutParameter.
-    access: AccessMode;
-    bindType: BindType;
-    location: number | null;
-    name: string;
-    memoryType: MemoryType;
-    visibility: ComputeStage;
-    parent: BufferMemoryLayout;
-
-    // New.
-    arraySize: number;
-    innerType: BufferMemoryLayout;
-};

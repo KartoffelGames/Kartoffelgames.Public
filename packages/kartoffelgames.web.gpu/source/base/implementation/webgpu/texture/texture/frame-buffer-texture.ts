@@ -4,29 +4,30 @@ import { Base } from '../../../base/export.';
 import { MemoryType } from '../../../constant/memory-type.enum';
 import { TextureFormat } from '../../../constant/texture-format.enum';
 import { TextureUsage } from '../../../constant/texture-usage.enum';
-import { GpuDevice } from '../../gpu-device';
+import { WebGpuDevice } from '../../web-gpu-device';
 import { TextureMemoryLayout } from '../../memory_layout/texture-memory-layout';
 
-export class ImageTexture extends Base.ImageTexture<GpuDevice, WebGpuTexture> {
+export class FrameBufferTexture extends Base.FrameBufferTexture<WebGpuDevice, WebGpuTexture> {
     /**
      * Constructor.
      * @param pDevice - Device.
-     * @param pLayout - Texture layout.
+     * @param pFormat - Texture format.
+     * @param pDepth - Texture depth.
      */
-    public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout) {
-        super(pDevice, pLayout);
+    public constructor(pDevice: WebGpuDevice, pLayout: TextureMemoryLayout, pDepth: number = 1) {
+        super(pDevice, pLayout, pDepth);
     }
 
     /**
-     * Destroy native image texture.
-     * @param pNativeObject - Native image texture.
+     * Destory web gpu native gpu object.
+     * @param pNativeObject - Native object. 
      */
     protected override destroyNative(pNativeObject: WebGpuTexture): void {
         pNativeObject.destroy();
     }
 
     /**
-     * Generate native gpu object.
+     * Generate native texture.
      */
     protected override generate(): WebGpuTexture {
         // Convert base to web gpu texture format.
@@ -102,22 +103,15 @@ export class ImageTexture extends Base.ImageTexture<GpuDevice, WebGpuTexture> {
             lDimension = '2d';
         }
 
-        const lNativeTexture: WebGpuTexture = new WebGpuTexture(this.device.native, {
+        return new WebGpuTexture(this.device.native, {
             format: lFormat,
             usage: lUsage,
             dimension: lDimension,
-            multiSampleLevel: 1,
+            multiSampleLevel: this.multiSampleLevel,
             layerCount: this.depth,
             height: this.height,
             width: this.width
         });
-
-        // Load images into texture.
-        for (let lImageIndex: number = 0; lImageIndex < this.images.length; lImageIndex++) {
-            lNativeTexture.loadImage(this.images[lImageIndex], lImageIndex);
-        }
-
-        return lNativeTexture;
     }
 
 }

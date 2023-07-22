@@ -1,10 +1,10 @@
 import { WebGpuExternalTexture } from '../../../../abstraction_layer/webgpu/texture_resource/web-gpu-external-texture';
 import { Base } from '../../../base/export.';
 import { TextureFormat } from '../../../constant/texture-format.enum';
-import { GpuDevice } from '../../gpu-device';
+import { WebGpuDevice } from '../../web-gpu-device';
 import { TextureMemoryLayout } from '../../memory_layout/texture-memory-layout';
 
-export class VideoTexture extends Base.VideoTexture<GpuDevice, WebGpuExternalTexture> {
+export class VideoTexture extends Base.VideoTexture<WebGpuDevice, WebGpuExternalTexture> {
     private readonly mVideo: HTMLVideoElement;
 
     /**
@@ -28,7 +28,7 @@ export class VideoTexture extends Base.VideoTexture<GpuDevice, WebGpuExternalTex
      * @param pSource - Video source.
      * @param pDepth - Texture depth.
      */
-    public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout, pSource: string, pLoop: boolean = false) {
+    public constructor(pDevice: WebGpuDevice, pLayout: TextureMemoryLayout, pSource: string, pLoop: boolean = false) {
         super(pDevice, pLayout, pSource, pLoop);
 
         // Create video.

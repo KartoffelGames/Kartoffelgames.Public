@@ -1,19 +1,22 @@
-import { Dictionary, EnumUtil, Exception } from '@kartoffelgames/core.data';
-import { Base } from '../../base/export.';
-import { MemoryLayout } from '../../base/memory_layout/memory-layout';
-import { ComputeStage } from '../../constant/compute-stage.enum';
-import { IShaderInformation, ShaderFunction } from '../../interface/shader/i-shader-information';
+import { Exception, EnumUtil, Dictionary } from '@kartoffelgames/core.data';
+import { Base } from '../../../base/export.';
+import { MemoryLayout } from '../../../base/memory_layout/memory-layout';
+import { AccessMode } from '../../../constant/access-mode.enum';
+import { BindType } from '../../../constant/bind-type.enum';
+import { ComputeStage } from '../../../constant/compute-stage.enum';
+import { MemoryType } from '../../../constant/memory-type.enum';
+import { SamplerType } from '../../../constant/sampler-type.enum';
+import { TextureDimension } from '../../../constant/texture-dimension.enum';
+import { IShaderInformation, ShaderFunction } from '../../../interface/shader/i-shader-information';
+import { BufferMemoryLayout } from '../buffer/buffer';
 import { ArrayBufferMemoryLayout } from '../memory_layout/buffer/array-buffer-memory-layout';
+import { SamplerMemoryLayout } from '../memory_layout/sampler-memory-layout';
+import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
 import { WgslAccessMode } from './wgsl_enum/wgsl-access-mode.enum';
 import { WgslBindingType } from './wgsl_enum/wgsl-binding-type.enum';
 import { WgslShaderStage } from './wgsl_enum/wgsl-shader-stage.enum';
 import { WgslType } from './wgsl_enum/wgsl-type.enum';
-import { BufferMemoryLayout } from '../memory_layout/buffer/buffer-memory-layout';
-import { SamplerMemoryLayout } from '../memory_layout/sampler-memory-layout';
-import { MemoryType } from '../../constant/memory-type.enum';
-import { AccessMode } from '../../constant/access-mode.enum';
-import { BindType } from '../../constant/bind-type.enum';
-import { SamplerType } from '../../constant/sampler-type.enum';
+
 
 export class ShaderInformation extends Base.ShaderInformation implements IShaderInformation {
     private readonly mSource: string;

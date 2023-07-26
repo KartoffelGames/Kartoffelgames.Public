@@ -1,5 +1,4 @@
-import { Exception, EnumUtil, Dictionary } from '@kartoffelgames/core.data';
-import { Base } from '../../../base/export.';
+import { Dictionary, EnumUtil, Exception } from '@kartoffelgames/core.data';
 import { MemoryLayout } from '../../../base/memory_layout/memory-layout';
 import { AccessMode } from '../../../constant/access-mode.enum';
 import { BindType } from '../../../constant/bind-type.enum';
@@ -7,26 +6,27 @@ import { ComputeStage } from '../../../constant/compute-stage.enum';
 import { MemoryType } from '../../../constant/memory-type.enum';
 import { SamplerType } from '../../../constant/sampler-type.enum';
 import { TextureDimension } from '../../../constant/texture-dimension.enum';
-import { IShaderInformation, ShaderFunction } from '../../../interface/shader/i-shader-information';
-import { BufferMemoryLayout } from '../buffer/web-gpu-buffer';
 import { WebGpuArrayBufferMemoryLayout } from '../memory_layout/buffer/web-gpu-array-buffer-memory-layout';
 import { WebGpuSamplerMemoryLayout } from '../memory_layout/web-gpu-sampler-memory-layout';
-import { TextureMemoryLayout } from '../memory_layout/web-gpu-texture-memory-layout';
+import { WebGpuDevice, WebGpuTypes } from '../web-gpu-device';
 import { WgslAccessMode } from './wgsl_enum/wgsl-access-mode.enum';
 import { WgslBindingType } from './wgsl_enum/wgsl-binding-type.enum';
 import { WgslShaderStage } from './wgsl_enum/wgsl-shader-stage.enum';
 import { WgslType } from './wgsl_enum/wgsl-type.enum';
+import { ShaderFunction, ShaderInformation } from '../../../base/shader/shader-information';
+import { WebGpuStructBufferMemoryLayout } from '../memory_layout/buffer/web-gpu-struct-buffer-memory-layout';
 
 
-export class ShaderInformation extends Base.ShaderInformation implements IShaderInformation {
+export class WebGpuShaderInformation extends ShaderInformation<WebGpuTypes> {
     private readonly mSource: string;
 
     /**
      * Constructor.
+     * @param pDevice - Gpu device reference.
      * @param pSource - Source code.
      */
-    public constructor(pSource: string) {
-        super(pSource);
+    public constructor(pDevice: WebGpuDevice, pSource: string) {
+        super(pDevice, pSource);
 
         this.mSource = pSource;
     }
@@ -35,7 +35,7 @@ export class ShaderInformation extends Base.ShaderInformation implements IShader
      * Fetch bindings.
      * @param pSourceCode - Source code.
      */
-    protected override fetchBindings(pSourceCode: string): Array<[number, MemoryLayout]> {
+    protected override fetchBindings(pSourceCode: string): Array<[number, WebGpuTypes['memoryLayout']]> {
         // Get only lines with group attributes.
         const lAllGroupLines: string = [...pSourceCode.matchAll(/^.*@group.*$/gm)].reduce((pCurrent, pLine) => {
             return pCurrent + pLine[0];
@@ -55,7 +55,7 @@ export class ShaderInformation extends Base.ShaderInformation implements IShader
         }
 
         // Fetch all group variables.
-        const lBindingList: Array<[number, MemoryLayout]> = new Array<[number, MemoryLayout]>();
+        const lBindingList: Array<[number, WebGpuTypes['memoryLayout']]> = new Array<[number, WebGpuTypes['memoryLayout']]>();
         for (const lVariable of this.fetchVariableDefinitions(lAllGroupLines)) {
             const lGroupAttribute: string | undefined = lVariable.attributes.find(pAttribute => pAttribute.startsWith('@group'));
             if (!lGroupAttribute) {
@@ -74,11 +74,11 @@ export class ShaderInformation extends Base.ShaderInformation implements IShader
     /**
      * Fetch entry points.
      */
-    protected override fetchEntryPoints(pSourceCode: string): Array<[ComputeStage, ShaderFunction]> {
+    protected override fetchEntryPoints(pSourceCode: string): Array<[ComputeStage, ShaderFunction<WebGpuTypes>]> {
         // Get all functions.
         const lFunctionList: Array<WgslFunction> = this.fetchFunctions(pSourceCode);
 
-        const lEntryPoints: Array<[ComputeStage, ShaderFunction]> = new Array<[ComputeStage, ShaderFunction]>();
+        const lEntryPoints: Array<[ComputeStage, ShaderFunction<WebGpuTypes>]> = new Array<[ComputeStage, ShaderFunction<WebGpuTypes>]>();
         for (const lFunction of lFunctionList) {
             // Assemble shaderstage.
             if (lFunction.attributes.find(pAttribute => pAttribute.startsWith('@compute'))) {
@@ -99,7 +99,7 @@ export class ShaderInformation extends Base.ShaderInformation implements IShader
      * Create buffer type from variable definition.
      * @param pVariable - Variable definition.
      */
-    private createMemoryLayout(pVariable: WgslVariable): MemoryLayout {
+    private createMemoryLayout(pVariable: WgslVariable): WebGpuTypes['memoryLayout'] {
         // String to type. Undefined must be an struct type.
         const lType: WgslType | null = this.wgslTypeByName(pVariable.type);
         if (lType === WgslType.Enum) {
@@ -159,15 +159,15 @@ export class ShaderInformation extends Base.ShaderInformation implements IShader
         }
 
 
-        let lBufferType: MemoryLayout;
+        let lBufferType: WebGpuTypes['memoryLayout'];
         switch (lType) {
             case WgslType.Struct: {
-                const lStructType: StructBufferLayout = new StructBufferLayout(pVariable.name, pVariable.type, lAccessMode, lBindingType, lLocationIndex);
+                const lStructType: WebGpuStructBufferMemoryLayout = new WebGpuStructBufferMemoryLayout(pVariable.name, pVariable.type, lAccessMode, lBindingType, lLocationIndex);
 
                 // Get struct body and fetch types.
                 const lStructBody: string = this.getStructBody(pVariable.type);
                 this.fetchVariableDefinitions(lStructBody).forEach((pPropertyVariable, pIndex) => {
-                    const lProperyBufferType: BufferLayout = this.createMemoryLayout(pPropertyVariable);
+                    const lProperyBufferType: WebGpuTypes['bufferMemoryLayout'] = this.createMemoryLayout(pPropertyVariable);
 
                     // Add property to struct buffer type.
                     lStructType.addProperty(pIndex, lProperyBufferType);

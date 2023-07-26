@@ -1,31 +1,30 @@
-import { WebGpuTextureSampler } from '../../../abstraction_layer/webgpu/texture_resource/web-gpu-texture-sampler';
-import { Base } from '../../base/export.';
-import { CompareFunction } from '../../constant/compare-function.enum';
-import { FilterMode } from '../../constant/filter-mode.enum';
-import { WrappingMode } from '../../constant/wrapping-mode.enum';
-import { WebGpuDevice } from '../web-gpu-device';
-import { SamplerMemoryLayout } from '../memory_layout/sampler-memory-layout';
+import { TextureSampler } from '../../../base/texture/texture-sampler';
+import { CompareFunction } from '../../../constant/compare-function.enum';
+import { FilterMode } from '../../../constant/filter-mode.enum';
+import { WrappingMode } from '../../../constant/wrapping-mode.enum';
+import { WebGpuSamplerMemoryLayout } from '../memory_layout/web-gpu-sampler-memory-layout';
+import { WebGpuDevice, WebGpuTypes } from '../web-gpu-device';
 
 
-export class TextureSampler extends Base.TextureSampler<WebGpuDevice, WebGpuTextureSampler> {
+export class WebGpuTextureSampler extends TextureSampler<WebGpuTypes, GPUSampler> {
     /**
      * Constructor.
      * @param pDevice - Device reference.
      * @param pLayout - Sampler memory layout.
      */
-    public constructor(pDevice: WebGpuDevice, pLayout: SamplerMemoryLayout) {
+    public constructor(pDevice: WebGpuDevice, pLayout: WebGpuSamplerMemoryLayout) {
         super(pDevice, pLayout);
     }
 
     /**
      * Destroy native gpu object.
-     * @param pNativeObject - Native texture sampler.
+     * @param _pNativeObject - Native texture sampler.
      */
-    protected override destroyNative(pNativeObject: WebGpuTextureSampler): void {
-        pNativeObject.destroy();
+    protected override destroyNative(_pNativeObject: GPUSampler): void {
+        // Nothing to destroy. Very sad Godzilla noises
     }
 
-    protected override generate(): WebGpuTextureSampler {
+    protected override generate(): GPUSampler {
         // Convert compare function to native compare function.
         let lNativeCompareFunction: GPUCompareFunction | undefined = undefined;
         switch (this.compare) {
@@ -105,15 +104,23 @@ export class TextureSampler extends Base.TextureSampler<WebGpuDevice, WebGpuText
             }
         };
 
-        return new WebGpuTextureSampler(this.device.native, {
-            compare: lNativeCompareFunction,
-            fitMode: lAddressMode,
+        const lSamplerOptions: GPUSamplerDescriptor = {
+            label: 'Texture-Sampler',
+            addressModeU: lAddressMode,
+            addressModeV: lAddressMode,
+            addressModeW: lAddressMode,
             magFilter: lToNativeFilterMode(this.magFilter),
             minFilter: lToNativeFilterMode(this.minFilter),
             mipmapFilter: lMipMapFilter,
-            lodMinClamp: this.lodMinClamp,
             lodMaxClamp: this.lodMaxClamp,
+            lodMinClamp: this.lodMinClamp,
             maxAnisotropy: this.maxAnisotropy
-        });
+        };
+
+        if (lNativeCompareFunction) {
+            lSamplerOptions.compare = lNativeCompareFunction;
+        }
+
+        return this.device.device.createSampler(lSamplerOptions);
     }
 }

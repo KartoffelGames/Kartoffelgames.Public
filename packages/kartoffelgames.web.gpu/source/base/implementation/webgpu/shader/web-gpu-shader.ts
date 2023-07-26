@@ -8,13 +8,13 @@ import { WgslType } from './wgsl_enum/wgsl-type.enum';
 import { VertexAttribute } from '../../../abstraction_layer/webgpu/pipeline/data/vertex-attribute';
 import { SimpleBufferLayout } from '../memory_layout/simple-buffer-layout';
 import { WgslTexelFormat } from './wgsl_enum/wgsl-texel-format.enum';
-import { ShaderInformation, WgslBind, WgslFunction } from './shader-information';
+import { ShaderInformation, WgslBind, WgslFunction } from './web-gpu-shader-information';
 import { StructBufferLayout } from '../memory_layout/struct-buffer-layout';
 import { WebGpuBindGroupLayout } from '../../../abstraction_layer/webgpu/bind_group/web-gpu-bind-group-layout';
 import { WebGpuBindGroups } from '../../../abstraction_layer/webgpu/bind_group/web-gpu-bind-groups';
 import { BufferLayout } from '../memory_layout/buffer-memory-layout';
 
-export class Shader extends WebGpuShader implements IShader {
+export class WebGpuShader extends Shader  {
     private readonly mBindGroups: WebGpuBindGroups;
     private readonly mEntryPoints: EntryPoints;
     private readonly mShaderInformation: ShaderInformation;

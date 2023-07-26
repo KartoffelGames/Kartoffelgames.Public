@@ -49,9 +49,9 @@ export abstract class TextureMemoryLayout<TGpuTypes extends GpuTypes> extends Me
      * @param pHeight - Texture height.
      * @param pDepth - Texture depth.
      */
-    public createFrameBuffer(pWidth: number, pHeight: number, pDepth: number): TGpuTypes['frameBufferTexture'];
-    public createFrameBuffer(pCanvas: HTMLCanvasElement): TGpuTypes['frameBufferTexture'];
-    public createFrameBuffer(pWidthOrCanvas: number | HTMLCanvasElement, pHeight?: number, pDepth?: number): TGpuTypes['frameBufferTexture'] {
+    public create(pWidth: number, pHeight: number, pDepth: number): TGpuTypes['frameBufferTexture'];
+    public create(pCanvas: HTMLCanvasElement): TGpuTypes['frameBufferTexture'];
+    public create(pWidthOrCanvas: number | HTMLCanvasElement, pHeight?: number, pDepth?: number): TGpuTypes['frameBufferTexture'] {
         if (typeof pWidthOrCanvas === 'number') {
             if (typeof pHeight !== 'number' || typeof pDepth !== 'number') {
                 throw new Error('Height and depth must be specified for sized frame buffer textures.');
@@ -67,8 +67,17 @@ export abstract class TextureMemoryLayout<TGpuTypes extends GpuTypes> extends Me
      * Create texture from images.
      * @param pSourceList - Image source list.
      */
-    public async createImage(...pSourceList: Array<string>): Promise<TGpuTypes['imageTexture']> {
+    public async createFromImage(...pSourceList: Array<string>): Promise<TGpuTypes['imageTexture']> {
         return this.createImageFromSource(...pSourceList);
+    }
+
+    /**
+     * Create texture from a video source.
+     * @param pSource - Video source.
+     * @param pLoop - Loop video.
+     */
+    public async createFromVideo(pSource: string): Promise<TGpuTypes['videoTexture']> {
+        return this.createVideoTexture(pSource);
     }
 
     /**
@@ -90,6 +99,12 @@ export abstract class TextureMemoryLayout<TGpuTypes extends GpuTypes> extends Me
      * @param pDepth - Texture depth.
      */
     protected abstract createSizedFrameBuffer(pWidth: number, pHeight: number, pDepth: number): TGpuTypes['frameBufferTexture'];
+
+    /**
+     * Create texture from a video source.
+     * @param pSource - Video source.
+     */
+    protected abstract createVideoTexture(pSource: string): Promise<TGpuTypes['videoTexture']>;
 }
 
 export interface TextureMemoryLayoutParameter extends MemoryLayoutParameter {

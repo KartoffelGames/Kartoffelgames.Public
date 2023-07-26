@@ -1,33 +1,23 @@
-import { Exception, TypedArray } from '@kartoffelgames/core.data';
-import { WebGpuDevice } from '../../abstraction_layer/webgpu/web-gpu-device';
-import { Base } from '../base/export.';
-import { IBuffer } from '../interface/buffer/i-buffer.interface';
-import { IArrayBufferMemoryLayout } from '../interface/memory_layout/buffer/i-array-buffer.memory-layout.interface';
-import { ILinearBufferMemoryLayout } from '../interface/memory_layout/buffer/i-linear-buffer-memory-layout.interface';
-import { IStructBufferMemoryLayout } from '../interface/memory_layout/buffer/i-struct-buffer.memory-layout.interface';
-import { ISamplerMemoryLayout, SamplerMemoryLayoutParameter } from '../interface/memory_layout/i-sampler-memory-layout.interface';
-import { ITextureMemoryLayout, TextureMemoryLayoutParameter } from '../interface/memory_layout/i-texture-memory-layout.interface';
-import { IFrameBufferTexture } from '../interface/texture/i-frame-buffer-texture.interface';
-import { IImageTexture } from '../interface/texture/i-image-texture.interface';
-import { ITextureSampler } from '../interface/texture/i-texture-sampler.interface';
-import { IVideoTexture } from '../interface/texture/i-video-texture.interface';
-import { Buffer, BufferMemoryLayout } from './buffer/buffer';
-import { SamplerMemoryLayout } from './memory_layout/sampler-memory-layout';
-import { TextureMemoryLayout } from './memory_layout/texture-memory-layout';
-import { TextureSampler } from './texture/texture-sampler';
-import { CanvasTexture } from './texture/texture/canvas-texture';
-import { FrameBufferTexture } from './texture/texture/frame-buffer-texture';
-import { ImageTexture } from './texture/texture/image-texture';
-import { VideoTexture } from './texture/texture/video-texture';
-import { ArrayBufferMemoryLayout } from './memory_layout/buffer/array-buffer-memory-layout';
-import { ArrayBufferMemoryLayoutParameter } from '../base/memory_layout/buffer/array-buffer-memory-layout';
-import { StructBufferMemoryLayoutParameter } from '../base/memory_layout/buffer/struct-buffer-memory-layout';
-import { LinearBufferMemoryLayoutParameter } from '../base/memory_layout/buffer/linear-buffer-memory-layout';
-import { LinearBufferMemoryLayout } from './memory_layout/buffer/linear-buffer-memory-layout';
-import { StructBufferMemoryLayout } from './memory_layout/buffer/struct-buffer-memory-layout';
-import { GpuDevice } from '../../base/gpu/gpu-device';
+import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core.data';
+import { GpuDevice, GpuTypes } from '../../base/gpu/gpu-device';
+import { ArrayBufferMemoryLayoutParameter } from '../../base/memory_layout/buffer/array-buffer-memory-layout';
+import { LinearBufferMemoryLayoutParameter } from '../../base/memory_layout/buffer/linear-buffer-memory-layout';
+import { StructBufferMemoryLayoutParameter } from '../../base/memory_layout/buffer/struct-buffer-memory-layout';
+import { SamplerMemoryLayoutParameter } from '../../base/memory_layout/sampler-memory-layout';
+import { TextureMemoryLayoutParameter } from '../../base/memory_layout/texture-memory-layout';
+import { WebGpuBuffer } from './buffer/web-gpu-buffer';
+import { WebGpuArrayBufferMemoryLayout } from './memory_layout/buffer/web-gpu-array-buffer-memory-layout';
+import { WebGpuLinearBufferMemoryLayout } from './memory_layout/buffer/web-gpu-linear-buffer-memory-layout';
+import { WebGpuStructBufferMemoryLayout } from './memory_layout/buffer/web-gpu-struct-buffer-memory-layout';
+import { WebGpuSamplerMemoryLayout } from './memory_layout/web-gpu-sampler-memory-layout';
+import { WebGpuTextureMemoryLayout } from './memory_layout/web-gpu-texture-memory-layout';
+import { WebGpuCanvasTexture } from './texture/texture/web-gpu-canvas-texture';
+import { WebGpuFrameBufferTexture } from './texture/texture/web-gpu-frame-buffer-texture';
+import { WebGpuImageTexture } from './texture/texture/web-gpu-image-texture';
+import { WebGpuVideoTexture } from './texture/texture/web-gpu-video-texture';
+import { WebGpuTextureSampler } from './texture/web-gpu-texture-sampler';
 
-export class WebGpuDevice extends GpuDevice {
+export class WebGpuDevice extends GpuDevice<WebGpuTypes> {
     private static readonly mAdapters: Dictionary<string, GPUAdapter> = new Dictionary<string, GPUAdapter>();
     private static readonly mDevices: Dictionary<GPUAdapter, GPUDevice> = new Dictionary<GPUAdapter, GPUDevice>();
 
@@ -38,37 +28,25 @@ export class WebGpuDevice extends GpuDevice {
     public static async create(pMode: GPUPowerPreference): Promise<WebGpuDevice> {
         // Try to load cached adapter. When not cached, request new one.
         const lAdapter: GPUAdapter | null = WebGpuDevice.mAdapters.get(pMode) ?? await window.navigator.gpu.requestAdapter({ powerPreference: pMode });
-        if (lAdapter) {
-            WebGpuDevice.mAdapters.set(pMode, lAdapter);
-        } else {
+        if (!lAdapter) {
             throw new Exception('Error requesting GPU adapter', WebGpuDevice);
         }
 
+        WebGpuDevice.mAdapters.set(pMode, lAdapter);
+
         // Try to load cached device. When not cached, request new one.
         const lDevice: GPUDevice | null = WebGpuDevice.mDevices.get(lAdapter) ?? await lAdapter.requestDevice();
-        if (lAdapter) {
-            WebGpuDevice.mDevices.set(lAdapter, lDevice);
-        } else {
+        if (!lDevice) {
             throw new Exception('Error requesting GPU device', WebGpuDevice);
         }
+
+        WebGpuDevice.mDevices.set(lAdapter, lDevice);
 
         return new WebGpuDevice(lAdapter, lDevice);
     }
 
     private readonly mGpuAdapter: GPUAdapter;
     private readonly mGpuDevice: GPUDevice;
-
-    /**
-     * Constructor.
-     * @param pGpuAdapter - Gpu adapter. 
-     * @param pGpuDevice - Gpu device.
-     */
-    private constructor(pGpuAdapter: GPUAdapter, pGpuDevice: GPUDevice) {
-        super();
-
-        this.mGpuAdapter = pGpuAdapter;
-        this.mGpuDevice = pGpuDevice;
-    }
 
     /**
      * GPU adapter.
@@ -91,88 +69,78 @@ export class WebGpuDevice extends GpuDevice {
         return window.navigator.gpu.getPreferredCanvasFormat();
     }
 
-
     /**
-     * Create buffer.
-     * @param pLayout - Buffer layout.
-     * @param pUsage - Buffer usage.
-     * @param pInitialData - Initial data. Defines buffer length.
+     * Constructor.
+     * @param pGpuAdapter - Gpu adapter. 
+     * @param pGpuDevice - Gpu device.
      */
-    public buffer<T extends TypedArray>(pLayout: BufferMemoryLayout, pInitialData: T): IBuffer<T> {
-        return new Buffer<T>(this, pLayout, pInitialData);
+    private constructor(pGpuAdapter: GPUAdapter, pGpuDevice: GPUDevice) {
+        super();
+
+        this.mGpuAdapter = pGpuAdapter;
+        this.mGpuDevice = pGpuDevice;
     }
 
     /**
-     * Create frame buffer element.
-     * @param pCanvas - Canvas element.
-     * @param pFormat - Texture texel format.
-     * @param pUsage - Texture usage.
-     * @param pWidth - Texture width.
-     * @param pHeight - Texture height.
-     * @param pDepth - Texture depth.
-     */
-    public override frameBufferTexture(pLayout: TextureMemoryLayout, pCanvas: HTMLCanvasElement): IFrameBufferTexture;
-    public override frameBufferTexture(pLayout: TextureMemoryLayout, pWidth: number, pHeight: number, pDepth: number): IFrameBufferTexture;
-    public override frameBufferTexture(pLayout: TextureMemoryLayout, pWidthOrCanvas: unknown, pHeight?: number, pDepth?: number): IFrameBufferTexture {
-        if (pWidthOrCanvas instanceof HTMLCanvasElement) {
-            return new CanvasTexture(this, pWidthOrCanvas, pLayout, 1);
-        } else {
-            const lTexture: FrameBufferTexture = new FrameBufferTexture(this, pLayout, pDepth);
-            lTexture.height = <number>pHeight!;
-            lTexture.width = <number>pWidthOrCanvas!;
-
-            return lTexture;
-        }
-    }
-
-    /**
-     * Create texture from images.
-     * @param pLayout - Texture memory layout.
-     * @param pSourceList - Image source list.
-     */
-    public override async imageTexture(pLayout: TextureMemoryLayout, ...pSourceList: Array<string>): Promise<IImageTexture> {
-        const lTexture: ImageTexture = new ImageTexture(this, pLayout);
-        await lTexture.load(...pSourceList);
-
-        return lTexture;
-    }
-
-    /**
-     * Create memory layout parameter.
+     * Create array buffer memory layout.
      * @param pParameter - Memory layout parameter.
      */
-    public override memoryLayout(pParameter: ArrayBufferMemoryLayoutParameter): IArrayBufferMemoryLayout;
-    public override memoryLayout(pParameter: StructBufferMemoryLayoutParameter): IStructBufferMemoryLayout;
-    public override memoryLayout(pParameter: LinearBufferMemoryLayoutParameter): ILinearBufferMemoryLayout;
-    public override memoryLayout(pParameter: SamplerMemoryLayoutParameter): ISamplerMemoryLayout;
-    public override memoryLayout(pParameter: TextureMemoryLayoutParameter): ITextureMemoryLayout;
-    public override memoryLayout(pParameter: MemoryLayoutParameter): ILinearBufferMemoryLayout | IArrayBufferMemoryLayout | IStructBufferMemoryLayout | ITextureMemoryLayout | ISamplerMemoryLayout {
-        switch (pParameter.type) {
-            case 'ArrayBuffer': return new ArrayBufferMemoryLayout(pParameter);
-            case 'LinearBuffer': return new LinearBufferMemoryLayout(pParameter);
-            case 'Sampler': return new SamplerMemoryLayout(pParameter);
-            case 'StructBuffer': return new StructBufferMemoryLayout(pParameter);
-            case 'Texture': return new TextureMemoryLayout(pParameter);
-        }
+    public arrayMemoryLayout(pParameter: ArrayBufferMemoryLayoutParameter<WebGpuTypes>): WebGpuTypes['arrayBufferMemoryLayout'] {
+        return new WebGpuArrayBufferMemoryLayout(this, pParameter);
     }
 
     /**
-     * Create texture sampler.
-     * @param pLayout - Sampler memory layout.
+     * Create array buffer memory layout.
+     * @param pParameter - Memory layout parameter.
      */
-    public textureSampler(pLayout: SamplerMemoryLayout): ITextureSampler {
-        return new TextureSampler(this, pLayout);
+    public linearMemoryLayout(pParameter: LinearBufferMemoryLayoutParameter<WebGpuTypes>): WebGpuTypes['linearBufferMemoryLayout'] {
+        return new WebGpuLinearBufferMemoryLayout(this, pParameter);
     }
 
     /**
-     * Create texture from a video source.
-     * @param pSource - Video source.
-     * @param pFormat - Texture texel format.
-     * @param pLoop - Loop video.
+     * Create sampler memory layout.
+     * @param pParameter - Memory layout parameter.
      */
-    public override async videoTexture(pLayout: TextureMemoryLayout, pSource: string, pLoop: boolean): Promise<IVideoTexture> {
-        return new VideoTexture(this, pLayout, pSource, pLoop);
+    public samplerMemoryLayout(pParameter: SamplerMemoryLayoutParameter): WebGpuTypes['samplerMemoryLayout'] {
+        return new WebGpuSamplerMemoryLayout(this, pParameter);
+    }
+
+    /**
+     * Create struct buffer memory layout.
+     * @param pParameter - Memory layout parameter.
+     */
+    public structMemoryLayout(pParameter: StructBufferMemoryLayoutParameter<WebGpuTypes>): WebGpuTypes['structBufferMemoryLayout'] {
+        return new WebGpuStructBufferMemoryLayout(this, pParameter);
+    }
+
+    /**
+     * Create texture memory layout.
+     * @param pParameter - Memory layout parameter.
+     */
+    public textureMemoryLayout(pParameter: TextureMemoryLayoutParameter): WebGpuTypes['textureMemoryLayout'] {
+        return new WebGpuTextureMemoryLayout(this, pParameter);
     }
 }
 
-type MemoryLayoutParameter = ArrayBufferMemoryLayoutParameter | StructBufferMemoryLayoutParameter | LinearBufferMemoryLayoutParameter | SamplerMemoryLayoutParameter | TextureMemoryLayoutParameter;
+export interface WebGpuTypes extends GpuTypes {
+    // Core
+    gpuDevice: WebGpuDevice;
+
+    // Texture Layouts.
+    textureMemoryLayout: WebGpuTextureMemoryLayout;
+    samplerMemoryLayout: WebGpuSamplerMemoryLayout;
+
+    // Buffer Layouts.
+    arrayBufferMemoryLayout: WebGpuArrayBufferMemoryLayout;
+    linearBufferMemoryLayout: WebGpuLinearBufferMemoryLayout;
+    structBufferMemoryLayout: WebGpuStructBufferMemoryLayout;
+
+    // Texture
+    textureSampler: WebGpuTextureSampler;
+    imageTexture: WebGpuImageTexture;
+    frameBufferTexture: WebGpuFrameBufferTexture | WebGpuCanvasTexture;
+    videoTexture: WebGpuVideoTexture;
+
+    // Things with generics. :(
+    buffer: WebGpuBuffer<TypedArray>;
+}

@@ -1,69 +1,61 @@
-import { Exception } from '@kartoffelgames/core.data';
-import { WebGpuDevice } from '../../web-gpu-device';
 import { FrameBufferTexture } from '../../../../base/texture/frame-buffer-texture';
-import { TextureMemoryLayout } from '../../../../base/memory_layout/texture-memory-layout';
-import { WebGpuTextureUsage } from '../../../../../abstraction_layer/webgpu/texture_resource/texture/web-gpu-texture-usage.enum';
 import { MemoryType } from '../../../../constant/memory-type.enum';
 import { TextureFormat } from '../../../../constant/texture-format.enum';
 import { TextureUsage } from '../../../../constant/texture-usage.enum';
+import { WebGpuTextureMemoryLayout } from '../../memory_layout/web-gpu-texture-memory-layout';
+import { WebGpuDevice, WebGpuTypes } from '../../web-gpu-device';
 
-export class WebGpuCanvasTexture extends FrameBufferTexture<WebGpuDevice> {
-    private readonly mCanvas: HTMLCanvasElement;
-    private readonly mContext: GPUCanvasContext;
-
+export class WebGpuFrameBufferTexture extends FrameBufferTexture<WebGpuTypes, GPUTexture> {
     /**
      * Constructor.
      * @param pDevice - Device.
-     * @param pCanvas - Canvas of texture.
-     * @param pLayout - Texture layout.
-     * @param pDepth - Depth of texture. Can only be set to one.
+     * @param pFormat - Texture format.
+     * @param pDepth - Texture depth.
      */
-    public constructor(pDevice: WebGpuDevice, pCanvas: HTMLCanvasElement, pLayout: TextureMemoryLayout<WebGpuDevice>, pDepth: number) {
+    public constructor(pDevice: WebGpuDevice, pLayout: WebGpuTextureMemoryLayout, pDepth: number = 1) {
         super(pDevice, pLayout, pDepth);
-
-        // Restrict canvas to single layer.
-        if (pDepth !== 1) {
-            throw new Exception('Canvas texture cant have multiple depth layer.', this);
-        }
-
-        this.mCanvas = pCanvas;
-
-        // Get and configure context.
-        this.mContext = <GPUCanvasContext><any>pCanvas.getContext('webgpu')!;
-        this.mContext.configure({
-            device: this.gpu.device,
-            format: this.formatFromLayout(pLayout),
-            usage: this.usageFromLayout(pLayout),
-            alphaMode: 'opaque'
-        });
     }
 
     /**
-     * Destory texture object.
-     * @param pNativeObject - Native canvas texture.
+     * Destory web gpu native gpu object.
+     * @param pNativeObject - Native object. 
      */
-    protected override destroyNative(pNativeObject: WebGpuCanvasTexture): void {
+    protected override destroyNative(pNativeObject: GPUTexture): void {
         pNativeObject.destroy();
     }
 
     /**
-     * Generate native web gpu canvas texture.
+     * Generate native texture.
      */
     protected override generate(): GPUTexture {
-        // Update size.
-        if (this.mCanvas.width !== this.width || this.mCanvas.height !== this.height) {
-            this.mCanvas.width = this.width;
-            this.mCanvas.height = this.height;
+        // "Calculate" texture dimension from texture size. 
+        let lDimension: GPUTextureDimension;
+        if (this.width === 1 || this.height === 1) {
+            lDimension = '1d';
+        } else if (this.depth > 1) {
+            lDimension = '3d';
+        } else {
+            lDimension = '2d';
         }
 
-        return this.mContext.getCurrentTexture();
+        // Create texture with set size, format and usage.
+        const lTexture: GPUTexture = this.device.device.createTexture({
+            label: 'Frame-Buffer-Texture',
+            size: [this.width, this.height, this.depth],
+            format: this.formatFromLayout(this.memoryLayout),
+            usage: this.usageFromLayout(this.memoryLayout),
+            dimension: lDimension,
+            sampleCount: this.multiSampleLevel
+        });
+
+        return lTexture;
     }
 
     /**
      * Format from layout.
      * @param pLayout - Texture layout.
      */
-    private formatFromLayout(pLayout: TextureMemoryLayout<WebGpuDevice>): GPUTextureFormat {
+    private formatFromLayout(pLayout: WebGpuTextureMemoryLayout): GPUTextureFormat {
         // Convert base to web gpu texture format.
         let lFormat: GPUTextureFormat;
         switch (pLayout.format) {
@@ -116,23 +108,23 @@ export class WebGpuCanvasTexture extends FrameBufferTexture<WebGpuDevice> {
      * Usage from layout.
      * @param pLayout - Texture layout.
      */
-    private usageFromLayout(pLayout: TextureMemoryLayout<WebGpuDevice>): WebGpuTextureUsage {
+    private usageFromLayout(pLayout: WebGpuTextureMemoryLayout): number {
         // Parse base to web gpu usage.
-        let lUsage: WebGpuTextureUsage = 0;
+        let lUsage: number = 0;
         if ((pLayout.memoryType & MemoryType.CopyDestination) !== 0) {
-            lUsage |= WebGpuTextureUsage.CopyDestination;
+            lUsage |= GPUTextureUsage.COPY_DST;
         }
         if ((pLayout.memoryType & MemoryType.CopySource) !== 0) {
-            lUsage |= WebGpuTextureUsage.CopySource;
+            lUsage |= GPUTextureUsage.COPY_SRC;
         }
         if ((pLayout.usage & TextureUsage.RenderAttachment) !== 0) {
-            lUsage |= WebGpuTextureUsage.RenderAttachment;
+            lUsage |= GPUTextureUsage.RENDER_ATTACHMENT;
         }
         if ((pLayout.usage & TextureUsage.StorageBinding) !== 0) {
-            lUsage |= WebGpuTextureUsage.StorageBinding;
+            lUsage |=GPUTextureUsage.STORAGE_BINDING;
         }
         if ((pLayout.usage & TextureUsage.TextureBinding) !== 0) {
-            lUsage |= WebGpuTextureUsage.TextureBinding;
+            lUsage |= GPUTextureUsage.TEXTURE_BINDING;
         }
 
         return lUsage;

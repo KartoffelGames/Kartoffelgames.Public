@@ -2,9 +2,9 @@ import { GpuTypes } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 
 export abstract class VideoTexture<TGpuTypes extends GpuTypes, TNative> extends GpuObject<TGpuTypes, TNative> {
-    private readonly mLoop: boolean;
+    private mLoop: boolean;
     private readonly mMemoryLayout: TGpuTypes['textureMemoryLayout'];
-    private readonly mSource: string;
+    private mSource: string;
 
     /**
      * Texture height.
@@ -21,6 +21,10 @@ export abstract class VideoTexture<TGpuTypes extends GpuTypes, TNative> extends 
      */
     public get loop(): boolean {
         return this.mLoop;
+    } set loop(pValue: boolean) {
+        this.mLoop = pValue;
+
+        this.triggerAutoUpdate();
     }
 
     /**
@@ -35,6 +39,10 @@ export abstract class VideoTexture<TGpuTypes extends GpuTypes, TNative> extends 
      */
     public get source(): string {
         return this.mSource;
+    } set source(pValue: string) {
+        this.mSource = pValue;
+
+        this.triggerAutoUpdate();
     }
 
     /**
@@ -43,30 +51,14 @@ export abstract class VideoTexture<TGpuTypes extends GpuTypes, TNative> extends 
      * @param pLayout - Texture memory layout.
      * @param pDepth - Texture depth.
      */
-    public constructor(pDevice: TGpuTypes['gpuDevice'], pLayout: TGpuTypes['textureMemoryLayout'], pSource: string, pLoop: boolean = false) {
+    public constructor(pDevice: TGpuTypes['gpuDevice'], pLayout: TGpuTypes['textureMemoryLayout']) {
         super(pDevice);
 
         // Fixed values.
         this.mMemoryLayout = pLayout;
-        this.mSource = pSource;
-        this.mLoop = pLoop;
+        this.mLoop = false;
+        this.mSource = '';
     }
-
-    /**
-     * Create texture from a video source.
-     * @param pSource - Video source.
-     * @param pLoop - Loop video.
-     */
-    public async create(pSource: string, pLoop: boolean): Promise<TGpuTypes['videoTexture']> {
-        return this.createVideoTexture(pSource, pLoop);
-    }
-
-    /**
-     * Create texture from a video source.
-     * @param pSource - Video source.
-     * @param pLoop - Loop video.
-     */
-    public abstract createVideoTexture(pSource: string, pLoop: boolean): Promise<TGpuTypes['videoTexture']>;
 
     /**
      * Pause video.

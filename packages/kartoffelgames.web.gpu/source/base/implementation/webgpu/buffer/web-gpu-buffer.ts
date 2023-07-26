@@ -4,7 +4,7 @@ import { BindType } from '../../../constant/bind-type.enum';
 import { MemoryType } from '../../../constant/memory-type.enum';
 import { WebGpuDevice, WebGpuTypes } from '../web-gpu-device';
 
-export class WebGpuBuffer<T extends TypedArray> extends Buffer<WebGpuTypes, T, GPUBuffer>  {
+export class WebGpuBuffer<T extends TypedArray> extends Buffer<T, WebGpuTypes, GPUBuffer>  {
     private readonly mDataType: BufferDataType<T>;
 
     private readonly mReadyBufferList: Array<GPUBuffer>;

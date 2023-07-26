@@ -1,7 +1,7 @@
 import { GpuTypes } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 
-export abstract class VideoTexture<TGpuTypes extends GpuTypes, TNative> extends GpuObject<TGpuTypes, TNative> {
+export abstract class VideoTexture<TGpuTypes extends GpuTypes = GpuTypes, TNative = any> extends GpuObject<TGpuTypes, TNative> {
     private mLoop: boolean;
     private readonly mMemoryLayout: TGpuTypes['textureMemoryLayout'];
     private mSource: string;

@@ -4,7 +4,7 @@ import { TextureUsage } from '../../constant/texture-usage.enum';
 import { GpuTypes } from '../gpu/gpu-device';
 import { MemoryLayout, MemoryLayoutParameter } from './memory-layout';
 
-export abstract class TextureMemoryLayout<TGpuTypes extends GpuTypes> extends MemoryLayout<TGpuTypes> {
+export abstract class TextureMemoryLayout<TGpuTypes extends GpuTypes = GpuTypes> extends MemoryLayout<TGpuTypes> {
     private readonly mDimension: TextureDimension;
     private readonly mFormat: TextureFormat;
     private readonly mUsage: TextureUsage;

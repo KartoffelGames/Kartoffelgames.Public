@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core.data';
 import { GpuTypes } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 
-export abstract class ImageTexture<TGpuTypes extends GpuTypes, TNative> extends GpuObject<TGpuTypes, TNative> {
+export abstract class ImageTexture<TGpuTypes extends GpuTypes = GpuTypes, TNative = any> extends GpuObject<TGpuTypes, TNative> {
     private mDepth: number;
     private mHeight: number;
     private mImageList: Array<ImageBitmap>;

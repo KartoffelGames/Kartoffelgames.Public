@@ -135,7 +135,7 @@ export interface WebGpuTypes extends GpuTypes {
     linearBufferMemoryLayout: WebGpuLinearBufferMemoryLayout;
     structBufferMemoryLayout: WebGpuStructBufferMemoryLayout;
 
-    // Texture
+    // Texture.
     textureSampler: WebGpuTextureSampler;
     imageTexture: WebGpuImageTexture;
     frameBufferTexture: WebGpuFrameBufferTexture | WebGpuCanvasTexture;

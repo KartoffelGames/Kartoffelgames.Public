@@ -2,7 +2,7 @@ import { SamplerType } from '../../constant/sampler-type.enum';
 import { GpuTypes } from '../gpu/gpu-device';
 import { MemoryLayout, MemoryLayoutParameter } from './memory-layout';
 
-export abstract class SamplerMemoryLayout<TGpuTypes extends GpuTypes> extends MemoryLayout<TGpuTypes> {
+export abstract class SamplerMemoryLayout<TGpuTypes extends GpuTypes = GpuTypes> extends MemoryLayout<TGpuTypes> {
     private readonly mSamplerType: SamplerType;
 
     /**

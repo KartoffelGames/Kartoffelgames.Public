@@ -1,7 +1,7 @@
 import { GpuTypes } from '../../gpu/gpu-device';
 import { BufferMemoryLayout, BufferMemoryLayoutParameter } from './buffer-memory-layout';
 
-export abstract class LinearBufferMemoryLayout<TGpuTypes extends GpuTypes> extends BufferMemoryLayout<TGpuTypes> {
+export abstract class LinearBufferMemoryLayout<TGpuTypes extends GpuTypes = GpuTypes> extends BufferMemoryLayout<TGpuTypes> {
     private readonly mAlignment: number;
     private readonly mSize: number;
 

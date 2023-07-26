@@ -10,7 +10,7 @@ import { ImageTexture } from '../texture/image-texture';
 import { TextureSampler } from '../texture/texture-sampler';
 import { VideoTexture } from '../texture/video-texture';
 
-export abstract class GpuDevice<TGpuTypes extends GpuTypes> {
+export abstract class GpuDevice<TGpuTypes extends GpuTypes = GpuTypes> {
     /**
      * Create array buffer memory layout.
      * @param pParameter - Memory layout parameter.
@@ -44,25 +44,25 @@ export abstract class GpuDevice<TGpuTypes extends GpuTypes> {
 
 export interface GpuTypes {
     // Core.
-    gpuDevice: GpuDevice<this>;
+    gpuDevice: GpuDevice;
     memoryLayout: this['bufferMemoryLayout'] | this['textureMemoryLayout'] | this['samplerMemoryLayout'];
 
     // Texture Layouts. 
-    textureMemoryLayout: TextureMemoryLayout<this>;
-    samplerMemoryLayout: SamplerMemoryLayout<this>;
+    textureMemoryLayout: TextureMemoryLayout;
+    samplerMemoryLayout: SamplerMemoryLayout;
 
     // Buffer Layouts.
     bufferMemoryLayout: this['arrayBufferMemoryLayout'] | this['linearBufferMemoryLayout'] | this['structBufferMemoryLayout'];
-    arrayBufferMemoryLayout: ArrayBufferMemoryLayout<this>;
-    linearBufferMemoryLayout: LinearBufferMemoryLayout<this>;
-    structBufferMemoryLayout: StructBufferMemoryLayout<this>;
+    arrayBufferMemoryLayout: ArrayBufferMemoryLayout;
+    linearBufferMemoryLayout: LinearBufferMemoryLayout;
+    structBufferMemoryLayout: StructBufferMemoryLayout;
 
     // Textures.
-    textureSampler: TextureSampler<this, any>;
-    imageTexture: ImageTexture<this, any>;
-    frameBufferTexture: FrameBufferTexture<this, any>;
-    videoTexture: VideoTexture<this, any>;
+    textureSampler: TextureSampler;
+    imageTexture: ImageTexture;
+    frameBufferTexture: FrameBufferTexture;
+    videoTexture: VideoTexture;
 
     // Things with generics. :(
-    buffer: Buffer<this, TypedArray, any>;
+    buffer: Buffer<TypedArray>;
 }

@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core.data';
 import { GpuTypes } from '../../gpu/gpu-device';
 import { BufferLayoutLocation, BufferMemoryLayout, BufferMemoryLayoutParameter } from './buffer-memory-layout';
 
-export abstract class StructBufferMemoryLayout<TGpuTypes extends GpuTypes> extends BufferMemoryLayout<TGpuTypes> {
+export abstract class StructBufferMemoryLayout<TGpuTypes extends GpuTypes = GpuTypes> extends BufferMemoryLayout<TGpuTypes> {
     private mInnerProperties: Array<[number, TGpuTypes['bufferMemoryLayout']]>;
     private readonly mStructName: string;
 

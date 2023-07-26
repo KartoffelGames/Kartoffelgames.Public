@@ -4,7 +4,7 @@ import { WrappingMode } from '../../constant/wrapping-mode.enum';
 import { GpuTypes } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 
-export abstract class TextureSampler<TGpuTypes extends GpuTypes, TNative> extends GpuObject<TGpuTypes, TNative> {
+export abstract class TextureSampler<TGpuTypes extends GpuTypes = GpuTypes, TNative = any> extends GpuObject<TGpuTypes, TNative> {
     private mCompare: CompareFunction | null;
     private mLodMaxClamp: number;
     private mLodMinClamp: number;

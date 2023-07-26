@@ -9,6 +9,9 @@ import { FrameBufferTexture } from '../texture/frame-buffer-texture';
 import { ImageTexture } from '../texture/image-texture';
 import { TextureSampler } from '../texture/texture-sampler';
 import { VideoTexture } from '../texture/video-texture';
+import { BindGroupLayout } from '../binding/bind-group-layout';
+import { PipelineLayout } from '../binding/pipeline-layout';
+import { BindGroup } from '../binding/bind-group';
 
 export abstract class GpuDevice<TGpuTypes extends GpuTypes = GpuTypes> {
     /**
@@ -65,4 +68,12 @@ export interface GpuTypes {
 
     // Things with generics. :(
     buffer: Buffer<TypedArray>;
+
+    // Bind data.
+    bindData: this['buffer'] | this['textureSampler'] | this['imageTexture'] | this['frameBufferTexture'] | this['videoTexture'];
+
+    // Pipeline layouting.
+    bindGroupLayout: BindGroupLayout;
+    pipelineLayout: PipelineLayout;
+    bindGroup: BindGroup;
 }

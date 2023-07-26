@@ -58,6 +58,8 @@ export abstract class VideoTexture<TGpuTypes extends GpuTypes = GpuTypes, TNativ
         this.mMemoryLayout = pLayout;
         this.mLoop = false;
         this.mSource = '';
+
+        // TODO: Register change listener for layout dependency.
     }
 
     /**

@@ -60,6 +60,8 @@ export abstract class ImageTexture<TGpuTypes extends GpuTypes = GpuTypes, TNativ
         this.mHeight = 1;
         this.mWidth = 1;
         this.mImageList = new Array<ImageBitmap>();
+
+        // TODO: Register change listener for layout dependency.
     }
 
     /**

@@ -75,5 +75,7 @@ export abstract class FrameBufferTexture<TGpuTypes extends GpuTypes = GpuTypes, 
         this.mHeight = 1;
         this.mWidth = 1;
         this.mMultiSampleLevel = 1;
+
+        // TODO: Register change listener for layout dependency.
     }
 }

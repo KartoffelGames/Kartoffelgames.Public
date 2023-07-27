@@ -1,4 +1,7 @@
 import { TextureMemoryLayout, TextureMemoryLayoutParameter } from '../../../base/memory_layout/texture-memory-layout';
+import { MemoryCopyType } from '../../../constant/memory-copy-type.enum';
+import { TextureFormat } from '../../../constant/texture-format.enum';
+import { TextureUsage } from '../../../constant/texture-usage.enum';
 import { WebGpuCanvasTexture } from '../texture/texture/web-gpu-canvas-texture';
 import { WebGpuFrameBufferTexture } from '../texture/texture/web-gpu-frame-buffer-texture';
 import { WebGpuImageTexture } from '../texture/texture/web-gpu-image-texture';
@@ -13,6 +16,87 @@ export class WebGpuTextureMemoryLayout extends TextureMemoryLayout<WebGpuTypes> 
      */
     public constructor(pDevice: WebGpuDevice, pParameter: TextureMemoryLayoutParameter) {
         super(pDevice, pParameter);
+    }
+
+    /**
+     * Format from layout.
+     */
+    public formatFromLayout(): GPUTextureFormat {
+        // Convert base to web gpu texture format.
+        let lFormat: GPUTextureFormat;
+        switch (this.format) {
+            case TextureFormat.BlueRedGreenAlpha: {
+                lFormat = 'bgra8unorm';
+                break;
+            }
+            case TextureFormat.Depth: {
+                lFormat = 'depth24plus';
+                break;
+            }
+            case TextureFormat.DepthStencil: {
+                lFormat = 'depth24plus-stencil8';
+                break;
+            }
+            case TextureFormat.Red: {
+                lFormat = 'r8unorm';
+                break;
+            }
+            case TextureFormat.RedGreen: {
+                lFormat = 'rg8unorm';
+                break;
+            }
+            case TextureFormat.RedGreenBlueAlpha: {
+                lFormat = 'rgba8unorm';
+                break;
+            }
+            case TextureFormat.RedGreenBlueAlphaInteger: {
+                lFormat = 'rgba8uint';
+                break;
+            }
+            case TextureFormat.RedGreenInteger: {
+                lFormat = 'rg8uint';
+                break;
+            }
+            case TextureFormat.RedInteger: {
+                lFormat = 'r8uint';
+                break;
+            }
+            case TextureFormat.Stencil: {
+                lFormat = 'stencil8';
+                break;
+            }
+        }
+
+        return lFormat;
+    }
+
+    public sampleTypeFromLayout(): GPUTextureSampleType {
+        // TODO: Read values from formats...
+    }
+
+    /**
+     * Usage from layout.
+     */
+    public usageFromLayout(): number {
+        // Parse base to web gpu usage.
+        let lUsage: number = 0;
+        if ((this.memoryType & MemoryCopyType.CopyDestination) !== 0) {
+            lUsage |= GPUTextureUsage.COPY_DST;
+        }
+        if ((this.memoryType & MemoryCopyType.CopySource) !== 0) {
+            lUsage |= GPUTextureUsage.COPY_SRC;
+        }
+        if ((this.usage & TextureUsage.RenderAttachment) !== 0) {
+            lUsage |= GPUTextureUsage.RENDER_ATTACHMENT;
+        }
+        if ((this.usage & TextureUsage.StorageBinding) !== 0) {
+            lUsage |= GPUTextureUsage.STORAGE_BINDING;
+        }
+        if ((this.usage & TextureUsage.TextureBinding) !== 0) {
+            lUsage |= GPUTextureUsage.TEXTURE_BINDING;
+        }
+
+        return lUsage;
     }
 
     /**

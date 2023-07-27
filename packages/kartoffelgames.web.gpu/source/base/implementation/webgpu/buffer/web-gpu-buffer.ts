@@ -58,7 +58,7 @@ export class WebGpuBuffer<T extends TypedArray> extends Buffer<T, WebGpuTypes, G
         // Create new buffer when no mapped buffer is available. 
         let lStagingBuffer: GPUBuffer;
         if (this.mReadyBufferList.length === 0) {
-            lStagingBuffer = this.device.device.createBuffer({
+            lStagingBuffer = this.device.gpuDeviceReference.createBuffer({
                 label: `RingBuffer-WaveBuffer-${this.mWavingBufferList.length}`,
                 size: this.size,
                 usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
@@ -79,9 +79,9 @@ export class WebGpuBuffer<T extends TypedArray> extends Buffer<T, WebGpuTypes, G
         lStagingBuffer.unmap();
 
         // Copy buffer data from staging into wavig buffer.
-        const lCommandDecoder: GPUCommandEncoder = this.device.device.createCommandEncoder();
+        const lCommandDecoder: GPUCommandEncoder = this.device.gpuDeviceReference.createCommandEncoder();
         lCommandDecoder.copyBufferToBuffer(lStagingBuffer, 0, this.native, 0, this.size);
-        this.device.device.queue.submit([lCommandDecoder.finish()]);
+        this.device.gpuDeviceReference.queue.submit([lCommandDecoder.finish()]);
 
         // Shedule staging buffer remaping.
         lStagingBuffer.mapAsync(GPUMapMode.WRITE).then(() => {
@@ -145,7 +145,7 @@ export class WebGpuBuffer<T extends TypedArray> extends Buffer<T, WebGpuTypes, G
         }
 
         // Create gpu buffer mapped
-        const lBuffer: GPUBuffer = this.device.device.createBuffer({
+        const lBuffer: GPUBuffer = this.device.gpuDeviceReference.createBuffer({
             label: 'Ring-Buffer-Static-Buffer',
             size: this.size,
             usage: lUsage,

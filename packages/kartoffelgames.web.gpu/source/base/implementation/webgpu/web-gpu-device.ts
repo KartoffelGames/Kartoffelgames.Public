@@ -16,6 +16,9 @@ import { WebGpuFrameBufferTexture } from './texture/texture/web-gpu-frame-buffer
 import { WebGpuImageTexture } from './texture/texture/web-gpu-image-texture';
 import { WebGpuVideoTexture } from './texture/texture/web-gpu-video-texture';
 import { WebGpuTextureSampler } from './texture/web-gpu-texture-sampler';
+import { WebGpuBindGroupLayout } from './bind_group/web-gpu-bind-group-layout';
+import { WebGpuPipelineLayout } from './bind_group/web-gpu-pipeline-layout';
+import { WebGpuBindGroup } from './bind_group/web-gpu-bind-group';
 
 export class WebGpuDevice extends GpuDevice<WebGpuTypes> {
     private static readonly mAdapters: Dictionary<string, GPUAdapter> = new Dictionary<string, GPUAdapter>();
@@ -143,4 +146,9 @@ export interface WebGpuTypes extends GpuTypes {
 
     // Things with generics. :(
     buffer: WebGpuBuffer<TypedArray>;
+
+    // Pipeline layouting.
+    bindGroupLayout: WebGpuBindGroupLayout;
+    pipelineLayout: WebGpuPipelineLayout;
+    bindGroup: WebGpuBindGroup;
 }

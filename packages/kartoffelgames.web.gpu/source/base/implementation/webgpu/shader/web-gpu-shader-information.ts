@@ -1,9 +1,9 @@
 import { Dictionary, EnumUtil, Exception } from '@kartoffelgames/core.data';
 import { MemoryLayout } from '../../../base/memory_layout/memory-layout';
 import { AccessMode } from '../../../constant/access-mode.enum';
-import { BindType } from '../../../constant/bind-type.enum';
+import { BufferBindType } from '../../../constant/buffer-bind-type.enum';
 import { ComputeStage } from '../../../constant/compute-stage.enum';
-import { MemoryType } from '../../../constant/memory-type.enum';
+import { MemoryCopyType } from '../../../constant/memory-copy-type.enum';
 import { SamplerType } from '../../../constant/sampler-type.enum';
 import { TextureDimension } from '../../../constant/texture-dimension.enum';
 import { WebGpuArrayBufferMemoryLayout } from '../memory_layout/buffer/web-gpu-array-buffer-memory-layout';
@@ -239,10 +239,10 @@ export class WebGpuShaderInformation extends ShaderInformation<WebGpuTypes> {
 
         return new WebGpuSamplerMemoryLayout({
             access: AccessMode.Read,
-            bindType: BindType.Uniform,
+            bindType: BufferBindType.Uniform,
             location: pLocation,
             name: pVariable.name,
-            memoryType: MemoryType.CopyDestination | MemoryType.CopySource,
+            memoryType: MemoryCopyType.CopyDestination | MemoryCopyType.CopySource,
             visibility: lVisibility,
             samplerType: lSamplerType
         });

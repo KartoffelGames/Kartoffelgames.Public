@@ -121,6 +121,6 @@ export class WebGpuTextureSampler extends TextureSampler<WebGpuTypes, GPUSampler
             lSamplerOptions.compare = lNativeCompareFunction;
         }
 
-        return this.device.device.createSampler(lSamplerOptions);
+        return this.device.gpuDeviceReference.createSampler(lSamplerOptions);
     }
 }

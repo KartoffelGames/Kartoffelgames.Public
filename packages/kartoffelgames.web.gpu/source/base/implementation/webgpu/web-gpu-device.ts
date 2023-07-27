@@ -58,7 +58,7 @@ export class WebGpuDevice extends GpuDevice<WebGpuTypes> {
     /**
      * GPU device.
      */
-    public get device(): GPUDevice {
+    public get gpuDeviceReference(): GPUDevice {
         return this.mGpuDevice;
     }
 

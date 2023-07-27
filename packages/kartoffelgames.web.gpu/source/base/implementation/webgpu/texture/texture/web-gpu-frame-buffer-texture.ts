@@ -2,7 +2,9 @@ import { FrameBufferTexture } from '../../../../base/texture/frame-buffer-textur
 import { WebGpuTextureMemoryLayout } from '../../memory_layout/web-gpu-texture-memory-layout';
 import { WebGpuDevice, WebGpuTypes } from '../../web-gpu-device';
 
-export class WebGpuFrameBufferTexture extends FrameBufferTexture<WebGpuTypes, GPUTexture> {
+export class WebGpuFrameBufferTexture extends FrameBufferTexture<WebGpuTypes, GPUTextureView> {
+    private mInternalTexture: GPUTexture | null;
+
     /**
      * Constructor.
      * @param pDevice - Device.
@@ -11,22 +13,24 @@ export class WebGpuFrameBufferTexture extends FrameBufferTexture<WebGpuTypes, GP
      */
     public constructor(pDevice: WebGpuDevice, pLayout: WebGpuTextureMemoryLayout, pDepth: number = 1) {
         super(pDevice, pLayout, pDepth);
+
+        this.mInternalTexture = null;
     }
 
     /**
      * Destory web gpu native gpu object.
-     * @param pNativeObject - Native object. 
+     * @param _pNativeObject - Native object. 
      */
-    protected override destroyNative(pNativeObject: GPUTexture): void {
-        pNativeObject.destroy();
+    protected override destroyNative(_pNativeObject: GPUTextureView): void {
+        this.mInternalTexture?.destroy();
     }
 
     /**
      * Generate native texture.
      */
-    protected override generate(): GPUTexture {
-        // Create texture with set size, format and usage.
-        const lTexture: GPUTexture = this.device.gpuDeviceReference.createTexture({
+    protected override generate(): GPUTextureView {
+        // Create texture with set size, format and usage. Save it for destorying later.
+        this.mInternalTexture = this.device.gpuDeviceReference.createTexture({
             label: 'Frame-Buffer-Texture',
             size: [this.width, this.height, this.depth],
             format: this.memoryLayout.formatFromLayout(),
@@ -35,6 +39,7 @@ export class WebGpuFrameBufferTexture extends FrameBufferTexture<WebGpuTypes, GP
             sampleCount: this.multiSampleLevel
         });
 
-        return lTexture;
+        // TODO: View descriptor.
+        return this.mInternalTexture.createView();
     }
 }

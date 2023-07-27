@@ -6,6 +6,13 @@ export abstract class BindGroupLayout<TGpuTypes extends GpuTypes = GpuTypes, TNa
     private readonly mBindings: Dictionary<string, BindLayout<TGpuTypes>>;
 
     /**
+     * Get binding names.
+     */
+    public get bindingNames(): Array<string> {
+        return [...this.mBindings.keys()];
+    }
+
+    /**
      * Get bindings of group.
      */
     protected get bindings(): Array<BindLayout<TGpuTypes>> {

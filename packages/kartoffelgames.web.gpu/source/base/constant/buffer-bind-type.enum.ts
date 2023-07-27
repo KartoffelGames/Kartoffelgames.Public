@@ -1,4 +1,4 @@
-export enum BindType {
+export enum BufferBindType {
     Attribute = 'Attribute',
     Index = 'Index',
     Vertex = 'Vertex',

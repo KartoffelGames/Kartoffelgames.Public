@@ -1,7 +1,7 @@
 import { TypedArray } from '@kartoffelgames/core.data';
 import { Buffer } from '../../../base/buffer/buffer';
-import { BindType } from '../../../constant/bind-type.enum';
-import { MemoryType } from '../../../constant/memory-type.enum';
+import { BufferBindType } from '../../../constant/buffer-bind-type.enum';
+import { MemoryCopyType } from '../../../constant/memory-copy-type.enum';
 import { WebGpuDevice, WebGpuTypes } from '../web-gpu-device';
 
 export class WebGpuBuffer<T extends TypedArray> extends Buffer<T, WebGpuTypes, GPUBuffer>  {
@@ -114,33 +114,33 @@ export class WebGpuBuffer<T extends TypedArray> extends Buffer<T, WebGpuTypes, G
 
         // Append usage type from abstract bind type.
         switch (this.memoryLayout.bindType) {
-            case BindType.Attribute: {
+            case BufferBindType.Attribute: {
                 // Just an layout indicator. Does nothing to usage type.
                 break;
             }
-            case BindType.Index: {
+            case BufferBindType.Index: {
                 lUsage |= GPUBufferUsage.INDEX;
                 break;
             }
-            case BindType.Storage: {
+            case BufferBindType.Storage: {
                 lUsage |= GPUBufferUsage.STORAGE;
                 break;
             }
-            case BindType.Uniform: {
+            case BufferBindType.Uniform: {
                 lUsage |= GPUBufferUsage.UNIFORM;
                 break;
             }
-            case BindType.Vertex: {
+            case BufferBindType.Vertex: {
                 lUsage |= GPUBufferUsage.VERTEX;
                 break;
             }
         }
 
         // Append usage type from abstract usage type.
-        if ((this.memoryLayout.memoryType & MemoryType.CopyDestination) !== 0) {
+        if ((this.memoryLayout.memoryType & MemoryCopyType.CopyDestination) !== 0) {
             lUsage |= GPUBufferUsage.COPY_DST;
         }
-        if ((this.memoryLayout.memoryType & MemoryType.CopySource) !== 0) {
+        if ((this.memoryLayout.memoryType & MemoryCopyType.CopySource) !== 0) {
             lUsage |= GPUBufferUsage.COPY_SRC;
         }
 

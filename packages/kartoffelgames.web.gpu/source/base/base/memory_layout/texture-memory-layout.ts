@@ -1,3 +1,4 @@
+import { TextureBindType } from '../../constant/texture-bind-type.enum';
 import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../constant/texture-format.enum';
 import { TextureUsage } from '../../constant/texture-usage.enum';
@@ -5,9 +6,17 @@ import { GpuTypes } from '../gpu/gpu-device';
 import { MemoryLayout, MemoryLayoutParameter } from './memory-layout';
 
 export abstract class TextureMemoryLayout<TGpuTypes extends GpuTypes = GpuTypes> extends MemoryLayout<TGpuTypes> {
+    private readonly mBindType: TextureBindType;
     private readonly mDimension: TextureDimension;
     private readonly mFormat: TextureFormat;
     private readonly mUsage: TextureUsage;
+
+    /**
+     * Texture dimension.
+     */
+    public get bindType(): TextureBindType {
+        return this.mBindType;
+    }
 
     /**
      * Texture dimension.
@@ -37,6 +46,7 @@ export abstract class TextureMemoryLayout<TGpuTypes extends GpuTypes = GpuTypes>
     public constructor(pGpu: TGpuTypes['gpuDevice'], pParameter: TextureMemoryLayoutParameter) {
         super(pGpu, pParameter);
 
+        this.mBindType = pParameter.bindType;
         this.mDimension = pParameter.dimension;
         this.mFormat = pParameter.format;
         this.mUsage = pParameter.usage;
@@ -111,4 +121,5 @@ export interface TextureMemoryLayoutParameter extends MemoryLayoutParameter {
     dimension: TextureDimension;
     format: TextureFormat;
     usage: TextureUsage;
+    bindType: TextureBindType;
 }

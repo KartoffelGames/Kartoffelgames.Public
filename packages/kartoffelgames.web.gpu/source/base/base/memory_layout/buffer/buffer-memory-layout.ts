@@ -1,8 +1,10 @@
 import { Exception, TypedArray } from '@kartoffelgames/core.data';
 import { GpuTypes } from '../../gpu/gpu-device';
 import { MemoryLayout, MemoryLayoutParameter } from '../memory-layout';
+import { BufferBindType } from '../../../constant/buffer-bind-type.enum';
 
 export abstract class BufferMemoryLayout<TGpuType extends GpuTypes> extends MemoryLayout<TGpuType> {
+    private readonly mBindType: BufferBindType;
     private readonly mParent: TGpuType['bufferMemoryLayout'] | null;
 
     /**
@@ -14,6 +16,13 @@ export abstract class BufferMemoryLayout<TGpuType extends GpuTypes> extends Memo
      * Buffer size in bytes.
      */
     public abstract readonly size: number;
+
+    /**
+     * Buffer bind type.
+     */
+    public get bindType(): BufferBindType {
+        return this.mBindType;
+    }
 
     /**
      * Parent type. Stuct or Array.
@@ -30,6 +39,7 @@ export abstract class BufferMemoryLayout<TGpuType extends GpuTypes> extends Memo
         super(pGpu, pParameter);
 
         // Static properties.
+        this.mBindType = pParameter.bindType;
         this.mParent = pParameter.parent;
     }
 
@@ -62,6 +72,7 @@ export abstract class BufferMemoryLayout<TGpuType extends GpuTypes> extends Memo
 }
 
 export interface BufferMemoryLayoutParameter<TGpuType extends GpuTypes> extends MemoryLayoutParameter {
+    bindType: BufferBindType;
     parent: TGpuType['bufferMemoryLayout'];
 }
 

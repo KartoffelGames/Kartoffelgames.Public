@@ -1,5 +1,5 @@
 import { FrameBufferTexture } from '../../../../base/texture/frame-buffer-texture';
-import { MemoryType } from '../../../../constant/memory-type.enum';
+import { MemoryCopyType } from '../../../../constant/memory-copy-type.enum';
 import { TextureFormat } from '../../../../constant/texture-format.enum';
 import { TextureUsage } from '../../../../constant/texture-usage.enum';
 import { WebGpuTextureMemoryLayout } from '../../memory_layout/web-gpu-texture-memory-layout';
@@ -111,10 +111,10 @@ export class WebGpuFrameBufferTexture extends FrameBufferTexture<WebGpuTypes, GP
     private usageFromLayout(pLayout: WebGpuTextureMemoryLayout): number {
         // Parse base to web gpu usage.
         let lUsage: number = 0;
-        if ((pLayout.memoryType & MemoryType.CopyDestination) !== 0) {
+        if ((pLayout.memoryType & MemoryCopyType.CopyDestination) !== 0) {
             lUsage |= GPUTextureUsage.COPY_DST;
         }
-        if ((pLayout.memoryType & MemoryType.CopySource) !== 0) {
+        if ((pLayout.memoryType & MemoryCopyType.CopySource) !== 0) {
             lUsage |= GPUTextureUsage.COPY_SRC;
         }
         if ((pLayout.usage & TextureUsage.RenderAttachment) !== 0) {

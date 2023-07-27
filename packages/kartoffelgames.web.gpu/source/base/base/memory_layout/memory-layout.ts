@@ -1,15 +1,13 @@
 import { AccessMode } from '../../constant/access-mode.enum';
-import { BindType } from '../../constant/bind-type.enum';
 import { ComputeStage } from '../../constant/compute-stage.enum';
-import { MemoryType } from '../../constant/memory-type.enum';
+import { MemoryCopyType } from '../../constant/memory-copy-type.enum';
 import { GpuDependent } from '../gpu/gpu-dependent';
 import { GpuTypes } from '../gpu/gpu-device';
 
 export abstract class MemoryLayout<TGpuTypes extends GpuTypes> extends GpuDependent<TGpuTypes> {
     private readonly mAccessMode: AccessMode;
-    private readonly mBindType: BindType;
     private readonly mLocation: number | null;
-    private readonly mMemoryType: MemoryType;
+    private readonly mMemoryType: MemoryCopyType;
     private readonly mName: string;
     private readonly mVisibility: ComputeStage;
 
@@ -18,13 +16,6 @@ export abstract class MemoryLayout<TGpuTypes extends GpuTypes> extends GpuDepend
      */
     public get accessMode(): AccessMode {
         return this.mAccessMode;
-    }
-
-    /**
-     * Buffer bind type.
-     */
-    public get bindType(): BindType {
-        return this.mBindType;
     }
 
     /**
@@ -37,7 +28,7 @@ export abstract class MemoryLayout<TGpuTypes extends GpuTypes> extends GpuDepend
     /**
      * Memory type.
      */
-    public get memoryType(): MemoryType {
+    public get memoryType(): MemoryCopyType {
         return this.mMemoryType;
     }
 
@@ -63,7 +54,6 @@ export abstract class MemoryLayout<TGpuTypes extends GpuTypes> extends GpuDepend
         super(pGpu);
 
         this.mAccessMode = pParameter.access;
-        this.mBindType = pParameter.bindType;
         this.mLocation = pParameter.location;
         this.mName = pParameter.name;
         this.mVisibility = pParameter.visibility;
@@ -73,9 +63,8 @@ export abstract class MemoryLayout<TGpuTypes extends GpuTypes> extends GpuDepend
 
 export interface MemoryLayoutParameter {
     access: AccessMode;
-    bindType: BindType;
     location: number | null;
     name: string;
-    memoryType: MemoryType;
+    memoryType: MemoryCopyType;
     visibility: ComputeStage;
 }

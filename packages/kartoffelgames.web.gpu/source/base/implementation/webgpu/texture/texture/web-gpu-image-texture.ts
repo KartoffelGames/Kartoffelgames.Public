@@ -24,15 +24,7 @@ export class WebGpuImageTexture extends ImageTexture<WebGpuTypes, GPUTexture> {
      * Generate native gpu object.
      */
     protected override generate(): GPUTexture {
-        // "Calculate" texture dimension from texture size. 
-        let lDimension: GPUTextureDimension;
-        if (this.width === 1 || this.height === 1) {
-            lDimension = '1d';
-        } else if (this.depth > 1) {
-            lDimension = '3d';
-        } else {
-            lDimension = '2d';
-        }
+
 
         // Create texture with set size, format and usage.
         const lTexture: GPUTexture = this.device.gpuDeviceReference.createTexture({
@@ -40,7 +32,7 @@ export class WebGpuImageTexture extends ImageTexture<WebGpuTypes, GPUTexture> {
             size: [this.width, this.height, this.depth],
             format: this.memoryLayout.formatFromLayout(),
             usage: this.memoryLayout.usageFromLayout(),
-            dimension: lDimension
+            dimension: this.memoryLayout.dimensionFromLayout()
         });
 
         // Load images into texture.

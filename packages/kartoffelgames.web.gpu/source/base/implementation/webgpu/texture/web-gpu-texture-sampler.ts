@@ -93,7 +93,7 @@ export class WebGpuTextureSampler extends TextureSampler<WebGpuTypes, GPUSampler
         }
 
         // Convert filter to native filter.
-        const lToNativeFilterMode = (pFilerMode: FilterMode) => {
+        const lToNativeFilterMode = (pFilerMode: FilterMode): GPUFilterMode => {
             switch (pFilerMode) {
                 case FilterMode.Linear: {
                     return 'linear';

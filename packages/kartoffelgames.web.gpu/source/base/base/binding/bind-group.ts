@@ -5,7 +5,6 @@ import { GpuObject } from '../gpu/gpu-object';
 export abstract class BindGroup<TGpuTypes extends GpuTypes = GpuTypes, TNative = any> extends GpuObject<TGpuTypes, TNative> {
     private readonly mBindData: Dictionary<string, TGpuTypes['bindData']>;
     private readonly mLayout: TGpuTypes['bindGroupLayout'];
-    private readonly mNativeData: WeakMap<object, string>;
 
     /**
      * Layout of bind group.
@@ -23,7 +22,6 @@ export abstract class BindGroup<TGpuTypes extends GpuTypes = GpuTypes, TNative =
 
         this.mLayout = pBindGroupLayout;
         this.mBindData = new Dictionary<string, TGpuTypes['bindData']>();
-        this.mNativeData = new WeakMap<object, string>();
 
         // TODO: Register change listener for dependency.
     }

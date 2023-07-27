@@ -1,14 +1,13 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { BindGroupLayout } from '../../../base/binding/bind-group-layout';
 import { BufferMemoryLayout } from '../../../base/memory_layout/buffer/buffer-memory-layout';
+import { SamplerMemoryLayout } from '../../../base/memory_layout/sampler-memory-layout';
+import { TextureMemoryLayout } from '../../../base/memory_layout/texture-memory-layout';
 import { AccessMode } from '../../../constant/access-mode.enum';
 import { BufferBindType } from '../../../constant/buffer-bind-type.enum';
-import { WebGpuTypes } from '../web-gpu-device';
-import { SamplerMemoryLayout } from '../../../base/memory_layout/sampler-memory-layout';
 import { SamplerType } from '../../../constant/sampler-type.enum';
-import { TextureMemoryLayout } from '../../../base/memory_layout/texture-memory-layout';
-import { TextureUsage } from '../../../constant/texture-usage.enum';
 import { TextureBindType } from '../../../constant/texture-bind-type.enum';
+import { WebGpuTypes } from '../web-gpu-device';
 
 export class WebGpuBindGroupLayout extends BindGroupLayout<WebGpuTypes, GPUBindGroupLayout> {
     /**
@@ -114,8 +113,8 @@ export class WebGpuBindGroupLayout extends BindGroupLayout<WebGpuTypes, GPUBindG
 
                         const lTextureLayout: Required<GPUTextureBindingLayout> = {
                             sampleType: lEntry.layout.sampleTypeFromLayout(),
-                            multisampled: lEntry.layout.multisampleLevel,
-                            viewDimension: lEntry.layout.viewDimension
+                            multisampled: lEntry.layout.multisampleLevel > 1,
+                            viewDimension: lEntry.layout.dimension
                         };
                         lLayoutEntry.texture = lTextureLayout;
                         break;
@@ -128,7 +127,7 @@ export class WebGpuBindGroupLayout extends BindGroupLayout<WebGpuTypes, GPUBindG
                         const lStorageTextureLayout: Required<GPUStorageTextureBindingLayout> = {
                             access: 'write-only',
                             format: lEntry.layout.formatFromLayout(),
-                            viewDimension: lEntry.layout.viewDimension;
+                            viewDimension: lEntry.layout.dimension
                         };
                         lLayoutEntry.storageTexture = lStorageTextureLayout;
                         break;

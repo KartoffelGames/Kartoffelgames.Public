@@ -1,4 +1,4 @@
-import { Dictionary } from '@kartoffelgames/core.data';
+import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { GpuTypes } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 
@@ -30,12 +30,24 @@ export abstract class BindGroup<TGpuTypes extends GpuTypes = GpuTypes, TNative =
      * Set data to layout binding.
      * @param pBindName - Bind layout entry name.
      * @param pData - Bind data.
-     * @param pForcedType - Forced type. Can be used to differ for Texture and StorageTexture.
      */
     public setData(pBindName: string, pData: TGpuTypes['bindData']): void {
         // TODO: Validate data type with value type.
 
         // Set bind type to Teture for TS type check shutup.
         this.mBindData.set(pBindName, pData);
+    }
+
+    /**
+     * Get data of layout binding.
+     * @param pBindName - Bind layout entry name.
+     */
+    public getData(pBindName: string): TGpuTypes['bindData'] {
+        const lData = this.mBindData.get(pBindName);
+        if (!lData) {
+            throw new Exception(`Cant get bind data "${pBindName}". No data set.`, this);
+        }
+
+        return lData;
     }
 }

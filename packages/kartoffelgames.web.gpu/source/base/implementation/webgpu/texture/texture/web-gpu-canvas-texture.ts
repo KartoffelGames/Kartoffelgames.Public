@@ -3,9 +3,10 @@ import { FrameBufferTexture } from '../../../../base/texture/frame-buffer-textur
 import { WebGpuTextureMemoryLayout } from '../../memory_layout/web-gpu-texture-memory-layout';
 import { WebGpuDevice, WebGpuTypes } from '../../web-gpu-device';
 
-export class WebGpuCanvasTexture extends FrameBufferTexture<WebGpuTypes, GPUTexture> {
+export class WebGpuCanvasTexture extends FrameBufferTexture<WebGpuTypes, GPUTextureView> {
     private readonly mCanvas: HTMLCanvasElement;
     private readonly mContext: GPUCanvasContext;
+    private mInternalTexture: GPUTexture | null;
 
     /**
      * Constructor.
@@ -23,6 +24,7 @@ export class WebGpuCanvasTexture extends FrameBufferTexture<WebGpuTypes, GPUText
         }
 
         this.mCanvas = pCanvas;
+        this.mInternalTexture = null;
 
         // Get and configure context.
         this.mContext = <GPUCanvasContext><any>pCanvas.getContext('webgpu')!;
@@ -36,22 +38,26 @@ export class WebGpuCanvasTexture extends FrameBufferTexture<WebGpuTypes, GPUText
 
     /**
      * Destory texture object.
-     * @param pNativeObject - Native canvas texture.
+     * @param _pNativeObject - Native canvas texture.
      */
-    protected override destroyNative(pNativeObject: GPUTexture): void {
-        pNativeObject.destroy();
+    protected override destroyNative(_pNativeObject: GPUTextureView): void {
+        this.mInternalTexture?.destroy();
     }
 
     /**
      * Generate native web gpu canvas texture.
      */
-    protected override generate(): GPUTexture {
+    protected override generate(): GPUTextureView {
         // Update size.
         if (this.mCanvas.width !== this.width || this.mCanvas.height !== this.height) {
             this.mCanvas.width = this.width;
             this.mCanvas.height = this.height;
         }
 
-        return this.mContext.getCurrentTexture();
+        // Create texture and save it for destorying later.
+        this.mInternalTexture = this.mContext.getCurrentTexture();
+
+        // TODO: View descriptor.
+        return this.mInternalTexture.createView();
     }
 }

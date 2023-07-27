@@ -2,7 +2,9 @@ import { ImageTexture } from '../../../../base/texture/image-texture';
 import { WebGpuTextureMemoryLayout } from '../../memory_layout/web-gpu-texture-memory-layout';
 import { WebGpuDevice, WebGpuTypes } from '../../web-gpu-device';
 
-export class WebGpuImageTexture extends ImageTexture<WebGpuTypes, GPUTexture> {
+export class WebGpuImageTexture extends ImageTexture<WebGpuTypes, GPUTextureView> {
+    private mInternalTexture: GPUTexture | null;
+
     /**
      * Constructor.
      * @param pDevice - Device.
@@ -10,24 +12,24 @@ export class WebGpuImageTexture extends ImageTexture<WebGpuTypes, GPUTexture> {
      */
     public constructor(pDevice: WebGpuDevice, pLayout: WebGpuTextureMemoryLayout) {
         super(pDevice, pLayout);
+
+        this.mInternalTexture = null;
     }
 
     /**
-     * Destroy native image texture.
-     * @param pNativeObject - Native image texture.
+     * Destory texture object.
+     * @param _pNativeObject - Native canvas texture.
      */
-    protected override destroyNative(pNativeObject: GPUTexture): void {
-        pNativeObject.destroy();
+    protected override destroyNative(_pNativeObject: GPUTextureView): void {
+        this.mInternalTexture?.destroy();
     }
 
     /**
      * Generate native gpu object.
      */
-    protected override generate(): GPUTexture {
-
-
-        // Create texture with set size, format and usage.
-        const lTexture: GPUTexture = this.device.gpuDeviceReference.createTexture({
+    protected override generate(): GPUTextureView {
+        // Create texture with set size, format and usage. Save it for destorying later.
+        this.mInternalTexture = this.device.gpuDeviceReference.createTexture({
             label: 'Frame-Buffer-Texture',
             size: [this.width, this.height, this.depth],
             format: this.memoryLayout.formatFromLayout(),
@@ -42,11 +44,12 @@ export class WebGpuImageTexture extends ImageTexture<WebGpuTypes, GPUTexture> {
             // Copy image into depth layer.
             this.device.gpuDeviceReference.queue.copyExternalImageToTexture(
                 { source: lBitmap },
-                { texture: this.native, origin: [0, 0, lImageIndex] },
+                { texture: this.mInternalTexture, origin: [0, 0, lImageIndex] },
                 [lBitmap.width, lBitmap.height]
             );
         }
 
-        return lTexture;
+        // TODO: View descriptor.
+        return this.mInternalTexture.createView();
     }
 }

@@ -1,5 +1,6 @@
 import { TextureMemoryLayout, TextureMemoryLayoutParameter } from '../../../base/memory_layout/texture-memory-layout';
 import { MemoryCopyType } from '../../../constant/memory-copy-type.enum';
+import { TextureDimension } from '../../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../../constant/texture-format.enum';
 import { TextureUsage } from '../../../constant/texture-usage.enum';
 import { WebGpuCanvasTexture } from '../texture/texture/web-gpu-canvas-texture';
@@ -19,59 +20,89 @@ export class WebGpuTextureMemoryLayout extends TextureMemoryLayout<WebGpuTypes> 
     }
 
     /**
+     * GPU Dimension from layout texture dimension.
+     */
+    public dimensionFromLayout(): GPUTextureDimension {
+        // "Calculate" texture dimension from texture size.
+        switch (this.dimension) {
+            case TextureDimension.OneDimension: {
+                return '1d';
+            }
+
+            case TextureDimension.TwoDimension: {
+                return '2d';
+            }
+
+            case TextureDimension.Cube:
+            case TextureDimension.CubeArray:
+            case TextureDimension.ThreeDimension:
+            case TextureDimension.TwoDimensionArray: {
+                return '3d';
+            }
+        }
+    }
+
+    /**
      * Format from layout.
      */
     public formatFromLayout(): GPUTextureFormat {
         // Convert base to web gpu texture format.
-        let lFormat: GPUTextureFormat;
         switch (this.format) {
             case TextureFormat.BlueRedGreenAlpha: {
-                lFormat = 'bgra8unorm';
-                break;
+                return 'bgra8unorm';
             }
             case TextureFormat.Depth: {
-                lFormat = 'depth24plus';
-                break;
+                return 'depth24plus';
             }
             case TextureFormat.DepthStencil: {
-                lFormat = 'depth24plus-stencil8';
-                break;
+                return 'depth24plus-stencil8';
             }
             case TextureFormat.Red: {
-                lFormat = 'r8unorm';
-                break;
+                return 'r8unorm';
             }
             case TextureFormat.RedGreen: {
-                lFormat = 'rg8unorm';
-                break;
+                return 'rg8unorm';
             }
             case TextureFormat.RedGreenBlueAlpha: {
-                lFormat = 'rgba8unorm';
-                break;
+                return 'rgba8unorm';
             }
             case TextureFormat.RedGreenBlueAlphaInteger: {
-                lFormat = 'rgba8uint';
-                break;
+                return 'rgba8uint';
             }
             case TextureFormat.RedGreenInteger: {
-                lFormat = 'rg8uint';
-                break;
+                return 'rg8uint';
             }
             case TextureFormat.RedInteger: {
-                lFormat = 'r8uint';
-                break;
+                return 'r8uint';
             }
             case TextureFormat.Stencil: {
-                lFormat = 'stencil8';
-                break;
+                return 'stencil8';
             }
         }
-
-        return lFormat;
     }
 
     public sampleTypeFromLayout(): GPUTextureSampleType {
-        // TODO: Read values from formats...
+        // Convert texture format to sampler values.
+        switch (this.format) {
+            case TextureFormat.Depth:
+            case TextureFormat.DepthStencil: {
+                return 'depth';
+            }
+
+            case TextureFormat.Stencil:
+            case TextureFormat.BlueRedGreenAlpha:
+            case TextureFormat.Red:
+            case TextureFormat.RedGreen:
+            case TextureFormat.RedGreenBlueAlpha: {
+                return 'float';
+            }
+
+            case TextureFormat.RedGreenBlueAlphaInteger:
+            case TextureFormat.RedGreenInteger:
+            case TextureFormat.RedInteger: {
+                return 'uint';
+            }
+        }
     }
 
     /**

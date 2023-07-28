@@ -99,19 +99,19 @@ export abstract class StructBufferMemoryLayout<TGpuTypes extends GpuTypes = GpuT
     }
 
     /**
-     * Get types of properties with set location.
+     * Get types of properties with a set memory index.
      */
-    public locations(): Array<TGpuTypes['bufferMemoryLayout']> {
+    public memoryIndices(): Array<TGpuTypes['bufferMemoryLayout']> {
         const lLocationTypes: Array<TGpuTypes['bufferMemoryLayout']> = new Array<TGpuTypes['bufferMemoryLayout']>();
         for (const [, lPropertyType] of this.mInnerProperties.values()) {
             // Set property as location when set.
-            if (lPropertyType.location !== null) {
+            if (lPropertyType.parameterIndex !== null || lPropertyType.bindingIndex !== null) {
                 lLocationTypes.push(lPropertyType);
             }
 
             // Get all inner locations when property is a struct type.
             if (lPropertyType instanceof StructBufferMemoryLayout) {
-                lLocationTypes.push(...lPropertyType.locations());
+                lLocationTypes.push(...lPropertyType.memoryIndices());
             }
         }
 

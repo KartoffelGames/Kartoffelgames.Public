@@ -6,9 +6,10 @@ import { GpuTypes } from '../gpu/gpu-device';
 
 export abstract class MemoryLayout<TGpuTypes extends GpuTypes> extends GpuDependent<TGpuTypes> {
     private readonly mAccessMode: AccessMode;
-    private readonly mLocation: number | null;
+    private readonly mBindingIndex: number | null;
     private readonly mMemoryType: MemoryCopyType;
     private readonly mName: string;
+    private readonly mParameterIndex: number | null;
     private readonly mVisibility: ComputeStage;
 
     /**
@@ -19,10 +20,10 @@ export abstract class MemoryLayout<TGpuTypes extends GpuTypes> extends GpuDepend
     }
 
     /**
-     * Get buffer location index as parameter.
+     * Get binding index.
      */
-    public get location(): number | null {
-        return this.mLocation;
+    public get bindingIndex(): number | null {
+        return this.mBindingIndex;
     }
 
     /**
@@ -40,6 +41,13 @@ export abstract class MemoryLayout<TGpuTypes extends GpuTypes> extends GpuDepend
     }
 
     /**
+     * Get parameter index.
+     */
+    public get parameterIndex(): number | null {
+        return this.mParameterIndex;
+    }
+
+    /**
      * Memory visibility on compute state.
      */
     public get visibility(): ComputeStage {
@@ -54,16 +62,22 @@ export abstract class MemoryLayout<TGpuTypes extends GpuTypes> extends GpuDepend
         super(pGpu);
 
         this.mAccessMode = pParameter.access;
-        this.mLocation = pParameter.location;
         this.mName = pParameter.name;
         this.mVisibility = pParameter.visibility;
         this.mMemoryType = pParameter.memoryType;
+
+        // Set optional memory indices.
+        this.mBindingIndex = pParameter.memoryIndex?.binding ?? null;
+        this.mParameterIndex = pParameter.memoryIndex?.binding ?? null;
     }
 }
 
 export interface MemoryLayoutParameter {
     access: AccessMode;
-    location: number | null;
+    memoryIndex: null | {
+        binding: number | null;
+        parameter: number | null;
+    };
     name: string;
     memoryType: MemoryCopyType;
     visibility: ComputeStage;

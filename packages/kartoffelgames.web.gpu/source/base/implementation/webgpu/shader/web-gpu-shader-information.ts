@@ -13,13 +13,11 @@ import { WgslAccessMode } from './wgsl_enum/wgsl-access-mode.enum';
 import { WgslBindingType } from './wgsl_enum/wgsl-binding-type.enum';
 import { WgslShaderStage } from './wgsl_enum/wgsl-shader-stage.enum';
 import { WgslType } from './wgsl_enum/wgsl-type.enum';
-import { ShaderFunction, ShaderInformation } from '../../../base/shader/shader-information';
+import { ShaderFunction, ShaderFunctionDefintion, ShaderInformation, ShaderStructDefinition, ShaderType, ShaderTypeDefinition, ShaderValue, ShaderValueDefinition } from '../../../base/shader/shader-information';
 import { WebGpuStructBufferMemoryLayout } from '../memory_layout/buffer/web-gpu-struct-buffer-memory-layout';
 
 
 export class WebGpuShaderInformation extends ShaderInformation<WebGpuTypes> {
-    private readonly mSource: string;
-
     /**
      * Constructor.
      * @param pDevice - Gpu device reference.
@@ -27,9 +25,341 @@ export class WebGpuShaderInformation extends ShaderInformation<WebGpuTypes> {
      */
     public constructor(pDevice: WebGpuDevice, pSource: string) {
         super(pDevice, pSource);
-
-        this.mSource = pSource;
     }
+
+    /**
+     * Setup shader types.
+     * @param pAddType - Add type callback.
+     */
+    protected override setupShaderTypes(pAddType: (pType: ShaderTypeDefinition) => void): void {
+        // Scalar types.
+        pAddType({ name: WgslType.Boolean, variants: [{ size: 1, align: 1 }] });
+
+        pAddType({ name: WgslType.Integer32, variants: [{ size: 4, align: 4 }] });
+        pAddType({ name: WgslType.UnsignedInteger32, variants: [{ size: 4, align: 4 }] });
+        pAddType({ name: WgslType.Float32, variants: [{ size: 4, align: 4 }] });
+        pAddType({ name: WgslType.Float16, variants: [{ size: 2, align: 2 }] });
+
+        // Vector types.
+        pAddType({
+            name: WgslType.Vector2, variants: [
+                { size: 8, align: 8, generic: [WgslType.Integer32] },
+                { size: 8, align: 8, generic: [WgslType.UnsignedInteger32] },
+                { size: 8, align: 8, generic: [WgslType.Float32] },
+                { size: 4, align: 4, generic: [WgslType.Float16] }
+            ]
+        });
+        pAddType({
+            name: WgslType.Vector3, variants: [
+                { size: 12, align: 16, generic: [WgslType.Integer32] },
+                { size: 12, align: 16, generic: [WgslType.UnsignedInteger32] },
+                { size: 12, align: 16, generic: [WgslType.Float32] },
+                { size: 6, align: 8, generic: [WgslType.Float16] }
+            ]
+        });
+        pAddType({
+            name: WgslType.Vector4, variants: [
+                { size: 16, align: 16, generic: [WgslType.Integer32] },
+                { size: 16, align: 16, generic: [WgslType.UnsignedInteger32] },
+                { size: 16, align: 16, generic: [WgslType.Float32] },
+                { size: 8, align: 8, generic: [WgslType.Float16] }
+            ]
+        });
+
+        // Matrix types. // TODO: Type alias.
+        pAddType({
+            name: WgslType.Matrix22, variants: [
+                { size: 16, align: 8, generic: [WgslType.Integer32] },
+                { size: 16, align: 8, generic: [WgslType.UnsignedInteger32] },
+                { size: 16, align: 8, generic: [WgslType.Float32] },
+                { size: 8, align: 4, generic: [WgslType.Float16] }
+            ]
+        });
+        pAddType({
+            name: WgslType.Matrix23, variants: [
+                { size: 32, align: 16, generic: [WgslType.Integer32] },
+                { size: 32, align: 16, generic: [WgslType.UnsignedInteger32] },
+                { size: 32, align: 16, generic: [WgslType.Float32] },
+                { size: 16, align: 8, generic: [WgslType.Float16] }
+            ]
+        });
+        pAddType({
+            name: WgslType.Matrix24, variants: [
+                { size: 32, align: 16, generic: [WgslType.Integer32] },
+                { size: 32, align: 16, generic: [WgslType.UnsignedInteger32] },
+                { size: 32, align: 16, generic: [WgslType.Float32] },
+                { size: 16, align: 8, generic: [WgslType.Float16] }
+            ]
+        });
+        pAddType({
+            name: WgslType.Matrix32, variants: [
+                { size: 24, align: 8, generic: [WgslType.Integer32] },
+                { size: 24, align: 8, generic: [WgslType.UnsignedInteger32] },
+                { size: 24, align: 8, generic: [WgslType.Float32] },
+                { size: 12, align: 4, generic: [WgslType.Float16] }
+            ]
+        });
+        pAddType({
+            name: WgslType.Matrix33, variants: [
+                { size: 48, align: 16, generic: [WgslType.Integer32] },
+                { size: 48, align: 16, generic: [WgslType.UnsignedInteger32] },
+                { size: 48, align: 16, generic: [WgslType.Float32] },
+                { size: 24, align: 8, generic: [WgslType.Float16] }
+            ]
+        });
+        pAddType({
+            name: WgslType.Matrix34, variants: [
+                { size: 48, align: 16, generic: [WgslType.Integer32] },
+                { size: 48, align: 16, generic: [WgslType.UnsignedInteger32] },
+                { size: 48, align: 16, generic: [WgslType.Float32] },
+                { size: 24, align: 8, generic: [WgslType.Float16] }
+            ]
+        });
+        pAddType({
+            name: WgslType.Matrix42, variants: [
+                { size: 32, align: 8, generic: [WgslType.Integer32] },
+                { size: 32, align: 8, generic: [WgslType.UnsignedInteger32] },
+                { size: 32, align: 8, generic: [WgslType.Float32] },
+                { size: 16, align: 4, generic: [WgslType.Float16] }
+            ]
+        });
+        pAddType({
+            name: WgslType.Matrix43, variants: [
+                { size: 64, align: 16, generic: [WgslType.Integer32] },
+                { size: 64, align: 16, generic: [WgslType.UnsignedInteger32] },
+                { size: 64, align: 16, generic: [WgslType.Float32] },
+                { size: 32, align: 8, generic: [WgslType.Float16] }
+            ]
+        });
+        pAddType({
+            name: WgslType.Matrix44, variants: [
+                { size: 64, align: 16, generic: [WgslType.Integer32] },
+                { size: 64, align: 16, generic: [WgslType.UnsignedInteger32] },
+                { size: 64, align: 16, generic: [WgslType.Float32] },
+                { size: 32, align: 8, generic: [WgslType.Float16] }
+            ]
+        });
+
+        // Bundled types.
+        pAddType({
+            name: WgslType.Array, variants: [
+                { size: -1, align: -1, generic: [WgslType.Any] },
+                { size: -1, align: -1, generic: [WgslType.Any, WgslType.UnsignedInteger32] }
+            ]
+        });
+
+        // Specials
+        pAddType({
+            name: WgslType.Atomic, variants: [
+                { size: 4, align: 4, generic: [WgslType.Integer32] },
+                { size: 4, align: 4, generic: [WgslType.UnsignedInteger32] }
+            ]
+        });
+
+        /* TODO:
+            //Special.
+            Pointer = 'ptr',
+            Reference = 'ref',
+
+            // Textures.
+            Texture1d = 'texture_1d',
+            Texture2d = 'texture_2d',
+            Texture2dArray = 'texture_2d_array',
+            Texture3d = 'texture_3d',
+            TextureCube = 'texture_cube',
+            TextureCubeArray = 'texture_cube_array',
+            TextureMultisampled2d = 'texture_multisampled_2d',
+            TextureExternal = 'texture_external',
+
+            // Depth texture.
+            TextureDepth2d = 'texture_depth_2d',
+            TextureDepth2dArray = 'texture_depth_2d_array',
+            TextureDepthCube = 'texture_depth_cube',
+            TextureDepthCubeArray = 'texture_depth_cube_array',
+            TextureDepthMultisampled2d = 'texture_depth_multisampled_2d',
+
+            // Storage textures.
+            TextureStorage1d = 'texture_storage_1d',
+            TextureStorage2d = 'texture_storage_2d',
+            TextureStorage2dArray = 'texture_storage_2d_array',
+            TextureStorage3d = 'texture_storage_3d',
+
+            // Sampler.
+            Sampler = 'sampler',
+            SamplerComparison = 'sampler_comparison'
+        */
+    }
+
+    /**
+     * Fetch all struct definitions of shader.
+     * @param pSourceCode - Shader source code.
+     */
+    protected override fetchStructDefinitions(pSourceCode: string): Array<ShaderStructDefinition<WebGpuTypes>> {
+        const lStuctRegex: RegExp = /^\s*struct\s+(?<name>\w+)\s*{(?<typeinfo>[^}]*)}$/smg;
+
+        // Fetch all found structs.
+        const lStructDefinitionList: Array<ShaderStructDefinition<WebGpuTypes>> = new Array<ShaderStructDefinition<WebGpuTypes>>();
+        for (const lStructMatch of pSourceCode.matchAll(lStuctRegex)) {
+            const lStructName: string = lStructMatch.groups!['name'];
+            const lStructBody: string = lStructMatch.groups!['typeinfo'];
+
+            lStructDefinitionList.push({
+                name: lStructName,
+                properies: this.fetchVariableDefinitions(lStructBody)
+            });
+        }
+
+        return lStructDefinitionList;
+    }
+
+    protected override fetchFunctionDefinitions(pSourceCode: string): Array<ShaderFunctionDefintion<WebGpuTypes>> {
+        const lFunctionRegex: RegExp = /(?<attributes>(?:@[\w]+(?:\([^)]*\))?\s+)+)?(?:\s)*?fn\s+(?<name>\w*)\s*\((?<parameter>(?:.|\r?\n)*?)\)(?:\s*->\s*(?<result>[^{]+))?\s*{/gm;
+
+        const lFunctionList: Array<ShaderFunctionDefintion<WebGpuTypes>> = new Array<ShaderFunctionDefintion<WebGpuTypes>>();
+        for (const lFunctionMatch of pSourceCode.matchAll(lFunctionRegex)) {
+            const lFunctionName: string = lFunctionMatch.groups!['name'];
+            const lFunctionResult: string = lFunctionMatch.groups!['result'];
+            const lFunctionAttributes: string | null = lFunctionMatch.groups!['attributes'];
+            const lFunctionParameter: string = lFunctionMatch.groups!['parameter'];
+
+            // Fetch attributes.
+            const lAttachments: Record<string, string> = {};
+            if (lFunctionAttributes) {
+                // Split string of multiple attributes.
+                for (const lAttributeMatch of lFunctionAttributes.matchAll(/@(?<name>[\w])+\((?<value>[^)]*)\)/g)) {
+                    const lAttributeName: string = lAttributeMatch.groups!['name'];
+                    const lAttributeValue: string = lAttributeMatch.groups!['value'];
+
+                    // Add each attribute as value attachment.
+                    lAttachments[lAttributeName] = lAttributeValue;
+                }
+            }
+
+            // TODO: Read function body. Match opening and closing brackets. Count layers and find exit bracket. Cut string on opening and exit braket.
+
+            // Fetch Parameter.
+            const lParameterVariableList: Array<ShaderValueDefinition<WebGpuTypes>> = this.fetchVariableDefinitions(lFunctionParameter);
+
+            // Fetch result type.
+            const lReturnTypes: ShaderValueDefinition<WebGpuTypes> = this.fetchVariableDefinitions(lFunctionResult).at(0)!;
+
+            lFunctionList.push({
+                name: lFunctionName,
+                returnType: lReturnTypes,
+                parameter: lParameterVariableList,
+                attachments: lAttachments,
+            });
+        }
+
+        return lFunctionList;
+    }
+
+    protected override fetchValueDefinitions(pSourceCode: string): ShaderValueDefinition<WebGpuTypes>[] {
+        throw new Error('Method not implemented.');
+    }
+    protected override functionFromDefinition(pDefinition: ShaderFunctionDefintion<WebGpuTypes>): ShaderFunction<WebGpuTypes> {
+        throw new Error('Method not implemented.');
+    }
+    protected override valueFromDefinition(pValueDefinition: ShaderValueDefinition<WebGpuTypes>): ShaderValue<WebGpuTypes> {
+        throw new Error('Method not implemented.');
+    }
+
+    /**
+     * Find all variable definitions and fetch data.
+     * @param pSourceSnipped - Source snipped with variables.
+     */
+    private fetchVariableDefinitions(pSourceSnipped: string): Array<ShaderValueDefinition<WebGpuTypes>> {
+        const lDefinitionRegex: RegExp = /(?<attributes>(?:@[\w]+(?:\([^)]*\))?\s+)+)?(?:var(?:<(?<access>[\w\s,]+)?>)?\s+)?(?:(?<variable>\w+)\s*:\s*)?(?<type>(?<typename>\w+)(?:<(?<generics>[<>\w\s,]+)>)?)/gm;
+
+        const lVariableList: Array<ShaderValueDefinition<WebGpuTypes>> = new Array<ShaderValueDefinition<WebGpuTypes>>();
+        for (const lDefinitionMatch of pSourceSnipped.matchAll(lDefinitionRegex)) {
+            const lVariableTypeName: string = lDefinitionMatch.groups!['typename'];
+            const lVariableName: string = lDefinitionMatch.groups!['variable'] ?? '';
+            const lVariableAttributes: string | null = lDefinitionMatch.groups!['attributes'];
+            const lVariableAccess: string | null = lDefinitionMatch.groups!['access'];
+            const lVariableGenerics: string | null = lDefinitionMatch.groups!['generics'];
+
+            const lAttachments: Record<string, string> = {};
+
+            // Fetch attributes.
+            if (lVariableAttributes) {
+                // Split string of multiple attributes.
+                for (const lAttributeMatch of lVariableAttributes.matchAll(/@(?<name>[\w])+\((?<value>[^)]*)\)/g)) {
+                    const lAttributeName: string = lAttributeMatch.groups!['name'];
+                    const lAttributeValue: string = lAttributeMatch.groups!['value'];
+
+                    // Add each attribute as value attachment.
+                    lAttachments[lAttributeName] = lAttributeValue;
+                }
+            }
+
+            // Parse optional acccess modifier.
+            if (lVariableAccess) {
+                // var<addressSpace [,accessMode]>
+                const lAccessList: Array<string> = lVariableAccess.split(',').map((pValue: string) => pValue.trim()).filter((pValue: string) => pValue.length);
+
+                // Add bind type attachment.
+                lAttachments['bindingType'] = lAccessList[0];
+
+                // Add optional accessMode attachment.
+                if (lAccessList[1]) {
+                    lAttachments['accessMode'] = lAccessList[1];
+                }
+            }
+
+            // Split generic types.
+            const lGenericList: Array<string> = new Array<string>();
+            if (lVariableGenerics) {
+                for (const lGenericMatch of lVariableGenerics.matchAll(/(?<generictype>(?:\w+(?:<.+>)?))[,\s]*/g)) {
+                    lGenericList.push(lGenericMatch.groups!['generictype']);
+                }
+            }
+
+            lVariableList.push({
+                name: lVariableName,
+                type: this.typeFor(lVariableTypeName, lGenericList),
+                typeGenerics: lGenericList,
+                attachments: lAttachments,
+            });
+        }
+
+        return lVariableList;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     /**
      * Fetch bindings.
@@ -215,8 +545,6 @@ export class WebGpuShaderInformation extends ShaderInformation<WebGpuTypes> {
         return lBufferType;
     }
 
-    private createBufferMemoryLayout(pVariable: WgslVariable, pLocation: number | null): BufferMemoryLayout { }
-
     /**
      * Create sampler memory layout.
      * @param pVariable - Variable definition.
@@ -247,124 +575,6 @@ export class WebGpuShaderInformation extends ShaderInformation<WebGpuTypes> {
             samplerType: lSamplerType
         });
     }
-    private createTextureMemoryLayout(pVariable: WgslVariable, pLocation: number | null): TextureMemoryLayout {
-
-    }
-
-    /**
-     * Fetch all function declarations of source snipped.
-     * @param pSourceSnipped - Source snipped with function declarations.
-     */
-    private fetchFunctions(pSourceSnipped: string): Array<WgslFunction> {
-        const lFunctionRegex: RegExp = /(?<attributes>(?:@[\w]+(?:\([^)]*\))?\s+)+)?(?:\s)*?fn\s+(?<name>\w*)\s*\((?<parameter>(?:.|\r?\n)*?)\)(?:\s*->\s*(?<result>[^{]+))?\s*{/gm;
-
-        const lFunctionList: Array<WgslFunction> = new Array<WgslFunction>();
-        for (const lFunctionMatch of pSourceSnipped.matchAll(lFunctionRegex)) {
-            // Fetch attributes.
-            const lAttributeList: Array<string> = new Array<string>();
-            if (lFunctionMatch.groups!['attributes']) {
-                // Split string of multiple attributes.
-                for (const lAttributeMatch of lFunctionMatch.groups!['attributes'].matchAll(/@[\w]+(\([^)]*\))?/g)) {
-                    lAttributeList.push(lAttributeMatch[0]);
-                }
-            }
-
-            // Fetch Parameter.
-            const lParameterVariableList: Array<WgslVariable> = this.fetchVariableDefinitions(lFunctionMatch.groups!['parameter']!);
-            const lParameterList: Array<MemoryLayout> = lParameterVariableList.map((pVariable) => { return this.createMemoryLayout(pVariable); });
-
-            // Fetch result type.
-            let lResult: MemoryLayout | null = null;
-            if (lFunctionMatch.groups!['result']) {
-                const lResultVariable: WgslVariable = this.fetchVariableDefinitions(lFunctionMatch.groups!['result']!).at(0)!;
-                lResult = this.createMemoryLayout(lResultVariable);
-            }
-
-            lFunctionList.push({
-                name: lFunctionMatch.groups!['name'],
-                return: lResult,
-                parameter: lParameterList,
-                attributes: lAttributeList
-            });
-        }
-
-        return lFunctionList;
-    }
-
-    /**
-     * Find all variable definitions and fetch data.
-     * @param pSourceSnipped - Source snipped with variables.
-     */
-    private fetchVariableDefinitions(pSourceSnipped: string): Array<WgslVariable> {
-        const lDefinitionRegex: RegExp = /(?<attributes>(?:@[\w]+(?:\([^)]*\))?\s+)+)?(?:var(?:<(?<access>[\w\s,]+)?>)?\s+)?(?:(?<variable>\w+)\s*:\s*)?(?<type>(?<typename>\w+)(?:<(?<generics>[<>\w\s,]+)>)?)/gm;
-
-        const lVariableList: Array<WgslVariable> = new Array<WgslVariable>();
-        for (const lDefinitionMatch of pSourceSnipped.matchAll(lDefinitionRegex)) {
-            // Fetch attributes.
-            const lAttributes: Array<string> = new Array<string>();
-            if (lDefinitionMatch.groups!['attributes']) {
-                // Split string of multiple attributes.
-                for (const lAttributeMatch of lDefinitionMatch.groups!['attributes'].matchAll(/@[\w]+\([^)]*\)/g)) {
-                    lAttributes.push(lAttributeMatch[0]);
-                }
-            }
-
-            // Parse optional acccess modifier.
-            let lAccess: { bindingType: string; accessMode: string | null; } | null = null;
-            if (lDefinitionMatch.groups!['access']) {
-                // var<addressSpace [,accessMode]>
-                const lAccessList: Array<string> = lDefinitionMatch.groups!['access'].split(',').map((pValue: string) => pValue.trim()).filter((pValue: string) => pValue.length);
-                lAccess = {
-                    bindingType: lAccessList[0],
-                    accessMode: lAccessList[1] ?? null
-                };
-            }
-
-            // Split generic types.
-            const lGenericList: Array<string> = new Array<string>();
-            if (lDefinitionMatch.groups!['generics']) {
-                for (const lGenericMatch of lDefinitionMatch.groups!['generics'].matchAll(/(?<generictype>(?:\w+(?:<.+>)?))[,\s]*/g)) {
-                    lGenericList.push(lGenericMatch.groups!['generictype']);
-                }
-            }
-
-            lVariableList.push({
-                name: lDefinitionMatch.groups!['variable'] ?? '',
-                type: lDefinitionMatch.groups!['typename'],
-                generics: lGenericList,
-                attributes: lAttributes,
-                access: lAccess
-            });
-        }
-
-        return lVariableList;
-    }
-
-    /**
-     * Get struct information of struct name.
-     * @param pSource - Source.
-     * @param pStructName - Struct name.
-     */
-    private getStructBody(pStructName: string): string {
-        const lStuctRegex: RegExp = /^\s*struct\s+(?<name>\w+)\s*{(?<typeinfo>[^}]*)}$/smg;
-
-        let lStructBody: string | null = null;
-
-        // Find struct name and body.
-        for (const lStructMatch of this.mSource.matchAll(lStuctRegex)) {
-            if (lStructMatch.groups!['name'] === pStructName) {
-                lStructBody = lStructMatch.groups!['typeinfo'];
-                break;
-            }
-        }
-
-        // Validate found struct body.
-        if (!lStructBody) {
-            throw new Exception(`Struct "${pStructName}" not found.`, this);
-        }
-
-        return lStructBody;
-    }
 
     /**
      * Get wgsl type by name without generics.
@@ -386,162 +596,6 @@ export class WebGpuShaderInformation extends ShaderInformation<WebGpuTypes> {
 
         return lType;
     }
-
-    private saveForLaterFunction(): void {
-        // Static properties.
-        this.mGenericRawList = pParameter.generics ?? [];
-
-        // Filter enum of generic list.
-        this.mGenericList = this.mGenericRawList.map(pGeneric => {
-            if (!EnumUtil.enumKeyByValue(WgslType, pGeneric)) {
-                return WgslType.Enum;
-            }
-
-            return <WgslType>pGeneric;
-        });
-
-        // Get type restrictions.
-        const lRestrictionList: Array<WgslTypeSetting> | undefined = SimpleBufferMemoryLayout.mTypeRestrictions[pParameter.type];
-        if (!lRestrictionList) {
-            throw new Exception(`Type ${pParameter.type} not supported as buffer memory layout.`, this);
-        }
-
-        // Find corresponding restrictions. // TODO: Check for enum or struct or any types.
-        const lRestriction: WgslTypeSetting | undefined = lRestrictionList.find((pRestriction) => {
-            // Restriction has no generics.
-            if (!pRestriction.generic && this.mGenericRawList.length > 0) {
-                return false;
-            }
-
-            // No Generic restriction.
-            if (!pRestriction.generic && this.mGenericRawList.length === 0) {
-                return true;
-            }
-
-            // Validate each restriction.
-            for (let lGenericIndex: number = 0; lGenericIndex < pRestriction.generic!.length; lGenericIndex++) {
-                const lRestriction: WgslType = pRestriction.generic![lGenericIndex];
-                if (lRestriction === WgslType.Any) {
-                    continue;
-                }
-
-                const lRawGeneric: string = this.mGenericRawList[lGenericIndex];
-                if (lRestriction === WgslType.Enum && lRawGeneric) {
-                    continue;
-                }
-
-                if (lRestriction !== lRawGeneric) {
-                    return false;
-                }
-            }
-            return true;
-        });
-        if (!lRestriction) {
-            throw new Exception(`No type (${pParameter.type}) restriction for generics [${pParameter.generics}] found.`, this);
-        }
-    }
-
-    private static readonly mTypeRestrictions: Record<WgslType, Array<WgslTypeSetting>> = (() => {
-        const lTypes: Record<WgslType, Array<WgslTypeSetting>> = <any>{};
-
-        // Scalar types.
-        lTypes[WgslType.Boolean] = [{ size: 1, align: 1 }];
-        lTypes[WgslType.Integer32] = [{ size: 4, align: 4 }];
-        lTypes[WgslType.UnsignedInteger32] = [{ size: 4, align: 4 }];
-        lTypes[WgslType.Float32] = [{ size: 4, align: 4 }];
-        lTypes[WgslType.Float16] = [{ size: 2, align: 2 }];
-
-        // Vector types.
-        lTypes[WgslType.Vector2] = [
-            { size: 8, align: 8, generic: [WgslType.Integer32] },
-            { size: 8, align: 8, generic: [WgslType.UnsignedInteger32] },
-            { size: 8, align: 8, generic: [WgslType.Float32] },
-            { size: 4, align: 4, generic: [WgslType.Float16] }
-        ];
-        lTypes[WgslType.Vector3] = [
-            { size: 12, align: 16, generic: [WgslType.Integer32] },
-            { size: 12, align: 16, generic: [WgslType.UnsignedInteger32] },
-            { size: 12, align: 16, generic: [WgslType.Float32] },
-            { size: 6, align: 8, generic: [WgslType.Float16] }
-        ];
-        lTypes[WgslType.Vector4] = [
-            { size: 16, align: 16, generic: [WgslType.Integer32] },
-            { size: 16, align: 16, generic: [WgslType.UnsignedInteger32] },
-            { size: 16, align: 16, generic: [WgslType.Float32] },
-            { size: 8, align: 8, generic: [WgslType.Float16] }
-        ];
-
-        // Matrix types.
-        lTypes[WgslType.Matrix22] = [
-            { size: 16, align: 8, generic: [WgslType.Integer32] },
-            { size: 16, align: 8, generic: [WgslType.UnsignedInteger32] },
-            { size: 16, align: 8, generic: [WgslType.Float32] },
-            { size: 8, align: 4, generic: [WgslType.Float16] }
-        ];
-        lTypes[WgslType.Matrix23] = [
-            { size: 32, align: 16, generic: [WgslType.Integer32] },
-            { size: 32, align: 16, generic: [WgslType.UnsignedInteger32] },
-            { size: 32, align: 16, generic: [WgslType.Float32] },
-            { size: 16, align: 8, generic: [WgslType.Float16] }
-        ];
-        lTypes[WgslType.Matrix24] = [
-            { size: 32, align: 16, generic: [WgslType.Integer32] },
-            { size: 32, align: 16, generic: [WgslType.UnsignedInteger32] },
-            { size: 32, align: 16, generic: [WgslType.Float32] },
-            { size: 16, align: 8, generic: [WgslType.Float16] }
-        ];
-        lTypes[WgslType.Matrix32] = [
-            { size: 24, align: 8, generic: [WgslType.Integer32] },
-            { size: 24, align: 8, generic: [WgslType.UnsignedInteger32] },
-            { size: 24, align: 8, generic: [WgslType.Float32] },
-            { size: 12, align: 4, generic: [WgslType.Float16] }
-        ];
-        lTypes[WgslType.Matrix33] = [
-            { size: 48, align: 16, generic: [WgslType.Integer32] },
-            { size: 48, align: 16, generic: [WgslType.UnsignedInteger32] },
-            { size: 48, align: 16, generic: [WgslType.Float32] },
-            { size: 24, align: 8, generic: [WgslType.Float16] }
-        ];
-        lTypes[WgslType.Matrix34] = [
-            { size: 48, align: 16, generic: [WgslType.Integer32] },
-            { size: 48, align: 16, generic: [WgslType.UnsignedInteger32] },
-            { size: 48, align: 16, generic: [WgslType.Float32] },
-            { size: 24, align: 8, generic: [WgslType.Float16] }
-        ];
-        lTypes[WgslType.Matrix42] = [
-            { size: 32, align: 8, generic: [WgslType.Integer32] },
-            { size: 32, align: 8, generic: [WgslType.UnsignedInteger32] },
-            { size: 32, align: 8, generic: [WgslType.Float32] },
-            { size: 16, align: 4, generic: [WgslType.Float16] }
-        ];
-        lTypes[WgslType.Matrix43] = [
-            { size: 64, align: 16, generic: [WgslType.Integer32] },
-            { size: 64, align: 16, generic: [WgslType.UnsignedInteger32] },
-            { size: 64, align: 16, generic: [WgslType.Float32] },
-            { size: 32, align: 8, generic: [WgslType.Float16] }
-        ];
-        lTypes[WgslType.Matrix44] = [
-            { size: 64, align: 16, generic: [WgslType.Integer32] },
-            { size: 64, align: 16, generic: [WgslType.UnsignedInteger32] },
-            { size: 64, align: 16, generic: [WgslType.Float32] },
-            { size: 32, align: 8, generic: [WgslType.Float16] }
-        ];
-
-        lTypes[WgslType.Array] = [
-            { size: -1, align: -1, generic: [WgslType.Any] },
-            { size: -1, align: -1, generic: [WgslType.Any, WgslType.UnsignedInteger32] }
-        ];
-        lTypes[WgslType.Struct] = [{ size: -1, align: -1 }];
-
-        lTypes[WgslType.Atomic] = [
-            { size: 4, align: 4, generic: [WgslType.Integer32] },
-            { size: 4, align: 4, generic: [WgslType.UnsignedInteger32] }
-        ];
-        // Type alias.
-        // TODO:
-
-        return lTypes;
-    })();
 
     private someMoreForLater(): void {
         // Map every texture type for view dimension.
@@ -587,9 +641,6 @@ export class WebGpuShaderInformation extends ShaderInformation<WebGpuTypes> {
 
     }
 }
-
-type WgslTypeSetting = { size: number, align: number, generic?: Array<WgslType>; };
-
 
 export type WgslBind = {
     visibility: WgslShaderStage;

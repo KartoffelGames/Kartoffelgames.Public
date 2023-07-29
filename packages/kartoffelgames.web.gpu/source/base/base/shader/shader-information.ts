@@ -51,10 +51,16 @@ export abstract class ShaderInformation<TGpuTypes extends GpuTypes> extends GpuD
 
             // Map all aliases of type.
             for (const lVariant of pType.variants) {
+                // No aliases specified.
+                if (!lVariant.aliases) {
+                    continue;
+                }
+
+                // Map each alias with its generics.
                 for (const lAlias of lVariant.aliases) {
                     this.mShaderTypeAliases.set(lAlias, {
                         type: pType.name,
-                        generics: lVariant.generic
+                        generics: lVariant.generic ?? []
                     });
                 }
             }
@@ -108,14 +114,37 @@ export abstract class ShaderInformation<TGpuTypes extends GpuTypes> extends GpuD
         if (this.mShaderTypes.has(pTypeName)) {
             const lRegularType: ShaderTypeDefinition = this.mShaderTypes.get(pTypeName)!;
             for (const lVariant of lRegularType.variants) {
-                if (lVariant.generic.toString() === pGenericNames.toString()) {
-                    return {
-                        typeName: lRegularType.name,
-                        type: 'buildIn',
-                        size: lVariant.size,
-                        align: lVariant.align
-                    };
+                const lVariantGenerics: Array<string> = lVariant.generic ?? [];
+
+                // Validate generics.
+                if (lVariantGenerics.length !== pGenericNames.length) {
+                    continue;
                 }
+
+                // Validate each generic value.
+                let lGenericsMatches: boolean = true;
+                for (let lIndex: number = 0; lIndex < lVariantGenerics.length; lIndex++) {
+                    const lTargetGeneric: string = lVariantGenerics[lIndex];
+                    const lSourceGeneric: string = pGenericNames[lIndex];
+
+                    // Matches any on wildcard or strict match otherwise.
+                    if (lTargetGeneric !== '*' && lTargetGeneric !== lSourceGeneric) {
+                        lGenericsMatches = false;
+                        break;
+                    }
+                }
+
+                // Generics does not match. Search next variant.
+                if (!lGenericsMatches) {
+                    continue;
+                }
+
+                return {
+                    typeName: lRegularType.name,
+                    type: 'buildIn',
+                    size: lVariant.size,
+                    align: lVariant.align
+                };
             }
         }
 
@@ -328,10 +357,10 @@ export type ShaderStructDefinition<TGpuTypes extends GpuTypes> = {
 export type ShaderTypeDefinition = {
     name: string,
     variants: Array<{
-        aliases: Array<string>;
+        aliases?: Array<string>;
         size: number;
         align: number;
-        generic: Array<string>;
+        generic?: Array<string>;
     }>;
 };
 

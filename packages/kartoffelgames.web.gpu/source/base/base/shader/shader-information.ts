@@ -337,6 +337,7 @@ export abstract class ShaderInformation<TGpuTypes extends GpuTypes> extends GpuD
 export type ShaderValueDefinition<TGpuTypes extends GpuTypes> = {
     name: string;
     type: ShaderType<TGpuTypes>;
+    typeGenerics: Array<string>;
     attachments: Record<string, string>;
 };
 
@@ -345,8 +346,7 @@ export type ShaderFunctionDefintion<TGpuTypes extends GpuTypes> = {
     name: string;
     returnType: ShaderValueDefinition<TGpuTypes>;
     parameter: Array<ShaderValueDefinition<TGpuTypes>>;
-    declaredVariableNames: Array<string>,
-    usedVariableNames: Array<string>;
+    body: string;
 };
 
 export type ShaderStructDefinition<TGpuTypes extends GpuTypes> = {

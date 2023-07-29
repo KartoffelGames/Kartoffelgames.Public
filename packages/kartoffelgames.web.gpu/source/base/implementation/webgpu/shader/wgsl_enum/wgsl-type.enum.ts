@@ -1,7 +1,4 @@
 export enum WgslType {
-    Any = '_Any',
-    Enum = '_Enum',
-
     // Scalar types.
     Boolean = 'bool',
     Integer32 = 'i32',
@@ -26,7 +23,6 @@ export enum WgslType {
     Matrix44 = 'mat4x4',
 
     // Container.
-    Struct = 'struct',
     Array = 'array',
 
     //Special.
@@ -68,7 +64,7 @@ export const WgslBufferTypes = [
     WgslType.Vector3, WgslType.Vector4, WgslType.Matrix22, WgslType.Matrix23,
     WgslType.Matrix24, WgslType.Matrix32, WgslType.Matrix33,
     WgslType.Matrix34, WgslType.Matrix42, WgslType.Matrix43,
-    WgslType.Matrix44, WgslType.Struct, WgslType.Array,
+    WgslType.Matrix44, WgslType.Array,
 ];
 export const WgslTextureTypes = [
     WgslType.Texture1d, WgslType.Texture2d, WgslType.Texture2dArray,

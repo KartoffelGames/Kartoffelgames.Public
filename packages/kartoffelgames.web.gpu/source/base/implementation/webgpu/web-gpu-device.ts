@@ -96,7 +96,7 @@ export class WebGpuDevice extends GpuDevice<WebGpuTypes> {
      * Create array buffer memory layout.
      * @param pParameter - Memory layout parameter.
      */
-    public linearMemoryLayout(pParameter: LinearBufferMemoryLayoutParameter<WebGpuTypes>): WebGpuTypes['linearBufferMemoryLayout'] {
+    public linearMemoryLayout(pParameter: LinearBufferMemoryLayoutParameter): WebGpuTypes['linearBufferMemoryLayout'] {
         return new WebGpuLinearBufferMemoryLayout(this, pParameter);
     }
 
@@ -112,7 +112,7 @@ export class WebGpuDevice extends GpuDevice<WebGpuTypes> {
      * Create struct buffer memory layout.
      * @param pParameter - Memory layout parameter.
      */
-    public structMemoryLayout(pParameter: StructBufferMemoryLayoutParameter<WebGpuTypes>): WebGpuTypes['structBufferMemoryLayout'] {
+    public structMemoryLayout(pParameter: StructBufferMemoryLayoutParameter): WebGpuTypes['structBufferMemoryLayout'] {
         return new WebGpuStructBufferMemoryLayout(this, pParameter);
     }
 

@@ -30,6 +30,9 @@ export abstract class ArrayBufferMemoryLayout<TGpuTypes extends GpuTypes = GpuTy
         // Static properties.
         this.mArraySize = pParameter.arraySize;
         this.mInnerType = pParameter.innerType;
+
+        // Set inner type parent.
+        pParameter.innerType.parent = this;
     }
 
     /**
@@ -70,7 +73,7 @@ export abstract class ArrayBufferMemoryLayout<TGpuTypes extends GpuTypes = GpuTy
     }
 }
 
-export interface ArrayBufferMemoryLayoutParameter<TGpuTypes extends GpuTypes> extends BufferMemoryLayoutParameter<TGpuTypes> {
+export interface ArrayBufferMemoryLayoutParameter<TGpuTypes extends GpuTypes> extends BufferMemoryLayoutParameter {
     // New.
     arraySize: number;
     innerType: TGpuTypes['bufferMemoryLayout'];

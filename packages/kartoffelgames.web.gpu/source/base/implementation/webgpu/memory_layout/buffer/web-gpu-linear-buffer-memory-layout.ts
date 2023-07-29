@@ -9,7 +9,7 @@ export class WebGpuLinearBufferMemoryLayout extends LinearBufferMemoryLayout<Web
      * @param pDevice - Device reference.
      * @param pParameter - Creation parameter.
      */
-    public constructor(pDevice: WebGpuDevice, pParameter: LinearBufferMemoryLayoutParameter<WebGpuTypes>) {
+    public constructor(pDevice: WebGpuDevice, pParameter: LinearBufferMemoryLayoutParameter) {
         super(pDevice, pParameter);
     }
 

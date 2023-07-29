@@ -5,7 +5,7 @@ import { BufferBindType } from '../../../constant/buffer-bind-type.enum';
 
 export abstract class BufferMemoryLayout<TGpuType extends GpuTypes> extends MemoryLayout<TGpuType> {
     private readonly mBindType: BufferBindType;
-    private readonly mParent: TGpuType['bufferMemoryLayout'] | null;
+    private mParent: TGpuType['bufferMemoryLayout'] | null;
 
     /**
      * Type byte alignment.
@@ -29,18 +29,20 @@ export abstract class BufferMemoryLayout<TGpuType extends GpuTypes> extends Memo
      */
     public get parent(): TGpuType['bufferMemoryLayout'] | null {
         return this.mParent;
+    } public set parent(pValue: TGpuType['bufferMemoryLayout'] | null) {
+        this.mParent = pValue;
     }
 
     /**
      * Constructor.
      * @param pParameter - Parameter.
      */
-    public constructor(pGpu: TGpuType['gpuDevice'], pParameter: BufferMemoryLayoutParameter<TGpuType>) {
+    public constructor(pGpu: TGpuType['gpuDevice'], pParameter: BufferMemoryLayoutParameter) {
         super(pGpu, pParameter);
 
         // Static properties.
         this.mBindType = pParameter.bindType;
-        this.mParent = pParameter.parent;
+        this.mParent = null;
     }
 
     /**
@@ -71,9 +73,8 @@ export abstract class BufferMemoryLayout<TGpuType extends GpuTypes> extends Memo
     protected abstract createBuffer<TType extends TypedArray>(pInitialData: TType): TGpuType['buffer'];
 }
 
-export interface BufferMemoryLayoutParameter<TGpuType extends GpuTypes> extends MemoryLayoutParameter {
+export interface BufferMemoryLayoutParameter extends MemoryLayoutParameter {
     bindType: BufferBindType;
-    parent: TGpuType['bufferMemoryLayout'];
 }
 
 export type BufferLayoutLocation = {

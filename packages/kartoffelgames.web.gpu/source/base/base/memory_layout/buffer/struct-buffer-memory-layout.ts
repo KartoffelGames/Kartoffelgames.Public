@@ -24,7 +24,7 @@ export abstract class StructBufferMemoryLayout<TGpuTypes extends GpuTypes = GpuT
      * Constructor.
      * @param pParameter - Parameter.
      */
-    public constructor(pGpu: TGpuTypes['gpuDevice'], pParameter: StructBufferMemoryLayoutParameter<TGpuTypes>) {
+    public constructor(pGpu: TGpuTypes['gpuDevice'], pParameter: StructBufferMemoryLayoutParameter) {
         super(pGpu, pParameter);
 
         // Static properties.
@@ -40,6 +40,7 @@ export abstract class StructBufferMemoryLayout<TGpuTypes extends GpuTypes = GpuT
      */
     public addProperty(pOrder: number, pType: TGpuTypes['bufferMemoryLayout']): void {
         this.mInnerProperties.push([pOrder, pType]);
+        pType.parent = this;
 
         // Order properties.
         this.mInnerProperties = this.mInnerProperties.sort((pA, pB) => {
@@ -124,6 +125,6 @@ export abstract class StructBufferMemoryLayout<TGpuTypes extends GpuTypes = GpuT
     protected abstract onProperyAdd(): void;
 }
 
-export interface StructBufferMemoryLayoutParameter<TGpuTypes extends GpuTypes> extends BufferMemoryLayoutParameter<TGpuTypes> {
+export interface StructBufferMemoryLayoutParameter extends BufferMemoryLayoutParameter {
     structName: string;
 }

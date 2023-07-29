@@ -24,7 +24,7 @@ export abstract class GpuDevice<TGpuTypes extends GpuTypes = GpuTypes> {
      * Create array buffer memory layout.
      * @param pParameter - Memory layout parameter.
      */
-    public abstract linearMemoryLayout(pParameter: LinearBufferMemoryLayoutParameter<TGpuTypes>): TGpuTypes['linearBufferMemoryLayout'];
+    public abstract linearMemoryLayout(pParameter: LinearBufferMemoryLayoutParameter): TGpuTypes['linearBufferMemoryLayout'];
 
     /**
      * Create sampler memory layout.
@@ -36,7 +36,7 @@ export abstract class GpuDevice<TGpuTypes extends GpuTypes = GpuTypes> {
      * Create struct buffer memory layout.
      * @param pParameter - Memory layout parameter.
      */
-    public abstract structMemoryLayout(pParameter: StructBufferMemoryLayoutParameter<TGpuTypes>): TGpuTypes['structBufferMemoryLayout'];
+    public abstract structMemoryLayout(pParameter: StructBufferMemoryLayoutParameter): TGpuTypes['structBufferMemoryLayout'];
 
     /**
      * Create texture memory layout.

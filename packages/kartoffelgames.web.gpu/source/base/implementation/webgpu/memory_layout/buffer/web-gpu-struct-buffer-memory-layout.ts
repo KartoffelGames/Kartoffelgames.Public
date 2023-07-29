@@ -26,7 +26,7 @@ export class WebGpuStructBufferMemoryLayout extends StructBufferMemoryLayout<Web
      * @param pDevice - Device reference.
      * @param pParameter - Creation parameter.
      */
-    public constructor(pDevice: WebGpuDevice, pParameter: StructBufferMemoryLayoutParameter<WebGpuTypes>) {
+    public constructor(pDevice: WebGpuDevice, pParameter: StructBufferMemoryLayoutParameter) {
         super(pDevice, pParameter);
 
         this.mAlignment = 0;

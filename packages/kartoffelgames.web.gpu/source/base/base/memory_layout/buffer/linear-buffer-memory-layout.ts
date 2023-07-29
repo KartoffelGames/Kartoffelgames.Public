@@ -23,7 +23,7 @@ export abstract class LinearBufferMemoryLayout<TGpuTypes extends GpuTypes = GpuT
      * Constructor.
      * @param pParameter - Parameter.
      */
-    public constructor(pGpu: TGpuTypes['gpuDevice'], pParameter: LinearBufferMemoryLayoutParameter<TGpuTypes>) {
+    public constructor(pGpu: TGpuTypes['gpuDevice'], pParameter: LinearBufferMemoryLayoutParameter) {
         super(pGpu, pParameter);
 
         // Static properties.
@@ -32,7 +32,7 @@ export abstract class LinearBufferMemoryLayout<TGpuTypes extends GpuTypes = GpuT
     }
 }
 
-export interface LinearBufferMemoryLayoutParameter<TGpuTypes extends GpuTypes> extends BufferMemoryLayoutParameter<TGpuTypes> {
+export interface LinearBufferMemoryLayoutParameter extends BufferMemoryLayoutParameter {
     size: number;
     alignment: number;
 }

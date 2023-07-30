@@ -3,7 +3,7 @@ import { ComputeStage } from '../../constant/compute-stage.enum';
 import { GpuDependent } from '../gpu/gpu-dependent';
 import { GpuTypes } from '../gpu/gpu-device';
 
-export abstract class ShaderInformation<TGpuTypes extends GpuTypes> extends GpuDependent<TGpuTypes> {
+export abstract class ShaderInformation<TGpuTypes extends GpuTypes = GpuTypes> extends GpuDependent<TGpuTypes> {
     private readonly mBindings: Dictionary<number, Array<TGpuTypes['memoryLayout']>>;
     private readonly mEntryPoints: Dictionary<ComputeStage, ShaderFunction<TGpuTypes>>;
     private readonly mShaderFunctions: Dictionary<string, ShaderFunction<TGpuTypes>>;

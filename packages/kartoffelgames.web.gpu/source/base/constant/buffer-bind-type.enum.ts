@@ -1,5 +1,5 @@
 export enum BufferBindType {
-    Attribute = 'Attribute',
+    Undefined = 'Undefined',
     Index = 'Index',
     Vertex = 'Vertex',
     Uniform = 'Uniform',

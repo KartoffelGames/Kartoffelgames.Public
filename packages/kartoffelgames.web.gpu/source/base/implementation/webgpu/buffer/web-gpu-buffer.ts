@@ -114,7 +114,7 @@ export class WebGpuBuffer<T extends TypedArray> extends Buffer<T, WebGpuTypes, G
 
         // Append usage type from abstract bind type.
         switch (this.memoryLayout.bindType) {
-            case BufferBindType.Attribute: {
+            case BufferBindType.Undefined: {
                 // Just an layout indicator. Does nothing to usage type.
                 break;
             }

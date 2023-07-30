@@ -27,18 +27,6 @@ export abstract class BindGroup<TGpuTypes extends GpuTypes = GpuTypes, TNative =
     }
 
     /**
-     * Set data to layout binding.
-     * @param pBindName - Bind layout entry name.
-     * @param pData - Bind data.
-     */
-    public setData(pBindName: string, pData: TGpuTypes['bindData']): void {
-        // TODO: Validate data type with value type.
-
-        // Set bind type to Teture for TS type check shutup.
-        this.mBindData.set(pBindName, pData);
-    }
-
-    /**
      * Get data of layout binding.
      * @param pBindName - Bind layout entry name.
      */
@@ -49,5 +37,17 @@ export abstract class BindGroup<TGpuTypes extends GpuTypes = GpuTypes, TNative =
         }
 
         return lData;
+    }
+
+    /**
+     * Set data to layout binding.
+     * @param pBindName - Bind layout entry name.
+     * @param pData - Bind data.
+     */
+    public setData(pBindName: string, pData: TGpuTypes['bindData']): void {
+        // TODO: Validate data type with value type.
+
+        // Set bind type to Teture for TS type check shutup.
+        this.mBindData.set(pBindName, pData);
     }
 }

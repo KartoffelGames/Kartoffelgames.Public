@@ -9,8 +9,8 @@ export abstract class TextureMemoryLayout<TGpuTypes extends GpuTypes = GpuTypes>
     private readonly mBindType: TextureBindType;
     private readonly mDimension: TextureDimension;
     private readonly mFormat: TextureFormat;
-    private readonly mMultisampleLevel: number;
-    private readonly mUsage: TextureUsage;
+    private readonly mMultisampled: boolean;
+    private mUsage: TextureUsage;
 
     /**
      * Texture dimension.
@@ -34,10 +34,10 @@ export abstract class TextureMemoryLayout<TGpuTypes extends GpuTypes = GpuTypes>
     }
 
     /**
-    * Texture multisample level.
-    */
-    public get multisampleLevel(): number {
-        return this.mMultisampleLevel;
+     * Texture uses multisample.
+     */
+    public get multisampled(): boolean {
+        return this.mMultisampled;
     }
 
     /**
@@ -45,6 +45,10 @@ export abstract class TextureMemoryLayout<TGpuTypes extends GpuTypes = GpuTypes>
      */
     public get usage(): TextureUsage {
         return this.mUsage;
+    } set usage(pValue: TextureUsage) {
+        this.mUsage = pValue;
+
+        // TODO: Request update.
     }
 
     /**
@@ -57,8 +61,8 @@ export abstract class TextureMemoryLayout<TGpuTypes extends GpuTypes = GpuTypes>
         this.mBindType = pParameter.bindType;
         this.mDimension = pParameter.dimension;
         this.mFormat = pParameter.format;
-        this.mUsage = pParameter.usage;
-        this.mMultisampleLevel = pParameter.multisampleLevel;
+        this.mUsage = TextureUsage.None;
+        this.mMultisampled = pParameter.multisampled;
     }
 
     /**
@@ -129,7 +133,6 @@ export abstract class TextureMemoryLayout<TGpuTypes extends GpuTypes = GpuTypes>
 export interface TextureMemoryLayoutParameter extends MemoryLayoutParameter {
     dimension: TextureDimension;
     format: TextureFormat;
-    usage: TextureUsage;
     bindType: TextureBindType;
-    multisampleLevel: number;
+    multisampled: boolean;
 }

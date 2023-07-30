@@ -4,7 +4,9 @@ import { AccessMode } from '../../../constant/access-mode.enum';
 import { BufferBindType } from '../../../constant/buffer-bind-type.enum';
 import { ComputeStage } from '../../../constant/compute-stage.enum';
 import { SamplerType } from '../../../constant/sampler-type.enum';
+import { TextureBindType } from '../../../constant/texture-bind-type.enum';
 import { TextureDimension } from '../../../constant/texture-dimension.enum';
+import { TextureFormat } from '../../../constant/texture-format.enum';
 import { WebGpuArrayBufferMemoryLayout } from '../memory_layout/buffer/web-gpu-array-buffer-memory-layout';
 import { WebGpuLinearBufferMemoryLayout } from '../memory_layout/buffer/web-gpu-linear-buffer-memory-layout';
 import { WebGpuStructBufferMemoryLayout } from '../memory_layout/buffer/web-gpu-struct-buffer-memory-layout';
@@ -367,9 +369,6 @@ export class WebGpuShaderInformation extends ShaderInformation<WebGpuTypes> {
             }
         }
 
-        // Variable name.
-        const lVariableName: string = pValueDefinition.name;
-
         // AccessMode
         let lAccessMode: AccessMode = AccessMode.None;
         if (pValueDefinition.attachments['accessMode']) {
@@ -390,150 +389,201 @@ export class WebGpuShaderInformation extends ShaderInformation<WebGpuTypes> {
             }
         }
 
-        // Visiblility.
-        const lVisibility: ComputeStage = this.visibilityOf(lVariableName);
-
-        // Group Index.
-        const lGroupIndex: number | null = pValueDefinition.attachments['group'] ? parseInt(pValueDefinition.attachments['group']) : null;
-
         // Binding Index.
         const lBindingIndex: number | null = pValueDefinition.attachments['binding'] ? parseInt(pValueDefinition.attachments['binding']) : null;
-
-        // Parameter Index.
         const lParameterIndex: number | null = pValueDefinition.attachments['location'] ? parseInt(pValueDefinition.attachments['location']) : null;
 
+        const lCreationParameter: ShaderValueCreationParameter = {
+            valueDefinition: pValueDefinition,
+            typeDefinition: lDefinitionType,
+            accessMode: lAccessMode,
+            bufferBindType: lBufferBindType,
+            groupIndex: pValueDefinition.attachments['group'] ? parseInt(pValueDefinition.attachments['group']) : null,
+            memoryIndex: (lBindingIndex === null && lParameterIndex === null) ? null : {
+                binding: lBindingIndex,
+                parameter: lParameterIndex,
+            },
+            visibility: this.visibilityOf(pValueDefinition.name)
+        };
+
         /*
-         * Convert different  
+         * Convert different memory layouts.
          */
 
         // Struct.
         if (lDefinitionType.type === 'struct') {
-            const lStructMemoryLayout: WebGpuStructBufferMemoryLayout = new WebGpuStructBufferMemoryLayout(this.device, {
-                structName: lDefinitionType.struct.name,
-                bindType: lBufferBindType,
-                access: lAccessMode,
-                memoryIndex: (lBindingIndex === null && lParameterIndex === null) ? null : {
-                    binding: lBindingIndex,
-                    parameter: lParameterIndex,
-                },
-                name: lVariableName,
-                visibility: lVisibility
-            });
-
-            for (let lPropertyIndex: number = 0; lPropertyIndex < lDefinitionType.struct.properties.length; lPropertyIndex++) {
-                const lProperty: ShaderValue<WebGpuTypes> = lDefinitionType.struct.properties[lPropertyIndex];
-                lStructMemoryLayout.addProperty(lPropertyIndex, <WebGpuTypes['bufferMemoryLayout']>lProperty.value);
-            }
-
-            return {
-                group: lGroupIndex,
-                value: lStructMemoryLayout
-            };
+            return this.createStructBufferLayout(lCreationParameter);
         }
 
         // Sampler
         if (WgslSamplerTypes.includes(<any>lDefinitionType.typeName)) {
-            const lSamplerType: SamplerType = (lDefinitionType.typeName === WgslType.Sampler) ? SamplerType.Filter : SamplerType.Comparison;
-
-            const lSamplerMemoryLayout: WebGpuSamplerMemoryLayout = new WebGpuSamplerMemoryLayout(this.device, {
-                samplerType: lSamplerType,
-                access: lAccessMode,
-                memoryIndex: (lBindingIndex === null && lParameterIndex === null) ? null : {
-                    binding: lBindingIndex,
-                    parameter: lParameterIndex,
-                },
-                name: lVariableName,
-                visibility: lVisibility
-            });
-
-            return {
-                group: lGroupIndex,
-                value: lSamplerMemoryLayout
-            };
+            return this.createSamplerLayout(lCreationParameter);
         }
 
         // Array buffer.
         if (WgslBufferArrayTypes.includes(<any>lDefinitionType.typeName)) {
-            let lArraySize: number = -1;
-            if (pValueDefinition.typeGenerics.length === 2) {
-                const lArraySizeGeneric: string = pValueDefinition.typeGenerics[1];
-                lArraySize = parseInt(lArraySizeGeneric);
-
-                // Validate size generic.
-                if (isNaN(lArraySize)) {
-                    throw new Exception(`Wrong size generic "${lArraySizeGeneric}" on array type.`, this);
-                }
-            }
-
-            // Read inner type from generic.
-            const lInnerTypeDefinition: ShaderValueDefinition<WebGpuTypes> = this.fetchVariableDefinitions(pValueDefinition.typeGenerics[0])[0];
-            const lInnerType: ShaderValue<WebGpuTypes> = this.valueFromDefinition(lInnerTypeDefinition);
-
-            const lArrayMemoryLayout: WebGpuArrayBufferMemoryLayout = new WebGpuArrayBufferMemoryLayout(this.device, {
-                arraySize: lArraySize,
-                innerType: <WebGpuTypes['bufferMemoryLayout']>lInnerType.value,
-                bindType: lBufferBindType,
-                access: lAccessMode,
-                memoryIndex: (lBindingIndex === null && lParameterIndex === null) ? null : {
-                    binding: lBindingIndex,
-                    parameter: lParameterIndex,
-                },
-                name: lVariableName,
-                visibility: lVisibility
-            });
-
-            return {
-                group: lGroupIndex,
-                value: lArrayMemoryLayout
-            };
+            return this.createArrayBufferLayout(lCreationParameter);
         }
 
         // Linear buffer.
         if (WgslBufferLinearTypes.includes(<any>lDefinitionType.typeName)) {
-            const lLinearBufferLayout = new WebGpuLinearBufferMemoryLayout(this.device, {
-                size: lDefinitionType.size,
-                alignment: lDefinitionType.align,
-                bindType: lBufferBindType,
-                access: lAccessMode,
-                memoryIndex: (lBindingIndex === null && lParameterIndex === null) ? null : {
-                    binding: lBindingIndex,
-                    parameter: lParameterIndex,
-                },
-                name: lVariableName,
-                visibility: lVisibility
-            });
-
-            return {
-                group: lGroupIndex,
-                value: lLinearBufferLayout
-            };
+            return this.createLinearBufferLayout(lCreationParameter);
         }
 
         // Textures.
         if (WgslTextureTypes.includes(<any>lDefinitionType.typeName)) {
-            const lTextureLayout = new WebGpuTextureMemoryLayout(this.device, {
-                dimension: this.textureDimensionFromType(<WgslTextureTypes><any>lDefinitionType.typeName),
-                format,
-                usage,
-                bindType,
-                multisampleLevel,
-                access: lAccessMode,
-                memoryIndex: (lBindingIndex === null && lParameterIndex === null) ? null : {
-                    binding: lBindingIndex,
-                    parameter: lParameterIndex,
-                },
-                name: lVariableName,
-                visibility: lVisibility
-            });
-
-            return {
-                group: lGroupIndex,
-                value: lTextureLayout
-            };
+            return this.createTextureLayout(lCreationParameter);
         }
 
         // Unsupported behaviour.
         throw new Exception(`Shader value "${pValueDefinition.name}" has an unsupported type.`, this);
+    }
+
+    /**
+     * Create array buffer layout shader value.
+     * @param pParameter - Creation parameter.
+     */
+    private createArrayBufferLayout(pParameter: ShaderValueCreationParameter): ShaderValue<WebGpuTypes> {
+        let lArraySize: number = -1;
+        if (pParameter.valueDefinition.typeGenerics.length === 2) {
+            const lArraySizeGeneric: string = pParameter.valueDefinition.typeGenerics[1];
+            lArraySize = parseInt(lArraySizeGeneric);
+
+            // Validate size generic.
+            if (isNaN(lArraySize)) {
+                throw new Exception(`Wrong size generic "${lArraySizeGeneric}" on array type.`, this);
+            }
+        }
+
+        // Read inner type from generic.
+        const lInnerTypeDefinition: ShaderValueDefinition<WebGpuTypes> = this.fetchVariableDefinitions(pParameter.valueDefinition.typeGenerics[0])[0];
+        const lInnerType: ShaderValue<WebGpuTypes> = this.valueFromDefinition(lInnerTypeDefinition);
+
+        const lArrayMemoryLayout: WebGpuArrayBufferMemoryLayout = new WebGpuArrayBufferMemoryLayout(this.device, {
+            arraySize: lArraySize,
+            innerType: <WebGpuTypes['bufferMemoryLayout']>lInnerType.value,
+            bindType: pParameter.bufferBindType,
+            access: pParameter.accessMode,
+            memoryIndex: pParameter.memoryIndex,
+            name: pParameter.valueDefinition.name,
+            visibility: pParameter.visibility
+        });
+
+        return {
+            group: pParameter.groupIndex,
+            value: lArrayMemoryLayout
+        };
+    }
+
+    /**
+     * Create linear buffer layout shader value.
+     * @param pParameter - Creation parameter.
+     */
+    private createLinearBufferLayout(pParameter: ShaderValueCreationParameter): ShaderValue<WebGpuTypes> {
+        if (pParameter.typeDefinition.type !== 'buildIn') {
+            throw new Exception('Type not supported.', this);
+        }
+
+        const lLinearBufferLayout = new WebGpuLinearBufferMemoryLayout(this.device, {
+            size: pParameter.typeDefinition.size,
+            alignment: pParameter.typeDefinition.align,
+            bindType: pParameter.bufferBindType,
+            access: pParameter.accessMode,
+            memoryIndex: pParameter.memoryIndex,
+            name: pParameter.valueDefinition.name,
+            visibility: pParameter.visibility
+        });
+
+        return {
+            group: pParameter.groupIndex,
+            value: lLinearBufferLayout
+        };
+    }
+
+    /**
+     * Create sampler layout shader value.
+     * @param pParameter - Creation parameter.
+     */
+    private createSamplerLayout(pParameter: ShaderValueCreationParameter): ShaderValue<WebGpuTypes> {
+        if (pParameter.typeDefinition.type !== 'buildIn') {
+            throw new Exception('Type not supported.', this);
+        }
+
+        const lSamplerType: SamplerType = (pParameter.typeDefinition.typeName === WgslType.Sampler) ? SamplerType.Filter : SamplerType.Comparison;
+
+        const lSamplerMemoryLayout: WebGpuSamplerMemoryLayout = new WebGpuSamplerMemoryLayout(this.device, {
+            samplerType: lSamplerType,
+            access: pParameter.accessMode,
+            memoryIndex: pParameter.memoryIndex,
+            name: pParameter.valueDefinition.name,
+            visibility: pParameter.visibility
+        });
+
+        return {
+            group: pParameter.groupIndex,
+            value: lSamplerMemoryLayout
+        };
+    }
+
+    /**
+     * Create struct buffer layout shader value.
+     * @param pParameter - Creation parameter.
+     */
+    private createStructBufferLayout(pParameter: ShaderValueCreationParameter): ShaderValue<WebGpuTypes> {
+        if (pParameter.typeDefinition.type !== 'struct') {
+            throw new Exception('Type not supported.', this);
+        }
+
+        const lStructMemoryLayout: WebGpuStructBufferMemoryLayout = new WebGpuStructBufferMemoryLayout(this.device, {
+            structName: pParameter.typeDefinition.struct.name,
+            bindType: pParameter.bufferBindType,
+            access: pParameter.accessMode,
+            memoryIndex: pParameter.memoryIndex,
+            name: pParameter.valueDefinition.name,
+            visibility: pParameter.visibility
+        });
+
+        // Add all properties.
+        for (let lPropertyIndex: number = 0; lPropertyIndex < pParameter.typeDefinition.struct.properties.length; lPropertyIndex++) {
+            const lProperty: ShaderValue<WebGpuTypes> = pParameter.typeDefinition.struct.properties[lPropertyIndex];
+            lStructMemoryLayout.addProperty(lPropertyIndex, <WebGpuTypes['bufferMemoryLayout']>lProperty.value);
+        }
+
+        return {
+            group: pParameter.groupIndex,
+            value: lStructMemoryLayout
+        };
+    }
+
+    /**
+     * Create struct buffer layout shader value.
+     * @param pParameter - Creation parameter.
+     */
+    private createTextureLayout(pParameter: ShaderValueCreationParameter): ShaderValue<WebGpuTypes> {
+        if (pParameter.typeDefinition.type !== 'buildIn') {
+            throw new Exception('Type not supported.', this);
+        }
+
+        const lTextureWgslType: WgslTextureTypes = <any>pParameter.typeDefinition.typeName;
+
+        // Uses multisamples or not.
+        const lUsesMultisample: boolean = (lTextureWgslType === WgslType.TextureMultisampled2d || lTextureWgslType === WgslType.TextureDepthMultisampled2d);
+
+        const lTextureLayout = new WebGpuTextureMemoryLayout(this.device, {
+            dimension: this.textureDimensionFromType(lTextureWgslType),
+            format: this.textureDefaultFormatFromType(lTextureWgslType),
+            bindType: this.textureBindTypeFromType(lTextureWgslType),
+            multisampled: lUsesMultisample,
+            access: pParameter.accessMode,
+            memoryIndex: pParameter.memoryIndex,
+            name: pParameter.valueDefinition.name,
+            visibility: pParameter.visibility
+        });
+
+        return {
+            group: pParameter.groupIndex,
+            value: lTextureLayout
+        };
     }
 
     /**
@@ -599,6 +649,82 @@ export class WebGpuShaderInformation extends ShaderInformation<WebGpuTypes> {
     }
 
     /**
+     * Read texture bind type from texture wgsl type. 
+     * @param pTextureType - Texture wgsl type.
+     * @returns 
+     */
+    private textureBindTypeFromType(pTextureType: WgslTextureTypes): TextureBindType {
+        // Map every texture type for bind type.
+        switch (pTextureType) {
+            case WgslType.TextureExternal: {
+                return TextureBindType.External;
+            }
+
+            case WgslType.TextureStorage1d:
+            case WgslType.TextureStorage2d:
+            case WgslType.TextureStorage2dArray:
+            case WgslType.TextureStorage3d: {
+                return TextureBindType.Storage;
+            }
+
+            case WgslType.Texture1d:
+            case WgslType.TextureDepth2d:
+            case WgslType.Texture2d:
+            case WgslType.TextureDepthMultisampled2d:
+            case WgslType.TextureMultisampled2d:
+            case WgslType.TextureDepth2dArray:
+            case WgslType.Texture2dArray:
+            case WgslType.Texture3d:
+            case WgslType.TextureCube:
+            case WgslType.TextureDepthCube:
+            case WgslType.TextureCubeArray:
+            case WgslType.TextureDepthCubeArray: {
+                return TextureBindType.Images;
+            }
+
+            default: {
+                throw new Exception(`Texture type "${pTextureType}" not supported for any texture bind type.`, null);
+            }
+        }
+    }
+
+    /**
+     * Work in process texture format from texture type.
+     * @param pTextureType - Texture type.
+     */
+    private textureDefaultFormatFromType(pTextureType: WgslTextureTypes): TextureFormat {
+        // Map every texture type for view dimension.
+        switch (pTextureType) {
+            case WgslType.Texture1d:
+            case WgslType.TextureStorage1d:
+            case WgslType.Texture2d:
+            case WgslType.TextureStorage2d:
+            case WgslType.TextureMultisampled2d:
+            case WgslType.TextureExternal:
+            case WgslType.Texture2dArray:
+            case WgslType.TextureStorage2dArray:
+            case WgslType.Texture3d:
+            case WgslType.TextureStorage3d:
+            case WgslType.TextureCube:
+            case WgslType.TextureCubeArray: {
+                return TextureFormat.BlueRedGreenAlpha;
+            }
+
+            case WgslType.TextureDepth2dArray:
+            case WgslType.TextureDepthCubeArray:
+            case WgslType.TextureDepthCube:
+            case WgslType.TextureDepthMultisampled2d:
+            case WgslType.TextureDepth2d: {
+                return TextureFormat.DepthStencil;
+            }
+
+            default: {
+                throw new Exception(`Texture type "${pTextureType}" not supported for any texture dimension.`, null);
+            }
+        }
+    }
+
+    /**
      * Read texture dimension from texture type.
      * @param pTextureType - Texture type.
      */
@@ -609,33 +735,53 @@ export class WebGpuShaderInformation extends ShaderInformation<WebGpuTypes> {
             case WgslType.TextureStorage1d: {
                 return TextureDimension.OneDimension;
             }
+
             case WgslType.TextureDepth2d:
             case WgslType.Texture2d:
             case WgslType.TextureStorage2d:
             case WgslType.TextureDepthMultisampled2d:
-            case WgslType.TextureMultisampled2d: {
+            case WgslType.TextureMultisampled2d:
+            case WgslType.TextureExternal: {
                 return TextureDimension.TwoDimension;
             }
+
             case WgslType.TextureDepth2dArray:
             case WgslType.Texture2dArray:
             case WgslType.TextureStorage2dArray: {
                 return TextureDimension.TwoDimensionArray;
             }
+
             case WgslType.Texture3d:
             case WgslType.TextureStorage3d: {
                 return TextureDimension.ThreeDimension;
             }
+
             case WgslType.TextureCube:
             case WgslType.TextureDepthCube: {
                 return TextureDimension.Cube;
             }
+
             case WgslType.TextureCubeArray:
             case WgslType.TextureDepthCubeArray: {
                 return TextureDimension.CubeArray;
             }
+
             default: {
                 throw new Exception(`Texture type "${pTextureType}" not supported for any texture dimension.`, null);
             }
         }
     }
 }
+
+type ShaderValueCreationParameter = {
+    typeDefinition: ShaderType<WebGpuTypes>;
+    valueDefinition: ShaderValueDefinition<WebGpuTypes>;
+    bufferBindType: BufferBindType;
+    accessMode: AccessMode;
+    visibility: ComputeStage;
+    groupIndex: number | null;
+    memoryIndex: null | {
+        binding: number | null;
+        parameter: number | null;
+    };
+};

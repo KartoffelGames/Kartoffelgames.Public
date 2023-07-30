@@ -208,7 +208,7 @@ export abstract class ShaderInformation<TGpuTypes extends GpuTypes> extends GpuD
         const lShaderValues: Dictionary<string, ShaderValue<TGpuTypes>> = new Dictionary<string, ShaderValue<TGpuTypes>>();
         for (const lDefnition of pValueDefinitions) {
             const lShaderValue: ShaderValue<TGpuTypes> = this.valueFromDefinition(lDefnition);
-            lShaderValues.set(lShaderValue.name, lShaderValue);
+            lShaderValues.set(lShaderValue.value.name, lShaderValue);
         }
 
         return lShaderValues;
@@ -369,7 +369,6 @@ export type ShaderTypeDefinition = {
  */
 
 export type ShaderValue<TGpuTypes extends GpuTypes> = {
-    name: string,
     value: TGpuTypes['memoryLayout'];
     group: number | null;
 };

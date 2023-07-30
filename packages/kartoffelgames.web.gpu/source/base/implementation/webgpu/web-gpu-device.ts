@@ -1,10 +1,8 @@
 import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core.data';
 import { GpuDevice, GpuTypes } from '../../base/gpu/gpu-device';
-import { ArrayBufferMemoryLayoutParameter } from '../../base/memory_layout/buffer/array-buffer-memory-layout';
-import { LinearBufferMemoryLayoutParameter } from '../../base/memory_layout/buffer/linear-buffer-memory-layout';
-import { StructBufferMemoryLayoutParameter } from '../../base/memory_layout/buffer/struct-buffer-memory-layout';
-import { SamplerMemoryLayoutParameter } from '../../base/memory_layout/sampler-memory-layout';
-import { TextureMemoryLayoutParameter } from '../../base/memory_layout/texture-memory-layout';
+import { WebGpuBindGroup } from './bind_group/web-gpu-bind-group';
+import { WebGpuBindGroupLayout } from './bind_group/web-gpu-bind-group-layout';
+import { WebGpuPipelineLayout } from './bind_group/web-gpu-pipeline-layout';
 import { WebGpuBuffer } from './buffer/web-gpu-buffer';
 import { WebGpuArrayBufferMemoryLayout } from './memory_layout/buffer/web-gpu-array-buffer-memory-layout';
 import { WebGpuLinearBufferMemoryLayout } from './memory_layout/buffer/web-gpu-linear-buffer-memory-layout';
@@ -16,9 +14,8 @@ import { WebGpuFrameBufferTexture } from './texture/texture/web-gpu-frame-buffer
 import { WebGpuImageTexture } from './texture/texture/web-gpu-image-texture';
 import { WebGpuVideoTexture } from './texture/texture/web-gpu-video-texture';
 import { WebGpuTextureSampler } from './texture/web-gpu-texture-sampler';
-import { WebGpuBindGroupLayout } from './bind_group/web-gpu-bind-group-layout';
-import { WebGpuPipelineLayout } from './bind_group/web-gpu-pipeline-layout';
-import { WebGpuBindGroup } from './bind_group/web-gpu-bind-group';
+import { WebGpuShader } from './shader/web-gpu-shader';
+import { WebGpuShaderInformation } from './shader/web-gpu-shader-information';
 
 export class WebGpuDevice extends GpuDevice<WebGpuTypes> {
     private static readonly mAdapters: Dictionary<string, GPUAdapter> = new Dictionary<string, GPUAdapter>();
@@ -85,43 +82,25 @@ export class WebGpuDevice extends GpuDevice<WebGpuTypes> {
     }
 
     /**
-     * Create array buffer memory layout.
-     * @param pParameter - Memory layout parameter.
+     * Generate empty bind group layout.
      */
-    public arrayMemoryLayout(pParameter: ArrayBufferMemoryLayoutParameter<WebGpuTypes>): WebGpuTypes['arrayBufferMemoryLayout'] {
-        return new WebGpuArrayBufferMemoryLayout(this, pParameter);
+    public override bindGroupLayout(): WebGpuBindGroupLayout {
+        return new WebGpuBindGroupLayout(this);
     }
 
     /**
-     * Create array buffer memory layout.
-     * @param pParameter - Memory layout parameter.
+     * Generate empty pipeline layout.
      */
-    public linearMemoryLayout(pParameter: LinearBufferMemoryLayoutParameter): WebGpuTypes['linearBufferMemoryLayout'] {
-        return new WebGpuLinearBufferMemoryLayout(this, pParameter);
+    public override pipelineLayout(): WebGpuPipelineLayout {
+        return new WebGpuPipelineLayout(this);
     }
 
     /**
-     * Create sampler memory layout.
-     * @param pParameter - Memory layout parameter.
+     * Create shader.
+     * @param pSource - Shader source.
      */
-    public samplerMemoryLayout(pParameter: SamplerMemoryLayoutParameter): WebGpuTypes['samplerMemoryLayout'] {
-        return new WebGpuSamplerMemoryLayout(this, pParameter);
-    }
-
-    /**
-     * Create struct buffer memory layout.
-     * @param pParameter - Memory layout parameter.
-     */
-    public structMemoryLayout(pParameter: StructBufferMemoryLayoutParameter): WebGpuTypes['structBufferMemoryLayout'] {
-        return new WebGpuStructBufferMemoryLayout(this, pParameter);
-    }
-
-    /**
-     * Create texture memory layout.
-     * @param pParameter - Memory layout parameter.
-     */
-    public textureMemoryLayout(pParameter: TextureMemoryLayoutParameter): WebGpuTypes['textureMemoryLayout'] {
-        return new WebGpuTextureMemoryLayout(this, pParameter);
+    public override shader(pSource: string): WebGpuShader {
+        return new WebGpuShader(this, pSource);
     }
 }
 
@@ -151,4 +130,8 @@ export interface WebGpuTypes extends GpuTypes {
     bindGroupLayout: WebGpuBindGroupLayout;
     pipelineLayout: WebGpuPipelineLayout;
     bindGroup: WebGpuBindGroup;
+
+    // Shader.
+    shader: WebGpuShader;
+    shaderInformation: WebGpuShaderInformation;
 }

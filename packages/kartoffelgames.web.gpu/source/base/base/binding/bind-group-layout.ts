@@ -4,12 +4,21 @@ import { GpuObject } from '../gpu/gpu-object';
 
 export abstract class BindGroupLayout<TGpuTypes extends GpuTypes = GpuTypes, TNative = any> extends GpuObject<TGpuTypes, TNative> {
     private readonly mBindings: Dictionary<string, BindLayout<TGpuTypes>>;
+    private mIdentifier: string;
 
     /**
      * Get binding names.
      */
     public get bindingNames(): Array<string> {
         return [...this.mBindings.keys()];
+    }
+
+    /**
+     * Get bind group identifier.
+     * Same configured groups has the same identifier.
+     */
+    public get identifier(): string {
+        return this.mIdentifier;
     }
 
     /**
@@ -33,6 +42,26 @@ export abstract class BindGroupLayout<TGpuTypes extends GpuTypes = GpuTypes, TNa
 
         // Init storage.
         this.mBindings = new Dictionary<string, BindLayout<TGpuTypes>>();
+
+        // Update identifier.
+        this.mIdentifier = '';
+        this.addUpdateListener(() => {
+            let lIdentifier: string = '';
+            for (const lBind of this.mBindings.values()) {
+                // Simple chain of values.
+                lIdentifier += lBind.index;
+                lIdentifier += '-' + lBind.name;
+                lIdentifier += '-' + lBind.layout.accessMode;
+                lIdentifier += '-' + lBind.layout.bindingIndex;
+                lIdentifier += '-' + lBind.layout.memoryType;
+                lIdentifier += '-' + lBind.layout.name;
+                lIdentifier += '-' + lBind.layout.parameterIndex;
+                lIdentifier += '-' + lBind.layout.visibility;
+                lIdentifier += ';';
+            }
+
+            this.mIdentifier = lIdentifier;
+        });
     }
 
     /**
@@ -41,11 +70,15 @@ export abstract class BindGroupLayout<TGpuTypes extends GpuTypes = GpuTypes, TNa
      * @param pName - Binding name. For easy access only.
      * @param pIndex - Index of bind inside group.
      */
-    public addBinding(pLayout: TGpuTypes['memoryLayout'], pName: string, pIndex: number): void {
+    public addBinding(pLayout: TGpuTypes['memoryLayout'], pName: string): void {
+        if (pLayout.bindingIndex === null) {
+            throw new Exception(`Layout "${pLayout.name}" binding needs a binding index.`, this);
+        }
+
         // Set layout.
         this.mBindings.set(pName, {
             name: pName,
-            index: pIndex,
+            index: pLayout.bindingIndex,
             layout: pLayout
         });
 

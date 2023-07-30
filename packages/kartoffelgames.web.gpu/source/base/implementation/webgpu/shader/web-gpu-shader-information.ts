@@ -220,7 +220,7 @@ export class WebGpuShaderInformation extends ShaderInformation<WebGpuTypes> {
             ]
         });
 
-        // Matrix types. // TODO: Type alias.
+        // Matrix types.
         pAddType({
             name: WgslType.Matrix22, variants: [
                 { size: 16, align: 8, generic: [WgslType.Integer32] },

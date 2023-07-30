@@ -54,7 +54,7 @@ export class WebGpuBuffer<T extends TypedArray> extends Buffer<T, WebGpuTypes, G
      * @param pOffset - Data offset.
      * @param pSize - Data size.
      */
-    public async writeRaw(pData: T, pOffset?: number, pSize?: number): Promise<void> {
+    public async writeRaw(pData: ArrayLike<number>, pOffset?: number, pSize?: number): Promise<void> {
         // Create new buffer when no mapped buffer is available. 
         let lStagingBuffer: GPUBuffer;
         if (this.mReadyBufferList.length === 0) {

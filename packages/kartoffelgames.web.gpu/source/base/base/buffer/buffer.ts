@@ -54,7 +54,7 @@ export abstract class Buffer<TType extends TypedArray, TGpuTypes extends GpuType
      * @param pData - Data.
      * @param pLayoutPath - Layout path.
      */
-    public async write(pData: TType, pLayoutPath: Array<string>): Promise<void> {
+    public async write(pData: ArrayLike<number>, pLayoutPath: Array<string>): Promise<void> {
         const lLocation = this.mLayout.locationOf(pLayoutPath);
 
         // Skip new promise creation by returning original promise.
@@ -74,5 +74,5 @@ export abstract class Buffer<TType extends TypedArray, TGpuTypes extends GpuType
      * @param pOffset - Data offset.
      * @param pSize - Data size.
      */
-    public abstract writeRaw(pData: TType, pOffset?: number | undefined, pSize?: number | undefined): Promise<void>;
+    public abstract writeRaw(pData: ArrayLike<number>, pOffset?: number | undefined, pSize?: number | undefined): Promise<void>;
 }

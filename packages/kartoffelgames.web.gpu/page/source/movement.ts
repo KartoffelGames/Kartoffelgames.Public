@@ -92,7 +92,7 @@ export class Movement {
             }
 
             // Update transformation buffer.
-            this.mBuffer.write(new Float32Array(this.mCamera.getMatrix(CameraMatrix.ViewProjection).dataArray), this.mBufferPath);
+            this.mBuffer.write(this.mCamera.getMatrix(CameraMatrix.ViewProjection).dataArray, this.mBufferPath);
         }, 8);
     }
 }

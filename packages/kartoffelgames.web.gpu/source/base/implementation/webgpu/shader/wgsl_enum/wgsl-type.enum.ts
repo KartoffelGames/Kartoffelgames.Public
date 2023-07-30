@@ -58,14 +58,19 @@ export enum WgslType {
     SamplerComparison = 'sampler_comparison'
 }
 
-export const WgslBufferTypes = [
+export const WgslBufferLinearTypes = [
     WgslType.Boolean, WgslType.Integer32, WgslType.UnsignedInteger32,
     WgslType.Float32, WgslType.Float16, WgslType.Vector2,
     WgslType.Vector3, WgslType.Vector4, WgslType.Matrix22, WgslType.Matrix23,
     WgslType.Matrix24, WgslType.Matrix32, WgslType.Matrix33,
     WgslType.Matrix34, WgslType.Matrix42, WgslType.Matrix43,
-    WgslType.Matrix44, WgslType.Array,
-];
+    WgslType.Matrix44,
+] as const;
+export type WgslBufferLinearTypes = typeof WgslBufferLinearTypes[number];
+
+export const WgslBufferArrayTypes = [WgslType.Array] as const;
+export type WgslBufferArrayTypes = typeof WgslBufferArrayTypes[number];
+
 export const WgslTextureTypes = [
     WgslType.Texture1d, WgslType.Texture2d, WgslType.Texture2dArray,
     WgslType.Texture3d, WgslType.TextureCube, WgslType.TextureCubeArray,
@@ -74,5 +79,8 @@ export const WgslTextureTypes = [
     WgslType.TextureDepthCube, WgslType.TextureDepthCubeArray,
     WgslType.TextureDepthMultisampled2d, WgslType.TextureStorage1d,
     WgslType.TextureStorage2d, WgslType.TextureStorage2dArray, WgslType.TextureStorage3d
-];
-export const WgslSamplerTypes = [WgslType.Sampler, WgslType.SamplerComparison]; 
+] as const;
+export type WgslTextureTypes = typeof WgslTextureTypes[number];
+
+export const WgslSamplerTypes = [WgslType.Sampler, WgslType.SamplerComparison] as const;
+export type WgslSamplerTypes = typeof WgslSamplerTypes[number];

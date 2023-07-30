@@ -7,7 +7,7 @@ import { GpuTypes } from '../gpu/gpu-device';
 export abstract class MemoryLayout<TGpuTypes extends GpuTypes> extends GpuDependent<TGpuTypes> {
     private readonly mAccessMode: AccessMode;
     private readonly mBindingIndex: number | null;
-    private readonly mMemoryType: MemoryCopyType;
+    private mMemoryType: MemoryCopyType;
     private readonly mName: string;
     private readonly mParameterIndex: number | null;
     private readonly mVisibility: ComputeStage;
@@ -31,6 +31,8 @@ export abstract class MemoryLayout<TGpuTypes extends GpuTypes> extends GpuDepend
      */
     public get memoryType(): MemoryCopyType {
         return this.mMemoryType;
+    } set memoryType(pValue: MemoryCopyType) {
+        this.mMemoryType = pValue;
     }
 
     /**
@@ -64,7 +66,7 @@ export abstract class MemoryLayout<TGpuTypes extends GpuTypes> extends GpuDepend
         this.mAccessMode = pParameter.access;
         this.mName = pParameter.name;
         this.mVisibility = pParameter.visibility;
-        this.mMemoryType = pParameter.memoryType;
+        this.mMemoryType = MemoryCopyType.None;
 
         // Set optional memory indices.
         this.mBindingIndex = pParameter.memoryIndex?.binding ?? null;
@@ -79,6 +81,5 @@ export interface MemoryLayoutParameter {
         parameter: number | null;
     };
     name: string;
-    memoryType: MemoryCopyType;
     visibility: ComputeStage;
 }

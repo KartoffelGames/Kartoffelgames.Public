@@ -113,7 +113,7 @@ export class WebGpuBindGroupLayout extends BindGroupLayout<WebGpuTypes, GPUBindG
 
                         const lTextureLayout: Required<GPUTextureBindingLayout> = {
                             sampleType: lEntry.layout.sampleTypeFromLayout(),
-                            multisampled: lEntry.layout.multisampleLevel > 1,
+                            multisampled: lEntry.layout.multisampled,
                             viewDimension: lEntry.layout.dimension
                         };
                         lLayoutEntry.texture = lTextureLayout;

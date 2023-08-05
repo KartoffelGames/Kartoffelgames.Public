@@ -3,20 +3,9 @@ import { GpuDependent } from './gpu-dependent';
 import { GpuTypes } from './gpu-device';
 
 export abstract class GpuObject<TGpuTypes extends GpuTypes, TNative> extends GpuDependent<TGpuTypes> {
-    private mAutoUpdate: boolean;
     private mDestroyed: boolean;
     private mNativeObject: TNative | null;
-    private readonly mUpdateListenerList: Set<GpuObjectUpdateListener>;
     private mUpdateRequested: boolean;
-
-    /**
-     * Enable or disable auto update.
-     */
-    public get autoUpdate(): boolean {
-        return this.mAutoUpdate;
-    } set autoUpdate(pValue: boolean) {
-        this.mAutoUpdate = pValue;
-    }
 
     /**
      * Get native gpu object.
@@ -53,17 +42,7 @@ export abstract class GpuObject<TGpuTypes extends GpuTypes, TNative> extends Gpu
 
         this.mNativeObject = null;
         this.mUpdateRequested = true;
-        this.mAutoUpdate = true;
-        this.mUpdateListenerList = new Set<GpuObjectUpdateListener>();
         this.mDestroyed = false;
-    }
-
-    /**
-     * Add update listener.
-     * @param pListener - Listener.
-     */
-    public addUpdateListener(pListener: GpuObjectUpdateListener): void {
-        this.mUpdateListenerList.add(pListener);
     }
 
     /**
@@ -82,33 +61,13 @@ export abstract class GpuObject<TGpuTypes extends GpuTypes, TNative> extends Gpu
     }
 
     /**
-     * Add update listener.
-     * @param pListener - Listener.
-     */
-    public removeUpdateListener(pListener: GpuObjectUpdateListener): void {
-        this.mUpdateListenerList.delete(pListener);
-    }
-
-    /**
      * Update gpu object.
      */
-    public update(): void {
+    public override update(): void {
         this.mUpdateRequested = true;
 
-        // Call parent update listerner.
-        for (const lUpdateListener of this.mUpdateListenerList) {
-            lUpdateListener();
-        }
-    }
-
-    /**
-     * Trigger auto update.
-     * Does nothing on disabled auto update.
-     */
-    protected triggerAutoUpdate(): void {
-        if (this.mAutoUpdate) {
-            this.update();
-        }
+        // Call parent update method.
+        super.update();
     }
 
     /**
@@ -121,5 +80,3 @@ export abstract class GpuObject<TGpuTypes extends GpuTypes, TNative> extends Gpu
      */
     protected abstract generate(): TNative;
 }
-
-export type GpuObjectUpdateListener = () => void;

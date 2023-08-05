@@ -29,7 +29,7 @@ export class WebGpuCanvasTexture extends FrameBufferTexture<WebGpuTypes, GPUText
         // Get and configure context.
         this.mContext = <GPUCanvasContext><any>pCanvas.getContext('webgpu')!;
         this.mContext.configure({
-            device: this.device.gpuDeviceReference,
+            device: this.device.reference,
             format: pLayout.formatFromLayout(),
             usage: pLayout.usageFromLayout(),
             alphaMode: 'opaque'

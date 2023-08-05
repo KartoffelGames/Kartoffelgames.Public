@@ -80,7 +80,7 @@ export class WebGpuBindGroup extends BindGroup<WebGpuTypes, GPUBindGroup>{
             throw new Exception(`Bind type for "${lBindData}" not supported`, this);
         }
 
-        return this.device.gpuDeviceReference.createBindGroup({
+        return this.device.reference.createBindGroup({
             label: 'Bind-Group',
             layout: this.layout.native,
             entries: lEntryList

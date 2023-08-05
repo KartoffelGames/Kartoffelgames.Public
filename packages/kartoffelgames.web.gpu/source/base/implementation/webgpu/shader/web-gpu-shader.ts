@@ -25,6 +25,6 @@ export class WebGpuShader extends Shader<WebGpuTypes, GPUShaderModule>  {
      * Generate shader module.
      */
     protected generate(): GPUShaderModule {
-        return this.device.gpuDeviceReference.createShaderModule({ code: this.shaderInformation.source });
+        return this.device.reference.createShaderModule({ code: this.shaderInformation.source });
     }
 }

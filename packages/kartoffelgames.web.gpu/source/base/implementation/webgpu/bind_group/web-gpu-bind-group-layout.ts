@@ -144,7 +144,7 @@ export class WebGpuBindGroupLayout extends BindGroupLayout<WebGpuTypes, GPUBindG
         }
 
         // Create binding group layout.
-        return this.device.gpuDeviceReference.createBindGroupLayout({
+        return this.device.reference.createBindGroupLayout({
             label: 'Bind-Group-Layout',
             entries: lEntryList
         });

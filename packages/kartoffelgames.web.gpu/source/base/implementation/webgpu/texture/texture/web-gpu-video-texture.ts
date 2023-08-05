@@ -61,7 +61,7 @@ export class WebGpuVideoTexture extends VideoTexture<WebGpuTypes, GPUExternalTex
      * Generate native element.
      */
     protected override generate(): GPUExternalTexture {
-        return this.device.gpuDeviceReference.importExternalTexture({
+        return this.device.reference.importExternalTexture({
             label: 'External-Texture',
             source: this.mVideo,
             colorSpace: 'srgb'

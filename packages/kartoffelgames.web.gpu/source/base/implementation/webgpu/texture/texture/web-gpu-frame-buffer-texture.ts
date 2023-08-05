@@ -30,7 +30,7 @@ export class WebGpuFrameBufferTexture extends FrameBufferTexture<WebGpuTypes, GP
      */
     protected override generate(): GPUTextureView {
         // Create texture with set size, format and usage. Save it for destorying later.
-        this.mInternalTexture = this.device.gpuDeviceReference.createTexture({
+        this.mInternalTexture = this.device.reference.createTexture({
             label: 'Frame-Buffer-Texture',
             size: [this.width, this.height, this.depth],
             format: this.memoryLayout.formatFromLayout(),

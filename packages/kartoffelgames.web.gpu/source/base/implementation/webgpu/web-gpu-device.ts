@@ -25,21 +25,21 @@ export class WebGpuDevice extends GpuDevice<WebGpuTypes> {
     private mGpuDevice: GPUDevice | null;
 
     /**
-     * GPU adapter.
-     */
-    public get adapter(): GPUAdapter {
-        if (this.mGpuAdapter === null) {
-            throw new Exception('Web GPU device not initialized.', this);
-        }
-
-        return this.mGpuAdapter;
-    }
-
-    /**
      * Preferred texture format.
      */
     public get preferredFormat(): GPUTextureFormat {
         return window.navigator.gpu.getPreferredCanvasFormat();
+    }
+
+    /**
+     * GPU device.
+     */
+    public get reference(): GPUDevice {
+        if (this.mGpuDevice === null) {
+            throw new Exception('Web GPU device not initialized.', this);
+        }
+
+        return this.mGpuDevice;
     }
 
     /**

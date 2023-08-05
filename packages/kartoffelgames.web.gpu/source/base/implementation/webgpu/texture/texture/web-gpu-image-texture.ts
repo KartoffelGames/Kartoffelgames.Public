@@ -29,7 +29,7 @@ export class WebGpuImageTexture extends ImageTexture<WebGpuTypes, GPUTextureView
      */
     protected override generate(): GPUTextureView {
         // Create texture with set size, format and usage. Save it for destorying later.
-        this.mInternalTexture = this.device.gpuDeviceReference.createTexture({
+        this.mInternalTexture = this.device.reference.createTexture({
             label: 'Frame-Buffer-Texture',
             size: [this.width, this.height, this.depth],
             format: this.memoryLayout.formatFromLayout(),
@@ -42,7 +42,7 @@ export class WebGpuImageTexture extends ImageTexture<WebGpuTypes, GPUTextureView
             const lBitmap: ImageBitmap = this.images[lImageIndex];
 
             // Copy image into depth layer.
-            this.device.gpuDeviceReference.queue.copyExternalImageToTexture(
+            this.device.reference.queue.copyExternalImageToTexture(
                 { source: lBitmap },
                 { texture: this.mInternalTexture, origin: [0, 0, lImageIndex] },
                 [lBitmap.width, lBitmap.height]

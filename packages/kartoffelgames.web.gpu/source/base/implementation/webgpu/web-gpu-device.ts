@@ -21,45 +21,18 @@ export class WebGpuDevice extends GpuDevice<WebGpuTypes> {
     private static readonly mAdapters: Dictionary<string, GPUAdapter> = new Dictionary<string, GPUAdapter>();
     private static readonly mDevices: Dictionary<GPUAdapter, GPUDevice> = new Dictionary<GPUAdapter, GPUDevice>();
 
-    /**
-     * Create GPU device.
-     * @param pMode - Prefered device mode.
-     */
-    public static async create(pMode: GPUPowerPreference): Promise<WebGpuDevice> {
-        // Try to load cached adapter. When not cached, request new one.
-        const lAdapter: GPUAdapter | null = WebGpuDevice.mAdapters.get(pMode) ?? await window.navigator.gpu.requestAdapter({ powerPreference: pMode });
-        if (!lAdapter) {
-            throw new Exception('Error requesting GPU adapter', WebGpuDevice);
-        }
-
-        WebGpuDevice.mAdapters.set(pMode, lAdapter);
-
-        // Try to load cached device. When not cached, request new one.
-        const lDevice: GPUDevice | null = WebGpuDevice.mDevices.get(lAdapter) ?? await lAdapter.requestDevice();
-        if (!lDevice) {
-            throw new Exception('Error requesting GPU device', WebGpuDevice);
-        }
-
-        WebGpuDevice.mDevices.set(lAdapter, lDevice);
-
-        return new WebGpuDevice(lAdapter, lDevice);
-    }
-
-    private readonly mGpuAdapter: GPUAdapter;
-    private readonly mGpuDevice: GPUDevice;
+    private mGpuAdapter: GPUAdapter | null;
+    private mGpuDevice: GPUDevice | null;
 
     /**
      * GPU adapter.
      */
     public get adapter(): GPUAdapter {
-        return this.mGpuAdapter;
-    }
+        if (this.mGpuAdapter === null) {
+            throw new Exception('Web GPU device not initialized.', this);
+        }
 
-    /**
-     * GPU device.
-     */
-    public get gpuDeviceReference(): GPUDevice {
-        return this.mGpuDevice;
+        return this.mGpuAdapter;
     }
 
     /**
@@ -71,14 +44,12 @@ export class WebGpuDevice extends GpuDevice<WebGpuTypes> {
 
     /**
      * Constructor.
-     * @param pGpuAdapter - Gpu adapter. 
-     * @param pGpuDevice - Gpu device.
      */
-    private constructor(pGpuAdapter: GPUAdapter, pGpuDevice: GPUDevice) {
+    private constructor() {
         super();
 
-        this.mGpuAdapter = pGpuAdapter;
-        this.mGpuDevice = pGpuDevice;
+        this.mGpuAdapter = null;
+        this.mGpuDevice = null;
     }
 
     /**
@@ -86,6 +57,34 @@ export class WebGpuDevice extends GpuDevice<WebGpuTypes> {
      */
     public override bindGroupLayout(): WebGpuBindGroupLayout {
         return new WebGpuBindGroupLayout(this);
+    }
+
+    /**
+     * Init devices.
+     */
+    public async init(): Promise<this> {
+        const lPerformance: GPUPowerPreference = 'high-performance';
+
+        // Try to load cached adapter. When not cached, request new one.
+        const lAdapter: GPUAdapter | null = WebGpuDevice.mAdapters.get(lPerformance) ?? await window.navigator.gpu.requestAdapter({ powerPreference: lPerformance });
+        if (!lAdapter) {
+            throw new Exception('Error requesting GPU adapter', WebGpuDevice);
+        }
+
+        WebGpuDevice.mAdapters.set(lPerformance, lAdapter);
+
+        // Try to load cached device. When not cached, request new one.
+        const lDevice: GPUDevice | null = WebGpuDevice.mDevices.get(lAdapter) ?? await lAdapter.requestDevice();
+        if (!lDevice) {
+            throw new Exception('Error requesting GPU device', WebGpuDevice);
+        }
+
+        WebGpuDevice.mDevices.set(lAdapter, lDevice);
+
+        this.mGpuAdapter = lAdapter;
+        this.mGpuDevice = lDevice;
+
+        return this;
     }
 
     /**

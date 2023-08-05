@@ -1,7 +1,3 @@
-import { Dictionary } from '@kartoffelgames/core.data';
-import { BaseInputDevice, DeviceConfiguration, InputConfiguration, InputDevices, KeyboardButton, MouseButton, MouseKeyboardConnector } from '@kartoffelgames/web.game-input';
-import { RingBuffer } from '../../source/abstraction_layer/webgpu/buffer/ring-buffer';
-import { SimpleBuffer } from '../../source/abstraction_layer/webgpu/buffer/simple-buffer';
 import { InstructionExecuter } from '../../source/abstraction_layer/webgpu/execution/instruction-executer';
 import { RenderInstruction } from '../../source/abstraction_layer/webgpu/execution/instruction/render-instruction';
 import { RenderInstructionSet } from '../../source/abstraction_layer/webgpu/execution/instruction_set/render-instruction-set';
@@ -20,8 +16,8 @@ import { Transform, TransformMatrix } from '../../source/something_better/transf
 import { OrthographicProjection } from '../../source/something_better/view_projection/projection/orthographic -projection';
 import { PerspectiveProjection } from '../../source/something_better/view_projection/projection/perspective-projection';
 import { CameraMatrix, ViewProjection } from '../../source/something_better/view_projection/view-projection';
-import shader from './shader.wgsl';
 import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVertexUvData } from './cube/cube';
+import shader from './shader.wgsl';
 
 const gHeight: number = 10;
 const gWidth: number = 10;
@@ -105,62 +101,6 @@ const gDepth: number = 10;
     }
     const lCubeInstanceTransformationBuffer = new SimpleBuffer(lGpu, GPUBufferUsage.STORAGE, new Float32Array(lCubeInstanceTransformationData));
 
-    // Transformation buffer.
-    const lUpdaterFunctions: Array<() => void> = new Array<() => void>();
-    const lRegisterObjectHandler = (pId: string, pSet: (pTransform: Transform, pData: number) => void, pGet: (pTransform: Transform) => number) => {
-        const lSlider: HTMLInputElement = <HTMLInputElement>document.getElementById(pId);
-        const lInput: HTMLInputElement = <HTMLInputElement>document.getElementById(pId + 'Display');
-
-        const lUpdater = () => {
-            lInput.value = <any>pGet(lCubeTransform);
-        };
-        lUpdaterFunctions.push(lUpdater);
-        lUpdater();
-
-        let lCurrentData: number = 0;
-
-        const lSetData = (pStringData: string) => {
-            const lNumberData: number = parseFloat(pStringData) || 1;
-            lCurrentData += lNumberData;
-
-            pSet(lCubeTransform, lCurrentData);
-
-            // Reset slider.
-            lSlider.value = <any>0;
-
-            // Set real data.
-            for (const lUpdater of lUpdaterFunctions) {
-                lUpdater();
-            }
-
-            // Update transformation buffer.
-            lCubeTransformationBuffer.write(async (pBuffer) => { pBuffer.set(lCubeTransform.getMatrix(TransformMatrix.Transformation).dataArray); });
-        };
-
-        lSlider.addEventListener('input', (pEvent) => { lSetData((<any>pEvent.target).value); });
-        lInput.addEventListener('input', (pEvent) => { lSetData((<any>pEvent.target).value); });
-    };
-
-    // Scale handler.
-    lRegisterObjectHandler('scaleWidth', (pTransform: Transform, pData) => { pTransform.setScale(pData, null, null); }, (pTransform: Transform) => { return pTransform.scaleWidth; });
-    lRegisterObjectHandler('scaleHeight', (pTransform: Transform, pData) => { pTransform.setScale(null, pData, null); }, (pTransform: Transform) => { return pTransform.scaleHeight; });
-    lRegisterObjectHandler('scaleDepth', (pTransform: Transform, pData) => { pTransform.setScale(null, null, pData); }, (pTransform: Transform) => { return pTransform.scaleDepth; });
-
-    // Translate.
-    lRegisterObjectHandler('translateX', (pTransform: Transform, pData) => { pTransform.setTranslation(pData, null, null); }, (pTransform: Transform) => { return pTransform.translationX; });
-    lRegisterObjectHandler('translateY', (pTransform: Transform, pData) => { pTransform.setTranslation(null, pData, null); }, (pTransform: Transform) => { return pTransform.translationY; });
-    lRegisterObjectHandler('translateZ', (pTransform: Transform, pData) => { pTransform.setTranslation(null, null, pData); }, (pTransform: Transform) => { return pTransform.translationZ; });
-
-    // Rotate.
-    lRegisterObjectHandler('rotatePitch', (pTransform: Transform, pData) => { pTransform.setRotation(pData, null, null); }, (pTransform: Transform) => { return pTransform.rotationPitch; });
-    lRegisterObjectHandler('rotateYaw', (pTransform: Transform, pData) => { pTransform.setRotation(null, pData, null); }, (pTransform: Transform) => { return pTransform.rotationYaw; });
-    lRegisterObjectHandler('rotateRoll', (pTransform: Transform, pData) => { pTransform.setRotation(null, null, pData); }, (pTransform: Transform) => { return pTransform.rotationRoll; });
-
-    // Translate.
-    lRegisterObjectHandler('pivotX', (pTransform: Transform, pData) => { pTransform.pivotX = pData; }, (pTransform: Transform) => { return pTransform.pivotX; });
-    lRegisterObjectHandler('pivotY', (pTransform: Transform, pData) => { pTransform.pivotY = pData; }, (pTransform: Transform) => { return pTransform.pivotY; });
-    lRegisterObjectHandler('pivotZ', (pTransform: Transform, pData) => { pTransform.pivotZ = pData; }, (pTransform: Transform) => { return pTransform.pivotZ; });
-
     // Transformation.
     const lPerspectiveProjection: PerspectiveProjection = new PerspectiveProjection();
     lPerspectiveProjection.aspectRatio = lAttachments.width / lAttachments.height;
@@ -179,113 +119,6 @@ const gDepth: number = 10;
 
     // Transformation buffer.
     const lCameraBuffer = new SimpleBuffer(lGpu, GPUBufferUsage.UNIFORM, new Float32Array(lCamera.getMatrix(CameraMatrix.ViewProjection).dataArray));
-    const lRegisterCameraHandler = (pId: string, pSet: (pData: number) => void, pGet: () => number) => {
-        const lSlider: HTMLInputElement = <HTMLInputElement>document.getElementById(pId);
-        const lInput: HTMLInputElement = <HTMLInputElement>document.getElementById(pId + 'Display');
-
-        const lUpdater = () => {
-            lInput.value = <any>pGet();
-        };
-        lUpdaterFunctions.push(lUpdater);
-        lUpdater();
-
-        const lSetData = (pData: any) => {
-            pSet(parseFloat(pData) || 1);
-
-            // Reset slider.
-            lSlider.value = <any>0;
-
-            // Set real data.
-            for (const lUpdater of lUpdaterFunctions) {
-                lUpdater();
-            }
-
-            // Update transformation buffer.
-            lCameraBuffer.write(async (pBuffer) => { pBuffer.set(lCamera.getMatrix(CameraMatrix.ViewProjection).dataArray); });
-        };
-
-        lSlider.addEventListener('input', (pEvent) => { lSetData((<any>pEvent.target).value); });
-        lInput.addEventListener('input', (pEvent) => { lSetData((<any>pEvent.target).value); });
-    };
-    // Translate.
-    lRegisterCameraHandler('cameraPivotX', (pData) => { lCamera.transformation.pivotX = pData; }, () => { return lCamera.transformation.pivotX; });
-    lRegisterCameraHandler('cameraPivotY', (pData) => { lCamera.transformation.pivotY = pData; }, () => { return lCamera.transformation.pivotY; });
-    lRegisterCameraHandler('cameraPivotZ', (pData) => { lCamera.transformation.pivotZ = pData; }, () => { return lCamera.transformation.pivotZ; });
-
-    // Camera.
-    lRegisterCameraHandler('cameraNear', (pData) => { lPerspectiveProjection.near = pData; }, () => { return lPerspectiveProjection.near; });
-    lRegisterCameraHandler('cameraFar', (pData) => { lPerspectiveProjection.far = pData; }, () => { return lPerspectiveProjection.far; });
-    lRegisterCameraHandler('cameraAngleOfView', (pData) => { lPerspectiveProjection.angleOfView = pData; }, () => { return lPerspectiveProjection.angleOfView; });
-
-    // Register keyboard mouse movements.
-    const lDefaultConfiguaration: DeviceConfiguration = new DeviceConfiguration();
-    lDefaultConfiguaration.addAction('Forward', [KeyboardButton.KeyW]);
-    lDefaultConfiguaration.addAction('Back', [KeyboardButton.KeyS]);
-    lDefaultConfiguaration.addAction('Left', [KeyboardButton.KeyA]);
-    lDefaultConfiguaration.addAction('Right', [KeyboardButton.KeyD]);
-    lDefaultConfiguaration.addAction('Up', [KeyboardButton.ShiftLeft]);
-    lDefaultConfiguaration.addAction('Down', [KeyboardButton.ControlLeft]);
-    lDefaultConfiguaration.addAction('RotateLeft', [KeyboardButton.KeyQ]);
-    lDefaultConfiguaration.addAction('RotateRight', [KeyboardButton.KeyE]);
-    lDefaultConfiguaration.addAction('Yaw', [MouseButton.Xaxis]);
-    lDefaultConfiguaration.addAction('Pitch', [MouseButton.Yaxis]);
-    lDefaultConfiguaration.triggerTolerance = 0.2;
-    const lInputConfiguration: InputConfiguration = new InputConfiguration(lDefaultConfiguaration);
-    const lInputDevices: InputDevices = new InputDevices(lInputConfiguration);
-    lInputDevices.registerConnector(new MouseKeyboardConnector());
-
-    const lCurrentActionValue: Dictionary<string, number> = new Dictionary<string, number>();
-    const lKeyboard: BaseInputDevice = lInputDevices.devices[0];
-    lKeyboard.addEventListener('actionstatechange', (pEvent) => {
-        lCurrentActionValue.set(pEvent.action, pEvent.state);
-    });
-    window.setInterval(() => {
-        const lSpeed = 1;
-
-        // Z Axis
-        if (lCurrentActionValue.get('Forward')! > 0) {
-            lCamera.transformation.translateInDirection((lCurrentActionValue.get('Forward')! / 50) * lSpeed, 0, 0);
-        }
-        if (lCurrentActionValue.get('Back')! > 0) {
-            lCamera.transformation.translateInDirection(-(lCurrentActionValue.get('Back')! / 50) * lSpeed, 0, 0);
-        }
-
-        // X Axis
-        if (lCurrentActionValue.get('Right')! > 0) {
-            lCamera.transformation.translateInDirection(0, (lCurrentActionValue.get('Right')! / 50) * lSpeed, 0);
-        }
-        if (lCurrentActionValue.get('Left')! > 0) {
-            lCamera.transformation.translateInDirection(0, -(lCurrentActionValue.get('Left')! / 50) * lSpeed, 0);
-        }
-
-        // Y Axis
-        if (lCurrentActionValue.get('Up')! > 0) {
-            lCamera.transformation.translateInDirection(0, 0, (lCurrentActionValue.get('Up')! / 50) * lSpeed);
-        }
-        if (lCurrentActionValue.get('Down')! > 0) {
-            lCamera.transformation.translateInDirection(0, 0, -(lCurrentActionValue.get('Down')! / 50) * lSpeed);
-        }
-
-        // Rotation.
-        if (lCurrentActionValue.get('Yaw')! > 0 || lCurrentActionValue.get('Yaw')! < 0) {
-            lCamera.transformation.addEulerRotation(0, lCurrentActionValue.get('Yaw')! * lSpeed, 0);
-        }
-        if (lCurrentActionValue.get('Pitch')! > 0 || lCurrentActionValue.get('Pitch')! < 0) {
-            lCamera.transformation.addEulerRotation(lCurrentActionValue.get('Pitch')! * lSpeed, 0, 0);
-        }
-        if (lCurrentActionValue.get('RotateLeft')! > 0) {
-            lCamera.transformation.addEulerRotation(0, 0, lCurrentActionValue.get('RotateLeft')! * lSpeed);
-        }
-        if (lCurrentActionValue.get('RotateRight')! > 0) {
-            lCamera.transformation.addEulerRotation(0, 0, -lCurrentActionValue.get('RotateRight')! * lSpeed);
-        }
-
-        // Update transformation buffer.
-        lCameraBuffer.write(async (pBuffer) => { pBuffer.set(lCamera.getMatrix(CameraMatrix.ViewProjection).dataArray); });
-    }, 8);
-    lCanvas.addEventListener('click', () => {
-        lCanvas.requestPointerLock();
-    });
 
     // Setup Texture.
     const lCubeTexture: WebGpuTexture = new WebGpuTexture(lGpu, lGpu.preferredFormat, WebGpuTextureUsage.TextureBinding | WebGpuTextureUsage.RenderAttachment | WebGpuTextureUsage.CopyDestination);

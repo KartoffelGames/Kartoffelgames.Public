@@ -22,6 +22,11 @@ export abstract class GpuDevice<TGpuTypes extends GpuTypes = GpuTypes> {
     public abstract bindGroupLayout(): TGpuTypes['bindGroupLayout'];
 
     /**
+     * Init gpu device.
+     */
+    public abstract init(): Promise<this>;
+
+    /**
      * Generate empty pipeline layout.
      */
     public abstract pipelineLayout(): TGpuTypes['pipelineLayout'];
@@ -31,7 +36,6 @@ export abstract class GpuDevice<TGpuTypes extends GpuTypes = GpuTypes> {
      * @param pSource - Shader source.
      */
     public abstract shader(pSource: string): TGpuTypes['shader'];
-
 }
 
 export interface GpuTypes {

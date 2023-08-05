@@ -34,7 +34,8 @@ export abstract class MemoryLayout<TGpuTypes extends GpuTypes> extends GpuDepend
     } set memoryType(pValue: MemoryCopyType) {
         this.mMemoryType = pValue;
 
-        // TODO: Request update.
+        // Request update.
+        this.triggerAutoUpdate();
     }
 
     /**

@@ -48,7 +48,8 @@ export abstract class TextureMemoryLayout<TGpuTypes extends GpuTypes = GpuTypes>
     } set usage(pValue: TextureUsage) {
         this.mUsage = pValue;
 
-        // TODO: Request update.
+        // Request update.
+        this.triggerAutoUpdate();
     }
 
     /**

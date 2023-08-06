@@ -14,6 +14,7 @@ import { FrameBufferTexture } from '../texture/frame-buffer-texture';
 import { ImageTexture } from '../texture/image-texture';
 import { TextureSampler } from '../texture/texture-sampler';
 import { VideoTexture } from '../texture/video-texture';
+import { RenderTargets } from '../pipeline/render-targets';
 
 export abstract class GpuDevice<TGpuTypes extends GpuTypes = GpuTypes> {
     /**
@@ -30,6 +31,14 @@ export abstract class GpuDevice<TGpuTypes extends GpuTypes = GpuTypes> {
      * Generate empty pipeline layout.
      */
     public abstract pipelineLayout(): TGpuTypes['pipelineLayout'];
+
+    /**
+     * Create render target group.
+     * @param pWidth - Render target width.
+     * @param pHeight - Render target height.
+     * @param pMultisampleLevel - Multisample level of targets.
+     */
+    public abstract renderTargets(pWidth: number, pHeight: number, pMultisampleLevel?: number): TGpuTypes['renderTargets'];
 
     /**
      * Create shader.
@@ -73,4 +82,7 @@ export interface GpuTypes {
     // Shader.
     shader: Shader;
     shaderInformation: ShaderInformation;
+
+    // Pipeline resources.
+    renderTargets: RenderTargets;
 }

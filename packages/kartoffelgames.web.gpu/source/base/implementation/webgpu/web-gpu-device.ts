@@ -16,6 +16,7 @@ import { WebGpuVideoTexture } from './texture/texture/web-gpu-video-texture';
 import { WebGpuTextureSampler } from './texture/web-gpu-texture-sampler';
 import { WebGpuShader } from './shader/web-gpu-shader';
 import { WebGpuShaderInformation } from './shader/web-gpu-shader-information';
+import { WebGpuRenderTargets } from './pipeline/web-gpu-render-targets';
 
 export class WebGpuDevice extends GpuDevice<WebGpuTypes> {
     private static readonly mAdapters: Dictionary<string, GPUAdapter> = new Dictionary<string, GPUAdapter>();
@@ -45,7 +46,7 @@ export class WebGpuDevice extends GpuDevice<WebGpuTypes> {
     /**
      * Constructor.
      */
-    private constructor() {
+    public constructor() {
         super();
 
         this.mGpuAdapter = null;
@@ -95,6 +96,16 @@ export class WebGpuDevice extends GpuDevice<WebGpuTypes> {
     }
 
     /**
+     * Create render target group.
+     * @param pWidth - Render target width.
+     * @param pHeight - Render target height.
+     * @param pMultisampleLevel - Multisample level of targets.
+     */
+    public override renderTargets(pWidth: number, pHeight: number, pMultisampleLevel: number = 1): WebGpuRenderTargets {
+        return new WebGpuRenderTargets(this, pWidth, pHeight, pMultisampleLevel);
+    }
+
+    /**
      * Create shader.
      * @param pSource - Shader source.
      */
@@ -133,4 +144,7 @@ export interface WebGpuTypes extends GpuTypes {
     // Shader.
     shader: WebGpuShader;
     shaderInformation: WebGpuShaderInformation;
+
+    // Pipeline resources.
+    renderTargets: WebGpuRenderTargets;
 }

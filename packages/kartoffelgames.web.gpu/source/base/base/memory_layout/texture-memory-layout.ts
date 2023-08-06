@@ -41,7 +41,7 @@ export abstract class TextureMemoryLayout<TGpuTypes extends GpuTypes = GpuTypes>
     }
 
     /**
-     * Texture usage.
+     * Texture usage. // TODO: Move into creation.
      */
     public get usage(): TextureUsage {
         return this.mUsage;

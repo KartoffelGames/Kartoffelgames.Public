@@ -37,7 +37,10 @@ export abstract class Buffer<TType extends TypedArray, TGpuTypes extends GpuType
         this.mLayout = pLayout;
         this.mInitialData = pInitialData;
 
-        // TODO: Register change listener for layout dependency.
+        // Register change listener for layout changes.
+        pLayout.addUpdateListener(() => {
+            this.triggerAutoUpdate();
+        });
     }
 
     /**

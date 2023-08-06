@@ -31,7 +31,10 @@ export abstract class PipelineLayout<TGpuTypes extends GpuTypes = GpuTypes, TNat
     public addGroup(pIndex: number, pLayout: TGpuTypes['bindGroupLayout']): void {
         this.mBindGroups.add(pIndex, pLayout);
 
-        // TODO: Register change listener for dependency.
+        // Register change listener for layout changes.
+        pLayout.addUpdateListener(() => {
+            this.triggerAutoUpdate();
+        });
 
         // Trigger auto update.
         this.triggerAutoUpdate();

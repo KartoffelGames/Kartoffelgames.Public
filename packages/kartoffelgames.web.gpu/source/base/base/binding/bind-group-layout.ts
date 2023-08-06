@@ -82,7 +82,10 @@ export abstract class BindGroupLayout<TGpuTypes extends GpuTypes = GpuTypes, TNa
             layout: pLayout
         });
 
-        // TODO: Register change listener for dependency.
+        // Register change listener for layout changes.
+        pLayout.addUpdateListener(() => {
+            this.triggerAutoUpdate();
+        });
 
         // Trigger next auto update.
         this.triggerAutoUpdate();
@@ -98,18 +101,6 @@ export abstract class BindGroupLayout<TGpuTypes extends GpuTypes = GpuTypes, TNa
         }
 
         return this.mBindings.get(pName)!;
-    }
-
-    /** 
-     * Remove bind.
-     */
-    public removeBind(pName: string): void {
-        if (this.mBindings.delete(pName)) {
-            // TODO: Unregister change listener for dependency.
-
-            // Request object update.
-            this.triggerAutoUpdate();
-        }
     }
 }
 

@@ -138,6 +138,9 @@ export abstract class TextureSampler<TGpuTypes extends GpuTypes = GpuTypes, TNat
         this.mLodMaxClamp = 32;
         this.mMaxAnisotropy = 1;
 
-        // TODO: Register change listener for layout dependency.
+        // Register change listener for layout changes.
+        pLayout.addUpdateListener(() => {
+            this.triggerAutoUpdate();
+        });
     }
 }

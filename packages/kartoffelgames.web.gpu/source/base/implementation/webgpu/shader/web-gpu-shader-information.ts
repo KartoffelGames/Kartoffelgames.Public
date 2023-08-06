@@ -56,7 +56,6 @@ export class WebGpuShaderInformation extends ShaderInformation<WebGpuTypes> {
             // Cut source code after function head match. Head includes first bracket.
             const lFunctionBodyStart: string = pSourceCode.slice(lFunctionMatch.index! + lFunctionMatch[0].length);
 
-
             const lBracketRegex: RegExp = /(?:".*?"|'.*?'|\/\*.*?\*\/|\/\/.*?$)|(?<bracket>{|})/gms;
 
             // Read function body. Match opening and closing brackets. Count layers and find exit bracket. 
@@ -344,7 +343,10 @@ export class WebGpuShaderInformation extends ShaderInformation<WebGpuTypes> {
         pAddType({ name: WgslType.Pointer, variants: [{ size: -1, align: -1, generic: ['*', '*', '*'] }] });
     }
 
-
+    /**
+     * Create shader value from definition.
+     * @param pValueDefinition - Shader value definition.
+     */
     protected override valueFromDefinition(pValueDefinition: ShaderValueDefinition<WebGpuTypes>): ShaderValue<WebGpuTypes> {
         const lDefinitionType: ShaderType<WebGpuTypes> = this.typeFor(pValueDefinition.name, pValueDefinition.typeGenerics);
 

@@ -23,7 +23,10 @@ export abstract class BindGroup<TGpuTypes extends GpuTypes = GpuTypes, TNative =
         this.mLayout = pBindGroupLayout;
         this.mBindData = new Dictionary<string, TGpuTypes['bindData']>();
 
-        // TODO: Register change listener for dependency.
+        // Register change listener for layout changes.
+        pBindGroupLayout.addUpdateListener(() => {
+            this.triggerAutoUpdate();
+        });
     }
 
     /**

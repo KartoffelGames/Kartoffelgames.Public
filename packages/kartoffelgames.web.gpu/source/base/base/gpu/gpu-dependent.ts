@@ -17,7 +17,7 @@ export class GpuDependent<TGpuTypes extends GpuTypes> {
     /**
      * Gpu Device.
      */
-    public get device(): TGpuTypes['gpuDevice'] {
+    protected get device(): TGpuTypes['gpuDevice'] {
         return this.mDevice;
     }
 

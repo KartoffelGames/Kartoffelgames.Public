@@ -2,11 +2,11 @@ import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { GpuDependent } from '../gpu/gpu-dependent';
 import { GpuTypes } from '../gpu/gpu-device';
 
-export abstract class RenderTargets<TGpuTypes extends GpuTypes> extends GpuDependent<TGpuTypes> {
+export abstract class RenderTargets<TGpuTypes extends GpuTypes = GpuTypes> extends GpuDependent<TGpuTypes> {
+    private readonly mCanvas: Dictionary<string, HTMLCanvasElement>;
     private readonly mMultiSampleLevel: number;
     private readonly mSize: TextureDimension;
     private readonly mTargetTextures: Dictionary<string, TGpuTypes['frameBufferTexture']>;
-    private readonly mCanvas: Dictionary<string, HTMLCanvasElement>;
 
     /**
      * Render target height.
@@ -46,24 +46,6 @@ export abstract class RenderTargets<TGpuTypes extends GpuTypes> extends GpuDepen
     }
 
     /**
-     * Create frame buffer render target.
-     * @param pName - Frame buffer name.
-     * @param pMemoryLayout - Frame buffer memory layout.
-     */
-    public addFrameBuffer(pName: string, pMemoryLayout: TGpuTypes['textureMemoryLayout']): void {
-        // Validate existing textures.
-        if (this.mTargetTextures.has(pName)) {
-            throw new Exception(`Texture "${pName}" already exists.`, this);
-        }
-
-        // Create new texture and assign multisample level.
-        const lTexture: TGpuTypes['frameBufferTexture'] = pMemoryLayout.create(this.mSize.height, this.mSize.width, 1);
-        lTexture.multiSampleLevel = this.mMultiSampleLevel;
-
-        this.mTargetTextures.set(pName, lTexture);
-    }
-
-    /**
      * Create frame buffer from canvas.
      * @param pName - Canvas name.
      * @param pMemoryLayout - Canvas texture memory layout.
@@ -90,10 +72,28 @@ export abstract class RenderTargets<TGpuTypes extends GpuTypes> extends GpuDepen
     }
 
     /**
+     * Create frame buffer render target.
+     * @param pName - Frame buffer name.
+     * @param pMemoryLayout - Frame buffer memory layout.
+     */
+    public addFrameBuffer(pName: string, pMemoryLayout: TGpuTypes['textureMemoryLayout']): void {
+        // Validate existing textures.
+        if (this.mTargetTextures.has(pName)) {
+            throw new Exception(`Texture "${pName}" already exists.`, this);
+        }
+
+        // Create new texture and assign multisample level.
+        const lTexture: TGpuTypes['frameBufferTexture'] = pMemoryLayout.create(this.mSize.height, this.mSize.width, 1);
+        lTexture.multiSampleLevel = this.mMultiSampleLevel;
+
+        this.mTargetTextures.set(pName, lTexture);
+    }
+
+    /**
      * Get canvas of texture.
      * @param pName - Canvas name.
      */
-    public getCanvas(pName: string): HTMLCanvasElement {
+    public getCanvasOf(pName: string): HTMLCanvasElement {
         // Validate existing canvas.
         if (this.mCanvas.has(pName)) {
             throw new Exception(`Canvas "${pName}" not found.`, this);
@@ -106,7 +106,7 @@ export abstract class RenderTargets<TGpuTypes extends GpuTypes> extends GpuDepen
      * Get texture.
      * @param pName - texture name.
      */
-    public getTargetTexture(pName: string): TGpuTypes['frameBufferTexture'] {
+    public getTextureOf(pName: string): TGpuTypes['frameBufferTexture'] {
         // Validate existing canvas.
         if (this.mTargetTextures.has(pName)) {
             throw new Exception(`Canvas "${pName}" not found.`, this);

@@ -22,17 +22,17 @@ export abstract class Shader<TGpuTypes extends GpuTypes = GpuTypes, TNative = an
     }
 
     /**
+     * Shader information.
+     */
+    public get information(): TGpuTypes['shaderInformation'] {
+        return this.mShaderInformation;
+    }
+
+    /**
      * Shader pipeline layout.
      */
     public get pipelineLayout(): TGpuTypes['pipelineLayout'] {
         return this.mPipelineLayout;
-    }
-
-    /**
-     * Shader information.
-     */
-    public get shaderInformation(): TGpuTypes['shaderInformation'] {
-        return this.mShaderInformation;
     }
 
     /**

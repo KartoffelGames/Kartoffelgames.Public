@@ -102,6 +102,11 @@ export abstract class BindGroupLayout<TGpuTypes extends GpuTypes = GpuTypes, TNa
 
         return this.mBindings.get(pName)!;
     }
+
+    /**
+     * Create bind group from layout.
+     */
+    public abstract createGroup(): TGpuTypes['bindGroup'];
 }
 
 type BindLayout<TGpuTypes extends GpuTypes> = {

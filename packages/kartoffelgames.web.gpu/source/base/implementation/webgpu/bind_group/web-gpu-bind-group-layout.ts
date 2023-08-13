@@ -8,8 +8,16 @@ import { BufferBindType } from '../../../constant/buffer-bind-type.enum';
 import { SamplerType } from '../../../constant/sampler-type.enum';
 import { TextureBindType } from '../../../constant/texture-bind-type.enum';
 import { WebGpuTypes } from '../web-gpu-device';
+import { WebGpuBindGroup } from './web-gpu-bind-group';
 
 export class WebGpuBindGroupLayout extends BindGroupLayout<WebGpuTypes, GPUBindGroupLayout> {
+    /**
+    * Create bind group from layout.
+    */
+    public createGroup(): WebGpuBindGroup {
+        return new WebGpuBindGroup(this.device, this);
+    }
+
     /**
      * Destory texture object.
      * @param pNativeObject - Native canvas texture.

@@ -10,7 +10,7 @@
 
 
 // ------------------------- User Inputs ------------------------ //
-@group(2) @binding(0) var cubetextureSampler: sampler;
+@group(2) @binding(0) var cubeTextureSampler: sampler;
 @group(2) @binding(1) var cubeTexture: texture_2d<f32>;
 // -------------------------------------------------------------- //
 
@@ -99,5 +99,5 @@ struct FragmentIn {
 
 @fragment
 fn fragment_main(fragment: FragmentIn) -> @location(0) vec4<f32> {
-    return applyLight(textureSample(cubeTexture, cubetextureSampler, fragment.uv), fragment.fragmentPosition, fragment.normal);
+    return applyLight(textureSample(cubeTexture, cubeTextureSampler, fragment.uv), fragment.fragmentPosition, fragment.normal);
 }

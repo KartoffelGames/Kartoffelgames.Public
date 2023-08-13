@@ -55,7 +55,7 @@ export abstract class BindGroupLayout<TGpuTypes extends GpuTypes = GpuTypes, TNa
                 lIdentifier += '-' + lBind.layout.bindingIndex;
                 lIdentifier += '-' + lBind.layout.memoryType;
                 lIdentifier += '-' + lBind.layout.name;
-                lIdentifier += '-' + lBind.layout.parameterIndex;
+                lIdentifier += '-' + lBind.layout.locationIndex;
                 lIdentifier += '-' + lBind.layout.visibility;
                 lIdentifier += ';';
             }

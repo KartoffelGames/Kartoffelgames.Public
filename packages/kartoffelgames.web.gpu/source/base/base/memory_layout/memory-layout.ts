@@ -7,9 +7,9 @@ import { GpuTypes } from '../gpu/gpu-device';
 export abstract class MemoryLayout<TGpuTypes extends GpuTypes> extends GpuDependent<TGpuTypes> {
     private readonly mAccessMode: AccessMode;
     private readonly mBindingIndex: number | null;
+    private readonly mLocationIndex: number | null;
     private mMemoryType: MemoryCopyType;
     private readonly mName: string;
-    private readonly mParameterIndex: number | null;
     private readonly mVisibility: ComputeStage;
 
     /**
@@ -24,6 +24,13 @@ export abstract class MemoryLayout<TGpuTypes extends GpuTypes> extends GpuDepend
      */
     public get bindingIndex(): number | null {
         return this.mBindingIndex;
+    }
+
+    /**
+     * Get parameter index.
+     */
+    public get locationIndex(): number | null {
+        return this.mLocationIndex;
     }
 
     /**
@@ -43,13 +50,6 @@ export abstract class MemoryLayout<TGpuTypes extends GpuTypes> extends GpuDepend
      */
     public get name(): string {
         return this.mName;
-    }
-
-    /**
-     * Get parameter index.
-     */
-    public get parameterIndex(): number | null {
-        return this.mParameterIndex;
     }
 
     /**
@@ -73,7 +73,7 @@ export abstract class MemoryLayout<TGpuTypes extends GpuTypes> extends GpuDepend
 
         // Set optional memory indices.
         this.mBindingIndex = pParameter.memoryIndex?.binding ?? null;
-        this.mParameterIndex = pParameter.memoryIndex?.binding ?? null;
+        this.mLocationIndex = pParameter.memoryIndex?.location ?? null;
     }
 }
 
@@ -81,7 +81,7 @@ export interface MemoryLayoutParameter {
     access: AccessMode;
     memoryIndex: null | {
         binding: number | null;
-        parameter: number | null;
+        location: number | null;
     };
     name: string;
     visibility: ComputeStage;

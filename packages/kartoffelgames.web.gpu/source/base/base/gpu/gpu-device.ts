@@ -15,6 +15,7 @@ import { ImageTexture } from '../texture/image-texture';
 import { TextureSampler } from '../texture/texture-sampler';
 import { VideoTexture } from '../texture/video-texture';
 import { RenderTargets } from '../pipeline/render-targets';
+import { ParameterLayout } from '../pipeline/parameter/parameter-layout';
 
 export abstract class GpuDevice<TGpuTypes extends GpuTypes = GpuTypes> {
     /**
@@ -78,6 +79,7 @@ export interface GpuTypes {
     bindGroupLayout: BindGroupLayout;
     pipelineLayout: PipelineLayout;
     bindGroup: BindGroup;
+    parameterLayout: ParameterLayout;
 
     // Shader.
     shader: Shader;
@@ -85,4 +87,5 @@ export interface GpuTypes {
 
     // Pipeline resources.
     renderTargets: RenderTargets;
+    
 }

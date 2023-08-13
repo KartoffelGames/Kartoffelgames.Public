@@ -52,6 +52,56 @@ export abstract class StructBufferMemoryLayout<TGpuTypes extends GpuTypes = GpuT
     }
 
     /**
+     * Get types of properties with a set memory index.
+     */
+    public bindingLayouts(): Array<TGpuTypes['bufferMemoryLayout']> {
+        const lLocationTypes: Array<TGpuTypes['bufferMemoryLayout']> = new Array<TGpuTypes['bufferMemoryLayout']>();
+
+        // Include itself.
+        if (this.locationIndex !== null || this.bindingIndex !== null) {
+            lLocationTypes.push(this);
+        }
+
+        // Check all properties.
+        for (const [, lPropertyType] of this.mInnerProperties.values()) {
+            // Get all inner locations when property is a struct type.
+            if (lPropertyType instanceof StructBufferMemoryLayout) {
+                // Result does include itself 
+                lLocationTypes.push(...lPropertyType.bindingLayouts());
+            } else if (lPropertyType.bindingIndex !== null) {
+                lLocationTypes.push(lPropertyType);
+            }
+        }
+
+        return lLocationTypes;
+    }
+
+    /**
+     * Get types of properties with a set memory index.
+     */
+    public locationLayouts(): Array<TGpuTypes['bufferMemoryLayout']> {
+        const lLocationTypes: Array<TGpuTypes['bufferMemoryLayout']> = new Array<TGpuTypes['bufferMemoryLayout']>();
+
+        // Include itself.
+        if (this.locationIndex !== null || this.bindingIndex !== null) {
+            lLocationTypes.push(this);
+        }
+
+        // Check all properties.
+        for (const [, lPropertyType] of this.mInnerProperties.values()) {
+            // Get all inner locations when property is a struct type.
+            if (lPropertyType instanceof StructBufferMemoryLayout) {
+                // Result does include itself 
+                lLocationTypes.push(...lPropertyType.locationLayouts());
+            } else if (lPropertyType.locationIndex !== null) {
+                lLocationTypes.push(lPropertyType);
+            }
+        }
+
+        return lLocationTypes;
+    }
+
+    /**
      * Get location of path.
      * @param pPathName - Path name. Divided by dots.
      */
@@ -97,26 +147,6 @@ export abstract class StructBufferMemoryLayout<TGpuTypes extends GpuTypes = GpuT
             size: lPropertyLocation.size,
             offset: lPropertyOffset + lPropertyLocation.offset
         };
-    }
-
-    /**
-     * Get types of properties with a set memory index.
-     */
-    public memoryIndices(): Array<TGpuTypes['bufferMemoryLayout']> {
-        const lLocationTypes: Array<TGpuTypes['bufferMemoryLayout']> = new Array<TGpuTypes['bufferMemoryLayout']>();
-        for (const [, lPropertyType] of this.mInnerProperties.values()) {
-            // Set property as location when set.
-            if (lPropertyType.parameterIndex !== null || lPropertyType.bindingIndex !== null) {
-                lLocationTypes.push(lPropertyType);
-            }
-
-            // Get all inner locations when property is a struct type.
-            if (lPropertyType instanceof StructBufferMemoryLayout) {
-                lLocationTypes.push(...lPropertyType.memoryIndices());
-            }
-        }
-
-        return lLocationTypes;
     }
 
     /**

@@ -3,7 +3,6 @@ import { ComputeStage } from '../../constant/compute-stage.enum';
 import { BindGroupLayout } from '../binding/bind-group-layout';
 import { GpuTypes } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
-import { LinearBufferMemoryLayout } from '../memory_layout/buffer/linear-buffer-memory-layout';
 import { StructBufferMemoryLayout } from '../memory_layout/buffer/struct-buffer-memory-layout';
 import { ShaderFunction } from './shader-information';
 
@@ -72,10 +71,10 @@ export abstract class Shader<TGpuTypes extends GpuTypes = GpuTypes, TNative = an
 
             // Fragment has only buffer return types.
             const lFragmentReturn: TGpuTypes['bufferMemoryLayout'] = <TGpuTypes['bufferMemoryLayout']>lFragmentFunction.return;
-            if (lFragmentReturn instanceof LinearBufferMemoryLayout) {
+            if (lFragmentReturn instanceof StructBufferMemoryLayout) {
+                this.mAttachmentCount = lFragmentReturn.locationLayouts().length;
+            } else {
                 this.mAttachmentCount = 1;
-            } else if (lFragmentReturn instanceof StructBufferMemoryLayout) {
-                this.mAttachmentCount = lFragmentReturn.memoryIndices().length;
             }
         }
     }

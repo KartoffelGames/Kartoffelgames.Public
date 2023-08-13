@@ -28,7 +28,7 @@ export abstract class PipelineLayout<TGpuTypes extends GpuTypes = GpuTypes, TNat
      * @param pIndex - Group index.
      * @param pLayout - [Optional] Bind group Layout.
      */
-    public addGroup(pIndex: number, pLayout: TGpuTypes['bindGroupLayout']): void {
+    public addGroupLayout(pIndex: number, pLayout: TGpuTypes['bindGroupLayout']): void {
         this.mBindGroups.add(pIndex, pLayout);
 
         // Register change listener for layout changes.
@@ -44,7 +44,7 @@ export abstract class PipelineLayout<TGpuTypes extends GpuTypes = GpuTypes, TNat
      * Get created bind group layout.
      * @param pIndex - Group index.
      */
-    public getGroup(pIndex: number): TGpuTypes['bindGroupLayout'] {
+    public getGroupLayout(pIndex: number): TGpuTypes['bindGroupLayout'] {
         // Throw on unaccessable group.
         if (!this.mBindGroups.has(pIndex)) {
             throw new Exception(`Bind group layout (${pIndex}) does not exists.`, this);

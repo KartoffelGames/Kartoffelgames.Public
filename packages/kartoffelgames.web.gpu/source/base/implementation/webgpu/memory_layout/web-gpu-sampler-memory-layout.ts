@@ -15,7 +15,7 @@ export class WebGpuSamplerMemoryLayout extends SamplerMemoryLayout<WebGpuTypes> 
     /**
      * Create texture sampler from layout.
      */
-    public override createTextureSampler(): WebGpuTextureSampler {
+    protected override createTextureSampler(): WebGpuTextureSampler {
         return new WebGpuTextureSampler(this.device, this);
     }
 }

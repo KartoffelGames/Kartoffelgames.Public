@@ -32,7 +32,7 @@ export abstract class SamplerMemoryLayout<TGpuTypes extends GpuTypes = GpuTypes>
     /**
      * Create texture sampler.
      */
-    public abstract createTextureSampler(): TGpuTypes['textureSampler'];
+    protected abstract createTextureSampler(): TGpuTypes['textureSampler'];
 }
 
 export interface SamplerMemoryLayoutParameter extends MemoryLayoutParameter {

@@ -62,7 +62,7 @@ export abstract class Shader<TGpuTypes extends GpuTypes = GpuTypes, TNative = an
             Shader.mBindGroupLayoutCache.set(lGroupLayout.identifier, lGroupLayout);
 
             // Add group to pipeline.
-            this.mPipelineLayout.addGroup(lGroupIndex, lGroupLayout);
+            this.mPipelineLayout.addGroupLayout(lGroupIndex, lGroupLayout);
         }
 
         // Get attachment count based on fragment function return values with an memory index.

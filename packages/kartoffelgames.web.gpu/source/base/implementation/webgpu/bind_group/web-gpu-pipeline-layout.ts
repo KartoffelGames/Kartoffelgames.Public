@@ -20,7 +20,7 @@ export class WebGpuPipelineLayout extends PipelineLayout<WebGpuTypes, GPUPipelin
         // Generate pipeline layout from bind group layouts.
         const lPipelineLayout = { bindGroupLayouts: new Array<GPUBindGroupLayout>() };
         for (const lIndex of lBindGoupIndices) {
-            const lBindGroupLayout = this.getGroup(lIndex);
+            const lBindGroupLayout = this.getGroupLayout(lIndex);
 
             lPipelineLayout.bindGroupLayouts[lIndex] = lBindGroupLayout.native;
         }

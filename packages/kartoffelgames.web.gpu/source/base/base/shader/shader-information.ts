@@ -5,7 +5,7 @@ import { GpuTypes } from '../gpu/gpu-device';
 
 export abstract class ShaderInformation<TGpuTypes extends GpuTypes = GpuTypes> extends GpuDependent<TGpuTypes> {
     private readonly mBindings: Dictionary<number, Array<TGpuTypes['memoryLayout']>>;
-    private readonly mEntryPoints: Dictionary<ComputeStage, ShaderFunction<TGpuTypes>>;
+    private readonly mEntryPoints: Dictionary<ComputeStage, Array<ShaderFunction<TGpuTypes>>>;
     private readonly mShaderFunctions: Dictionary<string, ShaderFunction<TGpuTypes>>;
     private readonly mShaderStructDefinitions: Dictionary<string, ShaderStructDefinition<TGpuTypes>>;
     private readonly mShaderTypeAliases: Dictionary<string, ShaderTypeAlias>;
@@ -23,7 +23,7 @@ export abstract class ShaderInformation<TGpuTypes extends GpuTypes = GpuTypes> e
     /**
      * Shader entry points.
      */
-    public get entryPoints(): Map<ComputeStage, ShaderFunction<TGpuTypes>> {
+    public get entryPoints(): Map<ComputeStage, Array<ShaderFunction<TGpuTypes>>> {
         return this.mEntryPoints;
     }
 
@@ -84,6 +84,14 @@ export abstract class ShaderInformation<TGpuTypes extends GpuTypes = GpuTypes> e
         // Set entry point and bindings.
         this.mEntryPoints = this.readEntryPoints();
         this.mBindings = this.readBindings();
+    }
+
+    /**
+     * Get shader function.
+     * @param pName - Function name.
+     */
+    public getFunction(pName: string): ShaderFunction<TGpuTypes> | null {
+        return this.mShaderFunctions.get(pName) ?? null;
     }
 
     /**
@@ -241,19 +249,36 @@ export abstract class ShaderInformation<TGpuTypes extends GpuTypes = GpuTypes> e
     /**
      * Read entry points from crawled shader functions.
      */
-    private readEntryPoints(): Dictionary<ComputeStage, ShaderFunction<TGpuTypes>> {
-        const lEntryPoints: Dictionary<ComputeStage, ShaderFunction<TGpuTypes>> = new Dictionary<ComputeStage, ShaderFunction<TGpuTypes>>();
+    private readEntryPoints(): Dictionary<ComputeStage, Array<ShaderFunction<TGpuTypes>>> {
+        const lEntryPoints: Dictionary<ComputeStage, Array<ShaderFunction<TGpuTypes>>> = new Dictionary<ComputeStage, Array<ShaderFunction<TGpuTypes>>>();
 
         // Map shader function to entry point by function tags.
         for (const lShaderFunction of this.mShaderFunctions.values()) {
             if ((lShaderFunction.tag & ComputeStage.Compute) === ComputeStage.Compute) {
-                lEntryPoints.set(ComputeStage.Compute, lShaderFunction);
+                // Init shader stage container.
+                if (!lEntryPoints.has(ComputeStage.Compute)) {
+                    lEntryPoints.set(ComputeStage.Compute, new Array<ShaderFunction<TGpuTypes>>());
+                }
+
+                lEntryPoints.get(ComputeStage.Compute)!.push(lShaderFunction);
             }
+
             if ((lShaderFunction.tag & ComputeStage.Vertex) === ComputeStage.Vertex) {
-                lEntryPoints.set(ComputeStage.Vertex, lShaderFunction);
+                // Init shader stage container.
+                if (!lEntryPoints.has(ComputeStage.Vertex)) {
+                    lEntryPoints.set(ComputeStage.Vertex, new Array<ShaderFunction<TGpuTypes>>());
+                }
+
+                lEntryPoints.get(ComputeStage.Vertex)!.push(lShaderFunction);
             }
+
             if ((lShaderFunction.tag & ComputeStage.Fragment) === ComputeStage.Fragment) {
-                lEntryPoints.set(ComputeStage.Fragment, lShaderFunction);
+                // Init shader stage container.
+                if (!lEntryPoints.has(ComputeStage.Fragment)) {
+                    lEntryPoints.set(ComputeStage.Fragment, new Array<ShaderFunction<TGpuTypes>>());
+                }
+
+                lEntryPoints.get(ComputeStage.Fragment)!.push(lShaderFunction);
             }
         }
 

@@ -1,7 +1,7 @@
 import { TypedArray } from '@kartoffelgames/core.data';
-import { BindGroup } from '../binding/bind-group';
-import { BindGroupLayout } from '../binding/bind-group-layout';
-import { PipelineLayout } from '../binding/pipeline-layout';
+import { BindDataGroup } from '../binding/bind-data-group';
+import { BindDataGroupLayout } from '../binding/bind-data-group-layout';
+import { PipelineDataLayout } from '../binding/pipeline-data-layout';
 import { Buffer } from '../buffer/buffer';
 import { ArrayBufferMemoryLayout } from '../memory_layout/buffer/array-buffer-memory-layout';
 import { LinearBufferMemoryLayout } from '../memory_layout/buffer/linear-buffer-memory-layout';
@@ -21,7 +21,7 @@ export abstract class GpuDevice<TGpuTypes extends GpuTypes = GpuTypes> {
     /**
      * Generate empty bind group layout.
      */
-    public abstract bindGroupLayout(): TGpuTypes['bindGroupLayout'];
+    public abstract bindGroupLayout(): TGpuTypes['bindDataGroupLayout'];
 
     /**
      * Init gpu device.
@@ -31,7 +31,7 @@ export abstract class GpuDevice<TGpuTypes extends GpuTypes = GpuTypes> {
     /**
      * Generate empty pipeline layout.
      */
-    public abstract pipelineLayout(): TGpuTypes['pipelineLayout'];
+    public abstract pipelineLayout(): TGpuTypes['pipelineDataLayout'];
 
     /**
      * Create render target group.
@@ -76,9 +76,9 @@ export interface GpuTypes {
     bindData: this['buffer'] | this['textureSampler'] | this['imageTexture'] | this['frameBufferTexture'] | this['videoTexture'];
 
     // Pipeline layouting.
-    bindGroupLayout: BindGroupLayout;
-    pipelineLayout: PipelineLayout;
-    bindGroup: BindGroup;
+    bindDataGroupLayout: BindDataGroupLayout;
+    bindDataGroup: BindDataGroup;
+    pipelineDataLayout: PipelineDataLayout;
     parameterLayout: ParameterLayout;
 
     // Shader.

@@ -403,7 +403,7 @@ export class WebGpuShaderInformation extends ShaderInformation<WebGpuTypes> {
             groupIndex: pValueDefinition.attachments['group'] ? parseInt(pValueDefinition.attachments['group']) : null,
             memoryIndex: (lBindingIndex === null && lParameterIndex === null) ? null : {
                 binding: lBindingIndex,
-                parameter: lParameterIndex,
+                location: lParameterIndex,
             },
             visibility: this.visibilityOf(pValueDefinition.name)
         };
@@ -784,6 +784,6 @@ type ShaderValueCreationParameter = {
     groupIndex: number | null;
     memoryIndex: null | {
         binding: number | null;
-        parameter: number | null;
+        location: number | null;
     };
 };

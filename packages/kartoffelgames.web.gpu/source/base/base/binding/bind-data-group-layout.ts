@@ -2,7 +2,7 @@ import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { GpuTypes } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 
-export abstract class BindGroupLayout<TGpuTypes extends GpuTypes = GpuTypes, TNative = any> extends GpuObject<TGpuTypes, TNative> {
+export abstract class BindDataGroupLayout<TGpuTypes extends GpuTypes = GpuTypes, TNative = any> extends GpuObject<TGpuTypes, TNative> {
     private readonly mBindings: Dictionary<string, BindLayout<TGpuTypes>>;
     private mIdentifier: string;
 
@@ -106,7 +106,7 @@ export abstract class BindGroupLayout<TGpuTypes extends GpuTypes = GpuTypes, TNa
     /**
      * Create bind group from layout.
      */
-    public abstract createGroup(): TGpuTypes['bindGroup'];
+    public abstract createGroup(): TGpuTypes['bindDataGroup'];
 }
 
 type BindLayout<TGpuTypes extends GpuTypes> = {

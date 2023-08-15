@@ -1,24 +1,18 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { ComputeStage } from '../../constant/compute-stage.enum';
-import { BindGroupLayout } from '../binding/bind-group-layout';
+import { BindDataGroupLayout } from '../binding/bind-data-group-layout';
 import { GpuTypes } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 import { StructBufferMemoryLayout } from '../memory_layout/buffer/struct-buffer-memory-layout';
 import { ShaderFunction } from './shader-information';
 
 export abstract class Shader<TGpuTypes extends GpuTypes = GpuTypes, TNative = any> extends GpuObject<TGpuTypes, TNative> {
-    private static readonly mBindGroupLayoutCache: Dictionary<string, BindGroupLayout> = new Dictionary<string, BindGroupLayout>();
+    private static readonly mBindGroupLayoutCache: Dictionary<string, BindDataGroupLayout> = new Dictionary<string, BindDataGroupLayout>();
 
     private readonly mAttachmentCount: number;
-    private readonly mPipelineLayout: TGpuTypes['pipelineLayout'];
+    private readonly mParameterLayout: TGpuTypes['parameterLayout'];
+    private readonly mPipelineLayout: TGpuTypes['pipelineDataLayout'];
     private readonly mShaderInformation: TGpuTypes['shaderInformation'];
-
-    /**
-     * Shader attachment count.
-     */
-    public get attachmentCount(): number {
-        return this.mAttachmentCount;
-    }
 
     /**
      * Shader information.
@@ -28,10 +22,24 @@ export abstract class Shader<TGpuTypes extends GpuTypes = GpuTypes, TNative = an
     }
 
     /**
+     * Render parameter layout.
+     */
+    public get parameterLayout(): TGpuTypes['parameterLayout'] {
+        return this.mParameterLayout;
+    }
+
+    /**
      * Shader pipeline layout.
      */
-    public get pipelineLayout(): TGpuTypes['pipelineLayout'] {
+    public get pipelineLayout(): TGpuTypes['pipelineDataLayout'] {
         return this.mPipelineLayout;
+    }
+
+    /**
+     * Shader attachment count.
+     */
+    public get renderTargetCount(): number {
+        return this.mAttachmentCount;
     }
 
     /**
@@ -47,7 +55,7 @@ export abstract class Shader<TGpuTypes extends GpuTypes = GpuTypes, TNative = an
         this.mPipelineLayout = this.device.pipelineLayout();
         for (const [lGroupIndex, lBindingList] of this.mShaderInformation.bindings) {
             // Create group layout and add each binding.
-            let lGroupLayout: TGpuTypes['bindGroupLayout'] = this.device.bindGroupLayout();
+            let lGroupLayout: TGpuTypes['bindDataGroupLayout'] = this.device.bindGroupLayout();
             for (const lBinding of lBindingList) {
                 lGroupLayout.addBinding(lBinding, lBinding.name);
             }

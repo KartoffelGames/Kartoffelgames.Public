@@ -2,8 +2,8 @@ import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { GpuTypes } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 
-export abstract class PipelineLayout<TGpuTypes extends GpuTypes = GpuTypes, TNative = any> extends GpuObject<TGpuTypes, TNative> {
-    private readonly mBindGroups: Dictionary<number, TGpuTypes['bindGroupLayout']>;
+export abstract class PipelineDataLayout<TGpuTypes extends GpuTypes = GpuTypes, TNative = any> extends GpuObject<TGpuTypes, TNative> {
+    private readonly mBindGroups: Dictionary<number, TGpuTypes['bindDataGroupLayout']>;
 
     /**
      * Bind group count.
@@ -20,7 +20,7 @@ export abstract class PipelineLayout<TGpuTypes extends GpuTypes = GpuTypes, TNat
         super(pDevice);
 
         // Init storage.
-        this.mBindGroups = new Dictionary<number, TGpuTypes['bindGroupLayout']>();
+        this.mBindGroups = new Dictionary<number, TGpuTypes['bindDataGroupLayout']>();
     }
 
     /**
@@ -28,7 +28,7 @@ export abstract class PipelineLayout<TGpuTypes extends GpuTypes = GpuTypes, TNat
      * @param pIndex - Group index.
      * @param pLayout - [Optional] Bind group Layout.
      */
-    public addGroupLayout(pIndex: number, pLayout: TGpuTypes['bindGroupLayout']): void {
+    public addGroupLayout(pIndex: number, pLayout: TGpuTypes['bindDataGroupLayout']): void {
         this.mBindGroups.add(pIndex, pLayout);
 
         // Register change listener for layout changes.
@@ -44,7 +44,7 @@ export abstract class PipelineLayout<TGpuTypes extends GpuTypes = GpuTypes, TNat
      * Get created bind group layout.
      * @param pIndex - Group index.
      */
-    public getGroupLayout(pIndex: number): TGpuTypes['bindGroupLayout'] {
+    public getGroupLayout(pIndex: number): TGpuTypes['bindDataGroupLayout'] {
         // Throw on unaccessable group.
         if (!this.mBindGroups.has(pIndex)) {
             throw new Exception(`Bind group layout (${pIndex}) does not exists.`, this);

@@ -1,8 +1,8 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { PipelineLayout } from '../../../base/binding/pipeline-layout';
+import { PipelineDataLayout } from '../../../base/binding/pipeline-data-layout';
 import { WebGpuTypes } from '../web-gpu-device';
 
-export class WebGpuPipelineLayout extends PipelineLayout<WebGpuTypes, GPUPipelineLayoutDescriptor>{
+export class WebGpuPipelineDataLayout extends PipelineDataLayout<WebGpuTypes, GPUPipelineLayoutDescriptor>{
     /**
      * Destroy native pipeline layout object.
      * @param _pNativeObject - Native bind group object.

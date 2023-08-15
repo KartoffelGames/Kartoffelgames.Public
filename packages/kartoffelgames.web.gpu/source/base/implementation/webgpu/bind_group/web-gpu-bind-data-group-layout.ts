@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { BindGroupLayout } from '../../../base/binding/bind-group-layout';
+import { BindDataGroupLayout } from '../../../base/binding/bind-data-group-layout';
 import { BufferMemoryLayout } from '../../../base/memory_layout/buffer/buffer-memory-layout';
 import { SamplerMemoryLayout } from '../../../base/memory_layout/sampler-memory-layout';
 import { TextureMemoryLayout } from '../../../base/memory_layout/texture-memory-layout';
@@ -8,14 +8,14 @@ import { BufferBindType } from '../../../constant/buffer-bind-type.enum';
 import { SamplerType } from '../../../constant/sampler-type.enum';
 import { TextureBindType } from '../../../constant/texture-bind-type.enum';
 import { WebGpuTypes } from '../web-gpu-device';
-import { WebGpuBindGroup } from './web-gpu-bind-group';
+import { WebGpuBindDataGroup } from './web-gpu-bind-data-group';
 
-export class WebGpuBindGroupLayout extends BindGroupLayout<WebGpuTypes, GPUBindGroupLayout> {
+export class WebGpuBindDataGroupLayout extends BindDataGroupLayout<WebGpuTypes, GPUBindGroupLayout> {
     /**
     * Create bind group from layout.
     */
-    public createGroup(): WebGpuBindGroup {
-        return new WebGpuBindGroup(this.device, this);
+    public createGroup(): WebGpuBindDataGroup {
+        return new WebGpuBindDataGroup(this.device, this);
     }
 
     /**

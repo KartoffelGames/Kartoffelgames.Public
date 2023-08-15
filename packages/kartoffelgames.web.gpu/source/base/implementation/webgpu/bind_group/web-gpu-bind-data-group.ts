@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { BindGroup } from '../../../base/binding/bind-group';
+import { BindDataGroup } from '../../../base/binding/bind-data-group';
 import { WebGpuBuffer } from '../buffer/web-gpu-buffer';
 import { WebGpuCanvasTexture } from '../texture/texture/web-gpu-canvas-texture';
 import { WebGpuFrameBufferTexture } from '../texture/texture/web-gpu-frame-buffer-texture';
@@ -8,7 +8,7 @@ import { WebGpuVideoTexture } from '../texture/texture/web-gpu-video-texture';
 import { WebGpuTextureSampler } from '../texture/web-gpu-texture-sampler';
 import { WebGpuTypes } from '../web-gpu-device';
 
-export class WebGpuBindGroup extends BindGroup<WebGpuTypes, GPUBindGroup>{
+export class WebGpuBindDataGroup extends BindDataGroup<WebGpuTypes, GPUBindGroup>{
     /**
      * Destroy native bind group object.
      * @param _pNativeObject - Native bind group object.

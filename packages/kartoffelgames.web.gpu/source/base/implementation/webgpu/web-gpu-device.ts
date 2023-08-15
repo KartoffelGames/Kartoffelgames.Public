@@ -1,8 +1,8 @@
 import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core.data';
 import { GpuDevice, GpuTypes } from '../../base/gpu/gpu-device';
-import { WebGpuBindGroup } from './bind_group/web-gpu-bind-group';
-import { WebGpuBindGroupLayout } from './bind_group/web-gpu-bind-group-layout';
-import { WebGpuPipelineLayout } from './bind_group/web-gpu-pipeline-layout';
+import { WebGpuBindDataGroup } from './bind_group/web-gpu-bind-data-group';
+import { WebGpuBindDataGroupLayout } from './bind_group/web-gpu-bind-data-group-layout';
+import { WebGpuPipelineDataLayout } from './bind_group/web-gpu-pipeline-data-layout';
 import { WebGpuBuffer } from './buffer/web-gpu-buffer';
 import { WebGpuArrayBufferMemoryLayout } from './memory_layout/buffer/web-gpu-array-buffer-memory-layout';
 import { WebGpuLinearBufferMemoryLayout } from './memory_layout/buffer/web-gpu-linear-buffer-memory-layout';
@@ -56,8 +56,8 @@ export class WebGpuDevice extends GpuDevice<WebGpuTypes> {
     /**
      * Generate empty bind group layout.
      */
-    public override bindGroupLayout(): WebGpuBindGroupLayout {
-        return new WebGpuBindGroupLayout(this);
+    public override bindGroupLayout(): WebGpuBindDataGroupLayout {
+        return new WebGpuBindDataGroupLayout(this);
     }
 
     /**
@@ -91,8 +91,8 @@ export class WebGpuDevice extends GpuDevice<WebGpuTypes> {
     /**
      * Generate empty pipeline layout.
      */
-    public override pipelineLayout(): WebGpuPipelineLayout {
-        return new WebGpuPipelineLayout(this);
+    public override pipelineLayout(): WebGpuPipelineDataLayout {
+        return new WebGpuPipelineDataLayout(this);
     }
 
     /**
@@ -137,9 +137,9 @@ export interface WebGpuTypes extends GpuTypes {
     buffer: WebGpuBuffer<TypedArray>;
 
     // Pipeline layouting.
-    bindGroupLayout: WebGpuBindGroupLayout;
-    pipelineLayout: WebGpuPipelineLayout;
-    bindGroup: WebGpuBindGroup;
+    bindDataGroupLayout: WebGpuBindDataGroupLayout;
+    pipelineDataLayout: WebGpuPipelineDataLayout;
+    bindDataGroup: WebGpuBindDataGroup;
 
     // Shader.
     shader: WebGpuShader;

@@ -2,14 +2,14 @@ import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { GpuTypes } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 
-export abstract class BindGroup<TGpuTypes extends GpuTypes = GpuTypes, TNative = any> extends GpuObject<TGpuTypes, TNative> {
+export abstract class BindDataGroup<TGpuTypes extends GpuTypes = GpuTypes, TNative = any> extends GpuObject<TGpuTypes, TNative> {
     private readonly mBindData: Dictionary<string, TGpuTypes['bindData']>;
-    private readonly mLayout: TGpuTypes['bindGroupLayout'];
+    private readonly mLayout: TGpuTypes['bindDataGroupLayout'];
 
     /**
      * Layout of bind group.
      */
-    public get layout(): TGpuTypes['bindGroupLayout'] {
+    public get layout(): TGpuTypes['bindDataGroupLayout'] {
         return this.mLayout;
     }
 
@@ -17,7 +17,7 @@ export abstract class BindGroup<TGpuTypes extends GpuTypes = GpuTypes, TNative =
      * Constructor.
      * @param pDevice - Gpu Device reference.
      */
-    public constructor(pDevice: TGpuTypes['gpuDevice'], pBindGroupLayout: TGpuTypes['bindGroupLayout']) {
+    public constructor(pDevice: TGpuTypes['gpuDevice'], pBindGroupLayout: TGpuTypes['bindDataGroupLayout']) {
         super(pDevice);
 
         this.mLayout = pBindGroupLayout;

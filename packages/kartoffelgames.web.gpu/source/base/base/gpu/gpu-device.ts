@@ -8,14 +8,14 @@ import { LinearBufferMemoryLayout } from '../memory_layout/buffer/linear-buffer-
 import { StructBufferMemoryLayout } from '../memory_layout/buffer/struct-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../memory_layout/sampler-memory-layout';
 import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
-import { Shader } from '../shader/shader';
+import { ParameterLayout } from '../pipeline/parameter/parameter-layout';
+import { RenderTargets } from '../pipeline/render-targets';
+import { RenderShader } from '../shader/render-shader';
 import { ShaderInformation } from '../shader/shader-information';
 import { FrameBufferTexture } from '../texture/frame-buffer-texture';
 import { ImageTexture } from '../texture/image-texture';
 import { TextureSampler } from '../texture/texture-sampler';
 import { VideoTexture } from '../texture/video-texture';
-import { RenderTargets } from '../pipeline/render-targets';
-import { ParameterLayout } from '../pipeline/parameter/parameter-layout';
 
 export abstract class GpuDevice<TGpuTypes extends GpuTypes = GpuTypes> {
     /**
@@ -24,18 +24,20 @@ export abstract class GpuDevice<TGpuTypes extends GpuTypes = GpuTypes> {
     public abstract init(): Promise<this>;
 
     /**
+     * Create shader.
+     * @param pSource - Shader source.
+     * @param pVertexEntry - Vertex entry name.
+     * @param pFragmentEntry - Optional fragment entry.
+     */
+    public abstract renderShader(pSource: string, pVertexEntry: string, pFragmentEntry?: string): TGpuTypes['renderShader'];
+
+    /**
      * Create render target group.
      * @param pWidth - Render target width.
      * @param pHeight - Render target height.
      * @param pMultisampleLevel - Multisample level of targets.
      */
     public abstract renderTargets(pWidth: number, pHeight: number, pMultisampleLevel?: number): TGpuTypes['renderTargets'];
-
-    /**
-     * Create shader.
-     * @param pSource - Shader source.
-     */
-    public abstract shader(pSource: string): TGpuTypes['shader'];
 }
 
 export interface GpuTypes {
@@ -72,10 +74,10 @@ export interface GpuTypes {
     parameterLayout: ParameterLayout;
 
     // Shader.
-    shader: Shader;
+    renderShader: RenderShader;
     shaderInformation: ShaderInformation;
 
     // Pipeline resources.
     renderTargets: RenderTargets;
-    
+
 }

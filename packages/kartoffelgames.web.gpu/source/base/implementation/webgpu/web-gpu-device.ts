@@ -83,6 +83,14 @@ export class WebGpuDevice extends GpuDevice<WebGpuTypes> {
     }
 
     /**
+     * Create shader.
+     * @param pSource - Shader source.
+     */
+    public override renderShader(pSource: string, pVertexEntry: string, pFragmentEntry?: string): WebGpuRenderShader {
+        return new WebGpuRenderShader(this, pSource, pVertexEntry, pFragmentEntry);
+    }
+
+    /**
      * Create render target group.
      * @param pWidth - Render target width.
      * @param pHeight - Render target height.
@@ -90,14 +98,6 @@ export class WebGpuDevice extends GpuDevice<WebGpuTypes> {
      */
     public override renderTargets(pWidth: number, pHeight: number, pMultisampleLevel: number = 1): WebGpuRenderTargets {
         return new WebGpuRenderTargets(this, pWidth, pHeight, pMultisampleLevel);
-    }
-
-    /**
-     * Create shader.
-     * @param pSource - Shader source.
-     */
-    public override shader(pSource: string): WebGpuRenderShader {
-        return new WebGpuRenderShader(this, pSource);
     }
 }
 
@@ -130,7 +130,7 @@ export interface WebGpuTypes extends GpuTypes {
     parameterLayout: WebGpuParameterLayout;
 
     // Shader.
-    shader: WebGpuRenderShader;
+    renderShader: WebGpuRenderShader;
     shaderInformation: WebGpuShaderInformation;
 
     // Pipeline resources.

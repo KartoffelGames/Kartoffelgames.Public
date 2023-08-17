@@ -19,19 +19,9 @@ import { ParameterLayout } from '../pipeline/parameter/parameter-layout';
 
 export abstract class GpuDevice<TGpuTypes extends GpuTypes = GpuTypes> {
     /**
-     * Generate empty bind group layout.
-     */
-    public abstract bindGroupLayout(): TGpuTypes['bindDataGroupLayout'];
-
-    /**
      * Init gpu device.
      */
     public abstract init(): Promise<this>;
-
-    /**
-     * Generate empty pipeline layout.
-     */
-    public abstract pipelineLayout(): TGpuTypes['pipelineDataLayout'];
 
     /**
      * Create render target group.

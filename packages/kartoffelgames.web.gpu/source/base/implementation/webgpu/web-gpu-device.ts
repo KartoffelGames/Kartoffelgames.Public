@@ -14,9 +14,10 @@ import { WebGpuFrameBufferTexture } from './texture/texture/web-gpu-frame-buffer
 import { WebGpuImageTexture } from './texture/texture/web-gpu-image-texture';
 import { WebGpuVideoTexture } from './texture/texture/web-gpu-video-texture';
 import { WebGpuTextureSampler } from './texture/web-gpu-texture-sampler';
-import { WebGpuShader } from './shader/web-gpu-shader';
+import { WebGpuRenderShader } from './shader/web-gpu-render-shader';
 import { WebGpuShaderInformation } from './shader/web-gpu-shader-information';
 import { WebGpuRenderTargets } from './pipeline/web-gpu-render-targets';
+import { WebGpuParameterLayout } from './pipeline/parameter/web-gpu-parameter-layout';
 
 export class WebGpuDevice extends GpuDevice<WebGpuTypes> {
     private static readonly mAdapters: Dictionary<string, GPUAdapter> = new Dictionary<string, GPUAdapter>();
@@ -54,13 +55,6 @@ export class WebGpuDevice extends GpuDevice<WebGpuTypes> {
     }
 
     /**
-     * Generate empty bind group layout.
-     */
-    public override bindGroupLayout(): WebGpuBindDataGroupLayout {
-        return new WebGpuBindDataGroupLayout(this);
-    }
-
-    /**
      * Init devices.
      */
     public async init(): Promise<this> {
@@ -89,13 +83,6 @@ export class WebGpuDevice extends GpuDevice<WebGpuTypes> {
     }
 
     /**
-     * Generate empty pipeline layout.
-     */
-    public override pipelineLayout(): WebGpuPipelineDataLayout {
-        return new WebGpuPipelineDataLayout(this);
-    }
-
-    /**
      * Create render target group.
      * @param pWidth - Render target width.
      * @param pHeight - Render target height.
@@ -109,8 +96,8 @@ export class WebGpuDevice extends GpuDevice<WebGpuTypes> {
      * Create shader.
      * @param pSource - Shader source.
      */
-    public override shader(pSource: string): WebGpuShader {
-        return new WebGpuShader(this, pSource);
+    public override shader(pSource: string): WebGpuRenderShader {
+        return new WebGpuRenderShader(this, pSource);
     }
 }
 
@@ -140,9 +127,10 @@ export interface WebGpuTypes extends GpuTypes {
     bindDataGroupLayout: WebGpuBindDataGroupLayout;
     pipelineDataLayout: WebGpuPipelineDataLayout;
     bindDataGroup: WebGpuBindDataGroup;
+    parameterLayout: WebGpuParameterLayout;
 
     // Shader.
-    shader: WebGpuShader;
+    shader: WebGpuRenderShader;
     shaderInformation: WebGpuShaderInformation;
 
     // Pipeline resources.

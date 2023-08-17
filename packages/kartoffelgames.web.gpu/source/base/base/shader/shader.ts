@@ -40,7 +40,7 @@ export abstract class Shader<TGpuTypes extends GpuTypes = GpuTypes, TNative = an
         this.mShaderInformation = this.createShaderInformation(pSource);
 
         // Generate layout.
-        this.mPipelineLayout = this.device.pipelineLayout();
+        this.mPipelineLayout = this.createEmptyPipelineDataLayout();
         for (const [lGroupIndex, lBindingList] of this.mShaderInformation.bindings) {
             // Create group layout and add each binding.
             let lGroupLayout: TGpuTypes['bindDataGroupLayout'] = this.createEmptyBindDataGroupLayout();
@@ -75,6 +75,11 @@ export abstract class Shader<TGpuTypes extends GpuTypes = GpuTypes, TNative = an
      * Create empty bind data group layout.
      */
     protected abstract createEmptyBindDataGroupLayout(): TGpuTypes['bindDataGroupLayout'];
+
+    /**
+     * Create empty pipeline data layout.
+     */
+    protected abstract createEmptyPipelineDataLayout(): TGpuTypes['pipelineDataLayout'];
 
     /**
      * Create new shader information.

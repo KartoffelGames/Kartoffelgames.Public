@@ -1,9 +1,9 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
+import { GpuDependent } from '../../gpu/gpu-dependent';
 import { GpuTypes } from '../../gpu/gpu-device';
-import { GpuObject } from '../../gpu/gpu-object';
 import { StructBufferMemoryLayout } from '../../memory_layout/buffer/struct-buffer-memory-layout';
 
-export abstract class ParameterLayout<TGpuTypes extends GpuTypes = GpuTypes, TNative = any> extends GpuObject<TGpuTypes, TNative> {
+export abstract class ParameterLayout<TGpuTypes extends GpuTypes = GpuTypes> extends GpuDependent<TGpuTypes> {
     private readonly mParameter: Dictionary<number, TGpuTypes['bufferMemoryLayout']>;
     private readonly mParameterNames: Dictionary<string, number>;
 

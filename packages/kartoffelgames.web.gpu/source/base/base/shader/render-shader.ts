@@ -8,7 +8,7 @@ import { ShaderFunction } from './shader-information';
 export abstract class RenderShader<TGpuTypes extends GpuTypes = GpuTypes, TNative = any> extends Shader<TGpuTypes, TNative> {
     private readonly mAttachmentCount: number;
     private readonly mFragmentEntry: string | null;
-    private readonly mParameterLayout: TGpuTypes['parameterLayout'];
+    private readonly mParameterLayout: TGpuTypes['rdnerParameterLayout'];
     private readonly mVertexEntry: string;
 
     /**
@@ -21,7 +21,7 @@ export abstract class RenderShader<TGpuTypes extends GpuTypes = GpuTypes, TNativ
     /**
      * Render parameter layout.
      */
-    public get parameterLayout(): TGpuTypes['parameterLayout'] {
+    public get parameterLayout(): TGpuTypes['rdnerParameterLayout'] {
         return this.mParameterLayout;
     }
 
@@ -91,5 +91,5 @@ export abstract class RenderShader<TGpuTypes extends GpuTypes = GpuTypes, TNativ
     /**
      * Create empty parameter layout.
      */
-    protected abstract createEmptyParameterLayout(): TGpuTypes['parameterLayout'];
+    protected abstract createEmptyParameterLayout(): TGpuTypes['rdnerParameterLayout'];
 }

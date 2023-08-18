@@ -10,12 +10,12 @@ import { WebGpuShader } from '../../source/abstraction_layer/webgpu/shader/web-g
 import { WebGpuTexture } from '../../source/abstraction_layer/webgpu/texture_resource/texture/web-gpu-texture';
 import { WebGpuTextureUsage } from '../../source/abstraction_layer/webgpu/texture_resource/texture/web-gpu-texture-usage.enum';
 import { WebGpuTextureSampler } from '../../source/abstraction_layer/webgpu/texture_resource/web-gpu-texture-sampler';
+import { GpuDevice } from '../../source/base/base/gpu/gpu-device';
 import { WebGpuArrayBufferMemoryLayout } from '../../source/base/implementation/webgpu/memory_layout/buffer/web-gpu-array-buffer-memory-layout';
 import { WebGpuLinearBufferMemoryLayout } from '../../source/base/implementation/webgpu/memory_layout/buffer/web-gpu-linear-buffer-memory-layout';
 import { WebGpuStructBufferMemoryLayout } from '../../source/base/implementation/webgpu/memory_layout/buffer/web-gpu-struct-buffer-memory-layout';
 import { WebGpuSamplerMemoryLayout } from '../../source/base/implementation/webgpu/memory_layout/web-gpu-sampler-memory-layout';
 import { WebGpuTextureMemoryLayout } from '../../source/base/implementation/webgpu/memory_layout/web-gpu-texture-memory-layout';
-import { WebGpuImageTexture } from '../../source/base/implementation/webgpu/texture/texture/web-gpu-image-texture';
 import { WebGpuDevice } from '../../source/base/implementation/webgpu/web-gpu-device';
 import { AmbientLight } from '../../source/something_better/light/ambient-light';
 import { Transform, TransformMatrix } from '../../source/something_better/transform';
@@ -30,7 +30,7 @@ const gWidth: number = 10;
 const gDepth: number = 10;
 
 (async () => {
-    const lGpu = await new WebGpuDevice().init();
+    const lGpu: GpuDevice = await new WebGpuDevice().init();
 
     // Create and configure render targets.
     const lRenderTargets = lGpu.renderTargets(640, 640, 2);
@@ -38,7 +38,7 @@ const gDepth: number = 10;
     lRenderTargets.add('depth', 'Depth');
 
     // Create shader.
-    const lShader = lGpu.shader(shader);
+    const lShader = lGpu.renderShader(shader, 'vertex_main', 'fragmen_main');
 
     /*
      * Transformation and position group. 
@@ -105,6 +105,8 @@ const gDepth: number = 10;
     const lCubeSampler = (<WebGpuSamplerMemoryLayout>lUserGroupLayout.getBind('cubeTextureSampler').layout).create();
     lUserGroup.setData('cubeTextureSampler', lCubeSampler);
 
+    // TODO: Generate render parameter from parameter layout. Maybe rename parameterLayout to renderParameterLayout as it is only for rendering.
+    
 })();
 
 (async () => {

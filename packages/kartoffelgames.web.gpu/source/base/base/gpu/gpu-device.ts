@@ -8,7 +8,7 @@ import { LinearBufferMemoryLayout } from '../memory_layout/buffer/linear-buffer-
 import { StructBufferMemoryLayout } from '../memory_layout/buffer/struct-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../memory_layout/sampler-memory-layout';
 import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
-import { ParameterLayout } from '../pipeline/parameter/parameter-layout';
+import { RenderParameterLayout } from '../pipeline/parameter/render-parameter-layout';
 import { RenderTargets } from '../pipeline/render-targets';
 import { RenderShader } from '../shader/render-shader';
 import { ShaderInformation } from '../shader/shader-information';
@@ -71,7 +71,7 @@ export interface GpuTypes {
     bindDataGroupLayout: BindDataGroupLayout;
     bindDataGroup: BindDataGroup;
     pipelineDataLayout: PipelineDataLayout;
-    parameterLayout: ParameterLayout;
+    rdnerParameterLayout: RenderParameterLayout;
 
     // Shader.
     renderShader: RenderShader;

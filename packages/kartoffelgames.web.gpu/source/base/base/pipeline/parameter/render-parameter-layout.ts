@@ -3,7 +3,7 @@ import { GpuDependent } from '../../gpu/gpu-dependent';
 import { GpuTypes } from '../../gpu/gpu-device';
 import { StructBufferMemoryLayout } from '../../memory_layout/buffer/struct-buffer-memory-layout';
 
-export abstract class ParameterLayout<TGpuTypes extends GpuTypes = GpuTypes> extends GpuDependent<TGpuTypes> {
+export abstract class RenderParameterLayout<TGpuTypes extends GpuTypes = GpuTypes> extends GpuDependent<TGpuTypes> {
     private readonly mParameter: Dictionary<number, TGpuTypes['bufferMemoryLayout']>;
     private readonly mParameterNames: Dictionary<string, number>;
 

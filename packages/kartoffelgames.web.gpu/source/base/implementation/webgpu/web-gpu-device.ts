@@ -17,7 +17,7 @@ import { WebGpuTextureSampler } from './texture/web-gpu-texture-sampler';
 import { WebGpuRenderShader } from './shader/web-gpu-render-shader';
 import { WebGpuShaderInformation } from './shader/web-gpu-shader-information';
 import { WebGpuRenderTargets } from './pipeline/web-gpu-render-targets';
-import { WebGpuParameterLayout } from './pipeline/parameter/web-gpu-parameter-layout';
+import { WebGpuRenderParameterLayout } from './pipeline/parameter/web-gpu-render-parameter-layout';
 
 export class WebGpuDevice extends GpuDevice<WebGpuTypes> {
     private static readonly mAdapters: Dictionary<string, GPUAdapter> = new Dictionary<string, GPUAdapter>();
@@ -127,7 +127,7 @@ export interface WebGpuTypes extends GpuTypes {
     bindDataGroupLayout: WebGpuBindDataGroupLayout;
     pipelineDataLayout: WebGpuPipelineDataLayout;
     bindDataGroup: WebGpuBindDataGroup;
-    parameterLayout: WebGpuParameterLayout;
+    rdnerParameterLayout: WebGpuRenderParameterLayout;
 
     // Shader.
     renderShader: WebGpuRenderShader;

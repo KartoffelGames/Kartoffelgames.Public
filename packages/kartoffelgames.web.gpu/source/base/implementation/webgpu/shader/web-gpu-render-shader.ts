@@ -1,7 +1,7 @@
 import { RenderShader } from '../../../base/shader/render-shader';
 import { WebGpuBindDataGroupLayout } from '../bind_group/web-gpu-bind-data-group-layout';
 import { WebGpuPipelineDataLayout } from '../bind_group/web-gpu-pipeline-data-layout';
-import { WebGpuParameterLayout } from '../pipeline/parameter/web-gpu-parameter-layout';
+import { WebGpuRenderParameterLayout } from '../pipeline/parameter/web-gpu-render-parameter-layout';
 import { WebGpuDevice, WebGpuTypes } from '../web-gpu-device';
 import { WebGpuShaderInformation } from './web-gpu-shader-information';
 
@@ -25,8 +25,8 @@ export class WebGpuRenderShader extends RenderShader<WebGpuTypes, GPUShaderModul
     /**
      * Create empty parameter layout.
      */
-    protected override createEmptyParameterLayout(): WebGpuParameterLayout {
-        return new WebGpuParameterLayout(this.device);
+    protected override createEmptyParameterLayout(): WebGpuRenderParameterLayout {
+        return new WebGpuRenderParameterLayout(this.device);
     }
 
     /**

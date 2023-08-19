@@ -38,7 +38,7 @@ const gDepth: number = 10;
     lRenderTargets.add('depth', 'Depth');
 
     // Create shader.
-    const lShader = lGpu.renderShader(shader, 'vertex_main', 'fragmen_main');
+    const lShader = lGpu.renderShader(shader, 'vertex_main', 'fragment_main');
 
     /*
      * Transformation and position group. 

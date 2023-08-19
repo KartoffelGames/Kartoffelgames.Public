@@ -1,10 +1,17 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { GpuTypes } from '../../gpu/gpu-device';
-import { BufferLayoutLocation, BufferMemoryLayout, BufferMemoryLayoutParameter } from './buffer-memory-layout';
+import { GpuDevice } from '../../gpu/gpu-device';
+import { BufferLayoutLocation, BaseBufferMemoryLayout, BufferMemoryLayoutParameter } from './base-buffer-memory-layout';
 
-export abstract class ArrayBufferMemoryLayout<TGpuTypes extends GpuTypes = GpuTypes> extends BufferMemoryLayout<TGpuTypes> {
+export class ArrayBufferMemoryLayout extends BaseBufferMemoryLayout {
     private readonly mArraySize: number;
-    private readonly mInnerType: TGpuTypes['bufferMemoryLayout'];
+    private readonly mInnerType: BaseBufferMemoryLayout;
+
+    /**
+     * Alignment of type.
+     */
+    public get alignment(): number {
+        return this.innerType.alignment;
+    }
 
     /**
      * Array item count.
@@ -16,15 +23,26 @@ export abstract class ArrayBufferMemoryLayout<TGpuTypes extends GpuTypes = GpuTy
     /**
      * Array type.
      */
-    public get innerType(): TGpuTypes['bufferMemoryLayout'] {
+    public get innerType(): BaseBufferMemoryLayout {
         return this.mInnerType;
+    }
+
+    /**
+     * Type size in byte.
+     */
+    public get size(): number {
+        if (this.arraySize === -1) {
+            return this.arraySize;
+        }
+
+        return this.arraySize * (Math.ceil(this.innerType.size / this.innerType.alignment) * this.innerType.alignment);
     }
 
     /**
      * Constructor.
      * @param pParameter - Parameter.
      */
-    public constructor(pGpu: TGpuTypes['gpuDevice'], pParameter: ArrayBufferMemoryLayoutParameter<TGpuTypes>) {
+    public constructor(pGpu: GpuDevice, pParameter: ArrayBufferMemoryLayoutParameter) {
         super(pGpu, pParameter);
 
         // Static properties.
@@ -73,8 +91,8 @@ export abstract class ArrayBufferMemoryLayout<TGpuTypes extends GpuTypes = GpuTy
     }
 }
 
-export interface ArrayBufferMemoryLayoutParameter<TGpuTypes extends GpuTypes> extends BufferMemoryLayoutParameter {
+export interface ArrayBufferMemoryLayoutParameter extends BufferMemoryLayoutParameter {
     // New.
     arraySize: number;
-    innerType: TGpuTypes['bufferMemoryLayout'];
+    innerType: BaseBufferMemoryLayout;
 }

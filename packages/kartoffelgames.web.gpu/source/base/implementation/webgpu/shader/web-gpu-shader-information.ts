@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { ShaderFunction, ShaderFunctionDefintion, ShaderInformation, ShaderStructDefinition, ShaderType, ShaderTypeDefinition, ShaderValue, ShaderValueDefinition } from '../../../base/shader/shader-information';
+import { ShaderFunction, ShaderFunctionDefintion, BaseShaderInterpreter, ShaderStructDefinition, ShaderType, ShaderTypeDefinition, ShaderValue, ShaderValueDefinition } from '../../../base/shader/interpreter/base-shader-interpreter';
 import { AccessMode } from '../../../constant/access-mode.enum';
 import { BufferBindType } from '../../../constant/buffer-bind-type.enum';
 import { ComputeStage } from '../../../constant/compute-stage.enum';
@@ -16,7 +16,7 @@ import { WebGpuDevice, WebGpuTypes } from '../web-gpu-device';
 import { WgslBufferArrayTypes, WgslBufferLinearTypes, WgslSamplerTypes, WgslTextureTypes, WgslType } from './wgsl_enum/wgsl-type.enum';
 
 
-export class WebGpuShaderInformation extends ShaderInformation<WebGpuTypes> {
+export class WebGpuShaderInformation extends BaseShaderInterpreter<WebGpuTypes> {
     /**
      * Constructor.
      * @param pDevice - Gpu device reference.

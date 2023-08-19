@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { BindDataGroupLayout } from '../../../base/binding/bind-data-group-layout';
-import { BufferMemoryLayout } from '../../../base/memory_layout/buffer/buffer-memory-layout';
+import { BaseBufferMemoryLayout } from '../../../base/memory_layout/buffer/base-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../../../base/memory_layout/sampler-memory-layout';
 import { TextureMemoryLayout } from '../../../base/memory_layout/texture-memory-layout';
 import { AccessMode } from '../../../constant/access-mode.enum';
@@ -41,7 +41,7 @@ export class WebGpuBindDataGroupLayout extends BindDataGroupLayout<WebGpuTypes, 
             };
 
             // Buffer layouts.
-            if (lEntry.layout instanceof BufferMemoryLayout) {
+            if (lEntry.layout instanceof BaseBufferMemoryLayout) {
                 let lBufferBindingType: GPUBufferBindingType;
                 switch (lEntry.layout.bindType) {
                     case BufferBindType.Uniform: {

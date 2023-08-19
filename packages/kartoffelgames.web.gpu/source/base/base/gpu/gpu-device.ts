@@ -1,27 +1,32 @@
-import { TypedArray } from '@kartoffelgames/core.data';
-import { BindDataGroup } from '../binding/bind-data-group';
-import { BindDataGroupLayout } from '../binding/bind-data-group-layout';
-import { PipelineDataLayout } from '../binding/pipeline-data-layout';
-import { Buffer } from '../buffer/buffer';
-import { ArrayBufferMemoryLayout } from '../memory_layout/buffer/array-buffer-memory-layout';
-import { LinearBufferMemoryLayout } from '../memory_layout/buffer/linear-buffer-memory-layout';
-import { StructBufferMemoryLayout } from '../memory_layout/buffer/struct-buffer-memory-layout';
-import { SamplerMemoryLayout } from '../memory_layout/sampler-memory-layout';
-import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
-import { RenderParameterLayout } from '../pipeline/parameter/render-parameter-layout';
+import { BaseGenerator } from '../generator/base-generator';
 import { RenderTargets } from '../pipeline/render-targets';
 import { RenderShader } from '../shader/render-shader';
-import { ShaderInformation } from '../shader/shader-information';
-import { FrameBufferTexture } from '../texture/frame-buffer-texture';
-import { ImageTexture } from '../texture/image-texture';
-import { TextureSampler } from '../texture/texture-sampler';
-import { VideoTexture } from '../texture/video-texture';
 
-export abstract class GpuDevice<TGpuTypes extends GpuTypes = GpuTypes> {
+export class GpuDevice {
     /**
-     * Init gpu device.
+     * Request new gpu device.
+     * @param pGenerator - Native object generator.
      */
-    public abstract init(): Promise<this>;
+    public static async request(pGenerator: BaseGenerator): Promise<GpuDevice> {
+        return new GpuDevice(await pGenerator.init());
+    }
+
+    private readonly mGenerator: BaseGenerator;
+
+    /**
+     * Native object generator.
+     */
+    public get generator(): BaseGenerator {
+        return this.mGenerator;
+    }
+
+    /**
+     * Constructor.
+     * @param pGenerator - Native GPU-Object Generator.
+     */
+    private constructor(pGenerator: BaseGenerator) {
+        this.mGenerator = pGenerator;
+    }
 
     /**
      * Create shader.
@@ -29,7 +34,9 @@ export abstract class GpuDevice<TGpuTypes extends GpuTypes = GpuTypes> {
      * @param pVertexEntry - Vertex entry name.
      * @param pFragmentEntry - Optional fragment entry.
      */
-    public abstract renderShader(pSource: string, pVertexEntry: string, pFragmentEntry?: string): TGpuTypes['renderShader'];
+    public renderShader(pSource: string, pVertexEntry: string, pFragmentEntry?: string): RenderShader {
+        return new RenderShader(this, pSource, pVertexEntry, pFragmentEntry);
+    }
 
     /**
      * Create render target group.
@@ -37,47 +44,7 @@ export abstract class GpuDevice<TGpuTypes extends GpuTypes = GpuTypes> {
      * @param pHeight - Render target height.
      * @param pMultisampleLevel - Multisample level of targets.
      */
-    public abstract renderTargets(pWidth: number, pHeight: number, pMultisampleLevel?: number): TGpuTypes['renderTargets'];
-}
-
-export interface GpuTypes {
-    // Core.
-    gpuDevice: GpuDevice;
-    memoryLayout: this['bufferMemoryLayout'] | this['textureMemoryLayout'] | this['samplerMemoryLayout'];
-
-    // Texture Layouts. 
-    textureMemoryLayout: TextureMemoryLayout;
-    samplerMemoryLayout: SamplerMemoryLayout;
-
-    // Buffer Layouts.
-    bufferMemoryLayout: this['arrayBufferMemoryLayout'] | this['linearBufferMemoryLayout'] | this['structBufferMemoryLayout'];
-    arrayBufferMemoryLayout: ArrayBufferMemoryLayout;
-    linearBufferMemoryLayout: LinearBufferMemoryLayout;
-    structBufferMemoryLayout: StructBufferMemoryLayout;
-
-    // Textures.
-    textureSampler: TextureSampler;
-    imageTexture: ImageTexture;
-    frameBufferTexture: FrameBufferTexture;
-    videoTexture: VideoTexture;
-
-    // Things with generics. :(
-    buffer: Buffer<TypedArray>;
-
-    // Bind data.
-    bindData: this['buffer'] | this['textureSampler'] | this['imageTexture'] | this['frameBufferTexture'] | this['videoTexture'];
-
-    // Pipeline layouting.
-    bindDataGroupLayout: BindDataGroupLayout;
-    bindDataGroup: BindDataGroup;
-    pipelineDataLayout: PipelineDataLayout;
-    rdnerParameterLayout: RenderParameterLayout;
-
-    // Shader.
-    renderShader: RenderShader;
-    shaderInformation: ShaderInformation;
-
-    // Pipeline resources.
-    renderTargets: RenderTargets;
-
+    public renderTargets(pWidth: number, pHeight: number, pMultisampleLevel: number = 1): RenderTargets {
+        return new RenderTargets(this, pWidth, pHeight, pMultisampleLevel);
+    }
 }

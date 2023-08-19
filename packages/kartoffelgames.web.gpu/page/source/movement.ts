@@ -1,14 +1,14 @@
 import { Dictionary, TypedArray } from '@kartoffelgames/core.data';
 import { DeviceConfiguration, InputConfiguration, InputDevices, KeyboardButton, MouseButton, MouseKeyboardConnector } from '@kartoffelgames/web.game-input';
-import { Buffer } from '../../source/base/base/buffer/buffer';
+import { GpuBuffer } from '../../source/base/base/buffer/gpu-buffer';
 import { CameraMatrix, ViewProjection } from '../../source/something_better/view_projection/view-projection';
 
 export class Movement {
-    private readonly mBuffer: Buffer<TypedArray>;
+    private readonly mBuffer: GpuBuffer<TypedArray>;
     private readonly mBufferPath: Array<string>;
     private readonly mCamera: ViewProjection;
 
-    public constructor(pCamera: ViewProjection, pCanvas: HTMLCanvasElement, pBuffer: Buffer<TypedArray>, pBufferPath: Array<string>) {
+    public constructor(pCamera: ViewProjection, pCanvas: HTMLCanvasElement, pBuffer: GpuBuffer<TypedArray>, pBufferPath: Array<string>) {
         this.mCamera = pCamera;
         this.mBuffer = pBuffer;
         this.mBufferPath = pBufferPath;

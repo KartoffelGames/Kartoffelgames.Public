@@ -1,9 +1,10 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
-import { GpuTypes } from '../gpu/gpu-device';
+import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
+import { BindDataGroupLayout } from './bind-data-group-layout';
 
-export abstract class PipelineDataLayout<TGpuTypes extends GpuTypes = GpuTypes, TNative = any> extends GpuObject<TGpuTypes, TNative> {
-    private readonly mBindGroups: Dictionary<number, TGpuTypes['bindDataGroupLayout']>;
+export class PipelineDataLayout extends GpuObject {
+    private readonly mBindGroups: Dictionary<number, BindDataGroupLayout>;
 
     /**
      * Bind group count.
@@ -16,11 +17,11 @@ export abstract class PipelineDataLayout<TGpuTypes extends GpuTypes = GpuTypes, 
      * Constructor.
      * @param pDevice - Gpu Device reference.
      */
-    public constructor(pDevice: TGpuTypes['gpuDevice']) {
+    public constructor(pDevice: GpuDevice) {
         super(pDevice);
 
         // Init storage.
-        this.mBindGroups = new Dictionary<number, TGpuTypes['bindDataGroupLayout']>();
+        this.mBindGroups = new Dictionary<number, BindDataGroupLayout>();
     }
 
     /**
@@ -28,7 +29,7 @@ export abstract class PipelineDataLayout<TGpuTypes extends GpuTypes = GpuTypes, 
      * @param pIndex - Group index.
      * @param pLayout - [Optional] Bind group Layout.
      */
-    public addGroupLayout(pIndex: number, pLayout: TGpuTypes['bindDataGroupLayout']): void {
+    public addGroupLayout(pIndex: number, pLayout: BindDataGroupLayout): void {
         this.mBindGroups.add(pIndex, pLayout);
 
         // Register change listener for layout changes.
@@ -44,7 +45,7 @@ export abstract class PipelineDataLayout<TGpuTypes extends GpuTypes = GpuTypes, 
      * Get created bind group layout.
      * @param pIndex - Group index.
      */
-    public getGroupLayout(pIndex: number): TGpuTypes['bindDataGroupLayout'] {
+    public getGroupLayout(pIndex: number): BindDataGroupLayout {
         // Throw on unaccessable group.
         if (!this.mBindGroups.has(pIndex)) {
             throw new Exception(`Bind group layout (${pIndex}) does not exists.`, this);

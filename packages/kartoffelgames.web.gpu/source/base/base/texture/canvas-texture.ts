@@ -2,32 +2,24 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
 
-export class FrameBufferTexture extends GpuObject {
-    private mDepth: number;
-    private mHeight: number;
+export class CanvasTexture extends GpuObject {
+    private readonly mCanvas: HTMLCanvasElement;
     private readonly mMemoryLayout: TextureMemoryLayout;
-    private mMultiSampleLevel: number;
-    private mWidth: number;
 
     /**
-     * Texture depth.
+     * HTML canvas element.
      */
-    public get depth(): number {
-        return this.mDepth;
-    } set depth(pValue: number) {
-        this.mDepth = pValue;
-
-        // Trigger auto update.
-        this.triggerAutoUpdate();
+    public get canvas(): HTMLCanvasElement {
+        return this.mCanvas;
     }
 
     /**
      * Texture height.
      */
     public get height(): number {
-        return this.mHeight;
+        return this.mCanvas.height;
     } set height(pValue: number) {
-        this.mHeight = pValue;
+        this.mCanvas.height = pValue;
 
         // Trigger auto update.
         this.triggerAutoUpdate();
@@ -41,24 +33,12 @@ export class FrameBufferTexture extends GpuObject {
     }
 
     /**
-     * Texture multi sample level.
-     */
-    public get multiSampleLevel(): number {
-        return this.mMultiSampleLevel;
-    } set multiSampleLevel(pValue: number) {
-        this.mMultiSampleLevel = pValue;
-
-        // Trigger auto update.
-        this.triggerAutoUpdate();
-    }
-
-    /**
      * Texture width.
      */
     public get width(): number {
-        return this.mWidth;
+        return this.mCanvas.width;
     } set width(pValue: number) {
-        this.mWidth = pValue;
+        this.mCanvas.width = pValue;
 
         // Trigger auto update.
         this.triggerAutoUpdate();
@@ -67,21 +47,20 @@ export class FrameBufferTexture extends GpuObject {
     /**
      * Constructor.
      * @param pDevice - Device.
-     * @param pLayout - Texture memory layout.
-     * @param pDepth - Texture depth.
+     * @param pCanvas - Canvas of texture.
+     * @param pLayout - Texture layout.
+     * @param pDepth - Depth of texture. Can only be set to one.
      */
     public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout) {
         super(pDevice);
 
-        // Fixed values.
-
+        // Set canvas reference.
+        this.mCanvas = document.createElement('canvas');
         this.mMemoryLayout = pLayout;
 
         // Set defaults.
-        this.mDepth = 1;
-        this.mHeight = 1;
-        this.mWidth = 1;
-        this.mMultiSampleLevel = 1;
+        this.height = 1;
+        this.width = 1;
 
         // Register change listener for layout changes.
         pLayout.addUpdateListener(() => {

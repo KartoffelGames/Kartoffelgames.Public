@@ -1,16 +1,32 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { GpuTypes } from '../../gpu/gpu-device';
-import { BufferLayoutLocation, BufferMemoryLayout, BufferMemoryLayoutParameter } from './buffer-memory-layout';
+import { GpuDevice } from '../../gpu/gpu-device';
+import { BaseBufferMemoryLayout, BufferLayoutLocation, BufferMemoryLayoutParameter } from './base-buffer-memory-layout';
 
-export abstract class StructBufferMemoryLayout<TGpuTypes extends GpuTypes = GpuTypes> extends BufferMemoryLayout<TGpuTypes> {
-    private mInnerProperties: Array<[number, TGpuTypes['bufferMemoryLayout']]>;
+export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
+    private mAlignment: number;
+    private mInnerProperties: Array<[number, BaseBufferMemoryLayout]>;
+    private mSize: number;
     private readonly mStructName: string;
+
+    /**
+     * Alignment of type.
+     */
+    public get alignment(): number {
+        return this.mAlignment;
+    }
 
     /**
      * Ordered inner properties.
      */
-    public get properties(): Array<TGpuTypes['bufferMemoryLayout']> {
+    public get properties(): Array<BaseBufferMemoryLayout> {
         return this.mInnerProperties.map((pProperty) => pProperty[1]);
+    }
+
+    /**
+     * Type size in byte.
+     */
+    public get size(): number {
+        return this.mSize;
     }
 
     /**
@@ -24,12 +40,16 @@ export abstract class StructBufferMemoryLayout<TGpuTypes extends GpuTypes = GpuT
      * Constructor.
      * @param pParameter - Parameter.
      */
-    public constructor(pGpu: TGpuTypes['gpuDevice'], pParameter: StructBufferMemoryLayoutParameter) {
+    public constructor(pGpu: GpuDevice, pParameter: StructBufferMemoryLayoutParameter) {
         super(pGpu, pParameter);
+
+        // Calculated properties.
+        this.mAlignment = 0;
+        this.mSize = 0;
 
         // Static properties.
         this.mStructName = pParameter.structName;
-        this.mInnerProperties = new Array<[number, TGpuTypes['bufferMemoryLayout']]>();
+        this.mInnerProperties = new Array<[number, BaseBufferMemoryLayout]>();
     }
 
     /**
@@ -38,7 +58,7 @@ export abstract class StructBufferMemoryLayout<TGpuTypes extends GpuTypes = GpuT
      * @param pOrder - Index of property.
      * @param pType - Property type.
      */
-    public addProperty(pOrder: number, pType: TGpuTypes['bufferMemoryLayout']): void {
+    public addProperty(pOrder: number, pType: BaseBufferMemoryLayout): void {
         this.mInnerProperties.push([pOrder, pType]);
         pType.parent = this;
 
@@ -48,14 +68,14 @@ export abstract class StructBufferMemoryLayout<TGpuTypes extends GpuTypes = GpuT
         });
 
         // Call recalculation. Or other usefull things.
-        this.onProperyAdd();
+        this.recalculateAlignment();
     }
 
     /**
      * Get types of properties with a set memory index.
      */
-    public bindingLayouts(): Array<TGpuTypes['bufferMemoryLayout']> {
-        const lLocationTypes: Array<TGpuTypes['bufferMemoryLayout']> = new Array<TGpuTypes['bufferMemoryLayout']>();
+    public bindingLayouts(): Array<BaseBufferMemoryLayout> {
+        const lLocationTypes: Array<BaseBufferMemoryLayout> = new Array<BaseBufferMemoryLayout>();
 
         // Include itself.
         if (this.locationIndex !== null || this.bindingIndex !== null) {
@@ -79,8 +99,8 @@ export abstract class StructBufferMemoryLayout<TGpuTypes extends GpuTypes = GpuT
     /**
      * Get types of properties with a set memory index.
      */
-    public locationLayouts(): Array<TGpuTypes['bufferMemoryLayout']> {
-        const lLocationTypes: Array<TGpuTypes['bufferMemoryLayout']> = new Array<TGpuTypes['bufferMemoryLayout']>();
+    public locationLayouts(): Array<BaseBufferMemoryLayout> {
+        const lLocationTypes: Array<BaseBufferMemoryLayout> = new Array<BaseBufferMemoryLayout>();
 
         // Include itself.
         if (this.locationIndex !== null || this.bindingIndex !== null) {
@@ -115,13 +135,13 @@ export abstract class StructBufferMemoryLayout<TGpuTypes extends GpuTypes = GpuT
         }
 
         // Get ordered types.
-        const lOrderedTypeList: Array<TGpuTypes['bufferMemoryLayout']> = this.mInnerProperties.sort(([pOrderA], [pOrderB]) => {
+        const lOrderedTypeList: Array<BaseBufferMemoryLayout> = this.mInnerProperties.sort(([pOrderA], [pOrderB]) => {
             return pOrderA - pOrderB;
         }).map(([, pType]) => pType);
 
         // Recalculate size.
         let lPropertyOffset: number = 0;
-        let lPropertyLayout: TGpuTypes['bufferMemoryLayout'] | null = null;
+        let lPropertyLayout: BaseBufferMemoryLayout | null = null;
         for (const lProperty of lOrderedTypeList) {
             // Increase offset to needed alignment.
             lPropertyOffset = Math.ceil(lPropertyOffset / lProperty.alignment) * lProperty.alignment;
@@ -150,9 +170,26 @@ export abstract class StructBufferMemoryLayout<TGpuTypes extends GpuTypes = GpuT
     }
 
     /**
-     * Called on property add.
+     * Recalculate size and alignment.
      */
-    protected abstract onProperyAdd(): void;
+    private recalculateAlignment(): void {
+        // Recalculate size.
+        let lRawDataSize: number = 0;
+        for (const lType of this.properties) {
+            // Increase offset to needed alignment.
+            lRawDataSize = Math.ceil(lRawDataSize / lType.alignment) * lType.alignment;
+
+            // Increase offset for type.
+            lRawDataSize += lType.size;
+
+            if (lType.alignment > this.mAlignment) {
+                this.mAlignment = lType.alignment;
+            }
+        }
+
+        // Apply struct alignment to raw data size.
+        this.mSize = Math.ceil(lRawDataSize / this.mAlignment) * this.mAlignment;
+    }
 }
 
 export interface StructBufferMemoryLayoutParameter extends BufferMemoryLayoutParameter {

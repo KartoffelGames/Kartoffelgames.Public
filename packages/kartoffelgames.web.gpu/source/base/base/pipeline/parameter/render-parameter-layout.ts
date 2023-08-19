@@ -1,10 +1,11 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
-import { GpuDependent } from '../../gpu/gpu-dependent';
-import { GpuTypes } from '../../gpu/gpu-device';
+import { GpuDevice } from '../../gpu/gpu-device';
+import { GpuObject } from '../../gpu/gpu-object';
+import { BaseBufferMemoryLayout } from '../../memory_layout/buffer/base-buffer-memory-layout';
 import { StructBufferMemoryLayout } from '../../memory_layout/buffer/struct-buffer-memory-layout';
 
-export abstract class RenderParameterLayout<TGpuTypes extends GpuTypes = GpuTypes> extends GpuDependent<TGpuTypes> {
-    private readonly mParameter: Dictionary<number, TGpuTypes['bufferMemoryLayout']>;
+export class RenderParameterLayout extends GpuObject {
+    private readonly mParameter: Dictionary<number, BaseBufferMemoryLayout>;
     private readonly mParameterNames: Dictionary<string, number>;
 
     /**
@@ -27,9 +28,9 @@ export abstract class RenderParameterLayout<TGpuTypes extends GpuTypes = GpuType
      * @param pDevice - Device reference.
      * @param pLayout - Buffer layout of parameter.
      */
-    public constructor(pDevice: TGpuTypes['gpuDevice'],) {
+    public constructor(pDevice: GpuDevice) {
         super(pDevice);
-        this.mParameter = new Dictionary<number, TGpuTypes['bufferMemoryLayout']>();
+        this.mParameter = new Dictionary<number, BaseBufferMemoryLayout>();
         this.mParameterNames = new Dictionary<string, number>();
     }
 
@@ -38,9 +39,9 @@ export abstract class RenderParameterLayout<TGpuTypes extends GpuTypes = GpuType
      * @param pName - Parameter name.
      * @param pLayout - Parameter layout.
      */
-    public addParameter(pLayout: TGpuTypes['bufferMemoryLayout']): void {
+    public addParameter(pLayout: BaseBufferMemoryLayout): void {
         // Find all childs of layout with locations.
-        const lLocationLayoutList: Array<TGpuTypes['bufferMemoryLayout']> = new Array<TGpuTypes['bufferMemoryLayout']>();
+        const lLocationLayoutList: Array<BaseBufferMemoryLayout> = new Array<BaseBufferMemoryLayout>();
         if (pLayout instanceof StructBufferMemoryLayout) {
             lLocationLayoutList.push(...pLayout.locationLayouts());
         } else {
@@ -66,7 +67,7 @@ export abstract class RenderParameterLayout<TGpuTypes extends GpuTypes = GpuType
 
             // Generate name by iterating its parents.
             let lName: string = lLocationLayout.name;
-            let lParentLayout: TGpuTypes['bufferMemoryLayout'] | null = lLocationLayout;
+            let lParentLayout: BaseBufferMemoryLayout | null = lLocationLayout;
             while ((lParentLayout = lParentLayout.parent) !== null) {
                 // Extend current name by its parent name.
                 lName = `${lParentLayout.name}.${lName}`;
@@ -103,7 +104,7 @@ export abstract class RenderParameterLayout<TGpuTypes extends GpuTypes = GpuType
      * Get layout of name.
      * @param pName - Parameter name.
      */
-    public getLayoutOf(pName: string): TGpuTypes['bufferMemoryLayout'] {
+    public getLayoutOf(pName: string): BaseBufferMemoryLayout {
         const lIndex: number = this.getIndexOf(pName);
 
         // Layout should exist when it name exists.

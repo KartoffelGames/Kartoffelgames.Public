@@ -1,12 +1,19 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
-import { GpuDependent } from '../gpu/gpu-dependent';
-import { GpuTypes } from '../gpu/gpu-device';
+import { AccessMode } from '../../constant/access-mode.enum';
+import { ComputeStage } from '../../constant/compute-stage.enum';
+import { TextureBindType } from '../../constant/texture-bind-type.enum';
+import { TextureDimension } from '../../constant/texture-dimension.enum';
+import { TextureFormat } from '../../constant/texture-format.enum';
+import { GpuDevice } from '../gpu/gpu-device';
+import { GpuObject } from '../gpu/gpu-object';
+import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
+import { CanvasTexture } from '../texture/canvas-texture';
+import { FrameBufferTexture } from '../texture/frame-buffer-texture';
 
-export abstract class RenderTargets<TGpuTypes extends GpuTypes = GpuTypes> extends GpuDependent<TGpuTypes> {
-    private readonly mCanvas: Dictionary<string, HTMLCanvasElement>;
+export class RenderTargets extends GpuObject {
     private readonly mMultisampleLevel: number;
-    private readonly mSize: TextureDimension;
-    private readonly mTargetTextures: Dictionary<string, TGpuTypes['frameBufferTexture']>;
+    private readonly mSize: TextureSize;
+    private readonly mTargetTextures: Dictionary<string, FrameBufferTexture | CanvasTexture>;
 
     /**
      * Render target height.
@@ -40,7 +47,7 @@ export abstract class RenderTargets<TGpuTypes extends GpuTypes = GpuTypes> exten
      * @param pHeight - Textures height.
      * @param pMultisampleLevel - Multisample level of  all textures.
      */
-    public constructor(pDevice: TGpuTypes['gpuDevice'], pWidth: number, pHeight: number, pMultisampleLevel: number) {
+    public constructor(pDevice: GpuDevice, pWidth: number, pHeight: number, pMultisampleLevel: number) {
         super(pDevice);
 
         // Set "fixed" 
@@ -48,8 +55,7 @@ export abstract class RenderTargets<TGpuTypes extends GpuTypes = GpuTypes> exten
         this.mMultisampleLevel = pMultisampleLevel;
 
         // Saved.
-        this.mTargetTextures = new Dictionary<string, TGpuTypes['frameBufferTexture']>();
-        this.mCanvas = new Dictionary<string, HTMLCanvasElement>();
+        this.mTargetTextures = new Dictionary<string, FrameBufferTexture | CanvasTexture>();
     }
 
     /**
@@ -57,41 +63,28 @@ export abstract class RenderTargets<TGpuTypes extends GpuTypes = GpuTypes> exten
      * @param pName - Target name.
      * @param pType - Type of target.
      */
-    public add(pName: string, pType: RenderTargetType): TGpuTypes['frameBufferTexture'] {
+    public add(pName: string, pType: RenderTargetType): FrameBufferTexture | CanvasTexture {
         switch (pType) {
             case 'Canvas': {
-                const lCanvasTextureLayout: TGpuTypes['textureMemoryLayout'] = this.createCanvasMemoryLayout();
+                const lCanvasTextureLayout: TextureMemoryLayout = this.createCanvasMemoryLayout();
                 return this.addCanvasTexture(pName, lCanvasTextureLayout);
             }
             case 'Color': {
-                const lColorTextureLayout: TGpuTypes['textureMemoryLayout'] = this.createColorMemoryLayout();
+                const lColorTextureLayout: TextureMemoryLayout = this.createColorMemoryLayout();
                 return this.addFrameBufferTexture(pName, lColorTextureLayout);
             }
             case 'Depth': {
-                const lColorTextureLayout: TGpuTypes['textureMemoryLayout'] = this.createDepthMemoryLayout();
+                const lColorTextureLayout: TextureMemoryLayout = this.createDepthMemoryLayout();
                 return this.addFrameBufferTexture(pName, lColorTextureLayout);
             }
         }
-    }
-
-    /**
-     * Get canvas of texture.
-     * @param pName - Canvas name.
-     */
-    public getCanvasOf(pName: string): HTMLCanvasElement {
-        // Validate existing canvas.
-        if (this.mCanvas.has(pName)) {
-            throw new Exception(`Canvas "${pName}" not found.`, this);
-        }
-
-        return this.mCanvas.get(pName)!;
     }
 
     /**
      * Get texture.
      * @param pName - texture name.
      */
-    public getTextureOf(pName: string): TGpuTypes['frameBufferTexture'] {
+    public getTextureOf(pName: string): FrameBufferTexture | CanvasTexture {
         // Validate existing canvas.
         if (this.mTargetTextures.has(pName)) {
             throw new Exception(`Canvas "${pName}" not found.`, this);
@@ -105,24 +98,16 @@ export abstract class RenderTargets<TGpuTypes extends GpuTypes = GpuTypes> exten
      * @param pName - Canvas name.
      * @param pMemoryLayout - Canvas texture memory layout.
      */
-    private addCanvasTexture(pName: string, pMemoryLayout: TGpuTypes['textureMemoryLayout']): TGpuTypes['frameBufferTexture'] {
+    private addCanvasTexture(pName: string, pMemoryLayout: TextureMemoryLayout): CanvasTexture {
         // Validate existing textures.
         if (this.mTargetTextures.has(pName)) {
             throw new Exception(`Texture "${pName}" already exists.`, this);
         }
 
-        // Create sized canvas.
-        const lCanvas: HTMLCanvasElement = document.createElement('canvas');
-        lCanvas.width = this.mSize.width;
-        lCanvas.height = this.mSize.height;
+        // Create new canvas texture.
+        const lTexture: CanvasTexture = pMemoryLayout.createCanvasTexture(this.mSize.width, this.mSize.height);
 
         // Save canvas.
-        this.mCanvas.set(pName, lCanvas);
-
-        // Create new canvas texture.
-        const lTexture: TGpuTypes['frameBufferTexture'] = pMemoryLayout.create(lCanvas);
-        lTexture.multiSampleLevel = this.mMultisampleLevel;
-
         this.mTargetTextures.set(pName, lTexture);
 
         return lTexture;
@@ -133,19 +118,67 @@ export abstract class RenderTargets<TGpuTypes extends GpuTypes = GpuTypes> exten
      * @param pName - Frame buffer name.
      * @param pMemoryLayout - Frame buffer memory layout.
      */
-    private addFrameBufferTexture(pName: string, pMemoryLayout: TGpuTypes['textureMemoryLayout']): TGpuTypes['frameBufferTexture'] {
+    private addFrameBufferTexture(pName: string, pMemoryLayout: TextureMemoryLayout): FrameBufferTexture {
         // Validate existing textures.
         if (this.mTargetTextures.has(pName)) {
             throw new Exception(`Texture "${pName}" already exists.`, this);
         }
 
         // Create new texture and assign multisample level.
-        const lTexture: TGpuTypes['frameBufferTexture'] = pMemoryLayout.create(this.mSize.height, this.mSize.width, 1);
+        const lTexture: FrameBufferTexture = pMemoryLayout.createFrameBufferTexture(this.mSize.height, this.mSize.width, 1);
         lTexture.multiSampleLevel = this.mMultisampleLevel;
 
         this.mTargetTextures.set(pName, lTexture);
 
         return lTexture;
+    }
+
+    /**
+     * Create layout for a canvas texture.
+     */
+    private createCanvasMemoryLayout(): TextureMemoryLayout {
+        return new TextureMemoryLayout(this.device, {
+            dimension: TextureDimension.TwoDimension,
+            format: TextureFormat.RedGreenBlueAlpha,
+            bindType: TextureBindType.RenderTarget,
+            multisampled: false,
+            access: AccessMode.Write | AccessMode.Read,
+            memoryIndex: null,
+            name: '',
+            visibility: ComputeStage.Fragment
+        });
+    }
+
+    /**
+     * Create layout for a color texture.
+     */
+    private createColorMemoryLayout(): TextureMemoryLayout {
+        return new TextureMemoryLayout(this.device, {
+            dimension: TextureDimension.TwoDimension,
+            format: TextureFormat.RedGreenBlueAlpha,
+            bindType: TextureBindType.RenderTarget,
+            multisampled: this.mMultisampleLevel > 1,
+            access: AccessMode.Write | AccessMode.Read,
+            memoryIndex: null,
+            name: '',
+            visibility: ComputeStage.Fragment
+        });
+    }
+
+    /**
+     * Create layout for a depth texture.
+     */
+    private createDepthMemoryLayout(): TextureMemoryLayout {
+        return new TextureMemoryLayout(this.device, {
+            dimension: TextureDimension.TwoDimension,
+            format: TextureFormat.Depth,
+            bindType: TextureBindType.RenderTarget,
+            multisampled: this.mMultisampleLevel > 1,
+            access: AccessMode.Write | AccessMode.Read,
+            memoryIndex: null,
+            name: '',
+            visibility: ComputeStage.Fragment
+        });
     }
 
     /**
@@ -164,23 +197,8 @@ export abstract class RenderTargets<TGpuTypes extends GpuTypes = GpuTypes> exten
             lTexture.height = pWidth;
         }
     }
-
-    /**
-     * Create layout for a canvas texture.
-     */
-    protected abstract createCanvasMemoryLayout(): TGpuTypes['textureMemoryLayout'];
-
-    /**
-     * Create layout for a color texture.
-     */
-    protected abstract createColorMemoryLayout(): TGpuTypes['textureMemoryLayout'];
-
-    /**
-     * Create layout for a depth texture.
-     */
-    protected abstract createDepthMemoryLayout(): TGpuTypes['textureMemoryLayout'];
 }
 
-type TextureDimension = { width: number; height: number; };
+type TextureSize = { width: number; height: number; };
 
 type RenderTargetType = 'Canvas' | 'Color' | 'Depth';

@@ -11,11 +11,11 @@ import { WebGpuTexture } from '../../source/abstraction_layer/webgpu/texture_res
 import { WebGpuTextureUsage } from '../../source/abstraction_layer/webgpu/texture_resource/texture/web-gpu-texture-usage.enum';
 import { WebGpuTextureSampler } from '../../source/abstraction_layer/webgpu/texture_resource/web-gpu-texture-sampler';
 import { GpuDevice } from '../../source/base/base/gpu/gpu-device';
-import { WebGpuArrayBufferMemoryLayout } from '../../source/base/implementation/webgpu/memory_layout/buffer/web-gpu-array-buffer-memory-layout';
-import { WebGpuLinearBufferMemoryLayout } from '../../source/base/implementation/webgpu/memory_layout/buffer/web-gpu-linear-buffer-memory-layout';
-import { WebGpuStructBufferMemoryLayout } from '../../source/base/implementation/webgpu/memory_layout/buffer/web-gpu-struct-buffer-memory-layout';
-import { WebGpuSamplerMemoryLayout } from '../../source/base/implementation/webgpu/memory_layout/web-gpu-sampler-memory-layout';
-import { WebGpuTextureMemoryLayout } from '../../source/base/implementation/webgpu/memory_layout/web-gpu-texture-memory-layout';
+import { ArrayBufferMemoryLayout } from '../../source/base/base/memory_layout/buffer/array-buffer-memory-layout';
+import { LinearBufferMemoryLayout } from '../../source/base/base/memory_layout/buffer/linear-buffer-memory-layout';
+import { StructBufferMemoryLayout } from '../../source/base/base/memory_layout/buffer/struct-buffer-memory-layout';
+import { SamplerMemoryLayout } from '../../source/base/base/memory_layout/sampler-memory-layout';
+import { TextureMemoryLayout } from '../../source/base/base/memory_layout/texture-memory-layout';
 import { WebGpuDevice } from '../../source/base/implementation/webgpu/web-gpu-device';
 import { AmbientLight } from '../../source/something_better/light/ambient-light';
 import { Transform, TransformMatrix } from '../../source/something_better/transform';
@@ -30,7 +30,7 @@ const gWidth: number = 10;
 const gDepth: number = 10;
 
 (async () => {
-    const lGpu: GpuDevice = await new WebGpuDevice().init();
+    const lGpu: GpuDevice = await GpuDevice.request(new WebGpuGenerator('performance'));
 
     // Create and configure render targets.
     const lRenderTargets = lGpu.renderTargets(640, 640, 2);
@@ -49,7 +49,7 @@ const gDepth: number = 10;
     // Create transformation.
     const lCubeTransform: Transform = new Transform();
     lCubeTransform.setScale(0.1, 0.1, 0.1);
-    lTransformationGroup.setData('transformationMatrix', (<WebGpuLinearBufferMemoryLayout>lTransformationGroupLayout.getBind('transformationMatrix').layout).create(new Float32Array(lCubeTransform.getMatrix(TransformMatrix.Transformation).dataArray)));
+    lTransformationGroup.setData('transformationMatrix', (<ArrayBufferMemoryLayout>lTransformationGroupLayout.getBind('transformationMatrix').layout).create(new Float32Array(lCubeTransform.getMatrix(TransformMatrix.Transformation).dataArray)));
 
     // Create instance positions.
     const lCubeInstanceTransformationData: Array<number> = new Array<number>();
@@ -60,7 +60,7 @@ const gDepth: number = 10;
             }
         }
     }
-    lTransformationGroup.setData('transformationMatrix', (<WebGpuArrayBufferMemoryLayout>lTransformationGroupLayout.getBind('transformationMatrix').layout).create(new Float32Array(lCubeInstanceTransformationData)));
+    lTransformationGroup.setData('transformationMatrix', (<ArrayBufferMemoryLayout>lTransformationGroupLayout.getBind('transformationMatrix').layout).create(new Float32Array(lCubeInstanceTransformationData)));
 
     /*
      * Camera and world group. 
@@ -78,15 +78,15 @@ const gDepth: number = 10;
     // Create camera.
     const lCamera: ViewProjection = new ViewProjection(lPerspectiveProjection);
     lCamera.transformation.setTranslation(0, 0, -4);
-    lWorldGroup.setData('viewProjectionMatrix', (<WebGpuLinearBufferMemoryLayout>lWorldGroupLayout.getBind('viewProjectionMatrix').layout).create(new Float32Array(lCamera.getMatrix(CameraMatrix.ViewProjection).dataArray)));
+    lWorldGroup.setData('viewProjectionMatrix', (<LinearBufferMemoryLayout>lWorldGroupLayout.getBind('viewProjectionMatrix').layout).create(new Float32Array(lCamera.getMatrix(CameraMatrix.ViewProjection).dataArray)));
 
     // Create ambient light.
     const lAmbientLight: AmbientLight = new AmbientLight();
     lAmbientLight.setColor(0.1, 0.1, 0.1);
-    lWorldGroup.setData('ambientLight', (<WebGpuStructBufferMemoryLayout>lWorldGroupLayout.getBind('ambientLight').layout).create(new Float32Array(lCamera.getMatrix(CameraMatrix.ViewProjection).dataArray)));
+    lWorldGroup.setData('ambientLight', (<StructBufferMemoryLayout>lWorldGroupLayout.getBind('ambientLight').layout).create(new Float32Array(lCamera.getMatrix(CameraMatrix.ViewProjection).dataArray)));
 
     // Create point lights.
-    lWorldGroup.setData('pointLights', (<WebGpuStructBufferMemoryLayout>lWorldGroupLayout.getBind('pointLights').layout).create(new Float32Array([
+    lWorldGroup.setData('pointLights', (<StructBufferMemoryLayout>lWorldGroupLayout.getBind('pointLights').layout).create(new Float32Array([
         /* Position */1, 1, 1, 1, /* Color */1, 0, 0, 1,/* Range */ 200, 0, 0, 0,
         /* Position */10, 10, 10, 1, /* Color */0, 0, 1, 1,/* Range */ 200, 0, 0, 0
     ])));
@@ -98,11 +98,11 @@ const gDepth: number = 10;
     const lUserGroup = lUserGroupLayout.createGroup();
 
     // Setup cube texture.
-    const lCubeTexture = await (<WebGpuTextureMemoryLayout>lUserGroupLayout.getBind('cubeTexture').layout).createFromImage('/source/cube_texture/cube-texture.png');
+    const lCubeTexture = await (<TextureMemoryLayout>lUserGroupLayout.getBind('cubeTexture').layout).createImageTexture('/source/cube_texture/cube-texture.png');
     lUserGroup.setData('cubeTexture', lCubeTexture);
 
     // Setup Sampler.
-    const lCubeSampler = (<WebGpuSamplerMemoryLayout>lUserGroupLayout.getBind('cubeTextureSampler').layout).create();
+    const lCubeSampler = (<SamplerMemoryLayout>lUserGroupLayout.getBind('cubeTextureSampler').layout).create();
     lUserGroup.setData('cubeTextureSampler', lCubeSampler);
 
     // TODO: Generate render parameter from parameter layout. Maybe rename parameterLayout to renderParameterLayout as it is only for rendering.

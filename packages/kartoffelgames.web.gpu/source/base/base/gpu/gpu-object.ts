@@ -1,82 +1,71 @@
-import { Exception } from '@kartoffelgames/core.data';
-import { GpuDependent } from './gpu-dependent';
-import { GpuTypes } from './gpu-device';
+import { GpuDevice } from './gpu-device';
 
-export abstract class GpuObject<TGpuTypes extends GpuTypes, TNative> extends GpuDependent<TGpuTypes> {
-    private mDestroyed: boolean;
-    private mNativeObject: TNative | null;
-    private mUpdateRequested: boolean;
+export class GpuObject {
+    private mAutoUpdate: boolean;
+    private readonly mDevice: GpuDevice;
+    private readonly mUpdateListenerList: Set<GpuObjectUpdateListener>;
 
     /**
-     * Get native gpu object.
-     * Can be recreated.
+     * Enable or disable auto update.
      */
-    public get native(): TNative {
-        if (this.mDestroyed) {
-            throw new Exception('Destoryed gpu objects cant be used again.', this);
-        }
-
-        if (!this.mUpdateRequested) {
-            this.mNativeObject = this.generate();
-            this.mUpdateRequested = false;
-        }
-
-        return this.nativeObject!;
+    public get autoUpdate(): boolean {
+        return this.mAutoUpdate;
+    } set autoUpdate(pValue: boolean) {
+        this.mAutoUpdate = pValue;
     }
 
     /**
-     * Inner native object.
+     * Gpu Device.
      */
-    protected get nativeObject(): TNative | null {
-        return this.mNativeObject;
-    } protected set nativeObject(pValue: TNative | null) {
-        this.mNativeObject = pValue;
+    protected get device(): GpuDevice {
+        return this.mDevice;
     }
 
     /**
      * Constructor.
      * @param pDevice - Gpu device.
      */
-    public constructor(pDevice: TGpuTypes['gpuDevice']) {
-        super(pDevice);
-
-        this.mNativeObject = null;
-        this.mUpdateRequested = true;
-        this.mDestroyed = false;
+    public constructor(pDevice: GpuDevice) {
+        this.mAutoUpdate = true;
+        this.mDevice = pDevice;
+        this.mUpdateListenerList = new Set<GpuObjectUpdateListener>();
     }
 
     /**
-     * Destroy generated native object.
+     * Add update listener.
+     * @param pListener - Listener.
      */
-    public destroy(): void {
-        // Destroy old native object.
-        if (this.mNativeObject) {
-            this.destroyNative(this.mNativeObject);
+    public addUpdateListener(pListener: GpuObjectUpdateListener): void {
+        this.mUpdateListenerList.add(pListener);
+    }
 
-            // Remove destroyed native.
-            this.mNativeObject = null;
+    /**
+     * Add update listener.
+     * @param pListener - Listener.
+     */
+    public removeUpdateListener(pListener: GpuObjectUpdateListener): void {
+        this.mUpdateListenerList.delete(pListener);
+    }
+
+    /**
+    * Update gpu object.
+    */
+    public update(): void {
+        // Call parent update listerner.
+        for (const lUpdateListener of this.mUpdateListenerList) {
+            lUpdateListener();
         }
-
-        this.mDestroyed = true;
     }
 
     /**
-     * Update gpu object.
+     * Trigger auto update.
+     * Does nothing on disabled auto update.
      */
-    public override update(): void {
-        this.mUpdateRequested = true;
-
-        // Call parent update method.
-        super.update();
+    protected triggerAutoUpdate(): void {
+        if (this.mAutoUpdate) {
+            this.update();
+        }
     }
-
-    /**
-     * Destroy gpu object.
-     */
-    protected abstract destroyNative(_pNativeObject: TNative): void;
-
-    /**
-     * Generate native object.
-     */
-    protected abstract generate(): TNative;
 }
+
+export type GpuObjectUpdateListener = () => void;

@@ -2,10 +2,14 @@ import { TextureBindType } from '../../constant/texture-bind-type.enum';
 import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../constant/texture-format.enum';
 import { TextureUsage } from '../../constant/texture-usage.enum';
-import { GpuTypes } from '../gpu/gpu-device';
-import { MemoryLayout, MemoryLayoutParameter } from './memory-layout';
+import { GpuDevice } from '../gpu/gpu-device';
+import { CanvasTexture } from '../texture/canvas-texture';
+import { FrameBufferTexture } from '../texture/frame-buffer-texture';
+import { ImageTexture } from '../texture/image-texture';
+import { VideoTexture } from '../texture/video-texture';
+import { BaseMemoryLayout, MemoryLayoutParameter } from './base-memory-layout';
 
-export abstract class TextureMemoryLayout<TGpuTypes extends GpuTypes = GpuTypes> extends MemoryLayout<TGpuTypes> {
+export class TextureMemoryLayout extends BaseMemoryLayout {
     private readonly mBindType: TextureBindType;
     private readonly mDimension: TextureDimension;
     private readonly mFormat: TextureFormat;
@@ -56,7 +60,7 @@ export abstract class TextureMemoryLayout<TGpuTypes extends GpuTypes = GpuTypes>
      * Constructor.
      * @param pParameter - Parameter.
      */
-    public constructor(pGpu: TGpuTypes['gpuDevice'], pParameter: TextureMemoryLayoutParameter) {
+    public constructor(pGpu: GpuDevice, pParameter: TextureMemoryLayoutParameter) {
         super(pGpu, pParameter);
 
         this.mBindType = pParameter.bindType;
@@ -67,68 +71,58 @@ export abstract class TextureMemoryLayout<TGpuTypes extends GpuTypes = GpuTypes>
     }
 
     /**
+     * Create canvas texture.
+     * @param pWidth - Texture width.
+     * @param pHeight - Texture height.
+     */
+    public createCanvasTexture(pWidth: number, pHeight: number): CanvasTexture {
+        // Create and set canvas sizes.
+        const lCanvasTexture: CanvasTexture = new CanvasTexture(this.device, this);
+        lCanvasTexture.width = pWidth;
+        lCanvasTexture.height = pHeight;
+
+        return lCanvasTexture;
+    }
+
+    /**
      * Create frame buffer texture.
-     * @param pCanvas - Canvas html element.
      * @param pWidth - Texture width.
      * @param pHeight - Texture height.
      * @param pDepth - Texture depth.
      */
-    public create(pWidth: number, pHeight: number, pDepth: number): TGpuTypes['frameBufferTexture'];
-    public create(pCanvas: HTMLCanvasElement): TGpuTypes['frameBufferTexture'];
-    public create(pWidthOrCanvas: number | HTMLCanvasElement, pHeight?: number, pDepth?: number): TGpuTypes['frameBufferTexture'] {
-        if (typeof pWidthOrCanvas === 'number') {
-            if (typeof pHeight !== 'number' || typeof pDepth !== 'number') {
-                throw new Error('Height and depth must be specified for sized frame buffer textures.');
-            }
+    public createFrameBufferTexture(pWidth: number, pHeight: number, pDepth: number): FrameBufferTexture {
+        // Create and set frame buffer sizes.
+        const lFrameBufferTexture: FrameBufferTexture = new FrameBufferTexture(this.device, this);
+        lFrameBufferTexture.width = pWidth;
+        lFrameBufferTexture.height = pHeight;
+        lFrameBufferTexture.depth = pDepth;
 
-            return this.createSizedFrameBuffer(pWidthOrCanvas, pHeight, pDepth);
-        }
-
-        return this.createCanvasFrameBuffer(pWidthOrCanvas);
+        return lFrameBufferTexture;
     }
 
     /**
      * Create texture from images.
      * @param pSourceList - Image source list.
      */
-    public async createFromImage(...pSourceList: Array<string>): Promise<TGpuTypes['imageTexture']> {
-        return this.createImageFromSource(...pSourceList);
+    public async createImageTexture(...pSourceList: Array<string>): Promise<ImageTexture> {
+        // Create and load images async.
+        const lImageTexture: ImageTexture = new ImageTexture(this.device, this);
+        await lImageTexture.load(...pSourceList);
+
+        return lImageTexture;
     }
 
     /**
      * Create texture from a video source.
      * @param pSource - Video source.
-     * @param pLoop - Loop video.
      */
-    public async createFromVideo(pSource: string): Promise<TGpuTypes['videoTexture']> {
-        return this.createVideoTexture(pSource);
+    public createVideoTexture(pSource: string): VideoTexture {
+        // Create and set video source.
+        const lVideoTexture: VideoTexture = new VideoTexture(this.device, this);
+        lVideoTexture.source = pSource;
+
+        return lVideoTexture;
     }
-
-    /**
-     * Create frame buffer texture from canvas element.
-     * @param pCanvas - Canvas html element.
-     */
-    protected abstract createCanvasFrameBuffer(pCanvas: HTMLCanvasElement): TGpuTypes['frameBufferTexture'];
-
-    /**
-     * Create texture from images.
-     * @param pSourceList - Image source list.
-     */
-    protected abstract createImageFromSource(...pSourceList: Array<string>): Promise<TGpuTypes['imageTexture']>;
-
-    /**
-     * Create frame buffer element.
-     * @param pWidth - Texture width.
-     * @param pHeight - Texture height.
-     * @param pDepth - Texture depth.
-     */
-    protected abstract createSizedFrameBuffer(pWidth: number, pHeight: number, pDepth: number): TGpuTypes['frameBufferTexture'];
-
-    /**
-     * Create texture from a video source.
-     * @param pSource - Video source.
-     */
-    protected abstract createVideoTexture(pSource: string): Promise<TGpuTypes['videoTexture']>;
 }
 
 export interface TextureMemoryLayoutParameter extends MemoryLayoutParameter {

@@ -1,10 +1,10 @@
 import { TypedArray } from '@kartoffelgames/core.data';
-import { Buffer } from '../../../base/buffer/buffer';
+import { GpuBuffer } from '../../../base/buffer/gpu-buffer';
 import { BufferBindType } from '../../../constant/buffer-bind-type.enum';
 import { MemoryCopyType } from '../../../constant/memory-copy-type.enum';
 import { WebGpuDevice, WebGpuTypes } from '../web-gpu-device';
 
-export class WebGpuBuffer<T extends TypedArray> extends Buffer<T, WebGpuTypes, GPUBuffer>  {
+export class WebGpuBuffer<T extends TypedArray> extends GpuBuffer<T, WebGpuTypes, GPUBuffer>  {
     private readonly mDataType: BufferDataType<T>;
 
     private readonly mReadyBufferList: Array<GPUBuffer>;

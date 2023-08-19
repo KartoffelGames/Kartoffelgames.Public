@@ -1,9 +1,11 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
-import { GpuTypes } from '../gpu/gpu-device';
+import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
+import { BaseMemoryLayout } from '../memory_layout/base-memory-layout';
+import { BindDataGroup } from './bind-data-group';
 
-export abstract class BindDataGroupLayout<TGpuTypes extends GpuTypes = GpuTypes, TNative = any> extends GpuObject<TGpuTypes, TNative> {
-    private readonly mBindings: Dictionary<string, BindLayout<TGpuTypes>>;
+export class BindDataGroupLayout extends GpuObject {
+    private readonly mBindings: Dictionary<string, BindLayout>;
     private mIdentifier: string;
 
     /**
@@ -24,8 +26,8 @@ export abstract class BindDataGroupLayout<TGpuTypes extends GpuTypes = GpuTypes,
     /**
      * Get bindings of group.
      */
-    protected get bindings(): Array<BindLayout<TGpuTypes>> {
-        const lBindingList: Array<BindLayout<TGpuTypes>> = new Array<BindLayout<TGpuTypes>>();
+    protected get bindings(): Array<BindLayout> {
+        const lBindingList: Array<BindLayout> = new Array<BindLayout>();
         for (const lBinding of this.mBindings.values()) {
             lBindingList[lBinding.index] = lBinding;
         }
@@ -37,11 +39,11 @@ export abstract class BindDataGroupLayout<TGpuTypes extends GpuTypes = GpuTypes,
      * Constructor.
      * @param pDevice - Gpu Device reference.
      */
-    public constructor(pDevice: TGpuTypes['gpuDevice']) {
+    public constructor(pDevice: GpuDevice) {
         super(pDevice);
 
         // Init storage.
-        this.mBindings = new Dictionary<string, BindLayout<TGpuTypes>>();
+        this.mBindings = new Dictionary<string, BindLayout>();
 
         // Update identifier.
         this.mIdentifier = '';
@@ -70,7 +72,7 @@ export abstract class BindDataGroupLayout<TGpuTypes extends GpuTypes = GpuTypes,
      * @param pName - Binding name. For easy access only.
      * @param pIndex - Index of bind inside group.
      */
-    public addBinding(pLayout: TGpuTypes['memoryLayout'], pName: string): void {
+    public addBinding(pLayout: BaseMemoryLayout, pName: string): void {
         if (pLayout.bindingIndex === null) {
             throw new Exception(`Layout "${pLayout.name}" binding needs a binding index.`, this);
         }
@@ -92,25 +94,27 @@ export abstract class BindDataGroupLayout<TGpuTypes extends GpuTypes = GpuTypes,
     }
 
     /**
+     * Create bind group from layout.
+     */
+    public createGroup(): BindDataGroup {
+        return new BindDataGroup(this.device, this);
+    }
+
+    /**
      * Get full bind information.
      * @param pName - Bind name.
      */
-    public getBind(pName: string): Readonly<BindLayout<TGpuTypes>> {
+    public getBind(pName: string): Readonly<BindLayout> {
         if (!this.mBindings.has(pName)) {
             throw new Exception(`Bind ${pName} does not exist.`, this);
         }
 
         return this.mBindings.get(pName)!;
-    }
-
-    /**
-     * Create bind group from layout.
-     */
-    public abstract createGroup(): TGpuTypes['bindDataGroup'];
+    }    
 }
 
-type BindLayout<TGpuTypes extends GpuTypes> = {
+type BindLayout = {
     name: string,
     index: number,
-    layout: TGpuTypes['memoryLayout'];
+    layout: BaseMemoryLayout;
 };

@@ -1,16 +1,17 @@
 import { CompareFunction } from '../../constant/compare-function.enum';
 import { FilterMode } from '../../constant/filter-mode.enum';
 import { WrappingMode } from '../../constant/wrapping-mode.enum';
-import { GpuTypes } from '../gpu/gpu-device';
+import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
+import { SamplerMemoryLayout } from '../memory_layout/sampler-memory-layout';
 
-export abstract class TextureSampler<TGpuTypes extends GpuTypes = GpuTypes, TNative = any> extends GpuObject<TGpuTypes, TNative> {
+export class TextureSampler extends GpuObject {
     private mCompare: CompareFunction | null;
     private mLodMaxClamp: number;
     private mLodMinClamp: number;
     private mMagFilter: FilterMode;
     private mMaxAnisotropy: number;
-    private readonly mMemoryLayout: TGpuTypes['samplerMemoryLayout'];
+    private readonly mMemoryLayout: SamplerMemoryLayout;
     private mMinFilter: FilterMode;
     private mMipmapFilter: FilterMode;
     private mWrapMode: WrappingMode;
@@ -78,7 +79,7 @@ export abstract class TextureSampler<TGpuTypes extends GpuTypes = GpuTypes, TNat
     /**
      * Sampler memory layout.
      */
-    public get memoryLayout(): TGpuTypes['samplerMemoryLayout'] {
+    public get memoryLayout(): SamplerMemoryLayout {
         return this.mMemoryLayout;
     }
 
@@ -123,7 +124,7 @@ export abstract class TextureSampler<TGpuTypes extends GpuTypes = GpuTypes, TNat
      * @param pDevice - Device.
      * @param pLayout - Sampler memory layout.
      */
-    public constructor(pDevice: TGpuTypes['gpuDevice'], pLayout: TGpuTypes['samplerMemoryLayout']) {
+    public constructor(pDevice: GpuDevice, pLayout: SamplerMemoryLayout) {
         super(pDevice);
 
         this.mMemoryLayout = pLayout;

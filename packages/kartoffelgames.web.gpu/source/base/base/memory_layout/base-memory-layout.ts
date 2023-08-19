@@ -1,10 +1,10 @@
 import { AccessMode } from '../../constant/access-mode.enum';
 import { ComputeStage } from '../../constant/compute-stage.enum';
 import { MemoryCopyType } from '../../constant/memory-copy-type.enum';
-import { GpuDependent } from '../gpu/gpu-dependent';
-import { GpuTypes } from '../gpu/gpu-device';
+import { GpuDevice } from '../gpu/gpu-device';
+import { GpuObject } from '../gpu/gpu-object';
 
-export abstract class MemoryLayout<TGpuTypes extends GpuTypes> extends GpuDependent<TGpuTypes> {
+export abstract class BaseMemoryLayout extends GpuObject {
     private readonly mAccessMode: AccessMode;
     private readonly mBindingIndex: number | null;
     private readonly mLocationIndex: number | null;
@@ -63,7 +63,7 @@ export abstract class MemoryLayout<TGpuTypes extends GpuTypes> extends GpuDepend
      * Constuctor.
      * @param pParameter - Parameter.
      */
-    public constructor(pGpu: TGpuTypes['gpuDevice'], pParameter: MemoryLayoutParameter) {
+    public constructor(pGpu: GpuDevice, pParameter: MemoryLayoutParameter) {
         super(pGpu);
 
         this.mAccessMode = pParameter.access;

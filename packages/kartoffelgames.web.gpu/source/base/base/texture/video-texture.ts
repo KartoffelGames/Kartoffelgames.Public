@@ -1,36 +1,31 @@
-import { GpuTypes } from '../gpu/gpu-device';
+import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
+import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
 
-export abstract class VideoTexture<TGpuTypes extends GpuTypes = GpuTypes, TNative = any> extends GpuObject<TGpuTypes, TNative> {
-    private mLoop: boolean;
-    private readonly mMemoryLayout: TGpuTypes['textureMemoryLayout'];
-    private mSource: string;
+export class VideoTexture extends GpuObject {
+    private readonly mMemoryLayout: TextureMemoryLayout;
+    private readonly mVideo: HTMLVideoElement;
 
     /**
      * Texture height.
      */
-    public abstract readonly height: number;
-
-    /**
-     * Texture width.
-     */
-    public abstract readonly width: number;
+    public get height(): number {
+        return this.mVideo.videoHeight;
+    }
 
     /**
      * If video should be looped.
      */
     public get loop(): boolean {
-        return this.mLoop;
+        return this.mVideo.loop;
     } set loop(pValue: boolean) {
-        this.mLoop = pValue;
-
-        this.triggerAutoUpdate();
+        this.mVideo.loop = pValue;
     }
 
     /**
      * Textures memory layout.
      */
-    public get memoryLayout(): TGpuTypes['textureMemoryLayout'] {
+    public get memoryLayout(): TextureMemoryLayout {
         return this.mMemoryLayout;
     }
 
@@ -38,11 +33,16 @@ export abstract class VideoTexture<TGpuTypes extends GpuTypes = GpuTypes, TNativ
      * Video source.
      */
     public get source(): string {
-        return this.mSource;
+        return this.mVideo.src;
     } set source(pValue: string) {
-        this.mSource = pValue;
+        this.mVideo.src = pValue;
+    }
 
-        this.triggerAutoUpdate();
+    /**
+     * Video width.
+     */
+    public get width(): number {
+        return this.mVideo.videoWidth;
     }
 
     /**
@@ -51,13 +51,16 @@ export abstract class VideoTexture<TGpuTypes extends GpuTypes = GpuTypes, TNativ
      * @param pLayout - Texture memory layout.
      * @param pDepth - Texture depth.
      */
-    public constructor(pDevice: TGpuTypes['gpuDevice'], pLayout: TGpuTypes['textureMemoryLayout']) {
+    public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout) {
         super(pDevice);
 
         // Fixed values.
         this.mMemoryLayout = pLayout;
-        this.mLoop = false;
-        this.mSource = '';
+
+        // Create video.
+        this.mVideo = new HTMLVideoElement();
+        this.mVideo.loop = false;
+        this.mVideo.muted = true; // Allways muted.
 
         // Register change listener for layout changes.
         pLayout.addUpdateListener(() => {
@@ -68,10 +71,14 @@ export abstract class VideoTexture<TGpuTypes extends GpuTypes = GpuTypes, TNativ
     /**
      * Pause video.
      */
-    public abstract pause(): void;
+    public pause(): void {
+        this.mVideo.pause();
+    }
 
     /**
      * Play video.
      */
-    public abstract play(): void;
+    public play(): void {
+        this.mVideo.play();
+    }
 }

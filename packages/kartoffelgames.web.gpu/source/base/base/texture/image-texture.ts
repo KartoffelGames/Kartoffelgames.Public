@@ -1,12 +1,13 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { GpuTypes } from '../gpu/gpu-device';
+import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
+import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
 
-export abstract class ImageTexture<TGpuTypes extends GpuTypes = GpuTypes, TNative = any> extends GpuObject<TGpuTypes, TNative> {
+export class ImageTexture extends GpuObject {
     private mDepth: number;
     private mHeight: number;
     private mImageList: Array<ImageBitmap>;
-    private readonly mMemoryLayout: TGpuTypes['textureMemoryLayout'];
+    private readonly mMemoryLayout: TextureMemoryLayout;
     private mWidth: number;
 
     /**
@@ -33,7 +34,7 @@ export abstract class ImageTexture<TGpuTypes extends GpuTypes = GpuTypes, TNativ
     /**
      * Textures memory layout.
      */
-    public get memoryLayout(): TGpuTypes['textureMemoryLayout'] {
+    public get memoryLayout(): TextureMemoryLayout {
         return this.mMemoryLayout;
     }
 
@@ -49,7 +50,7 @@ export abstract class ImageTexture<TGpuTypes extends GpuTypes = GpuTypes, TNativ
      * @param pDevice - Device.
      * @param pLayout - Texture memory layout.
      */
-    public constructor(pDevice: TGpuTypes['gpuDevice'], pLayout: TGpuTypes['textureMemoryLayout']) {
+    public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout) {
         super(pDevice);
 
         // Fixed values.

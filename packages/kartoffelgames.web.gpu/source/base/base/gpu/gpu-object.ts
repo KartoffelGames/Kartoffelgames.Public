@@ -1,6 +1,6 @@
 import { GpuDevice } from './gpu-device';
 
-export class GpuObject {
+export abstract class GpuObject {
     private mAutoUpdate: boolean;
     private readonly mDevice: GpuDevice;
     private readonly mUpdateListenerList: Set<GpuObjectUpdateListener>;
@@ -55,6 +55,8 @@ export class GpuObject {
         for (const lUpdateListener of this.mUpdateListenerList) {
             lUpdateListener();
         }
+
+        this.device.generator.invalidate(this);
     }
 
     /**

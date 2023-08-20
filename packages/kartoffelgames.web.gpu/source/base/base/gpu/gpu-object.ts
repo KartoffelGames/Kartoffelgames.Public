@@ -48,8 +48,8 @@ export abstract class GpuObject {
     }
 
     /**
-    * Update gpu object.
-    */
+     * Update gpu object.
+     */
     public update(): void {
         // Call parent update listerner.
         for (const lUpdateListener of this.mUpdateListenerList) {

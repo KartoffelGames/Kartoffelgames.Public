@@ -1,11 +1,22 @@
-import { Dictionary, Exception } from '@kartoffelgames/core.data';
+import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core.data';
+import { BindDataGroup } from '../binding/bind-data-group';
+import { BindDataGroupLayout } from '../binding/bind-data-group-layout';
+import { PipelineDataLayout } from '../binding/pipeline-data-layout';
+import { GpuBuffer } from '../buffer/gpu-buffer';
 import { GpuObject } from '../gpu/gpu-object';
 import { BaseShaderInterpreter } from '../shader/interpreter/base-shader-interpreter';
+import { RenderShader } from '../shader/render-shader';
+import { CanvasTexture } from '../texture/canvas-texture';
+import { FrameBufferTexture } from '../texture/frame-buffer-texture';
+import { ImageTexture } from '../texture/image-texture';
+import { TextureSampler } from '../texture/texture-sampler';
+import { VideoTexture } from '../texture/video-texture';
 
-export abstract class BaseGenerator {
-    private readonly mDestructors: Dictionary<GpuObjectConstructor, DestructorFunction<GpuObject, object>>;
-    private readonly mGenerators: Dictionary<GpuObjectConstructor, GeneratorFunction<GpuObject, object>>;
-    private readonly mObjectCache: WeakMap<GpuObject, object>;
+export abstract class BaseGenerator<TNativeMap extends NativeGpuObjects = NativeGpuObjects> {
+    private readonly mDestructors: Dictionary<keyof TNativeMap, DestructorFunction<TNativeMap, any>>;
+    private readonly mGenerators: Dictionary<keyof TNativeMap, GeneratorFunction<TNativeMap, any>>;
+    private readonly mNativeType: WeakMap<TNativeMap[keyof TNativeMap], keyof TNativeMap>;
+    private readonly mObjectCache: WeakMap<GpuObject, TNativeMap[keyof TNativeMap]>;
     private readonly mShaderInterpreter: BaseShaderInterpreter;
 
     /**
@@ -19,9 +30,10 @@ export abstract class BaseGenerator {
      * Constructor.
      */
     public constructor() {
-        this.mObjectCache = new WeakMap<GpuObject, object>();
-        this.mDestructors = new Dictionary<GpuObjectConstructor, DestructorFunction<GpuObject, object>>();
-        this.mGenerators = new Dictionary<GpuObjectConstructor, GeneratorFunction<GpuObject, object>>();
+        this.mNativeType = new WeakMap<TNativeMap[keyof TNativeMap], keyof TNativeMap>();
+        this.mObjectCache = new WeakMap<GpuObject, TNativeMap[keyof TNativeMap]>();
+        this.mDestructors = new Dictionary<keyof TNativeMap, DestructorFunction<TNativeMap, any>>();
+        this.mGenerators = new Dictionary<keyof TNativeMap, GeneratorFunction<TNativeMap, any>>();
 
         // Create interpreter.
         this.mShaderInterpreter = this.createShaderInterpreter();
@@ -29,23 +41,25 @@ export abstract class BaseGenerator {
 
     /**
      * Generate native.
+     * @param pType - Type name of base object.
      * @param pBaseObject - Base gpu object.
      */
-    public generate<TObject extends GpuObject, TNative extends object>(pBaseObject: TObject): ReturnType<GeneratorFunction<TObject, TNative>> {
+    public generate<TKey extends keyof TNativeMap & keyof BaseObjectMap>(pType: TKey, pBaseObject: BaseObjectMap[TKey]): TNativeMap[TKey] {
         // Get and validate generator function.
-        const lGenerator: GeneratorFunction<TObject, TNative> | undefined = <GeneratorFunction<TObject, TNative> | undefined>this.mGenerators.get(<GpuObjectConstructor>pBaseObject.constructor);
+        const lGenerator: GeneratorFunction<TNativeMap, TKey> | undefined = this.mGenerators.get(pType);
         if (!lGenerator) {
             throw new Exception(`No generator for type "${pBaseObject.constructor.name}" defined`, this);
         }
 
         // Use cached objects if they are still valid.
         if (this.mObjectCache.has(pBaseObject)) {
-            return <TNative>this.mObjectCache.get(pBaseObject);
+            return <TNativeMap[TKey]>this.mObjectCache.get(pBaseObject);
         }
 
         // Generate and cache new object.
-        const lNativeObject: TNative = lGenerator(pBaseObject);
+        const lNativeObject: TNativeMap[TKey] = lGenerator(pBaseObject);
         this.mObjectCache.set(pBaseObject, lNativeObject);
+        this.mNativeType.set(lNativeObject, pType);
 
         return lNativeObject;
     }
@@ -54,13 +68,19 @@ export abstract class BaseGenerator {
      * Invalidate object.
      * @param pBaseObject 
      */
-    public invalidate<TObject extends GpuObject>(pBaseObject: TObject): void {
+    public invalidate(pBaseObject: GpuObject): void {
         // Deconstruct native object.
         if (this.mObjectCache.has(pBaseObject)) {
             const lNative = this.mObjectCache.get(pBaseObject)!;
 
+            // Get native object type name.
+            const lTypeName: keyof TNativeMap | undefined = this.mNativeType.get(lNative);
+            if (!lTypeName) {
+                throw new Exception('Typename for a native gpu object was not set.', this);
+            }
+
             // Get and validate destructor function.
-            const lDestructor: DestructorFunction<TObject, object> | undefined = <GeneratorFunction<TObject, object> | undefined>this.mDestructors.get(<GpuObjectConstructor>pBaseObject.constructor);
+            const lDestructor: DestructorFunction<TNativeMap, any> | undefined = this.mDestructors.get(lTypeName);
             if (!lDestructor) {
                 throw new Exception(`No destructor for type "${pBaseObject.constructor.name}" defined`, this);
             }
@@ -75,20 +95,20 @@ export abstract class BaseGenerator {
 
     /**
      * Register an generatpr for this type.
-     * @param pObjectConstructor - Base gpu object type.
+     * @param pType - Base gpu object type name.
      * @param pGeneratorFunction - Generator for this type.
      */
-    protected registerDestructor<TObject extends GpuObject, TNative extends object>(pObjectConstructor: GpuObjectConstructor<TObject>, pDestructorFunction: DestructorFunction<TObject, TNative>): void {
-        this.mDestructors.set(pObjectConstructor, <any>pDestructorFunction);
+    protected registerDestructor<TKey extends keyof TNativeMap & keyof BaseObjectMap>(pType: TKey, pDestructorFunction: DestructorFunction<TNativeMap, TKey>): void {
+        this.mDestructors.set(pType, <any>pDestructorFunction);
     }
 
     /**
      * Register an generatpr for this type.
-     * @param pObjectConstructor - Base gpu object type.
+     * @param pType - Base gpu object type name.
      * @param pGeneratorFunction - Generator for this type.
      */
-    protected registerGenerator<TObject extends GpuObject, TNative extends object>(pObjectConstructor: GpuObjectConstructor<TObject>, pGeneratorFunction: GeneratorFunction<TObject, TNative>): void {
-        this.mGenerators.set(pObjectConstructor, <any>pGeneratorFunction);
+    protected registerGenerator<TKey extends keyof TNativeMap & keyof BaseObjectMap>(pType: TKey, pGeneratorFunction: GeneratorFunction<TNativeMap, TKey>): void {
+        this.mGenerators.set(pType, <any>pGeneratorFunction);
     }
 
     /**
@@ -102,12 +122,33 @@ export abstract class BaseGenerator {
     protected abstract createShaderInterpreter(): BaseShaderInterpreter;
 }
 
+// Generator and 
+type GeneratorFunction<TNativeMap extends NativeGpuObjects, TKey extends keyof TNativeMap & keyof BaseObjectMap> = (pBaseObject: BaseObjectMap[TKey]) => TNativeMap[TKey];
+type DestructorFunction<TNativeMap extends NativeGpuObjects, TKey extends keyof TNativeMap & keyof BaseObjectMap> = (pBaseObject: BaseObjectMap[TKey], pNativeObject: TNativeMap[TKey]) => void;
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-type GpuObjectConstructor<TObject extends GpuObject = GpuObject> = Function & {
-    prototype: TObject;
-    new: (...pArgs: any) => TObject;
+// Generator base gpu object to native object mapping.
+type PropertyKeyCopy<TPropertyKeys, TPropertyValue> = {
+    [Property in keyof TPropertyKeys]: TPropertyValue
 };
+type NativeGpuObjects = PropertyKeyCopy<BaseObjectMap, object>;
 
-type GeneratorFunction<TObject extends GpuObject, TNative extends object> = (pBaseObject: TObject) => TNative;
-type DestructorFunction<TObject extends GpuObject, TNative extends object> = (pBaseObject: TObject, pNativeObject: TNative) => void;
+// Mapping of all base gpu objects.
+type BaseObjectMap = {
+    // Textures.
+    textureSampler: TextureSampler;
+    imageTexture: ImageTexture;
+    frameBufferTexture: FrameBufferTexture;
+    videoTexture: VideoTexture;
+    canvasTexture: CanvasTexture;
+
+    // Things with generics. :(
+    buffer: GpuBuffer<TypedArray>;
+
+    // Pipeline layouting.
+    bindDataGroupLayout: BindDataGroupLayout;
+    bindDataGroup: BindDataGroup;
+    pipelineDataLayout: PipelineDataLayout;
+
+    // Shader.
+    renderShader: RenderShader;
+};

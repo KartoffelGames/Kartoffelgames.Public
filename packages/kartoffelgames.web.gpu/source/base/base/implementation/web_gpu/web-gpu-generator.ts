@@ -3,7 +3,7 @@ import { BaseGenerator } from '../../generator/base-generator';
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { WebGpuShaderInformation } from './web-gpu-shader-information';
 
-export class WebGpuGenerator extends BaseGenerator {
+export class WebGpuGenerator extends BaseGenerator<NativeWebGpuObjects> {
     private static readonly mAdapters: Dictionary<GPUPowerPreference, GPUAdapter> = new Dictionary<GPUPowerPreference, GPUAdapter>();
     private static readonly mDevices: Dictionary<GPUAdapter, GPUDevice> = new Dictionary<GPUAdapter, GPUDevice>();
 
@@ -55,3 +55,24 @@ export class WebGpuGenerator extends BaseGenerator {
         return new WebGpuShaderInformation();
     }
 }
+
+type NativeWebGpuObjects = {
+    // Textures.
+    textureSampler: object;
+    imageTexture: object;
+    frameBufferTexture: object;
+    videoTexture: object;
+    canvasTexture: object;
+
+    // Things with generics. :(
+    buffer: GPUBuffer;
+
+    // Pipeline layouting.
+    bindDataGroupLayout: object;
+    bindDataGroup: object;
+    pipelineDataLayout: object;
+    renderParameterLayout: object;
+
+    // Shader.
+    renderShader: object;
+};

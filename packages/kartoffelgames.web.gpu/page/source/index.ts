@@ -11,7 +11,7 @@ import { WebGpuTexture } from '../../source/abstraction_layer/webgpu/texture_res
 import { WebGpuTextureUsage } from '../../source/abstraction_layer/webgpu/texture_resource/texture/web-gpu-texture-usage.enum';
 import { WebGpuTextureSampler } from '../../source/abstraction_layer/webgpu/texture_resource/web-gpu-texture-sampler';
 import { GpuDevice } from '../../source/base/base/gpu/gpu-device';
-import { WebGpuGenerator } from '../../source/base/base/implementation/web_gpu/web-gpu-generator';
+import { WebGpuGeneratorFactory } from '../../source/base/base/implementation/web_gpu/web-gpu-generator-factory';
 import { ArrayBufferMemoryLayout } from '../../source/base/base/memory_layout/buffer/array-buffer-memory-layout';
 import { LinearBufferMemoryLayout } from '../../source/base/base/memory_layout/buffer/linear-buffer-memory-layout';
 import { StructBufferMemoryLayout } from '../../source/base/base/memory_layout/buffer/struct-buffer-memory-layout';
@@ -31,7 +31,7 @@ const gWidth: number = 10;
 const gDepth: number = 10;
 
 (async () => {
-    const lGpu: GpuDevice = await GpuDevice.request(new WebGpuGenerator('high-performance'));
+    const lGpu: GpuDevice = await GpuDevice.request(new WebGpuGeneratorFactory('high-performance'));
 
     // Create and configure render targets.
     const lRenderTargets = lGpu.renderTargets(640, 640, 2);

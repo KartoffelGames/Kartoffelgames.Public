@@ -16,23 +16,23 @@ export class BindDataGroupLayout extends GpuObject {
     }
 
     /**
-     * Get bind group identifier.
-     * Same configured groups has the same identifier.
-     */
-    public get identifier(): string {
-        return this.mIdentifier;
-    }
-
-    /**
-     * Get bindings of group.
-     */
-    protected get bindings(): Array<BindLayout> {
+    * Get bindings of group.
+    */
+    public get bindings(): Array<BindLayout> {
         const lBindingList: Array<BindLayout> = new Array<BindLayout>();
         for (const lBinding of this.mBindings.values()) {
             lBindingList[lBinding.index] = lBinding;
         }
 
         return lBindingList;
+    }
+
+    /**
+     * Get bind group identifier.
+     * Same configured groups has the same identifier.
+     */
+    public get identifier(): string {
+        return this.mIdentifier;
     }
 
     /**
@@ -110,7 +110,7 @@ export class BindDataGroupLayout extends GpuObject {
         }
 
         return this.mBindings.get(pName)!;
-    }    
+    }
 }
 
 type BindLayout = {

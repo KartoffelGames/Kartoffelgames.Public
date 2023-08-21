@@ -1,13 +1,13 @@
-import { BaseShaderInterpreter } from '../../shader/interpreter/base-shader-interpreter';
-import { BaseGeneratorFactory } from '../../generator/base-generator-factory';
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
-import { WebGpuShaderInformation } from './web-gpu-shader-information';
-import { WebGpuBindDataGroupLayoutGenerator } from './native-generator/web-gpu-bind-data-group-layout-generator';
-import { TextureFormat } from '../../../constant/texture-format.enum';
 import { MemoryCopyType } from '../../../constant/memory-copy-type.enum';
-import { TextureMemoryLayout } from '../../memory_layout/texture-memory-layout';
 import { TextureDimension } from '../../../constant/texture-dimension.enum';
+import { TextureFormat } from '../../../constant/texture-format.enum';
 import { TextureUsage } from '../../../constant/texture-usage.enum';
+import { BaseGeneratorFactory } from '../../generator/base-generator-factory';
+import { TextureMemoryLayout } from '../../memory_layout/texture-memory-layout';
+import { BaseShaderInterpreter } from '../../shader/interpreter/base-shader-interpreter';
+import { WebGpuBindDataGroupLayoutGenerator } from './native-generator/web-gpu-bind-data-group-layout-generator';
+import { WebGpuShaderInformation } from './web-gpu-shader-information';
 
 export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuObjects> {
     private static readonly mAdapters: Dictionary<GPUPowerPreference, GPUAdapter> = new Dictionary<GPUPowerPreference, GPUAdapter>();
@@ -45,7 +45,7 @@ export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuObj
         this.mGpuAdapter = null;
         this.mGpuDevice = null;
 
-        this.registerGenerator('bindDataGroupLayout', WebGpuBindDataGroupLayoutGenerator);
+        this.registerGenerator('bindDataGroupLayout', new WebGpuBindDataGroupLayoutGenerator(this));
     }
 
     /**

@@ -11,10 +11,10 @@ import { FrameBufferTexture } from '../texture/frame-buffer-texture';
 import { ImageTexture } from '../texture/image-texture';
 import { TextureSampler } from '../texture/texture-sampler';
 import { VideoTexture } from '../texture/video-texture';
-import { BaseNativeGenerator, GeneratorConstructor } from './base-native-generator';
+import { BaseNativeGenerator } from './base-native-generator';
 
 export abstract class BaseGeneratorFactory<TNativeMap extends NativeGpuObjects = NativeGpuObjects> {
-    private readonly mGenerators: Dictionary<keyof TNativeMap, BaseNativeGenerator<this, TNativeMap, any>>;
+    private readonly mGenerators: Dictionary<keyof TNativeMap, BaseNativeGenerator<BaseGeneratorFactory<TNativeMap>, TNativeMap, any>>;
     private readonly mNativeType: WeakMap<TNativeMap[keyof TNativeMap], keyof TNativeMap>;
     private readonly mObjectCache: WeakMap<GpuObject, TNativeMap[keyof TNativeMap]>;
     private readonly mShaderInterpreter: BaseShaderInterpreter;
@@ -45,7 +45,7 @@ export abstract class BaseGeneratorFactory<TNativeMap extends NativeGpuObjects =
      */
     public generate<TKey extends keyof TNativeMap & keyof BaseObjectMap>(pType: TKey, pBaseObject: BaseObjectMap[TKey]): TNativeMap[TKey] {
         // Get and validate generator function.
-        const lGenerator: BaseNativeGenerator<this, TNativeMap, TKey> | undefined = this.mGenerators.get(pType);
+        const lGenerator: BaseNativeGenerator<BaseGeneratorFactory<TNativeMap>, TNativeMap, TKey> | undefined = this.mGenerators.get(pType);
         if (!lGenerator) {
             throw new Exception(`No generator for type "${pBaseObject.constructor.name}" defined`, this);
         }
@@ -79,7 +79,7 @@ export abstract class BaseGeneratorFactory<TNativeMap extends NativeGpuObjects =
             }
 
             // Get and validate generator function.
-            const lGenerator: BaseNativeGenerator<this, TNativeMap, any> | undefined = this.mGenerators.get(lTypeName);
+            const lGenerator: BaseNativeGenerator<BaseGeneratorFactory<TNativeMap>, TNativeMap, any> | undefined = this.mGenerators.get(lTypeName);
             if (!lGenerator) {
                 throw new Exception(`No generator for type "${pBaseObject.constructor.name}" defined`, this);
             }
@@ -96,9 +96,8 @@ export abstract class BaseGeneratorFactory<TNativeMap extends NativeGpuObjects =
      * @param pType - Base gpu object type name.
      * @param pGenerator - Generator for this type.
      */
-    protected registerGenerator<TKey extends keyof TNativeMap & keyof BaseObjectMap>(pType: TKey, pGeneratorConstructor: GeneratorConstructor<this, TNativeMap, TKey>): void {
-        const lGenerator: BaseNativeGenerator<this, TNativeMap, TKey> = new pGeneratorConstructor(this);
-        this.mGenerators.set(pType, lGenerator);
+    protected registerGenerator<TKey extends keyof TNativeMap & keyof BaseObjectMap>(pType: TKey, pGenerator: BaseNativeGenerator<BaseGeneratorFactory<TNativeMap>, TNativeMap, TKey>): void {
+        this.mGenerators.set(pType, pGenerator);
     }
 
     /**

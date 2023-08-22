@@ -4,7 +4,7 @@ import { BindDataGroupLayout } from '../binding/bind-data-group-layout';
 import { PipelineDataLayout } from '../binding/pipeline-data-layout';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
-import { ShaderFunction, ShaderInformation } from './interpreter/shader-information';
+import { BaseShaderInterpreter, ShaderFunction } from './interpreter/base-shader-interpreter';
 
 // TODO: Split into Compute- and RenderShader AND ModuleShader(Block any entry point.)
 // TODO: Add ShaderModules. With own PreCompile command. (import/if/define ....)
@@ -14,12 +14,12 @@ export abstract class BaseShader extends GpuObject {
     private static readonly mBindGroupLayoutCache: Dictionary<string, BindDataGroupLayout> = new Dictionary<string, BindDataGroupLayout>();
 
     private readonly mPipelineLayout: PipelineDataLayout;
-    private readonly mShaderInformation: ShaderInformation;
+    private readonly mShaderInformation: BaseShaderInterpreter;
 
     /**
      * Shader information.
      */
-    public get information(): ShaderInformation {
+    public get information(): BaseShaderInterpreter {
         return this.mShaderInformation;
     }
 
@@ -38,7 +38,7 @@ export abstract class BaseShader extends GpuObject {
         super(pDevice);
 
         // Create shader information for source.
-        this.mShaderInformation = this.device.generator.shaderInterpreter.interpret(pSource);
+        this.mShaderInformation = this.device.shaderInterpreter.interpret(pSource);
 
         // Generate layout.
         this.mPipelineLayout = new PipelineDataLayout(this.device);

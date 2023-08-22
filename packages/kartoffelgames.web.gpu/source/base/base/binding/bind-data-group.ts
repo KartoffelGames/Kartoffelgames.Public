@@ -7,6 +7,7 @@ import { ImageTexture } from '../texture/image-texture';
 import { TextureSampler } from '../texture/texture-sampler';
 import { VideoTexture } from '../texture/video-texture';
 import { BindDataGroupLayout } from './bind-data-group-layout';
+import { CanvasTexture } from '../texture/canvas-texture';
 
 export class BindDataGroup extends GpuObject {
     private readonly mBindData: Dictionary<string, BindData>;
@@ -61,4 +62,4 @@ export class BindDataGroup extends GpuObject {
     }
 }
 
-type BindData = GpuBuffer<TypedArray> | TextureSampler | ImageTexture | FrameBufferTexture | VideoTexture;
+type BindData = GpuBuffer<TypedArray> | TextureSampler | ImageTexture | FrameBufferTexture | VideoTexture | CanvasTexture;

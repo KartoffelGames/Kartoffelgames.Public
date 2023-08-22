@@ -4,7 +4,6 @@ import { BindDataGroupLayout } from '../binding/bind-data-group-layout';
 import { PipelineDataLayout } from '../binding/pipeline-data-layout';
 import { GpuBuffer } from '../buffer/gpu-buffer';
 import { GpuObject } from '../gpu/gpu-object';
-import { BaseShaderInterpreter } from '../shader/interpreter/base-shader-interpreter';
 import { RenderShader } from '../shader/render-shader';
 import { CanvasTexture } from '../texture/canvas-texture';
 import { FrameBufferTexture } from '../texture/frame-buffer-texture';
@@ -17,14 +16,6 @@ export abstract class BaseGeneratorFactory<TNativeMap extends NativeGpuObjects =
     private readonly mGenerators: Dictionary<keyof TNativeMap, BaseNativeGenerator<BaseGeneratorFactory<TNativeMap>, TNativeMap, any>>;
     private readonly mNativeType: WeakMap<TNativeMap[keyof TNativeMap], keyof TNativeMap>;
     private readonly mObjectCache: WeakMap<GpuObject, TNativeMap[keyof TNativeMap]>;
-    private readonly mShaderInterpreter: BaseShaderInterpreter;
-
-    /**
-     * Shader interpreter.
-     */
-    public get shaderInterpreter(): BaseShaderInterpreter {
-        return this.mShaderInterpreter;
-    }
 
     /**
      * Constructor.
@@ -33,9 +24,6 @@ export abstract class BaseGeneratorFactory<TNativeMap extends NativeGpuObjects =
         this.mNativeType = new WeakMap<TNativeMap[keyof TNativeMap], keyof TNativeMap>();
         this.mObjectCache = new WeakMap<GpuObject, TNativeMap[keyof TNativeMap]>();
         this.mGenerators = new Dictionary<keyof TNativeMap, BaseNativeGenerator<this, TNativeMap, any>>();
-
-        // Create interpreter.
-        this.mShaderInterpreter = this.createShaderInterpreter();
     }
 
     /**
@@ -104,11 +92,6 @@ export abstract class BaseGeneratorFactory<TNativeMap extends NativeGpuObjects =
      * Init gpu device.
      */
     public abstract init(): Promise<this>;
-
-    /**
-     * Create generator for interpreting shaders.
-     */
-    protected abstract createShaderInterpreter(): BaseShaderInterpreter;
 }
 
 // Generator base gpu object to native object mapping.

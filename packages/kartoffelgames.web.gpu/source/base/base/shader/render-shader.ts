@@ -5,7 +5,7 @@ import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memo
 import { StructBufferMemoryLayout } from '../memory_layout/buffer/struct-buffer-memory-layout';
 import { RenderParameterLayout } from '../pipeline/parameter/render-parameter-layout';
 import { BaseShader } from './base-shader';
-import { ShaderFunction } from './interpreter/shader-information';
+import { ShaderFunction } from './interpreter/base-shader-interpreter';
 
 export class RenderShader extends BaseShader {
     private readonly mAttachmentCount: number;

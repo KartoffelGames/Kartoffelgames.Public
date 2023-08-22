@@ -5,9 +5,7 @@ import { TextureFormat } from '../../../constant/texture-format.enum';
 import { TextureUsage } from '../../../constant/texture-usage.enum';
 import { BaseGeneratorFactory } from '../../generator/base-generator-factory';
 import { TextureMemoryLayout } from '../../memory_layout/texture-memory-layout';
-import { BaseShaderInterpreter } from '../../shader/interpreter/base-shader-interpreter';
 import { WebGpuBindDataGroupLayoutGenerator } from './native-generator/web-gpu-bind-data-group-layout-generator';
-import { WebGpuShaderInformation } from './web-gpu-shader-information';
 
 export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuObjects> {
     private static readonly mAdapters: Dictionary<GPUPowerPreference, GPUAdapter> = new Dictionary<GPUPowerPreference, GPUAdapter>();
@@ -186,13 +184,6 @@ export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuObj
         }
 
         return lUsage;
-    }
-
-    /**
-     * Create web gpu "wgsl" shader interpreter.
-     */
-    protected override createShaderInterpreter(): BaseShaderInterpreter {
-        return new WebGpuShaderInformation();
     }
 }
 

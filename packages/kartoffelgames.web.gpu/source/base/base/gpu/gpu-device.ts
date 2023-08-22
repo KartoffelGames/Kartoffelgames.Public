@@ -1,5 +1,6 @@
 import { BaseGeneratorFactory } from '../generator/base-generator-factory';
 import { RenderTargets } from '../pipeline/render-targets';
+import { ShaderInterpreterConstructor, ShaderInterpreterFactory } from '../shader/interpreter/shader-interpreter-factory';
 import { RenderShader } from '../shader/render-shader';
 
 export class GpuDevice {
@@ -7,11 +8,12 @@ export class GpuDevice {
      * Request new gpu device.
      * @param pGenerator - Native object generator.
      */
-    public static async request(pGenerator: BaseGeneratorFactory<any>): Promise<GpuDevice> {
-        return new GpuDevice(await pGenerator.init());
+    public static async request(pGenerator: BaseGeneratorFactory<any>, pShaderInterpreter: ShaderInterpreterConstructor): Promise<GpuDevice> {
+        return new GpuDevice(await pGenerator.init(), pShaderInterpreter);
     }
 
     private readonly mGenerator: BaseGeneratorFactory;
+    private readonly mShaderInterpreter: ShaderInterpreterFactory;
 
     /**
      * Native object generator.
@@ -21,11 +23,19 @@ export class GpuDevice {
     }
 
     /**
+     * Shader interpreter.
+     */
+    public get shaderInterpreter(): ShaderInterpreterFactory {
+        return this.mShaderInterpreter;
+    }
+
+    /**
      * Constructor.
      * @param pGenerator - Native GPU-Object Generator.
      */
-    private constructor(pGenerator: BaseGeneratorFactory) {
+    private constructor(pGenerator: BaseGeneratorFactory, pShaderInterpreter: ShaderInterpreterConstructor) {
         this.mGenerator = pGenerator;
+        this.mShaderInterpreter = new ShaderInterpreterFactory(this, pShaderInterpreter);
     }
 
     /**

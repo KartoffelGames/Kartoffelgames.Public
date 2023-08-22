@@ -1,16 +1,56 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { ComputeStage } from '../../../constant/compute-stage.enum';
+import { GpuDevice } from '../../gpu/gpu-device';
 import { BaseMemoryLayout } from '../../memory_layout/base-memory-layout';
-import { ShaderFunction, ShaderInformation } from './shader-information';
 
 export abstract class BaseShaderInterpreter {
+    private readonly mBindings: Dictionary<number, Array<BaseMemoryLayout>>;
+    private readonly mDevice: GpuDevice;
+    private readonly mEntryPoints: Dictionary<ComputeStage, Array<ShaderFunction>>;
+    private readonly mShaderFunctions: Dictionary<string, ShaderFunction>;
+    private readonly mShaderStructDefinitions: Dictionary<string, ShaderStructDefinition>;
     private readonly mShaderTypeAliases: Dictionary<string, ShaderTypeAlias>;
     private readonly mShaderTypes: Dictionary<string, ShaderTypeDefinition>;
+    private readonly mShaderValue: Dictionary<string, ShaderValue>;
+    private readonly mSourceCode: string;
+
+    /**
+     * Shader bindings. Grouped by group.
+     */
+    public get bindings(): Map<number, Array<BaseMemoryLayout>> {
+        return this.mBindings;
+    }
+
+    /**
+     * Shader entry points.
+     */
+    public get entryPoints(): Map<ComputeStage, Array<ShaderFunction>> {
+        return this.mEntryPoints;
+    }
+
+    /**
+     * Shader source code.
+     */
+    public get source(): string {
+        return this.mSourceCode;
+    }
+
+    /**
+     * Gpu device.
+     */
+    protected get device(): GpuDevice {
+        return this.mDevice;
+    }
 
     /**
      * Constructor.
+     * @param pDevice - Device.
+     * @param pSourceCode - Shader source code.
      */
-    public constructor() {
+    public constructor(pDevice: GpuDevice, pSourceCode: string) {
+        this.mDevice = pDevice;
+        this.mSourceCode = pSourceCode;
+
         // Setup all shader types.
         this.mShaderTypes = new Dictionary<string, ShaderTypeDefinition>();
         this.mShaderTypeAliases = new Dictionary<string, ShaderTypeAlias>();
@@ -33,34 +73,33 @@ export abstract class BaseShaderInterpreter {
                 }
             }
         });
-    }
 
-    /**
-     * Interpret source code of shader.
-     * @param pSourceCode - Shader source code.
-     */
-    public interpret(pSourceCode: string): ShaderInformation {
         // Read defintions.
         const lShaderFunctionDefinitionList: Array<ShaderFunctionDefintion> = this.fetchFunctionDefinitions(pSourceCode);
         const lShaderValueDefinitionList: Array<ShaderValueDefinition> = this.fetchValueDefinitions(pSourceCode);
         const lShaderStructDefinitionList: Array<ShaderStructDefinition> = this.fetchStructDefinitions(pSourceCode);
 
         // Map shader structs.
-        const lShaderStructDefinitions: Dictionary<string, ShaderStructDefinition> = new Dictionary<string, ShaderStructDefinition>();
+        this.mShaderStructDefinitions = new Dictionary<string, ShaderStructDefinition>();
         for (const lStructDefinition of lShaderStructDefinitionList) {
-            lShaderStructDefinitions.set(lStructDefinition.name, lStructDefinition);
+            this.mShaderStructDefinitions.set(lStructDefinition.name, lStructDefinition);
         }
 
         // Meta data storages placeholders.
-        const lShaderFunctions: Array<ShaderFunction> = this.convertFunctions(lShaderFunctionDefinitionList);
-        const lShaderValue: Array<ShaderValue> = this.convertValues(lShaderValueDefinitionList);
+        this.mShaderFunctions = this.convertFunctions(lShaderFunctionDefinitionList);
+        this.mShaderValue = this.convertValues(lShaderValueDefinitionList);
 
-        // Create new shader information.
-        return new ShaderInformation({
-            sourceCode: pSourceCode,
-            bindings: this.readBindings(lShaderValue),
-            shaderFunctions: lShaderFunctions
-        });
+        // Set entry point and bindings.
+        this.mEntryPoints = this.readEntryPoints();
+        this.mBindings = this.readBindings();
+    }
+
+    /**
+     * Get shader function.
+     * @param pName - Function name.
+     */
+    public getFunction(pName: string): ShaderFunction | null {
+        return this.mShaderFunctions.get(pName) ?? null;
     }
 
     /**
@@ -86,7 +125,7 @@ export abstract class BaseShaderInterpreter {
      * @param pTypeName - Type, alias or struct name.
      * @param pGenericNames - Generics of type. Only valid on type names.
      */
-    protected typeFor(pTypeName: string, pGenericNames: Array<string> = [], pShaderStructs: Dictionary<string, ShaderStructDefinition>): ShaderType {
+    protected typeFor(pTypeName: string, pGenericNames: Array<string> = []): ShaderType {
         // Search for regular type.
         if (this.mShaderTypes.has(pTypeName)) {
             const lRegularType: ShaderTypeDefinition = this.mShaderTypes.get(pTypeName)!;
@@ -133,12 +172,12 @@ export abstract class BaseShaderInterpreter {
         // Search alias type.
         if (this.mShaderTypeAliases.has(pTypeName)) {
             const lAliasType: ShaderTypeAlias = this.mShaderTypeAliases.get(pTypeName)!;
-            return this.typeFor(lAliasType.type, lAliasType.generics, pShaderStructs);
+            return this.typeFor(lAliasType.type, lAliasType.generics);
         }
 
         // Search for struct.
-        if (pShaderStructs.has(pTypeName)) {
-            const lStructDefinition: ShaderStructDefinition = pShaderStructs.get(pTypeName)!;
+        if (this.mShaderStructDefinitions.has(pTypeName)) {
+            const lStructDefinition: ShaderStructDefinition = this.mShaderStructDefinitions.get(pTypeName)!;
             return {
                 type: 'struct',
                 struct: this.structFromDefinition(lStructDefinition)
@@ -153,10 +192,10 @@ export abstract class BaseShaderInterpreter {
      * Get visibility of global name.
      * @param pName - Name of a global. 
      */
-    protected visibilityOf(pName: string, pShaderFunctions: Dictionary<string, ShaderFunction>): ComputeStage {
+    protected visibilityOf(pName: string): ComputeStage {
         let lComputeStage: ComputeStage = <ComputeStage>0;
 
-        for (const lShaderFunction of this.searchEntryPointsOf(pName, new Set<string>(), pShaderFunctions)) {
+        for (const lShaderFunction of this.searchEntryPointsOf(pName, new Set<string>())) {
             lComputeStage |= lShaderFunction.entryPoints;
         }
 
@@ -167,26 +206,38 @@ export abstract class BaseShaderInterpreter {
      * Get all functions.
      * @param pSourceCode - Source code of shader.
      */
-    private convertFunctions(pFunctionDefinitions: Array<ShaderFunctionDefintion>): Array<ShaderFunction> {
-        return pFunctionDefinitions.map((pDefinition: ShaderFunctionDefintion) => { return this.functionFromDefinition(pDefinition); });
+    private convertFunctions(pFunctionDefinitions: Array<ShaderFunctionDefintion>): Dictionary<string, ShaderFunction> {
+        const lShaderFunctions: Dictionary<string, ShaderFunction> = new Dictionary<string, ShaderFunction>();
+        for (const lDefnition of pFunctionDefinitions) {
+            const lShaderFunction: ShaderFunction = this.functionFromDefinition(lDefnition);
+            lShaderFunctions.set(lShaderFunction.name, lShaderFunction);
+        }
+
+        return lShaderFunctions;
     }
 
     /**
      * Get all global values.
      * @param pSourceCode - Source code of shader.
      */
-    private convertValues(pValueDefinitions: Array<ShaderValueDefinition>): Array<ShaderValue> {
-        return pValueDefinitions.map((pDefinition: ShaderValueDefinition) => { return this.valueFromDefinition(pDefinition); });
+    private convertValues(pValueDefinitions: Array<ShaderValueDefinition>): Dictionary<string, ShaderValue> {
+        const lShaderValues: Dictionary<string, ShaderValue> = new Dictionary<string, ShaderValue>();
+        for (const lDefnition of pValueDefinitions) {
+            const lShaderValue: ShaderValue = this.valueFromDefinition(lDefnition);
+            lShaderValues.set(lShaderValue.value.name, lShaderValue);
+        }
+
+        return lShaderValues;
     }
 
     /**
      * Fetch shader binds.
      * @param pSourceCode - Shader source code.
      */
-    private readBindings(pShaderValueList: Array<ShaderValue>): Dictionary<number, Array<BaseMemoryLayout>> {
+    private readBindings(): Dictionary<number, Array<BaseMemoryLayout>> {
         const lBindings: Dictionary<number, Array<BaseMemoryLayout>> = new Dictionary<number, Array<BaseMemoryLayout>>();
 
-        for (const lShaderValue of pShaderValueList) {
+        for (const lShaderValue of this.mShaderValue.values()) {
             // Skip all values without binding group.
             if (lShaderValue.group === null) {
                 continue;
@@ -204,18 +255,57 @@ export abstract class BaseShaderInterpreter {
     }
 
     /**
+     * Read entry points from crawled shader functions.
+     */
+    private readEntryPoints(): Dictionary<ComputeStage, Array<ShaderFunction>> {
+        const lEntryPoints: Dictionary<ComputeStage, Array<ShaderFunction>> = new Dictionary<ComputeStage, Array<ShaderFunction>>();
+
+        // Map shader function to entry point by function tags.
+        for (const lShaderFunction of this.mShaderFunctions.values()) {
+            if ((lShaderFunction.entryPoints & ComputeStage.Compute) === ComputeStage.Compute) {
+                // Init shader stage container.
+                if (!lEntryPoints.has(ComputeStage.Compute)) {
+                    lEntryPoints.set(ComputeStage.Compute, new Array<ShaderFunction>());
+                }
+
+                lEntryPoints.get(ComputeStage.Compute)!.push(lShaderFunction);
+            }
+
+            if ((lShaderFunction.entryPoints & ComputeStage.Vertex) === ComputeStage.Vertex) {
+                // Init shader stage container.
+                if (!lEntryPoints.has(ComputeStage.Vertex)) {
+                    lEntryPoints.set(ComputeStage.Vertex, new Array<ShaderFunction>());
+                }
+
+                lEntryPoints.get(ComputeStage.Vertex)!.push(lShaderFunction);
+            }
+
+            if ((lShaderFunction.entryPoints & ComputeStage.Fragment) === ComputeStage.Fragment) {
+                // Init shader stage container.
+                if (!lEntryPoints.has(ComputeStage.Fragment)) {
+                    lEntryPoints.set(ComputeStage.Fragment, new Array<ShaderFunction>());
+                }
+
+                lEntryPoints.get(ComputeStage.Fragment)!.push(lShaderFunction);
+            }
+        }
+
+        return lEntryPoints;
+    }
+
+    /**
      * Search for all functions hat uses the global name.
      * @param pName - variable or function name.
      * @param pScannedNames - All already scanned names. Prevents recursion.
      */
-    private searchEntryPointsOf(pName: string, pScannedNames: Set<string>, pShaderFunctions: Dictionary<string, ShaderFunction>): Array<ShaderFunction> {
+    private searchEntryPointsOf(pName: string, pScannedNames: Set<string>): Array<ShaderFunction> {
         // Add current searched name to already scanned names.
         pScannedNames.add(pName);
 
         const lUsedFunctionList: Array<ShaderFunction> = new Array<ShaderFunction>();
 
         // Search all global names of all functions.
-        for (const lShaderFunction of pShaderFunctions.values()) {
+        for (const lShaderFunction of this.mShaderFunctions.values()) {
             for (const lGlobal of lShaderFunction.usedGlobals) {
                 // Prevent endless recursion.
                 if (pScannedNames.has(lGlobal)) {
@@ -223,12 +313,12 @@ export abstract class BaseShaderInterpreter {
                 }
 
                 // Further down the rabbithole. Search for 
-                if (pShaderFunctions.has(lGlobal)) {
+                if (this.mShaderFunctions.has(lGlobal)) {
                     // Add found function to used function list.
-                    lUsedFunctionList.push(pShaderFunctions.get(lGlobal)!);
+                    lUsedFunctionList.push(this.mShaderFunctions.get(lGlobal)!);
 
                     // Recursive search for all functions that use this function.
-                    lUsedFunctionList.push(...this.searchEntryPointsOf(lGlobal, pScannedNames, pShaderFunctions));
+                    lUsedFunctionList.push(...this.searchEntryPointsOf(lGlobal, pScannedNames));
                 }
             }
         }
@@ -308,6 +398,28 @@ export type ShaderTypeDefinition = {
 };
 
 /*
+ * Values.
+ */
+
+export type ShaderValue = {
+    value: BaseMemoryLayout;
+    group: number | null;
+};
+
+export type ShaderFunction = {
+    entryPoints: ComputeStage;
+    usedGlobals: Array<string>;
+    name: string;
+    parameter: Array<BaseMemoryLayout>;
+    return: BaseMemoryLayout | null;
+};
+
+export type ShaderStruct = {
+    name: string;
+    properties: Array<ShaderValue>;
+};
+
+/*
  * Types.
  */
 
@@ -324,18 +436,4 @@ export type ShaderType = {
 type ShaderTypeAlias = {
     type: string;
     generics: Array<string>;
-};
-
-/*
- * Values.
- */
-
-export type ShaderValue = {
-    value: BaseMemoryLayout;
-    group: number | null;
-};
-
-export type ShaderStruct = {
-    name: string;
-    properties: Array<ShaderValue>;
 };

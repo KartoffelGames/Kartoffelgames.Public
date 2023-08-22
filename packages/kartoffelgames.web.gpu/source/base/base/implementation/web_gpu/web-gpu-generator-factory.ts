@@ -5,8 +5,9 @@ import { TextureFormat } from '../../../constant/texture-format.enum';
 import { TextureUsage } from '../../../constant/texture-usage.enum';
 import { BaseGeneratorFactory } from '../../generator/base-generator-factory';
 import { TextureMemoryLayout } from '../../memory_layout/texture-memory-layout';
-import { WebGpuBindDataGroupLayoutGenerator } from './native-generator/web-gpu-bind-data-group-layout-generator';
 import { WebGpuBindDataGroupGenerator } from './native-generator/web-gpu-bind-data-group-generator';
+import { WebGpuBindDataGroupLayoutGenerator } from './native-generator/web-gpu-bind-data-group-layout-generator';
+import { WebGpuPipelineDataLayoutGenerator } from './native-generator/web-gpu-pipeline-data-layout-generator';
 
 export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuObjects> {
     private static readonly mAdapters: Dictionary<GPUPowerPreference, GPUAdapter> = new Dictionary<GPUPowerPreference, GPUAdapter>();
@@ -46,6 +47,7 @@ export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuObj
 
         this.registerGenerator('bindDataGroupLayout', new WebGpuBindDataGroupLayoutGenerator(this));
         this.registerGenerator('bindDataGroup', new WebGpuBindDataGroupGenerator(this));
+        this.registerGenerator('pipelineDataLayout', new WebGpuPipelineDataLayoutGenerator(this));
     }
 
     /**
@@ -203,7 +205,7 @@ export type NativeWebGpuObjects = {
     // Pipeline layouting.
     bindDataGroupLayout: GPUBindGroupLayout;
     bindDataGroup: GPUBindGroup;
-    pipelineDataLayout: object;
+    pipelineDataLayout: GPUPipelineLayoutDescriptor;
     renderParameterLayout: object;
 
     // Shader.

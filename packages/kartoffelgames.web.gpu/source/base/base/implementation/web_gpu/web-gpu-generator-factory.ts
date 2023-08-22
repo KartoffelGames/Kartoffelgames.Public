@@ -6,6 +6,7 @@ import { TextureUsage } from '../../../constant/texture-usage.enum';
 import { BaseGeneratorFactory } from '../../generator/base-generator-factory';
 import { TextureMemoryLayout } from '../../memory_layout/texture-memory-layout';
 import { WebGpuBindDataGroupLayoutGenerator } from './native-generator/web-gpu-bind-data-group-layout-generator';
+import { WebGpuBindDataGroupGenerator } from './native-generator/web-gpu-bind-data-group-generator';
 
 export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuObjects> {
     private static readonly mAdapters: Dictionary<GPUPowerPreference, GPUAdapter> = new Dictionary<GPUPowerPreference, GPUAdapter>();
@@ -44,6 +45,7 @@ export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuObj
         this.mGpuDevice = null;
 
         this.registerGenerator('bindDataGroupLayout', new WebGpuBindDataGroupLayoutGenerator(this));
+        this.registerGenerator('bindDataGroup', new WebGpuBindDataGroupGenerator(this));
     }
 
     /**
@@ -189,18 +191,18 @@ export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuObj
 
 export type NativeWebGpuObjects = {
     // Textures.
-    textureSampler: object;
-    imageTexture: object;
-    frameBufferTexture: object;
-    videoTexture: object;
-    canvasTexture: object;
+    textureSampler: GPUSampler;
+    imageTexture: GPUTextureView;
+    frameBufferTexture: GPUTextureView;
+    videoTexture: GPUTextureView;
+    canvasTexture: GPUTextureView;
 
     // Things with generics. :(
     buffer: GPUBuffer;
 
     // Pipeline layouting.
     bindDataGroupLayout: GPUBindGroupLayout;
-    bindDataGroup: object;
+    bindDataGroup: GPUBindGroup;
     pipelineDataLayout: object;
     renderParameterLayout: object;
 

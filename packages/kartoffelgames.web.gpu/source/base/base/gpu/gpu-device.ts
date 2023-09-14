@@ -8,7 +8,7 @@ export class GpuDevice {
      * Request new gpu device.
      * @param pGenerator - Native object generator.
      */
-    public static async request(pGenerator: BaseGeneratorFactory<any>, pShaderInterpreter: ShaderInterpreterConstructor): Promise<GpuDevice> {
+    public static async request(pGenerator: BaseGeneratorFactory, pShaderInterpreter: ShaderInterpreterConstructor): Promise<GpuDevice> {
         return new GpuDevice(await pGenerator.init(), pShaderInterpreter);
     }
 

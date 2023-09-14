@@ -2,7 +2,7 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
 
-export class FrameBufferTexture extends GpuObject {
+export class FrameBufferTexture extends GpuObject<'frameBufferTexture'> {
     private mDepth: number;
     private mHeight: number;
     private readonly mMemoryLayout: TextureMemoryLayout;

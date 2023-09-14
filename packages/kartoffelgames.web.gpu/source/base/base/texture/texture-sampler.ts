@@ -5,7 +5,7 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 import { SamplerMemoryLayout } from '../memory_layout/sampler-memory-layout';
 
-export class TextureSampler extends GpuObject {
+export class TextureSampler extends GpuObject<'textureSampler'> {
     private mCompare: CompareFunction | null;
     private mLodMaxClamp: number;
     private mLodMinClamp: number;

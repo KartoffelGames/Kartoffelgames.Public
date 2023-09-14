@@ -4,7 +4,7 @@ import { GpuObject } from '../gpu/gpu-object';
 import { BaseMemoryLayout } from '../memory_layout/base-memory-layout';
 import { BindDataGroup } from './bind-data-group';
 
-export class BindDataGroupLayout extends GpuObject {
+export class BindDataGroupLayout extends GpuObject<'bindDataGroupLayout'> {
     private readonly mBindings: Dictionary<string, BindLayout>;
     private mIdentifier: string;
 

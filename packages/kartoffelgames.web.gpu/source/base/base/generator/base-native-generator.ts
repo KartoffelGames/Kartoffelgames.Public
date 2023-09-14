@@ -1,41 +1,81 @@
-import { BaseGeneratorFactory, BaseObjectMap, NativeGpuObjects } from './base-generator-factory';
+import { GeneratorFactoryMap, GeneratorNativeMap } from './base-generator-factory';
 
-export abstract class BaseNativeGenerator<TFactory extends BaseGeneratorFactory<TNativeMap>, TNativeMap extends NativeGpuObjects, TKey extends keyof TNativeMap & keyof BaseObjectMap> {
-    private readonly mFactory: TFactory;
+// TODO: Needs Factory generic so that generators can access correct WebGpuGenerator types.
+export abstract class BaseNativeGenerator<TMap extends GeneratorNativeMap, TGeneratorKey extends keyof GeneratorFactoryMap> {
+    private readonly mFactory: TMap['factory'];
+    private readonly mGpuObject: GeneratorFactoryMap[TGeneratorKey]['gpuObject'];
+    private mNative: TMap['generators'][TGeneratorKey]['native'] | null;
 
     /**
-     * Parent factory.
+     * Life time of native object.
      */
-    protected get factory(): TFactory {
+    protected abstract nativeLifeTime: NativeObjectLifeTime;
+
+    /**
+     * Generator factory.
+     */
+    protected get factory(): TMap['factory'] {
         return this.mFactory;
     }
 
     /**
-     * Constructor.
-     * @param pGeneratorFactory - Generator factory.
+     * Get base object of generator.
      */
-    public constructor(pGeneratorFactory: TFactory) {
-        this.mFactory = pGeneratorFactory;
+    protected get gpuObject(): GeneratorFactoryMap[TGeneratorKey]['gpuObject'] {
+        return this.mGpuObject;
     }
 
     /**
-     * Destroy generated object.
-     * @param _pBaseObject - Base gpu object. Hold every data.
-     * @param _pNativeObject - Created 
-     * @returns 
+     * Constructor.
+     * @param pBaseObject - Base object containing all values.
+     * @param pGeneratorFactory - Generator factory.
      */
-    public destroy(_pBaseObject: BaseObjectMap[TKey], _pNativeObject: TNativeMap[TKey]): void {
-        return;
+    public constructor(pFactory: TMap['factory'], pBaseObject: TGeneratorKey extends keyof GeneratorFactoryMap ? GeneratorFactoryMap[TGeneratorKey]['gpuObject'] : never) {
+        this.mFactory = pFactory;
+        this.mGpuObject = pBaseObject;
+        this.mNative = null;
+    }
+
+    /**
+     * Invalidate and destroy generated native.
+     */
+    public invalidate(): void {
+        if (this.mNative !== null) {
+            this.destroy();
+        }
+
+        this.mNative = null;
     }
 
     /**
      * Generate native gpu object from base.
-     * @param pBaseObject - Base gpu object. Hold every data.
      */
-    public abstract generate(pBaseObject: BaseObjectMap[TKey]): TNativeMap[TKey];
+    public request(): TMap['generators'][TGeneratorKey]['native'] {
+        // TODO: Validate life time.
+
+        // Generate new native when not already generated.
+        if (this.mNative === null) {
+            this.mNative = this.generate();
+        }
+
+        return this.mNative;
+    }
+
+    /**
+     * Destroy generated native.
+     */
+    protected destroy(): void {
+        return;
+    }
+
+    /**
+     * Generate native gpu object.
+     */
+    protected abstract generate(): TMap['generators'][TGeneratorKey]['native'];
 }
 
-// Generator constructor.
-export type GeneratorConstructor<TFactory extends BaseGeneratorFactory<TNativeMap>,
-    TNativeMap extends NativeGpuObjects,
-    TKey extends keyof TNativeMap & keyof BaseObjectMap> = new (pFactory: TFactory) => BaseNativeGenerator<TFactory, TNativeMap, TKey>; 
+export enum NativeObjectLifeTime {
+    Persistent = 0,
+    Frame = 1,
+    Single = 2
+}

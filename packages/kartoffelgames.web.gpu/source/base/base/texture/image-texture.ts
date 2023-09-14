@@ -3,7 +3,7 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
 
-export class ImageTexture extends GpuObject {
+export class ImageTexture extends GpuObject<'imageTexture'> {
     private mDepth: number;
     private mHeight: number;
     private mImageList: Array<ImageBitmap>;

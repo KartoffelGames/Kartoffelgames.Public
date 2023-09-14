@@ -12,18 +12,15 @@ import { TextureSampler } from '../texture/texture-sampler';
 import { VideoTexture } from '../texture/video-texture';
 import { BaseNativeGenerator } from './base-native-generator';
 
-export abstract class BaseGeneratorFactory<TNativeMap extends NativeGpuObjects = NativeGpuObjects> {
-    private readonly mGenerators: Dictionary<keyof TNativeMap, BaseNativeGenerator<BaseGeneratorFactory<TNativeMap>, TNativeMap, any>>;
-    private readonly mNativeType: WeakMap<TNativeMap[keyof TNativeMap], keyof TNativeMap>;
-    private readonly mObjectCache: WeakMap<GpuObject, TNativeMap[keyof TNativeMap]>;
-
+export abstract class BaseGeneratorFactory<TGeneratorMap extends GeneratorNativeMap = GeneratorNativeMap> {
+    private readonly mGeneratorConstructors: Dictionary<ConstructorOf<GenerateableGpuObject>, ConstructorOf<NativeGenerator<TGeneratorMap>>>;
+    private readonly mGenerators: Dictionary<GenerateableGpuObject, NativeGenerator<TGeneratorMap>>;
     /**
      * Constructor.
      */
     public constructor() {
-        this.mNativeType = new WeakMap<TNativeMap[keyof TNativeMap], keyof TNativeMap>();
-        this.mObjectCache = new WeakMap<GpuObject, TNativeMap[keyof TNativeMap]>();
-        this.mGenerators = new Dictionary<keyof TNativeMap, BaseNativeGenerator<this, TNativeMap, any>>();
+        this.mGeneratorConstructors = new Dictionary<ConstructorOf<GenerateableGpuObject>, ConstructorOf<NativeGenerator<TGeneratorMap>>>();
+        this.mGenerators = new Dictionary<GenerateableGpuObject, NativeGenerator<TGeneratorMap>>();
     }
 
     /**
@@ -31,52 +28,29 @@ export abstract class BaseGeneratorFactory<TNativeMap extends NativeGpuObjects =
      * @param pType - Type name of base object.
      * @param pBaseObject - Base gpu object.
      */
-    public generate<TKey extends keyof TNativeMap & keyof BaseObjectMap>(pType: TKey, pBaseObject: BaseObjectMap[TKey]): TNativeMap[TKey] {
+    public request<TKey extends GeneratorObjectKeys>(pBaseObject: GenerateableGpuObject): NativeGeneratorOf<TGeneratorMap, TKey> {
+        // Check for cached generator.
+        if (this.mGenerators.has(pBaseObject)) {
+            return <NativeGeneratorOf<TGeneratorMap, TKey>>this.mGenerators.get(pBaseObject)!;
+        }
+
         // Get and validate generator function.
-        const lGenerator: BaseNativeGenerator<BaseGeneratorFactory<TNativeMap>, TNativeMap, TKey> | undefined = this.mGenerators.get(pType);
-        if (!lGenerator) {
-            throw new Exception(`No generator for type "${pBaseObject.constructor.name}" defined`, this);
+        const lGeneratorConstructor = <ConstructorOf<NativeGeneratorOf<TGeneratorMap, TKey>> | undefined>this.mGeneratorConstructors.get(<any>pBaseObject.constructor);
+        if (!lGeneratorConstructor) {
+            // Currently only for 'none' Gpu objects or unset generators.
+            const lNullCache: null | any = null;
+
+            // Cache null.
+            this.mGenerators.set(pBaseObject, lNullCache);
+
+            return lNullCache;
         }
 
-        // Use cached objects if they are still valid.
-        if (this.mObjectCache.has(pBaseObject)) {
-            return <TNativeMap[TKey]>this.mObjectCache.get(pBaseObject);
-        }
+        // Create and cache generator.
+        const lGenerator: NativeGeneratorOf<TGeneratorMap, TKey> = new lGeneratorConstructor(pBaseObject);
+        this.mGenerators.set(pBaseObject, lGenerator);
 
-        // Generate and cache new object.
-        const lNativeObject: TNativeMap[TKey] = lGenerator.generate(pBaseObject);
-        this.mObjectCache.set(pBaseObject, lNativeObject);
-        this.mNativeType.set(lNativeObject, pType);
-
-        return lNativeObject;
-    }
-
-    /**
-     * Invalidate object.
-     * @param pBaseObject 
-     */
-    public invalidate(pBaseObject: GpuObject): void {
-        // Deconstruct native object.
-        if (this.mObjectCache.has(pBaseObject)) {
-            const lNative = this.mObjectCache.get(pBaseObject)!;
-
-            // Get native object type name.
-            const lTypeName: keyof TNativeMap | undefined = this.mNativeType.get(lNative);
-            if (!lTypeName) {
-                throw new Exception('Typename for a native gpu object was not set.', this);
-            }
-
-            // Get and validate generator function.
-            const lGenerator: BaseNativeGenerator<BaseGeneratorFactory<TNativeMap>, TNativeMap, any> | undefined = this.mGenerators.get(lTypeName);
-            if (!lGenerator) {
-                throw new Exception(`No generator for type "${pBaseObject.constructor.name}" defined`, this);
-            }
-
-            // Destructor.
-            lGenerator.destroy(pBaseObject, lNative);
-
-            // No need to clear natives as it is stored inside a weakmap. GC makes the job.
-        }
+        return lGenerator;
     }
 
     /**
@@ -84,8 +58,12 @@ export abstract class BaseGeneratorFactory<TNativeMap extends NativeGpuObjects =
      * @param pType - Base gpu object type name.
      * @param pGenerator - Generator for this type.
      */
-    protected registerGenerator<TKey extends keyof TNativeMap & keyof BaseObjectMap>(pType: TKey, pGenerator: BaseNativeGenerator<BaseGeneratorFactory<TNativeMap>, TNativeMap, TKey>): void {
-        this.mGenerators.set(pType, pGenerator);
+    protected registerGenerator<TKey extends GeneratorObjectKeys>(pType: ConstructorOf<GenerateableGpuObjectOf<TKey>>, pGenerator: ConstructorOf<NativeGeneratorOf<TGeneratorMap, TKey>>): void {
+        if (this.mGeneratorConstructors.has(pType)) {
+            throw new Exception(`Generator already registed for "${pType.name}"`, this);
+        }
+
+        this.mGeneratorConstructors.set(pType, <ConstructorOf<NativeGenerator<TGeneratorMap>>>pGenerator);
     }
 
     /**
@@ -94,29 +72,74 @@ export abstract class BaseGeneratorFactory<TNativeMap extends NativeGpuObjects =
     public abstract init(): Promise<this>;
 }
 
-// Generator base gpu object to native object mapping.
-type PropertyKeyCopy<TPropertyKeys, TPropertyValue> = {
-    [Property in keyof TPropertyKeys]: TPropertyValue
-};
-export type NativeGpuObjects = PropertyKeyCopy<BaseObjectMap, object>;
+// Generator keys with optional 'none'
+export type GeneratorObjectKeys = keyof GeneratorFactoryMap | 'none';
+type GenerateableGpuObjectOf<TKey extends GeneratorObjectKeys> = TKey extends keyof GeneratorFactoryMap ? GeneratorFactoryMap[TKey]['gpuObject'] : GpuObject<'none'>;
+type GenerateableGpuObject = GenerateableGpuObjectOf<GeneratorObjectKeys>;
+type NativeGeneratorOf<TMap extends GeneratorNativeMap, TKey extends GeneratorObjectKeys> = TKey extends keyof GeneratorFactoryMap ? TMap['generators'][TKey]['generator'] : null;
+type NativeGenerator<TMap extends GeneratorNativeMap> = NativeGeneratorOf<TMap, GeneratorObjectKeys>;
+
+// Constructor type.
+type ConstructorOf<T> = new (...pArgs: Array<any>) => T;
 
 // Mapping of all base gpu objects.
-export type BaseObjectMap = {
+export interface GeneratorFactoryMap {
     // Textures.
-    textureSampler: TextureSampler;
-    imageTexture: ImageTexture;
-    frameBufferTexture: FrameBufferTexture;
-    videoTexture: VideoTexture;
-    canvasTexture: CanvasTexture;
+    textureSampler: {
+        gpuObject: TextureSampler;
+        generator: BaseNativeGenerator<GeneratorNativeMap, 'textureSampler'>;
+    };
+    imageTexture: {
+        gpuObject: ImageTexture;
+        generator: BaseNativeGenerator<GeneratorNativeMap, 'imageTexture'>;
+    };
+    frameBufferTexture: {
+        gpuObject: FrameBufferTexture;
+        generator: BaseNativeGenerator<GeneratorNativeMap, 'frameBufferTexture'>;
+    };
+    videoTexture: {
+        gpuObject: VideoTexture;
+        generator: BaseNativeGenerator<GeneratorNativeMap, 'videoTexture'>;
+    };
+    canvasTexture: {
+        gpuObject: CanvasTexture;
+        generator: BaseNativeGenerator<GeneratorNativeMap, 'canvasTexture'>;
+    };
 
     // Things with generics. :(
-    buffer: GpuBuffer<TypedArray>;
+    gpuBuffer: {
+        gpuObject: GpuBuffer<TypedArray>;
+        generator: BaseNativeGenerator<GeneratorNativeMap, 'gpuBuffer'>;
+    };
 
     // Pipeline layouting.
-    bindDataGroupLayout: BindDataGroupLayout;
-    bindDataGroup: BindDataGroup;
-    pipelineDataLayout: PipelineDataLayout;
+    bindDataGroupLayout: {
+        gpuObject: BindDataGroupLayout;
+        generator: BaseNativeGenerator<GeneratorNativeMap, 'bindDataGroupLayout'>;
+    };
+    bindDataGroup: {
+        gpuObject: BindDataGroup;
+        generator: BaseNativeGenerator<GeneratorNativeMap, 'bindDataGroup'>;
+    };
+    pipelineDataLayout: {
+        gpuObject: PipelineDataLayout;
+        generator: BaseNativeGenerator<GeneratorNativeMap, 'pipelineDataLayout'>;
+    };
 
     // Shader.
-    renderShader: RenderShader;
-};
+    renderShader: {
+        gpuObject: RenderShader;
+        generator: BaseNativeGenerator<GeneratorNativeMap, 'renderShader'>;
+    };
+}
+
+// Same type but without undefined behavior.
+export interface GeneratorNativeMap {
+    factory: BaseGeneratorFactory<GeneratorNativeMap>;
+    generators: {
+        [Property in keyof GeneratorFactoryMap]: {
+            generator: BaseNativeGenerator<GeneratorNativeMap, Property>;
+            native: any;
+        }
+    };
+}

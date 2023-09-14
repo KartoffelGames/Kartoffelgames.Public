@@ -9,7 +9,7 @@ import { VideoTexture } from '../texture/video-texture';
 import { BindDataGroupLayout } from './bind-data-group-layout';
 import { CanvasTexture } from '../texture/canvas-texture';
 
-export class BindDataGroup extends GpuObject {
+export class BindDataGroup extends GpuObject<'bindDataGroup'> {
     private readonly mBindData: Dictionary<string, BindData>;
     private readonly mLayout: BindDataGroupLayout;
 

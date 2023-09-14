@@ -1,6 +1,7 @@
+import { GeneratorObjectKeys } from '../generator/base-generator-factory';
 import { GpuDevice } from './gpu-device';
 
-export abstract class GpuObject {
+export abstract class GpuObject<TGpuObjectKey extends GeneratorObjectKeys = 'none'> {
     private mAutoUpdate: boolean;
     private readonly mDevice: GpuDevice;
     private readonly mUpdateListenerList: Set<GpuObjectUpdateListener>;
@@ -51,12 +52,16 @@ export abstract class GpuObject {
      * Update gpu object.
      */
     public update(): void {
+        // Invalidate before calling parent listener. Only when a generator exists.
+        const lGenerator = this.device.generator.request<TGpuObjectKey>(this);
+        if (lGenerator) {
+            lGenerator.invalidate();
+        }
+
         // Call parent update listerner.
         for (const lUpdateListener of this.mUpdateListenerList) {
             lUpdateListener();
         }
-
-        this.device.generator.invalidate(this);
     }
 
     /**

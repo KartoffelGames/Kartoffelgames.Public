@@ -2,7 +2,7 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
 
-export class CanvasTexture extends GpuObject {
+export class CanvasTexture extends GpuObject<'canvasTexture'> {
     private readonly mCanvas: HTMLCanvasElement;
     private readonly mMemoryLayout: TextureMemoryLayout;
 

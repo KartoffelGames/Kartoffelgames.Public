@@ -7,7 +7,7 @@ import { RenderParameterLayout } from '../pipeline/parameter/render-parameter-la
 import { BaseShader } from './base-shader';
 import { ShaderFunction } from './interpreter/base-shader-interpreter';
 
-export class RenderShader extends BaseShader {
+export class RenderShader extends BaseShader<'renderShader'> {
     private readonly mAttachmentCount: number;
     private readonly mFragmentEntry: string | null;
     private readonly mParameterLayout: RenderParameterLayout;

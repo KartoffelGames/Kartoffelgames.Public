@@ -2,6 +2,7 @@ import { Dictionary } from '@kartoffelgames/core.data';
 import { ComputeStage } from '../../constant/compute-stage.enum';
 import { BindDataGroupLayout } from '../binding/bind-data-group-layout';
 import { PipelineDataLayout } from '../binding/pipeline-data-layout';
+import { GeneratorFactoryMap } from '../generator/base-generator-factory';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 import { BaseShaderInterpreter, ShaderFunction } from './interpreter/base-shader-interpreter';
@@ -10,7 +11,7 @@ import { BaseShaderInterpreter, ShaderFunction } from './interpreter/base-shader
 // TODO: Add ShaderModules. With own PreCompile command. (import/if/define ....)
 // TODO: Maybe own language??? 
 
-export abstract class BaseShader extends GpuObject {
+export abstract class BaseShader<TGpuObjectKey extends keyof GeneratorFactoryMap> extends GpuObject<TGpuObjectKey> {
     private static readonly mBindGroupLayoutCache: Dictionary<string, BindDataGroupLayout> = new Dictionary<string, BindDataGroupLayout>();
 
     private readonly mPipelineLayout: PipelineDataLayout;

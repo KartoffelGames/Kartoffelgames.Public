@@ -3,7 +3,7 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 import { BindDataGroupLayout } from './bind-data-group-layout';
 
-export class PipelineDataLayout extends GpuObject {
+export class PipelineDataLayout extends GpuObject<'pipelineDataLayout'> {
     private readonly mBindGroups: Dictionary<number, BindDataGroupLayout>;
 
     /**

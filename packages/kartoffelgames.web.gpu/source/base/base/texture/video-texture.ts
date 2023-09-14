@@ -2,7 +2,7 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
 
-export class VideoTexture extends GpuObject {
+export class VideoTexture extends GpuObject<'videoTexture'> {
     private readonly mMemoryLayout: TextureMemoryLayout;
     private readonly mVideo: HTMLVideoElement;
 

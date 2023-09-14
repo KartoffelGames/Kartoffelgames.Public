@@ -3,7 +3,7 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 
-export class GpuBuffer<TType extends TypedArray> extends GpuObject {
+export class GpuBuffer<TType extends TypedArray> extends GpuObject<'gpuBuffer'> {
     private readonly mData: TType;
     private readonly mDataType: BufferDataType<TType>;
     private readonly mLayout: BaseBufferMemoryLayout;

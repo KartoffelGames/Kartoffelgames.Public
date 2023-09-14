@@ -3,8 +3,7 @@ import { AccessMode } from '../../../../constant/access-mode.enum';
 import { BufferBindType } from '../../../../constant/buffer-bind-type.enum';
 import { SamplerType } from '../../../../constant/sampler-type.enum';
 import { TextureBindType } from '../../../../constant/texture-bind-type.enum';
-import { BindDataGroupLayout } from '../../../binding/bind-data-group-layout';
-import { BaseNativeGenerator } from '../../../generator/base-native-generator';
+import { BaseNativeGenerator, NativeObjectLifeTime } from '../../../generator/base-native-generator';
 import { BaseBufferMemoryLayout } from '../../../memory_layout/buffer/base-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../../../memory_layout/sampler-memory-layout';
 import { TextureMemoryLayout } from '../../../memory_layout/texture-memory-layout';
@@ -12,13 +11,20 @@ import { NativeWebGpuObjects, WebGpuGeneratorFactory } from '../web-gpu-generato
 
 export class WebGpuBindDataGroupLayoutGenerator extends BaseNativeGenerator<WebGpuGeneratorFactory, NativeWebGpuObjects, 'bindDataGroupLayout'> {
     /**
+     * Set life time of generated native.
+     */
+    protected override get nativeLifeTime(): NativeObjectLifeTime {
+        return NativeObjectLifeTime.Persistent;
+    }
+
+    /**
      * Generate native bind data group layout object.
      */
-    public generate(pBindDataGroupLayout: BindDataGroupLayout): GPUBindGroupLayout {
+    protected override generate(): GPUBindGroupLayout {
         const lEntryList: Array<GPUBindGroupLayoutEntry> = new Array<GPUBindGroupLayoutEntry>();
 
         // Generate layout entry for each binding.
-        for (const lEntry of pBindDataGroupLayout.bindings) {
+        for (const lEntry of this.baseObject.bindings) {
             // Generate default properties.
             const lLayoutEntry: GPUBindGroupLayoutEntry = {
                 visibility: lEntry.layout.visibility,

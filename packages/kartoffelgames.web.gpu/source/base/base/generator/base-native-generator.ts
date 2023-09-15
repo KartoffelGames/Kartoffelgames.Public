@@ -1,9 +1,9 @@
 import { GeneratorFactoryMap, GeneratorNativeMap } from './base-generator-factory';
 
-// TODO: Needs Factory generic so that generators can access correct WebGpuGenerator types.
 export abstract class BaseNativeGenerator<TMap extends GeneratorNativeMap, TGeneratorKey extends keyof GeneratorFactoryMap> {
     private readonly mFactory: TMap['factory'];
     private readonly mGpuObject: GeneratorFactoryMap[TGeneratorKey]['gpuObject'];
+    private mLastGeneratedFrame: number;
     private mNative: TMap['generators'][TGeneratorKey]['native'] | null;
 
     /**
@@ -34,6 +34,40 @@ export abstract class BaseNativeGenerator<TMap extends GeneratorNativeMap, TGene
         this.mFactory = pFactory;
         this.mGpuObject = pBaseObject;
         this.mNative = null;
+        this.mLastGeneratedFrame = 0;
+    }
+
+    /**
+     * Generate native gpu object from base.
+     */
+    public create(): TMap['generators'][TGeneratorKey]['native'] {
+        // Validate life time.
+        switch (this.nativeLifeTime) {
+            case NativeObjectLifeTime.Persistent: {
+                // Do nothing.
+                break;
+            }
+            case NativeObjectLifeTime.Single: {
+                // Invalidate every time.
+                this.invalidate();
+                break;
+            }
+            case NativeObjectLifeTime.Frame: {
+                // Invalidate on different frame till last generated.
+                if (this.factory.device.frameCount !== this.mLastGeneratedFrame) {
+                    this.invalidate();
+                }
+                break;
+            }
+        }
+
+        // Generate new native when not already generated.
+        if (this.mNative === null) {
+            this.mNative = this.generate();
+            this.mLastGeneratedFrame = this.factory.device.frameCount;
+        }
+
+        return this.mNative;
     }
 
     /**
@@ -45,20 +79,6 @@ export abstract class BaseNativeGenerator<TMap extends GeneratorNativeMap, TGene
         }
 
         this.mNative = null;
-    }
-
-    /**
-     * Generate native gpu object from base.
-     */
-    public request(): TMap['generators'][TGeneratorKey]['native'] {
-        // TODO: Validate life time.
-
-        // Generate new native when not already generated.
-        if (this.mNative === null) {
-            this.mNative = this.generate();
-        }
-
-        return this.mNative;
     }
 
     /**

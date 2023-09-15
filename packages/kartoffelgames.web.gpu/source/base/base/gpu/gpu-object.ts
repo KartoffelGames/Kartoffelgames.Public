@@ -53,7 +53,7 @@ export abstract class GpuObject<TGpuObjectKey extends GeneratorObjectKeys = 'non
      */
     public update(): void {
         // Invalidate before calling parent listener. Only when a generator exists.
-        const lGenerator = this.device.generator.request<TGpuObjectKey>(this);
+        const lGenerator = this.device.generator.request<TGpuObjectKey>(<any>this);
         if (lGenerator) {
             lGenerator.invalidate();
         }

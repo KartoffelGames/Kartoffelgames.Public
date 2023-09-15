@@ -9,11 +9,25 @@ export class GpuDevice {
      * @param pGenerator - Native object generator.
      */
     public static async request(pGenerator: BaseGeneratorFactory, pShaderInterpreter: ShaderInterpreterConstructor): Promise<GpuDevice> {
-        return new GpuDevice(await pGenerator.init(), pShaderInterpreter);
+        // Construct gpu device.
+        const lDevice: GpuDevice = new GpuDevice(pGenerator, pShaderInterpreter);
+
+        // Init generator with created device.
+        await pGenerator.init(lDevice);
+
+        return lDevice;
     }
 
+    private mFrameCounter: number;
     private readonly mGenerator: BaseGeneratorFactory;
     private readonly mShaderInterpreter: ShaderInterpreterFactory;
+
+    /**
+     * Get frame count.
+     */
+    public get frameCount(): number {
+        return this.mFrameCounter;
+    }
 
     /**
      * Native object generator.
@@ -34,6 +48,7 @@ export class GpuDevice {
      * @param pGenerator - Native GPU-Object Generator.
      */
     private constructor(pGenerator: BaseGeneratorFactory, pShaderInterpreter: ShaderInterpreterConstructor) {
+        this.mFrameCounter = 0;
         this.mGenerator = pGenerator;
         this.mShaderInterpreter = new ShaderInterpreterFactory(this, pShaderInterpreter);
     }
@@ -56,5 +71,12 @@ export class GpuDevice {
      */
     public renderTargets(pWidth: number, pHeight: number, pMultisampleLevel: number = 1): RenderTargets {
         return new RenderTargets(this, pWidth, pHeight, pMultisampleLevel);
+    }
+
+    /**
+     * Start new frame.
+     */
+    public startNewFrame(): void {
+        this.mFrameCounter++;
     }
 }

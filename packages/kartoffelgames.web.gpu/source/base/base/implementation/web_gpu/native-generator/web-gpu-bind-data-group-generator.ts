@@ -6,9 +6,9 @@ import { FrameBufferTexture } from '../../../texture/frame-buffer-texture';
 import { ImageTexture } from '../../../texture/image-texture';
 import { TextureSampler } from '../../../texture/texture-sampler';
 import { VideoTexture } from '../../../texture/video-texture';
-import { NativeWebGpuObjects, WebGpuGeneratorFactory } from '../web-gpu-generator-factory';
+import { NativeWebGpuMap } from '../web-gpu-generator-factory';
 
-export class WebGpuBindDataGroupGenerator extends BaseNativeGenerator<WebGpuGeneratorFactory, NativeWebGpuObjects, 'bindDataGroup'> {
+export class WebGpuBindDataGroupGenerator extends BaseNativeGenerator<NativeWebGpuMap, 'bindDataGroup'> {
     /**
      * Set life time of generated native.
      */
@@ -22,16 +22,16 @@ export class WebGpuBindDataGroupGenerator extends BaseNativeGenerator<WebGpuGene
     protected override generate(): GPUBindGroup {
         const lEntryList: Array<GPUBindGroupEntry> = new Array<GPUBindGroupEntry>();
 
-        for (const lBindname of this.baseObject.layout.bindingNames) {
-            const lBindLayout = this.baseObject.layout.getBind(lBindname);
-            const lBindData = this.baseObject.getData(lBindname);
+        for (const lBindname of this.gpuObject.layout.bindingNames) {
+            const lBindLayout = this.gpuObject.layout.getBind(lBindname);
+            const lBindData = this.gpuObject.getData(lBindname);
 
             // Set resource to group entry for each 
             const lGroupEntry: GPUBindGroupEntry = { binding: lBindLayout.index, resource: <any>null };
 
             // Buffer bind.
             if (lBindData instanceof GpuBuffer) {
-                lGroupEntry.resource = { buffer: this.factory.create('buffer', lBindData) };
+                lGroupEntry.resource = { buffer: this.factory.request<'gpuBuffer'>(lBindData).create() };
 
                 lEntryList.push(lGroupEntry);
                 continue;
@@ -39,7 +39,7 @@ export class WebGpuBindDataGroupGenerator extends BaseNativeGenerator<WebGpuGene
 
             // External/Video texture bind
             if (lBindData instanceof VideoTexture) {
-                lGroupEntry.resource = this.factory.create('videoTexture', lBindData);
+                lGroupEntry.resource = this.factory.request<'videoTexture'>(lBindData).create();
 
                 lEntryList.push(lGroupEntry);
                 continue;
@@ -47,14 +47,14 @@ export class WebGpuBindDataGroupGenerator extends BaseNativeGenerator<WebGpuGene
 
             // Sampler bind
             if (lBindData instanceof TextureSampler) {
-                lGroupEntry.resource = this.factory.create('textureSampler', lBindData);
+                lGroupEntry.resource = this.factory.request<'textureSampler'>(lBindData).create();
                 lEntryList.push(lGroupEntry);
                 continue;
             }
 
             // Frame buffer bind.
             if (lBindData instanceof FrameBufferTexture) {
-                lGroupEntry.resource = this.factory.create('frameBufferTexture', lBindData);
+                lGroupEntry.resource = this.factory.request<'frameBufferTexture'>(lBindData).create();
 
                 lEntryList.push(lGroupEntry);
                 continue;
@@ -62,7 +62,7 @@ export class WebGpuBindDataGroupGenerator extends BaseNativeGenerator<WebGpuGene
 
             // Image texture bind.
             if (lBindData instanceof ImageTexture) {
-                lGroupEntry.resource = this.factory.create('imageTexture', lBindData);
+                lGroupEntry.resource = this.factory.request<'imageTexture'>(lBindData).create();
 
                 lEntryList.push(lGroupEntry);
                 continue;
@@ -70,7 +70,7 @@ export class WebGpuBindDataGroupGenerator extends BaseNativeGenerator<WebGpuGene
 
             // Canvas texture bind.
             if (lBindData instanceof CanvasTexture) {
-                lGroupEntry.resource = this.factory.create('canvasTexture', lBindData);
+                lGroupEntry.resource = this.factory.request<'canvasTexture'>(lBindData).create();
 
                 lEntryList.push(lGroupEntry);
                 continue;
@@ -81,7 +81,7 @@ export class WebGpuBindDataGroupGenerator extends BaseNativeGenerator<WebGpuGene
 
         return this.factory.gpu.createBindGroup({
             label: 'Bind-Group',
-            layout: this.factory.create('bindDataGroupLayout', this.baseObject.layout),
+            layout: this.factory.request<'bindDataGroupLayout'>(this.gpuObject.layout).create(),
             entries: lEntryList
         });
     }

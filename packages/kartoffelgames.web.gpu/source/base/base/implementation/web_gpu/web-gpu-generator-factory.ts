@@ -11,6 +11,8 @@ import { WebGpuPipelineDataLayoutGenerator } from './native-generator/web-gpu-pi
 import { BindDataGroupLayout } from '../../binding/bind-data-group-layout';
 import { BindDataGroup } from '../../binding/bind-data-group';
 import { PipelineDataLayout } from '../../binding/pipeline-data-layout';
+import { BaseNativeGenerator } from '../../generator/base-native-generator';
+import { BaseNativeBufferGenerator } from '../../generator/base-native-buffer-generator';
 
 export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap> {
     private static readonly mAdapters: Dictionary<GPUPowerPreference, GPUAdapter> = new Dictionary<GPUPowerPreference, GPUAdapter>();
@@ -118,7 +120,7 @@ export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap
     /**
      * Init devices.
      */
-    public override async init(): Promise<this> {
+    public override async initInternals(): Promise<void> {
         // Try to load cached adapter. When not cached, request new one.
         const lAdapter: GPUAdapter | null = WebGpuGeneratorFactory.mAdapters.get(this.mPerformance) ?? await window.navigator.gpu.requestAdapter({ powerPreference: this.mPerformance });
         if (!lAdapter) {
@@ -137,8 +139,6 @@ export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap
 
         this.mGpuAdapter = lAdapter;
         this.mGpuDevice = lDevice;
-
-        return this;
     }
 
     /**
@@ -194,48 +194,28 @@ export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap
     }
 }
 
-export type NativeWebGpuObjects = {
-    // Textures.
-    textureSampler: GPUSampler;
-    imageTexture: GPUTextureView;
-    frameBufferTexture: GPUTextureView;
-    videoTexture: GPUTextureView;
-    canvasTexture: GPUTextureView;
-
-    // Things with generics. :(
-    buffer: GPUBuffer;
-
-    // Pipeline layouting.
-    bindDataGroupLayout: GPUBindGroupLayout;
-    bindDataGroup: GPUBindGroup;
-    pipelineDataLayout: GPUPipelineLayoutDescriptor;
-    renderParameterLayout: object;
-
-    // Shader.
-    renderShader: object;
-};
-
-
-interface NativeWebGpuMap extends GeneratorNativeMap {
-    factory: BaseGeneratorFactory<NativeWebGpuMap>;
+export interface NativeWebGpuMap extends GeneratorNativeMap {
+    factory: WebGpuGeneratorFactory;
 
     generators: {
         // Textures.
-        textureSampler: { generator: BaseNativeGenerator<NativeWebGpuMap, 'textureSampler'>; native: GPUBindGroup; };
-        imageTexture: { generator: BaseNativeGenerator<NativeWebGpuMap, 'imageTexture'>; native: GPUBindGroup; };
-        frameBufferTexture: { generator: BaseNativeGenerator<NativeWebGpuMap, 'frameBufferTexture'>; native: GPUBindGroup; };
-        videoTexture: { generator: BaseNativeGenerator<NativeWebGpuMap, 'videoTexture'>; native: GPUBindGroup; };
-        canvasTexture: { generator: BaseNativeGenerator<NativeWebGpuMap, 'canvasTexture'>; native: GPUBindGroup; };
+        textureSampler: { generator: BaseNativeGenerator<NativeWebGpuMap, 'textureSampler'>; native: GPUSampler; };
+        imageTexture: { generator: BaseNativeGenerator<NativeWebGpuMap, 'imageTexture'>; native: GPUTextureView; };
+        frameBufferTexture: { generator: BaseNativeGenerator<NativeWebGpuMap, 'frameBufferTexture'>; native: GPUTextureView; };
+        videoTexture: { generator: BaseNativeGenerator<NativeWebGpuMap, 'videoTexture'>; native: GPUTextureView; };
+        canvasTexture: { generator: BaseNativeGenerator<NativeWebGpuMap, 'canvasTexture'>; native: GPUTextureView; };
 
         // Things with generics. :(
-        gpuBuffer: { generator: BaseNativeGenerator<NativeWebGpuMap, 'gpuBuffer'>; native: GPUBindGroup; };
+        gpuBuffer: { generator: BaseNativeBufferGenerator<NativeWebGpuMap, 'gpuBuffer'>; native: GPUBuffer; };
 
         // Pipeline layouting.
-        bindDataGroupLayout: { generator: BaseNativeGenerator<NativeWebGpuMap, 'bindDataGroupLayout'>; native: GPUBindGroup; };
-        bindDataGroup: { generator: BaseNativeGenerator<NativeWebGpuMap, 'bindDataGroup'>; native: GPUBindGroup; };
-        pipelineDataLayout: { generator: BaseNativeGenerator<NativeWebGpuMap, 'pipelineDataLayout'>; native: GPUBindGroup; };
+        bindDataGroupLayout: { generator: WebGpuBindDataGroupLayoutGenerator; native: GPUBindGroupLayout; };
+        bindDataGroup: { generator: WebGpuBindDataGroupGenerator; native: GPUBindGroup; };
+        pipelineDataLayout: { generator: BaseNativeGenerator<NativeWebGpuMap, 'pipelineDataLayout'>; native: GPUPipelineLayoutDescriptor; };
+
+        // pipelineDataLayout: GPUPipelineLayoutDescriptor;
 
         // Shader.
-        renderShader: { generator: BaseNativeGenerator<NativeWebGpuMap, 'renderShader'>; native: GPUBindGroup; };
+        renderShader: { generator: BaseNativeGenerator<NativeWebGpuMap, 'renderShader'>; native: GPUShaderModule; };
     };
 }

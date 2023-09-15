@@ -7,9 +7,9 @@ import { BaseNativeGenerator, NativeObjectLifeTime } from '../../../generator/ba
 import { BaseBufferMemoryLayout } from '../../../memory_layout/buffer/base-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../../../memory_layout/sampler-memory-layout';
 import { TextureMemoryLayout } from '../../../memory_layout/texture-memory-layout';
-import { NativeWebGpuObjects, WebGpuGeneratorFactory } from '../web-gpu-generator-factory';
+import { NativeWebGpuMap } from '../web-gpu-generator-factory';
 
-export class WebGpuBindDataGroupLayoutGenerator extends BaseNativeGenerator<WebGpuGeneratorFactory, NativeWebGpuObjects, 'bindDataGroupLayout'> {
+export class WebGpuBindDataGroupLayoutGenerator extends BaseNativeGenerator<NativeWebGpuMap,'bindDataGroupLayout'>  {
     /**
      * Set life time of generated native.
      */
@@ -24,7 +24,7 @@ export class WebGpuBindDataGroupLayoutGenerator extends BaseNativeGenerator<WebG
         const lEntryList: Array<GPUBindGroupLayoutEntry> = new Array<GPUBindGroupLayoutEntry>();
 
         // Generate layout entry for each binding.
-        for (const lEntry of this.baseObject.bindings) {
+        for (const lEntry of this.gpuObject.bindings) {
             // Generate default properties.
             const lLayoutEntry: GPUBindGroupLayoutEntry = {
                 visibility: lEntry.layout.visibility,

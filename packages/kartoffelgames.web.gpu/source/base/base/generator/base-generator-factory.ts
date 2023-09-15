@@ -10,17 +10,45 @@ import { FrameBufferTexture } from '../texture/frame-buffer-texture';
 import { ImageTexture } from '../texture/image-texture';
 import { TextureSampler } from '../texture/texture-sampler';
 import { VideoTexture } from '../texture/video-texture';
+import { BaseNativeBufferGenerator } from './base-native-buffer-generator';
 import { BaseNativeGenerator } from './base-native-generator';
+import { GpuDevice } from '../gpu/gpu-device';
 
 export abstract class BaseGeneratorFactory<TGeneratorMap extends GeneratorNativeMap = GeneratorNativeMap> {
+    private mDevice: GpuDevice | null;
     private readonly mGeneratorConstructors: Dictionary<ConstructorOf<GenerateableGpuObject>, ConstructorOf<NativeGenerator<TGeneratorMap>>>;
     private readonly mGenerators: Dictionary<GenerateableGpuObject, NativeGenerator<TGeneratorMap>>;
+
+    public get device(): GpuDevice {
+        if (!this.mDevice) {
+            throw new Exception('Generator factory not initialized.', this);
+        }
+
+        return this.mDevice;
+    }
+
     /**
      * Constructor.
      */
     public constructor() {
         this.mGeneratorConstructors = new Dictionary<ConstructorOf<GenerateableGpuObject>, ConstructorOf<NativeGenerator<TGeneratorMap>>>();
         this.mGenerators = new Dictionary<GenerateableGpuObject, NativeGenerator<TGeneratorMap>>();
+        this.mDevice = null;
+    }
+
+    /**
+     * Init factory with gpu device.
+     * @param pDevice - Gpu device.
+     */
+    public async init(pDevice: GpuDevice): Promise<this> {
+        // Set device.
+        this.mDevice = pDevice;
+
+        // Init internals.
+        await this.initInternals();
+
+        // Resolve with itself.
+        return this;
     }
 
     /**
@@ -28,7 +56,7 @@ export abstract class BaseGeneratorFactory<TGeneratorMap extends GeneratorNative
      * @param pType - Type name of base object.
      * @param pBaseObject - Base gpu object.
      */
-    public request<TKey extends GeneratorObjectKeys>(pBaseObject: GenerateableGpuObject): NativeGeneratorOf<TGeneratorMap, TKey> {
+    public request<TKey extends GeneratorObjectKeys>(pBaseObject: GenerateableGpuObjectOf<TKey>): NativeGeneratorOf<TGeneratorMap, TKey> {
         // Check for cached generator.
         if (this.mGenerators.has(pBaseObject)) {
             return <NativeGeneratorOf<TGeneratorMap, TKey>>this.mGenerators.get(pBaseObject)!;
@@ -67,9 +95,9 @@ export abstract class BaseGeneratorFactory<TGeneratorMap extends GeneratorNative
     }
 
     /**
-     * Init gpu device.
+     * Init factory internals.
      */
-    public abstract init(): Promise<this>;
+    protected abstract initInternals(): Promise<void>;
 }
 
 // Generator keys with optional 'none'
@@ -109,7 +137,7 @@ export interface GeneratorFactoryMap {
     // Things with generics. :(
     gpuBuffer: {
         gpuObject: GpuBuffer<TypedArray>;
-        generator: BaseNativeGenerator<GeneratorNativeMap, 'gpuBuffer'>;
+        generator: BaseNativeBufferGenerator<GeneratorNativeMap, 'gpuBuffer'>;
     };
 
     // Pipeline layouting.
@@ -138,7 +166,7 @@ export interface GeneratorNativeMap {
     factory: BaseGeneratorFactory<GeneratorNativeMap>;
     generators: {
         [Property in keyof GeneratorFactoryMap]: {
-            generator: BaseNativeGenerator<GeneratorNativeMap, Property>;
+            generator: GeneratorFactoryMap[Property]['generator'];
             native: any;
         }
     };

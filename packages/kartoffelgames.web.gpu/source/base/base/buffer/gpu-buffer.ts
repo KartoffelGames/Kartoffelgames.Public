@@ -4,16 +4,9 @@ import { GpuObject } from '../gpu/gpu-object';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 
 export class GpuBuffer<TType extends TypedArray> extends GpuObject<'gpuBuffer'> {
-    private readonly mData: TType;
     private readonly mDataType: BufferDataType<TType>;
+    private readonly mInitialData: TType;
     private readonly mLayout: BaseBufferMemoryLayout;
-
-    /**
-     * Initial buffer data.
-     */
-    public get data(): TType {
-        return this.mData;
-    }
 
     /**
      * Buffer layout.
@@ -26,7 +19,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<'gpuBuffer'> 
      * Buffer size in bytes aligned to 4 bytes.
      */
     public get size(): number {
-        return ((this.mData.length * this.mDataType.BYTES_PER_ELEMENT) + 3) & ~3;
+        return ((this.mInitialData.length * this.mDataType.BYTES_PER_ELEMENT) + 3) & ~3;
     }
 
     /**
@@ -38,8 +31,8 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<'gpuBuffer'> 
     public constructor(pDevice: GpuDevice, pLayout: BaseBufferMemoryLayout, pInitialData: TType) {
         super(pDevice);
         this.mLayout = pLayout;
-        this.mData = pInitialData;
         this.mDataType = <BufferDataType<TType>>pInitialData.constructor;
+        this.mInitialData = pInitialData;
 
         // Register change listener for layout changes.
         pLayout.addUpdateListener(() => {
@@ -61,11 +54,12 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<'gpuBuffer'> 
      * @param pOffset - Data offset.
      * @param pSize - Data size.
      */
-    public readRaw(pOffset?: number | undefined, pSize?: number | undefined): TType {
+    public async readRaw(pOffset?: number | undefined, pSize?: number | undefined): Promise<TType> {
         const lOffset: number = pOffset ?? 0;
         const lSize: number = pSize ?? this.size;
 
-        return <TType>this.mData.subarray(lOffset, lOffset + lSize);
+        const lBufferGenerator = this.device.generator.request<'gpuBuffer'>(this);
+        return lBufferGenerator.readRaw<TType>(lOffset, lSize);
     }
 
     /**
@@ -85,9 +79,10 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<'gpuBuffer'> 
      * @param pData - Data.
      * @param pOffset - Data offset.
      */
-    public writeRaw(pData: ArrayLike<number>, pOffset?: number | undefined): void {
+    public async writeRaw(pData: ArrayLike<number>, pOffset?: number | undefined): Promise<void> {
         // Write data.
-        this.mData.set(pData, pOffset);
+        const lBufferGenerator = this.device.generator.request<'gpuBuffer'>(this);
+        lBufferGenerator.writeRaw(pData, pOffset);
 
         // Trigger automatic update.
         this.triggerAutoUpdate();

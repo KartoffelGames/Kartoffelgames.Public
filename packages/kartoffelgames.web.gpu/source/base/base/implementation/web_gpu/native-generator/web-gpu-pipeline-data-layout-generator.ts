@@ -1,8 +1,8 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { BaseNativeGenerator, NativeObjectLifeTime } from '../../../generator/base-native-generator';
-import { NativeWebGpuObjects, WebGpuGeneratorFactory } from '../web-gpu-generator-factory';
+import { NativeWebGpuMap } from '../web-gpu-generator-factory';
 
-export class WebGpuPipelineDataLayoutGenerator extends BaseNativeGenerator<WebGpuGeneratorFactory, NativeWebGpuObjects, 'pipelineDataLayout'> {
+export class WebGpuPipelineDataLayoutGenerator extends BaseNativeGenerator<NativeWebGpuMap, 'pipelineDataLayout'> {
     /**
      * Set life time of generated native.
      */
@@ -14,14 +14,14 @@ export class WebGpuPipelineDataLayoutGenerator extends BaseNativeGenerator<WebGp
      * Generate native gpu pipeline data layout.
      */
     protected override generate(): GPUPipelineLayoutDescriptor {
-        const lBindGoupIndices: Array<number> = this.baseObject.groups;
+        const lBindGoupIndices: Array<number> = this.gpuObject.groups;
 
         // Generate pipeline layout from bind group layouts.
         const lPipelineLayout = { bindGroupLayouts: new Array<GPUBindGroupLayout>() };
         for (const lIndex of lBindGoupIndices) {
-            const lBindGroupLayout = this.baseObject.getGroupLayout(lIndex);
+            const lBindGroupLayout = this.gpuObject.getGroupLayout(lIndex);
 
-            lPipelineLayout.bindGroupLayouts[lIndex] = this.factory.create('bindDataGroupLayout', lBindGroupLayout);
+            lPipelineLayout.bindGroupLayouts[lIndex] = this.factory.request<'bindDataGroupLayout'>(lBindGroupLayout).create();
         }
 
         // Validate continunity.

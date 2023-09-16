@@ -75,7 +75,7 @@ export abstract class BaseNativeGenerator<TMap extends GeneratorNativeMap, TGene
      */
     public invalidate(): void {
         if (this.mNative !== null) {
-            this.destroy();
+            this.destroy(this.mNative);
         }
 
         this.mNative = null;
@@ -83,8 +83,9 @@ export abstract class BaseNativeGenerator<TMap extends GeneratorNativeMap, TGene
 
     /**
      * Destroy generated native.
+     * @param _pNative - Generated native.
      */
-    protected destroy(): void {
+    protected destroy(_pNative: TMap['generators'][TGeneratorKey]['native']): void {
         return;
     }
 

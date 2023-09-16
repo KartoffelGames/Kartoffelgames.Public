@@ -3,16 +3,17 @@ import { MemoryCopyType } from '../../../constant/memory-copy-type.enum';
 import { TextureDimension } from '../../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../../constant/texture-format.enum';
 import { TextureUsage } from '../../../constant/texture-usage.enum';
+import { BindDataGroup } from '../../binding/bind-data-group';
+import { BindDataGroupLayout } from '../../binding/bind-data-group-layout';
+import { PipelineDataLayout } from '../../binding/pipeline-data-layout';
 import { BaseGeneratorFactory, GeneratorNativeMap } from '../../generator/base-generator-factory';
+import { BaseNativeGenerator } from '../../generator/base-native-generator';
 import { TextureMemoryLayout } from '../../memory_layout/texture-memory-layout';
 import { WebGpuBindDataGroupGenerator } from './native-generator/web-gpu-bind-data-group-generator';
 import { WebGpuBindDataGroupLayoutGenerator } from './native-generator/web-gpu-bind-data-group-layout-generator';
+import { WebGpuGpuBufferGenerator } from './native-generator/web-gpu-gpu-buffer-generator';
 import { WebGpuPipelineDataLayoutGenerator } from './native-generator/web-gpu-pipeline-data-layout-generator';
-import { BindDataGroupLayout } from '../../binding/bind-data-group-layout';
-import { BindDataGroup } from '../../binding/bind-data-group';
-import { PipelineDataLayout } from '../../binding/pipeline-data-layout';
-import { BaseNativeGenerator } from '../../generator/base-native-generator';
-import { BaseNativeBufferGenerator } from '../../generator/base-native-buffer-generator';
+import { GpuBuffer } from '../../buffer/gpu-buffer';
 
 export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap> {
     private static readonly mAdapters: Dictionary<GPUPowerPreference, GPUAdapter> = new Dictionary<GPUPowerPreference, GPUAdapter>();
@@ -49,6 +50,8 @@ export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap
         this.mPerformance = pMode;
         this.mGpuAdapter = null;
         this.mGpuDevice = null;
+
+        this.registerGenerator(GpuBuffer, WebGpuGpuBufferGenerator);
 
         this.registerGenerator(BindDataGroupLayout, WebGpuBindDataGroupLayoutGenerator);
         this.registerGenerator(BindDataGroup, WebGpuBindDataGroupGenerator);
@@ -206,7 +209,7 @@ export interface NativeWebGpuMap extends GeneratorNativeMap {
         canvasTexture: { generator: BaseNativeGenerator<NativeWebGpuMap, 'canvasTexture'>; native: GPUTextureView; };
 
         // Things with generics. :(
-        gpuBuffer: { generator: BaseNativeBufferGenerator<NativeWebGpuMap, 'gpuBuffer'>; native: GPUBuffer; };
+        gpuBuffer: { generator: WebGpuGpuBufferGenerator; native: GPUBuffer; };
 
         // Pipeline layouting.
         bindDataGroupLayout: { generator: WebGpuBindDataGroupLayoutGenerator; native: GPUBindGroupLayout; };

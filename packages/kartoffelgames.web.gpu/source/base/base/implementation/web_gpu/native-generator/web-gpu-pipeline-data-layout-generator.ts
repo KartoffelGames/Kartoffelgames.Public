@@ -6,7 +6,7 @@ export class WebGpuPipelineDataLayoutGenerator extends BaseNativeGenerator<Nativ
     /**
      * Set life time of generated native.
      */
-    protected override  get nativeLifeTime(): NativeObjectLifeTime {
+    protected override get nativeLifeTime(): NativeObjectLifeTime {
         return NativeObjectLifeTime.Persistent;
     }
 

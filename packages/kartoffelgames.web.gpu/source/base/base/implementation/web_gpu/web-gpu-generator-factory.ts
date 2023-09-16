@@ -14,6 +14,8 @@ import { WebGpuBindDataGroupLayoutGenerator } from './native-generator/web-gpu-b
 import { WebGpuGpuBufferGenerator } from './native-generator/web-gpu-gpu-buffer-generator';
 import { WebGpuPipelineDataLayoutGenerator } from './native-generator/web-gpu-pipeline-data-layout-generator';
 import { GpuBuffer } from '../../buffer/gpu-buffer';
+import { WebGpuRenderShaderGenerator } from './native-generator/web-gpu-render-shader-generator';
+import { RenderShader } from '../../shader/render-shader';
 
 export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap> {
     private static readonly mAdapters: Dictionary<GPUPowerPreference, GPUAdapter> = new Dictionary<GPUPowerPreference, GPUAdapter>();
@@ -56,6 +58,8 @@ export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap
         this.registerGenerator(BindDataGroupLayout, WebGpuBindDataGroupLayoutGenerator);
         this.registerGenerator(BindDataGroup, WebGpuBindDataGroupGenerator);
         this.registerGenerator(PipelineDataLayout, WebGpuPipelineDataLayoutGenerator);
+
+        this.registerGenerator(RenderShader, WebGpuRenderShaderGenerator);
     }
 
     /**
@@ -216,9 +220,7 @@ export interface NativeWebGpuMap extends GeneratorNativeMap {
         bindDataGroup: { generator: WebGpuBindDataGroupGenerator; native: GPUBindGroup; };
         pipelineDataLayout: { generator: BaseNativeGenerator<NativeWebGpuMap, 'pipelineDataLayout'>; native: GPUPipelineLayoutDescriptor; };
 
-        // pipelineDataLayout: GPUPipelineLayoutDescriptor;
-
         // Shader.
-        renderShader: { generator: BaseNativeGenerator<NativeWebGpuMap, 'renderShader'>; native: GPUShaderModule; };
+        renderShader: { generator: WebGpuRenderShaderGenerator; native: GPUShaderModule; };
     };
 }

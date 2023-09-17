@@ -2,7 +2,7 @@ import { TypedArray } from '@kartoffelgames/core.data';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
-import { GpuObjectReason } from '../gpu/gpu-object-reason';
+import { UpdateReason } from '../gpu/gpu-object-update-reason';
 
 /**
  * GpuBuffer. Uses local and native gpu buffers.
@@ -55,7 +55,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<'gpuBuffer'> 
 
         // Register change listener for layout changes.
         pLayout.addUpdateListener(() => {
-            this.triggerAutoUpdate(GpuObjectReason.ChildData);
+            this.triggerAutoUpdate(UpdateReason.ChildData);
         });
     }
 

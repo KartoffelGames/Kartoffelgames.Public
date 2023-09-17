@@ -1,6 +1,6 @@
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
-import { GpuObjectReason } from '../gpu/gpu-object-reason';
+import { UpdateReason } from '../gpu/gpu-object-update-reason';
 import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
 
 export class FrameBufferTexture extends GpuObject<'frameBufferTexture'> {
@@ -19,7 +19,7 @@ export class FrameBufferTexture extends GpuObject<'frameBufferTexture'> {
         this.mDepth = pValue;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectReason.Setting);
+        this.triggerAutoUpdate(UpdateReason.Setting);
     }
 
     /**
@@ -31,7 +31,7 @@ export class FrameBufferTexture extends GpuObject<'frameBufferTexture'> {
         this.mHeight = pValue;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectReason.Setting);
+        this.triggerAutoUpdate(UpdateReason.Setting);
     }
 
     /**
@@ -50,7 +50,7 @@ export class FrameBufferTexture extends GpuObject<'frameBufferTexture'> {
         this.mMultiSampleLevel = pValue;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectReason.Setting);
+        this.triggerAutoUpdate(UpdateReason.Setting);
     }
 
     /**
@@ -62,7 +62,7 @@ export class FrameBufferTexture extends GpuObject<'frameBufferTexture'> {
         this.mWidth = pValue;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectReason.Setting);
+        this.triggerAutoUpdate(UpdateReason.Setting);
     }
 
     /**
@@ -86,7 +86,7 @@ export class FrameBufferTexture extends GpuObject<'frameBufferTexture'> {
 
         // Register change listener for layout changes.
         pLayout.addUpdateListener(() => {
-            this.triggerAutoUpdate(GpuObjectReason.ChildData);
+            this.triggerAutoUpdate(UpdateReason.ChildData);
         });
     }
 }

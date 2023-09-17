@@ -3,7 +3,7 @@ import { ComputeStage } from '../../constant/compute-stage.enum';
 import { MemoryCopyType } from '../../constant/memory-copy-type.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
-import { GpuObjectReason } from '../gpu/gpu-object-reason';
+import { UpdateReason } from '../gpu/gpu-object-update-reason';
 
 export abstract class BaseMemoryLayout extends GpuObject {
     private readonly mAccessMode: AccessMode;
@@ -43,7 +43,7 @@ export abstract class BaseMemoryLayout extends GpuObject {
         this.mMemoryType = pValue;
 
         // Request update.
-        this.triggerAutoUpdate(GpuObjectReason.Setting);
+        this.triggerAutoUpdate(UpdateReason.Setting);
     }
 
     /**

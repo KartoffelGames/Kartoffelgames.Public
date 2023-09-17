@@ -1,6 +1,6 @@
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
-import { GpuObjectReason } from '../gpu/gpu-object-reason';
+import { UpdateReason } from '../gpu/gpu-object-update-reason';
 import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
 
 export class VideoTexture extends GpuObject<'videoTexture'> {
@@ -72,7 +72,7 @@ export class VideoTexture extends GpuObject<'videoTexture'> {
 
         // Register change listener for layout changes.
         pLayout.addUpdateListener(() => {
-            this.triggerAutoUpdate(GpuObjectReason.ChildData);
+            this.triggerAutoUpdate(UpdateReason.ChildData);
         });
     }
 

@@ -1,13 +1,13 @@
-import { GpuObjectReason } from '../gpu/gpu-object-reason';
+import { GpuObjectUpdateReason, UpdateReason } from '../gpu/gpu-object-update-reason';
 import { GeneratorFactoryMap, GeneratorNativeMap } from './base-generator-factory';
 
 export abstract class BaseNativeGenerator<TMap extends GeneratorNativeMap, TGeneratorKey extends keyof GeneratorFactoryMap> {
     private readonly mFactory: TMap['factory'];
     private readonly mGpuObject: GeneratorFactoryMap[TGeneratorKey]['gpuObject'];
     private mLastGeneratedFrame: number;
-    private mLastReason: GpuObjectReason;
     private mNative: TMap['generators'][TGeneratorKey]['native'] | null;
-    
+    private readonly mUpdateReasons: GpuObjectUpdateReason;
+
     /**
      * Life time of native object.
      */
@@ -28,6 +28,13 @@ export abstract class BaseNativeGenerator<TMap extends GeneratorNativeMap, TGene
     }
 
     /**
+     * Get generator update reasons.
+     */
+    protected get updateReasons(): GpuObjectUpdateReason {
+        return this.mUpdateReasons;
+    }
+
+    /**
      * Constructor.
      * @param pBaseObject - Base object containing all values.
      * @param pGeneratorFactory - Generator factory.
@@ -37,7 +44,7 @@ export abstract class BaseNativeGenerator<TMap extends GeneratorNativeMap, TGene
         this.mGpuObject = pBaseObject;
         this.mNative = null;
         this.mLastGeneratedFrame = 0;
-        this.mLastReason = GpuObjectReason.Everything;
+        this.mUpdateReasons = new GpuObjectUpdateReason();
     }
 
     /**
@@ -52,22 +59,31 @@ export abstract class BaseNativeGenerator<TMap extends GeneratorNativeMap, TGene
             }
             case NativeObjectLifeTime.Single: {
                 // Invalidate every time.
-                this.invalidate(GpuObjectReason.LifeTime);
+                this.invalidate(UpdateReason.LifeTime);
                 break;
             }
             case NativeObjectLifeTime.Frame: {
                 // Invalidate on different frame till last generated.
                 if (this.factory.device.frameCount !== this.mLastGeneratedFrame) {
-                    this.invalidate(GpuObjectReason.LifeTime);
+                    this.invalidate(UpdateReason.LifeTime);
                 }
                 break;
             }
         }
 
+        // Clear and destroy old native when any update reason exists.
+        if (this.mNative !== null && this.mUpdateReasons.any()) {
+            this.destroy(this.mNative);
+            this.mNative = null;
+        }
+
         // Generate new native when not already generated.
         if (this.mNative === null) {
-            this.mNative = this.generate(this.mLastReason);
+            this.mNative = this.generate();
             this.mLastGeneratedFrame = this.factory.device.frameCount;
+
+            // Reset all update reasons.
+            this.mUpdateReasons.clear();
         }
 
         return this.mNative;
@@ -76,13 +92,9 @@ export abstract class BaseNativeGenerator<TMap extends GeneratorNativeMap, TGene
     /**
      * Invalidate and destroy generated native.
      */
-    public invalidate(pDestroyReason: GpuObjectReason): void {
-        if (this.mNative !== null) {
-            this.destroy(this.mNative, pDestroyReason);
-        }
-
-        this.mLastReason = pDestroyReason;
-        this.mNative = null;
+    public invalidate(pDestroyReason: UpdateReason): void {
+        // Add update reason.
+        this.mUpdateReasons.add(pDestroyReason);
     }
 
     /**
@@ -90,7 +102,7 @@ export abstract class BaseNativeGenerator<TMap extends GeneratorNativeMap, TGene
      * @param _pNative - Generated native.
      * @param _pDestroyReason - Reason why the native should be destroyed.
      */
-    protected destroy(_pNative: TMap['generators'][TGeneratorKey]['native'], _pDestroyReason: GpuObjectReason): void {
+    protected destroy(_pNative: TMap['generators'][TGeneratorKey]['native']): void {
         return;
     }
 
@@ -98,7 +110,7 @@ export abstract class BaseNativeGenerator<TMap extends GeneratorNativeMap, TGene
      * Generate native gpu object.
      * @param pUpdateReason - Reason why the native should be updated.
      */
-    protected abstract generate(pUpdateReason: GpuObjectReason): TMap['generators'][TGeneratorKey]['native'];
+    protected abstract generate(): TMap['generators'][TGeneratorKey]['native'];
 }
 
 export enum NativeObjectLifeTime {

@@ -3,7 +3,7 @@ import { FilterMode } from '../../constant/filter-mode.enum';
 import { WrappingMode } from '../../constant/wrapping-mode.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
-import { GpuObjectReason } from '../gpu/gpu-object-reason';
+import { UpdateReason } from '../gpu/gpu-object-update-reason';
 import { SamplerMemoryLayout } from '../memory_layout/sampler-memory-layout';
 
 export class TextureSampler extends GpuObject<'textureSampler'> {
@@ -26,7 +26,7 @@ export class TextureSampler extends GpuObject<'textureSampler'> {
         this.mCompare = pValue;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectReason.Setting);
+        this.triggerAutoUpdate(UpdateReason.Setting);
     }
 
     /**
@@ -38,7 +38,7 @@ export class TextureSampler extends GpuObject<'textureSampler'> {
         this.mLodMaxClamp = pValue;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectReason.Setting);
+        this.triggerAutoUpdate(UpdateReason.Setting);
     }
 
     /**
@@ -50,7 +50,7 @@ export class TextureSampler extends GpuObject<'textureSampler'> {
         this.mLodMinClamp = pValue;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectReason.Setting);
+        this.triggerAutoUpdate(UpdateReason.Setting);
     }
 
     /**
@@ -62,7 +62,7 @@ export class TextureSampler extends GpuObject<'textureSampler'> {
         this.mMagFilter = pValue;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectReason.Setting);
+        this.triggerAutoUpdate(UpdateReason.Setting);
     }
 
     /**
@@ -74,7 +74,7 @@ export class TextureSampler extends GpuObject<'textureSampler'> {
         this.mMaxAnisotropy = pValue;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectReason.Setting);
+        this.triggerAutoUpdate(UpdateReason.Setting);
     }
 
     /**
@@ -93,7 +93,7 @@ export class TextureSampler extends GpuObject<'textureSampler'> {
         this.mMinFilter = pValue;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectReason.Setting);
+        this.triggerAutoUpdate(UpdateReason.Setting);
     }
 
     /**
@@ -105,7 +105,7 @@ export class TextureSampler extends GpuObject<'textureSampler'> {
         this.mMipmapFilter = pValue;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectReason.Setting);
+        this.triggerAutoUpdate(UpdateReason.Setting);
     }
 
     /**
@@ -117,7 +117,7 @@ export class TextureSampler extends GpuObject<'textureSampler'> {
         this.mWrapMode = pValue;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectReason.Setting);
+        this.triggerAutoUpdate(UpdateReason.Setting);
     }
 
     /**
@@ -142,7 +142,7 @@ export class TextureSampler extends GpuObject<'textureSampler'> {
 
         // Register change listener for layout changes.
         pLayout.addUpdateListener(() => {
-            this.triggerAutoUpdate(GpuObjectReason.ChildData);
+            this.triggerAutoUpdate(UpdateReason.ChildData);
         });
     }
 }

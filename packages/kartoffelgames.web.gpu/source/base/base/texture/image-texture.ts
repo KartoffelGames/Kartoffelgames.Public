@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core.data';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
-import { GpuObjectReason } from '../gpu/gpu-object-reason';
+import { UpdateReason } from '../gpu/gpu-object-update-reason';
 
 export class ImageTexture extends GpuObject<'imageTexture'> {
     private mDepth: number;
@@ -65,7 +65,7 @@ export class ImageTexture extends GpuObject<'imageTexture'> {
 
         // Register change listener for layout changes.
         pLayout.addUpdateListener(() => {
-            this.triggerAutoUpdate(GpuObjectReason.ChildData);
+            this.triggerAutoUpdate(UpdateReason.ChildData);
         });
     }
 
@@ -108,6 +108,6 @@ export class ImageTexture extends GpuObject<'imageTexture'> {
         this.mDepth = pSourceList.length;
 
         // Trigger change.
-        this.triggerAutoUpdate(GpuObjectReason.Data);
+        this.triggerAutoUpdate(UpdateReason.Data);
     }
 }

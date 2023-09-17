@@ -1,5 +1,5 @@
 import { BaseNativeGenerator, NativeObjectLifeTime } from '../../../generator/base-native-generator';
-import { GpuObjectReason } from '../../../gpu/gpu-object-reason';
+import { UpdateReason } from '../../../gpu/gpu-object-update-reason';
 import { CanvasTexture } from '../../../texture/canvas-texture';
 import { NativeWebGpuMap, WebGpuGeneratorFactory } from '../web-gpu-generator-factory';
 
@@ -27,11 +27,10 @@ export class WebGpuCanvasTextureGenerator extends BaseNativeGenerator<NativeWebG
     /**
      * Destory texture object.
      * @param _pNativeObject - Native canvas texture.
-     * @param pDestroyReason - Reason why the native should be destroyed.
      */
-    protected override destroy(_pNativeObject: GPUTextureView, pDestoryReason: GpuObjectReason): void {
+    protected override destroy(_pNativeObject: GPUTextureView): void {
         // Only destroy context when child data/layout has changes.
-        if (pDestoryReason === GpuObjectReason.ChildData) {
+        if (this.updateReasons.has(UpdateReason.ChildData)) {
             // Destory context.
             this.mContext?.unconfigure();
             this.mContext = null;

@@ -40,6 +40,13 @@ export class VideoTexture extends GpuObject<'videoTexture'> {
     }
 
     /**
+     * Video element.
+     */
+    public get video(): HTMLVideoElement {
+        return this.mVideo;
+    }
+
+    /**
      * Video width.
      */
     public get width(): number {

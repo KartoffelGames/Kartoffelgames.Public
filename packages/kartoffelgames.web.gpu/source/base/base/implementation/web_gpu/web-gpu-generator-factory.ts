@@ -20,6 +20,8 @@ import { WebGpuCanvasTextureGenerator } from './native-generator/web-gpu-canvas-
 import { CanvasTexture } from '../../texture/canvas-texture';
 import { WebGpuFramebufferTextureGenerator } from './native-generator/web-gpu-frame-buffer-texture-generator';
 import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
+import { WebGpuVideoTextureGenerator } from './native-generator/web-gpu-video-texture-generator';
+import { VideoTexture } from '../../texture/video-texture';
 
 export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap> {
     private static readonly mAdapters: Dictionary<GPUPowerPreference, GPUAdapter> = new Dictionary<GPUPowerPreference, GPUAdapter>();
@@ -68,6 +70,7 @@ export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap
         // Textures.
         this.registerGenerator(CanvasTexture, WebGpuCanvasTextureGenerator);
         this.registerGenerator(FrameBufferTexture, WebGpuFramebufferTextureGenerator);
+        this.registerGenerator(VideoTexture, WebGpuVideoTextureGenerator);
 
         // Shader.
         this.registerGenerator(RenderShader, WebGpuRenderShaderGenerator);
@@ -220,7 +223,7 @@ export interface NativeWebGpuMap extends GeneratorNativeMap {
         textureSampler: { generator: BaseNativeGenerator<NativeWebGpuMap, 'textureSampler'>; native: GPUSampler; };
         imageTexture: { generator: BaseNativeGenerator<NativeWebGpuMap, 'imageTexture'>; native: GPUTextureView; };
         frameBufferTexture: { generator: WebGpuFramebufferTextureGenerator; native: GPUTextureView; };
-        videoTexture: { generator: BaseNativeGenerator<NativeWebGpuMap, 'videoTexture'>; native: GPUTextureView; };
+        videoTexture: { generator: WebGpuVideoTextureGenerator; native: GPUExternalTexture; };
         canvasTexture: { generator: WebGpuCanvasTextureGenerator; native: GPUTextureView; };
 
         // Things with generics. :(

@@ -3,6 +3,7 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 import { BaseMemoryLayout } from '../memory_layout/base-memory-layout';
 import { BindDataGroup } from './bind-data-group';
+import { GpuObjectReason } from '../gpu/gpu-object-reason';
 
 export class BindDataGroupLayout extends GpuObject<'bindDataGroupLayout'> {
     private readonly mBindings: Dictionary<string, BindLayout>;
@@ -86,11 +87,11 @@ export class BindDataGroupLayout extends GpuObject<'bindDataGroupLayout'> {
 
         // Register change listener for layout changes.
         pLayout.addUpdateListener(() => {
-            this.triggerAutoUpdate();
+            this.triggerAutoUpdate(GpuObjectReason.ChildData);
         });
 
         // Trigger next auto update.
-        this.triggerAutoUpdate();
+        this.triggerAutoUpdate(GpuObjectReason.ChildData);
     }
 
     /**

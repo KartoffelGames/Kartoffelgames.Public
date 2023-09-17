@@ -3,7 +3,7 @@ import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../constant/texture-format.enum';
 import { TextureUsage } from '../../constant/texture-usage.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObjectReason } from '../gpu/gpu-object-reason';
+import { UpdateReason } from '../gpu/gpu-object-update-reason';
 import { CanvasTexture } from '../texture/canvas-texture';
 import { FrameBufferTexture } from '../texture/frame-buffer-texture';
 import { ImageTexture } from '../texture/image-texture';
@@ -54,7 +54,7 @@ export class TextureMemoryLayout extends BaseMemoryLayout {
         this.mUsage = pValue;
 
         // Request update.
-        this.triggerAutoUpdate(GpuObjectReason.Setting);
+        this.triggerAutoUpdate(UpdateReason.Setting);
     }
 
     /**

@@ -8,7 +8,7 @@ import { TextureSampler } from '../texture/texture-sampler';
 import { VideoTexture } from '../texture/video-texture';
 import { BindDataGroupLayout } from './bind-data-group-layout';
 import { CanvasTexture } from '../texture/canvas-texture';
-import { GpuObjectReason } from '../gpu/gpu-object-reason';
+import { UpdateReason } from '../gpu/gpu-object-update-reason';
 
 export class BindDataGroup extends GpuObject<'bindDataGroup'> {
     private readonly mBindData: Dictionary<string, BindData>;
@@ -33,7 +33,7 @@ export class BindDataGroup extends GpuObject<'bindDataGroup'> {
 
         // Register change listener for layout changes.
         pBindGroupLayout.addUpdateListener(() => {
-            this.triggerAutoUpdate(GpuObjectReason.ChildData);
+            this.triggerAutoUpdate(UpdateReason.ChildData);
         });
     }
 

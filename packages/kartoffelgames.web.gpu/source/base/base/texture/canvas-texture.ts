@@ -1,6 +1,6 @@
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
-import { GpuObjectReason } from '../gpu/gpu-object-reason';
+import { UpdateReason } from '../gpu/gpu-object-update-reason';
 import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
 
 export class CanvasTexture extends GpuObject<'canvasTexture'> {
@@ -23,7 +23,7 @@ export class CanvasTexture extends GpuObject<'canvasTexture'> {
         this.mCanvas.height = pValue;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectReason.Setting);
+        this.triggerAutoUpdate(UpdateReason.Setting);
     }
 
     /**
@@ -42,7 +42,7 @@ export class CanvasTexture extends GpuObject<'canvasTexture'> {
         this.mCanvas.width = pValue;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(GpuObjectReason.Setting);
+        this.triggerAutoUpdate(UpdateReason.Setting);
     }
 
     /**
@@ -65,7 +65,7 @@ export class CanvasTexture extends GpuObject<'canvasTexture'> {
 
         // Register change listener for layout changes.
         pLayout.addUpdateListener(() => {
-            this.triggerAutoUpdate(GpuObjectReason.ChildData);
+            this.triggerAutoUpdate(UpdateReason.ChildData);
         });
     }
 }

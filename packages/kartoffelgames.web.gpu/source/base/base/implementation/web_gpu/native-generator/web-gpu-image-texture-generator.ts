@@ -1,5 +1,4 @@
 import { BaseNativeGenerator, NativeObjectLifeTime } from '../../../generator/base-native-generator';
-import { GpuObjectReason } from '../../../gpu/gpu-object-reason';
 import { ImageTexture } from '../../../texture/image-texture';
 import { NativeWebGpuMap, WebGpuGeneratorFactory } from '../web-gpu-generator-factory';
 
@@ -27,9 +26,8 @@ export class WebGpuImageTextureGenerator extends BaseNativeGenerator<NativeWebGp
     /**
      * Destory texture object.
      * @param _pNativeObject - Native canvas texture.
-     * @param pDestroyReason - Reason why the native should be destroyed.
      */
-    protected override destroy(_pNativeObject: GPUTextureView, _pDestoryReason: GpuObjectReason): void {
+    protected override destroy(_pNativeObject: GPUTextureView): void {
         this.mTexture?.destroy();
         this.mTexture = null;
     }

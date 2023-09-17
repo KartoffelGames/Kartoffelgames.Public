@@ -1,6 +1,6 @@
 import { GeneratorObjectKeys } from '../generator/base-generator-factory';
 import { GpuDevice } from './gpu-device';
-import { GpuObjectReason } from './gpu-object-reason';
+import { UpdateReason } from './gpu-object-update-reason';
 
 export abstract class GpuObject<TGpuObjectKey extends GeneratorObjectKeys = 'none'> {
     private mAutoUpdate: boolean;
@@ -52,7 +52,7 @@ export abstract class GpuObject<TGpuObjectKey extends GeneratorObjectKeys = 'non
     /**
      * Update gpu object.
      */
-    public update(pUpdateReason: GpuObjectReason): void {
+    public update(pUpdateReason: UpdateReason): void {
         // Invalidate before calling parent listener. Only when a generator exists.
         const lGenerator = this.device.generator.request<TGpuObjectKey>(<any>this);
         if (lGenerator) {
@@ -69,7 +69,7 @@ export abstract class GpuObject<TGpuObjectKey extends GeneratorObjectKeys = 'non
      * Trigger auto update.
      * Does nothing on disabled auto update.
      */
-    protected triggerAutoUpdate(pUpdateReason: GpuObjectReason): void {
+    protected triggerAutoUpdate(pUpdateReason: UpdateReason): void {
         if (this.mAutoUpdate) {
             this.update(pUpdateReason);
         }

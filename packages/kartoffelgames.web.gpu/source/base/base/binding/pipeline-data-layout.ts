@@ -2,6 +2,7 @@ import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 import { BindDataGroupLayout } from './bind-data-group-layout';
+import { GpuObjectReason } from '../gpu/gpu-object-reason';
 
 export class PipelineDataLayout extends GpuObject<'pipelineDataLayout'> {
     private readonly mBindGroups: Dictionary<number, BindDataGroupLayout>;
@@ -34,11 +35,11 @@ export class PipelineDataLayout extends GpuObject<'pipelineDataLayout'> {
 
         // Register change listener for layout changes.
         pLayout.addUpdateListener(() => {
-            this.triggerAutoUpdate();
+            this.triggerAutoUpdate(GpuObjectReason.ChildData);
         });
 
         // Trigger auto update.
-        this.triggerAutoUpdate();
+        this.triggerAutoUpdate(GpuObjectReason.ChildData);
     }
 
     /**

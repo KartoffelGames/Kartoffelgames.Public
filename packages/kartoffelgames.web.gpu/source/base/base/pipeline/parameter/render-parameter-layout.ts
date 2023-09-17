@@ -3,6 +3,7 @@ import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObject } from '../../gpu/gpu-object';
 import { BaseBufferMemoryLayout } from '../../memory_layout/buffer/base-buffer-memory-layout';
 import { StructBufferMemoryLayout } from '../../memory_layout/buffer/struct-buffer-memory-layout';
+import { GpuObjectReason } from '../../gpu/gpu-object-reason';
 
 export class RenderParameterLayout extends GpuObject {
     private readonly mParameter: Dictionary<number, BaseBufferMemoryLayout>;
@@ -79,12 +80,12 @@ export class RenderParameterLayout extends GpuObject {
 
             // Register change listener for layout changes.
             lLocationLayout.addUpdateListener(() => {
-                this.triggerAutoUpdate();
+                this.triggerAutoUpdate(GpuObjectReason.ChildData);
             });
         }
 
         // Trigger update.
-        this.triggerAutoUpdate();
+        this.triggerAutoUpdate(GpuObjectReason.ChildData);
     }
 
     /**

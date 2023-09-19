@@ -6,26 +6,25 @@ import { TextureUsage } from '../../../constant/texture-usage.enum';
 import { BindDataGroup } from '../../binding/bind-data-group';
 import { BindDataGroupLayout } from '../../binding/bind-data-group-layout';
 import { PipelineDataLayout } from '../../binding/pipeline-data-layout';
+import { GpuBuffer } from '../../buffer/gpu-buffer';
 import { BaseGeneratorFactory, GeneratorNativeMap } from '../../generator/base-generator-factory';
-import { BaseNativeGenerator } from '../../generator/base-native-generator';
 import { TextureMemoryLayout } from '../../memory_layout/texture-memory-layout';
+import { RenderShader } from '../../shader/render-shader';
+import { CanvasTexture } from '../../texture/canvas-texture';
+import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
+import { ImageTexture } from '../../texture/image-texture';
+import { TextureSampler } from '../../texture/texture-sampler';
+import { VideoTexture } from '../../texture/video-texture';
 import { WebGpuBindDataGroupGenerator } from './native-generator/web-gpu-bind-data-group-generator';
 import { WebGpuBindDataGroupLayoutGenerator } from './native-generator/web-gpu-bind-data-group-layout-generator';
-import { WebGpuGpuBufferGenerator } from './native-generator/web-gpu-gpu-buffer-generator';
-import { WebGpuPipelineDataLayoutGenerator } from './native-generator/web-gpu-pipeline-data-layout-generator';
-import { GpuBuffer } from '../../buffer/gpu-buffer';
-import { WebGpuRenderShaderGenerator } from './native-generator/web-gpu-render-shader-generator';
-import { RenderShader } from '../../shader/render-shader';
 import { WebGpuCanvasTextureGenerator } from './native-generator/web-gpu-canvas-texture-generator';
-import { CanvasTexture } from '../../texture/canvas-texture';
 import { WebGpuFramebufferTextureGenerator } from './native-generator/web-gpu-frame-buffer-texture-generator';
-import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
-import { WebGpuVideoTextureGenerator } from './native-generator/web-gpu-video-texture-generator';
-import { VideoTexture } from '../../texture/video-texture';
+import { WebGpuGpuBufferGenerator } from './native-generator/web-gpu-gpu-buffer-generator';
 import { WebGpuImageTextureGenerator } from './native-generator/web-gpu-image-texture-generator';
-import { ImageTexture } from '../../texture/image-texture';
+import { WebGpuPipelineDataLayoutGenerator } from './native-generator/web-gpu-pipeline-data-layout-generator';
+import { WebGpuRenderShaderGenerator } from './native-generator/web-gpu-render-shader-generator';
 import { WebGpuTextureSamplerGenerator } from './native-generator/web-gpu-texture-sampler-generator';
-import { TextureSampler } from '../../texture/texture-sampler';
+import { WebGpuVideoTextureGenerator } from './native-generator/web-gpu-video-texture-generator';
 
 export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap> {
     private static readonly mAdapters: Dictionary<GPUPowerPreference, GPUAdapter> = new Dictionary<GPUPowerPreference, GPUAdapter>();
@@ -238,7 +237,7 @@ export interface NativeWebGpuMap extends GeneratorNativeMap {
         // Pipeline layouting.
         bindDataGroupLayout: { generator: WebGpuBindDataGroupLayoutGenerator; native: GPUBindGroupLayout; };
         bindDataGroup: { generator: WebGpuBindDataGroupGenerator; native: GPUBindGroup; };
-        pipelineDataLayout: { generator: BaseNativeGenerator<NativeWebGpuMap, 'pipelineDataLayout'>; native: GPUPipelineLayoutDescriptor; };
+        pipelineDataLayout: { generator: WebGpuPipelineDataLayoutGenerator; native: GPUPipelineLayoutDescriptor; };
 
         // Shader.
         renderShader: { generator: WebGpuRenderShaderGenerator; native: GPUShaderModule; };

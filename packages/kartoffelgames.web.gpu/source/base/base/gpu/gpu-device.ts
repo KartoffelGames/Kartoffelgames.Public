@@ -1,5 +1,5 @@
 import { BaseGeneratorFactory } from '../generator/base-generator-factory';
-import { RenderTargets } from '../pipeline/render-targets';
+import { TextureGroup } from '../pipeline/texture-group';
 import { ShaderInterpreterConstructor, ShaderInterpreterFactory } from '../shader/interpreter/shader-interpreter-factory';
 import { RenderShader } from '../shader/render-shader';
 
@@ -64,19 +64,19 @@ export class GpuDevice {
     }
 
     /**
-     * Create render target group.
-     * @param pWidth - Render target width.
-     * @param pHeight - Render target height.
-     * @param pMultisampleLevel - Multisample level of targets.
-     */
-    public renderTargets(pWidth: number, pHeight: number, pMultisampleLevel: number = 1): RenderTargets {
-        return new RenderTargets(this, pWidth, pHeight, pMultisampleLevel);
-    }
-
-    /**
      * Start new frame.
      */
     public startNewFrame(): void {
         this.mFrameCounter++;
+    }
+
+    /**
+     * Create texture group that shares the same dimensions.
+     * @param pWidth - Texture width.
+     * @param pHeight - Texture height.
+     * @param pMultisampleLevel - Multisample level of textures.
+     */
+    public textureGroup(pWidth: number, pHeight: number, pMultisampleLevel: number = 1): TextureGroup {
+        return new TextureGroup(this, pWidth, pHeight, pMultisampleLevel);
     }
 }

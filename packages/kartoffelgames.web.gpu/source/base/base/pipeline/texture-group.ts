@@ -10,12 +10,11 @@ import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
 import { CanvasTexture } from '../texture/canvas-texture';
 import { FrameBufferTexture } from '../texture/frame-buffer-texture';
 
-// TODO: Remove canvas. Add something like a render target. 
 export class TextureGroup extends GpuObject {
     private readonly mBufferTextures: Dictionary<string, FrameBufferTexture>;
     private readonly mMultisampleLevel: number;
     private readonly mSize: TextureSize;
-    private readonly mTargetTextures: Dictionary<string, FrameBufferTexture | CanvasTexture>;
+    private readonly mTargetTextures: Dictionary<string, CanvasTexture>;
 
     /**
      * Render target height.
@@ -58,7 +57,7 @@ export class TextureGroup extends GpuObject {
 
         // Saved.
         this.mBufferTextures = new Dictionary<string, FrameBufferTexture>();
-        this.mTargetTextures = new Dictionary<string, FrameBufferTexture | CanvasTexture>();
+        this.mTargetTextures = new Dictionary<string, CanvasTexture>();
     }
 
     /**
@@ -102,27 +101,15 @@ export class TextureGroup extends GpuObject {
      * @param pName - Texture name.
      * @param pType - Texture type.
      */
-    public addTarget(pName: string, pType: RenderTargetType): FrameBufferTexture | CanvasTexture {
+    public addTarget(pName: string): CanvasTexture {
         // Validate existing target textures.
         if (this.mTargetTextures.has(pName)) {
             throw new Exception(`Target texture "${pName}" already exists.`, this);
         }
 
         // Create correct memory layout for texture type.
-        let lTexture: FrameBufferTexture | CanvasTexture;
-        switch (pType) {
-            case 'Color': {
-                const lMemoryLayout: TextureMemoryLayout = this.createColorMemoryLayout(false);
-                lTexture = lMemoryLayout.createFrameBufferTexture(this.mSize.height, this.mSize.width, 1);
-                lTexture.multiSampleLevel = 1;
-                break;
-            }
-            case 'Canvas': {
-                const lMemoryLayout: TextureMemoryLayout = this.createCanvasMemoryLayout();
-                lTexture = lMemoryLayout.createCanvasTexture(this.mSize.height, this.mSize.width);
-                break;
-            }
-        }
+        const lMemoryLayout: TextureMemoryLayout = this.createCanvasMemoryLayout();
+        const lTexture: CanvasTexture = lMemoryLayout.createCanvasTexture(this.mSize.height, this.mSize.width);
 
         // Set target texture.
         this.mTargetTextures.set(pName, lTexture);
@@ -137,7 +124,7 @@ export class TextureGroup extends GpuObject {
     public getBufferTextureOf(pName: string): FrameBufferTexture {
         // Validate existing canvas.
         if (this.mBufferTextures.has(pName)) {
-            throw new Exception(`Canvas "${pName}" not found.`, this);
+            throw new Exception(`Buffer texture "${pName}" not found.`, this);
         }
 
         return this.mBufferTextures.get(pName)!;
@@ -147,10 +134,10 @@ export class TextureGroup extends GpuObject {
      * Get target texture.
      * @param pName - texture name.
      */
-    public getTargetTextureOf(pName: string): FrameBufferTexture | CanvasTexture {
+    public getTargetTextureOf(pName: string): CanvasTexture {
         // Validate existing canvas.
         if (this.mTargetTextures.has(pName)) {
-            throw new Exception(`Canvas "${pName}" not found.`, this);
+            throw new Exception(`Target texture "${pName}" not found.`, this);
         }
 
         return this.mTargetTextures.get(pName)!;
@@ -231,4 +218,3 @@ export class TextureGroup extends GpuObject {
 type TextureSize = { width: number; height: number; };
 
 type RenderBufferType = 'Color' | 'Depth';
-type RenderTargetType = 'Color' | 'Canvas';

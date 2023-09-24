@@ -6,10 +6,6 @@ import { AttachmentType } from '../../source/abstraction_layer/webgpu/pass_descr
 import { Attachments } from '../../source/abstraction_layer/webgpu/pass_descriptor/attachments';
 import { RenderPassDescriptor } from '../../source/abstraction_layer/webgpu/pass_descriptor/render-pass-descriptor';
 import { RenderPipeline } from '../../source/abstraction_layer/webgpu/pipeline/render-pipeline';
-import { WebGpuShader } from '../../source/abstraction_layer/webgpu/shader/web-gpu-shader';
-import { WebGpuTexture } from '../../source/abstraction_layer/webgpu/texture_resource/texture/web-gpu-texture';
-import { WebGpuTextureUsage } from '../../source/abstraction_layer/webgpu/texture_resource/texture/web-gpu-texture-usage.enum';
-import { WebGpuTextureSampler } from '../../source/abstraction_layer/webgpu/texture_resource/web-gpu-texture-sampler';
 import { GpuDevice } from '../../source/base/base/gpu/gpu-device';
 import { WebGpuGeneratorFactory } from '../../source/base/base/implementation/web_gpu/web-gpu-generator-factory';
 import { WebGpuShaderInterpreter } from '../../source/base/base/implementation/web_gpu/web-gpu-shader-interpreter';
@@ -18,7 +14,6 @@ import { LinearBufferMemoryLayout } from '../../source/base/base/memory_layout/b
 import { StructBufferMemoryLayout } from '../../source/base/base/memory_layout/buffer/struct-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../../source/base/base/memory_layout/sampler-memory-layout';
 import { TextureMemoryLayout } from '../../source/base/base/memory_layout/texture-memory-layout';
-import { WebGpuDevice } from '../../source/base/implementation/webgpu/web-gpu-device';
 import { AmbientLight } from '../../source/something_better/light/ambient-light';
 import { Transform, TransformMatrix } from '../../source/something_better/transform';
 import { OrthographicProjection } from '../../source/something_better/view_projection/projection/orthographic -projection';
@@ -35,7 +30,7 @@ const gDepth: number = 10;
     const lGpu: GpuDevice = await GpuDevice.request(new WebGpuGeneratorFactory('high-performance'), WebGpuShaderInterpreter);
 
     // Create and configure render targets.
-    const lRenderTargets = lGpu.renderTargets(640, 640, 2);
+    const lRenderTargets = lGpu.frameGroup(640, 640, 2);
     lRenderTargets.add('canvas', 'Canvas');
     lRenderTargets.add('depth', 'Depth');
 

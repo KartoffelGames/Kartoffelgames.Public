@@ -30,10 +30,11 @@ const gDepth: number = 10;
     const lGpu: GpuDevice = await GpuDevice.request(new WebGpuGeneratorFactory('high-performance'), WebGpuShaderInterpreter);
 
     // Create and configure render targets.
-    const lRenderTargets = lGpu.frameGroup(640, 640, 2);
-    lRenderTargets.add('canvas', 'Canvas');
-    lRenderTargets.add('depth', 'Depth');
-
+    const lRenderTargets = lGpu.textureGroup(640, 640, 2);
+    lRenderTargets.addBuffer('color', 'Color');
+    lRenderTargets.addBuffer('depth', 'Depth');
+    lRenderTargets.addTarget('canvas');
+    
     // Create shader.
     const lShader = lGpu.renderShader(shader, 'vertex_main', 'fragment_main');
 

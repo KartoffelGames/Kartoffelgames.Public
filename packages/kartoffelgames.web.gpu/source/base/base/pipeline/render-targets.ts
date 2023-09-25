@@ -1,204 +1,126 @@
-import { Dictionary, Exception } from '@kartoffelgames/core.data';
-import { AccessMode } from '../../constant/access-mode.enum';
-import { ComputeStage } from '../../constant/compute-stage.enum';
-import { TextureBindType } from '../../constant/texture-bind-type.enum';
-import { TextureDimension } from '../../constant/texture-dimension.enum';
+import { Exception } from '@kartoffelgames/core.data';
 import { TextureFormat } from '../../constant/texture-format.enum';
+import { TextureOperation } from '../../constant/texture-operation';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
-import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
 import { CanvasTexture } from '../texture/canvas-texture';
 import { FrameBufferTexture } from '../texture/frame-buffer-texture';
+import { TextureGroup } from './texture-group';
+import { UpdateReason } from '../gpu/gpu-object-update-reason';
 
-export class RenderTargets extends GpuObject {
-    private readonly mMultisampleLevel: number;
-    private readonly mSize: TextureSize;
-    private readonly mTargetTextures: Dictionary<string, FrameBufferTexture | CanvasTexture>;
+export class RenderTargets extends GpuObject<'renderTargets'> { // GPURenderPassDescriptor
+    private readonly mColorBuffer: Array<RenderTargetTexture>;
+    private mDepthBuffer: RenderTargetTexture | null;
+    private readonly mTextureGroup: TextureGroup;
 
     /**
-     * Render target height.
+     * Get all color buffer.
      */
-    public get height(): number {
-        return this.mSize.height;
-    } set height(pValue: number) {
-        this.resize(this.mSize.width, pValue);
+    protected get colorBuffer(): Array<RenderTargetTexture> {
+        return this.mColorBuffer;
     }
 
     /**
-     * Render target multisample level.
+     * Get depth stencil buffer.
      */
-    public get multiSampleLevel(): number {
-        return this.mMultisampleLevel;
+    protected get depthStencilBuffer(): RenderTargetTexture | null {
+        return this.mDepthBuffer;
     }
 
     /**
-     * Render target height.
+     * Constructor.
+     * @param pDevice - Device.
+     * @param pTextureGroup - Texture group.
      */
-    public get width(): number {
-        return this.mSize.width;
-    } set width(pValue: number) {
-        this.resize(pValue, this.mSize.height);
-    }
-
-    /**
-     * Constuctor.
-     * @param pDevice - Gpu device reference.
-     * @param pWidth - Textures width.
-     * @param pHeight - Textures height.
-     * @param pMultisampleLevel - Multisample level of  all textures.
-     */
-    public constructor(pDevice: GpuDevice, pWidth: number, pHeight: number, pMultisampleLevel: number) {
+    public constructor(pDevice: GpuDevice, pTextureGroup: TextureGroup) {
         super(pDevice);
 
-        // Set "fixed" 
-        this.mSize = { width: pWidth, height: pHeight };
-        this.mMultisampleLevel = pMultisampleLevel;
+        this.mTextureGroup = pTextureGroup;
+        this.mColorBuffer = new Array<RenderTargetTexture>();
 
-        // Saved.
-        this.mTargetTextures = new Dictionary<string, FrameBufferTexture | CanvasTexture>();
+        this.mDepthBuffer = null;
     }
 
-    /**
-     * Add and create render target texture.
-     * @param pName - Target name.
-     * @param pType - Type of target.
-     */
-    public add(pName: string, pType: RenderTargetType): FrameBufferTexture | CanvasTexture {
-        switch (pType) {
-            case 'Canvas': {
-                const lCanvasTextureLayout: TextureMemoryLayout = this.createCanvasMemoryLayout();
-                return this.addCanvasTexture(pName, lCanvasTextureLayout);
-            }
-            case 'Color': {
-                const lColorTextureLayout: TextureMemoryLayout = this.createColorMemoryLayout();
-                return this.addFrameBufferTexture(pName, lColorTextureLayout);
-            }
-            case 'Depth': {
-                const lColorTextureLayout: TextureMemoryLayout = this.createDepthMemoryLayout();
-                return this.addFrameBufferTexture(pName, lColorTextureLayout);
-            }
-        }
-    }
+    public addColorBuffer(pBufferName: string, pClearValue: number, pLoadOp: TextureOperation, pStoreOp: TextureOperation, pTargetName?: string): void {
+        // Read texture buffer from texture group.
+        const lColorBuffer: FrameBufferTexture = this.mTextureGroup.getBufferTextureOf(pBufferName);
 
-    /**
-     * Get texture.
-     * @param pName - texture name.
-     */
-    public getTextureOf(pName: string): FrameBufferTexture | CanvasTexture {
-        // Validate existing canvas.
-        if (this.mTargetTextures.has(pName)) {
-            throw new Exception(`Canvas "${pName}" not found.`, this);
+        // Read potential target buffer.
+        let lTargetBuffer: CanvasTexture | null = null;
+        if (pTargetName) {
+            lTargetBuffer = this.mTextureGroup.getTargetTextureOf(pTargetName);
+
+            // Add update listener.
+            lTargetBuffer.addUpdateListener(() => {
+                this.triggerAutoUpdate(UpdateReason.ChildData);
+            });
         }
 
-        return this.mTargetTextures.get(pName)!;
-    }
+        // Add update listener.
+        lColorBuffer.addUpdateListener(() => {
+            this.triggerAutoUpdate(UpdateReason.ChildData);
+        });
 
-    /**
-     * Create frame buffer from canvas.
-     * @param pName - Canvas name.
-     * @param pMemoryLayout - Canvas texture memory layout.
-     */
-    private addCanvasTexture(pName: string, pMemoryLayout: TextureMemoryLayout): CanvasTexture {
-        // Validate existing textures.
-        if (this.mTargetTextures.has(pName)) {
-            throw new Exception(`Texture "${pName}" already exists.`, this);
-        }
-
-        // Create new canvas texture.
-        const lTexture: CanvasTexture = pMemoryLayout.createCanvasTexture(this.mSize.width, this.mSize.height);
-
-        // Save canvas.
-        this.mTargetTextures.set(pName, lTexture);
-
-        return lTexture;
-    }
-
-    /**
-     * Create frame buffer render target.
-     * @param pName - Frame buffer name.
-     * @param pMemoryLayout - Frame buffer memory layout.
-     */
-    private addFrameBufferTexture(pName: string, pMemoryLayout: TextureMemoryLayout): FrameBufferTexture {
-        // Validate existing textures.
-        if (this.mTargetTextures.has(pName)) {
-            throw new Exception(`Texture "${pName}" already exists.`, this);
-        }
-
-        // Create new texture and assign multisample level.
-        const lTexture: FrameBufferTexture = pMemoryLayout.createFrameBufferTexture(this.mSize.height, this.mSize.width, 1);
-        lTexture.multiSampleLevel = this.mMultisampleLevel;
-
-        this.mTargetTextures.set(pName, lTexture);
-
-        return lTexture;
-    }
-
-    /**
-     * Create layout for a canvas texture.
-     */
-    private createCanvasMemoryLayout(): TextureMemoryLayout {
-        return new TextureMemoryLayout(this.device, {
-            dimension: TextureDimension.TwoDimension,
-            format: TextureFormat.RedGreenBlueAlpha,
-            bindType: TextureBindType.RenderTarget,
-            multisampled: false,
-            access: AccessMode.Write | AccessMode.Read,
-            memoryIndex: null,
-            name: '',
-            visibility: ComputeStage.Fragment
+        this.mColorBuffer.push({
+            attachment: lColorBuffer,
+            clearValue: pClearValue,
+            loadOp: pLoadOp,
+            storeOp: pStoreOp,
+            resolveTarget: lTargetBuffer
         });
     }
 
     /**
-     * Create layout for a color texture.
+     * Set depth and or stencil buffer.
+     * @param pBufferName - Buffer Texture name.
+     * @param pClearValue - Clear value in hex 0xffffff.
+     * @param pLoadOp - Operation on load.
+     * @param pStoreOp - Operation on store.
      */
-    private createColorMemoryLayout(): TextureMemoryLayout {
-        return new TextureMemoryLayout(this.device, {
-            dimension: TextureDimension.TwoDimension,
-            format: TextureFormat.RedGreenBlueAlpha,
-            bindType: TextureBindType.RenderTarget,
-            multisampled: this.mMultisampleLevel > 1,
-            access: AccessMode.Write | AccessMode.Read,
-            memoryIndex: null,
-            name: '',
-            visibility: ComputeStage.Fragment
-        });
-    }
+    public setDepthStencilBuffer(pBufferName: string, pClearValue: number, pLoadOp: TextureOperation, pStoreOp: TextureOperation): void {
+        // Read texture buffer from texture group.
+        const lDepthBuffer: FrameBufferTexture = this.mTextureGroup.getBufferTextureOf(pBufferName);
 
-    /**
-     * Create layout for a depth texture.
-     */
-    private createDepthMemoryLayout(): TextureMemoryLayout {
-        return new TextureMemoryLayout(this.device, {
-            dimension: TextureDimension.TwoDimension,
-            format: TextureFormat.Depth,
-            bindType: TextureBindType.RenderTarget,
-            multisampled: this.mMultisampleLevel > 1,
-            access: AccessMode.Write | AccessMode.Read,
-            memoryIndex: null,
-            name: '',
-            visibility: ComputeStage.Fragment
-        });
-    }
-
-    /**
-     * Resize all textures.
-     * @param pWidth - Textures width.
-     * @param pHeight - Textures height.
-     */
-    private resize(pWidth: number, pHeight: number): void {
-        // Update size.
-        this.mSize.width = pWidth;
-        this.mSize.width = pHeight;
-
-        // Update frame buffer sizes.
-        for (const lTexture of this.mTargetTextures.values()) {
-            lTexture.height = pHeight;
-            lTexture.height = pWidth;
+        // Validate depth or stencil format.
+        switch (lDepthBuffer.memoryLayout.format) {
+            case TextureFormat.Depth:
+            case TextureFormat.DepthStencil:
+            case TextureFormat.Stencil: {
+                break;
+            }
+            default: {
+                throw new Exception('Depth and or stencil buffer needs to have depth or stencil texture formats.', this);
+            }
         }
+
+        // Update depth buffer update listener.
+        if (this.mDepthBuffer) {
+            this.mDepthBuffer.attachment.removeUpdateListener(this.onDepthBufferUpdate);
+        }
+        lDepthBuffer.addUpdateListener(this.onDepthBufferUpdate);
+
+        // Set new buffer.
+        this.mDepthBuffer = {
+            attachment: lDepthBuffer,
+            clearValue: pClearValue,
+            loadOp: pLoadOp,
+            storeOp: pStoreOp,
+            resolveTarget: null
+        };
+    }
+
+    /**
+     * Call auto update onbuffer data update.
+     */
+    private onDepthBufferUpdate(): void {
+        this.triggerAutoUpdate(UpdateReason.ChildData);
     }
 }
 
-type TextureSize = { width: number; height: number; };
-
-type RenderTargetType = 'Canvas' | 'Color' | 'Depth';
+type RenderTargetTexture = {
+    attachment: FrameBufferTexture,
+    clearValue: number;
+    loadOp: TextureOperation;
+    storeOp: TextureOperation;
+    resolveTarget: CanvasTexture | null;
+};

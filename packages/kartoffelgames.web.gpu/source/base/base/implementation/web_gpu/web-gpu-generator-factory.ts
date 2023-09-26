@@ -238,6 +238,7 @@ export interface NativeWebGpuMap extends GeneratorNativeMap {
         bindDataGroupLayout: { generator: WebGpuBindDataGroupLayoutGenerator; native: GPUBindGroupLayout; };
         bindDataGroup: { generator: WebGpuBindDataGroupGenerator; native: GPUBindGroup; };
         pipelineDataLayout: { generator: WebGpuPipelineDataLayoutGenerator; native: GPUPipelineLayoutDescriptor; };
+        renderTargets: { generator: WebGpuRenderShaderGenerator; native: GPURenderPassDescriptor };
 
         // Shader.
         renderShader: { generator: WebGpuRenderShaderGenerator; native: GPUShaderModule; };

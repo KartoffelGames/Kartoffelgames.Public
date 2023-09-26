@@ -8,7 +8,7 @@ import { FrameBufferTexture } from '../texture/frame-buffer-texture';
 import { TextureGroup } from './texture-group';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
 
-export class RenderTargets extends GpuObject<'renderTargets'> { // GPURenderPassDescriptor
+export class RenderTargets extends GpuObject<'renderTargets'> {
     private readonly mColorBuffer: Array<RenderTargetTexture>;
     private mDepthBuffer: RenderTargetTexture | null;
     private readonly mTextureGroup: TextureGroup;
@@ -16,15 +16,22 @@ export class RenderTargets extends GpuObject<'renderTargets'> { // GPURenderPass
     /**
      * Get all color buffer.
      */
-    protected get colorBuffer(): Array<RenderTargetTexture> {
+    public get colorBuffer(): Array<RenderTargetTexture> {
         return this.mColorBuffer;
     }
 
     /**
      * Get depth stencil buffer.
      */
-    protected get depthStencilBuffer(): RenderTargetTexture | null {
+    public get depthStencilBuffer(): RenderTargetTexture | null {
         return this.mDepthBuffer;
+    }
+
+    /**
+     * Render targets use multisamples.
+     */
+    public get multisampled(): boolean {
+        return this.mTextureGroup.multiSampleLevel > 1;
     }
 
     /**

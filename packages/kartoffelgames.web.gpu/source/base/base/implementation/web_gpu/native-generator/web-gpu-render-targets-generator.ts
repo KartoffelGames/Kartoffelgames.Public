@@ -1,14 +1,9 @@
-import { Exception } from '@kartoffelgames/core.data';
-import { GpuBuffer } from '../../../buffer/gpu-buffer';
+import { TextureFormat } from '../../../../constant/texture-format.enum';
+import { TextureOperation } from '../../../../constant/texture-operation';
 import { BaseNativeGenerator, NativeObjectLifeTime } from '../../../generator/base-native-generator';
-import { CanvasTexture } from '../../../texture/canvas-texture';
-import { FrameBufferTexture } from '../../../texture/frame-buffer-texture';
-import { ImageTexture } from '../../../texture/image-texture';
-import { TextureSampler } from '../../../texture/texture-sampler';
-import { VideoTexture } from '../../../texture/video-texture';
 import { NativeWebGpuMap } from '../web-gpu-generator-factory';
 
-export class WebGpuBindDataGroupGenerator extends BaseNativeGenerator<NativeWebGpuMap, 'renderTargets'> {
+export class WebGpuRenderTargetsGenerator extends BaseNativeGenerator<NativeWebGpuMap, 'renderTargets'> {
     /**
      * Set life time of generated native.
      */
@@ -28,15 +23,15 @@ export class WebGpuBindDataGroupGenerator extends BaseNativeGenerator<NativeWebG
                 (lColorAttachment.clearValue & 0xff0000 >> 4) / 255,
                 (lColorAttachment.clearValue & 0xff00 >> 2) / 255,
                 (lColorAttachment.clearValue & 0xff) / 255,
-            ]
+            ];
 
             // Convert Texture operation to load operations.
             const lLoadOperation: GPULoadOp = lColorAttachment.loadOp === TextureOperation.Keep ? 'load' : 'clear';
-            const lStoreOperation: GPULoadOp = lColorAttachment.storeOp === TextureOperation.Keep ? 'keep' : 'dismiss';
+            const lStoreOperation: GPUStoreOp = lColorAttachment.storeOp === TextureOperation.Keep ? 'store' : 'discard';
 
             // Create basic color attachment.
             const lPassColorAttachment: GPURenderPassColorAttachment = {
-                view: this.factory.request<'frameBufferTexture'>(lPassColorAttachment.attachment).create(),
+                view: this.factory.request<'frameBufferTexture'>(lColorAttachment.attachment).create(),
                 clearValue: lClearColor,
                 loadOp: lLoadOperation,
                 storeOp: lStoreOperation
@@ -44,7 +39,7 @@ export class WebGpuBindDataGroupGenerator extends BaseNativeGenerator<NativeWebG
 
             // Resolve optional resolve attachment but only when texture uses multisample.
             if (lColorAttachment.resolveTarget && this.gpuObject.multisampled) {
-                lPassColorAttachment.resolveTarget = this.factory.request<'canvasTexture'>(lPassColorAttachment.resolveTarget).create();
+                lPassColorAttachment.resolveTarget = this.factory.request<'canvasTexture'>(lColorAttachment.resolveTarget).create();
             }
 
             lColorAttachments.push(lPassColorAttachment);
@@ -57,23 +52,27 @@ export class WebGpuBindDataGroupGenerator extends BaseNativeGenerator<NativeWebG
 
         // Set optional depth attachment.
         if (this.gpuObject.depthStencilBuffer) {
-            const lDepthStencilAttachment = this.gpuObject.depthStencilBuffer
+            const lDepthStencilAttachment = this.gpuObject.depthStencilBuffer;
 
-            // Convert clear value from hex values to Float range from 0..1.
-            const lClearColor: [number, number, number] = (lDepthStencilAttachment.clearValue & 0xff) / 255;
-
-            // Convert Texture operation to load operations.
-            const lLoadOperation: GPULoadOp = lColorAttachment.loadOp === TextureOperation.Keep ? 'load' : 'clear';
-            const lStoreOperation: GPULoadOp = lColorAttachment.storeOp === TextureOperation.Keep ? 'keep' : 'dismiss';
-
-            // TODO: Add stencil or buffer options based on texture format.
-
+            // Add texture view for depth.
             lDescriptor.depthStencilAttachment = {
                 view: this.factory.request<'frameBufferTexture'>(lDepthStencilAttachment.attachment).create(),
-                depthClearValue: lClearColor,
-                depthLoadOp: lLoadOperation,
-                depthStoreOp: lStoreOperation
             };
+
+            // Add depth values when depth formats are used.
+            if (lDepthStencilAttachment.attachment.memoryLayout.format === TextureFormat.DepthStencil || lDepthStencilAttachment.attachment.memoryLayout.format === TextureFormat.Depth) {
+                // Convert clear value from hex values to Float range from 0..1.
+                lDescriptor.depthStencilAttachment.depthClearValue = (lDepthStencilAttachment.clearValue & 0xff) / 255;
+
+                // Convert Texture operation to load operations.
+                lDescriptor.depthStencilAttachment.depthLoadOp = lDepthStencilAttachment.loadOp === TextureOperation.Keep ? 'load' : 'clear';
+                lDescriptor.depthStencilAttachment.depthStoreOp = lDepthStencilAttachment.storeOp === TextureOperation.Keep ? 'store' : 'discard';
+            }
+
+            // Add stencil values when stencil formats are used.
+            if (lDepthStencilAttachment.attachment.memoryLayout.format === TextureFormat.DepthStencil || lDepthStencilAttachment.attachment.memoryLayout.format === TextureFormat.Stencil) {
+                // TODO:
+            }
         }
 
         return lDescriptor;

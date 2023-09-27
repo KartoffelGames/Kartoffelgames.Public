@@ -26,6 +26,7 @@ import { WebGpuRenderShaderGenerator } from './native-generator/web-gpu-render-s
 import { WebGpuTextureSamplerGenerator } from './native-generator/web-gpu-texture-sampler-generator';
 import { WebGpuVideoTextureGenerator } from './native-generator/web-gpu-video-texture-generator';
 import { WebGpuRenderTargetsGenerator } from './native-generator/web-gpu-render-targets-generator';
+import { WebGpuComputeShaderGenerator } from './native-generator/web-gpu-compute-shader-generator';
 
 export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap> {
     private static readonly mAdapters: Dictionary<GPUPowerPreference, GPUAdapter> = new Dictionary<GPUPowerPreference, GPUAdapter>();
@@ -243,5 +244,6 @@ export interface NativeWebGpuMap extends GeneratorNativeMap {
 
         // Shader.
         renderShader: { generator: WebGpuRenderShaderGenerator; native: GPUShaderModule; };
+        computeShader: { generator: WebGpuComputeShaderGenerator; native: GPUShaderModule; };
     };
 }

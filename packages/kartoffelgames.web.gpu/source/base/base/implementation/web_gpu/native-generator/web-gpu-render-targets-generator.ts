@@ -26,12 +26,12 @@ export class WebGpuRenderTargetsGenerator extends BaseNativeGenerator<NativeWebG
             ];
 
             // Convert Texture operation to load operations.
-            const lLoadOperation: GPULoadOp = lColorAttachment.loadOp === TextureOperation.Keep ? 'load' : 'clear';
-            const lStoreOperation: GPUStoreOp = lColorAttachment.storeOp === TextureOperation.Keep ? 'store' : 'discard';
+            const lLoadOperation: GPULoadOp = lColorAttachment.loadOperation === TextureOperation.Keep ? 'load' : 'clear';
+            const lStoreOperation: GPUStoreOp = lColorAttachment.storeOperation === TextureOperation.Keep ? 'store' : 'discard';
 
             // Create basic color attachment.
             const lPassColorAttachment: GPURenderPassColorAttachment = {
-                view: this.factory.request<'frameBufferTexture'>(lColorAttachment.attachment).create(),
+                view: this.factory.request<'frameBufferTexture'>(lColorAttachment.texture).create(),
                 clearValue: lClearColor,
                 loadOp: lLoadOperation,
                 storeOp: lStoreOperation
@@ -56,22 +56,27 @@ export class WebGpuRenderTargetsGenerator extends BaseNativeGenerator<NativeWebG
 
             // Add texture view for depth.
             lDescriptor.depthStencilAttachment = {
-                view: this.factory.request<'frameBufferTexture'>(lDepthStencilAttachment.attachment).create(),
+                view: this.factory.request<'frameBufferTexture'>(lDepthStencilAttachment.texture).create(),
             };
 
             // Add depth values when depth formats are used.
-            if (lDepthStencilAttachment.attachment.memoryLayout.format === TextureFormat.DepthStencil || lDepthStencilAttachment.attachment.memoryLayout.format === TextureFormat.Depth) {
+            if (lDepthStencilAttachment.texture.memoryLayout.format === TextureFormat.DepthStencil || lDepthStencilAttachment.texture.memoryLayout.format === TextureFormat.Depth) {
                 // Convert clear value from hex values to Float range from 0..1.
-                lDescriptor.depthStencilAttachment.depthClearValue = (lDepthStencilAttachment.clearValue & 0xff) / 255;
+                lDescriptor.depthStencilAttachment.depthClearValue = (lDepthStencilAttachment.depthClearValue & 0xff) / 255;
 
                 // Convert Texture operation to load operations.
-                lDescriptor.depthStencilAttachment.depthLoadOp = lDepthStencilAttachment.loadOp === TextureOperation.Keep ? 'load' : 'clear';
-                lDescriptor.depthStencilAttachment.depthStoreOp = lDepthStencilAttachment.storeOp === TextureOperation.Keep ? 'store' : 'discard';
+                lDescriptor.depthStencilAttachment.depthLoadOp = lDepthStencilAttachment.depthLoadOperation === TextureOperation.Keep ? 'load' : 'clear';
+                lDescriptor.depthStencilAttachment.depthStoreOp = lDepthStencilAttachment.depthStoreOperation === TextureOperation.Keep ? 'store' : 'discard';
             }
 
             // Add stencil values when stencil formats are used.
-            if (lDepthStencilAttachment.attachment.memoryLayout.format === TextureFormat.DepthStencil || lDepthStencilAttachment.attachment.memoryLayout.format === TextureFormat.Stencil) {
-                // TODO:
+            if (lDepthStencilAttachment.texture.memoryLayout.format === TextureFormat.DepthStencil || lDepthStencilAttachment.texture.memoryLayout.format === TextureFormat.Stencil) {
+                // Convert clear value from hex values to Float range from 0..1.
+                lDescriptor.depthStencilAttachment.stencilClearValue = (lDepthStencilAttachment.stencilClearValue & 0xff) / 255;
+
+                // Convert Texture operation to load operations.
+                lDescriptor.depthStencilAttachment.stencilLoadOp = lDepthStencilAttachment.stencilLoadOperation === TextureOperation.Keep ? 'load' : 'clear';
+                lDescriptor.depthStencilAttachment.stencilStoreOp = lDepthStencilAttachment.stencilStoreOperation === TextureOperation.Keep ? 'store' : 'discard';
             }
         }
 

@@ -9,21 +9,21 @@ import { TextureGroup } from './texture-group';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
 
 export class RenderTargets extends GpuObject<'renderTargets'> {
-    private readonly mColorBuffer: Array<RenderTargetTexture>;
-    private mDepthBuffer: RenderTargetTexture | null;
+    private readonly mColorBuffer: Array<RenderTargetColorTexture>;
+    private mDepthBuffer: RenderTargetDepthStencilTexture | null;
     private readonly mTextureGroup: TextureGroup;
 
     /**
      * Get all color buffer.
      */
-    public get colorBuffer(): Array<RenderTargetTexture> {
+    public get colorBuffer(): Array<RenderTargetColorTexture> {
         return this.mColorBuffer;
     }
 
     /**
      * Get depth stencil buffer.
      */
-    public get depthStencilBuffer(): RenderTargetTexture | null {
+    public get depthStencilBuffer(): RenderTargetDepthStencilTexture | null {
         return this.mDepthBuffer;
     }
 
@@ -43,7 +43,7 @@ export class RenderTargets extends GpuObject<'renderTargets'> {
         super(pDevice);
 
         this.mTextureGroup = pTextureGroup;
-        this.mColorBuffer = new Array<RenderTargetTexture>();
+        this.mColorBuffer = new Array<RenderTargetColorTexture>();
 
         this.mDepthBuffer = null;
     }
@@ -69,10 +69,10 @@ export class RenderTargets extends GpuObject<'renderTargets'> {
         });
 
         this.mColorBuffer.push({
-            attachment: lColorBuffer,
+            texture: lColorBuffer,
             clearValue: pClearValue,
-            loadOp: pLoadOp,
-            storeOp: pStoreOp,
+            loadOperation: pLoadOp,
+            storeOperation: pStoreOp,
             resolveTarget: lTargetBuffer
         });
     }
@@ -102,17 +102,19 @@ export class RenderTargets extends GpuObject<'renderTargets'> {
 
         // Update depth buffer update listener.
         if (this.mDepthBuffer) {
-            this.mDepthBuffer.attachment.removeUpdateListener(this.onDepthBufferUpdate);
+            this.mDepthBuffer.texture.removeUpdateListener(this.onDepthBufferUpdate);
         }
         lDepthBuffer.addUpdateListener(this.onDepthBufferUpdate);
 
         // Set new buffer.
         this.mDepthBuffer = {
-            attachment: lDepthBuffer,
-            clearValue: pClearValue,
-            loadOp: pLoadOp,
-            storeOp: pStoreOp,
-            resolveTarget: null
+            texture: lDepthBuffer,
+            depthClearValue: pClearValue,
+            depthLoadOperation: pLoadOp,
+            depthStoreOperation: pStoreOp,
+            stencilClearValue: pClearValue,
+            stencilLoadOperation: pLoadOp,
+            stencilStoreOperation: pStoreOp,
         };
     }
 
@@ -124,10 +126,20 @@ export class RenderTargets extends GpuObject<'renderTargets'> {
     }
 }
 
-type RenderTargetTexture = {
-    attachment: FrameBufferTexture,
+type RenderTargetColorTexture = {
+    texture: FrameBufferTexture,
     clearValue: number;
-    loadOp: TextureOperation;
-    storeOp: TextureOperation;
+    loadOperation: TextureOperation;
+    storeOperation: TextureOperation;
     resolveTarget: CanvasTexture | null;
+};
+
+type RenderTargetDepthStencilTexture = {
+    texture: FrameBufferTexture,
+    depthClearValue: number;
+    depthLoadOperation: TextureOperation;
+    depthStoreOperation: TextureOperation;
+    stencilClearValue: number;
+    stencilLoadOperation: TextureOperation;
+    stencilStoreOperation: TextureOperation;
 };

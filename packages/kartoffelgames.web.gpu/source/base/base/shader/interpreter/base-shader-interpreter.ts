@@ -75,7 +75,7 @@ export abstract class BaseShaderInterpreter {
         });
 
         // Read defintions.
-        const lShaderFunctionDefinitionList: Array<ShaderFunctionDefintion> = this.fetchFunctionDefinitions(pSourceCode);
+        const lShaderFunctionDefinitionList: Array<ShaderFunctionDefinition> = this.fetchFunctionDefinitions(pSourceCode);
         const lShaderValueDefinitionList: Array<ShaderValueDefinition> = this.fetchValueDefinitions(pSourceCode);
         const lShaderStructDefinitionList: Array<ShaderStructDefinition> = this.fetchStructDefinitions(pSourceCode);
 
@@ -206,7 +206,7 @@ export abstract class BaseShaderInterpreter {
      * Get all functions.
      * @param pSourceCode - Source code of shader.
      */
-    private convertFunctions(pFunctionDefinitions: Array<ShaderFunctionDefintion>): Dictionary<string, ShaderFunction> {
+    private convertFunctions(pFunctionDefinitions: Array<ShaderFunctionDefinition>): Dictionary<string, ShaderFunction> {
         const lShaderFunctions: Dictionary<string, ShaderFunction> = new Dictionary<string, ShaderFunction>();
         for (const lDefnition of pFunctionDefinitions) {
             const lShaderFunction: ShaderFunction = this.functionFromDefinition(lDefnition);
@@ -330,7 +330,7 @@ export abstract class BaseShaderInterpreter {
      * Read all function definitions.
      * @param pSourceCode - Source code of shader.
      */
-    protected abstract fetchFunctionDefinitions(pSourceCode: string): Array<ShaderFunctionDefintion>;
+    protected abstract fetchFunctionDefinitions(pSourceCode: string): Array<ShaderFunctionDefinition>;
 
     /**
      * Read all global shader values.
@@ -348,7 +348,7 @@ export abstract class BaseShaderInterpreter {
      * Convert function definition.
      * @param pDefinition - Function definition.
      */
-    protected abstract functionFromDefinition(pDefinition: ShaderFunctionDefintion): ShaderFunction;
+    protected abstract functionFromDefinition(pDefinition: ShaderFunctionDefinition): ShaderFunction;
 
     /**
      * Setup all shader types.
@@ -374,7 +374,7 @@ export type ShaderValueDefinition = {
     attachments: Record<string, string>;
 };
 
-export type ShaderFunctionDefintion = {
+export type ShaderFunctionDefinition = {
     attachments: Record<string, string>;
     name: string;
     returnType: ShaderValueDefinition;
@@ -412,6 +412,7 @@ export type ShaderFunction = {
     name: string;
     parameter: Array<BaseMemoryLayout>;
     return: BaseMemoryLayout | null;
+    attachments: Record<string, Array<string>>;
 };
 
 export type ShaderStruct = {

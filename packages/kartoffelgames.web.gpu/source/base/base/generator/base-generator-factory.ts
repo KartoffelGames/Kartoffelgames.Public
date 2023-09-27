@@ -14,6 +14,7 @@ import { BaseNativeBufferGenerator } from './base-native-buffer-generator';
 import { BaseNativeGenerator } from './base-native-generator';
 import { GpuDevice } from '../gpu/gpu-device';
 import { RenderTargets } from '../pipeline/render-targets';
+import { ComputeShader } from '../shader/compute-shader';
 
 export abstract class BaseGeneratorFactory<TGeneratorMap extends GeneratorNativeMap = GeneratorNativeMap> {
     private mDevice: GpuDevice | null;
@@ -163,6 +164,10 @@ export interface GeneratorFactoryMap {
     renderShader: {
         gpuObject: RenderShader;
         generator: BaseNativeGenerator<GeneratorNativeMap, 'renderShader'>;
+    };
+    computeShader: {
+        gpuObject: ComputeShader;
+        generator: BaseNativeGenerator<GeneratorNativeMap, 'computeShader'>;
     };
 }
 

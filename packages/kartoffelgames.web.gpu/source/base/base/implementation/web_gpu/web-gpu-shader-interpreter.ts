@@ -13,7 +13,7 @@ import { LinearBufferMemoryLayout } from '../../memory_layout/buffer/linear-buff
 import { StructBufferMemoryLayout } from '../../memory_layout/buffer/struct-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../../memory_layout/sampler-memory-layout';
 import { TextureMemoryLayout } from '../../memory_layout/texture-memory-layout';
-import { BaseShaderInterpreter, ShaderFunction, ShaderFunctionDefintion, ShaderStructDefinition, ShaderType, ShaderTypeDefinition, ShaderValue, ShaderValueDefinition } from '../../shader/interpreter/base-shader-interpreter';
+import { BaseShaderInterpreter, ShaderFunction, ShaderFunctionDefinition, ShaderStructDefinition, ShaderType, ShaderTypeDefinition, ShaderValue, ShaderValueDefinition } from '../../shader/interpreter/base-shader-interpreter';
 import { WgslBufferArrayTypes, WgslBufferLinearTypes, WgslSamplerTypes, WgslTextureTypes, WgslType } from './wgsl_enum/wgsl-type.enum';
 
 export class WebGpuShaderInterpreter extends BaseShaderInterpreter {
@@ -21,10 +21,10 @@ export class WebGpuShaderInterpreter extends BaseShaderInterpreter {
      * Fetch al function definitions.
      * @param pSourceCode - Source code.
      */
-    protected override fetchFunctionDefinitions(pSourceCode: string): Array<ShaderFunctionDefintion> {
+    protected override fetchFunctionDefinitions(pSourceCode: string): Array<ShaderFunctionDefinition> {
         const lFunctionRegex: RegExp = /(?<attributes>(?:@[\w]+(?:\([^)]*\))?\s+)+)?(?:\s)*?fn\s+(?<name>\w*)\s*\((?<parameter>(?:.|\r?\n)*?)\)(?:\s*->\s*(?<result>[^{]+))?\s*{/gm;
 
-        const lFunctionList: Array<ShaderFunctionDefintion> = new Array<ShaderFunctionDefintion>();
+        const lFunctionList: Array<ShaderFunctionDefinition> = new Array<ShaderFunctionDefinition>();
         for (const lFunctionMatch of pSourceCode.matchAll(lFunctionRegex)) {
             const lFunctionName: string = lFunctionMatch.groups!['name'];
             const lFunctionResult: string = lFunctionMatch.groups!['result'];
@@ -137,7 +137,7 @@ export class WebGpuShaderInterpreter extends BaseShaderInterpreter {
      * Convert definition into function.
      * @param pDefinition - Function definitions.
      */
-    protected override functionFromDefinition(pDefinition: ShaderFunctionDefintion): ShaderFunction {
+    protected override functionFromDefinition(pDefinition: ShaderFunctionDefinition): ShaderFunction {
         // Create memory layouts
         const lParameter: Array<BaseMemoryLayout> = pDefinition.parameter.map((pParameterDefintion) => { return this.valueFromDefinition(pParameterDefintion).value; });
         const lReturnType: BaseMemoryLayout = this.valueFromDefinition(pDefinition.returnType).value;
@@ -156,10 +156,23 @@ export class WebGpuShaderInterpreter extends BaseShaderInterpreter {
 
         // "Calculate" used globals by using deep mathematic learning block chain algorithms.
         const lUsedGlobals: Array<string> = new Array<string>();
-        for (const lGoblaValue of this.fetchValueDefinitions(this.source)) {
-            if (pDefinition.body.includes(lGoblaValue.name)) {
-                lUsedGlobals.push(lGoblaValue.name);
+        for (const lGlobalValue of this.fetchValueDefinitions(this.source)) {
+            if (pDefinition.body.includes(lGlobalValue.name)) {
+                lUsedGlobals.push(lGlobalValue.name);
             }
+        }
+
+        const lAttachmentValueRexgex: RegExp = /".*?"|'.*?'|[^,"']+/g;
+
+        // Save all attachments.
+        const lAttachment: Record<string, Array<string>> = {};
+        for (const lAttachmentName in pDefinition.attachments) {
+            const lAttachmentValues: string = pDefinition.attachments[lAttachmentName];
+
+            // Split values by comma. Filter every empty value.
+            lAttachment[lAttachmentName] = [...lAttachmentValues.matchAll(lAttachmentValueRexgex)]
+                .map((pMatch: RegExpMatchArray) => { return pMatch[0].trim(); })
+                .filter((pValue: string) => { return pValue !== ''; });
         }
 
         return {
@@ -167,7 +180,8 @@ export class WebGpuShaderInterpreter extends BaseShaderInterpreter {
             entryPoints: lTag,
             parameter: lParameter,
             return: lReturnType,
-            usedGlobals: lUsedGlobals
+            usedGlobals: lUsedGlobals,
+            attachments: lAttachment
         };
     }
 

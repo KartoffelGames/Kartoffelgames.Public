@@ -1,14 +1,14 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
-import { AccessMode } from '../../constant/access-mode.enum';
-import { ComputeStage } from '../../constant/compute-stage.enum';
-import { TextureBindType } from '../../constant/texture-bind-type.enum';
-import { TextureDimension } from '../../constant/texture-dimension.enum';
-import { TextureFormat } from '../../constant/texture-format.enum';
-import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/gpu-object';
-import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
-import { CanvasTexture } from '../texture/canvas-texture';
-import { FrameBufferTexture } from '../texture/frame-buffer-texture';
+import { AccessMode } from '../../../constant/access-mode.enum';
+import { ComputeStage } from '../../../constant/compute-stage.enum';
+import { TextureBindType } from '../../../constant/texture-bind-type.enum';
+import { TextureDimension } from '../../../constant/texture-dimension.enum';
+import { TextureFormat } from '../../../constant/texture-format.enum';
+import { GpuDevice } from '../../gpu/gpu-device';
+import { GpuObject } from '../../gpu/gpu-object';
+import { TextureMemoryLayout } from '../../memory_layout/texture-memory-layout';
+import { CanvasTexture } from '../../texture/canvas-texture';
+import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
 
 export class TextureGroup extends GpuObject {
     private readonly mBufferTextures: Dictionary<string, FrameBufferTexture>;

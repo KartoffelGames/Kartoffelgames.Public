@@ -27,6 +27,8 @@ import { WebGpuTextureSamplerGenerator } from './native-generator/web-gpu-textur
 import { WebGpuVideoTextureGenerator } from './native-generator/web-gpu-video-texture-generator';
 import { WebGpuRenderTargetsGenerator } from './native-generator/web-gpu-render-targets-generator';
 import { WebGpuComputeShaderGenerator } from './native-generator/web-gpu-compute-shader-generator';
+import { WebGpuVertexFragmentPipelineGenerator } from './native-generator/web-gpu-vertex-fragment-pipeline-generator';
+import { CompareFunction } from '../../../constant/compare-function.enum';
 
 export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap> {
     private static readonly mAdapters: Dictionary<GPUPowerPreference, GPUAdapter> = new Dictionary<GPUPowerPreference, GPUAdapter>();
@@ -81,6 +83,42 @@ export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap
 
         // Shader.
         this.registerGenerator<'renderShader'>(RenderShader, WebGpuRenderShaderGenerator);
+    }
+
+    /**
+     * Convert constant to native GPUCompareFunction.
+     * @param pCompareFunction - Constant compare value.
+     */
+    public compareFunctionToNative(pCompareFunction: CompareFunction | null): GPUCompareFunction | null {
+        switch (pCompareFunction) {
+            case CompareFunction.Allways: {
+                return 'always';
+            }
+            case CompareFunction.Greater: {
+                return 'greater';
+            }
+            case CompareFunction.Equal: {
+                return 'equal';
+            }
+            case CompareFunction.GreaterEqual: {
+                return 'greater-equal';
+            }
+            case CompareFunction.LessEqual: {
+                return 'less-equal';
+            }
+            case CompareFunction.Less: {
+                return 'less';
+            }
+            case CompareFunction.Never: {
+                return 'never';
+            }
+            case CompareFunction.NotEqual: {
+                return 'not-equal';
+            }
+            default: {
+                return null;
+            }
+        }
     }
 
     /**
@@ -239,8 +277,11 @@ export interface NativeWebGpuMap extends GeneratorNativeMap {
         // Pipeline layouting.
         bindDataGroupLayout: { generator: WebGpuBindDataGroupLayoutGenerator; native: GPUBindGroupLayout; };
         bindDataGroup: { generator: WebGpuBindDataGroupGenerator; native: GPUBindGroup; };
-        pipelineDataLayout: { generator: WebGpuPipelineDataLayoutGenerator; native: GPUPipelineLayoutDescriptor; };
-        renderTargets: { generator: WebGpuRenderTargetsGenerator; native: GPURenderPassDescriptor };
+        pipelineDataLayout: { generator: WebGpuPipelineDataLayoutGenerator; native: GPUPipelineLayout; };
+        renderTargets: { generator: WebGpuRenderTargetsGenerator; native: GPURenderPassDescriptor; };
+
+        // Pipelines.
+        vertexFragmentPipeline: { generator: WebGpuVertexFragmentPipelineGenerator; native: GPURenderPipeline; };
 
         // Shader.
         renderShader: { generator: WebGpuRenderShaderGenerator; native: GPUShaderModule; };

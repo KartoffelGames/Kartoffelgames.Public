@@ -13,8 +13,9 @@ import { VideoTexture } from '../texture/video-texture';
 import { BaseNativeBufferGenerator } from './base-native-buffer-generator';
 import { BaseNativeGenerator } from './base-native-generator';
 import { GpuDevice } from '../gpu/gpu-device';
-import { RenderTargets } from '../pipeline/render-targets';
 import { ComputeShader } from '../shader/compute-shader';
+import { VertexFragmentPipeline } from '../pipeline/vertex-fragment-pipeline';
+import { RenderTargets } from '../pipeline/target/render-targets';
 
 export abstract class BaseGeneratorFactory<TGeneratorMap extends GeneratorNativeMap = GeneratorNativeMap> {
     private mDevice: GpuDevice | null;
@@ -158,6 +159,12 @@ export interface GeneratorFactoryMap {
     renderTargets: {
         gpuObject: RenderTargets;
         generator: BaseNativeGenerator<GeneratorNativeMap, 'renderTargets'>;
+    }
+
+    // Pipelines.
+    vertexFragmentPipeline: {
+        gpuObject: VertexFragmentPipeline;
+        generator: BaseNativeGenerator<GeneratorNativeMap, 'vertexFragmentPipeline'>;
     }
 
     // Shader.

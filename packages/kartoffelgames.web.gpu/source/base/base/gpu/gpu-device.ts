@@ -1,5 +1,5 @@
 import { BaseGeneratorFactory } from '../generator/base-generator-factory';
-import { TextureGroup } from '../pipeline/texture-group';
+import { TextureGroup } from '../pipeline/target/texture-group';
 import { ShaderInterpreterConstructor, ShaderInterpreterFactory } from '../shader/interpreter/shader-interpreter-factory';
 import { RenderShader } from '../shader/render-shader';
 

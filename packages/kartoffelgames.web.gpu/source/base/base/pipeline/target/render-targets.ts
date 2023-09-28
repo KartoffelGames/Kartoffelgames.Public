@@ -1,12 +1,13 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { TextureFormat } from '../../constant/texture-format.enum';
-import { TextureOperation } from '../../constant/texture-operation';
-import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/gpu-object';
-import { CanvasTexture } from '../texture/canvas-texture';
-import { FrameBufferTexture } from '../texture/frame-buffer-texture';
 import { TextureGroup } from './texture-group';
-import { UpdateReason } from '../gpu/gpu-object-update-reason';
+import { GpuObject } from '../../gpu/gpu-object';
+import { GpuDevice } from '../../gpu/gpu-device';
+import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
+import { CanvasTexture } from '../../texture/canvas-texture';
+import { UpdateReason } from '../../gpu/gpu-object-update-reason';
+import { TextureOperation } from '../../../constant/texture-operation';
+import { TextureFormat } from '../../../constant/texture-format.enum';
+
 
 export class RenderTargets extends GpuObject<'renderTargets'> {
     private readonly mColorBuffer: Array<RenderTargetColorTexture>;
@@ -28,10 +29,10 @@ export class RenderTargets extends GpuObject<'renderTargets'> {
     }
 
     /**
-     * Render targets use multisamples.
+     * Render targets multisamples count.
      */
-    public get multisampled(): boolean {
-        return this.mTextureGroup.multiSampleLevel > 1;
+    public get multisampleCount(): number {
+        return this.mTextureGroup.multiSampleLevel;
     }
 
     /**

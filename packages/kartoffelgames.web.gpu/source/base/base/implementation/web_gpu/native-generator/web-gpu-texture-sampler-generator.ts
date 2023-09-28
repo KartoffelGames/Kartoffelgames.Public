@@ -1,4 +1,3 @@
-import { CompareFunction } from '../../../../constant/compare-function.enum';
 import { FilterMode } from '../../../../constant/filter-mode.enum';
 import { WrappingMode } from '../../../../constant/wrapping-mode.enum';
 import { BaseNativeGenerator, NativeObjectLifeTime } from '../../../generator/base-native-generator';
@@ -17,42 +16,8 @@ export class WebGpuTextureSamplerGenerator extends BaseNativeGenerator<NativeWeb
      */
     protected override generate(): GPUSampler {
         // Convert compare function to native compare function.
-        let lNativeCompareFunction: GPUCompareFunction | undefined = undefined;
-        switch (this.gpuObject.compare) {
-            case CompareFunction.Allways: {
-                lNativeCompareFunction = 'always';
-                break;
-            }
-            case CompareFunction.Greater: {
-                lNativeCompareFunction = 'greater';
-                break;
-            }
-            case CompareFunction.Equal: {
-                lNativeCompareFunction = 'equal';
-                break;
-            }
-            case CompareFunction.GreaterEqual: {
-                lNativeCompareFunction = 'greater-equal';
-                break;
-            }
-            case CompareFunction.LessEqual: {
-                lNativeCompareFunction = 'less-equal';
-                break;
-            }
-            case CompareFunction.Less: {
-                lNativeCompareFunction = 'less';
-                break;
-            }
-            case CompareFunction.Never: {
-                lNativeCompareFunction = 'never';
-                break;
-            }
-            case CompareFunction.NotEqual: {
-                lNativeCompareFunction = 'not-equal';
-                break;
-            }
-        }
-
+        const lNativeCompareFunction: GPUCompareFunction | null = this.factory.compareFunctionToNative(this.gpuObject.compare);
+        
         // Convert wrap mode to native address mode.
         let lAddressMode: GPUAddressMode = 'clamp-to-edge';
         switch (this.gpuObject.wrapMode) {

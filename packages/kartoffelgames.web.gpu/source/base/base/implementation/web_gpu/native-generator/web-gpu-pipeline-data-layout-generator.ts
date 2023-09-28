@@ -13,22 +13,23 @@ export class WebGpuPipelineDataLayoutGenerator extends BaseNativeGenerator<Nativ
     /**
      * Generate native gpu pipeline data layout.
      */
-    protected override generate(): GPUPipelineLayoutDescriptor {
+    protected override generate(): GPUPipelineLayout  {
         const lBindGoupIndices: Array<number> = this.gpuObject.groups;
 
         // Generate pipeline layout from bind group layouts.
-        const lPipelineLayout = { bindGroupLayouts: new Array<GPUBindGroupLayout>() };
+        const lPipelineLayoutDescriptor = { bindGroupLayouts: new Array<GPUBindGroupLayout>() };
         for (const lIndex of lBindGoupIndices) {
             const lBindGroupLayout = this.gpuObject.getGroupLayout(lIndex);
 
-            lPipelineLayout.bindGroupLayouts[lIndex] = this.factory.request<'bindDataGroupLayout'>(lBindGroupLayout).create();
+            lPipelineLayoutDescriptor.bindGroupLayouts[lIndex] = this.factory.request<'bindDataGroupLayout'>(lBindGroupLayout).create();
         }
 
         // Validate continunity.
-        if (lBindGoupIndices.length !== lPipelineLayout.bindGroupLayouts.length) {
+        if (lBindGoupIndices.length !== lPipelineLayoutDescriptor.bindGroupLayouts.length) {
             throw new Exception(`Bind group gap detected. Group not set.`, this);
         }
 
-        return lPipelineLayout;
+        // Generate pipeline layout from descriptor.
+        return this.factory.gpu.createPipelineLayout(lPipelineLayoutDescriptor) ;
     }
 }

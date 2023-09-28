@@ -38,7 +38,7 @@ export class WebGpuRenderTargetsGenerator extends BaseNativeGenerator<NativeWebG
             };
 
             // Resolve optional resolve attachment but only when texture uses multisample.
-            if (lColorAttachment.resolveTarget && this.gpuObject.multisampled) {
+            if (lColorAttachment.resolveTarget && this.gpuObject.multisampleCount > 1) {
                 lPassColorAttachment.resolveTarget = this.factory.request<'canvasTexture'>(lColorAttachment.resolveTarget).create();
             }
 

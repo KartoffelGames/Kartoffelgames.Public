@@ -89,36 +89,44 @@ export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap
      * Convert constant to native GPUCompareFunction.
      * @param pCompareFunction - Constant compare value.
      */
-    public compareFunctionToNative(pCompareFunction: CompareFunction | null): GPUCompareFunction | null {
+    public compareFunctionToNative<T extends CompareFunction | null>(pCompareFunction: T): T extends CompareFunction ? GPUCompareFunction : null {
+        let lNativeCompareFunction: GPUCompareFunction| null = null;
         switch (pCompareFunction) {
             case CompareFunction.Allways: {
-                return 'always';
+                lNativeCompareFunction = 'always';
+                break;
             }
             case CompareFunction.Greater: {
-                return 'greater';
+                lNativeCompareFunction = 'greater';
+                break;
             }
             case CompareFunction.Equal: {
-                return 'equal';
+                lNativeCompareFunction = 'equal';
+                break;
             }
             case CompareFunction.GreaterEqual: {
-                return 'greater-equal';
+                lNativeCompareFunction = 'greater-equal';
+                break;
             }
             case CompareFunction.LessEqual: {
-                return 'less-equal';
+                lNativeCompareFunction = 'less-equal';
+                break;
             }
             case CompareFunction.Less: {
-                return 'less';
+                lNativeCompareFunction = 'less';
+                break;
             }
             case CompareFunction.Never: {
-                return 'never';
+                lNativeCompareFunction = 'never';
+                break;
             }
             case CompareFunction.NotEqual: {
-                return 'not-equal';
-            }
-            default: {
-                return null;
+                lNativeCompareFunction = 'not-equal';
+                break;
             }
         }
+
+        return <any>lNativeCompareFunction;
     }
 
     /**

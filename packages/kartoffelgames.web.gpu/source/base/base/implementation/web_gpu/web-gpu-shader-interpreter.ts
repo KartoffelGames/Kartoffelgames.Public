@@ -15,6 +15,7 @@ import { SamplerMemoryLayout } from '../../memory_layout/sampler-memory-layout';
 import { TextureMemoryLayout } from '../../memory_layout/texture-memory-layout';
 import { BaseShaderInterpreter, ShaderFunction, ShaderFunctionDefinition, ShaderStructDefinition, ShaderType, ShaderTypeDefinition, ShaderValue, ShaderValueDefinition } from '../../shader/interpreter/base-shader-interpreter';
 import { WgslBufferArrayTypes, WgslBufferLinearTypes, WgslSamplerTypes, WgslTextureTypes, WgslType } from './wgsl_enum/wgsl-type.enum';
+import { BufferPrimitiveFormat } from '../../../constant/buffer-primitive-format';
 
 export class WebGpuShaderInterpreter extends BaseShaderInterpreter {
     /**
@@ -193,33 +194,33 @@ export class WebGpuShaderInterpreter extends BaseShaderInterpreter {
         // Scalar types.
         pAddType({ name: WgslType.Boolean, variants: [{ size: 1, align: 1 }] });
 
-        pAddType({ name: WgslType.Integer32, variants: [{ size: 4, align: 4 }] });
-        pAddType({ name: WgslType.UnsignedInteger32, variants: [{ size: 4, align: 4 }] });
-        pAddType({ name: WgslType.Float32, variants: [{ size: 4, align: 4 }] });
+        pAddType({ name: WgslType.Integer32, variants: [{ size: 4, align: 4, format: BufferPrimitiveFormat.Int }] });
+        pAddType({ name: WgslType.UnsignedInteger32, variants: [{ size: 4, align: 4, format: BufferPrimitiveFormat.Uint }] });
+        pAddType({ name: WgslType.Float32, variants: [{ size: 4, align: 4, format: BufferPrimitiveFormat.Float }] });
         pAddType({ name: WgslType.Float16, variants: [{ size: 2, align: 2 }] });
 
         // Vector types.
         pAddType({
             name: WgslType.Vector2, variants: [
-                { size: 8, align: 8, generic: [WgslType.Integer32] },
-                { size: 8, align: 8, generic: [WgslType.UnsignedInteger32] },
-                { size: 8, align: 8, generic: [WgslType.Float32] },
+                { size: 8, align: 8, generic: [WgslType.Integer32], format: BufferPrimitiveFormat.Vec2Int },
+                { size: 8, align: 8, generic: [WgslType.UnsignedInteger32], format: BufferPrimitiveFormat.Vec2Uint },
+                { size: 8, align: 8, generic: [WgslType.Float32], format: BufferPrimitiveFormat.Vec2Float },
                 { size: 4, align: 4, generic: [WgslType.Float16] }
             ]
         });
         pAddType({
             name: WgslType.Vector3, variants: [
-                { size: 12, align: 16, generic: [WgslType.Integer32] },
-                { size: 12, align: 16, generic: [WgslType.UnsignedInteger32] },
-                { size: 12, align: 16, generic: [WgslType.Float32] },
+                { size: 12, align: 16, generic: [WgslType.Integer32], format: BufferPrimitiveFormat.Vec3Int },
+                { size: 12, align: 16, generic: [WgslType.UnsignedInteger32], format: BufferPrimitiveFormat.Vec3Uint },
+                { size: 12, align: 16, generic: [WgslType.Float32], format: BufferPrimitiveFormat.Vec3Float },
                 { size: 6, align: 8, generic: [WgslType.Float16] }
             ]
         });
         pAddType({
             name: WgslType.Vector4, variants: [
-                { size: 16, align: 16, generic: [WgslType.Integer32] },
-                { size: 16, align: 16, generic: [WgslType.UnsignedInteger32] },
-                { size: 16, align: 16, generic: [WgslType.Float32] },
+                { size: 16, align: 16, generic: [WgslType.Integer32], format: BufferPrimitiveFormat.Vec4Int },
+                { size: 16, align: 16, generic: [WgslType.UnsignedInteger32], format: BufferPrimitiveFormat.Vec4Uint },
+                { size: 16, align: 16, generic: [WgslType.Float32], format: BufferPrimitiveFormat.Vec4Float },
                 { size: 8, align: 8, generic: [WgslType.Float16] }
             ]
         });
@@ -498,7 +499,8 @@ export class WebGpuShaderInterpreter extends BaseShaderInterpreter {
             access: pParameter.accessMode,
             memoryIndex: pParameter.memoryIndex,
             name: pParameter.valueDefinition.name,
-            visibility: pParameter.visibility
+            visibility: pParameter.visibility,
+            primitiveFormat: pParameter.typeDefinition.primitiveFormat ?? BufferPrimitiveFormat.Unsupported
         });
 
         return {

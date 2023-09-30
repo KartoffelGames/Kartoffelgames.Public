@@ -2,6 +2,7 @@ import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { ComputeStage } from '../../../constant/compute-stage.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { BaseMemoryLayout } from '../../memory_layout/base-memory-layout';
+import { BufferPrimitiveFormat } from '../../../constant/buffer-primitive-format';
 
 export abstract class BaseShaderInterpreter {
     private readonly mBindings: Dictionary<number, Array<BaseMemoryLayout>>;
@@ -159,7 +160,8 @@ export abstract class BaseShaderInterpreter {
                     typeName: lRegularType.name,
                     type: 'buildIn',
                     size: lVariant.size,
-                    align: lVariant.align
+                    align: lVariant.align,
+                    primitiveFormat: lVariant.format ?? BufferPrimitiveFormat.Unsupported
                 };
             }
         }
@@ -394,6 +396,7 @@ export type ShaderTypeDefinition = {
         size: number;
         align: number;
         generic?: Array<string>;
+        format?: BufferPrimitiveFormat;
     }>;
 };
 
@@ -429,6 +432,7 @@ export type ShaderType = {
     typeName: string;
     size: number;
     align: number;
+    primitiveFormat: BufferPrimitiveFormat;
 } | {
     type: 'struct';
     struct: ShaderStruct;

@@ -1,6 +1,7 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { BaseBufferMemoryLayout, BufferLayoutLocation, BufferMemoryLayoutParameter } from './base-buffer-memory-layout';
+import { LinearBufferMemoryLayout } from './linear-buffer-memory-layout';
 
 export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
     private mAlignment: number;
@@ -78,7 +79,7 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
         const lLocationTypes: Array<BaseBufferMemoryLayout> = new Array<BaseBufferMemoryLayout>();
 
         // Include itself.
-        if (this.locationIndex !== null || this.bindingIndex !== null) {
+        if (this.bindingIndex !== null) {
             lLocationTypes.push(this);
         }
 
@@ -99,13 +100,8 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
     /**
      * Get types of properties with a set memory index.
      */
-    public locationLayouts(): Array<BaseBufferMemoryLayout> {
-        const lLocationTypes: Array<BaseBufferMemoryLayout> = new Array<BaseBufferMemoryLayout>();
-
-        // Include itself.
-        if (this.locationIndex !== null || this.bindingIndex !== null) {
-            lLocationTypes.push(this);
-        }
+    public locationLayouts(): Array<LinearBufferMemoryLayout> {
+        const lLocationTypes: Array<LinearBufferMemoryLayout> = new Array<LinearBufferMemoryLayout>();
 
         // Check all properties.
         for (const [, lPropertyType] of this.mInnerProperties.values()) {
@@ -113,7 +109,7 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
             if (lPropertyType instanceof StructBufferMemoryLayout) {
                 // Result does include itself 
                 lLocationTypes.push(...lPropertyType.locationLayouts());
-            } else if (lPropertyType.locationIndex !== null) {
+            } else if (lPropertyType instanceof LinearBufferMemoryLayout && lPropertyType.locationIndex !== null) {
                 lLocationTypes.push(lPropertyType);
             }
         }

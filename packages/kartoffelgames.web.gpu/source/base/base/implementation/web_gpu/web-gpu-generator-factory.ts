@@ -29,6 +29,7 @@ import { WebGpuRenderTargetsGenerator } from './native-generator/web-gpu-render-
 import { WebGpuComputeShaderGenerator } from './native-generator/web-gpu-compute-shader-generator';
 import { WebGpuVertexFragmentPipelineGenerator } from './native-generator/web-gpu-vertex-fragment-pipeline-generator';
 import { CompareFunction } from '../../../constant/compare-function.enum';
+import { BufferPrimitiveFormat } from '../../../constant/buffer-primitive-format';
 
 export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap> {
     private static readonly mAdapters: Dictionary<GPUPowerPreference, GPUAdapter> = new Dictionary<GPUPowerPreference, GPUAdapter>();
@@ -86,11 +87,43 @@ export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap
     }
 
     /**
+     * Parse primitive vertex format into native vertex format.
+     * @param pPrimitiveFormat - Primitive buffer format.
+     */
+    public byteCountOfVertexFormat(pPrimitiveFormat: BufferPrimitiveFormat): number {
+        switch (pPrimitiveFormat) {
+            case BufferPrimitiveFormat.Float:
+            case BufferPrimitiveFormat.Int:
+            case BufferPrimitiveFormat.Uint: {
+                return 4;
+            }
+            case BufferPrimitiveFormat.Vec2Float:
+            case BufferPrimitiveFormat.Vec2Uint:
+            case BufferPrimitiveFormat.Vec2Int: {
+                return 4 * 2;
+            }
+            case BufferPrimitiveFormat.Vec3Int:
+            case BufferPrimitiveFormat.Vec3Float:
+            case BufferPrimitiveFormat.Vec3Uint: {
+                return 4 * 3;
+            }
+            case BufferPrimitiveFormat.Vec4Int:
+            case BufferPrimitiveFormat.Vec4Float:
+            case BufferPrimitiveFormat.Vec4Uint: {
+                return 4 * 4;
+            }
+            default: {
+                throw new Exception('Vertex format not supported', this);
+            }
+        }
+    }
+
+    /**
      * Convert constant to native GPUCompareFunction.
      * @param pCompareFunction - Constant compare value.
      */
     public compareFunctionToNative<T extends CompareFunction | null>(pCompareFunction: T): T extends CompareFunction ? GPUCompareFunction : null {
-        let lNativeCompareFunction: GPUCompareFunction| null = null;
+        let lNativeCompareFunction: GPUCompareFunction | null = null;
         switch (pCompareFunction) {
             case CompareFunction.Allways: {
                 lNativeCompareFunction = 'always';
@@ -238,6 +271,54 @@ export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap
             case TextureFormat.RedGreenInteger:
             case TextureFormat.RedInteger: {
                 return 'uint';
+            }
+        }
+    }
+
+    /**
+     * Parse primitive vertex format into native vertex format.
+     * @param pPrimitiveFormat - Primitive buffer format.
+     */
+    public toNativeVertexFormat(pPrimitiveFormat: BufferPrimitiveFormat): GPUVertexFormat {
+        switch (pPrimitiveFormat) {
+            case BufferPrimitiveFormat.Float: {
+                return 'float32';
+            }
+            case BufferPrimitiveFormat.Int: {
+                return 'sint32';
+            }
+            case BufferPrimitiveFormat.Uint: {
+                return 'uint32';
+            }
+            case BufferPrimitiveFormat.Vec2Float: {
+                return 'float32x2';
+            }
+            case BufferPrimitiveFormat.Vec3Float: {
+                return 'float32x3';
+            }
+            case BufferPrimitiveFormat.Vec4Float: {
+                return 'float32x4';
+            }
+            case BufferPrimitiveFormat.Vec2Int: {
+                return 'sint32x2';
+            }
+            case BufferPrimitiveFormat.Vec3Int: {
+                return 'sint32x3';
+            }
+            case BufferPrimitiveFormat.Vec4Int: {
+                return 'sint32x4';
+            }
+            case BufferPrimitiveFormat.Vec2Uint: {
+                return 'uint32x2';
+            }
+            case BufferPrimitiveFormat.Vec3Uint: {
+                return 'uint32x3';
+            }
+            case BufferPrimitiveFormat.Vec4Uint: {
+                return 'uint32x4';
+            }
+            default: {
+                throw new Exception('Vertex format not supported', this);
             }
         }
     }

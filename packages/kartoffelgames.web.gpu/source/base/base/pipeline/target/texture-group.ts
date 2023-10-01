@@ -153,7 +153,7 @@ export class TextureGroup extends GpuObject {
             bindType: TextureBindType.RenderTarget,
             multisampled: false,
             access: AccessMode.Write | AccessMode.Read,
-            memoryIndex: null,
+            bindingIndex: null,
             name: '',
             visibility: ComputeStage.Fragment
         });
@@ -169,7 +169,7 @@ export class TextureGroup extends GpuObject {
             bindType: TextureBindType.RenderTarget,
             multisampled: pMultisampled,
             access: AccessMode.Write | AccessMode.Read,
-            memoryIndex: null,
+            bindingIndex: null,
             name: '',
             visibility: ComputeStage.Fragment
         });
@@ -185,7 +185,7 @@ export class TextureGroup extends GpuObject {
             bindType: TextureBindType.RenderTarget,
             multisampled: pMultisampled,
             access: AccessMode.Write | AccessMode.Read,
-            memoryIndex: null,
+            bindingIndex: null,
             name: '',
             visibility: ComputeStage.Fragment
         });

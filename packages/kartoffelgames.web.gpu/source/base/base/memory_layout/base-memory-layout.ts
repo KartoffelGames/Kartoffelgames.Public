@@ -8,7 +8,7 @@ import { UpdateReason } from '../gpu/gpu-object-update-reason';
 export abstract class BaseMemoryLayout extends GpuObject {
     private readonly mAccessMode: AccessMode;
     private readonly mBindingIndex: number | null;
-    private readonly mLocationIndex: number | null;
+    
     private mMemoryType: MemoryCopyType;
     private readonly mName: string;
     private readonly mVisibility: ComputeStage;
@@ -25,13 +25,6 @@ export abstract class BaseMemoryLayout extends GpuObject {
      */
     public get bindingIndex(): number | null {
         return this.mBindingIndex;
-    }
-
-    /**
-     * Get parameter index.
-     */
-    public get locationIndex(): number | null {
-        return this.mLocationIndex;
     }
 
     /**
@@ -73,17 +66,13 @@ export abstract class BaseMemoryLayout extends GpuObject {
         this.mMemoryType = MemoryCopyType.None;
 
         // Set optional memory indices.
-        this.mBindingIndex = pParameter.memoryIndex?.binding ?? null;
-        this.mLocationIndex = pParameter.memoryIndex?.location ?? null;
+        this.mBindingIndex = pParameter.bindingIndex ?? null;
     }
 }
 
 export interface MemoryLayoutParameter {
     access: AccessMode;
-    memoryIndex: null | {
-        binding: number | null;
-        location: number | null;
-    };
+    bindingIndex: number | null;
     name: string;
     visibility: ComputeStage;
 }

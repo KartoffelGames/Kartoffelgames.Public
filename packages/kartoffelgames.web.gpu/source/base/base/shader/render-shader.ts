@@ -6,6 +6,7 @@ import { StructBufferMemoryLayout } from '../memory_layout/buffer/struct-buffer-
 import { RenderParameterLayout } from '../pipeline/parameter/render-parameter-layout';
 import { BaseShader } from './base-shader';
 import { ShaderFunction } from './interpreter/base-shader-interpreter';
+import { LinearBufferMemoryLayout } from '../memory_layout/buffer/linear-buffer-memory-layout';
 
 export class RenderShader extends BaseShader<'renderShader'> {
     private readonly mAttachmentCount: number;
@@ -74,7 +75,12 @@ export class RenderShader extends BaseShader<'renderShader'> {
         // Create parameter layout and append every parameter.
         this.mParameterLayout = new RenderParameterLayout(this.device);
         for (const lParameter of lVertexEntryFunction.parameter) {
-            this.mParameterLayout.addParameter(<BaseBufferMemoryLayout>lParameter);
+            // Validate buffer type.
+            if (!(lParameter instanceof LinearBufferMemoryLayout)) {
+                throw new Exception('Only simple data types are allowed for vertex attributes.', this);
+            }
+            
+            this.mParameterLayout.add(lParameter);
         }
 
         // Get attachment count based on fragment function return values with an memory index.

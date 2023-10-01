@@ -5,6 +5,7 @@ import { BaseBufferMemoryLayout, BufferMemoryLayoutParameter } from './base-buff
 export class LinearBufferMemoryLayout extends BaseBufferMemoryLayout {
     private readonly mAlignment: number;
     private readonly mFormat: BufferPrimitiveFormat;
+    private readonly mLocationIndex: number | null;
     private readonly mSize: number;
 
     /**
@@ -19,6 +20,13 @@ export class LinearBufferMemoryLayout extends BaseBufferMemoryLayout {
      */
     public get format(): BufferPrimitiveFormat {
         return this.mFormat;
+    }
+
+    /**
+     * Get parameter index.
+     */
+    public get locationIndex(): number | null {
+        return this.mLocationIndex;
     }
 
     /**
@@ -39,6 +47,7 @@ export class LinearBufferMemoryLayout extends BaseBufferMemoryLayout {
         this.mAlignment = pParameter.alignment;
         this.mSize = pParameter.size;
         this.mFormat = pParameter.primitiveFormat;
+        this.mLocationIndex = pParameter.locationIndex ?? null;
     }
 }
 
@@ -46,4 +55,5 @@ export interface LinearBufferMemoryLayoutParameter extends BufferMemoryLayoutPar
     size: number;
     alignment: number;
     primitiveFormat: BufferPrimitiveFormat;
+    locationIndex: number | null;
 }

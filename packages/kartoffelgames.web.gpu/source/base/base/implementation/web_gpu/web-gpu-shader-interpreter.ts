@@ -407,7 +407,7 @@ export class WebGpuShaderInterpreter extends BaseShaderInterpreter {
             accessMode: lAccessMode,
             bufferBindType: lBufferBindType,
             groupIndex: pValueDefinition.attachments['group'] ? parseInt(pValueDefinition.attachments['group']) : null,
-            memoryIndex: (lBindingIndex === null && lParameterIndex === null) ? null : {
+            memoryIndex: {
                 binding: lBindingIndex,
                 location: lParameterIndex,
             },
@@ -472,7 +472,7 @@ export class WebGpuShaderInterpreter extends BaseShaderInterpreter {
             innerType: <BaseBufferMemoryLayout>lInnerType.value,
             bindType: pParameter.bufferBindType,
             access: pParameter.accessMode,
-            memoryIndex: pParameter.memoryIndex,
+            bindingIndex: pParameter.memoryIndex.binding,
             name: pParameter.valueDefinition.name,
             visibility: pParameter.visibility
         });
@@ -497,7 +497,8 @@ export class WebGpuShaderInterpreter extends BaseShaderInterpreter {
             alignment: pParameter.typeDefinition.align,
             bindType: pParameter.bufferBindType,
             access: pParameter.accessMode,
-            memoryIndex: pParameter.memoryIndex,
+            bindingIndex: pParameter.memoryIndex.binding,
+            locationIndex: pParameter.memoryIndex.location,
             name: pParameter.valueDefinition.name,
             visibility: pParameter.visibility,
             primitiveFormat: pParameter.typeDefinition.primitiveFormat ?? BufferPrimitiveFormat.Unsupported
@@ -523,7 +524,7 @@ export class WebGpuShaderInterpreter extends BaseShaderInterpreter {
         const lSamplerMemoryLayout: SamplerMemoryLayout = new SamplerMemoryLayout(this.device, {
             samplerType: lSamplerType,
             access: pParameter.accessMode,
-            memoryIndex: pParameter.memoryIndex,
+            bindingIndex: pParameter.memoryIndex.binding,
             name: pParameter.valueDefinition.name,
             visibility: pParameter.visibility
         });
@@ -547,7 +548,7 @@ export class WebGpuShaderInterpreter extends BaseShaderInterpreter {
             structName: pParameter.typeDefinition.struct.name,
             bindType: pParameter.bufferBindType,
             access: pParameter.accessMode,
-            memoryIndex: pParameter.memoryIndex,
+            bindingIndex: pParameter.memoryIndex.binding,
             name: pParameter.valueDefinition.name,
             visibility: pParameter.visibility
         });
@@ -584,7 +585,7 @@ export class WebGpuShaderInterpreter extends BaseShaderInterpreter {
             bindType: this.textureBindTypeFromType(lTextureWgslType),
             multisampled: lUsesMultisample,
             access: pParameter.accessMode,
-            memoryIndex: pParameter.memoryIndex,
+            bindingIndex: pParameter.memoryIndex.binding,
             name: pParameter.valueDefinition.name,
             visibility: pParameter.visibility
         });
@@ -789,7 +790,7 @@ type ShaderValueCreationParameter = {
     accessMode: AccessMode;
     visibility: ComputeStage;
     groupIndex: number | null;
-    memoryIndex: null | {
+    memoryIndex: {
         binding: number | null;
         location: number | null;
     };

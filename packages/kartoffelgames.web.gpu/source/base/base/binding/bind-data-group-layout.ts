@@ -58,7 +58,6 @@ export class BindDataGroupLayout extends GpuObject<'bindDataGroupLayout'> {
                 lIdentifier += '-' + lBind.layout.bindingIndex;
                 lIdentifier += '-' + lBind.layout.memoryType;
                 lIdentifier += '-' + lBind.layout.name;
-                lIdentifier += '-' + lBind.layout.locationIndex;
                 lIdentifier += '-' + lBind.layout.visibility;
                 lIdentifier += ';';
             }

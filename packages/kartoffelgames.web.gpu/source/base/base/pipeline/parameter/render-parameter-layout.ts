@@ -4,9 +4,10 @@ import { GpuObject } from '../../gpu/gpu-object';
 import { BaseBufferMemoryLayout } from '../../memory_layout/buffer/base-buffer-memory-layout';
 import { StructBufferMemoryLayout } from '../../memory_layout/buffer/struct-buffer-memory-layout';
 import { UpdateReason } from '../../gpu/gpu-object-update-reason';
+import { LinearBufferMemoryLayout } from '../../memory_layout/buffer/linear-buffer-memory-layout';
 
 export class RenderParameterLayout extends GpuObject {
-    private readonly mParameter: Dictionary<number, BaseBufferMemoryLayout>;
+    private readonly mParameter: Dictionary<number, LinearBufferMemoryLayout>;
     private readonly mParameterNames: Dictionary<string, number>;
 
     /**
@@ -31,7 +32,7 @@ export class RenderParameterLayout extends GpuObject {
      */
     public constructor(pDevice: GpuDevice) {
         super(pDevice);
-        this.mParameter = new Dictionary<number, BaseBufferMemoryLayout>();
+        this.mParameter = new Dictionary<number, LinearBufferMemoryLayout>();
         this.mParameterNames = new Dictionary<string, number>();
     }
 
@@ -40,12 +41,12 @@ export class RenderParameterLayout extends GpuObject {
      * @param pName - Parameter name.
      * @param pLayout - Parameter layout.
      */
-    public addParameter(pLayout: BaseBufferMemoryLayout): void {
+    public add(pLayout: StructBufferMemoryLayout | LinearBufferMemoryLayout): void {
         // Find all childs of layout with locations.
-        const lLocationLayoutList: Array<BaseBufferMemoryLayout> = new Array<BaseBufferMemoryLayout>();
+        const lLocationLayoutList: Array<LinearBufferMemoryLayout> = new Array<LinearBufferMemoryLayout>();
         if (pLayout instanceof StructBufferMemoryLayout) {
             lLocationLayoutList.push(...pLayout.locationLayouts());
-        } else {
+        } else if (pLayout instanceof LinearBufferMemoryLayout) {
             lLocationLayoutList.push(pLayout);
         }
 
@@ -105,10 +106,11 @@ export class RenderParameterLayout extends GpuObject {
      * Get layout of name.
      * @param pName - Parameter name.
      */
-    public getLayoutOf(pName: string): BaseBufferMemoryLayout {
+    public getLayoutOf(pName: string): LinearBufferMemoryLayout {
         const lIndex: number = this.getIndexOf(pName);
 
         // Layout should exist when it name exists.
         return this.mParameter.get(lIndex)!;
     }
-} 
+}
+

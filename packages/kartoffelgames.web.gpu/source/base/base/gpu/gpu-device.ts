@@ -1,7 +1,7 @@
 import { BaseGeneratorFactory } from '../generator/base-generator-factory';
 import { TextureGroup } from '../pipeline/target/texture-group';
 import { ShaderInterpreterConstructor, ShaderInterpreterFactory } from '../shader/interpreter/shader-interpreter-factory';
-import { RenderShader } from '../shader/render-shader';
+import { VertexFragmentShader } from '../shader/vertex-fragment-shader';
 
 export class GpuDevice {
     /**
@@ -59,8 +59,8 @@ export class GpuDevice {
      * @param pVertexEntry - Vertex entry name.
      * @param pFragmentEntry - Optional fragment entry.
      */
-    public renderShader(pSource: string, pVertexEntry: string, pFragmentEntry?: string): RenderShader {
-        return new RenderShader(this, pSource, pVertexEntry, pFragmentEntry);
+    public renderShader(pSource: string, pVertexEntry: string, pFragmentEntry?: string): VertexFragmentShader {
+        return new VertexFragmentShader(this, pSource, pVertexEntry, pFragmentEntry);
     }
 
     /**

@@ -9,7 +9,7 @@ import { PipelineDataLayout } from '../../binding/pipeline-data-layout';
 import { GpuBuffer } from '../../buffer/gpu-buffer';
 import { BaseGeneratorFactory, GeneratorNativeMap } from '../../generator/base-generator-factory';
 import { TextureMemoryLayout } from '../../memory_layout/texture-memory-layout';
-import { RenderShader } from '../../shader/render-shader';
+import { VertexFragmentShader } from '../../shader/vertex-fragment-shader';
 import { CanvasTexture } from '../../texture/canvas-texture';
 import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
 import { ImageTexture } from '../../texture/image-texture';
@@ -22,7 +22,7 @@ import { WebGpuFramebufferTextureGenerator } from './native-generator/web-gpu-fr
 import { WebGpuGpuBufferGenerator } from './native-generator/web-gpu-gpu-buffer-generator';
 import { WebGpuImageTextureGenerator } from './native-generator/web-gpu-image-texture-generator';
 import { WebGpuPipelineDataLayoutGenerator } from './native-generator/web-gpu-pipeline-data-layout-generator';
-import { WebGpuRenderShaderGenerator } from './native-generator/web-gpu-render-shader-generator';
+import { WebGpuVertexFragmentShaderGenerator } from './native-generator/web-gpu-vertex-fragment-shader-generator';
 import { WebGpuTextureSamplerGenerator } from './native-generator/web-gpu-texture-sampler-generator';
 import { WebGpuVideoTextureGenerator } from './native-generator/web-gpu-video-texture-generator';
 import { WebGpuRenderTargetsGenerator } from './native-generator/web-gpu-render-targets-generator';
@@ -83,7 +83,7 @@ export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap
         this.registerGenerator<'textureSampler'>(TextureSampler, WebGpuTextureSamplerGenerator);
 
         // Shader.
-        this.registerGenerator<'renderShader'>(RenderShader, WebGpuRenderShaderGenerator);
+        this.registerGenerator<'vertexFragmentShader'>(VertexFragmentShader, WebGpuVertexFragmentShaderGenerator);
     }
 
     /**
@@ -373,7 +373,7 @@ export interface NativeWebGpuMap extends GeneratorNativeMap {
         vertexFragmentPipeline: { generator: WebGpuVertexFragmentPipelineGenerator; native: GPURenderPipeline; };
 
         // Shader.
-        renderShader: { generator: WebGpuRenderShaderGenerator; native: GPUShaderModule; };
+        vertexFragmentShader: { generator: WebGpuVertexFragmentShaderGenerator; native: GPUShaderModule; };
         computeShader: { generator: WebGpuComputeShaderGenerator; native: GPUShaderModule; };
     };
 }

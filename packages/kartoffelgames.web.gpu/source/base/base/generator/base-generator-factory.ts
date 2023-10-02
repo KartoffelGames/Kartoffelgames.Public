@@ -4,7 +4,7 @@ import { BindDataGroupLayout } from '../binding/bind-data-group-layout';
 import { PipelineDataLayout } from '../binding/pipeline-data-layout';
 import { GpuBuffer } from '../buffer/gpu-buffer';
 import { GpuObject } from '../gpu/gpu-object';
-import { RenderShader } from '../shader/render-shader';
+import { VertexFragmentShader } from '../shader/vertex-fragment-shader';
 import { CanvasTexture } from '../texture/canvas-texture';
 import { FrameBufferTexture } from '../texture/frame-buffer-texture';
 import { ImageTexture } from '../texture/image-texture';
@@ -168,9 +168,9 @@ export interface GeneratorFactoryMap {
     }
 
     // Shader.
-    renderShader: {
-        gpuObject: RenderShader;
-        generator: BaseNativeGenerator<GeneratorNativeMap, 'renderShader'>;
+    vertexFragmentShader: {
+        gpuObject: VertexFragmentShader;
+        generator: BaseNativeGenerator<GeneratorNativeMap, 'vertexFragmentShader'>;
     };
     computeShader: {
         gpuObject: ComputeShader;

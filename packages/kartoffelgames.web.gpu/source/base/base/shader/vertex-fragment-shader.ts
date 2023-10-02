@@ -8,7 +8,7 @@ import { BaseShader } from './base-shader';
 import { ShaderFunction } from './interpreter/base-shader-interpreter';
 import { LinearBufferMemoryLayout } from '../memory_layout/buffer/linear-buffer-memory-layout';
 
-export class RenderShader extends BaseShader<'renderShader'> {
+export class VertexFragmentShader extends BaseShader<'vertexFragmentShader'> {
     private readonly mAttachmentCount: number;
     private readonly mFragmentEntry: string | null;
     private readonly mParameterLayout: RenderParameterLayout;

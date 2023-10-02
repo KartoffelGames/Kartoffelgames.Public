@@ -35,7 +35,7 @@ export class WebGpuVertexFragmentPipelineGenerator extends BaseNativeGenerator<N
         const lPipelineDescriptor: GPURenderPipelineDescriptor = {
             layout: lPipelineLayout,
             vertex: {
-                module: this.factory.request<'renderShader'>(this.gpuObject.shader).create(),
+                module: this.factory.request<'vertexFragmentShader'>(this.gpuObject.shader).create(),
                 entryPoint: this.gpuObject.shader.vertexEntry,
                 buffers: lVertexBufferLayoutList
                 // No constants. Yes.
@@ -56,7 +56,7 @@ export class WebGpuVertexFragmentPipelineGenerator extends BaseNativeGenerator<N
             }
 
             lPipelineDescriptor.fragment = {
-                module: this.factory.request<'renderShader'>(this.gpuObject.shader).create(),
+                module: this.factory.request<'vertexFragmentShader'>(this.gpuObject.shader).create(),
                 entryPoint: this.gpuObject.shader.fragmentEntry,
                 targets: lFragmentTargetList
             };

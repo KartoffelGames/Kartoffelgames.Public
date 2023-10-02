@@ -5,7 +5,7 @@ import { PrimitiveTopology } from '../../constant/primitive-topology';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
-import { RenderShader } from '../shader/render-shader';
+import { VertexFragmentShader } from '../shader/vertex-fragment-shader';
 import { RenderTargets } from './target/render-targets';
 
 export class VertexFragmentPipeline extends GpuObject<'vertexFragmentPipeline'> {
@@ -15,7 +15,7 @@ export class VertexFragmentPipeline extends GpuObject<'vertexFragmentPipeline'> 
     private mPrimitiveFrontFace: PrimitiveFrontFace;
     private mPrimitiveTopology: PrimitiveTopology;
     private readonly mRenderTargets: RenderTargets;
-    private readonly mShader: RenderShader;
+    private readonly mShader: VertexFragmentShader;
     
     /**
      * Set depth compare function.
@@ -75,7 +75,7 @@ export class VertexFragmentPipeline extends GpuObject<'vertexFragmentPipeline'> 
     /**
      * Pipeline shader.
      */
-    public get shader(): RenderShader {
+    public get shader(): VertexFragmentShader {
         return this.mShader;
     }
 
@@ -97,7 +97,7 @@ export class VertexFragmentPipeline extends GpuObject<'vertexFragmentPipeline'> 
      * @param pDevice - Device.
      * @param pShader - Pipeline shader.
      */
-    public constructor(pDevice: GpuDevice, pShader: RenderShader, pRenderTargets: RenderTargets) {
+    public constructor(pDevice: GpuDevice, pShader: VertexFragmentShader, pRenderTargets: RenderTargets) {
         super(pDevice);
         this.mShader = pShader;
         this.mRenderTargets = pRenderTargets;

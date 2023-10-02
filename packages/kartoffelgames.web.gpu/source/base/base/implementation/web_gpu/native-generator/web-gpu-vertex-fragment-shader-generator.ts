@@ -1,7 +1,7 @@
 import { BaseNativeGenerator, NativeObjectLifeTime } from '../../../generator/base-native-generator';
 import { NativeWebGpuMap } from '../web-gpu-generator-factory';
 
-export class WebGpuRenderShaderGenerator extends BaseNativeGenerator<NativeWebGpuMap, 'renderShader'> {
+export class WebGpuVertexFragmentShaderGenerator extends BaseNativeGenerator<NativeWebGpuMap, 'vertexFragmentShader'> {
     /**
      * Set life time of generated native.
      */

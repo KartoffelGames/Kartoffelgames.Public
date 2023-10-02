@@ -1,0 +1,43 @@
+{
+    "name": "@kartoffelgames/web.potato-render",
+    "version": "0.0.0",
+    "description": "Kartoffelgames.Web.Potato_Render",
+    "author": {
+        "name": "KartoffelGames"
+    },
+    "files": [
+        "library/source/**/*"
+    ],
+    "main": "library/source/index.js",
+    "types": "library/source/index.d.ts",
+    "scripts": {
+        "build": "kg build Kartoffelgames.Web.Potato_Render && kg page Kartoffelgames.Web.Potato_Render --build-only",
+        "test": "kg test Kartoffelgames.Web.Potato_Render",
+        "page": "kg page Kartoffelgames.Web.Potato_Render --build-only"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/KartoffelGames/Kartoffelgames.Public.git",
+        "directory": "packages/kartoffelgames.web"
+    },
+    "bugs": {
+        "url": "https://github.com/KartoffelGames/Kartoffelgames.Public/issues"
+    },
+    "homepage": "https://github.com/KartoffelGames/Kartoffelgames.Public#readme",
+    "kg": {
+        "name": "Kartoffelgames.Web.Potato_Render",
+        "root": false,
+        "config": {
+            "package-blueprint": "kg-main",
+            "build-configuration": {
+                "pack": false,
+                "target": "node",
+                "scope": "main"
+            },
+            "tests": [
+                "unit"
+            ],
+            "page": false
+        }
+    }
+}

@@ -9,6 +9,7 @@ import { GpuObject } from '../../gpu/gpu-object';
 import { TextureMemoryLayout } from '../../memory_layout/texture-memory-layout';
 import { CanvasTexture } from '../../texture/canvas-texture';
 import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
+import { RenderTargets } from './render-targets';
 
 export class TextureGroup extends GpuObject {
     private readonly mBufferTextures: Dictionary<string, FrameBufferTexture>;
@@ -115,6 +116,13 @@ export class TextureGroup extends GpuObject {
         this.mTargetTextures.set(pName, lTexture);
 
         return lTexture;
+    }
+
+    /**
+     * Create render targets.
+     */
+    public create(): RenderTargets {
+        return new RenderTargets(this.device, this);
     }
 
     /**

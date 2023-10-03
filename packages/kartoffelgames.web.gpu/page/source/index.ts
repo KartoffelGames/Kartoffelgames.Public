@@ -2,9 +2,6 @@ import { InstructionExecuter } from '../../source/abstraction_layer/webgpu/execu
 import { RenderInstruction } from '../../source/abstraction_layer/webgpu/execution/instruction/render-instruction';
 import { RenderInstructionSet } from '../../source/abstraction_layer/webgpu/execution/instruction_set/render-instruction-set';
 import { RenderParameter } from '../../source/abstraction_layer/webgpu/execution/parameter/render-parameter';
-import { AttachmentType } from '../../source/abstraction_layer/webgpu/pass_descriptor/attachment-type.enum';
-import { Attachments } from '../../source/abstraction_layer/webgpu/pass_descriptor/attachments';
-import { RenderPassDescriptor } from '../../source/abstraction_layer/webgpu/pass_descriptor/render-pass-descriptor';
 import { RenderPipeline } from '../../source/abstraction_layer/webgpu/pipeline/render-pipeline';
 import { GpuDevice } from '../../source/base/base/gpu/gpu-device';
 import { WebGpuGeneratorFactory } from '../../source/base/base/implementation/web_gpu/web-gpu-generator-factory';
@@ -15,6 +12,11 @@ import { StructBufferMemoryLayout } from '../../source/base/base/memory_layout/b
 import { SamplerMemoryLayout } from '../../source/base/base/memory_layout/sampler-memory-layout';
 import { TextureMemoryLayout } from '../../source/base/base/memory_layout/texture-memory-layout';
 import { VertexParameter } from '../../source/base/base/pipeline/parameter/vertex-parameter';
+import { RenderTargets } from '../../source/base/base/pipeline/target/render-targets';
+import { TextureGroup } from '../../source/base/base/pipeline/target/texture-group';
+import { VertexFragmentPipeline } from '../../source/base/base/pipeline/vertex-fragment-pipeline';
+import { PrimitiveCullMode } from '../../source/base/constant/primitive-cullmode';
+import { TextureOperation } from '../../source/base/constant/texture-operation';
 import { AmbientLight } from '../../source/something_better/light/ambient-light';
 import { Transform, TransformMatrix } from '../../source/something_better/transform';
 import { OrthographicProjection } from '../../source/something_better/view_projection/projection/orthographic -projection';
@@ -31,10 +33,10 @@ const gDepth: number = 10;
     const lGpu: GpuDevice = await GpuDevice.request(new WebGpuGeneratorFactory('high-performance'), WebGpuShaderInterpreter);
 
     // Create and configure render targets.
-    const lRenderTargets = lGpu.textureGroup(640, 640, 2);
-    lRenderTargets.addBuffer('color', 'Color');
-    lRenderTargets.addBuffer('depth', 'Depth');
-    lRenderTargets.addTarget('canvas');
+    const lTextureGroup: TextureGroup = lGpu.textureGroup(640, 640, 2);
+    lTextureGroup.addBuffer('color', 'Color');
+    lTextureGroup.addBuffer('depth', 'Depth');
+    lTextureGroup.addTarget('canvas');
 
     // Create shader.
     const lShader = lGpu.renderShader(shader, 'vertex_main', 'fragment_main');
@@ -69,7 +71,7 @@ const gDepth: number = 10;
 
     // Create camera perspective.
     const lPerspectiveProjection: PerspectiveProjection = new PerspectiveProjection();
-    lPerspectiveProjection.aspectRatio = lRenderTargets.width / lRenderTargets.height;
+    lPerspectiveProjection.aspectRatio = lTextureGroup.width / lTextureGroup.height;
     lPerspectiveProjection.angleOfView = 72;
     lPerspectiveProjection.near = 0.1;
     lPerspectiveProjection.far = 9999999;
@@ -105,13 +107,23 @@ const gDepth: number = 10;
     lUserGroup.setData('cubeTextureSampler', lCubeSampler);
 
     // Generate render parameter from parameter layout.
-    const lMesh: VertexParameter = lShader.parameterLayout.create(CubeVertexIndices);
+    const lMesh: VertexParameter = lShader.parameterLayout.createData(CubeVertexIndices);
     lMesh.set('vertex.position', CubeVertexPositionData);
     lMesh.set('vertex.uv', CubeVertexUvData); // TODO: Convert to Indexbased parameter.
     lMesh.set('vertex.normal', CubeVertexNormalData); // TODO: Convert to Indexbased parameter.
 
-    // TODO: Create pipeline.
+    // Set render targets.
+    const lRenderTargets: RenderTargets = lTextureGroup.create();
+    lRenderTargets.addColorBuffer('color', 0xaaaaaa, TextureOperation.Clear, TextureOperation.Keep, 'canvas');
+    lRenderTargets.setDepthStencilBuffer('depth', 0xff, TextureOperation.Clear, TextureOperation.Keep);
 
+    // Create pipeline.
+    const lPipeline: VertexFragmentPipeline = lShader.createPipeline(lRenderTargets);
+    lPipeline.primitiveCullMode = PrimitiveCullMode.Back;
+
+    // TODO: Create instruction.
+
+    // TODO: Create instruction set.
 })();
 
 (async () => {

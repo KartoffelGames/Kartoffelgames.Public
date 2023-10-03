@@ -7,6 +7,8 @@ import { VertexParameterLayout } from '../pipeline/parameter/vertex-parameter-la
 import { BaseShader } from './base-shader';
 import { ShaderFunction } from './interpreter/base-shader-interpreter';
 import { LinearBufferMemoryLayout } from '../memory_layout/buffer/linear-buffer-memory-layout';
+import { RenderTargets } from '../pipeline/target/render-targets';
+import { VertexFragmentPipeline } from '../pipeline/vertex-fragment-pipeline';
 
 export class VertexFragmentShader extends BaseShader<'vertexFragmentShader'> {
     private readonly mAttachmentCount: number;
@@ -79,7 +81,7 @@ export class VertexFragmentShader extends BaseShader<'vertexFragmentShader'> {
             if (!(lParameter instanceof LinearBufferMemoryLayout)) {
                 throw new Exception('Only simple data types are allowed for vertex attributes.', this);
             }
-            
+
             this.mParameterLayout.add(lParameter);
         }
 
@@ -94,5 +96,13 @@ export class VertexFragmentShader extends BaseShader<'vertexFragmentShader'> {
                 this.mAttachmentCount = 1;
             }
         }
+    }
+
+    /**
+     * Create pipeline from shader.
+     * @param pRenderTargets - Render targets.
+     */
+    public createPipeline(pRenderTargets: RenderTargets): VertexFragmentPipeline {
+        return new VertexFragmentPipeline(this.device, this, pRenderTargets);
     }
 }

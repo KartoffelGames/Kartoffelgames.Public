@@ -5,13 +5,13 @@ import { BaseShader } from './base-shader';
 import { ShaderFunction } from './interpreter/base-shader-interpreter';
 
 export class ComputeShader extends BaseShader<'computeShader'> {
-    private readonly mComputeEntry: string | null;
+    private readonly mComputeEntry: string;
     private readonly mWorkGroupSizes: [number, number, number];
 
     /**
      * Compute entry point name.
      */
-    public get computeEntry(): string | null {
+    public get computeEntry(): string {
         return this.mComputeEntry;
     }
 

@@ -3,7 +3,12 @@ import { BindDataGroup } from '../binding/bind-data-group';
 import { BindDataGroupLayout } from '../binding/bind-data-group-layout';
 import { PipelineDataLayout } from '../binding/pipeline-data-layout';
 import { GpuBuffer } from '../buffer/gpu-buffer';
+import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
+import { ComputePipeline } from '../pipeline/compute-pipeline';
+import { RenderTargets } from '../pipeline/target/render-targets';
+import { VertexFragmentPipeline } from '../pipeline/vertex-fragment-pipeline';
+import { ComputeShader } from '../shader/compute-shader';
 import { VertexFragmentShader } from '../shader/vertex-fragment-shader';
 import { CanvasTexture } from '../texture/canvas-texture';
 import { FrameBufferTexture } from '../texture/frame-buffer-texture';
@@ -12,10 +17,6 @@ import { TextureSampler } from '../texture/texture-sampler';
 import { VideoTexture } from '../texture/video-texture';
 import { BaseNativeBufferGenerator } from './base-native-buffer-generator';
 import { BaseNativeGenerator } from './base-native-generator';
-import { GpuDevice } from '../gpu/gpu-device';
-import { ComputeShader } from '../shader/compute-shader';
-import { VertexFragmentPipeline } from '../pipeline/vertex-fragment-pipeline';
-import { RenderTargets } from '../pipeline/target/render-targets';
 
 export abstract class BaseGeneratorFactory<TGeneratorMap extends GeneratorNativeMap = GeneratorNativeMap> {
     private mDevice: GpuDevice | null;
@@ -159,13 +160,17 @@ export interface GeneratorFactoryMap {
     renderTargets: {
         gpuObject: RenderTargets;
         generator: BaseNativeGenerator<GeneratorNativeMap, 'renderTargets'>;
-    }
+    };
 
     // Pipelines.
     vertexFragmentPipeline: {
         gpuObject: VertexFragmentPipeline;
         generator: BaseNativeGenerator<GeneratorNativeMap, 'vertexFragmentPipeline'>;
-    }
+    };
+    computePipeline: {
+        gpuObject: ComputePipeline;
+        generator: BaseNativeGenerator<GeneratorNativeMap, 'computePipeline'>;
+    };
 
     // Shader.
     vertexFragmentShader: {

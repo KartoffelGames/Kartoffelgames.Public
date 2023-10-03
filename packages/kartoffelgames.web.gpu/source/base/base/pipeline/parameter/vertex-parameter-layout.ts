@@ -5,6 +5,7 @@ import { BaseBufferMemoryLayout } from '../../memory_layout/buffer/base-buffer-m
 import { StructBufferMemoryLayout } from '../../memory_layout/buffer/struct-buffer-memory-layout';
 import { UpdateReason } from '../../gpu/gpu-object-update-reason';
 import { LinearBufferMemoryLayout } from '../../memory_layout/buffer/linear-buffer-memory-layout';
+import { VertexParameter } from './vertex-parameter';
 
 export class VertexParameterLayout extends GpuObject {
     private readonly mParameter: Dictionary<number, LinearBufferMemoryLayout>;
@@ -87,6 +88,14 @@ export class VertexParameterLayout extends GpuObject {
 
         // Trigger update.
         this.triggerAutoUpdate(UpdateReason.ChildData);
+    }
+
+    /**
+     * Create vertex parameters from layout.
+     * @param pIndexData - Index data.
+     */
+    public create(pIndexData: Array<number>): VertexParameter {
+        return new VertexParameter(this.device, this, pIndexData);
     }
 
     /**

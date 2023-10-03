@@ -11,7 +11,5 @@ export enum BufferPrimitiveFormat {
     Int = 'integer',
     Vec2Int = 'vector-2-integer',
     Vec3Int = 'vector-3-integer',
-    Vec4Int = 'vector-4-integer',
-    Uint16 = 'unsigned-integer16',
-    Int16 = 'integer16',
+    Vec4Int = 'vector-4-integer'
 }

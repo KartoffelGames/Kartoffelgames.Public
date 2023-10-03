@@ -93,10 +93,6 @@ export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap
      */
     public byteCountOfVertexFormat(pPrimitiveFormat: BufferPrimitiveFormat): number {
         switch (pPrimitiveFormat) {
-            case BufferPrimitiveFormat.Int16:
-            case BufferPrimitiveFormat.Uint16: {
-                return 2;
-            }
             case BufferPrimitiveFormat.Float:
             case BufferPrimitiveFormat.Int:
             case BufferPrimitiveFormat.Uint: {
@@ -286,12 +282,6 @@ export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap
      */
     public toNativeVertexFormat(pPrimitiveFormat: BufferPrimitiveFormat): GPUVertexFormat {
         switch (pPrimitiveFormat) {
-            case BufferPrimitiveFormat.Int16: {
-                throw new Exception('Int16 is only supported index buffers.', this);
-            }
-            case BufferPrimitiveFormat.Uint16: {
-                throw new Exception('Uint16 is only supported index buffers.', this);
-            }
             case BufferPrimitiveFormat.Float: {
                 return 'float32';
             }

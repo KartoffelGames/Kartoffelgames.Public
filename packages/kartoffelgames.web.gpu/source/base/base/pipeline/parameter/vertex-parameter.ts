@@ -12,8 +12,22 @@ import { VertexParameterLayout } from './vertex-parameter-layout';
 
 export class VertexParameter extends GpuObject {
     private readonly mData: Dictionary<number, GpuBuffer<TypedArray>>;
-    private readonly mIndexBuffer: GpuBuffer<Uint16Array>;
+    private readonly mIndexBuffer: GpuBuffer<Uint32Array>;
     private readonly mLayout: VertexParameterLayout;
+
+    /**
+     * Get index buffer.
+     */
+    public get indexBuffer(): GpuBuffer<Uint32Array> {
+        return this.mIndexBuffer;
+    }
+
+    /**
+     * Get parameter layout.
+     */
+    public get layout(): VertexParameterLayout {
+        return this.mLayout;
+    }
 
     /**
      * Constructor.
@@ -30,10 +44,10 @@ export class VertexParameter extends GpuObject {
 
         // Create index layout.
         const lIndexLayout: LinearBufferMemoryLayout = new LinearBufferMemoryLayout(pDevice, {
-            primitiveFormat: BufferPrimitiveFormat.Int16,
+            primitiveFormat: BufferPrimitiveFormat.Uint,
             bindType: BufferBindType.Index,
-            size: 2,
-            alignment: 2,
+            size: 4,
+            alignment: 4,
             locationIndex: null,
             access: AccessMode.Read,
             bindingIndex: null,
@@ -53,7 +67,7 @@ export class VertexParameter extends GpuObject {
         });
 
         // Create index buffer.
-        this.mIndexBuffer = lIndexBufferLayout.create(new Uint16Array(pIndices));
+        this.mIndexBuffer = lIndexBufferLayout.create(new Uint32Array(pIndices));
     }
 
     /**
@@ -65,7 +79,7 @@ export class VertexParameter extends GpuObject {
         const lBufferLayout: LinearBufferMemoryLayout = this.mLayout.getLayoutOf(pName);
 
         // TODO: Load typed array from layout format.
-        const lParameterBuffer: GpuBuffer<Float32Array> = lBufferLayout.create(new Float32Array(pData));
+        const lParameterBuffer: GpuBuffer<Uint32Array> = lBufferLayout.create(new Uint32Array(pData));
 
         // Save gpu buffer in correct index.
         const lParameterIndex: number = this.mLayout.getIndexOf(pName);

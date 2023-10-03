@@ -3,7 +3,7 @@ import { ComputeStage } from '../../constant/compute-stage.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 import { StructBufferMemoryLayout } from '../memory_layout/buffer/struct-buffer-memory-layout';
-import { RenderParameterLayout } from '../pipeline/parameter/render-parameter-layout';
+import { VertexParameterLayout } from '../pipeline/parameter/vertex-parameter-layout';
 import { BaseShader } from './base-shader';
 import { ShaderFunction } from './interpreter/base-shader-interpreter';
 import { LinearBufferMemoryLayout } from '../memory_layout/buffer/linear-buffer-memory-layout';
@@ -11,7 +11,7 @@ import { LinearBufferMemoryLayout } from '../memory_layout/buffer/linear-buffer-
 export class VertexFragmentShader extends BaseShader<'vertexFragmentShader'> {
     private readonly mAttachmentCount: number;
     private readonly mFragmentEntry: string | null;
-    private readonly mParameterLayout: RenderParameterLayout;
+    private readonly mParameterLayout: VertexParameterLayout;
     private readonly mVertexEntry: string;
 
     /**
@@ -24,7 +24,7 @@ export class VertexFragmentShader extends BaseShader<'vertexFragmentShader'> {
     /**
      * Render parameter layout.
      */
-    public get parameterLayout(): RenderParameterLayout {
+    public get parameterLayout(): VertexParameterLayout {
         return this.mParameterLayout;
     }
 
@@ -73,7 +73,7 @@ export class VertexFragmentShader extends BaseShader<'vertexFragmentShader'> {
         }
 
         // Create parameter layout and append every parameter.
-        this.mParameterLayout = new RenderParameterLayout(this.device);
+        this.mParameterLayout = new VertexParameterLayout(this.device);
         for (const lParameter of lVertexEntryFunction.parameter) {
             // Validate buffer type.
             if (!(lParameter instanceof LinearBufferMemoryLayout)) {

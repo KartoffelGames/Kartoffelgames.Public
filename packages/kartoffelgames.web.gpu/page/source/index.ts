@@ -124,6 +124,8 @@ const gDepth: number = 10;
     // TODO: Create instruction.
 
     // TODO: Create instruction set.
+
+    // TODO: Instruction set execution.
 })();
 
 (async () => {

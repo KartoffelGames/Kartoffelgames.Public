@@ -16,7 +16,7 @@ export class VertexFragmentPipeline extends GpuObject<'vertexFragmentPipeline'> 
     private mPrimitiveTopology: PrimitiveTopology;
     private readonly mRenderTargets: RenderTargets;
     private readonly mShader: VertexFragmentShader;
-    
+
     /**
      * Set depth compare function.
      */
@@ -102,7 +102,13 @@ export class VertexFragmentPipeline extends GpuObject<'vertexFragmentPipeline'> 
         this.mShader = pShader;
         this.mRenderTargets = pRenderTargets;
 
-        // TODO: Listen for render target and shader changes.
+        // Listen for render target and shader changes.
+        pShader.addUpdateListener(() => {
+            this.triggerAutoUpdate(UpdateReason.ChildData);
+        });
+        pRenderTargets.addUpdateListener(() => {
+            this.triggerAutoUpdate(UpdateReason.ChildData);
+        });
 
         // Depth default settings.
         this.mDepthCompare = CompareFunction.Less;

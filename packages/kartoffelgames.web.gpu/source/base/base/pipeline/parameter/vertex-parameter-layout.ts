@@ -6,7 +6,7 @@ import { StructBufferMemoryLayout } from '../../memory_layout/buffer/struct-buff
 import { UpdateReason } from '../../gpu/gpu-object-update-reason';
 import { LinearBufferMemoryLayout } from '../../memory_layout/buffer/linear-buffer-memory-layout';
 
-export class RenderParameterLayout extends GpuObject {
+export class VertexParameterLayout extends GpuObject {
     private readonly mParameter: Dictionary<number, LinearBufferMemoryLayout>;
     private readonly mParameterNames: Dictionary<string, number>;
 

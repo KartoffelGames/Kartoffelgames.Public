@@ -14,6 +14,7 @@ import { LinearBufferMemoryLayout } from '../../source/base/base/memory_layout/b
 import { StructBufferMemoryLayout } from '../../source/base/base/memory_layout/buffer/struct-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../../source/base/base/memory_layout/sampler-memory-layout';
 import { TextureMemoryLayout } from '../../source/base/base/memory_layout/texture-memory-layout';
+import { VertexParameter } from '../../source/base/base/pipeline/parameter/vertex-parameter';
 import { AmbientLight } from '../../source/something_better/light/ambient-light';
 import { Transform, TransformMatrix } from '../../source/something_better/transform';
 import { OrthographicProjection } from '../../source/something_better/view_projection/projection/orthographic -projection';
@@ -34,7 +35,7 @@ const gDepth: number = 10;
     lRenderTargets.addBuffer('color', 'Color');
     lRenderTargets.addBuffer('depth', 'Depth');
     lRenderTargets.addTarget('canvas');
-    
+
     // Create shader.
     const lShader = lGpu.renderShader(shader, 'vertex_main', 'fragment_main');
 
@@ -103,8 +104,14 @@ const gDepth: number = 10;
     const lCubeSampler = (<SamplerMemoryLayout>lUserGroupLayout.getBind('cubeTextureSampler').layout).create();
     lUserGroup.setData('cubeTextureSampler', lCubeSampler);
 
-    // TODO: Generate render parameter from parameter layout. Maybe rename parameterLayout to renderParameterLayout as it is only for rendering.
-    
+    // Generate render parameter from parameter layout.
+    const lMesh: VertexParameter = lShader.parameterLayout.create(CubeVertexIndices);
+    lMesh.set('vertex.position', CubeVertexPositionData);
+    lMesh.set('vertex.uv', CubeVertexUvData); // TODO: Convert to Indexbased parameter.
+    lMesh.set('vertex.normal', CubeVertexNormalData); // TODO: Convert to Indexbased parameter.
+
+    // TODO: Create pipeline.
+
 })();
 
 (async () => {

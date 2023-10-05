@@ -145,13 +145,9 @@ export class WebGpuGpuBufferGenerator extends BaseNativeBufferGenerator<NativeWe
             mappedAtCreation: true // Map data when buffer would receive initial data.
         });
 
-        const lData = new this.gpuObject.dataType(lBuffer.getMappedRange());
-        lData.set(this.gpuObject.localData, 0);
-
         // unmap buffer.
         lBuffer.unmap();
 
         return lBuffer;
     }
-
 }

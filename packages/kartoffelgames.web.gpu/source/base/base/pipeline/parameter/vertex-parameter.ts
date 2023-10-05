@@ -1,4 +1,4 @@
-import { Dictionary, TypedArray } from '@kartoffelgames/core.data';
+import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { AccessMode } from '../../../constant/access-mode.enum';
 import { BufferBindType } from '../../../constant/buffer-bind-type.enum';
 import { BufferPrimitiveFormat } from '../../../constant/buffer-primitive-format';
@@ -11,7 +11,7 @@ import { LinearBufferMemoryLayout } from '../../memory_layout/buffer/linear-buff
 import { VertexParameterLayout } from './vertex-parameter-layout';
 
 export class VertexParameter extends GpuObject {
-    private readonly mData: Dictionary<number, GpuBuffer<TypedArray>>;
+    private readonly mData: Dictionary<string, GpuBuffer<Float32Array>>;
     private readonly mIndexBuffer: GpuBuffer<Uint32Array>;
     private readonly mLayout: VertexParameterLayout;
 
@@ -40,7 +40,7 @@ export class VertexParameter extends GpuObject {
 
         // Set vertex parameter layout.
         this.mLayout = pVertexParameterLayout;
-        this.mData = new Dictionary<number, GpuBuffer<TypedArray>>();
+        this.mData = new Dictionary<string, GpuBuffer<Float32Array>>();
 
         // Create index layout.
         const lIndexLayout: LinearBufferMemoryLayout = new LinearBufferMemoryLayout(pDevice, {
@@ -71,6 +71,19 @@ export class VertexParameter extends GpuObject {
     }
 
     /**
+     * Get parameter buffer.
+     * @param pName - Parameter name.
+     */
+    public get(pName: string): GpuBuffer<Float32Array> {
+        // Validate.
+        if(!this.mData.has(pName)){
+            throw new Exception(`Vertex parameter "${pName}" not found.`, this);
+        }
+
+        return this.mData.get(pName)!;
+    }
+
+    /**
      * Set parameter data.
      * @param pName - Parameter name.
      * @param pData - Parameter data.
@@ -79,10 +92,9 @@ export class VertexParameter extends GpuObject {
         const lBufferLayout: LinearBufferMemoryLayout = this.mLayout.getLayoutOf(pName);
 
         // TODO: Load typed array from layout format.
-        const lParameterBuffer: GpuBuffer<Uint32Array> = lBufferLayout.create(new Uint32Array(pData));
+        const lParameterBuffer: GpuBuffer<Float32Array> = lBufferLayout.create(new Float32Array(pData));
 
         // Save gpu buffer in correct index.
-        const lParameterIndex: number = this.mLayout.getIndexOf(pName);
-        this.mData.set(lParameterIndex, lParameterBuffer);
+        this.mData.set(pName, lParameterBuffer);
     }
 }

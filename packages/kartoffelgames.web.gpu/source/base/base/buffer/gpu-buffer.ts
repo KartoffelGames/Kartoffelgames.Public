@@ -20,6 +20,13 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<'gpuBuffer'> 
     }
 
     /**
+     * Get buffer item count.
+     */
+    public get length(): number {
+        return this.mItemCount;
+    }
+
+    /**
      * Buffer layout.
      */
     public get memoryLayout(): BaseBufferMemoryLayout {

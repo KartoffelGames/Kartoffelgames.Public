@@ -46,7 +46,7 @@ export class WebGpuCanvasTextureGenerator extends BaseNativeGenerator<NativeWebG
         // Configure context.
         if (!this.mContext) {
             // Create and configure canvas context.
-            this.mContext = this.gpuObject.canvas.getContext('webgpu')!;
+            this.mContext = <GPUCanvasContext><any>this.gpuObject.canvas.getContext('webgpu');
             this.mContext.configure({
                 device: this.factory.gpu,
                 format: this.factory.formatFromLayout(this.gpuObject.memoryLayout),

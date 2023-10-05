@@ -141,6 +141,7 @@ module.exports = class Resolver {
             devServer: {
                 open: true,
                 liveReload: true,
+                hot: true,
                 static: {
                     directory: lBuildSettings.serveDirectory,
                     watch: true

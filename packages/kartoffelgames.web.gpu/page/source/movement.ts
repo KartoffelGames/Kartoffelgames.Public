@@ -1,7 +1,7 @@
 import { Dictionary, TypedArray } from '@kartoffelgames/core.data';
 import { DeviceConfiguration, InputConfiguration, InputDevices, KeyboardButton, MouseButton, MouseKeyboardConnector } from '@kartoffelgames/web.game-input';
 import { GpuBuffer } from '../../source/base/base/buffer/gpu-buffer';
-import { CameraMatrix, ViewProjection } from '../../source/something_better/view_projection/view-projection';
+import { CameraMatrix, ViewProjection } from './something_better/view_projection/view-projection';
 
 export class Movement {
     private readonly mBuffer: GpuBuffer<TypedArray>;

@@ -1,4 +1,4 @@
-import { Transform } from '../../../source/something_better/transform';
+import { Transform } from '../something_better/transform';
 import { DebugWindow } from './debug-window';
 
 export class TransformationDebugWindow extends DebugWindow {

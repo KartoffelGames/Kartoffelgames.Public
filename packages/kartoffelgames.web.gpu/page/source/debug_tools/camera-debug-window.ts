@@ -1,6 +1,6 @@
-import { OrthographicProjection } from '../../../source/something_better/view_projection/projection/orthographic -projection';
-import { PerspectiveProjection } from '../../../source/something_better/view_projection/projection/perspective-projection';
-import { ViewProjection } from '../../../source/something_better/view_projection/view-projection';
+import { OrthographicProjection } from '../something_better/view_projection/projection/orthographic -projection';
+import { PerspectiveProjection } from '../something_better/view_projection/projection/perspective-projection';
+import { ViewProjection } from '../something_better/view_projection/view-projection';
 import { DebugWindow } from './debug-window';
 
 export class CameraDebugWindow extends DebugWindow {

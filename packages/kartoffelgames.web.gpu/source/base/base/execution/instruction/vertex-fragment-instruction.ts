@@ -5,8 +5,10 @@ import { GpuObject } from '../../gpu/gpu-object';
 import { VertexParameter } from '../../pipeline/parameter/vertex-parameter';
 import { RenderTargets } from '../../pipeline/target/render-targets';
 import { VertexFragmentPipeline } from '../../pipeline/vertex-fragment-pipeline';
+import { IGpuInstruction } from './i-gpu-instruction.interface';
+import { InstructionExecuter } from '../instruction-executor';
 
-export class VertexFragmentInstruction extends GpuObject<'vertexFragmentInstruction'> {
+export class VertexFragmentInstruction extends GpuObject<'vertexFragmentInstruction'> implements IGpuInstruction {
     private readonly mRenderTargets: RenderTargets;
     private readonly mStepList: Array<VertexFragmentInstructionStep>;
 
@@ -74,9 +76,10 @@ export class VertexFragmentInstruction extends GpuObject<'vertexFragmentInstruct
 
     /**
      * Execute instruction.
+     * @param pExecutor - Executor context.
      */
-    public execute(): void {
-        this.device.generator.request<'vertexFragmentInstruction'>(this).execute();
+    public execute(pExecutor: InstructionExecuter): void {
+        this.device.generator.request<'vertexFragmentInstruction'>(this).execute(pExecutor);
     }
 }
 

@@ -3,8 +3,10 @@ import { BindDataGroup } from '../../binding/bind-data-group';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObject } from '../../gpu/gpu-object';
 import { ComputePipeline } from '../../pipeline/compute-pipeline';
+import { IGpuInstruction } from './i-gpu-instruction.interface';
+import { InstructionExecuter } from '../instruction-executor';
 
-export class ComputeInstruction extends GpuObject<'computeInstruction'> {
+export class ComputeInstruction extends GpuObject<'computeInstruction'> implements IGpuInstruction {
     private readonly mStepList: Array<ComputeInstructionStep>;
 
     /**
@@ -51,9 +53,10 @@ export class ComputeInstruction extends GpuObject<'computeInstruction'> {
 
     /**
      * Execute instruction.
+     * @param pExecutor - Executor context.
      */
-    public execute(): void {
-        this.device.generator.request<'computeInstruction'>(this).execute();
+    public execute(pExecutor: InstructionExecuter): void {
+        this.device.generator.request<'computeInstruction'>(this).execute(pExecutor);
     }
 }
 

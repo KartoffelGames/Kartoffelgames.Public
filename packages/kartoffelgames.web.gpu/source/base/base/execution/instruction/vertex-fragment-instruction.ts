@@ -46,6 +46,11 @@ export class VertexFragmentInstruction extends GpuObject<'vertexFragmentInstruct
      * @param pInstanceCount - Instance count.
      */
     public addStep(pPipeline: VertexFragmentPipeline, pParameter: VertexParameter, pBindData: Record<number, BindDataGroup>, pInstanceCount: number = 1): void {
+        // Validate same render targets.
+        if(this.mRenderTargets !== pPipeline.renderTargets){
+            throw new Exception('Instruction render pass not valid for instruction set.', this);
+        }
+
         const lStep: VertexFragmentInstructionStep = {
             pipeline: pPipeline,
             parameter: pParameter,

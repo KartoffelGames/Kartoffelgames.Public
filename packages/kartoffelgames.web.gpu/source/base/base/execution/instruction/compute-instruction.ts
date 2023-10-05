@@ -10,6 +10,13 @@ export class ComputeInstruction extends GpuObject<'computeInstruction'> implemen
     private readonly mStepList: Array<ComputeInstructionStep>;
 
     /**
+     * Get all instruction steps.
+     */
+    public get steps(): Array<ComputeInstructionStep> {
+        return this.mStepList;
+    }
+
+    /**
      * Constructor.
      * @param pDevice - Device reference.
      */

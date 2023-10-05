@@ -1,6 +1,8 @@
+import { BindDataGroup } from '../../../binding/bind-data-group';
 import { InstructionExecuter } from '../../../execution/instruction-executor';
 import { NativeObjectLifeTime } from '../../../generator/base-native-generator';
 import { BaseNativeInstructionGenerator } from '../../../generator/base-native-instruction-generator';
+import { ComputePipeline } from '../../../pipeline/compute-pipeline';
 import { NativeWebGpuMap } from '../web-gpu-generator-factory';
 
 export class WebGpuComputeInstructionGenerator extends BaseNativeInstructionGenerator<NativeWebGpuMap, 'computeInstruction'>{
@@ -16,7 +18,46 @@ export class WebGpuComputeInstructionGenerator extends BaseNativeInstructionGene
      * @param pExecutor - Executor context.
      */
     public override execute(pExecutor: InstructionExecuter): void {
-        throw new Error('Method not implemented.');
+        // Pass descriptor is set, when the pipeline ist set.
+        const lComputePassEncoder: GPUComputePassEncoder = this.factory.request<'instructionExecutor'>(pExecutor).commandEncoder.beginComputePass();
+
+        // Instruction cache.
+        let lPipeline: ComputePipeline | null = null;
+        const lBindGroupList: Array<BindDataGroup | null> = new Array<BindDataGroup | null>();
+
+        // Execute instructions.
+        for (const lInstruction of this.gpuObject.steps) {
+            // Use cached pipeline or use new.
+            if (lInstruction.pipeline !== lPipeline) {
+                lPipeline = lInstruction.pipeline;
+
+                // Generate and set new pipeline.
+                const lNativePipeline = this.factory.request<'computePipeline'>(lPipeline).create();
+                lComputePassEncoder.setPipeline(lNativePipeline);
+            }
+
+            // Add bind groups.
+            for (const lIndex of lInstruction.pipeline.shader.pipelineLayout.groups) {
+                const lNewBindGroup: BindDataGroup | null = lInstruction.bindData[lIndex];
+                const lCurrentBindGroup: BindDataGroup | null = lBindGroupList[lIndex];
+
+                // Use cached bind group or use new.
+                if (lNewBindGroup !== lCurrentBindGroup) {
+                    lBindGroupList[lIndex] = lNewBindGroup;
+
+                    if (lNewBindGroup) {
+                        const lNativeBindGroup = this.factory.request<'bindDataGroup'>(lNewBindGroup).create();
+                        lComputePassEncoder.setBindGroup(lIndex, lNativeBindGroup);
+                    }
+                }
+            }
+
+            // Start compute groups.
+            const lWorkGroupSizes = lInstruction.pipeline.shader.workGroupSizes;
+            lComputePassEncoder.dispatchWorkgroups(lWorkGroupSizes.x, lWorkGroupSizes.y, lWorkGroupSizes.z);
+        }
+
+        lComputePassEncoder.end();
     }
 
     /**

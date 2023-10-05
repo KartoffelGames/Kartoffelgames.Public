@@ -10,6 +10,9 @@
     ],
     "main": "library/source/index.js",
     "types": "library/source/index.d.ts",
+    "dependencies": {
+        "@kartoffelgames/core.data": "^0.0.34"
+    },
     "scripts": {
         "build": "kg build Kartoffelgames.Web.Potato_Render && kg page Kartoffelgames.Web.Potato_Render --build-only",
         "test": "kg test Kartoffelgames.Web.Potato_Render",
@@ -28,10 +31,9 @@
         "name": "Kartoffelgames.Web.Potato_Render",
         "root": false,
         "config": {
-            "package-blueprint": "kg-main",
             "build-configuration": {
                 "pack": false,
-                "target": "node",
+                "target": "web",
                 "scope": "main"
             },
             "tests": [

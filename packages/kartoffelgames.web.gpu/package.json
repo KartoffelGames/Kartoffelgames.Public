@@ -38,16 +38,15 @@
         "name": "Kartoffelgames.Web.Gpu",
         "root": false,
         "config": {
-            "package-blueprint": "kg-main",
             "build-configuration": {
                 "pack": false,
-                "target": "node",
+                "target": "web",
                 "scope": "main"
             },
-            "page": true,
             "tests": [
                 "unit"
-            ]
+            ],
+            "page": true
         }
     }
 }

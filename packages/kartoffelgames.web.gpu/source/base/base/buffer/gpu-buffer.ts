@@ -9,22 +9,14 @@ import { UpdateReason } from '../gpu/gpu-object-update-reason';
  */
 export class GpuBuffer<TType extends TypedArray> extends GpuObject<'gpuBuffer'> {
     private readonly mDataType: BufferDataType<TType>;
+    private readonly mItemCount: number;
     private readonly mLayout: BaseBufferMemoryLayout;
-    private readonly mLocalData: TType;
 
     /**
      * Data type of buffer.
      */
     public get dataType(): BufferDataType<TType> {
         return this.mDataType;
-    }
-
-    /**
-     * Local buffer data.
-     * Changing this will not update the buffer.
-     */
-    public get localData(): TType {
-        return this.mLocalData;
     }
 
     /**
@@ -38,20 +30,27 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<'gpuBuffer'> 
      * Buffer size in bytes aligned to 4 bytes.
      */
     public get size(): number {
-        return ((this.mLocalData.length * this.mDataType.BYTES_PER_ELEMENT) + 3) & ~3;
+        return ((this.mItemCount * this.mDataType.BYTES_PER_ELEMENT) + 3) & ~3;
     }
 
     /**
      * Constructor.
      * @param pDevice - GPU.
      * @param pLayout - Buffer layout.
-     * @param pInitialData  - Inital data. Can be empty.
+     * @param pInitialData  - Inital data. Can be empty. Or Buffer size. 
      */
-    public constructor(pDevice: GpuDevice, pLayout: BaseBufferMemoryLayout, pInitialData: TType) {
+    public constructor(pDevice: GpuDevice, pLayout: BaseBufferMemoryLayout, pInitialData: TType | number) {
         super(pDevice);
         this.mLayout = pLayout;
         this.mDataType = <BufferDataType<TType>>pInitialData.constructor;
-        this.mLocalData = pInitialData;
+
+        // Set buffer initial data from buffer size or buffer data.
+        if(typeof pInitialData === 'number'){
+            this.mItemCount = pInitialData;
+        } else{
+            this.mItemCount =  pInitialData.length;
+            this.writeRaw(pInitialData, 0);
+        }
 
         // Register change listener for layout changes.
         pLayout.addUpdateListener(() => {
@@ -105,9 +104,6 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<'gpuBuffer'> 
         // Write data async. Dont wait.
         const lBufferGenerator = this.device.generator.request<'gpuBuffer'>(this);
         lBufferGenerator.writeRaw(pData, lOffset, pData.length);
-
-        // Set local data.
-        this.mLocalData.set(pData, pOffset);
     }
 }
 

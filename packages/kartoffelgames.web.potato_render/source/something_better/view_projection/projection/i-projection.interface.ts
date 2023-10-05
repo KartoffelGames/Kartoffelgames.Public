@@ -1,4 +1,4 @@
-import { Matrix } from 'packages/kartoffelgames.web.gpu/source/math/matrix';
+import { Matrix } from '../../../math/matrix';
 
 export interface IProjection {
     aspectRatio: number;

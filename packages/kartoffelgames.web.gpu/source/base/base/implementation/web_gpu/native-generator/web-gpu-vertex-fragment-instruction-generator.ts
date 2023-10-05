@@ -1,11 +1,10 @@
 import { Dictionary, TypedArray } from '@kartoffelgames/core.data';
 import { BindDataGroup } from '../../../binding/bind-data-group';
-import { InstructionExecuter } from '../../../execution/instruction-executor';
+import { GpuBuffer } from '../../../buffer/gpu-buffer';
 import { NativeObjectLifeTime } from '../../../generator/base-native-generator';
 import { BaseNativeInstructionGenerator } from '../../../generator/base-native-instruction-generator';
 import { VertexFragmentPipeline } from '../../../pipeline/vertex-fragment-pipeline';
 import { NativeWebGpuMap } from '../web-gpu-generator-factory';
-import { GpuBuffer } from '../../../buffer/gpu-buffer';
 
 export class WebGpuVertexFragmentInstructionGenerator extends BaseNativeInstructionGenerator<NativeWebGpuMap, 'vertexFragmentInstruction'>{
     /**
@@ -19,12 +18,12 @@ export class WebGpuVertexFragmentInstructionGenerator extends BaseNativeInstruct
      * Execute steps in a row.
      * @param pExecutor - Executor context.
      */
-    public override execute(pExecutor: InstructionExecuter): void {
+    public override execute(): void {
         // Generate pass descriptor once per set pipeline.
         const lPassDescriptor: GPURenderPassDescriptor = this.factory.request<'renderTargets'>(this.gpuObject.renderTargets).create();
 
         // Pass descriptor is set, when the pipeline ist set.
-        const lRenderPassEncoder: GPURenderPassEncoder = this.factory.request<'instructionExecutor'>(pExecutor).commandEncoder.beginRenderPass(lPassDescriptor);
+        const lRenderPassEncoder: GPURenderPassEncoder = this.factory.request<'instructionExecutor'>(this.gpuObject.executor).commandEncoder.beginRenderPass(lPassDescriptor);
 
         // Instruction cache.
         let lPipeline: VertexFragmentPipeline | null = null;

@@ -5,12 +5,20 @@ import { GpuObject } from '../../gpu/gpu-object';
 import { VertexParameter } from '../../pipeline/parameter/vertex-parameter';
 import { RenderTargets } from '../../pipeline/target/render-targets';
 import { VertexFragmentPipeline } from '../../pipeline/vertex-fragment-pipeline';
-import { IGpuInstruction } from './i-gpu-instruction.interface';
 import { InstructionExecuter } from '../instruction-executor';
+import { IGpuInstruction } from './i-gpu-instruction.interface';
 
 export class VertexFragmentInstruction extends GpuObject<'vertexFragmentInstruction'> implements IGpuInstruction {
+    private readonly mExecutor: InstructionExecuter;
     private readonly mRenderTargets: RenderTargets;
     private readonly mStepList: Array<VertexFragmentInstructionStep>;
+
+    /**
+     * Get executor.
+     */
+    public get executor(): InstructionExecuter {
+        return this.mExecutor;
+    }
 
     /**
      * Get instruction render target.
@@ -31,11 +39,12 @@ export class VertexFragmentInstruction extends GpuObject<'vertexFragmentInstruct
      * @param pDevice - Device reference.
      * @param pRenderTargets - Render targets. 
      */
-    public constructor(pDevice: GpuDevice, pRenderTargets: RenderTargets) {
+    public constructor(pDevice: GpuDevice, pExecutor: InstructionExecuter, pRenderTargets: RenderTargets) {
         super(pDevice);
 
         this.mStepList = new Array<VertexFragmentInstructionStep>();
         this.mRenderTargets = pRenderTargets;
+        this.mExecutor = pExecutor;
     }
 
     /**
@@ -47,7 +56,7 @@ export class VertexFragmentInstruction extends GpuObject<'vertexFragmentInstruct
      */
     public addStep(pPipeline: VertexFragmentPipeline, pParameter: VertexParameter, pBindData: Record<number, BindDataGroup>, pInstanceCount: number = 1): void {
         // Validate same render targets.
-        if(this.mRenderTargets !== pPipeline.renderTargets){
+        if (this.mRenderTargets !== pPipeline.renderTargets) {
             throw new Exception('Instruction render pass not valid for instruction set.', this);
         }
 
@@ -63,13 +72,13 @@ export class VertexFragmentInstruction extends GpuObject<'vertexFragmentInstruct
             const lBindDataGroup: BindDataGroup | undefined = pBindData[lGroup];
 
             // Validate bind data group.
-            if(!lBindDataGroup) {
+            if (!lBindDataGroup) {
                 throw new Exception('Defined bind data group not set.', this);
             }
 
             // Validate same layout bind layout.
             const lBindGroupLayout = pPipeline.shader.pipelineLayout.getGroupLayout(lGroup);
-            if(lBindDataGroup.layout.identifier !== lBindGroupLayout.identifier){
+            if (lBindDataGroup.layout.identifier !== lBindGroupLayout.identifier) {
                 throw new Exception('Source bind group layout does not match target layout.', this);
             }
 
@@ -83,8 +92,8 @@ export class VertexFragmentInstruction extends GpuObject<'vertexFragmentInstruct
      * Execute instruction.
      * @param pExecutor - Executor context.
      */
-    public execute(pExecutor: InstructionExecuter): void {
-        this.device.generator.request<'vertexFragmentInstruction'>(this).execute(pExecutor);
+    public execute(): void {
+        this.device.generator.request<'vertexFragmentInstruction'>(this).execute();
     }
 }
 

@@ -1,3 +1,4 @@
+import { InstructionExecuter } from '../execution/instruction-executor';
 import { BaseGeneratorFactory } from '../generator/base-generator-factory';
 import { TextureGroup } from '../pipeline/target/texture-group';
 import { ShaderInterpreterConstructor, ShaderInterpreterFactory } from '../shader/interpreter/shader-interpreter-factory';
@@ -51,6 +52,13 @@ export class GpuDevice {
         this.mFrameCounter = 0;
         this.mGenerator = pGenerator;
         this.mShaderInterpreter = new ShaderInterpreterFactory(this, pShaderInterpreter);
+    }
+
+    /**
+     * Create instruction executor.
+     */
+    public instructionExecutor(): InstructionExecuter {
+        return new InstructionExecuter(this);
     }
 
     /**

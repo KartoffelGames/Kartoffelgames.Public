@@ -26,12 +26,27 @@ export class WebGpuGpuBufferGenerator extends BaseNativeBufferGenerator<NativeWe
     }
 
     /**
+     * Read raw buffer data.
+     * @param pOffset - Data read offset.
+     * @param pSize - Data read size.
+     */
+    public override async readRaw(pOffset: number, pSize: number): Promise<TypedArray> {
+        // Get buffer and map data.
+        const lBuffer: GPUBuffer = this.create();
+        await lBuffer.mapAsync(GPUMapMode.READ, pOffset, pSize);
+
+        // Get mapped data and force it into typed array.
+        const lData = new this.gpuObject.dataType(lBuffer.getMappedRange());
+        return lData;
+    }
+
+    /**
      * Write data raw.
      * @param pData - Data.
      * @param pOffset - Data offset.
      * @param pSize - Data size.
      */
-    public override async writeRaw(pData: ArrayLike<number>, pOffset?: number | undefined, pSize?: number | undefined): Promise<void> {
+    public override async writeRaw(pData: ArrayLike<number>, pOffset: number, pSize: number): Promise<void> {
         // Create new buffer when no mapped buffer is available. 
         let lStagingBuffer: GPUBuffer;
         if (this.mReadyBufferList.length === 0) {

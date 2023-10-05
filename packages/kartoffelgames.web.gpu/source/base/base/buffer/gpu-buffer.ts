@@ -77,7 +77,9 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<'gpuBuffer'> 
         const lOffset: number = pOffset ?? 0;
         const lSize: number = pSize ?? this.size;
 
-        return <TType>this.mLocalData.subarray(lOffset, lOffset + lSize);
+        // Read data async
+        const lBufferGenerator = this.device.generator.request<'gpuBuffer'>(this);
+        return <TType>await lBufferGenerator.readRaw(lOffset, lSize);
     }
 
     /**
@@ -98,9 +100,11 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<'gpuBuffer'> 
      * @param pOffset - Data offset.
      */
     public async writeRaw(pData: ArrayLike<number>, pOffset?: number | undefined): Promise<void> {
+        const lOffset: number = pOffset ?? 0;
+
         // Write data async. Dont wait.
         const lBufferGenerator = this.device.generator.request<'gpuBuffer'>(this);
-        lBufferGenerator.writeRaw(pData, pOffset);
+        lBufferGenerator.writeRaw(pData, lOffset, pData.length);
 
         // Set local data.
         this.mLocalData.set(pData, pOffset);

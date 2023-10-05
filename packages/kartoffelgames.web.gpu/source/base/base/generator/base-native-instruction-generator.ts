@@ -2,5 +2,8 @@ import { GeneratorFactoryMap, GeneratorNativeMap } from './base-generator-factor
 import { BaseNativeGenerator } from './base-native-generator';
 
 export abstract class BaseNativeInstructionGenerator<TMap extends GeneratorNativeMap, TGeneratorKey extends keyof GeneratorFactoryMap> extends BaseNativeGenerator<TMap, TGeneratorKey> {
-
+    /**
+     * Execute instruction.
+     */
+    public abstract execute(): void;
 }

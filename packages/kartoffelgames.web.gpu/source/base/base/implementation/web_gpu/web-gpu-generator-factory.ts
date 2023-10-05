@@ -33,6 +33,7 @@ import { BufferPrimitiveFormat } from '../../../constant/buffer-primitive-format
 import { WebGpuComputeInstructionGenerator } from './native-generator/web-gpu-compute-instruction-generator';
 import { WebGpuVertexFragmentInstructionGenerator } from './native-generator/web-gpu-vertex-fragment-instruction-generator';
 import { WebGpuComputePipelineGenerator } from './native-generator/web-gpu-compute-pipeline-generator';
+import { WebGpuInstructionExecutorGenerator } from './native-generator/web-gpu-instruction-executor-generator';
 
 export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap> {
     private static readonly mAdapters: Dictionary<GPUPowerPreference, GPUAdapter> = new Dictionary<GPUPowerPreference, GPUAdapter>();
@@ -383,5 +384,6 @@ export interface NativeWebGpuMap extends GeneratorNativeMap {
         // Execution.
         computeInstruction: { generator: WebGpuComputeInstructionGenerator; native: null; };
         vertexFragmentInstruction: { generator: WebGpuVertexFragmentInstructionGenerator; native: null; };
+        instructionExecutor: { generator: WebGpuInstructionExecutorGenerator; native: null; };
     };
 }

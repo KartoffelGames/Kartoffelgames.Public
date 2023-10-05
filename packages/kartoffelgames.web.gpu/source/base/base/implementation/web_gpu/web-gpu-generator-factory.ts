@@ -30,6 +30,8 @@ import { WebGpuComputeShaderGenerator } from './native-generator/web-gpu-compute
 import { WebGpuVertexFragmentPipelineGenerator } from './native-generator/web-gpu-vertex-fragment-pipeline-generator';
 import { CompareFunction } from '../../../constant/compare-function.enum';
 import { BufferPrimitiveFormat } from '../../../constant/buffer-primitive-format';
+import { WebGpuComputeInstructionGenerator } from './native-generator/web-gpu-compute-instruction-generator';
+import { WebGpuVertexFragmentInstructionGenerator } from './native-generator/web-gpu-vertex-fragment-instruction-generator';
 import { WebGpuComputePipelineGenerator } from './native-generator/web-gpu-compute-pipeline-generator';
 
 export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap> {
@@ -377,5 +379,9 @@ export interface NativeWebGpuMap extends GeneratorNativeMap {
         // Shader.
         vertexFragmentShader: { generator: WebGpuVertexFragmentShaderGenerator; native: GPUShaderModule; };
         computeShader: { generator: WebGpuComputeShaderGenerator; native: GPUShaderModule; };
+
+        // Execution.
+        computeInstruction: { generator: WebGpuComputeInstructionGenerator; native: null; };
+        vertexFragmentInstruction: { generator: WebGpuVertexFragmentInstructionGenerator; native: null; };
     };
 }

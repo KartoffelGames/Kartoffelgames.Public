@@ -17,6 +17,9 @@ import { TextureSampler } from '../texture/texture-sampler';
 import { VideoTexture } from '../texture/video-texture';
 import { BaseNativeBufferGenerator } from './base-native-buffer-generator';
 import { BaseNativeGenerator } from './base-native-generator';
+import { ComputeInstruction } from '../execution/instruction/compute-instruction';
+import { VertexFragmentInstruction } from '../execution/instruction/vertex-fragment-instruction';
+import { BaseNativeInstructionGenerator } from './base-native-instruction-generator';
 
 export abstract class BaseGeneratorFactory<TGeneratorMap extends GeneratorNativeMap = GeneratorNativeMap> {
     private mDevice: GpuDevice | null;
@@ -180,6 +183,16 @@ export interface GeneratorFactoryMap {
     computeShader: {
         gpuObject: ComputeShader;
         generator: BaseNativeGenerator<GeneratorNativeMap, 'computeShader'>;
+    };
+
+    // Execution.
+    computeInstruction: {
+        gpuObject: ComputeInstruction;
+        generator: BaseNativeInstructionGenerator<GeneratorNativeMap, 'computeInstruction'>;
+    };
+    vertexFragmentInstruction: {
+        gpuObject: VertexFragmentInstruction;
+        generator: BaseNativeInstructionGenerator<GeneratorNativeMap, 'vertexFragmentInstruction'>;
     };
 }
 

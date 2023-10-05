@@ -1,4 +1,3 @@
-import { InstructionExecuter } from '../execution/instruction-executor';
 import { GeneratorFactoryMap, GeneratorNativeMap } from './base-generator-factory';
 import { BaseNativeGenerator } from './base-native-generator';
 
@@ -7,5 +6,5 @@ export abstract class BaseNativeInstructionGenerator<TMap extends GeneratorNativ
      * Execute instruction.
      * @param pExecutor - Executor context.
      */
-    public abstract execute(pExecutor: InstructionExecuter): void;
+    public abstract execute(): void;
 }

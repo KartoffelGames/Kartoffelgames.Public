@@ -1,5 +1,4 @@
 import { BindDataGroup } from '../../../binding/bind-data-group';
-import { InstructionExecuter } from '../../../execution/instruction-executor';
 import { NativeObjectLifeTime } from '../../../generator/base-native-generator';
 import { BaseNativeInstructionGenerator } from '../../../generator/base-native-instruction-generator';
 import { ComputePipeline } from '../../../pipeline/compute-pipeline';
@@ -17,9 +16,9 @@ export class WebGpuComputeInstructionGenerator extends BaseNativeInstructionGene
      * Execute steps in a row.
      * @param pExecutor - Executor context.
      */
-    public override execute(pExecutor: InstructionExecuter): void {
+    public override execute(): void {
         // Pass descriptor is set, when the pipeline ist set.
-        const lComputePassEncoder: GPUComputePassEncoder = this.factory.request<'instructionExecutor'>(pExecutor).commandEncoder.beginComputePass();
+        const lComputePassEncoder: GPUComputePassEncoder = this.factory.request<'instructionExecutor'>(this.gpuObject.executor).commandEncoder.beginComputePass();
 
         // Instruction cache.
         let lPipeline: ComputePipeline | null = null;

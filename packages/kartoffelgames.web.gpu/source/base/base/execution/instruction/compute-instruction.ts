@@ -3,11 +3,20 @@ import { BindDataGroup } from '../../binding/bind-data-group';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObject } from '../../gpu/gpu-object';
 import { ComputePipeline } from '../../pipeline/compute-pipeline';
-import { IGpuInstruction } from './i-gpu-instruction.interface';
 import { InstructionExecuter } from '../instruction-executor';
+import { IGpuInstruction } from './i-gpu-instruction.interface';
 
 export class ComputeInstruction extends GpuObject<'computeInstruction'> implements IGpuInstruction {
+    private readonly mExecutor: InstructionExecuter;
     private readonly mStepList: Array<ComputeInstructionStep>;
+
+    /**
+     * Get executor.
+     */
+    public get executor(): InstructionExecuter {
+        return this.mExecutor;
+    }
+
 
     /**
      * Get all instruction steps.
@@ -20,10 +29,11 @@ export class ComputeInstruction extends GpuObject<'computeInstruction'> implemen
      * Constructor.
      * @param pDevice - Device reference.
      */
-    public constructor(pDevice: GpuDevice) {
+    public constructor(pDevice: GpuDevice, pExecutor: InstructionExecuter) {
         super(pDevice);
 
         this.mStepList = new Array<ComputeInstructionStep>();
+        this.mExecutor = pExecutor;
     }
 
     /**
@@ -62,8 +72,8 @@ export class ComputeInstruction extends GpuObject<'computeInstruction'> implemen
      * Execute instruction.
      * @param pExecutor - Executor context.
      */
-    public execute(pExecutor: InstructionExecuter): void {
-        this.device.generator.request<'computeInstruction'>(this).execute(pExecutor);
+    public execute(): void {
+        this.device.generator.request<'computeInstruction'>(this).execute();
     }
 }
 

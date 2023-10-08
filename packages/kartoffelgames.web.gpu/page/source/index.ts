@@ -6,6 +6,7 @@ import { LinearBufferMemoryLayout } from '../../source/base/memory_layout/buffer
 import { StructBufferMemoryLayout } from '../../source/base/memory_layout/buffer/struct-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../../source/base/memory_layout/sampler-memory-layout';
 import { TextureMemoryLayout } from '../../source/base/memory_layout/texture-memory-layout';
+import { PgslInterpreter } from '../../source/base/pgsl/pgsl-interpreter';
 import { VertexParameter } from '../../source/base/pipeline/parameter/vertex-parameter';
 import { RenderTargets } from '../../source/base/pipeline/target/render-targets';
 import { TextureGroup } from '../../source/base/pipeline/target/texture-group';
@@ -15,7 +16,7 @@ import { TextureOperation } from '../../source/constant/texture-operation';
 import { WebGpuGeneratorFactory } from '../../source/web_gpu/web-gpu-generator-factory';
 import { WebGpuShaderInterpreter } from '../../source/web_gpu/web-gpu-shader-interpreter';
 import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVertexUvData } from './cube/cube';
-import shader from './shader.wgsl';
+import shader from './shader.pgsl';
 import { AmbientLight } from './something_better/light/ambient-light';
 import { Transform, TransformMatrix } from './something_better/transform';
 import { PerspectiveProjection } from './something_better/view_projection/projection/perspective-projection';
@@ -24,6 +25,14 @@ import { CameraMatrix, ViewProjection } from './something_better/view_projection
 const gHeight: number = 10;
 const gWidth: number = 10;
 const gDepth: number = 10;
+
+(async () => {
+    const lGpu: GpuDevice = await GpuDevice.request(new WebGpuGeneratorFactory('high-performance'), WebGpuShaderInterpreter);
+
+    const lInterpreter = new PgslInterpreter(lGpu, shader);
+    // eslint-disable-next-line no-console
+    (<any>window).interpreter = lInterpreter;
+})();
 
 (async () => {
     const lGpu: GpuDevice = await GpuDevice.request(new WebGpuGeneratorFactory('high-performance'), WebGpuShaderInterpreter);
@@ -145,4 +154,4 @@ const gDepth: number = 10;
         requestAnimationFrame(lRender);
     };
     requestAnimationFrame(lRender);
-})();
+});

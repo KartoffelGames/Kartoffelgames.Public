@@ -31,6 +31,7 @@ module.exports = class Resolver {
                 case '.html':
                 case '.txt':
                 case '.wgsl':
+                case '.pgsl':
                 case '.json': {
                     lLoaderList.push({
                         test: lExtensionRegex,

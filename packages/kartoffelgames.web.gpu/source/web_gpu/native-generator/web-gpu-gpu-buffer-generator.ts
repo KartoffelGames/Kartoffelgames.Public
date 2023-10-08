@@ -1,10 +1,10 @@
 import { TypedArray } from '@kartoffelgames/core.data';
-import { BaseNativeBufferGenerator } from '../../../generator/base-native-buffer-generator';
-import { NativeObjectLifeTime } from '../../../generator/base-native-generator';
+import { GpuBuffer } from '../../base/buffer/gpu-buffer';
+import { BaseNativeBufferGenerator } from '../../base/native_generator/base-native-buffer-generator';
+import { NativeObjectLifeTime } from '../../base/native_generator/base-native-generator';
+import { BufferBindType } from '../../constant/buffer-bind-type.enum';
+import { MemoryCopyType } from '../../constant/memory-copy-type.enum';
 import { NativeWebGpuMap, WebGpuGeneratorFactory } from '../web-gpu-generator-factory';
-import { GpuBuffer } from '../../../buffer/gpu-buffer';
-import { BufferBindType } from '../../../../constant/buffer-bind-type.enum';
-import { MemoryCopyType } from '../../../../constant/memory-copy-type.enum';
 
 export class WebGpuGpuBufferGenerator extends BaseNativeBufferGenerator<NativeWebGpuMap, 'gpuBuffer'> {
     private readonly mReadyBufferList: Array<GPUBuffer>;

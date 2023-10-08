@@ -2,7 +2,7 @@ import { Dictionary } from '@kartoffelgames/core.data';
 import { ComputeStage } from '../../constant/compute-stage.enum';
 import { BindDataGroupLayout } from '../binding/bind-data-group-layout';
 import { PipelineDataLayout } from '../binding/pipeline-data-layout';
-import { GeneratorFactoryMap } from '../generator/base-generator-factory';
+import { GeneratorFactoryMap } from '../native_generator/base-generator-factory';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 import { BaseShaderInterpreter, ShaderFunction } from './interpreter/base-shader-interpreter';

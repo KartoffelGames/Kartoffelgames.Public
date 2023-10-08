@@ -1,4 +1,4 @@
-import { GeneratorObjectKeys } from '../generator/base-generator-factory';
+import { GeneratorObjectKeys } from '../native_generator/base-generator-factory';
 import { GpuDevice } from './gpu-device';
 import { UpdateReason } from './gpu-object-update-reason';
 

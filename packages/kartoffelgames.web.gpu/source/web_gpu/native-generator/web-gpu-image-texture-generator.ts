@@ -1,5 +1,5 @@
-import { BaseNativeGenerator, NativeObjectLifeTime } from '../../../generator/base-native-generator';
-import { ImageTexture } from '../../../texture/image-texture';
+import { BaseNativeGenerator, NativeObjectLifeTime } from '../../base/native_generator/base-native-generator';
+import { ImageTexture } from '../../base/texture/image-texture';
 import { NativeWebGpuMap, WebGpuGeneratorFactory } from '../web-gpu-generator-factory';
 
 export class WebGpuImageTextureGenerator extends BaseNativeGenerator<NativeWebGpuMap, 'imageTexture'> {

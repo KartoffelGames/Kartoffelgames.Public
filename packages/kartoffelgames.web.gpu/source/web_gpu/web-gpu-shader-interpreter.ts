@@ -1,21 +1,22 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { AccessMode } from '../../../constant/access-mode.enum';
-import { BufferBindType } from '../../../constant/buffer-bind-type.enum';
-import { ComputeStage } from '../../../constant/compute-stage.enum';
-import { SamplerType } from '../../../constant/sampler-type.enum';
-import { TextureBindType } from '../../../constant/texture-bind-type.enum';
-import { TextureDimension } from '../../../constant/texture-dimension.enum';
-import { TextureFormat } from '../../../constant/texture-format.enum';
-import { BaseMemoryLayout } from '../../memory_layout/base-memory-layout';
-import { ArrayBufferMemoryLayout } from '../../memory_layout/buffer/array-buffer-memory-layout';
-import { BaseBufferMemoryLayout } from '../../memory_layout/buffer/base-buffer-memory-layout';
-import { LinearBufferMemoryLayout } from '../../memory_layout/buffer/linear-buffer-memory-layout';
-import { StructBufferMemoryLayout } from '../../memory_layout/buffer/struct-buffer-memory-layout';
-import { SamplerMemoryLayout } from '../../memory_layout/sampler-memory-layout';
-import { TextureMemoryLayout } from '../../memory_layout/texture-memory-layout';
-import { BaseShaderInterpreter, ShaderFunction, ShaderFunctionDefinition, ShaderStructDefinition, ShaderType, ShaderTypeDefinition, ShaderValue, ShaderValueDefinition } from '../../shader/interpreter/base-shader-interpreter';
-import { WgslBufferArrayTypes, WgslBufferLinearTypes, WgslSamplerTypes, WgslTextureTypes, WgslType } from './wgsl_enum/wgsl-type.enum';
-import { BufferPrimitiveFormat } from '../../../constant/buffer-primitive-format';
+import { BaseMemoryLayout } from '../base/memory_layout/base-memory-layout';
+import { ArrayBufferMemoryLayout } from '../base/memory_layout/buffer/array-buffer-memory-layout';
+import { BaseBufferMemoryLayout } from '../base/memory_layout/buffer/base-buffer-memory-layout';
+import { LinearBufferMemoryLayout } from '../base/memory_layout/buffer/linear-buffer-memory-layout';
+import { StructBufferMemoryLayout } from '../base/memory_layout/buffer/struct-buffer-memory-layout';
+import { SamplerMemoryLayout } from '../base/memory_layout/sampler-memory-layout';
+import { TextureMemoryLayout } from '../base/memory_layout/texture-memory-layout';
+import { BaseShaderInterpreter, ShaderFunctionDefinition, ShaderValueDefinition, ShaderStructDefinition, ShaderFunction, ShaderTypeDefinition, ShaderValue, ShaderType } from '../base/shader/interpreter/base-shader-interpreter';
+import { AccessMode } from '../constant/access-mode.enum';
+import { BufferBindType } from '../constant/buffer-bind-type.enum';
+import { BufferPrimitiveFormat } from '../constant/buffer-primitive-format';
+import { ComputeStage } from '../constant/compute-stage.enum';
+import { SamplerType } from '../constant/sampler-type.enum';
+import { TextureBindType } from '../constant/texture-bind-type.enum';
+import { TextureDimension } from '../constant/texture-dimension.enum';
+import { TextureFormat } from '../constant/texture-format.enum';
+import { WgslType, WgslSamplerTypes, WgslBufferArrayTypes, WgslBufferLinearTypes, WgslTextureTypes } from './wgsl_enum/wgsl-type.enum';
+
 
 export class WebGpuShaderInterpreter extends BaseShaderInterpreter {
     /**

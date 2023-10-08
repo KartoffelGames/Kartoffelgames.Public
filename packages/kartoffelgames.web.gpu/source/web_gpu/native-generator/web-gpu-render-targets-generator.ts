@@ -1,6 +1,6 @@
-import { TextureFormat } from '../../../../constant/texture-format.enum';
-import { TextureOperation } from '../../../../constant/texture-operation';
-import { BaseNativeGenerator, NativeObjectLifeTime } from '../../../generator/base-native-generator';
+import { BaseNativeGenerator, NativeObjectLifeTime } from '../../base/native_generator/base-native-generator';
+import { TextureFormat } from '../../constant/texture-format.enum';
+import { TextureOperation } from '../../constant/texture-operation';
 import { NativeWebGpuMap } from '../web-gpu-generator-factory';
 
 export class WebGpuRenderTargetsGenerator extends BaseNativeGenerator<NativeWebGpuMap, 'renderTargets'> {

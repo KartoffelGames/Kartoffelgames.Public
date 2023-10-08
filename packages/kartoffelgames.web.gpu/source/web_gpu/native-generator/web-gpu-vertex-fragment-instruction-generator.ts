@@ -1,9 +1,9 @@
 import { Dictionary, TypedArray } from '@kartoffelgames/core.data';
-import { BindDataGroup } from '../../../binding/bind-data-group';
-import { GpuBuffer } from '../../../buffer/gpu-buffer';
-import { NativeObjectLifeTime } from '../../../generator/base-native-generator';
-import { BaseNativeInstructionGenerator } from '../../../generator/base-native-instruction-generator';
-import { VertexFragmentPipeline } from '../../../pipeline/vertex-fragment-pipeline';
+import { BindDataGroup } from '../../base/binding/bind-data-group';
+import { GpuBuffer } from '../../base/buffer/gpu-buffer';
+import { NativeObjectLifeTime } from '../../base/native_generator/base-native-generator';
+import { BaseNativeInstructionGenerator } from '../../base/native_generator/base-native-instruction-generator';
+import { VertexFragmentPipeline } from '../../base/pipeline/vertex-fragment-pipeline';
 import { NativeWebGpuMap } from '../web-gpu-generator-factory';
 
 export class WebGpuVertexFragmentInstructionGenerator extends BaseNativeInstructionGenerator<NativeWebGpuMap, 'vertexFragmentInstruction'>{

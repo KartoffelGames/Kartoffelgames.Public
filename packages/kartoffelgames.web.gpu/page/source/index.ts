@@ -1,7 +1,6 @@
 import { InstructionExecuter } from '../../source/base/execution/instruction-executor';
 import { GpuDevice } from '../../source/base/gpu/gpu-device';
-import { WebGpuGeneratorFactory } from '../../source/base/implementation/web_gpu/web-gpu-generator-factory';
-import { WebGpuShaderInterpreter } from '../../source/base/implementation/web_gpu/web-gpu-shader-interpreter';
+
 import { ArrayBufferMemoryLayout } from '../../source/base/memory_layout/buffer/array-buffer-memory-layout';
 import { LinearBufferMemoryLayout } from '../../source/base/memory_layout/buffer/linear-buffer-memory-layout';
 import { StructBufferMemoryLayout } from '../../source/base/memory_layout/buffer/struct-buffer-memory-layout';
@@ -13,6 +12,8 @@ import { TextureGroup } from '../../source/base/pipeline/target/texture-group';
 import { VertexFragmentPipeline } from '../../source/base/pipeline/vertex-fragment-pipeline';
 import { PrimitiveCullMode } from '../../source/constant/primitive-cullmode';
 import { TextureOperation } from '../../source/constant/texture-operation';
+import { WebGpuGeneratorFactory } from '../../source/web_gpu/web-gpu-generator-factory';
+import { WebGpuShaderInterpreter } from '../../source/web_gpu/web-gpu-shader-interpreter';
 import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVertexUvData } from './cube/cube';
 import shader from './shader.wgsl';
 import { AmbientLight } from './something_better/light/ambient-light';

@@ -1,5 +1,5 @@
-import { BaseNativeGenerator, NativeObjectLifeTime } from '../../../generator/base-native-generator';
-import { FrameBufferTexture } from '../../../texture/frame-buffer-texture';
+import { BaseNativeGenerator, NativeObjectLifeTime } from '../../base/native_generator/base-native-generator';
+import { FrameBufferTexture } from '../../base/texture/frame-buffer-texture';
 import { NativeWebGpuMap, WebGpuGeneratorFactory } from '../web-gpu-generator-factory';
 
 export class WebGpuFramebufferTextureGenerator extends BaseNativeGenerator<NativeWebGpuMap, 'frameBufferTexture'> {

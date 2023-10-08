@@ -1,12 +1,13 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { GpuBuffer } from '../../../buffer/gpu-buffer';
-import { BaseNativeGenerator, NativeObjectLifeTime } from '../../../generator/base-native-generator';
-import { CanvasTexture } from '../../../texture/canvas-texture';
-import { FrameBufferTexture } from '../../../texture/frame-buffer-texture';
-import { ImageTexture } from '../../../texture/image-texture';
-import { TextureSampler } from '../../../texture/texture-sampler';
-import { VideoTexture } from '../../../texture/video-texture';
+import { GpuBuffer } from '../../base/buffer/gpu-buffer';
+import { BaseNativeGenerator, NativeObjectLifeTime } from '../../base/native_generator/base-native-generator';
+import { CanvasTexture } from '../../base/texture/canvas-texture';
+import { FrameBufferTexture } from '../../base/texture/frame-buffer-texture';
+import { ImageTexture } from '../../base/texture/image-texture';
+import { TextureSampler } from '../../base/texture/texture-sampler';
+import { VideoTexture } from '../../base/texture/video-texture';
 import { NativeWebGpuMap } from '../web-gpu-generator-factory';
+
 
 export class WebGpuBindDataGroupGenerator extends BaseNativeGenerator<NativeWebGpuMap, 'bindDataGroup'> {
     /**

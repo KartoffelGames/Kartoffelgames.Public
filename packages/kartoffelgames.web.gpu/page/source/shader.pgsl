@@ -1,17 +1,17 @@
 // ------------------------- Object Values ---------------------- //
-@group(object) @binding(transformation_matrix) var<uniform> transformationMatrix: mat4x4<f32>;
-@group(object) @binding(instance_positions) var<storage, read> instancePositions: array<vec4<f32>>;
+@group(object) @binding(transformation_matrix) uniform transformationMatrix: mat4x4<f32>;
+@group(object) @binding(instance_positions) readstorage instancePositions: array<vec4<f32>>;
 // -------------------------------------------------------------- //
 
 
 // ------------------------- World Values ---------------------- //
-@group(world) @binding(view_projection_matrix) var<uniform> viewProjectionMatrix: mat4x4<f32>;
+@group(world) @binding(view_projection_matrix) uniform viewProjectionMatrix: mat4x4<f32>;
 // -------------------------------------------------------------- //
 
 
 // ------------------------- User Inputs ------------------------ //
-@group(user) @binding(cube_texture_sampler) var cubeTextureSampler: sampler;
-@group(user) @binding(cube_texture) var cubeTexture: texture_2d<f32>;
+@group(user) @binding(cube_texture_sampler) uniform cubeTextureSampler: sampler;
+@group(user) @binding(cube_texture) uniform cubeTexture: texture_2d<f32>;
 // -------------------------------------------------------------- //
 
 
@@ -19,14 +19,14 @@
 struct AmbientLight {
     color: vec4<f32>
 }
-@group(world) @binding(ambient_light) var<uniform> ambientLight: AmbientLight;
+@group(world) @binding(ambient_light) uniform ambientLight: AmbientLight;
 
 struct PointLight {
     position: vec4<f32>,
     color: vec4<f32>,
     range: f32
 }
-@group(world) @binding(point_lights) var<storage, read> pointLights: array<PointLight>;
+@group(world) @binding(point_lights) readstorage pointLights: array<PointLight>;
 
 /**
  * Calculate point light output.
@@ -64,10 +64,10 @@ fn applyLight(colorIn: vec4<f32>, fragmentPosition: vec4<f32>, normal: vec4<f32>
 // -------------------------------------------------------------- //
 
 struct VertexOut {
-    @builtin(position) position: vec4<f32>,
-    @location(uv) uv: vec2<f32>,
-    @location(normal) normal: vec4<f32>,
-    @location(fragment_position) fragmentPosition: vec4<f32>
+    @builtin(position) position: vec4,
+    @location(uv) uv: vec2,
+    @location(normal) normal: vec4,
+    @location(fragment_position) fragmentPosition: vec4
 }
 
 struct VertexIn {

@@ -1,9 +1,9 @@
-import { PrimitiveCullMode } from '../../../../constant/primitive-cullmode';
-import { PrimitiveFrontFace } from '../../../../constant/primitive-front-face';
-import { PrimitiveTopology } from '../../../../constant/primitive-topology';
-import { TextureFormat } from '../../../../constant/texture-format.enum';
-import { BaseNativeGenerator, NativeObjectLifeTime } from '../../../generator/base-native-generator';
-import { LinearBufferMemoryLayout } from '../../../memory_layout/buffer/linear-buffer-memory-layout';
+import { BaseNativeGenerator, NativeObjectLifeTime } from '../../base/native_generator/base-native-generator';
+import { LinearBufferMemoryLayout } from '../../base/memory_layout/buffer/linear-buffer-memory-layout';
+import { PrimitiveCullMode } from '../../constant/primitive-cullmode';
+import { PrimitiveFrontFace } from '../../constant/primitive-front-face';
+import { PrimitiveTopology } from '../../constant/primitive-topology';
+import { TextureFormat } from '../../constant/texture-format.enum';
 import { NativeWebGpuMap } from '../web-gpu-generator-factory';
 
 export class WebGpuVertexFragmentPipelineGenerator extends BaseNativeGenerator<NativeWebGpuMap, 'vertexFragmentPipeline'> {

@@ -1,6 +1,6 @@
-import { BaseNativeGenerator, NativeObjectLifeTime } from '../../../generator/base-native-generator';
-import { UpdateReason } from '../../../gpu/gpu-object-update-reason';
-import { CanvasTexture } from '../../../texture/canvas-texture';
+import { BaseNativeGenerator, NativeObjectLifeTime } from '../../base/native_generator/base-native-generator';
+import { UpdateReason } from '../../base/gpu/gpu-object-update-reason';
+import { CanvasTexture } from '../../base/texture/canvas-texture';
 import { NativeWebGpuMap, WebGpuGeneratorFactory } from '../web-gpu-generator-factory';
 
 export class WebGpuCanvasTextureGenerator extends BaseNativeGenerator<NativeWebGpuMap, 'canvasTexture'> {

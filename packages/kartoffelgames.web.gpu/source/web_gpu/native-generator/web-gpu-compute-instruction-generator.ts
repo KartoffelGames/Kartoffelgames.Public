@@ -1,7 +1,7 @@
-import { BindDataGroup } from '../../../binding/bind-data-group';
-import { NativeObjectLifeTime } from '../../../generator/base-native-generator';
-import { BaseNativeInstructionGenerator } from '../../../generator/base-native-instruction-generator';
-import { ComputePipeline } from '../../../pipeline/compute-pipeline';
+import { BindDataGroup } from '../../base/binding/bind-data-group';
+import { NativeObjectLifeTime } from '../../base/native_generator/base-native-generator';
+import { BaseNativeInstructionGenerator } from '../../base/native_generator/base-native-instruction-generator';
+import { ComputePipeline } from '../../base/pipeline/compute-pipeline';
 import { NativeWebGpuMap } from '../web-gpu-generator-factory';
 
 export class WebGpuComputeInstructionGenerator extends BaseNativeInstructionGenerator<NativeWebGpuMap, 'computeInstruction'>{

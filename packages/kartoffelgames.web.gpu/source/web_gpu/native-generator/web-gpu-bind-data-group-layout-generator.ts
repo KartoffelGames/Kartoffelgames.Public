@@ -1,12 +1,13 @@
+
 import { Exception } from '@kartoffelgames/core.data';
-import { AccessMode } from '../../../../constant/access-mode.enum';
-import { BufferBindType } from '../../../../constant/buffer-bind-type.enum';
-import { SamplerType } from '../../../../constant/sampler-type.enum';
-import { TextureBindType } from '../../../../constant/texture-bind-type.enum';
-import { BaseNativeGenerator, NativeObjectLifeTime } from '../../../generator/base-native-generator';
-import { BaseBufferMemoryLayout } from '../../../memory_layout/buffer/base-buffer-memory-layout';
-import { SamplerMemoryLayout } from '../../../memory_layout/sampler-memory-layout';
-import { TextureMemoryLayout } from '../../../memory_layout/texture-memory-layout';
+import { BaseNativeGenerator, NativeObjectLifeTime } from '../../base/native_generator/base-native-generator';
+import { BaseBufferMemoryLayout } from '../../base/memory_layout/buffer/base-buffer-memory-layout';
+import { SamplerMemoryLayout } from '../../base/memory_layout/sampler-memory-layout';
+import { TextureMemoryLayout } from '../../base/memory_layout/texture-memory-layout';
+import { AccessMode } from '../../constant/access-mode.enum';
+import { BufferBindType } from '../../constant/buffer-bind-type.enum';
+import { SamplerType } from '../../constant/sampler-type.enum';
+import { TextureBindType } from '../../constant/texture-bind-type.enum';
 import { NativeWebGpuMap } from '../web-gpu-generator-factory';
 
 export class WebGpuBindDataGroupLayoutGenerator extends BaseNativeGenerator<NativeWebGpuMap,'bindDataGroupLayout'>  {

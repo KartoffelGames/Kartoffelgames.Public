@@ -1,6 +1,6 @@
-import { FilterMode } from '../../../../constant/filter-mode.enum';
-import { WrappingMode } from '../../../../constant/wrapping-mode.enum';
-import { BaseNativeGenerator, NativeObjectLifeTime } from '../../../generator/base-native-generator';
+import { BaseNativeGenerator, NativeObjectLifeTime } from '../../base/native_generator/base-native-generator';
+import { FilterMode } from '../../constant/filter-mode.enum';
+import { WrappingMode } from '../../constant/wrapping-mode.enum';
 import { NativeWebGpuMap } from '../web-gpu-generator-factory';
 
 export class WebGpuTextureSamplerGenerator extends BaseNativeGenerator<NativeWebGpuMap, 'textureSampler'>  {

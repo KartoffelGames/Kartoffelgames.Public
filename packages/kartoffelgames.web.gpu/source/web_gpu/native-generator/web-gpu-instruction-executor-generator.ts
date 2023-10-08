@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { InstructionExecuter } from '../../../execution/instruction-executor';
-import { NativeObjectLifeTime } from '../../../generator/base-native-generator';
-import { BaseNativeInstructionExecutorGenerator } from '../../../generator/base-native-instruction-executor-generator';
+import { InstructionExecuter } from '../../base/execution/instruction-executor';
+import { NativeObjectLifeTime } from '../../base/native_generator/base-native-generator';
+import { BaseNativeInstructionExecutorGenerator } from '../../base/native_generator/base-native-instruction-executor-generator';
 import { NativeWebGpuMap, WebGpuGeneratorFactory } from '../web-gpu-generator-factory';
 
 export class WebGpuInstructionExecutorGenerator extends BaseNativeInstructionExecutorGenerator<NativeWebGpuMap, 'instructionExecutor'>{

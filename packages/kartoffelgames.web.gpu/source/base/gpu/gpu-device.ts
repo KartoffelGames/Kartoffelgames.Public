@@ -1,5 +1,5 @@
 import { InstructionExecuter } from '../execution/instruction-executor';
-import { BaseGeneratorFactory } from '../generator/base-generator-factory';
+import { BaseGeneratorFactory } from '../native_generator/base-generator-factory';
 import { TextureGroup } from '../pipeline/target/texture-group';
 import { ShaderInterpreterConstructor, ShaderInterpreterFactory } from '../shader/interpreter/shader-interpreter-factory';
 import { VertexFragmentShader } from '../shader/vertex-fragment-shader';

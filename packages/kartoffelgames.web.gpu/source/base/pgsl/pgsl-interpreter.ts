@@ -8,20 +8,9 @@ import { PgslType } from './pgsl-type.enum';
  * Validates syntax and restrictions.
  */
 export class PgslInterpreter {
-    // Buffers
-    private readonly mBufferStruct: Dictionary<string, PgslStructDefinition>;
-
     private readonly mDevice: GpuDevice;
     private readonly mSourceCode: string;
-
-
-
-    /**
-     * Shader source code.
-     */
-    public get source(): string {
-        return this.mSourceCode;
-    }
+    private readonly mStructs: Dictionary<string, PgslStructDefinition>;
 
     /**
      * Gpu device.
@@ -39,18 +28,27 @@ export class PgslInterpreter {
         this.mDevice = pDevice;
         this.mSourceCode = pSourceCode;
 
+        // Init buffers.
+        this.mStructs = new Dictionary<string, PgslStructDefinition>();
+
         // TODO: Execute precompilers like "#import LightCalculation" //#/ or simple # ??
 
-        // Init buffers.
-        this.mBufferStruct = new Dictionary<string, PgslStructDefinition>();
+        // Init buffers saves only buffers that are used.
+        const lStructBuffer: Dictionary<string, PgslStructDefinition> = new Dictionary<string, PgslStructDefinition>();
+        const lStructFindRegex: RegExp = /^\s*struct\s+(?<name>\w+)\s*{[^}]*}$/gm;
+        for (const lStructNameMatch of pSourceCode.matchAll(lStructFindRegex)) {
+            const lStructName: string = lStructNameMatch.groups!['name'];
+            const lStruct: PgslStructDefinition = this.readStruct(pSourceCode, lStructName, lStructBuffer);
+            this.mStructs.set(lStruct.name, lStruct);
+        }
 
-        // TODO: Get Bindings.
+        // TODO: Get global scope variables. Excluding bindings.
 
-        // TODO: Get global scope variables.
+        // TODO: Get Bindings from global scope variables.
 
         // TODO: Get functions. Line by line content.
 
-        // TODO: Get entry points.
+        // TODO: Get entry points from functions.
     }
 
     /**
@@ -58,14 +56,19 @@ export class PgslInterpreter {
      * @param pStructName - Struct name.
      */
     public getStructOf(pStructName: string): PgslStructDefinition {
-        return this.readStruct(this.mSourceCode, pStructName);
+        const lStruct: PgslStructDefinition | undefined = this.mStructs.get(pStructName);
+        if (!lStruct) {
+            throw new Exception(`Struct "${pStructName}" not found.`, this);
+        }
+
+        return lStruct;
     }
 
     /**
      * Convert string of multiple attribute definitions into it raw data.
      * @param pSourceLine - Source of multiple attribute definitions.
      */
-    private convertInternalAttrbutes(pSourceLine: string): Dictionary<string, Array<string>> {
+    private convertInternalAttributes(pSourceLine: string): Dictionary<string, Array<string>> {
         const lAttributes: Dictionary<string, Array<string>> = new Dictionary<string, Array<string>>();
 
         // Split string of multiple attributes.
@@ -184,7 +187,7 @@ export class PgslInterpreter {
         // Convert attributes into its name and parameter parts.
         let lAttributes: Dictionary<string, Array<string>>;
         if (lVariableAttributes) {
-            lAttributes = this.convertInternalAttrbutes(lVariableAttributes);
+            lAttributes = this.convertInternalAttributes(lVariableAttributes);
         } else {
             lAttributes = new Dictionary<string, Array<string>>();
         }
@@ -197,10 +200,15 @@ export class PgslInterpreter {
         };
     }
 
-    private readStruct(pSourceCode: string, pStructName: string): PgslStructDefinition {
+    /**
+     * Read struct definition.
+     * @param pSourceCode - Complete source code.
+     * @param pStructName - Struct name.
+     */
+    private readStruct(pSourceCode: string, pStructName: string, pBufferedStructs: Dictionary<string, PgslStructDefinition>): PgslStructDefinition {
         // Load buffered struct.
-        if (this.mBufferStruct.has(pStructName)) {
-            return this.mBufferStruct.get(pStructName)!;
+        if (pBufferedStructs.has(pStructName)) {
+            return pBufferedStructs.get(pStructName)!;
         }
 
         // Read internal struct data.
@@ -211,35 +219,55 @@ export class PgslInterpreter {
             name: lInteralStructData.name,
             properies: new Array<PgslStructPropertyDefinition>()
         };
-
-        this.mBufferStruct.set(pStructName, lPageStruct);
+        pBufferedStructs.set(pStructName, lPageStruct);
 
         // Convert raw struct properties into definitions.
         for (const lPropertyData of lInteralStructData.properies) {
             // Try to get type from property type name.
             const lDataType: PgslTypeInformation | null = new PgslTypeStorage().typeOf(lPropertyData.type.typeName);
 
+            // Convert attribute data.
+            const lAttributes: Record<string, PgslAttribute> = {};
+            for (const lAttributeName of lPropertyData.attributes.keys()) {
+                const lAttributeValues = lPropertyData.attributes.get(lAttributeName)!;
+
+                // Convert atribute parameter to string or number.
+                const lAttributeParameter: Array<string | number> = lAttributeValues.map((pAttributeValue) => {
+                    if (!isNaN(<any>pAttributeValue)) {
+                        return parseInt(pAttributeValue);
+                    }
+
+                    return pAttributeValue.toString();
+                });
+
+                // Set attribute parameter.
+                lAttributes[lAttributeName] = {
+                    name: lAttributeName,
+                    parameter: lAttributeParameter
+                };
+            }
+
+            // Create and add property.
+            const lPgslStructPropertyDefinition: PgslStructPropertyDefinition = {
+                name: lPropertyData.name,
+                attributes: lAttributes,
+                type: <any>undefined
+            };
+            lPageStruct.properies.push(lPgslStructPropertyDefinition);
+
             // Read eighter simple data or struct data.
             if (lDataType !== null) {
-                const lVariableType: PgslTypeDefinition = this.readVariableType(lPropertyData.type);
-
-                // Set simple työe
-                lPageStruct.properies.push({
-                    name: lPropertyData.name,
-                    type: {
-                        type: PxslVariableType.SimpleData,
-                        name: lVariableType,
-                    }
-                });
+                // Set simple type
+                lPgslStructPropertyDefinition.type = {
+                    type: PxslValueType.SimpleData,
+                    name: this.readVariableType(lPropertyData.type)
+                };
             } else {
                 // Set struct.
-                lPageStruct.properies.push({
-                    name: lPropertyData.name,
-                    type: {
-                        type: PxslVariableType.Struct,
-                        name: this.readStruct(pSourceCode, lPropertyData.type.typeName)
-                    }
-                });
+                lPgslStructPropertyDefinition.type = {
+                    type: PxslValueType.Struct,
+                    name: this.readStruct(pSourceCode, lPropertyData.type.typeName, pBufferedStructs)
+                };
             }
         }
 
@@ -252,7 +280,7 @@ export class PgslInterpreter {
      * This can mean, that this type is a struct.
      * @param pVariableType 
      */
-    private readVariableType(pVariableType: InternalVariableType): PgslTypeDefinition {
+    private readVariableType(pVariableType: InternalVariableType): PgslSimpleTypeDefinition {
 
         // Read type information.
         const lTypeInformation = new PgslTypeStorage().typeOf(pVariableType.typeName);
@@ -266,7 +294,7 @@ export class PgslInterpreter {
         }
 
         // Create generics with recursion.
-        const lGenericList: Array<PgslTypeDefinition> = new Array<PgslTypeDefinition>();
+        const lGenericList: Array<PgslSimpleTypeDefinition> = new Array<PgslSimpleTypeDefinition>();
         for (const lGeneric of pVariableType.generics) {
             lGenericList.push(this.readVariableType(lGeneric));
         }
@@ -299,10 +327,35 @@ type InternalStructDefinition = {
     properies: Array<InternalVariableDefinition>;
 };
 
+// ----------------------
+// Pgsl globals.
+// ----------------------
+type PgslSimpleTypeDefinition = {
+    type: PgslType;
+    generics: Array<PgslSimpleTypeDefinition>;
+};
 
-// -------------------
-// External structure.
-// -------------------
+type PgslTypeDefinition = {
+    type: PxslValueType.Struct,
+    name: PgslStructDefinition;
+} | {
+    type: PxslValueType.SimpleData,
+    name: PgslSimpleTypeDefinition;
+};
+
+type PgslAttribute = {
+    name: string,
+    parameter: Array<string | number>;
+};
+
+enum PxslValueType {
+    Struct = 1,
+    SimpleData = 2,
+}
+
+// ----------------------
+// Pgsl struct structure.
+// ----------------------
 
 type PgslStructDefinition = {
     name: string,
@@ -311,28 +364,25 @@ type PgslStructDefinition = {
 
 type PgslStructPropertyDefinition = {
     name: string,
-    type: {
-        type: PxslVariableType.Struct,
-        name: PgslStructDefinition;
-    } | {
-        type: PxslVariableType.SimpleData,
-        name: PgslTypeDefinition;
-    };
+    type: PgslTypeDefinition;
+    attributes: Record<string, PgslAttribute>;
 };
 
-type PgslTypeDefinition = {
-    type: PgslType;
-    generics: Array<PgslTypeDefinition>;
+// ----------------------
+// Pgsl Variable definition.
+// ----------------------
+
+type PgslVariable = {
+    name: string;
+    type: PgslTypeDefinition;
+    modifier: PxslVariableModifier,
+    attributes: Dictionary<string, Array<string>>;
+    scope: PgslVariableScope;
 };
 
 enum PgslVariableScope {
     Global = 1,
     Function = 2
-}
-
-enum PxslVariableType {
-    Struct = 1,
-    SimpleData = 2,
 }
 
 enum PxslVariableModifier {

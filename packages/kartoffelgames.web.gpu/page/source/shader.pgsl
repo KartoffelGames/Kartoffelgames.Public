@@ -1,29 +1,29 @@
 // ------------------------- Object Values ---------------------- //
-@group(object) @binding(transformation_matrix) uniform transformationMatrix: mat4x4<f32>;
-@group(object) @binding(instance_positions) readstorage instancePositions: array<vec4<f32>>;
+@group(object) @binding(transformation_matrix) uniform transformationMatrix: mat4x4;
+@group(object) @binding(instance_positions) readstorage instancePositions: array<vec4>;
 // -------------------------------------------------------------- //
 
 
 // ------------------------- World Values ---------------------- //
-@group(world) @binding(view_projection_matrix) uniform viewProjectionMatrix: mat4x4<f32>;
+@group(world) @binding(view_projection_matrix) uniform viewProjectionMatrix: mat4x4;
 // -------------------------------------------------------------- //
 
 
 // ------------------------- User Inputs ------------------------ //
 @group(user) @binding(cube_texture_sampler) uniform cubeTextureSampler: sampler;
-@group(user) @binding(cube_texture) uniform cubeTexture: texture_2d<f32>;
+@group(user) @binding(cube_texture) uniform cubeTexture: texture_2d;
 // -------------------------------------------------------------- //
 
 
 // --------------------- Light calculations --------------------- //
 struct AmbientLight {
-    color: vec4<f32>
+    color: vec4
 }
 @group(world) @binding(ambient_light) uniform ambientLight: AmbientLight;
 
 struct PointLight {
-    position: vec4<f32>,
-    color: vec4<f32>,
+    position: vec4,
+    color: vec4,
     range: f32
 }
 @group(world) @binding(point_lights) readstorage pointLights: array<PointLight>;
@@ -31,17 +31,17 @@ struct PointLight {
 /**
  * Calculate point light output.
  */
-fn calculatePointLights(fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {
+fn calculatePointLights(fragmentPosition: vec4, normal: vec4) -> vec4 {
     // Count of point lights.
     let pointLightCount: u32 = arrayLength(&pointLights);
 
-    var lightResult: vec4<f32> = vec4<f32>(0, 0, 0, 1);
+    var lightResult: vec4 = vec4(0, 0, 0, 1);
 
     for (var index: u32 = 0; index < pointLightCount; index++) {
         var pointLight: PointLight = pointLights[index];
 
         // Calculate light strength based on angle of incidence.
-        let lightDirection: vec4<f32> = normalize(pointLight.position - fragmentPosition);
+        let lightDirection: vec4 = normalize(pointLight.position - fragmentPosition);
         let diffuse: f32 = max(dot(normal, lightDirection), 0.0);
 
         lightResult += pointLight.color * diffuse;
@@ -53,8 +53,8 @@ fn calculatePointLights(fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<
 /**
  * Apply lights to fragment color.
  */
-fn applyLight(colorIn: vec4<f32>, fragmentPosition: vec4<f32>, normal: vec4<f32>) -> vec4<f32> {
-    var lightColor: vec4<f32> = vec4<f32>(0, 0, 0, 1);
+fn applyLight(colorIn: vec4, fragmentPosition: vec4, normal: vec4) -> vec4 {
+    var lightColor: vec4 = vec4(0, 0, 0, 1);
 
     lightColor += ambientLight.color;
     lightColor += calculatePointLights(fragmentPosition, normal);
@@ -72,15 +72,15 @@ struct VertexOut {
 
 struct VertexIn {
     @builtin(instance_index) instanceId : u32,
-    @location(position) position: vec4<f32>,
-    @location(uv) uv: vec2<f32>,
-    @location(normal) normal: vec4<f32>
+    @location(position) position: vec4,
+    @location(uv) uv: vec2,
+    @location(normal) normal: vec4
 }
 
 @vertex
 fn vertex_main(vertex: VertexIn) -> VertexOut {
-    var instancePosition: vec4<f32> = instancePositions[vertex.instanceId];
-    var instancePositionMatrix: mat4x4<f32> = mat4x4<f32>(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, instancePosition.x * 5, instancePosition.y * 5, instancePosition.z * 5, 1);
+    var instancePosition: vec4 = instancePositions[vertex.instanceId];
+    var instancePositionMatrix: mat4x4 = mat4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, instancePosition.x * 5, instancePosition.y * 5, instancePosition.z * 5, 1);
 
     var out: VertexOut;
     out.position = viewProjectionMatrix * transformationMatrix * instancePositionMatrix * vertex.position;
@@ -92,13 +92,13 @@ fn vertex_main(vertex: VertexIn) -> VertexOut {
 }
 
 struct FragmentIn {
-    @location(uv) uv: vec2<f32>,
-    @location(normal) normal: vec4<f32>,
-    @location(fragment_position) fragmentPosition: vec4<f32>
+    @location(uv) uv: vec2,
+    @location(normal) normal: vec4,
+    @location(fragment_position) fragmentPosition: vec4
 }
 
 struct FragmentOut {
-    @location(0) color: vec4<f32>
+    @location(0) color: vec4
 }
 
 @fragment

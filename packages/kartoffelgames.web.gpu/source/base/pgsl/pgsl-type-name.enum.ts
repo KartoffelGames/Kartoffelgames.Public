@@ -1,9 +1,9 @@
-export enum PgslType {
+export enum PgslTypenName {
     // Scalar types.
     Boolean = 'bool',
-    Integer = 'i32',
-    UnsignedInteger = 'u32',
-    Float = 'f32',
+    Integer = 'int',
+    UnsignedInteger = 'uint',
+    Float = 'float',
 
     // Vector types.
     Vector2 = 'vec2',

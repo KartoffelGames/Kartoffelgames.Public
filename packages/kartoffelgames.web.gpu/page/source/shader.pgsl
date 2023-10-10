@@ -11,9 +11,10 @@
 
 // ------------------------- User Inputs ------------------------ //
 @group(user) @binding(cube_texture_sampler) uniform cubeTextureSampler: sampler;
-@group(user) @binding(cube_texture) uniform cubeTexture: texture_2d;
+@group(user) @binding(cube_texture) uniform cubeTexture: texture_2d<float>;
 // -------------------------------------------------------------- //
 
+const lightStrength: int = 23;
 
 // --------------------- Light calculations --------------------- //
 struct AmbientLight {
@@ -24,7 +25,7 @@ struct AmbientLight {
 struct PointLight {
     position: vec4,
     color: vec4,
-    range: f32
+    range: float
 }
 @group(world) @binding(point_lights) readstorage pointLights: array<PointLight>;
 
@@ -42,7 +43,7 @@ fn calculatePointLights(fragmentPosition: vec4, normal: vec4) -> vec4 {
 
         // Calculate light strength based on angle of incidence.
         let lightDirection: vec4 = normalize(pointLight.position - fragmentPosition);
-        let diffuse: f32 = max(dot(normal, lightDirection), 0.0);
+        let diffuse: float = max(dot(normal, lightDirection), 0.0);
 
         lightResult += pointLight.color * diffuse;
     }
@@ -71,14 +72,13 @@ struct VertexOut {
 }
 
 struct VertexIn {
-    @builtin(instance_index) instanceId : u32,
+    @builtin(instance_index) instanceId : uint,
     @location(position) position: vec4,
     @location(uv) uv: vec2,
     @location(normal) normal: vec4
 }
 
-@vertex
-fn vertex_main(vertex: VertexIn) -> VertexOut {
+@vertex fn vertex_main(vertex: VertexIn) -> VertexOut {
     var instancePosition: vec4 = instancePositions[vertex.instanceId];
     var instancePositionMatrix: mat4x4 = mat4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, instancePosition.x * 5, instancePosition.y * 5, instancePosition.z * 5, 1);
 
@@ -101,8 +101,7 @@ struct FragmentOut {
     @location(0) color: vec4
 }
 
-@fragment
-fn fragment_main(fragment: FragmentIn) -> FragmentOut {
+@fragment fn fragment_main(fragment: FragmentIn) -> FragmentOut {
     var out: FragmentOut
     out.color = applyLight(textureSample(cubeTexture, cubeTextureSampler, fragment.uv), fragment.fragmentPosition, fragment.normal);
     

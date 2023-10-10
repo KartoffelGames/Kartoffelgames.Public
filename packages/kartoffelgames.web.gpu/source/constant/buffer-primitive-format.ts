@@ -1,3 +1,4 @@
+// TODO: Get rid of this.
 export enum BufferPrimitiveFormat {
     Unsupported = 'Unsupported primitive format',
     Float = 'float',

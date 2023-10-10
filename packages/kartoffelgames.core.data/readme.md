@@ -4,7 +4,7 @@ This package consists mostly of helper classes and storage types, aimed at reduc
 
 ---
 
-* [Usage](#Usage)
+* [Installation](#installation)
 * [Data storage](#data-storage)
     * [Dictionary](#dictionary)
 

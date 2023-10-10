@@ -25,6 +25,10 @@
             "path": "./packages/kartoffelgames.web.potato_web_builder"
         },
         {
+            "name": "Kartoffelgames.Core.Parser",
+            "path": "packages\\kartoffelgames.core.parser"
+        },
+        {
             "name": "Kartoffelgames.Web.Game_Input",
             "path": "packages\\kartoffelgames.web.game_input"
         },

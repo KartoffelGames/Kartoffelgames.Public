@@ -10,7 +10,6 @@ import { InternalStructDefinition, PgslInterpreter, InternalVariableType } from 
  */
 export class PgslShader {
     private readonly mDevice: GpuDevice;
-    private readonly mSourceCode: string;
     private readonly mStructs: Dictionary<string, PgslStructDefinition>;
 
     /**
@@ -27,7 +26,6 @@ export class PgslShader {
      */
     public constructor(pDevice: GpuDevice, pSourceCode: string) {
         this.mDevice = pDevice;
-        this.mSourceCode = pSourceCode;
 
         // Init buffers.
         this.mStructs = new Dictionary<string, PgslStructDefinition>();
@@ -40,7 +38,6 @@ export class PgslShader {
             const lStruct: PgslStructDefinition = this.readStruct(pSourceCode, lStructName, lStructBuffer);
             this.mStructs.set(lStruct.name, lStruct);
         }
-
 
         // TODO: Get global scope variables. Excluding bindings.
 
@@ -170,9 +167,9 @@ export class PgslShader {
 }
 
 
-// ----------------------
+// -------------
 // Pgsl globals.
-// ----------------------
+// -------------
 type PgslSimpleTypeDefinition = {
     type: PgslType;
     generics: Array<PgslSimpleTypeDefinition>;
@@ -211,9 +208,9 @@ type PgslStructPropertyDefinition = {
     attributes: Record<string, PgslAttribute>;
 };
 
-// ----------------------
+// -------------------------
 // Pgsl Variable definition.
-// ----------------------
+// -------------------------
 
 type PgslVariable = {
     name: string;

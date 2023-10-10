@@ -51,20 +51,4 @@ export class Dictionary<TKey, TValue> extends Map<TKey, TValue> {
             return pDefault;
         }
     }
-
-    /**
-     * Maps information into new list.
-     * @param pFunction - Mapping funktion.
-     */
-    public map<T>(pFunction: (pKey: TKey, pValue: TValue) => T): Array<T> {
-        const lResultList: List<T> = new List<T>();
-
-        for (const lKeyValuePair of this) {
-            // Execute callback and add result to list.
-            const lMappingResult: T = pFunction(lKeyValuePair[0], lKeyValuePair[1]);
-            lResultList.push(lMappingResult);
-        }
-
-        return lResultList;
-    }
 }

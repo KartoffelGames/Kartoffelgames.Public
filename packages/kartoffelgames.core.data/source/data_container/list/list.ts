@@ -16,7 +16,7 @@ export class List<T> extends Array<T> implements ICloneable<List<T>> {
      * 
      * @param pItemList - Items.
      * 
-     * @example
+     * @example Create new list with `newListWith` and failing creation with the native `Array` constructor.
      * ```TypeScript
      * const newList = List.newListWith<number>(...[3]); // => [3] 
      * const newListWrong = new List<number>(...[3]);    // => [undefined, undefined, undefined] 
@@ -32,7 +32,7 @@ export class List<T> extends Array<T> implements ICloneable<List<T>> {
     /**
      * Remove every item.
      * 
-     * @example
+     * @example Clear a list.
      * ```TypeScript
      * const list = List.newListWith<number>(1, 2, 3);
      * list.clear(); 
@@ -50,7 +50,7 @@ export class List<T> extends Array<T> implements ICloneable<List<T>> {
      * 
      * @returns cloned list with shallow copied item refernces.
      * 
-     * @example
+     * @example Clone and compare list and list items.
      * ```TypeScript
      * const list = List.newListWith<object>(new Object());
      * 
@@ -69,7 +69,7 @@ export class List<T> extends Array<T> implements ICloneable<List<T>> {
      * 
      * @returns new list instance with only distinct values.
      * 
-     * @example
+     * @example Create a new list with dublicates and create a new distinct list out of it.
      * ```TypeScript
      * const listWithDublicates = List.newListWith<number>(1, 1, 2, 3, 3);
      * const distinctList = listWithDublicates.distinct(); // => [1, 2, 3]
@@ -88,7 +88,7 @@ export class List<T> extends Array<T> implements ICloneable<List<T>> {
      * 
      * @returns true for equality.
      * 
-     * @example
+     * @example Compare two arrays with a list.
      * ```TypeScript
      * const list = List.newListWith<number>(1, 3, 2);
      * 
@@ -121,7 +121,7 @@ export class List<T> extends Array<T> implements ICloneable<List<T>> {
      * 
      * @returns removed element. When no element was removed, undefined is returned instead.
      * 
-     * @example 
+     * @example Remove a existing and a none existing item of a list.
      * ```TypeScript
      * const list = List.newListWith<number>(1, 3, 2);
      * 
@@ -148,7 +148,7 @@ export class List<T> extends Array<T> implements ICloneable<List<T>> {
      * 
      * @returns replaced element. When no element was replaced, undefined is returned instead.
      * 
-     * @example 
+     * @example Replace a existing and a none existing item of a list.
      * ```TypeScript
      * const list = List.newListWith<number>(1, 5, 3);
      * 
@@ -179,7 +179,7 @@ export class List<T> extends Array<T> implements ICloneable<List<T>> {
      * 
      * @returns string representation for this list.
      * 
-     * @example 
+     * @example Output a string representation of a list.
      * ```TypeScript
      * const list = List.newListWith<number>(1, 2, 3);
      * console.log(list.toString()); // => [1, 2, 3]

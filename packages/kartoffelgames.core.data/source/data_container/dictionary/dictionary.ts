@@ -24,7 +24,7 @@ export class Dictionary<TKey, TValue> extends Map<TKey, TValue> implements IClon
      * @throws
      * On any dublicate key set,
      * 
-     * @example
+     * @example Adding a new and existing key.
      * ```TypeScript
      * const dictionary = new Dictionary<string, number>();
      * dictionary.add('a', 4); // => OK
@@ -46,7 +46,7 @@ export class Dictionary<TKey, TValue> extends Map<TKey, TValue> implements IClon
      * 
      * @returns cloned dictionary with shallow copied key and value refernces.
      * 
-     * @example
+     * @example Clone and compare dictionary and dictionary items.
      * ```TypeScript
      * const dictionary = new Dictionary<string, object>();
      * dictionary.set('a', new Object());
@@ -73,7 +73,7 @@ export class Dictionary<TKey, TValue> extends Map<TKey, TValue> implements IClon
      * 
      * @returns all keys that hold the specified value.
      * 
-     * @example
+     * @example Get keys of a value.
      * ```TypeScript
      * const dictionary = new Dictionary<string, number>();
      * dictionary.set('a', 1);
@@ -104,13 +104,13 @@ export class Dictionary<TKey, TValue> extends Map<TKey, TValue> implements IClon
      * 
      * @returns value of the key. If the key does not exists the default value gets returned.
      * 
-     * @example
+     * @example Get value or default from a existing and none existing key. 
      * ```TypeScript
      * const dictionary = new Dictionary<string, number>();
      * dictionary.set('a', 1);
      * 
-     * const keyA = dictionary.getAllKeysOfValue('a', 22); // => 1
-     * const keyZ = dictionary.getAllKeysOfValue('z', 22); // => 22
+     * const keyA = dictionary.getOrDefault('a', 22); // => 1
+     * const keyZ = dictionary.getOrDefault('z', 22); // => 22
      * ```
      */
     public getOrDefault(pKey: TKey, pDefault: TValue): TValue {
@@ -130,7 +130,7 @@ export class Dictionary<TKey, TValue> extends Map<TKey, TValue> implements IClon
      * 
      * @returns mapped data for each item.
      * 
-     * @example
+     * @example Remap all dictionary values by adding a number to all values. 
      * ```TypeScript
      * const dictionary = new Dictionary<string, number>();
      * dictionary.set('a', 1);

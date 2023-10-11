@@ -1,5 +1,6 @@
 ﻿import { List } from '../list/list';
 import { Exception } from '../../exception/exception';
+import { ICloneable } from '../../interface/i-cloneable';
 
 /**
  * Wrapper for {@link Map}.
@@ -12,7 +13,7 @@ import { Exception } from '../../exception/exception';
  * 
  * @public
  */
-export class Dictionary<TKey, TValue> extends Map<TKey, TValue> {
+export class Dictionary<TKey, TValue> extends Map<TKey, TValue> implements ICloneable<Dictionary<TKey, TValue>>{
     /**
      * Add value and key to dictionary. 
      * Throws {@link Exception}  for any added dublicate key. 
@@ -37,6 +38,32 @@ export class Dictionary<TKey, TValue> extends Map<TKey, TValue> {
         } else {
             throw new Exception("Can't add dublicate key to dictionary.", this);
         }
+    }
+
+    /**
+     * Create new dicionary and add same keys and values.
+     * @see {@link ICloneable.clone}
+     * 
+     * @returns cloned dictionary with shallow copied key and value refernces.
+     * 
+     * @example
+     * ```TypeScript
+     * const dictionary = new Dictionary<string, object>();
+     * dictionary.set('a', new Object());
+     * 
+     * const clone = dictionary.clone();
+     * 
+     * const areSame = dictionary === clone; // => False
+     * const itemSame = dictionary.get('a') === clone.get('a'); // => True
+     * ```
+     */
+    public clone(): Dictionary<TKey, TValue> {
+        const lClonedDictionary: Dictionary<TKey, TValue> = new Dictionary<TKey, TValue>();
+        for (const lEntry of this.entries()) {
+            lClonedDictionary.set(lEntry[0], lEntry[1]);
+        }
+
+        return lClonedDictionary;
     }
 
     /**

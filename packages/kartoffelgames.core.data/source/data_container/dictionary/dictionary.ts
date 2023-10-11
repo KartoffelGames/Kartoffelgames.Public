@@ -57,7 +57,7 @@ export class Dictionary<TKey, TValue> extends Map<TKey, TValue> {
      * @param pFunction - Mapping funktion.
      */
     public map<T>(pFunction: (pKey: TKey, pValue: TValue) => T): Array<T> {
-        const lResultList: Array<T> = new Array<T>();
+        const lResultList: List<T> = new List<T>();
 
         for (const lKeyValuePair of this) {
             // Execute callback and add result to list.

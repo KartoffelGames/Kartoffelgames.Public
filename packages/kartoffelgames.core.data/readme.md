@@ -18,7 +18,7 @@ Hold generic data but mostly extends existing javascript types by new data acces
 
 ### Dictionary
 Wrapper for a JavaScript [Map](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map). 
-Extended by `add`, `getAllKeysOfValue` and `getOrDefault`.
+Extended by `add`, `getAllKeysOfValue`, `getOrDefault` and `map`.
 ```TypeScript
 const dictionary = new Dictionary<string, number>();
 
@@ -27,7 +27,7 @@ dictionary.set('a', 1);
 dictionary.set('b', 2);
 dictionary.set('c', 2);
 
-// add
+// add. Fails by adding dublicate keys.
 dictionary.add('d', 4); // => OK
 dictionary.add('a', 4); // => Fail: Dublicate key.
 
@@ -41,4 +41,8 @@ console.log(keyA);  // Output => 1
 
 const keyZ = dictionary.getAllKeysOfValue('z', 22);
 console.log(keyZ);  // Output => 22
+
+// Map
+const list = dictionary.map((key, value) => value + 1);
+console.log(list);  // Output => [2, 3, 3]
 ```

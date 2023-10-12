@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { EnumUtil } from '../../../source/util/enum-util';
 
 describe('EnumUtil', () => {
-    it('Static Method: enumNamesToArray', () => {
+    it('Static Method: namesOf', () => {
         // Setup.
         enum TestEnum {
             One = 1,
@@ -12,13 +12,13 @@ describe('EnumUtil', () => {
         }
 
         // Process.
-        const lNameArray: Array<string> = EnumUtil.enumNamesToArray(TestEnum);
+        const lNameArray: Array<string> = EnumUtil.namesOf(TestEnum);
 
         // Evaluation.
         expect(lNameArray).to.be.deep.equal(['One', 'Two', 'Three', 'Five']);
     });
 
-    it('Static Method: enumValuesToArray', () => {
+    it('Static Method: valuesOf', () => {
         // Setup.
         enum TestEnum {
             One = 1,
@@ -28,7 +28,7 @@ describe('EnumUtil', () => {
         }
 
         // Process.
-        const lValueArray: Array<string> = EnumUtil.enumValuesToArray(TestEnum);
+        const lValueArray: Array<string> = EnumUtil.valuesOf(TestEnum);
 
         // Evaluation.
         expect(lValueArray).to.be.deep.equal([1, 2, '3', '5']);

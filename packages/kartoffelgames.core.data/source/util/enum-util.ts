@@ -11,6 +11,9 @@ export class EnumUtil {
      * 
      * @returns All enum key as array in defined order.
      * 
+     * @remarks
+     * Does only work for number enums and should fail for mixed or string enums.
+     * 
      * @example Read enum names from custom enum object.
      * ``` Typescript
      * enum MyEnum {
@@ -20,6 +23,8 @@ export class EnumUtil {
      * 
      * const enumNames = EnumUtil.enumNamesToArray(MyEnum); // => ['Entry1', 'Entry2']
      * ```
+     * 
+     * @experimental @alpha
      */
     public static namesOf(pEnum: object): Array<string> {
         // Convert enum to key array.
@@ -35,6 +40,9 @@ export class EnumUtil {
      * 
      * @returns All enum values as array in defined order.
      * 
+     * @remarks
+     * Does only work for number enums and should fail for mixed or string enums.
+     * 
      * @example Read enum names from custom enum object.
      * ``` Typescript
      * enum MyEnum {
@@ -44,6 +52,8 @@ export class EnumUtil {
      * 
      * const enumValues = EnumUtil.enumValuesToArray(MyEnum); // => [1, 2]
      * ```
+     * 
+     * @experimental @alpha
      */
     public static valuesOf<T>(pEnum: object): Array<T> {
         const lEnumValues: Array<T> = new Array<T>();

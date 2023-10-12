@@ -1,9 +1,11 @@
 /**
- * IDeconstructable interface
+ * Destructable type. Provides deconstruct methods.
+ * 
+ * @experimental @alpha
  */
 export interface IDeconstructable {
     /**
-     * Deconstruct object.
+     * Called on object deconstruction.
      */
     deconstruct(): void;
 }

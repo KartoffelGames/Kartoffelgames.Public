@@ -10,6 +10,9 @@
     ],
     "main": "library/source/index.js",
     "types": "library/source/index.d.ts",
+    "dependencies": {
+        "@kartoffelgames/core.data": "^0.0.34"
+    },
     "scripts": {
         "build": "kg build Kartoffelgames.Core.Parser && kg page Kartoffelgames.Core.Parser --build-only",
         "test": "kg test Kartoffelgames.Core.Parser",

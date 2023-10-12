@@ -3,7 +3,7 @@
 /**
  * Library for data container and easier data access.
  * 
- * @remark 
+ * @remarks 
  * This package consists mostly of helper classes and storage types, aimed at reducing code redundance and improving clarity.
  * 
  * @packageDocumentation

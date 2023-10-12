@@ -2,7 +2,7 @@
 
 /**
  * Library for data container and easier data access.
- * 
+ *
  * @remarks 
  * This package consists mostly of helper classes and storage types, aimed at reducing code redundance and improving clarity.
  * 
@@ -25,4 +25,4 @@ export { ICloneable } from './interface/i-cloneable';
 export { IDeconstructable } from './interface/i-deconstructable';
 
 // Support types.
-export { Writeable, Readonly, ObjectFieldPath, ObjectFieldPathPart } from './types';
+export { Writeable, Readonly } from './types';

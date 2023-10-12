@@ -142,11 +142,11 @@ export class Lexer<TTokenType> {
 
                 yield <any>null;
             }
+        }
 
-            // Throw erros when the current untokenised text can't be tokenised.
-            if (lUntokenisedText.length !== 0) {
-                throw new ParserException(`Invalid token. Can't tokenise ${lUntokenisedText}`, this, lCurrentColumnNumber, lCurrentLineNumber);
-            }
+        // Throw erros when the current untokenised text can't be tokenised.
+        if (lUntokenisedText.length !== 0) {
+            throw new ParserException(`Invalid token. Can't tokenise ${lUntokenisedText}`, this, lCurrentColumnNumber, lCurrentLineNumber);
         }
     }
 }

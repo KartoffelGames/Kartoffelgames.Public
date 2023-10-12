@@ -58,12 +58,7 @@ export class Dictionary<TKey, TValue> extends Map<TKey, TValue> implements IClon
      * ```
      */
     public clone(): Dictionary<TKey, TValue> {
-        const lClonedDictionary: Dictionary<TKey, TValue> = new Dictionary<TKey, TValue>();
-        for (const lEntry of this.entries()) {
-            lClonedDictionary.set(lEntry[0], lEntry[1]);
-        }
-
-        return lClonedDictionary;
+        return new Dictionary<TKey, TValue>(this);
     }
 
     /**

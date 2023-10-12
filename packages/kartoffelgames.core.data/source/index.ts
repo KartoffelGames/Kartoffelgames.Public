@@ -10,8 +10,8 @@
  */
 
 // Container.
-export { Dictionary } from './data_container/dictionary/dictionary';
-export { List } from './data_container/list/list';
+export { Dictionary } from './data_container/dictionary';
+export { List } from './data_container/list';
 export { Exception } from './exception/exception';
 export { Stack } from './data_container/stack';
 

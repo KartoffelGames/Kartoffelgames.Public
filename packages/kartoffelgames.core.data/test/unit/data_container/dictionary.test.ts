@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Dictionary } from '../../../source/data_container/dictionary/dictionary';
+import { Dictionary } from '../../../source/data_container/dictionary';
 import { Exception } from '../../../source/exception/exception';
 
 describe('Dictionary', () => {

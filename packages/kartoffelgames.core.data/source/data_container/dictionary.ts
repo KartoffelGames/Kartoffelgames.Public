@@ -1,6 +1,6 @@
-﻿import { List } from '../list/list';
-import { Exception } from '../../exception/exception';
-import { ICloneable } from '../../interface/i-cloneable';
+﻿import { List } from './list';
+import { Exception } from '../exception/exception';
+import { ICloneable } from '../interface/i-cloneable';
 
 /**
  * Wrapper for {@link Map}.

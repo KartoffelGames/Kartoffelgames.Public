@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { List } from '../../../source/data_container/list/list';
+import { List } from '../../../source/data_container/list';
 
 describe('List', () => {
     it('Static Method: newListWith', () => {

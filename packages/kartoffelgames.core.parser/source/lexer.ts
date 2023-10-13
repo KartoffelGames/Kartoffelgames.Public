@@ -72,9 +72,11 @@ export class Lexer<TTokenType> {
      * 
      * @example Set two types of tokens for a text.
      * ``` Typescript
-     * const lexer = new Lexer<'number' | 'string'>();
+     * const lexer = new Lexer<'number' | 'string' | 'text-a-ending'>();
      * lexer.addTokenPattern(/[0-9]+/, 'number');
      * lexer.addTokenPattern(/[a-zA-Z]+/, 'text');
+     *  // Token that ends with an a. The ending a will not be skipped.
+     * lexer.addTokenPattern(/(?<token>[a-zA-Z]+)a/, 'text-a-ending');
      * 
      * lexer.addTokenPattern(/[a-zA-Z0-9]+/, 'text'); // => Fails
      * ``` 

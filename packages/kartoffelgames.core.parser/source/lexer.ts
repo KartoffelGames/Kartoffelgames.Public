@@ -96,29 +96,24 @@ export class Lexer<TTokenType> {
      * Create a generator that yield any token of the provided text.
      * Generated token contains additional line and column numbers.
      * 
-     * @param pText - Text holding a grammar that can be completly tokenised by the set token patterns.
+     * @param pText - Text holding a grammar that can be completly tokenized by the set token patterns.
      * 
      * @returns Generator that yields any valid token that can be found with the set token patterns.
      * 
      * @throws 
-     * On any text part that can not be tokenised.
+     * On any text part that can not be tokeniszd.
      */
-    public * tokenise(pText: string): Generator<LexerToken<TTokenType>> {
+    public * tokenize(pText: string): Generator<LexerToken<TTokenType>> {
         let lCurrentLineNumber = 1;
         let lCurrentColumnNumber = 1;
 
-        let lUntokenisedText: string = pText;
+        let lUntokenizedText: string = pText;
 
         // Loop till end.
-        while (true) {
-            // Skip on file end.
-            if (lUntokenisedText.length === 0) {
-                break;
-            }
-
+        while (lUntokenizedText.length !== 0) {
             // Skip all set whitespaces.
-            if (this.mSettings.trimSpaces && this.mSettings.whiteSpaces.has(lUntokenisedText.charAt(0))) {
-                const lWhitespaceCharacter: string = lUntokenisedText.charAt(0);
+            if (this.mSettings.trimSpaces && this.mSettings.whiteSpaces.has(lUntokenizedText.charAt(0))) {
+                const lWhitespaceCharacter: string = lUntokenizedText.charAt(0);
 
                 // Start newline when whitespace is a newline.
                 if (lWhitespaceCharacter === '\n') {
@@ -129,24 +124,62 @@ export class Lexer<TTokenType> {
                     lCurrentColumnNumber++;
                 }
 
-                // Update untokenised list.
-                lUntokenisedText = lUntokenisedText.substring(1);
+                // Update untokenised text.
+                lUntokenizedText = lUntokenizedText.substring(1);
 
                 // Skip to next character.
                 continue;
             }
 
+            let lBestToken: LexerToken<TTokenType> | null = null;
+
             // Find next token.
             for (const lTokenType of this.mTokenTypes) {
                 const lTokenPattern: RegExp = this.mTokenPatterns.get(lTokenType)!;
 
-                yield <any>null;
-            }
-        }
+                // Execute pattern and reset last position.
+                const lPatternMatch: RegExpExecArray | null = lTokenPattern.exec(lUntokenizedText);
+                lTokenPattern.lastIndex = 0;
 
-        // Throw erros when the current untokenised text can't be tokenised.
-        if (lUntokenisedText.length !== 0) {
-            throw new ParserException(`Invalid token. Can't tokenise ${lUntokenisedText}`, this, lCurrentColumnNumber, lCurrentLineNumber);
+                // Process token on pattern match.
+                if (lPatternMatch) {
+                    // Read token group or complete match when no token group was specified.
+                    const lPatternData: string = lPatternMatch.groups!['token'] ?? lPatternMatch[0];
+
+                    // Update token when no token was set, or a better token, a longer one, was found.
+                    if (!lBestToken || lPatternData.length > lBestToken.value.length) {
+                        lBestToken = {
+                            type: lTokenType,
+                            value: lPatternData,
+                            lineNumber: lCurrentLineNumber,
+                            columnNumber: lCurrentColumnNumber
+                        };
+                    }
+                }
+            }
+
+            // Throw erros when the current untokenized text can't be tokenized.
+            if (!lBestToken) {
+                throw new ParserException(`Invalid token. Can't tokenize ${lUntokenizedText}`, this, lCurrentColumnNumber, lCurrentLineNumber);
+            }
+
+            // Move cursor.
+            const lLines: Array<string> = lBestToken.value.split('\n');
+
+            // Reset column number when any newline was tokenized.
+            if (lLines.length > 1) {
+                lCurrentColumnNumber = 0;
+            }
+
+            // Step line and column number.
+            lCurrentLineNumber += lLines.length - 1;
+            lCurrentColumnNumber += lLines.at(-1)!.length;
+
+            // Update untokenised text.
+            lUntokenizedText = lUntokenizedText.substring(lBestToken.value.length);
+
+            // Yield best found token.
+            yield lBestToken;
         }
     }
 }

@@ -1,3 +1,0 @@
-export class GrammarRootNode<TTokenType> {
-    
-}

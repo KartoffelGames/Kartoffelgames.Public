@@ -1,3 +1,4 @@
+import { Exception } from '@kartoffelgames/core.data';
 import { BaseGrammarNode } from '../base-grammar-node';
 import { GrammarNodeType } from '../grammar-node-type.enum';
 
@@ -9,22 +10,33 @@ import { GrammarNodeType } from '../grammar-node-type.enum';
  */
 export class GrammarVoidNode<TTokenType> extends BaseGrammarNode<TTokenType> {
     /**
-     * Grammar node type.
+     * Forwarded grammar node type.
+     * 
+     * @throws {@link Exception}
+     * When no node was chained on this void node.
      */
     public get type(): GrammarNodeType {
-        return GrammarNodeType.Void;
+        if (!this.chainedNode) {
+            throw new Exception('Grammer void nodes needs a chained grammer node.', this);
+        }
+
+        return this.chainedNode.type;
     }
-    
+
     /**
      * Retrive next grammar node for the specified type of token.
      * 
      * @param pToken - Current token.
-     * @returns Forwarded {@link BaseGrammarNode.retrieveNextFor} call of the chained node or null when no node was chained.
+     * 
+     * @returns Forwarded {@link BaseGrammarNode.retrieveNextFor} call of the chained node.
+     * 
+     * @throws {@link Exception}
+     * When no node was chained on this void node.
      */
     public override retrieveNextFor(pToken: TTokenType): BaseGrammarNode<TTokenType> | null {
         // Nothing when nothing was chained. Could be an error.
-        if(!this.chainedNode){
-            return null;
+        if (!this.chainedNode) {
+            throw new Exception('Grammer void nodes needs a chained grammer node.', this);
         }
 
         // Forward token node request.

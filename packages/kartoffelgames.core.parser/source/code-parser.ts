@@ -55,6 +55,14 @@ export class CodeParser<TTokenType, TParseResult> {
 
         return <any>null;
     }
+
+    /**
+     * Create new syntax node for a staring reference of a new chain.
+     * @returns new grammar void node.
+     */
+    public syntaxNode(): GrammarVoidNode<TTokenType> {
+        return new GrammarVoidNode<TTokenType>();
+    }
 }
 
 /*

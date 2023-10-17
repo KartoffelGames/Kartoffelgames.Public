@@ -1,5 +1,5 @@
-import { BaseGrammarNode } from './base-grammar-node';
-import { GrammarNodeType } from './grammar-node-type.enum';
+import { BaseGrammarNode } from '../base-grammar-node';
+import { GrammarNodeType } from '../grammar-node-type.enum';
 
 /**
  * Empty grammar node. Hold no data and does not chain.
@@ -14,7 +14,8 @@ export class GrammarVoidNode<TTokenType> extends BaseGrammarNode<TTokenType> {
         return GrammarNodeType.Void;
     }
     
-    public override retrieveNextFor(pToken: TTokenType) {
-        throw new Error('Method not implemented.');
+    public override retrieveNextFor(pToken: TTokenType): BaseGrammarNode<TTokenType> | null {
+        // TODO: What to return.
+        return this.chainedNode;
     }
 }

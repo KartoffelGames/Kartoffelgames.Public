@@ -1,5 +1,5 @@
-import { BaseGrammarNode } from './base-grammar-node';
-import { GrammarNodeType } from './grammar-node-type.enum';
+import { BaseGrammarNode } from '../base-grammar-node';
+import { GrammarNodeType } from '../grammar-node-type.enum';
 
 /**
  * Empty grammar node. Hold no data and does not chain.
@@ -11,13 +11,7 @@ export class GrammarTrunkNode<TTokenType> extends BaseGrammarNode<TTokenType> {
      * Grammar node type.
      */
     public get type(): GrammarNodeType {
-        return GrammarNodeType.Void;
-    }
-
-    public constructor() {
-        super();
-
-
+        return GrammarNodeType.Trunk;
     }
 
     public create(pEndpointData: Record<string, any>): any {

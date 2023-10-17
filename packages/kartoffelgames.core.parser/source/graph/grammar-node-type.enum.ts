@@ -1,6 +1,6 @@
 export enum GrammarNodeType {
     Void = 0,
-    Linear = 1,
+    Then = 1,
     Or = 2,
     Loop = 3,
     Optional = 4,

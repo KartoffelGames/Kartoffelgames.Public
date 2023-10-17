@@ -1,7 +1,6 @@
 import { BaseGrammarNode } from './graph/base-grammar-node';
 import { GrammarNodeType } from './graph/grammar-node-type.enum';
-import { GrammarRootNode } from './graph/grammar-root-node';
-import { GrammarVoidNode } from './graph/grammar-void-node';
+import { GrammarVoidNode } from './graph/chain_nodes/grammar-void-node';
 import { Lexer } from './lexer';
 import { ParserException } from './parser-exception';
 
@@ -29,11 +28,11 @@ export class CodeParser<TTokenType, TParseResult> {
     }
 
     public parse(pCodeText: string): TParseResult {
-        let lCurrentNode: BaseGrammarNode<TTokenType> = this.rootNode;
+        let lCurrentNode: BaseGrammarNode<TTokenType> | null = this.rootNode;
 
         for (const lNextToken of this.mLexer.tokenize(pCodeText)) {
             // Try to read next grammar node of token that is not of type void.
-            let lNextGrammarNode: BaseGrammarNode<TTokenType>;
+            let lNextGrammarNode: BaseGrammarNode<TTokenType> | null;
             do {
                 lNextGrammarNode = lCurrentNode.retrieveNextFor(lNextToken.type);
 

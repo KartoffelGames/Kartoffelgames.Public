@@ -1,8 +1,10 @@
 import { BaseGrammarNode } from './graph/base-grammar-node';
 import { GrammarNodeType } from './graph/grammar-node-type.enum';
 import { GrammarVoidNode } from './graph/chain_nodes/grammar-void-node';
-import { Lexer } from './lexer';
+import { Lexer, LexerToken } from './lexer';
 import { ParserException } from './parser-exception';
+import { GrammarTrunkNode } from './graph/chain_nodes/grammar-trunk-node';
+import { Stack } from '@kartoffelgames/core.data';
 
 export class CodeParser<TTokenType, TParseResult> {
     private readonly mLexer: Lexer<TTokenType>;
@@ -28,8 +30,15 @@ export class CodeParser<TTokenType, TParseResult> {
     }
 
     public parse(pCodeText: string): TParseResult {
-        let lCurrentNode: BaseGrammarNode<TTokenType> | null = this.rootNode;
+        // Trunk stack to keep track of parser depth.
+        const lTrunkStack: Stack<GrammarTrunkNode<TTokenType>> = new Stack<GrammarTrunkNode<TTokenType>>();
 
+        // Buffer for end- and trunk nodes.
+        let lEndTrunkData: Record<string, string> | null = null;
+        let lTrunkNodeData: Record<string, object> | null = null;
+
+        // Iterate each token till end. Clone root node to clean all status.
+        let lCurrentNode: BaseGrammarNode<TTokenType> | null = this.rootNode.clone();
         for (const lNextToken of this.mLexer.tokenize(pCodeText)) {
             // Try to read next grammar node of token that is not of type void.
             let lNextGrammarNode: BaseGrammarNode<TTokenType> | null;
@@ -65,20 +74,34 @@ export class CodeParser<TTokenType, TParseResult> {
     }
 }
 
-/*
+// ------------------------
+// Test
+// ------------------------
+enum XmlToken {
+    TextContent = 1,
+    Namespace = 2,
+    Assignment = 3,
+    TagOpen = 4,
+    TagSelfClose = 5,
+    TagClose = 6,
+    XmlIdentifier = 7
+}
 
-const xmlTextContent = parser.syntaxNode(XmlToken.TextContent, 'text').end((pArgs: Record<string, LexerToken>) => { return new XmlTextNode(pArgs['text'].value) });
-const xmlAttribute = parser.syntaxNode().optional(XmlToken.Namespace, 'namespace').then(XmlIdentifier).optional(()=>{
-    return parser.syntaxNode(XmlToken.Assignment).then(xmlTextContent);
-})
 
-const xmlTag = parser.trunk((pData: Record<string, any>) => {}, ()=>{
-    return parser.syntaxNode(XmlToken.TagOpen).Then(XmlTag.Identifier).loop(xmlAttribute).or(()=>{
+const lexer = new Lexer<XmlToken>();
+
+const parser = new CodeParser(lexer);
+const xmlTextContent = parser.syntaxNode().end(XmlToken.TextContent, 'text', (pArgs: Record<string, LexerToken<XmlToken>>) => { return new XmlTextNode(pArgs['text'].value); });
+
+const xmlAttributes = parser.syntaxNode().optional(XmlToken.Namespace, 'namespace').then(XmlToken.XmlIdentifier).optional(() => {
+    return parser.syntaxNode().then(XmlToken.Assignment).then(xmlTextContent);
+}).then(() => { return xmlAttributes; });
+
+const xmlTag = parser.syntaxNode().trunk((pData: Record<string, any>) => { }, () => {
+    return parser.syntaxNode(XmlToken.TagOpen).Then(XmlTag.Identifier).then(xmlAttributes).or(() => {
         return [
-            parser.syntaxNode(XmlToken.TagSelfClose),
-            parser.syntaxNode(XmlToken.TagClose).
-        ]
-    })
-})
-
- */
+            parser.syntaxNode().then(XmlToken.TagSelfClose),
+            parser.syntaxNode().then(XmlToken.TagClose).
+        ];
+    });
+});

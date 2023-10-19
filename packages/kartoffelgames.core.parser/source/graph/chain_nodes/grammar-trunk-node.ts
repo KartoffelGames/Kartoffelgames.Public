@@ -2,7 +2,10 @@ import { BaseGrammarNode } from '../base-grammar-node';
 import { GrammarNodeType } from '../grammar-node-type.enum';
 
 /**
- * Empty grammar node. Hold no data and does not chain.
+ * Trunk Grammar node. 
+ * Collects Data from {@link GrammarEndNode}s or other {@link GrammarTrunkNode}s and parses these data into another result type.
+ * 
+ * @typeparam TTokenType - Underlying token types of attached parser.
  * 
  * @public
  */
@@ -12,6 +15,10 @@ export class GrammarTrunkNode<TTokenType> extends BaseGrammarNode<TTokenType> {
      */
     public get type(): GrammarNodeType {
         return GrammarNodeType.Trunk;
+    }
+
+    public constructor(){
+        super();
     }
 
     public create(pEndpointData: Record<string, any>): any {

@@ -1,7 +1,7 @@
-import { BaseGrammarNode } from '../base-grammar-node';
+import { BaseGrammarTokenNode } from '../base-grammar-token-node';
 import { GrammarNodeType } from '../grammar-node-type.enum';
 
-export class GrammarOptionalNode<TTokenType> extends BaseGrammarNode<TTokenType>{
+export class GrammarOptionalNode<TTokenType> extends BaseGrammarTokenNode<TTokenType>{
     /**
      * Grammar node type.
      */

@@ -1,5 +1,5 @@
 import { BaseGrammarNode } from '../base-grammar-node';
-import { GrammarNodeType } from '../grammar-node-type.enum';
+import { GrammarNodeType } from '../grammar-branch-reference.enum';
 
 /**
  * Empty grammar node. Hold no data and should be used to start new chains.

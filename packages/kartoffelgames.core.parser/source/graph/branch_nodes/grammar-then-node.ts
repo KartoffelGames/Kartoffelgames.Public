@@ -1,6 +1,6 @@
 import { BaseGrammarNode } from '../base-grammar-node';
 import { BaseGrammarTokenNode } from '../base-grammar-token-node';
-import { GrammarNodeType } from '../grammar-node-type.enum';
+import { GrammarNodeType } from '../grammar-branch-reference.enum';
 
 export class GrammarThenNode<TTokenType extends string> extends BaseGrammarTokenNode<TTokenType>{
     private readonly mTokenBranch: SingleTokenPath<TTokenType>;

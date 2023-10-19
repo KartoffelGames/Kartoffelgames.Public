@@ -1,9 +1,9 @@
-import { GrammarEndNode } from './chain_nodes/grammar-end-node';
-import { GrammarOptionalNode } from './chain_nodes/grammar-optional-node';
-import { GrammarOrNode } from './chain_nodes/grammar-or-node';
-import { GrammarThenNode } from './chain_nodes/grammar-then-node';
-import { GrammarTrunkNode } from './chain_nodes/grammar-trunk-node';
-import { GrammarNodeType } from './grammar-node-type.enum';
+import { GrammarEndNode } from './branch_nodes/grammar-end-node';
+import { GrammarOptionalNode } from './branch_nodes/grammar-optional-node';
+import { GrammarOrNode } from './branch_nodes/grammar-or-node';
+import { GrammarThenNode } from './branch_nodes/grammar-then-node';
+import { GrammarTrunkNode } from './branch_nodes/grammar-trunk-node';
+import { GrammarNodeType } from './grammar-branch-reference.enum';
 
 export abstract class BaseGrammarNode<TTokenType> {
     private mChainedNode: BaseGrammarNode<TTokenType> | null;
@@ -20,7 +20,7 @@ export abstract class BaseGrammarNode<TTokenType> {
     public get branchRoot(): BaseGrammarNode<TTokenType> {
         // Get parent of parent when a parent exists.
         // Real cool property recursion.
-        if(this.mParentNode){
+        if (this.mParentNode) {
             return this.mParentNode.branchRoot;
         }
 
@@ -75,10 +75,6 @@ export abstract class BaseGrammarNode<TTokenType> {
 
     }
 
-    public trunk(): GrammarTrunkNode<TTokenType> {
-
-    }
-
     /**
      * Deep clone grammer branch.
      * Clones parent and chained nodes as well.
@@ -92,7 +88,7 @@ export abstract class BaseGrammarNode<TTokenType> {
      * 
      * @internal
      */
-    public abstract retrieveNextFor(pToken: TTokenType): BaseGrammarNode<TTokenType> | null;
+    public abstract retrieveNext(pToken: TTokenType): BaseGrammarNode<TTokenType> | null;
 
     /**
      * Check if this node can handle the specified token type.
@@ -101,8 +97,3 @@ export abstract class BaseGrammarNode<TTokenType> {
      */
     public abstract validFor(pToken: TTokenType): boolean;
 }
-
-type SingleTokenPath<TTokenType> = TTokenType | SingleTokenPathFunction<TTokenType>;
-type SingleTokenPathFunction<TTokenType> = () => (TTokenType | BaseGrammarNode<TTokenType>);
-
-type MultiTokenPath<TTokenType> = () => (Array<BaseGrammarNode<TTokenType>>);

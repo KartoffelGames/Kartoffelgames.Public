@@ -23,7 +23,7 @@ export class Lexer<TTokenType> {
      */
     public get trimWhitespace(): boolean {
         return this.mSettings.trimSpaces;
-    } set trimWhitespaces(pValue: boolean) {
+    } set trimWhitespace(pValue: boolean) {
         this.mSettings.trimSpaces = pValue;
     }
 
@@ -162,7 +162,7 @@ export class Lexer<TTokenType> {
 
             // Throw erros when the current untokenized text can't be tokenized.
             if (!lBestToken) {
-                throw new ParserException(`Invalid token. Can't tokenize ${lUntokenizedText}`, this, lCurrentColumnNumber, lCurrentLineNumber);
+                throw new ParserException(`Invalid token. Can't tokenize "${lUntokenizedText}"`, this, lCurrentColumnNumber, lCurrentLineNumber);
             }
 
             // Move cursor.

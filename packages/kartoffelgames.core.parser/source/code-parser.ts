@@ -107,6 +107,7 @@ enum XmlToken {
     Namespace = 2,
     Assignment = 3,
     TagOpen = 4,
+    TagOpenClose = 11,
     TagSelfClose = 5,
     TagClose = 6,
     Identifier = 7
@@ -116,14 +117,36 @@ enum XmlToken {
 const lexer = new Lexer<XmlToken>();
 const parser = new CodeParser(lexer);
 
-const xmlTextContent = parser.newBranch((pArgs: Record<string, Array<string>>) => { return new XmlTextNode(pArgs['text'].value); });
-xmlTextContent.then(XmlToken.TextContent, 'text').end();
+// Define attribute
+parser.definePart('attribute',
+    parser.graph().optional(XmlToken.Namespace, 'namespace').single(XmlToken.Identifier, 'name').optional(
+        parser.graph().single(XmlToken.Assignment).single(XmlToken.TextContent, 'value')
+    ),
+    (pAttributeData: Record<string, string>) => {
+        return {};
+    }
+);
 
-const xmlAttributes = parser.newBranch();
-xmlAttributes.optional(XmlToken.Namespace, 'namespace').then(XmlToken.Identifier).optional(parser.newBranch().then(XmlToken.Assignment).then(xmlTextContent, 'attributes')).then(xmlAttributes).end();
+// Define content
+parser.definePart('content',
+    parser.graph().loop(XmlToken.TextContent, 'text'),
+    (pTextContentData: Record<string, string>) => {
+        return {};
+    }
+);
 
-const xmlTag = parser.newBranch((pData: Record<string, any>) => { });
-xmlTag.then(XmlToken.TagOpen).then(XmlToken.Identifier).then(xmlAttributes).then([
-    parser.newBranch().then(XmlToken.TagSelfClose),
-    parser.newBranch().then(XmlToken.TagClose).then(xmlTag)
-]).end();
+// Define tag
+parser.definePart('tag',
+    parser.graph().single(XmlToken.TagOpen).optional(XmlToken.Namespace, 'namespace').single(XmlToken.Identifier, 'openName').loop(parser.partReference('attribute')).branch([
+        parser.graph().single(XmlToken.TagSelfClose),
+        parser.graph().single(XmlToken.TagClose).loop(
+            parser.graph().branch([
+                parser.partReference('content'),
+                parser.partReference('tag')
+            ])
+        ).single(XmlToken.TagOpenClose).single(XmlToken.Identifier, 'closeName').single(XmlToken.TagClose)
+    ]),
+    (pTagData: Record<string, string>) => {
+        return {};
+    }
+);

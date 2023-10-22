@@ -1,4 +1,5 @@
 import { BaseGrammarNode } from './base-grammar-node';
+import { GrammarNodeType } from './grammar-node-type.enum';
 
 export abstract class BaseGrammarTokenNode<TTokenType> extends BaseGrammarNode<TTokenType> {
     private readonly mValueIdentifier: string | null;
@@ -17,7 +18,7 @@ export abstract class BaseGrammarTokenNode<TTokenType> extends BaseGrammarNode<T
      * @param pValueIdentifier - Identifier wich the token value can be mapped. 
      */
     public constructor(pValueIdentifier?: string) {
-        super();
+        super(GrammarNodeType.Value);
 
         this.mValueIdentifier = pValueIdentifier ?? null;
     }

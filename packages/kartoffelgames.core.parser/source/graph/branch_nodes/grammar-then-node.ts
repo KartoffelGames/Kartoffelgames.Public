@@ -1,51 +1,39 @@
 import { BaseGrammarNode } from '../base-grammar-node';
 import { BaseGrammarTokenNode } from '../base-grammar-token-node';
-import { GrammarNodeType } from '../grammar-branch-reference.enum';
+import { GrammarBranchNode } from './grammar-branch-node';
 
 export class GrammarThenNode<TTokenType extends string> extends BaseGrammarTokenNode<TTokenType>{
-    private readonly mTokenBranch: SingleTokenPath<TTokenType>;
-
-    /**
-     * Grammar node type.
-     */
-    public get type(): GrammarNodeType {
-        return GrammarNodeType.Then;
-    }
+    private readonly mTokenBranchRoot: TTokenType | GrammarBranchNode<TTokenType>;
 
 
-    public constructor(pNextToken: SingleTokenPath<TTokenType>, pValueIdentifier?: string) {
+    public constructor(pNextToken: ThenTokenPath<TTokenType>, pValueIdentifier?: string) {
         super(pValueIdentifier);
 
-        this.mTokenBranch = pNextToken;
-    }
-
-    /**
-     * Deep clone grammer node. Clones chained nodes as well.
-     * 
-     * @returns Cloned void node with cloned chain node.
-     */
-    public override clone(): GrammarThenNode<TTokenType> {
-        const lClonedNode: GrammarThenNode<TTokenType> = new GrammarThenNode<TTokenType>(this.mTokenBranch, this.valueIdentifier ?? undefined);
-        if (this.chainedNode) {
-            lClonedNode.chain(this.chainedNode.clone());
+        // Save token type or root of branch.
+        if (typeof pNextToken === 'string') {
+            this.mTokenBranchRoot = pNextToken;
+        } else {
+            this.mTokenBranchRoot = pNextToken.branchRoot;
         }
-
-        return lClonedNode;
     }
 
     /**
-     * Retrieve chained node but only when it has the specified token type. 
+     * Retrieve next grammer node for the next token.
      * 
-     * @param pToken - The token type the next node should have.
+     * @param pToken - Token type that the next path should take.
      * 
-     * @returns The next chained node with the specified node type. 
-     * When nothing is changed or the node type does not match, null is returned.
+     * @throws {@link Exception}
+     * When no valid path exists for the specified token.
+     * 
+     * @returns The next grammar node of specified path or null when the end of this chain is reached.
+     * 
+     * @internal
      */
-    public override retrieveNextFor(pToken: TTokenType): BaseGrammarNode<TTokenType> | null {
+    public override retrieveNext(pToken: TTokenType): BaseGrammarNode<TTokenType> | null {
         // Check if token branch is a single token type or a complete branch..
-        if (typeof this.mTokenBranch === 'function') {
+        if (this.mTokenBranchRoot instanceof GrammarBranchNode) {
             // Read start end end of branch. Use a copy to not change any source data.
-            const lBranchEndNode: BaseGrammarNode<TTokenType> = this.mTokenBranch().clone();
+            const lBranchEndNode: BaseGrammarNode<TTokenType> = this.mTokenBranchRoot().clone();
             const lBranchStartNode: BaseGrammarNode<TTokenType> = lBranchEndNode.branchRoot;
 
             // Check if the next node (the branch start) can handle the next token type.
@@ -79,7 +67,7 @@ export class GrammarThenNode<TTokenType extends string> extends BaseGrammarToken
         return this.chainedNode;
     }
 
-     /**
+    /**
      * Check if this node can handle the specified token type.
      * 
      * @param pToken - Token type that this node can handle.
@@ -88,19 +76,17 @@ export class GrammarThenNode<TTokenType extends string> extends BaseGrammarToken
      * Forwards {@link BaseGrammarNode.validFor} when the next token is a branch and not a token type.  
      */
     public override validFor(pToken: TTokenType): boolean {
-        // Check if token branch is a single token type or a complete branch..
-        if (typeof this.mTokenBranch === 'function') {
-            // Read root node of branch.
-            const lBranchEndNode: BaseGrammarNode<TTokenType> = this.mTokenBranch().branchRoot;
-
-            // Validate token for root node of branch.
-            return lBranchEndNode.validFor(pToken);
+        // Check if token branch is a single token type or a complete branch.
+        if (typeof this.mTokenBranchRoot === 'string') {
+            return this.mTokenBranchRoot === pToken;
         }
 
-        // Or validate node type is the same.
-        return this.mTokenBranch === pToken;
+        // Read root node of branch.
+        const lBranchEndNode: BaseGrammarNode<TTokenType> = this.mTokenBranchRoot;
+
+        // Validate token for root node of branch.
+        return lBranchEndNode.validFor(pToken);
     }
 }
 
-type SingleTokenPath<TTokenType> = TTokenType | SingleTokenPathFunction<TTokenType>;
-type SingleTokenPathFunction<TTokenType> = () => BaseGrammarNode<TTokenType>;
+type ThenTokenPath<TTokenType> = TTokenType | BaseGrammarNode<TTokenType>;

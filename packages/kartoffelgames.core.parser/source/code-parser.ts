@@ -110,12 +110,15 @@ enum XmlToken {
     TagOpenClose = 11,
     TagSelfClose = 5,
     TagClose = 6,
-    Identifier = 7
+    Identifier = 7,
+    Doctype = 8,
 }
 
 
 const lexer = new Lexer<XmlToken>();
 const parser = new CodeParser(lexer);
+
+// TODO: ParserData defined from graph. => All loops need a name {loopName: [...loopdata]}
 
 // Define attribute
 parser.definePart('attribute',
@@ -128,7 +131,7 @@ parser.definePart('attribute',
 );
 
 // Define content
-parser.definePart('content',
+parser.definePart('textContent',
     parser.graph().loop(XmlToken.TextContent, 'text'),
     (pTextContentData: Record<string, string>) => {
         return {};
@@ -137,15 +140,31 @@ parser.definePart('content',
 
 // Define tag
 parser.definePart('tag',
-    parser.graph().single(XmlToken.TagOpen).optional(XmlToken.Namespace, 'namespace').single(XmlToken.Identifier, 'openName').loop(parser.partReference('attribute')).branch([
+    parser.graph().single(XmlToken.TagOpen).optional(XmlToken.Namespace, 'namespace').single(XmlToken.Identifier, 'openName').loop(CodeParser.partRef('attribute'), 'attributes').branch([
         parser.graph().single(XmlToken.TagSelfClose),
         parser.graph().single(XmlToken.TagClose).loop(
             parser.graph().branch([
-                parser.partReference('content'),
-                parser.partReference('tag')
-            ])
+                CodeParser.partRef('textContent'),
+                CodeParser.partRef('tag')
+            ], 'content')
         ).single(XmlToken.TagOpenClose).single(XmlToken.Identifier, 'closeName').single(XmlToken.TagClose)
     ]),
+    (pTagData: Record<string, string>) => {
+        return {};
+    }
+);
+
+// Define xml doctype
+parser.definePart('doctype',
+    parser.graph().single(XmlToken.TagOpen).single(XmlToken.Doctype).single(XmlToken.Identifier, 'doctype'),
+    (pDoctypeData: Record<string, string>) => {
+        return {};
+    }
+);
+
+// Define parser endpoint where all data is merged.
+parser.defineEndpoint(
+    parser.graph().optional(CodeParser.partRef('doctype'), 'doctype').optional(CodeParser.partRef('tag'), 'rootTag'),
     (pTagData: Record<string, string>) => {
         return {};
     }

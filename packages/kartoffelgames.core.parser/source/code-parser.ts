@@ -144,7 +144,7 @@ parser.definePart('tag',
         parser.graph().single(XmlToken.TagSelfClose),
         parser.graph().single(XmlToken.TagClose).loop(
             parser.graph().branch([
-                CodeParser.partRef('textContent'),
+                CodeParser.partRef('textContent'), // TODO: How to save branch data for part parser.
                 CodeParser.partRef('tag')
             ], 'content')
         ).single(XmlToken.TagOpenClose).single(XmlToken.Identifier, 'closeName').single(XmlToken.TagClose)
@@ -162,7 +162,7 @@ parser.definePart('doctype',
     }
 );
 
-// Define parser endpoint where all data is merged.
+// Define parser endpoint where all data is merged. // TODO: Maybe just set a partname as root part. parser.setRootPart('document') ???
 parser.defineEndpoint(
     parser.graph().optional(CodeParser.partRef('doctype'), 'doctype').optional(CodeParser.partRef('tag'), 'rootTag'),
     (pTagData: Record<string, string>) => {

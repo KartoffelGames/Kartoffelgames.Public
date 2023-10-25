@@ -37,60 +37,19 @@ export class CodeParser<TTokenType, TParseResult> {
     }
 
     public parse(pCodeText: string): TParseResult {
-        // Trunk stack to keep track of parser depth.
-        const lBranchStack: Stack<GrammarBranchNode<TTokenType>> = new Stack<GrammarBranchNode<TTokenType>>();
+        // TODO: Build up parallel data for branches that starts with the same starting nodes. 
+        // This can go a long way until all but one fails and the data is inserted into the original data structure.
+        const lParallelDimension: Array<any> = new Array<any>();
 
-        // Buffer for end- and trunk nodes.
-        let lBranchDataCollection: Record<string, Array<string>> = {};
-        let lTrunkNodeData: Array<object> = [];
+        // TODO: Push first dimension.
+        
 
-        // Iterate each token till end. Clone root node to clean all status.
-        let lCurrentNode: BaseGrammarNode<TTokenType> | null = this.rootNode;
+        // Iterate each token till end.
         for (const lNextToken of this.mLexer.tokenize(pCodeText)) {
-            // Try to read next grammar node of token that is not of type void.
-            let lNextGrammarNode: BaseGrammarNode<TTokenType> | null;
-            do {
-                lNextGrammarNode = lCurrentNode.retrieveNext(lNextToken.type, false);
+            // For each paralell dimension, process the same token.
+            for(const lDimension of lParallelDimension){
 
-                // Catch unexpected token.
-                if (!lNextGrammarNode) {
-                    const lBranchRoot: GrammarBranchNode<TTokenType> | undefined = lBranchStack.pop();
-
-                    // This should never happen.
-                    if (!lBranchRoot) {
-                        throw new ParserException(`Syntax root not found.`, this, lNextToken.columnNumber, lNextToken.lineNumber);
-                    }
-
-                    // When the branch has a data collector, execute it.
-                    if (lBranchRoot.hasCollector) {
-                        const lCollectorBundle: any = lBranchRoot.executeCollector(lBranchDataCollection);
-
-                        // TODO: Save collected bundle. Order needs to be preserved.
-
-                        // Reset collected data.
-                        lBranchDataCollection = {};
-                    }
-
-                    // TODO: Load last starging node from stack and get chained node
-
-
-                    continue;
-                }
-
-                // A new branch was 
-                if (lNextGrammarNode.branchRoot === lNextGrammarNode) {
-                    lBranchStack.push(<GrammarBranchNode<TTokenType>>lNextGrammarNode);
-                }
-
-            } while (lNextGrammarNode.type !== GrammarNodeType.Void);
-
-            // TODO: Process token value for different token types.
-
-            // TODO: Save data from endpoints.
-            // TODO: Save stack of trunks. For each endpoint meet, send data to trunk.
-
-            // Update token.
-            lCurrentNode = lNextGrammarNode;
+            }
         }
 
         // TODO: Unexpected end of file.
@@ -132,24 +91,37 @@ parser.definePart('attribute',
 
 // Define content
 parser.definePart('textContent',
-    parser.graph().loop(XmlToken.TextContent, 'text'),
+    parser.graph().loop('text', XmlToken.TextContent),
     (pTextContentData: Record<string, string>) => {
         return {};
     }
 );
 
 // Define tag
+type ParserTagPartGraphData = {
+    namespace?: string;
+    openName: string;
+    attributes: Array<XmlAttribute>;
+    closing: {
+        contents: Array<{
+            content: {
+                value: XmlText | XmlTag;
+            };
+        }>;
+        closeName: string;
+    };
+};
 parser.definePart('tag',
-    parser.graph().single(XmlToken.TagOpen).optional(XmlToken.Namespace, 'namespace').single(XmlToken.Identifier, 'openName').loop(CodeParser.partRef('attribute'), 'attributes').branch([
+    parser.graph().single(XmlToken.TagOpen).optional(XmlToken.Namespace, 'namespace').single(XmlToken.Identifier, 'openName').loop('attributes', CodeParser.partRef('attribute')).branch('closing', [
         parser.graph().single(XmlToken.TagSelfClose),
-        parser.graph().single(XmlToken.TagClose).loop(
-            parser.graph().branch([
-                CodeParser.partRef('textContent'), // TODO: How to save branch data for part parser.
-                CodeParser.partRef('tag')
-            ], 'content')
+        parser.graph().single(XmlToken.TagClose).loop('contents',
+            parser.graph().branch('content', [
+                parser.graph().single(CodeParser.partRef('textContent'), 'value'),
+                parser.graph().single(CodeParser.partRef('tag'), 'value')
+            ]),
         ).single(XmlToken.TagOpenClose).single(XmlToken.Identifier, 'closeName').single(XmlToken.TagClose)
     ]),
-    (pTagData: Record<string, string>) => {
+    (pTagData: ParserTagPartGraphData): XmlTag => {
         return {};
     }
 );
@@ -162,10 +134,13 @@ parser.definePart('doctype',
     }
 );
 
-// Define parser endpoint where all data is merged. // TODO: Maybe just set a partname as root part. parser.setRootPart('document') ???
-parser.defineEndpoint(
+// Define parser endpoint where all data is merged.
+parser.definePart('document',
     parser.graph().optional(CodeParser.partRef('doctype'), 'doctype').optional(CodeParser.partRef('tag'), 'rootTag'),
     (pTagData: Record<string, string>) => {
         return {};
     }
 );
+
+// Set root part. The part, the parser starts to parse.
+parser.setRootPart('document');

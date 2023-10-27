@@ -18,9 +18,9 @@ describe('Lexer', () => {
         const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
         lLexer.validWhitespaces = ' \n';
 
-        lLexer.addTokenPattern(lWordBreaker, TestTokenType.Word);
-        lLexer.addTokenPattern(lNumberBreaker, TestTokenType.Number);
-        lLexer.addTokenPattern(lBracketBreaker, TestTokenType.Braket);
+        lLexer.addTokenPattern(lWordBreaker, TestTokenType.Word, 0);
+        lLexer.addTokenPattern(lNumberBreaker, TestTokenType.Number, 0);
+        lLexer.addTokenPattern(lBracketBreaker, TestTokenType.Braket, 0);
 
         return lLexer;
     };
@@ -97,7 +97,7 @@ describe('Lexer', () => {
         lLexer.validWhitespaces = ' \n';
 
         // Process.
-        lLexer.addTokenPattern(/./, TestTokenType.Word);
+        lLexer.addTokenPattern(/./, TestTokenType.Word, 0);
         const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
         // Evaluation.

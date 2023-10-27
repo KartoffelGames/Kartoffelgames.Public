@@ -12,7 +12,7 @@ import { ParserException } from './parser-exception';
 export class Lexer<TTokenType> {
     private readonly mSettings: LexerSettings;
     private readonly mTokenPatterns: Dictionary<TTokenType, RegExp>;
-    private readonly mTokenTypes: Array<TTokenType>;
+    private readonly mTokenSpecifications: Dictionary<TTokenType, number>;
 
     /**
      * Enable or disable whitespace trimming.
@@ -51,7 +51,7 @@ export class Lexer<TTokenType> {
      */
     public constructor() {
         this.mTokenPatterns = new Dictionary<TTokenType, RegExp>();
-        this.mTokenTypes = new Array<TTokenType>();
+        this.mTokenSpecifications = new Dictionary<TTokenType, number>();
 
         // Set defaults.
         this.mSettings = {
@@ -81,14 +81,14 @@ export class Lexer<TTokenType> {
      * lexer.addTokenPattern(/[a-zA-Z0-9]+/, 'text'); // => Fails
      * ``` 
      */
-    public addTokenPattern(pPattern: RegExp, pType: TTokenType): void {
+    public addTokenPattern(pPattern: RegExp, pType: TTokenType, pSpecification: number): void {
         // Restrict dublicate token type.
         if (this.mTokenPatterns.has(pType)) {
             throw new Exception(`Dublicate token type "${pType}". Token types for patthern need to be unique`, this);
         }
 
         // Ordered type list.
-        this.mTokenTypes.push(pType);
+        this.mTokenSpecifications.set(pType, pSpecification);
 
         // Type to pattern mapping.
         this.mTokenPatterns.set(pType, pPattern);
@@ -110,6 +110,12 @@ export class Lexer<TTokenType> {
         let lCurrentColumnNumber = 1;
 
         let lUntokenizedText: string = pText;
+
+        // Create ordered token type list by specification.
+        const lTokenList: Array<TTokenType> = [...this.mTokenSpecifications.keys()].sort((pA: TTokenType, pB: TTokenType) => {
+            // Sort lower specification at a lower index than higher specifications.
+            return this.mTokenSpecifications.get(pA)! - this.mTokenSpecifications.get(pB)!;
+        });
 
         // Loop till end.
         while (lUntokenizedText.length !== 0) {
@@ -133,11 +139,17 @@ export class Lexer<TTokenType> {
                 continue;
             }
 
-            let lBestToken: LexerToken<TTokenType> | null = null;
+            const lBestMatch: { token: LexerToken<TTokenType> | null, specification: number; } = { token: null, specification: 0 };
 
             // Find next token.
-            for (const lTokenType of this.mTokenTypes) {
+            for (const lTokenType of lTokenList) {
                 const lTokenPattern: RegExp = this.mTokenPatterns.get(lTokenType)!;
+                const lTokenSpecifiaction: number = this.mTokenSpecifications.get(lTokenType)!;
+
+                // Exit search when a token previous found with a better specification.
+                if (lBestMatch.token && lBestMatch.specification < lTokenSpecifiaction) {
+                    break;
+                }
 
                 // Execute pattern and reset last position.
                 const lPatternMatch: RegExpExecArray | null = lTokenPattern.exec(lUntokenizedText);
@@ -149,24 +161,25 @@ export class Lexer<TTokenType> {
                     const lPatternData: string = lPatternMatch.groups!['token'] ?? lPatternMatch[0];
 
                     // Update token when no token was set, or a better token, a longer one, was found.
-                    if (!lBestToken || lPatternData.length > lBestToken.value.length) {
-                        lBestToken = {
+                    if (!lBestMatch.token || lPatternData.length > lBestMatch.token.value.length) {
+                        lBestMatch.token = {
                             type: lTokenType,
                             value: lPatternData,
                             lineNumber: lCurrentLineNumber,
                             columnNumber: lCurrentColumnNumber
                         };
+                        lBestMatch.specification = lTokenSpecifiaction;
                     }
                 }
             }
 
             // Throw erros when the current untokenized text can't be tokenized.
-            if (!lBestToken) {
+            if (!lBestMatch.token) {
                 throw new ParserException(`Invalid token. Can't tokenize "${lUntokenizedText}"`, this, lCurrentColumnNumber, lCurrentLineNumber);
             }
 
             // Move cursor.
-            const lLines: Array<string> = lBestToken.value.split('\n');
+            const lLines: Array<string> = lBestMatch.token.value.split('\n');
 
             // Reset column number when any newline was tokenized.
             if (lLines.length > 1) {
@@ -178,10 +191,10 @@ export class Lexer<TTokenType> {
             lCurrentColumnNumber += lLines.at(-1)!.length;
 
             // Update untokenised text.
-            lUntokenizedText = lUntokenizedText.substring(lBestToken.value.length);
+            lUntokenizedText = lUntokenizedText.substring(lBestMatch.token.value.length);
 
             // Yield best found token.
-            yield lBestToken;
+            yield lBestMatch.token;
         }
     }
 }

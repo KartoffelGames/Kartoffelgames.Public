@@ -1,9 +1,11 @@
+import { ICloneable } from '../interface/i-cloneable';
+
 /**
  * Simple and fast stack implementation based on references.
  * 
  * @public
  */
-export class Stack<T> {
+export class Stack<T> implements ICloneable<Stack<T>> {
     private mTopItem: StackItem<T> | null;
 
     /**
@@ -24,6 +26,25 @@ export class Stack<T> {
      */
     public constructor() {
         this.mTopItem = null;
+    }
+
+    /**
+     * Clones the references of all stack items into a new one.
+     * Does only shallow copy.
+     * 
+     * @returns The cloned stack.
+     */
+    public clone(): Stack<T> {
+        const lClonedStack: Stack<T> = new Stack<T>();
+
+        // Convert stack into Array and reverse it.
+        // So the stack order is preserved.
+        for(const lItem of this.toArray().reverse()){
+            // Add each item to the new stack.
+            lClonedStack.push(lItem);
+        }
+
+        return lClonedStack;
     }
 
     /**
@@ -114,6 +135,40 @@ export class Stack<T> {
 
         // Replace current top item with next.
         this.mTopItem = lNextItem;
+    }
+
+    /**
+     * Converts this stack into an array.
+     * The first item in the array is the last item pushed into the stack.
+     * 
+     * @returns The current stack as array.
+     * 
+     * @example Stack into array.
+     * ``` Typescript
+     * const stack = new Stack<number>();
+     * stack.push(1);
+     * stack.push(2);
+     * stack.push(3);
+     * 
+     * // Stack to array.
+     * console.log(stack.toArray()); // => [3, 2, 1]
+     * ``` 
+     */
+    public toArray(): Array<T> {
+        const lArray: Array<T> = new Array<T>();
+
+        // Convert stack into Array.
+        let lStackItem: StackItem<T> | null = this.mTopItem;
+        while (lStackItem) {
+            // Add current stack item value.
+            lArray.push(lStackItem.value);
+
+            // Move cursor.
+            lStackItem = lStackItem.previous;
+        }
+
+        // Array is in wrong order.
+        return lArray;
     }
 }
 

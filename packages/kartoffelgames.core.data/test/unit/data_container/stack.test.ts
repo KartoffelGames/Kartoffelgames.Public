@@ -99,6 +99,36 @@ describe('Stack', () => {
         expect(lStack.top).to.equals(lValue);
     });
 
+    it('Method: toArray', () => {
+        // Setup.
+        const lValues: Array<number> = [12, 14, 16];
+        const lStack: Stack<number> = new Stack<number>();
+        for (const lItem of lValues) {
+            lStack.push(lItem);
+        }
+
+        // Process.
+        const lAsArray: Array<number> = lStack.toArray();
+
+        // Evaluation.
+        expect(lValues.reverse()).to.deep.equals(lAsArray);
+    });
+
+    it('Method: clone', () => {
+        // Setup.
+        const lValues: Array<number> = [12, 14, 16];
+        const lStack: Stack<number> = new Stack<number>();
+        for (const lItem of lValues) {
+            lStack.push(lItem);
+        }
+
+        // Process.
+        const lClone: Stack<number> = lStack.clone();
+
+        // Evaluation.
+        expect(lStack.toArray()).to.deep.equals(lClone.toArray());
+    });
+
     describe('Method: pop', () => {
         it('-- Single value', () => {
             // Setup.

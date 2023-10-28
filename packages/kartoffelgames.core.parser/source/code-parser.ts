@@ -1,11 +1,6 @@
-import { Stack } from '@kartoffelgames/core.data';
-import { BaseGrammarNode } from './graph/base-grammar-node';
-import { BranchCollectorFunction, GrammarBranchNode } from './graph/branch_nodes/grammar-branch-node';
-import { GrammarNodeType } from './graph/grammar-node-type.enum';
 import { Lexer } from './lexer';
-import { ParserException } from './parser-exception';
 
-export class CodeParser<TTokenType, TParseResult> {
+export class CodeParser<TTokenType extends string, TParseResult> {
     private readonly mLexer: Lexer<TTokenType>;
     private readonly mRootNode: GrammarBranchNode<TTokenType>;
 
@@ -42,12 +37,12 @@ export class CodeParser<TTokenType, TParseResult> {
         const lParallelDimension: Array<any> = new Array<any>();
 
         // TODO: Push first dimension.
-        
+
 
         // Iterate each token till end.
         for (const lNextToken of this.mLexer.tokenize(pCodeText)) {
             // For each paralell dimension, process the same token.
-            for(const lDimension of lParallelDimension){
+            for (const lDimension of lParallelDimension) {
 
             }
         }

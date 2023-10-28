@@ -36,7 +36,7 @@ export class GrammarSingleNode<TTokenType extends string> extends BaseGrammarNod
      * When this node is an optional node:\
      * All valid types for this node and all types of {@link GrammarSingleNode.nextNode} are returned.\
      * 
-     * @param pParentStack - Nodes that host this nodes branch. Not the node that is chained before this node. 
+     * @param pParentStack - Parent nodes that host this nodes as node data. Stack includes parent of parent node. Not the nodes that is chained before this node. 
      * @param pRequestingNode - Node that requests this information. 
      * 
      * @returns All valid token types for this node.
@@ -51,11 +51,11 @@ export class GrammarSingleNode<TTokenType extends string> extends BaseGrammarNod
 
         // Get starting token type of child graph..
         if (typeof this.mNodeValue !== 'string') {
-            // Copy parent stack and add current node as parent.
-            const lParentStack: Stack<BaseGrammarNode<TTokenType>> = pParentStack.clone();
-            lParentStack.push(this);
+            // Clone parent stack, to prevent altering original data, and add current node as new parent layer.
+            const lLocalParentStack: Stack<BaseGrammarNode<TTokenType>> = pParentStack.clone();
+            lLocalParentStack.push(this);
 
-            lValidTokenList.push(...this.mNodeValue.graph().validTokens(lParentStack, this));
+            lValidTokenList.push(...this.mNodeValue.graph().validTokens(lLocalParentStack, this));
         } else {
             // Get token type this node.
             lValidTokenList.push(this.mNodeValue);
@@ -73,7 +73,7 @@ export class GrammarSingleNode<TTokenType extends string> extends BaseGrammarNod
      * Get all valid types of the {@link GrammarSingleNode.nextNode}  or inner {@link GraphPartReference}.
      * 
      * @param pNextNode - Value of {@link GrammarSingleNode.nextNode} 
-     * @param pParentStack - Nodes that host this nodes branch. Not the node that is chained before this node.
+     * @param pParentStack - Parent nodes that host this nodes as node data. Stack includes parent of parent node. Not the nodes that is chained before this node. 
      * 
      * @returns All valid types of the {@link GrammarSingleNode.nextNode}  or inner {@link GraphPartReference}
      */
@@ -83,11 +83,11 @@ export class GrammarSingleNode<TTokenType extends string> extends BaseGrammarNod
         if (pNextNode) {
             lValidTokenList.push(...pNextNode.validTokens(pParentStack, this));
         } else if (pParentStack.top) {
-            // Clone parent stack and pop a layer.
-            const lParentStack: Stack<BaseGrammarNode<TTokenType>> = pParentStack.clone();
-            const lParentNode: BaseGrammarNode<TTokenType> = lParentStack.pop()!;
+            // Clone parent stack, to prevent altering original data, and pop current parent.
+            const lLocalParentStack: Stack<BaseGrammarNode<TTokenType>> = pParentStack.clone();
+            const lParentNode: BaseGrammarNode<TTokenType> = lLocalParentStack.pop()!;
 
-            lParentNode.validTokens(lParentStack, this);
+            lParentNode.validTokens(lLocalParentStack, this);
         }
 
         return lValidTokenList;

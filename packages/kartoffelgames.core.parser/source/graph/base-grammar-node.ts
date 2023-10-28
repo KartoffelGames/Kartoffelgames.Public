@@ -54,7 +54,7 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
      * When this returns false, this path, node or branch should not be used to process with this token.
      * 
      * @param pToken - Token type that the next path should take.
-     * @param pParentStack - Nodes that host this nodes branch. Not the node that is chained before this node. 
+     * @param pParentStack - Parent nodes that host this nodes as node data. Stack includes parent of parent node. Not the nodes that is chained before this node. 
      * @param pRequestingNode - Node that requests this information. 
      * 
      * @throws {@link Exception}
@@ -70,7 +70,7 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
      * Get all token types that are valid for this node.
      * When this node does not hold any information itself, it should return the valid tokens of the next branches.
      * 
-     * @param pParentStack - Nodes that host this nodes branch. Not the node that is chained before this node.  
+     * @param pParentStack - Parent nodes that host this nodes as node data. Stack includes parent of parent node. Not the nodes that is chained before this node. 
      * @param pRequestingNode - Node that requests this information. 
      * 
      * @return All valid token types for this node. 

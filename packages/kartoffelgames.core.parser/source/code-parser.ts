@@ -57,20 +57,20 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 // Test
 // ------------------------
 enum XmlToken {
-    TextContent = 1,
-    Namespace = 2,
-    Assignment = 3,
-    TagOpen = 4,
-    TagOpenClose = 11,
-    TagSelfClose = 5,
-    TagClose = 6,
-    Identifier = 7,
-    Doctype = 8,
+    TextContent = 'TextContent',
+    Namespace = 'Namespace',
+    Assignment = 'Assignment',
+    TagOpen = 'TagOpen',
+    TagOpenClose = 'TagOpenClose',
+    TagSelfClose = 'TagSelfClose',
+    TagClose = 'TagClose',
+    Identifier = 'Identifier',
+    Doctype = 'Doctype'
 }
 
 
 const lexer = new Lexer<XmlToken>();
-const parser = new CodeParser(lexer);
+const parser = new CodeParser<XmlToken, unknown>(lexer);
 
 // TODO: ParserData defined from graph. => All loops need a name {loopName: [...loopdata]}
 
@@ -107,12 +107,12 @@ type ParserTagPartGraphData = {
     };
 };
 parser.definePart('tag',
-    parser.graph().single(XmlToken.TagOpen).optional(XmlToken.Namespace, 'namespace').single(XmlToken.Identifier, 'openName').loop('attributes', CodeParser.partRef('attribute')).branch('closing', [
+    parser.graph().single(XmlToken.TagOpen).optional(XmlToken.Namespace, 'namespace').single(XmlToken.Identifier, 'openName').loop('attributes', parser.partReference('attribute')).branch('closing', [
         parser.graph().single(XmlToken.TagSelfClose),
         parser.graph().single(XmlToken.TagClose).loop('contents',
             parser.graph().branch('content', [
-                parser.graph().single(CodeParser.partRef('textContent'), 'value'),
-                parser.graph().single(CodeParser.partRef('tag'), 'value')
+                parser.graph().single(parser.partReference('textContent'), 'value'),
+                parser.graph().single(parser.partReference('tag'), 'value')
             ]),
         ).single(XmlToken.TagOpenClose).single(XmlToken.Identifier, 'closeName').single(XmlToken.TagClose)
     ]),
@@ -131,7 +131,7 @@ parser.definePart('doctype',
 
 // Define parser endpoint where all data is merged.
 parser.definePart('document',
-    parser.graph().optional(CodeParser.partRef('doctype'), 'doctype').optional(CodeParser.partRef('tag'), 'rootTag'),
+    parser.graph().optional(parser.partReference('doctype'), 'doctype').optional(parser.partReference('tag'), 'rootTag'),
     (pTagData: Record<string, string>) => {
         return {};
     }

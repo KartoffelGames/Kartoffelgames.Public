@@ -1,4 +1,4 @@
-import { Stack } from '@kartoffelgames/core.data';
+import { GraphPartReference } from './graph-part-reference';
 
 /**
  * Basic grammar node. Base parent for all native nodes.
@@ -6,8 +6,10 @@ import { Stack } from '@kartoffelgames/core.data';
  * @typeparam TTokenType - Type of all tokens the graph can handle.
  */
 export abstract class BaseGrammarNode<TTokenType extends string> {
+    private readonly mIdentifier: string | null;
     private mNextNode: BaseGrammarNode<TTokenType> | null;
     private readonly mPreviousNode: BaseGrammarNode<TTokenType> | null;
+    private readonly mSkipable: boolean;
 
     /**
      * Get the root node of this branch.
@@ -21,6 +23,13 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
 
         // When no parent exists, you have offically reached the endpoint (root).
         return this;
+    }
+
+    /**
+     * If this node is skipable or is needed to fit perfectly.
+     */
+    public get skipable(): boolean {
+        return this.mSkipable;
     }
 
     /**
@@ -41,41 +50,38 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
      * Constructor.
      * 
      * @param pPreviousNode - Node that is chained before this node.
+     * @param pSkipable - If this node is skipable or is needed to fit perfectly.
      */
-    constructor(pPreviousNode?: BaseGrammarNode<TTokenType>) {
-        this.mPreviousNode = pPreviousNode ?? null;
+    constructor(pPreviousNode: BaseGrammarNode<TTokenType> | null, pSkipable: boolean, pIdentifier: string | null) {
+        this.mPreviousNode = pPreviousNode;
         this.mNextNode = null;
+        this.mSkipable = pSkipable;
+        this.mIdentifier = pIdentifier;
     }
 
-    // TODO: loop, single, optional, branch. // Chain created node into mNextNode
+    // TODO: optionalLoop, loop, single, optionalSingle, branch, optionalBranch, reference, optionalReference // Chain created node into mNextNode
 
     /**
-     * Retrieve next grammer node for the next token.
-     * When this returns false, this path, node or branch should not be used to process with this token.
+     * Retrieve next grammar nodes or graph parts that are possible chained after this node.
      * 
-     * @param pToken - Token type that the next path should take.
-     * @param pParentStack - Parent nodes that host this nodes as node data. Stack includes parent of parent node. Not the nodes that is chained before this node. 
-     * @param pRequestingNode - Node that requests this information. 
+     * @param pRevisited - If the node was visited before, by calling it again after finishing the inner branches.
      * 
-     * @throws {@link Exception}
-     * When no valid path exists for the specified token.
-     * 
-     * @returns The next grammar node of specified path or null when the end of this chain is reached.
+     * @returns The next grammar nodes or null when the end of this chain is reached.
      * 
      * @internal
      */
-    public abstract retrieveNext(pToken: TTokenType, pParentStack: Stack<BaseGrammarNode<TTokenType>>, pRequestingNode: BaseGrammarNode<TTokenType> | null): Array<BaseGrammarNode<TTokenType>>;
+    public abstract next(pRevisited: boolean): Array<GrammarGrapthValue<TTokenType>>;
 
     /**
      * Get all token types that are valid for this node.
      * When this node does not hold any information itself, it should return the valid tokens of the next branches.
      * 
-     * @param pParentStack - Parent nodes that host this nodes as node data. Stack includes parent of parent node. Not the nodes that is chained before this node. 
-     * @param pRequestingNode - Node that requests this information. 
      * 
      * @return All valid token types for this node. 
      * 
      * @internal
      */
-    public abstract validTokens(pParentStack: Stack<BaseGrammarNode<TTokenType>>, pRequestingNode: BaseGrammarNode<TTokenType> | null): Array<TTokenType>;
+    public abstract validTokens(): Array<TTokenType>;
 }
+
+export type GrammarGrapthValue<TTokenType extends string> = BaseGrammarNode<TTokenType> | GraphPartReference<TTokenType> | null;

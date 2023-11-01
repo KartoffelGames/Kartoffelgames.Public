@@ -1,8 +1,11 @@
+import { Exception } from '@kartoffelgames/core.data';
 import { GrammarNodeValueType } from './grammer-node-value-type.enum';
 import { GraphPartReference } from './graph-part-reference';
+import { GrammarSingleNode } from './grammer-single-node';
 
 /**
  * Basic grammar node. Base parent for all native nodes.
+ * Defines chain methods to chain other nodes after another. 
  * 
  * @typeparam TTokenType - Type of all tokens the graph can handle.
  */
@@ -10,17 +13,13 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
     private readonly mIdentifier: string | null;
     private mNextNode: BaseGrammarNode<TTokenType> | null;
     private readonly mPreviousNode: BaseGrammarNode<TTokenType> | null;
-    private readonly mSkipable: boolean;
+    private readonly mRequired: boolean;
+    private readonly mValueType: GrammarNodeValueType;
 
     /**
-     * Node value. Can be a set of tokens or a graph part reference.
+     * Node values. Can be a set of tokens or a graph part reference.
      */
-    public abstract readonly nodeValues: Array<TTokenType | GraphPartReference<TTokenType>>;
-
-    /**
-     * Node value. Can be a set of tokens or a graph part reference.
-     */
-    public abstract readonly nodeValueType: GrammarNodeValueType;
+    public abstract readonly nodeValues: Array<GrammarGraphValue<TTokenType>>;
 
     /**
      * Get the root node of this branch.
@@ -38,16 +37,25 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
 
     /**
      * Node value identifier.
+     * Used to store the node token value into a object.
+     * The objects property name is this identifier.
      */
     public get identifier(): string | null {
         return this.mIdentifier;
     }
 
     /**
-     * If this node is optional or is needed to fit perfectly.
+     * If this node is required or is needed to fit perfectly.
      */
-    public get optional(): boolean {
-        return this.mSkipable;
+    public get required(): boolean {
+        return this.mRequired;
+    }
+
+    /**
+     * Type with wich the node token value should be stored.
+     */
+    public get valueType(): GrammarNodeValueType {
+        return this.mValueType;
     }
 
     /**
@@ -68,19 +76,90 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
      * Constructor.
      * 
      * @param pPreviousNode - Node that is chained before this node.
-     * @param pSkipable - If this node is skipable or is needed to fit perfectly.
+     * @param pRequired - If this node is required or is needed to fit perfectly.
+     * @param pValueType - Type with wich the node token value should be stored.
+     * @param pIdentifier - Name of the property, the node token value will be stored.
      */
-    constructor(pPreviousNode: BaseGrammarNode<TTokenType> | null, pSkipable: boolean, pIdentifier: string | null) {
+    constructor(pPreviousNode: BaseGrammarNode<TTokenType> | null, pRequired: boolean, pValueType: GrammarNodeValueType, pIdentifier: string | null) {
         this.mPreviousNode = pPreviousNode;
-        this.mNextNode = null;
-        this.mSkipable = pSkipable;
+        this.mRequired = pRequired;
         this.mIdentifier = pIdentifier;
+        this.mValueType = pValueType;
+
+        // Default to no chained node.
+        this.mNextNode = null;
     }
 
-    // TODO: optionalLoop, loop, single, optionalSingle, branch, optionalBranch, reference, optionalReference // Chain created node into mNextNode
+    // TODO: loop, branch, optionalBranch
 
     /**
-     * Retrieve next grammar nodes or graph parts that are possible chained after this node.
+     * Creates and return a new  optional single value node.
+     * Chains the node after the current node and sets the correct previous node.
+     * This node is optional and can be skipped for the parsing process.
+     * 
+     * When another chain method ({@link BaseGrammarNode.loop}, {@link BaseGrammarNode.optional}, {@link BaseGrammarNode.single}, {@link BaseGrammarNode.branch} or {@link BaseGrammarNode.optionalBranch})
+     * was called before this call, this method will throw an error, preventing multi chainings.
+     * 
+     * @param pValue - Node value.
+     * @param pIdentifier - Value identifier of node value.
+     * 
+     * @throws {@link Exception}
+     * When another chain method was called,
+     * 
+     * @returns The new optional single value node. 
+     */
+    public optional(pValue: GrammarGraphValue<TTokenType>, pIdentifier: string | null = null): GrammarSingleNode<TTokenType> {
+        // Create new node and chain it after this node.
+        const lSingleNode: GrammarSingleNode<TTokenType> = new GrammarSingleNode<TTokenType>(this, pValue, false, pIdentifier);
+        this.setNextNode(lSingleNode);
+
+        return lSingleNode;
+    }
+
+    /**
+     * Creates and return a new single value node.
+     * Chains the node after the current node and sets the correct previous node.
+     * 
+     * When another chain method ({@link BaseGrammarNode.loop}, {@link BaseGrammarNode.optional}, {@link BaseGrammarNode.single}, {@link BaseGrammarNode.branch} or {@link BaseGrammarNode.optionalBranch})
+     * was called before this call, this method will throw an error, preventing multi chainings.
+     * 
+     * @param pValue - Node value.
+     * @param pIdentifier - Value identifier of node value.
+     * 
+     * @throws {@link Exception}
+     * When another chain method was called,
+     * 
+     * @returns The new single value node. 
+     */
+    public single(pValue: GrammarGraphValue<TTokenType>, pIdentifier: string | null = null): GrammarSingleNode<TTokenType> {
+        // Create new node and chain it after this node.
+        const lSingleNode: GrammarSingleNode<TTokenType> = new GrammarSingleNode<TTokenType>(this, pValue, true, pIdentifier);
+        this.setNextNode(lSingleNode);
+
+        return lSingleNode;
+    }
+
+    /**
+     * Chain node after this node.
+     * Validates and restricts multi chaining.
+     * 
+     * @param pNextNode - Node that should be chained after this node.
+     * 
+     * @throws {@link Exception}
+     * When {@link BaseGrammarNode.setNextNode} was called once before for this node instance, preventing multi chainings.
+     */
+    private setNextNode(pNextNode: BaseGrammarNode<TTokenType>): void {
+        // Restrict multi chaining.
+        if (this.mNextNode !== null) {
+            throw new Exception(`Node can only be chained to a single node.`, this);
+        }
+
+        this.mNextNode = pNextNode;
+    }
+
+    /**
+     * Retrieve next grammar nodes that are chained after this node.
+     * Null value is used to represent a node chain end.
      * 
      * @returns The next grammar nodes or null when the end of this chain is reached.
      * 
@@ -89,4 +168,4 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
     public abstract next(): Array<BaseGrammarNode<TTokenType> | null>;
 }
 
-export type GrammarGrapthValue<TTokenType extends string> = GraphPartReference<TTokenType> | TTokenType;
+export type GrammarGraphValue<TTokenType extends string> = GraphPartReference<TTokenType> | TTokenType;

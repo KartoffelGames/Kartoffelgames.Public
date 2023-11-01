@@ -1,34 +1,47 @@
-import { Exception } from '@kartoffelgames/core.data';
-import { BaseGrammarNode } from './base-grammar-node';
+import { BaseGrammarNode, GrammarGraphValue } from './base-grammar-node';
+import { GrammarNodeValueType } from './grammer-node-value-type.enum';
+import { GraphPartReference } from './graph-part-reference';
 
+/**
+ * Single value node.
+ * Contains a single value or single graph part that does not chain or loop.
+ * The node can be set optional.
+ * 
+ * @typeparam TTokenType - Type of all tokens the graph can handle.
+ */
 export class GrammarSingleNode<TTokenType extends string> extends BaseGrammarNode<TTokenType> {
-    private readonly mNodeValue: TTokenType;
+    private readonly mNodeValue: TTokenType | GraphPartReference<TTokenType>;
 
-    public get nodeValues(): Array<TTokenType> {
+    /**
+     * Node values. Can be a set of tokens or a graph part reference.
+     */
+    public get nodeValues(): Array<GrammarGraphValue<TTokenType>> {
         return [this.mNodeValue];
     }
 
-    public constructor(pPreviousNode: BaseGrammarNode<TTokenType> | null, pNodeValue: TTokenType, pOptional: boolean, pIdentifier: string | null) {
-        super(pPreviousNode, pOptional, pIdentifier);
+    /**
+     * Constructor.
+     * 
+     * @param pPreviousNode - Node that is chained before this node.
+     * @param pNodeValue - Single value of this node. Can be a token type or a graph part.
+     * @param pRequired - If this node is required or is needed to fit perfectly.
+     * @param pIdentifier - Name of the property, the node token value will be stored.
+     */
+    public constructor(pPreviousNode: BaseGrammarNode<TTokenType> | null, pNodeValue: GrammarGraphValue<TTokenType>, pRequired: boolean, pIdentifier: string | null) {
+        super(pPreviousNode, pRequired, GrammarNodeValueType.Single, pIdentifier);
 
         this.mNodeValue = pNodeValue;
     }
 
-    public override next(pRevisited: boolean): Array<BaseGrammarNode<TTokenType> | null> {
-        // Restrict revisiting.
-        if (pRevisited) {
-            throw new Exception('Single node can not be visited again. Node holds no inner branch.', this);
-        }
-
-        return [this.nextNode];
-    }
-
     /**
-     * Get valid tokens for this node.
+     * Retrieve next grammar nodes that are chained after this node.
+     * Null value is used to represent a node chain end.
      * 
-     * @returns All valid token types for this node.
+     * @returns The next grammar nodes or null when the end of this chain is reached.
+     * 
+     * @internal
      */
-    public override validTokens(): Array<TTokenType> {
-        return [this.mNodeValue];
+    public override next(): Array<BaseGrammarNode<TTokenType> | null> {
+        return [this.nextNode];
     }
 }

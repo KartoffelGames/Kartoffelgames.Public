@@ -116,7 +116,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     data: pNode.identifier ? {
                         identifier: pNode.identifier,
                         value: lCurrentToken.value,
-                        type: pNode.nodeValueType
+                        type: pNode.valueType
                     } : null,
                     tokenIndex: pCurrentTokenIndex
                 };
@@ -142,7 +142,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         }
 
         // Return parser error when no parse value was found and the current node is not optional.
-        if (lCurrentNodeDataResultList.length === 0 && !pNode.optional) {
+        if (lCurrentNodeDataResultList.length === 0 && pNode.required) {
             return lErrorList;
         }
 
@@ -185,7 +185,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Success.
         if (lSucessList.length > 0) {
             const lResult: GraphParseResult = lSucessList[0];
-            // TODO: Merge data.
+            // TODO: Merge data. Current node data into next node data.
             return {
                 data: lResultData,
                 tokenIndex: lResult.tokenIndex

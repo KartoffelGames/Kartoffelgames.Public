@@ -1,3 +1,4 @@
+import { GrammarNodeValueType } from './grammer-node-value-type.enum';
 import { GraphPartReference } from './graph-part-reference';
 
 /**
@@ -10,6 +11,16 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
     private mNextNode: BaseGrammarNode<TTokenType> | null;
     private readonly mPreviousNode: BaseGrammarNode<TTokenType> | null;
     private readonly mSkipable: boolean;
+
+    /**
+     * Node value. Can be a set of tokens or a graph part reference.
+     */
+    public abstract readonly nodeValues: Array<TTokenType | GraphPartReference<TTokenType>>;
+
+    /**
+     * Node value. Can be a set of tokens or a graph part reference.
+     */
+    public abstract readonly nodeValueType: GrammarNodeValueType;
 
     /**
      * Get the root node of this branch.
@@ -26,9 +37,16 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
     }
 
     /**
-     * If this node is skipable or is needed to fit perfectly.
+     * Node value identifier.
      */
-    public get skipable(): boolean {
+    public get identifier(): string | null {
+        return this.mIdentifier;
+    }
+
+    /**
+     * If this node is optional or is needed to fit perfectly.
+     */
+    public get optional(): boolean {
         return this.mSkipable;
     }
 
@@ -64,24 +82,11 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
     /**
      * Retrieve next grammar nodes or graph parts that are possible chained after this node.
      * 
-     * @param pRevisited - If the node was visited before, by calling it again after finishing the inner branches.
-     * 
      * @returns The next grammar nodes or null when the end of this chain is reached.
      * 
      * @internal
      */
-    public abstract next(pRevisited: boolean): Array<GrammarGrapthValue<TTokenType>>;
-
-    /**
-     * Get all token types that are valid for this node.
-     * When this node does not hold any information itself, it should return the valid tokens of the next branches.
-     * 
-     * 
-     * @return All valid token types for this node. 
-     * 
-     * @internal
-     */
-    public abstract validTokens(): Array<TTokenType>;
+    public abstract next(): Array<BaseGrammarNode<TTokenType> | null>;
 }
 
-export type GrammarGrapthValue<TTokenType extends string> = BaseGrammarNode<TTokenType> | GraphPartReference<TTokenType> | null;
+export type GrammarGrapthValue<TTokenType extends string> = GraphPartReference<TTokenType> | TTokenType;

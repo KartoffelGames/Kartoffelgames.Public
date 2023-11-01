@@ -1,14 +1,15 @@
-import { Dictionary, Exception, Stack } from '@kartoffelgames/core.data';
-import { BaseGrammarNode, GrammarGrapthValue } from './graph/base-grammar-node';
+import { Dictionary, Exception } from '@kartoffelgames/core.data';
+import { BaseGrammarNode } from './graph/base-grammar-node';
+import { GrammarNodeValueType } from './graph/grammer-node-value-type.enum';
+import { GraphPartReference } from './graph/graph-part-reference';
 import { Lexer, LexerToken } from './lexer';
 import { ParserException } from './parser-exception';
-import { GraphPartReference } from './graph/graph-part-reference';
 
 export class CodeParser<TTokenType extends string, TParseResult> {
     private readonly mGraphParts: Dictionary<string, GraphPartReference<TTokenType>>;
     private readonly mLexer: Lexer<TTokenType>;
     private mRootPartName: string | null;
-    
+
     /**
      * Constructor.
      * @param pLexer - Token lexer.
@@ -19,6 +20,14 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         this.mGraphParts = new Dictionary<string, GraphPartReference<TTokenType>>();
     }
 
+    /**
+     * Parse a text with the set syntax from {@link CodeParser.setRootPart} into a sytnax tree
+     * or custom data structure.
+     * 
+     * @param pCodeText - Code as text.
+     * 
+     * @returns The code as {@link TTokenType} data structure.
+     */
     public parse(pCodeText: string): TParseResult {
         // Validate lazy parameters.
         if (this.mRootPartName === null) {
@@ -28,10 +37,24 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Read complete token list.
         const lTokenList: Array<LexerToken<TTokenType>> = [...this.mLexer.tokenize(pCodeText)];
 
+        // There must be at least one token to start the parse.
+        if (lTokenList.length) {
+            throw new Exception('No parseable code was found.', this);
+        }
+
         // Parse root part.
-        const lRootParseData: GraphParseResult | GraphParseError<TTokenType> = this.parseGraphPart(this.graphByName(this.mRootPartName), lTokenList, 0);
-        if ('errorToken' in lRootParseData) {
-            throw new ParserException(lRootParseData.message, this, lRootParseData.errorToken?.columnNumber ?? -1, lRootParseData.errorToken?.lineNumber ?? -1);
+        const lRootParseData: GraphParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphPart(this.graphByName(this.mRootPartName), lTokenList, 0);
+        if (Array.isArray(lRootParseData)) {
+            // Find error with the latest error position.
+            let lErrorPosition: GraphParseError<TTokenType> | null = null;
+            for (const lError of lRootParseData) {
+                if (!lErrorPosition || lError.errorToken.lineNumber > lErrorPosition.errorToken.lineNumber || lError.errorToken.lineNumber === lErrorPosition.errorToken.lineNumber && lError.errorToken.columnNumber > lErrorPosition.errorToken.columnNumber) {
+                    lErrorPosition = lError;
+                }
+            }
+
+            // At lease one error must be found.
+            throw new ParserException(lErrorPosition!.message, this, lErrorPosition!.errorToken.columnNumber, lErrorPosition!.errorToken.lineNumber);
         }
 
         return <TParseResult>lRootParseData.data;
@@ -59,88 +82,104 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         return this.mGraphParts.get(pPartName)!;
     }
 
-    private parseGraphNode(pNode: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number): GraphParseResult | GraphParseError<TTokenType> {
-        // Get all valid types of this node.
-        const lValidTokenTypeList: Array<TTokenType> = pNode.validTokens();
-
+    private parseGraphNode(pNode: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number): GraphParseResult | Array<GraphParseError<TTokenType>> {
         // Get and check current token.
         const lCurrentToken: LexerToken<TTokenType> | undefined = pTokenList[pCurrentTokenIndex];
         if (!lCurrentToken) {
-            return {
-                message: `Missing an expected token "${lValidTokenTypeList.join(', ')}"`,
-                errorToken: null
-            };
+            return [{
+                message: `Unexpected end of statement.`,
+                errorToken: pTokenList.at(-1)!
+            }];
         }
 
-        // TODO: Save data when a identifier is set.
-        const lResultData: any = {};
+        // Error buffer. Bundles all parser errors so on an error case an detailed error detection can be made.
+        const lErrorList: Array<GraphParseError<TTokenType>> = new Array<GraphParseError<TTokenType>>();
 
-        // Validate token type and get next tokens.
-        let lNextNodeList: Array<GrammarGrapthValue<TTokenType>>;
-        if (!lValidTokenTypeList.includes(lCurrentToken.type)) {
-            // Token is not valid, skip this part.
-            if (!pNode.skipable) {
-                return {
-                    message: `Unexpected token`,
-                    errorToken: lCurrentToken
+        // Process values.
+        const lCurrentNodeDataResultList: Array<GraphParseResult> = new Array<GraphParseResult>();
+        for (const lNodeValue of pNode.nodeValues) {
+            let lNodeParseValue: GraphParseResult | null;
+
+            // Static token type of dynamic graph part.
+            if (typeof lNodeValue === 'string') {
+                // Push possible parser error when token type does not match node value.
+                if (lNodeValue !== lCurrentToken.type) {
+                    lErrorList.push({
+                        message: `Unexpected token. "${lNodeValue}" expected`,
+                        errorToken: lCurrentToken
+                    });
+                    continue;
+                }
+
+                // Set node value.
+                lNodeParseValue = {
+                    data: pNode.identifier ? {
+                        identifier: pNode.identifier,
+                        value: lCurrentToken.value,
+                        type: pNode.nodeValueType
+                    } : null,
+                    tokenIndex: pCurrentTokenIndex
                 };
+            } else {
+                // Process inner value but keep on current node.
+                const lInnerValue: GraphParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphPart(lNodeValue, pTokenList, pCurrentTokenIndex);
+
+                // When unsuccessfull save the last error.
+                if (Array.isArray(lInnerValue)) {
+                    lErrorList.push(...lInnerValue);
+                    continue;
+                }
+
+                lNodeParseValue = lInnerValue;
             }
 
-            // Skip this token as it was already processed.
-            lNextNodeList = pNode.next(true);
-        } else {
-            // Read next nodes.
-            lNextNodeList = pNode.next(false);
+            lCurrentNodeDataResultList.push(lNodeParseValue);
         }
+
+        // Permit ambiguity paths.
+        if (lCurrentNodeDataResultList.length > 1) {
+            throw new Exception('Graph has ambiguity node values paths.', this);
+        }
+
+        // Return parser error when no parse value was found and the current node is not optional.
+        if (lCurrentNodeDataResultList.length === 0 && !pNode.optional) {
+            return lErrorList;
+        }
+
+        // Easy access for node value. When the node was optional, reuse the current token.
+        const lNodeValue: GraphParseResult | undefined = lCurrentNodeDataResultList[0];
+        const lNextTokenIndex: number = lNodeValue ? (lNodeValue.tokenIndex + 1) : pCurrentTokenIndex;
 
         // Process next nodes in parallel.
-        const lBranchingResultList: Array<GraphParseResult | GraphParseError<TTokenType> | null> = new Array<GraphParseResult | GraphParseError<TTokenType> | null>();
-        for (const lNextNode of lNextNodeList) {
-            // End branch.
-            if (lNextNode === null) {
-                lBranchingResultList.push(null);
-            } else if (lNextNode instanceof BaseGrammarNode) {
-                // Process branch with next node and a new token.
-                lBranchingResultList.push(this.parseGraphNode(lNextNode, pTokenList, pCurrentTokenIndex + 1));
-            } else { // Graph part
-                // Process graph part but keep on current node.
-                lBranchingResultList.push(this.parseGraphPart(lNextNode, pTokenList, pCurrentTokenIndex));
-
-                // TODO: Next node?
-            }
-        }
-
-        // Validate parsed branches. 
-        // - At least one successfull branch or an exit node is needed.
-        // - Only one sucessfull branch can be valid. More than one result in an error.
-        // - When only errors exists, take the one with a valid token or else the first one. 
-        let lPriorityError: GraphParseError<TTokenType> | null = null;
         const lSucessList: Array<GraphParseResult> = new Array<GraphParseResult>();
         let lBranchEnd: boolean = false;
-        for (const lResult of lBranchingResultList) {
-            // Possible branch end.
-            if (lResult === null) {
+        for (const lNextNode of pNode.next()) {
+            // Branch end.
+            if (lNextNode === null) {
                 lBranchEnd = true;
                 continue;
             }
 
-            // Errors.
-            if ('errorToken' in lResult) {
-                // Update error only when it has a better priority.
-                if (lPriorityError === null || lPriorityError.errorToken === null && lResult.errorToken !== null) {
-                    lPriorityError = lResult;
-                }
+            // Parse next node. Save all errors.
+            const lNextNodeParseResult: GraphParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphNode(lNextNode, pTokenList, lNextTokenIndex);
+            if (Array.isArray(lNextNodeParseResult)) {
+                lErrorList.push(...lNextNodeParseResult);
+                continue;
             }
 
-            // Errors.
-            if ('tokenIndex' in lResult) {
-                lSucessList.push(lResult);
-            }
+            // Process branch with next node and a new token.
+            lSucessList.push(lNextNodeParseResult);
         }
+
+        /* 
+         * Validate parsed branches. 
+         * - At least one successfull branch or an exit node is needed.
+         * - Only one sucessfull branch can be valid. More than one result in an error.
+         */
 
         // Apply validation.
         if (lSucessList.length > 1) {
-            throw new Exception('Graph has ambiguity paths', this);
+            throw new Exception('Graph has ambiguity chained paths', this);
         }
 
         // Success.
@@ -153,22 +192,29 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             };
         }
 
-        // Branch end.
+        // Branch end. Return the current node value.
         if (lBranchEnd) {
+            // Skip token process, when this node was optional.
+            if (!lNodeValue) {
+                return {
+                    identifier: null,
+                    data: {
+
+                    },
+                    tokenIndex: pCurrentTokenIndex // TODO: reverse index (-1 ?)
+                };
+            }
+
             return {
                 data: lResultData,
-                tokenIndex: pCurrentTokenIndex
+                tokenIndex: lNextTokenIndex
             };
         }
 
-        // Branch error.
-        if (lPriorityError === null) {
-            throw new Exception('Graph branch has a node without valid childs.', this);
-        }
-        return lPriorityError;
+        return lErrorList;
     }
 
-    private parseGraphPart(pPart: GraphPartReference<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number): GraphParseResult | GraphParseError<TTokenType> {
+    private parseGraphPart(pPart: GraphPartReference<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number): GraphParseResult | Array<GraphParseError<TTokenType>> {
         // Set grapth root as staring node and validate correct confoguration.
         const lRootNode: BaseGrammarNode<TTokenType> | null = pPart.graph();
         if (lRootNode === null) {
@@ -176,10 +222,10 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         }
 
         // Parse branch.
-        const lBranchResult: GraphParseResult | GraphParseError<TTokenType> = this.parseGraphNode(lRootNode, pTokenList, pCurrentTokenIndex);
+        const lBranchResult: GraphParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphNode(lRootNode, pTokenList, pCurrentTokenIndex);
 
         // Redirect errors.
-        if ('errorToken' in lBranchResult) {
+        if (Array.isArray(lBranchResult)) {
             return lBranchResult;
         }
 
@@ -187,20 +233,28 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         const lResultData: object = {};
 
         return {
-            data: lResultData,
+            identifier: null,
+            data: {
+                value: lResultData,
+                type: GrammarNodeValueType.Single
+            },
             tokenIndex: lBranchResult.tokenIndex
         };
     }
 }
 
 type GraphParseResult = {
-    data: object;
+    data: {
+        identifier: string;
+        type: GrammarNodeValueType;
+        value: any;
+    } | null;
     tokenIndex: number;
 };
 
 type GraphParseError<TTokenType> = {
     message: string;
-    errorToken: LexerToken<TTokenType> | null;
+    errorToken: LexerToken<TTokenType>;
 };
 
 
@@ -263,8 +317,8 @@ parser.definePart('tag',
         parser.graph().single(XmlToken.TagSelfClose),
         parser.graph().single(XmlToken.TagClose).loop('contents',
             parser.graph().branch('content', [
-                parser.graph().graph(parser.partReference('textContent'), 'value'),
-                parser.graph().graph(parser.partReference('tag'), 'value')
+                parser.graph().single(parser.partReference('textContent'), 'value'),
+                parser.graph().single(parser.partReference('tag'), 'value')
             ]),
         ).single(XmlToken.TagOpenClose).single(XmlToken.Identifier, 'closeName').single(XmlToken.TagClose)
     ]),
@@ -283,7 +337,7 @@ parser.definePart('doctype',
 
 // Define parser endpoint where all data is merged.
 parser.definePart('document',
-    parser.graph().optionalgraph(parser.partReference('doctype'), 'doctype').optionalgraph(parser.partReference('tag'), 'rootTag'),
+    parser.graph().optional(parser.partReference('doctype'), 'doctype').optional(parser.partReference('tag'), 'rootTag'),
     (pTagData: Record<string, string>) => {
         return {};
     }

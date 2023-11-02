@@ -1,4 +1,3 @@
-import { GraphNodeParseResult } from '../../code-parser';
 import { BaseGrammarNode } from '../node/base-grammar-node';
 
 /**
@@ -36,4 +35,4 @@ export class GraphPart<TTokenType extends string> {
     }
 }
 
-export type GraphPartDataCollector = (pRawData: GraphNodeParseResult['data']) => unknown;
+export type GraphPartDataCollector = (pRawData: Record<string, any>) => unknown;

@@ -2,7 +2,7 @@ import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { AnonymoutGrammarNode } from './graph/node/anonymous-grammar-node';
 import { BaseGrammarNode } from './graph/node/base-grammar-node';
 import { GrammarNodeValueType } from './graph/node/grammer-node-value-type.enum';
-import { GraphPart } from './graph/part/graph-part';
+import { GraphPart, GraphPartDataCollector } from './graph/part/graph-part';
 import { GraphPartReference } from './graph/part/graph-part-reference';
 import { Lexer, LexerToken } from './lexer';
 import { ParserException } from './parser-exception';
@@ -21,6 +21,26 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         this.mLexer = pLexer;
         this.mRootPartName = null;
         this.mGraphParts = new Dictionary<string, GraphPart<TTokenType>>();
+    }
+
+    /**
+     * Create a new graph part that can be chained and references in other branches or itself.
+     * 
+     * @param pPartName - Graph part name. Used for referencing,
+     * @param pBranch - Graph part branch.
+     * @param pDataCollector - Optional data collector that parses the parse result data into another type. 
+     * 
+     * @throws {@link Exception}
+     * When the part name is already defined.
+     */
+    public defineGraphPart(pPartName: string, pBranch: BaseGrammarNode<TTokenType>, pDataCollector?: GraphPartDataCollector): void {
+        if (this.mGraphParts.has(pPartName)) {
+            throw new Exception(`Graph part "${pPartName}" already defined.`, this);
+        }
+
+        // Create and set graph part.
+        const lGraphPart: GraphPart<TTokenType> = new GraphPart<TTokenType>(pBranch, pDataCollector);
+        this.mGraphParts.set(pPartName, lGraphPart);
     }
 
     /**
@@ -55,7 +75,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     }
 
     /**
-     * Parse a text with the set syntax from {@link CodeParser.setRootPart} into a sytnax tree
+     * Parse a text with the set syntax from {@link CodeParser.setRootGraphPart} into a sytnax tree
      * or custom data structure.
      * 
      * @param pCodeText - Code as text.
@@ -120,7 +140,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @throws {@link Exception}
      * When the graph part is not defined or has no defined data collector.
      */
-    public setRootPart(pPartName: string): void {
+    public setRootGraphPart(pPartName: string): void {
         if (!this.mGraphParts.has(pPartName)) {
             throw new Exception(`Path part "${pPartName}" not defined.`, this);
         }
@@ -364,7 +384,7 @@ const parser = new CodeParser<XmlToken, unknown>(lexer);
 // TODO: ParserData defined from graph. => All loops need a name {loopName: [...loopdata]}
 
 // Define attribute
-parser.definePart('attribute',
+parser.defineGraphPart('attribute',
     parser.graph().optional(XmlToken.Namespace, 'namespace').single(XmlToken.Identifier, 'name').optional(
         parser.graph().single(XmlToken.Assignment).single(XmlToken.TextContent, 'value')
     ),
@@ -374,7 +394,7 @@ parser.definePart('attribute',
 );
 
 // Define content
-parser.definePart('textContent',
+parser.defineGraphPart('textContent',
     parser.graph().loop('text', XmlToken.TextContent),
     (pTextContentData: Record<string, string>) => {
         return {};
@@ -395,7 +415,7 @@ type ParserTagPartGraphData = {
         closeName: string;
     };
 };
-parser.definePart('tag',
+parser.defineGraphPart('tag',
     parser.graph().single(XmlToken.TagOpen).optional(XmlToken.Namespace, 'namespace').single(XmlToken.Identifier, 'openName').loop('attributes', parser.partReference('attribute')).branch('closing', [
         parser.graph().single(XmlToken.TagSelfClose),
         parser.graph().single(XmlToken.TagClose).loop('contents',
@@ -411,7 +431,7 @@ parser.definePart('tag',
 );
 
 // Define xml doctype
-parser.definePart('doctype',
+parser.defineGraphPart('doctype',
     parser.graph().single(XmlToken.TagOpen).single(XmlToken.Doctype).single(XmlToken.Identifier, 'doctype'),
     (pDoctypeData: Record<string, string>) => {
         return {};
@@ -419,7 +439,7 @@ parser.definePart('doctype',
 );
 
 // Define parser endpoint where all data is merged.
-parser.definePart('document',
+parser.defineGraphPart('document',
     parser.graph().optional(parser.partReference('doctype'), 'doctype').optional(parser.partReference('tag'), 'rootTag'),
     (pTagData: Record<string, string>) => {
         return {};
@@ -427,4 +447,4 @@ parser.definePart('document',
 );
 
 // Set root part. The part, the parser starts to parse.
-parser.setRootPart('document');
+parser.setRootGraphPart('document');

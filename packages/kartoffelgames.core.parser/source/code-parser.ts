@@ -43,7 +43,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         }
 
         // Parse root part.
-        const lRootParseData: GraphParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphPart(this.graphByName(this.mRootPartName), lTokenList, 0);
+        const lRootParseData: GraphPartParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphPart(this.graphByName(this.mRootPartName), lTokenList, 0);
         if (Array.isArray(lRootParseData)) {
             // Find error with the latest error position.
             let lErrorPosition: GraphParseError<TTokenType> | null = null;
@@ -82,7 +82,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         return this.mGraphParts.get(pPartName)!;
     }
 
-    private parseGraphNode(pNode: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number): GraphParseResult | Array<GraphParseError<TTokenType>> {
+    private parseGraphNode(pNode: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number): GraphNodeParseResult | Array<GraphParseError<TTokenType>> {
         // Get and check current token.
         const lCurrentToken: LexerToken<TTokenType> | undefined = pTokenList[pCurrentTokenIndex];
         if (!lCurrentToken) {
@@ -96,9 +96,9 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         const lErrorList: Array<GraphParseError<TTokenType>> = new Array<GraphParseError<TTokenType>>();
 
         // Process values.
-        const lCurrentNodeDataResultList: Array<GraphParseResult> = new Array<GraphParseResult>();
+        const lCurrentNodeDataResultList: Array<GraphNodeValueParseResult> = new Array<GraphNodeValueParseResult>();
         for (const lNodeValue of pNode.nodeValues) {
-            let lNodeParseValue: GraphParseResult | null;
+            let lNodeParseValue: GraphNodeValueParseResult | null;
 
             // Static token type of dynamic graph part.
             if (typeof lNodeValue === 'string') {
@@ -113,16 +113,12 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
                 // Set node value.
                 lNodeParseValue = {
-                    data: pNode.identifier ? {
-                        identifier: pNode.identifier,
-                        value: lCurrentToken.value,
-                        type: pNode.valueType
-                    } : null,
+                    data: lCurrentToken.value,
                     tokenIndex: pCurrentTokenIndex
                 };
             } else {
                 // Process inner value but keep on current node.
-                const lInnerValue: GraphParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphPart(lNodeValue, pTokenList, pCurrentTokenIndex);
+                const lInnerValue: GraphPartParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphPart(lNodeValue, pTokenList, pCurrentTokenIndex);
 
                 // When unsuccessfull save the last error.
                 if (Array.isArray(lInnerValue)) {
@@ -147,11 +143,11 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         }
 
         // Easy access for node value. When the node was optional, reuse the current token.
-        const lNodeValue: GraphParseResult | undefined = lCurrentNodeDataResultList[0];
-        const lNextTokenIndex: number = lNodeValue ? (lNodeValue.tokenIndex + 1) : pCurrentTokenIndex;
+        const lNodeValue: GraphNodeValueParseResult | undefined = lCurrentNodeDataResultList.at(0);
+        const lLastProcessedTokenIndex: number = (lNodeValue ? lNodeValue.tokenIndex : pCurrentTokenIndex);
 
         // Process next nodes in parallel.
-        const lSucessList: Array<GraphParseResult> = new Array<GraphParseResult>();
+        const lSucessList: Array<GraphNodeParseResult> = new Array<GraphNodeParseResult>();
         let lBranchEnd: boolean = false;
         for (const lNextNode of pNode.next()) {
             // Branch end.
@@ -161,7 +157,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             }
 
             // Parse next node. Save all errors.
-            const lNextNodeParseResult: GraphParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphNode(lNextNode, pTokenList, lNextTokenIndex);
+            const lNextNodeParseResult: GraphNodeParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphNode(lNextNode, pTokenList, lLastProcessedTokenIndex + 1);
             if (Array.isArray(lNextNodeParseResult)) {
                 lErrorList.push(...lNextNodeParseResult);
                 continue;
@@ -182,39 +178,68 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             throw new Exception('Graph has ambiguity chained paths', this);
         }
 
-        // Success.
-        if (lSucessList.length > 0) {
-            const lResult: GraphParseResult = lSucessList[0];
-            // TODO: Merge data. Current node data into next node data.
-            return {
-                data: lResultData,
-                tokenIndex: lResult.tokenIndex
-            };
-        }
+        // Next node parse success or branch ending.
+        if (lSucessList.length > 0 || lBranchEnd) {
+            let lProcessedTokenIndex: number;
+            let lData: Record<string, unknown>;
 
-        // Branch end. Return the current node value.
-        if (lBranchEnd) {
-            // Skip token process, when this node was optional.
-            if (!lNodeValue) {
-                return {
-                    identifier: null,
-                    data: {
+            // Set data and last processed token index based of if this node is the branch end node.
+            if (lBranchEnd) {
+                // Empty data set bc. no
+                lData = {};
 
-                    },
-                    tokenIndex: pCurrentTokenIndex // TODO: reverse index (-1 ?)
-                };
+                // Reset last processed token index when this node was skipped.
+                lProcessedTokenIndex = (typeof lNodeValue !== 'undefined') ? lLastProcessedTokenIndex : pCurrentTokenIndex;
+            } else { // Next node parse success.
+                const lNextNodeParseResult: GraphNodeParseResult = lSucessList[0];
+
+                // Set data and processed token from next node parse result.
+                lProcessedTokenIndex = lNextNodeParseResult.tokenIndex;
+                lData = lNextNodeParseResult.data;
+            }
+
+            // Merge data. Current node data into next node data.
+            // Merge only when the current node has a value (not optional/skipped) and has a identifier. 
+            if (pNode.identifier && typeof lNodeValue !== 'undefined') {
+                // Set as single value or list.
+                if (pNode.valueType === GrammarNodeValueType.Single) {
+                    // Validate dublicate value identifier.
+                    if (typeof lData[pNode.identifier] !== 'undefined') {
+                        throw new Exception(`Grapth path has a dublicate value identifier "${pNode.identifier}"`, this);
+                    }
+
+                    // Overide value.
+                    lData[pNode.identifier] = lNodeValue.data;
+                } else {
+                    let lIdentifierValue: unknown = lData[pNode.identifier];
+
+                    // Validate value identifier referes to a single value type.
+                    if (typeof lIdentifierValue !== 'undefined' && !Array.isArray(lIdentifierValue)) {
+                        throw new Exception(`Grapth path has a dublicate value identifier "${pNode.identifier}" that is not a list value but should be.`, this);
+                    }
+
+                    // Check if value is already there and is a array. Init array otherwise.
+                    if (typeof lIdentifierValue === 'undefined') {
+                        // Init array and set it as identifier value.
+                        lIdentifierValue = new Array<unknown>();
+                        lData[pNode.identifier] = lIdentifierValue;
+                    }
+
+                    // Add value as array item and set 
+                    (<Array<unknown>>lIdentifierValue).push(lNodeValue.data);
+                }
             }
 
             return {
-                data: lResultData,
-                tokenIndex: lNextTokenIndex
+                data: lData,
+                tokenIndex: lProcessedTokenIndex
             };
         }
 
         return lErrorList;
     }
 
-    private parseGraphPart(pPart: GraphPartReference<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number): GraphParseResult | Array<GraphParseError<TTokenType>> {
+    private parseGraphPart(pPart: GraphPartReference<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number): GraphPartParseResult | Array<GraphParseError<TTokenType>> {
         // Set grapth root as staring node and validate correct confoguration.
         const lRootNode: BaseGrammarNode<TTokenType> | null = pPart.graph();
         if (lRootNode === null) {
@@ -222,7 +247,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         }
 
         // Parse branch.
-        const lBranchResult: GraphParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphNode(lRootNode, pTokenList, pCurrentTokenIndex);
+        const lBranchResult: GraphPartParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphNode(lRootNode, pTokenList, pCurrentTokenIndex);
 
         // Redirect errors.
         if (Array.isArray(lBranchResult)) {
@@ -233,22 +258,24 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         const lResultData: object = {};
 
         return {
-            identifier: null,
-            data: {
-                value: lResultData,
-                type: GrammarNodeValueType.Single
-            },
+            data: lResultData,
             tokenIndex: lBranchResult.tokenIndex
         };
     }
 }
 
-type GraphParseResult = {
-    data: {
-        identifier: string;
-        type: GrammarNodeValueType;
-        value: any;
-    } | null;
+type GraphNodeParseResult = {
+    data: Record<string, Array<unknown> | unknown>;
+    tokenIndex: number;
+};
+
+type GraphNodeValueParseResult = {
+    data: unknown;
+    tokenIndex: number;
+};
+
+type GraphPartParseResult = {
+    data: unknown;
     tokenIndex: number;
 };
 

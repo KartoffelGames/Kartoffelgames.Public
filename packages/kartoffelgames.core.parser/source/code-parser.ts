@@ -1,10 +1,11 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
+import { AnonymoutGrammarNode } from './graph/node/anonymous-grammar-node';
 import { BaseGrammarNode } from './graph/node/base-grammar-node';
 import { GrammarNodeValueType } from './graph/node/grammer-node-value-type.enum';
 import { GraphPart } from './graph/part/graph-part';
+import { GraphPartReference } from './graph/part/graph-part-reference';
 import { Lexer, LexerToken } from './lexer';
 import { ParserException } from './parser-exception';
-import { GraphPartReference } from './graph/part/graph-part-reference';
 
 export class CodeParser<TTokenType extends string, TParseResult> {
     private readonly mGraphParts: Dictionary<string, GraphPart<TTokenType>>;
@@ -13,6 +14,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
     /**
      * Constructor.
+     * 
      * @param pLexer - Token lexer.
      */
     public constructor(pLexer: Lexer<TTokenType>) {
@@ -21,6 +23,19 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         this.mGraphParts = new Dictionary<string, GraphPart<TTokenType>>();
     }
 
+    /**
+     * Get graph part by its name.
+     * Validates existence.
+     * 
+     * @param pPartName - Part name.
+     * 
+     * @returns Graph part.  
+     * 
+     * @throws {@link Exception}
+     * When the graph part does not exist.
+     * 
+     * @internal
+     */
     public getGraphPart(pPartName: string): GraphPart<TTokenType> {
         if (!this.mGraphParts.has(pPartName)) {
             throw new Exception(`Path part "${pPartName}" not defined.`, this);
@@ -30,12 +45,25 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     }
 
     /**
+     * Creates a new graph branch.
+     * This generated graph node must be chanined to not generate errors on parsing.
+     * 
+     * @returns new branch root.
+     */
+    public graph(): BaseGrammarNode<TTokenType> {
+        return new AnonymoutGrammarNode<TTokenType>();
+    }
+
+    /**
      * Parse a text with the set syntax from {@link CodeParser.setRootPart} into a sytnax tree
      * or custom data structure.
      * 
      * @param pCodeText - Code as text.
      * 
      * @returns The code as {@link TTokenType} data structure.
+     * 
+     * @throws {@link ParserException}
+     * When the graph could not be resolved with the set code text.
      */
     public parse(pCodeText: string): TParseResult {
         // Validate lazy parameters.
@@ -70,6 +98,18 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         }
 
         return <TParseResult>lRootParseData.data;
+    }
+
+    /**
+     * Generate a reference to a graph part.
+     * The graph part doen't need to exist at this moment.
+     * 
+     * @param pPartName - Part name.
+     * 
+     * @returns Reference to the part. 
+     */
+    public partReference(pPartName: string): GraphPartReference<TTokenType> {
+        return new GraphPartReference<TTokenType>(this, pPartName);
     }
 
     /**

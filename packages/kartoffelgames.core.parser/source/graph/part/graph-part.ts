@@ -35,4 +35,4 @@ export class GraphPart<TTokenType extends string> {
     }
 }
 
-export type GraphPartDataCollector = (pRawData: Record<string, any>) => unknown;
+export type GraphPartDataCollector = (pRawData: any) => unknown;

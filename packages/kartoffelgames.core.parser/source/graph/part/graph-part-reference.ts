@@ -8,7 +8,7 @@ import { GraphPart } from './graph-part';
  * @typeparam TTokenType - Type of all tokens the referenced graph can handle.
  */
 export class GraphPartReference<TTokenType extends string> {
-    private readonly mParser: CodeParser<TTokenType, unknown>;
+    private readonly mParser: CodeParser<TTokenType, any>;
     private readonly mPartName: string;
 
     /**
@@ -17,7 +17,7 @@ export class GraphPartReference<TTokenType extends string> {
      * @param pParser - Parser reference.
      * @param pPartName - Referenced part name.
      */
-    public constructor(pParser: CodeParser<TTokenType, unknown>, pPartName: string) {
+    public constructor(pParser: CodeParser<TTokenType, any>, pPartName: string) {
         this.mParser = pParser;
         this.mPartName = pPartName;
     }

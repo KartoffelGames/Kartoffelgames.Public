@@ -7,6 +7,15 @@ import { GraphPartReference } from './graph/part/graph-part-reference';
 import { Lexer, LexerToken } from './lexer';
 import { ParserException } from './parser-exception';
 
+/**
+ * Code parser turns a text with the help of a setup lexer into a syntax tree.
+ * The data gets converted in the last step into another data type.
+ * 
+ * Parser moves a syntax graph along with the tokens to match a syntax and invoke specialized data collectors.
+ * 
+ * @typeparam TTokenType - Type of tokens the parser should handle. Must match with the lexter token types.
+ * @typeparam TParseResult - The result object the parser returns on success.
+ */
 export class CodeParser<TTokenType extends string, TParseResult> {
     private readonly mGraphParts: Dictionary<string, GraphPart<TTokenType>>;
     private readonly mLexer: Lexer<TTokenType>;
@@ -84,6 +93,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * 
      * @throws {@link ParserException}
      * When the graph could not be resolved with the set code text.
+     * Or {@link Exception} when no tokenizeable text should be parsed.
      */
     public parse(pCodeText: string): TParseResult {
         // Validate lazy parameters.
@@ -153,6 +163,16 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         this.mRootPartName = pPartName;
     }
 
+    /**
+     * Parse the token, marked with {@link pCurrentTokenIndex} with the set node.
+     * 
+     * @param pNode - Current node that should handle the set token.
+     * @param pTokenList - Current parsed list of all token in appearing order.
+     * @param pCurrentTokenIndex - Current token index that should be parsed with the node.
+     * 
+     * @returns The Token data object with all parsed brother node token data merged. Additionally the last used token index is returned.
+     * When the parsing fails for this node or a brother node, a complete list with all potential errors are returned instead of the token data.
+     */
     private parseGraphNode(pNode: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number): GraphNodeParseResult | Array<GraphParseError<TTokenType>> {
         // Get and check current token.
         const lCurrentToken: LexerToken<TTokenType> | undefined = pTokenList[pCurrentTokenIndex];
@@ -310,6 +330,17 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         return lErrorList;
     }
 
+    /**
+     * Parse the token, marked with {@link pCurrentTokenIndex} with the set graph part.
+     * 
+     * @param pPart - Graph part or a reference to a part.
+     * @param pTokenList - Current parsed list of all token in appearing order..
+     * @param pCurrentTokenIndex - Current token index that should be parsed with the graph part.
+     *  
+     * @returns The Token data object, or when the graph part has a data collector, the collected and altered data object is returned.
+     * Additionally the last used token index is returned.
+     * When the parsing fails for this graph part, a complete list with all potential errors are returned instead of the pared data.
+     */
     private parseGraphPart(pPart: GraphPartReference<TTokenType> | BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number): GraphPartParseResult | Array<GraphParseError<TTokenType>> {
         let lRootNode: BaseGrammarNode<TTokenType> | null;
         let lCollector: GraphPartDataCollector | null = null;
@@ -368,92 +399,3 @@ type GraphParseError<TTokenType> = {
     message: string;
     errorToken: LexerToken<TTokenType>;
 };
-
-
-
-// ------------------------
-// Test
-// ------------------------
-enum XmlToken {
-    TextContent = 'TextContent',
-    Namespace = 'Namespace',
-    Assignment = 'Assignment',
-    TagOpen = 'TagOpen',
-    TagOpenClose = 'TagOpenClose',
-    TagSelfClose = 'TagSelfClose',
-    TagClose = 'TagClose',
-    Identifier = 'Identifier',
-    Doctype = 'Doctype'
-}
-
-
-const lexer = new Lexer<XmlToken>();
-const parser = new CodeParser<XmlToken, unknown>(lexer);
-
-// TODO: ParserData defined from graph. => All loops need a name {loopName: [...loopdata]}
-
-// Define attribute
-parser.defineGraphPart('attribute',
-    parser.graph().optional(XmlToken.Namespace, 'namespace').single(XmlToken.Identifier, 'name').optional(
-        parser.graph().single(XmlToken.Assignment).single(XmlToken.TextContent, 'value')
-    ),
-    (pAttributeData: Record<string, string>) => {
-        return {};
-    }
-);
-
-// Define content
-parser.defineGraphPart('textContent',
-    parser.graph().loop('text', XmlToken.TextContent),
-    (pTextContentData: Record<string, string>) => {
-        return {};
-    }
-);
-
-// Define tag
-type ParserTagPartGraphData = {
-    namespace?: string;
-    openName: string;
-    attributes: Array<XmlAttribute>;
-    closing: {
-        contents: Array<{
-            content: {
-                value: XmlText | XmlTag;
-            };
-        }>;
-        closeName: string;
-    };
-};
-parser.defineGraphPart('tag',
-    parser.graph().single(XmlToken.TagOpen).optional(XmlToken.Namespace, 'namespace').single(XmlToken.Identifier, 'openName').loop('attributes', parser.partReference('attribute')).branch('closing', [
-        parser.graph().single(XmlToken.TagSelfClose),
-        parser.graph().single(XmlToken.TagClose).loop('contents',
-            parser.graph().branch('content', [
-                parser.graph().single(parser.partReference('textContent'), 'value'),
-                parser.graph().single(parser.partReference('tag'), 'value')
-            ]),
-        ).single(XmlToken.TagOpenClose).single(XmlToken.Identifier, 'closeName').single(XmlToken.TagClose)
-    ]),
-    (pTagData: ParserTagPartGraphData): XmlTag => {
-        return {};
-    }
-);
-
-// Define xml doctype
-parser.defineGraphPart('doctype',
-    parser.graph().single(XmlToken.TagOpen).single(XmlToken.Doctype).single(XmlToken.Identifier, 'doctype'),
-    (pDoctypeData: Record<string, string>) => {
-        return {};
-    }
-);
-
-// Define parser endpoint where all data is merged.
-parser.defineGraphPart('document',
-    parser.graph().optional(parser.partReference('doctype'), 'doctype').optional(parser.partReference('tag'), 'rootTag'),
-    (pTagData: Record<string, string>) => {
-        return {};
-    }
-);
-
-// Set root part. The part, the parser starts to parse.
-parser.setRootGraphPart('document');

@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { GrammarNodeValueType } from './grammer-node-value-type.enum';
-import { GraphPartReference } from './graph-part-reference';
 import { GrammarSingleNode } from './grammer-single-node';
+import { GraphPartReference } from '../part/graph-part-reference';
 
 /**
  * Basic grammar node. Base parent for all native nodes.

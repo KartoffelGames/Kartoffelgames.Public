@@ -1,6 +1,6 @@
+import { GraphPartReference } from '../part/graph-part-reference';
 import { BaseGrammarNode, GrammarGraphValue } from './base-grammar-node';
 import { GrammarNodeValueType } from './grammer-node-value-type.enum';
-import { GraphPartReference } from './graph-part-reference';
 
 /**
  * Single value node.

@@ -1,12 +1,13 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
-import { BaseGrammarNode } from './graph/base-grammar-node';
-import { GrammarNodeValueType } from './graph/grammer-node-value-type.enum';
-import { GraphPartReference } from './graph/graph-part-reference';
+import { BaseGrammarNode } from './graph/node/base-grammar-node';
+import { GrammarNodeValueType } from './graph/node/grammer-node-value-type.enum';
+import { GraphPart } from './graph/part/graph-part';
 import { Lexer, LexerToken } from './lexer';
 import { ParserException } from './parser-exception';
+import { GraphPartReference } from './graph/part/graph-part-reference';
 
 export class CodeParser<TTokenType extends string, TParseResult> {
-    private readonly mGraphParts: Dictionary<string, GraphPartReference<TTokenType>>;
+    private readonly mGraphParts: Dictionary<string, GraphPart<TTokenType>>;
     private readonly mLexer: Lexer<TTokenType>;
     private mRootPartName: string | null;
 
@@ -17,7 +18,15 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     public constructor(pLexer: Lexer<TTokenType>) {
         this.mLexer = pLexer;
         this.mRootPartName = null;
-        this.mGraphParts = new Dictionary<string, GraphPartReference<TTokenType>>();
+        this.mGraphParts = new Dictionary<string, GraphPart<TTokenType>>();
+    }
+
+    public getGraphPart(pPartName: string): GraphPart<TTokenType> {
+        if (!this.mGraphParts.has(pPartName)) {
+            throw new Exception(`Path part "${pPartName}" not defined.`, this);
+        }
+
+        return this.mGraphParts.get(pPartName)!;
     }
 
     /**
@@ -42,8 +51,11 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             throw new Exception('No parseable code was found.', this);
         }
 
+        // Create part reference.
+        const lRootPartReference: GraphPartReference<TTokenType> = new GraphPartReference<TTokenType>(this, this.mRootPartName);
+
         // Parse root part.
-        const lRootParseData: GraphPartParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphPart(this.graphByName(this.mRootPartName), lTokenList, 0);
+        const lRootParseData: GraphPartParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphPart(lRootPartReference, lTokenList, 0);
         if (Array.isArray(lRootParseData)) {
             // Find error with the latest error position.
             let lErrorPosition: GraphParseError<TTokenType> | null = null;
@@ -61,25 +73,24 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     }
 
     /**
+     * Set the root graph part of this parser.
      * 
-     * @param pPartName 
+     * @param pPartName - Graph part name.
+     * 
+     * @throws {@link Exception}
+     * When the graph part is not defined or has no defined data collector.
      */
     public setRootPart(pPartName: string): void {
         if (!this.mGraphParts.has(pPartName)) {
             throw new Exception(`Path part "${pPartName}" not defined.`, this);
         }
 
-        // TODO: Validate that the root part has the correct data parser. 
-
-        this.mRootPartName = pPartName;
-    }
-
-    private graphByName(pPartName: string): GraphPartReference<TTokenType> {
-        if (!this.mGraphParts.has(pPartName)) {
-            throw new Exception(`Path part "${pPartName}" not defined.`, this);
+        // Validate that the root part has a data collector.
+        if (!this.mGraphParts.get(pPartName)!.dataCollector) {
+            throw new Exception(`A root graph part needs a defined data collector.`, this);
         }
 
-        return this.mGraphParts.get(pPartName)!;
+        this.mRootPartName = pPartName;
     }
 
     private parseGraphNode(pNode: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number): GraphNodeParseResult | Array<GraphParseError<TTokenType>> {
@@ -239,23 +250,28 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         return lErrorList;
     }
 
-    private parseGraphPart(pPart: GraphPartReference<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number): GraphPartParseResult | Array<GraphParseError<TTokenType>> {
+    private parseGraphPart(pPartReference: GraphPartReference<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number): GraphPartParseResult | Array<GraphParseError<TTokenType>> {
+        const lResolvedGraphPart: GraphPart<TTokenType> = pPartReference.resolveReference();
+
         // Set grapth root as staring node and validate correct confoguration.
-        const lRootNode: BaseGrammarNode<TTokenType> | null = pPart.graph();
+        const lRootNode: BaseGrammarNode<TTokenType> | null = lResolvedGraphPart.graph;
         if (lRootNode === null) {
             throw new Exception('A grapth node should not be null', this);
         }
 
         // Parse branch.
-        const lBranchResult: GraphPartParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphNode(lRootNode, pTokenList, pCurrentTokenIndex);
+        const lBranchResult: GraphNodeParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphNode(lRootNode, pTokenList, pCurrentTokenIndex);
 
         // Redirect errors.
         if (Array.isArray(lBranchResult)) {
             return lBranchResult;
         }
 
-        // TODO: Execute collector.
-        const lResultData: object = {};
+        // Execute optional collector.
+        let lResultData: Record<string, unknown> | unknown = lBranchResult.data;
+        if (lResolvedGraphPart.dataCollector) {
+            lResultData = lResolvedGraphPart.dataCollector(lBranchResult.data);
+        }
 
         return {
             data: lResultData,
@@ -264,7 +280,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     }
 }
 
-type GraphNodeParseResult = {
+export type GraphNodeParseResult = {
     data: Record<string, Array<unknown> | unknown>;
     tokenIndex: number;
 };

@@ -310,11 +310,20 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         return lErrorList;
     }
 
-    private parseGraphPart(pPartReference: GraphPartReference<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number): GraphPartParseResult | Array<GraphParseError<TTokenType>> {
-        const lResolvedGraphPart: GraphPart<TTokenType> = pPartReference.resolveReference();
+    private parseGraphPart(pPart: GraphPartReference<TTokenType> | BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number): GraphPartParseResult | Array<GraphParseError<TTokenType>> {
+        let lRootNode: BaseGrammarNode<TTokenType> | null;
+        let lCollector: GraphPartDataCollector | null = null;
+
+        // Read reference or read branch root of part node.
+        if (pPart instanceof GraphPartReference) {
+            const lGraphPart: GraphPart<TTokenType> = pPart.resolveReference();
+            lRootNode = lGraphPart.graph;
+            lCollector = lGraphPart.dataCollector;
+        } else {
+            lRootNode = pPart.branchRoot;
+        }
 
         // Set grapth root as staring node and validate correct confoguration.
-        const lRootNode: BaseGrammarNode<TTokenType> | null = lResolvedGraphPart.graph;
         if (lRootNode === null) {
             throw new Exception('A grapth node should not be null', this);
         }
@@ -329,8 +338,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
         // Execute optional collector.
         let lResultData: Record<string, unknown> | unknown = lBranchResult.data;
-        if (lResolvedGraphPart.dataCollector) {
-            lResultData = lResolvedGraphPart.dataCollector(lBranchResult.data);
+        if (lCollector) {
+            lResultData = lCollector(lBranchResult.data);
         }
 
         return {

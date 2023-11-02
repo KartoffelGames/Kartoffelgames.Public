@@ -2,6 +2,7 @@ import { Exception } from '@kartoffelgames/core.data';
 import { GrammarNodeValueType } from './grammer-node-value-type.enum';
 import { GrammarSingleNode } from './grammer-single-node';
 import { GraphPartReference } from '../part/graph-part-reference';
+import { GrammarBranchNode } from './grammer-branch-node';
 
 /**
  * Basic grammar node. Base parent for all native nodes.
@@ -93,6 +94,29 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
     // TODO: loop, branch, optionalBranch
 
     /**
+     * Creates and return a new branch node.
+     * Chains the node after the current node and sets the correct previous node.
+     * 
+     * When another chain method ({@link BaseGrammarNode.loop}, {@link BaseGrammarNode.optional}, {@link BaseGrammarNode.single}, {@link BaseGrammarNode.branch} or {@link BaseGrammarNode.optionalBranch})
+     * was called before this call, this method will throw an error, preventing multi chainings.
+     * 
+     * @param pBranches - Node branches.
+     * @param pIdentifier - Value identifier of node values.
+     * 
+     * @throws {@link Exception}
+     * When another chain method was called,
+     * 
+     * @returns The new branch node. 
+     */
+    public branch(pIdentifier: string | null, pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType> {
+        // Create new node and chain it after this node.
+        const lSingleNode: GrammarBranchNode<TTokenType> = new GrammarBranchNode<TTokenType>(this, pBranches, true, pIdentifier);
+        this.setNextNode(lSingleNode);
+
+        return lSingleNode;
+    }
+
+    /**
      * Creates and return a new  optional single value node.
      * Chains the node after the current node and sets the correct previous node.
      * This node is optional and can be skipped for the parsing process.
@@ -111,6 +135,30 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
     public optional(pValue: GrammarGraphValue<TTokenType>, pIdentifier: string | null = null): GrammarSingleNode<TTokenType> {
         // Create new node and chain it after this node.
         const lSingleNode: GrammarSingleNode<TTokenType> = new GrammarSingleNode<TTokenType>(this, pValue, false, pIdentifier);
+        this.setNextNode(lSingleNode);
+
+        return lSingleNode;
+    }
+
+    /**
+     * Creates and return a new optional branch node.
+     * Chains the node after the current node and sets the correct previous node.
+     * This node is optional and can be skipped for the parsing process.
+     * 
+     * When another chain method ({@link BaseGrammarNode.loop}, {@link BaseGrammarNode.optional}, {@link BaseGrammarNode.single}, {@link BaseGrammarNode.branch} or {@link BaseGrammarNode.optionalBranch})
+     * was called before this call, this method will throw an error, preventing multi chainings.
+     * 
+     * @param pBranches - Node branches.
+     * @param pIdentifier - Value identifier of node values.
+     * 
+     * @throws {@link Exception}
+     * When another chain method was called,
+     * 
+     * @returns The new optional branch node. 
+     */
+    public optionalBranch(pIdentifier: string | null, pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType> {
+        // Create new node and chain it after this node.
+        const lSingleNode: GrammarBranchNode<TTokenType> = new GrammarBranchNode<TTokenType>(this, pBranches, false, pIdentifier);
         this.setNextNode(lSingleNode);
 
         return lSingleNode;
@@ -168,4 +216,4 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
     public abstract next(): Array<BaseGrammarNode<TTokenType> | null>;
 }
 
-export type GrammarGraphValue<TTokenType extends string> = GraphPartReference<TTokenType> | TTokenType;
+export type GrammarGraphValue<TTokenType extends string> = GraphPartReference<TTokenType> | TTokenType | BaseGrammarNode<TTokenType>;

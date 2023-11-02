@@ -1,6 +1,9 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { BaseGrammarNode, GrammarGraphValue } from './base-grammar-node';
 import { GrammarNodeValueType } from './grammer-node-value-type.enum';
+import { GrammarBranchNode } from './grammer-branch-node';
+import { GrammarLoopNode } from './grammer-loop-node';
+import { GrammarSingleNode } from './grammer-single-node';
 
 /**
  * Anonymous node.
@@ -27,7 +30,45 @@ export class AnonymoutGrammarNode<TTokenType extends string> extends BaseGrammar
         super(null, false, GrammarNodeValueType.Single, null);
     }
 
-    // TODO: Override single, optional, branch, optionalBranch and loop.
+    /**
+     * Creates and return a new branch node.
+     * Chains the node after the current node and sets the correct previous node.
+     * 
+     * When another chain method ({@link BaseGrammarNode.loop}, {@link BaseGrammarNode.optional}, {@link BaseGrammarNode.single}, {@link BaseGrammarNode.branch} or {@link BaseGrammarNode.optionalBranch})
+     * was called before this call, this method will throw an error, preventing multi chainings.
+     * 
+     * @param pBranches - Node branches.
+     * @param pIdentifier - Value identifier of node values.
+     * 
+     * @throws {@link Exception}
+     * When another chain method was called,
+     * 
+     * @returns The new branch node. 
+     */
+    public override branch(pIdentifier: string | null, pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType> {
+        // Create new node and chain it after this node.
+        return new GrammarBranchNode<TTokenType>(null, pBranches, true, pIdentifier);
+    }
+
+    /**
+     * Creates and return a new loop node.
+     * Chains the node after the current node and sets the correct previous node.
+     * 
+     * When another chain method ({@link BaseGrammarNode.loop}, {@link BaseGrammarNode.optional}, {@link BaseGrammarNode.single}, {@link BaseGrammarNode.branch} or {@link BaseGrammarNode.optionalBranch})
+     * was called before this call, this method will throw an error, preventing multi chainings.
+     * 
+     * @param pValue - Node value.
+     * @param pIdentifier - Value identifier of node value.
+     * 
+     * @throws {@link Exception}
+     * When another chain method was called,
+     * 
+     * @returns The new loop node. 
+     */
+    public override loop(pIdentifier: string | null, pValue: GrammarGraphValue<TTokenType>): GrammarLoopNode<TTokenType> {
+        // Create new node and chain it after this node.
+        return new GrammarLoopNode<TTokenType>(null, pValue, pIdentifier);
+    }
 
     /**
      * Throws an error.
@@ -38,4 +79,68 @@ export class AnonymoutGrammarNode<TTokenType extends string> extends BaseGrammar
     public override next(): Array<BaseGrammarNode<TTokenType> | null> {
         throw new Exception(`Anonymous nodes can't act as a ordinary node. To start a branch, this node needs to be chained.`, this);
     }
+
+    /**
+     * Creates and return a new  optional single value node.
+     * Chains the node after the current node and sets the correct previous node.
+     * This node is optional and can be skipped for the parsing process.
+     * 
+     * When another chain method ({@link BaseGrammarNode.loop}, {@link BaseGrammarNode.optional}, {@link BaseGrammarNode.single}, {@link BaseGrammarNode.branch} or {@link BaseGrammarNode.optionalBranch})
+     * was called before this call, this method will throw an error, preventing multi chainings.
+     * 
+     * @param pValue - Node value.
+     * @param pIdentifier - Value identifier of node value.
+     * 
+     * @throws {@link Exception}
+     * When another chain method was called,
+     * 
+     * @returns The new optional single value node. 
+     */
+    public override optional(pValue: GrammarGraphValue<TTokenType>, pIdentifier: string | null = null): GrammarSingleNode<TTokenType> {
+        // Create new node and chain it after this node.
+        return new GrammarSingleNode<TTokenType>(null, pValue, false, pIdentifier);
+    }
+
+    /**
+     * Creates and return a new optional branch node.
+     * Chains the node after the current node and sets the correct previous node.
+     * This node is optional and can be skipped for the parsing process.
+     * 
+     * When another chain method ({@link BaseGrammarNode.loop}, {@link BaseGrammarNode.optional}, {@link BaseGrammarNode.single}, {@link BaseGrammarNode.branch} or {@link BaseGrammarNode.optionalBranch})
+     * was called before this call, this method will throw an error, preventing multi chainings.
+     * 
+     * @param pBranches - Node branches.
+     * @param pIdentifier - Value identifier of node values.
+     * 
+     * @throws {@link Exception}
+     * When another chain method was called,
+     * 
+     * @returns The new optional branch node. 
+     */
+    public override optionalBranch(pIdentifier: string | null, pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType> {
+        // Create new node and chain it after this node.
+        return new GrammarBranchNode<TTokenType>(null, pBranches, false, pIdentifier);
+    }
+
+    /**
+     * Creates and return a new single value node.
+     * Chains the node after the current node and sets the correct previous node.
+     * 
+     * When another chain method ({@link BaseGrammarNode.loop}, {@link BaseGrammarNode.optional}, {@link BaseGrammarNode.single}, {@link BaseGrammarNode.branch} or {@link BaseGrammarNode.optionalBranch})
+     * was called before this call, this method will throw an error, preventing multi chainings.
+     * 
+     * @param pValue - Node value.
+     * @param pIdentifier - Value identifier of node value.
+     * 
+     * @throws {@link Exception}
+     * When another chain method was called,
+     * 
+     * @returns The new single value node. 
+     */
+    public override single(pValue: GrammarGraphValue<TTokenType>, pIdentifier: string | null = null): GrammarSingleNode<TTokenType> {
+        // Create new node and chain it after this node.
+        return new GrammarSingleNode<TTokenType>(null, pValue, true, pIdentifier);
+    }
+
+
 }

@@ -1,9 +1,6 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { BaseGrammarNode, GrammarGraphValue } from './base-grammar-node';
 import { GrammarNodeValueType } from './grammer-node-value-type.enum';
-import { GrammarBranchNode } from './grammer-branch-node';
-import { GrammarLoopNode } from './grammer-loop-node';
-import { GrammarSingleNode } from './grammer-single-node';
 
 /**
  * Anonymous node.
@@ -141,6 +138,10 @@ export class AnonymoutGrammarNode<TTokenType extends string> extends BaseGrammar
         // Create new node and chain it after this node.
         return new GrammarSingleNode<TTokenType>(null, pValue, true, pIdentifier);
     }
-
-
 }
+
+// Load child branches after parent to prevent circular dependency problems.
+import { GrammarBranchNode } from './grammer-branch-node';
+import { GrammarLoopNode } from './grammer-loop-node';
+import { GrammarSingleNode } from './grammer-single-node';
+

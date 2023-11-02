@@ -1,9 +1,6 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { GrammarNodeValueType } from './grammer-node-value-type.enum';
-import { GrammarSingleNode } from './grammer-single-node';
 import { GraphPartReference } from '../part/graph-part-reference';
-import { GrammarBranchNode } from './grammer-branch-node';
-import { GrammarLoopNode } from './grammer-loop-node';
+import { GrammarNodeValueType } from './grammer-node-value-type.enum';
 
 /**
  * Basic grammar node. Base parent for all native nodes.
@@ -130,7 +127,7 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
      * 
      * @returns The new loop node. 
      */
-     public loop(pIdentifier: string | null, pValue: GrammarGraphValue<TTokenType>): GrammarLoopNode<TTokenType> {
+    public loop(pIdentifier: string | null, pValue: GrammarGraphValue<TTokenType>): GrammarLoopNode<TTokenType> {
         // Create new node and chain it after this node.
         const lNode: GrammarLoopNode<TTokenType> = new GrammarLoopNode<TTokenType>(this, pValue, pIdentifier);
         this.setNextNode(lNode);
@@ -239,3 +236,9 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
 }
 
 export type GrammarGraphValue<TTokenType extends string> = GraphPartReference<TTokenType> | TTokenType | BaseGrammarNode<TTokenType>;
+
+// Load child branches after parent to prevent circular dependency problems.
+import { GrammarBranchNode } from './grammer-branch-node';
+import { GrammarLoopNode } from './grammer-loop-node';
+import { GrammarSingleNode } from './grammer-single-node';
+

@@ -3,6 +3,7 @@ import { GrammarNodeValueType } from './grammer-node-value-type.enum';
 import { GrammarSingleNode } from './grammer-single-node';
 import { GraphPartReference } from '../part/graph-part-reference';
 import { GrammarBranchNode } from './grammer-branch-node';
+import { GrammarLoopNode } from './grammer-loop-node';
 
 /**
  * Basic grammar node. Base parent for all native nodes.
@@ -91,8 +92,6 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
         this.mNextNode = null;
     }
 
-    // TODO: loop, branch, optionalBranch
-
     /**
      * Creates and return a new branch node.
      * Chains the node after the current node and sets the correct previous node.
@@ -110,10 +109,33 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
      */
     public branch(pIdentifier: string | null, pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType> {
         // Create new node and chain it after this node.
-        const lSingleNode: GrammarBranchNode<TTokenType> = new GrammarBranchNode<TTokenType>(this, pBranches, true, pIdentifier);
-        this.setNextNode(lSingleNode);
+        const lNode: GrammarBranchNode<TTokenType> = new GrammarBranchNode<TTokenType>(this, pBranches, true, pIdentifier);
+        this.setNextNode(lNode);
 
-        return lSingleNode;
+        return lNode;
+    }
+
+    /**
+     * Creates and return a new loop node.
+     * Chains the node after the current node and sets the correct previous node.
+     * 
+     * When another chain method ({@link BaseGrammarNode.loop}, {@link BaseGrammarNode.optional}, {@link BaseGrammarNode.single}, {@link BaseGrammarNode.branch} or {@link BaseGrammarNode.optionalBranch})
+     * was called before this call, this method will throw an error, preventing multi chainings.
+     * 
+     * @param pValue - Node value.
+     * @param pIdentifier - Value identifier of node value.
+     * 
+     * @throws {@link Exception}
+     * When another chain method was called,
+     * 
+     * @returns The new loop node. 
+     */
+     public loop(pIdentifier: string | null, pValue: GrammarGraphValue<TTokenType>): GrammarLoopNode<TTokenType> {
+        // Create new node and chain it after this node.
+        const lNode: GrammarLoopNode<TTokenType> = new GrammarLoopNode<TTokenType>(this, pValue, pIdentifier);
+        this.setNextNode(lNode);
+
+        return lNode;
     }
 
     /**
@@ -134,10 +156,10 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
      */
     public optional(pValue: GrammarGraphValue<TTokenType>, pIdentifier: string | null = null): GrammarSingleNode<TTokenType> {
         // Create new node and chain it after this node.
-        const lSingleNode: GrammarSingleNode<TTokenType> = new GrammarSingleNode<TTokenType>(this, pValue, false, pIdentifier);
-        this.setNextNode(lSingleNode);
+        const lNode: GrammarSingleNode<TTokenType> = new GrammarSingleNode<TTokenType>(this, pValue, false, pIdentifier);
+        this.setNextNode(lNode);
 
-        return lSingleNode;
+        return lNode;
     }
 
     /**
@@ -158,10 +180,10 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
      */
     public optionalBranch(pIdentifier: string | null, pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType> {
         // Create new node and chain it after this node.
-        const lSingleNode: GrammarBranchNode<TTokenType> = new GrammarBranchNode<TTokenType>(this, pBranches, false, pIdentifier);
-        this.setNextNode(lSingleNode);
+        const lNode: GrammarBranchNode<TTokenType> = new GrammarBranchNode<TTokenType>(this, pBranches, false, pIdentifier);
+        this.setNextNode(lNode);
 
-        return lSingleNode;
+        return lNode;
     }
 
     /**
@@ -181,10 +203,10 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
      */
     public single(pValue: GrammarGraphValue<TTokenType>, pIdentifier: string | null = null): GrammarSingleNode<TTokenType> {
         // Create new node and chain it after this node.
-        const lSingleNode: GrammarSingleNode<TTokenType> = new GrammarSingleNode<TTokenType>(this, pValue, true, pIdentifier);
-        this.setNextNode(lSingleNode);
+        const lNode: GrammarSingleNode<TTokenType> = new GrammarSingleNode<TTokenType>(this, pValue, true, pIdentifier);
+        this.setNextNode(lNode);
 
-        return lSingleNode;
+        return lNode;
     }
 
     /**

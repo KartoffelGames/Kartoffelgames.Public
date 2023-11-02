@@ -87,11 +87,24 @@ export class Lexer<TTokenType> {
             throw new Exception(`Dublicate token type "${pType}". Token types for patthern need to be unique`, this);
         }
 
+        // Add line start anchor to pattern.
+        let lPatterSource: string = pPattern.source;
+        if (!lPatterSource.startsWith('^')) {
+            lPatterSource = '^' + lPatterSource;
+        }
+
+        // Add global and singleline flags remove every other flags except insensitive, unicode or Ungreedy.
+        let lPatternFlags: string = pPattern.flags.replace(/[gmxsAJD]/g, '');
+        lPatternFlags += 'gs';
+
+        // Create pattern with adjusted settings.
+        const lConvertedPattern: RegExp = new RegExp(lPatterSource, lPatternFlags);
+
         // Ordered type list.
         this.mTokenSpecifications.set(pType, pSpecification);
 
         // Type to pattern mapping.
-        this.mTokenPatterns.set(pType, pPattern);
+        this.mTokenPatterns.set(pType, lConvertedPattern);
     }
 
     /**
@@ -158,7 +171,7 @@ export class Lexer<TTokenType> {
                 // Process token on pattern match.
                 if (lPatternMatch) {
                     // Read token group or complete match when no token group was specified.
-                    const lPatternData: string = lPatternMatch.groups!['token'] ?? lPatternMatch[0];
+                    const lPatternData: string = lPatternMatch.groups?.['token'] ?? lPatternMatch[0];
 
                     // Update token when no token was set, or a better token, a longer one, was found.
                     if (!lBestMatch.token || lPatternData.length > lBestMatch.token.value.length) {

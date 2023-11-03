@@ -105,7 +105,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         const lTokenList: Array<LexerToken<TTokenType>> = [...this.mLexer.tokenize(pCodeText)];
 
         // There must be at least one token to start the parse.
-        if (lTokenList.length) {
+        if (lTokenList.length === 0) {
             throw new Exception('No parseable code was found.', this);
         }
 

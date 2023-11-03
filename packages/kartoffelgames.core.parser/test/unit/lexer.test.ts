@@ -1,6 +1,6 @@
 import { expect } from 'chai';
-import { Lexer, LexerToken } from '../source/lexer';
-import { ParserException } from '../source/parser-exception';
+import { Lexer, LexerToken } from '../../source/lexer';
+import { ParserException } from '../../source/parser-exception';
 import { Exception } from '@kartoffelgames/core.data';
 
 describe('Lexer', () => {

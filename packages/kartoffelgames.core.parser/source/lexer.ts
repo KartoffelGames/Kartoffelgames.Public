@@ -61,11 +61,12 @@ export class Lexer<TTokenType> {
     }
 
     /**
-     * Add token pattern
-     * The order the pattern are added matters for priorizing.
+     * Add token pattern. Patterns with the same specification get grouped.
+     * When a token matches multiple times within the same group the first added pattern or a longer matched token gets priorized.
      * 
      * @param pPattern - Token pettern must not be unique but should.
      * @param pType - Pattern type.
+     * @param pSpecification - Token specification. Lower numbers gets prioritzed over higher numbers.
      * 
      * @throws 
      * On adding a dublicate type.
@@ -73,12 +74,12 @@ export class Lexer<TTokenType> {
      * @example Set two types of tokens for a text.
      * ``` Typescript
      * const lexer = new Lexer<'number' | 'string' | 'text-a-ending'>();
-     * lexer.addTokenPattern(/[0-9]+/, 'number');
-     * lexer.addTokenPattern(/[a-zA-Z]+/, 'text');
+     * lexer.addTokenPattern(/[0-9]+/, 'number', 0);
+     * lexer.addTokenPattern(/[a-zA-Z]+/, 'text', 0);
      *  // Token that ends with an a. The ending a will not be skipped.
-     * lexer.addTokenPattern(/(?<token>[a-zA-Z]+)a/, 'text-a-ending');
+     * lexer.addTokenPattern(/(?<token>[a-zA-Z]+)a/, 'text-a-ending', 1);
      * 
-     * lexer.addTokenPattern(/[a-zA-Z0-9]+/, 'text'); // => Fails
+     * lexer.addTokenPattern(/[a-zA-Z0-9]+/, 'text', 0); // => Fails
      * ``` 
      */
     public addTokenPattern(pPattern: RegExp, pType: TTokenType, pSpecification: number): void {

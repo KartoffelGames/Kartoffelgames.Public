@@ -1,12 +1,14 @@
 import { expect } from 'chai';
 import { Lexer, LexerToken } from '../source/lexer';
 import { ParserException } from '../source/parser-exception';
+import { Exception } from '@kartoffelgames/core.data';
 
 describe('Lexer', () => {
     enum TestTokenType {
         Word = 'word',
         Number = 'number',
-        Braket = 'braket'
+        Braket = 'braket',
+        Custom = 'Custom'
     }
 
     // Init new lexer with all test node types set as token patterns.
@@ -18,9 +20,9 @@ describe('Lexer', () => {
         const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
         lLexer.validWhitespaces = ' \n';
 
-        lLexer.addTokenPattern(lWordBreaker, TestTokenType.Word, 0);
-        lLexer.addTokenPattern(lNumberBreaker, TestTokenType.Number, 0);
-        lLexer.addTokenPattern(lBracketBreaker, TestTokenType.Braket, 0);
+        lLexer.addTokenPattern(lWordBreaker, TestTokenType.Word, 1);
+        lLexer.addTokenPattern(lNumberBreaker, TestTokenType.Number, 1);
+        lLexer.addTokenPattern(lBracketBreaker, TestTokenType.Braket, 1);
 
         return lLexer;
     };
@@ -78,30 +80,60 @@ describe('Lexer', () => {
         });
     });
 
-    it('Property: validWhitespaces', () => {
-        // Setup.
-        const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+    describe('Property: validWhitespaces', () => {
+        it('-- Set', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = lInitTestLexer();
 
-        // Process.
-        lLexer.trimWhitespace = true;
-        lLexer.validWhitespaces = ' A\n'; // Space and uppercase A. Should trim out the first word.
-        const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
+            // Process.
+            lLexer.trimWhitespace = true;
+            lLexer.validWhitespaces = ' A\n'; // Space and uppercase A. Should trim out the first word.
+            const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
-        // Evaluation.
-        expect(lTokenList).has.lengthOf(9);
+            // Evaluation.
+            expect(lTokenList).has.lengthOf(9);
+        });
+
+        it('-- Get', () => {
+            // Setup.
+            const lValidWhitespaces: string = ' A\n';
+            const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+
+            // Process.
+            lLexer.validWhitespaces = lValidWhitespaces;
+
+            // Evaluation.
+            expect(lLexer.validWhitespaces).to.equal(lValidWhitespaces);
+        });
     });
 
-    it('Method: addTokenPattern', () => {
-        // Setup.
-        const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
-        lLexer.validWhitespaces = ' \n';
+    describe('Method: addTokenPattern', () => {
+        it('-- Add valid', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+            lLexer.validWhitespaces = ' \n';
 
-        // Process.
-        lLexer.addTokenPattern(/./, TestTokenType.Word, 0);
-        const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
+            // Process.
+            lLexer.addTokenPattern(/./, TestTokenType.Word, 0);
+            const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
-        // Evaluation.
-        expect(lTokenList).has.lengthOf(45); // 55 characters with 10 trimmed whitespaces. 
+            // Evaluation.
+            expect(lTokenList).has.lengthOf(45); // 55 characters with 10 trimmed whitespaces. 
+        });
+
+        it('-- Add valid', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+            lLexer.addTokenPattern(/./, TestTokenType.Word, 0);
+
+            // Process. Dublicate token type
+            const lErrorFunction = () => {
+                lLexer.addTokenPattern(/A/, TestTokenType.Word, 0);
+            };
+
+            // Evaluation.
+            expect(lErrorFunction).to.throw(Exception);
+        });
     });
 
     describe('Method: tokenize', () => {
@@ -112,7 +144,7 @@ describe('Lexer', () => {
             // Process.
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
-            // Process. 'A sentence with 1 or 10 words (Ending with)and \nnewline'
+            // Evaluation. 'A sentence with 1 or 10 words (Ending with)and \nnewline'
             expect(lTokenList[0]).property('lineNumber').to.equal(1);
             expect(lTokenList[0]).property('columnNumber').to.equal(1);
 
@@ -151,7 +183,7 @@ describe('Lexer', () => {
             // Process.
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
-            // Process. 'A sentence with 1 or 10 words (Ending with)and \nnewline'
+            // Evaluation. 'A sentence with 1 or 10 words (Ending with)and \nnewline'
             expect(lTokenList[0]).property('type').to.equal(TestTokenType.Word);
             expect(lTokenList[1]).property('type').to.equal(TestTokenType.Word);
             expect(lTokenList[2]).property('type').to.equal(TestTokenType.Word);
@@ -171,7 +203,7 @@ describe('Lexer', () => {
             // Process.
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
-            // Process. 'A sentence with 1 or 10 words (Ending with)and \nnewline'
+            // Evaluation. 'A sentence with 1 or 10 words (Ending with)and \nnewline'
             expect(lTokenList[0]).property('value').to.equal('A');
             expect(lTokenList[1]).property('value').to.equal('sentence');
             expect(lTokenList[2]).property('value').to.equal('with');
@@ -194,9 +226,48 @@ describe('Lexer', () => {
                 [...lLexer.tokenize(lTestTextWithInvalidToken)];
             };
 
-            // Process. 'A sentence with 1 or 10 words (Ending with)and \nnewline'
+            // Evaluation. 'A sentence with 1 or 10 words (Ending with)and \nnewline'
             expect(lErrorFunction).to.throw(ParserException, `Invalid token. Can't tokenize "// is here"`);
+        });
 
+        it('-- Tokenize newline', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+            lLexer.addTokenPattern(/and \nnewlin/, TestTokenType.Custom, 1);
+
+            // Process.
+            const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
+
+            // Evaluation. 'A sentence with 1 or 10 words (Ending with)and \nnewline'
+            expect(lTokenList[8]).property('value').to.equal('and \nnewlin');
+            expect(lTokenList[8]).property('lineNumber').to.equal(1);
+
+            expect(lTokenList[9]).property('value').to.equal('e');
+            expect(lTokenList[9]).property('lineNumber').to.equal(2);
+        });
+
+        it('-- Priorize specification', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+            lLexer.addTokenPattern(/(?<token>\(.*?\))and+/, TestTokenType.Custom, 0);
+
+            // Process.
+            const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
+
+            // Evaluation. 'A sentence with 1 or 10 words (Ending with)and \nnewline'
+            expect(lTokenList[7]).property('type').to.equal(TestTokenType.Custom);
+        });
+
+        it('-- Priorize longer token', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+            lLexer.addTokenPattern(/and \nnewlin/, TestTokenType.Custom, 1);
+
+            // Process.
+            const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
+
+            // Evaluation. 'A sentence with 1 or 10 words (Ending with)and \nnewline'
+            expect(lTokenList[8]).property('type').to.equal(TestTokenType.Custom);
         });
     });
 });

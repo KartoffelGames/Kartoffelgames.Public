@@ -177,10 +177,17 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Get and check current token.
         const lCurrentToken: LexerToken<TTokenType> | undefined = pTokenList[pCurrentTokenIndex];
         if (!lCurrentToken) {
-            return [{
-                message: `Unexpected end of statement.`,
-                errorToken: pTokenList.at(-1)!
-            }];
+            if (pNode.required) {
+                return [{
+                    message: `Unexpected end of statement.`,
+                    errorToken: pTokenList.at(-1)!
+                }];
+            } else {
+                return {
+                    data: {},
+                    tokenIndex: pCurrentTokenIndex
+                };
+            }
         }
 
         // Error buffer. Bundles all parser errors so on an error case an detailed error detection can be made.

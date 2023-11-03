@@ -8,7 +8,9 @@ describe('CodeParser', () => {
         Modifier = 'Modifier',
         Assignment = 'Assignment',
         TypeDelimiter = 'TypeDelimiter',
-        Semicolon = 'Semicolon'
+        Semicolon = 'Semicolon',
+        String = 'String',
+        Number = 'Number'
     }
 
     const lCreateLexer = (): Lexer<TokenType> => {
@@ -18,6 +20,8 @@ describe('CodeParser', () => {
         lLexter.addTokenPattern(/[a-zA-Z]+/, TokenType.Identifier, 2);
         lLexter.addTokenPattern(/:/, TokenType.TypeDelimiter, 2);
         lLexter.addTokenPattern(/;/, TokenType.Semicolon, 2);
+        lLexter.addTokenPattern(/[0-9]+/, TokenType.Number, 2);
+        lLexter.addTokenPattern(/".*?"/, TokenType.String, 2);
 
         lLexter.validWhitespaces = ' \n\t\r';
         lLexter.trimWhitespace = true;
@@ -70,6 +74,83 @@ describe('CodeParser', () => {
             expect(lParsedData).has.property('modifier').and.equals('const');
             expect(lParsedData).has.property('variableName').and.equals('name');
             expect(lParsedData).has.property('typeName').and.equals('number');
+        });
+
+        it('-- Branch Parsing without optionals', () => {
+            // Setup.
+            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lCodeTextModifier: string = 'const';
+            const lCodeTextIdentifier: string = 'notconst';
+
+            // Setup. Define graph part and set as root.
+            lParser.defineGraphPart('BranchCode',
+                lParser.graph().branch('data', [
+                    TokenType.Identifier,
+                    TokenType.Modifier
+                ]),
+                (pData: any) => {
+                    return pData;
+                }
+            );
+            lParser.setRootGraphPart('BranchCode');
+
+            // Process. Convert code.
+            const lParsedIdentifierData: any = lParser.parse(lCodeTextIdentifier);
+            const lParsedModifierData: any = lParser.parse(lCodeTextModifier);
+
+            // Evaluation.
+            expect(lParsedIdentifierData).has.property('data').and.equals('notconst');
+            expect(lParsedModifierData).has.property('data').and.equals('const');
+        });
+
+        it('-- Branch Parsing with existing optionals', () => {
+            // Setup.
+            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lCodeTextNumber: string = '123';
+            const lCodeTextIdentifier: string = 'myname';
+
+            // Setup. Define graph part and set as root.
+            lParser.defineGraphPart('BranchCode',
+                lParser.graph().branch('data', [
+                    lParser.graph().single(TokenType.Identifier, 'required'),
+                    lParser.graph().optional(TokenType.Number, 'optional')
+                ]),
+                (pData: any) => {
+                    return pData;
+                }
+            );
+            lParser.setRootGraphPart('BranchCode');
+
+            // Process. Convert code.
+            const lParsedIdentifierData: any = lParser.parse(lCodeTextIdentifier);
+            const lParsedNumberData: any = lParser.parse(lCodeTextNumber);
+
+            // Evaluation.
+            expect(lParsedIdentifierData).has.property('data').and.deep.equals({ data: { required: '123' } });
+            expect(lParsedNumberData).has.property('data').and.deep.equals({ data: { required: 'myname' } });
+        });
+
+        it('-- Branch Parsing with missing optionals', () => {
+            // Setup.
+            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lCodeText: string = 'const';
+
+            // Setup. Define graph part and set as root.
+            lParser.defineGraphPart('BranchCode',
+                lParser.graph().single(TokenType.Modifier).branch('data', [
+                    lParser.graph().optional(TokenType.Modifier, 'optional')
+                ]),
+                (pData: any) => {
+                    return pData;
+                }
+            );
+            lParser.setRootGraphPart('BranchCode');
+
+            // Process. Convert code.
+            const lParsedData: any = lParser.parse(lCodeText);
+
+            // Evaluation.
+            expect(lParsedData).has.property('data').and.deep.equals({ data: {} });
         });
     });
 });

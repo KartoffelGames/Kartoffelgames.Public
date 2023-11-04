@@ -104,11 +104,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Read complete token list.
         const lTokenList: Array<LexerToken<TTokenType>> = [...this.mLexer.tokenize(pCodeText)];
 
-        // There must be at least one token to start the parse.
-        if (lTokenList.length === 0) {
-            throw new Exception('No parseable code was found.', this);
-        }
-
         // Create part reference.
         const lRootPartReference: GraphPartReference<TTokenType> = new GraphPartReference<TTokenType>(this, this.mRootPartName);
 

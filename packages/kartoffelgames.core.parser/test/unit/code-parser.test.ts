@@ -133,13 +133,13 @@ describe('CodeParser', () => {
         it('-- Branch Parsing with missing optionals', () => {
             // Setup.
             const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-            const lCodeText: string = 'const';
+            const lCodeText: string = 'const ;';
 
             // Setup. Define graph part and set as root.
             lParser.defineGraphPart('BranchCode',
                 lParser.graph().single(TokenType.Modifier).branch('data', [
-                    lParser.graph().optional(TokenType.Modifier, 'optional')
-                ]),
+                    lParser.graph().optional(TokenType.Identifier, 'optional')
+                ]).single(TokenType.Semicolon), // Last single is needed to not get "end of statement" Exception because .branch() is not optional and needs a token to proceed.
                 (pData: any) => {
                     return pData;
                 }

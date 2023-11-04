@@ -179,7 +179,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         if (!lCurrentToken) {
             if (pNode.required) {
                 return [{
-                    message: `Unexpected end of statement.`,
+                    message: `Unexpected end of statement. TokenIndex: "${pCurrentTokenIndex}" missing.`,
                     errorToken: pTokenList.at(-1)!
                 }];
             } else {
@@ -240,7 +240,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             // When the node was optional, reuse the current token.
             lCurrentNodeValueResultList.push({
                 data: undefined,
-                tokenIndex: pCurrentTokenIndex
+                tokenIndex: pCurrentTokenIndex - 1
             });
         }
 

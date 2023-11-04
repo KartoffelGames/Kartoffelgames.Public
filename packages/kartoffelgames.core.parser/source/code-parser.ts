@@ -127,6 +127,12 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             throw new ParserException(lErrorPosition!.message, this, lErrorPosition!.errorToken.columnNumber, lErrorPosition!.errorToken.lineNumber);
         }
 
+        // Validate, that every token was parsed.
+        if (lRootParseData.tokenIndex < (lTokenList.length - 1)) {
+            const lLastToken: LexerToken<TTokenType> = lTokenList[lRootParseData.tokenIndex + 1];
+            throw new ParserException('Tokens could not be parsed. Graph end meet without reaching last token', this, lLastToken.columnNumber, lLastToken.lineNumber);
+        }
+
         return <TParseResult>lRootParseData.data;
     }
 
@@ -293,6 +299,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             const lProcessedTokenIndex: number = lBranchingResult.nextNodeValue?.tokenIndex ?? lBranchingResult.nodeValue.tokenIndex;
             const lData: Record<string, unknown> = lBranchingResult.nextNodeValue?.data ?? {};
             const lNodeValue: unknown = lBranchingResult.nodeValue.data;
+
+            // TODO: Set data even when undefined. List should be empty and single should set undefined.
 
             // Merge data. Current node data into next node data.
             // Merge only when the current node has a value (not optional/skipped) and has a identifier. 

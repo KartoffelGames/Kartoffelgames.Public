@@ -152,5 +152,47 @@ describe('CodeParser', () => {
             // Evaluation.
             expect(lParsedData).has.property('data').and.deep.equals({});
         });
+
+        it('-- Loop Parsing with existing items', () => {
+            // Setup.
+            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lCodeText: string = 'one two three four five';
+
+            // Setup. Define graph part and set as root.
+            lParser.defineGraphPart('LoopCode',
+                lParser.graph().loop('data', TokenType.Identifier),
+                (pData: any) => {
+                    return pData;
+                }
+            );
+            lParser.setRootGraphPart('LoopCode');
+
+            // Process. Convert code.
+            const lParsedData: any = lParser.parse(lCodeText);
+
+            // Evaluation.
+            expect(lParsedData).has.property('data').and.deep.equals(['one', 'two', 'three', 'four', 'five']);
+        });
+
+        it('-- Loop Parsing with missing items', () => {
+            // Setup.
+            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lCodeText: string = 'const';
+
+            // Setup. Define graph part and set as root.
+            lParser.defineGraphPart('LoopCode',
+                lParser.graph().single(TokenType.Modifier).loop('data', TokenType.Identifier),
+                (pData: any) => {
+                    return pData;
+                }
+            );
+            lParser.setRootGraphPart('LoopCode');
+
+            // Process. Convert code.
+            const lParsedData: any = lParser.parse(lCodeText);
+
+            // Evaluation.
+            expect(lParsedData).has.property('data').and.deep.equals([]);
+        });
     });
 });

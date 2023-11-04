@@ -194,7 +194,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         const lErrorList: Array<GraphParseError<TTokenType>> = new Array<GraphParseError<TTokenType>>();
 
         // Process values.
-        const lCurrentNodeDataResultList: Array<GraphNodeValueParseResult> = new Array<GraphNodeValueParseResult>();
+        const lCurrentNodeValueResultList: Array<GraphNodeValueParseResult> = new Array<GraphNodeValueParseResult>();
         for (const lNodeValue of pNode.nodeValues) {
             let lNodeParseValue: GraphNodeValueParseResult | null;
 
@@ -227,42 +227,50 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 lNodeParseValue = lInnerValue;
             }
 
-            lCurrentNodeDataResultList.push(lNodeParseValue);
-        }
-
-        // Permit ambiguity paths.
-        if (lCurrentNodeDataResultList.length > 1) {
-            throw new Exception('Graph has ambiguity node values paths.', this);
+            lCurrentNodeValueResultList.push(lNodeParseValue);
         }
 
         // Return parser error when no parse value was found and the current node is not optional.
-        if (lCurrentNodeDataResultList.length === 0 && pNode.required) {
+        if (lCurrentNodeValueResultList.length === 0 && pNode.required) {
             return lErrorList;
         }
 
-        // Easy access for node value. When the node was optional, reuse the current token.
-        const lNodeValue: GraphNodeValueParseResult | undefined = lCurrentNodeDataResultList.at(0);
-        const lLastProcessedTokenIndex: number = (lNodeValue ? lNodeValue.tokenIndex : pCurrentTokenIndex);
+        // Add empty GraphNodeValueParseResult when the node is optional and the node value has no positive result.
+        if (lCurrentNodeValueResultList.length === 0 && !pNode.required) {
+            // When the node was optional, reuse the current token.
+            lCurrentNodeValueResultList.push({
+                data: undefined,
+                tokenIndex: pCurrentTokenIndex
+            });
+        }
 
-        // Process next nodes in parallel.
-        const lSucessList: Array<GraphNodeParseResult> = new Array<GraphNodeParseResult>();
-        let lBranchEnd: boolean = false;
-        for (const lNextNode of pNode.next()) {
-            // Branch end.
-            if (lNextNode === null) {
-                lBranchEnd = true;
-                continue;
+        // Run next node parse for each lCurrentNodeDataResultList and check for dublicates after that.
+        const lValueBranchResultList: Array<{ nextNodeValue: GraphNodeParseResult | null, nodeValue: GraphNodeValueParseResult; }> = new Array<{ nextNodeValue: GraphNodeParseResult | null, nodeValue: GraphNodeValueParseResult; }>();
+        for (const lValueBranching of lCurrentNodeValueResultList) {
+            // Process next nodes in parallel.
+            for (const lNextNode of pNode.next()) {
+                // Branch end. No chaining value.
+                if (lNextNode === null) {
+                    lValueBranchResultList.push({
+                        nextNodeValue: null,
+                        nodeValue: lValueBranching
+                    });
+                    continue;
+                }
+
+                // Parse next node. Save all errors.
+                const lNextNodeParseResult: GraphNodeParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphNode(lNextNode, pTokenList, lValueBranching.tokenIndex + 1);
+                if (Array.isArray(lNextNodeParseResult)) {
+                    lErrorList.push(...lNextNodeParseResult);
+                    continue;
+                }
+
+                // Process branch with next node and a new token.
+                lValueBranchResultList.push({
+                    nextNodeValue: lNextNodeParseResult,
+                    nodeValue: lValueBranching
+                });
             }
-
-            // Parse next node. Save all errors.
-            const lNextNodeParseResult: GraphNodeParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphNode(lNextNode, pTokenList, lLastProcessedTokenIndex + 1);
-            if (Array.isArray(lNextNodeParseResult)) {
-                lErrorList.push(...lNextNodeParseResult);
-                continue;
-            }
-
-            // Process branch with next node and a new token.
-            lSucessList.push(lNextNodeParseResult);
         }
 
         /* 
@@ -271,30 +279,21 @@ export class CodeParser<TTokenType extends string, TParseResult> {
          * - Only one sucessfull branch can be valid. More than one result in an error.
          */
 
-        // Apply validation.
-        if (lSucessList.length > 1) {
-            throw new Exception('Graph has ambiguity chained paths', this);
+        // Permit ambiguity paths.
+        if (lValueBranchResultList.filter((pResult) => { return pResult.nextNodeValue !== null; }).length > 1) {
+            throw new Exception('Graph has ambiguity paths.', this);
         }
 
         // Next node parse success or branch ending.
-        if (lSucessList.length > 0 || lBranchEnd) {
-            let lProcessedTokenIndex: number;
-            let lData: Record<string, unknown>;
+        if (lValueBranchResultList.length > 0) {
+            // Find sucessfull branch value or when is does not exists, go for the branch end. At least one of these exists.
+            const lBranchingResult = lValueBranchResultList.find((pResult) => { return pResult.nextNodeValue !== null; }) ?? lValueBranchResultList.find((pResult) => { return pResult.nextNodeValue === null; })!;
 
-            // Set data and last processed token index based of if this node is the branch end node.
-            if (lBranchEnd) {
-                // Empty data set bc. no
-                lData = {};
+            // Read last used token index of branch and polyfill branch data when this node was the last node of this branch.
+            const lProcessedTokenIndex: number = lBranchingResult.nextNodeValue?.tokenIndex ?? lBranchingResult.nodeValue.tokenIndex;
+            const lData: Record<string, unknown> = lBranchingResult.nextNodeValue?.data ?? {};
+            const lNodeValue: unknown = lBranchingResult.nodeValue.data;
 
-                // Reset last processed token index when this node was skipped.
-                lProcessedTokenIndex = (typeof lNodeValue !== 'undefined') ? lLastProcessedTokenIndex : pCurrentTokenIndex;
-            } else { // Next node parse success.
-                const lNextNodeParseResult: GraphNodeParseResult = lSucessList[0];
-
-                // Set data and processed token from next node parse result.
-                lProcessedTokenIndex = lNextNodeParseResult.tokenIndex;
-                lData = lNextNodeParseResult.data;
-            }
 
             // Merge data. Current node data into next node data.
             // Merge only when the current node has a value (not optional/skipped) and has a identifier. 
@@ -307,7 +306,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     }
 
                     // Overide value.
-                    lData[pNode.identifier] = lNodeValue.data;
+                    lData[pNode.identifier] = lNodeValue;
                 } else {
                     let lIdentifierValue: unknown = lData[pNode.identifier];
 
@@ -324,7 +323,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     }
 
                     // Add value as array item and set 
-                    (<Array<unknown>>lIdentifierValue).push(lNodeValue.data);
+                    (<Array<unknown>>lIdentifierValue).push(lNodeValue);
                 }
             }
 

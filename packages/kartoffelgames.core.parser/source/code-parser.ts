@@ -294,7 +294,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             const lData: Record<string, unknown> = lBranchingResult.nextNodeValue?.data ?? {};
             const lNodeValue: unknown = lBranchingResult.nodeValue.data;
 
-
             // Merge data. Current node data into next node data.
             // Merge only when the current node has a value (not optional/skipped) and has a identifier. 
             if (pNode.identifier && typeof lNodeValue !== 'undefined') {

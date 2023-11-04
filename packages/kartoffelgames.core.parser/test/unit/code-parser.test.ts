@@ -126,8 +126,8 @@ describe('CodeParser', () => {
             const lParsedNumberData: any = lParser.parse(lCodeTextNumber);
 
             // Evaluation.
-            expect(lParsedIdentifierData).has.property('data').and.deep.equals({ data: { required: '123' } });
-            expect(lParsedNumberData).has.property('data').and.deep.equals({ data: { required: 'myname' } });
+            expect(lParsedNumberData).has.property('data').and.deep.equals({ optional: '123' });
+            expect(lParsedIdentifierData).has.property('data').and.deep.equals({ required: 'myname' });
         });
 
         it('-- Branch Parsing with missing optionals', () => {
@@ -150,7 +150,7 @@ describe('CodeParser', () => {
             const lParsedData: any = lParser.parse(lCodeText);
 
             // Evaluation.
-            expect(lParsedData).has.property('data').and.deep.equals({ data: {} });
+            expect(lParsedData).has.property('data').and.deep.equals({});
         });
     });
 });

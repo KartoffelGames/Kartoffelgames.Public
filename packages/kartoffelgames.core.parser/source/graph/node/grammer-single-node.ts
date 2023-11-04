@@ -41,6 +41,6 @@ export class GrammarSingleNode<TTokenType extends string> extends BaseGrammarNod
      * @internal
      */
     public override next(): Array<BaseGrammarNode<TTokenType> | null> {
-        return [this.nextNode];
+        return [this.chainedNode];
     }
 }

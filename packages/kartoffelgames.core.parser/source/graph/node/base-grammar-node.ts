@@ -9,8 +9,8 @@ import { GrammarNodeValueType } from './grammer-node-value-type.enum';
  * @typeparam TTokenType - Type of all tokens the graph can handle.
  */
 export abstract class BaseGrammarNode<TTokenType extends string> {
+    private mChainedNode: BaseGrammarNode<TTokenType> | null;
     private readonly mIdentifier: string | null;
-    private mNextNode: BaseGrammarNode<TTokenType> | null;
     private readonly mPreviousNode: BaseGrammarNode<TTokenType> | null;
     private readonly mRequired: boolean;
     private readonly mValueType: GrammarNodeValueType;
@@ -60,8 +60,8 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
     /**
      * Node that is directly chained after this node.
      */
-    protected get nextNode(): BaseGrammarNode<TTokenType> | null {
-        return this.mNextNode;
+    protected get chainedNode(): BaseGrammarNode<TTokenType> | null {
+        return this.mChainedNode;
     }
 
     /**
@@ -86,7 +86,7 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
         this.mValueType = pValueType;
 
         // Default to no chained node.
-        this.mNextNode = null;
+        this.mChainedNode = null;
     }
 
     /**
@@ -107,7 +107,7 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
     public branch(pIdentifier: string | null, pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType> {
         // Create new node and chain it after this node.
         const lNode: GrammarBranchNode<TTokenType> = new GrammarBranchNode<TTokenType>(this, pBranches, true, pIdentifier);
-        this.setNextNode(lNode);
+        this.setChainedNode(lNode);
 
         return lNode;
     }
@@ -130,7 +130,7 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
     public loop(pIdentifier: string | null, pValue: GrammarGraphValue<TTokenType>): GrammarLoopNode<TTokenType> {
         // Create new node and chain it after this node.
         const lNode: GrammarLoopNode<TTokenType> = new GrammarLoopNode<TTokenType>(this, pValue, pIdentifier);
-        this.setNextNode(lNode);
+        this.setChainedNode(lNode);
 
         return lNode;
     }
@@ -154,7 +154,7 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
     public optional(pValue: GrammarGraphValue<TTokenType>, pIdentifier: string | null = null): GrammarSingleNode<TTokenType> {
         // Create new node and chain it after this node.
         const lNode: GrammarSingleNode<TTokenType> = new GrammarSingleNode<TTokenType>(this, pValue, false, pIdentifier);
-        this.setNextNode(lNode);
+        this.setChainedNode(lNode);
 
         return lNode;
     }
@@ -178,7 +178,7 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
     public optionalBranch(pIdentifier: string | null, pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType> {
         // Create new node and chain it after this node.
         const lNode: GrammarBranchNode<TTokenType> = new GrammarBranchNode<TTokenType>(this, pBranches, false, pIdentifier);
-        this.setNextNode(lNode);
+        this.setChainedNode(lNode);
 
         return lNode;
     }
@@ -201,7 +201,7 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
     public single(pValue: GrammarGraphValue<TTokenType>, pIdentifier: string | null = null): GrammarSingleNode<TTokenType> {
         // Create new node and chain it after this node.
         const lNode: GrammarSingleNode<TTokenType> = new GrammarSingleNode<TTokenType>(this, pValue, true, pIdentifier);
-        this.setNextNode(lNode);
+        this.setChainedNode(lNode);
 
         return lNode;
     }
@@ -210,18 +210,18 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
      * Chain node after this node.
      * Validates and restricts multi chaining.
      * 
-     * @param pNextNode - Node that should be chained after this node.
+     * @param pChainedNode - Node that should be chained after this node.
      * 
      * @throws {@link Exception}
-     * When {@link BaseGrammarNode.setNextNode} was called once before for this node instance, preventing multi chainings.
+     * When {@link BaseGrammarNode.setChainedNode} was called once before for this node instance, preventing multi chainings.
      */
-    private setNextNode(pNextNode: BaseGrammarNode<TTokenType>): void {
+    private setChainedNode(pChainedNode: BaseGrammarNode<TTokenType>): void {
         // Restrict multi chaining.
-        if (this.mNextNode !== null) {
+        if (this.mChainedNode !== null) {
             throw new Exception(`Node can only be chained to a single node.`, this);
         }
 
-        this.mNextNode = pNextNode;
+        this.mChainedNode = pChainedNode;
     }
 
     /**

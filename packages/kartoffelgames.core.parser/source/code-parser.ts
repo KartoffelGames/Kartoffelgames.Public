@@ -192,18 +192,18 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             return lErrorList;
         }
 
-        // Parse and read next nodes values. Add each error to the complete error list.
-        const lNextNodeParseResult: GraphNodeParse<TTokenType> = this.retrieveNextNodeValues(pNode, lNodeValueParseResult.resultList, pTokenList);
-        lErrorList.push(...lNextNodeParseResult.errorList);
+        // Parse and read data of chanined nodes. Add each error to the complete error list.
+        const lChainParseResult: GraphNodeParse<TTokenType> = this.retrieveChainedValues(pNode, lNodeValueParseResult.resultList, pTokenList);
+        lErrorList.push(...lChainParseResult.errorList);
 
         // Return parser error when no parse result was found.
-        if (!lNextNodeParseResult.result) {
+        if (!lChainParseResult.result) {
             return lErrorList;
         }
 
         // Read last used token index of branch and polyfill branch data when this node was the last node of this branch.
-        const lData: Record<string, unknown> = lNextNodeParseResult.result.branchData;
-        const lNodeValue: unknown = lNextNodeParseResult.result.nodeData;
+        const lData: Record<string, unknown> = lChainParseResult.result.chainData;
+        const lNodeValue: unknown = lChainParseResult.result.nodeData;
 
         // TODO: Set data even when undefined. List should be empty and single should set undefined.
 
@@ -243,7 +243,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
         return {
             data: lData,
-            tokenIndex: lNextNodeParseResult.result.tokenIndex
+            tokenIndex: lChainParseResult.result.tokenIndex
         };
 
     }
@@ -310,45 +310,45 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @throws {@link Exception}
      * When more than one branch resolves to be valid.
      */
-    private retrieveNextNodeValues(pNode: BaseGrammarNode<TTokenType>, pBranchValues: Array<GraphNodeValueParseResult>, pTokenList: Array<LexerToken<TTokenType>>): GraphNodeParse<TTokenType> {
+    private retrieveChainedValues(pNode: BaseGrammarNode<TTokenType>, pBranchValues: Array<GraphNodeValueParseResult>, pTokenList: Array<LexerToken<TTokenType>>): GraphNodeParse<TTokenType> {
         const lErrorList: Array<GraphParseError<TTokenType>> = new Array<GraphParseError<TTokenType>>();
 
-        // Run next node parse for each lCurrentNodeDataResultList and check for dublicates after that.
-        const lResultList: Array<{ nextNodeValue: GraphNodeParseResult | null, nodeValue: GraphNodeValueParseResult; }> = new Array<{ nextNodeValue: GraphNodeParseResult | null, nodeValue: GraphNodeValueParseResult; }>();
+        // Run chained node parse for each branch value and check for dublicates after that.
+        const lResultList: Array<{ chainedValue: GraphNodeParseResult | null, nodeValue: GraphNodeValueParseResult; }> = new Array<{ chainedValue: GraphNodeParseResult | null, nodeValue: GraphNodeValueParseResult; }>();
         for (const lBranch of pBranchValues) {
-            // Process next nodes in parallel.
-            for (const lNextNode of pNode.next()) {
+            // Process chained nodes in parallel.
+            for (const lChainedNode of pNode.next()) {
                 // Branch end. No chaining value.
-                if (lNextNode === null) {
+                if (lChainedNode === null) {
                     lResultList.push({
-                        nextNodeValue: null,
+                        chainedValue: null,
                         nodeValue: lBranch
                     });
                     continue;
                 }
 
                 // Skip endless loops by preventing the same optional node chaining itself.
-                if (lBranch.emptyValue && lNextNode === pNode) {
+                if (lBranch.emptyValue && lChainedNode === pNode) {
                     continue;
                 }
 
-                // Parse next node. Save all errors.
-                const lNextNodeParseResult: GraphNodeParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphNode(lNextNode, pTokenList, lBranch.tokenIndex + 1);
-                if (Array.isArray(lNextNodeParseResult)) {
-                    lErrorList.push(...lNextNodeParseResult);
+                // Parse chained node. Save all errors.
+                const lChainedNodeParseResult: GraphNodeParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphNode(lChainedNode, pTokenList, lBranch.tokenIndex + 1);
+                if (Array.isArray(lChainedNodeParseResult)) {
+                    lErrorList.push(...lChainedNodeParseResult);
                     continue;
                 }
 
-                // Process branch with next node and a new token.
+                // Process branch with chained node values and a new token.
                 lResultList.push({
-                    nextNodeValue: lNextNodeParseResult,
+                    chainedValue: lChainedNodeParseResult,
                     nodeValue: lBranch
                 });
             }
         }
 
         // Permit ambiguity paths.
-        if (lResultList.filter((pResult) => { return pResult.nextNodeValue !== null; }).length > 1) {
+        if (lResultList.filter((pResult) => { return pResult.chainedValue !== null; }).length > 1) {
             throw new Exception('Graph has ambiguity paths.', this);
         }
 
@@ -356,13 +356,13 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         let lBranchingResult: GraphBranchResult | null;
         if (lResultList.length > 0) {
             // Find sucessfull branch value or when is does not exists, go for the branch end. At least one of these exists.
-            const lBranchValues = lResultList.find((pResult) => { return pResult.nextNodeValue !== null; }) ?? lResultList.find((pResult) => { return pResult.nextNodeValue === null; })!;
+            const lBranchValues = lResultList.find((pResult) => { return pResult.chainedValue !== null; }) ?? lResultList.find((pResult) => { return pResult.chainedValue === null; })!;
 
             // Read last used token index of branch and polyfill branch data when this node was the last node of this branch.
             lBranchingResult = {
                 nodeData: lBranchValues.nodeValue.data,
-                branchData: lBranchValues.nextNodeValue?.data ?? {},
-                tokenIndex: lBranchValues.nextNodeValue?.tokenIndex ?? lBranchValues.nodeValue.tokenIndex
+                chainData: lBranchValues.chainedValue?.data ?? {},
+                tokenIndex: lBranchValues.chainedValue?.tokenIndex ?? lBranchValues.nodeValue.tokenIndex
             };
         } else {
             lBranchingResult = null;
@@ -503,7 +503,7 @@ type GraphNodeValueParse<TTokenType> = {
 
 type GraphBranchResult = {
     nodeData: unknown;
-    branchData: Record<string, unknown>;
+    chainData: Record<string, unknown>;
     tokenIndex: number;
 };
 

@@ -205,21 +205,19 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         const lData: Record<string, unknown> = lChainParseResult.result.chainData;
         const lNodeValue: unknown = lChainParseResult.result.nodeData;
 
-        // TODO: Set data even when undefined. List should be empty and single should set undefined.
-
-        // Merge data. Current node data into next node data.
+        // Merge data. Current node data into chained node data.
         // Merge only when the current node has a value (not optional/skipped) and has a identifier. 
         if (pNode.identifier) {
             // Set as single value or list.
-            if (pNode.valueType === GrammarNodeValueType.Single) {
+            if (pNode.valueType === GrammarNodeValueType.Single && typeof lNodeValue !== 'undefined') {
                 // Validate dublicate value identifier.
                 if (pNode.identifier in lData) {
                     throw new Exception(`Grapth path has a dublicate value identifier "${pNode.identifier}"`, this);
                 }
 
-                // Overide value.
+                // Overide value when set.
                 lData[pNode.identifier] = lNodeValue;
-            } else {
+            } else if (pNode.valueType === GrammarNodeValueType.List) {
                 let lIdentifierValue: unknown = lData[pNode.identifier];
 
                 // Validate value identifier referes to a single value type.
@@ -236,7 +234,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
                 // Add value as array item and set, but only when a value was set.
                 if (typeof lNodeValue !== 'undefined') {
-                    (<Array<unknown>>lIdentifierValue).push(lNodeValue);
+                    (<Array<unknown>>lIdentifierValue).unshift(lNodeValue);
                 }
             }
         }
@@ -245,7 +243,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             data: lData,
             tokenIndex: lChainParseResult.result.tokenIndex
         };
-
     }
 
     /**

@@ -180,167 +180,72 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * When the parsing fails for this node or a brother node, a complete list with all potential errors are returned instead of the token data.
      */
     private parseGraphNode(pNode: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number): GraphNodeParseResult | Array<GraphParseError<TTokenType>> {
-        // Get and check current token.
-        const lCurrentToken: LexerToken<TTokenType> | undefined = pTokenList[pCurrentTokenIndex];
-        if (!lCurrentToken) {
-            if (pNode.required) {
-                return [{
-                    message: `Unexpected end of statement. TokenIndex: "${pCurrentTokenIndex}" missing.`,
-                    errorToken: pTokenList.at(-1)!
-                }];
-            } else {
-                return {
-                    data: {},
-                    tokenIndex: pCurrentTokenIndex
-                };
-            }
-        }
-
         // Error buffer. Bundles all parser errors so on an error case an detailed error detection can be made.
         const lErrorList: Array<GraphParseError<TTokenType>> = new Array<GraphParseError<TTokenType>>();
 
-        // Process values.
-        const lCurrentNodeValueResultList: Array<GraphNodeValueParseResult> = new Array<GraphNodeValueParseResult>();
-        for (const lNodeValue of pNode.nodeValues) {
-            let lNodeParseValue: GraphNodeValueParseResult | null;
+        // Parse and read current node values. Add each error to the complete error list.
+        const lNodeValueParseResult: GraphNodeValueParse<TTokenType> = this.retrieveNodeValues(pNode, pTokenList, pCurrentTokenIndex);
+        lErrorList.push(...lNodeValueParseResult.errorList);
 
-            // Static token type of dynamic graph part.
-            if (typeof lNodeValue === 'string') {
-                // Push possible parser error when token type does not match node value.
-                if (lNodeValue !== lCurrentToken.type) {
-                    lErrorList.push({
-                        message: `Unexpected token. "${lNodeValue}" expected`,
-                        errorToken: lCurrentToken
-                    });
-                    continue;
-                }
-
-                // Set node value.
-                lNodeParseValue = {
-                    data: lCurrentToken.value,
-                    tokenIndex: pCurrentTokenIndex
-                };
-            } else {
-                // Process inner value but keep on current node.
-                const lInnerValue: GraphPartParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphPart(lNodeValue, pTokenList, pCurrentTokenIndex);
-
-                // When unsuccessfull save the last error.
-                if (Array.isArray(lInnerValue)) {
-                    lErrorList.push(...lInnerValue);
-                    continue;
-                }
-
-                lNodeParseValue = lInnerValue;
-            }
-
-            lCurrentNodeValueResultList.push(lNodeParseValue);
-        }
-
-        // Return parser error when no parse value was found and the current node is not optional.
-        if (lCurrentNodeValueResultList.length === 0 && pNode.required) {
+        // Return parser error when no parse value was found.
+        if (lNodeValueParseResult.resultList.length === 0) {
             return lErrorList;
         }
 
-        // Add empty GraphNodeValueParseResult when the node is optional and the node value has no positive result.
-        if (lCurrentNodeValueResultList.length === 0 && !pNode.required) {
-            // When the node was optional, reuse the current token.
-            lCurrentNodeValueResultList.push({
-                data: undefined,
-                tokenIndex: pCurrentTokenIndex - 1
-            });
+        // Parse and read next nodes values. Add each error to the complete error list.
+        const lNextNodeParseResult: GraphNodeParse<TTokenType> = this.retrieveNextNodeValues(pNode, lNodeValueParseResult.resultList, pTokenList);
+        lErrorList.push(...lNextNodeParseResult.errorList);
+
+        // Return parser error when no parse result was found.
+        if (!lNextNodeParseResult.result) {
+            return lErrorList;
         }
 
-        // Run next node parse for each lCurrentNodeDataResultList and check for dublicates after that.
-        const lValueBranchResultList: Array<{ nextNodeValue: GraphNodeParseResult | null, nodeValue: GraphNodeValueParseResult; }> = new Array<{ nextNodeValue: GraphNodeParseResult | null, nodeValue: GraphNodeValueParseResult; }>();
-        for (const lValueBranching of lCurrentNodeValueResultList) {
-            // Process next nodes in parallel.
-            for (const lNextNode of pNode.next()) {
-                // Branch end. No chaining value.
-                if (lNextNode === null) {
-                    lValueBranchResultList.push({
-                        nextNodeValue: null,
-                        nodeValue: lValueBranching
-                    });
-                    continue;
+        // Read last used token index of branch and polyfill branch data when this node was the last node of this branch.
+        const lData: Record<string, unknown> = lNextNodeParseResult.result.branchData;
+        const lNodeValue: unknown = lNextNodeParseResult.result.nodeData;
+
+        // TODO: Set data even when undefined. List should be empty and single should set undefined.
+
+        // Merge data. Current node data into next node data.
+        // Merge only when the current node has a value (not optional/skipped) and has a identifier. 
+        if (pNode.identifier) {
+            // Set as single value or list.
+            if (pNode.valueType === GrammarNodeValueType.Single) {
+                // Validate dublicate value identifier.
+                if (pNode.identifier in lData) {
+                    throw new Exception(`Grapth path has a dublicate value identifier "${pNode.identifier}"`, this);
                 }
 
-                // Parse next node. Save all errors.
-                const lNextNodeParseResult: GraphNodeParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphNode(lNextNode, pTokenList, lValueBranching.tokenIndex + 1);
-                if (Array.isArray(lNextNodeParseResult)) {
-                    lErrorList.push(...lNextNodeParseResult);
-                    continue;
+                // Overide value.
+                lData[pNode.identifier] = lNodeValue;
+            } else {
+                let lIdentifierValue: unknown = lData[pNode.identifier];
+
+                // Validate value identifier referes to a single value type.
+                if (typeof lIdentifierValue !== 'undefined' && !Array.isArray(lIdentifierValue)) {
+                    throw new Exception(`Grapth path has a dublicate value identifier "${pNode.identifier}" that is not a list value but should be.`, this);
                 }
 
-                // Process branch with next node and a new token.
-                lValueBranchResultList.push({
-                    nextNodeValue: lNextNodeParseResult,
-                    nodeValue: lValueBranching
-                });
-            }
-        }
+                // Validate if the array is initialized, when not do so.
+                if (typeof lIdentifierValue === 'undefined') {
+                    // Init array and set it as identifier value.
+                    lIdentifierValue = new Array<unknown>();
+                    lData[pNode.identifier] = lIdentifierValue;
+                }
 
-        /* 
-         * Validate parsed branches. 
-         * - At least one successfull branch or an exit node is needed.
-         * - Only one sucessfull branch can be valid. More than one result in an error.
-         */
-
-        // Permit ambiguity paths.
-        if (lValueBranchResultList.filter((pResult) => { return pResult.nextNodeValue !== null; }).length > 1) {
-            throw new Exception('Graph has ambiguity paths.', this);
-        }
-
-        // Next node parse success or branch ending.
-        if (lValueBranchResultList.length > 0) {
-            // Find sucessfull branch value or when is does not exists, go for the branch end. At least one of these exists.
-            const lBranchingResult = lValueBranchResultList.find((pResult) => { return pResult.nextNodeValue !== null; }) ?? lValueBranchResultList.find((pResult) => { return pResult.nextNodeValue === null; })!;
-
-            // Read last used token index of branch and polyfill branch data when this node was the last node of this branch.
-            const lProcessedTokenIndex: number = lBranchingResult.nextNodeValue?.tokenIndex ?? lBranchingResult.nodeValue.tokenIndex;
-            const lData: Record<string, unknown> = lBranchingResult.nextNodeValue?.data ?? {};
-            const lNodeValue: unknown = lBranchingResult.nodeValue.data;
-
-            // TODO: Set data even when undefined. List should be empty and single should set undefined.
-
-            // Merge data. Current node data into next node data.
-            // Merge only when the current node has a value (not optional/skipped) and has a identifier. 
-            if (pNode.identifier && typeof lNodeValue !== 'undefined') {
-                // Set as single value or list.
-                if (pNode.valueType === GrammarNodeValueType.Single) {
-                    // Validate dublicate value identifier.
-                    if (typeof lData[pNode.identifier] !== 'undefined') {
-                        throw new Exception(`Grapth path has a dublicate value identifier "${pNode.identifier}"`, this);
-                    }
-
-                    // Overide value.
-                    lData[pNode.identifier] = lNodeValue;
-                } else {
-                    let lIdentifierValue: unknown = lData[pNode.identifier];
-
-                    // Validate value identifier referes to a single value type.
-                    if (typeof lIdentifierValue !== 'undefined' && !Array.isArray(lIdentifierValue)) {
-                        throw new Exception(`Grapth path has a dublicate value identifier "${pNode.identifier}" that is not a list value but should be.`, this);
-                    }
-
-                    // Check if value is already there and is a array. Init array otherwise.
-                    if (typeof lIdentifierValue === 'undefined') {
-                        // Init array and set it as identifier value.
-                        lIdentifierValue = new Array<unknown>();
-                        lData[pNode.identifier] = lIdentifierValue;
-                    }
-
-                    // Add value as array item and set 
+                // Add value as array item and set, but only when a value was set.
+                if (typeof lNodeValue !== 'undefined') {
                     (<Array<unknown>>lIdentifierValue).push(lNodeValue);
                 }
             }
-
-            return {
-                data: lData,
-                tokenIndex: lProcessedTokenIndex
-            };
         }
 
-        return lErrorList;
+        return {
+            data: lData,
+            tokenIndex: lNextNodeParseResult.result.tokenIndex
+        };
+
     }
 
     /**
@@ -391,15 +296,187 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             tokenIndex: lBranchResult.tokenIndex
         };
     }
+
+    /**
+     * Processes every branch value, a successfull parsed value of a node, until only one is successfull or a branch end is reached.
+     * When more than one branch is successfull, the graph is invalid and an error is thrown.
+     * 
+     * @param pNode - Current node.
+     * @param pBranchValues - Every sucessfull value of the node. 
+     * @param pTokenList - Current parsed list of all token in appearing order.
+     * 
+     * @returns The data of the successfull branch and a list of all errors that can be important for later nodes.
+     * 
+     * @throws {@link Exception}
+     * When more than one branch resolves to be valid.
+     */
+    private retrieveNextNodeValues(pNode: BaseGrammarNode<TTokenType>, pBranchValues: Array<GraphNodeValueParseResult>, pTokenList: Array<LexerToken<TTokenType>>): GraphNodeParse<TTokenType> {
+        const lErrorList: Array<GraphParseError<TTokenType>> = new Array<GraphParseError<TTokenType>>();
+
+        // Run next node parse for each lCurrentNodeDataResultList and check for dublicates after that.
+        const lResultList: Array<{ nextNodeValue: GraphNodeParseResult | null, nodeValue: GraphNodeValueParseResult; }> = new Array<{ nextNodeValue: GraphNodeParseResult | null, nodeValue: GraphNodeValueParseResult; }>();
+        for (const lBranch of pBranchValues) {
+            // Process next nodes in parallel.
+            for (const lNextNode of pNode.next()) {
+                // Branch end. No chaining value.
+                if (lNextNode === null) {
+                    lResultList.push({
+                        nextNodeValue: null,
+                        nodeValue: lBranch
+                    });
+                    continue;
+                }
+
+                // Skip endless loops by preventing the same optional node chaining itself.
+                if (lBranch.emptyValue && lNextNode === pNode) {
+                    continue;
+                }
+
+                // Parse next node. Save all errors.
+                const lNextNodeParseResult: GraphNodeParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphNode(lNextNode, pTokenList, lBranch.tokenIndex + 1);
+                if (Array.isArray(lNextNodeParseResult)) {
+                    lErrorList.push(...lNextNodeParseResult);
+                    continue;
+                }
+
+                // Process branch with next node and a new token.
+                lResultList.push({
+                    nextNodeValue: lNextNodeParseResult,
+                    nodeValue: lBranch
+                });
+            }
+        }
+
+        // Permit ambiguity paths.
+        if (lResultList.filter((pResult) => { return pResult.nextNodeValue !== null; }).length > 1) {
+            throw new Exception('Graph has ambiguity paths.', this);
+        }
+
+        // Read single branching result. Polyfill in missing values or when no result exists, use no result. 
+        let lBranchingResult: GraphBranchResult | null;
+        if (lResultList.length > 0) {
+            // Find sucessfull branch value or when is does not exists, go for the branch end. At least one of these exists.
+            const lBranchValues = lResultList.find((pResult) => { return pResult.nextNodeValue !== null; }) ?? lResultList.find((pResult) => { return pResult.nextNodeValue === null; })!;
+
+            // Read last used token index of branch and polyfill branch data when this node was the last node of this branch.
+            lBranchingResult = {
+                nodeData: lBranchValues.nodeValue.data,
+                branchData: lBranchValues.nextNodeValue?.data ?? {},
+                tokenIndex: lBranchValues.nextNodeValue?.tokenIndex ?? lBranchValues.nodeValue.tokenIndex
+            };
+        } else {
+            lBranchingResult = null;
+        }
+
+        return {
+            result: lBranchingResult,
+            errorList: lErrorList
+        };
+    }
+
+    /**
+     * Read data and errors for all node values. 
+     * Adds an empty data result, when the node is optional and no token was found
+     * or when the node is optional and no node value fits the current token.
+     * 
+     * The error list contains every possible error.
+     * 
+     * @param pNode - Current node.
+     * @param pTokenList - Current parsed list of all token in appearing order.
+     * @param pCurrentTokenIndex - Current token index that should be parsed with the graph part.
+     * 
+     * @returns A error and a result list.
+     */
+    private retrieveNodeValues(pNode: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number): GraphNodeValueParse<TTokenType> {
+        // Read next token.
+        const lCurrentToken: LexerToken<TTokenType> | undefined = pTokenList.at(pCurrentTokenIndex);
+
+        // Error buffer. Bundles all parser errors so on an error case an detailed error detection can be made.
+        const lErrorList: Array<GraphParseError<TTokenType>> = new Array<GraphParseError<TTokenType>>();
+        const lResultList: Array<GraphNodeValueParseResult> = new Array<GraphNodeValueParseResult>();
+
+        // When no current token was found. Skip node value parsing.
+        if (!lCurrentToken) {
+            // Add empty data result, when the node was optional
+            if (!pNode.required) {
+                lResultList.push({
+                    data: undefined,
+                    tokenIndex: pCurrentTokenIndex - 1,
+                    emptyValue: true
+                });
+            } else {
+                lErrorList.push({
+                    message: `Unexpected end of statement. TokenIndex: "${pCurrentTokenIndex}" missing.`,
+                    errorToken: pTokenList.at(-1)!
+                });
+            }
+
+            return {
+                errorList: lErrorList,
+                resultList: lResultList
+            };
+        }
+
+        // Process each node value.
+        for (const lNodeValue of pNode.nodeValues) {
+            let lNodeParseValue: GraphNodeValueParseResult | null;
+
+            // Static token type of dynamic graph part.
+            if (typeof lNodeValue === 'string') {
+                // Push possible parser error when token type does not match node value.
+                if (lNodeValue !== lCurrentToken.type) {
+                    lErrorList.push({
+                        message: `Unexpected token. "${lNodeValue}" expected`,
+                        errorToken: lCurrentToken
+                    });
+                    continue;
+                }
+
+                // Set node value.
+                lNodeParseValue = {
+                    data: lCurrentToken.value,
+                    tokenIndex: pCurrentTokenIndex,
+                    emptyValue: false
+                };
+            } else {
+                // Process inner value but keep on current node.
+                const lInnerValue: GraphPartParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphPart(lNodeValue, pTokenList, pCurrentTokenIndex);
+
+                // When unsuccessfull save the last error.
+                if (Array.isArray(lInnerValue)) {
+                    lErrorList.push(...lInnerValue);
+                    continue;
+                }
+
+                lNodeParseValue = {
+                    data: lInnerValue.data,
+                    tokenIndex: lInnerValue.tokenIndex,
+                    emptyValue: false
+                };
+            }
+
+            lResultList.push(lNodeParseValue);
+        }
+
+        // Add empty GraphNodeValueParseResult when the node is optional and the node value has no positive result.
+        if (lResultList.length === 0 && !pNode.required) {
+            // When the node was optional, reuse the current token.
+            lResultList.push({
+                data: undefined,
+                tokenIndex: pCurrentTokenIndex - 1,
+                emptyValue: true
+            });
+        }
+
+        return {
+            errorList: lErrorList,
+            resultList: lResultList
+        };
+    }
 }
 
-export type GraphNodeParseResult = {
+type GraphNodeParseResult = {
     data: Record<string, Array<unknown> | unknown>;
-    tokenIndex: number;
-};
-
-type GraphNodeValueParseResult = {
-    data: unknown;
     tokenIndex: number;
 };
 
@@ -408,7 +485,29 @@ type GraphPartParseResult = {
     tokenIndex: number;
 };
 
+type GraphNodeValueParseResult = {
+    data: unknown;
+    tokenIndex: number;
+    emptyValue: boolean;
+};
+
 type GraphParseError<TTokenType> = {
     message: string;
     errorToken: LexerToken<TTokenType>;
+};
+
+type GraphNodeValueParse<TTokenType> = {
+    resultList: Array<GraphNodeValueParseResult>;
+    errorList: Array<GraphParseError<TTokenType>>;
+};
+
+type GraphBranchResult = {
+    nodeData: unknown;
+    branchData: Record<string, unknown>;
+    tokenIndex: number;
+};
+
+type GraphNodeParse<TTokenType> = {
+    result: GraphBranchResult | null;
+    errorList: Array<GraphParseError<TTokenType>>;
 };

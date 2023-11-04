@@ -65,13 +65,6 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
     }
 
     /**
-     * Node that is directly chained before this node.
-     */
-    protected get previousNode(): BaseGrammarNode<TTokenType> | null {
-        return this.mPreviousNode;
-    }
-
-    /**
      * Constructor.
      * 
      * @param pPreviousNode - Node that is chained before this node.

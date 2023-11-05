@@ -341,7 +341,10 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
         // Permit ambiguity paths.
         if (lResultList.filter((pResult) => { return pResult.chainedValue !== null; }).length > 1) {
-            throw new Exception('Graph has ambiguity paths.', this);
+            const lDublicatePathList = lResultList.filter((pResult) => { return pResult.chainedValue !== null; });
+            const lDublicatePathValueList = lDublicatePathList.map((pItem) => { return `[${JSON.stringify(pItem.nodeValue.data)}, ${JSON.stringify(pItem.chainedValue?.data)}]`; });
+
+            throw new Exception(`Graph has ambiguity paths. Values: [\n\t${lDublicatePathValueList.join(', \n\t')}\n]`, this);
         }
 
         // Read single branching result. Polyfill in missing values or when no result exists, use no result. 

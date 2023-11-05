@@ -269,5 +269,23 @@ describe('Lexer', () => {
             // Evaluation. 'A sentence with 1 or 10 words (Ending with)and \nnewline'
             expect(lTokenList[8]).property('type').to.equal(TestTokenType.Custom);
         });
+
+        it('-- Optional token capture group', () => {
+            // Setup.
+            const lText: string = 'My Text Data<';
+            const lLexer: Lexer<'text' | 'closing'> = new Lexer<'text' | 'closing'>();
+            lLexer.addTokenPattern(/^"[^"]*"|^(?<token>[^<>"]+)(?:<|")/, 'text', 4);
+            lLexer.addTokenPattern(/</, 'closing', 4);
+
+            // Process.
+            const lTokenList: Array<LexerToken<'text' | 'closing'>> = [...lLexer.tokenize(lText)];
+
+            // Evaluation.
+            expect(lTokenList).has.lengthOf(2);
+            expect(lTokenList[0]).property('value').to.equal('My Text Data');
+            expect(lTokenList[0]).property('type').to.equal('text');
+            expect(lTokenList[1]).property('value').to.equal('<');
+            expect(lTokenList[1]).property('type').to.equal('closing');
+        });
     });
 });

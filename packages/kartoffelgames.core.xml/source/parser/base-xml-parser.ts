@@ -12,7 +12,6 @@ import { XmlToken } from './xml-token.enum';
 export abstract class BaseXmlParser<TXmlElement extends XmlElement, TText extends TextNode, TComment extends CommentNode> extends CodeParser<XmlToken, XmlDocument>{
     private static readonly ROOT_NODE_NAME: string = 'ROOT-NODE';
     private readonly mConfig: XmlParserConfig;
-    private mLexerrr: Lexer<XmlToken>;
 
     /**
      * Constructor. Creates parser with specified mode.
@@ -39,7 +38,7 @@ export abstract class BaseXmlParser<TXmlElement extends XmlElement, TText extend
         lLexer.addTokenPattern(/[^<>\s\n/:="]+/, XmlToken.Identifier, 4);
 
         super(lLexer);
-        this.mLexerrr = lLexer;
+
         this.mConfig = {};
 
         // Set default config.

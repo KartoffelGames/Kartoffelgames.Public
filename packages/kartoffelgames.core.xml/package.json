@@ -15,7 +15,8 @@
         "@types/mocha": "^10.0.1"
     },
     "dependencies": {
-        "@kartoffelgames/core.data": "^0.0.34"
+        "@kartoffelgames/core.data": "^0.0.34",
+        "@kartoffelgames/core.parser": "^0.0.0"
     },
     "scripts": {
         "build": "kg build @kartoffelgames/core.xml && kg page @kartoffelgames/core.xml --build-only",

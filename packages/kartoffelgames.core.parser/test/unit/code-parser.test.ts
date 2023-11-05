@@ -348,6 +348,27 @@ describe('CodeParser', () => {
             expect(lParsedData).has.property('data').and.deep.equals(['one', 'two', 'three', 'four', 'five']);
         });
 
+        it('-- Loop Parsing with font and back data.', () => {
+            // Setup.
+            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lCodeText: string = 'const one two three four five const';
+
+            // Setup. Define graph part and set as root.
+            lParser.defineGraphPart('LoopCode',
+                lParser.graph().single(TokenType.Modifier).loop('data', TokenType.Identifier).single(TokenType.Modifier),
+                (pData: any) => {
+                    return pData;
+                }
+            );
+            lParser.setRootGraphPart('LoopCode');
+
+            // Process. Convert code.
+            const lParsedData: any = lParser.parse(lCodeText);
+
+            // Evaluation.
+            expect(lParsedData).has.property('data').and.deep.equals(['one', 'two', 'three', 'four', 'five']);
+        });
+
         it('-- Loop Parsing with missing items', () => {
             // Setup.
             const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
@@ -367,6 +388,26 @@ describe('CodeParser', () => {
 
             // Evaluation.
             expect(lParsedData).has.property('data').and.deep.equals([]);
+        });
+
+        it('-- Greater optional loops', () => {
+            // Setup.
+            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lCodeText: string = 'const';
+
+            // Setup. Define graph part and set as root.
+            lParser.defineGraphPart('LoopCode',
+                lParser.graph().optional('optional', TokenType.Modifier).optional(lParser.partReference('LoopCode')),
+                (pData: any) => {
+                    return pData;
+                }
+            );
+            lParser.setRootGraphPart('LoopCode');
+
+            // Process. Convert code.
+            const lParsedData: any = lParser.parse(lCodeText);
+
+            expect(lParsedData).has.property('optional').and.equals('const');
         });
     });
 

@@ -189,7 +189,7 @@ export class Lexer<TTokenType> {
 
             // Throw erros when the current untokenized text can't be tokenized.
             if (!lBestMatch.token) {
-                throw new ParserException(`Invalid token. Can't tokenize "${lUntokenizedText}"`, this, lCurrentColumnNumber, lCurrentLineNumber);
+                throw new ParserException(`Invalid token. Can't tokenize "${lUntokenizedText}"`, this, lCurrentColumnNumber, lCurrentLineNumber, lCurrentColumnNumber, lCurrentLineNumber);
             }
 
             // Move cursor.

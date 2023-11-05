@@ -119,13 +119,13 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             }
 
             // At lease one error must be found.
-            throw new ParserException(lErrorPosition!.message, this, lErrorPosition!.errorToken.columnNumber, lErrorPosition!.errorToken.lineNumber);
+            throw new ParserException(lErrorPosition!.message, this, lErrorPosition!.errorToken.columnNumber, lErrorPosition!.errorToken.lineNumber, lErrorPosition!.errorToken.columnNumber, lErrorPosition!.errorToken.lineNumber);
         }
 
         // Validate, that every token was parsed.
         if (lRootParseData.tokenIndex < (lTokenList.length - 1)) {
             const lLastToken: LexerToken<TTokenType> = lTokenList[lRootParseData.tokenIndex + 1];
-            throw new ParserException(`Tokens could not be parsed. Graph end meet without reaching last token "${lLastToken.value}"`, this, lLastToken.columnNumber, lLastToken.lineNumber);
+            throw new ParserException(`Tokens could not be parsed. Graph end meet without reaching last token "${lLastToken.value}"`, this, lLastToken.columnNumber, lLastToken.lineNumber, lLastToken.columnNumber, lLastToken.lineNumber);
         }
 
         return <TParseResult>lRootParseData.data;
@@ -280,7 +280,37 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Execute optional collector.
         let lResultData: Record<string, unknown> | unknown = lBranchResult.data;
         if (lCollector) {
-            lResultData = lCollector(lBranchResult.data);
+            try {
+                lResultData = lCollector(lBranchResult.data);
+            } catch (pError: any) {
+                const lMessage: string = 'message' in pError ? pError.message : pError.toString();
+
+                // Read start end end token.
+                let lErrorStartToken: LexerToken<TTokenType> | undefined = pTokenList.at(pCurrentTokenIndex);
+                let lErrorEndToken: LexerToken<TTokenType> | undefined = pTokenList.at(lBranchResult.tokenIndex);
+
+                // Fill in previous start token when the current token has no value.
+                if (!lErrorStartToken) {
+                    lErrorStartToken = pTokenList.at(pCurrentTokenIndex - 1);
+                }
+
+                // Fill in previous end token when the current end token has no value.
+                if (!lErrorEndToken) {
+                    lErrorEndToken = pTokenList.at(lBranchResult.tokenIndex - 1);
+                }
+
+                // Set end token to start token, when no token was found whatsoever.
+                if (!lErrorEndToken) {
+                    lErrorEndToken = lErrorStartToken;
+                }
+
+                // When no token was processed, throw default error on first token.
+                if (!lErrorStartToken || !lErrorEndToken) {
+                    throw new ParserException(lMessage, this, 0, 0, 0, 0);
+                } else {
+                    throw new ParserException(lMessage, this, lErrorStartToken.columnNumber, lErrorStartToken.lineNumber, lErrorEndToken.columnNumber, lErrorEndToken.lineNumber);
+                }
+            }
         }
 
         return {

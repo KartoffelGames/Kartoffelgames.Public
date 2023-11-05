@@ -10,23 +10,39 @@ import { Exception } from '@kartoffelgames/core.data';
  * @public
  */
 export class ParserException<T> extends Exception<T> {
-    private readonly mColumnNumber: number;
-    private readonly mLineNumber: number;
+    private readonly mColumnEnd: number;
+    private readonly mColumnStart: number;
+    private readonly mLineEnd: number;
+    private readonly mLineStart: number;
 
     /**
-     * Column number of target text where the exception occurred.
+     * Column number of target text where the exception ended.
      */
-    public get column(): number {
-        return this.mColumnNumber;
+    public get columnEnd(): number {
+        return this.mColumnEnd;
     }
 
     /**
-     * Line number of target text where the exception occurred.
+     * Column number of target text where the exception started.
      */
-    public get line(): number {
-        return this.mLineNumber;
+    public get columnStart(): number {
+        return this.mColumnStart;
     }
-    
+
+    /**
+     * Line number of target text where the exception ended.
+     */
+    public get lineEnd(): number {
+        return this.mLineEnd;
+    }
+
+    /**
+     * Line number of target text where the exception started.
+     */
+    public get lineStart(): number {
+        return this.mLineStart;
+    }
+
     /**
      * Constructor.
      * 
@@ -35,10 +51,12 @@ export class ParserException<T> extends Exception<T> {
      * @param pColumn - Column number of target parser text.
      * @param pLine - Line number of target parser text.
      */
-    public constructor(pMessage: string, pTarget: T, pColumn: number, pLine: number) {
+    public constructor(pMessage: string, pTarget: T, pColumnStart: number, pLineStart: number, pColumnEnd: number, pLineEnd: number) {
         super(pMessage, pTarget);
 
-        this.mColumnNumber = pColumn;
-        this.mLineNumber = pLine;
+        this.mColumnStart = pColumnStart;
+        this.mLineStart = pLineStart;
+        this.mColumnEnd = pColumnEnd;
+        this.mLineEnd = pLineEnd;
     }
 }

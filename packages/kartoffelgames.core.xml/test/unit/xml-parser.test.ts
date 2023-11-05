@@ -6,6 +6,7 @@ import { XmlAttribute } from '../../source/attribute/xml-attribute';
 import { TextNode } from '../../source/node/text-node';
 import { XmlDocument } from '../../source/document/xml-document';
 import { Exception } from '@kartoffelgames/core.data';
+import { ParserException } from '@kartoffelgames/core.parser';
 
 describe('XmlParser', () => {
     describe('Method: parse', () => {
@@ -172,7 +173,7 @@ describe('XmlParser', () => {
             const lNamespacedAttribute: XmlAttribute | undefined = lXmlElement.getAttribute(lNamespacedAttributeName);
 
             // Evaluation.
-            expect(lNamespacedAttribute?.value).to.equal(lAttributeValue.replace('\n', ' '));
+            expect(lNamespacedAttribute?.value).to.equal(lAttributeValue);
         });
 
         it('-- Multiline text node', () => {
@@ -250,7 +251,7 @@ describe('XmlParser', () => {
             };
 
             // Evaluation.
-            expect(lFailingFunction).to.throw(`Can't parse attribute part: "${lWrongAttribute}"`);
+            expect(lFailingFunction).to.throw(ParserException, /noneclosing/);
         });
 
         it('-- Unexpected closing tag', () => {
@@ -265,7 +266,7 @@ describe('XmlParser', () => {
             };
 
             // Evaluation.
-            expect(lFailingFunction).to.throw(`Error unexpected closing XML-Tag ${lClosingNode}`);
+            expect(lFailingFunction).to.throw(ParserException, /unexpectedclosing/);
         });
 
         it(`-- Can't close tag`, () => {
@@ -280,7 +281,7 @@ describe('XmlParser', () => {
             };
 
             // Evaluation.
-            expect(lFailingFunction).to.throw(`Error closing XML-Tag ${lClosingNode}`);
+            expect(lFailingFunction).to.throw(ParserException, /Tokens could not be parsed./);
         });
     });
 

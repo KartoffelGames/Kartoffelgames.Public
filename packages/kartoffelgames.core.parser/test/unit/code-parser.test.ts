@@ -44,7 +44,7 @@ describe('CodeParser', () => {
 
             // Process.
             lParser.defineGraphPart('branch',
-                lParser.graph().single(TokenType.Modifier, 'modifier')
+                lParser.graph().single('modifier', TokenType.Modifier)
             );
 
             // Evaluation.
@@ -59,7 +59,7 @@ describe('CodeParser', () => {
 
             // Process.
             lParser.defineGraphPart('branch',
-                lParser.graph().single(TokenType.Modifier, 'modifier'),
+                lParser.graph().single('modifier', TokenType.Modifier),
                 lDataCollector
             );
 
@@ -74,7 +74,7 @@ describe('CodeParser', () => {
             // Setup.
             const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
             lParser.defineGraphPart('branch',
-                lParser.graph().single(TokenType.Modifier, 'modifier')
+                lParser.graph().single('modifier', TokenType.Modifier)
             );
 
             // Process.
@@ -165,7 +165,7 @@ describe('CodeParser', () => {
 
             // Setup. Define graph part and set as root.
             lParser.defineGraphPart('LinearCode',
-                lParser.graph().single(TokenType.Modifier, 'modifier').single(TokenType.Identifier, 'variableName').single(TokenType.TypeDelimiter).single(TokenType.Identifier, 'typeName').single(TokenType.Semicolon),
+                lParser.graph().single('modifier', TokenType.Modifier).single('variableName', TokenType.Identifier).single(TokenType.TypeDelimiter).single('typeName', TokenType.Identifier).single(TokenType.Semicolon),
                 (pData: any) => {
                     return pData;
                 }
@@ -188,7 +188,7 @@ describe('CodeParser', () => {
 
             // Setup. Define graph part and set as root.
             lParser.defineGraphPart('LinearCode',
-                lParser.graph().single(TokenType.Modifier, 'modifier').single(TokenType.Identifier, 'variableName').single(TokenType.TypeDelimiter).single(TokenType.Identifier, 'typeName').optional(TokenType.Semicolon),
+                lParser.graph().single('modifier', TokenType.Modifier).single('variableName', TokenType.Identifier).single(TokenType.TypeDelimiter).single('typeName', TokenType.Identifier).optional(TokenType.Semicolon),
                 (pData: any) => {
                     return pData;
                 }
@@ -240,8 +240,8 @@ describe('CodeParser', () => {
             // Setup. Define graph part and set as root.
             lParser.defineGraphPart('BranchCode',
                 lParser.graph().branch('data', [
-                    lParser.graph().single(TokenType.Identifier, 'required'),
-                    lParser.graph().optional(TokenType.Number, 'optional')
+                    lParser.graph().single('required', TokenType.Identifier),
+                    lParser.graph().optional('optional', TokenType.Number)
                 ]),
                 (pData: any) => {
                     return pData;
@@ -266,7 +266,7 @@ describe('CodeParser', () => {
             // Setup. Define graph part and set as root.
             lParser.defineGraphPart('BranchCode',
                 lParser.graph().single(TokenType.Modifier).branch('data', [
-                    lParser.graph().optional(TokenType.Identifier, 'optional')
+                    lParser.graph().optional('optional', TokenType.Identifier)
                 ]).single(TokenType.Semicolon), // Last single is needed to not get "end of statement" Exception because .branch() is not optional and needs a token to proceed.
                 (pData: any) => {
                     return pData;
@@ -289,7 +289,7 @@ describe('CodeParser', () => {
             // Setup. Define graph part and set as root.
             lParser.defineGraphPart('BranchCode',
                 lParser.graph().optionalBranch('data', [
-                    lParser.graph().single(TokenType.Modifier, 'optional')
+                    lParser.graph().single('optional', TokenType.Modifier)
                 ]),
                 (pData: any) => {
                     return pData;
@@ -312,7 +312,7 @@ describe('CodeParser', () => {
             // Setup. Define graph part and set as root.
             lParser.defineGraphPart('BranchCode',
                 lParser.graph().single(TokenType.Modifier).optionalBranch('data', [
-                    lParser.graph().single(TokenType.Identifier, 'optional')
+                    lParser.graph().single('optional', TokenType.Identifier)
                 ]),
                 (pData: any) => {
                     return pData;

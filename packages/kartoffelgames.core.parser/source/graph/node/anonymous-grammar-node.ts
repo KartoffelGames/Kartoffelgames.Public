@@ -42,9 +42,15 @@ export class AnonymoutGrammarNode<TTokenType extends string> extends BaseGrammar
      * 
      * @returns The new branch node. 
      */
-    public override branch(pIdentifier: string | null, pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType> {
+    public override branch(pIdentifier: string | null, pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType>;
+    public override branch(pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType>;
+    public override branch(pIdentifierOrBranches: string | null | Array<GrammarGraphValue<TTokenType>>, pBranches?: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType> {
+        // Read mixed parameter with correct value. 
+        const lIdentifier: string | null = (Array.isArray(pIdentifierOrBranches)) ? null : pIdentifierOrBranches;
+        const lBranches: Array<GrammarGraphValue<TTokenType>> = (Array.isArray(pIdentifierOrBranches)) ? pIdentifierOrBranches : pBranches!;
+
         // Create new node and chain it after this node.
-        return new GrammarBranchNode<TTokenType>(null, pBranches, true, pIdentifier);
+        return new GrammarBranchNode<TTokenType>(null, lBranches, true, lIdentifier);
     }
 
     /**
@@ -62,9 +68,15 @@ export class AnonymoutGrammarNode<TTokenType extends string> extends BaseGrammar
      * 
      * @returns The new loop node. 
      */
-    public override loop(pIdentifier: string | null, pValue: GrammarGraphValue<TTokenType>): GrammarLoopNode<TTokenType> {
+    public override loop(pIdentifier: string | null | GrammarGraphValue<TTokenType>, pValue: GrammarGraphValue<TTokenType>): GrammarLoopNode<TTokenType>;
+    public override loop(pValue: GrammarGraphValue<TTokenType>): GrammarLoopNode<TTokenType>;
+    public override loop(pIdentifierOrValue: string | null | GrammarGraphValue<TTokenType>, pValue?: GrammarGraphValue<TTokenType>): GrammarLoopNode<TTokenType> {
+        // Read mixed parameter with correct value. 
+        const lIdentifier: string | null = (typeof pValue === 'undefined') ? null : <string | null>pIdentifierOrValue;
+        const lValue: GrammarGraphValue<TTokenType> = (typeof pValue === 'undefined') ? <GrammarGraphValue<TTokenType>>pIdentifierOrValue : pValue!;
+
         // Create new node and chain it after this node.
-        return new GrammarLoopNode<TTokenType>(null, pValue, pIdentifier);
+        return new GrammarLoopNode<TTokenType>(null, lValue, lIdentifier);
     }
 
     /**
@@ -93,9 +105,15 @@ export class AnonymoutGrammarNode<TTokenType extends string> extends BaseGrammar
      * 
      * @returns The new optional single value node. 
      */
-    public override optional(pValue: GrammarGraphValue<TTokenType>, pIdentifier: string | null = null): GrammarSingleNode<TTokenType> {
+    public override optional(pIdentifier: string | null | GrammarGraphValue<TTokenType>, pValue: GrammarGraphValue<TTokenType>): GrammarSingleNode<TTokenType>;
+    public override optional(pValue: GrammarGraphValue<TTokenType>): GrammarSingleNode<TTokenType>;
+    public override optional(pIdentifierOrValue: string | null | GrammarGraphValue<TTokenType>, pValue?: GrammarGraphValue<TTokenType>): GrammarSingleNode<TTokenType> {
+        // Read mixed parameter with correct value. 
+        const lIdentifier: string | null = (typeof pValue === 'undefined') ? null : <string | null>pIdentifierOrValue;
+        const lValue: GrammarGraphValue<TTokenType> = (typeof pValue === 'undefined') ? <GrammarGraphValue<TTokenType>>pIdentifierOrValue : pValue!;
+
         // Create new node and chain it after this node.
-        return new GrammarSingleNode<TTokenType>(null, pValue, false, pIdentifier);
+        return new GrammarSingleNode<TTokenType>(null, lValue, false, lIdentifier);
     }
 
     /**
@@ -114,9 +132,15 @@ export class AnonymoutGrammarNode<TTokenType extends string> extends BaseGrammar
      * 
      * @returns The new optional branch node. 
      */
-    public override optionalBranch(pIdentifier: string | null, pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType> {
+    public override optionalBranch(pIdentifier: string | null, pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType>;
+    public override optionalBranch(pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType>;
+    public override optionalBranch(pIdentifierOrBranches: string | null | Array<GrammarGraphValue<TTokenType>>, pBranches?: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType> {
+        // Read mixed parameter with correct value. 
+        const lIdentifier: string | null = (Array.isArray(pIdentifierOrBranches)) ? null : pIdentifierOrBranches;
+        const lBranches: Array<GrammarGraphValue<TTokenType>> = (Array.isArray(pIdentifierOrBranches)) ? pIdentifierOrBranches : pBranches!;
+
         // Create new node and chain it after this node.
-        return new GrammarBranchNode<TTokenType>(null, pBranches, false, pIdentifier);
+        return new GrammarBranchNode<TTokenType>(null, lBranches, false, lIdentifier);
     }
 
     /**
@@ -134,9 +158,15 @@ export class AnonymoutGrammarNode<TTokenType extends string> extends BaseGrammar
      * 
      * @returns The new single value node. 
      */
-    public override single(pValue: GrammarGraphValue<TTokenType>, pIdentifier: string | null = null): GrammarSingleNode<TTokenType> {
+    public override single(pIdentifier: string | null | GrammarGraphValue<TTokenType>, pValue: GrammarGraphValue<TTokenType>): GrammarSingleNode<TTokenType>;
+    public override single(pValue: GrammarGraphValue<TTokenType>): GrammarSingleNode<TTokenType>;
+    public override single(pIdentifierOrValue: string | null | GrammarGraphValue<TTokenType>, pValue?: GrammarGraphValue<TTokenType>): GrammarSingleNode<TTokenType> {
+        // Read mixed parameter with correct value. 
+        const lIdentifier: string | null = (typeof pValue === 'undefined') ? null : <string | null>pIdentifierOrValue;
+        const lValue: GrammarGraphValue<TTokenType> = (typeof pValue === 'undefined') ? <GrammarGraphValue<TTokenType>>pIdentifierOrValue : pValue!;
+
         // Create new node and chain it after this node.
-        return new GrammarSingleNode<TTokenType>(null, pValue, true, pIdentifier);
+        return new GrammarSingleNode<TTokenType>(null, lValue, true, lIdentifier);
     }
 }
 

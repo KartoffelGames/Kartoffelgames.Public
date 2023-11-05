@@ -97,9 +97,15 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
      * 
      * @returns The new branch node. 
      */
-    public branch(pIdentifier: string | null, pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType> {
+    public branch(pIdentifier: string | null, pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType>;
+    public branch(pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType>;
+    public branch(pIdentifierOrBranches: string | null | Array<GrammarGraphValue<TTokenType>>, pBranches?: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType> {
+        // Read mixed parameter with correct value. 
+        const lIdentifier: string | null = (Array.isArray(pIdentifierOrBranches)) ? null : pIdentifierOrBranches;
+        const lBranches: Array<GrammarGraphValue<TTokenType>> = (Array.isArray(pIdentifierOrBranches)) ? pIdentifierOrBranches : pBranches!;
+
         // Create new node and chain it after this node.
-        const lNode: GrammarBranchNode<TTokenType> = new GrammarBranchNode<TTokenType>(this, pBranches, true, pIdentifier);
+        const lNode: GrammarBranchNode<TTokenType> = new GrammarBranchNode<TTokenType>(this, lBranches, true, lIdentifier);
         this.setChainedNode(lNode);
 
         return lNode;
@@ -120,9 +126,15 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
      * 
      * @returns The new loop node. 
      */
-    public loop(pIdentifier: string | null, pValue: GrammarGraphValue<TTokenType>): GrammarLoopNode<TTokenType> {
+    public loop(pIdentifier: string | null | GrammarGraphValue<TTokenType>, pValue: GrammarGraphValue<TTokenType>): GrammarLoopNode<TTokenType>
+    public loop(pValue: GrammarGraphValue<TTokenType>): GrammarLoopNode<TTokenType>
+    public loop(pIdentifierOrValue: string | null | GrammarGraphValue<TTokenType>, pValue?: GrammarGraphValue<TTokenType>): GrammarLoopNode<TTokenType> {
+        // Read mixed parameter with correct value. 
+        const lIdentifier: string | null = (typeof pValue === 'undefined') ? null : <string | null>pIdentifierOrValue;
+        const lValue: GrammarGraphValue<TTokenType> = (typeof pValue === 'undefined') ? <GrammarGraphValue<TTokenType>>pIdentifierOrValue : pValue!;
+
         // Create new node and chain it after this node.
-        const lNode: GrammarLoopNode<TTokenType> = new GrammarLoopNode<TTokenType>(this, pValue, pIdentifier);
+        const lNode: GrammarLoopNode<TTokenType> = new GrammarLoopNode<TTokenType>(this, lValue, lIdentifier);
         this.setChainedNode(lNode);
 
         return lNode;
@@ -144,9 +156,15 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
      * 
      * @returns The new optional single value node. 
      */
-    public optional(pValue: GrammarGraphValue<TTokenType>, pIdentifier: string | null = null): GrammarSingleNode<TTokenType> {
+    public optional(pIdentifier: string | null | GrammarGraphValue<TTokenType>, pValue: GrammarGraphValue<TTokenType>): GrammarSingleNode<TTokenType>
+    public optional(pValue: GrammarGraphValue<TTokenType>): GrammarSingleNode<TTokenType>
+    public optional(pIdentifierOrValue: string | null | GrammarGraphValue<TTokenType>, pValue?: GrammarGraphValue<TTokenType>): GrammarSingleNode<TTokenType> {
+        // Read mixed parameter with correct value. 
+        const lIdentifier: string | null = (typeof pValue === 'undefined') ? null : <string | null>pIdentifierOrValue;
+        const lValue: GrammarGraphValue<TTokenType> = (typeof pValue === 'undefined') ? <GrammarGraphValue<TTokenType>>pIdentifierOrValue : pValue!;
+
         // Create new node and chain it after this node.
-        const lNode: GrammarSingleNode<TTokenType> = new GrammarSingleNode<TTokenType>(this, pValue, false, pIdentifier);
+        const lNode: GrammarSingleNode<TTokenType> = new GrammarSingleNode<TTokenType>(this, lValue, false, lIdentifier);
         this.setChainedNode(lNode);
 
         return lNode;
@@ -168,9 +186,15 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
      * 
      * @returns The new optional branch node. 
      */
-    public optionalBranch(pIdentifier: string | null, pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType> {
+    public optionalBranch(pIdentifier: string | null, pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType>;
+    public optionalBranch(pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType>;
+    public optionalBranch(pIdentifierOrBranches: string | null | Array<GrammarGraphValue<TTokenType>>, pBranches?: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType> {
+        // Read mixed parameter with correct value. 
+        const lIdentifier: string | null = (Array.isArray(pIdentifierOrBranches)) ? null : pIdentifierOrBranches;
+        const lBranches: Array<GrammarGraphValue<TTokenType>> = (Array.isArray(pIdentifierOrBranches)) ? pIdentifierOrBranches : pBranches!;
+
         // Create new node and chain it after this node.
-        const lNode: GrammarBranchNode<TTokenType> = new GrammarBranchNode<TTokenType>(this, pBranches, false, pIdentifier);
+        const lNode: GrammarBranchNode<TTokenType> = new GrammarBranchNode<TTokenType>(this, lBranches, false, lIdentifier);
         this.setChainedNode(lNode);
 
         return lNode;
@@ -191,9 +215,15 @@ export abstract class BaseGrammarNode<TTokenType extends string> {
      * 
      * @returns The new single value node. 
      */
-    public single(pValue: GrammarGraphValue<TTokenType>, pIdentifier: string | null = null): GrammarSingleNode<TTokenType> {
+    public single(pIdentifier: string | null | GrammarGraphValue<TTokenType>, pValue: GrammarGraphValue<TTokenType>): GrammarSingleNode<TTokenType>
+    public single(pValue: GrammarGraphValue<TTokenType>): GrammarSingleNode<TTokenType>
+    public single(pIdentifierOrValue: string | null | GrammarGraphValue<TTokenType>, pValue?: GrammarGraphValue<TTokenType>): GrammarSingleNode<TTokenType> {
+        // Read mixed parameter with correct value. 
+        const lIdentifier: string | null = (typeof pValue === 'undefined') ? null : <string | null>pIdentifierOrValue;
+        const lValue: GrammarGraphValue<TTokenType> = (typeof pValue === 'undefined') ? <GrammarGraphValue<TTokenType>>pIdentifierOrValue : pValue!;
+
         // Create new node and chain it after this node.
-        const lNode: GrammarSingleNode<TTokenType> = new GrammarSingleNode<TTokenType>(this, pValue, true, pIdentifier);
+        const lNode: GrammarSingleNode<TTokenType> = new GrammarSingleNode<TTokenType>(this, lValue, true, lIdentifier);
         this.setChainedNode(lNode);
 
         return lNode;

@@ -12,6 +12,7 @@ import { XmlToken } from './xml-token.enum';
 export abstract class BaseXmlParser<TXmlElement extends XmlElement, TText extends TextNode, TComment extends CommentNode> extends CodeParser<XmlToken, XmlDocument>{
     private static readonly ROOT_NODE_NAME: string = 'ROOT-NODE';
     private readonly mConfig: XmlParserConfig;
+    private mLexerrr: Lexer<XmlToken>;
 
     /**
      * Constructor. Creates parser with specified mode.
@@ -34,11 +35,11 @@ export abstract class BaseXmlParser<TXmlElement extends XmlElement, TText extend
         lLexer.addTokenPattern(/:/, XmlToken.NamespaceDelimiter, 3);
 
         // Names and values.
-        lLexer.addTokenPattern(/^"[^"]*"|^(?<Token>[^<>"]+)(?:<|")/, XmlToken.Value, 4);
+        lLexer.addTokenPattern(/^"[^"]*"|^(?<token>[^<>]+)(?:<|$)/, XmlToken.Value, 4);
         lLexer.addTokenPattern(/[^<>\s\n/:="]+/, XmlToken.Identifier, 4);
 
         super(lLexer);
-
+        this.mLexerrr = lLexer;
         this.mConfig = {};
 
         // Set default config.
@@ -63,6 +64,9 @@ export abstract class BaseXmlParser<TXmlElement extends XmlElement, TText extend
         return pText.replace(/[.*+?^${}()\-|[\]\\]/g, '\\$&'); // $& means the whole matched string
     }
 
+    /**
+     * Init graph parts 
+     */
     private initGraphParts(): void {
         // Attribute graph.
         type AttributeParseData = {
@@ -89,7 +93,7 @@ export abstract class BaseXmlParser<TXmlElement extends XmlElement, TText extend
                 return {
                     namespacePrefix: pData.namespace?.name ?? null,
                     name: pData.name,
-                    value: pData.value?.value ?? ''
+                    value: pData.value?.value.substring(1, pData.value.value.length - 1) ?? ''
                 };
             }
         );
@@ -101,7 +105,7 @@ export abstract class BaseXmlParser<TXmlElement extends XmlElement, TText extend
             attributes: Array<AttributeInformation>,
             ending: {} | {
                 values: Array<{
-                    value: { text: string; } | { tag: XmlElement; } | { comment: string; };
+                    value: { text: string; } | XmlElement | { comment: string; };
                 }>;
                 closingTageName: string;
                 closingNamespace?: { name: string; };
@@ -164,8 +168,8 @@ export abstract class BaseXmlParser<TXmlElement extends XmlElement, TText extend
                 if ('values' in pData.ending) {
                     for (const lValue of pData.ending.values) {
                         // XML Element
-                        if ('tag' in lValue.value) {
-                            lElement.appendChild(lValue.value.tag);
+                        if (lValue.value instanceof XmlElement) {
+                            lElement.appendChild(lValue.value);
                             continue;
                         }
 
@@ -206,7 +210,7 @@ export abstract class BaseXmlParser<TXmlElement extends XmlElement, TText extend
         // Document.
         type DocumentParseData = {
             content: Array<{
-                value: { text: string; } | { tag: XmlElement; } | { comment: string; };
+                value: { text: string; } | XmlElement | { comment: string; };
             }>;
         };
         this.defineGraphPart('document',
@@ -220,8 +224,8 @@ export abstract class BaseXmlParser<TXmlElement extends XmlElement, TText extend
 
                 for (const lContent of pData.content) {
                     // XML Element
-                    if ('tag' in lContent.value) {
-                        lDocument.appendChild(lContent.value.tag);
+                    if (lContent.value instanceof XmlElement) {
+                        lDocument.appendChild(lContent.value);
                         continue;
                     }
 

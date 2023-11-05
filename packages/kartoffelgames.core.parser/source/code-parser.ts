@@ -125,7 +125,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Validate, that every token was parsed.
         if (lRootParseData.tokenIndex < (lTokenList.length - 1)) {
             const lLastToken: LexerToken<TTokenType> = lTokenList[lRootParseData.tokenIndex + 1];
-            throw new ParserException('Tokens could not be parsed. Graph end meet without reaching last token', this, lLastToken.columnNumber, lLastToken.lineNumber);
+            throw new ParserException(`Tokens could not be parsed. Graph end meet without reaching last token "${lLastToken.value}"`, this, lLastToken.columnNumber, lLastToken.lineNumber);
         }
 
         return <TParseResult>lRootParseData.data;

@@ -348,7 +348,7 @@ describe('CodeParser', () => {
             expect(lParsedData).has.property('data').and.deep.equals(['one', 'two', 'three', 'four', 'five']);
         });
 
-        it('-- Loop Parsing with font and back data.', () => {
+        it('-- Loop Parsing with different front and back data.', () => {
             // Setup.
             const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
             const lCodeText: string = 'const one two three four five const';
@@ -367,6 +367,29 @@ describe('CodeParser', () => {
 
             // Evaluation.
             expect(lParsedData).has.property('data').and.deep.equals(['one', 'two', 'three', 'four', 'five']);
+        });
+
+        it('-- Loop Parsing with same front and back data.', () => {
+            // Setup.
+            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lCodeText: string = 'one two three four five';
+
+            // Setup. Define graph part and set as root.
+            lParser.defineGraphPart('LoopCode',
+                lParser.graph().single('first', TokenType.Identifier).loop('data', TokenType.Identifier).single('second', TokenType.Identifier),
+                (pData: any) => {
+                    return pData;
+                }
+            );
+            lParser.setRootGraphPart('LoopCode');
+
+            // Process. Convert code.
+            const lParsedData: any = lParser.parse(lCodeText);
+
+            // Evaluation.
+            expect(lParsedData).has.property('first').and.deep.equals('one');
+            expect(lParsedData).has.property('data').and.deep.equals(['two', 'three', 'four']);
+            expect(lParsedData).has.property('second').and.deep.equals('five');
         });
 
         it('-- Loop Parsing with missing items', () => {

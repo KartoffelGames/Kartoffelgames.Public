@@ -305,14 +305,21 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     private retrieveChainedValues(pNode: BaseGrammarNode<TTokenType>, pBranchValues: Array<GraphNodeValueParseResult>, pTokenList: Array<LexerToken<TTokenType>>): GraphNodeParse<TTokenType> {
         const lErrorList: Array<GraphParseError<TTokenType>> = new Array<GraphParseError<TTokenType>>();
 
+        type ChainResult = {
+            chainedValue: GraphNodeParseResult | null;
+            chainnode: BaseGrammarNode<TTokenType> | null;
+            nodeValue: GraphNodeValueParseResult;
+        };
+
         // Run chained node parse for each branch value and check for dublicates after that.
-        const lResultList: Array<{ chainedValue: GraphNodeParseResult | null, nodeValue: GraphNodeValueParseResult; }> = new Array<{ chainedValue: GraphNodeParseResult | null, nodeValue: GraphNodeValueParseResult; }>();
+        let lResultList: Array<ChainResult> = new Array<ChainResult>();
         for (const lBranch of pBranchValues) {
             // Process chained nodes in parallel.
             for (const lChainedNode of pNode.next()) {
                 // Branch end. No chaining value.
                 if (lChainedNode === null) {
                     lResultList.push({
+                        chainnode: lChainedNode,
                         chainedValue: null,
                         nodeValue: lBranch
                     });
@@ -333,25 +340,32 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
                 // Process branch with chained node values and a new token.
                 lResultList.push({
+                    chainnode: lChainedNode,
                     chainedValue: lChainedNodeParseResult,
                     nodeValue: lBranch
                 });
             }
         }
 
-        // Permit ambiguity paths.
-        if (lResultList.filter((pResult) => { return pResult.chainedValue !== null; }).length > 1) {
-            const lDublicatePathList = lResultList.filter((pResult) => { return pResult.chainedValue !== null; });
-            const lDublicatePathValueList = lDublicatePathList.map((pItem) => { return `[${JSON.stringify(pItem.nodeValue.data)}, ${JSON.stringify(pItem.chainedValue?.data)}]`; });
+        // Check for ambiguity paths.
+        if (lResultList.filter((pResult: ChainResult) => { return pResult.chainedValue !== null; }).length > 1) {
+            // Exclude looping node branch when it would result in ambiguity paths
+            lResultList = lResultList.filter((pItem: ChainResult) => { return pItem.chainnode !== pNode; });
 
-            throw new Exception(`Graph has ambiguity paths. Values: [\n\t${lDublicatePathValueList.join(', \n\t')}\n]`, this);
+            // Validate if ambiguity paths still exists.
+            if (lResultList.filter((pResult: ChainResult) => { return pResult.chainedValue !== null; }).length > 1) {
+                const lDublicatePathList: Array<ChainResult> = lResultList.filter((pResult) => { return pResult.chainedValue !== null; });
+                const lDublicatePathValueList: Array<string> = lDublicatePathList.map((pItem) => { return `[${JSON.stringify(pItem.nodeValue.data)}, ${JSON.stringify(pItem.chainedValue?.data)}]`; });
+
+                throw new Exception(`Graph has ambiguity paths. Values: [\n\t${lDublicatePathValueList.join(', \n\t')}\n]`, this);
+            }
         }
 
         // Read single branching result. Polyfill in missing values or when no result exists, use no result. 
         let lBranchingResult: GraphBranchResult | null;
         if (lResultList.length > 0) {
             // Find sucessfull branch value or when is does not exists, go for the branch end. At least one of these exists.
-            const lBranchValues = lResultList.find((pResult) => { return pResult.chainedValue !== null; }) ?? lResultList.find((pResult) => { return pResult.chainedValue === null; })!;
+            const lBranchValues: ChainResult = lResultList.find((pResult) => { return pResult.chainedValue !== null; }) ?? lResultList.find((pResult) => { return pResult.chainedValue === null; })!;
 
             // Read last used token index of branch and polyfill branch data when this node was the last node of this branch.
             lBranchingResult = {

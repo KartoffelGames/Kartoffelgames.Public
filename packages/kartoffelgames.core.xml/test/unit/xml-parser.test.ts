@@ -349,7 +349,7 @@ describe('XmlParser', () => {
     });
 
     describe('Functionality: Settings', () => {
-        it('-- Remove comment', () => {
+        it('-- Remove comment in document', () => {
             // Setup.
             const lXmlString: string = `<!-- Comment -->`;
             const lParser: XmlParser = new XmlParser({ removeComments: true });
@@ -359,6 +359,19 @@ describe('XmlParser', () => {
 
             // Evaluation.
             expect(lParsedDocument.body).to.be.empty;
+        });
+
+        it('-- Remove comment in xml tag', () => {
+            // Setup.
+            const lXmlString: string = `<node><!-- Comment --></node>`;
+            const lParser: XmlParser = new XmlParser({ removeComments: true });
+
+            // Process.
+            const lParsedDocument: XmlDocument = lParser.parse(lXmlString);
+            const lParsedXmlNode: XmlElement = <XmlElement>lParsedDocument.body[0];
+
+            // Evaluation.
+            expect(lParsedXmlNode.childList).to.be.empty;
         });
 
         it('-- Restrict attribute characters', () => {

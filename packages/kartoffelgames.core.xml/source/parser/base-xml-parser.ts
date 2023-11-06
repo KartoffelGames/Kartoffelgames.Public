@@ -34,8 +34,8 @@ export abstract class BaseXmlParser<TXmlElement extends XmlElement, TText extend
         lLexer.addTokenPattern(/:/, XmlToken.NamespaceDelimiter, 3);
 
         // Names and values.
-        lLexer.addTokenPattern(/^"[^"]*"|^(?<token>[^<>]+)(?:<|$)/, XmlToken.Value, 4);
-        lLexer.addTokenPattern(/[^<>\s\n/:="]+/, XmlToken.Identifier, 4);
+        lLexer.addTokenPattern(/^"[^"]*"|^(?<token>[^<>"]+)[^<>]*(<|$)/, XmlToken.Value, 4);
+        lLexer.addTokenPattern(/[^<>\s\n/:="]+/, XmlToken.Identifier, 5);
 
         super(lLexer);
 
@@ -178,7 +178,7 @@ export abstract class BaseXmlParser<TXmlElement extends XmlElement, TText extend
 
                     // Validate namespace prefix.
                     if (pData.ending.closingNamespace !== pData.openingNamespace) {
-                        throw new Exception(`Opening (${pData.openingNamespace}) and closing tagname prefix (${pData.ending.closingNamespace}) does not match`, this);
+                        throw new Exception(`Opening (${pData.openingNamespace}) and closing namespace prefix (${pData.ending.closingNamespace}) does not match`, this);
                     }
                 }
 

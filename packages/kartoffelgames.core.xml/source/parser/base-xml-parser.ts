@@ -97,15 +97,54 @@ export abstract class BaseXmlParser<TXmlElement extends XmlElement, TText extend
             }
         );
 
+        // Content data.
+        type ContentData = {
+            value: { text: string; } | XmlElement | { comment: string; };
+        };
+        this.defineGraphPart('content',
+            this.graph().branch('value', [
+                this.graph().single('comment', XmlToken.Comment),
+                this.graph().single('text', XmlToken.Value),
+                this.partReference('tag')
+            ]),
+            (pData: ContentData): XmlElement | CommentNode | TextNode => {
+                // XML Element
+                if (pData.value instanceof XmlElement) {
+                    return pData.value;
+                }
+
+                // Text content.
+                if ('text' in pData.value) {
+                    // Clear hyphen from text content.
+                    let lClearedTextContent: string;
+                    if (pData.value.text.startsWith('"') && pData.value.text.endsWith('"')) {
+                        lClearedTextContent = pData.value.text.substring(1, pData.value.text.length - 1);
+                    } else {
+                        lClearedTextContent = pData.value.text;
+                    }
+
+                    // Create text element.
+                    const lTextContent = new (this.getTextNodeConstructor())();
+                    lTextContent.text = lClearedTextContent;
+
+                    return lTextContent;
+                }
+
+                // Create comment element. Extract raw text content.
+                const lComment = new (this.getCommentNodeConstructor())();
+                lComment.text = pData.value.comment.substring(4, pData.value.comment.length - 3).trim();
+
+                return lComment;
+            }
+        );
+
         // Tags
         type TagParseData = {
             openingTagName: string;
             openingNamespace?: { name: string; };
             attributes: Array<AttributeInformation>,
             ending: {} | {
-                values: Array<{
-                    value: { text: string; } | XmlElement | { comment: string; };
-                }>;
+                values: Array<XmlElement | CommentNode | TextNode>;
                 closingTageName: string;
                 closingNamespace?: { name: string; };
             };
@@ -123,11 +162,7 @@ export abstract class BaseXmlParser<TXmlElement extends XmlElement, TText extend
                         .single(XmlToken.CloseClosingBracket),
                     this.graph()
                         .single(XmlToken.CloseBracket)
-                        .loop('values', this.graph().branch('value', [
-                            this.graph().single('comment', XmlToken.Comment),
-                            this.graph().single('text', XmlToken.Value),
-                            this.partReference('tag')
-                        ]))
+                        .loop('values', this.partReference('content'))
                         .single(XmlToken.OpenClosingBracket)
                         .optional('closingNamespace',
                             this.graph().single('name', XmlToken.Identifier).single(XmlToken.NamespaceDelimiter)
@@ -166,39 +201,13 @@ export abstract class BaseXmlParser<TXmlElement extends XmlElement, TText extend
                 // Add values.
                 if ('values' in pData.ending) {
                     for (const lValue of pData.ending.values) {
-                        // XML Element
-                        if (lValue.value instanceof XmlElement) {
-                            lElement.appendChild(lValue.value);
+                        // Optional comment node
+                        if (this.mConfig.removeComments && lValue instanceof CommentNode) {
                             continue;
                         }
 
-                        // Text content.
-                        if ('text' in lValue.value) {
-                            // Clear hyphen from text content.
-                            let lClearedTextContent: string;
-                            if (lValue.value.text.startsWith('"') && lValue.value.text.endsWith('"')) {
-                                lClearedTextContent = lValue.value.text.substring(1, lValue.value.text.length - 1);
-                            } else {
-                                lClearedTextContent = lValue.value.text;
-                            }
-
-                            // Create text element.
-                            const lTextContent = new (this.getTextNodeConstructor())();
-                            lTextContent.text = lClearedTextContent;
-
-                            lElement.appendChild(lTextContent);
-                            continue;
-                        }
-
-                        // Comments.
-                        if ('comment' in lValue.value && !this.mConfig.removeComments) {
-                            // Create comment element. Extract raw text content.
-                            const lComment = new (this.getCommentNodeConstructor())();
-                            lComment.text = lValue.value.comment.substring(4, lValue.value.comment.length - 3).trim();
-
-                            lElement.appendChild(lComment);
-                            continue;
-                        }
+                        // XML Element or Text node.
+                        lElement.appendChild(lValue);
                     }
                 }
 
@@ -208,53 +217,21 @@ export abstract class BaseXmlParser<TXmlElement extends XmlElement, TText extend
 
         // Document.
         type DocumentParseData = {
-            content: Array<{
-                value: { text: string; } | XmlElement | { comment: string; };
-            }>;
+            content: Array<XmlElement | CommentNode | TextNode>;
         };
         this.defineGraphPart('document',
-            this.graph().loop('content', this.graph().branch('value', [
-                this.graph().single('comment', XmlToken.Comment),
-                this.graph().single('text', XmlToken.Value),
-                this.partReference('tag')
-            ])),
+            this.graph().loop('content', this.partReference('content')),
             (pData: DocumentParseData): XmlDocument => {
                 const lDocument: XmlDocument = new XmlDocument(this.getDefaultNamespace());
 
-                for (const lContent of pData.content) {
-                    // XML Element
-                    if (lContent.value instanceof XmlElement) {
-                        lDocument.appendChild(lContent.value);
+                for (const lValue of pData.content) {
+                    // Optional comment node
+                    if (this.mConfig.removeComments && lValue instanceof CommentNode) {
                         continue;
                     }
 
-                    // Text content.
-                    if ('text' in lContent.value) {
-                        // Clear hyphen from text content.
-                        let lClearedTextContent: string;
-                        if (lContent.value.text.startsWith('"') && lContent.value.text.endsWith('"')) {
-                            lClearedTextContent = lContent.value.text.substring(1, lContent.value.text.length - 1);
-                        } else {
-                            lClearedTextContent = lContent.value.text;
-                        }
-
-                        // Create text element.
-                        const lTextContent = new (this.getTextNodeConstructor())();
-                        lTextContent.text = lClearedTextContent;
-
-                        lDocument.appendChild(lTextContent);
-                        continue;
-                    }
-
-                    // Comments.
-                    if ('comment' in lContent.value && !this.mConfig.removeComments) {
-                        // Create comment element. Extract raw text content.
-                        const lComment = new (this.getCommentNodeConstructor())();
-                        lComment.text = lContent.value.comment.substring(4, lContent.value.comment.length - 3).trim();
-
-                        lDocument.appendChild(lComment);
-                        continue;
-                    }
+                    // XML Element or Text node.
+                    lDocument.appendChild(lValue);
                 }
 
                 return lDocument;

@@ -379,8 +379,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
         // Check for ambiguity paths.
         if (lResultList.filter((pResult: ChainResult) => { return pResult.chainedValue !== null; }).length > 1) {
-            // Exclude looping node branch when it would result in ambiguity paths
-            lResultList = lResultList.filter((pItem: ChainResult) => { return pItem.chainnode !== pNode; });
+            // Always use the looping path to enforce greedy behavious.
+            lResultList = lResultList.filter((pItem: ChainResult) => { return pItem.chainnode === pNode; });
 
             // Validate if ambiguity paths still exists.
             if (lResultList.filter((pResult: ChainResult) => { return pResult.chainedValue !== null; }).length > 1) {

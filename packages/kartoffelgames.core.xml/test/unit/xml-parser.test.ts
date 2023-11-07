@@ -176,39 +176,41 @@ describe('XmlParser', () => {
             });
         });
 
-        it('-- Normalize multiline attribute values', () => {
-            // Setup. Specify values.
-            const lNamespacedAttributeName: string = 'namespacedattr';
-            const lAttributeValue: string = `Multi
+        describe('-- Multiline values', () => {
+            it('-- Normalize multiline attribute values', () => {
+                // Setup. Specify values.
+                const lNamespacedAttributeName: string = 'namespacedattr';
+                const lAttributeValue: string = `Multi
                                              Line`;
 
-            // Setup. Parse XML String.
-            const lXmlString: string = `<node ${lNamespacedAttributeName}="${lAttributeValue}" />`;
-            const lParser: XmlParser = new XmlParser();
-            const lXmlElement: XmlElement = <XmlElement>lParser.parse(lXmlString).body[0];
+                // Setup. Parse XML String.
+                const lXmlString: string = `<node ${lNamespacedAttributeName}="${lAttributeValue}" />`;
+                const lParser: XmlParser = new XmlParser();
+                const lXmlElement: XmlElement = <XmlElement>lParser.parse(lXmlString).body[0];
 
-            // Process.
-            const lNamespacedAttribute: XmlAttribute | undefined = lXmlElement.getAttribute(lNamespacedAttributeName);
+                // Process.
+                const lNamespacedAttribute: XmlAttribute | undefined = lXmlElement.getAttribute(lNamespacedAttributeName);
 
-            // Evaluation.
-            expect(lNamespacedAttribute?.value).to.equal(lAttributeValue);
-        });
+                // Evaluation.
+                expect(lNamespacedAttribute?.value).to.equal(lAttributeValue);
+            });
 
-        it('-- Multiline text node', () => {
-            // Setup. Specify values.
-            const lText: string = `Multi
+            it('-- Multiline text node', () => {
+                // Setup. Specify values.
+                const lText: string = `Multi
                                    Line`;
 
-            // Setup. Parse XML String.
-            const lXmlString: string = `<node>${lText}</node>`;
-            const lParser: XmlParser = new XmlParser();
-            const lXmlElement: XmlElement = <XmlElement>lParser.parse(lXmlString).body[0];
+                // Setup. Parse XML String.
+                const lXmlString: string = `<node>${lText}</node>`;
+                const lParser: XmlParser = new XmlParser();
+                const lXmlElement: XmlElement = <XmlElement>lParser.parse(lXmlString).body[0];
 
-            // Process.
-            const lTextNode: TextNode = <TextNode>lXmlElement.childList[0];
+                // Process.
+                const lTextNode: TextNode = <TextNode>lXmlElement.childList[0];
 
-            // Evaluation.
-            expect(lTextNode.text).to.equal(lText);
+                // Evaluation.
+                expect(lTextNode.text).to.equal(lText);
+            });
         });
 
         it('-- Opening child with same tagname', () => {

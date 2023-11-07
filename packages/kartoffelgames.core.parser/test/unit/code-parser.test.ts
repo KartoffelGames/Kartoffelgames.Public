@@ -127,7 +127,7 @@ describe('CodeParser', () => {
             const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
 
             // Process.
-            const lGraph: BaseGrammarNode<TokenType> = lParser.graph().branch(null, [TokenType.Assignment]);
+            const lGraph: BaseGrammarNode<TokenType> = lParser.graph().branch([TokenType.Assignment]);
 
             // Evaluation.
             expect(lGraph).be.instanceOf(GrammarBranchNode);
@@ -138,7 +138,7 @@ describe('CodeParser', () => {
             const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
 
             // Process.
-            const lGraph: BaseGrammarNode<TokenType> = lParser.graph().loop(null, TokenType.Assignment);
+            const lGraph: BaseGrammarNode<TokenType> = lParser.graph().loop(TokenType.Assignment);
 
             // Evaluation.
             expect(lGraph).be.instanceOf(GrammarLoopNode);
@@ -158,302 +158,308 @@ describe('CodeParser', () => {
     });
 
     describe('Method: parse', () => {
-        it('-- Linear Parsing no optionals', () => {
-            // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-            const lCodeText: string = 'const name: number;';
+        describe('-- Linear', () => {
+            it('-- Linear Parsing no optionals', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const name: number;';
 
-            // Setup. Define graph part and set as root.
-            lParser.defineGraphPart('LinearCode',
-                lParser.graph().single('modifier', TokenType.Modifier).single('variableName', TokenType.Identifier).single(TokenType.TypeDelimiter).single('typeName', TokenType.Identifier).single(TokenType.Semicolon),
-                (pData: any) => {
-                    return pData;
-                }
-            );
-            lParser.setRootGraphPart('LinearCode');
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('LinearCode',
+                    lParser.graph().single('modifier', TokenType.Modifier).single('variableName', TokenType.Identifier).single(TokenType.TypeDelimiter).single('typeName', TokenType.Identifier).single(TokenType.Semicolon),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('LinearCode');
 
-            // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeText);
+                // Process. Convert code.
+                const lParsedData: any = lParser.parse(lCodeText);
 
-            // Evaluation.
-            expect(lParsedData).has.property('modifier').and.equals('const');
-            expect(lParsedData).has.property('variableName').and.equals('name');
-            expect(lParsedData).has.property('typeName').and.equals('number');
+                // Evaluation.
+                expect(lParsedData).has.property('modifier').and.equals('const');
+                expect(lParsedData).has.property('variableName').and.equals('name');
+                expect(lParsedData).has.property('typeName').and.equals('number');
+            });
+
+            it('-- Linear Parsing with optionals', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const name: number';
+
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('LinearCode',
+                    lParser.graph().single('modifier', TokenType.Modifier).single('variableName', TokenType.Identifier).single(TokenType.TypeDelimiter).single('typeName', TokenType.Identifier).optional(TokenType.Semicolon),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('LinearCode');
+
+                // Process. Convert code.
+                const lParsedData: any = lParser.parse(lCodeText);
+
+                // Evaluation.
+                expect(lParsedData).has.property('modifier').and.equals('const');
+                expect(lParsedData).has.property('variableName').and.equals('name');
+                expect(lParsedData).has.property('typeName').and.equals('number');
+            });
         });
 
-        it('-- Linear Parsing with optionals', () => {
-            // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-            const lCodeText: string = 'const name: number';
+        describe('-- Branches', () => {
+            it('-- Branch Parsing without optionals', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeTextModifier: string = 'const';
+                const lCodeTextIdentifier: string = 'notconst';
 
-            // Setup. Define graph part and set as root.
-            lParser.defineGraphPart('LinearCode',
-                lParser.graph().single('modifier', TokenType.Modifier).single('variableName', TokenType.Identifier).single(TokenType.TypeDelimiter).single('typeName', TokenType.Identifier).optional(TokenType.Semicolon),
-                (pData: any) => {
-                    return pData;
-                }
-            );
-            lParser.setRootGraphPart('LinearCode');
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('BranchCode',
+                    lParser.graph().branch('data', [
+                        TokenType.Identifier,
+                        TokenType.Modifier
+                    ]),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('BranchCode');
 
-            // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeText);
+                // Process. Convert code.
+                const lParsedIdentifierData: any = lParser.parse(lCodeTextIdentifier);
+                const lParsedModifierData: any = lParser.parse(lCodeTextModifier);
 
-            // Evaluation.
-            expect(lParsedData).has.property('modifier').and.equals('const');
-            expect(lParsedData).has.property('variableName').and.equals('name');
-            expect(lParsedData).has.property('typeName').and.equals('number');
+                // Evaluation.
+                expect(lParsedIdentifierData).has.property('data').and.equals('notconst');
+                expect(lParsedModifierData).has.property('data').and.equals('const');
+            });
+
+            it('-- Branch Parsing with existing optionals', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeTextNumber: string = '123';
+                const lCodeTextIdentifier: string = 'myname';
+
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('BranchCode',
+                    lParser.graph().branch('data', [
+                        lParser.graph().single('required', TokenType.Identifier),
+                        lParser.graph().optional('optional', TokenType.Number)
+                    ]),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('BranchCode');
+
+                // Process. Convert code.
+                const lParsedIdentifierData: any = lParser.parse(lCodeTextIdentifier);
+                const lParsedNumberData: any = lParser.parse(lCodeTextNumber);
+
+                // Evaluation.
+                expect(lParsedNumberData).has.property('data').and.deep.equals({ optional: '123' });
+                expect(lParsedIdentifierData).has.property('data').and.deep.equals({ required: 'myname' });
+            });
+
+            it('-- Branch Parsing with missing optionals', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const ;';
+
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('BranchCode',
+                    lParser.graph().single(TokenType.Modifier).branch('data', [
+                        lParser.graph().optional('optional', TokenType.Identifier)
+                    ]).single(TokenType.Semicolon), // Last single is needed to not get "end of statement" Exception because .branch() is not optional and needs a token to proceed.
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('BranchCode');
+
+                // Process. Convert code.
+                const lParsedData: any = lParser.parse(lCodeText);
+
+                // Evaluation.
+                expect(lParsedData).has.property('data').and.deep.equals({});
+            });
+
+            it('-- Optional branch parsing with existing token', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const';
+
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('BranchCode',
+                    lParser.graph().optionalBranch('data', [
+                        lParser.graph().single('optional', TokenType.Modifier)
+                    ]),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('BranchCode');
+
+                // Process. Convert code.
+                const lParsedData: any = lParser.parse(lCodeText);
+
+                // Evaluation.
+                expect(lParsedData).has.property('data').and.deep.equals({ optional: 'const' });
+            });
+
+            it('-- Optional branch parsing without existing token', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const';
+
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('BranchCode',
+                    lParser.graph().single(TokenType.Modifier).optionalBranch('data', [
+                        lParser.graph().single('optional', TokenType.Identifier)
+                    ]),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('BranchCode');
+
+                // Process. Convert code.
+                const lParsedData: any = lParser.parse(lCodeText);
+
+                // Evaluation.
+                expect(lParsedData).to.deep.equals({});
+            });
         });
 
-        it('-- Branch Parsing without optionals', () => {
-            // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-            const lCodeTextModifier: string = 'const';
-            const lCodeTextIdentifier: string = 'notconst';
+        describe('-- Loops', () => {
+            it('-- Loop Parsing with existing items', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'one two three four five';
 
-            // Setup. Define graph part and set as root.
-            lParser.defineGraphPart('BranchCode',
-                lParser.graph().branch('data', [
-                    TokenType.Identifier,
-                    TokenType.Modifier
-                ]),
-                (pData: any) => {
-                    return pData;
-                }
-            );
-            lParser.setRootGraphPart('BranchCode');
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('LoopCode',
+                    lParser.graph().loop('data', TokenType.Identifier),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('LoopCode');
 
-            // Process. Convert code.
-            const lParsedIdentifierData: any = lParser.parse(lCodeTextIdentifier);
-            const lParsedModifierData: any = lParser.parse(lCodeTextModifier);
+                // Process. Convert code.
+                const lParsedData: any = lParser.parse(lCodeText);
 
-            // Evaluation.
-            expect(lParsedIdentifierData).has.property('data').and.equals('notconst');
-            expect(lParsedModifierData).has.property('data').and.equals('const');
-        });
+                // Evaluation.
+                expect(lParsedData).has.property('data').and.deep.equals(['one', 'two', 'three', 'four', 'five']);
+            });
 
-        it('-- Branch Parsing with existing optionals', () => {
-            // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-            const lCodeTextNumber: string = '123';
-            const lCodeTextIdentifier: string = 'myname';
+            it('-- Loop Parsing with different front and back data.', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const one two three four five const';
 
-            // Setup. Define graph part and set as root.
-            lParser.defineGraphPart('BranchCode',
-                lParser.graph().branch('data', [
-                    lParser.graph().single('required', TokenType.Identifier),
-                    lParser.graph().optional('optional', TokenType.Number)
-                ]),
-                (pData: any) => {
-                    return pData;
-                }
-            );
-            lParser.setRootGraphPart('BranchCode');
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('LoopCode',
+                    lParser.graph().single(TokenType.Modifier).loop('data', TokenType.Identifier).single(TokenType.Modifier),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('LoopCode');
 
-            // Process. Convert code.
-            const lParsedIdentifierData: any = lParser.parse(lCodeTextIdentifier);
-            const lParsedNumberData: any = lParser.parse(lCodeTextNumber);
+                // Process. Convert code.
+                const lParsedData: any = lParser.parse(lCodeText);
 
-            // Evaluation.
-            expect(lParsedNumberData).has.property('data').and.deep.equals({ optional: '123' });
-            expect(lParsedIdentifierData).has.property('data').and.deep.equals({ required: 'myname' });
-        });
+                // Evaluation.
+                expect(lParsedData).has.property('data').and.deep.equals(['one', 'two', 'three', 'four', 'five']);
+            });
 
-        it('-- Branch Parsing with missing optionals', () => {
-            // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-            const lCodeText: string = 'const ;';
+            it('-- Loop Parsing with same front and back data.', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'one two three four five';
 
-            // Setup. Define graph part and set as root.
-            lParser.defineGraphPart('BranchCode',
-                lParser.graph().single(TokenType.Modifier).branch('data', [
-                    lParser.graph().optional('optional', TokenType.Identifier)
-                ]).single(TokenType.Semicolon), // Last single is needed to not get "end of statement" Exception because .branch() is not optional and needs a token to proceed.
-                (pData: any) => {
-                    return pData;
-                }
-            );
-            lParser.setRootGraphPart('BranchCode');
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('LoopCode',
+                    lParser.graph().single('first', TokenType.Identifier).loop('data', TokenType.Identifier).single('second', TokenType.Identifier),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('LoopCode');
 
-            // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeText);
+                // Process. Convert code.
+                const lParsedData: any = lParser.parse(lCodeText);
 
-            // Evaluation.
-            expect(lParsedData).has.property('data').and.deep.equals({});
-        });
+                // Evaluation.
+                expect(lParsedData).has.property('first').and.deep.equals('one');
+                expect(lParsedData).has.property('data').and.deep.equals(['two', 'three', 'four']);
+                expect(lParsedData).has.property('second').and.deep.equals('five');
+            });
 
-        it('-- Optional branch parsing with existing token', () => {
-            // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-            const lCodeText: string = 'const';
+            it('-- Loop Parsing with same front data and different back data.', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'one two three four five const';
 
-            // Setup. Define graph part and set as root.
-            lParser.defineGraphPart('BranchCode',
-                lParser.graph().optionalBranch('data', [
-                    lParser.graph().single('optional', TokenType.Modifier)
-                ]),
-                (pData: any) => {
-                    return pData;
-                }
-            );
-            lParser.setRootGraphPart('BranchCode');
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('LoopCode',
+                    lParser.graph().single('first', TokenType.Identifier).loop('data', TokenType.Identifier).single('second', TokenType.Modifier),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('LoopCode');
 
-            // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeText);
+                // Process. Convert code.
+                const lParsedData: any = lParser.parse(lCodeText);
 
-            // Evaluation.
-            expect(lParsedData).has.property('data').and.deep.equals({ optional: 'const' });
-        });
+                // Evaluation.
+                expect(lParsedData).has.property('first').and.deep.equals('one');
+                expect(lParsedData).has.property('data').and.deep.equals(['two', 'three', 'four', 'five']);
+                expect(lParsedData).has.property('second').and.deep.equals('const');
+            });
 
-        it('-- Optional branch parsing without existing token', () => {
-            // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-            const lCodeText: string = 'const';
+            it('-- Loop Parsing with missing items', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const';
 
-            // Setup. Define graph part and set as root.
-            lParser.defineGraphPart('BranchCode',
-                lParser.graph().single(TokenType.Modifier).optionalBranch('data', [
-                    lParser.graph().single('optional', TokenType.Identifier)
-                ]),
-                (pData: any) => {
-                    return pData;
-                }
-            );
-            lParser.setRootGraphPart('BranchCode');
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('LoopCode',
+                    lParser.graph().single(TokenType.Modifier).loop('data', TokenType.Identifier),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('LoopCode');
 
-            // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeText);
+                // Process. Convert code.
+                const lParsedData: any = lParser.parse(lCodeText);
 
-            // Evaluation.
-            expect(lParsedData).to.deep.equals({});
-        });
+                // Evaluation.
+                expect(lParsedData).has.property('data').and.deep.equals([]);
+            });
 
-        it('-- Loop Parsing with existing items', () => {
-            // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-            const lCodeText: string = 'one two three four five';
+            it('-- Greater optional loops', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const';
 
-            // Setup. Define graph part and set as root.
-            lParser.defineGraphPart('LoopCode',
-                lParser.graph().loop('data', TokenType.Identifier),
-                (pData: any) => {
-                    return pData;
-                }
-            );
-            lParser.setRootGraphPart('LoopCode');
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('LoopCode',
+                    lParser.graph().optional('optional', TokenType.Modifier).optional(lParser.partReference('LoopCode')),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('LoopCode');
 
-            // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeText);
+                // Process. Convert code.
+                const lParsedData: any = lParser.parse(lCodeText);
 
-            // Evaluation.
-            expect(lParsedData).has.property('data').and.deep.equals(['one', 'two', 'three', 'four', 'five']);
-        });
-
-        it('-- Loop Parsing with different front and back data.', () => {
-            // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-            const lCodeText: string = 'const one two three four five const';
-
-            // Setup. Define graph part and set as root.
-            lParser.defineGraphPart('LoopCode',
-                lParser.graph().single(TokenType.Modifier).loop('data', TokenType.Identifier).single(TokenType.Modifier),
-                (pData: any) => {
-                    return pData;
-                }
-            );
-            lParser.setRootGraphPart('LoopCode');
-
-            // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeText);
-
-            // Evaluation.
-            expect(lParsedData).has.property('data').and.deep.equals(['one', 'two', 'three', 'four', 'five']);
-        });
-
-        it('-- Loop Parsing with same front and back data.', () => {
-            // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-            const lCodeText: string = 'one two three four five';
-
-            // Setup. Define graph part and set as root.
-            lParser.defineGraphPart('LoopCode',
-                lParser.graph().single('first', TokenType.Identifier).loop('data', TokenType.Identifier).single('second', TokenType.Identifier),
-                (pData: any) => {
-                    return pData;
-                }
-            );
-            lParser.setRootGraphPart('LoopCode');
-
-            // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeText);
-
-            // Evaluation.
-            expect(lParsedData).has.property('first').and.deep.equals('one');
-            expect(lParsedData).has.property('data').and.deep.equals(['two', 'three', 'four']);
-            expect(lParsedData).has.property('second').and.deep.equals('five');
-        });
-
-        it('-- Loop Parsing with same front data and different back data.', () => {
-            // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-            const lCodeText: string = 'one two three four five const';
-
-            // Setup. Define graph part and set as root.
-            lParser.defineGraphPart('LoopCode',
-                lParser.graph().single('first', TokenType.Identifier).loop('data', TokenType.Identifier).single('second', TokenType.Modifier),
-                (pData: any) => {
-                    return pData;
-                }
-            );
-            lParser.setRootGraphPart('LoopCode');
-
-            // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeText);
-
-            // Evaluation.
-            expect(lParsedData).has.property('first').and.deep.equals('one');
-            expect(lParsedData).has.property('data').and.deep.equals(['two', 'three', 'four', 'five']);
-            expect(lParsedData).has.property('second').and.deep.equals('const');
-        });
-
-        it('-- Loop Parsing with missing items', () => {
-            // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-            const lCodeText: string = 'const';
-
-            // Setup. Define graph part and set as root.
-            lParser.defineGraphPart('LoopCode',
-                lParser.graph().single(TokenType.Modifier).loop('data', TokenType.Identifier),
-                (pData: any) => {
-                    return pData;
-                }
-            );
-            lParser.setRootGraphPart('LoopCode');
-
-            // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeText);
-
-            // Evaluation.
-            expect(lParsedData).has.property('data').and.deep.equals([]);
-        });
-
-        it('-- Greater optional loops', () => {
-            // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-            const lCodeText: string = 'const';
-
-            // Setup. Define graph part and set as root.
-            lParser.defineGraphPart('LoopCode',
-                lParser.graph().optional('optional', TokenType.Modifier).optional(lParser.partReference('LoopCode')),
-                (pData: any) => {
-                    return pData;
-                }
-            );
-            lParser.setRootGraphPart('LoopCode');
-
-            // Process. Convert code.
-            const lParsedData: any = lParser.parse(lCodeText);
-
-            expect(lParsedData).has.property('optional').and.equals('const');
+                expect(lParsedData).has.property('optional').and.equals('const');
+            });
         });
     });
 

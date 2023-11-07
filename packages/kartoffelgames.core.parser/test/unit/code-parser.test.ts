@@ -1,14 +1,13 @@
+import { Exception } from '@kartoffelgames/core.data';
 import { expect } from 'chai';
 import { CodeParser } from '../../source/code-parser';
-import { Lexer } from '../../source/lexer';
+import { AnonymoutGrammarNode } from '../../source/graph/node/anonymous-grammar-node';
+import { BaseGrammarNode } from '../../source/graph/node/base-grammar-node';
+import { GrammarLoopNode } from '../../source/graph/node/grammer-loop-node';
 import { GrammarSingleNode } from '../../source/graph/node/grammer-single-node';
 import { GraphPart } from '../../source/graph/part/graph-part';
-import { BaseGrammarNode } from '../../source/graph/node/base-grammar-node';
-import { AnonymoutGrammarNode } from '../../source/graph/node/anonymous-grammar-node';
-import { GrammarBranchNode } from '../../source/graph/node/grammer-branch-node';
-import { GrammarLoopNode } from '../../source/graph/node/grammer-loop-node';
 import { GraphPartReference } from '../../source/graph/part/graph-part-reference';
-import { Exception } from '@kartoffelgames/core.data';
+import { Lexer } from '../../source/lexer';
 
 describe('CodeParser', () => {
     enum TokenType {
@@ -111,7 +110,7 @@ describe('CodeParser', () => {
             expect(lGraph).be.instanceOf(AnonymoutGrammarNode);
         });
 
-        it('-- Create with chaining single', () => {
+        it('-- Create with single node chain', () => {
             // Setup.
             const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
 
@@ -122,27 +121,6 @@ describe('CodeParser', () => {
             expect(lGraph).be.instanceOf(GrammarSingleNode);
         });
 
-        it('-- Create with chaining branch', () => {
-            // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-
-            // Process.
-            const lGraph: BaseGrammarNode<TokenType> = lParser.graph().branch([TokenType.Assignment]);
-
-            // Evaluation.
-            expect(lGraph).be.instanceOf(GrammarBranchNode);
-        });
-
-        it('-- Create with chaining loop', () => {
-            // Setup.
-            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-
-            // Process.
-            const lGraph: BaseGrammarNode<TokenType> = lParser.graph().loop(TokenType.Assignment);
-
-            // Evaluation.
-            expect(lGraph).be.instanceOf(GrammarLoopNode);
-        });
 
         it('-- Create with long chaining', () => {
             // Setup.

@@ -66,6 +66,20 @@ describe('CodeParser', () => {
             expect(lParser.getGraphPart('branch')).has.property('graph').and.be.instanceOf(GrammarSingleNode);
             expect(lParser.getGraphPart('branch')).has.property('dataCollector').and.equal(lDataCollector);
         });
+
+        it('-- Duplicate grapth part', () => {
+            // Setup.
+            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+
+            // Process.
+            lParser.defineGraphPart('branch', lParser.graph());
+            const lErrorFunction = () => {
+                lParser.defineGraphPart('branch', lParser.graph());
+            };
+
+            // Evaluation.
+            expect(lErrorFunction).to.throws(Exception, /already defined/);
+        });
     });
 
     describe('Method: getGraphPart', () => {
@@ -437,6 +451,21 @@ describe('CodeParser', () => {
                 const lParsedData: any = lParser.parse(lCodeText);
 
                 expect(lParsedData).has.property('optional').and.equals('const');
+            });
+        });
+
+        describe('-- Errors', () => {
+            it('-- Parse without root part', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('Some text');
+                };
+
+                // Evaluation.
+                expect(lErrorFunction).to.throws(Exception, 'Parser has not root part set.');
             });
         });
     });

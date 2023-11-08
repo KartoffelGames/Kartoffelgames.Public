@@ -5,6 +5,7 @@ import { BaseGrammarNode } from '../../source/graph/node/base-grammar-node';
 import { GrammarBranchNode } from '../../source/graph/node/grammer-branch-node';
 import { GrammarLoopNode } from '../../source/graph/node/grammer-loop-node';
 import { GrammarSingleNode } from '../../source/graph/node/grammer-single-node';
+import { GrammarNodeValueType } from '../../source/graph/node/grammer-node-value-type.enum';
 
 describe('GrammarNode', () => {
     it('Property: branchRoot', () => {
@@ -39,7 +40,7 @@ describe('GrammarNode', () => {
         const lSingleNode: GrammarSingleNode<string> = new GrammarSingleNode<string>(null, 'Value', true, null);
 
         // Evaluation.
-        expect(lSingleNode.valueType).to.equal('Value');
+        expect(lSingleNode.valueType).to.equal(GrammarNodeValueType.Single);
     });
 
     describe('Functionality: Chainging', () => {

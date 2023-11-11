@@ -1,5 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
-import { ParserException } from './parser-exception';
+import { ParserException } from '../parser-exception';
+import { LexerToken } from './lexer-token';
 
 /**
  * Lexer or tokenizer. Turns a text with grammar into tokens.
@@ -9,7 +10,7 @@ import { ParserException } from './parser-exception';
  * 
  * @public
  */
-export class Lexer<TTokenType> {
+export class Lexer<TTokenType extends string> {
     private readonly mSettings: LexerSettings;
     private readonly mTokenPatterns: Dictionary<TTokenType, RegExp>;
     private readonly mTokenSpecifications: Dictionary<TTokenType, number>;
@@ -153,7 +154,7 @@ export class Lexer<TTokenType> {
                 continue;
             }
 
-            const lBestMatch: { token: LexerToken<TTokenType> | null, specification: number; } = { token: null, specification: 0 };
+            const lBestMatch: { token: LexerTokenInformation<TTokenType> | null, specification: number; } = { token: null, specification: 0 };
 
             // Find next token.
             for (const lTokenType of lTokenList) {
@@ -208,7 +209,10 @@ export class Lexer<TTokenType> {
             lUntokenizedText = lUntokenizedText.substring(lBestMatch.token.value.length);
 
             // Yield best found token.
-            yield lBestMatch.token;
+            const lToken: LexerToken<TTokenType> = new LexerToken(lBestMatch.token.value, lBestMatch.token.columnNumber, lBestMatch.token.lineNumber);
+            lToken.addType(lBestMatch.token.type);
+            
+            yield lToken;
         }
     }
 }
@@ -218,7 +222,7 @@ type LexerSettings = {
     whiteSpaces: Set<string>;
 };
 
-export type LexerToken<TTokenType> = {
+export type LexerTokenInformation<TTokenType> = {
     type: TTokenType;
     value: string;
     lineNumber: number;

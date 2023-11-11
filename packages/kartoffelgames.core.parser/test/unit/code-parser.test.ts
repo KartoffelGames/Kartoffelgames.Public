@@ -7,7 +7,7 @@ import { GrammarLoopNode } from '../../source/graph/node/grammer-loop-node';
 import { GrammarSingleNode } from '../../source/graph/node/grammer-single-node';
 import { GraphPart } from '../../source/graph/part/graph-part';
 import { GraphPartReference } from '../../source/graph/part/graph-part-reference';
-import { Lexer } from '../../source/lexer';
+import { Lexer } from '../../source/lexer/lexer';
 
 describe('CodeParser', () => {
     enum TokenType {

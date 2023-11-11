@@ -4,8 +4,9 @@ import { BaseGrammarNode } from './graph/node/base-grammar-node';
 import { GrammarNodeValueType } from './graph/node/grammer-node-value-type.enum';
 import { GraphPart, GraphPartDataCollector } from './graph/part/graph-part';
 import { GraphPartReference } from './graph/part/graph-part-reference';
-import { Lexer, LexerToken } from './lexer';
+import { Lexer } from './lexer/lexer';
 import { ParserException } from './parser-exception';
+import { LexerToken } from './lexer/lexer-token';
 
 /**
  * Code parser turns a text with the help of a setup lexer into a syntax tree.
@@ -463,7 +464,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             // Static token type of dynamic graph part.
             if (typeof lNodeValue === 'string') {
                 // Push possible parser error when token type does not match node value.
-                if (lNodeValue !== lCurrentToken.type) {
+                if (!lCurrentToken.hasType(lNodeValue)) {
                     lErrorList.push({
                         message: `Unexpected token. "${lNodeValue}" expected`,
                         errorToken: lCurrentToken
@@ -530,12 +531,12 @@ type GraphNodeValueParseResult = {
     emptyValue: boolean;
 };
 
-type GraphParseError<TTokenType> = {
+type GraphParseError<TTokenType extends string> = {
     message: string;
     errorToken: LexerToken<TTokenType>;
 };
 
-type GraphNodeValueParse<TTokenType> = {
+type GraphNodeValueParse<TTokenType extends string> = {
     resultList: Array<GraphNodeValueParseResult>;
     errorList: Array<GraphParseError<TTokenType>>;
 };
@@ -546,7 +547,7 @@ type GraphBranchResult = {
     tokenIndex: number;
 };
 
-type GraphNodeParse<TTokenType> = {
+type GraphNodeParse<TTokenType extends string> = {
     result: GraphBranchResult | null;
     errorList: Array<GraphParseError<TTokenType>>;
 };

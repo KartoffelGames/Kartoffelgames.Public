@@ -11,9 +11,10 @@ import { LexerToken } from './lexer-token';
  * @public
  */
 export class Lexer<TTokenType extends string> {
+    private mCurrentSubPattern: LexerPattern<TTokenType> | null;
     private readonly mSettings: LexerSettings;
-    private readonly mTokenPatterns: Dictionary<TTokenType, RegExp>;
-    private readonly mTokenSpecifications: Dictionary<TTokenType, number>;
+    private readonly mTokenPatterns: Dictionary<TTokenType, LexerPattern<TTokenType>>;
+    private readonly mPatternTemplate: Dictionary<string, LexerPattern<TTokenType>>;
 
     /**
      * Enable or disable whitespace trimming.
@@ -51,8 +52,8 @@ export class Lexer<TTokenType extends string> {
      * Constructor.
      */
     public constructor() {
-        this.mTokenPatterns = new Dictionary<TTokenType, RegExp>();
-        this.mTokenSpecifications = new Dictionary<TTokenType, number>();
+        this.mPatternTemplate = new Dictionary<string, LexerPattern<TTokenType>>();
+        this.mTokenPatterns = new Dictionary<TTokenType, LexerPattern<TTokenType>>();
 
         // Set defaults.
         this.mSettings = {
@@ -83,11 +84,8 @@ export class Lexer<TTokenType extends string> {
      * lexer.addTokenPattern(/[a-zA-Z0-9]+/, 'text', 0); // => Fails
      * ``` 
      */
-    public addTokenPattern(pPattern: RegExp, pType: TTokenType, pSpecification: number): void {
-        // Restrict dublicate token type.
-        if (this.mTokenPatterns.has(pType)) {
-            throw new Exception(`Dublicate token type "${pType}". Token types for patthern need to be unique`, this);
-        }
+    public addTokenPattern(pPattern: LexerPattern<TTokenType>, pInnerFetch?: (pLexer: Lexer<XmlToken>) => void): void {
+
 
         // Add line start anchor to pattern.
         let lPatterSource: string = pPattern.source;
@@ -107,6 +105,10 @@ export class Lexer<TTokenType extends string> {
 
         // Type to pattern mapping.
         this.mTokenPatterns.set(pType, lConvertedPattern);
+    }
+
+    public addTokenTemplate(pName: string, pPattern: LexerPattern<TTokenType>, pInnerFetch?: (pLexer: Lexer<XmlToken>) => void): void {
+
     }
 
     /**
@@ -209,22 +211,145 @@ export class Lexer<TTokenType extends string> {
             lUntokenizedText = lUntokenizedText.substring(lBestMatch.token.value.length);
 
             // Yield best found token.
-            const lToken: LexerToken<TTokenType> = new LexerToken(lBestMatch.token.value, lBestMatch.token.columnNumber, lBestMatch.token.lineNumber);
-            lToken.addType(lBestMatch.token.type);
-            
-            yield lToken;
+            yield new LexerToken(lBestMatch.token.type, lBestMatch.token.value, lBestMatch.token.columnNumber, lBestMatch.token.lineNumber);
         }
+    }
+
+    public useTokenTemplate(pTemplateName: string): void {
+
+    }
+
+    /**
+     * Resolve a pattern reference by name.
+     * Can only resolve existing pattern templates.
+     * 
+     * @param pTemplateName 
+     * @returns 
+     * 
+     * @throws {@link Exception}
+     * When no pattern template with the provided {@link pTemplateName} was found.
+     */
+    private resolvePatternReference(pTemplateName: string): LexerPattern<TTokenType> {
+        if (this.mPatternTemplate.has(pTemplateName)) {
+            throw new Exception(`Pattern template "${pTemplateName}" not found.`, this);
+        }
+
+        return this.mPatternTemplate.get(pTemplateName)!;
     }
 }
 
-type LexerSettings = {
+type LexerSettings<TTokenType> = {
     trimSpaces: boolean;
     whiteSpaces: Set<string>;
+    skipErrors: boolean,
+    errorType: TTokenType;
 };
 
-export type LexerTokenInformation<TTokenType> = {
-    type: TTokenType;
-    value: string;
-    lineNumber: number;
-    columnNumber: number;
+/* 
+ * Pattern definition.
+ */
+type LexerPattern<TTokenType> = {
+    pattern: RegExp; // Flow over Regex groups (start, inner, end) or (token)
+    type?: TTokenType | { // Single type only for (token) or Fullmatch pattern. (start, inner, end) Needs complex types.
+        start?: TTokenType | { [SubGroup: string]: TTokenType; };
+        inner?: TTokenType | { [SubGroup: string]: TTokenType; };
+        end?: TTokenType | { [SubGroup: string]: TTokenType; };
+    };
+    specificity: number;
+    meta?: string;
 };
+
+
+// TEST
+
+enum XmlToken {
+    OpenBracket = 'Open braket',
+    CloseBracket = 'Close braket',
+    Comment = 'Comment',
+    OpenClosingBracket = 'Open closing braket',
+    CloseClosingBracket = 'Close closing braket',
+    Identifier = 'Identifier',
+    Value = 'Value',
+    Assignment = 'Assignment',
+    NamespaceDelimiter = 'Namespace delimiter'
+}
+
+const lLexer: Lexer<XmlToken> = new Lexer<XmlToken>();
+lLexer.validWhitespaces = ' \n';
+lLexer.trimWhitespace = true;
+
+// Repository.
+lLexer.addTokenTemplate('quotedString', {
+    pattern: /(["']).*?\1/,
+    type: XmlToken.Value,
+    specificity: 1
+});
+lLexer.addTokenTemplate('identifier', {
+    pattern: /[^<>\s\n/:="]+/,
+    type: XmlToken.Identifier,
+    specificity: 5
+});
+lLexer.addTokenTemplate('namespaceDelimiter', {
+    pattern: /:/,
+    type: XmlToken.NamespaceDelimiter,
+    specificity: 3
+});
+
+// Comment.
+lLexer.addTokenPattern({
+    pattern: /<!--.*?-->/,
+    type: XmlToken.Comment,
+    specificity: 0,
+    meta: 'comment.xml'
+});
+
+// Opening tag.
+lLexer.addTokenPattern({
+    pattern: /(?<start><)(?<inner>.*?)(?<end>(?<end_close>>)|(?<end_selfClose>\/>))/,
+    type: {
+        start: XmlToken.OpenBracket,
+        end: {
+            close: XmlToken.CloseBracket,
+            selfClose: XmlToken.CloseClosingBracket
+        }
+    },
+    specificity: 2,
+    meta: 'tag.xml'
+}, (pLexer: Lexer<XmlToken>) => {
+    // Token that can appeare only inside tags.
+    pLexer.useTokenTemplate('quotedString');
+    pLexer.useTokenTemplate('identifier');
+    pLexer.useTokenTemplate('namespaceDelimiter');
+    pLexer.addTokenPattern({
+        pattern: /=/,
+        type: XmlToken.Assignment,
+        specificity: 3
+    });
+});
+
+// Values.
+lLexer.addTokenPattern({
+    pattern: /(?<token>[^<>"]+)[^<>]*(<|$)/,
+    type: XmlToken.Value,
+    specificity: 4,
+    meta: 'value.xml'
+});
+lLexer.useTokenTemplate('quotedString');
+
+// Closing tag.
+lLexer.addTokenPattern({
+    pattern: /(?<start><\/)(?<inner>\s*[^/].*?)(?<end>>)/,
+    type: {
+        start: XmlToken.OpenBracket,
+        end: {
+            close: XmlToken.CloseBracket,
+            selfClose: XmlToken.CloseClosingBracket
+        }
+    },
+    specificity: 1,
+    meta: 'tag.xml'
+}, (pLexer: Lexer<XmlToken>) => {
+    // Token that can appeare only inside closing tags.
+    pLexer.useTokenTemplate('identifier');
+    pLexer.useTokenTemplate('namespaceDelimiter');
+});

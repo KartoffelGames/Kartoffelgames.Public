@@ -1,7 +1,8 @@
 export class LexerToken<TTokenType extends string> {
     private readonly mColumnNumber: number;
     private readonly mLineNumber: number;
-    private readonly mTypes: Set<TTokenType>;
+    private readonly mMetas: Set<string>;
+    private readonly mType: TTokenType;
     private readonly mValue: string;
 
     /**
@@ -19,10 +20,17 @@ export class LexerToken<TTokenType extends string> {
     }
 
     /**
-     * All asigned token types of token.
+     * All asigned meta values of token.
      */
-    public get types(): Array<TTokenType> {
-        return [...this.mTypes];
+    public get metas(): Array<string> {
+        return [...this.metas];
+    }
+
+    /**
+     * All asigned token type of token.
+     */
+    public get type(): TTokenType {
+        return this.mType;
     }
 
     /**
@@ -32,33 +40,34 @@ export class LexerToken<TTokenType extends string> {
         return this.mValue;
     }
 
-    public constructor(pValue: string, pColumnNumber: number, pLineNumber: number) {
+    public constructor(pType: TTokenType, pValue: string, pColumnNumber: number, pLineNumber: number) {
         this.mValue = pValue;
         this.mColumnNumber = pColumnNumber;
         this.mLineNumber = pLineNumber;
+        this.mType = pType;
 
-        this.mTypes = new Set<TTokenType>();
+        this.mMetas = new Set<string>();
     }
 
     /**
-     * Add a type to this token.
-     * Dublicate types are overriden.
+     * Add a meta value to this token.
+     * Dublicate metas are overriden.
      * 
-     * @param pTypeList - Types of token.
+     * @param pMetaList - Meta values of token.
      */
-    public addType(...pTypeList: Array<TTokenType>): void {
-        for (const lType of pTypeList) {
-            this.mTypes.add(lType);
+    public addMeta(...pMetaList: Array<string>): void {
+        for (const lType of pMetaList) {
+            this.mMetas.add(lType);
         }
     }
 
     /**
-     * Validate existance of token type.
+     * Validate existance of meta value.
      * 
-     * @param pType - Token type.
-     * @returns if this token has the specified token type.
+     * @param pMeta - meta value.
+     * @returns if this token has the specified meta value.
      */
-    public hasType(pType: TTokenType): boolean {
-        return this.mTypes.has(pType);
+    public hasMeta(pMeta: TTokenType): boolean {
+        return this.mMetas.has(pMeta);
     }
 }

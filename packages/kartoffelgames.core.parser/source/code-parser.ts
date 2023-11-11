@@ -464,7 +464,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             // Static token type of dynamic graph part.
             if (typeof lNodeValue === 'string') {
                 // Push possible parser error when token type does not match node value.
-                if (!lCurrentToken.hasType(lNodeValue)) {
+                if (lNodeValue !== lCurrentToken.type) {
                     lErrorList.push({
                         message: `Unexpected token. "${lNodeValue}" expected`,
                         errorToken: lCurrentToken

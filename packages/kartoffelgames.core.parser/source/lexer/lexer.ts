@@ -11,10 +11,22 @@ import { LexerToken } from './lexer-token';
  * @public
  */
 export class Lexer<TTokenType extends string> {
-    private mCurrentSubPattern: LexerPattern<TTokenType> | null;
-    private readonly mSettings: LexerSettings;
-    private readonly mTokenPatterns: Dictionary<TTokenType, LexerPattern<TTokenType>>;
-    private readonly mPatternTemplate: Dictionary<string, LexerPattern<TTokenType>>;
+    private mCurrentPatternScope: LexerPatternDefinition<TTokenType> | null;
+    private readonly mSettings: LexerSettings<TTokenType>;
+
+    // Token pattern data.
+    private readonly mTokenPatternTemplates: Dictionary<string, LexerPatternDefinition<TTokenType>>;
+    private readonly mTokenPatterns: Array<LexerPatternDefinition<TTokenType>>;
+
+    /**
+     * Set token type of faulty token.
+     * When the error type is not set, every faulty token throws an error.
+     */
+    public get errorType(): TTokenType | null {
+        return this.mSettings.errorType;
+    } set errorType(pValue: TTokenType | null) {
+        this.mSettings.errorType = pValue;
+    }
 
     /**
      * Enable or disable whitespace trimming.
@@ -52,11 +64,13 @@ export class Lexer<TTokenType extends string> {
      * Constructor.
      */
     public constructor() {
-        this.mPatternTemplate = new Dictionary<string, LexerPattern<TTokenType>>();
-        this.mTokenPatterns = new Dictionary<TTokenType, LexerPattern<TTokenType>>();
+        this.mTokenPatterns = new Array<LexerPatternDefinition<TTokenType>>();
+        this.mTokenPatternTemplates = new Dictionary<string, LexerPatternDefinition<TTokenType>>();
 
         // Set defaults.
+        this.mCurrentPatternScope = null;
         this.mSettings = {
+            errorType: null,
             trimSpaces: true,
             whiteSpaces: new Set<string>()
         };
@@ -66,49 +80,94 @@ export class Lexer<TTokenType extends string> {
      * Add token pattern. Patterns with the same specification get grouped.
      * When a token matches multiple times within the same group the first added pattern or a longer matched token gets priorized.
      * 
-     * @param pPattern - Token pettern must not be unique but should.
-     * @param pType - Pattern type.
-     * @param pSpecification - Token specification. Lower numbers gets prioritzed over higher numbers.
+     * @param pPattern - Token pattern definintion.
+     * @param pInnerFetch - Token added inside this function are scoped to this token.
      * 
-     * @throws 
-     * On adding a dublicate type.
+     * @remarks
+     * Token added inside {@link pInnerFetch} are scoped to this token.
+     * Only token with and `start`, `inner` and `end` group can have a fetch function.
      * 
-     * @example Set two types of tokens for a text.
+     * @throws {@link Exception}
+     * When the token pattern should be scoped to another token without and `inner` group.
+     * 
+     * @example Set two types of tokens for a text. // TODO:
      * ``` Typescript
-     * const lexer = new Lexer<'number' | 'string' | 'text-a-ending'>();
-     * lexer.addTokenPattern(/[0-9]+/, 'number', 0);
-     * lexer.addTokenPattern(/[a-zA-Z]+/, 'text', 0);
-     *  // Token that ends with an a. The ending a will not be skipped.
-     * lexer.addTokenPattern(/(?<token>[a-zA-Z]+)a/, 'text-a-ending', 1);
-     * 
-     * lexer.addTokenPattern(/[a-zA-Z0-9]+/, 'text', 0); // => Fails
      * ``` 
      */
-    public addTokenPattern(pPattern: LexerPattern<TTokenType>, pInnerFetch?: (pLexer: Lexer<XmlToken>) => void): void {
+    public addTokenPattern(pPattern: LexerPattern<TTokenType>, pInnerFetch?: (pLexer: Lexer<TTokenType>) => void): void {
+        const lConvertedPattern: LexerPatternDefinition<TTokenType> = this.convertTokenPattern(pPattern);
 
+        // Set pattern for current pattern scope.
+        if (this.mCurrentPatternScope === null) {
+            this.mTokenPatterns.push(lConvertedPattern);
+        } else {
+            // TODO: Throw when scoped pattern has no inner group.
 
-        // Add line start anchor to pattern.
-        let lPatterSource: string = pPattern.source;
-        if (!lPatterSource.startsWith('^')) {
-            lPatterSource = '^' + lPatterSource;
+            this.mCurrentPatternScope.innerPattern.push(lConvertedPattern);
         }
 
-        // Add global and singleline flags remove every other flags except insensitive, unicode or Ungreedy.
-        let lPatternFlags: string = pPattern.flags.replace(/[gmxsAJD]/g, '');
-        lPatternFlags += 'gs';
+        // Execute scoped pattern.
+        if (pInnerFetch) {
+            // Buffer last scope and set created pattern as current scope.
+            const lLastPatternScope: LexerPatternDefinition<TTokenType> | null = this.mCurrentPatternScope;
+            this.mCurrentPatternScope = lConvertedPattern;
 
-        // Create pattern with adjusted settings.
-        const lConvertedPattern: RegExp = new RegExp(lPatterSource, lPatternFlags);
+            // Execute inner pattern fetches.
+            pInnerFetch(this);
 
-        // Ordered type list.
-        this.mTokenSpecifications.set(pType, pSpecification);
-
-        // Type to pattern mapping.
-        this.mTokenPatterns.set(pType, lConvertedPattern);
+            // Reset scope to last used scope.
+            this.mCurrentPatternScope = lLastPatternScope;
+        }
     }
 
-    public addTokenTemplate(pName: string, pPattern: LexerPattern<TTokenType>, pInnerFetch?: (pLexer: Lexer<XmlToken>) => void): void {
+    /**
+     * Add token pattern template.
+     * When a token matches multiple times within the same group the first added pattern or a longer matched token gets priorized.
+     * 
+     * @param pName - Template name.
+     * @param pPattern - Token pattern definintion.
+     * @param pInnerFetch - Token added inside this function are scoped to this token.
+     * 
+     * @remarks
+     * Token added inside {@link pInnerFetch} are scoped to this token.
+     * Only token with and `start`, `inner` and `end` group can have a fetch function.
+     * 
+     * @throws {@link Exception}
+     * When the token pattern should be scoped to another token without and `inner` group.\
+     * When a template with the same name was already been added.\
+     * When a template is added inside a scoped call.
+     * 
+     * @example Add a pattern template and use it in a scoped call. // TODO:
+     * ``` Typescript
+     * ``` 
+     */
+    public addTokenTemplate(pName: string, pPattern: LexerPattern<TTokenType>, pInnerFetch?: (pLexer: Lexer<TTokenType>) => void): void {
+        // Restrict defining templates inside scoped calls.
+        if (this.mCurrentPatternScope !== null) {
+            throw new Exception('Defining token templates are not allows inside scoped calls.', this);
+        }
 
+        // Restrict dublicate template names.
+        if (this.mTokenPatternTemplates.has(pName)) {
+            throw new Exception(`Can't add dublicate token template "${pName}"`, this);
+        }
+
+        // Convert and add named pattern.
+        const lConvertedPattern: LexerPatternDefinition<TTokenType> = this.convertTokenPattern(pPattern);
+        this.mTokenPatternTemplates.set(pName, lConvertedPattern);
+
+        // Execute scoped pattern.
+        if (pInnerFetch) {
+            // Buffer last scope and set created pattern as current scope.
+            const lLastPatternScope: LexerPatternDefinition<TTokenType> | null = this.mCurrentPatternScope;
+            this.mCurrentPatternScope = lConvertedPattern;
+
+            // Execute inner pattern fetches.
+            pInnerFetch(this);
+
+            // Reset scope to last used scope.
+            this.mCurrentPatternScope = lLastPatternScope;
+        }
     }
 
     /**
@@ -215,48 +274,87 @@ export class Lexer<TTokenType extends string> {
         }
     }
 
-    public useTokenTemplate(pTemplateName: string): void {
+    public useTokenTemplate(pTemplateName: string, pSpecification?: number): void {
+        // Clone template???
+        // Override specification when set.
+    }
 
+    private convertTokenPattern(pPattern: LexerPattern<TTokenType>): LexerPatternDefinition<TTokenType> {
+        // Search in end, inner or end properties. Or use the token.
+        const lGroupTokenTypes: { [GroupName: string]: TTokenType; } = {};
+        // TODO: Unfold capuring groups: end.close to end_close. If it has start, inner, end, it needs to have  pInnerFetch
+        
+        // Add line start anchor to regex.
+        let lPatterSource: string = pPattern.regex.source;
+        if (!lPatterSource.startsWith('^')) {
+            lPatterSource = '^' + lPatterSource;
+        }
+
+        // Add global and singleline flags remove every other flags except insensitive, unicode or Ungreedy.
+        const lPatternFlags: string = pPattern.regex.flags.replace(/[gmxsAJD]/g, '') + 'gs';
+
+        // Create pattern with adjusted settings.
+        const lConvertedPattern: RegExp = new RegExp(lPatterSource, lPatternFlags);
+
+        // Create metas.
+        const lMetaList: Array<string> = new Array<string>();
+
+        // Type to pattern mapping.
+        return {
+            regex: lConvertedPattern,
+            group: lGroupTokenTypes,
+            specificity: pPattern.specificity,
+            meta: lMetaList,
+            innerPattern: new Array<LexerPatternDefinition<TTokenType>>()
+        };
     }
 
     /**
      * Resolve a pattern reference by name.
      * Can only resolve existing pattern templates.
      * 
-     * @param pTemplateName 
-     * @returns 
+     * @param pTemplateName - Name of the template. 
+     * 
+     * @returns the pattern definition of the template name.
      * 
      * @throws {@link Exception}
      * When no pattern template with the provided {@link pTemplateName} was found.
      */
     private resolvePatternReference(pTemplateName: string): LexerPattern<TTokenType> {
-        if (this.mPatternTemplate.has(pTemplateName)) {
+        if (this.mTokenPatternTemplates.has(pTemplateName)) {
             throw new Exception(`Pattern template "${pTemplateName}" not found.`, this);
         }
 
-        return this.mPatternTemplate.get(pTemplateName)!;
+        return this.mTokenPatternTemplates.get(pTemplateName)!;
     }
 }
 
 type LexerSettings<TTokenType> = {
     trimSpaces: boolean;
     whiteSpaces: Set<string>;
-    skipErrors: boolean,
-    errorType: TTokenType;
+    errorType: TTokenType | null;
+};
+
+type LexerPatternDefinition<TTokenType> = {
+    regex: RegExp;
+    group: { [GroupName: string]: TTokenType; };
+    specificity: number;
+    meta: Array<string>;
+    innerPattern: Array<LexerPatternDefinition<TTokenType>>;
 };
 
 /* 
  * Pattern definition.
  */
 type LexerPattern<TTokenType> = {
-    pattern: RegExp; // Flow over Regex groups (start, inner, end) or (token)
+    regex: RegExp; // Flow over Regex groups (start, inner, end) or (token)
     type?: TTokenType | { // Single type only for (token) or Fullmatch pattern. (start, inner, end) Needs complex types.
         start?: TTokenType | { [SubGroup: string]: TTokenType; };
         inner?: TTokenType | { [SubGroup: string]: TTokenType; };
         end?: TTokenType | { [SubGroup: string]: TTokenType; };
     };
     specificity: number;
-    meta?: string;
+    meta?: string | Array<string>;
 };
 
 
@@ -280,24 +378,24 @@ lLexer.trimWhitespace = true;
 
 // Repository.
 lLexer.addTokenTemplate('quotedString', {
-    pattern: /(["']).*?\1/,
+    regex: /(["']).*?\1/,
     type: XmlToken.Value,
     specificity: 1
 });
 lLexer.addTokenTemplate('identifier', {
-    pattern: /[^<>\s\n/:="]+/,
+    regex: /[^<>\s\n/:="]+/,
     type: XmlToken.Identifier,
     specificity: 5
 });
 lLexer.addTokenTemplate('namespaceDelimiter', {
-    pattern: /:/,
+    regex: /:/,
     type: XmlToken.NamespaceDelimiter,
     specificity: 3
 });
 
 // Comment.
 lLexer.addTokenPattern({
-    pattern: /<!--.*?-->/,
+    regex: /<!--.*?-->/,
     type: XmlToken.Comment,
     specificity: 0,
     meta: 'comment.xml'
@@ -305,7 +403,7 @@ lLexer.addTokenPattern({
 
 // Opening tag.
 lLexer.addTokenPattern({
-    pattern: /(?<start><)(?<inner>.*?)(?<end>(?<end_close>>)|(?<end_selfClose>\/>))/,
+    regex: /(?<start><)(?<inner>.*?)(?<end>(?<end_close>>)|(?<end_selfClose>\/>))/,
     type: {
         start: XmlToken.OpenBracket,
         end: {
@@ -321,7 +419,7 @@ lLexer.addTokenPattern({
     pLexer.useTokenTemplate('identifier');
     pLexer.useTokenTemplate('namespaceDelimiter');
     pLexer.addTokenPattern({
-        pattern: /=/,
+        regex: /=/,
         type: XmlToken.Assignment,
         specificity: 3
     });
@@ -329,7 +427,7 @@ lLexer.addTokenPattern({
 
 // Values.
 lLexer.addTokenPattern({
-    pattern: /(?<token>[^<>"]+)[^<>]*(<|$)/,
+    regex: /(?<token>[^<>"]+)[^<>]*(<|$)/,
     type: XmlToken.Value,
     specificity: 4,
     meta: 'value.xml'
@@ -338,7 +436,7 @@ lLexer.useTokenTemplate('quotedString');
 
 // Closing tag.
 lLexer.addTokenPattern({
-    pattern: /(?<start><\/)(?<inner>\s*[^/].*?)(?<end>>)/,
+    regex: /(?<start><\/)(?<inner>\s*[^/].*?)(?<end>>)/,
     type: {
         start: XmlToken.OpenBracket,
         end: {

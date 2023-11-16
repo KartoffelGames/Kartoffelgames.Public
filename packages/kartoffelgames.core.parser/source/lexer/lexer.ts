@@ -312,10 +312,27 @@ export class Lexer<TTokenType extends string> {
         this.mCurrentPatternScope.push(lTemplate);
     }
 
+    /**
+     * Convert a pattern into its spread pattern definition.
+     * Validates pattern. Unfolds token types.
+     * 
+     * @param pPattern - Pattern.
+     *  
+     * @returns validated and spread pattern definition from pattern. 
+     */
     private convertTokenPattern(pPattern: LexerPattern<TTokenType>): LexerPatternDefinition<TTokenType> {
+        // TODO: Validate if has token, (start, inner, end)
+
         // Search in end, inner or end properties. Or use the token.
-        const lGroupTokenTypes: { [GroupName: string]: TTokenType; } = {};
-        // TODO: Unfold capuring groups: end.close to end_close. If it has start, inner, end, it needs to have  pInnerFetch
+        let lGroupTokenTypes: { [GroupName: string]: TTokenType; } = {};
+        if (pPattern.type) {
+            if (typeof pPattern.type === 'string') {
+                lGroupTokenTypes['token'] = pPattern.type;
+            } else {
+                // Multi part regex.
+                lGroupTokenTypes = this.unfoldTokenTypes('', pPattern.type);
+            }
+        }
 
         // Add line start anchor to regex.
         let lPatterSource: string = pPattern.regex.source;
@@ -341,6 +358,39 @@ export class Lexer<TTokenType extends string> {
             innerPattern: new Array<LexerPatternDefinition<TTokenType>>()
         };
     }
+
+    /**
+     * Unfold an nested token type object by chaining each property with its child property name.
+     * The unfolded object has a depth of zero. 
+     * 
+     * @param pParentPath - Parent path. Empty string for starting a branch.
+     * @param pObject - Value object. Nested token type object.
+     * 
+     * @returns the {@link pObject} properties unfolded in depth. Each property seperated by an underscore. 
+     */
+    private unfoldTokenTypes(pParentPath: string, pObject: LexerPatternTypeGroup<TTokenType>): { [GroupName: string]: TTokenType; } {
+        if (typeof pObject === 'string') {
+            return { [pParentPath]: pObject };
+        }
+
+        // Iterate child paths recursive unfold paths. 
+        let lResultObject: { [GroupName: string]: TTokenType; } = {};
+        for (const lProperyKey in pObject) {
+            const lPropertyValue: LexerPatternTypeGroup<TTokenType> = pObject[lProperyKey];
+
+            // Construct parentPath.
+            let lParentPath: string = pParentPath;
+            if (lParentPath !== '') {
+                lParentPath += '_';
+            }
+            lParentPath += lProperyKey;
+
+            // Recursive call. Combine for each child property.
+            lResultObject = { ...lResultObject, ...this.unfoldTokenTypes(lParentPath, lPropertyValue) };
+        }
+
+        return lResultObject;
+    }
 }
 
 type LexerSettings<TTokenType> = {
@@ -360,12 +410,13 @@ type LexerPatternDefinition<TTokenType> = {
 /* 
  * Pattern definition.
  */
+type LexerPatternTypeGroup<TTokenType> = TTokenType | { [SubGroup: string]: LexerPatternTypeGroup<TTokenType>; };
 type LexerPattern<TTokenType> = {
     regex: RegExp; // Flow over Regex groups (start, inner, end) or (token)
     type?: TTokenType | { // Single type only for (token) or Fullmatch pattern. (start, inner, end) Needs complex types.
-        start?: TTokenType | { [SubGroup: string]: TTokenType; };
-        inner?: TTokenType | { [SubGroup: string]: TTokenType; };
-        end?: TTokenType | { [SubGroup: string]: TTokenType; };
+        start?: LexerPatternTypeGroup<TTokenType>;
+        inner?: LexerPatternTypeGroup<TTokenType>;
+        end?: LexerPatternTypeGroup<TTokenType>;
     };
     specificity: number;
     meta?: string | Array<string>;

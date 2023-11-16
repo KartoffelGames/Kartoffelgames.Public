@@ -11,7 +11,7 @@ import { LexerToken } from './lexer-token';
  * @public
  */
 export class Lexer<TTokenType extends string> {
-    private mCurrentPatternScope: LexerPatternDefinition<TTokenType> | null;
+    private mCurrentPatternScope: Array<LexerPatternDefinition<TTokenType>>;
     private readonly mSettings: LexerSettings<TTokenType>;
 
     // Token pattern data.
@@ -68,7 +68,7 @@ export class Lexer<TTokenType extends string> {
         this.mTokenPatternTemplates = new Dictionary<string, LexerPatternDefinition<TTokenType>>();
 
         // Set defaults.
-        this.mCurrentPatternScope = null;
+        this.mCurrentPatternScope = this.mTokenPatterns;
         this.mSettings = {
             errorType: null,
             trimSpaces: true,
@@ -98,19 +98,14 @@ export class Lexer<TTokenType extends string> {
         const lConvertedPattern: LexerPatternDefinition<TTokenType> = this.convertTokenPattern(pPattern);
 
         // Set pattern for current pattern scope.
-        if (this.mCurrentPatternScope === null) {
-            this.mTokenPatterns.push(lConvertedPattern);
-        } else {
-            // TODO: Throw when scoped pattern has no inner group.
-
-            this.mCurrentPatternScope.innerPattern.push(lConvertedPattern);
-        }
+        // TODO: Throw when scoped pattern has no inner group.
+        this.mCurrentPatternScope.push(lConvertedPattern);
 
         // Execute scoped pattern.
         if (pInnerFetch) {
             // Buffer last scope and set created pattern as current scope.
-            const lLastPatternScope: LexerPatternDefinition<TTokenType> | null = this.mCurrentPatternScope;
-            this.mCurrentPatternScope = lConvertedPattern;
+            const lLastPatternScope: Array<LexerPatternDefinition<TTokenType>> = this.mCurrentPatternScope;
+            this.mCurrentPatternScope = lConvertedPattern.innerPattern;
 
             // Execute inner pattern fetches.
             pInnerFetch(this);
@@ -143,7 +138,7 @@ export class Lexer<TTokenType extends string> {
      */
     public addTokenTemplate(pName: string, pPattern: LexerPattern<TTokenType>, pInnerFetch?: (pLexer: Lexer<TTokenType>) => void): void {
         // Restrict defining templates inside scoped calls.
-        if (this.mCurrentPatternScope !== null) {
+        if (this.mCurrentPatternScope === this.mTokenPatterns) {
             throw new Exception('Defining token templates are not allows inside scoped calls.', this);
         }
 
@@ -156,11 +151,13 @@ export class Lexer<TTokenType extends string> {
         const lConvertedPattern: LexerPatternDefinition<TTokenType> = this.convertTokenPattern(pPattern);
         this.mTokenPatternTemplates.set(pName, lConvertedPattern);
 
+        // At this point the template can reference itself.
+
         // Execute scoped pattern.
         if (pInnerFetch) {
             // Buffer last scope and set created pattern as current scope.
-            const lLastPatternScope: LexerPatternDefinition<TTokenType> | null = this.mCurrentPatternScope;
-            this.mCurrentPatternScope = lConvertedPattern;
+            const lLastPatternScope: Array<LexerPatternDefinition<TTokenType>> = this.mCurrentPatternScope;
+            this.mCurrentPatternScope = lConvertedPattern.innerPattern;
 
             // Execute inner pattern fetches.
             pInnerFetch(this);
@@ -274,16 +271,52 @@ export class Lexer<TTokenType extends string> {
         }
     }
 
-    public useTokenTemplate(pTemplateName: string, pSpecification?: number): void {
-        // Clone template???
-        // Override specification when set.
+    /**
+     * Load template into the current pattern scope.
+     * Copies template and does not alter the original on specificity override.
+     * 
+     * @param pTemplateName - Template name.
+     * @param pSpecificity - Override template specificity.
+     * 
+     * @throws {@link Exception}
+     * When the template does not exists.
+     * 
+     * @example Use template in root and pattern scope
+     * ``` Typescript
+     * const lexer = new Lexer<number>();
+     * lexer.addTokenTemplate('myName', {...});
+     * 
+     * // Also usable inside addTokenTemplate scopes.
+     * lexer.addTokenPattern({...}, (lexerParam) => {
+     *      // Scoped call.
+     *      lexerParam.useTokenTemplate('myName', 2);
+     * });
+     * 
+     * // Root call.
+     * lexerParam.useTokenTemplate('myName');
+     * ```
+     */
+    public useTokenTemplate(pTemplateName: string, pSpecificity?: number): void {
+        // Validate pattern.
+        if (this.mTokenPatternTemplates.has(pTemplateName)) {
+            throw new Exception(`Lexer template "${pTemplateName}" does not exist.`, this);
+        }
+
+        // Read pattern template. Clone template and alter specificity when is differs from parameter.
+        let lTemplate: LexerPatternDefinition<TTokenType> = this.mTokenPatternTemplates.get(pTemplateName)!;
+        if (typeof pSpecificity !== 'undefined' && lTemplate.specificity !== pSpecificity) {
+            lTemplate = { ...lTemplate, specificity: pSpecificity };
+        }
+
+        // Set template pattern to current pattern scope.
+        this.mCurrentPatternScope.push(lTemplate);
     }
 
     private convertTokenPattern(pPattern: LexerPattern<TTokenType>): LexerPatternDefinition<TTokenType> {
         // Search in end, inner or end properties. Or use the token.
         const lGroupTokenTypes: { [GroupName: string]: TTokenType; } = {};
         // TODO: Unfold capuring groups: end.close to end_close. If it has start, inner, end, it needs to have  pInnerFetch
-        
+
         // Add line start anchor to regex.
         let lPatterSource: string = pPattern.regex.source;
         if (!lPatterSource.startsWith('^')) {
@@ -307,25 +340,6 @@ export class Lexer<TTokenType extends string> {
             meta: lMetaList,
             innerPattern: new Array<LexerPatternDefinition<TTokenType>>()
         };
-    }
-
-    /**
-     * Resolve a pattern reference by name.
-     * Can only resolve existing pattern templates.
-     * 
-     * @param pTemplateName - Name of the template. 
-     * 
-     * @returns the pattern definition of the template name.
-     * 
-     * @throws {@link Exception}
-     * When no pattern template with the provided {@link pTemplateName} was found.
-     */
-    private resolvePatternReference(pTemplateName: string): LexerPattern<TTokenType> {
-        if (this.mTokenPatternTemplates.has(pTemplateName)) {
-            throw new Exception(`Pattern template "${pTemplateName}" not found.`, this);
-        }
-
-        return this.mTokenPatternTemplates.get(pTemplateName)!;
     }
 }
 

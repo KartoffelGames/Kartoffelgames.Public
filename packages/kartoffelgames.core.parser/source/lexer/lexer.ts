@@ -313,83 +313,71 @@ export class Lexer<TTokenType extends string> {
     }
 
     /**
-     * Convert a pattern into its spread pattern definition.
-     * Validates pattern. Unfolds token types.
+     * Convert a pattern into an easy readable definition.
      * 
      * @param pPattern - Pattern.
      *  
-     * @returns validated and spread pattern definition from pattern. 
+     * @returns easy to read token pattern.
      */
     private convertTokenPattern(pPattern: LexerPattern<TTokenType>): LexerPatternDefinition<TTokenType> {
-        // TODO: Validate if has token, (start, inner, end)
+        // Convert regex into a line start regex with global and single flag.
+        const lConvertRegex = (pRegex: RegExp): RegExp => {
+            // Add global and singleline flags remove every other flags except insensitive, unicode or Ungreedy.
+            const lPatternFlags: string = pRegex.flags.replace(/[gmxsAJD]/g, '') + 'gs';
 
-        // Search in end, inner or end properties. Or use the token.
-        let lGroupTokenTypes: { [GroupName: string]: TTokenType; } = {};
-        if (pPattern.type) {
-            if (typeof pPattern.type === 'string') {
-                lGroupTokenTypes['token'] = pPattern.type;
-            } else {
-                // Multi part regex.
-                lGroupTokenTypes = this.unfoldTokenTypes('', pPattern.type);
+            // Create pattern with adjusted settings and added line start anchor to regex.
+            return new RegExp(`^(?<token>${pRegex.source})`, lPatternFlags);
+        };
+
+        // Convert nested pattern type into linear pattern type definition.
+        const lConvertPatternType = (pType: LexerPatternType<TTokenType>): LexerPatternDefinitionType<TTokenType> => {
+            // Single token type. Defaults to token group name.
+            if (typeof pType === 'string') {
+                return { token: pType };
+            }
+
+            return pType;
+        };
+
+        // Convert pattern.
+        let lPattern: LexerPatternDefinition<TTokenType>['pattern'];
+        if ('regex' in pPattern.pattern) {
+            // Single pattern
+            lPattern = {
+                single: {
+                    regex: lConvertRegex(pPattern.pattern.regex),
+                    type: lConvertPatternType(pPattern.pattern.type)
+                }
+            };
+        } else {
+            // Start end pattern.
+            lPattern = {
+                start: {
+                    regex: lConvertRegex(pPattern.pattern.start.regex),
+                    type: lConvertPatternType(pPattern.pattern.start.type)
+                },
+                end: {
+                    regex: lConvertRegex(pPattern.pattern.end.regex),
+                    type: lConvertPatternType(pPattern.pattern.end.type)
+                },
+            };
+
+            // Optional inner type.
+            if (pPattern.pattern.innerType) {
+                lPattern.innerType = pPattern.pattern.innerType;
             }
         }
-
-        // Add line start anchor to regex.
-        let lPatterSource: string = pPattern.regex.source;
-        if (!lPatterSource.startsWith('^')) {
-            lPatterSource = '^' + lPatterSource;
-        }
-
-        // Add global and singleline flags remove every other flags except insensitive, unicode or Ungreedy.
-        const lPatternFlags: string = pPattern.regex.flags.replace(/[gmxsAJD]/g, '') + 'gs';
-
-        // Create pattern with adjusted settings.
-        const lConvertedPattern: RegExp = new RegExp(lPatterSource, lPatternFlags);
 
         // Create metas.
         const lMetaList: Array<string> = new Array<string>();
 
         // Type to pattern mapping.
         return {
-            regex: lConvertedPattern,
-            group: lGroupTokenTypes,
+            pattern: lPattern,
             specificity: pPattern.specificity,
             meta: lMetaList,
             innerPattern: new Array<LexerPatternDefinition<TTokenType>>()
         };
-    }
-
-    /**
-     * Unfold an nested token type object by chaining each property with its child property name.
-     * The unfolded object has a depth of zero. 
-     * 
-     * @param pParentPath - Parent path. Empty string for starting a branch.
-     * @param pObject - Value object. Nested token type object.
-     * 
-     * @returns the {@link pObject} properties unfolded in depth. Each property seperated by an underscore. 
-     */
-    private unfoldTokenTypes(pParentPath: string, pObject: LexerPatternTypeGroup<TTokenType>): { [GroupName: string]: TTokenType; } {
-        if (typeof pObject === 'string') {
-            return { [pParentPath]: pObject };
-        }
-
-        // Iterate child paths recursive unfold paths. 
-        let lResultObject: { [GroupName: string]: TTokenType; } = {};
-        for (const lProperyKey in pObject) {
-            const lPropertyValue: LexerPatternTypeGroup<TTokenType> = pObject[lProperyKey];
-
-            // Construct parentPath.
-            let lParentPath: string = pParentPath;
-            if (lParentPath !== '') {
-                lParentPath += '_';
-            }
-            lParentPath += lProperyKey;
-
-            // Recursive call. Combine for each child property.
-            lResultObject = { ...lResultObject, ...this.unfoldTokenTypes(lParentPath, lPropertyValue) };
-        }
-
-        return lResultObject;
     }
 }
 
@@ -399,9 +387,15 @@ type LexerSettings<TTokenType> = {
     errorType: TTokenType | null;
 };
 
+type LexerPatternDefinitionType<TTokenType> = { [SubGroup: string]: TTokenType; };
 type LexerPatternDefinition<TTokenType> = {
-    regex: RegExp;
-    group: { [GroupName: string]: TTokenType; };
+    pattern: {
+        start: { regex: RegExp; type: LexerPatternDefinitionType<TTokenType>; };
+        end: { regex: RegExp; type: LexerPatternDefinitionType<TTokenType>; };
+        innerType?: TTokenType;
+    } | {
+        single: { regex: RegExp; type: LexerPatternDefinitionType<TTokenType>; };
+    };
     specificity: number;
     meta: Array<string>;
     innerPattern: Array<LexerPatternDefinition<TTokenType>>;
@@ -410,13 +404,21 @@ type LexerPatternDefinition<TTokenType> = {
 /* 
  * Pattern definition.
  */
-type LexerPatternTypeGroup<TTokenType> = TTokenType | { [SubGroup: string]: LexerPatternTypeGroup<TTokenType>; };
+type LexerPatternType<TTokenType> = TTokenType | { [SubGroup: string]: TTokenType; };
 type LexerPattern<TTokenType> = {
-    regex: RegExp; // Flow over Regex groups (start, inner, end) or (token)
-    type?: TTokenType | { // Single type only for (token) or Fullmatch pattern. (start, inner, end) Needs complex types.
-        start?: LexerPatternTypeGroup<TTokenType>;
-        inner?: LexerPatternTypeGroup<TTokenType>;
-        end?: LexerPatternTypeGroup<TTokenType>;
+    pattern: {
+        regex: RegExp;
+        type: LexerPatternType<TTokenType>;
+    } | {
+        start: {
+            regex: RegExp;
+            type: LexerPatternType<TTokenType>;
+        },
+        end: {
+            regex: RegExp;
+            type: LexerPatternType<TTokenType>;
+        };
+        innerType?: TTokenType;
     };
     specificity: number;
     meta?: string | Array<string>;
@@ -424,7 +426,6 @@ type LexerPattern<TTokenType> = {
 
 
 // TEST
-
 enum XmlToken {
     OpenBracket = 'Open braket',
     CloseBracket = 'Close braket',
@@ -443,37 +444,50 @@ lLexer.trimWhitespace = true;
 
 // Repository.
 lLexer.addTokenTemplate('quotedString', {
-    regex: /(["']).*?\1/,
-    type: XmlToken.Value,
+    pattern: {
+        regex: /(["']).*?\1/,
+        type: XmlToken.Value
+    },
     specificity: 1
 });
 lLexer.addTokenTemplate('identifier', {
-    regex: /[^<>\s\n/:="]+/,
-    type: XmlToken.Identifier,
+    pattern: {
+        regex: /[^<>\s\n/:="]+/,
+        type: XmlToken.Identifier,
+    },
     specificity: 5
 });
 lLexer.addTokenTemplate('namespaceDelimiter', {
-    regex: /:/,
-    type: XmlToken.NamespaceDelimiter,
+    pattern: {
+        regex: /:/,
+        type: XmlToken.NamespaceDelimiter
+    },
     specificity: 3
 });
 
 // Comment.
 lLexer.addTokenPattern({
-    regex: /<!--.*?-->/,
-    type: XmlToken.Comment,
+    pattern: {
+        regex: /<!--.*?-->/,
+        type: XmlToken.Comment,
+    },
     specificity: 0,
     meta: 'comment.xml'
 });
 
 // Opening tag.
 lLexer.addTokenPattern({
-    regex: /(?<start><)(?<inner>.*?)(?<end>(?<end_close>>)|(?<end_selfClose>\/>))/,
-    type: {
-        start: XmlToken.OpenBracket,
+    pattern: {
+        start: {
+            regex: /</,
+            type: XmlToken.OpenBracket
+        },
         end: {
-            close: XmlToken.CloseBracket,
-            selfClose: XmlToken.CloseClosingBracket
+            regex: /(?<end_close>>)|(?<end_selfClose>\/>)/,
+            type: {
+                close: XmlToken.CloseBracket,
+                selfClose: XmlToken.CloseClosingBracket
+            }
         }
     },
     specificity: 2,
@@ -484,16 +498,20 @@ lLexer.addTokenPattern({
     pLexer.useTokenTemplate('identifier');
     pLexer.useTokenTemplate('namespaceDelimiter');
     pLexer.addTokenPattern({
-        regex: /=/,
-        type: XmlToken.Assignment,
+        pattern: {
+            regex: /=/,
+            type: XmlToken.Assignment
+        },
         specificity: 3
     });
 });
 
 // Values.
 lLexer.addTokenPattern({
-    regex: /(?<token>[^<>"]+)[^<>]*(<|$)/,
-    type: XmlToken.Value,
+    pattern: {
+        regex: /(?<token>[^<>"]+)[^<>]*(<|$)/,
+        type: XmlToken.Value
+    },
     specificity: 4,
     meta: 'value.xml'
 });
@@ -501,12 +519,17 @@ lLexer.useTokenTemplate('quotedString');
 
 // Closing tag.
 lLexer.addTokenPattern({
-    regex: /(?<start><\/)(?<inner>\s*[^/].*?)(?<end>>)/,
-    type: {
-        start: XmlToken.OpenBracket,
+    pattern: {
+        start: {
+            regex: /<\//,
+            type: XmlToken.OpenBracket
+        },
         end: {
-            close: XmlToken.CloseBracket,
-            selfClose: XmlToken.CloseClosingBracket
+            regex: />/,
+            type: {
+                close: XmlToken.CloseBracket,
+                selfClose: XmlToken.CloseClosingBracket
+            }
         }
     },
     specificity: 1,

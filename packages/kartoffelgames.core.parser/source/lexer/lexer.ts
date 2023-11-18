@@ -11,7 +11,7 @@ import { LexerToken } from './lexer-token';
  * @public
  */
 export class Lexer<TTokenType extends string> {
-    private mCurrentPatternScope: Array<LexerPatternDefinition<TTokenType>>;
+    private mCurrentPatternScope: Array<LexerPatternDefinition<TTokenType>> | null;
     private readonly mSettings: LexerSettings<TTokenType>;
 
     // Token pattern data.
@@ -128,8 +128,17 @@ export class Lexer<TTokenType extends string> {
     public addTokenPattern(pPattern: LexerPattern<TTokenType>, pInnerFetch?: (pLexer: Lexer<TTokenType>) => void): void {
         const lConvertedPattern: LexerPatternDefinition<TTokenType> = this.convertTokenPattern(pPattern);
 
+        // Enforce inner fetch for pattern with a start and end token.
+        if ('start' in lConvertedPattern.pattern && !pInnerFetch) {
+            throw new Exception('Split token with a start and end token, need inner token definitions.', this);
+        }
+
+        // Throw when scoped pattern has no inner group.
+        if (this.mCurrentPatternScope === null) {
+            throw new Exception('Parent pattern does not allow inner token pattern.', this);
+        }
+
         // Set pattern for current pattern scope.
-        // TODO: Throw when scoped pattern has no inner group.
         this.mCurrentPatternScope.push(lConvertedPattern);
 
         // Execute scoped pattern.
@@ -205,7 +214,7 @@ export class Lexer<TTokenType extends string> {
         // Execute scoped pattern.
         if (pInnerFetch) {
             // Buffer last scope and set created pattern as current scope.
-            const lLastPatternScope: Array<LexerPatternDefinition<TTokenType>> = this.mCurrentPatternScope;
+            const lLastPatternScope: Array<LexerPatternDefinition<TTokenType>> | null = this.mCurrentPatternScope;
             this.mCurrentPatternScope = lConvertedPattern.innerPattern;
 
             // Execute inner pattern fetches.
@@ -351,6 +360,11 @@ export class Lexer<TTokenType extends string> {
             throw new Exception(`Lexer template "${pTemplateName}" does not exist.`, this);
         }
 
+        // Throw when scoped pattern has no inner group.
+        if (this.mCurrentPatternScope === null) {
+            throw new Exception('Parent pattern does not allow inner token pattern.', this);
+        }
+
         // Read pattern template. Clone template and alter specificity when is differs from parameter.
         let lTemplate: LexerPatternDefinition<TTokenType> = this.mTokenPatternTemplates.get(pTemplateName)!;
         if (typeof pSpecificity !== 'undefined' && lTemplate.specificity !== pSpecificity) {
@@ -409,12 +423,9 @@ export class Lexer<TTokenType extends string> {
                     regex: lConvertRegex(pPattern.pattern.end.regex),
                     type: lConvertPatternType(pPattern.pattern.end.type)
                 },
+                // Optional inner type.
+                innerType: pPattern.pattern.innerType ?? null
             };
-
-            // Optional inner type.
-            if (pPattern.pattern.innerType) {
-                lPattern.innerType = pPattern.pattern.innerType;
-            }
         }
 
         // Create metas.
@@ -441,13 +452,13 @@ type LexerPatternDefinition<TTokenType> = {
     pattern: {
         start: { regex: RegExp; type: LexerPatternDefinitionType<TTokenType>; };
         end: { regex: RegExp; type: LexerPatternDefinitionType<TTokenType>; };
-        innerType?: TTokenType;
+        innerType: TTokenType | null;
     } | {
         single: { regex: RegExp; type: LexerPatternDefinitionType<TTokenType>; };
     };
     specificity: number;
     meta: Array<string>;
-    innerPattern: Array<LexerPatternDefinition<TTokenType>>;
+    innerPattern: Array<LexerPatternDefinition<TTokenType>> | null;
 };
 
 /* 

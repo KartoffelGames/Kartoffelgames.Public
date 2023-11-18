@@ -90,9 +90,40 @@ export class Lexer<TTokenType extends string> {
      * @throws {@link Exception}
      * When the token pattern should be scoped to another token without and `inner` group.
      * 
-     * @example Set two types of tokens for a text. // TODO:
+     * @example Set two types of tokens
      * ``` Typescript
-     * ``` 
+     * // Token with start and end token.
+     * lexer.addTokenPattern({
+     *     pattern: {
+     *         start: {
+     *             regex: /</,
+     *             type: 'open'
+     *         },
+     *         end: {
+     *             regex: /(?<close>>)|(?<selfClose>\/>)/,
+     *             type: {
+     *                 close: 'closeBracket',
+     *                 selfClose: 'closeClosingBracket'
+     *             }
+     *         }
+     *     },
+     *     specificity: 2,
+     *     meta: 'tag.xml'
+     * }, (pLexer: Lexer<XmlToken>) => {
+     *     // Token that can appeare only inside tags.
+     *     pLexer.useTokenTemplate('quotedString');
+     * }); 
+     * 
+     * // Single token.
+     * lexer.addTokenPattern({
+     *     pattern: {
+     *         regex: /(?<token>[^<>"]+)[^<>]*(<|$)/,
+     *         type: 'textValue'
+     *     },
+     *     specificity: 4,
+     *     meta: 'value.xml'
+     * });
+     * ```
      */
     public addTokenPattern(pPattern: LexerPattern<TTokenType>, pInnerFetch?: (pLexer: Lexer<TTokenType>) => void): void {
         const lConvertedPattern: LexerPatternDefinition<TTokenType> = this.convertTokenPattern(pPattern);

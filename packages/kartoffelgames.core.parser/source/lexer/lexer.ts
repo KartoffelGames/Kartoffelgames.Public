@@ -132,8 +132,26 @@ export class Lexer<TTokenType extends string> {
      * When a template with the same name was already been added.\
      * When a template is added inside a scoped call.
      * 
-     * @example Add a pattern template and use it in a scoped call. // TODO:
+     * @example Add a pattern template and use it in a scoped call.
      * ``` Typescript
+     * const lexer: Lexer<string> = new Lexer<string>();
+     * 
+     * // Define quoted string token template.
+     * lexer.addTokenTemplate('quotedString', {
+     *    pattern: {
+     *        regex: /(["']).*?\1/,
+     *        type: 'quotedString'
+     *    },
+     *    specificity: 1
+     * });
+     * 
+     * lexer.addTokenPattern({...}, (pLexer: Lexer<string>) => {
+     *      // Token that can appeare only inside this token.
+     *      pLexer.useTokenTemplate('quotedString');
+     *  });
+     * 
+     * // Apply token to the root patterns.
+     * lexer.useTokenTemplate('quotedString');
      * ``` 
      */
     public addTokenTemplate(pName: string, pPattern: LexerPattern<TTokenType>, pInnerFetch?: (pLexer: Lexer<TTokenType>) => void): void {

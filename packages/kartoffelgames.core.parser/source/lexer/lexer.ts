@@ -11,7 +11,7 @@ import { LexerToken } from './lexer-token';
  * @public
  */
 export class Lexer<TTokenType extends string> {
-    private mCurrentPatternScope: Array<LexerPatternDefinition<TTokenType>> | null;
+    private mCurrentPatternScope: Array<LexerPatternDefinition<TTokenType>>;
     private readonly mSettings: LexerSettings<TTokenType>;
 
     // Token pattern data.
@@ -129,20 +129,20 @@ export class Lexer<TTokenType extends string> {
         const lConvertedPattern: LexerPatternDefinition<TTokenType> = this.convertTokenPattern(pPattern);
 
         // Enforce inner fetch for pattern with a start and end token.
-        if ('start' in lConvertedPattern.pattern && !pInnerFetch) {
+        if (lConvertedPattern.patternType === 'split' && !pInnerFetch) {
             throw new Exception('Split token with a start and end token, need inner token definitions.', this);
         }
 
-        // Throw when scoped pattern has no inner group.
-        if (this.mCurrentPatternScope === null) {
-            throw new Exception('Parent pattern does not allow inner token pattern.', this);
+        // Single pattern types forbid inner fetches.
+        if (lConvertedPattern.patternType === 'single' && pInnerFetch){
+            throw new Exception('Pattern does not allow inner token pattern.', this);
         }
 
         // Set pattern for current pattern scope.
         this.mCurrentPatternScope.push(lConvertedPattern);
 
         // Execute scoped pattern.
-        if (pInnerFetch) {
+        if (pInnerFetch && lConvertedPattern.patternType === 'split') {
             // Buffer last scope and set created pattern as current scope.
             const lLastPatternScope: Array<LexerPatternDefinition<TTokenType>> = this.mCurrentPatternScope;
             this.mCurrentPatternScope = lConvertedPattern.innerPattern;
@@ -207,12 +207,22 @@ export class Lexer<TTokenType extends string> {
 
         // Convert and add named pattern.
         const lConvertedPattern: LexerPatternDefinition<TTokenType> = this.convertTokenPattern(pPattern);
-        this.mTokenPatternTemplates.set(pName, lConvertedPattern);
+
+        // Enforce inner fetch for pattern with a start and end token.
+        if (lConvertedPattern.patternType === 'split' && !pInnerFetch) {
+            throw new Exception('Split token with a start and end token, need inner token definitions.', this);
+        }
+
+        // Single pattern types forbid inner fetches.
+        if (lConvertedPattern.patternType === 'single' && pInnerFetch){
+            throw new Exception('Pattern does not allow inner token pattern.', this);
+        }
 
         // At this point the template can reference itself.
+        this.mTokenPatternTemplates.set(pName, lConvertedPattern);
 
         // Execute scoped pattern.
-        if (pInnerFetch) {
+        if (pInnerFetch && lConvertedPattern.patternType === 'split') {
             // Buffer last scope and set created pattern as current scope.
             const lLastPatternScope: Array<LexerPatternDefinition<TTokenType>> | null = this.mCurrentPatternScope;
             this.mCurrentPatternScope = lConvertedPattern.innerPattern;
@@ -245,118 +255,7 @@ export class Lexer<TTokenType extends string> {
             error: null
         };
 
-        // Tokenize until end.
-        while (lCursor.remainingData.length !== 0) {
-            if(this.skipNextWhitespace(lCursor)) {
-                continue;
-            }
-
-            // Create ordered token type list by specification.
-            const lTokenList: Array<LexerPatternDefinition<TTokenType>> = this.mTokenPatterns.sort((pA: LexerPatternDefinition<TTokenType>, pB: LexerPatternDefinition<TTokenType>) => {
-                // Sort lower specification at a lower index than higher specifications.
-                return pA.specificity - pB.specificity;
-            });
-
-            const lBestMatch: { token: LexerPatternDefinition<TTokenType> | null, specification: number; } = { token: null, specification: 0 };
-
-            
-        }
-
-
-
-
-
-
-        let lCurrentLineNumber = 1;
-        let lCurrentColumnNumber = 1;
-
-        let lUntokenizedText: string = pText;
-
-        // Create ordered token type list by specification.
-        const lTokenList: Array<TTokenType> = [...this.mTokenSpecifications.keys()].sort((pA: TTokenType, pB: TTokenType) => {
-            // Sort lower specification at a lower index than higher specifications.
-            return this.mTokenSpecifications.get(pA)! - this.mTokenSpecifications.get(pB)!;
-        });
-
-        // Loop till end.
-        while (lUntokenizedText.length !== 0) {
-            // Skip all set whitespaces.
-            if (this.mSettings.trimSpaces && this.mSettings.whiteSpaces.has(lUntokenizedText.charAt(0))) {
-                const lWhitespaceCharacter: string = lUntokenizedText.charAt(0);
-
-                // Start newline when whitespace is a newline.
-                if (lWhitespaceCharacter === '\n') {
-                    lCurrentLineNumber++;
-                    lCurrentColumnNumber = 1;
-                } else {
-                    // On every other character, count column.
-                    lCurrentColumnNumber++;
-                }
-
-                // Update untokenised text.
-                lUntokenizedText = lUntokenizedText.substring(1);
-
-                // Skip to next character.
-                continue;
-            }
-
-            const lBestMatch: { token: LexerTokenInformation<TTokenType> | null, specification: number; } = { token: null, specification: 0 };
-
-            // Find next token.
-            for (const lTokenType of lTokenList) {
-                const lTokenPattern: RegExp = this.mTokenPatterns.get(lTokenType)!;
-                const lTokenSpecifiaction: number = this.mTokenSpecifications.get(lTokenType)!;
-
-                // Exit search when a token previous found with a better specification.
-                if (lBestMatch.token && lBestMatch.specification < lTokenSpecifiaction) {
-                    break;
-                }
-
-                // Execute pattern and reset last position.
-                const lPatternMatch: RegExpExecArray | null = lTokenPattern.exec(lUntokenizedText);
-                lTokenPattern.lastIndex = 0;
-
-                // Process token on pattern match.
-                if (lPatternMatch) {
-                    // Read token group or complete match when no token group was specified.
-                    const lPatternData: string = lPatternMatch.groups?.['token'] ?? lPatternMatch[0];
-
-                    // Update token when no token was set, or a better token, a longer one, was found.
-                    if (!lBestMatch.token || lPatternData.length > lBestMatch.token.value.length) {
-                        lBestMatch.token = {
-                            type: lTokenType,
-                            value: lPatternData,
-                            lineNumber: lCurrentLineNumber,
-                            columnNumber: lCurrentColumnNumber
-                        };
-                        lBestMatch.specification = lTokenSpecifiaction;
-                    }
-                }
-            }
-
-            // Throw erros when the current untokenized text can't be tokenized.
-            if (!lBestMatch.token) {
-                throw new ParserException(`Invalid token. Can't tokenize "${lUntokenizedText}"`, this, lCurrentColumnNumber, lCurrentLineNumber, lCurrentColumnNumber, lCurrentLineNumber);
-            }
-
-            // Move cursor.
-            const lLines: Array<string> = lBestMatch.token.value.split('\n');
-
-            // Reset column number when any newline was tokenized.
-            if (lLines.length > 1) {
-                lCurrentColumnNumber = 0;
-            }
-
-            // Step line and column number.
-            lCurrentLineNumber += lLines.length - 1;
-            lCurrentColumnNumber += lLines.at(-1)!.length;
-
-            // Update untokenised text.
-            lUntokenizedText = lUntokenizedText.substring(lBestMatch.token.value.length);
-
-            // Yield best found token.
-            yield new LexerToken(lBestMatch.token.type, lBestMatch.token.value, lBestMatch.token.columnNumber, lBestMatch.token.lineNumber);
-        }
+        yield* this.tokenizePart(lCursor, this.mTokenPatterns, null);
     }
 
     /**
@@ -432,42 +331,51 @@ export class Lexer<TTokenType extends string> {
             return pType;
         };
 
+        // Create metas.
+        const lMetaList: Array<string> = new Array<string>();
+        if (pPattern.meta) {
+            if (typeof pPattern.meta === 'string') {
+                lMetaList.push(pPattern.meta);
+            } else {
+                lMetaList.push(...pPattern.meta);
+            }
+        }
+
         // Convert pattern.
-        let lPattern: LexerPatternDefinition<TTokenType>['pattern'];
         if ('regex' in pPattern.pattern) {
             // Single pattern
-            lPattern = {
-                single: {
-                    regex: lConvertRegex(pPattern.pattern.regex),
-                    type: lConvertPatternType(pPattern.pattern.type)
-                }
+            return {
+                patternType: 'single',
+                specificity: pPattern.specificity,
+                pattern: {
+                    single: {
+                        regex: lConvertRegex(pPattern.pattern.regex),
+                        type: lConvertPatternType(pPattern.pattern.type)
+                    }
+                },
+                meta: lMetaList
             };
         } else {
             // Start end pattern.
-            lPattern = {
-                start: {
-                    regex: lConvertRegex(pPattern.pattern.start.regex),
-                    type: lConvertPatternType(pPattern.pattern.start.type)
+            return {
+                patternType: 'split',
+                specificity: pPattern.specificity,
+                pattern: {
+                    start: {
+                        regex: lConvertRegex(pPattern.pattern.start.regex),
+                        type: lConvertPatternType(pPattern.pattern.start.type)
+                    },
+                    end: {
+                        regex: lConvertRegex(pPattern.pattern.end.regex),
+                        type: lConvertPatternType(pPattern.pattern.end.type)
+                    },
+                    // Optional inner type.
+                    innerType: pPattern.pattern.innerType ?? null
                 },
-                end: {
-                    regex: lConvertRegex(pPattern.pattern.end.regex),
-                    type: lConvertPatternType(pPattern.pattern.end.type)
-                },
-                // Optional inner type.
-                innerType: pPattern.pattern.innerType ?? null
+                meta: lMetaList,
+                innerPattern: new Array<LexerPatternDefinition<TTokenType>>()
             };
         }
-
-        // Create metas.
-        const lMetaList: Array<string> = new Array<string>();
-
-        // Type to pattern mapping.
-        return {
-            pattern: lPattern,
-            specificity: pPattern.specificity,
-            meta: lMetaList,
-            innerPattern: new Array<LexerPatternDefinition<TTokenType>>()
-        };
     }
 
     /**
@@ -479,7 +387,7 @@ export class Lexer<TTokenType extends string> {
         const lCharacter: string = pCursor.remainingData.charAt(0);
 
         // Validate character if it can be skipped.
-        if(!this.mSettings.trimSpaces || !this.mSettings.whiteSpaces.has(lCharacter)) {
+        if (!this.mSettings.trimSpaces || !this.mSettings.whiteSpaces.has(lCharacter)) {
             return false;
         }
 
@@ -496,6 +404,122 @@ export class Lexer<TTokenType extends string> {
         pCursor.remainingData = pCursor.remainingData.substring(1);
 
         return true;
+    }
+
+    private * tokenizePart(pCursor: LexerCursor, pAvailablePatterns: Array<LexerPatternDefinition<TTokenType>>, pForcedType: TTokenType | null): Generator<LexerToken<TTokenType>> {
+        // Create ordered token type list by specification.
+        const lTokenPatternList: Array<LexerPatternDefinition<TTokenType>> = pAvailablePatterns.sort((pA: LexerPatternDefinition<TTokenType>, pB: LexerPatternDefinition<TTokenType>) => {
+            // Sort lower specification at a lower index than higher specifications.
+            return pA.specificity - pB.specificity;
+        });
+
+        // Tokenize until end.
+        while (pCursor.remainingData.length !== 0) {
+            if (this.skipNextWhitespace(pCursor)) {
+                continue;
+            }
+
+            const lBestMatch: { token: LexerPatternDefinition<TTokenType> | null, specification: number; } = { token: null, specification: 0 };
+
+            // Iterate available token pattern.
+            for (const lTokenPattern of lTokenPatternList) {
+
+            }
+        }
+
+
+
+
+        let lCurrentLineNumber = 1;
+        let lCurrentColumnNumber = 1;
+
+        let lUntokenizedText: string = pText;
+
+        // Create ordered token type list by specification.
+        const lTokenList: Array<TTokenType> = [...this.mTokenSpecifications.keys()].sort((pA: TTokenType, pB: TTokenType) => {
+            // Sort lower specification at a lower index than higher specifications.
+            return this.mTokenSpecifications.get(pA)! - this.mTokenSpecifications.get(pB)!;
+        });
+
+        // Loop till end.
+        while (lUntokenizedText.length !== 0) {
+            // Skip all set whitespaces.
+            if (this.mSettings.trimSpaces && this.mSettings.whiteSpaces.has(lUntokenizedText.charAt(0))) {
+                const lWhitespaceCharacter: string = lUntokenizedText.charAt(0);
+
+                // Start newline when whitespace is a newline.
+                if (lWhitespaceCharacter === '\n') {
+                    lCurrentLineNumber++;
+                    lCurrentColumnNumber = 1;
+                } else {
+                    // On every other character, count column.
+                    lCurrentColumnNumber++;
+                }
+
+                // Update untokenised text.
+                lUntokenizedText = lUntokenizedText.substring(1);
+
+                // Skip to next character.
+                continue;
+            }
+
+            const lBestMatch: { token: LexerTokenInformation<TTokenType> | null, specification: number; } = { token: null, specification: 0 };
+
+            // Find next token.
+            for (const lTokenType of lTokenPatternList) {
+                const lTokenPattern: RegExp = this.mTokenPatterns.get(lTokenType)!;
+                const lTokenSpecifiaction: number = this.mTokenSpecifications.get(lTokenType)!;
+
+                // Exit search when a token previous found with a better specification.
+                if (lBestMatch.token && lBestMatch.specification < lTokenSpecifiaction) {
+                    break;
+                }
+
+                // Execute pattern and reset last position.
+                const lPatternMatch: RegExpExecArray | null = lTokenPattern.exec(lUntokenizedText);
+                lTokenPattern.lastIndex = 0;
+
+                // Process token on pattern match.
+                if (lPatternMatch) {
+                    // Read token group or complete match when no token group was specified.
+                    const lPatternData: string = lPatternMatch.groups?.['token'] ?? lPatternMatch[0];
+
+                    // Update token when no token was set, or a better token, a longer one, was found.
+                    if (!lBestMatch.token || lPatternData.length > lBestMatch.token.value.length) {
+                        lBestMatch.token = {
+                            type: lTokenType,
+                            value: lPatternData,
+                            lineNumber: lCurrentLineNumber,
+                            columnNumber: lCurrentColumnNumber
+                        };
+                        lBestMatch.specification = lTokenSpecifiaction;
+                    }
+                }
+            }
+
+            // Throw erros when the current untokenized text can't be tokenized.
+            if (!lBestMatch.token) {
+                throw new ParserException(`Invalid token. Can't tokenize "${lUntokenizedText}"`, this, lCurrentColumnNumber, lCurrentLineNumber, lCurrentColumnNumber, lCurrentLineNumber);
+            }
+
+            // Move cursor.
+            const lLines: Array<string> = lBestMatch.token.value.split('\n');
+
+            // Reset column number when any newline was tokenized.
+            if (lLines.length > 1) {
+                lCurrentColumnNumber = 0;
+            }
+
+            // Step line and column number.
+            lCurrentLineNumber += lLines.length - 1;
+            lCurrentColumnNumber += lLines.at(-1)!.length;
+
+            // Update untokenised text.
+            lUntokenizedText = lUntokenizedText.substring(lBestMatch.token.value.length);
+
+            // Yield best found token.
+            yield new LexerToken(lBestMatch.token.type, lBestMatch.token.value, lBestMatch.token.columnNumber, lBestMatch.token.lineNumber);
+        }
     }
 }
 
@@ -518,16 +542,22 @@ type LexerSettings<TTokenType> = {
 
 type LexerPatternDefinitionType<TTokenType> = { [SubGroup: string]: TTokenType; };
 type LexerPatternDefinition<TTokenType> = {
+    patternType: 'split';
     pattern: {
         start: { regex: RegExp; type: LexerPatternDefinitionType<TTokenType>; };
         end: { regex: RegExp; type: LexerPatternDefinitionType<TTokenType>; };
         innerType: TTokenType | null;
-    } | {
+    };
+    specificity: number;
+    meta: Array<string>;
+    innerPattern: Array<LexerPatternDefinition<TTokenType>>;
+} | {
+    patternType: 'single';
+    pattern: {
         single: { regex: RegExp; type: LexerPatternDefinitionType<TTokenType>; };
     };
     specificity: number;
     meta: Array<string>;
-    innerPattern: Array<LexerPatternDefinition<TTokenType>> | null;
 };
 
 /* 

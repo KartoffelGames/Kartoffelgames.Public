@@ -16,21 +16,32 @@ describe('Lexer', () => {
     const lInitTestLexer = () => {
         const lWordBreaker: RegExp = /[a-zA-Z]+/;
         const lNumberBreaker: RegExp = /[0-9]+/;
-        const lBracketBreaker: RegExp = /(?<token>\(.*?\))and+/;
 
         const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
         lLexer.validWhitespaces = ' \n';
 
-        lLexer.addTokenPattern(lWordBreaker, TestTokenType.Word, 1);
-        lLexer.addTokenPattern(lNumberBreaker, TestTokenType.Number, 1);
-        lLexer.addTokenPattern(lBracketBreaker, TestTokenType.Braket, 1);
+        // Add templates.
+        lLexer.addTokenTemplate('word', { pattern: { regex: lWordBreaker, type: TestTokenType.Word }, specificity: 1 });
+        lLexer.addTokenTemplate('number', { pattern: { regex: lNumberBreaker, type: TestTokenType.Number }, specificity: 1 });
+
+        lLexer.useTokenTemplate('word');
+        lLexer.useTokenTemplate('number');
+        lLexer.addTokenPattern({
+            pattern: {
+                start: { regex: /\(/, type: TestTokenType.Braket },
+                end: { regex: /\)/, type: TestTokenType.Braket }
+            },
+            specificity: 1
+        }, (pLexer:Lexer<TestTokenType> )=>{
+            pLexer.useTokenTemplate('word');
+        });
 
         return lLexer;
     };
 
-    // Init new text that contains 10 word and 53 characters with at least one token of each token type 
+    // Init new text that contains 10 word and 52 characters with at least one token of each token type.
     const lInitTestText = () => {
-        return 'A sentence with 1 or 10 words (Ending with)and \nnewline';
+        return 'A sentence with 1 or 10 words (Braket and \nnewline)';
     };
 
     describe('Property: trimWhitespace', () => {
@@ -43,7 +54,7 @@ describe('Lexer', () => {
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
             // Evaluation.
-            expect(lTokenList).has.lengthOf(10);
+            expect(lTokenList).has.lengthOf(12);
         });
 
         it('-- False', () => {
@@ -115,21 +126,21 @@ describe('Lexer', () => {
             lLexer.validWhitespaces = ' \n';
 
             // Process.
-            lLexer.addTokenPattern(/./, TestTokenType.Word, 0);
+            lLexer.addTokenPattern({ pattern: { regex: /./, type: TestTokenType.Word }, specificity: 0 });
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
             // Evaluation.
             expect(lTokenList).has.lengthOf(45); // 55 characters with 10 trimmed whitespaces. 
         });
 
-        it('-- Add valid', () => {
+        it('-- Add dublicate', () => {
             // Setup.
             const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
-            lLexer.addTokenPattern(/./, TestTokenType.Word, 0);
+            lLexer.addTokenPattern({ pattern: { regex: /./, type: TestTokenType.Word }, specificity: 0 });
 
             // Process. Dublicate token type
             const lErrorFunction = () => {
-                lLexer.addTokenPattern(/A/, TestTokenType.Word, 0);
+                lLexer.addTokenPattern({ pattern: { regex: /A/, type: TestTokenType.Word }, specificity: 0 });
             };
 
             // Evaluation.
@@ -185,16 +196,16 @@ describe('Lexer', () => {
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
             // Evaluation. 'A sentence with 1 or 10 words (Ending with)and \nnewline'
-            expect(lTokenList[0].hasType(TestTokenType.Word)).to.be.true;
-            expect(lTokenList[1].hasType(TestTokenType.Word)).to.be.true;
-            expect(lTokenList[2].hasType(TestTokenType.Word)).to.be.true;
-            expect(lTokenList[3].hasType(TestTokenType.Number)).to.be.true;
-            expect(lTokenList[4].hasType(TestTokenType.Word)).to.be.true;
-            expect(lTokenList[5].hasType(TestTokenType.Number)).to.be.true;
-            expect(lTokenList[6].hasType(TestTokenType.Word)).to.be.true;
-            expect(lTokenList[7].hasType(TestTokenType.Braket)).to.be.true;
-            expect(lTokenList[8].hasType(TestTokenType.Word)).to.be.true;
-            expect(lTokenList[9].hasType(TestTokenType.Word)).to.be.true;
+            expect(lTokenList[0]).property('type').to.equal(TestTokenType.Word);
+            expect(lTokenList[1]).property('type').to.equal(TestTokenType.Word);
+            expect(lTokenList[2]).property('type').to.equal(TestTokenType.Word);
+            expect(lTokenList[3]).property('type').to.equal(TestTokenType.Number);
+            expect(lTokenList[4]).property('type').to.equal(TestTokenType.Word);
+            expect(lTokenList[5]).property('type').to.equal(TestTokenType.Number);
+            expect(lTokenList[6]).property('type').to.equal(TestTokenType.Word);
+            expect(lTokenList[7]).property('type').to.equal(TestTokenType.Braket);
+            expect(lTokenList[8]).property('type').to.equal(TestTokenType.Word);
+            expect(lTokenList[9]).property('type').to.equal(TestTokenType.Word);
         });
 
         it('-- Valid token values', () => {
@@ -234,7 +245,7 @@ describe('Lexer', () => {
         it('-- Tokenize newline', () => {
             // Setup.
             const lLexer: Lexer<TestTokenType> = lInitTestLexer();
-            lLexer.addTokenPattern(/and \nnewlin/, TestTokenType.Custom, 1);
+            lLexer.addTokenPattern({ pattern: { regex: /and \nnewlin/, type: TestTokenType.Custom }, specificity: 1 });
 
             // Process.
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
@@ -250,33 +261,34 @@ describe('Lexer', () => {
         it('-- Priorize specification', () => {
             // Setup.
             const lLexer: Lexer<TestTokenType> = lInitTestLexer();
-            lLexer.addTokenPattern(/(?<token>\(.*?\))and+/, TestTokenType.Custom, 0);
+            lLexer.addTokenPattern({ pattern: { regex: /(?<token>\(.*?\))and+/, type: TestTokenType.Custom }, specificity: 0 });
 
             // Process.
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
             // Evaluation. 'A sentence with 1 or 10 words (Ending with)and \nnewline'
-            expect(lTokenList[7].hasType(TestTokenType.Custom)).to.be.true;
+            expect(lTokenList[7]).property('type').to.equal(TestTokenType.Custom);
         });
 
         it('-- Priorize longer token', () => {
             // Setup.
             const lLexer: Lexer<TestTokenType> = lInitTestLexer();
-            lLexer.addTokenPattern(/and \nnewlin/, TestTokenType.Custom, 1);
+            lLexer.addTokenPattern({ pattern: { regex: /and \nnewlin/, type: TestTokenType.Custom }, specificity: 1 });
 
             // Process.
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
             // Evaluation. 'A sentence with 1 or 10 words (Ending with)and \nnewline'
-            expect(lTokenList[8].hasType(TestTokenType.Custom)).to.be.true;
+            expect(lTokenList[8]).property('type').to.equal(TestTokenType.Custom);
         });
 
         it('-- Optional token capture group', () => {
             // Setup.
             const lText: string = 'My Text Data<';
             const lLexer: Lexer<'text' | 'closing'> = new Lexer<'text' | 'closing'>();
-            lLexer.addTokenPattern(/^"[^"]*"|^(?<token>[^<>"]+)(?:<|")/, 'text', 4);
-            lLexer.addTokenPattern(/</, 'closing', 4);
+
+            lLexer.addTokenPattern({ pattern: { regex: /^"[^"]*"|^(?<token>[^<>"]+)(?:<|")/, type: 'text' }, specificity: 4 });
+            lLexer.addTokenPattern({ pattern: { regex: /</, type: 'closing' }, specificity: 4 });
 
             // Process.
             const lTokenList: Array<LexerToken<'text' | 'closing'>> = [...lLexer.tokenize(lText)];
@@ -284,9 +296,9 @@ describe('Lexer', () => {
             // Evaluation.
             expect(lTokenList).has.lengthOf(2);
             expect(lTokenList[0]).property('value').to.equal('My Text Data');
-            expect(lTokenList[0].hasType('text')).to.be.true;
+            expect(lTokenList[0]).property('type').to.equal('text');
             expect(lTokenList[1]).property('value').to.equal('<');
-            expect(lTokenList[1].hasType('closing')).to.be.true;
+            expect(lTokenList[1]).property('type').to.equal('closing');
         });
     });
 });

@@ -21,19 +21,19 @@ describe('CodeParser', () => {
     }
 
     const lCreateLexer = (): Lexer<TokenType> => {
-        const lLexter = new Lexer<TokenType>();
-        lLexter.addTokenPattern(/const/, TokenType.Modifier, 0);
-        lLexter.addTokenPattern(/=/, TokenType.Assignment, 1);
-        lLexter.addTokenPattern(/[a-zA-Z]+/, TokenType.Identifier, 2);
-        lLexter.addTokenPattern(/:/, TokenType.TypeDelimiter, 2);
-        lLexter.addTokenPattern(/;/, TokenType.Semicolon, 2);
-        lLexter.addTokenPattern(/[0-9]+/, TokenType.Number, 2);
-        lLexter.addTokenPattern(/".*?"/, TokenType.String, 2);
+        const lLexer = new Lexer<TokenType>();
+        lLexer.addTokenPattern({ pattern: { regex: /const/, type: TokenType.Modifier }, specificity: 0 });
+        lLexer.addTokenPattern({ pattern: { regex: /=/, type: TokenType.Assignment }, specificity: 1 });
+        lLexer.addTokenPattern({ pattern: { regex: /[a-zA-Z]+/, type: TokenType.Identifier }, specificity: 2 });
+        lLexer.addTokenPattern({ pattern: { regex: /:/, type: TokenType.TypeDelimiter }, specificity: 2 });
+        lLexer.addTokenPattern({ pattern: { regex: /;/, type: TokenType.Semicolon }, specificity: 2 });
+        lLexer.addTokenPattern({ pattern: { regex: /[0-9]+/, type: TokenType.Number }, specificity: 2 });
+        lLexer.addTokenPattern({ pattern: { regex: /".*?"/, type: TokenType.String }, specificity: 2 });
 
-        lLexter.validWhitespaces = ' \n\t\r';
-        lLexter.trimWhitespace = true;
+        lLexer.validWhitespaces = ' \n\t\r';
+        lLexer.trimWhitespace = true;
 
-        return lLexter;
+        return lLexer;
     };
 
     describe('Method: defineGraphPart', () => {

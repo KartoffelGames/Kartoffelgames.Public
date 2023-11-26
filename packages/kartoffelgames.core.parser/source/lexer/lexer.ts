@@ -196,7 +196,7 @@ export class Lexer<TTokenType extends string> {
      */
     public addTokenTemplate(pName: string, pPattern: LexerPattern<TTokenType>, pInnerFetch?: (pLexer: Lexer<TTokenType>) => void): void {
         // Restrict defining templates inside scoped calls.
-        if (this.mCurrentPatternScope === this.mTokenPatterns) {
+        if (this.mCurrentPatternScope !== this.mTokenPatterns) {
             throw new Exception('Defining token templates are not allows inside scoped calls.', this);
         }
 
@@ -286,13 +286,8 @@ export class Lexer<TTokenType extends string> {
      */
     public useTokenTemplate(pTemplateName: string, pSpecificity?: number): void {
         // Validate pattern.
-        if (this.mTokenPatternTemplates.has(pTemplateName)) {
+        if (!this.mTokenPatternTemplates.has(pTemplateName)) {
             throw new Exception(`Lexer template "${pTemplateName}" does not exist.`, this);
-        }
-
-        // Throw when scoped pattern has no inner group.
-        if (this.mCurrentPatternScope === null) {
-            throw new Exception('Parent pattern does not allow inner token pattern.', this);
         }
 
         // Read pattern template. Clone template and alter specificity when is differs from parameter.

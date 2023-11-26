@@ -249,7 +249,8 @@ export class Lexer<TTokenType extends string> {
     public * tokenize(pText: string): Generator<LexerToken<TTokenType>> {
         // Create tokenize cursor.
         const lCursor: LexerCursor = {
-            remainingData: pText,
+            data: pText,
+            cursorPosition: 0,
             currentColumn: 1,
             currentLine: 1,
             error: null
@@ -314,11 +315,8 @@ export class Lexer<TTokenType extends string> {
     private convertTokenPattern(pPattern: LexerPattern<TTokenType>): LexerPatternDefinition<TTokenType> {
         // Convert regex into a line start regex with global and single flag.
         const lConvertRegex = (pRegex: RegExp): RegExp => {
-            // Add global and singleline flags remove every other flags except insensitive, unicode or Ungreedy.
-            const lPatternFlags: string = pRegex.flags.replace(/[gmxsAJD]/g, '') + 'gs';
-
-            // Create pattern with adjusted settings and added line start anchor to regex.
-            return new RegExp(`^(?<token>${pRegex.source})`, lPatternFlags);
+            // Create pattern with same flags and added default group.
+            return new RegExp(`(?<token>${pRegex.source})`, pRegex.flags);
         };
 
         // Convert nested pattern type into linear pattern type definition.
@@ -350,7 +348,7 @@ export class Lexer<TTokenType extends string> {
                 pattern: {
                     single: {
                         regex: lConvertRegex(pPattern.pattern.regex),
-                        type: lConvertPatternType(pPattern.pattern.type)
+                        types: lConvertPatternType(pPattern.pattern.type)
                     }
                 },
                 meta: lMetaList
@@ -363,11 +361,11 @@ export class Lexer<TTokenType extends string> {
                 pattern: {
                     start: {
                         regex: lConvertRegex(pPattern.pattern.start.regex),
-                        type: lConvertPatternType(pPattern.pattern.start.type)
+                        types: lConvertPatternType(pPattern.pattern.start.type)
                     },
                     end: {
                         regex: lConvertRegex(pPattern.pattern.end.regex),
-                        type: lConvertPatternType(pPattern.pattern.end.type)
+                        types: lConvertPatternType(pPattern.pattern.end.type)
                     },
                     // Optional inner type.
                     innerType: pPattern.pattern.innerType ?? null
@@ -379,12 +377,108 @@ export class Lexer<TTokenType extends string> {
     }
 
     /**
+     * Map the first found regex group that matches to a type of the group to type match object.
+     * Return the found token type.
+     * 
+     * @param pTokenMatch - Token regex match. Match must at least contains a "token"-group.
+     * @param pTypes - Available group to type match object.
+     * 
+     * @returns The found token type of a matched regex match group.  
+     */
+    private findTokenTypeOfMatch(pTokenMatch: RegExpExecArray, pTypes: LexerPatternDefinitionType<TTokenType>): TTokenType {
+        // Find correct group for match.
+        for (const lGroupName in pTokenMatch.groups!) {
+            // Get regex group value
+            const lGroupValue: string | undefined = pTokenMatch.groups[lGroupName];
+            const lGroupType: TTokenType | undefined = pTypes[lGroupName];
+
+            // Validate if group has a value and the group has a attachted token type.
+            if (!lGroupValue || !lGroupType) {
+                continue;
+            }
+
+            // Validate if group matches the whole match.
+            if (lGroupValue.length !== pTokenMatch[0].length) {
+                throw new Exception('A group of a token pattern must match the whole token.', this);
+            }
+
+            return lGroupType;
+        }
+
+        // No group that matched a token type was found.
+        throw new Exception('No token type for any defined pattern regex group was found.', this);
+    }
+
+    /**
+     * Generate new error lexer token. When error data is available.
+     * When not error data is available or no error token type is specified, null is returned.
+     * 
+     * @param pCursor - Cursor object.
+     * 
+     * @returns Error token when error data is available.  
+     */
+    private generateErrorToken(pCursor: LexerCursor): LexerToken<TTokenType> | null {
+        if (!pCursor.error || !this.mSettings.errorType) {
+            return null;
+        }
+
+        return new LexerToken<TTokenType>(this.mSettings.errorType, pCursor.error.data, pCursor.error.startColumn, pCursor.error.startLine);
+    }
+
+    /**
+     * Generate a token for a matched token.
+     * 
+     * @param pCursor - Current cursor.
+     * @param pTokenPattern - Token pattern.
+     * @param pTokenMatch - Match array of found token.
+     * @param pAvailableTokenTypes - Match group to token mapping. 
+     * @param pParentMetas - Metas of parent pattern.
+     * @param pForcedType - Forced type of token.
+     * 
+     * @returns A new generated token with the current cursor data.  
+     */
+    private generateToken(pCursor: LexerCursor, pTokenMetas: Array<string>, pTokenMatch: RegExpExecArray, pAvailableTokenTypes: LexerPatternDefinitionType<TTokenType>, pForcedType: TTokenType | null): LexerToken<TTokenType> {
+        // Read token type of
+        const lTokenValue: string = pTokenMatch[0];
+        const lTokenType: TTokenType = this.findTokenTypeOfMatch(pTokenMatch, pAvailableTokenTypes);
+
+        // Create single value token and append metas. Force token type when forced type is set.
+        const lToken: LexerToken<TTokenType> = new LexerToken<TTokenType>(pForcedType ?? lTokenType, lTokenValue, pCursor.currentColumn, pCursor.currentLine);
+        lToken.addMeta(...pTokenMetas);
+
+        return lToken;
+    }
+
+    /**
+     * Move cursor for the provided {@link pToken.value}.
+     * 
+     * @param pCursor - Cursor object.
+     * @param pToken - Token.
+     */
+    private moveCursor(pCursor: LexerCursor, pTokenValue: string): void {
+        // Move cursor.
+        const lLines: Array<string> = pTokenValue.split('\n');
+
+        // Reset column number when any newline was tokenized.
+        if (lLines.length > 1) {
+            pCursor.currentColumn = 0;
+        }
+
+        // Step line and column number.
+        pCursor.currentLine += lLines.length - 1;
+        pCursor.currentColumn += lLines.at(-1)!.length;
+
+        // Update untokenised text.
+        pCursor.cursorPosition += pTokenValue.length;
+    }
+
+    /**
      * Move cursor forward one character when it is a white space character.
      * 
      * @param pCursor - Tokenize cursor.
      */
     private skipNextWhitespace(pCursor: LexerCursor): boolean {
-        const lCharacter: string = pCursor.remainingData.charAt(0);
+        const lCharacter: string = pCursor.data.charAt(pCursor.cursorPosition);
 
         // Validate character if it can be skipped.
         if (!this.mSettings.trimSpaces || !this.mSettings.whiteSpaces.has(lCharacter)) {
@@ -400,13 +494,13 @@ export class Lexer<TTokenType extends string> {
             pCursor.currentColumn++;
         }
 
-        // Update untokenised text.
-        pCursor.remainingData = pCursor.remainingData.substring(1);
+        // Move cursor forward by one.
+        pCursor.cursorPosition += 1;
 
         return true;
     }
 
-    private * tokenizePart(pCursor: LexerCursor, pAvailablePatterns: Array<LexerPatternDefinition<TTokenType>>, pMetas: Array<string>, pForcedType: TTokenType | null): Generator<LexerToken<TTokenType>> {
+    private * tokenizePart(pCursor: LexerCursor, pAvailablePatterns: Array<LexerPatternDefinition<TTokenType>>, pParentMetas: Array<string>, pForcedType: TTokenType | null): Generator<LexerToken<TTokenType>> {
         // Create ordered token type list by specification.
         const lTokenPatternList: Array<LexerPatternDefinition<TTokenType>> = pAvailablePatterns.sort((pA: LexerPatternDefinition<TTokenType>, pB: LexerPatternDefinition<TTokenType>) => {
             // Sort lower specification at a lower index than higher specifications.
@@ -414,82 +508,115 @@ export class Lexer<TTokenType extends string> {
         });
 
         // Tokenize until end.
-        remainingDataLoop: while (pCursor.remainingData.length !== 0) {
-            if (this.skipNextWhitespace(pCursor)) {
+        remainingDataLoop: while (pCursor.cursorPosition < pCursor.data.length) {
+            // Skip whitespace but only when the current cursor has no buffered error.
+            if (!pCursor.error && this.skipNextWhitespace(pCursor)) {
                 continue;
             }
 
             // Iterate available token pattern.
             for (const lTokenPattern of lTokenPatternList) {
-                // Get token start regex and try to match it.
+                // Get token start regex and set cursor position.
                 const lTokenStartRegex: RegExp = (lTokenPattern.patternType === 'single') ? lTokenPattern.pattern.single.regex : lTokenPattern.pattern.start.regex;
-                const lTokenStartMatch: RegExpExecArray | null = lTokenStartRegex.exec(pCursor.remainingData);
-                if (!lTokenStartMatch) {
+                lTokenStartRegex.lastIndex = pCursor.cursorPosition;
+
+                // Try to match pattern. Pattern is valid when matched from first character.
+                const lTokenStartMatch: RegExpExecArray | null = lTokenStartRegex.exec(pCursor.data);
+                if (!lTokenStartMatch || lTokenStartMatch.index !== pCursor.cursorPosition) {
                     continue;
                 }
 
-                // Different approach of token parsing for split and single value patterns.
-                if (lTokenPattern.patternType === 'single') {
-                    // Find correct group for match.
-                    for (const lGroupName in lTokenStartMatch.groups!) {
-                        // Get regex group value
-                        const lGroupValue: string | undefined = lTokenStartMatch.groups[lGroupName];
-                        const lGroupType: TTokenType | undefined = lTokenPattern.pattern.single.type[lGroupName];
-
-                        // Validate if group has a value and the group has a attachted token type.
-                        if (!lGroupValue || !lGroupType) {
-                            continue;
-                        }
-
-                        // Validate if group matches the whole match.
-                        if (lGroupValue.length !== lTokenStartMatch[0].length) {
-                            throw new Exception('A group of a token pattern must match the whole token.', this);
-                        }
-
-                        // Create single value token and append metas. Force token type when forced type is set.
-                        const lToken: LexerToken<TTokenType> = new LexerToken<TTokenType>(pForcedType ?? lGroupType, lGroupValue, pCursor.currentColumn, pCursor.currentLine);
-                        lToken.addMeta(...pMetas, ...lTokenPattern.meta);
-
-                        // Yield token.
-                        yield lToken;
-
-                        // Move cursor.
-                        const lLines: Array<string> = lGroupValue.split('\n');
-
-                        // Reset column number when any newline was tokenized.
-                        if (lLines.length > 1) {
-                            pCursor.currentColumn = 0;
-                        }
-
-                        // Step line and column number.
-                        pCursor.currentLine += lLines.length - 1;
-                        pCursor.currentColumn += lLines.at(-1)!.length;
-
-                        // Update untokenised text.
-                        pCursor.remainingData = pCursor.remainingData.substring(lGroupValue.length);
-
-                        continue remainingDataLoop;
-                    }
-
-                    // No group that matched a token type was found.
-                    throw new Exception('No token type for any defined pattern regex group was found.', this);
-                } else {
-
+                // Yield error token when a next valid token was found.
+                const lErrorToken: LexerToken<TTokenType> | null = this.generateErrorToken(pCursor);
+                if (lErrorToken) {
+                    yield lErrorToken;
                 }
+
+                // Use single token types or start token types for different pattern types.
+                const lTokenTypes: LexerPatternDefinitionType<TTokenType> = (lTokenPattern.patternType === 'single') ? lTokenPattern.pattern.single.types : lTokenPattern.pattern.start.types;
+
+                // Generate single token, move cursor and yield..
+                const lSingleToken: LexerToken<TTokenType> = this.generateToken(pCursor, [...lTokenPattern.meta, ...pParentMetas], lTokenStartMatch, lTokenTypes, pForcedType);
+                this.moveCursor(pCursor, lSingleToken.value);
+                yield lSingleToken;
+
+                // Continue with next token when the current pattern is a single value pattern.
+                if (lTokenPattern.patternType === 'single') {
+                    continue remainingDataLoop;
+                }
+
+                // Get end token pattern and set cursor position.
+                const lTokenEndRegex: RegExp = lTokenPattern.pattern.end.regex;
+                lTokenEndRegex.lastIndex = pCursor.cursorPosition;
+
+                // Find data between start and end token. When no end token was found, the complete remaining data is used.
+                const lTokenEndMatch: RegExpExecArray | null = lTokenEndRegex.exec(pCursor.data);
+                const lTokenInnerValue: string = pCursor.data.substring(0, lTokenEndMatch?.index);
+
+                // Create subcursor for inner values.
+                const lInnerCursor: LexerCursor = {
+                    data: lTokenInnerValue,
+                    cursorPosition: 0,
+                    currentColumn: pCursor.currentColumn,
+                    currentLine: pCursor.currentLine,
+                    error: null
+                };
+
+                // Yield every inner pattern token.
+                yield* this.tokenizePart(lInnerCursor, lTokenPattern.innerPattern, [...pParentMetas, ...lTokenPattern.meta], pForcedType ?? lTokenPattern.pattern.innerType);
+
+                // Move cursor by inner token value.
+                this.moveCursor(pCursor, lTokenInnerValue);
+
+                // When a end token was found, yield generate and yield the end token.
+                if (lTokenEndMatch) {
+                    const lEndToken: LexerToken<TTokenType> = this.generateToken(pCursor, [...lTokenPattern.meta, ...pParentMetas], lTokenEndMatch, lTokenPattern.pattern.end.types, pForcedType);
+                    this.moveCursor(pCursor, lEndToken.value);
+                    yield lEndToken;
+                }
+
+                continue remainingDataLoop;
             }
 
-            // TODO: Add char to cursor error. Or when error ignoring is off, throw something.
+            // Throw a parser error when error ignoring is off.
+            if (!this.mSettings.errorType) {
+                // Throw error with next twenty chars as example data.
+                throw new ParserException(`Unable to parse next token. No valid pattern found for ${pCursor.data.substring(pCursor.cursorPosition, pCursor.cursorPosition + 20)}.`, this, pCursor.currentColumn, pCursor.currentLine, pCursor.currentColumn, pCursor.currentLine);
+            }
+
+            // Init new error cursor when no error cursor exists.
+            if (!pCursor.error) {
+                pCursor.error = {
+                    data: '',
+                    startColumn: pCursor.currentColumn,
+                    startLine: pCursor.currentLine
+                };
+            }
+
+            // Apppend error character to error cursor.
+            const lErrorChar: string = pCursor.data.charAt(pCursor.cursorPosition);
+            pCursor.error.data += lErrorChar;
+
+            // Move cursor position by the error character.
+            this.moveCursor(pCursor, lErrorChar);
+        }
+
+        // Yield error token when a next valid token was found.
+        const lErrorToken: LexerToken<TTokenType> | null = this.generateErrorToken(pCursor);
+        if (lErrorToken) {
+            yield lErrorToken;
         }
     }
 }
 
 type LexerCursor = {
-    remainingData: string;
+    data: string;
+    cursorPosition: number;
     currentColumn: number;
     currentLine: number;
     error: null | {
         data: string;
-        startColumn: string;
+        startColumn: number;
         startLine: number;
     };
 };
@@ -504,8 +631,8 @@ type LexerPatternDefinitionType<TTokenType> = { [SubGroup: string]: TTokenType; 
 type LexerPatternDefinition<TTokenType> = {
     patternType: 'split';
     pattern: {
-        start: { regex: RegExp; type: LexerPatternDefinitionType<TTokenType>; };
-        end: { regex: RegExp; type: LexerPatternDefinitionType<TTokenType>; };
+        start: { regex: RegExp; types: LexerPatternDefinitionType<TTokenType>; };
+        end: { regex: RegExp; types: LexerPatternDefinitionType<TTokenType>; };
         innerType: TTokenType | null;
     };
     specificity: number;
@@ -514,7 +641,7 @@ type LexerPatternDefinition<TTokenType> = {
 } | {
     patternType: 'single';
     pattern: {
-        single: { regex: RegExp; type: LexerPatternDefinitionType<TTokenType>; };
+        single: { regex: RegExp; types: LexerPatternDefinitionType<TTokenType>; };
     };
     specificity: number;
     meta: Array<string>;

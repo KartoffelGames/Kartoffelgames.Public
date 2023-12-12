@@ -521,7 +521,7 @@ export class Lexer<TTokenType extends string> {
 
                 // Try to match pattern. Pattern is valid when matched from first character.
                 const lTokenStartMatch: RegExpExecArray | null = lTokenStartRegex.exec(pCursor.data);
-                if (!lTokenStartMatch || lTokenStartMatch.index !== pCursor.cursorPosition) {
+                if (!lTokenStartMatch) {
                     continue;
                 }
 

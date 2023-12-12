@@ -14,15 +14,12 @@ describe('Lexer', () => {
 
     // Init new lexer with all test node types set as token patterns.
     const lInitTestLexer = () => {
-        const lWordBreaker: RegExp = /[a-zA-Z]+/;
-        const lNumberBreaker: RegExp = /[0-9]+/;
-
         const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
         lLexer.validWhitespaces = ' \n';
 
         // Add templates.
-        lLexer.addTokenTemplate('word', { pattern: { regex: lWordBreaker, type: TestTokenType.Word }, specificity: 1 });
-        lLexer.addTokenTemplate('number', { pattern: { regex: lNumberBreaker, type: TestTokenType.Number }, specificity: 1 });
+        lLexer.addTokenTemplate('word', { pattern: { regex: /[a-zA-Z]+/, type: TestTokenType.Word }, specificity: 1 });
+        lLexer.addTokenTemplate('number', { pattern: { regex:  /[0-9]+/, type: TestTokenType.Number }, specificity: 1 });
 
         lLexer.useTokenTemplate('word');
         lLexer.useTokenTemplate('number');

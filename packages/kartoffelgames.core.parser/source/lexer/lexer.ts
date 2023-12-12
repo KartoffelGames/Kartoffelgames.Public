@@ -310,8 +310,12 @@ export class Lexer<TTokenType extends string> {
     private convertTokenPattern(pPattern: LexerPattern<TTokenType>): LexerPatternDefinition<TTokenType> {
         // Convert regex into a line start regex with global and single flag.
         const lConvertRegex = (pRegex: RegExp): RegExp => {
+            // Create flag set and add sticky. Set removes all dublicate flags.
+            const lFlags: Set<string> = new Set(pRegex.flags.split(''));
+            lFlags.add('y');
+
             // Create pattern with same flags and added default group.
-            return new RegExp(`(?<token>${pRegex.source})`, pRegex.flags);
+            return new RegExp(`(?<token>${pRegex.source})`, [...lFlags].join(''));
         };
 
         // Convert nested pattern type into linear pattern type definition.

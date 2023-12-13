@@ -460,7 +460,7 @@ export class Lexer<TTokenType extends string> {
 
         // Reset column number when any newline was tokenized.
         if (lLines.length > 1) {
-            pCursor.currentColumn = 0;
+            pCursor.currentColumn = 1;
         }
 
         // Step line and column number.

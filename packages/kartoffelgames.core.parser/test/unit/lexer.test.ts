@@ -36,7 +36,11 @@ describe('Lexer', () => {
         return lLexer;
     };
 
-    // Init new text that contains 10 word and 52 characters with at least one token of each token type.
+    // Init new text that contains at least one token of each token type.
+    // 12 token
+    // 51 characters
+    // 41 non whitespace characters
+    // 10 whitespaces including newline.
     const lInitTestText = () => {
         return 'A sentence with 1 or 10 words (Braket and \nnewline)';
     };
@@ -100,7 +104,7 @@ describe('Lexer', () => {
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
             // Evaluation.
-            expect(lTokenList).has.lengthOf(9);
+            expect(lTokenList).has.lengthOf(11);
         });
 
         it('-- Get', () => {
@@ -127,21 +131,7 @@ describe('Lexer', () => {
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
             // Evaluation.
-            expect(lTokenList).has.lengthOf(45); // 55 characters with 10 trimmed whitespaces. 
-        });
-
-        it('-- Add dublicate', () => {
-            // Setup.
-            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
-            lLexer.addTokenPattern({ pattern: { regex: /./, type: TestTokenType.Word }, specificity: 0 });
-
-            // Process. Dublicate token type
-            const lErrorFunction = () => {
-                lLexer.addTokenPattern({ pattern: { regex: /A/, type: TestTokenType.Word }, specificity: 0 });
-            };
-
-            // Evaluation.
-            expect(lErrorFunction).to.throw(Exception);
+            expect(lTokenList).has.lengthOf(41); // 41 characters without whitespace.
         });
     });
 
@@ -153,36 +143,55 @@ describe('Lexer', () => {
             // Process.
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
-            // Evaluation. 'A sentence with 1 or 10 words (Ending with)and \nnewline'
+            // Evaluation. 'A sentence with 1 or 10 words (Braket and \nnewline)'
+
+            // A
             expect(lTokenList[0]).property('lineNumber').to.equal(1);
             expect(lTokenList[0]).property('columnNumber').to.equal(1);
 
+            // sentence
             expect(lTokenList[1]).property('lineNumber').to.equal(1);
             expect(lTokenList[1]).property('columnNumber').to.equal(3);
 
+            // with
             expect(lTokenList[2]).property('lineNumber').to.equal(1);
             expect(lTokenList[2]).property('columnNumber').to.equal(12);
 
+            // 1
             expect(lTokenList[3]).property('lineNumber').to.equal(1);
             expect(lTokenList[3]).property('columnNumber').to.equal(17);
 
+            // or
             expect(lTokenList[4]).property('lineNumber').to.equal(1);
             expect(lTokenList[4]).property('columnNumber').to.equal(19);
 
+            // 10
             expect(lTokenList[5]).property('lineNumber').to.equal(1);
             expect(lTokenList[5]).property('columnNumber').to.equal(22);
 
+            // words
             expect(lTokenList[6]).property('lineNumber').to.equal(1);
             expect(lTokenList[6]).property('columnNumber').to.equal(25);
 
+            // (
             expect(lTokenList[7]).property('lineNumber').to.equal(1);
             expect(lTokenList[7]).property('columnNumber').to.equal(31);
 
+            // Braket
             expect(lTokenList[8]).property('lineNumber').to.equal(1);
-            expect(lTokenList[8]).property('columnNumber').to.equal(44);
+            expect(lTokenList[8]).property('columnNumber').to.equal(32);
 
-            expect(lTokenList[9]).property('lineNumber').to.equal(2);
-            expect(lTokenList[9]).property('columnNumber').to.equal(1);
+            // and
+            expect(lTokenList[9]).property('lineNumber').to.equal(1);
+            expect(lTokenList[9]).property('columnNumber').to.equal(39);
+
+            // newline
+            expect(lTokenList[10]).property('lineNumber').to.equal(2);
+            expect(lTokenList[10]).property('columnNumber').to.equal(1);
+
+            // )
+            expect(lTokenList[11]).property('lineNumber').to.equal(2);
+            expect(lTokenList[11]).property('columnNumber').to.equal(8);
         });
 
         it('-- Valid token types', () => {

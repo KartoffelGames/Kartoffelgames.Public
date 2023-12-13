@@ -312,7 +312,7 @@ export class Lexer<TTokenType extends string> {
         const lConvertRegex = (pRegex: RegExp): RegExp => {
             // Create flag set and add sticky. Set removes all dublicate flags.
             const lFlags: Set<string> = new Set(pRegex.flags.split(''));
-            lFlags.add('y');
+            lFlags.add('g');
 
             // Create pattern with same flags and added default group.
             return new RegExp(`(?<token>${pRegex.source})`, [...lFlags].join(''));
@@ -521,7 +521,7 @@ export class Lexer<TTokenType extends string> {
 
                 // Try to match pattern. Pattern is valid when matched from first character.
                 const lTokenStartMatch: RegExpExecArray | null = lTokenStartRegex.exec(pCursor.data);
-                if (!lTokenStartMatch) {
+                if (!lTokenStartMatch || lTokenStartMatch.index !== pCursor.cursorPosition) {
                     continue;
                 }
 
@@ -550,7 +550,9 @@ export class Lexer<TTokenType extends string> {
 
                 // Find data between start and end token. When no end token was found, the complete remaining data is used.
                 const lTokenEndMatch: RegExpExecArray | null = lTokenEndRegex.exec(pCursor.data);
-                const lTokenInnerValue: string = pCursor.data.substring(0, lTokenEndMatch?.index);
+
+                // Cut token inner value. When no end match was found, the rest of the string is used.
+                const lTokenInnerValue: string = pCursor.data.substring(pCursor.cursorPosition, lTokenEndMatch?.index);
 
                 // Create subcursor for inner values.
                 const lInnerCursor: LexerCursor = {

@@ -411,7 +411,72 @@ describe('Lexer', () => {
             expect(lTokenList[5]).property('lineNumber').to.equal(2);
             expect(lTokenList[5]).property('columnNumber').to.equal(7);
             expect(lTokenList[5]).property('metas').to.deep.equal([TestTokenMetas.Braket, TestTokenMetas.List]);
+        });
 
+        it('-- Combined types', () => {
+            // Setup.
+            const lLexer: Lexer<'aaa' | 'bbb'> = new Lexer<'aaa' | 'bbb'>();
+            lLexer.addTokenPattern({
+                pattern: {
+                    regex: /(?<aaa>aaa)|(?<bbb>bbb)/,
+                    type: {
+                        aaa: 'aaa',
+                        bbb: 'bbb',
+                    }
+                },
+                specificity: 1
+            });
+
+            // Process.
+            const lTokenList: Array<LexerToken<'aaa' | 'bbb'>> = [...lLexer.tokenize('bbbaaa')];
+
+            // Evaluation.
+            expect(lTokenList[0]).property('type').to.equal('bbb');
+            expect(lTokenList[1]).property('type').to.equal('aaa');
+        });
+
+        it('-- Validate full matches', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+            lLexer.addTokenPattern({
+                pattern: {
+                    regex: /(?<aaa>aaa)bbb/,
+                    type: {
+                        aaa: TestTokenType.Custom
+                    }
+                },
+                specificity: 1
+            });
+
+            // Process.
+            const lErrorFunction = () => {
+                [...lLexer.tokenize('aaabbb')];
+            };
+
+            // Evaluation.
+            expect(lErrorFunction).to.throw('A group of a token pattern must match the whole token.');
+        });
+
+        it('-- Invalid type group names.', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+            lLexer.addTokenPattern({
+                pattern: {
+                    regex: /(?<aaa>aaa)/,
+                    type: {
+                        bbb: TestTokenType.Custom
+                    }
+                },
+                specificity: 1
+            });
+
+            // Process.
+            const lErrorFunction = () => {
+                [...lLexer.tokenize('aaa')];
+            };
+
+            // Evaluation.
+            expect(lErrorFunction).to.throw('No token type for any defined pattern regex group was found.');
         });
     });
 

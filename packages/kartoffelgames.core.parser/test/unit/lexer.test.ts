@@ -8,7 +8,8 @@ describe('Lexer', () => {
         Word = 'word',
         Number = 'number',
         Braket = 'braket',
-        Custom = 'Custom'
+        Custom = 'Custom',
+        Error = 'Error'
     }
 
     enum TestTokenMetas {
@@ -304,6 +305,36 @@ describe('Lexer', () => {
 
             // Evaluation. 'A sentence with 1 or 10 words (Braket and \nnewline)'
             expect(lTokenList[2]).property('type').to.equal(TestTokenType.Custom);
+        });
+
+        it('-- Error token', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+            lLexer.errorType = TestTokenType.Error;
+
+            // Setup. Text.
+            const lErrorText = 'This //// and \nthis ($%$%) is a error';
+
+            // Process.
+            const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lErrorText)];
+
+            // Evaluation
+            expect(lTokenList).has.lengthOf(10);
+
+            // Error token ////
+            expect(lTokenList[1]).property('value').to.equal('//// ');
+            expect(lTokenList[1]).property('type').to.equal(TestTokenType.Error);
+            expect(lTokenList[1]).property('lineNumber').to.equal(1);
+            expect(lTokenList[1]).property('columnNumber').to.equal(6);
+            expect(lTokenList[1]).property('metas').to.deep.equal([]);
+
+            // Error token ////
+            expect(lTokenList[5]).property('value').to.equal('$%$%');
+            expect(lTokenList[5]).property('type').to.equal(TestTokenType.Error);
+            expect(lTokenList[5]).property('lineNumber').to.equal(2);
+            expect(lTokenList[5]).property('columnNumber').to.equal(7);
+            expect(lTokenList[5]).property('metas').to.deep.equal([TestTokenMetas.Braket, TestTokenMetas.List]);
+
         });
     });
 });

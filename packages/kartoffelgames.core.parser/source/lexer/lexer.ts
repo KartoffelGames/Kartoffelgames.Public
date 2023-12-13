@@ -126,33 +126,14 @@ export class Lexer<TTokenType extends string> {
      * ```
      */
     public addTokenPattern(pPattern: LexerPattern<TTokenType>, pInnerFetch?: (pLexer: Lexer<TTokenType>) => void): void {
-        const lConvertedPattern: LexerPatternDefinition<TTokenType> = this.convertTokenPattern(pPattern);
+        // Generate random name.
+        const lRandomTokenName: string = (Math.random() * Math.pow(10, 16)).toString(16);
 
-        // Enforce inner fetch for pattern with a start and end token.
-        if (lConvertedPattern.patternType === 'split' && !pInnerFetch) {
-            throw new Exception('Split token with a start and end token, need inner token definitions.', this);
-        }
+        // Add token as template.
+        this.addTokenTemplate(lRandomTokenName, pPattern, pInnerFetch);
 
-        // Single pattern types forbid inner fetches.
-        if (lConvertedPattern.patternType === 'single' && pInnerFetch) {
-            throw new Exception('Pattern does not allow inner token pattern.', this);
-        }
-
-        // Set pattern for current pattern scope.
-        this.mCurrentPatternScope.push(lConvertedPattern);
-
-        // Execute scoped pattern.
-        if (pInnerFetch && lConvertedPattern.patternType === 'split') {
-            // Buffer last scope and set created pattern as current scope.
-            const lLastPatternScope: Array<LexerPatternDefinition<TTokenType>> = this.mCurrentPatternScope;
-            this.mCurrentPatternScope = lConvertedPattern.innerPattern;
-
-            // Execute inner pattern fetches.
-            pInnerFetch(this);
-
-            // Reset scope to last used scope.
-            this.mCurrentPatternScope = lLastPatternScope;
-        }
+        // Apply token template to current scope.
+        this.useTokenTemplate(lRandomTokenName);
     }
 
     /**
@@ -195,11 +176,6 @@ export class Lexer<TTokenType extends string> {
      * ``` 
      */
     public addTokenTemplate(pName: string, pPattern: LexerPattern<TTokenType>, pInnerFetch?: (pLexer: Lexer<TTokenType>) => void): void {
-        // Restrict defining templates inside scoped calls.
-        if (this.mCurrentPatternScope !== this.mTokenPatterns) {
-            throw new Exception('Defining token templates are not allows inside scoped calls.', this);
-        }
-
         // Restrict dublicate template names.
         if (this.mTokenPatternTemplates.has(pName)) {
             throw new Exception(`Can't add dublicate token template "${pName}"`, this);
@@ -416,12 +392,19 @@ export class Lexer<TTokenType extends string> {
      * 
      * @returns Error token when error data is available.  
      */
-    private generateErrorToken(pCursor: LexerCursor): LexerToken<TTokenType> | null {
+    private generateErrorToken(pCursor: LexerCursor, pParentMetas: Array<string>): LexerToken<TTokenType> | null {
         if (!pCursor.error || !this.mSettings.errorType) {
             return null;
         }
 
-        return new LexerToken<TTokenType>(this.mSettings.errorType, pCursor.error.data, pCursor.error.startColumn, pCursor.error.startLine);
+        // Generate error token.
+        const lErrorToken: LexerToken<TTokenType> = new LexerToken<TTokenType>(this.mSettings.errorType, pCursor.error.data, pCursor.error.startColumn, pCursor.error.startLine);
+        lErrorToken.addMeta(...pParentMetas);
+
+        // Reset error cursor.
+        pCursor.error = null;
+
+        return lErrorToken;
     }
 
     /**
@@ -526,7 +509,7 @@ export class Lexer<TTokenType extends string> {
                 }
 
                 // Yield error token when a next valid token was found.
-                const lErrorToken: LexerToken<TTokenType> | null = this.generateErrorToken(pCursor);
+                const lErrorToken: LexerToken<TTokenType> | null = this.generateErrorToken(pCursor, pParentMetas);
                 if (lErrorToken) {
                     yield lErrorToken;
                 }
@@ -603,7 +586,7 @@ export class Lexer<TTokenType extends string> {
         }
 
         // Yield error token when a next valid token was found.
-        const lErrorToken: LexerToken<TTokenType> | null = this.generateErrorToken(pCursor);
+        const lErrorToken: LexerToken<TTokenType> | null = this.generateErrorToken(pCursor, pParentMetas);
         if (lErrorToken) {
             yield lErrorToken;
         }

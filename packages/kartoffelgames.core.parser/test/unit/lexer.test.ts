@@ -53,6 +53,17 @@ describe('Lexer', () => {
         return 'A sentence with 1 or 10 words (Braket and \nnewline)';
     };
 
+    it('Property: errorType', () => {
+        // Setup.
+        const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+
+        // Process.
+        lLexer.errorType = TestTokenType.Error;
+
+        // Evaluation.
+        expect(lLexer.errorType).equals(TestTokenType.Error);
+    });
+
     describe('Property: trimWhitespace', () => {
         it('-- True', () => {
             // Setup.
@@ -140,6 +151,72 @@ describe('Lexer', () => {
 
             // Evaluation.
             expect(lTokenList).has.lengthOf(41); // 41 characters without whitespace.
+        });
+    });
+
+    describe('Method: addTokenTemplate', () => {
+        it('-- Add valid', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+            const lTemplateName: string = 'TokenTemplateName';
+
+            // Process.
+            lLexer.addTokenTemplate(lTemplateName, { pattern: { regex: /./, type: TestTokenType.Word }, specificity: 0 });
+
+            // Evaluation.
+            expect(() => {
+                lLexer.useTokenTemplate(lTemplateName);
+            }).to.not.throw();
+        });
+
+        it('-- Add dublicate', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+            const lTemplateName: string = 'TokenTemplateName';
+            lLexer.addTokenTemplate(lTemplateName, { pattern: { regex: /./, type: TestTokenType.Word }, specificity: 0 });
+
+            // Process.
+            const lErrorFunction = () => {
+                lLexer.addTokenTemplate(lTemplateName, { pattern: { regex: /./, type: TestTokenType.Word }, specificity: 0 });
+            };
+
+            // Evaluation.
+            expect(lErrorFunction).to.throw(`Can't add dublicate token template "${lTemplateName}"`);
+        });
+
+        it('-- Split token without inner token', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+
+            // Process.
+            const lErrorFunction = () => {
+                lLexer.addTokenPattern({
+                    pattern: {
+                        start: { regex: /\(/, type: TestTokenType.Braket },
+                        end: { regex: /\)/, type: TestTokenType.Braket }
+                    },
+                    specificity: 1,
+                    meta: [TestTokenMetas.Braket, TestTokenMetas.List]
+                });
+            };
+
+            // Evaluation.
+            expect(lErrorFunction).to.throw(`Split token with a start and end token, need inner token definitions.`);
+        });
+
+        it('-- Single token with inner token', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+
+            // Process.
+            const lErrorFunction = () => {
+                lLexer.addTokenTemplate('Name', { pattern: { regex: /./, type: TestTokenType.Word }, specificity: 0 }, () => {
+                    // Possible something.
+                });
+            };
+
+            // Evaluation.
+            expect(lErrorFunction).to.throw(`Pattern does not allow inner token pattern.`);
         });
     });
 

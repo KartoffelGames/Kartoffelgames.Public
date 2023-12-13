@@ -414,4 +414,53 @@ describe('Lexer', () => {
 
         });
     });
+
+    describe('Method: useTokenTemplate', () => {
+        it('-- Use valid', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+            const lTemplateName: string = 'TokenTemplateName';
+
+            lLexer.addTokenTemplate(lTemplateName, { pattern: { regex: /./, type: TestTokenType.Word }, specificity: 0 });
+
+            // Process.
+            const lSuccessFunction = () => {
+                lLexer.useTokenTemplate(lTemplateName);
+            };
+
+            // Evaluation.
+            expect(lSuccessFunction).to.not.throw();
+        });
+
+        it('-- Non existing pattern.', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+            const lTemplateName: string = 'TokenTemplateName';
+
+            // Process.
+            const lErrorFunction = () => {
+                lLexer.useTokenTemplate(lTemplateName);
+            };
+
+            // Evaluation.
+            expect(lErrorFunction).to.throw(`Lexer template "${lTemplateName}" does not exist.`);
+        });
+
+        it('-- Override specificity', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+            lLexer.addTokenPattern({ pattern: { regex: /./, type: TestTokenType.Word }, specificity: 1 });
+
+            // Setup. Add template
+            const lTemplateName: string = 'TokenTemplateName';
+            lLexer.addTokenTemplate(lTemplateName, { pattern: { regex: /aaa/, type: TestTokenType.Custom }, specificity: 2 });
+
+            // Process.
+            lLexer.useTokenTemplate(lTemplateName, 0);
+            const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize('aaa')];
+
+            // Evaluation.
+            expect(lTokenList[0]).property('type').to.equal(TestTokenType.Custom);
+        });
+    });
 });

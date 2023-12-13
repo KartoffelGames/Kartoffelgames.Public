@@ -23,7 +23,7 @@ export class LexerToken<TTokenType extends string> {
      * All asigned meta values of token.
      */
     public get metas(): Array<string> {
-        return [...this.metas];
+        return [...this.mMetas];
     }
 
     /**

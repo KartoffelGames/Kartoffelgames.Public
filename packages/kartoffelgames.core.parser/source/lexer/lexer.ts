@@ -535,7 +535,7 @@ export class Lexer<TTokenType extends string> {
                 const lTokenTypes: LexerPatternDefinitionType<TTokenType> = (lTokenPattern.patternType === 'single') ? lTokenPattern.pattern.single.types : lTokenPattern.pattern.start.types;
 
                 // Generate single token, move cursor and yield..
-                const lSingleToken: LexerToken<TTokenType> = this.generateToken(pCursor, [...lTokenPattern.meta, ...pParentMetas], lTokenStartMatch, lTokenTypes, pForcedType);
+                const lSingleToken: LexerToken<TTokenType> = this.generateToken(pCursor, [...pParentMetas, ...lTokenPattern.meta], lTokenStartMatch, lTokenTypes, pForcedType);
                 this.moveCursor(pCursor, lSingleToken.value);
                 yield lSingleToken;
 
@@ -571,7 +571,7 @@ export class Lexer<TTokenType extends string> {
 
                 // When a end token was found, yield generate and yield the end token.
                 if (lTokenEndMatch) {
-                    const lEndToken: LexerToken<TTokenType> = this.generateToken(pCursor, [...lTokenPattern.meta, ...pParentMetas], lTokenEndMatch, lTokenPattern.pattern.end.types, pForcedType);
+                    const lEndToken: LexerToken<TTokenType> = this.generateToken(pCursor, [...pParentMetas, ...lTokenPattern.meta], lTokenEndMatch, lTokenPattern.pattern.end.types, pForcedType);
                     this.moveCursor(pCursor, lEndToken.value);
                     yield lEndToken;
                 }

@@ -67,7 +67,7 @@ export class LexerToken<TTokenType extends string> {
      * @param pMeta - meta value.
      * @returns if this token has the specified meta value.
      */
-    public hasMeta(pMeta: TTokenType): boolean {
+    public hasMeta(pMeta: string): boolean {
         return this.mMetas.has(pMeta);
     }
 }

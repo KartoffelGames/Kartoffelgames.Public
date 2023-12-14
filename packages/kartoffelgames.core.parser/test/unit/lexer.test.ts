@@ -478,6 +478,18 @@ describe('Lexer', () => {
             // Evaluation.
             expect(lErrorFunction).to.throw('No token type for any defined pattern regex group was found.');
         });
+
+        it('-- Has meta check', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+            lLexer.addTokenPattern({ pattern: { regex: /1/, type: TestTokenType.Number }, specificity: 0, meta: TestTokenMetas.Number });
+
+            // Process.
+            const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize('1')];
+
+            // Evaluation. 'A sentence with 1 or 10 words (Braket and \nnewline)'
+            expect(lTokenList[0].hasMeta(TestTokenMetas.Number)).to.be.true;
+        });
     });
 
     describe('Method: useTokenTemplate', () => {

@@ -22,6 +22,8 @@ describe('CodeParser', () => {
 
     const lCreateLexer = (): Lexer<TokenType> => {
         const lLexer = new Lexer<TokenType>();
+
+        // Add token patterns
         lLexer.addTokenPattern({ pattern: { regex: /const/, type: TokenType.Modifier }, specificity: 0 });
         lLexer.addTokenPattern({ pattern: { regex: /=/, type: TokenType.Assignment }, specificity: 1 });
         lLexer.addTokenPattern({ pattern: { regex: /[a-zA-Z]+/, type: TokenType.Identifier }, specificity: 2 });
@@ -30,11 +32,21 @@ describe('CodeParser', () => {
         lLexer.addTokenPattern({ pattern: { regex: /[0-9]+/, type: TokenType.Number }, specificity: 2 });
         lLexer.addTokenPattern({ pattern: { regex: /".*?"/, type: TokenType.String }, specificity: 2 });
 
+        // Configure whitespace handling
         lLexer.validWhitespaces = ' \n\t\r';
         lLexer.trimWhitespace = true;
 
         return lLexer;
     };
+
+    it('Property: lexer', () => {
+        // Setup
+        const lLexer = new Lexer<string>();
+        const lParser = new CodeParser<string, any>(lLexer);
+
+        // Evaluation
+        expect(lParser.lexer).to.equal(lLexer);
+    });
 
     describe('Method: defineGraphPart', () => {
         it('-- Define default without collector', () => {
@@ -467,6 +479,94 @@ describe('CodeParser', () => {
                 // Evaluation.
                 expect(lErrorFunction).to.throws(Exception, 'Parser has not root part set.');
             });
+
+            it('Single parse error.', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const';
+
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('LinearCode',
+                    lParser.graph().single('Something', TokenType.Number),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('LinearCode');
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse(lCodeText);
+                };
+
+                // Evaluation.
+                expect(lErrorFunction).to.throws(Exception, `Unexpected token. "${TokenType.Number}" expected`);
+            });
+
+            it('-- Graph end meet without reaching last token.', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const identifier';
+
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('LinearCode',
+                    lParser.graph().single('Something', TokenType.Modifier),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('LinearCode');
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse(lCodeText);
+                };
+
+                // Evaluation.
+                expect(lErrorFunction).to.throws(Exception, `Tokens could not be parsed. Graph end meet without reaching last token "identifier"`);
+            });
+
+            it('-- Graph has dublicate single value identifier', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lPartName: string = 'DublicateValueIdentifierPart';
+                lParser.defineGraphPart(lPartName,
+                    lParser.graph().single('Something', TokenType.Modifier).single('Something', TokenType.Modifier),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart(lPartName);
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('const const');
+                };
+
+                // Evaluation.
+                expect(lErrorFunction).to.throws(Exception, `Grapth path has a dublicate value identifier "Something"`);
+            });
+
+            it('-- Graph has dublicate list value identifier. With existing single identifier.', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lPartName: string = 'DublicateValueIdentifierPart';
+                lParser.defineGraphPart(lPartName,
+                    lParser.graph().loop('Something', TokenType.Modifier).single('Something', TokenType.Modifier),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart(lPartName);
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('const const');
+                };
+
+                // Evaluation.
+                expect(lErrorFunction).to.throws(Exception, `Grapth path has a dublicate value identifier "Something" that is not a list value but should be.`);
+            });
         });
     });
 
@@ -483,5 +583,48 @@ describe('CodeParser', () => {
 
         // Evaluation.
         expect(lReference.resolveReference()).to.equal(lOriginalPart);
+    });
+
+    describe('Method: setRootGraphPart', () => {
+        it('-- Set root part', () => {
+            // Setup.
+            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lPartName: string = 'Part';
+
+            // Process.
+            lParser.defineGraphPart(lPartName, lParser.graph(), () => { });
+
+            // Evaluation.
+            lParser.setRootGraphPart(lPartName);
+        });
+
+        it('-- Set root part with invalid part name', () => {
+            // Setup.
+            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lPartName: string = 'Part';
+
+            // Process.
+            const lErrorFunction = () => {
+                lParser.setRootGraphPart(lPartName);
+            };
+
+            // Evaluation.
+            expect(lErrorFunction).to.throws(`Path part "${lPartName}" not defined.`);
+        });
+
+        it('-- Set root part with missing data collector', () => {
+            // Setup.
+            const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+            const lPartName: string = 'Part';
+            lParser.defineGraphPart(lPartName, lParser.graph());
+
+            // Process.
+            const lErrorFunction = () => {
+                lParser.setRootGraphPart(lPartName);
+            };
+
+            // Evaluation.
+            expect(lErrorFunction).to.throws(`A root graph part needs a defined data collector.`);
+        });
     });
 });

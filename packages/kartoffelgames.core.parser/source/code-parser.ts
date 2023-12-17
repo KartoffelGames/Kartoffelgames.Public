@@ -23,6 +23,13 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     private mRootPartName: string | null;
 
     /**
+     * Get lexer.
+     */
+    public get lexer(): Lexer<TTokenType> {
+        return this.mLexer;
+    }
+
+    /**
      * Constructor.
      * 
      * @param pLexer - Token lexer.
@@ -125,7 +132,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
         // Validate, that every token was parsed.
         if (lRootParseData.tokenIndex < (lTokenList.length - 1)) {
-            const lLastToken: LexerToken<TTokenType> = lTokenList[lRootParseData.tokenIndex + 1];
+            const lLastToken: LexerToken<TTokenType> = lTokenList.at(-1)!;
             throw new ParserException(`Tokens could not be parsed. Graph end meet without reaching last token "${lLastToken.value}"`, this, lLastToken.columnNumber, lLastToken.lineNumber, lLastToken.columnNumber, lLastToken.lineNumber);
         }
 
@@ -263,11 +270,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             lCollector = lGraphPart.dataCollector;
         } else {
             lRootNode = pPart.branchRoot;
-        }
-
-        // Set grapth root as staring node and validate correct confoguration.
-        if (lRootNode === null) {
-            throw new Exception('A grapth node should not be null', this);
         }
 
         // Parse branch.

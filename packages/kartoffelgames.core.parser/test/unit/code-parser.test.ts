@@ -8,6 +8,7 @@ import { GrammarSingleNode } from '../../source/graph/node/grammer-single-node';
 import { GraphPart } from '../../source/graph/part/graph-part';
 import { GraphPartReference } from '../../source/graph/part/graph-part-reference';
 import { Lexer } from '../../source/lexer/lexer';
+import { ParserException } from '../../source';
 
 describe('CodeParser', () => {
     enum TokenType {
@@ -466,7 +467,7 @@ describe('CodeParser', () => {
             });
         });
 
-        describe('-- Errors', () => {
+        describe('-- Parse Graph Errors', () => {
             it('-- Parse without root part', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
@@ -525,7 +526,9 @@ describe('CodeParser', () => {
                 // Evaluation.
                 expect(lErrorFunction).to.throws(Exception, `Tokens could not be parsed. Graph end meet without reaching last token "identifier"`);
             });
+        });
 
+        describe('-- Identifier errors.', () => {
             it('-- Graph has dublicate single value identifier', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
@@ -566,6 +569,75 @@ describe('CodeParser', () => {
 
                 // Evaluation.
                 expect(lErrorFunction).to.throws(Exception, `Grapth path has a dublicate value identifier "Something" that is not a list value but should be.`);
+            });
+        });
+
+        describe('-- Data collector errors.', () => {
+            it('-- Keep error messages of error objects', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lErrorMessage: string = 'Error message';
+                lParser.defineGraphPart('PartName',
+                    lParser.graph().single('Something', TokenType.Modifier),
+                    () => {
+                        throw new Error(lErrorMessage);
+                    }
+                );
+                lParser.setRootGraphPart('PartName');
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('const');
+                };
+
+                // Evaluation.
+                expect(lErrorFunction).to.throws(ParserException, lErrorMessage);
+            });
+
+            it('-- Keep error messages of string', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lErrorMessage: string = 'Error message';
+                lParser.defineGraphPart('PartName',
+                    lParser.graph().single('Something', TokenType.Modifier),
+                    () => {
+                        throw lErrorMessage;
+                    }
+                );
+                lParser.setRootGraphPart('PartName');
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('const');
+                };
+
+                // Evaluation.
+                expect(lErrorFunction).to.throws(ParserException, lErrorMessage);
+            });
+
+            it('-- Error positions single token.', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lErrorMessage: string = 'Error message';
+                lParser.defineGraphPart('PartName',
+                    lParser.graph().single('Something', TokenType.Modifier),
+                    () => {
+                        throw lErrorMessage;
+                    }
+                );
+                lParser.setRootGraphPart('PartName');
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('const');
+                };
+
+                // Evaluation.
+                const lException = expect(lErrorFunction).to.throws(ParserException);
+                lException.with.property('columnStart', 1);
+                lException.with.property('columnEnd', 6);
+                lException.with.property('lineStart', 1);
+                lException.with.property('lineEnd', 1);
             });
         });
     });

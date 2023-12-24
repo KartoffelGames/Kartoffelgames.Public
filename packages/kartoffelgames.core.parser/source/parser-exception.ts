@@ -1,4 +1,5 @@
 import { Exception } from '@kartoffelgames/core.data';
+import { LexerToken } from './lexer/lexer-token';
 
 /**
  * Extends {@link Exception} by a {@link ParserException.line} and {@link ParserException.column} field.
@@ -10,6 +11,29 @@ import { Exception } from '@kartoffelgames/core.data';
  * @public
  */
 export class ParserException<T> extends Exception<T> {
+    /**
+     * Creates a ParserException object from a token.
+     * 
+     * @template T - The type of the target object.
+     * @template TTokenType - The type of the token.
+     * @param pMessage - The error message.
+     * @param pTarget - The target object.
+     * @param pStartToken - The start token.
+     * @param pEndToken - The end token.
+     * 
+     * @returns A new ParserException object.
+     */
+    public static fromToken<T, TTokenType extends string>(pMessage: string, pTarget: T, pStartToken: LexerToken<TTokenType>, pEndToken: LexerToken<TTokenType>): ParserException<T> {
+        const lLines = pEndToken.value.split('\n');
+
+        // Extends the end token to the end of the last line.
+        const lLineEnd = pEndToken.lineNumber + lLines.length - 1;
+        const lColumnEnd = lLines[lLines.length - 1].length;
+
+        return new ParserException(pMessage, pTarget, pStartToken.columnNumber, pStartToken.lineNumber, lColumnEnd, lLineEnd);
+    }
+
+
     private readonly mColumnEnd: number;
     private readonly mColumnStart: number;
     private readonly mLineEnd: number;
@@ -59,4 +83,5 @@ export class ParserException<T> extends Exception<T> {
         this.mColumnEnd = pColumnEnd;
         this.mLineEnd = pLineEnd;
     }
+
 }

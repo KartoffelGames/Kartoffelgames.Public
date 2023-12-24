@@ -127,13 +127,13 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             }
 
             // At lease one error must be found.
-            throw new ParserException(lErrorPosition!.message, this, lErrorPosition!.errorToken.columnNumber, lErrorPosition!.errorToken.lineNumber, lErrorPosition!.errorToken.columnNumber, lErrorPosition!.errorToken.lineNumber);
+            throw ParserException.fromToken(lErrorPosition!.message, this, lErrorPosition!.errorToken, lErrorPosition!.errorToken);
         }
 
         // Validate, that every token was parsed.
         if (lRootParseData.tokenIndex < (lTokenList.length - 1)) {
             const lLastToken: LexerToken<TTokenType> = lTokenList.at(-1)!;
-            throw new ParserException(`Tokens could not be parsed. Graph end meet without reaching last token "${lLastToken.value}"`, this, lLastToken.columnNumber, lLastToken.lineNumber, lLastToken.columnNumber, lLastToken.lineNumber);
+            throw ParserException.fromToken(`Tokens could not be parsed. Graph end meet without reaching last token "${lLastToken.value}"`, this, lTokenList[lRootParseData.tokenIndex]!, lLastToken);
         }
 
         return <TParseResult>lRootParseData.data;
@@ -286,7 +286,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             try {
                 lResultData = lCollector(lBranchResult.data);
             } catch (pError: any) {
-                const lMessage: string = 'message' in pError ? pError.message : pError.toString();
+                const lMessage: string = typeof pError === 'object' && pError !== null && 'message' in pError ? pError.message : pError.toString();
 
                 // Read start end end token.
                 let lErrorStartToken: LexerToken<TTokenType> | undefined = pTokenList.at(pCurrentTokenIndex);
@@ -311,7 +311,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 if (!lErrorStartToken || !lErrorEndToken) {
                     throw new ParserException(lMessage, this, 0, 0, 0, 0);
                 } else {
-                    throw new ParserException(lMessage, this, lErrorStartToken.columnNumber, lErrorStartToken.lineNumber, lErrorEndToken.columnNumber, lErrorEndToken.lineNumber);
+                    throw ParserException.fromToken(lMessage, this, lErrorStartToken, lErrorEndToken);
                 }
             }
         }

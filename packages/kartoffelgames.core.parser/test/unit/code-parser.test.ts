@@ -379,7 +379,7 @@ describe('CodeParser', () => {
                 expect(lParsedData).has.property('data').and.deep.equals(['one', 'two', 'three', 'four', 'five']);
             });
 
-            it('-- Loop Parsing with same front and back data.', () => {
+            it('-- Loop wrapped greedy parsing.', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lCodeText: string = 'one two three four five';
@@ -402,7 +402,7 @@ describe('CodeParser', () => {
                 expect(lParsedData).has.property('second').and.deep.equals('five');
             });
 
-            it('-- Loop Parsing with same front data and different back data.', () => {
+            it('-- Loop start greedy parsing', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lCodeText: string = 'one two three four five const';
@@ -526,6 +526,32 @@ describe('CodeParser', () => {
                 // Evaluation.
                 expect(lErrorFunction).to.throws(Exception, `Tokens could not be parsed. Graph end meet without reaching last token "identifier"`);
             });
+
+            it('-- Dublicate branching paths', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const identifier;';
+
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('DublicateBranchingCode',
+                    lParser.graph().branch([
+                        lParser.graph().single(TokenType.Modifier).single(TokenType.Identifier),
+                        lParser.graph().single(TokenType.Modifier).single(TokenType.Identifier)
+                    ]).single(TokenType.Semicolon),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('DublicateBranchingCode');
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse(lCodeText);
+                };
+
+                // Evaluation.
+                expect(lErrorFunction).to.throws(Exception, `Graph has ambiguity paths. Values: [[Modifier, "const"], [Identifier, "identifier"]]`);
+            });
         });
 
         describe('-- Identifier errors.', () => {
@@ -635,7 +661,7 @@ describe('CodeParser', () => {
                 // Evaluation.
                 const lException = expect(lErrorFunction).to.throws(ParserException);
                 lException.with.property('columnStart', 1);
-                lException.with.property('columnEnd', 6);
+                lException.with.property('columnEnd', 5);
                 lException.with.property('lineStart', 1);
                 lException.with.property('lineEnd', 1);
             });

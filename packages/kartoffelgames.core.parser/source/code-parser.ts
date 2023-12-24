@@ -382,15 +382,16 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
         // Check for ambiguity paths.
         if (lResultList.filter((pResult: ChainResult) => { return pResult.chainedValue !== null; }).length > 1) {
-            // Always use the looping path to enforce greedy behavious.
+            // Filter only for loop paths to enforce greedy behavious.
+            // Greedy behaviour: When the loop matches as much token as possible until no more valid paths are found.
             lResultList = lResultList.filter((pItem: ChainResult) => { return pItem.chainnode === pNode; });
 
             // Validate if ambiguity paths still exists.
             if (lResultList.filter((pResult: ChainResult) => { return pResult.chainedValue !== null; }).length > 1) {
                 const lDublicatePathList: Array<ChainResult> = lResultList.filter((pResult) => { return pResult.chainedValue !== null; });
-                const lDublicatePathValueList: Array<string> = lDublicatePathList.map((pItem) => { return `[${JSON.stringify(pItem.nodeValue.data)}, ${JSON.stringify(pItem.chainedValue?.data)}]`; });
+                const lDublicatePathValueList: Array<string> = lDublicatePathList.map((pItem) => { return `[${JSON.stringify(pItem.nodeValue.data)}, "${JSON.stringify(pItem.chainedValue?.data)}]"`; });
 
-                throw new Exception(`Graph has ambiguity paths. Values: [\n\t${lDublicatePathValueList.join(', \n\t')}\n]`, this);
+                throw new Exception(`Graph has ambiguity paths. Values: [${lDublicatePathValueList.join(', ')}]`, this);
             }
         }
 

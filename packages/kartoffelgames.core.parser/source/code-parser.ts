@@ -183,30 +183,24 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * When the parsing fails for this node or a brother node, a complete list with all potential errors are returned instead of the token data.
      */
     private parseGraphNode(pNode: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number): GraphNodeParseResult | Array<GraphParseError<TTokenType>> {
-        // Error buffer. Bundles all parser errors so on an error case an detailed error detection can be made.
-        const lErrorList: Array<GraphParseError<TTokenType>> = new Array<GraphParseError<TTokenType>>();
-
         // Parse and read current node values. Add each error to the complete error list.
-        const lNodeValueParseResult: GraphNodeValueParse<TTokenType> = this.retrieveNodeValues(pNode, pTokenList, pCurrentTokenIndex);
-        lErrorList.push(...lNodeValueParseResult.errorList);
+        const lNodeValueParseResult: GraphNodeValueParseSuccess | GraphNodeValueParseError<TTokenType> = this.retrieveNodeValues(pNode, pTokenList, pCurrentTokenIndex);
 
         // Return parser error when no parse value was found.
-        if (lNodeValueParseResult.resultList.length === 0) {
-            return lErrorList;
+        if ('errorList' in lNodeValueParseResult) {
+            return lNodeValueParseResult.errorList;
         }
 
         // Parse and read data of chanined nodes. Add each error to the complete error list.
-        const lChainParseResult: GraphNodeParse<TTokenType> = this.retrieveChainedValues(pNode, lNodeValueParseResult.resultList, pTokenList);
-        lErrorList.push(...lChainParseResult.errorList);
-
-        // Return parser error when no parse result was found.
-        if (!lChainParseResult.result) {
-            return lErrorList;
+        // When result contains errors, return the error list.
+        const lChainParseResult: GraphBranchResult | Array<GraphParseError<TTokenType>> = this.retrieveChainedValues(pNode, lNodeValueParseResult.resultList, pTokenList);
+        if (Array.isArray(lChainParseResult)) {
+            return lChainParseResult;
         }
 
         // Read last used token index of branch and polyfill branch data when this node was the last node of this branch.
-        const lData: Record<string, unknown> = lChainParseResult.result.chainData;
-        const lNodeValue: unknown = lChainParseResult.result.nodeData;
+        const lData: Record<string, unknown> = lChainParseResult.chainData;
+        const lNodeValue: unknown = lChainParseResult.nodeData;
 
         // Merge data. Current node data into chained node data.
         // Merge only when the current node has a value (not optional/skipped) and has a identifier. 
@@ -244,7 +238,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
         return {
             data: lData,
-            tokenIndex: lChainParseResult.result.tokenIndex
+            tokenIndex: lChainParseResult.tokenIndex
         };
     }
 
@@ -335,7 +329,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @throws {@link Exception}
      * When more than one branch resolves to be valid.
      */
-    private retrieveChainedValues(pNode: BaseGrammarNode<TTokenType>, pBranchValues: Array<GraphNodeValueParseResult>, pTokenList: Array<LexerToken<TTokenType>>): GraphNodeParse<TTokenType> {
+    private retrieveChainedValues(pNode: BaseGrammarNode<TTokenType>, pBranchValues: Array<GraphNodeValueParseResult>, pTokenList: Array<LexerToken<TTokenType>>): GraphBranchResult | Array<GraphParseError<TTokenType>> {
         const lErrorList: Array<GraphParseError<TTokenType>> = new Array<GraphParseError<TTokenType>>();
 
         type ChainResult = {
@@ -396,7 +390,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         }
 
         // Read single branching result. Polyfill in missing values or when no result exists, use no result. 
-        let lBranchingResult: GraphBranchResult | null;
+        let lBranchingResult: GraphBranchResult | null = null;
         if (lResultList.length > 0) {
             // Find sucessfull branch value or when is does not exists, go for the branch end. At least one of these exists.
             const lBranchValues: ChainResult = lResultList.find((pResult) => { return pResult.chainedValue !== null; }) ?? lResultList.find((pResult) => { return pResult.chainedValue === null; })!;
@@ -407,14 +401,14 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 chainData: lBranchValues.chainedValue?.data ?? {},
                 tokenIndex: lBranchValues.chainedValue?.tokenIndex ?? lBranchValues.nodeValue.tokenIndex
             };
-        } else {
-            lBranchingResult = null;
         }
 
-        return {
-            result: lBranchingResult,
-            errorList: lErrorList
-        };
+        // Return error list when no result was found.
+        if (lBranchingResult === null) {
+            return lErrorList;
+        }
+
+        return lBranchingResult;
     }
 
     /**
@@ -430,35 +424,34 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * 
      * @returns A error and a result list.
      */
-    private retrieveNodeValues(pNode: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number): GraphNodeValueParse<TTokenType> {
+    private retrieveNodeValues(pNode: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number): GraphNodeValueParseSuccess | GraphNodeValueParseError<TTokenType> {
         // Read next token.
         const lCurrentToken: LexerToken<TTokenType> | undefined = pTokenList.at(pCurrentTokenIndex);
-
-        // Error buffer. Bundles all parser errors so on an error case an detailed error detection can be made.
-        const lErrorList: Array<GraphParseError<TTokenType>> = new Array<GraphParseError<TTokenType>>();
-        const lResultList: Array<GraphNodeValueParseResult> = new Array<GraphNodeValueParseResult>();
 
         // When no current token was found. Skip node value parsing.
         if (!lCurrentToken) {
             // Add empty data result, when the node was optional
-            if (!pNode.required) {
-                lResultList.push({
-                    data: undefined,
-                    tokenIndex: pCurrentTokenIndex - 1,
-                    emptyValue: true
-                });
-            } else {
-                lErrorList.push({
-                    message: `Unexpected end of statement. TokenIndex: "${pCurrentTokenIndex}" missing.`,
-                    errorToken: pTokenList.at(-1)!
-                });
+            if (pNode.required) {
+                return {
+                    errorList: [{
+                        message: `Unexpected end of statement. TokenIndex: "${pCurrentTokenIndex}" missing.`,
+                        errorToken: pTokenList.at(-1)!
+                    }]
+                };
             }
 
             return {
-                errorList: lErrorList,
-                resultList: lResultList
+                resultList: [{
+                    data: undefined,
+                    tokenIndex: pCurrentTokenIndex - 1,
+                    emptyValue: true
+                }]
             };
         }
+
+        // Error buffer. Bundles all parser errors so on an error case an detailed error detection can be made.
+        const lErrorList: Array<GraphParseError<TTokenType>> = new Array<GraphParseError<TTokenType>>();
+        const lResultList: Array<GraphNodeValueParseResult> = new Array<GraphNodeValueParseResult>();
 
         // Process each node value.
         for (const lNodeValue of pNode.nodeValues) {
@@ -511,8 +504,14 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             });
         }
 
+        // Return error list when no result was found.
+        if (lResultList.length === 0) {
+            return {
+                errorList: lErrorList
+            };
+        }
+
         return {
-            errorList: lErrorList,
             resultList: lResultList
         };
     }
@@ -539,8 +538,11 @@ type GraphParseError<TTokenType extends string> = {
     errorToken: LexerToken<TTokenType>;
 };
 
-type GraphNodeValueParse<TTokenType extends string> = {
+type GraphNodeValueParseSuccess = {
     resultList: Array<GraphNodeValueParseResult>;
+};
+
+type GraphNodeValueParseError<TTokenType extends string> = {
     errorList: Array<GraphParseError<TTokenType>>;
 };
 
@@ -548,9 +550,4 @@ type GraphBranchResult = {
     nodeData: unknown;
     chainData: Record<string, unknown>;
     tokenIndex: number;
-};
-
-type GraphNodeParse<TTokenType extends string> = {
-    result: GraphBranchResult | null;
-    errorList: Array<GraphParseError<TTokenType>>;
 };

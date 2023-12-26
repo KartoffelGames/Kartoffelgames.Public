@@ -1,4 +1,6 @@
 // @ts-check
+const webpack = require('webpack');
+
 module.exports = class Resolver {
     _packLoader;
 
@@ -101,7 +103,10 @@ module.exports = class Resolver {
         const lBuildSettings = this._packLoader.autoConfig();
 
         return {
-            devtool: 'source-map',
+            devtool: false,
+            plugins: [new webpack.SourceMapDevToolPlugin({
+                filename: '[file].map[query]',
+            })],
             target: lBuildSettings.target,
             entry: lBuildSettings.entryFile,
             mode: lBuildSettings.buildMode,

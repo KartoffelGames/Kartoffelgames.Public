@@ -550,7 +550,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).to.throws(Exception, `Graph has ambiguity paths. Values: [[Modifier, "const"], [Identifier, "identifier"]]`);
+                expect(lErrorFunction).to.throws(Exception, `Graph has ambiguity paths. Values: [\n\t{ const(Modifier) identifier(Identifier) ;(Semicolon) },\n\t{ const(Modifier) identifier(Identifier) ;(Semicolon) }\n]`);
             });
         });
 

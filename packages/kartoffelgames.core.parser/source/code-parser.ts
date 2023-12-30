@@ -378,16 +378,26 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         if (lResultList.filter((pResult: ChainResult) => { return pResult.chainedValue !== null; }).length > 1) {
             // When a loop node exists use only this looping nodes, omit any other node.
             const lLoopNodeList: Array<ChainResult> = lResultList.filter((pResult: ChainResult) => { return pResult.chainedValue !== null && pResult.chainnode === pNode; });
-            if(lLoopNodeList.length > 0) {
+            if (lLoopNodeList.length > 0) {
                 lResultList = lLoopNodeList;
             }
 
             // Validate if ambiguity paths still exists.
-            if (lResultList.filter((pResult: ChainResult) => { return pResult.chainedValue !== null; }).length > 1) {
-                const lDublicatePathList: Array<ChainResult> = lResultList.filter((pResult) => { return pResult.chainedValue !== null; });
-                const lDublicatePathValueList: Array<string> = lDublicatePathList.map((pItem) => { return `[${JSON.stringify(pItem.chainnode?.valueType)}, "${JSON.stringify(pItem.chainedValue?.data)}]"`; });
+            const lAmbiguityPathList: Array<ChainResult> = lResultList.filter((pResult) => { return pResult.chainedValue !== null; });
+            if (lAmbiguityPathList.length > 1) {
+                // Recreate token path of every ambiguity path.
+                const lAmbiguityPathDescriptionList: Array<string> = new Array<string>();
+                for (const lAmbiguityPath of lAmbiguityPathList) {
+                    const lAmbiguityPathDescription: string = pTokenList.slice(lAmbiguityPath.branchValue.tokenIndex - 1, lAmbiguityPath.chainedValue!.tokenIndex + 1)
+                        .reduce((pPreviousValue: string, pCurrentValue: LexerToken<TTokenType>) => {
+                            return `${pPreviousValue} ${pCurrentValue.value}(${pCurrentValue.type})`;
+                        }, '');
 
-                throw new Exception(`Graph has ambiguity paths. Values: [${lDublicatePathValueList.join(', ')}]`, this);
+                    // Iterate over all token and save each of the path.
+                    lAmbiguityPathDescriptionList.push(`{${lAmbiguityPathDescription} }`);
+                }
+
+                throw new Exception(`Graph has ambiguity paths. Values: [\n\t${lAmbiguityPathDescriptionList.join(',\n\t')}\n]`, this);
             }
         }
 

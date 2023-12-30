@@ -278,7 +278,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         let lResultData: Record<string, unknown> | unknown = lBranchResult.data;
         if (lCollector) {
             try {
-                lResultData = lCollector(lBranchResult.data);
+                lResultData = lCollector(lResultData);
             } catch (pError: any) {
                 const lMessage: string = typeof pError === 'object' && pError !== null && 'message' in pError ? pError.message : pError.toString();
 

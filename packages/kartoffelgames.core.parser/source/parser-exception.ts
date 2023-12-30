@@ -26,9 +26,12 @@ export class ParserException<T> extends Exception<T> {
     public static fromToken<T, TTokenType extends string>(pMessage: string, pTarget: T, pStartToken: LexerToken<TTokenType>, pEndToken: LexerToken<TTokenType>): ParserException<T> {
         const lLines = pEndToken.value.split('\n');
 
-        // Extends the end token to the end of the last line.
-        const lLineEnd = pEndToken.lineNumber + lLines.length - 1;
-        const lColumnEnd = lLines[lLines.length - 1].length;
+        // Extends the end token line end.
+        const lLineEnd: number = pEndToken.lineNumber + lLines.length - 1;
+
+        // Set column end based on, if the token is multiline or not.
+        let lColumnEnd: number = (lLines.length > 1) ? 0 : pEndToken.columnNumber;
+        lColumnEnd += lLines[0].length;
 
         return new ParserException(pMessage, pTarget, pStartToken.columnNumber, pStartToken.lineNumber, lColumnEnd, lLineEnd);
     }

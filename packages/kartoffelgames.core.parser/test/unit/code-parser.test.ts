@@ -604,7 +604,7 @@ describe('CodeParser', () => {
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lErrorMessage: string = 'Error message';
                 lParser.defineGraphPart('PartName',
-                    lParser.graph().single('Something', TokenType.Modifier),
+                    lParser.graph().single(TokenType.Modifier),
                     () => {
                         throw new Error(lErrorMessage);
                     }
@@ -625,7 +625,7 @@ describe('CodeParser', () => {
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lErrorMessage: string = 'Error message';
                 lParser.defineGraphPart('PartName',
-                    lParser.graph().single('Something', TokenType.Modifier),
+                    lParser.graph().single(TokenType.Modifier),
                     () => {
                         throw lErrorMessage;
                     }
@@ -646,7 +646,7 @@ describe('CodeParser', () => {
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lErrorMessage: string = 'Error message';
                 lParser.defineGraphPart('PartName',
-                    lParser.graph().single('Something', TokenType.Modifier),
+                    lParser.graph().single(TokenType.Modifier),
                     () => {
                         throw lErrorMessage;
                     }
@@ -661,9 +661,59 @@ describe('CodeParser', () => {
                 // Evaluation.
                 const lException = expect(lErrorFunction).to.throws(ParserException);
                 lException.with.property('columnStart', 1);
-                lException.with.property('columnEnd', 5);
+                lException.with.property('columnEnd', 6);
                 lException.with.property('lineStart', 1);
                 lException.with.property('lineEnd', 1);
+            });
+
+            it('-- Error positions chained token without newline.', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lErrorMessage: string = 'Error message';
+                lParser.defineGraphPart('PartName',
+                    lParser.graph().single(TokenType.Modifier).single(TokenType.Modifier),
+                    () => {
+                        throw lErrorMessage;
+                    }
+                );
+                lParser.setRootGraphPart('PartName');
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('const const');
+                };
+
+                // Evaluation.
+                const lException = expect(lErrorFunction).to.throws(ParserException);
+                lException.with.property('columnStart', 1);
+                lException.with.property('columnEnd', 12);
+                lException.with.property('lineStart', 1);
+                lException.with.property('lineEnd', 1);
+            });
+
+            it('-- Error positions chained token with newline.', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lErrorMessage: string = 'Error message';
+                lParser.defineGraphPart('PartName',
+                    lParser.graph().single(TokenType.Modifier).single(TokenType.Modifier),
+                    () => {
+                        throw lErrorMessage;
+                    }
+                );
+                lParser.setRootGraphPart('PartName');
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('const\nconst');
+                };
+
+                // Evaluation.
+                const lException = expect(lErrorFunction).to.throws(ParserException);
+                lException.with.property('columnStart', 1);
+                lException.with.property('columnEnd', 6);
+                lException.with.property('lineStart', 1);
+                lException.with.property('lineEnd', 2);
             });
         });
     });

@@ -335,7 +335,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         type ChainResult = {
             chainedValue: GraphNodeParseResult | null;
             chainnode: BaseGrammarNode<TTokenType> | null;
-            nodeValue: GraphNodeValueParseResult;
+            branchValue: GraphNodeValueParseResult;
         };
 
         // Run chained node parse for each branch value and check for dublicates after that.
@@ -348,7 +348,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     lResultList.push({
                         chainnode: lChainedNode,
                         chainedValue: null,
-                        nodeValue: lBranch
+                        branchValue: lBranch
                     });
                     continue;
                 }
@@ -369,21 +369,23 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 lResultList.push({
                     chainnode: lChainedNode,
                     chainedValue: lChainedNodeParseResult,
-                    nodeValue: lBranch
+                    branchValue: lBranch
                 });
             }
         }
 
         // Check for ambiguity paths.
         if (lResultList.filter((pResult: ChainResult) => { return pResult.chainedValue !== null; }).length > 1) {
-            // Filter only for loop paths to enforce greedy behavious.
-            // Greedy behaviour: When the loop matches as much token as possible until no more valid paths are found.
-            lResultList = lResultList.filter((pItem: ChainResult) => { return pItem.chainnode === pNode; });
+            // When a loop node exists use only this looping nodes, omit any other node.
+            const lLoopNodeList: Array<ChainResult> = lResultList.filter((pResult: ChainResult) => { return pResult.chainedValue !== null && pResult.chainnode === pNode; });
+            if(lLoopNodeList.length > 0) {
+                lResultList = lLoopNodeList;
+            }
 
             // Validate if ambiguity paths still exists.
             if (lResultList.filter((pResult: ChainResult) => { return pResult.chainedValue !== null; }).length > 1) {
                 const lDublicatePathList: Array<ChainResult> = lResultList.filter((pResult) => { return pResult.chainedValue !== null; });
-                const lDublicatePathValueList: Array<string> = lDublicatePathList.map((pItem) => { return `[${JSON.stringify(pItem.nodeValue.data)}, "${JSON.stringify(pItem.chainedValue?.data)}]"`; });
+                const lDublicatePathValueList: Array<string> = lDublicatePathList.map((pItem) => { return `[${JSON.stringify(pItem.chainnode?.valueType)}, "${JSON.stringify(pItem.chainedValue?.data)}]"`; });
 
                 throw new Exception(`Graph has ambiguity paths. Values: [${lDublicatePathValueList.join(', ')}]`, this);
             }
@@ -397,9 +399,9 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
             // Read last used token index of branch and polyfill branch data when this node was the last node of this branch.
             lBranchingResult = {
-                nodeData: lBranchValues.nodeValue.data,
+                nodeData: lBranchValues.branchValue.data,
                 chainData: lBranchValues.chainedValue?.data ?? {},
-                tokenIndex: lBranchValues.chainedValue?.tokenIndex ?? lBranchValues.nodeValue.tokenIndex
+                tokenIndex: lBranchValues.chainedValue?.tokenIndex ?? lBranchValues.branchValue.tokenIndex
             };
         }
 

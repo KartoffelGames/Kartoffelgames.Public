@@ -762,6 +762,36 @@ describe('CodeParser', () => {
                 lException.with.property('lineStart', 1);
                 lException.with.property('lineEnd', 1);
             });
+
+            it('-- Error after line break.', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lErrorMessage: string = 'Error message';
+                lParser.defineGraphPart('PartName',
+                    lParser.graph().branch([
+                        lParser.graph().single(TokenType.Modifier).single(TokenType.Semicolon),
+                        lParser.graph().single(TokenType.Modifier).single(TokenType.Identifier).single(TokenType.Semicolon),
+                    ]),
+                    () => {
+                        throw lErrorMessage;
+                    }
+                );
+                lParser.setRootGraphPart('PartName');
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('const \nidentifier error');
+                };
+
+                // Evaluation.
+                const lException = expect(lErrorFunction).to.throws(ParserException);
+                lException.with.property('columnStart', 12);
+                lException.with.property('columnEnd', 17);
+                lException.with.property('lineStart', 2);
+                lException.with.property('lineEnd', 2);
+            });
+
+            // TODO: Error with an multiline token.
         });
     });
 

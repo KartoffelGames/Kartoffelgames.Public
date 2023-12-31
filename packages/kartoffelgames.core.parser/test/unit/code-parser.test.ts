@@ -764,7 +764,7 @@ describe('CodeParser', () => {
                 lException.with.property('lineEnd', 1);
             });
 
-            it('-- Error after line break.', () => {
+            it('-- Multi error after line break.', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lErrorMessage: string = 'Error message';

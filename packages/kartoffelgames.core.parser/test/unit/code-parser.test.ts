@@ -691,6 +691,28 @@ describe('CodeParser', () => {
                 lException.with.property('lineEnd', 1);
             });
 
+            it('-- Error rethrow on parser erro.', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lError: ParserException<any> = new ParserException('', null, 2, 3, 4, 5);
+                lParser.defineGraphPart('PartName',
+                    lParser.graph().single(TokenType.Modifier),
+                    () => {
+                        throw lError;
+                    }
+                );
+                lParser.setRootGraphPart('PartName');
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('const');
+                };
+
+                // Evaluation.
+                const lException = expect(lErrorFunction).to.throws(ParserException);
+                lException.equal(lError);
+            });
+
             it('-- Error positions chained token with newline.', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
@@ -714,6 +736,31 @@ describe('CodeParser', () => {
                 lException.with.property('columnEnd', 6);
                 lException.with.property('lineStart', 1);
                 lException.with.property('lineEnd', 2);
+            });
+
+            it('-- Error positions with only optional token.', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lErrorMessage: string = 'Error message';
+                lParser.defineGraphPart('PartName',
+                    lParser.graph().optional(TokenType.Modifier),
+                    () => {
+                        throw lErrorMessage;
+                    }
+                );
+                lParser.setRootGraphPart('PartName');
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('');
+                };
+
+                // Evaluation.
+                const lException = expect(lErrorFunction).to.throws(ParserException);
+                lException.with.property('columnStart', 1);
+                lException.with.property('columnEnd', 1);
+                lException.with.property('lineStart', 1);
+                lException.with.property('lineEnd', 1);
             });
         });
     });

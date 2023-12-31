@@ -280,30 +280,20 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             try {
                 lResultData = lCollector(lResultData);
             } catch (pError: any) {
+                // Rethrow parser exception.
+                if(pError instanceof ParserException) {
+                    throw pError;
+                }
+
                 const lMessage: string = typeof pError === 'object' && pError !== null && 'message' in pError ? pError.message : pError.toString();
 
                 // Read start end end token.
-                let lErrorStartToken: LexerToken<TTokenType> | undefined = pTokenList.at(pCurrentTokenIndex);
-                let lErrorEndToken: LexerToken<TTokenType> | undefined = pTokenList.at(lBranchResult.tokenIndex);
-
-                // Fill in previous start token when the current token has no value.
-                if (!lErrorStartToken) {
-                    lErrorStartToken = pTokenList.at(pCurrentTokenIndex - 1);
-                }
-
-                // Fill in previous end token when the current end token has no value.
-                if (!lErrorEndToken) {
-                    lErrorEndToken = pTokenList.at(lBranchResult.tokenIndex - 1);
-                }
-
-                // Set end token to start token, when no token was found whatsoever.
-                if (!lErrorEndToken) {
-                    lErrorEndToken = lErrorStartToken;
-                }
+                const lErrorStartToken: LexerToken<TTokenType> | undefined = pTokenList.at(pCurrentTokenIndex);
+                const lErrorEndToken: LexerToken<TTokenType> | undefined = pTokenList.at(lBranchResult.tokenIndex);
 
                 // When no token was processed, throw default error on first token.
                 if (!lErrorStartToken || !lErrorEndToken) {
-                    throw new ParserException(lMessage, this, 0, 0, 0, 0);
+                    throw new ParserException(lMessage, this, 1, 1, 1, 1);
                 } else {
                     throw ParserException.fromToken(lMessage, this, lErrorStartToken, lErrorEndToken);
                 }

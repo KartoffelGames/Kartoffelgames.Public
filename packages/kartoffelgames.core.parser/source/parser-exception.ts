@@ -30,8 +30,8 @@ export class ParserException<T> extends Exception<T> {
         const lLineEnd: number = pEndToken.lineNumber + lLines.length - 1;
 
         // Set column end based on, if the token is multiline or not.
-        let lColumnEnd: number = (lLines.length > 1) ? 0 : pEndToken.columnNumber;
-        lColumnEnd += lLines[0].length;
+        let lColumnEnd: number = (lLines.length > 1) ? 1 : pEndToken.columnNumber;
+        lColumnEnd += lLines.at(-1)!.length;
 
         return new ParserException(pMessage, pTarget, pStartToken.columnNumber, pStartToken.lineNumber, lColumnEnd, lLineEnd);
     }

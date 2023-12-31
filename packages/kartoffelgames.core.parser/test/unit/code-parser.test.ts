@@ -18,7 +18,8 @@ describe('CodeParser', () => {
         TypeDelimiter = 'TypeDelimiter',
         Semicolon = 'Semicolon',
         String = 'String',
-        Number = 'Number'
+        Number = 'Number',
+        Custom = 'Custom'
     }
 
     const lCreateLexer = (): Lexer<TokenType> => {
@@ -791,7 +792,32 @@ describe('CodeParser', () => {
                 lException.with.property('lineEnd', 2);
             });
 
-            // TODO: Error with an multiline token.
+            it('-- Error with an multiline token.', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                lParser.lexer.addTokenPattern({ pattern: { regex: /new\nline/, type: TokenType.Custom }, specificity: 0 });
+
+                const lErrorMessage: string = 'Error message';
+                lParser.defineGraphPart('PartName',
+                    lParser.graph().single(TokenType.Modifier).single(TokenType.Identifier).single(TokenType.Semicolon),
+                    () => {
+                        throw lErrorMessage;
+                    }
+                );
+                lParser.setRootGraphPart('PartName');
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('const identifier new\nline');
+                };
+
+                // Evaluation.
+                const lException = expect(lErrorFunction).to.throws(ParserException);
+                lException.with.property('columnStart', 18);
+                lException.with.property('columnEnd', 5);
+                lException.with.property('lineStart', 1);
+                lException.with.property('lineEnd', 2);
+            });
         });
     });
 

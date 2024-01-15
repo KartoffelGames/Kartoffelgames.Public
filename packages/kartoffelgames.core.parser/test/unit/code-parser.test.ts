@@ -597,6 +597,27 @@ describe('CodeParser', () => {
                 // Evaluation.
                 expect(lErrorFunction).to.throws(Exception, `Grapth path has a dublicate value identifier "Something" that is not a list value but should be.`);
             });
+
+            it('-- Not completing to end and failing on the first token..', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lPartName: string = 'FailingToEnd';
+                lParser.defineGraphPart(lPartName,
+                    lParser.graph().optional(TokenType.Modifier),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart(lPartName);
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('Notconst');
+                };
+
+                // Evaluation.
+                expect(lErrorFunction).to.throws(Exception, `Tokens could not be parsed. Graph end meet without reaching last token "Notconst"`);
+            });
         });
 
         describe('-- Data collector errors.', () => {

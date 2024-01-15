@@ -132,8 +132,12 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
         // Validate, that every token was parsed.
         if (lRootParseData.tokenIndex < (lTokenList.length - 1)) {
+            // Find current token. 
             const lLastToken: LexerToken<TTokenType> = lTokenList.at(-1)!;
-            throw ParserException.fromToken(`Tokens could not be parsed. Graph end meet without reaching last token "${lLastToken.value}"`, this, lTokenList[lRootParseData.tokenIndex]!, lLastToken);
+            // Token index can be less than zero when it fails on the first token.
+            const lCurrentToken: LexerToken<TTokenType> = (lRootParseData.tokenIndex < 0) ? lTokenList[0] : lTokenList[lRootParseData.tokenIndex]!;
+
+            throw ParserException.fromToken(`Tokens could not be parsed. Graph end meet without reaching last token "${lLastToken.value}"`, this, lCurrentToken, lLastToken);
         }
 
         return <TParseResult>lRootParseData.data;
@@ -281,7 +285,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 lResultData = lCollector(lResultData);
             } catch (pError: any) {
                 // Rethrow parser exception.
-                if(pError instanceof ParserException) {
+                if (pError instanceof ParserException) {
                     throw pError;
                 }
 

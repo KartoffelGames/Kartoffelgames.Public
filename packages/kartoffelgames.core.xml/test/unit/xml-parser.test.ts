@@ -6,6 +6,7 @@ import { XmlAttribute } from '../../source/attribute/xml-attribute';
 import { TextNode } from '../../source/node/text-node';
 import { XmlDocument } from '../../source/document/xml-document';
 import { Exception } from '@kartoffelgames/core.data';
+import { ParserException } from '@kartoffelgames/core.parser';
 
 describe('XmlParser', () => {
     describe('Method: parse', () => {
@@ -63,12 +64,30 @@ describe('XmlParser', () => {
                 expect(lXmlRoot.text).to.equal(lCommentText);
             });
 
-            it('-- TextNode', () => {
+            it('-- TextNode blank', () => {
                 // Setup. Specify values.
                 const lText: string = 'TextNodeText';
 
                 // Setup. Parse XML String.
                 const lXmlString: string = lText;
+                const lParser: XmlParser = new XmlParser();
+
+                // Process.
+                const lXmlResult: XmlDocument = lParser.parse(lXmlString);
+                const lXmlRoot: TextNode = <TextNode>lXmlResult.body[0];
+
+                // Evaluation.
+                expect(lXmlResult.body).to.has.lengthOf(1);
+                expect(lXmlRoot.text).to.equal(lText);
+            });
+
+            it('-- TextNode quotation marks', () => {
+                // Setup. Specify values.
+                const lText: string = 'TextNodeText';
+                const lTextWithHyphen: string = `"${lText}"`;
+
+                // Setup. Parse XML String.
+                const lXmlString: string = lTextWithHyphen;
                 const lParser: XmlParser = new XmlParser();
 
                 // Process.
@@ -157,39 +176,41 @@ describe('XmlParser', () => {
             });
         });
 
-        it('-- Normalize multiline attribute values', () => {
-            // Setup. Specify values.
-            const lNamespacedAttributeName: string = 'namespacedattr';
-            const lAttributeValue: string = `Multi
+        describe('-- Multiline values', () => {
+            it('-- Normalize multiline attribute values', () => {
+                // Setup. Specify values.
+                const lNamespacedAttributeName: string = 'namespacedattr';
+                const lAttributeValue: string = `Multi
                                              Line`;
 
-            // Setup. Parse XML String.
-            const lXmlString: string = `<node ${lNamespacedAttributeName}="${lAttributeValue}" />`;
-            const lParser: XmlParser = new XmlParser();
-            const lXmlElement: XmlElement = <XmlElement>lParser.parse(lXmlString).body[0];
+                // Setup. Parse XML String.
+                const lXmlString: string = `<node ${lNamespacedAttributeName}="${lAttributeValue}" />`;
+                const lParser: XmlParser = new XmlParser();
+                const lXmlElement: XmlElement = <XmlElement>lParser.parse(lXmlString).body[0];
 
-            // Process.
-            const lNamespacedAttribute: XmlAttribute | undefined = lXmlElement.getAttribute(lNamespacedAttributeName);
+                // Process.
+                const lNamespacedAttribute: XmlAttribute | undefined = lXmlElement.getAttribute(lNamespacedAttributeName);
 
-            // Evaluation.
-            expect(lNamespacedAttribute?.value).to.equal(lAttributeValue.replace('\n', ' '));
-        });
+                // Evaluation.
+                expect(lNamespacedAttribute?.value).to.equal(lAttributeValue);
+            });
 
-        it('-- Multiline text node', () => {
-            // Setup. Specify values.
-            const lText: string = `Multi
+            it('-- Multiline text node', () => {
+                // Setup. Specify values.
+                const lText: string = `Multi
                                    Line`;
 
-            // Setup. Parse XML String.
-            const lXmlString: string = `<node>${lText}</node>`;
-            const lParser: XmlParser = new XmlParser();
-            const lXmlElement: XmlElement = <XmlElement>lParser.parse(lXmlString).body[0];
+                // Setup. Parse XML String.
+                const lXmlString: string = `<node>${lText}</node>`;
+                const lParser: XmlParser = new XmlParser();
+                const lXmlElement: XmlElement = <XmlElement>lParser.parse(lXmlString).body[0];
 
-            // Process.
-            const lTextNode: TextNode = <TextNode>lXmlElement.childList[0];
+                // Process.
+                const lTextNode: TextNode = <TextNode>lXmlElement.childList[0];
 
-            // Evaluation.
-            expect(lTextNode.text).to.equal(lText);
+                // Evaluation.
+                expect(lTextNode.text).to.equal(lText);
+            });
         });
 
         it('-- Opening child with same tagname', () => {
@@ -235,6 +256,37 @@ describe('XmlParser', () => {
             expect(lChild.tagName).to.equal(lTagName);
             expect(lChild.childList).to.be.empty;
         });
+
+        it('-- Mixed content', () => {
+            // Setup. Specify values.
+            const lBlankText: string = 'TextNodeText';
+            const lQuotationText: string = '"with <and stuff> quotation"';
+            const lQuotationNodeText: string = '"My Content"';
+            const lBlankNodeText: string = 'My blank content';
+            const lText: string = `${lBlankText}${lQuotationText}<quotation>${lQuotationNodeText}</quotation><blank>${lBlankNodeText}</blank>`;
+
+            // Setup. Parse XML String.
+            const lXmlString: string = lText;
+            const lParser: XmlParser = new XmlParser();
+
+            // Process.
+            const lXmlResult: XmlDocument = lParser.parse(lXmlString);
+
+            // Process read contents.
+            const lBlankTextNode: TextNode = <TextNode>lXmlResult.body[0];
+            const lQuotationTextNode: TextNode = <TextNode>lXmlResult.body[1];
+            const lQuotationXmlNode: XmlElement = <XmlElement>lXmlResult.body[2];
+            const lQuotationXmlNodeTextNode: TextNode = <TextNode>lQuotationXmlNode.childList[0];
+            const lBlankXmlNode: XmlElement = <XmlElement>lXmlResult.body[3];
+            const lBlankXmlNodeTextNode: TextNode = <TextNode>lBlankXmlNode.childList[0];
+
+            // Evaluation.
+            expect(lXmlResult.body).to.has.lengthOf(4);
+            expect(lBlankTextNode.text).to.equal(lBlankText);
+            expect(lQuotationTextNode.text).to.equal(lQuotationText.replaceAll('"', ''));
+            expect(lQuotationXmlNodeTextNode.text).to.equal(lQuotationNodeText.replaceAll('"', ''));
+            expect(lBlankXmlNodeTextNode.text).to.equal(lBlankNodeText);
+        });
     });
 
     describe('Functionality: Parser error', () => {
@@ -250,7 +302,7 @@ describe('XmlParser', () => {
             };
 
             // Evaluation.
-            expect(lFailingFunction).to.throw(`Can't parse attribute part: "${lWrongAttribute}"`);
+            expect(lFailingFunction).to.throw(ParserException, /noneclosing/);
         });
 
         it('-- Unexpected closing tag', () => {
@@ -265,7 +317,21 @@ describe('XmlParser', () => {
             };
 
             // Evaluation.
-            expect(lFailingFunction).to.throw(`Error unexpected closing XML-Tag ${lClosingNode}`);
+            expect(lFailingFunction).to.throw(ParserException, /unexpectedclosing/);
+        });
+
+        it('-- Different closing namespace', () => {
+            // Setup.
+            const lXmlString: string = `<t:node></d:node>`;
+            const lParser: XmlParser = new XmlParser();
+
+            // Process.
+            const lFailingFunction = () => {
+                lParser.parse(lXmlString);
+            };
+
+            // Evaluation.
+            expect(lFailingFunction).to.throw(ParserException, /namespace/);
         });
 
         it(`-- Can't close tag`, () => {
@@ -280,12 +346,12 @@ describe('XmlParser', () => {
             };
 
             // Evaluation.
-            expect(lFailingFunction).to.throw(`Error closing XML-Tag ${lClosingNode}`);
+            expect(lFailingFunction).to.throw(ParserException, /Tokens could not be parsed./);
         });
     });
 
     describe('Functionality: Settings', () => {
-        it('-- Remove comment', () => {
+        it('-- Remove comment in document', () => {
             // Setup.
             const lXmlString: string = `<!-- Comment -->`;
             const lParser: XmlParser = new XmlParser({ removeComments: true });
@@ -295,6 +361,19 @@ describe('XmlParser', () => {
 
             // Evaluation.
             expect(lParsedDocument.body).to.be.empty;
+        });
+
+        it('-- Remove comment in xml tag', () => {
+            // Setup.
+            const lXmlString: string = `<node><!-- Comment --></node>`;
+            const lParser: XmlParser = new XmlParser({ removeComments: true });
+
+            // Process.
+            const lParsedDocument: XmlDocument = lParser.parse(lXmlString);
+            const lParsedXmlNode: XmlElement = <XmlElement>lParsedDocument.body[0];
+
+            // Evaluation.
+            expect(lParsedXmlNode.childList).to.be.empty;
         });
 
         it('-- Restrict attribute characters', () => {

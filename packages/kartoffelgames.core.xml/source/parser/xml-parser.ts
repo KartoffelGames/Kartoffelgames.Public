@@ -8,7 +8,7 @@ export class XmlParser extends BaseXmlParser<XmlElement, TextNode, CommentNode> 
     /**
      * Get Comment node constructor.
      */
-    protected geCommentNodeConstructor(): IVoidParameterConstructor<CommentNode> {
+    protected getCommentNodeConstructor(): IVoidParameterConstructor<CommentNode> {
         return CommentNode;
     }
 

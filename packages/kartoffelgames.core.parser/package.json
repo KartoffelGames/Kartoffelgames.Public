@@ -1,0 +1,50 @@
+{
+    "name": "@kartoffelgames/core.parser",
+    "version": "0.0.0",
+    "description": "Kartoffelgames.Core.Parser",
+    "author": {
+        "name": "KartoffelGames"
+    },
+    "files": [
+        "library/source/**/*"
+    ],
+    "main": "library/source/index.js",
+    "types": "library/source/index.d.ts",
+    "devDependencies": {
+        "@types/chai": "^4.3.5",
+        "@types/mocha": "^10.0.1"
+    },
+    "dependencies": {
+        "@kartoffelgames/core.data": "^0.0.34"
+    },
+    "scripts": {
+        "build": "kg build Kartoffelgames.Core.Parser && kg page Kartoffelgames.Core.Parser --build-only",
+        "test": "kg test Kartoffelgames.Core.Parser",
+        "page": "kg page Kartoffelgames.Core.Parser --build-only"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/KartoffelGames/Kartoffelgames.Public.git",
+        "directory": "packages/kartoffelgames.core"
+    },
+    "bugs": {
+        "url": "https://github.com/KartoffelGames/Kartoffelgames.Public/issues"
+    },
+    "homepage": "https://github.com/KartoffelGames/Kartoffelgames.Public#readme",
+    "kg": {
+        "name": "Kartoffelgames.Core.Parser",
+        "root": false,
+        "config": {
+            "package-blueprint": "kg-main",
+            "page": false,
+            "build-configuration": {
+                "pack": false,
+                "target": "node",
+                "scope": "main"
+            },
+            "tests": [
+                "unit"
+            ]
+        }
+    }
+}

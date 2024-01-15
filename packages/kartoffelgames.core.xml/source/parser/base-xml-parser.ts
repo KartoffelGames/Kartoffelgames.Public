@@ -22,20 +22,52 @@ export abstract class BaseXmlParser<TXmlElement extends XmlElement, TText extend
         lLexer.validWhitespaces = ' \n';
         lLexer.trimWhitespace = true;
 
+        // Identifier
+        lLexer.addTokenTemplate('NamespaceDelimiter', { pattern: { regex: /:/, type: XmlToken.NamespaceDelimiter }, specificity: 1 });
+        lLexer.addTokenTemplate('Identifier', { pattern: { regex: /[^<>\s\n/:="]+/, type: XmlToken.Identifier }, specificity: 1 });
+        lLexer.addTokenTemplate('ExplicitValue', { pattern: { regex: /"[^"]*"/, type: XmlToken.Value }, specificity: 1 });
+
         // Brackets.
-        lLexer.addTokenPattern(/<!--.*?-->/, XmlToken.Comment, 0);
-        lLexer.addTokenPattern(/\/>/, XmlToken.CloseClosingBracket, 1);
-        lLexer.addTokenPattern(/<\//, XmlToken.OpenClosingBracket, 1);
-        lLexer.addTokenPattern(/>/, XmlToken.CloseBracket, 2);
-        lLexer.addTokenPattern(/</, XmlToken.OpenBracket, 2);
-
-        // Delimiter.
-        lLexer.addTokenPattern(/=/, XmlToken.Assignment, 3);
-        lLexer.addTokenPattern(/:/, XmlToken.NamespaceDelimiter, 3);
-
-        // Names and values.
-        lLexer.addTokenPattern(/^"[^"]*"|^(?<token>[^<>"]+)[^<>]*(<|$)/, XmlToken.Value, 4);
-        lLexer.addTokenPattern(/[^<>\s\n/:="]+/, XmlToken.Identifier, 5);
+        lLexer.addTokenPattern({ pattern: { regex: /<!--.*?-->/, type: XmlToken.Comment }, specificity: 0 });
+        lLexer.addTokenPattern({
+            pattern: {
+                start: {
+                    regex: /<\//,
+                    type: XmlToken.OpenClosingBracket
+                },
+                end: {
+                    regex: />/,
+                    type: XmlToken.CloseBracket
+                }
+            }, specificity: 1
+        }, () => {
+            lLexer.useTokenTemplate('NamespaceDelimiter');
+            lLexer.useTokenTemplate('Identifier');
+        });
+        lLexer.addTokenPattern({
+            pattern: {
+                start: {
+                    regex: /</,
+                    type: XmlToken.OpenBracket
+                },
+                end: {
+                    regex: /(?<closeClosingBracket>\/>)|(?<closeBracket>>)/,
+                    type: {
+                        closeClosingBracket: XmlToken.CloseClosingBracket,
+                        closeBracket: XmlToken.CloseBracket
+                    }
+                }
+            }, specificity: 2
+        }, () => {
+            lLexer.addTokenPattern({ pattern: { regex: /=/, type: XmlToken.Assignment }, specificity: 1 });
+            lLexer.useTokenTemplate('NamespaceDelimiter');
+            lLexer.useTokenTemplate('Identifier');
+            lLexer.useTokenTemplate('ExplicitValue');
+        });
+        
+        // Value
+        lLexer.useTokenTemplate('ExplicitValue', 3);
+        lLexer.addTokenPattern({pattern: {regex: /[^<>"]+/, type:XmlToken.Value}, specificity: 4});
 
         super(lLexer);
 

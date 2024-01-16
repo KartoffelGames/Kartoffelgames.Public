@@ -6,7 +6,7 @@ import { LinearBufferMemoryLayout } from '../../source/base/memory_layout/buffer
 import { StructBufferMemoryLayout } from '../../source/base/memory_layout/buffer/struct-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../../source/base/memory_layout/sampler-memory-layout';
 import { TextureMemoryLayout } from '../../source/base/memory_layout/texture-memory-layout';
-import { PgslShader } from '../../source/base/pgsl/interpreter/pgsl-shader';
+import { PgslInterpreter } from '../../source/base/pgsl/interpreter/pgsl-interpreter';
 import { VertexParameter } from '../../source/base/pipeline/parameter/vertex-parameter';
 import { RenderTargets } from '../../source/base/pipeline/target/render-targets';
 import { TextureGroup } from '../../source/base/pipeline/target/texture-group';
@@ -29,7 +29,7 @@ const gDepth: number = 10;
 (async () => {
     const lGpu: GpuDevice = await GpuDevice.request(new WebGpuGeneratorFactory('high-performance'), WebGpuShaderInterpreter);
 
-    const lInterpreter = new PgslShader(lGpu, shader);
+    const lInterpreter = new PgslInterpreter(lGpu);
     // eslint-disable-next-line no-console
     (<any>window).interpreter = lInterpreter;
 })();

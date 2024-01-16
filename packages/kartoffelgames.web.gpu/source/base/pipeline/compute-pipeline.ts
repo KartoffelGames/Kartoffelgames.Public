@@ -19,7 +19,7 @@ export class ComputePipeline extends GpuObject<'computePipeline'> {
      * @param pDevice - Device.
      * @param pShader - Pipeline shader.
      */
-    public constructor(pDevice: GpuDevice, pShader: ComputeShader, ) {
+    public constructor(pDevice: GpuDevice, pShader: ComputeShader) {
         super(pDevice);
         this.mShader = pShader;
 

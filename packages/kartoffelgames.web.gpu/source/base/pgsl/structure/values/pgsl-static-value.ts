@@ -1,4 +1,4 @@
-import { PgslSimpleType } from '../type/pgsl-simple-type';
+import { PgslSimpleType } from '../type/pgsl-type';
 
 export class PgslStaticValue {
     private readonly mType: PgslSimpleType;

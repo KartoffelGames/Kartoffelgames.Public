@@ -1,7 +1,7 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { PgslFunction } from './pgsl-function';
 import { PgslVariable } from './pgsl-variable';
-import { PgslStruct } from './type/pgsl-struct';
+import { PgslStruct } from './struct/pgsl-struct';
 
 export class PgslShader {
     // Values

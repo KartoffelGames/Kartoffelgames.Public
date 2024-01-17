@@ -1,5 +1,5 @@
 import { PgslAttributes } from '../pgsl-attributes';
-import { PgslType } from './pgsl-type';
+import { PgslType } from '../type/pgsl-type';
 
 export class PgslStructProperty {
     private readonly mAttributes: PgslAttributes;

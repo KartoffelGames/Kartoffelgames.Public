@@ -62,5 +62,8 @@ export enum PgslTypenName {
 
     // Sampler.
     Sampler = 'sampler',
-    SamplerComparison = 'sampler_comparison'
+    SamplerComparison = 'sampler_comparison',
+
+    // Struct
+    Struct = '*struct'
 }

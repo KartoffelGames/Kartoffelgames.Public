@@ -3,7 +3,7 @@ import { Dictionary, Exception } from '@kartoffelgames/core.data';
 export class PgslAttributes {
     private readonly mAttributes: Dictionary<string, Array<number | string>>;
 
-    // TODO: Add restrictions.
+    // TODO: Add restrictions. Valid restriction mapping. 
 
     /**
      * All available attribute names.

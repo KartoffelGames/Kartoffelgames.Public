@@ -1,6 +1,6 @@
 import { PgslTypeName } from '../type/pgsl-type-name.enum';
 
-export class PgslStaticValue {
+export class PgslLiteralValueExpressions {
     private readonly mType: PgslTypeName;
     private readonly mValue: number;
     

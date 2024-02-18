@@ -2,9 +2,9 @@ import { Exception } from '@kartoffelgames/core.data';
 import { PgslFunction } from '../pgsl-function';
 import { PgslVariable } from '../pgsl-variable';
 import { PgslType } from '../type/pgsl-type';
-import { PgslValue } from './pgsl-value';
+import { PgslValue } from '../values/pgsl-value';
 
-export class PgslFunctionCall {
+export class PgslFunctionCallExpression {
     private readonly mFunction: PgslFunction;
     private readonly mParameterList: Array<PgslValue>;
 

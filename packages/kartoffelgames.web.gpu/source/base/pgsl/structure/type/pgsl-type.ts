@@ -84,7 +84,8 @@ export class PgslType {
     })();
 
     private readonly mGenerics: Array<PgslType>;
-    private readonly mTypeName: PgslTypenName;
+    private readonly mRawTypeName: string;
+    private readonly mStructMap: PgslStructMap;
 
     /**
      * Generic list.
@@ -97,7 +98,11 @@ export class PgslType {
      * Type name.
      */
     public get typeName(): PgslTypenName {
-        return this.mTypeName;
+        if (PgslType.mTypeStorage.has(this.mRawTypeName)) {
+            return <PgslTypenName>this.mRawTypeName;
+        }
+
+        return PgslTypenName.Struct;
     }
 
     /**
@@ -112,8 +117,9 @@ export class PgslType {
         // Get type definition.
         const lTypeDefinition: TypeInformation = PgslType.mTypeStorage.get(pTypeName) ?? PgslType.mTypeStorage.get(PgslTypenName.Struct)!;
 
-        // Set type.
-        this.mTypeName = lTypeDefinition.type;
+        // Set type and struct map.
+        this.mRawTypeName = lTypeDefinition.type;
+        this.mStructMap = pStructMap;
 
         // Validate generics.
         if (!lTypeDefinition.genericSupport.includes(pGenerics.length)) {
@@ -130,19 +136,30 @@ export class PgslType {
      * @returns 
      */
     public equal(pType: PgslType): boolean {
+        // Same type name.
         if (this.typeName !== pType.typeName) {
             return false;
         }
 
+        // Same generic count.
         if (this.mGenerics.length !== pType.mGenerics.length) {
             return false;
         }
 
+        // Same generics.
         for (let lGenericIndex: number = 0; lGenericIndex < this.mGenerics.length; lGenericIndex++) {
             const lSourceType: PgslType = this.mGenerics[lGenericIndex];
             const lTargetType: PgslType = pType.mGenerics[lGenericIndex];
 
             if (!lSourceType.equal(lTargetType)) {
+                return false;
+            }
+        }
+
+        // Extra validation for structs.
+        if (this.typeName === PgslTypenName.Struct) {
+            // Validate same struct reference.
+            if (this.mStructMap.get(this.mRawTypeName) !== this.mStructMap.get(pType.mRawTypeName)) {
                 return false;
             }
         }

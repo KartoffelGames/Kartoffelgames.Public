@@ -119,6 +119,32 @@ export class PgslType {
         // Set generics.
         this.mGenerics = pGenerics;
     }
+
+    /**
+     * Type equality check.
+     * @param pType - Type.
+     * @returns 
+     */
+    public equal(pType: PgslType): boolean {
+        if (this.typeName !== pType.typeName) {
+            return false;
+        }
+
+        if (this.mGenerics.length !== pType.mGenerics.length) {
+            return false;
+        }
+
+        for (let lGenericIndex: number = 0; lGenericIndex < this.mGenerics.length; lGenericIndex++) {
+            const lSourceType: PgslType = this.mGenerics[lGenericIndex];
+            const lTargetType: PgslType = pType.mGenerics[lGenericIndex];
+
+            if (!lSourceType.equal(lTargetType)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
 
 type TypeInformation = {

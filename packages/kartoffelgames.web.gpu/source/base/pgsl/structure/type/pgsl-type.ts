@@ -1,5 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { PgslTypenName } from './pgsl-type-name.enum';
+import { PgslStructMap } from '../struct/pgsl-struct-map';
 
 export class PgslType {
     // TODO: Add Struct type.
@@ -76,6 +77,9 @@ export class PgslType {
         lAddType(PgslTypenName.Reference, [3]);
         lAddType(PgslTypenName.Pointer, [3]);
 
+        // Struct.
+        lAddType(PgslTypenName.Struct);
+
         return lTypes;
     })();
 
@@ -99,14 +103,14 @@ export class PgslType {
     /**
      * Constructor.
      */
-    public constructor(pTypeName: string, ...pGenerics: Array<PgslType>) {
+    public constructor(pTypeName: string, pStructMap: PgslStructMap, ...pGenerics: Array<PgslType>) {
         // Validate type.
-        if (!PgslType.mTypeStorage.get(pTypeName)) {
+        if (!PgslType.mTypeStorage.get(pTypeName) && !pStructMap.has(pTypeName)) {
             throw new Exception(`Invalid "${pTypeName}"`, this);
         }
 
         // Get type definition.
-        const lTypeDefinition: TypeInformation = PgslType.mTypeStorage.get(pTypeName)!;
+        const lTypeDefinition: TypeInformation = PgslType.mTypeStorage.get(pTypeName) ?? PgslType.mTypeStorage.get(PgslTypenName.Struct)!;
 
         // Set type.
         this.mTypeName = lTypeDefinition.type;

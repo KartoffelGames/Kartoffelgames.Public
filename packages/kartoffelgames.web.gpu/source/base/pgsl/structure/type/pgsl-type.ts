@@ -3,8 +3,6 @@ import { PgslTypeName } from './pgsl-type-name.enum';
 import { PgslStructMap } from '../struct/pgsl-struct-map';
 
 export class PgslType {
-    // TODO: Add Struct type.
-
     /**
      * Setup type definition storage.
      */
@@ -95,7 +93,7 @@ export class PgslType {
     }
 
     /**
-     * Type name.
+     * Type name enum.
      */
     public get typeName(): PgslTypeName {
         if (PgslType.mTypeStorage.has(this.mRawTypeName)) {
@@ -133,7 +131,8 @@ export class PgslType {
     /**
      * Type equality check.
      * @param pType - Type.
-     * @returns 
+     * 
+     * @returns true for type equality.
      */
     public equal(pType: PgslType): boolean {
         // Same type name.

@@ -15,6 +15,9 @@ export class PgslStructMap {
     /**
      * Add struct to struct map.
      * @param pStruct - Struct.
+     * 
+     * @throws {@link Exception} 
+     * When no struct for this name already exists.
      */
     public add(pStruct: PgslStruct): void {
         if (this.has(pStruct.name)) {
@@ -27,6 +30,11 @@ export class PgslStructMap {
     /**
      * Get struct definition.
      * @param pStructName - Struct name.
+     * 
+     * @throws {@link Exception} 
+     * When no struct for this name was found.
+     * 
+     * @returns Struct definition for struct name.
      */
     public get(pStructName: string): PgslStruct {
         if (this.has(pStructName)) {
@@ -39,6 +47,8 @@ export class PgslStructMap {
     /**
      * Validate existance of struct.
      * @param pStructName - Struct name.
+     * 
+     * @returns true when struct with the specified name exists.
      */
     public has(pStructName: string): boolean {
         return this.mStructs.has(pStructName);

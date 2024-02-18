@@ -1,13 +1,13 @@
-import { PgslTypenName } from '../type/pgsl-type-name.enum';
+import { PgslTypeName } from '../type/pgsl-type-name.enum';
 
 export class PgslStaticValue {
-    private readonly mType: PgslTypenName;
+    private readonly mType: PgslTypeName;
     private readonly mValue: number;
     
     /**
      * Static value type.
      */
-    public get type(): PgslTypenName {
+    public get type(): PgslTypeName {
         return this.mType;
     }
 
@@ -23,7 +23,7 @@ export class PgslStaticValue {
      * @param pValue - Value as string.
      * @param pType - Value type.
      */
-    public constructor(pValue: number, pType: PgslTypenName) {
+    public constructor(pValue: number, pType: PgslTypeName) {
         this.mValue = pValue;
         this.mType = pType;
     }

@@ -1,5 +1,5 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
-import { PgslTypenName } from './pgsl-type-name.enum';
+import { PgslTypeName } from './pgsl-type-name.enum';
 import { PgslStructMap } from '../struct/pgsl-struct-map';
 
 export class PgslType {
@@ -12,73 +12,73 @@ export class PgslType {
         const lTypes: Dictionary<string, TypeInformation> = new Dictionary<string, TypeInformation>();
 
         // Add type to Type storage.
-        const lAddType = (pType: PgslTypenName, pGenericCounts?: Array<number>): void => {
+        const lAddType = (pType: PgslTypeName, pGenericCounts?: Array<number>): void => {
             lTypes.set(pType, { type: pType, genericSupport: [...(pGenericCounts ?? [0])] });
         };
 
         // Add simple types.
-        lAddType(PgslTypenName.Boolean);
-        lAddType(PgslTypenName.Integer);
-        lAddType(PgslTypenName.UnsignedInteger);
-        lAddType(PgslTypenName.Float);
+        lAddType(PgslTypeName.Boolean);
+        lAddType(PgslTypeName.Integer);
+        lAddType(PgslTypeName.UnsignedInteger);
+        lAddType(PgslTypeName.Float);
 
         // Vector types.
-        lAddType(PgslTypenName.Vector2);
-        lAddType(PgslTypenName.Vector3);
-        lAddType(PgslTypenName.Vector4);
+        lAddType(PgslTypeName.Vector2);
+        lAddType(PgslTypeName.Vector3);
+        lAddType(PgslTypeName.Vector4);
 
         // Matrix types.
-        lAddType(PgslTypenName.Matrix22);
-        lAddType(PgslTypenName.Matrix23);
-        lAddType(PgslTypenName.Matrix24);
-        lAddType(PgslTypenName.Matrix32);
-        lAddType(PgslTypenName.Matrix33);
-        lAddType(PgslTypenName.Matrix34);
-        lAddType(PgslTypenName.Matrix42);
-        lAddType(PgslTypenName.Matrix43);
-        lAddType(PgslTypenName.Matrix44);
+        lAddType(PgslTypeName.Matrix22);
+        lAddType(PgslTypeName.Matrix23);
+        lAddType(PgslTypeName.Matrix24);
+        lAddType(PgslTypeName.Matrix32);
+        lAddType(PgslTypeName.Matrix33);
+        lAddType(PgslTypeName.Matrix34);
+        lAddType(PgslTypeName.Matrix42);
+        lAddType(PgslTypeName.Matrix43);
+        lAddType(PgslTypeName.Matrix44);
 
         // Bundled types.
-        lAddType(PgslTypenName.Array, [1, 2]);
+        lAddType(PgslTypeName.Array, [1, 2]);
 
         // Specials
-        lAddType(PgslTypenName.Atomic, [1]);
+        lAddType(PgslTypeName.Atomic, [1]);
 
         // Image textures.
-        lAddType(PgslTypenName.Texture1d, [1]);
-        lAddType(PgslTypenName.Texture2d, [1]);
-        lAddType(PgslTypenName.Texture2dArray, [1]);
-        lAddType(PgslTypenName.Texture3d, [1]);
-        lAddType(PgslTypenName.TextureCube, [1]);
-        lAddType(PgslTypenName.TextureCubeArray, [1]);
-        lAddType(PgslTypenName.TextureMultisampled2d, [1]);
+        lAddType(PgslTypeName.Texture1d, [1]);
+        lAddType(PgslTypeName.Texture2d, [1]);
+        lAddType(PgslTypeName.Texture2dArray, [1]);
+        lAddType(PgslTypeName.Texture3d, [1]);
+        lAddType(PgslTypeName.TextureCube, [1]);
+        lAddType(PgslTypeName.TextureCubeArray, [1]);
+        lAddType(PgslTypeName.TextureMultisampled2d, [1]);
 
         // External tetures.
-        lAddType(PgslTypenName.TextureExternal);
+        lAddType(PgslTypeName.TextureExternal);
 
         // Storage textures.
-        lAddType(PgslTypenName.TextureStorage1d, [1]);
-        lAddType(PgslTypenName.TextureStorage2d, [1]);
-        lAddType(PgslTypenName.TextureStorage2dArray, [1]);
-        lAddType(PgslTypenName.TextureStorage3d, [1]);
+        lAddType(PgslTypeName.TextureStorage1d, [1]);
+        lAddType(PgslTypeName.TextureStorage2d, [1]);
+        lAddType(PgslTypeName.TextureStorage2dArray, [1]);
+        lAddType(PgslTypeName.TextureStorage3d, [1]);
 
         // Depth Textures.
-        lAddType(PgslTypenName.TextureDepth2d);
-        lAddType(PgslTypenName.TextureDepth2dArray);
-        lAddType(PgslTypenName.TextureDepthCube);
-        lAddType(PgslTypenName.TextureDepthCubeArray);
-        lAddType(PgslTypenName.TextureDepthMultisampled2d);
+        lAddType(PgslTypeName.TextureDepth2d);
+        lAddType(PgslTypeName.TextureDepth2dArray);
+        lAddType(PgslTypeName.TextureDepthCube);
+        lAddType(PgslTypeName.TextureDepthCubeArray);
+        lAddType(PgslTypeName.TextureDepthMultisampled2d);
 
         // Sampler
-        lAddType(PgslTypenName.Sampler);
-        lAddType(PgslTypenName.SamplerComparison);
+        lAddType(PgslTypeName.Sampler);
+        lAddType(PgslTypeName.SamplerComparison);
 
         // Reference and Pointer Types.
-        lAddType(PgslTypenName.Reference, [3]);
-        lAddType(PgslTypenName.Pointer, [3]);
+        lAddType(PgslTypeName.Reference, [3]);
+        lAddType(PgslTypeName.Pointer, [3]);
 
         // Struct.
-        lAddType(PgslTypenName.Struct);
+        lAddType(PgslTypeName.Struct);
 
         return lTypes;
     })();
@@ -97,12 +97,12 @@ export class PgslType {
     /**
      * Type name.
      */
-    public get typeName(): PgslTypenName {
+    public get typeName(): PgslTypeName {
         if (PgslType.mTypeStorage.has(this.mRawTypeName)) {
-            return <PgslTypenName>this.mRawTypeName;
+            return <PgslTypeName>this.mRawTypeName;
         }
 
-        return PgslTypenName.Struct;
+        return PgslTypeName.Struct;
     }
 
     /**
@@ -115,7 +115,7 @@ export class PgslType {
         }
 
         // Get type definition.
-        const lTypeDefinition: TypeInformation = PgslType.mTypeStorage.get(pTypeName) ?? PgslType.mTypeStorage.get(PgslTypenName.Struct)!;
+        const lTypeDefinition: TypeInformation = PgslType.mTypeStorage.get(pTypeName) ?? PgslType.mTypeStorage.get(PgslTypeName.Struct)!;
 
         // Set type and struct map.
         this.mRawTypeName = lTypeDefinition.type;
@@ -157,7 +157,7 @@ export class PgslType {
         }
 
         // Extra validation for structs.
-        if (this.typeName === PgslTypenName.Struct) {
+        if (this.typeName === PgslTypeName.Struct) {
             // Validate same struct reference.
             if (this.mStructMap.get(this.mRawTypeName) !== this.mStructMap.get(pType.mRawTypeName)) {
                 return false;
@@ -169,6 +169,6 @@ export class PgslType {
 }
 
 type TypeInformation = {
-    type: PgslTypenName;
+    type: PgslTypeName;
     genericSupport: Array<number>;
 };

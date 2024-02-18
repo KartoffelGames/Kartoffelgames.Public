@@ -7,7 +7,8 @@ export class PgslFunction {
     private readonly mName: string;
     private readonly mParameterList: Array<PgslVariable>;
     private readonly mReturnType: PgslType;
-    
+    // TODO: Body
+
     /**
      * Function attributes.
      */

@@ -9,15 +9,87 @@ import { XmlToken } from './xml-token.enum';
 /**
  * XML parser. Can handle none XML conform styles with different parser modes.
  */
-export abstract class BaseXmlParser<TXmlElement extends XmlElement, TText extends TextNode, TComment extends CommentNode> extends CodeParser<XmlToken, XmlDocument>{
-    private static readonly ROOT_NODE_NAME: string = 'ROOT-NODE';
+export abstract class BaseXmlParser {
     private readonly mConfig: XmlParserConfig;
+    private mParser: CodeParser<XmlToken, XmlDocument> | null;
+    private mRebuildParser: boolean;
+    
+    /**
+     * Characters that are allowed for attribute names. Case insensitiv.
+     */
+    public get allowedAttributeCharacters(): string {
+        return this.mConfig.allowedAttributeCharacters;
+    } set allowedAttributeCharacters(pValue: string) {
+        // Add lower- and uppercase characters. Split this string into single chars and create a distinct list with a Set & Spread-Array.
+        const lCharList: Array<string> = [...new Set((pValue.toLowerCase() + pValue.toUpperCase()).split(''))];
+
+        this.allowedAttributeCharacters = lCharList.join('');
+        this.mRebuildParser = true;
+    }
 
     /**
-     * Constructor. Creates parser with specified mode.
-     * @param pParserMode - Mode how parser handles different characters.
+     * Characters that are allowed for tag names. Case insensitiv.
      */
-    public constructor(pParserConfig: XmlParserConfig = {}) {
+    public get allowedTagNameCharacters(): string {
+        return this.mConfig.allowedTagNameCharacters;
+    } set allowedTagNameCharacters(pValue: string) {
+        // Add lower- and uppercase characters. Split this string into single chars and create a distinct list with a Set & Spread-Array.
+        const lCharList: Array<string> = [...new Set((pValue.toLowerCase() + pValue.toUpperCase()).split(''))];
+
+        this.allowedTagNameCharacters = lCharList.join('');
+        this.mRebuildParser = true;
+    }
+
+    /**
+     * Remove comments from generated xml.
+     */
+    public get removeComments(): boolean {
+        return this.mConfig.removeComments;
+    } set removeComments(pValue: boolean) {
+        this.removeComments = pValue;
+        this.mRebuildParser = true;
+    }
+
+    /**
+     * Constructor.
+     */
+    public constructor() {
+        // Set default configs.
+        this.mConfig = {
+            allowedAttributeCharacters: '',
+            allowedTagNameCharacters: '',
+            removeComments: false,
+            xmlParts: new Array<XmlPart>()
+        };
+        this.allowedAttributeCharacters = 'abcdefghijklmnopqrstuvwxyz_-.1234567890';
+        this.allowedTagNameCharacters = 'abcdefghijklmnopqrstuvwxyz_-.1234567890';
+
+        // TODO: Set defaul xmlparts.
+
+        // "Reset" parser
+        this.mRebuildParser = true;
+        this.mParser = null;
+    }
+
+    /**
+     * 
+     * @param pText - Xml based code compatible to this parser.
+     * 
+     * @returns a new XmlDocument 
+     */
+    public parse(pText: string): XmlDocument {
+        if (!this.mParser || this.mRebuildParser) {
+            const lLexer: Lexer<XmlToken> = this.createLexer();
+            this.mParser = this.createParser(lLexer);
+        }
+
+        return this.mParser.parse(pText);
+    }
+
+    /**
+     * Recreate lexer with applied config.
+     */
+    private createLexer(): Lexer<XmlToken> {
         const lLexer: Lexer<XmlToken> = new Lexer<XmlToken>();
         lLexer.validWhitespaces = ' \n';
         lLexer.trimWhitespace = true;
@@ -64,59 +136,41 @@ export abstract class BaseXmlParser<TXmlElement extends XmlElement, TText extend
             lLexer.useTokenTemplate('Identifier');
             lLexer.useTokenTemplate('ExplicitValue');
         });
-        
+
         // Value
         lLexer.useTokenTemplate('ExplicitValue', 3);
-        lLexer.addTokenPattern({pattern: {regex: /[^<>"]+/, type:XmlToken.Value}, specificity: 4});
+        lLexer.addTokenPattern({ pattern: { regex: /[^<>"]+/, type: XmlToken.Value }, specificity: 4 });
 
-        super(lLexer);
-
-        this.mConfig = {};
-
-        // Set default config.
-        this.mConfig.allowedAttributeCharacters = pParserConfig.allowedAttributeCharacters ?? 'abcdefghijklmnopqrstuvwxyz_-.1234567890';
-        this.mConfig.allowedTagNameCharacters = pParserConfig.allowedTagNameCharacters ?? 'abcdefghijklmnopqrstuvwxyz_-.1234567890';
-        this.mConfig.removeComments = pParserConfig.removeComments ?? false;
-
-        // Extend allowed character for case insensitivity and escape.
-        this.mConfig.allowedAttributeCharacters = this.escapeRegExp(this.mConfig.allowedAttributeCharacters.toLowerCase() + this.mConfig.allowedAttributeCharacters.toUpperCase());
-        this.mConfig.allowedTagNameCharacters = this.escapeRegExp(this.mConfig.allowedTagNameCharacters.toLowerCase() + this.mConfig.allowedTagNameCharacters.toUpperCase());
-
-        // Init xml structure and root part.
-        this.initGraphParts();
-        this.setRootGraphPart('document');
+        return lLexer;
     }
 
     /**
-     * Escape text to be inserted into an regex.
-     * @param pText - String.
+     * Create new code parser.
+     * Apply new set config.
+     * 
+     * @param pLexer - Lexer with applied config.
      */
-    private escapeRegExp(pText: string): string {
-        return pText.replace(/[.*+?^${}()\-|[\]\\]/g, '\\$&'); // $& means the whole matched string
-    }
+    private createParser(pLexer: Lexer<XmlToken>): CodeParser<XmlToken, XmlDocument> {
+        const lParser: CodeParser<XmlToken, XmlDocument> = new CodeParser<XmlToken, XmlDocument>(pLexer);
 
-    /**
-     * Init graph parts 
-     */
-    private initGraphParts(): void {
         // Attribute graph.
         type AttributeParseData = {
             namespace?: { name: string; };
             name: string,
             value?: { value: string; };
         };
-        this.defineGraphPart('attribute',
-            this.graph()
+        lParser.defineGraphPart('attribute',
+            lParser.graph()
                 .optional('namespace',
-                    this.graph().single('name', XmlToken.Identifier).single(XmlToken.NamespaceDelimiter)
+                    lParser.graph().single('name', XmlToken.Identifier).single(XmlToken.NamespaceDelimiter)
                 )
                 .single('name', XmlToken.Identifier)
                 .optional('value',
-                    this.graph().single(XmlToken.Assignment).single('value', XmlToken.Value)
+                    lParser.graph().single(XmlToken.Assignment).single('value', XmlToken.Value)
                 ),
             (pData: AttributeParseData): AttributeInformation => {
                 // Validate tag name.
-                const lRegexNameCheck: RegExp = new RegExp(`^[${this.mConfig.allowedAttributeCharacters}]+$`);
+                const lRegexNameCheck: RegExp = new RegExp(`^[${this.escapeRegExp(this.mConfig.allowedAttributeCharacters)}]+$`);
                 if (!lRegexNameCheck.test(pData.name)) {
                     throw new Exception(`Attribute contains illegal characters: "${pData.name}"`, this);
                 }
@@ -133,11 +187,11 @@ export abstract class BaseXmlParser<TXmlElement extends XmlElement, TText extend
         type ContentData = {
             value: { text: string; } | XmlElement | { comment: string; };
         };
-        this.defineGraphPart('content',
-            this.graph().branch('value', [
-                this.graph().single('comment', XmlToken.Comment),
-                this.graph().single('text', XmlToken.Value),
-                this.partReference('tag')
+        lParser.defineGraphPart('content',
+            lParser.graph().branch('value', [
+                lParser.graph().single('comment', XmlToken.Comment),
+                lParser.graph().single('text', XmlToken.Value),
+                lParser.partReference('tag')
             ]),
             (pData: ContentData): XmlElement | CommentNode | TextNode => {
                 // XML Element
@@ -181,23 +235,23 @@ export abstract class BaseXmlParser<TXmlElement extends XmlElement, TText extend
                 closingNamespace?: { name: string; };
             };
         };
-        this.defineGraphPart('tag',
-            this.graph()
+        lParser.defineGraphPart('tag',
+            lParser.graph()
                 .single(XmlToken.OpenBracket)
                 .optional('openingNamespace',
-                    this.graph().single('name', XmlToken.Identifier).single(XmlToken.NamespaceDelimiter)
+                    lParser.graph().single('name', XmlToken.Identifier).single(XmlToken.NamespaceDelimiter)
                 )
                 .single('openingTagName', XmlToken.Identifier)
-                .loop('attributes', this.partReference('attribute'))
+                .loop('attributes', lParser.partReference('attribute'))
                 .branch('ending', [
-                    this.graph()
+                    lParser.graph()
                         .single(XmlToken.CloseClosingBracket),
-                    this.graph()
+                    lParser.graph()
                         .single(XmlToken.CloseBracket)
-                        .loop('values', this.partReference('content'))
+                        .loop('values', lParser.partReference('content'))
                         .single(XmlToken.OpenClosingBracket)
                         .optional('closingNamespace',
-                            this.graph().single('name', XmlToken.Identifier).single(XmlToken.NamespaceDelimiter)
+                            lParser.graph().single('name', XmlToken.Identifier).single(XmlToken.NamespaceDelimiter)
                         )
                         .single('closingTageName', XmlToken.Identifier).single(XmlToken.CloseBracket)
                 ]),
@@ -215,7 +269,7 @@ export abstract class BaseXmlParser<TXmlElement extends XmlElement, TText extend
                 }
 
                 // Validate tag name.
-                const lRegexNameCheck: RegExp = new RegExp(`^[${this.mConfig.allowedTagNameCharacters}]+$`);
+                const lRegexNameCheck: RegExp = new RegExp(`^[${this.escapeRegExp(this.mConfig.allowedTagNameCharacters)}]+$`);
                 if (!lRegexNameCheck.test(pData.openingTagName)) {
                     throw new Exception(`Tagname contains illegal characters: "${pData.openingTagName}"`, this);
                 }
@@ -251,8 +305,8 @@ export abstract class BaseXmlParser<TXmlElement extends XmlElement, TText extend
         type DocumentParseData = {
             content: Array<XmlElement | CommentNode | TextNode>;
         };
-        this.defineGraphPart('document',
-            this.graph().loop('content', this.partReference('content')),
+        lParser.defineGraphPart('document',
+            lParser.graph().loop('content', lParser.partReference('content')),
             (pData: DocumentParseData): XmlDocument => {
                 const lDocument: XmlDocument = new XmlDocument(this.getDefaultNamespace());
 
@@ -269,6 +323,18 @@ export abstract class BaseXmlParser<TXmlElement extends XmlElement, TText extend
                 return lDocument;
             }
         );
+
+        lParser.setRootGraphPart('document');
+
+        return lParser;
+    }
+
+    /**
+     * Escape text to be inserted into an regex.
+     * @param pText - String.
+     */
+    private escapeRegExp(pText: string): string {
+        return pText.replace(/[.*+?^${}()\-|[\]\\]/g, '\\$&'); // $& means the whole matched string
     }
 
     /**
@@ -299,17 +365,22 @@ type XmlParserConfig = {
     /**
      * Characters that are allowed for attribute names. Case insensitiv.
      */
-    allowedAttributeCharacters?: string;
+    allowedAttributeCharacters: string;
 
     /**
      * Characters that are allowed for tag names. Case insensitiv.
      */
-    allowedTagNameCharacters?: string;
+    allowedTagNameCharacters: string;
 
     /**
      * Remove comments from generated xml.
      */
-    removeComments?: boolean;
+    removeComments: boolean;
+
+    /**
+     * Xml parts
+     */
+    xmlParts: Array<XmlPart>;
 };
 
 /**
@@ -320,3 +391,26 @@ type AttributeInformation = {
     namespacePrefix: string | null,
     value: string,
 };
+
+type XmlPart = {
+    name: string;
+    contains?: Array<string>;
+    constructor: IVoidParameterConstructor<object>;
+};
+
+// TODO: Test xml part config.
+const a: Array<XmlPart> = [
+    {
+        name: 'tag',
+        contains: ['tag', 'comment', 'text'],
+        constructor: XmlElement
+    },
+    {
+        name: 'comment',
+        constructor: CommentNode
+    },
+    {
+        name: 'text',
+        constructor: TextNode
+    }
+];

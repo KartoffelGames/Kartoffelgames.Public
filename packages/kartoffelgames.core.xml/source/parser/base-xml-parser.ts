@@ -7,9 +7,10 @@ import { BaseXmlNode } from '../node/base-xml-node';
  * XML parser. Can handle none XML conform styles with different parser modes.
  */
 export abstract class BaseXmlParser<TTokenType extends string> {
-    private readonly mContentParts: Array<string>;
+    private readonly mContentParts: Set<string>;
     private mParser: CodeParser<TTokenType, XmlDocument> | null;
     private mRebuildParser: boolean;
+    private readonly mRootToken: Set<string>;
     private readonly mToken: Map<string, XmlToken<TTokenType>>;
     private readonly mXmlParts: Map<string, XmlPart<TTokenType, object, any>>;
 
@@ -17,8 +18,16 @@ export abstract class BaseXmlParser<TTokenType extends string> {
      * Xml parts that counts as content.
      * Content parts are used for nesting.
      */
-    public get contentParts(): Array<string> {
+    public get contentParts(): Set<string> {
         return this.mContentParts;
+    }
+
+    /**
+     * Xml tokens that can be used to start a document.
+     * Any other specified tokens are only used by nesting into root tokenes.
+     */
+    public get rootTokens(): Set<string> {
+        return this.mRootToken;
     }
 
     /**
@@ -27,7 +36,8 @@ export abstract class BaseXmlParser<TTokenType extends string> {
     public constructor() {
         // Set default configs.
         this.mXmlParts = new Map<string, XmlPart<TTokenType, object, any>>();
-        this.mContentParts = [];
+        this.mContentParts = new Set<string>();
+        this.mRootToken = new Set<string>();
         this.mToken = new Map<string, XmlToken<TTokenType>>();
 
         // "Reset" parser
@@ -66,7 +76,7 @@ export abstract class BaseXmlParser<TTokenType extends string> {
         // Try to use existing part.
         let lXmlPart: XmlPart<TTokenType, TGrapthData, TParseData> | undefined = this.mXmlParts.get(pName);
 
-        // Create new xml part with default values with it does not exits.
+        // Create new xml part with default values when it does not exits.
         if (!lXmlPart) {
             lXmlPart = {
                 name: pName,
@@ -88,8 +98,45 @@ export abstract class BaseXmlParser<TTokenType extends string> {
         if (lChangedXmlPart === null) {
             this.mXmlParts.delete(pName);
         } else {
-            // Save default xml part.
+            // Save xml part.
             this.mXmlParts.set(pName, <any>lChangedXmlPart);
+        }
+
+        // Rebuild parser.
+        this.mRebuildParser = true;
+    }
+
+    /**
+     * Get or create a xml token.
+     * {@link pChangeFunction} can configurates the requested token.
+     * If the requested {@link XmlToken} does not exists, a new will be created that only holds default information, 
+     * that would throw an error on parse.
+     * 
+     * Returning null in the change function will delete the token.
+     * 
+     * @param pName - Name of xml token.
+     * @param pChangeFunction - Function that configurated the xml token.
+     */
+    public setXmlToken(pName: string, pChangeFunction: (pToken: XmlToken<TTokenType>) => XmlToken<TTokenType>): void {
+        // Try to get existing token.
+        let lXmlToken: XmlToken<TTokenType> | undefined = this.mToken.get(pName);
+
+        // Create new token with default values when it does not exists.
+        if (!lXmlToken) {
+            lXmlToken = {
+                name: pName,
+                pattern: { pattern: { regex: /^$/, type: <TTokenType>'' }, specificity: 99 }
+            };
+        }
+
+        const lChangedXmlToken: XmlToken<TTokenType> | null = pChangeFunction(lXmlToken);
+
+        // Delete the token when the change function return null
+        if (lChangedXmlToken === null) {
+            this.mXmlParts.delete(pName);
+        } else {
+            // Save xml token.
+            this.mXmlParts.set(pName, <any>lChangedXmlToken);
         }
 
         // Rebuild parser.
@@ -105,52 +152,8 @@ export abstract class BaseXmlParser<TTokenType extends string> {
         lLexer.validWhitespaces = ' \n';
         lLexer.trimWhitespace = true;
 
-        // Identifier
-        lLexer.addTokenTemplate('NamespaceDelimiter', { pattern: { regex: /:/, type: XmlTokenType.NamespaceDelimiter }, specificity: 1 });
-        lLexer.addTokenTemplate('Identifier', { pattern: { regex: /[^<>\s\n/:="]+/, type: XmlTokenType.Identifier }, specificity: 1 });
-        lLexer.addTokenTemplate('ExplicitValue', { pattern: { regex: /"[^"]*"/, type: XmlTokenType.Value }, specificity: 1 });
 
-        // Brackets.
-        lLexer.addTokenPattern({ pattern: { regex: /<!--.*?-->/, type: XmlTokenType.Comment }, specificity: 0 });
-        lLexer.addTokenPattern({
-            pattern: {
-                start: {
-                    regex: /<\//,
-                    type: XmlTokenType.OpenClosingBracket
-                },
-                end: {
-                    regex: />/,
-                    type: XmlTokenType.CloseBracket
-                }
-            }, specificity: 1
-        }, () => {
-            lLexer.useTokenTemplate('NamespaceDelimiter');
-            lLexer.useTokenTemplate('Identifier');
-        });
-        lLexer.addTokenPattern({
-            pattern: {
-                start: {
-                    regex: /</,
-                    type: XmlTokenType.OpenBracket
-                },
-                end: {
-                    regex: /(?<closeClosingBracket>\/>)|(?<closeBracket>>)/,
-                    type: {
-                        closeClosingBracket: XmlTokenType.CloseClosingBracket,
-                        closeBracket: XmlTokenType.CloseBracket
-                    }
-                }
-            }, specificity: 2
-        }, () => {
-            lLexer.addTokenPattern({ pattern: { regex: /=/, type: XmlTokenType.Assignment }, specificity: 1 });
-            lLexer.useTokenTemplate('NamespaceDelimiter');
-            lLexer.useTokenTemplate('Identifier');
-            lLexer.useTokenTemplate('ExplicitValue');
-        });
-
-        // Value
-        lLexer.useTokenTemplate('ExplicitValue', 3);
-        lLexer.addTokenPattern({ pattern: { regex: /[^<>"]+/, type: XmlTokenType.Value }, specificity: 4 });
+        
 
         return lLexer;
     }

@@ -57,17 +57,25 @@ export class XmlParser extends BaseXmlParser<XmlTokenType> {
         this.mAllowedTagNameCharacters = '';
         this.mRemoveComments = false;
 
-
         // Apply defaults.
         this.allowedAttributeCharacters = 'abcdefghijklmnopqrstuvwxyz_-.1234567890';
         this.allowedTagNameCharacters = 'abcdefghijklmnopqrstuvwxyz_-.1234567890';
 
         // Set token and parser parts.
-        this.setToken();
-        this.setParts();
+        this.setDefaultToken();
+        this.setDefaultParts();
+
+        // Set default root token
+        this.rootTokens.add('Comment');
+        this.rootTokens.add('OpeningTag');
+        this.rootTokens.add('ClosingTag');
+        this.rootTokens.add('ExplicitValue');
+        this.rootTokens.add('Value');
 
         // Set default content parts.
-        this.contentParts.push('text', 'comment', 'tag');
+        this.contentParts.add('text');
+        this.contentParts.add('comment');
+        this.contentParts.add('tag');
     }
 
     /**
@@ -88,7 +96,7 @@ export class XmlParser extends BaseXmlParser<XmlTokenType> {
     /**
      * Set xml parts.
      */
-    private setParts(): void {
+    private setDefaultParts(): void {
         // Attribute graph.
         type AttributeParseData = {
             namespace?: { name: string; };
@@ -293,8 +301,71 @@ export class XmlParser extends BaseXmlParser<XmlTokenType> {
     /**
      * Set xml lexer token. 
      */
-    private setToken(): void {
+    private setDefaultToken(): void {
+        // Identifier.
+        this.setXmlToken('NamespaceDelimiter', (pToken) => {
+            pToken.pattern = { pattern: { regex: /:/, type: XmlTokenType.NamespaceDelimiter }, specificity: 1 };
+            return pToken;
+        });
+        this.setXmlToken('Identifier', (pToken) => {
+            pToken.pattern = { pattern: { regex: /[^<>\s\n/:="]+/, type: XmlTokenType.Identifier }, specificity: 1 };
+            return pToken;
+        });
+        this.setXmlToken('ExplicitValue', (pToken) => {
+            pToken.pattern = { pattern: { regex: /"[^"]*"/, type: XmlTokenType.Value }, specificity: 1 };
+            return pToken;
+        });
+        this.setXmlToken('Assignment', (pToken) => {
+            pToken.pattern = { pattern: { regex: /=/, type: XmlTokenType.Assignment }, specificity: 1 };
+            return pToken;
+        });
 
+        // Value
+        this.setXmlToken('Value', (pToken) => {
+            pToken.pattern = { pattern: { regex: /[^<>"]+/, type: XmlTokenType.Value }, specificity: 4 };
+            return pToken;
+        });
+
+        // Brackets.
+        this.setXmlToken('Comment', (pToken) => {
+            pToken.pattern = { pattern: { regex: /<!--.*?-->/, type: XmlTokenType.Comment }, specificity: 0 };
+            return pToken;
+        });
+        this.setXmlToken('ClosingTag', (pToken) => {
+            pToken.validInner = ['NamespaceDelimiter', 'Identifier'];
+            pToken.pattern = {
+                pattern: {
+                    start: {
+                        regex: /<\//,
+                        type: XmlTokenType.OpenClosingBracket
+                    },
+                    end: {
+                        regex: />/,
+                        type: XmlTokenType.CloseBracket
+                    }
+                }, specificity: 1
+            };
+            return pToken;
+        });
+        this.setXmlToken('Comment', (pToken) => {
+            pToken.validInner = ['NamespaceDelimiter', 'Identifier', 'ExplicitValue', 'Assignment'];
+            pToken.pattern = {
+                pattern: {
+                    start: {
+                        regex: /</,
+                        type: XmlTokenType.OpenBracket
+                    },
+                    end: {
+                        regex: /(?<closeClosingBracket>\/>)|(?<closeBracket>>)/,
+                        type: {
+                            closeClosingBracket: XmlTokenType.CloseClosingBracket,
+                            closeBracket: XmlTokenType.CloseBracket
+                        }
+                    }
+                }, specificity: 2
+            };
+            return pToken;
+        });
     }
 }
 

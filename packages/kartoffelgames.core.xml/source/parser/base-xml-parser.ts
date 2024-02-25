@@ -133,10 +133,10 @@ export abstract class BaseXmlParser<TTokenType extends string> {
 
         // Delete the token when the change function return null
         if (lChangedXmlToken === null) {
-            this.mXmlParts.delete(pName);
+            this.mToken.delete(pName);
         } else {
             // Save xml token.
-            this.mXmlParts.set(pName, <any>lChangedXmlToken);
+            this.mToken.set(pName, <any>lChangedXmlToken);
         }
 
         // Rebuild parser.

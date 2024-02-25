@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { expect } from 'chai';
 import { CodeParser } from '../../source/code-parser';
-import { AnonymoutGrammarNode } from '../../source/graph/node/anonymous-grammar-node';
+import { AnonymousGrammarNode } from '../../source/graph/node/anonymous-grammar-node';
 import { BaseGrammarNode } from '../../source/graph/node/base-grammar-node';
 import { GrammarLoopNode } from '../../source/graph/node/grammer-loop-node';
 import { GrammarSingleNode } from '../../source/graph/node/grammer-single-node';
@@ -135,7 +135,7 @@ describe('CodeParser', () => {
             const lGraph: BaseGrammarNode<TokenType> = lParser.graph();
 
             // Evaluation.
-            expect(lGraph).be.instanceOf(AnonymoutGrammarNode);
+            expect(lGraph).be.instanceOf(AnonymousGrammarNode);
         });
 
         it('-- Create with single node chain', () => {

@@ -1,5 +1,5 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
-import { AnonymoutGrammarNode } from './graph/node/anonymous-grammar-node';
+import { AnonymousGrammarNode } from './graph/node/anonymous-grammar-node';
 import { BaseGrammarNode } from './graph/node/base-grammar-node';
 import { GrammarNodeValueType } from './graph/node/grammer-node-value-type.enum';
 import { GraphPart, GraphPartDataCollector } from './graph/part/graph-part';
@@ -88,7 +88,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @returns new branch root.
      */
     public graph(): BaseGrammarNode<TTokenType> {
-        return new AnonymoutGrammarNode<TTokenType>();
+        return new AnonymousGrammarNode<TTokenType>();
     }
 
     /**

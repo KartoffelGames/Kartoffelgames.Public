@@ -7,7 +7,7 @@ export { GraphPartReference } from './graph/part/graph-part-reference';
 
 // Nodes
 export { BaseGrammarNode } from './graph/node/base-grammar-node';
-export { AnonymoutGrammarNode } from './graph/node/anonymous-grammar-node';
+export { AnonymousGrammarNode as AnonymoutGrammarNode } from './graph/node/anonymous-grammar-node';
 
 // Lexer
 export { Lexer, LexerPattern, LexerPatternType } from './lexer/lexer';

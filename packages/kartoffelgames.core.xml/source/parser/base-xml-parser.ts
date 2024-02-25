@@ -1,18 +1,18 @@
 import { Exception, IVoidParameterConstructor } from '@kartoffelgames/core.data';
-import { CodeParser, GraphPartReference, Lexer } from '@kartoffelgames/core.parser';
+import { AnonymoutGrammarNode, CodeParser, GraphPartReference, Lexer, LexerPattern } from '@kartoffelgames/core.parser';
 import { XmlDocument } from '../document/xml-document';
 import { CommentNode } from '../node/comment-node';
 import { TextNode } from '../node/text-node';
 import { XmlElement } from '../node/xml-element';
-import { XmlToken } from './xml-token.enum';
-import { BaseGrammarNode } from '@kartoffelgames/core.parser/library/source/graph/node/base-grammar-node';
+import { XmlTokenType } from './xml-token-type.enum';
+import { BaseGrammarNode } from '@kartoffelgames/core.parser';
 
 /**
  * XML parser. Can handle none XML conform styles with different parser modes.
  */
 export abstract class BaseXmlParser {
     private readonly mConfig: XmlParserConfig;
-    private mParser: CodeParser<XmlToken, XmlDocument> | null;
+    private mParser: CodeParser<XmlTokenType, XmlDocument> | null;
     private mRebuildParser: boolean;
 
     /**
@@ -88,14 +88,14 @@ export abstract class BaseXmlParser {
         };
         this.setXmlPart<AttributeParseData, AttributeInformation>('attribute', (pXmlPart) => {
             // Set xml attribute grapth.
-            pXmlPart.definition.grapth = (pGraph: BaseGrammarNode<XmlToken>, pParser: CodeParser<XmlToken, XmlDocument>): BaseGrammarNode<XmlToken> => {
+            pXmlPart.definition.grapth = (pGraph: AnonymoutGrammarNode<XmlTokenType>, pParser: CodeParser<XmlTokenType, XmlDocument>): BaseGrammarNode<XmlTokenType> => {
                 return pGraph
                     .optional('namespace',
-                        pParser.graph().single('name', XmlToken.Identifier).single(XmlToken.NamespaceDelimiter)
+                        pParser.graph().single('name', XmlTokenType.Identifier).single(XmlTokenType.NamespaceDelimiter)
                     )
-                    .single('name', XmlToken.Identifier)
+                    .single('name', XmlTokenType.Identifier)
                     .optional('value',
-                        pParser.graph().single(XmlToken.Assignment).single('value', XmlToken.Value)
+                        pParser.graph().single(XmlTokenType.Assignment).single('value', XmlTokenType.Value)
                     );
             };
 
@@ -126,8 +126,8 @@ export abstract class BaseXmlParser {
             pXmlPart.partConstructor = TextNode;
 
             // Set text grapth.
-            pXmlPart.definition.grapth = (pGraph: BaseGrammarNode<XmlToken>): BaseGrammarNode<XmlToken> => {
-                return pGraph.single('text', XmlToken.Value);
+            pXmlPart.definition.grapth = (pGraph: AnonymoutGrammarNode<XmlTokenType>): BaseGrammarNode<XmlTokenType> => {
+                return pGraph.single('text', XmlTokenType.Value);
             };
 
             // Set text data parser.
@@ -163,8 +163,8 @@ export abstract class BaseXmlParser {
             pXmlPart.partConstructor = CommentNode;
 
             // Set comment grapth.
-            pXmlPart.definition.grapth = (pGraph: BaseGrammarNode<XmlToken>): BaseGrammarNode<XmlToken> => {
-                return pGraph.single('comment', XmlToken.Comment);
+            pXmlPart.definition.grapth = (pGraph: AnonymoutGrammarNode<XmlTokenType>): BaseGrammarNode<XmlTokenType> => {
+                return pGraph.single('comment', XmlTokenType.Comment);
             };
 
             // Set comment data parser.
@@ -199,25 +199,25 @@ export abstract class BaseXmlParser {
             pXmlPart.partConstructor = XmlElement;
 
             // Set comment grapth.
-            pXmlPart.definition.grapth = (pGraph: BaseGrammarNode<XmlToken>, pParser: CodeParser<XmlToken, XmlDocument>): BaseGrammarNode<XmlToken> => {
+            pXmlPart.definition.grapth = (pGraph: AnonymoutGrammarNode<XmlTokenType>, pParser: CodeParser<XmlTokenType, XmlDocument>): BaseGrammarNode<XmlTokenType> => {
                 return pGraph
-                    .single(XmlToken.OpenBracket)
+                    .single(XmlTokenType.OpenBracket)
                     .optional('openingNamespace',
-                        pParser.graph().single('name', XmlToken.Identifier).single(XmlToken.NamespaceDelimiter)
+                        pParser.graph().single('name', XmlTokenType.Identifier).single(XmlTokenType.NamespaceDelimiter)
                     )
-                    .single('openingTagName', XmlToken.Identifier)
+                    .single('openingTagName', XmlTokenType.Identifier)
                     .loop('attributes', pParser.partReference('attribute'))
                     .branch('ending', [
                         pParser.graph()
-                            .single(XmlToken.CloseClosingBracket),
+                            .single(XmlTokenType.CloseClosingBracket),
                         pParser.graph()
-                            .single(XmlToken.CloseBracket)
+                            .single(XmlTokenType.CloseBracket)
                             .loop('values', pParser.partReference('content'))
-                            .single(XmlToken.OpenClosingBracket)
+                            .single(XmlTokenType.OpenClosingBracket)
                             .optional('closingNamespace',
-                                pParser.graph().single('name', XmlToken.Identifier).single(XmlToken.NamespaceDelimiter)
+                                pParser.graph().single('name', XmlTokenType.Identifier).single(XmlTokenType.NamespaceDelimiter)
                             )
-                            .single('closingTageName', XmlToken.Identifier).single(XmlToken.CloseBracket)
+                            .single('closingTageName', XmlTokenType.Identifier).single(XmlTokenType.CloseBracket)
                     ]);
             };
 
@@ -289,7 +289,7 @@ export abstract class BaseXmlParser {
      */
     public parse(pText: string): XmlDocument {
         if (!this.mParser || this.mRebuildParser) {
-            const lLexer: Lexer<XmlToken> = this.createLexer();
+            const lLexer: Lexer<XmlTokenType> = this.createLexer();
             this.mParser = this.createParser(lLexer);
         }
 
@@ -316,7 +316,7 @@ export abstract class BaseXmlParser {
             lXmlPart = {
                 name: pName,
                 definition: {
-                    grapth: (pGrapth: BaseGrammarNode<XmlToken>): BaseGrammarNode<XmlToken> => {
+                    grapth: (pGrapth: AnonymoutGrammarNode<XmlTokenType>): BaseGrammarNode<XmlTokenType> => {
                         return pGrapth;
                     },
                     data: (pData: TGrapthData): TParseData => {
@@ -341,28 +341,28 @@ export abstract class BaseXmlParser {
     /**
      * Recreate lexer with applied config.
      */
-    private createLexer(): Lexer<XmlToken> {
+    private createLexer(): Lexer<XmlTokenType> {
         // TODO: 
-        const lLexer: Lexer<XmlToken> = new Lexer<XmlToken>();
+        const lLexer: Lexer<XmlTokenType> = new Lexer<XmlTokenType>();
         lLexer.validWhitespaces = ' \n';
         lLexer.trimWhitespace = true;
 
         // Identifier
-        lLexer.addTokenTemplate('NamespaceDelimiter', { pattern: { regex: /:/, type: XmlToken.NamespaceDelimiter }, specificity: 1 });
-        lLexer.addTokenTemplate('Identifier', { pattern: { regex: /[^<>\s\n/:="]+/, type: XmlToken.Identifier }, specificity: 1 });
-        lLexer.addTokenTemplate('ExplicitValue', { pattern: { regex: /"[^"]*"/, type: XmlToken.Value }, specificity: 1 });
+        lLexer.addTokenTemplate('NamespaceDelimiter', { pattern: { regex: /:/, type: XmlTokenType.NamespaceDelimiter }, specificity: 1 });
+        lLexer.addTokenTemplate('Identifier', { pattern: { regex: /[^<>\s\n/:="]+/, type: XmlTokenType.Identifier }, specificity: 1 });
+        lLexer.addTokenTemplate('ExplicitValue', { pattern: { regex: /"[^"]*"/, type: XmlTokenType.Value }, specificity: 1 });
 
         // Brackets.
-        lLexer.addTokenPattern({ pattern: { regex: /<!--.*?-->/, type: XmlToken.Comment }, specificity: 0 });
+        lLexer.addTokenPattern({ pattern: { regex: /<!--.*?-->/, type: XmlTokenType.Comment }, specificity: 0 });
         lLexer.addTokenPattern({
             pattern: {
                 start: {
                     regex: /<\//,
-                    type: XmlToken.OpenClosingBracket
+                    type: XmlTokenType.OpenClosingBracket
                 },
                 end: {
                     regex: />/,
-                    type: XmlToken.CloseBracket
+                    type: XmlTokenType.CloseBracket
                 }
             }, specificity: 1
         }, () => {
@@ -373,18 +373,18 @@ export abstract class BaseXmlParser {
             pattern: {
                 start: {
                     regex: /</,
-                    type: XmlToken.OpenBracket
+                    type: XmlTokenType.OpenBracket
                 },
                 end: {
                     regex: /(?<closeClosingBracket>\/>)|(?<closeBracket>>)/,
                     type: {
-                        closeClosingBracket: XmlToken.CloseClosingBracket,
-                        closeBracket: XmlToken.CloseBracket
+                        closeClosingBracket: XmlTokenType.CloseClosingBracket,
+                        closeBracket: XmlTokenType.CloseBracket
                     }
                 }
             }, specificity: 2
         }, () => {
-            lLexer.addTokenPattern({ pattern: { regex: /=/, type: XmlToken.Assignment }, specificity: 1 });
+            lLexer.addTokenPattern({ pattern: { regex: /=/, type: XmlTokenType.Assignment }, specificity: 1 });
             lLexer.useTokenTemplate('NamespaceDelimiter');
             lLexer.useTokenTemplate('Identifier');
             lLexer.useTokenTemplate('ExplicitValue');
@@ -392,7 +392,7 @@ export abstract class BaseXmlParser {
 
         // Value
         lLexer.useTokenTemplate('ExplicitValue', 3);
-        lLexer.addTokenPattern({ pattern: { regex: /[^<>"]+/, type: XmlToken.Value }, specificity: 4 });
+        lLexer.addTokenPattern({ pattern: { regex: /[^<>"]+/, type: XmlTokenType.Value }, specificity: 4 });
 
         return lLexer;
     }
@@ -403,8 +403,8 @@ export abstract class BaseXmlParser {
      * 
      * @param pLexer - Lexer with applied config.
      */
-    private createParser(pLexer: Lexer<XmlToken>): CodeParser<XmlToken, XmlDocument> {
-        const lParser: CodeParser<XmlToken, XmlDocument> = new CodeParser<XmlToken, XmlDocument>(pLexer);
+    private createParser(pLexer: Lexer<XmlTokenType>): CodeParser<XmlTokenType, XmlDocument> {
+        const lParser: CodeParser<XmlTokenType, XmlDocument> = new CodeParser<XmlTokenType, XmlDocument>(pLexer);
 
         // Generate parts.
         for (const lPart of this.mConfig.xmlParts.values()) {
@@ -412,7 +412,7 @@ export abstract class BaseXmlParser {
         }
 
         // Autogenerate content graphs.
-        const lContentElementGrapths: Array<GraphPartReference<XmlToken>> = new Array<GraphPartReference<XmlToken>>();
+        const lContentElementGrapths: Array<GraphPartReference<XmlTokenType>> = new Array<GraphPartReference<XmlTokenType>>();
         for (const lPartName of this.mConfig.contentParts) {
             lContentElementGrapths.push(lParser.partReference(lPartName));
         }
@@ -514,7 +514,13 @@ type XmlPart<TGraphData, TParseData> = {
     name: string;
     partConstructor?: IVoidParameterConstructor<object>;
     definition: {
-        grapth: (pGrapth: BaseGrammarNode<XmlToken>, pParser: CodeParser<XmlToken, XmlDocument>) => BaseGrammarNode<XmlToken>;
+        grapth: (pGrapth: AnonymoutGrammarNode<XmlTokenType>, pParser: CodeParser<XmlTokenType, XmlDocument>) => BaseGrammarNode<XmlTokenType>;
         data: (pData: TGraphData) => TParseData;
     };
+};
+
+type XmlToken = {
+    name: string,
+    pattern: LexerPattern<XmlTokenType>,
+    validInner?: Array<string>;
 };

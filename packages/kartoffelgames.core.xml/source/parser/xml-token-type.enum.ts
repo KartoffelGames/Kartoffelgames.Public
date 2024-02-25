@@ -1,4 +1,4 @@
-export enum XmlToken {
+export enum XmlTokenType {
     OpenBracket = 'Open braket',
     CloseBracket = 'Close braket',
     Comment = 'Comment',

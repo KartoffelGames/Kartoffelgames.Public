@@ -211,7 +211,7 @@ export class XmlParser extends BaseXmlParser<XmlTokenType> {
             openingNamespace?: { name: string; };
             attributes: Array<AttributeInformation>,
             ending: {} | {
-                values: Array<XmlElement | CommentNode | TextNode>;
+                values: Array<XmlElement | CommentNode | TextNode | null>;
                 closingTageName: string;
                 closingNamespace?: { name: string; };
             };
@@ -280,8 +280,8 @@ export class XmlParser extends BaseXmlParser<XmlTokenType> {
                 // Add values.
                 if ('values' in pData.ending) {
                     for (const lValue of pData.ending.values) {
-                        // Optional comment node
-                        if (this.removeComments && lValue instanceof CommentNode) {
+                        // Optional comment node. Comment nodes are null when omitted.
+                        if (lValue === null) {
                             continue;
                         }
 
@@ -347,7 +347,7 @@ export class XmlParser extends BaseXmlParser<XmlTokenType> {
             };
             return pToken;
         });
-        this.setXmlToken('Comment', (pToken) => {
+        this.setXmlToken('OpeningTag', (pToken) => {
             pToken.validInner = ['NamespaceDelimiter', 'Identifier', 'ExplicitValue', 'Assignment'];
             pToken.pattern = {
                 pattern: {

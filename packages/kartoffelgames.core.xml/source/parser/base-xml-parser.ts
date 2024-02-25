@@ -1,5 +1,5 @@
 import { IVoidParameterConstructor } from '@kartoffelgames/core.data';
-import { AnonymoutGrammarNode, BaseGrammarNode, CodeParser, GraphPartReference, Lexer, LexerPattern } from '@kartoffelgames/core.parser';
+import { AnonymousGrammarNode, BaseGrammarNode, CodeParser, GraphPartReference, Lexer, LexerPattern } from '@kartoffelgames/core.parser';
 import { XmlDocument } from '../document/xml-document';
 import { BaseXmlNode } from '../node/base-xml-node';
 
@@ -71,7 +71,7 @@ export abstract class BaseXmlParser<TTokenType extends string> {
             lXmlPart = {
                 name: pName,
                 definition: {
-                    grapth: (pGrapth: AnonymoutGrammarNode<TTokenType>): BaseGrammarNode<TTokenType> => {
+                    grapth: (pGrapth: AnonymousGrammarNode<TTokenType>): BaseGrammarNode<TTokenType> => {
                         return pGrapth;
                     },
                     data: (pData: TGrapthData): TParseData => {
@@ -228,7 +228,7 @@ type XmlPart<TTokenType extends string, TGraphData, TParseData> = {
     name: string;
     partConstructor?: IVoidParameterConstructor<object>;
     definition: {
-        grapth: (pGrapth: AnonymoutGrammarNode<TTokenType>, pParser: CodeParser<TTokenType, XmlDocument>) => BaseGrammarNode<TTokenType>;
+        grapth: (pGrapth: AnonymousGrammarNode<TTokenType>, pParser: CodeParser<TTokenType, XmlDocument>) => BaseGrammarNode<TTokenType>;
         data: (pData: TGraphData) => TParseData;
     };
 };

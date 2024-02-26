@@ -182,7 +182,7 @@ export abstract class BaseXmlParser<TTokenType extends string> {
         }
 
         // Sort token by usage.
-        lTokenOrder.sort((pA: TokenInstance, pB: TokenInstance) => {
+        lTokenOrder.sort((pA: TokenInstance, pB: TokenInstance) => {       
             if (pA.usagedBy.has(pB.name)) {
                 // Move depedency up when a is used by b.
                 return -1;
@@ -209,10 +209,6 @@ export abstract class BaseXmlParser<TTokenType extends string> {
             }
         }
 
-        // Add root token
-        for (const lRootToken of this.mRootToken) {
-            lLexer.useTokenTemplate(lRootToken);
-        }
 
         return lLexer;
     }

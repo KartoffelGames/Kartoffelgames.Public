@@ -9,12 +9,11 @@ export class TemplateParser extends XmlParser {
      * Set new setting for parsing attributes with special characters and remove comments.
      */
     public constructor() {
-        super();
-
-        // Attribute name with everything.
-        this.allowedAttributeCharacters = 'abcdefghijklmnopqrstuvwxyz_:-.1234567890*[]()$§%&?#';
-
-        // Remove user comments.
-        this.removeComments = true;
+        super({
+            // Attribute name with everything.
+            allowedAttributeCharacters: 'abcdefghijklmnopqrstuvwxyz_:-.1234567890*[]()$§%&?#',
+            // Remove user comments.
+            removeComments: true
+        });
     }
 }

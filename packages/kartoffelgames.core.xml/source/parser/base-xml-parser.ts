@@ -1,5 +1,5 @@
 import { Exception, IVoidParameterConstructor } from '@kartoffelgames/core.data';
-import { CodeParser, GraphPartReference, Lexer } from '@kartoffelgames/core.parser';
+import { CodeParser, Lexer } from '@kartoffelgames/core.parser';
 import { XmlDocument } from '../document/xml-document';
 import { CommentNode } from '../node/comment-node';
 import { TextNode } from '../node/text-node';
@@ -212,7 +212,7 @@ export abstract class BaseXmlParser {
                             .single(XmlToken.CloseClosingBracket),
                         pParser.graph()
                             .single(XmlToken.CloseBracket)
-                            .loop('values', pParser.partReference('content'))
+                            .loop('values', pParser.partReference('tag__content'))
                             .single(XmlToken.OpenClosingBracket)
                             .optional('closingNamespace',
                                 pParser.graph().single('name', XmlToken.Identifier).single(XmlToken.NamespaceDelimiter)
@@ -404,29 +404,64 @@ export abstract class BaseXmlParser {
      * @param pLexer - Lexer with applied config.
      */
     private createParser(pLexer: Lexer<XmlToken>): CodeParser<XmlToken, XmlDocument> {
+
+
+
+
         const lParser: CodeParser<XmlToken, XmlDocument> = new CodeParser<XmlToken, XmlDocument>(pLexer);
 
-        // Generate parts.
-        for (const lPart of this.mConfig.xmlParts.values()) {
-            lParser.defineGraphPart(lPart.name, lPart.definition.grapth(lParser.graph(), lParser), lPart.definition.data);
-        }
+        // TODO: Generate parts.
 
-        // Autogenerate content graphs.
-        const lContentElementGrapths: Array<GraphPartReference<XmlToken>> = new Array<GraphPartReference<XmlToken>>();
-        for (const lPartName of this.mConfig.contentParts) {
-            lContentElementGrapths.push(lParser.partReference(lPartName));
-        }
+
+
+        // TODO: Autogenerate content graphs.
+
+
+
+
+
 
         // Content data.
         type ContentData = {
-            value: object;
+            value: { text: string; } | XmlElement | { comment: string; };
         };
         lParser.defineGraphPart('content',
-            lParser.graph().branch('value', lContentElementGrapths),
-            (pData: ContentData): any => {
-                return pData.value;
+            lParser.graph().branch('value', [
+                lParser.graph().single('comment', XmlToken.Comment),
+                lParser.graph().single('text', XmlToken.Value),
+                lParser.partReference('tag')
+            ]),
+            (pData: ContentData): XmlElement | CommentNode | TextNode => {
+                // XML Element
+                if (pData.value instanceof XmlElement) {
+                    return pData.value;
+                }
+
+                // Text content.
+                if ('text' in pData.value) {
+                    // Clear hyphen from text content.
+                    let lClearedTextContent: string;
+                    if (pData.value.text.startsWith('"') && pData.value.text.endsWith('"')) {
+                        lClearedTextContent = pData.value.text.substring(1, pData.value.text.length - 1);
+                    } else {
+                        lClearedTextContent = pData.value.text;
+                    }
+
+                    // Create text element.
+                    const lTextContent = new (this.getTextNodeConstructor())();
+                    lTextContent.text = lClearedTextContent;
+
+                    return lTextContent;
+                }
+
+                // Create comment element. Extract raw text content.
+                const lComment = new (this.getCommentNodeConstructor())();
+                lComment.text = pData.value.comment.substring(4, pData.value.comment.length - 3).trim();
+
+                return lComment;
             }
         );
+
 
         // Document.
         type DocumentParseData = {

@@ -11,7 +11,7 @@ import { GrammarNodeValueType } from './grammer-node-value-type.enum';
  * 
  * @typeparam TTokenType - Type of all tokens the graph can handle.
  */
-export class AnonymousGrammarNode<TTokenType extends string> extends BaseGrammarNode<TTokenType> {
+export class AnonymoutGrammarNode<TTokenType extends string> extends BaseGrammarNode<TTokenType> {
     /**
      * Throws an error.
      * This node should not be uses in any graph. Only exist when this node does't get chained.

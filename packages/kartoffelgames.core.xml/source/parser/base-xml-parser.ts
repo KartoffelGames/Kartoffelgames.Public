@@ -1,24 +1,64 @@
-import { IVoidParameterConstructor } from '@kartoffelgames/core.data';
-import { AnonymoutGrammarNode, BaseGrammarNode, CodeParser, GraphPartReference, Lexer, LexerPattern } from '@kartoffelgames/core.parser';
+import { Exception, IVoidParameterConstructor } from '@kartoffelgames/core.data';
+import { AnonymoutGrammarNode, CodeParser, GraphPartReference, Lexer, LexerPattern } from '@kartoffelgames/core.parser';
 import { XmlDocument } from '../document/xml-document';
-import { BaseXmlNode } from '../node/base-xml-node';
+import { CommentNode } from '../node/comment-node';
+import { TextNode } from '../node/text-node';
+import { XmlElement } from '../node/xml-element';
+import { XmlTokenType } from './xml-token-type.enum';
+import { BaseGrammarNode } from '@kartoffelgames/core.parser';
 
 /**
  * XML parser. Can handle none XML conform styles with different parser modes.
  */
-export abstract class BaseXmlParser<TTokenType extends string> {
-    private readonly mContentParts: Array<string>;
-    private mParser: CodeParser<TTokenType, XmlDocument> | null;
+export abstract class BaseXmlParser {
+    private readonly mConfig: XmlParserConfig;
+    private mParser: CodeParser<XmlTokenType, XmlDocument> | null;
     private mRebuildParser: boolean;
-    private readonly mToken: Map<string, XmlToken<TTokenType>>;
-    private readonly mXmlParts: Map<string, XmlPart<TTokenType, object, any>>;
+
+    /**
+     * Characters that are allowed for attribute names. Case insensitiv.
+     */
+    public get allowedAttributeCharacters(): string {
+        return this.mConfig.allowedAttributeCharacters;
+    } set allowedAttributeCharacters(pValue: string) {
+        // Add lower- and uppercase characters. Split this string into single chars and create a distinct list with a Set & Spread-Array.
+        const lCharList: Array<string> = [...new Set((pValue.toLowerCase() + pValue.toUpperCase()).split(''))];
+
+        this.allowedAttributeCharacters = lCharList.join('');
+        this.mRebuildParser = true;
+    }
+
+    /**
+     * Characters that are allowed for tag names. Case insensitiv.
+     */
+    public get allowedTagNameCharacters(): string {
+        return this.mConfig.allowedTagNameCharacters;
+    } set allowedTagNameCharacters(pValue: string) {
+        // Add lower- and uppercase characters. Split this string into single chars and create a distinct list with a Set & Spread-Array.
+        const lCharList: Array<string> = [...new Set((pValue.toLowerCase() + pValue.toUpperCase()).split(''))];
+
+        this.allowedTagNameCharacters = lCharList.join('');
+        this.mRebuildParser = true;
+    }
 
     /**
      * Xml parts that counts as content.
      * Content parts are used for nesting.
      */
     public get contentParts(): Array<string> {
-        return this.mContentParts;
+        return this.mConfig.contentParts;
+    } set contentParts(pValue: Array<string>) {
+        this.mConfig.contentParts = pValue;
+    }
+
+    /**
+     * Remove comments from generated xml.
+     */
+    public get removeComments(): boolean {
+        return this.mConfig.removeComments;
+    } set removeComments(pValue: boolean) {
+        this.removeComments = pValue;
+        this.mRebuildParser = true;
     }
 
     /**
@@ -26,9 +66,214 @@ export abstract class BaseXmlParser<TTokenType extends string> {
      */
     public constructor() {
         // Set default configs.
-        this.mXmlParts = new Map<string, XmlPart<TTokenType, object, any>>();
-        this.mContentParts = [];
-        this.mToken = new Map<string, XmlToken<TTokenType>>();
+        this.mConfig = {
+            allowedAttributeCharacters: '',
+            allowedTagNameCharacters: '',
+            removeComments: false,
+            xmlParts: new Map<string, XmlPart<object, any>>(),
+            contentParts: []
+        };
+        this.allowedAttributeCharacters = 'abcdefghijklmnopqrstuvwxyz_-.1234567890';
+        this.allowedTagNameCharacters = 'abcdefghijklmnopqrstuvwxyz_-.1234567890';
+
+        // Set default content parts.
+        this.contentParts.push('text', 'comment', 'tag');
+
+        // Set defaul xmlparts.
+        // Attribute graph.
+        type AttributeParseData = {
+            namespace?: { name: string; };
+            name: string;
+            value?: { value: string; };
+        };
+        this.setXmlPart<AttributeParseData, AttributeInformation>('attribute', (pXmlPart) => {
+            // Set xml attribute grapth.
+            pXmlPart.definition.grapth = (pGraph: AnonymoutGrammarNode<XmlTokenType>, pParser: CodeParser<XmlTokenType, XmlDocument>): BaseGrammarNode<XmlTokenType> => {
+                return pGraph
+                    .optional('namespace',
+                        pParser.graph().single('name', XmlTokenType.Identifier).single(XmlTokenType.NamespaceDelimiter)
+                    )
+                    .single('name', XmlTokenType.Identifier)
+                    .optional('value',
+                        pParser.graph().single(XmlTokenType.Assignment).single('value', XmlTokenType.Value)
+                    );
+            };
+
+            // Set attribute data parser.
+            pXmlPart.definition.data = (pData: AttributeParseData) => {
+                // Validate tag name.
+                const lRegexNameCheck: RegExp = new RegExp(`^[${this.escapeRegExp(this.mConfig.allowedAttributeCharacters)}]+$`);
+                if (!lRegexNameCheck.test(pData.name)) {
+                    throw new Exception(`Attribute contains illegal characters: "${pData.name}"`, this);
+                }
+
+                return {
+                    namespacePrefix: pData.namespace?.name ?? null,
+                    name: pData.name,
+                    value: pData.value?.value.substring(1, pData.value.value.length - 1) ?? ''
+                };
+            };
+
+            return pXmlPart;
+        });
+
+        // Xml Text
+        type TextParseData = {
+            text: string;
+        };
+        this.setXmlPart<TextParseData, TextNode>('text', (pXmlPart) => {
+            // Set default text node constructor.
+            pXmlPart.partConstructor = TextNode;
+
+            // Set text grapth.
+            pXmlPart.definition.grapth = (pGraph: AnonymoutGrammarNode<XmlTokenType>): BaseGrammarNode<XmlTokenType> => {
+                return pGraph.single('text', XmlTokenType.Value);
+            };
+
+            // Set text data parser.
+            pXmlPart.definition.data = (pData: TextParseData) => {
+                if (!pXmlPart.partConstructor) {
+                    throw new Exception('Text node constructor needs to be set.', this);
+                }
+
+                // Clear hyphen from text content.
+                let lClearedTextContent: string;
+                if (pData.text.startsWith('"') && pData.text.endsWith('"')) {
+                    lClearedTextContent = pData.text.substring(1, pData.text.length - 1);
+                } else {
+                    lClearedTextContent = pData.text;
+                }
+
+                // Create text element.
+                const lTextContent: TextNode = new (<typeof TextNode>pXmlPart.partConstructor)();
+                lTextContent.text = lClearedTextContent;
+
+                return lTextContent;
+            };
+
+            return pXmlPart;
+        });
+
+        // Xml Comment
+        type CommentParseData = {
+            comment: string;
+        };
+        this.setXmlPart<CommentParseData, CommentNode>('comment', (pXmlPart) => {
+            // Set default comment node constructor.
+            pXmlPart.partConstructor = CommentNode;
+
+            // Set comment grapth.
+            pXmlPart.definition.grapth = (pGraph: AnonymoutGrammarNode<XmlTokenType>): BaseGrammarNode<XmlTokenType> => {
+                return pGraph.single('comment', XmlTokenType.Comment);
+            };
+
+            // Set comment data parser.
+            pXmlPart.definition.data = (pData: CommentParseData) => {
+                if (!pXmlPart.partConstructor) {
+                    throw new Exception('Comment node constructor needs to be set.', this);
+                }
+
+                // Create comment element. Extract raw text content.
+                const lComment: CommentNode = new (<typeof CommentNode>pXmlPart.partConstructor)();
+                lComment.text = pData.comment.substring(4, pData.comment.length - 3).trim();
+
+                return <CommentNode>lComment;
+            };
+
+            return pXmlPart;
+        });
+
+        // Xml tag
+        type TagParseData = {
+            openingTagName: string;
+            openingNamespace?: { name: string; };
+            attributes: Array<AttributeInformation>,
+            ending: {} | {
+                values: Array<XmlElement | CommentNode | TextNode>;
+                closingTageName: string;
+                closingNamespace?: { name: string; };
+            };
+        };
+        this.setXmlPart<TagParseData, XmlElement>('tag', (pXmlPart) => {
+            // Set default comment node constructor.
+            pXmlPart.partConstructor = XmlElement;
+
+            // Set comment grapth.
+            pXmlPart.definition.grapth = (pGraph: AnonymoutGrammarNode<XmlTokenType>, pParser: CodeParser<XmlTokenType, XmlDocument>): BaseGrammarNode<XmlTokenType> => {
+                return pGraph
+                    .single(XmlTokenType.OpenBracket)
+                    .optional('openingNamespace',
+                        pParser.graph().single('name', XmlTokenType.Identifier).single(XmlTokenType.NamespaceDelimiter)
+                    )
+                    .single('openingTagName', XmlTokenType.Identifier)
+                    .loop('attributes', pParser.partReference('attribute'))
+                    .branch('ending', [
+                        pParser.graph()
+                            .single(XmlTokenType.CloseClosingBracket),
+                        pParser.graph()
+                            .single(XmlTokenType.CloseBracket)
+                            .loop('values', pParser.partReference('content'))
+                            .single(XmlTokenType.OpenClosingBracket)
+                            .optional('closingNamespace',
+                                pParser.graph().single('name', XmlTokenType.Identifier).single(XmlTokenType.NamespaceDelimiter)
+                            )
+                            .single('closingTageName', XmlTokenType.Identifier).single(XmlTokenType.CloseBracket)
+                    ]);
+            };
+
+            // Set comment data parser.
+            pXmlPart.definition.data = (pData: TagParseData) => {
+                if (!pXmlPart.partConstructor) {
+                    throw new Exception('Xml node constructor needs to be set.', this);
+                }
+
+                // Validate data consistency.
+                if ('closingTageName' in pData.ending) {
+                    if (pData.openingTagName !== pData.ending.closingTageName) {
+                        throw new Exception(`Opening (${pData.openingTagName}) and closing tagname (${pData.ending.closingTageName}) does not match`, this);
+                    }
+
+                    // Validate namespace prefix.
+                    if (pData.ending.closingNamespace !== pData.openingNamespace) {
+                        throw new Exception(`Opening (${pData.openingNamespace}) and closing namespace prefix (${pData.ending.closingNamespace}) does not match`, this);
+                    }
+                }
+
+                // Validate tag name.
+                const lRegexNameCheck: RegExp = new RegExp(`^[${this.escapeRegExp(this.mConfig.allowedTagNameCharacters)}]+$`);
+                if (!lRegexNameCheck.test(pData.openingTagName)) {
+                    throw new Exception(`Tagname contains illegal characters: "${pData.openingTagName}"`, this);
+                }
+
+                // Create xml element.
+                const lElement: XmlElement = new (<typeof XmlElement>pXmlPart.partConstructor)();
+                lElement.tagName = pData.openingTagName;
+                lElement.namespacePrefix = pData.openingNamespace?.name ?? null;
+
+                // Add attributes.
+                for (const lAttribute of pData.attributes) {
+                    lElement.setAttribute(lAttribute.name, lAttribute.value, lAttribute.namespacePrefix);
+                }
+
+                // Add values.
+                if ('values' in pData.ending) {
+                    for (const lValue of pData.ending.values) {
+                        // Optional comment node
+                        if (this.mConfig.removeComments && lValue instanceof CommentNode) {
+                            continue;
+                        }
+
+                        // XML Element or Text node.
+                        lElement.appendChild(lValue);
+                    }
+                }
+
+                return lElement;
+            };
+
+            return pXmlPart;
+        });
+
 
         // "Reset" parser
         this.mRebuildParser = true;
@@ -44,7 +289,7 @@ export abstract class BaseXmlParser<TTokenType extends string> {
      */
     public parse(pText: string): XmlDocument {
         if (!this.mParser || this.mRebuildParser) {
-            const lLexer: Lexer<TTokenType> = this.createLexer();
+            const lLexer: Lexer<XmlTokenType> = this.createLexer();
             this.mParser = this.createParser(lLexer);
         }
 
@@ -62,16 +307,16 @@ export abstract class BaseXmlParser<TTokenType extends string> {
      * @param pName - Name of xml part.
      * @param pChangeFunction - Function that configurated the xml part.
      */
-    public setXmlPart<TGrapthData extends object, TParseData>(pName: string, pChangeFunction: (pXmlPart: XmlPart<TTokenType, TGrapthData, TParseData>) => XmlPart<TTokenType, TGrapthData, TParseData> | null): void {
+    public setXmlPart<TGrapthData extends object, TParseData>(pName: string, pChangeFunction: (pXmlPart: XmlPart<TGrapthData, TParseData>) => XmlPart<TGrapthData, TParseData> | null): void {
         // Try to use existing part.
-        let lXmlPart: XmlPart<TTokenType, TGrapthData, TParseData> | undefined = this.mXmlParts.get(pName);
+        let lXmlPart: XmlPart<TGrapthData, TParseData> | undefined = this.mConfig.xmlParts.get(pName);
 
         // Create new xml part with default values with it does not exits.
         if (!lXmlPart) {
             lXmlPart = {
                 name: pName,
                 definition: {
-                    grapth: (pGrapth: AnonymoutGrammarNode<TTokenType>): BaseGrammarNode<TTokenType> => {
+                    grapth: (pGrapth: AnonymoutGrammarNode<XmlTokenType>): BaseGrammarNode<XmlTokenType> => {
                         return pGrapth;
                     },
                     data: (pData: TGrapthData): TParseData => {
@@ -82,26 +327,23 @@ export abstract class BaseXmlParser<TTokenType extends string> {
         }
 
         // Call change function.
-        const lChangedXmlPart: XmlPart<TTokenType, TGrapthData, TParseData> | null = pChangeFunction(lXmlPart);
+        const lChangedXmlPart: XmlPart<TGrapthData, TParseData> | null = pChangeFunction(lXmlPart);
 
         // Delete the part when the change function return null
         if (lChangedXmlPart === null) {
-            this.mXmlParts.delete(pName);
+            this.mConfig.xmlParts.delete(pName);
         } else {
             // Save default xml part.
-            this.mXmlParts.set(pName, <any>lChangedXmlPart);
+            this.mConfig.xmlParts.set(pName, <any>lChangedXmlPart);
         }
-
-        // Rebuild parser.
-        this.mRebuildParser = true;
     }
 
     /**
      * Recreate lexer with applied config.
      */
-    private createLexer(): Lexer<TTokenType> {
+    private createLexer(): Lexer<XmlTokenType> {
         // TODO: 
-        const lLexer: Lexer<TTokenType> = new Lexer<TTokenType>();
+        const lLexer: Lexer<XmlTokenType> = new Lexer<XmlTokenType>();
         lLexer.validWhitespaces = ' \n';
         lLexer.trimWhitespace = true;
 
@@ -161,17 +403,17 @@ export abstract class BaseXmlParser<TTokenType extends string> {
      * 
      * @param pLexer - Lexer with applied config.
      */
-    private createParser(pLexer: Lexer<TTokenType>): CodeParser<TTokenType, XmlDocument> {
-        const lParser: CodeParser<TTokenType, XmlDocument> = new CodeParser<TTokenType, XmlDocument>(pLexer);
+    private createParser(pLexer: Lexer<XmlTokenType>): CodeParser<XmlTokenType, XmlDocument> {
+        const lParser: CodeParser<XmlTokenType, XmlDocument> = new CodeParser<XmlTokenType, XmlDocument>(pLexer);
 
         // Generate parts.
-        for (const lPart of this.mXmlParts.values()) {
+        for (const lPart of this.mConfig.xmlParts.values()) {
             lParser.defineGraphPart(lPart.name, lPart.definition.grapth(lParser.graph(), lParser), lPart.definition.data);
         }
 
         // Autogenerate content graphs.
-        const lContentElementGrapths: Array<GraphPartReference<TTokenType>> = new Array<GraphPartReference<TTokenType>>();
-        for (const lPartName of this.mContentParts) {
+        const lContentElementGrapths: Array<GraphPartReference<XmlTokenType>> = new Array<GraphPartReference<XmlTokenType>>();
+        for (const lPartName of this.mConfig.contentParts) {
             lContentElementGrapths.push(lParser.partReference(lPartName));
         }
 
@@ -188,7 +430,7 @@ export abstract class BaseXmlParser<TTokenType extends string> {
 
         // Document.
         type DocumentParseData = {
-            content: Array<BaseXmlNode>;
+            content: Array<XmlElement | CommentNode | TextNode>;
         };
         lParser.defineGraphPart('document',
             lParser.graph().loop('content', lParser.partReference('content')),
@@ -196,8 +438,8 @@ export abstract class BaseXmlParser<TTokenType extends string> {
                 const lDocument: XmlDocument = new XmlDocument(this.getDefaultNamespace());
 
                 for (const lValue of pData.content) {
-                    // Skip null objects.
-                    if (!lValue) {
+                    // Optional comment node
+                    if (this.mConfig.removeComments && lValue instanceof CommentNode) {
                         continue;
                     }
 
@@ -211,10 +453,15 @@ export abstract class BaseXmlParser<TTokenType extends string> {
 
         lParser.setRootGraphPart('document');
 
-        // Parser was rebuild.
-        this.mRebuildParser = false;
-
         return lParser;
+    }
+
+    /**
+     * Escape text to be inserted into an regex.
+     * @param pText - String.
+     */
+    private escapeRegExp(pText: string): string {
+        return pText.replace(/[.*+?^${}()\-|[\]\\]/g, '\\$&'); // $& means the whole matched string
     }
 
     /**
@@ -223,18 +470,57 @@ export abstract class BaseXmlParser<TTokenType extends string> {
     protected abstract getDefaultNamespace(): string;
 }
 
+/**
+ * Xml parser config for xml names.
+ */
+type XmlParserConfig = {
+    /**
+     * Characters that are allowed for attribute names. Case insensitiv.
+     */
+    allowedAttributeCharacters: string;
 
-type XmlPart<TTokenType extends string, TGraphData, TParseData> = {
+    /**
+     * Characters that are allowed for tag names. Case insensitiv.
+     */
+    allowedTagNameCharacters: string;
+
+    /**
+     * Remove comments from generated xml.
+     */
+    removeComments: boolean;
+
+    /**
+     * Xml parts
+     */
+    xmlParts: Map<string, XmlPart<object, any>>;
+
+    /**
+     * Xml parts that counts as content.
+     * Content parts are used for nesting.
+     */
+    contentParts: Array<string>;
+};
+
+/**
+ * Information that can be get from attribute strings.
+ */
+type AttributeInformation = {
+    name: string,
+    namespacePrefix: string | null,
+    value: string,
+};
+
+type XmlPart<TGraphData, TParseData> = {
     name: string;
     partConstructor?: IVoidParameterConstructor<object>;
     definition: {
-        grapth: (pGrapth: AnonymoutGrammarNode<TTokenType>, pParser: CodeParser<TTokenType, XmlDocument>) => BaseGrammarNode<TTokenType>;
+        grapth: (pGrapth: AnonymoutGrammarNode<XmlTokenType>, pParser: CodeParser<XmlTokenType, XmlDocument>) => BaseGrammarNode<XmlTokenType>;
         data: (pData: TGraphData) => TParseData;
     };
 };
 
-type XmlToken<TTokenType extends string> = {
+type XmlToken = {
     name: string,
-    pattern: LexerPattern<TTokenType>,
+    pattern: LexerPattern<XmlTokenType>,
     validInner?: Array<string>;
 };

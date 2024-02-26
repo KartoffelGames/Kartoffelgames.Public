@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { expect } from 'chai';
-import { AnonymousGrammarNode } from '../../source/graph/node/anonymous-grammar-node';
+import { AnonymoutGrammarNode } from '../../source/graph/node/anonymous-grammar-node';
 import { BaseGrammarNode } from '../../source/graph/node/base-grammar-node';
 import { GrammarBranchNode } from '../../source/graph/node/grammer-branch-node';
 import { GrammarLoopNode } from '../../source/graph/node/grammer-loop-node';
@@ -197,7 +197,7 @@ describe('GrammarNode', () => {
     describe('-- AnonymousGrammarNode', () => {
         it('-- Create with chaining single unnamed', () => {
             // Setup.
-            const lAnonymousNode: AnonymousGrammarNode<string> = new AnonymousGrammarNode<string>();
+            const lAnonymousNode: AnonymoutGrammarNode<string> = new AnonymoutGrammarNode<string>();
 
             // Process.
             const lGraph: BaseGrammarNode<string> = lAnonymousNode.single('Value');
@@ -210,7 +210,7 @@ describe('GrammarNode', () => {
 
         it('-- Create with chaining optional unnamed', () => {
             // Setup.
-            const lAnonymousNode: AnonymousGrammarNode<string> = new AnonymousGrammarNode<string>();
+            const lAnonymousNode: AnonymoutGrammarNode<string> = new AnonymoutGrammarNode<string>();
 
             // Process.
             const lGraph: BaseGrammarNode<string> = lAnonymousNode.optional('Value');
@@ -223,7 +223,7 @@ describe('GrammarNode', () => {
 
         it('-- Create with chaining branch unnamed', () => {
             // Setup.
-            const lAnonymousNode: AnonymousGrammarNode<string> = new AnonymousGrammarNode<string>();
+            const lAnonymousNode: AnonymoutGrammarNode<string> = new AnonymoutGrammarNode<string>();
 
             // Process.
             const lGraph: BaseGrammarNode<string> = lAnonymousNode.branch(['Value']);
@@ -236,7 +236,7 @@ describe('GrammarNode', () => {
 
         it('-- Create with chaining optional branch unnamed', () => {
             // Setup.
-            const lAnonymousNode: AnonymousGrammarNode<string> = new AnonymousGrammarNode<string>();
+            const lAnonymousNode: AnonymoutGrammarNode<string> = new AnonymoutGrammarNode<string>();
 
             // Process.
             const lGraph: BaseGrammarNode<string> = lAnonymousNode.optionalBranch(['Value']);
@@ -249,7 +249,7 @@ describe('GrammarNode', () => {
 
         it('-- Create with chaining loop unnamed', () => {
             // Setup.
-            const lAnonymousNode: AnonymousGrammarNode<string> = new AnonymousGrammarNode<string>();
+            const lAnonymousNode: AnonymoutGrammarNode<string> = new AnonymoutGrammarNode<string>();
 
             // Process.
             const lGraph: BaseGrammarNode<string> = lAnonymousNode.loop('Value');
@@ -262,7 +262,7 @@ describe('GrammarNode', () => {
 
         it('-- Create with chaining single named', () => {
             // Setup.
-            const lAnonymousNode: AnonymousGrammarNode<string> = new AnonymousGrammarNode<string>();
+            const lAnonymousNode: AnonymoutGrammarNode<string> = new AnonymoutGrammarNode<string>();
 
             // Process.
             const lGraph: BaseGrammarNode<string> = lAnonymousNode.single('Name', 'Value');
@@ -276,7 +276,7 @@ describe('GrammarNode', () => {
 
         it('-- Create with chaining optional named', () => {
             // Setup.
-            const lAnonymousNode: AnonymousGrammarNode<string> = new AnonymousGrammarNode<string>();
+            const lAnonymousNode: AnonymoutGrammarNode<string> = new AnonymoutGrammarNode<string>();
 
             // Process.
             const lGraph: BaseGrammarNode<string> = lAnonymousNode.optional('Name', 'Value');
@@ -290,7 +290,7 @@ describe('GrammarNode', () => {
 
         it('-- Create with chaining branch named', () => {
             // Setup.
-            const lAnonymousNode: AnonymousGrammarNode<string> = new AnonymousGrammarNode<string>();
+            const lAnonymousNode: AnonymoutGrammarNode<string> = new AnonymoutGrammarNode<string>();
 
             // Process.
             const lGraph: BaseGrammarNode<string> = lAnonymousNode.branch('Name', ['Value']);
@@ -304,7 +304,7 @@ describe('GrammarNode', () => {
 
         it('-- Create with chaining optional branch named', () => {
             // Setup.
-            const lAnonymousNode: AnonymousGrammarNode<string> = new AnonymousGrammarNode<string>();
+            const lAnonymousNode: AnonymoutGrammarNode<string> = new AnonymoutGrammarNode<string>();
 
             // Process.
             const lGraph: BaseGrammarNode<string> = lAnonymousNode.optionalBranch('Name', ['Value']);
@@ -318,7 +318,7 @@ describe('GrammarNode', () => {
 
         it('-- Create with chaining loop named', () => {
             // Setup.
-            const lAnonymousNode: AnonymousGrammarNode<string> = new AnonymousGrammarNode<string>();
+            const lAnonymousNode: AnonymoutGrammarNode<string> = new AnonymoutGrammarNode<string>();
 
             // Process.
             const lGraph: BaseGrammarNode<string> = lAnonymousNode.loop('Name', 'Value');
@@ -333,7 +333,7 @@ describe('GrammarNode', () => {
         describe('-- Errors', () => {
             it('-- Anonymous node next', () => {
                 // Setup.
-                const lAnonymousNode: AnonymousGrammarNode<string> = new AnonymousGrammarNode<string>();
+                const lAnonymousNode: AnonymoutGrammarNode<string> = new AnonymoutGrammarNode<string>();
 
                 // Process.
                 const lErrorFunction = () => {
@@ -346,7 +346,7 @@ describe('GrammarNode', () => {
 
             it('-- Anonymous node values', () => {
                 // Setup.
-                const lAnonymousNode: AnonymousGrammarNode<string> = new AnonymousGrammarNode<string>();
+                const lAnonymousNode: AnonymoutGrammarNode<string> = new AnonymoutGrammarNode<string>();
 
                 // Process.
                 const lErrorFunction = () => {

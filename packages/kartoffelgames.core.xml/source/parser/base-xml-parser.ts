@@ -395,25 +395,22 @@ type AttributeInformation = {
 type XmlPart = {
     name: string;
     contains?: Array<string>;
-    partConstructor?: IVoidParameterConstructor<object>;
+    constructor: IVoidParameterConstructor<object>;
 };
 
 // TODO: Test xml part config.
 const a: Array<XmlPart> = [
     {
-        name: 'attribute'
-    },
-    {
         name: 'tag',
         contains: ['tag', 'comment', 'text'],
-        partConstructor: XmlElement
+        constructor: XmlElement
     },
     {
         name: 'comment',
-        partConstructor: CommentNode
+        constructor: CommentNode
     },
     {
         name: 'text',
-        partConstructor: TextNode
+        constructor: TextNode
     }
 ];

@@ -182,17 +182,15 @@ export abstract class BaseXmlParser<TTokenType extends string> {
         }
 
         // Sort token by usage.
-        lTokenOrder.sort((pA: TokenInstance, pB: TokenInstance) => {       
-            if (pA.usagedBy.has(pB.name)) {
-                // Move depedency up when a is used by b.
-                return -1;
-            } else if (pB.usagedBy.has(pA.name)) {
-                // Move depedency down when b is used by a.
-                return 1;
-            }
+        let lReorderMade: boolean = true;
+        while (lReorderMade) {
+            lReorderMade = false;
 
-            return 0;
-        });
+            // Take first token and try to reorder it.
+            for (let lIndex: number = 1; lIndex < lTokenOrder.length; lIndex++) {
+                // TODO:
+            }
+        }
 
         // Create lexer token.
         for (const lToken of lTokenOrder) {

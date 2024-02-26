@@ -1,5 +1,7 @@
 import { XmlParser } from '@kartoffelgames/core.xml';
 
+// TODO: Build new parser from scratch. 
+
 /**
  * XML parser for parsing template strings.
  */

@@ -4,18 +4,19 @@ import { BaseXmlNode } from '@kartoffelgames/core.xml';
  * Multiplicator node.
  * 
  * Implied syntax for templates are:
- * ``` XML
- * [SingleType attribute="" attribute2="" /]
+ * ``` PwbTemplate
+ * @@Single(Instruction)
  * 
- * [MultiType attribute="" attribute2=""]
+ * @Multi(Instruction) {
  *  <MoreContent />
- * [/MultiType]
+ * }
  * ```
  */
-export class MultiplicatorNode extends BaseXmlNode {
+export class MultiplicatorInstruction extends BaseXmlNode {
     private mInstruction: string;
-    private mTypeName: string;
-    
+    private mInstructionType: string;
+    private mNodeType: MultiplicatorInstructionType; // TODO: Maybe better names. 
+
     /**
      * Get default namespace.
      */
@@ -34,12 +35,12 @@ export class MultiplicatorNode extends BaseXmlNode {
     }
 
     /**
-     * Nodes type.
+     * Instruction type.
      */
-    public get typeName(): string {
-        return this.mTypeName;
-    } set typeName(pValue: string) {
-        this.mTypeName = pValue;
+    public get instructionType(): string {
+        return this.mInstructionType;
+    } set instructionType(pValue: string) {
+        this.mInstructionType = pValue;
     }
 
     /**
@@ -58,7 +59,7 @@ export class MultiplicatorNode extends BaseXmlNode {
      * @returns new instance of current node with the same data.
      */
     override clone(): BaseXmlNode {
-        const lClone: MultiplicatorNode = new MultiplicatorNode();
+        const lClone: MultiplicatorInstruction = new MultiplicatorInstruction();
         lClone.instruction = this.instruction;
         lClone.typeName = this.typeName;
 
@@ -73,7 +74,7 @@ export class MultiplicatorNode extends BaseXmlNode {
      */
     override equals(pBaseNode: BaseXmlNode): boolean {
         // Check type, tagname, namespace and namespace prefix.
-        if (!(pBaseNode instanceof MultiplicatorNode)) {
+        if (!(pBaseNode instanceof MultiplicatorInstruction)) {
             return false;
         }
 
@@ -89,5 +90,6 @@ export class MultiplicatorNode extends BaseXmlNode {
 
         return true;
     }
-
 }
+
+type MultiplicatorInstructionType = 'single' | 'multi';

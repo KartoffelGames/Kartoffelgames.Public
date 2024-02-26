@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { AnonymousGrammarNode, BaseGrammarNode, CodeParser } from '@kartoffelgames/core.parser';
+import { AnonymoutGrammarNode, BaseGrammarNode, CodeParser } from '@kartoffelgames/core.parser';
 import { XmlDocument } from '../document/xml-document';
 import { CommentNode } from '../node/comment-node';
 import { TextNode } from '../node/text-node';
@@ -97,7 +97,7 @@ export class XmlParser extends BaseXmlParser<XmlTokenType> {
         };
         this.setXmlPart<AttributeParseData, AttributeInformation>('attribute', (pXmlPart) => {
             // Set xml attribute grapth.
-            pXmlPart.definition.grapth = (pGraph: AnonymousGrammarNode<XmlTokenType>, pParser: CodeParser<XmlTokenType, XmlDocument>): BaseGrammarNode<XmlTokenType> => {
+            pXmlPart.definition.grapth = (pGraph: AnonymoutGrammarNode<XmlTokenType>, pParser: CodeParser<XmlTokenType, XmlDocument>): BaseGrammarNode<XmlTokenType> => {
                 return pGraph
                     .optional('namespace',
                         pParser.graph().single('name', XmlTokenType.Identifier).single(XmlTokenType.NamespaceDelimiter)
@@ -135,7 +135,7 @@ export class XmlParser extends BaseXmlParser<XmlTokenType> {
             pXmlPart.partConstructor = TextNode;
 
             // Set text grapth.
-            pXmlPart.definition.grapth = (pGraph: AnonymousGrammarNode<XmlTokenType>): BaseGrammarNode<XmlTokenType> => {
+            pXmlPart.definition.grapth = (pGraph: AnonymoutGrammarNode<XmlTokenType>): BaseGrammarNode<XmlTokenType> => {
                 return pGraph.single('text', XmlTokenType.Value);
             };
 
@@ -172,7 +172,7 @@ export class XmlParser extends BaseXmlParser<XmlTokenType> {
             pXmlPart.partConstructor = CommentNode;
 
             // Set comment grapth.
-            pXmlPart.definition.grapth = (pGraph: AnonymousGrammarNode<XmlTokenType>): BaseGrammarNode<XmlTokenType> => {
+            pXmlPart.definition.grapth = (pGraph: AnonymoutGrammarNode<XmlTokenType>): BaseGrammarNode<XmlTokenType> => {
                 return pGraph.single('comment', XmlTokenType.Comment);
             };
 
@@ -213,7 +213,7 @@ export class XmlParser extends BaseXmlParser<XmlTokenType> {
             pXmlPart.partConstructor = XmlElement;
 
             // Set comment grapth.
-            pXmlPart.definition.grapth = (pGraph: AnonymousGrammarNode<XmlTokenType>, pParser: CodeParser<XmlTokenType, XmlDocument>): BaseGrammarNode<XmlTokenType> => {
+            pXmlPart.definition.grapth = (pGraph: AnonymoutGrammarNode<XmlTokenType>, pParser: CodeParser<XmlTokenType, XmlDocument>): BaseGrammarNode<XmlTokenType> => {
                 return pGraph
                     .single(XmlTokenType.OpenBracket)
                     .optional('openingNamespace',

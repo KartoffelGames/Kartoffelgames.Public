@@ -16,7 +16,5 @@ export class TemplateParser extends XmlParser {
 
         // Remove user comments.
         this.removeComments = true;
-
-        // TODO: Add new multiplicator node.
     }
 }

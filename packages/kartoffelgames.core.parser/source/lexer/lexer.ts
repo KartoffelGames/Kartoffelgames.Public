@@ -634,8 +634,8 @@ type LexerPatternDefinition<TTokenType> = {
 /* 
  * Pattern definition.
  */
-export type LexerPatternType<TTokenType> = TTokenType | { [SubGroup: string]: TTokenType; };
-export type LexerPattern<TTokenType> = {
+type LexerPatternType<TTokenType> = TTokenType | { [SubGroup: string]: TTokenType; };
+type LexerPattern<TTokenType> = {
     pattern: {
         regex: RegExp;
         type: LexerPatternType<TTokenType>;

@@ -1,4 +1,4 @@
-import { Exception, IVoidParameterConstructor } from '@kartoffelgames/core.data';
+import { IVoidParameterConstructor } from '@kartoffelgames/core.data';
 import { AnonymousGrammarNode, BaseGrammarNode, CodeParser, GraphPartReference, Lexer, LexerPattern } from '@kartoffelgames/core.parser';
 import { XmlDocument } from '../document/xml-document';
 import { BaseXmlNode } from '../node/base-xml-node';
@@ -147,66 +147,13 @@ export abstract class BaseXmlParser<TTokenType extends string> {
      * Recreate lexer with applied config.
      */
     private createLexer(): Lexer<TTokenType> {
-        if (this.mToken.size === 0) {
-            throw new Exception('No xml token are specified', this);
-        }
-
+        // TODO: 
         const lLexer: Lexer<TTokenType> = new Lexer<TTokenType>();
         lLexer.validWhitespaces = ' \n';
         lLexer.trimWhitespace = true;
 
-        // Create token order structure.
-        type TokenInstance = {
-            name: string;
-            token: XmlToken<TTokenType>;
-            usagedBy: Set<string>;
-        };
-        const lTokenOrder: Array<TokenInstance> = new Array<TokenInstance>();
 
-        // Add each token.
-        for (const lTargetToken of this.mToken.values()) {
-            const lTokenInstance: TokenInstance = {
-                name: lTargetToken.name,
-                token: lTargetToken,
-                usagedBy: new Set()
-            };
-
-            // Fill out usagedBy.
-            for (const lSourceToken of this.mToken.values()) {
-                if (lSourceToken.validInner && lSourceToken.validInner.includes(lTargetToken.name)) {
-                    lTokenInstance.usagedBy.add(lSourceToken.name);
-                }
-            }
-
-            lTokenOrder.push(lTokenInstance);
-        }
-
-        // Sort token by usage.
-        let lReorderMade: boolean = true;
-        while (lReorderMade) {
-            lReorderMade = false;
-
-            // Take first token and try to reorder it.
-            for (let lIndex: number = 1; lIndex < lTokenOrder.length; lIndex++) {
-                // TODO:
-            }
-        }
-
-        // Create lexer token.
-        for (const lToken of lTokenOrder) {
-            if (lToken.token.validInner) {
-                // Add token with inner token.
-                lLexer.addTokenTemplate(lToken.name, lToken.token.pattern, (pLexer: Lexer<TTokenType>) => {
-                    for (const lInnerTokenName of lToken.token.validInner!) {
-                        pLexer.useTokenTemplate(lInnerTokenName);
-                    }
-                });
-            } else {
-                // Add token without inner token.
-                lLexer.addTokenTemplate(lToken.name, lToken.token.pattern);
-            }
-        }
-
+        
 
         return lLexer;
     }

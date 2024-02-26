@@ -7,7 +7,7 @@ import { XmlElement } from '../node/xml-element';
 import { BaseXmlParser } from './base-xml-parser';
 import { XmlTokenType } from './xml-token-type.enum';
 
-export class XmlParser extends BaseXmlParser<XmlTokenType> {
+export class XmlParser<TExtendTokenType extends string = XmlTokenType> extends BaseXmlParser<XmlTokenType | TExtendTokenType> {
     private mAllowedAttributeCharacters: string;
     private mAllowedTagNameCharacters: string;
     private mRemoveComments: boolean;
@@ -79,18 +79,18 @@ export class XmlParser extends BaseXmlParser<XmlTokenType> {
     }
 
     /**
+     * Escape text to be inserted into an regex.
+     * @param pText - String.
+     */
+    protected escapeRegExp(pText: string): string {
+        return pText.replace(/[.*+?^${}()\-|[\]\\]/g, '\\$&'); // $& means the whole matched string
+    }
+
+    /**
      * Get documents default namespace.
      */
     protected getDefaultNamespace(): string {
         return 'http://www.w3.org/1999/xhtml';
-    }
-
-    /**
-     * Escape text to be inserted into an regex.
-     * @param pText - String.
-     */
-    private escapeRegExp(pText: string): string {
-        return pText.replace(/[.*+?^${}()\-|[\]\\]/g, '\\$&'); // $& means the whole matched string
     }
 
     /**
@@ -105,7 +105,7 @@ export class XmlParser extends BaseXmlParser<XmlTokenType> {
         };
         this.setXmlPart<AttributeParseData, AttributeInformation>('attribute', (pXmlPart) => {
             // Set xml attribute grapth.
-            pXmlPart.definition.grapth = (pGraph: AnonymousGrammarNode<XmlTokenType>, pParser: CodeParser<XmlTokenType, XmlDocument>): BaseGrammarNode<XmlTokenType> => {
+            pXmlPart.definition.grapth = (pGraph: AnonymousGrammarNode<XmlTokenType | TExtendTokenType>, pParser: CodeParser<XmlTokenType | TExtendTokenType, XmlDocument>): BaseGrammarNode<XmlTokenType | TExtendTokenType> => {
                 return pGraph
                     .optional('namespace',
                         pParser.graph().single('name', XmlTokenType.Identifier).single(XmlTokenType.NamespaceDelimiter)
@@ -143,7 +143,7 @@ export class XmlParser extends BaseXmlParser<XmlTokenType> {
             pXmlPart.partConstructor = TextNode;
 
             // Set text grapth.
-            pXmlPart.definition.grapth = (pGraph: AnonymousGrammarNode<XmlTokenType>): BaseGrammarNode<XmlTokenType> => {
+            pXmlPart.definition.grapth = (pGraph: AnonymousGrammarNode<XmlTokenType | TExtendTokenType>): BaseGrammarNode<XmlTokenType | TExtendTokenType> => {
                 return pGraph.single('text', XmlTokenType.Value);
             };
 
@@ -180,7 +180,7 @@ export class XmlParser extends BaseXmlParser<XmlTokenType> {
             pXmlPart.partConstructor = CommentNode;
 
             // Set comment grapth.
-            pXmlPart.definition.grapth = (pGraph: AnonymousGrammarNode<XmlTokenType>): BaseGrammarNode<XmlTokenType> => {
+            pXmlPart.definition.grapth = (pGraph: AnonymousGrammarNode<XmlTokenType | TExtendTokenType>): BaseGrammarNode<XmlTokenType | TExtendTokenType> => {
                 return pGraph.single('comment', XmlTokenType.Comment);
             };
 
@@ -221,7 +221,7 @@ export class XmlParser extends BaseXmlParser<XmlTokenType> {
             pXmlPart.partConstructor = XmlElement;
 
             // Set comment grapth.
-            pXmlPart.definition.grapth = (pGraph: AnonymousGrammarNode<XmlTokenType>, pParser: CodeParser<XmlTokenType, XmlDocument>): BaseGrammarNode<XmlTokenType> => {
+            pXmlPart.definition.grapth = (pGraph: AnonymousGrammarNode<XmlTokenType | TExtendTokenType>, pParser: CodeParser<XmlTokenType | TExtendTokenType, XmlDocument>): BaseGrammarNode<XmlTokenType | TExtendTokenType> => {
                 return pGraph
                     .single(XmlTokenType.OpenBracket)
                     .optional('openingNamespace',
@@ -295,7 +295,6 @@ export class XmlParser extends BaseXmlParser<XmlTokenType> {
 
             return pXmlPart;
         });
-
     }
 
     /**
@@ -372,7 +371,7 @@ export class XmlParser extends BaseXmlParser<XmlTokenType> {
 /**
  * Information that can be get from attribute strings.
  */
-type AttributeInformation = {
+export type AttributeInformation = {
     name: string,
     namespacePrefix: string | null,
     value: string,

@@ -354,7 +354,8 @@ describe('XmlParser', () => {
         it('-- Remove comment in document', () => {
             // Setup.
             const lXmlString: string = `<!-- Comment -->`;
-            const lParser: XmlParser = new XmlParser({ removeComments: true });
+            const lParser: XmlParser = new XmlParser();
+            lParser.removeComments = true;
 
             // Process.
             const lParsedDocument: XmlDocument = lParser.parse(lXmlString);
@@ -366,7 +367,8 @@ describe('XmlParser', () => {
         it('-- Remove comment in xml tag', () => {
             // Setup.
             const lXmlString: string = `<node><!-- Comment --></node>`;
-            const lParser: XmlParser = new XmlParser({ removeComments: true });
+            const lParser: XmlParser = new XmlParser();
+            lParser.removeComments = true;
 
             // Process.
             const lParsedDocument: XmlDocument = lParser.parse(lXmlString);
@@ -379,7 +381,8 @@ describe('XmlParser', () => {
         it('-- Restrict attribute characters', () => {
             // Setup.
             const lXmlString: string = `<node notAllowed />`;
-            const lParser: XmlParser = new XmlParser({ allowedAttributeCharacters: 'abc' });
+            const lParser: XmlParser = new XmlParser();
+            lParser.allowedAttributeCharacters = 'abc';
 
             // Process.
             const lFailingFunction = () => {
@@ -393,7 +396,8 @@ describe('XmlParser', () => {
         it('-- Restrict tagname characters', () => {
             // Setup.
             const lXmlString: string = `<notallowed/>`;
-            const lParser: XmlParser = new XmlParser({ allowedTagNameCharacters: 'abc' });
+            const lParser: XmlParser = new XmlParser();
+            lParser.allowedTagNameCharacters = 'abc';
 
             // Process.
             const lFailingFunction = () => {

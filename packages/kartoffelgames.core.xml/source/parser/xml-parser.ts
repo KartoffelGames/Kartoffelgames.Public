@@ -4,7 +4,7 @@ import { TextNode } from '../node/text-node';
 import { XmlElement } from '../node/xml-element';
 import { BaseXmlParser } from './base-xml-parser';
 
-export class XmlParser extends BaseXmlParser<XmlElement, TextNode, CommentNode> {
+export class XmlParser extends BaseXmlParser {
     /**
      * Get Comment node constructor.
      */

@@ -23,7 +23,7 @@ export abstract class BaseXmlParser {
         // Add lower- and uppercase characters. Split this string into single chars and create a distinct list with a Set & Spread-Array.
         const lCharList: Array<string> = [...new Set((pValue.toLowerCase() + pValue.toUpperCase()).split(''))];
 
-        this.allowedAttributeCharacters = lCharList.join('');
+        this.mConfig.allowedAttributeCharacters = lCharList.join('');
         this.mRebuildParser = true;
     }
 
@@ -36,7 +36,7 @@ export abstract class BaseXmlParser {
         // Add lower- and uppercase characters. Split this string into single chars and create a distinct list with a Set & Spread-Array.
         const lCharList: Array<string> = [...new Set((pValue.toLowerCase() + pValue.toUpperCase()).split(''))];
 
-        this.allowedTagNameCharacters = lCharList.join('');
+        this.mConfig.allowedTagNameCharacters = lCharList.join('');
         this.mRebuildParser = true;
     }
 
@@ -46,7 +46,7 @@ export abstract class BaseXmlParser {
     public get removeComments(): boolean {
         return this.mConfig.removeComments;
     } set removeComments(pValue: boolean) {
-        this.removeComments = pValue;
+        this.mConfig.removeComments = pValue;
         this.mRebuildParser = true;
     }
 
@@ -58,13 +58,10 @@ export abstract class BaseXmlParser {
         this.mConfig = {
             allowedAttributeCharacters: '',
             allowedTagNameCharacters: '',
-            removeComments: false,
-            xmlParts: new Array<XmlPart>()
+            removeComments: false
         };
         this.allowedAttributeCharacters = 'abcdefghijklmnopqrstuvwxyz_-.1234567890';
         this.allowedTagNameCharacters = 'abcdefghijklmnopqrstuvwxyz_-.1234567890';
-
-        // TODO: Set defaul xmlparts.
 
         // "Reset" parser
         this.mRebuildParser = true;
@@ -340,7 +337,7 @@ export abstract class BaseXmlParser {
     /**
      * Get Comment node constructor.
      */
-    protected abstract getCommentNodeConstructor(): IVoidParameterConstructor<TComment>;
+    protected abstract getCommentNodeConstructor(): IVoidParameterConstructor<CommentNode>;
 
     /**
      * Get documents default namespace.
@@ -350,12 +347,12 @@ export abstract class BaseXmlParser {
     /**
      * Get Text node constructor.
      */
-    protected abstract getTextNodeConstructor(): IVoidParameterConstructor<TText>;
+    protected abstract getTextNodeConstructor(): IVoidParameterConstructor<TextNode>;
 
     /**
      * Get XML Element constructor.
      */
-    protected abstract getXmlElementConstructor(): IVoidParameterConstructor<TXmlElement>;
+    protected abstract getXmlElementConstructor(): IVoidParameterConstructor<XmlElement>;
 }
 
 /**
@@ -376,11 +373,6 @@ type XmlParserConfig = {
      * Remove comments from generated xml.
      */
     removeComments: boolean;
-
-    /**
-     * Xml parts
-     */
-    xmlParts: Array<XmlPart>;
 };
 
 /**
@@ -391,26 +383,3 @@ type AttributeInformation = {
     namespacePrefix: string | null,
     value: string,
 };
-
-type XmlPart = {
-    name: string;
-    contains?: Array<string>;
-    constructor: IVoidParameterConstructor<object>;
-};
-
-// TODO: Test xml part config.
-const a: Array<XmlPart> = [
-    {
-        name: 'tag',
-        contains: ['tag', 'comment', 'text'],
-        constructor: XmlElement
-    },
-    {
-        name: 'comment',
-        constructor: CommentNode
-    },
-    {
-        name: 'text',
-        constructor: TextNode
-    }
-];

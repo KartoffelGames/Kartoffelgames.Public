@@ -1,10 +1,17 @@
 /* istanbul ignore file */
 
+/**
+ * Library for data container and easier data access.
+ *
+ * @remarks 
+ * This package consists mostly of helper classes and storage types, aimed at reducing code redundance and improving clarity.
+ * 
+ * @packageDocumentation
+ */
+
 // Container.
-export { Dictionary } from './data_container/dictionary/dictionary';
-export { List } from './data_container/list/list';
-export { ListTree } from './data_container/tree/list-tree';
-export { Tree } from './data_container/tree/tree';
+export { Dictionary } from './data_container/dictionary';
+export { List } from './data_container/list';
 export { Exception } from './exception/exception';
 export { Stack } from './data_container/stack';
 
@@ -18,4 +25,4 @@ export { ICloneable } from './interface/i-cloneable';
 export { IDeconstructable } from './interface/i-deconstructable';
 
 // Support types.
-export { Writeable, Readonly, ObjectFieldPath, ObjectFieldPathPart } from './types';
+export { Writeable, Readonly } from './types';

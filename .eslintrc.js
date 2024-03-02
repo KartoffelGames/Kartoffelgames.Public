@@ -6,7 +6,8 @@ module.exports = {
     },
     "parser": "@typescript-eslint/parser",
     "plugins": [
-        "@typescript-eslint"
+        "@typescript-eslint",
+        "eslint-plugin-tsdoc"
     ],
     "extends": [
         "eslint:recommended",
@@ -306,6 +307,7 @@ module.exports = {
         "@typescript-eslint/no-this-alias": "off",
         "no-use-before-declare": "off",
         "no-prototype-builtins": "off",
-        "@typescript-eslint/no-explicit-any": "off"
+        "@typescript-eslint/no-explicit-any": "off",
+        "tsdoc/syntax": "warn"
     }
 };

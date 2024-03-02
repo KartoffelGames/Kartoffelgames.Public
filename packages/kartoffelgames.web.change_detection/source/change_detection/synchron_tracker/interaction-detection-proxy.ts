@@ -1,4 +1,3 @@
-import { ObjectFieldPathPart } from '@kartoffelgames/core.data';
 import { ChangeDetection } from '../change-detection';
 import { Patcher } from '../execution_zone/patcher/patcher';
 
@@ -63,7 +62,6 @@ export class InteractionDetectionProxy<T extends object> {
      * Constructor.
      * Create observation
      * @param pTarget - Target object or function.
-     * @param pChangeDetectionCallback 
      */
     public constructor(pTarget: T) {
         // Initialize values. Set to null as long as other wrapper was found. 
@@ -98,7 +96,7 @@ export class InteractionDetectionProxy<T extends object> {
              * @param pTarget - Original object.
              * @param pPropertyName - Name of property.
              */
-            set: (pTargetObject: T, pPropertyName: ObjectFieldPathPart, pNewPropertyValue: any): boolean => {
+            set: (pTargetObject: T, pPropertyName: PropertyKey, pNewPropertyValue: any): boolean => {
                 const lResult: boolean = Reflect.set(pTargetObject, pPropertyName, pNewPropertyValue);
                 this.dispatchChangeEvent(pTargetObject, pPropertyName, <string>Error().stack);
                 return lResult;
@@ -111,12 +109,12 @@ export class InteractionDetectionProxy<T extends object> {
              * @param pProperty - The name or Symbol  of the property to get.
              * @param lReceiver - Either the proxy or an object that inherits from the proxy.
              */
-            get: (pTarget, pProperty: ObjectFieldPathPart, _pReceiver) => {
+            get: (pTarget, pProperty: PropertyKey, _pReceiver) => {
                 const lResult: any = Reflect.get(pTarget, pProperty);
 
                 if (typeof lResult === 'object' && lResult !== null || typeof lResult === 'function') {
                     const lProxy: InteractionDetectionProxy<any> = new InteractionDetectionProxy(lResult);
-                    lProxy.onChange = (pSourceObject: object, pProperty: ObjectFieldPathPart | ((...pArgs: Array<any>) => any)) => {
+                    lProxy.onChange = (pSourceObject: object, pProperty: PropertyKey | ((...pArgs: Array<any>) => any)) => {
                         this.dispatchChangeEvent(pSourceObject, pProperty, <string>Error().stack);
                     };
 
@@ -131,7 +129,7 @@ export class InteractionDetectionProxy<T extends object> {
              * @param pTarget - Original object.
              * @param pPropertyName - Name of property.
              */
-            deleteProperty: (pTargetObject: T, pPropertyName: ObjectFieldPathPart): boolean => {
+            deleteProperty: (pTargetObject: T, pPropertyName: PropertyKey): boolean => {
                 Reflect.deleteProperty(pTargetObject, pPropertyName);
                 this.dispatchChangeEvent(pTargetObject, pPropertyName, <string>Error().stack);
                 return true;
@@ -196,7 +194,7 @@ export class InteractionDetectionProxy<T extends object> {
     /**
      * Trigger change event.
      */
-    private dispatchChangeEvent(pSourceObject: object, pProperty: ObjectFieldPathPart | ((...pArgs: Array<any>) => any), pStacktrace: string) {
+    private dispatchChangeEvent(pSourceObject: object, pProperty: PropertyKey | ((...pArgs: Array<any>) => any), pStacktrace: string) {
         // Only trigger if current change detection is not silent.
         if (!ChangeDetection.current.isSilent) {
             this.onChange?.(pSourceObject, pProperty, pStacktrace);
@@ -204,4 +202,4 @@ export class InteractionDetectionProxy<T extends object> {
     }
 }
 
-type ChangeCallback = (pSourceObject: object, pProperty: ObjectFieldPathPart | ((...pArgs: Array<any>) => any), pStacktrace: string) => void;
+type ChangeCallback = (pSourceObject: object, pProperty: PropertyKey | ((...pArgs: Array<any>) => any), pStacktrace: string) => void;

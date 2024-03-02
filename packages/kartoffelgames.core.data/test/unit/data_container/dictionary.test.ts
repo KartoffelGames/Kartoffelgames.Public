@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Dictionary } from '../../../source/data_container/dictionary/dictionary';
+import { Dictionary } from '../../../source/data_container/dictionary';
 import { Exception } from '../../../source/exception/exception';
 
 describe('Dictionary', () => {
@@ -150,15 +150,32 @@ describe('Dictionary', () => {
 
     it('Functionality: Copy', () => {
         // Setup.
+        const lValue1: string ='Value1' ;
+        const lValue2: string = 'Value2';
+
         const lDictionary: Dictionary<string, string> = new Dictionary<string, string>();
-        lDictionary.set('Key1', 'Value1');
-        lDictionary.set('Key2', 'Value2');
+        lDictionary.set('Key1', lValue1);
+        lDictionary.set('Key2', lValue2);
 
         // Process.
         const lCopiedDictionary: Dictionary<string, string> = new Dictionary<string, string>(lDictionary);
 
         // Evaluation.
-        expect(lCopiedDictionary.get('Key1')).to.be.equal('Value1');
-        expect(lCopiedDictionary.get('Key2')).to.be.equal('Value2');
+        expect(lCopiedDictionary.get('Key1')).to.be.equal(lDictionary.get('Key1'));
+        expect(lCopiedDictionary.get('Key2')).to.be.equal(lDictionary.get('Key2'));
+    });
+
+    it('Functionality: Clone', () => {
+        // Setup.
+        const lDictionary: Dictionary<string, string> = new Dictionary<string, string>();
+        lDictionary.set('Key1', 'Value1');
+        lDictionary.set('Key2', 'Value2');
+
+        // Process.
+        const lClonedDictionary: Dictionary<string, string> = lDictionary.clone();
+
+        // Evaluation.
+        expect(lClonedDictionary.get('Key1')).to.be.equal(lDictionary.get('Key1'));
+        expect(lClonedDictionary.get('Key2')).to.be.equal(lDictionary.get('Key2'));
     });
 });

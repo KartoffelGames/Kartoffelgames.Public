@@ -1,20 +1,28 @@
 ﻿/**
- * Basic exception.
+ * Extends {@link Error} by a {@link Exception.target} reference.
+ * 
+ * @typeParam T - Exception target type.
+ * 
+ * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error}
+ * 
+ * @public
  */
 export class Exception<T> extends Error {
     private readonly mTarget: T;
 
     /**
-     * Target exception throws.
+     * Target of exception.
+     * 
+     * @readonly
      */
     public get target(): T {
         return this.mTarget;
     }
 
     /**
-     * Constructor. Create exception.
+     * Constructor. 
      * @param pMessage - Messsage of exception.
-     * @param pTarget - Target exception throws.
+     * @param pTarget - Target of exception.
      */
     public constructor(pMessage: string, pTarget: T) {
         super(pMessage);

@@ -13,7 +13,7 @@ import { ElementHandler } from './handler/element-handler';
 import { UpdateHandler } from './handler/update-handler';
 import { UserObjectHandler } from './handler/user-object-handler';
 import { UserClass } from './interface/user-class';
-import { TemplateParser } from './parser/template-parser';
+import { TemplateParser } from './template/template-parser';
 import { LayerValues } from './values/layer-values';
 
 /**

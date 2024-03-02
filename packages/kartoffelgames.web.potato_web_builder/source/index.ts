@@ -41,5 +41,5 @@ export { PwbExport } from './default/export/pwb-export.decorator';
 export { PwbEventListener } from './default/event-listener/pwb-event-listener.decorator';
 
 // Xml
-export { TemplateParser } from './component/parser/template-parser';
+export { TemplateParser } from './component/template/template-parser';
 export { TextNode, XmlElement, XmlAttribute } from '@kartoffelgames/core.xml';

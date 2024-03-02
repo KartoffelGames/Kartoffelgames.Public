@@ -5,6 +5,7 @@ import { CommentNode } from '../node/comment-node';
 import { TextNode } from '../node/text-node';
 import { XmlElement } from '../node/xml-element';
 import { XmlToken } from './xml-token.enum';
+import { BaseXmlNode } from '../node/base-xml-node';
 
 /**
  * XML parser. Can handle none XML conform styles with different parser modes.
@@ -100,6 +101,7 @@ export abstract class BaseXmlParser {
         lLexer.addTokenTemplate('ExplicitValue', { pattern: { regex: /"[^"]*"/, type: XmlToken.Value } });
         lLexer.addTokenTemplate('Value', { pattern: { regex: /[^<>"]+/, type: XmlToken.Value } });
         lLexer.addTokenTemplate('Comment', { pattern: { regex: /<!--.*?-->/, type: XmlToken.Comment } });
+        lLexer.addTokenTemplate('Assignment', { pattern: { regex: /=/, type: XmlToken.Assignment } });
 
         // Brackets.
         lLexer.addTokenTemplate('OpeningBracket', {
@@ -132,7 +134,7 @@ export abstract class BaseXmlParser {
                 }
             }
         }, () => {
-            lLexer.addTokenPattern({ pattern: { regex: /=/, type: XmlToken.Assignment }, specificity: 1 });
+            lLexer.useTokenTemplate('Assignment', 1);
             lLexer.useTokenTemplate('NamespaceDelimiter', 1);
             lLexer.useTokenTemplate('Identifier', 1);
             lLexer.useTokenTemplate('ExplicitValue', 1);
@@ -163,7 +165,7 @@ export abstract class BaseXmlParser {
             name: string,
             value?: { value: string; };
         };
-        lParser.defineGraphPart('attribute',
+        lParser.defineGraphPart('Attribute',
             lParser.graph()
                 .optional('namespace',
                     lParser.graph().single('name', XmlToken.Identifier).single(XmlToken.NamespaceDelimiter)
@@ -172,7 +174,7 @@ export abstract class BaseXmlParser {
                 .optional('value',
                     lParser.graph().single(XmlToken.Assignment).single('value', XmlToken.Value)
                 ),
-            (pData: AttributeParseData): AttributeInformation => {
+            (pData: AttributeParseData): AttributeData => {
                 // Validate tag name.
                 const lRegexNameCheck: RegExp = new RegExp(`^[${this.escapeRegExp(this.mConfig.allowedAttributeCharacters)}]+$`);
                 if (!lRegexNameCheck.test(pData.name)) {
@@ -188,78 +190,77 @@ export abstract class BaseXmlParser {
         );
 
         // Content data.
-        type ContentData = {
-            value: { text: string; } | XmlElement | { comment: string; };
+        type TextNodeParseData = {
+            text: string;
         };
-        lParser.defineGraphPart('content',
-            lParser.graph().branch('value', [
-                lParser.graph().single('comment', XmlToken.Comment),
-                lParser.graph().single('text', XmlToken.Value),
-                lParser.partReference('tag')
-            ]),
-            (pData: ContentData): XmlElement | CommentNode | TextNode => {
-                // XML Element
-                if (pData.value instanceof XmlElement) {
-                    return pData.value;
+        lParser.defineGraphPart('TextNode',
+            lParser.graph()
+                .single('text', XmlToken.Value),
+            (pData: TextNodeParseData): TextNode => {
+                // Clear hyphen from text content.
+                let lClearedTextContent: string;
+                if (pData.text.startsWith('"') && pData.text.endsWith('"')) {
+                    lClearedTextContent = pData.text.substring(1, pData.text.length - 1);
+                } else {
+                    lClearedTextContent = pData.text;
                 }
 
-                // Text content.
-                if ('text' in pData.value) {
-                    // Clear hyphen from text content.
-                    let lClearedTextContent: string;
-                    if (pData.value.text.startsWith('"') && pData.value.text.endsWith('"')) {
-                        lClearedTextContent = pData.value.text.substring(1, pData.value.text.length - 1);
-                    } else {
-                        lClearedTextContent = pData.value.text;
-                    }
+                // Create text node.
+                const lTextContent = new (this.getTextNodeConstructor())();
+                lTextContent.text = lClearedTextContent;
 
-                    // Create text element.
-                    const lTextContent = new (this.getTextNodeConstructor())();
-                    lTextContent.text = lClearedTextContent;
+                return lTextContent;
+            }
+        );
 
-                    return lTextContent;
-                }
-
+        // Content data.
+        type CommentNodeParseData = {
+            comment: string;
+        };
+        lParser.defineGraphPart('CommentNode',
+            lParser.graph()
+                .single('comment', XmlToken.Comment),
+            (pData: CommentNodeParseData): CommentNode => {
                 // Create comment element. Extract raw text content.
                 const lComment = new (this.getCommentNodeConstructor())();
-                lComment.text = pData.value.comment.substring(4, pData.value.comment.length - 3).trim();
+                lComment.text = pData.comment.substring(4, pData.comment.length - 3).trim();
 
                 return lComment;
             }
         );
 
         // Tags
-        type TagParseData = {
+        type XmlElementParseData = {
             openingTagName: string;
             openingNamespace?: { name: string; };
-            attributes: Array<AttributeInformation>,
+            attributes: Array<AttributeData>,
             ending: {} | {
-                values: Array<XmlElement | CommentNode | TextNode>;
+                values: Array<BaseXmlNode>;
                 closingTageName: string;
                 closingNamespace?: { name: string; };
             };
         };
-        lParser.defineGraphPart('tag',
+        lParser.defineGraphPart('XmlElement',
             lParser.graph()
                 .single(XmlToken.OpenBracket)
                 .optional('openingNamespace',
                     lParser.graph().single('name', XmlToken.Identifier).single(XmlToken.NamespaceDelimiter)
                 )
                 .single('openingTagName', XmlToken.Identifier)
-                .loop('attributes', lParser.partReference('attribute'))
+                .loop('attributes', lParser.partReference('Attribute'))
                 .branch('ending', [
                     lParser.graph()
                         .single(XmlToken.CloseClosingBracket),
                     lParser.graph()
                         .single(XmlToken.CloseBracket)
-                        .loop('values', lParser.partReference('content'))
+                        .single('values', lParser.partReference('Content'))
                         .single(XmlToken.OpenClosingBracket)
                         .optional('closingNamespace',
                             lParser.graph().single('name', XmlToken.Identifier).single(XmlToken.NamespaceDelimiter)
                         )
                         .single('closingTageName', XmlToken.Identifier).single(XmlToken.CloseBracket)
                 ]),
-            (pData: TagParseData): XmlElement => {
+            (pData: XmlElementParseData): XmlElement => {
                 // Validate data consistency.
                 if ('closingTageName' in pData.ending) {
                     if (pData.openingTagName !== pData.ending.closingTageName) {
@@ -288,47 +289,58 @@ export abstract class BaseXmlParser {
                     lElement.setAttribute(lAttribute.name, lAttribute.value, lAttribute.namespacePrefix);
                 }
 
-                // Add values.
+                // Add content values.
                 if ('values' in pData.ending) {
-                    for (const lValue of pData.ending.values) {
-                        // Optional comment node
-                        if (this.mConfig.removeComments && lValue instanceof CommentNode) {
-                            continue;
-                        }
-
-                        // XML Element or Text node.
-                        lElement.appendChild(lValue);
-                    }
+                    lElement.appendChild(...pData.ending.values);
                 }
 
                 return lElement;
             }
         );
 
-        // Document.
-        type DocumentParseData = {
-            content: Array<XmlElement | CommentNode | TextNode>;
+        // Content data.
+        type ContentParseData = {
+            list: Array<{ node: BaseXmlNode; }>;
         };
-        lParser.defineGraphPart('document',
-            lParser.graph().loop('content', lParser.partReference('content')),
-            (pData: DocumentParseData): XmlDocument => {
-                const lDocument: XmlDocument = new XmlDocument(this.getDefaultNamespace());
+        lParser.defineGraphPart('Content',
+            lParser.graph().loop('list', lParser.graph().branch('node', [
+                lParser.partReference('CommentNode'),
+                lParser.partReference('TextNode'),
+                lParser.partReference('XmlElement')
+            ])),
+            (pData: ContentParseData): Array<BaseXmlNode> => {
+                const lContentList: Array<BaseXmlNode> = new Array<BaseXmlNode>();
 
-                for (const lValue of pData.content) {
-                    // Optional comment node
-                    if (this.mConfig.removeComments && lValue instanceof CommentNode) {
+                for (const lItem of pData.list) {
+                    // Skip omitted comments.
+                    if (this.mConfig.removeComments && lItem.node instanceof CommentNode) {
                         continue;
                     }
 
-                    // XML Element or Text node.
-                    lDocument.appendChild(lValue);
+                    lContentList.push(lItem.node);
                 }
+
+                return lContentList;
+            }
+        );
+
+        // Document.
+        type XmlDocumentParseData = {
+            content: Array<BaseXmlNode>;
+        };
+        lParser.defineGraphPart('XmlDocument',
+            lParser.graph().single('content', lParser.partReference('Content')),
+            (pData: XmlDocumentParseData): XmlDocument => {
+                const lDocument: XmlDocument = new XmlDocument(this.getDefaultNamespace());
+
+                // Add content values.
+                lDocument.appendChild(...pData.content);
 
                 return lDocument;
             }
         );
 
-        lParser.setRootGraphPart('document');
+        lParser.setRootGraphPart('XmlDocument');
 
         return lParser;
     }
@@ -385,7 +397,7 @@ type XmlParserConfig = {
 /**
  * Information that can be get from attribute strings.
  */
-type AttributeInformation = {
+type AttributeData = {
     name: string,
     namespacePrefix: string | null,
     value: string,

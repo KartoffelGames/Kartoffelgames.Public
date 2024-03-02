@@ -288,18 +288,18 @@ export class XmlElement extends BaseXmlNode {
         let lAttribute: XmlAttribute;
 
         // Create qualifed attribute name.
-        let lQualifiedTagName: string;
+        let lQualifiedAttributeName: string;
         if (pNamespacePrefix) {
-            lQualifiedTagName = `${pNamespacePrefix}:${pKey}`;
+            lQualifiedAttributeName = `${pNamespacePrefix}:${pKey}`;
         } else {
-            lQualifiedTagName = pKey;
+            lQualifiedAttributeName = pKey;
         }
 
-        if (this.mAttributeDictionary.has(lQualifiedTagName)) {
-            lAttribute = <XmlAttribute>this.mAttributeDictionary.get(lQualifiedTagName);
+        if (this.mAttributeDictionary.has(lQualifiedAttributeName)) {
+            lAttribute = <XmlAttribute>this.mAttributeDictionary.get(lQualifiedAttributeName);
         } else {
             lAttribute = new XmlAttribute(pKey, pNamespacePrefix);
-            this.mAttributeDictionary.add(lQualifiedTagName, lAttribute);
+            this.mAttributeDictionary.add(lQualifiedAttributeName, lAttribute);
         }
 
         // Set this as attributes parent xml element.

@@ -9,6 +9,41 @@ import { Exception } from '@kartoffelgames/core.data';
 import { ParserException } from '@kartoffelgames/core.parser';
 
 describe('XmlParser', () => {
+    it('Property: removeComments', () => {
+        // Setup.
+        const lParser: XmlParser = new XmlParser();
+
+        // Process.
+        lParser.removeComments = true;
+
+        // Evaluation.
+        expect(lParser.removeComments).to.be.true;
+    });
+
+    it('Property: allowedAttributeCharacters', () => {
+        // Setup.
+        const lParser: XmlParser = new XmlParser();
+        const lValue: string = 'de-.,.ß09';
+
+        // Process.
+        lParser.allowedAttributeCharacters = lValue;
+
+        // Evaluation.
+        expect(lParser.allowedAttributeCharacters).to.equal([...new Set([...lValue.toLowerCase().split(''), ...lValue.toUpperCase().split('')])].join(''));
+    });
+
+    it('Property: allowedTagNameCharacters', () => {
+        // Setup.
+        const lParser: XmlParser = new XmlParser();
+        const lValue: string = 'abcde.-;';
+
+        // Process.
+        lParser.allowedTagNameCharacters = lValue;
+
+        // Evaluation.
+        expect(lParser.allowedTagNameCharacters).to.equal([...new Set([...lValue.toLowerCase().split(''), ...lValue.toUpperCase().split('')])].join(''));
+    });
+
     describe('Method: parse', () => {
         describe('-- Node parsing', () => {
             it('-- Single XmlElement', () => {

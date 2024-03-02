@@ -322,6 +322,40 @@ describe('XmlParser', () => {
             expect(lQuotationXmlNodeTextNode.text).to.equal(lQuotationNodeText.replaceAll('"', ''));
             expect(lBlankXmlNodeTextNode.text).to.equal(lBlankNodeText);
         });
+
+        it('Adjust parser with new settings', () => {
+            // Setup.
+            const lXmlString: string = `<node allowed />`;
+            const lParser: XmlParser = new XmlParser();
+
+            // Process.
+            const lRightFunction = () => {
+                lParser.allowedAttributeCharacters = 'alowed';
+                lParser.parse(lXmlString);
+            };
+            const lFailingFunction = () => {
+                lParser.allowedAttributeCharacters = 'aloed';
+                lParser.parse(lXmlString);
+            };
+
+            // Evaluation.
+            expect(lRightFunction).to.not.throw();
+            expect(lFailingFunction).to.throw(Exception);
+        });
+
+        it('Same content twice', () => {
+            // Setup. Specify values.
+            const lParser: XmlParser = new XmlParser();
+            const lXmlString: string = `<node>My text</node>My text`;
+
+            // Process.
+            const lDocumentFirstRun: XmlDocument = lParser.parse(lXmlString);
+            const lDocumentSecondRun: XmlDocument = lParser.parse(lXmlString);
+
+            // Evaluation.
+            expect(lDocumentFirstRun.body).lengthOf(2);
+            expect(lDocumentSecondRun.body).lengthOf(2);
+        });
     });
 
     describe('Functionality: Parser error', () => {

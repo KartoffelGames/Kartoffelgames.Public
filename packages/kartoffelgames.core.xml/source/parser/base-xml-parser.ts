@@ -75,9 +75,12 @@ export abstract class BaseXmlParser {
      * @returns a new XmlDocument 
      */
     public parse(pText: string): XmlDocument {
-        if (!this.mParser || this.mRebuildParser) {
+        if (this.mRebuildParser || !this.mParser) {
             const lLexer: Lexer<XmlToken> = this.createLexer();
             this.mParser = this.createParser(lLexer);
+
+            // Reset rebuild parser.
+            this.mRebuildParser = false;
         }
 
         return this.mParser.parse(pText);

@@ -133,7 +133,7 @@ export class Lexer<TTokenType extends string> {
         this.addTokenTemplate(lRandomTokenName, pPattern, pInnerFetch);
 
         // Apply token template to current scope.
-        this.useTokenTemplate(lRandomTokenName);
+        this.useTokenTemplate(lRandomTokenName, pPattern.specificity);
     }
 
     /**
@@ -175,7 +175,7 @@ export class Lexer<TTokenType extends string> {
      * lexer.useTokenTemplate('quotedString');
      * ``` 
      */
-    public addTokenTemplate(pName: string, pPattern: LexerPattern<TTokenType>, pInnerFetch?: (pLexer: Lexer<TTokenType>) => void): void {
+    public addTokenTemplate(pName: string, pPattern: LexerPatternTemplate<TTokenType>, pInnerFetch?: (pLexer: Lexer<TTokenType>) => void): void {
         // Restrict dublicate template names.
         if (this.mTokenPatternTemplates.has(pName)) {
             throw new Exception(`Can't add dublicate token template "${pName}"`, this);
@@ -260,7 +260,7 @@ export class Lexer<TTokenType extends string> {
      * lexerParam.useTokenTemplate('myName');
      * ```
      */
-    public useTokenTemplate(pTemplateName: string, pSpecificity?: number): void {
+    public useTokenTemplate(pTemplateName: string, pSpecificity: number): void {
         // Validate pattern.
         if (!this.mTokenPatternTemplates.has(pTemplateName)) {
             throw new Exception(`Lexer template "${pTemplateName}" does not exist.`, this);
@@ -283,7 +283,7 @@ export class Lexer<TTokenType extends string> {
      *  
      * @returns easy to read token pattern.
      */
-    private convertTokenPattern(pPattern: LexerPattern<TTokenType>): LexerPatternDefinition<TTokenType> {
+    private convertTokenPattern(pPattern: LexerPattern<TTokenType> | LexerPatternTemplate<TTokenType>): LexerPatternDefinition<TTokenType> {
         // Convert regex into a line start regex with global and single flag.
         const lConvertRegex = (pRegex: RegExp): RegExp => {
             // Create flag set and add sticky. Set removes all dublicate flags.
@@ -314,12 +314,15 @@ export class Lexer<TTokenType extends string> {
             }
         }
 
+        // Default specificity of 0 for templates.
+        const lSpecificity: number = 'specificity' in pPattern ? pPattern.specificity : 0;
+
         // Convert pattern.
         if ('regex' in pPattern.pattern) {
             // Single pattern
             return {
                 patternType: 'single',
-                specificity: pPattern.specificity,
+                specificity: lSpecificity,
                 pattern: {
                     single: {
                         regex: lConvertRegex(pPattern.pattern.regex),
@@ -332,7 +335,7 @@ export class Lexer<TTokenType extends string> {
             // Start end pattern.
             return {
                 patternType: 'split',
-                specificity: pPattern.specificity,
+                specificity: lSpecificity,
                 pattern: {
                     start: {
                         regex: lConvertRegex(pPattern.pattern.start.regex),
@@ -653,3 +656,5 @@ type LexerPattern<TTokenType> = {
     specificity: number;
     meta?: string | Array<string>;
 };
+
+type LexerPatternTemplate<TTokenType> = Omit<LexerPattern<TTokenType>, 'specificity'>;

@@ -25,11 +25,11 @@ describe('Lexer', () => {
         lLexer.validWhitespaces = ' \n';
 
         // Add templates.
-        lLexer.addTokenTemplate('word', { pattern: { regex: /[a-zA-Z]+/, type: TestTokenType.Word }, specificity: 1, meta: TestTokenMetas.Word });
-        lLexer.addTokenTemplate('number', { pattern: { regex: /[0-9]+/, type: TestTokenType.Number }, specificity: 1, meta: TestTokenMetas.Number });
+        lLexer.addTokenTemplate('word', { pattern: { regex: /[a-zA-Z]+/, type: TestTokenType.Word }, meta: TestTokenMetas.Word });
+        lLexer.addTokenTemplate('number', { pattern: { regex: /[0-9]+/, type: TestTokenType.Number }, meta: TestTokenMetas.Number });
 
-        lLexer.useTokenTemplate('word');
-        lLexer.useTokenTemplate('number');
+        lLexer.useTokenTemplate('word', 1);
+        lLexer.useTokenTemplate('number', 1);
         lLexer.addTokenPattern({
             pattern: {
                 start: { regex: /\(/, type: TestTokenType.Braket },
@@ -38,7 +38,7 @@ describe('Lexer', () => {
             specificity: 1,
             meta: [TestTokenMetas.Braket, TestTokenMetas.List]
         }, (pLexer: Lexer<TestTokenType>) => {
-            pLexer.useTokenTemplate('word');
+            pLexer.useTokenTemplate('word', 1);
         });
 
         return lLexer;
@@ -50,7 +50,7 @@ describe('Lexer', () => {
     // 41 non whitespace characters
     // 10 whitespaces including newline.
     const lInitTestText = () => {
-        return 'A sentence with 1 or 10 words (Braket and \nnewline)';
+        return 'A sentence with 1 or 10 words (Braket and \nnewline) end';
     };
 
     it('Property: errorType', () => {
@@ -74,7 +74,7 @@ describe('Lexer', () => {
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
             // Evaluation.
-            expect(lTokenList).has.lengthOf(12);
+            expect(lTokenList).has.lengthOf(13);
         });
 
         it('-- False', () => {
@@ -123,7 +123,7 @@ describe('Lexer', () => {
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
             // Evaluation.
-            expect(lTokenList).has.lengthOf(11);
+            expect(lTokenList).has.lengthOf(12);
         });
 
         it('-- Get', () => {
@@ -150,7 +150,7 @@ describe('Lexer', () => {
             const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lInitTestText())];
 
             // Evaluation.
-            expect(lTokenList).has.lengthOf(41); // 41 characters without whitespace.
+            expect(lTokenList).has.lengthOf(44); // 44 characters without whitespace.
         });
     });
 
@@ -161,11 +161,11 @@ describe('Lexer', () => {
             const lTemplateName: string = 'TokenTemplateName';
 
             // Process.
-            lLexer.addTokenTemplate(lTemplateName, { pattern: { regex: /./, type: TestTokenType.Word }, specificity: 0 });
+            lLexer.addTokenTemplate(lTemplateName, { pattern: { regex: /./, type: TestTokenType.Word } });
 
             // Evaluation.
             expect(() => {
-                lLexer.useTokenTemplate(lTemplateName);
+                lLexer.useTokenTemplate(lTemplateName, 0);
             }).to.not.throw();
         });
 
@@ -173,11 +173,11 @@ describe('Lexer', () => {
             // Setup.
             const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
             const lTemplateName: string = 'TokenTemplateName';
-            lLexer.addTokenTemplate(lTemplateName, { pattern: { regex: /./, type: TestTokenType.Word }, specificity: 0 });
+            lLexer.addTokenTemplate(lTemplateName, { pattern: { regex: /./, type: TestTokenType.Word } });
 
             // Process.
             const lErrorFunction = () => {
-                lLexer.addTokenTemplate(lTemplateName, { pattern: { regex: /./, type: TestTokenType.Word }, specificity: 0 });
+                lLexer.addTokenTemplate(lTemplateName, { pattern: { regex: /./, type: TestTokenType.Word } });
             };
 
             // Evaluation.
@@ -210,7 +210,7 @@ describe('Lexer', () => {
 
             // Process.
             const lErrorFunction = () => {
-                lLexer.addTokenTemplate('Name', { pattern: { regex: /./, type: TestTokenType.Word }, specificity: 0 }, () => {
+                lLexer.addTokenTemplate('Name', { pattern: { regex: /./, type: TestTokenType.Word } }, () => {
                     // Possible something.
                 });
             };
@@ -277,6 +277,10 @@ describe('Lexer', () => {
             // )
             expect(lTokenList[11]).property('lineNumber').to.equal(2);
             expect(lTokenList[11]).property('columnNumber').to.equal(8);
+
+            // end
+            expect(lTokenList[12]).property('lineNumber').to.equal(2);
+            expect(lTokenList[12]).property('columnNumber').to.equal(10);
         });
 
         it('-- Valid token types', () => {
@@ -299,6 +303,7 @@ describe('Lexer', () => {
             expect(lTokenList[9]).property('type').to.equal(TestTokenType.Word);
             expect(lTokenList[10]).property('type').to.equal(TestTokenType.Word);
             expect(lTokenList[11]).property('type').to.equal(TestTokenType.Braket);
+            expect(lTokenList[12]).property('type').to.equal(TestTokenType.Word);
         });
 
         it('-- Valid token values', () => {
@@ -321,6 +326,7 @@ describe('Lexer', () => {
             expect(lTokenList[9]).property('value').to.equal('and');
             expect(lTokenList[10]).property('value').to.equal('newline');
             expect(lTokenList[11]).property('value').to.equal(')');
+            expect(lTokenList[12]).property('value').to.equal('end');
         });
 
         it('-- Valid token metas', () => {
@@ -490,6 +496,19 @@ describe('Lexer', () => {
             // Evaluation. 'A sentence with 1 or 10 words (Braket and \nnewline)'
             expect(lTokenList[0].hasMeta(TestTokenMetas.Number)).to.be.true;
         });
+
+        it('-- Nested token cant find closing token', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+            const lTestString: string = '(Start without end';
+
+            // Process.
+            const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lTestString)];
+
+            // Evaluation.
+            expect(lTokenList).to.has.lengthOf(4);
+            expect(lTokenList[3]).property('metas').to.deep.equal([TestTokenMetas.Braket, TestTokenMetas.List, TestTokenMetas.Word]);
+        });
     });
 
     describe('Method: useTokenTemplate', () => {
@@ -498,11 +517,11 @@ describe('Lexer', () => {
             const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
             const lTemplateName: string = 'TokenTemplateName';
 
-            lLexer.addTokenTemplate(lTemplateName, { pattern: { regex: /./, type: TestTokenType.Word }, specificity: 0 });
+            lLexer.addTokenTemplate(lTemplateName, { pattern: { regex: /./, type: TestTokenType.Word } });
 
             // Process.
             const lSuccessFunction = () => {
-                lLexer.useTokenTemplate(lTemplateName);
+                lLexer.useTokenTemplate(lTemplateName, 0);
             };
 
             // Evaluation.
@@ -516,7 +535,7 @@ describe('Lexer', () => {
 
             // Process.
             const lErrorFunction = () => {
-                lLexer.useTokenTemplate(lTemplateName);
+                lLexer.useTokenTemplate(lTemplateName, 0);
             };
 
             // Evaluation.
@@ -530,7 +549,7 @@ describe('Lexer', () => {
 
             // Setup. Add template
             const lTemplateName: string = 'TokenTemplateName';
-            lLexer.addTokenTemplate(lTemplateName, { pattern: { regex: /aaa/, type: TestTokenType.Custom }, specificity: 2 });
+            lLexer.addTokenTemplate(lTemplateName, { pattern: { regex: /aaa/, type: TestTokenType.Custom } });
 
             // Process.
             lLexer.useTokenTemplate(lTemplateName, 0);

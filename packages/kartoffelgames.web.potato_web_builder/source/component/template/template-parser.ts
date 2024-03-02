@@ -1,30 +1,32 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { CodeParser, Lexer } from '@kartoffelgames/core.parser';
-import { CommentNode, TextNode, XmlDocument, XmlElement } from '@kartoffelgames/core.xml';
-
-// TODO: Build new parser from scratch. 
+import { PwbTemplate } from './nodes/pwb-template';
+import { BasePwbTemplateNode } from './nodes/base-pwb-template-node';
+import { PwbTemplateTextNode } from './nodes/pwb-template-text-node';
+import { PwbTemplateXmlNode } from './nodes/pwb-template-xml-node';
 
 /**
- * XML parser for parsing template strings.
+ * Parser for parsing pwb xml template strings.
  */
 export class TemplateParser {
-    private mParser: CodeParser<PwbTemplateToken, XmlDocument> | null;
+    private mParser: CodeParser<PwbTemplateToken, PwbTemplate> | null;
 
     /**
      * Constructor.
-     * Set new setting for parsing attributes with special characters and remove comments.
      */
     public constructor() {
         this.mParser = null;
     }
 
     /**
+     * Parse a pwb xml template string into an pwb template.
      * 
      * @param pText - Xml based code compatible to this parser.
      * 
      * @returns a new XmlDocument 
      */
-    public parse(pText: string): XmlDocument {
+    public parse(pText: string): PwbTemplate {
+        // Create new parser when no one is initialized.
         if (!this.mParser) {
             const lLexer: Lexer<PwbTemplateToken> = this.createLexer();
             this.mParser = this.createParser(lLexer);
@@ -34,7 +36,7 @@ export class TemplateParser {
     }
 
     /**
-     * Recreate lexer with applied config.
+     * Create a new lexer instance.
      */
     private createLexer(): Lexer<PwbTemplateToken> {
         const lLexer: Lexer<PwbTemplateToken> = new Lexer<PwbTemplateToken>();
@@ -42,88 +44,78 @@ export class TemplateParser {
         lLexer.trimWhitespace = true;
 
         // Identifier
-        lLexer.addTokenTemplate('NamespaceDelimiter', { pattern: { regex: /:/, type: XmlToken.NamespaceDelimiter }, specificity: 1 });
-        lLexer.addTokenTemplate('Identifier', { pattern: { regex: /[^<>\s\n/:="]+/, type: XmlToken.Identifier }, specificity: 1 });
-        lLexer.addTokenTemplate('ExplicitValue', { pattern: { regex: /"[^"]*"/, type: XmlToken.Value }, specificity: 1 });
+        lLexer.addTokenTemplate('Identifier', { pattern: { regex: /[^<>\s\n/:="]+/, type: PwbTemplateToken.Identifier } });
+        lLexer.addTokenTemplate('ExplicitValue', { pattern: { regex: /"[^"]*"/, type: PwbTemplateToken.XmlValue } });
+        lLexer.addTokenTemplate('Value', { pattern: { regex: /[^<>"]+/, type: PwbTemplateToken.XmlValue } });
+        lLexer.addTokenTemplate('Comment', { pattern: { regex: /<!--.*?-->/, type: PwbTemplateToken.XmlComment } });
+        lLexer.addTokenTemplate('Assignment', { pattern: { regex: /=/, type: PwbTemplateToken.Assignment } });
 
-        // Brackets.
-        lLexer.addTokenPattern({ pattern: { regex: /<!--.*?-->/, type: XmlToken.Comment }, specificity: 0 });
-        lLexer.addTokenPattern({
+        // Xml element Brackets.
+        lLexer.addTokenTemplate('OpeningBracket', {
             pattern: {
                 start: {
                     regex: /<\//,
-                    type: XmlToken.OpenClosingBracket
+                    type: PwbTemplateToken.XmlOpenClosingBracket
                 },
                 end: {
                     regex: />/,
-                    type: XmlToken.CloseBracket
+                    type: PwbTemplateToken.XmlCloseBracket
                 }
-            }, specificity: 1
+            }
         }, () => {
-            lLexer.useTokenTemplate('NamespaceDelimiter');
-            lLexer.useTokenTemplate('Identifier');
+            lLexer.useTokenTemplate('Identifier', 1);
         });
-        lLexer.addTokenPattern({
+        lLexer.addTokenTemplate('ClosingBracket', {
             pattern: {
                 start: {
                     regex: /</,
-                    type: XmlToken.OpenBracket
+                    type: PwbTemplateToken.XmlOpenBracket
                 },
                 end: {
                     regex: /(?<closeClosingBracket>\/>)|(?<closeBracket>>)/,
                     type: {
-                        closeClosingBracket: XmlToken.CloseClosingBracket,
-                        closeBracket: XmlToken.CloseBracket
+                        closeClosingBracket: PwbTemplateToken.XmlCloseClosingBracket,
+                        closeBracket: PwbTemplateToken.XmlCloseBracket
                     }
                 }
-            }, specificity: 2
+            }
         }, () => {
-            lLexer.addTokenPattern({ pattern: { regex: /=/, type: XmlToken.Assignment }, specificity: 1 });
-            lLexer.useTokenTemplate('NamespaceDelimiter');
-            lLexer.useTokenTemplate('Identifier');
-            lLexer.useTokenTemplate('ExplicitValue');
+            lLexer.useTokenTemplate('Assignment', 1);
+            lLexer.useTokenTemplate('Identifier', 1);
+            lLexer.useTokenTemplate('ExplicitValue', 1);
         });
 
-        // Value
+        // Stack templates.
+        lLexer.useTokenTemplate('Comment', 0);
+        lLexer.useTokenTemplate('OpeningBracket', 1);
+        lLexer.useTokenTemplate('ClosingBracket', 2);
         lLexer.useTokenTemplate('ExplicitValue', 3);
-        lLexer.addTokenPattern({ pattern: { regex: /[^<>"]+/, type: XmlToken.Value }, specificity: 4 });
+        lLexer.useTokenTemplate('Value', 4);
 
         return lLexer;
     }
 
     /**
-     * Create new code parser.
-     * Apply new set config.
+     * Create new code parser instance.
      * 
-     * @param pLexer - Lexer with applied config.
+     * @param pLexer - Lexer instance.
      */
-    private createParser(pLexer: Lexer<XmlToken>): CodeParser<XmlToken, XmlDocument> {
-        const lParser: CodeParser<XmlToken, XmlDocument> = new CodeParser<XmlToken, XmlDocument>(pLexer);
+    private createParser(pLexer: Lexer<PwbTemplateToken>): CodeParser<PwbTemplateToken, PwbTemplate> {
+        const lParser: CodeParser<PwbTemplateToken, PwbTemplate> = new CodeParser<PwbTemplateToken, PwbTemplate>(pLexer);
 
         // Attribute graph.
-        type AttributeParseData = {
-            namespace?: { name: string; };
+        type XmlAttributeParseData = {
             name: string,
             value?: { value: string; };
         };
-        lParser.defineGraphPart('attribute',
+        lParser.defineGraphPart('XmlAttribute',
             lParser.graph()
-                .optional('namespace',
-                    lParser.graph().single('name', XmlToken.Identifier).single(XmlToken.NamespaceDelimiter)
-                )
-                .single('name', XmlToken.Identifier)
+                .single('name', PwbTemplateToken.Identifier)
                 .optional('value',
-                    lParser.graph().single(XmlToken.Assignment).single('value', XmlToken.Value)
+                    lParser.graph().single(PwbTemplateToken.Assignment).single('value', PwbTemplateToken.XmlValue)
                 ),
-            (pData: AttributeParseData): AttributeInformation => {
-                // Validate tag name.
-                const lRegexNameCheck: RegExp = new RegExp(`^[${this.escapeRegExp(this.mConfig.allowedAttributeCharacters)}]+$`);
-                if (!lRegexNameCheck.test(pData.name)) {
-                    throw new Exception(`Attribute contains illegal characters: "${pData.name}"`, this);
-                }
-
+            (pData: XmlAttributeParseData): AttributeInformation => {
                 return {
-                    namespacePrefix: pData.namespace?.name ?? null,
                     name: pData.name,
                     value: pData.value?.value.substring(1, pData.value.value.length - 1) ?? ''
                 };
@@ -131,152 +123,144 @@ export class TemplateParser {
         );
 
         // Content data.
-        type ContentData = {
-            value: { text: string; } | XmlElement | { comment: string; };
+        type XmlTextNodeParseData = {
+            text: string;
         };
-        lParser.defineGraphPart('content',
-            lParser.graph().branch('value', [
-                lParser.graph().single('comment', XmlToken.Comment),
-                lParser.graph().single('text', XmlToken.Value),
-                lParser.partReference('tag')
-            ]),
-            (pData: ContentData): XmlElement | CommentNode | TextNode => {
-                // XML Element
-                if (pData.value instanceof XmlElement) {
-                    return pData.value;
+        lParser.defineGraphPart('XmlTextNode',
+            lParser.graph()
+                .single('text', PwbTemplateToken.XmlValue),
+            (pData: XmlTextNodeParseData): PwbTemplateTextNode => {
+                // Clear hyphen from text content.
+                let lClearedTextContent: string;
+                if (pData.text.startsWith('"') && pData.text.endsWith('"')) {
+                    lClearedTextContent = pData.text.substring(1, pData.text.length - 1);
+                } else {
+                    lClearedTextContent = pData.text;
                 }
 
-                // Text content.
-                if ('text' in pData.value) {
-                    // Clear hyphen from text content.
-                    let lClearedTextContent: string;
-                    if (pData.value.text.startsWith('"') && pData.value.text.endsWith('"')) {
-                        lClearedTextContent = pData.value.text.substring(1, pData.value.text.length - 1);
-                    } else {
-                        lClearedTextContent = pData.value.text;
-                    }
+                // Create text node.
+                const lTextContent = new PwbTemplateTextNode();
+                lTextContent.text = lClearedTextContent;
 
-                    // Create text element.
-                    const lTextContent = new (this.getTextNodeConstructor())();
-                    lTextContent.text = lClearedTextContent;
+                return lTextContent;
+            }
+        );
 
-                    return lTextContent;
-                }
-
-                // Create comment element. Extract raw text content.
-                const lComment = new (this.getCommentNodeConstructor())();
-                lComment.text = pData.value.comment.substring(4, pData.value.comment.length - 3).trim();
-
-                return lComment;
+        // Ignore comment nodes..
+        lParser.defineGraphPart('XmlCommentNode',
+            lParser.graph().single(PwbTemplateToken.XmlComment),
+            (): null => {
+                return null;
             }
         );
 
         // Tags
-        type TagParseData = {
+        type XmlElementParseData = {
             openingTagName: string;
-            openingNamespace?: { name: string; };
             attributes: Array<AttributeInformation>,
-            ending: {} | {
-                values: Array<XmlElement | CommentNode | TextNode>;
+            closing: {} | {
+                values: Array<BasePwbTemplateNode>;
                 closingTageName: string;
-                closingNamespace?: { name: string; };
             };
         };
-        lParser.defineGraphPart('tag',
+        lParser.defineGraphPart('XmlElement',
             lParser.graph()
-                .single(XmlToken.OpenBracket)
-                .optional('openingNamespace',
-                    lParser.graph().single('name', XmlToken.Identifier).single(XmlToken.NamespaceDelimiter)
-                )
-                .single('openingTagName', XmlToken.Identifier)
-                .loop('attributes', lParser.partReference('attribute'))
-                .branch('ending', [
+                .single(PwbTemplateToken.XmlOpenBracket)
+                .single('openingTagName', PwbTemplateToken.Identifier)
+                .loop('attributes', lParser.partReference('XmlAttribute'))
+                .branch('closing', [
                     lParser.graph()
-                        .single(XmlToken.CloseClosingBracket),
+                        .single(PwbTemplateToken.XmlCloseClosingBracket),
                     lParser.graph()
-                        .single(XmlToken.CloseBracket)
-                        .loop('values', lParser.partReference('content'))
-                        .single(XmlToken.OpenClosingBracket)
-                        .optional('closingNamespace',
-                            lParser.graph().single('name', XmlToken.Identifier).single(XmlToken.NamespaceDelimiter)
-                        )
-                        .single('closingTageName', XmlToken.Identifier).single(XmlToken.CloseBracket)
+                        .single(PwbTemplateToken.XmlCloseBracket)
+                        .single('values', lParser.partReference('ContentList'))
+                        .single(PwbTemplateToken.XmlOpenClosingBracket)
+                        .single('closingTageName', PwbTemplateToken.Identifier).single(PwbTemplateToken.XmlCloseBracket)
                 ]),
-            (pData: TagParseData): XmlElement => {
+            (pData: XmlElementParseData): PwbTemplateXmlNode => {
                 // Validate data consistency.
-                if ('closingTageName' in pData.ending) {
-                    if (pData.openingTagName !== pData.ending.closingTageName) {
-                        throw new Exception(`Opening (${pData.openingTagName}) and closing tagname (${pData.ending.closingTageName}) does not match`, this);
+                if ('closingTageName' in pData.closing) {
+                    if (pData.openingTagName !== pData.closing.closingTageName) {
+                        throw new Exception(`Opening (${pData.openingTagName}) and closing tagname (${pData.closing.closingTageName}) does not match`, this);
                     }
-
-                    // Validate namespace prefix.
-                    if (pData.ending.closingNamespace !== pData.openingNamespace) {
-                        throw new Exception(`Opening (${pData.openingNamespace}) and closing namespace prefix (${pData.ending.closingNamespace}) does not match`, this);
-                    }
-                }
-
-                // Validate tag name.
-                const lRegexNameCheck: RegExp = new RegExp(`^[${this.escapeRegExp(this.mConfig.allowedTagNameCharacters)}]+$`);
-                if (!lRegexNameCheck.test(pData.openingTagName)) {
-                    throw new Exception(`Tagname contains illegal characters: "${pData.openingTagName}"`, this);
                 }
 
                 // Create xml element.
-                const lElement: XmlElement = new (this.getXmlElementConstructor())();
+                const lElement: PwbTemplateXmlNode = new PwbTemplateXmlNode();
                 lElement.tagName = pData.openingTagName;
-                lElement.namespacePrefix = pData.openingNamespace?.name ?? null;
 
                 // Add attributes.
                 for (const lAttribute of pData.attributes) {
-                    lElement.setAttribute(lAttribute.name, lAttribute.value, lAttribute.namespacePrefix);
+                    lElement.setAttribute(lAttribute.name, lAttribute.value);
                 }
 
-                // Add values.
-                if ('values' in pData.ending) {
-                    for (const lValue of pData.ending.values) {
-                        // Optional comment node
-                        if (this.mConfig.removeComments && lValue instanceof CommentNode) {
-                            continue;
-                        }
-
-                        // XML Element or Text node.
-                        lElement.appendChild(lValue);
-                    }
+                // Add content values.
+                if ('values' in pData.closing) {
+                    lElement.appendChild(...pData.closing.values);
                 }
 
                 return lElement;
             }
         );
 
-        // Document.
-        type DocumentParseData = {
-            content: Array<XmlElement | CommentNode | TextNode>;
+        // Child content data.
+        type ContentParseData = {
+            list: Array<{ node: PwbTemplateTextNode | null; }>;
         };
-        lParser.defineGraphPart('document',
-            lParser.graph().loop('content', lParser.partReference('content')),
-            (pData: DocumentParseData): XmlDocument => {
-                const lDocument: XmlDocument = new XmlDocument('http://www.w3.org/1999/xhtml');
+        lParser.defineGraphPart('ContentList',
+            lParser.graph().loop('list', lParser.graph().branch('node', [
+                lParser.partReference('XmlCommentNode'),
+                lParser.partReference('XmlElement'),
+                lParser.partReference('XmlTextNode')
+            ])),
+            (pData: ContentParseData): Array<BasePwbTemplateNode> => {
+                const lContentList: Array<BasePwbTemplateNode> = new Array<BasePwbTemplateNode>();
 
-                for (const lValue of pData.content) {
-                    // Optional comment node
-                    if (!lValue === null) {
+                for (const lItem of pData.list) {
+                    // Skip omitted nodes.
+                    if (lItem.node === null) {
                         continue;
                     }
 
-                    // XML Element or Text node.
-                    lDocument.appendChild(lValue);
+                    lContentList.push(lItem.node);
                 }
 
-                return lDocument;
+                return lContentList;
             }
         );
 
-        lParser.setRootGraphPart('document');
+        // Document.
+        type TemplateParseData = {
+            content: Array<BasePwbTemplateNode>;
+        };
+        lParser.defineGraphPart('TemplateRoot',
+            lParser.graph().single('content', lParser.partReference('ContentList')),
+            (pData: TemplateParseData): PwbTemplate => {
+                const lTemplate: PwbTemplate = new PwbTemplate();
+
+                // Add each content to template.
+                lTemplate.appendChild(...pData.content);
+ 
+                return lTemplate;
+            }
+        );
+
+        // Set root part.
+        lParser.setRootGraphPart('TemplateRoot');
 
         return lParser;
     }
 }
 
 enum PwbTemplateToken {
-    a = '',
+    Identifier = 'Identifier',
+    Assignment = 'XmlAssignment',
+    XmlValue = 'XmlValue',
+    XmlComment = 'XmlComment',
+    XmlOpenClosingBracket = 'XmlOpenClosingBracket',
+    XmlCloseBracket = 'XmlCloseBracket',
+    XmlOpenBracket = 'XmlOpenBracket',
+    XmlCloseClosingBracket = 'XmlCloseClosingBracket'
 }
+
+type AttributeInformation = { name: string, value: string; };

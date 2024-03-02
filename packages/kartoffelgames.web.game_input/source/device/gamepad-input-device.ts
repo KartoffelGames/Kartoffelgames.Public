@@ -38,7 +38,7 @@ export class GamepadInputDevice extends BaseInputDevice {
      */
     private startScanLoop(): void {
         // Get all gamepad buttons.
-        const lGamepadButtonList: Array<GamepadButton> = EnumUtil.enumValuesToArray<GamepadButton>(GamepadButton);
+        const lGamepadButtonList: Array<GamepadButton> = EnumUtil.valuesOf<GamepadButton>(GamepadButton);
         const lLoop = () => {
             // Only scan on connected gamepads.
             if (this.connected) {

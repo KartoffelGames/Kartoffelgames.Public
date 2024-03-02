@@ -1,4 +1,4 @@
-import { List, ObjectFieldPathPart, IDeconstructable } from '@kartoffelgames/core.data';
+import { List, IDeconstructable } from '@kartoffelgames/core.data';
 import { ErrorAllocation } from './execution_zone/error-allocation';
 import { ExecutionZone } from './execution_zone/execution-zone';
 import { Patcher } from './execution_zone/patcher/patcher';
@@ -189,7 +189,7 @@ export class ChangeDetection implements IDeconstructable {
     /**
      * Create child detection that does not notice changes from parent.
      * Parent will notice any change inside child. 
-     * @param pName 
+     * @param pName - Child name.
      * @returns 
      */
     public createChildDetection(pName: string): ChangeDetection {
@@ -345,4 +345,4 @@ export class ChangeDetection implements IDeconstructable {
 
 export type ChangeListener = (pReason: ChangeDetectionReason) => void;
 export type ErrorListener = (pError: any) => void | boolean;
-export type ChangeDetectionReason = { source: any, property: ObjectFieldPathPart | ((...pArgs: Array<any>) => any), stacktrace: string; };
+export type ChangeDetectionReason = { source: any, property: PropertyKey | ((...pArgs: Array<any>) => any), stacktrace: string; };

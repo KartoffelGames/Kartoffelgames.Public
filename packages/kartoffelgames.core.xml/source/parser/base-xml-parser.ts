@@ -13,7 +13,7 @@ export abstract class BaseXmlParser {
     private readonly mConfig: XmlParserConfig;
     private mParser: CodeParser<XmlToken, XmlDocument> | null;
     private mRebuildParser: boolean;
-    
+
     /**
      * Characters that are allowed for attribute names. Case insensitiv.
      */
@@ -92,13 +92,14 @@ export abstract class BaseXmlParser {
         lLexer.trimWhitespace = true;
 
         // Identifier
-        lLexer.addTokenTemplate('NamespaceDelimiter', { pattern: { regex: /:/, type: XmlToken.NamespaceDelimiter }, specificity: 1 });
-        lLexer.addTokenTemplate('Identifier', { pattern: { regex: /[^<>\s\n/:="]+/, type: XmlToken.Identifier }, specificity: 1 });
-        lLexer.addTokenTemplate('ExplicitValue', { pattern: { regex: /"[^"]*"/, type: XmlToken.Value }, specificity: 1 });
+        lLexer.addTokenTemplate('NamespaceDelimiter', { pattern: { regex: /:/, type: XmlToken.NamespaceDelimiter } });
+        lLexer.addTokenTemplate('Identifier', { pattern: { regex: /[^<>\s\n/:="]+/, type: XmlToken.Identifier } });
+        lLexer.addTokenTemplate('ExplicitValue', { pattern: { regex: /"[^"]*"/, type: XmlToken.Value } });
+        lLexer.addTokenTemplate('Value', { pattern: { regex: /[^<>"]+/, type: XmlToken.Value } });
+        lLexer.addTokenTemplate('Comment', { pattern: { regex: /<!--.*?-->/, type: XmlToken.Comment } });
 
         // Brackets.
-        lLexer.addTokenPattern({ pattern: { regex: /<!--.*?-->/, type: XmlToken.Comment }, specificity: 0 });
-        lLexer.addTokenPattern({
+        lLexer.addTokenTemplate('OpeningBracket', {
             pattern: {
                 start: {
                     regex: /<\//,
@@ -108,12 +109,12 @@ export abstract class BaseXmlParser {
                     regex: />/,
                     type: XmlToken.CloseBracket
                 }
-            }, specificity: 1
+            }
         }, () => {
-            lLexer.useTokenTemplate('NamespaceDelimiter');
-            lLexer.useTokenTemplate('Identifier');
+            lLexer.useTokenTemplate('NamespaceDelimiter', 1);
+            lLexer.useTokenTemplate('Identifier', 1);
         });
-        lLexer.addTokenPattern({
+        lLexer.addTokenTemplate('ClosingBracket', {
             pattern: {
                 start: {
                     regex: /</,
@@ -126,17 +127,20 @@ export abstract class BaseXmlParser {
                         closeBracket: XmlToken.CloseBracket
                     }
                 }
-            }, specificity: 2
+            }
         }, () => {
             lLexer.addTokenPattern({ pattern: { regex: /=/, type: XmlToken.Assignment }, specificity: 1 });
-            lLexer.useTokenTemplate('NamespaceDelimiter');
-            lLexer.useTokenTemplate('Identifier');
-            lLexer.useTokenTemplate('ExplicitValue');
+            lLexer.useTokenTemplate('NamespaceDelimiter', 1);
+            lLexer.useTokenTemplate('Identifier', 1);
+            lLexer.useTokenTemplate('ExplicitValue', 1);
         });
 
-        // Value
+        // Stack templates.
+        lLexer.useTokenTemplate('Comment', 0);
+        lLexer.useTokenTemplate('OpeningBracket', 1);
+        lLexer.useTokenTemplate('ClosingBracket', 2);
         lLexer.useTokenTemplate('ExplicitValue', 3);
-        lLexer.addTokenPattern({ pattern: { regex: /[^<>"]+/, type: XmlToken.Value }, specificity: 4 });
+        lLexer.useTokenTemplate('Value', 4);
 
         return lLexer;
     }

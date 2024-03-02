@@ -159,7 +159,7 @@ export class XmlElement extends BaseXmlNode {
         // Check all attributes.
         for (const lAttribute of pBaseNode.mAttributeDictionary.values()) {
             // This checks also for wrong namespace prefix by checking for qualified attribute name.
-            const lAttributeTwo: XmlAttribute = <XmlAttribute>this.mAttributeDictionary.get(lAttribute.qualifiedName);
+            const lAttributeTwo: XmlAttribute | undefined = this.mAttributeDictionary.get(lAttribute.qualifiedName);
 
             if (!lAttributeTwo || lAttributeTwo.value !== lAttribute.value) {
                 return false;
@@ -257,7 +257,7 @@ export class XmlElement extends BaseXmlNode {
             lRemovedChild = this.mChildList.splice(lIndex, 1)[0];
 
             // If xml node remove parent connection.
-            (<BaseXmlNode>lRemovedChild).parent = null;
+            lRemovedChild.parent = null;
         }
 
         return lRemovedChild;

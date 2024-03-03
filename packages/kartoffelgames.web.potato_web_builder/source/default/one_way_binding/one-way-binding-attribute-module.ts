@@ -38,7 +38,7 @@ export class OneWayBindingAttributeModule implements IPwbStaticModuleOnUpdate {
         this.mExecutionString = pAttributeReference.value.value;
 
         // Get view object information. Remove starting [ and end ].
-        const lAttributeKey: string = pAttributeReference.value.qualifiedName;
+        const lAttributeKey: string = pAttributeReference.value.name;
         this.mTargetProperty = lAttributeKey.substr(1, lAttributeKey.length - 2);
 
         // Create empty compare handler with unique symbol.

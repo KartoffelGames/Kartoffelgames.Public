@@ -1,5 +1,4 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { BaseXmlNode, TextNode, XmlAttribute, XmlDocument, XmlElement } from '@kartoffelgames/core.xml';
 import { BaseModule } from '../../module/base-module';
 import { ExpressionModule } from '../../module/expression-module';
 import { StaticModule } from '../../module/static-module';
@@ -8,6 +7,10 @@ import { ElementCreator } from '../content/element-creator';
 import { LayerValues } from '../values/layer-values';
 import { BaseBuilder } from './base-builder';
 import { MultiplicatorBuilder } from './multiplicator-builder';
+import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
+import { PwbTemplateAttribute, PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
+import { PwbTemplateTextNode } from '../template/nodes/pwb-template-text-node';
+import { PwbTemplate } from '../template/nodes/pwb-template';
 
 export class StaticBuilder extends BaseBuilder {
     private mInitialized: boolean;
@@ -17,10 +20,10 @@ export class StaticBuilder extends BaseBuilder {
      * @param pTemplate - Template.
      * @param pShadowParent - Shadow parent html element.
      * @param pModules - Attribute modules.
-     * @param pParentLayerValues - 
-     * @param pParentBuilder 
+     * @param pParentLayerValues - Layer value of parent builder.
+     * @param pParentBuilder - Parent builder.
      */
-    public constructor(pTemplate: BaseXmlNode, pShadowParent: BaseXmlNode, pModules: ComponentModules, pParentLayerValues: LayerValues, pParentBuilder: BaseBuilder | null) {
+    public constructor(pTemplate: BasePwbTemplateNode, pShadowParent: BasePwbTemplateNode, pModules: ComponentModules, pParentLayerValues: LayerValues, pParentBuilder: BaseBuilder | null) {
         super(pTemplate, pShadowParent, pModules, pParentLayerValues, pParentBuilder);
 
         // Not initialized on start.
@@ -34,7 +37,7 @@ export class StaticBuilder extends BaseBuilder {
      * @param pParentHtmlElement - Build parent element of template.
      * @param pShadowParent - Parent template element that is loosly linked as parent.
      */
-    public buildMultiplicatorTemplate(pMultiplicatorTemplate: XmlElement, pParentHtmlElement: Element | null, pShadowParent: BaseXmlNode): void {
+    public buildMultiplicatorTemplate(pMultiplicatorTemplate: PwbTemplateXmlNode, pParentHtmlElement: Element | null, pShadowParent: BasePwbTemplateNode): void {
         // Create new component builder and add to content.
         const lMultiplicatorBuilder: MultiplicatorBuilder = new MultiplicatorBuilder(pMultiplicatorTemplate, pShadowParent, this.contentManager.modules, this.values, this);
         this.contentManager.append(lMultiplicatorBuilder, pParentHtmlElement);
@@ -46,7 +49,7 @@ export class StaticBuilder extends BaseBuilder {
      * @param pElementTemplate - Element template.
      * @param pParentHtmlElement - Parent of template.
      */
-    public buildStaticTemplate(pElementTemplate: XmlElement, pParentHtmlElement: Element | null): void {
+    public buildStaticTemplate(pElementTemplate: PwbTemplateXmlNode, pParentHtmlElement: Element | null): void {
         // Build element.
         const lHtmlNode: Element = ElementCreator.createElement(pElementTemplate);
 
@@ -73,7 +76,7 @@ export class StaticBuilder extends BaseBuilder {
      * @param pTextTemplate - Text template.
      * @param pParentHtmlElement - Build parent element of template. 
      */
-    public buildTextTemplate(pTextTemplate: TextNode, pParentHtmlElement: Element | null): void {
+    public buildTextTemplate(pTextTemplate: PwbTemplateTextNode, pParentHtmlElement: Element | null): void {
         // Create and process expression module, append text node to content.
         const lHtmlNode: Text = ElementCreator.createText('');
 
@@ -150,10 +153,10 @@ export class StaticBuilder extends BaseBuilder {
      * @param pTemplateNodeList - Template node list.
      * @param pParentElement - Parent element of templates.
      */
-    private buildTemplate(pTemplateNodeList: Array<BaseXmlNode>, pParentElement: Element | null = null, pShadowParent: BaseXmlNode | null = null): void {
+    private buildTemplate(pTemplateNodeList: Array<BasePwbTemplateNode>, pParentElement: Element | null = null, pShadowParent: BasePwbTemplateNode | null = null): void {
         // Get shadow parent of template nodes.
         // Use builder shadow parent is template is a root node.
-        let lShadowParent: BaseXmlNode | null = pShadowParent;
+        let lShadowParent: BasePwbTemplateNode | null = pShadowParent;
         if (lShadowParent === null) {
             lShadowParent = this.shadowParent;
         }
@@ -161,14 +164,14 @@ export class StaticBuilder extends BaseBuilder {
         // Create each template.
         for (const lTemplateNode of pTemplateNodeList) {
             /* istanbul ignore else */
-            if (lTemplateNode instanceof XmlDocument) {
+            if (lTemplateNode instanceof PwbTemplate) {
                 // Ignore documents just process body.
                 this.buildTemplate(lTemplateNode.body, pParentElement, lTemplateNode);
-            } else if (lTemplateNode instanceof TextNode) {
+            } else if (lTemplateNode instanceof PwbTemplateTextNode) {
                 this.buildTextTemplate(lTemplateNode, pParentElement);
-            } else if (lTemplateNode instanceof XmlElement) {
+            } else if (lTemplateNode instanceof PwbTemplateXmlNode) {
                 // Differentiate between static and multiplicator templates.
-                const lMultiplicatorAttribute: XmlAttribute | undefined = this.contentManager.modules.getMultiplicatorAttribute(lTemplateNode);
+                const lMultiplicatorAttribute: PwbTemplateAttribute | undefined = this.contentManager.modules.getMultiplicatorAttribute(lTemplateNode);
                 if (lMultiplicatorAttribute) {
                     this.buildMultiplicatorTemplate(lTemplateNode, pParentElement, lShadowParent);
                 } else {

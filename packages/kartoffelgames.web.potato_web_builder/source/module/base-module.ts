@@ -1,6 +1,5 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { BaseXmlNode, XmlAttribute, XmlElement } from '@kartoffelgames/core.xml';
 import { ComponentManager } from '../component/component-manager';
 import { LayerValues } from '../component/values/layer-values';
 import { ComponentManagerReference } from '../injection_reference/component-manager-reference';
@@ -12,6 +11,8 @@ import { ModuleTemplateReference } from '../injection_reference/module-template-
 import { ModuleAccessType } from './enum/module-access-type';
 import { IPwbModuleClass, IPwbModuleObject, ModuleDefinition } from './interface/module';
 import { ModuleExtensions } from './module-extensions';
+import { PwbTemplateAttribute, PwbTemplateXmlNode } from '../component/template/nodes/pwb-template-xml-node';
+import { BasePwbTemplateNode } from '../component/template/nodes/base-pwb-template-node';
 
 export abstract class BaseModule<TModuleResult, TModuleObjectResult> {
     private readonly mComponentManager: ComponentManager;
@@ -21,9 +22,9 @@ export abstract class BaseModule<TModuleResult, TModuleObjectResult> {
     private readonly mModuleClass: IPwbModuleClass<TModuleObjectResult>;
     private readonly mModuleDefinition: ModuleDefinition;
     private readonly mModuleObjectList: Array<IPwbModuleObject<TModuleObjectResult>>;
-    private readonly mTargetAttribute: XmlAttribute | null;
+    private readonly mTargetAttribute: PwbTemplateAttribute | null;
     private readonly mTargetNode: Node | null;
-    private readonly mTemplateClone: BaseXmlNode;
+    private readonly mTemplateClone: BasePwbTemplateNode;
 
     /**
      * If modules reads data into the view.
@@ -49,7 +50,7 @@ export abstract class BaseModule<TModuleResult, TModuleObjectResult> {
     /**
      * Get target attribute.
      */
-    protected get attribute(): XmlAttribute | null {
+    protected get attribute(): PwbTemplateAttribute | null {
         return this.mTargetAttribute;
     }
 
@@ -70,8 +71,8 @@ export abstract class BaseModule<TModuleResult, TModuleObjectResult> {
         this.mTemplateClone.parent = pParameter.targetTemplate.parent;
 
         // Remove target atribute.
-        if (this.mTemplateClone instanceof XmlElement && pParameter.targetAttribute) {
-            this.mTemplateClone.removeAttribute(pParameter.targetAttribute.qualifiedName);
+        if (this.mTemplateClone instanceof PwbTemplateXmlNode && pParameter.targetAttribute) {
+            this.mTemplateClone.removeAttribute(pParameter.targetAttribute.name);
         }
 
         this.mModuleDefinition = pParameter.moduleDefinition;
@@ -164,8 +165,8 @@ export abstract class BaseModule<TModuleResult, TModuleObjectResult> {
 export type BaseModuleConstructorParameter<TModuleObjectResult> = {
     moduleDefinition: ModuleDefinition,
     moduleClass: IPwbModuleClass<TModuleObjectResult>,
-    targetTemplate: BaseXmlNode,
-    targetAttribute: XmlAttribute | null, // Null for native text expression.
+    targetTemplate: BasePwbTemplateNode,
+    targetAttribute: PwbTemplateAttribute | null, // Null for native text expression.
     values: LayerValues,
     componentManager: ComponentManager,
     targetNode: Node | null; // Null for Multiplicator modules. 

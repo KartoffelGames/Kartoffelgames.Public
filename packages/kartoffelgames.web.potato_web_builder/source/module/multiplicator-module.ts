@@ -1,10 +1,10 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { XmlAttribute, XmlElement } from '@kartoffelgames/core.xml';
 import { ComponentManager } from '../component/component-manager';
 import { LayerValues } from '../component/values/layer-values';
 import { IPwbMultiplicatorModuleClass, IPwbMultiplicatorModuleObject, ModuleDefinition } from './interface/module';
 import { BaseModule } from './base-module';
 import { MultiplicatorResult } from './result/multiplicator-result';
+import { PwbTemplateAttribute, PwbTemplateXmlNode } from '../component/template/nodes/pwb-template-xml-node';
 
 export class MultiplicatorModule extends BaseModule<MultiplicatorResult | null, MultiplicatorResult> {
     private readonly mModuleObject: IPwbMultiplicatorModuleObject;
@@ -20,7 +20,7 @@ export class MultiplicatorModule extends BaseModule<MultiplicatorResult | null, 
         });
 
         // Attribute is always set for multiplicator modules.
-        const lAttribute: XmlAttribute = <XmlAttribute>this.attribute;
+        const lAttribute: PwbTemplateAttribute = this.attribute!;
         this.mModuleObject = this.createModuleObject(lAttribute.value);
     }
 
@@ -39,8 +39,8 @@ export class MultiplicatorModule extends BaseModule<MultiplicatorResult | null, 
 export type MultiplicatorModuleConstructorParameter = {
     moduleDefinition: ModuleDefinition,
     moduleClass: IPwbMultiplicatorModuleClass,
-    targetTemplate: XmlElement,
-    targetAttribute: XmlAttribute,
+    targetTemplate: PwbTemplateXmlNode,
+    targetAttribute: PwbTemplateAttribute,
     values: LayerValues,
     componentManager: ComponentManager,
 };

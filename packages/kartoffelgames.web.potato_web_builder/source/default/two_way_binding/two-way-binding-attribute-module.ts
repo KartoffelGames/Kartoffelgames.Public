@@ -36,7 +36,7 @@ export class TwoWayBindingAttributeModule implements IPwbStaticModuleOnUpdate {
         this.mAttributeReference = pAttributeReference;
 
         // Get property name.
-        const lAttributeKey: string = this.mAttributeReference.value.qualifiedName;
+        const lAttributeKey: string = this.mAttributeReference.value.name;
         this.mViewProperty = lAttributeKey.substr(2, lAttributeKey.length - 4);
         this.mThisProperty = this.mAttributeReference.value.value;
 

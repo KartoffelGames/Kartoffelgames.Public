@@ -1,4 +1,3 @@
-import { BaseXmlNode, XmlElement } from '@kartoffelgames/core.xml';
 import { ChangeState, DifferenceSearch, HistoryItem } from '@kartoffelgames/web.change-detection';
 import { MultiplicatorModule } from '../../module/multiplicator-module';
 import { ManipulatorElement, MultiplicatorResult } from '../../module/result/multiplicator-result';
@@ -6,6 +5,8 @@ import { ComponentModules } from '../component-modules';
 import { LayerValues } from '../values/layer-values';
 import { BaseBuilder } from './base-builder';
 import { StaticBuilder } from './static-builder';
+import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
+import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
 
 export class MultiplicatorBuilder extends BaseBuilder {
 
@@ -14,10 +15,10 @@ export class MultiplicatorBuilder extends BaseBuilder {
      * @param pTemplate - Template.
      * @param pShadowParent - Shadow parent html element.
      * @param pModules - Attribute modules.
-     * @param pParentLayerValues - 
-     * @param pParentBuilder 
+     * @param pParentLayerValues - Layer value of parent builder.
+     * @param pParentBuilder - Parent builder.
      */
-    public constructor(pTemplate: BaseXmlNode, pShadowParent: BaseXmlNode, pModules: ComponentModules, pParentLayerValues: LayerValues, pParentBuilder: BaseBuilder) {
+    public constructor(pTemplate: BasePwbTemplateNode, pShadowParent: BasePwbTemplateNode, pModules: ComponentModules, pParentLayerValues: LayerValues, pParentBuilder: BaseBuilder) {
         super(pTemplate, pShadowParent, pModules, pParentLayerValues, pParentBuilder);
     }
 
@@ -34,7 +35,7 @@ export class MultiplicatorBuilder extends BaseBuilder {
     protected onUpdate(): boolean {
         // Create multiplicator module if is does not exist.
         if (!this.contentManager.multiplicatorModule) {
-            const lTemplate: XmlElement = <XmlElement>this.template;
+            const lTemplate: PwbTemplateXmlNode = <PwbTemplateXmlNode>this.template;
 
             // Create module and save inside. Allways has existing module bc. can only be called with found multiplicator module.
             const lManipulatorModule: MultiplicatorModule = <MultiplicatorModule>this.contentManager.modules.getElementMultiplicatorModule(lTemplate, this.values);

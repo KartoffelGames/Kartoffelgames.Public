@@ -1,12 +1,12 @@
-import { PwbStaticAttributeModule } from '../../module/decorator/pwb-static-attribute-module.decorator';
-import { ModuleAccessType } from '../../module/enum/module-access-type';
-import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ComponentManagerReference } from '../../injection_reference/component-manager-reference';
+import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ModuleLayerValuesReference } from '../../injection_reference/module-layer-values-reference';
 import { ModuleTargetReference } from '../../injection_reference/module-target-reference';
+import { PwbStaticAttributeModule } from '../../module/decorator/pwb-static-attribute-module.decorator';
+import { ModuleAccessType } from '../../module/enum/module-access-type';
 
 /**
- * Used with "#IdChildName" like => #PasswordInput.
+ * Used with "#IdChildName" like - #PasswordInput.
  */
 @PwbStaticAttributeModule({
     selector: /^#[[\w$]+$/,
@@ -25,6 +25,6 @@ export class PwbChildAttributeModule {
         const lRegistedElement: Node = pComponentManager.value.updateHandler.registerObject(lTarget);
 
         // Add current html element to temporary root values. Delete starting #.
-        pValueReference.value.setRootValue(pAttributeReference.value.qualifiedName.substring(1), lRegistedElement);
+        pValueReference.value.setRootValue(pAttributeReference.value.name.substring(1), lRegistedElement);
     }
 }

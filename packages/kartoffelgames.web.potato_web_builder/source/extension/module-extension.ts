@@ -1,7 +1,8 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { BaseXmlNode, XmlAttribute } from '@kartoffelgames/core.xml';
 import { ComponentManager } from '../component/component-manager';
+import { BasePwbTemplateNode } from '../component/template/nodes/base-pwb-template-node';
+import { PwbTemplateAttribute } from '../component/template/nodes/pwb-template-xml-node';
 import { LayerValues } from '../component/values/layer-values';
 import { ModuleAttributeReference } from '../injection_reference/module-attribute-reference';
 import { ModuleLayerValuesReference } from '../injection_reference/module-layer-values-reference';
@@ -40,8 +41,8 @@ type ModuleExtensionConstructorParameter = {
     targetObject: object | null,
 
     // Module
-    template: BaseXmlNode,
-    attribute: XmlAttribute | null, // Null for native text expressions.
+    template: BasePwbTemplateNode,
+    attribute: PwbTemplateAttribute | null, // Null for native text expressions.
     layerValues: LayerValues,
     element: Node | null;  // Null for multiplicator modules
 };

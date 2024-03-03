@@ -1,5 +1,4 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
-import { XmlElement } from '@kartoffelgames/core.xml';
 import { CompareHandler } from '@kartoffelgames/web.change-detection';
 import { LayerValues } from '../../component/values/layer-values';
 import { PwbMultiplicatorAttributeModule } from '../../module/decorator/pwb-multiplicator-attribute-module.decorator';
@@ -9,6 +8,7 @@ import { ModuleLayerValuesReference } from '../../injection_reference/module-lay
 import { ModuleTemplateReference } from '../../injection_reference/module-template-reference';
 import { MultiplicatorResult } from '../../module/result/multiplicator-result';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
+import { PwbTemplateXmlNode } from '../../component/template/nodes/pwb-template-xml-node';
 
 /**
  * For of.
@@ -102,7 +102,7 @@ export class ForOfManipulatorAttributeModule implements IPwbMultiplicatorModuleO
      * @param pObjectKey - value key.
      */
     private readonly addTempateForElement = (pModuleResult: MultiplicatorResult, pExpression: ForOfExpression, pObjectValue: any, pObjectKey: number | string) => {
-        const lClonedTemplate: XmlElement = <XmlElement>this.mTemplateReference.value.clone();
+        const lClonedTemplate: PwbTemplateXmlNode = <PwbTemplateXmlNode>this.mTemplateReference.value.clone();
         const lComponentValues: LayerValues = new LayerValues(this.mValueHandler);
         lComponentValues.setLayerValue(pExpression.variable, pObjectValue);
 

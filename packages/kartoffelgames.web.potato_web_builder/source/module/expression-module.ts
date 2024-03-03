@@ -1,8 +1,9 @@
-import { TextNode, XmlAttribute, XmlElement } from '@kartoffelgames/core.xml';
 import { ComponentManager } from '../component/component-manager';
+import { PwbTemplateTextNode } from '../component/template/nodes/pwb-template-text-node';
+import { PwbTemplateAttribute, PwbTemplateXmlNode } from '../component/template/nodes/pwb-template-xml-node';
 import { LayerValues } from '../component/values/layer-values';
-import { IPwbExpressionModuleClass, IPwbExpressionModuleObject, ModuleDefinition } from './interface/module';
 import { BaseModule } from './base-module';
+import { IPwbExpressionModuleClass, IPwbExpressionModuleObject, ModuleDefinition } from './interface/module';
 
 export class ExpressionModule extends BaseModule<boolean, string> {
     private mLastResult: string | null;
@@ -76,8 +77,8 @@ export class ExpressionModule extends BaseModule<boolean, string> {
 
             // Add result text to TextNode or as attribute.
             if (lNode instanceof Element) {
-                const lAttribute: XmlAttribute = <XmlAttribute>this.attribute;
-                lNode.setAttribute(lAttribute.qualifiedName, lNewValue);
+                const lAttribute: PwbTemplateAttribute = this.attribute!;
+                lNode.setAttribute(lAttribute.name, lNewValue);
             } else { // Text
                 lNode.nodeValue = lNewValue;
             }
@@ -95,7 +96,7 @@ export class ExpressionModule extends BaseModule<boolean, string> {
 export type ExpressionModuleConstructorParameterTextNode = {
     moduleDefinition: ModuleDefinition,
     moduleClass: IPwbExpressionModuleClass,
-    targetTemplate: TextNode,
+    targetTemplate: PwbTemplateTextNode,
     values: LayerValues,
     componentManager: ComponentManager,
     targetNode: Text;
@@ -104,8 +105,8 @@ export type ExpressionModuleConstructorParameterTextNode = {
 export type ExpressionModuleConstructorParameterAttribute = {
     moduleDefinition: ModuleDefinition,
     moduleClass: IPwbExpressionModuleClass,
-    targetTemplate: XmlElement,
-    targetAttribute: XmlAttribute,
+    targetTemplate: PwbTemplateXmlNode,
+    targetAttribute: PwbTemplateAttribute,
     values: LayerValues,
     componentManager: ComponentManager,
     targetNode: Element;

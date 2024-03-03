@@ -1,5 +1,5 @@
-import { XmlAttribute, XmlElement } from '@kartoffelgames/core.xml';
 import { ElementCreator } from '../../component/content/element-creator';
+import { PwbTemplateAttribute, PwbTemplateXmlNode } from '../../component/template/nodes/pwb-template-xml-node';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ModuleTargetReference } from '../../injection_reference/module-target-reference';
 import { PwbStaticAttributeModule } from '../../module/decorator/pwb-static-attribute-module.decorator';
@@ -24,12 +24,11 @@ export class SlotAttributeModule {
         this.mAttributeReference = pAttributeReference;
 
         // Get name of slot. Remove starting $.
-        const lAttribute: XmlAttribute = <XmlAttribute>this.mAttributeReference.value;
+        const lAttribute: PwbTemplateAttribute = this.mAttributeReference.value;
         const lSlotName: string = lAttribute.name.substring(1);
 
         // Create slot xml element.
-        const lSlotXmlElement: XmlElement = new XmlElement();
-        lSlotXmlElement.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+        const lSlotXmlElement: PwbTemplateXmlNode = new PwbTemplateXmlNode();
         lSlotXmlElement.tagName = 'slot';
 
         // Create slot html element.

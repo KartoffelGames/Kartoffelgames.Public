@@ -1,4 +1,4 @@
-import { XmlElement } from '@kartoffelgames/core.xml';
+import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
 
 export class ElementCreator {
     /**
@@ -15,9 +15,8 @@ export class ElementCreator {
      * Ignores namespace information for custom elements.
      * @param pXmlElement - Xml content node.
      */
-    public static createElement(pXmlElement: XmlElement): Element {
-        const lNamespace: string | null = pXmlElement.namespace;
-        const lTagname: string = pXmlElement.qualifiedTagName;
+    public static createElement(pXmlElement: PwbTemplateXmlNode): Element {
+        const lTagname: string = pXmlElement.tagName;
 
         // On custom element
         if (lTagname.includes('-')) {
@@ -30,7 +29,7 @@ export class ElementCreator {
             }
         }
 
-        return document.createElementNS(lNamespace, lTagname);
+        return document.createElement(lTagname);
     }
 
     /**

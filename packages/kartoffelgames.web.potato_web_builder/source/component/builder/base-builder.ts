@@ -1,6 +1,7 @@
-import { BaseXmlNode } from '@kartoffelgames/core.xml';
+
 import { ComponentModules } from '../component-modules';
 import { Boundary, ContentManager } from '../content/content-manager';
+import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
 import { LayerValues } from '../values/layer-values';
 
 /**
@@ -10,8 +11,8 @@ export abstract class BaseBuilder {
     private readonly mComponentValues: LayerValues;
     private readonly mContentManager: ContentManager;
     private readonly mParentBuilder: BaseBuilder | null;
-    private readonly mShadowParent: BaseXmlNode;
-    private readonly mTemplate: BaseXmlNode;
+    private readonly mShadowParent: BasePwbTemplateNode;
+    private readonly mTemplate: BasePwbTemplateNode;
 
     /**
      * Content anchor for later appending build and initilised elements on this place.
@@ -30,7 +31,7 @@ export abstract class BaseBuilder {
     /**
      * Content template.
      */
-    public get template(): BaseXmlNode {
+    public get template(): BasePwbTemplateNode {
         return this.mTemplate;
     }
 
@@ -65,7 +66,7 @@ export abstract class BaseBuilder {
      * Shadow parent of all template elements.
      * Not actuall parent for 
      */
-    protected get shadowParent(): BaseXmlNode {
+    protected get shadowParent(): BasePwbTemplateNode {
         return this.mShadowParent;
     }
 
@@ -76,12 +77,12 @@ export abstract class BaseBuilder {
      * @param pParentLayerValues - New component values.
      * @param pManipulatorScope - If builder is inside an manipulator scope.
      */
-    public constructor(pTemplate: BaseXmlNode, pShadowParent: BaseXmlNode, pModules: ComponentModules, pParentLayerValues: LayerValues, pParentBuilder: BaseBuilder | null) {
+    public constructor(pTemplate: BasePwbTemplateNode, pShadowParent: BasePwbTemplateNode, pModules: ComponentModules, pParentLayerValues: LayerValues, pParentBuilder: BaseBuilder | null) {
         this.mShadowParent = pShadowParent;
         this.mParentBuilder = pParentBuilder;
 
         // Clone template and connect to shadow parent.
-        const lTemplateClone: BaseXmlNode = pTemplate.clone();
+        const lTemplateClone: BasePwbTemplateNode = pTemplate.clone();
         lTemplateClone.parent = this.shadowParent;
         this.mTemplate = pTemplate;
 

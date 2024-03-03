@@ -1,11 +1,11 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
-import { XmlElement } from '@kartoffelgames/core.xml';
 import { ChangeDetection } from '@kartoffelgames/web.change-detection';
 import { ErrorListener } from '@kartoffelgames/web.change-detection/library/source/change_detection/change-detection';
 import { ComponentConnection } from './component/component-connection';
 import { ComponentManager } from './component/component-manager';
 import { ElementCreator } from './component/content/element-creator';
+import { PwbTemplateXmlNode } from './component/template/nodes/pwb-template-xml-node';
 
 export class PwbApp {
     private static readonly mChangeDetectionToApp: WeakMap<ChangeDetection, PwbApp> = new WeakMap<ChangeDetection, PwbApp>();
@@ -54,8 +54,7 @@ export class PwbApp {
         PwbApp.mChangeDetectionToApp.set(this.mChangeDetection, this);
 
         // Create app wrapper template.
-        const lGenericDivTemplate: XmlElement = new XmlElement();
-        lGenericDivTemplate.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+        const lGenericDivTemplate: PwbTemplateXmlNode = new PwbTemplateXmlNode();
         lGenericDivTemplate.tagName = 'div';
 
         // Create app wrapper add name as data attribute.
@@ -122,9 +121,8 @@ export class PwbApp {
             throw new Exception('App content is sealed after it got append to the DOM', this);
         }
 
-        const lStyleTemplate: XmlElement = new XmlElement();
+        const lStyleTemplate: PwbTemplateXmlNode = new PwbTemplateXmlNode();
         lStyleTemplate.tagName = 'style';
-        lStyleTemplate.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
 
         const lStyleElement: Element = ElementCreator.createElement(lStyleTemplate);
         lStyleElement.innerHTML = pStyle;
@@ -221,8 +219,7 @@ export class PwbApp {
         this.mSplashScreenOptions = pSplashScreen;
 
         // Create app wrapper template.
-        const lGenericDivTemplate: XmlElement = new XmlElement();
-        lGenericDivTemplate.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+        const lGenericDivTemplate: PwbTemplateXmlNode = new PwbTemplateXmlNode();
         lGenericDivTemplate.tagName = 'div';
 
         // Create content wrapper.
@@ -253,8 +250,7 @@ export class PwbApp {
         const lSelector: string = <string>Metadata.get(pContentClass).getMetadata(ComponentManager.METADATA_SELECTOR);
 
         // Create content template content is always inside xhtml namespace.
-        const lContentTemplate: XmlElement = new XmlElement();
-        lContentTemplate.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+        const lContentTemplate: PwbTemplateXmlNode = new PwbTemplateXmlNode();
         lContentTemplate.tagName = lSelector;
 
         // Create content from template inside change detection.

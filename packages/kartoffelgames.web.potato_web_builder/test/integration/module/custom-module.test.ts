@@ -1,12 +1,12 @@
-import { XmlElement } from '@kartoffelgames/core.xml';
 import { expect } from 'chai';
-import { LayerValues } from '../../../source/component/values/layer-values';
 import { PwbComponent } from '../../../source/component/decorator/pwb-component.decorator';
+import { PwbTemplateXmlNode } from '../../../source/component/template/nodes/pwb-template-xml-node';
+import { LayerValues } from '../../../source/component/values/layer-values';
+import { ModuleLayerValuesReference } from '../../../source/injection_reference/module-layer-values-reference';
 import { PwbMultiplicatorAttributeModule } from '../../../source/module/decorator/pwb-multiplicator-attribute-module.decorator';
 import { PwbStaticAttributeModule } from '../../../source/module/decorator/pwb-static-attribute-module.decorator';
 import { ModuleAccessType } from '../../../source/module/enum/module-access-type';
 import { IPwbMultiplicatorModuleOnUpdate } from '../../../source/module/interface/module';
-import { ModuleLayerValuesReference } from '../../../source/injection_reference/module-layer-values-reference';
 import { MultiplicatorResult } from '../../../source/module/result/multiplicator-result';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
@@ -29,8 +29,8 @@ describe('Custom Module', () => {
             public onUpdate(): MultiplicatorResult {
                 // If in any way the execution result is true, add template to result.
                 const lModuleResult: MultiplicatorResult = new MultiplicatorResult();
-                lModuleResult.addElement(new XmlElement(), this.mValueHandler);
-                lModuleResult.addElement(new XmlElement(), this.mValueHandler);
+                lModuleResult.addElement(new PwbTemplateXmlNode(), this.mValueHandler);
+                lModuleResult.addElement(new PwbTemplateXmlNode(), this.mValueHandler);
 
                 return lModuleResult;
             }

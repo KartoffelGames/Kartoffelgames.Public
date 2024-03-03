@@ -1,4 +1,3 @@
-import { TextNode, XmlAttribute, XmlElement } from '@kartoffelgames/core.xml';
 import { ExpressionModule } from '../module/expression-module';
 import { MultiplicatorModule } from '../module/multiplicator-module';
 import { StaticModule } from '../module/static-module';
@@ -17,6 +16,8 @@ import '../default/pwb_if/if-manipulator-attribute-module';
 import '../default/one_way_binding/one-way-binding-attribute-module';
 import '../default/slot_attribute/slot-attribute-module';
 import '../default/two_way_binding/two-way-binding-attribute-module';
+import { PwbTemplateAttribute, PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
+import { PwbTemplateTextNode } from './template/nodes/pwb-template-text-node';
 
 export class ComponentModules {
     private readonly mComponentManager: ComponentManager;
@@ -38,13 +39,13 @@ export class ComponentModules {
      * @param pTemplate - Template element.
      * @param pValues - Values of current layer.
      */
-    public getElementMultiplicatorModule(pTemplate: XmlElement, pValues: LayerValues): MultiplicatorModule | undefined {
+    public getElementMultiplicatorModule(pTemplate: PwbTemplateXmlNode, pValues: LayerValues): MultiplicatorModule | undefined {
         // Find manipulator module inside attributes.
         for (const lDefinition of Modules.moduleDefinitions) {
             // Only manipulator modules.
             if (lDefinition.type === ModuleType.Manipulator) {
-                for (const lAttribute of pTemplate.attributeList) {
-                    if (lDefinition.selector.test(lAttribute.qualifiedName)) {
+                for (const lAttribute of pTemplate.attributes) {
+                    if (lDefinition.selector.test(lAttribute.name)) {
                         // Get constructor and create new module.
                         const lModule: MultiplicatorModule = new MultiplicatorModule({
                             moduleDefinition: lDefinition,
@@ -72,16 +73,16 @@ export class ComponentModules {
      * @param pElement - Build template.
      * @param pValues - Layer values.
      */
-    public getElementStaticModules(pTemplate: XmlElement, pElement: Element, pValues: LayerValues): Array<ExpressionModule | StaticModule> {
+    public getElementStaticModules(pTemplate: PwbTemplateXmlNode, pElement: Element, pValues: LayerValues): Array<ExpressionModule | StaticModule> {
         const lModules: Array<ExpressionModule | StaticModule> = new Array<ExpressionModule | StaticModule>();
 
         // Find static modules inside attributes.
-        for (const lAttribute of pTemplate.attributeList) {
+        for (const lAttribute of pTemplate.attributes) {
             let lModuleFound: boolean = false;
 
             // Find static modules.
             for (const lDefinition of Modules.moduleDefinitions) {
-                if (lDefinition.type === ModuleType.Static && lDefinition.selector.test(lAttribute.qualifiedName)) {
+                if (lDefinition.type === ModuleType.Static && lDefinition.selector.test(lAttribute.name)) {
                     // Get constructor and create new module.
                     const lModule: StaticModule = new StaticModule({
                         moduleDefinition: lDefinition,
@@ -122,13 +123,13 @@ export class ComponentModules {
      * Check if template uses any manipulator modules.
      * @param pTemplate - Key list for possible multiplicator modules.
      */
-    public getMultiplicatorAttribute(pTemplate: XmlElement): XmlAttribute | undefined {
+    public getMultiplicatorAttribute(pTemplate: PwbTemplateXmlNode): PwbTemplateAttribute | undefined {
         // Find manipulator module inside attributes.
         for (const lDefinition of Modules.moduleDefinitions) {
             // Only manipulator modules.
             if (lDefinition.type === ModuleType.Manipulator) {
-                for (const lAttribute of pTemplate.attributeList) {
-                    if (lDefinition.selector.test(lAttribute.qualifiedName)) {
+                for (const lAttribute of pTemplate.attributes) {
+                    if (lDefinition.selector.test(lAttribute.name)) {
                         return lAttribute;
                     }
                 }
@@ -144,7 +145,7 @@ export class ComponentModules {
      * @param pTextNode - Build text node.
      * @param pValues - Values of current layer.
      */
-    public getTextExpressionModule(pTemplate: TextNode, pTextNode: Text, pValues: LayerValues): ExpressionModule {
+    public getTextExpressionModule(pTemplate: PwbTemplateTextNode, pTextNode: Text, pValues: LayerValues): ExpressionModule {
         const lModule: ExpressionModule = new ExpressionModule({
             moduleDefinition: <ModuleDefinition>Modules.getModuleDefinition(this.mExpressionModule),
             moduleClass: this.mExpressionModule,

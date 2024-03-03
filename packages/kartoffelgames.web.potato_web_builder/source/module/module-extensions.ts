@@ -1,5 +1,4 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { BaseXmlNode, XmlAttribute } from '@kartoffelgames/core.xml';
 import { ComponentManager } from '../component/component-manager';
 import { LayerValues } from '../component/values/layer-values';
 import { ModuleExtension } from '../extension/module-extension';
@@ -8,6 +7,8 @@ import { Extensions } from '../extension/extensions';
 // Import default extensions.
 import '../default/event-listener/event-listener-module-extension';
 import '../default/pwb_app_injection/pwb-app-injection-extension';
+import { PwbTemplateAttribute } from '../component/template/nodes/pwb-template-xml-node';
+import { BasePwbTemplateNode } from '../component/template/nodes/base-pwb-template-node';
 
 export class ModuleExtensions {
     private readonly mExtensionList: Array<ModuleExtension>;
@@ -81,8 +82,8 @@ type ModuleExtensionsExecutePatcherExtensionsParameter = {
     componentManager: ComponentManager,
     targetClass: InjectionConstructor,
     targetObject: object,
-    template: BaseXmlNode,
-    attribute: XmlAttribute | null, // Null for native text expressions.
+    template: BasePwbTemplateNode,
+    attribute: PwbTemplateAttribute | null, // Null for native text expressions.
     layerValues: LayerValues,
     element: Node | null; // Null for multiplicator modules
 };
@@ -90,8 +91,8 @@ type ModuleExtensionsExecutePatcherExtensionsParameter = {
 type ModuleExtensionsExecuteInjectorExtensionsParameter = {
     componentManager: ComponentManager,
     targetClass: InjectionConstructor,
-    template: BaseXmlNode,
-    attribute: XmlAttribute | null, // Null for native text expressions.
+    template: BasePwbTemplateNode,
+    attribute: PwbTemplateAttribute | null, // Null for native text expressions.
     layerValues: LayerValues,
     element: Node | null; // Null for multiplicator modules
 };

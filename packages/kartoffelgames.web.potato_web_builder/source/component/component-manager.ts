@@ -1,5 +1,4 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { XmlDocument, XmlElement } from '@kartoffelgames/core.xml';
 import { ComponentElementReference } from '../injection_reference/component-element-reference';
 import { ComponentUpdateReference } from '../injection_reference/component-update-reference';
 import { IPwbExpressionModuleClass } from '../module/interface/module';
@@ -13,8 +12,10 @@ import { ElementHandler } from './handler/element-handler';
 import { UpdateHandler } from './handler/update-handler';
 import { UserObjectHandler } from './handler/user-object-handler';
 import { UserClass } from './interface/user-class';
+import { PwbTemplate } from './template/nodes/pwb-template';
 import { TemplateParser } from './template/template-parser';
 import { LayerValues } from './values/layer-values';
+import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 
 /**
  * Base component handler. Handles initialisation and update of components.
@@ -22,7 +23,7 @@ import { LayerValues } from './values/layer-values';
 export class ComponentManager {
     public static readonly METADATA_SELECTOR: string = 'pwb:selector';
 
-    private static readonly mComponentCache: Dictionary<UserClass, XmlDocument> = new Dictionary<UserClass, XmlDocument>();
+    private static readonly mComponentCache: Dictionary<UserClass, PwbTemplate> = new Dictionary<UserClass, PwbTemplate>();
     private static readonly mXmlParser: TemplateParser = new TemplateParser();
 
     private readonly mElementHandler: ElementHandler;
@@ -69,7 +70,7 @@ export class ComponentManager {
      */
     public constructor(pUserClass: UserClass, pTemplateString: string | null, pExpressionModule: IPwbExpressionModuleClass, pHtmlComponent: HTMLElement, pUpdateScope: UpdateScope) {
         // Load cached or create new module handler and template.
-        let lTemplate: XmlDocument | undefined = ComponentManager.mComponentCache.get(pUserClass);
+        let lTemplate: PwbTemplate | undefined = ComponentManager.mComponentCache.get(pUserClass);
         if (!lTemplate) {
             lTemplate = ComponentManager.mXmlParser.parse(pTemplateString ?? '');
             ComponentManager.mComponentCache.set(pUserClass, lTemplate);
@@ -145,9 +146,8 @@ export class ComponentManager {
      * @param pStyle - Css style as string.
      */
     public addStyle(pStyle: string): void {
-        const lStyleTemplate: XmlElement = new XmlElement();
+        const lStyleTemplate: PwbTemplateXmlNode = new PwbTemplateXmlNode();
         lStyleTemplate.tagName = 'style';
-        lStyleTemplate.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
 
         const lStyleElement: Element = ElementCreator.createElement(lStyleTemplate);
         lStyleElement.innerHTML = pStyle;

@@ -1,6 +1,4 @@
 import { PwbTemplate } from './pwb-template';
-import { PwbTemplateInstructionNode } from './pwb-template-instruction-node';
-import { PwbTemplateXmlNode } from './pwb-template-xml-node';
 
 /**
  * Basic node.
@@ -17,10 +15,8 @@ export abstract class BasePwbTemplateNode {
         // If child has already parent.
         if (this.mParent !== null && pParent !== this.mParent) {
             // Remove child from parent based of type.
-            switch (true) {
-                case this.mParent instanceof PwbTemplate: this.mParent.removeChild(this); break;
-                case this.mParent instanceof PwbTemplateXmlNode: this.mParent.removeChild(this); break;
-                case this.mParent instanceof PwbTemplateInstructionNode: this.mParent.removeChild(this); break;
+            if ('removeChild' in this.mParent && typeof this.mParent.removeChild === 'function') {
+                this.mParent.removeChild(this);
             }
         }
 

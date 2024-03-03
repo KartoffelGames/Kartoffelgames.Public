@@ -785,6 +785,30 @@ describe('CodeParser', () => {
                 lException.with.property('lineEnd', 1);
             });
 
+            it('-- Error positions with no parse data.', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                lParser.defineGraphPart('PartName',
+                    lParser.graph().single(TokenType.Modifier),
+                    () => {
+                        return {};
+                    }
+                );
+                lParser.setRootGraphPart('PartName');
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('');
+                };
+
+                // Evaluation.
+                const lException = expect(lErrorFunction).to.throws(ParserException);
+                lException.with.property('columnStart', 1);
+                lException.with.property('columnEnd', 1);
+                lException.with.property('lineStart', 1);
+                lException.with.property('lineEnd', 1);
+            });
+
             it('-- Multi error after line break.', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());

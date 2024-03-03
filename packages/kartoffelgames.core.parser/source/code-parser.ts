@@ -121,7 +121,14 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             // Find error with the latest error position.
             let lErrorPosition: GraphParseError<TTokenType> | null = null;
             for (const lError of lRootParseData) {
-                if (!lErrorPosition || lError.errorToken.lineNumber > lErrorPosition.errorToken.lineNumber || lError.errorToken.lineNumber === lErrorPosition.errorToken.lineNumber && lError.errorToken.columnNumber > lErrorPosition.errorToken.columnNumber) {
+                // No previous token.
+                if (!lErrorPosition?.errorToken) {
+                    lErrorPosition = lError;
+                    continue;
+                } 
+                
+                // Error token exists and is at least position.
+                if (lError.errorToken && (lError.errorToken.lineNumber > lErrorPosition.errorToken.lineNumber || lError.errorToken.lineNumber === lErrorPosition.errorToken.lineNumber && lError.errorToken.columnNumber > lErrorPosition.errorToken.columnNumber)) {
                     lErrorPosition = lError;
                 }
             }
@@ -441,7 +448,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 return {
                     errorList: [{
                         message: `Unexpected end of statement. TokenIndex: "${pCurrentTokenIndex}" missing.`,
-                        errorToken: pTokenList.at(-1)!
+                        errorToken: pTokenList.at(-1)
                     }]
                 };
             }
@@ -541,7 +548,7 @@ type GraphNodeValueParseResult = {
 
 type GraphParseError<TTokenType extends string> = {
     message: string;
-    errorToken: LexerToken<TTokenType>;
+    errorToken: LexerToken<TTokenType> | undefined;
 };
 
 type GraphNodeValueParseSuccess = {

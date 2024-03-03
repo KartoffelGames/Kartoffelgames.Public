@@ -447,7 +447,7 @@ describe('CodeParser', () => {
                 expect(lParsedData).has.property('data').and.deep.equals([]);
             });
 
-            it('-- Greater optional loops', () => {
+            it('-- Optional recursion loops', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lCodeText: string = 'const';
@@ -466,6 +466,52 @@ describe('CodeParser', () => {
 
                 expect(lParsedData).has.property('optional').and.equals('const');
             });
+
+            it('-- Empty data for loops', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = '';
+
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('LoopCode',
+                    lParser.graph().loop('loop', TokenType.Identifier),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('LoopCode');
+
+                // Process. Convert code.
+                const lParsedData: any = lParser.parse(lCodeText);
+
+                expect(lParsedData).has.property('loop').and.lengthOf(0);
+            });
+
+            it('-- Empty data for nested loops into single', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = '';
+
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('LoopCode',
+                    lParser.graph().loop('loop', TokenType.Identifier),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.defineGraphPart('LinearCode',
+                    lParser.graph().single('value', lParser.partReference('LoopCode')),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('LinearCode');
+
+                // Process. Convert code.
+                const lParsedData: any = lParser.parse(lCodeText);
+
+                expect(lParsedData).has.property('value').has.property('loop').and.lengthOf(0);
+            });
         });
 
         describe('-- Parse Graph Errors', () => {
@@ -482,7 +528,7 @@ describe('CodeParser', () => {
                 expect(lErrorFunction).to.throws(Exception, 'Parser has not root part set.');
             });
 
-            it('Single parse error.', () => {
+            it('-- Single parse error.', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lCodeText: string = 'const';

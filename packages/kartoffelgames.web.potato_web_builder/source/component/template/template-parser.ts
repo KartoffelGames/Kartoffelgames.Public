@@ -240,7 +240,7 @@ export class TemplateParser {
 
                 // Add each content to template.
                 lTemplate.appendChild(...pData.content);
- 
+
                 return lTemplate;
             }
         );

@@ -356,6 +356,18 @@ describe('XmlParser', () => {
             expect(lDocumentFirstRun.body).lengthOf(2);
             expect(lDocumentSecondRun.body).lengthOf(2);
         });
+
+        it('-- Without any content', () => {
+            // Setup. Specify values.
+            const lParser: XmlParser = new XmlParser();
+            const lXmlString: string = ``;
+
+            // Process.
+            const lDocument: XmlDocument = lParser.parse(lXmlString);
+
+            // Evaluation.
+            expect(lDocument.body).lengthOf(0);
+        });
     });
 
     describe('Functionality: Parser error', () => {

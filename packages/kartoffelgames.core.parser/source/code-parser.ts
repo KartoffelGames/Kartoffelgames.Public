@@ -125,8 +125,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 if (!lErrorPosition?.errorToken) {
                     lErrorPosition = lError;
                     continue;
-                } 
-                
+                }
+
                 // Error token exists and is at least position.
                 if (lError.errorToken && (lError.errorToken.lineNumber > lErrorPosition.errorToken.lineNumber || lError.errorToken.lineNumber === lErrorPosition.errorToken.lineNumber && lError.errorToken.columnNumber > lErrorPosition.errorToken.columnNumber)) {
                     lErrorPosition = lError;
@@ -441,18 +441,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Read next token.
         const lCurrentToken: LexerToken<TTokenType> | undefined = pTokenList.at(pCurrentTokenIndex);
 
-        // When no current token was found. Skip node value parsing.
-        if (!lCurrentToken) {
-            // Add empty data result, when the node was optional
-            if (pNode.required) {
-                return {
-                    errorList: [{
-                        message: `Unexpected end of statement. TokenIndex: "${pCurrentTokenIndex}" missing.`,
-                        errorToken: pTokenList.at(-1)
-                    }]
-                };
-            }
-
+        // When no current token was found. Skip node value parsing for optional nodes.
+        if (!lCurrentToken && !pNode.required) {
             return {
                 resultList: [{
                     data: undefined,
@@ -472,6 +462,16 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
             // Static token type of dynamic graph part.
             if (typeof lNodeValue === 'string') {
+                // When no current token was found. Skip node value parsing.
+                if (!lCurrentToken) {
+                    lErrorList.push({
+                        message: `Unexpected end of statement. TokenIndex: "${pCurrentTokenIndex}" missing.`,
+                        errorToken: pTokenList.at(-1)
+                    });
+
+                    continue;
+                }
+
                 // Push possible parser error when token type does not match node value.
                 if (lNodeValue !== lCurrentToken.type) {
                     lErrorList.push({

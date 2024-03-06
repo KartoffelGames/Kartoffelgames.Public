@@ -485,6 +485,8 @@ export class Lexer<TTokenType extends string> {
         return true;
     }
 
+
+    // TODO: Convert subtokenparts with full data until end token is reached.
     private * tokenizePart(pCursor: LexerCursor, pAvailablePatterns: Array<LexerPatternDefinition<TTokenType>>, pParentMetas: Array<string>, pForcedType: TTokenType | null): Generator<LexerToken<TTokenType>> {
         // Create ordered token type list by specification.
         const lTokenPatternList: Array<LexerPatternDefinition<TTokenType>> = pAvailablePatterns.sort((pA: LexerPatternDefinition<TTokenType>, pB: LexerPatternDefinition<TTokenType>) => {

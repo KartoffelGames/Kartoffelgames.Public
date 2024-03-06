@@ -44,14 +44,63 @@ export class TemplateParser {
         lLexer.validWhitespaces = ' \n';
         lLexer.trimWhitespace = true;
 
+        const lTokenSpecificityOrder: Array<string> = new Array<string>();
+        lTokenSpecificityOrder.push(
+            // Stack xml templates.
+            'XmlComment',
+            'XmlOpeningBracket',
+            'XmlClosingBracket',
+            'XmlExplicitValue',
+
+            // Stack expressions.
+            'Expression',
+
+            // Stack instruction.
+            'InstructionStart',
+            'InstructionInstruction',
+            'InstructionBody',
+
+            // Anything else is a xml value.
+            'XmlValue'
+        );
+
+        // Expressions
+        lLexer.addTokenTemplate('ExpressionValue', { pattern: { regex: /(?:(?!}}).)*/, type: PwbTemplateToken.ExpressionValue } });
+        lLexer.addTokenTemplate('Expression', {
+            pattern: {
+                start: {
+                    regex: /{{/,
+                    type: PwbTemplateToken.ExpressionStart
+                },
+                end: {
+                    regex: /}}/,
+                    type: PwbTemplateToken.ExpressionEnd
+                }
+            }
+        }, () => {
+            lLexer.useTokenTemplate('ExpressionValue', 1);
+        });
+
         // Xml token
         lLexer.addTokenTemplate('XmlIdentifier', { pattern: { regex: /[^<>\s\n/:="]+/, type: PwbTemplateToken.XmlIdentifier } });
-        lLexer.addTokenTemplate('XmlExplicitValue', { pattern: { regex: /"[^"]*"/, type: PwbTemplateToken.XmlValue } });
-        lLexer.addTokenTemplate('XmlValue', { pattern: { regex: /[^<>"]+/, type: PwbTemplateToken.XmlValue } });
+        lLexer.addTokenTemplate('XmlValue', { pattern: { regex: /(?:(?!{{|}}|<|>|").)*/, type: PwbTemplateToken.XmlValue } });
         lLexer.addTokenTemplate('XmlComment', { pattern: { regex: /<!--.*?-->/, type: PwbTemplateToken.XmlComment } });
         lLexer.addTokenTemplate('XmlAssignment', { pattern: { regex: /=/, type: PwbTemplateToken.XmlAssignment } });
-
-        // Xml element Brackets.
+        lLexer.addTokenTemplate('XmlExplicitValue', {
+            pattern: {
+                start: {
+                    regex: /"/,
+                    type: PwbTemplateToken.XmlValue
+                },
+                end: {
+                    regex: /"/,
+                    type: PwbTemplateToken.XmlValue
+                }
+            }
+        }, () => {
+            lLexer.useTokenTemplate('Expression', 1);
+            lLexer.useTokenTemplate('XmlValue', 2);
+        });
         lLexer.addTokenTemplate('XmlOpeningBracket', {
             pattern: {
                 start: {
@@ -86,12 +135,9 @@ export class TemplateParser {
             lLexer.useTokenTemplate('XmlExplicitValue', 1);
         });
 
-
         // Instruction token
         lLexer.addTokenTemplate('InstructionStart', { pattern: { regex: /@[^()\s\n/:="{}[\]]+/, type: PwbTemplateToken.InstructionStart } });
         lLexer.addTokenTemplate('InstructionInstructionValue', { pattern: { regex: /[^()]+/, type: PwbTemplateToken.InstructionInstructionValue } });
-        lLexer.addTokenTemplate('InstructionBodyStartBraket', { pattern: { regex: /{/, type: PwbTemplateToken.InstructionBodyStartBraket } });
-        lLexer.addTokenTemplate('InstructionBodyCloseBraket', { pattern: { regex: /}/, type: PwbTemplateToken.InstructionBodyCloseBraket } });
         lLexer.addTokenTemplate('InstructionInstruction', {
             pattern: {
                 start: {
@@ -106,18 +152,30 @@ export class TemplateParser {
         }, () => {
             lLexer.useTokenTemplate('InstructionInstructionValue', 1);
         });
+        lLexer.addTokenTemplate('InstructionBody', {
+            pattern: {
+                start: {
+                    regex: /{/,
+                    type: PwbTemplateToken.InstructionBodyStartBraket
+                },
+                end: {
+                    regex: /}/,
+                    type: PwbTemplateToken.InstructionBodyCloseBraket
+                }
+            }
+        }, () => {
+            // Stack templates.
+            for (let lSpecificity: number = 0; lSpecificity < lTokenSpecificityOrder.length; lSpecificity++) {
+                const lTokenTemplateName: string = lTokenSpecificityOrder[lSpecificity];
+                lLexer.useTokenTemplate(lTokenTemplateName, lSpecificity);
+            }
+        });
 
         // Stack templates.
-        lLexer.useTokenTemplate('XmlComment', 0);
-        lLexer.useTokenTemplate('XmlOpeningBracket', 1);
-        lLexer.useTokenTemplate('XmlClosingBracket', 2);
-        lLexer.useTokenTemplate('XmlExplicitValue', 3);
-        lLexer.useTokenTemplate('XmlValue', 4);
-
-        lLexer.useTokenTemplate('InstructionStart', 5);
-        lLexer.useTokenTemplate('InstructionInstruction', 6);
-        lLexer.useTokenTemplate('InstructionBodyStartBraket', 7);
-        lLexer.useTokenTemplate('InstructionBodyCloseBraket', 8);
+        for (let lSpecificity: number = 0; lSpecificity < lTokenSpecificityOrder.length; lSpecificity++) {
+            const lTokenTemplateName: string = lTokenSpecificityOrder[lSpecificity];
+            lLexer.useTokenTemplate(lTokenTemplateName, lSpecificity);
+        }
 
         return lLexer;
     }
@@ -318,6 +376,10 @@ enum PwbTemplateToken {
     XmlCloseBracket = 'XmlCloseBracket',
     XmlOpenBracket = 'XmlOpenBracket',
     XmlCloseClosingBracket = 'XmlCloseClosingBracket',
+
+    ExpressionStart = 'ExpressionStart',
+    ExpressionEnd = 'ExpressionEnd',
+    ExpressionValue = 'ExpressionValue',
 
     InstructionStart = 'InstructionStart',
     InstructionInstructionValue = 'InstructionInstructionValue',

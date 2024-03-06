@@ -571,7 +571,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).to.throws(Exception, `Tokens could not be parsed. Graph end meet without reaching last token "identifier"`);
+                expect(lErrorFunction).to.throws(Exception, `Tokens could not be parsed. Graph end meet without reaching last token. Current: "identifier" (${TokenType.Identifier})`);
             });
 
             it('-- Dublicate branching paths', () => {
@@ -662,7 +662,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).to.throws(Exception, `Tokens could not be parsed. Graph end meet without reaching last token "Notconst"`);
+                expect(lErrorFunction).to.throws(Exception, `Tokens could not be parsed. Graph end meet without reaching last token. Current: "Notconst" (${TokenType.Identifier})`);
             });
         });
 

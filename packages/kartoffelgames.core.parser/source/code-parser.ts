@@ -141,10 +141,10 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         if (lRootParseData.tokenIndex < (lTokenList.length - 1)) {
             // Find current token. 
             const lLastToken: LexerToken<TTokenType> = lTokenList.at(-1)!;
-            // Token index can be less than zero when it fails on the first token.
-            const lCurrentToken: LexerToken<TTokenType> = (lRootParseData.tokenIndex < 0) ? lTokenList[0] : lTokenList[lRootParseData.tokenIndex]!;
+            // Token index can be less than zero when it fails on the first token. // It allways has a next index when not all token are used.
+            const lNextToken: LexerToken<TTokenType> = (lRootParseData.tokenIndex < 0) ? lTokenList[0] : lTokenList[lRootParseData.tokenIndex + 1]!; 
 
-            throw ParserException.fromToken(`Tokens could not be parsed. Graph end meet without reaching last token. Current: "${lCurrentToken.value}" (${lCurrentToken.type})`, this, lCurrentToken, lLastToken);
+            throw ParserException.fromToken(`Tokens could not be parsed. Graph end meet without reaching last token. Current: "${lNextToken.value}" (${lNextToken.type})`, this, lNextToken, lLastToken);
         }
 
         return <TParseResult>lRootParseData.data;

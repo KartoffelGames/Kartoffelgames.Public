@@ -232,7 +232,7 @@ export class Lexer<TTokenType extends string> {
             error: null
         };
 
-        yield* this.tokenizePart(lCursor, this.mTokenPatterns, new Array<string>(), null, null);
+        yield* this.tokenizeRecursionLayer(lCursor, this.mTokenPatterns, new Array<string>(), null, null);
     }
 
     /**
@@ -529,10 +529,21 @@ export class Lexer<TTokenType extends string> {
         return true;
     }
 
-
-
-    // TODO: Convert subtokenparts with full data until end token is reached.
-    private * tokenizePart(pCursor: LexerCursor, pAvailablePatterns: Array<LexerPatternDefinition<TTokenType>>, pParentMetas: Array<string>, pForcedType: TTokenType | null, pEndToken: LexerPatternDefinition<TTokenType> | null): Generator<LexerToken<TTokenType>> {
+    /**
+     * Tokenize data present in {@link pCursor}.
+     * Generation ends when all data is tokenized or the {@link pEndToken} has matched.
+     * 
+     * When an error token type is specified it skips all data that is not tokenizable and yield an error token instead.
+     * 
+     * @param pCursor - Current lexer token.
+     * @param pAvailablePatterns - All available token pattern for this recursion scope. It does not contains merged patter lists from previous recursions.
+     * @param pParentMetas  - Metas from current recursion scope.
+     * @param pForcedType - Forced token type. Overrides all types specified in all token pattern.
+     * @param pEndToken - Token that ends current recursion. When it is null, no token can end this recursion.
+     * 
+     * @returns Generator, generating all token till it reaches end of data.
+     */
+    private * tokenizeRecursionLayer(pCursor: LexerCursor, pAvailablePatterns: Array<LexerPatternDefinition<TTokenType>>, pParentMetas: Array<string>, pForcedType: TTokenType | null, pEndToken: LexerPatternDefinition<TTokenType> | null): Generator<LexerToken<TTokenType>> {
         // Create ordered token type list by specification.
         const lTokenPatternList: Array<LexerPatternDefinition<TTokenType>> = pAvailablePatterns.sort((pA: LexerPatternDefinition<TTokenType>, pB: LexerPatternDefinition<TTokenType>) => {
             // Sort lower specification at a lower index than higher specifications.
@@ -594,7 +605,7 @@ export class Lexer<TTokenType extends string> {
                 }
 
                 // Yield every inner pattern token.
-                yield* this.tokenizePart(pCursor, lTokenPattern.innerPattern, [...pParentMetas, ...lTokenPattern.meta], pForcedType ?? lTokenPattern.pattern.innerType, lTokenPattern);
+                yield* this.tokenizeRecursionLayer(pCursor, lTokenPattern.innerPattern, [...pParentMetas, ...lTokenPattern.meta], pForcedType ?? lTokenPattern.pattern.innerType, lTokenPattern);
 
                 // Continue next token.
                 continue remainingDataLoop;

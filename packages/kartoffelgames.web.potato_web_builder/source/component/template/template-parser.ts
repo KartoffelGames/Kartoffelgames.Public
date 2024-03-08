@@ -64,6 +64,14 @@ export class TemplateParser {
             'XmlValue'
         );
 
+        // Apply token stack to current context.
+        const lApplyTokenStack = () => {
+            for (let lSpecificity: number = 0; lSpecificity < lTokenSpecificityOrder.length; lSpecificity++) {
+                const lTokenTemplateName: string = lTokenSpecificityOrder[lSpecificity];
+                lLexer.useTokenTemplate(lTokenTemplateName, lSpecificity);
+            }
+        };
+
         // Expressions
         lLexer.addTokenTemplate('ExpressionValue', { pattern: { regex: /(?:(?!}}).)*/, type: PwbTemplateToken.ExpressionValue } });
         lLexer.addTokenTemplate('Expression', {
@@ -164,18 +172,11 @@ export class TemplateParser {
                 }
             }
         }, () => {
-            // Stack templates.
-            for (let lSpecificity: number = 0; lSpecificity < lTokenSpecificityOrder.length; lSpecificity++) {
-                const lTokenTemplateName: string = lTokenSpecificityOrder[lSpecificity];
-                lLexer.useTokenTemplate(lTokenTemplateName, lSpecificity);
-            }
+            lApplyTokenStack();
         });
 
         // Stack templates.
-        for (let lSpecificity: number = 0; lSpecificity < lTokenSpecificityOrder.length; lSpecificity++) {
-            const lTokenTemplateName: string = lTokenSpecificityOrder[lSpecificity];
-            lLexer.useTokenTemplate(lTokenTemplateName, lSpecificity);
-        }
+        lApplyTokenStack();
 
         return lLexer;
     }

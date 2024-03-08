@@ -124,7 +124,7 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
      * Returns null if attribute does not exist.
      * @param pKey - Name of attribute.
      */
-    public getAttribute(pKey: string): string | undefined {
+    public getAttribute(pKey: string): PwbTemplateAttribute['value'] | undefined {
         return this.mAttributeDictionary.get(pKey)?.value;
     }
 
@@ -166,7 +166,7 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
      * @param pKey - Key of attribute.
      * @param pValue - Name of attribute.
      */
-    public setAttribute(pKey: string, pValue: string): void {
+    public setAttribute(pKey: string, pValue: PwbTemplateAttribute['value']): void {
         // Init complete attribute when it does not exists.
         if (!this.mAttributeDictionary.has(pKey)) {
             this.mAttributeDictionary.set(pKey, { name: pKey, value: pValue });

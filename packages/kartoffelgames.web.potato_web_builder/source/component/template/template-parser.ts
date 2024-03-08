@@ -48,8 +48,8 @@ export class TemplateParser {
         lTokenSpecificityOrder.push(
             // Stack xml templates.
             'XmlComment',
-            'XmlOpeningBracket',
             'XmlClosingBracket',
+            'XmlOpeningBracket',
             'XmlExplicitValue',
 
             // Stack expressions.
@@ -144,7 +144,7 @@ export class TemplateParser {
         });
 
         // Instruction token
-        lLexer.addTokenTemplate('InstructionStart', { pattern: { regex: /@[^()\s\n/:="{}[\]]+/, type: PwbTemplateToken.InstructionStart } });
+        lLexer.addTokenTemplate('InstructionStart', { pattern: { regex: /\$[^()\s\n/:="{}[\]]+/, type: PwbTemplateToken.InstructionStart } });
         lLexer.addTokenTemplate('InstructionInstructionValue', { pattern: { regex: /[^()]+/, type: PwbTemplateToken.InstructionInstructionValue } });
         lLexer.addTokenTemplate('InstructionInstruction', {
             pattern: {

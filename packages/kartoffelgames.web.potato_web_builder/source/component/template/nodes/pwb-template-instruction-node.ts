@@ -6,15 +6,15 @@ import { BasePwbTemplateNode } from './base-pwb-template-node';
  * 
  * Implied syntax for templates are:
  * ``` PwbTemplate
- * @Single(Instruction)
+ * $Single(Instruction)
  * 
- * @SingleWithoutInstruction
+ * $SingleWithoutInstruction
  * 
- * @Multi(Instruction) {
+ * $Multi(Instruction) {
  *  <MoreContent />
  * }
  * 
- * @MultiWithoutInstruction {
+ * $MultiWithoutInstruction {
  *  <MoreContent />
  * }
  * ```

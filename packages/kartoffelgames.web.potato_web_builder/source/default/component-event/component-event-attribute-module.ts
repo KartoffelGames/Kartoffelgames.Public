@@ -34,7 +34,7 @@ export class EventAttributeModule implements IPwbModuleOnDeconstruct {
             lExternalValues.add('$event', pEvent);
 
             // Execute string with external event value.
-            ComponentScopeExecutor.execute(pAttributeReference.value.value, pValueReference.value, lExternalValues);
+            ComponentScopeExecutor.execute(pAttributeReference.value.values, pValueReference.value, lExternalValues);
         };
 
         // Add native event listener.

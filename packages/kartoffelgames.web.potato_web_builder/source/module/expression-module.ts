@@ -26,7 +26,7 @@ export class ExpressionModule extends BaseModule<boolean, string> {
         // Get value from attribute or use target textnode.
         let lTargetValue: string;
         if ('targetAttribute' in pParameter) {
-            lTargetValue = pParameter.targetAttribute.value;
+            lTargetValue = pParameter.targetAttribute.values;
         } else {
             lTargetValue = pParameter.targetTemplate.text;
         }

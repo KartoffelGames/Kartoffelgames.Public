@@ -67,7 +67,7 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
         for (const lAttribute of this.attributes) {
             lClonedNode.setAttribute(
                 lAttribute.name,
-                lAttribute.value
+                lAttribute.values
             );
         }
 
@@ -99,7 +99,7 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
             // This checks also for wrong namespace prefix by checking for qualified attribute name.
             const lAttributeTwo: PwbTemplateAttribute | undefined = this.mAttributeDictionary.get(lAttribute.name);
 
-            if (!lAttributeTwo || lAttributeTwo.value !== lAttribute.value) {
+            if (!lAttributeTwo || lAttributeTwo.values !== lAttribute.values) {
                 return false;
             }
         }
@@ -124,8 +124,8 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
      * Returns null if attribute does not exist.
      * @param pKey - Name of attribute.
      */
-    public getAttribute(pKey: string): PwbTemplateAttribute['value'] | undefined {
-        return this.mAttributeDictionary.get(pKey)?.value;
+    public getAttribute(pKey: string): PwbTemplateAttribute['values'] | undefined {
+        return this.mAttributeDictionary.get(pKey)?.values;
     }
 
     /**
@@ -166,12 +166,12 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
      * @param pKey - Key of attribute.
      * @param pValue - Name of attribute.
      */
-    public setAttribute(pKey: string, pValue: PwbTemplateAttribute['value']): void {
+    public setAttribute(pKey: string, pValue: PwbTemplateAttribute['values']): void {
         // Init complete attribute when it does not exists.
         if (!this.mAttributeDictionary.has(pKey)) {
-            this.mAttributeDictionary.set(pKey, { name: pKey, value: pValue });
+            this.mAttributeDictionary.set(pKey, { name: pKey, values: pValue });
         } else {
-            this.mAttributeDictionary.get(pKey)!.value = pValue;
+            this.mAttributeDictionary.get(pKey)!.values = pValue;
         }
     }
 }
@@ -179,5 +179,5 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
 
 export type PwbTemplateAttribute = {
     name: string;
-    value: string;
+    values: string;
 }; 

@@ -16,7 +16,7 @@ export class StaticModule extends BaseModule<boolean, boolean> {
 
         // Create module object with attribute value. Attribute is always set for static modules.
         const lAttribute: PwbTemplateAttribute = this.attribute!;
-        this.mModuleObject = this.createModuleObject(lAttribute.value);
+        this.mModuleObject = this.createModuleObject(lAttribute.values);
     }
 
     /**

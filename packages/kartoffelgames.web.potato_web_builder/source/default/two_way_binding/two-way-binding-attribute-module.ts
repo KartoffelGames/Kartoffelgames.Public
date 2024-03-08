@@ -38,7 +38,7 @@ export class TwoWayBindingAttributeModule implements IPwbStaticModuleOnUpdate {
         // Get property name.
         const lAttributeKey: string = this.mAttributeReference.value.name;
         this.mViewProperty = lAttributeKey.substr(2, lAttributeKey.length - 4);
-        this.mThisProperty = this.mAttributeReference.value.value;
+        this.mThisProperty = this.mAttributeReference.value.values;
 
         // Add comparison handler for this and for the target view value.
         this.mUserObjectCompareHandler = new CompareHandler(Symbol('Uncompareable'), 4);

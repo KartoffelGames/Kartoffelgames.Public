@@ -4,13 +4,14 @@ import { ExpressionModule } from '../../module/expression-module';
 import { StaticModule } from '../../module/static-module';
 import { ComponentModules } from '../component-modules';
 import { ElementCreator } from '../content/element-creator';
+import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
+import { PwbTemplate } from '../template/nodes/pwb-template';
+import { PwbTemplateExpressionNode } from '../template/nodes/pwb-template-expression-node';
+import { PwbTemplateTextNode } from '../template/nodes/pwb-template-text-node';
+import { PwbTemplateAttribute, PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
 import { LayerValues } from '../values/layer-values';
 import { BaseBuilder } from './base-builder';
 import { MultiplicatorBuilder } from './multiplicator-builder';
-import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
-import { PwbTemplateAttribute, PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
-import { PwbTemplateTextNode } from '../template/nodes/pwb-template-text-node';
-import { PwbTemplate } from '../template/nodes/pwb-template';
 
 export class StaticBuilder extends BaseBuilder {
     private mInitialized: boolean;
@@ -28,6 +29,27 @@ export class StaticBuilder extends BaseBuilder {
 
         // Not initialized on start.
         this.mInitialized = false;
+    }
+
+    /**
+     * Build expression template and append to parent.
+     * @param pExpressionTemplate - Expression template.
+     * @param pParentHtmlElement - Build parent element of template. 
+     */
+    public buildExpressionTemplate(pExpressionTemplate: PwbTemplateExpressionNode, pParentHtmlElement: Element | null): void {
+        // Create and process expression module, append text node to content.
+        const lHtmlNode: Text = ElementCreator.createText('');
+
+        // Create temporary text node. // TODO: Real please.
+        const lTemporaryTextNode: PwbTemplateTextNode = new PwbTemplateTextNode();
+        lTemporaryTextNode.text = `{{${pExpressionTemplate.value}}}`;
+
+        // Create and link expression module, link only if text has any expression.
+        const lExpressionModule: ExpressionModule = this.contentManager.modules.getTextExpressionModule(lTemporaryTextNode, lHtmlNode, this.values);
+        this.contentManager.linkModule(lExpressionModule, lHtmlNode);
+
+        // Append text to parent.
+        this.contentManager.append(lHtmlNode, pParentHtmlElement);
     }
 
     /**
@@ -169,6 +191,8 @@ export class StaticBuilder extends BaseBuilder {
                 this.buildTemplate(lTemplateNode.body, pParentElement, lTemplateNode);
             } else if (lTemplateNode instanceof PwbTemplateTextNode) {
                 this.buildTextTemplate(lTemplateNode, pParentElement);
+            } else if (lTemplateNode instanceof PwbTemplateExpressionNode) {
+                this.buildExpressionTemplate(lTemplateNode, pParentElement);
             } else if (lTemplateNode instanceof PwbTemplateXmlNode) {
                 // Differentiate between static and multiplicator templates.
                 const lMultiplicatorAttribute: PwbTemplateAttribute | undefined = this.contentManager.modules.getMultiplicatorAttribute(lTemplateNode);

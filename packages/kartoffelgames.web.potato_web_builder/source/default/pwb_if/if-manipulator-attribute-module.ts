@@ -40,7 +40,7 @@ export class IfManipulatorAttributeModule implements IPwbMultiplicatorModuleOnUp
      * @returns if element of module should be updated.
      */
     public onUpdate(): MultiplicatorResult | null {
-        const lExecutionResult: any = ComponentScopeExecutor.executeSilent(this.mAttributeReference.value.values, this.mValueHandler);
+        const lExecutionResult: any = ComponentScopeExecutor.executeSilent(this.mAttributeReference.value.asText, this.mValueHandler);
 
         if (this.mFirstCompare || !!lExecutionResult !== this.mLastBoolean) {
             this.mLastBoolean = !!lExecutionResult;

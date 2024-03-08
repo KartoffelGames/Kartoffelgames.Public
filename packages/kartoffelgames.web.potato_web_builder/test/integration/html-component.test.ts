@@ -18,7 +18,7 @@ describe('HtmlComponent', () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: '<div/>'
+            template: `<div/>`
         })
         class TestComponent { }
 

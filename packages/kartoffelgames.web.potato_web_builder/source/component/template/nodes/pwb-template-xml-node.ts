@@ -1,5 +1,6 @@
 import { Dictionary, List } from '@kartoffelgames/core.data';
 import { BasePwbTemplateNode } from './base-pwb-template-node';
+import { PwbTemplateExpressionNode } from './pwb-template-expression-node';
 
 /**
  * Pwb template xml node.
@@ -164,20 +165,40 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
     /**
      * Set and get Attribute of xml node. Creates new one if attribute does not exist.
      * @param pKey - Key of attribute.
-     * @param pValue - Name of attribute.
+     * @param pValues - Name of attribute.
      */
-    public setAttribute(pKey: string, pValue: PwbTemplateAttribute['values']): void {
-        // Init complete attribute when it does not exists.
-        if (!this.mAttributeDictionary.has(pKey)) {
-            this.mAttributeDictionary.set(pKey, { name: pKey, values: pValue });
-        } else {
-            this.mAttributeDictionary.get(pKey)!.values = pValue;
+    public setAttribute(pKey: string, pValues: PwbTemplateAttribute['values']): void {
+        let lValueAsString: string = '';
+
+        // Create raw string from values.
+        for (const lValue of pValues) {
+            if (lValue instanceof PwbTemplateExpressionNode) {
+                lValueAsString += `{{${lValue.value}}}`;
+            } else {
+                lValueAsString += lValue;
+            }
         }
+
+        let lAttribute: PwbTemplateAttribute | undefined = this.mAttributeDictionary.get(pKey);
+
+        // Init complete attribute when it does not exists.
+        if (!lAttribute) {
+            lAttribute = { name: '', values: [], asText: '' };
+        }
+
+        // Add updated information.
+        lAttribute.name = pKey;
+        lAttribute.values = pValues;
+        lAttribute.asText = lValueAsString;
+
+        // Set attribute values.
+        this.mAttributeDictionary.set(pKey, lAttribute);
     }
 }
 
 
 export type PwbTemplateAttribute = {
     name: string;
-    values: string;
+    values: Array<string | PwbTemplateExpressionNode>;
+    asText: string;
 }; 

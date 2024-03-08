@@ -46,7 +46,7 @@ export class ForOfManipulatorAttributeModule implements IPwbMultiplicatorModuleO
         const lRegexAttributeInformation: RegExp = new RegExp(/^\s*([a-zA-Z]+[a-zA-Z0-9]*)\s*of\s+([^;]+)\s*(;\s*([a-zA-Z]+[a-zA-Z0-9]*)\s*=\s*(.*)\s*)?$/);
 
         // If attribute value does match regex.
-        const lAttributeInformation: RegExpExecArray | null = lRegexAttributeInformation.exec(this.mAttributeReference.value.values);
+        const lAttributeInformation: RegExpExecArray | null = lRegexAttributeInformation.exec(this.mAttributeReference.value.asText);
         if (lAttributeInformation) {
 
             // Split match into useable parts.

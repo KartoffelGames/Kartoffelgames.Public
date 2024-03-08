@@ -21,7 +21,7 @@ export class MultiplicatorModule extends BaseModule<MultiplicatorResult | null, 
 
         // Attribute is always set for multiplicator modules.
         const lAttribute: PwbTemplateAttribute = this.attribute!;
-        this.mModuleObject = this.createModuleObject(lAttribute.values);
+        this.mModuleObject = this.createModuleObject(lAttribute.asText);
     }
 
     /**

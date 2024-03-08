@@ -1,6 +1,6 @@
 import { BasePwbTemplateNode } from './base-pwb-template-node';
 
-export class PwbTemplateExpression extends BasePwbTemplateNode {
+export class PwbTemplateExpressionNode extends BasePwbTemplateNode {
     public mExpression: string;
 
     /**
@@ -24,8 +24,8 @@ export class PwbTemplateExpression extends BasePwbTemplateNode {
     /**
      * Clone current node.
      */
-    public clone(): PwbTemplateExpression {
-        const lExpressionNodeClone: PwbTemplateExpression = new PwbTemplateExpression();
+    public clone(): PwbTemplateExpressionNode {
+        const lExpressionNodeClone: PwbTemplateExpressionNode = new PwbTemplateExpressionNode();
         lExpressionNodeClone.value = this.value;
 
         return lExpressionNodeClone;
@@ -35,7 +35,7 @@ export class PwbTemplateExpression extends BasePwbTemplateNode {
      * Compare current node with another one.
      * @param pBaseNode - Base xml node.
      */
-    public equals(pBaseNode: PwbTemplateExpression): boolean {
-        return pBaseNode instanceof PwbTemplateExpression && pBaseNode.value === this.value;
+    public equals(pBaseNode: PwbTemplateExpressionNode): boolean {
+        return pBaseNode instanceof PwbTemplateExpressionNode && pBaseNode.value === this.value;
     }
 } 

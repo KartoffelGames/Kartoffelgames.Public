@@ -4,7 +4,7 @@ import '../../../mock/request-animation-frame-mock-session';
 import '../../../utility/chai-helper';
 import { TestUtil } from '../../../utility/test-util';
 
-describe('PwbApp', () => {
+describe('StaticBuilder', () => {
     it('-- Multiple module update order', async () => {
         // Setup. Define component.
         @PwbComponent({

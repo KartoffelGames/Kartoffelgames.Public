@@ -257,13 +257,13 @@ describe('HtmlComponent', () => {
         expect(lInnerValueWasUpdated).to.be.true;
     });
 
-    it('-- custom expression module', async () => {
+    it('-- Custom expression module', async () => {
         // Setup.
         const lExpressionValue: string = 'EXPRESSION-VALUE';
 
         // Setup. Custom expression module.
         @PwbExpressionModule({
-            selector: /&&.*&&/
+            selector: /{{.*}}/
         })
         class TestExpressionModule implements IPwbExpressionModuleOnUpdate {
             public onUpdate(): string {
@@ -274,7 +274,7 @@ describe('HtmlComponent', () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: '<div>&&Anything&&</div>',
+            template: '<div>{{Anything}}</div>',
             expressionmodule: TestExpressionModule
         })
         class TestComponent { }

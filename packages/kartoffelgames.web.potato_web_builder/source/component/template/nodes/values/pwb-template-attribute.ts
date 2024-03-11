@@ -1,8 +1,8 @@
-import { BasePwbTemplateNode } from './base-pwb-template-node';
-import { PwbTemplateExpressionNode } from './pwb-template-expression-node';
-import { PwbTemplateTextNode } from './pwb-template-text-node';
+import { PwbTemplateTextNode } from '../pwb-template-text-node';
+import { BasePwbTemplateValue } from './base-pwb-template-value';
+import { PwbTemplateExpression } from './pwb-template-expression';
 
-export class PwbTemplateAttributeNode extends BasePwbTemplateNode {
+export class PwbTemplateAttributeNode extends BasePwbTemplateValue {
     private mName: string;
     private readonly mValue: PwbTemplateTextNode;
 
@@ -41,7 +41,7 @@ export class PwbTemplateAttributeNode extends BasePwbTemplateNode {
 
         // Deep clone attribute values.
         for (const lValue of this.values.values) {
-            const lClonedValue: string | PwbTemplateExpressionNode = (typeof lValue === 'string') ? lValue : lValue.clone();
+            const lClonedValue: string | PwbTemplateExpression = (typeof lValue === 'string') ? lValue : lValue.clone();
             lCloneNode.values.addValue(lClonedValue);
         }
 
@@ -52,7 +52,7 @@ export class PwbTemplateAttributeNode extends BasePwbTemplateNode {
      * Compare current node with another one.
      * @param pBaseNode - Base pwb template node.
      */
-    public override equals(pBaseNode: BasePwbTemplateNode): boolean {
+    public override equals(pBaseNode: BasePwbTemplateValue): boolean {
         // Check type and name.
         if (!(pBaseNode instanceof PwbTemplateAttributeNode) || pBaseNode.name !== this.name) {
             return false;
@@ -69,5 +69,5 @@ export class PwbTemplateAttributeNode extends BasePwbTemplateNode {
 
 export type PwbTemplateAttribute = {
     name: string;
-    values: Array<string | PwbTemplateExpressionNode>;
+    values: Array<string | PwbTemplateExpression>;
 }; 

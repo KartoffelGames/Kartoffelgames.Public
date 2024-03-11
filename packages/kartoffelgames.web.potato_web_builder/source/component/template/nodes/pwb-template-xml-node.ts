@@ -1,19 +1,21 @@
 import { Dictionary, List } from '@kartoffelgames/core.data';
 import { BasePwbTemplateNode } from './base-pwb-template-node';
-import { PwbTemplateExpressionNode } from './pwb-template-expression-node';
+import { PwbTemplateAttributeNode } from './values/pwb-template-attribute';
+import { PwbTemplateTextNode } from './pwb-template-text-node';
+import { PwbTemplateExpression } from './values/pwb-template-expression';
 
 /**
  * Pwb template xml node.
  */
 export class PwbTemplateXmlNode extends BasePwbTemplateNode {
-    private readonly mAttributeDictionary: Dictionary<string, PwbTemplateAttribute>;
+    private readonly mAttributeDictionary: Dictionary<string, PwbTemplateAttributeNode>;
     private readonly mChildList: Array<BasePwbTemplateNode>;
     private mTagName: string;
 
     /**
      * Get all attributes from xml node.
      */
-    public get attributes(): Array<PwbTemplateAttribute> {
+    public get attributes(): Array<PwbTemplateAttributeNode> {
         return List.newListWith(...this.mAttributeDictionary.values());
     }
 
@@ -38,7 +40,7 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
      */
     public constructor() {
         super();
-        this.mAttributeDictionary = new Dictionary<string, PwbTemplateAttribute>();
+        this.mAttributeDictionary = new Dictionary<string, PwbTemplateAttributeNode>();
         this.mChildList = Array<BasePwbTemplateNode>();
 
         this.mTagName = '';
@@ -66,10 +68,14 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
 
         // Add attributes.
         for (const lAttribute of this.attributes) {
-            lClonedNode.setAttribute(
-                lAttribute.name,
-                lAttribute.values
-            );
+            // Create attribute.
+            const lClonedAttribute: PwbTemplateTextNode = lClonedNode.setAttribute(lAttribute.name);
+
+            // Clone each value in new attribute.
+            for (const lValue of lAttribute.values.values) {
+                const lClonedValue: string | PwbTemplateExpression = (typeof lValue === 'string') ? lValue : lValue.clone();
+                lClonedAttribute.addValue(lClonedValue);
+            }
         }
 
         // Deep clone every node.
@@ -96,11 +102,11 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
         }
 
         // Check all attributes.
-        for (const lAttribute of pBaseNode.mAttributeDictionary.values()) {
+        for (const lAttributeOne of pBaseNode.mAttributeDictionary.values()) {
             // This checks also for wrong namespace prefix by checking for qualified attribute name.
-            const lAttributeTwo: PwbTemplateAttribute | undefined = this.mAttributeDictionary.get(lAttribute.name);
+            const lAttributeTwo: PwbTemplateAttributeNode | undefined = this.mAttributeDictionary.get(lAttributeOne.name);
 
-            if (!lAttributeTwo || lAttributeTwo.values !== lAttribute.values) {
+            if (!lAttributeTwo || lAttributeTwo.equals(lAttributeOne)) {
                 return false;
             }
         }
@@ -118,15 +124,6 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
         }
 
         return true;
-    }
-
-    /**
-     * Get attribute value of xml node.
-     * Returns null if attribute does not exist.
-     * @param pKey - Name of attribute.
-     */
-    public getAttribute(pKey: string): PwbTemplateAttribute['values'] | undefined {
-        return this.mAttributeDictionary.get(pKey)?.values;
     }
 
     /**
@@ -163,42 +160,23 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
     }
 
     /**
-     * Set and get Attribute of xml node. Creates new one if attribute does not exist.
-     * @param pKey - Key of attribute.
-     * @param pValues - Name of attribute.
+     * Get attribute value of xml node.
+     * Returns creates new attribute if it does not exist.
+     * @param pKey - Name of attribute.
      */
-    public setAttribute(pKey: string, pValues: PwbTemplateAttribute['values']): void {
-        let lValueAsString: string = '';
+    public setAttribute(pKey: string): PwbTemplateTextNode {
+        // Read potential attribte.
+        let lAttribute: PwbTemplateAttributeNode | undefined = this.mAttributeDictionary.get(pKey);
 
-        // Create raw string from values.
-        for (const lValue of pValues) {
-            if (lValue instanceof PwbTemplateExpressionNode) {
-                lValueAsString += `{{${lValue.value}}}`;
-            } else {
-                lValueAsString += lValue;
-            }
-        }
-
-        let lAttribute: PwbTemplateAttribute | undefined = this.mAttributeDictionary.get(pKey);
-
-        // Init complete attribute when it does not exists.
+        // Create and register new attribute when it does not exists.
         if (!lAttribute) {
-            lAttribute = { name: '', values: [], asText: '' };
+            lAttribute = new PwbTemplateAttributeNode();
+            lAttribute.name = pKey;
+            lAttribute.parent = this;
+
+            this.mAttributeDictionary.set(pKey, lAttribute);
         }
 
-        // Add updated information.
-        lAttribute.name = pKey;
-        lAttribute.values = pValues;
-        lAttribute.asText = lValueAsString;
-
-        // Set attribute values.
-        this.mAttributeDictionary.set(pKey, lAttribute);
+        return lAttribute.values;
     }
 }
-
-
-export type PwbTemplateAttribute = {
-    name: string;
-    values: Array<string | PwbTemplateExpressionNode>;
-    asText: string;
-}; 

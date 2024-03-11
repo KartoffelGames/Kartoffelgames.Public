@@ -5,7 +5,7 @@ import { BasePwbTemplateNode } from './nodes/base-pwb-template-node';
 import { PwbTemplateTextNode } from './nodes/pwb-template-text-node';
 import { PwbTemplateXmlNode } from './nodes/pwb-template-xml-node';
 import { PwbTemplateInstructionNode } from './nodes/pwb-template-instruction-node';
-import { PwbTemplateExpressionNode } from './nodes/pwb-template-expression-node';
+import { PwbTemplateExpression } from './nodes/values/pwb-template-expression';
 
 /**
  * Parser for parsing pwb xml template strings.
@@ -197,8 +197,8 @@ export class TemplateParser {
         lParser.defineGraphPart('Expression',
             lParser.graph()
                 .single(PwbTemplateToken.ExpressionStart).optional('value', PwbTemplateToken.ExpressionValue).single(PwbTemplateToken.ExpressionEnd),
-            (pData: ExpressionParseData): PwbTemplateExpressionNode => {
-                const lExpression: PwbTemplateExpressionNode = new PwbTemplateExpressionNode();
+            (pData: ExpressionParseData): PwbTemplateExpression => {
+                const lExpression: PwbTemplateExpression = new PwbTemplateExpression();
                 lExpression.value = pData.value ?? '';
 
                 return lExpression;
@@ -210,7 +210,7 @@ export class TemplateParser {
             name: string,
             attributeValue?: {
                 list: Array<{
-                    value: { text: string; } | PwbTemplateExpressionNode;
+                    value: { text: string; } | PwbTemplateExpression;
                 }>;
             };
         };
@@ -227,12 +227,12 @@ export class TemplateParser {
                         ).single(PwbTemplateToken.XmlExplicitValueIdentifier)
                 ),
             (pData: XmlAttributeParseData): AttributeInformation => {
-                const lValues: Array<string | PwbTemplateExpressionNode> = new Array<string | PwbTemplateExpressionNode>();
+                const lValues: Array<string | PwbTemplateExpression> = new Array<string | PwbTemplateExpression>();
 
                 // Add value to value list.
                 if (pData.attributeValue) {
                     for (const lAttributeValue of pData.attributeValue.list) {
-                        if (lAttributeValue.value instanceof PwbTemplateExpressionNode) {
+                        if (lAttributeValue.value instanceof PwbTemplateExpression) {
                             lValues.push(lAttributeValue.value);
                         } else {
                             lValues.push(lAttributeValue.value.text);
@@ -249,18 +249,31 @@ export class TemplateParser {
 
         // Content data.
         type XmlTextNodeParseData = {
-            text: string;
+            list: Array<{
+                value: { text: string; } | PwbTemplateExpression;
+            }>;
         };
         lParser.defineGraphPart('XmlTextNode',
             lParser.graph()
-                .branch([
-                    lParser.graph().single('text', PwbTemplateToken.XmlValue),
-                    lParser.graph().single(PwbTemplateToken.XmlExplicitValueIdentifier).single('text', PwbTemplateToken.XmlValue).single(PwbTemplateToken.XmlExplicitValueIdentifier),
-                ]),
+                .loop('list',
+                    lParser.graph().branch('value', [
+                        lParser.partReference('Expression'),
+                        lParser.graph().single('text', PwbTemplateToken.XmlValue),
+                        lParser.graph().single(PwbTemplateToken.XmlExplicitValueIdentifier).single('text', PwbTemplateToken.XmlValue).single(PwbTemplateToken.XmlExplicitValueIdentifier)
+                    ])
+                ),
             (pData: XmlTextNodeParseData): PwbTemplateTextNode => {
                 // Create text node.
                 const lTextContent = new PwbTemplateTextNode();
-                lTextContent.text = pData.text;
+
+                // Add each textnode value to text node.
+                for (const lTextNodeValue of pData.list) {
+                    if (lTextNodeValue.value instanceof PwbTemplateExpression) {
+                        lTextContent.addValue(lTextNodeValue.value);
+                    } else {
+                        lTextContent.addValue(lTextNodeValue.value.text);
+                    }
+                }
 
                 return lTextContent;
             }
@@ -311,7 +324,7 @@ export class TemplateParser {
 
                 // Add attributes.
                 for (const lAttribute of pData.attributes) {
-                    lElement.setAttribute(lAttribute.name, lAttribute.values);
+                    lElement.setAttribute(lAttribute.name).addValue(...lAttribute.values);
                 }
 
                 // Add content values.
@@ -360,7 +373,6 @@ export class TemplateParser {
             lParser.graph().loop('list', lParser.graph().branch('node', [
                 lParser.partReference('XmlCommentNode'),
                 lParser.partReference('XmlElement'),
-                lParser.partReference('Expression'),
                 lParser.partReference('XmlTextNode'),
                 lParser.partReference('InstructionNode')
             ])),
@@ -426,4 +438,4 @@ enum PwbTemplateToken {
     InstructionInstructionOpeningBracket = 'InstructionInstructionOpeningBracket'
 }
 
-type AttributeInformation = { name: string, values: Array<string | PwbTemplateExpressionNode>; };
+type AttributeInformation = { name: string, values: Array<string | PwbTemplateExpression>; };

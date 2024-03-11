@@ -1,18 +1,28 @@
 import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
 
+/**
+ * Static element creator.
+ * Bundles all html element creations.
+ * 
+ * @internal
+ */
 export class ElementCreator {
     /**
-     * Create comment node.
+     * Create comment node with set text.
      * @param pText - Comment text.
-     * @returns comment with text as content.
+     * 
+     * @returns XML-Comment with provided text.
      */
     public static createComment(pText: string): Comment {
         return document.createComment(pText);
     }
 
     /**
-     * Create element with correct namespace.
-     * Ignores namespace information for custom elements.
+     * Create new html element.
+     * When the element is a custom element, it invokes the custom element constructor instead of an unknown html element.
+     * 
+     * Ignores all attribute and expression informations and only uses the tagname information.
+     * 
      * @param pXmlElement - Xml content node.
      */
     public static createElement(pXmlElement: PwbTemplateXmlNode): Element {
@@ -33,8 +43,9 @@ export class ElementCreator {
     }
 
     /**
-     * Create text node.
+     * Create html text node.
      * @param pText - Text.
+     * 
      * @returns text node with specified text.
      */
     public static createText(pText: string): Text {

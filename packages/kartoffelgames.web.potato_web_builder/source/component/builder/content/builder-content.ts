@@ -1,13 +1,13 @@
 import { Dictionary, List } from '@kartoffelgames/core.data';
-import { BaseModule } from '../../module/base-module';
-import { ExpressionModule } from '../../module/expression-module';
-import { MultiplicatorModule } from '../../module/multiplicator-module';
-import { StaticModule } from '../../module/static-module';
-import { BaseBuilder } from '../builder/base-builder';
-import { ComponentConnection } from '../component-connection';
-import { ComponentManager } from '../component-manager';
-import { ComponentModules } from '../component-modules';
-import { ElementCreator } from './element-creator';
+import { BaseModule } from '../../../module/base-module';
+import { ExpressionModule } from '../../../module/expression-module';
+import { MultiplicatorModule } from '../../../module/multiplicator-module';
+import { StaticModule } from '../../../module/static-module';
+import { BaseBuilder } from '../base-builder';
+import { ComponentConnection } from '../../component-connection';
+import { ComponentManager } from '../../component-manager';
+import { ComponentModules } from '../../component-modules';
+import { ElementCreator } from '../../element-creator';
 
 export class BuilderContent {
     private readonly mBoundaryDescription: BoundaryDescription;

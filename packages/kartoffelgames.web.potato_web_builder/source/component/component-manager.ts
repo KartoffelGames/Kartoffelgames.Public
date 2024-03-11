@@ -6,7 +6,7 @@ import { StaticBuilder } from './builder/static-builder';
 import { ComponentConnection } from './component-connection';
 import { ComponentExtensions } from './component-extensions';
 import { ComponentModules } from './component-modules';
-import { ElementCreator } from './content/element-creator';
+import { ElementCreator } from './element-creator';
 import { UpdateScope } from './enum/update-scope';
 import { ElementHandler } from './handler/element-handler';
 import { UpdateHandler } from './handler/update-handler';

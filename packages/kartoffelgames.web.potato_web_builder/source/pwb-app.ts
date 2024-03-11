@@ -4,7 +4,7 @@ import { ChangeDetection } from '@kartoffelgames/web.change-detection';
 import { ErrorListener } from '@kartoffelgames/web.change-detection/library/source/change_detection/change-detection';
 import { ComponentConnection } from './component/component-connection';
 import { ComponentManager } from './component/component-manager';
-import { ElementCreator } from './component/content/element-creator';
+import { ElementCreator } from './component/element-creator';
 import { PwbTemplateXmlNode } from './component/template/nodes/pwb-template-xml-node';
 
 export class PwbApp {

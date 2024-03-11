@@ -1,4 +1,4 @@
-import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
+import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 
 /**
  * Static element creator.

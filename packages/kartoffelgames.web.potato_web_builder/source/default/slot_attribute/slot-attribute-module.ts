@@ -1,4 +1,4 @@
-import { ElementCreator } from '../../component/content/element-creator';
+import { ElementCreator } from '../../component/element-creator';
 import { PwbTemplateAttribute, PwbTemplateXmlNode } from '../../component/template/nodes/pwb-template-xml-node';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ModuleTargetReference } from '../../injection_reference/module-target-reference';

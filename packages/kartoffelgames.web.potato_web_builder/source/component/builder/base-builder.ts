@@ -1,6 +1,6 @@
 
 import { ComponentModules } from '../component-modules';
-import { Boundary, BuilderContent } from '../content/builder-content';
+import { Boundary, BuilderContent } from './content/builder-content';
 import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
 import { LayerValues } from '../values/layer-values';
 

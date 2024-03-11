@@ -34,16 +34,16 @@ export class MultiplicatorBuilder extends BaseBuilder {
      */
     protected onUpdate(): boolean {
         // Create multiplicator module if is does not exist.
-        if (!this.contentManager.multiplicatorModule) {
+        if (!this.content.multiplicatorModule) {
             const lTemplate: PwbTemplateXmlNode = <PwbTemplateXmlNode>this.template;
 
             // Create module and save inside. Allways has existing module bc. can only be called with found multiplicator module.
-            const lManipulatorModule: MultiplicatorModule = <MultiplicatorModule>this.contentManager.modules.getElementMultiplicatorModule(lTemplate, this.values);
-            this.contentManager.multiplicatorModule = lManipulatorModule;
+            const lManipulatorModule: MultiplicatorModule = <MultiplicatorModule>this.content.modules.getElementMultiplicatorModule(lTemplate, this.values);
+            this.content.multiplicatorModule = lManipulatorModule;
         }
 
         // Call module update.
-        const lModuleResult: MultiplicatorResult | null = (<MultiplicatorModule>this.contentManager.multiplicatorModule).update();
+        const lModuleResult: MultiplicatorResult | null = (<MultiplicatorModule>this.content.multiplicatorModule).update();
         if (lModuleResult) {
             // Add shadow parent to all module results.
             for (const lResult of lModuleResult.elementList) {
@@ -51,7 +51,7 @@ export class MultiplicatorBuilder extends BaseBuilder {
             }
 
             // Get current StaticBuilder. Only content are static builder.
-            const lOldStaticBuilderList: Array<StaticBuilder> = <Array<StaticBuilder>>this.contentManager.rootElementList;
+            const lOldStaticBuilderList: Array<StaticBuilder> = <Array<StaticBuilder>>this.content.rootElementList;
 
             // Update content and save new added builder.
             this.updateStaticBuilder(lOldStaticBuilderList, lModuleResult.elementList);
@@ -69,14 +69,14 @@ export class MultiplicatorBuilder extends BaseBuilder {
      */
     private insertNewContent(pNewContent: ManipulatorElement, pLastContent: StaticBuilder | null): StaticBuilder {
         // Create new static builder.
-        const lStaticBuilder: StaticBuilder = new StaticBuilder(pNewContent.template, this.shadowParent, this.contentManager.modules, pNewContent.componentValues, this);
+        const lStaticBuilder: StaticBuilder = new StaticBuilder(pNewContent.template, this.shadowParent, this.content.modules, pNewContent.componentValues, this);
 
         // Prepend content if no content is before the new content. 
         if (pLastContent === null) {
-            this.contentManager.prepend(lStaticBuilder);
+            this.content.prepend(lStaticBuilder);
         } else {
             // Append after content that is before the new content. Obviously -,-
-            this.contentManager.after(lStaticBuilder, pLastContent);
+            this.content.after(lStaticBuilder, pLastContent);
         }
 
         return lStaticBuilder;
@@ -102,7 +102,7 @@ export class MultiplicatorBuilder extends BaseBuilder {
             if (lHistoryItem.changeState === ChangeState.Keep) {
                 lLastContent = lHistoryItem.item;
             } else if (lHistoryItem.changeState === ChangeState.Remove) {
-                this.contentManager.remove(lHistoryItem.item);
+                this.content.remove(lHistoryItem.item);
             } else { // if (lHistoryItem.changeState === ChangeState.Insert)
                 // Create new static builder, insert after last content.
                 lLastContent = this.insertNewContent(lHistoryItem.item, lLastContent);

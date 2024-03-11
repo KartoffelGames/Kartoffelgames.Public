@@ -9,7 +9,7 @@ import { ComponentManager } from '../component-manager';
 import { ComponentModules } from '../component-modules';
 import { ElementCreator } from './element-creator';
 
-export class ContentManager {
+export class BuilderContent {
     private readonly mBoundaryDescription: BoundaryDescription;
     private readonly mChildBuilderList: List<BaseBuilder>;
     private readonly mChildComponentList: List<Element>;
@@ -78,14 +78,14 @@ export class ContentManager {
     /**
      * Constructor.
      */
-    public constructor(pModules: ComponentModules, pAnchorPrefix: string) {
+    public constructor(pModules: ComponentModules) {
         this.mMultiplicatorModule = null;
         this.mModules = pModules;
         this.mRootChildList = new List<Content>();
         this.mChildBuilderList = new List<BaseBuilder>();
         this.mChildComponentList = new List<Element>();
         this.mLinkedModules = new Dictionary<Node, Array<BaseModule<boolean, any>>>();
-        this.mContentAnchor = ElementCreator.createComment(pAnchorPrefix + ' ' + Math.random().toString(16).substring(3).toUpperCase());
+        this.mContentAnchor = ElementCreator.createComment(Math.random().toString(16).substring(3).toUpperCase());
         this.mBoundaryDescription = {
             start: this.mContentAnchor,
             end: this.mContentAnchor

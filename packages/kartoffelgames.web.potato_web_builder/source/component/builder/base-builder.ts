@@ -1,38 +1,31 @@
 
 import { ComponentModules } from '../component-modules';
-import { Boundary, ContentManager } from '../content/content-manager';
+import { Boundary, BuilderContent } from '../content/builder-content';
 import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
 import { LayerValues } from '../values/layer-values';
 
 /**
- * Builder helper that builds and updates content of component.
+ * Builder that builds and updates content of component.
+ * 
+ * @internal
  */
-export abstract class BaseBuilder {
+export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode> {
     private readonly mComponentValues: LayerValues;
-    private readonly mContentManager: ContentManager;
-    private readonly mParentBuilder: BaseBuilder | null;
-    private readonly mShadowParent: BasePwbTemplateNode;
-    private readonly mTemplate: BasePwbTemplateNode;
+    private readonly mContent: BuilderContent;
+    private readonly mTemplate: TTemplates;
 
     /**
      * Content anchor for later appending build and initilised elements on this place.
      */
     public get anchor(): Comment {
-        return this.mContentManager.anchor;
+        return this.mContent.anchor;
     }
 
     /**
      * Get boundary of builder. Top and bottom element of builder.
      */
     public get boundary(): Boundary {
-        return this.mContentManager.getBoundary();
-    }
-
-    /**
-     * Content template.
-     */
-    public get template(): BasePwbTemplateNode {
-        return this.mTemplate;
+        return this.mContent.getBoundary(); // TODO: Validate if boundary needs to be exposed or can be precalculated.
     }
 
     /**
@@ -45,52 +38,31 @@ export abstract class BaseBuilder {
     /**
      * Get component content of builder.
      */
-    protected get contentManager(): ContentManager {
-        return this.mContentManager;
+    protected get content(): BuilderContent {
+        return this.mContent;
     }
 
     /**
-     * If builder is inside an manipulator scope.
+     * Content template.
      */
-    protected get inManipulatorScope(): boolean {
-        if (this.isMultiplicator()) {
-            return true;
-        } else if (!this.mParentBuilder) {
-            return false;
-        } else {
-            return this.mParentBuilder.inManipulatorScope;
-        }
-    }
-
-    /**
-     * Shadow parent of all template elements.
-     * Not actuall parent for 
-     */
-    protected get shadowParent(): BasePwbTemplateNode {
-        return this.mShadowParent;
+    protected get template(): TTemplates {
+        return this.mTemplate;
     }
 
     /**
      * Constructor.
-     * Builder helper that builds and updates content of component.
-     * @param pComponentContent - Component content.
+     * @param pTemplate - Builder template.
+     * @param pModules - Available modules of builder-
      * @param pParentLayerValues - New component values.
-     * @param pManipulatorScope - If builder is inside an manipulator scope.
      */
-    public constructor(pTemplate: BasePwbTemplateNode, pShadowParent: BasePwbTemplateNode, pModules: ComponentModules, pParentLayerValues: LayerValues, pParentBuilder: BaseBuilder | null) {
-        this.mShadowParent = pShadowParent;
-        this.mParentBuilder = pParentBuilder;
-
-        // Clone template and connect to shadow parent.
-        const lTemplateClone: BasePwbTemplateNode = pTemplate.clone();
-        lTemplateClone.parent = this.shadowParent;
-        this.mTemplate = pTemplate;
+    public constructor(pTemplate: TTemplates, pModules: ComponentModules, pParentLayerValues: LayerValues) {
+        // Clone template.
+        this.mTemplate = <TTemplates>pTemplate.clone(); // TODO: Validate if this needs to be cloned.
+        this.mTemplate.parent = null; // Nodes doesn't need a real parent. Maidenless nodes.
 
         // Create new layer of values.
         this.mComponentValues = new LayerValues(pParentLayerValues);
-
-        const lPrefix: string = this.isMultiplicator() ? 'MULTIPLICATE' : 'STATIC';
-        this.mContentManager = new ContentManager(pModules, lPrefix);
+        this.mContent = new BuilderContent(pModules); // TODO: A good way to have better anchor names.
     }
 
     /**
@@ -98,18 +70,23 @@ export abstract class BaseBuilder {
      * Builder is unuseable after this.
      */
     public deconstruct(): void {
-        this.contentManager.deconstruct();
+        this.content.deconstruct();
     }
 
     /**
-     * Update content based on changed property.
+     * Update content.
+     * Updates this builder first and than updated any direct child builder.
+     * 
+     * When this nor the child builder had any changes, false is returned.
+     * 
+     * @returns If any changes where made.  
      */
     public update(): boolean {
         // Update this builder.
         let lUpdated: boolean = this.onUpdate();
 
         // Update all child builder and keep updated true state.
-        for (const lBuilder of this.contentManager.childBuilderList) {
+        for (const lBuilder of this.content.childBuilderList) {
             lUpdated = lBuilder.update() || lUpdated;
         }
 
@@ -117,14 +94,14 @@ export abstract class BaseBuilder {
     }
 
     /**
-     * If builder is multiplicator.
-     */
-    protected abstract isMultiplicator(): boolean;
-
-    /**
-     * Update content.
-     * Return all build handler that was alread updated or new created.
-     * Calls update on all other builder handler that was not updated.
+     * On content update.
+     * Update any direct content. When new and old builder doesn't need to be updated here.
+     * 
+     * @remarks
+     * When child builder are beeing updated, they will be updated again and might break performance.
+     * Any direct child builder are automaticaly updated in {@link update}.
+     * 
+     * @returns If any changes where made. 
      */
     protected abstract onUpdate(): boolean;
 }

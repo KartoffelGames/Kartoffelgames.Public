@@ -42,6 +42,5 @@ export interface IPwbModuleOnDeconstruct {
 export interface ModuleDefinition {
     type: ModuleType;
     selector: RegExp;
-    forbiddenInManipulatorScopes: boolean;
     access: ModuleAccessType;
 }

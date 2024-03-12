@@ -1,99 +1,69 @@
-import { Dictionary, List } from '@kartoffelgames/core.data';
-import { BaseModule } from '../../../module/base-module';
-import { ExpressionModule } from '../../../module/expression-module';
-import { MultiplicatorModule } from '../../../module/multiplicator-module';
-import { StaticModule } from '../../../module/static-module';
-import { BaseBuilder } from '../base-builder';
+import { List } from '@kartoffelgames/core.data';
 import { ComponentConnection } from '../../component-connection';
 import { ComponentManager } from '../../component-manager';
 import { ComponentModules } from '../../component-modules';
 import { ElementCreator } from '../../element-creator';
+import { BaseBuilder } from '../base-builder';
 
-export class BuilderContent {
-    private readonly mBoundaryDescription: BoundaryDescription;
+export abstract class BaseBuilderContent {
     private readonly mChildBuilderList: List<BaseBuilder>;
-    private readonly mChildComponentList: List<Element>;
     private readonly mContentAnchor: Comment;
-    private readonly mLinkedModules: Dictionary<Node, Array<BaseModule<boolean, any>>>;
+    private readonly mContentBoundary: RawContentBoundary;
     private readonly mModules: ComponentModules;
-    private mMultiplicatorModule: MultiplicatorModule | null;
     private readonly mRootChildList: List<Content>;
-
 
     /**
      * Get content anchor.
-     * All content of this content manager gets append to this anchor.
+     * All content of this content manager gets append after this anchor.
      */
     public get anchor(): Comment {
         return this.mContentAnchor;
     }
 
     /**
-     * Get all child builder.
+     * Get core content of builder content.
+     * Elements are returned in DOM order.
      */
-    public get childBuilderList(): Array<BaseBuilder> {
+    public get body(): Array<Content> {
+        return this.mRootChildList;
+    }
+
+    /**
+     * Any child builder in direct content.
+     * Builders nested in another builder is ignored.
+     */
+    public get builders(): Array<BaseBuilder> {
         return this.mChildBuilderList;
     }
 
     /**
-     * Get all linked module lists.
-     */
-    public get linkedModuleList(): Array<BaseModule<boolean, any>> {
-        const lAllModuleList: Array<BaseModule<boolean, any>> = new Array<BaseModule<boolean, any>>();
-        for (const lNodeModuleList of this.mLinkedModules.values()) {
-            lAllModuleList.push(...lNodeModuleList);
-        }
-        return lAllModuleList;
-    }
-
-    /**
-     * Get all child builder.
+     * Component modules of builder layer.
      */
     public get modules(): ComponentModules {
         return this.mModules;
     }
 
     /**
-     * Get multiplicator module of layer.
-     */
-    public get multiplicatorModule(): MultiplicatorModule | null {
-        return this.mMultiplicatorModule;
-    }
-
-    /**
-     * Set multiplicator module of layer.
-     */
-    public set multiplicatorModule(pModule: MultiplicatorModule | null) {
-        this.mMultiplicatorModule = pModule;
-    }
-
-    /**
-     * Get root elements.
-     * Elements are returned in order.
-     */
-    public get rootElementList(): Array<Content> {
-        return this.mRootChildList;
-    }
-
-    /**
      * Constructor.
+     * @param pModules - Available modules of builder-
      */
     public constructor(pModules: ComponentModules) {
-        this.mMultiplicatorModule = null;
         this.mModules = pModules;
-        this.mRootChildList = new List<Content>();
         this.mChildBuilderList = new List<BaseBuilder>();
-        this.mChildComponentList = new List<Element>();
-        this.mLinkedModules = new Dictionary<Node, Array<BaseModule<boolean, any>>>();
-        this.mContentAnchor = ElementCreator.createComment(Math.random().toString(16).substring(3).toUpperCase());
-        this.mBoundaryDescription = {
+        this.mRootChildList = new List<Content>();
+
+        // Create anchor of content. Anchors marks the beginning of all content nodes.
+        this.mContentAnchor = ElementCreator.createComment(Math.random().toString(16).substring(3).toUpperCase()); // TODO: A good way to have better anchor names.
+
+        // Set starting boundary. Existing only of anchor.
+        this.mContentBoundary = {
             start: this.mContentAnchor,
             end: this.mContentAnchor
         };
     }
 
     /**
-     * Append child element after target.
+     * Append child element after target. // TODO: Do we need this?
      * @param pChild - Child node.
      * @param pTarget - Target where child gets append after. 
      */
@@ -102,7 +72,7 @@ export class BuilderContent {
     }
 
     /**
-     * Append child element to parent.
+     * Append child element to parent.  // TODO: Do we need this?
      * Appends to root if no parent is specified. 
      * @param pChild - Child node.
      * @param pParentElement - Parent element of child.
@@ -111,9 +81,6 @@ export class BuilderContent {
         this.insertContent(pChild, pParentElement, 'Append');
     }
 
-    /**
-     * Deconstructs all builder and elements.
-     */
     public deconstruct(): void {
         // Deconstruct builder.
         for (const lBuilder of this.mChildBuilderList) {
@@ -127,12 +94,6 @@ export class BuilderContent {
             lComponentManager.deconstruct();
         }
 
-        // Deconstruct modules.
-        this.mMultiplicatorModule?.deconstruct();
-        for (const lModule of this.linkedModuleList) {
-            lModule.deconstruct();
-        }
-
         // Remove all content. Only remove root elements. GC makes the rest.
         this.anchor.remove();
         for (const lRootChild of this.mRootChildList) {
@@ -141,51 +102,39 @@ export class BuilderContent {
                 this.remove(lRootChild);
             }
         }
+
+        this.onDeconstruct();
     }
 
+
     /**
-     * Get content boundry. Start and end content.
+     * Get content start and end node.
+     * If the current last node of content is a builder, the last node of this builder is returned.
+     * This recursion will take place until an node is found.
      */
     public getBoundary(): Boundary {
         // Top is always the anchor.
-        const lTop: Node = <Node>this.mBoundaryDescription.start;
+        const lTopNode: Comment = this.mContentBoundary.start;
 
         // Get last element of builder if bottom element is a builder 
-        // or use node as bottom element.  
-        let lBottom: Node;
-        /* istanbul ignore if */
-        if (this.mBoundaryDescription.end instanceof BaseBuilder) {
-            // Not used but good to have.
-            lBottom = this.mBoundaryDescription.end.boundary.end;
+        // or use node as bottom element.
+        let lBottomNode: Node;
+        if (this.mContentBoundary.end instanceof BaseBuilder) {
+            lBottomNode = this.mContentBoundary.end.boundary.end;
         } else {
-            lBottom = this.mBoundaryDescription.end;
+            lBottomNode = this.mContentBoundary.end;
         }
 
         return {
-            start: lTop,
-            end: lBottom
+            start: lTopNode,
+            end: lBottomNode
         };
     }
 
-    /**
-     * Link module to node.
-     * @param pModule - Module.
-     * @param pNode - Build node.
-     */
-    public linkModule(pModule: StaticModule | ExpressionModule, pNode: Node): void {
-        // Get module list of node. Create if it not exists.
-        let lModuleList: Array<BaseModule<boolean, any>> | undefined = this.mLinkedModules.get(pNode);
-        if (!lModuleList) {
-            lModuleList = new Array<BaseModule<boolean, any>>();
-            this.mLinkedModules.set(pNode, lModuleList);
-        }
 
-        // Add module as linked module to node module list.
-        lModuleList.push(pModule);
-    }
 
     /**
-     * Prepend child element to parent.
+     * Prepend child element to parent.  // TODO: Do we need this?
      * Prepends to root if no parent is specified. 
      * @param pChild - Child node.
      */
@@ -194,11 +143,14 @@ export class BuilderContent {
     }
 
     /**
-     * Remove and deconstruct content.
+     * Remove and deconstruct content. // TODO: We can do better.
      * @param pChild - Child element of layer.
      */
     public remove(pChild: Content): void {
         if (pChild instanceof BaseBuilder) {
+            // Remove from builder or component storage.
+            this.mChildBuilderList.remove(pChild);
+
             pChild.deconstruct();
         } else {
             // Check if element is a component. If so deconstruct.
@@ -211,25 +163,13 @@ export class BuilderContent {
             } else {
                 pChild.getRootNode().removeChild(pChild);
             }
-
-            // Unlink modules.
-            const lModuleList: Array<BaseModule<boolean, any>> | undefined = this.mLinkedModules.get(pChild);
-            if (lModuleList) {
-                // Deconstruct all linked modules.
-                for (const lModule of lModuleList) {
-                    lModule.deconstruct();
-                }
-
-                // Delete element from linked module.
-                this.mLinkedModules.delete(pChild);
-            }
         }
 
         // Remove from storages.
         this.unregisterContent(pChild);
     }
 
-    /**
+    /**  // TODO: Please remake this. It is a abominationof code.
      * Add element to content.
      * @param pChild - The element that should be added.
      * @param pTarget - Parent element or target node.
@@ -238,6 +178,11 @@ export class BuilderContent {
     private insertContent(pChild: Content, pTarget: Content, pMode: 'After'): void;
     private insertContent(pChild: Content, pParent: Element | null, pMode: 'Append' | 'Prepend'): void;
     private insertContent(pChild: Content, pTarget: Content | null, pMode: 'Append' | 'After' | 'Prepend'): void {
+        // Add to builder or component storage.
+        if (pChild instanceof BaseBuilder) {
+            this.mChildBuilderList.push(pChild);
+        }
+
         // Get anchor of child if child is a builder.
         const lRealChildNode: Node = (pChild instanceof BaseBuilder) ? pChild.anchor : pChild;
 
@@ -320,12 +265,10 @@ export class BuilderContent {
         // Register content.
         if (lIsRoot) {
             if (lTargetContent !== null) {
-                this.registerContent(pChild, lIsRoot, lTargetContent);
+                this.registerContent(pChild, lTargetContent);
             } else {
-                this.registerContent(pChild, lIsRoot);
+                this.registerContent(pChild);
             }
-        } else {
-            this.registerContent(pChild, lIsRoot);
         }
     }
 
@@ -335,29 +278,17 @@ export class BuilderContent {
      * @param pChild - Child element.
      * @param pRoot - If child is an root element.
      */
-    private registerContent(pChild: Content, pRoot: boolean): void;
-    private registerContent(pChild: Content, pRoot: boolean, pPreviousSibling: Content): void;
-    private registerContent(pChild: Content, pRoot: boolean, pPreviousSibling?: Content): void {
-        // Add to builder or component storage.
-        if (pChild instanceof BaseBuilder) {
-            this.mChildBuilderList.push(pChild);
-        } else if (ComponentConnection.componentManagerOf(pChild)) {
-            this.mChildComponentList.push(<Element>pChild);
+    private registerContent(pChild: Content, pPreviousSibling?: Content): void {
+        // Set index to -1 of no previous sibling exists.
+        const lSiblingIndex: number = (pPreviousSibling) ? this.mRootChildList.indexOf(pPreviousSibling) : -1;
+
+        // Extend boundary if child is new last element.
+        if ((lSiblingIndex + 1) === this.mRootChildList.length) {
+            this.mContentBoundary.end = pChild;
         }
 
-        // Add element in order if element is on root level.
-        if (pRoot) {
-            // Set index to -1 of no previous sibling exists.
-            const lSiblingIndex: number = (pPreviousSibling) ? this.mRootChildList.indexOf(pPreviousSibling) : -1;
-
-            // Extend boundary if child is new last element.
-            if ((lSiblingIndex + 1) === this.mRootChildList.length) {
-                this.mBoundaryDescription.end = pChild;
-            }
-
-            // Add root child after previous sibling.
-            this.mRootChildList.splice(lSiblingIndex + 1, 0, pChild);
-        }
+        // Add root child after previous sibling.
+        this.mRootChildList.splice(lSiblingIndex + 1, 0, pChild);
     }
 
     /**
@@ -365,13 +296,6 @@ export class BuilderContent {
      * @param pChild - Child element.
      */
     private unregisterContent(pChild: Content) {
-        // Remove from builder or component storage.
-        if (pChild instanceof BaseBuilder) {
-            this.mChildBuilderList.remove(pChild);
-        } else if (ComponentConnection.componentManagerOf(pChild)) {
-            this.mChildComponentList.remove(<Element>pChild);
-        }
-
         // Remove from root childs and shrink boundary.
         const lChildRootIndex: number = this.mRootChildList.indexOf(pChild);
 
@@ -379,24 +303,37 @@ export class BuilderContent {
         if ((lChildRootIndex + 1) === this.mRootChildList.length) {
             // Check if one root child remains otherwise use anchor as end boundary.
             if (this.mRootChildList.length > 1) {
-                this.mBoundaryDescription.end = this.mRootChildList[lChildRootIndex - 1];
+                this.mContentBoundary.end = this.mRootChildList[lChildRootIndex - 1];
             } else {
-                this.mBoundaryDescription.end = this.mContentAnchor;
+                this.mContentBoundary.end = this.mContentAnchor;
             }
         }
 
         this.mRootChildList.remove(pChild);
     }
+
+    /**
+     * On deconstruction.
+     * Called after any builder and element of this builder was deconstructed. 
+     */
+    protected abstract onDeconstruct(): void;
 }
 
-export type Boundary = {
-    start: Node;
-    end: Node;
+/**
+ * Raw content boundary. Can have builder as boundary.
+ */
+type RawContentBoundary = {
+    start: Comment;
+    end: Node | BaseBuilder;
 };
 
-export type BoundaryDescription = {
-    start: Node | BaseBuilder;
-    end: Node | BaseBuilder;
+/**
+ * Calculated content boundary.
+ * Calculated end node contains any nested builder end node.
+ */
+export type Boundary = {
+    start: Comment;
+    end: Node;
 };
 
 export type Content = Node | BaseBuilder;

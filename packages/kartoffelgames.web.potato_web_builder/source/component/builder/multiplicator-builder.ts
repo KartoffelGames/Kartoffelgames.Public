@@ -8,6 +8,7 @@ import { StaticBuilder } from './static-builder';
 import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
 import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
 
+// TODO: Rename multiplicator to "Instruction"
 export class MultiplicatorBuilder extends BaseBuilder {
 
     /**
@@ -51,7 +52,7 @@ export class MultiplicatorBuilder extends BaseBuilder {
             }
 
             // Get current StaticBuilder. Only content are static builder.
-            const lOldStaticBuilderList: Array<StaticBuilder> = <Array<StaticBuilder>>this.content.rootElementList;
+            const lOldStaticBuilderList: Array<StaticBuilder> = <Array<StaticBuilder>>this.content.body;
 
             // Update content and save new added builder.
             this.updateStaticBuilder(lOldStaticBuilderList, lModuleResult.elementList);

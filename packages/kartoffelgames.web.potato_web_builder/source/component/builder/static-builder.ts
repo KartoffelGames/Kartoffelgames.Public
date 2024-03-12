@@ -11,9 +11,10 @@ import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
 import { PwbTemplateExpression } from '../template/nodes/values/pwb-template-expression';
 import { LayerValues } from '../values/layer-values';
 import { BaseBuilder } from './base-builder';
+import { StaticBuilderContent } from './content/static-builder-content';
 import { MultiplicatorBuilder } from './multiplicator-builder';
 
-export class StaticBuilder extends BaseBuilder<StaticPwbTemplate> {
+export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderContent> {
     private mInitialized: boolean;
 
     /**
@@ -23,7 +24,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate> {
      * @param pParentLayerValues - Layer value of parent builder.
      */
     public constructor(pTemplate: StaticPwbTemplate, pModules: ComponentModules, pParentLayerValues: LayerValues) {
-        super(pTemplate, pModules, pParentLayerValues);
+        super(pTemplate, pParentLayerValues, new StaticBuilderContent(pModules));
 
         // Not initialized on start.
         this.mInitialized = false;
@@ -154,7 +155,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate> {
             /* istanbul ignore else */
             if (lTemplateNode instanceof PwbTemplate) {
                 // Ignore documents just process body.
-                this.buildTemplate(lTemplateNode.body, pParentElement, lTemplateNode);
+                this.buildTemplate(lTemplateNode.body, pParentElement);
             } else if (lTemplateNode instanceof PwbTemplateTextNode) {
                 this.buildTextTemplate(lTemplateNode, pParentElement);
             } else if (lTemplateNode instanceof PwbTemplateExpression) {

@@ -1,17 +1,17 @@
 
-import { ComponentModules } from '../component-modules';
-import { Boundary, BuilderContent } from './content/builder-content';
 import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
 import { LayerValues } from '../values/layer-values';
+import { BaseBuilderContent } from './content/base-builder-content';
+import { Boundary } from './content/static-builder-content';
 
 /**
  * Builder that builds and updates content of component.
  * 
  * @internal
  */
-export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode> {
+export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BasePwbTemplateNode, TContent extends BaseBuilderContent = BaseBuilderContent> {
     private readonly mComponentValues: LayerValues;
-    private readonly mContent: BuilderContent;
+    private readonly mContent: TContent;
     private readonly mTemplate: TTemplates;
 
     /**
@@ -38,7 +38,7 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode> {
     /**
      * Get component content of builder.
      */
-    protected get content(): BuilderContent {
+    protected get content(): TContent {
         return this.mContent;
     }
 
@@ -52,17 +52,16 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode> {
     /**
      * Constructor.
      * @param pTemplate - Builder template.
-     * @param pModules - Available modules of builder-
      * @param pParentLayerValues - New component values.
      */
-    public constructor(pTemplate: TTemplates, pModules: ComponentModules, pParentLayerValues: LayerValues) {
+    public constructor(pTemplate: TTemplates, pParentLayerValues: LayerValues, pContent: TContent) {
         // Clone template.
         this.mTemplate = <TTemplates>pTemplate.clone(); // TODO: Validate if this needs to be cloned.
         this.mTemplate.parent = null; // Nodes doesn't need a real parent. Maidenless nodes.
 
         // Create new layer of values.
         this.mComponentValues = new LayerValues(pParentLayerValues);
-        this.mContent = new BuilderContent(pModules); // TODO: A good way to have better anchor names.
+        this.mContent = pContent; 
     }
 
     /**
@@ -86,7 +85,7 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode> {
         let lUpdated: boolean = this.onUpdate();
 
         // Update all child builder and keep updated true state.
-        for (const lBuilder of this.content.childBuilderList) {
+        for (const lBuilder of this.content.builders) {
             lUpdated = lBuilder.update() || lUpdated;
         }
 

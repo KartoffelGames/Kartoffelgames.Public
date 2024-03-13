@@ -11,10 +11,10 @@ import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
 import { PwbTemplateExpression } from '../template/nodes/values/pwb-template-expression';
 import { LayerValues } from '../values/layer-values';
 import { BaseBuilder } from './base-builder';
-import { StaticBuilderContent } from './content/static-builder-content';
+import { StaticBuilderData } from './data/static-builder-data';
 import { MultiplicatorBuilder } from './multiplicator-builder';
 
-export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderContent> {
+export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderData> {
     private mInitialized: boolean;
 
     /**
@@ -24,7 +24,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderC
      * @param pParentLayerValues - Layer value of parent builder.
      */
     public constructor(pTemplate: StaticPwbTemplate, pModules: ComponentModules, pParentLayerValues: LayerValues) {
-        super(pTemplate, pParentLayerValues, new StaticBuilderContent(pModules));
+        super(pTemplate, pParentLayerValues, new StaticBuilderData(pModules));
 
         // Not initialized on start.
         this.mInitialized = false;
@@ -148,7 +148,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderC
      * @param pTemplateNodeList - Template node list.
      * @param pParentElement - Parent element of templates.
      */
-    private buildTemplate(pTemplateNodeList: Array<StaticPwbTemplate>, pParentElement: Element | null = null): void {
+    private buildTemplate(pTemplateNodeList: Array<BasePwbTemplateNode>, pParentElement: Element | null = null): void {
 
         // Create each template.
         for (const lTemplateNode of pTemplateNodeList) {

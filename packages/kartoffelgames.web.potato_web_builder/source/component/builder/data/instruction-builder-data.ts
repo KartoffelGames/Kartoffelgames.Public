@@ -1,7 +1,7 @@
 import { MultiplicatorModule } from '../../../module/multiplicator-module';
-import { BaseBuilderContent } from './base-builder-content';
+import { BaseBuilderData } from './base-builder-data';
 
-export class InstructionBuilderContent extends BaseBuilderContent {
+export class InstructionBuilderData extends BaseBuilderData {
     private mMultiplicatorModule: MultiplicatorModule | null;
 
     /**

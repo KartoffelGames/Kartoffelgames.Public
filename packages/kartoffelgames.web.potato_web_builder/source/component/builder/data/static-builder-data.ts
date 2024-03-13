@@ -4,9 +4,9 @@ import { ExpressionModule } from '../../../module/expression-module';
 import { StaticModule } from '../../../module/static-module';
 import { ComponentModules } from '../../component-modules';
 import { BaseBuilder } from '../base-builder';
-import { BaseBuilderContent } from './base-builder-content';
+import { BaseBuilderData } from './base-builder-data';
 
-export class StaticBuilderContent extends BaseBuilderContent {
+export class StaticBuilderData extends BaseBuilderData {
     private readonly mLinkedModules: Dictionary<Node, Array<BaseModule<boolean, any>>>;
 
     /**

@@ -6,11 +6,11 @@ import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instr
 import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
 import { LayerValues } from '../values/layer-values';
 import { BaseBuilder } from './base-builder';
-import { InstructionBuilderContent } from './content/instruction-builder-content';
+import { InstructionBuilderData } from './data/instruction-builder-data';
 import { StaticBuilder } from './static-builder';
 
 // TODO: Rename multiplicator to "Instruction"
-export class MultiplicatorBuilder extends BaseBuilder<PwbTemplateInstructionNode, InstructionBuilderContent> {
+export class MultiplicatorBuilder extends BaseBuilder<PwbTemplateInstructionNode, InstructionBuilderData> {
 
     /**
      * Constructor.
@@ -19,7 +19,7 @@ export class MultiplicatorBuilder extends BaseBuilder<PwbTemplateInstructionNode
      * @param pParentLayerValues - Layer value of parent builder.
      */
     public constructor(pTemplate: PwbTemplateInstructionNode, pModules: ComponentModules, pParentLayerValues: LayerValues,) {
-        super(pTemplate, pParentLayerValues, new InstructionBuilderContent(pModules));
+        super(pTemplate, pParentLayerValues, new InstructionBuilderData(pModules));
     }
 
     /**

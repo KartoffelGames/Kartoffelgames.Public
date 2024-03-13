@@ -5,7 +5,7 @@ import { ComponentModules } from '../../component-modules';
 import { ElementCreator } from '../../element-creator';
 import { BaseBuilder } from '../base-builder';
 
-export abstract class BaseBuilderContent {
+export abstract class BaseBuilderData {
     private readonly mChildBuilderList: List<BaseBuilder>;
     private readonly mContentAnchor: Comment;
     private readonly mContentBoundary: RawContentBoundary;

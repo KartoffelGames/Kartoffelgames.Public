@@ -1,15 +1,15 @@
 
 import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
 import { LayerValues } from '../values/layer-values';
-import { BaseBuilderContent } from './content/base-builder-content';
-import { Boundary } from './content/static-builder-content';
+import { BaseBuilderData } from './data/base-builder-data';
+import { Boundary } from './data/static-builder-data';
 
 /**
  * Builder that builds and updates content of component.
  * 
  * @internal
  */
-export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BasePwbTemplateNode, TContent extends BaseBuilderContent = BaseBuilderContent> {
+export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BasePwbTemplateNode, TContent extends BaseBuilderData = BaseBuilderData> {
     private readonly mComponentValues: LayerValues;
     private readonly mContent: TContent;
     private readonly mTemplate: TTemplates;

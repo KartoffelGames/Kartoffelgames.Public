@@ -1,4 +1,4 @@
-import { List } from '@kartoffelgames/core.data';
+import { Dictionary, List } from '@kartoffelgames/core.data';
 import { ComponentConnection } from '../../component-connection';
 import { ComponentManager } from '../../component-manager';
 import { ComponentModules } from '../../component-modules';
@@ -7,18 +7,11 @@ import { BaseBuilder } from '../base-builder';
 
 export abstract class BaseBuilderData {
     private readonly mChildBuilderList: List<BaseBuilder>;
+    private readonly mChildComponents: Dictionary<Content, ComponentManager>;
     private readonly mContentAnchor: Comment;
     private readonly mContentBoundary: RawContentBoundary;
     private readonly mModules: ComponentModules;
     private readonly mRootChildList: List<Content>;
-
-    /**
-     * Get content anchor.
-     * All content of this content manager gets append after this anchor.
-     */
-    public get anchor(): Comment {
-        return this.mContentAnchor;
-    }
 
     /**
      * Get core content of builder content.
@@ -37,6 +30,14 @@ export abstract class BaseBuilderData {
     }
 
     /**
+     * Get content anchor.
+     * All content of this builder data gets append after this anchor.
+     */
+    public get contentAnchor(): Comment {
+        return this.mContentAnchor;
+    }
+
+    /**
      * Component modules of builder layer.
      */
     public get modules(): ComponentModules {
@@ -49,8 +50,11 @@ export abstract class BaseBuilderData {
      */
     public constructor(pModules: ComponentModules) {
         this.mModules = pModules;
+
+        // Init quick access buffers.
         this.mChildBuilderList = new List<BaseBuilder>();
         this.mRootChildList = new List<Content>();
+        this.mChildComponents = new Dictionary<Content, ComponentManager>();
 
         // Create anchor of content. Anchors marks the beginning of all content nodes.
         this.mContentAnchor = ElementCreator.createComment(Math.random().toString(16).substring(3).toUpperCase()); // TODO: A good way to have better anchor names.
@@ -63,49 +67,42 @@ export abstract class BaseBuilderData {
     }
 
     /**
-     * Append child element after target. // TODO: Do we need this?
-     * @param pChild - Child node.
-     * @param pTarget - Target where child gets append after. 
+     * Deconstruct builders deconstructable data and removes any content from the current document.
+     * 
+     * @remarks
+     * {@link deconstruct} can be called multiple times but does nothing on further calls.
      */
-    public after(pChild: Content, pTarget: Content): void {
-        this.insertContent(pChild, pTarget, 'After');
-    }
-
-    /**
-     * Append child element to parent.  // TODO: Do we need this?
-     * Appends to root if no parent is specified. 
-     * @param pChild - Child node.
-     * @param pParentElement - Parent element of child.
-     */
-    public append(pChild: Content, pParentElement: Element | null): void {
-        this.insertContent(pChild, pParentElement, 'Append');
-    }
-
     public deconstruct(): void {
+        // Deconstruct additional data.
+        this.onDeconstruct();
+
         // Deconstruct builder.
         for (const lBuilder of this.mChildBuilderList) {
             lBuilder.deconstruct();
         }
 
         // Deconstruct components.
-        for (const lComponent of this.mChildComponentList) {
-            // Child component has always an component manager.
-            const lComponentManager: ComponentManager = <ComponentManager>ComponentConnection.componentManagerOf(lComponent);
+        for (const lComponentManager of this.mChildComponents.values()) {
             lComponentManager.deconstruct();
         }
 
+        // Get current builder parent element. Skip deletion when it is not attached to any document.
+        const lBuilderParent: HTMLElement | null = this.contentAnchor.parentElement;
+        if(!lBuilderParent){
+            return;
+        }
+
         // Remove all content. Only remove root elements. GC makes the rest.
-        this.anchor.remove();
         for (const lRootChild of this.mRootChildList) {
-            // Only remove elements. Builder are already deconstructed.
+            // Only remove elements. Builder and componentes are already deconstructed.
             if (!(lRootChild instanceof BaseBuilder)) {
-                this.remove(lRootChild);
+                lBuilderParent.removeChild(lRootChild);
             }
         }
 
-        this.onDeconstruct();
+        // Remove self from document.
+        this.contentAnchor.remove();
     }
-
 
     /**
      * Get content start and end node.
@@ -129,17 +126,6 @@ export abstract class BaseBuilderData {
             start: lTopNode,
             end: lBottomNode
         };
-    }
-
-
-
-    /**
-     * Prepend child element to parent.  // TODO: Do we need this?
-     * Prepends to root if no parent is specified. 
-     * @param pChild - Child node.
-     */
-    public prepend(pChild: Content): void {
-        this.insertContent(pChild, null, 'Prepend');
     }
 
     /**
@@ -172,16 +158,11 @@ export abstract class BaseBuilderData {
     /**  // TODO: Please remake this. It is a abominationof code.
      * Add element to content.
      * @param pChild - The element that should be added.
+     * @param pMode - Insert mode for child.
      * @param pTarget - Parent element or target node.
-     * @param pMode - Add mode for child.
      */
-    private insertContent(pChild: Content, pTarget: Content, pMode: 'After'): void;
-    private insertContent(pChild: Content, pParent: Element | null, pMode: 'Append' | 'Prepend'): void;
-    private insertContent(pChild: Content, pTarget: Content | null, pMode: 'Append' | 'After' | 'Prepend'): void {
-        // Add to builder or component storage.
-        if (pChild instanceof BaseBuilder) {
-            this.mChildBuilderList.push(pChild);
-        }
+    private insert(pChild: Content, pMode: InserMode, pTarget?: Content): void {
+
 
         // Get anchor of child if child is a builder.
         const lRealChildNode: Node = (pChild instanceof BaseBuilder) ? pChild.anchor : pChild;
@@ -279,6 +260,11 @@ export abstract class BaseBuilderData {
      * @param pRoot - If child is an root element.
      */
     private registerContent(pChild: Content, pPreviousSibling?: Content): void {
+        // Add to builder or component storage.
+        if (pChild instanceof BaseBuilder) {
+            this.mChildBuilderList.push(pChild);
+        }
+
         // Set index to -1 of no previous sibling exists.
         const lSiblingIndex: number = (pPreviousSibling) ? this.mRootChildList.indexOf(pPreviousSibling) : -1;
 
@@ -314,7 +300,7 @@ export abstract class BaseBuilderData {
 
     /**
      * On deconstruction.
-     * Called after any builder and element of this builder was deconstructed. 
+     * Called before any builder and element of this builder was deconstructed. 
      */
     protected abstract onDeconstruct(): void;
 }
@@ -337,3 +323,8 @@ export type Boundary = {
 };
 
 export type Content = Node | BaseBuilder;
+
+/**
+ * Content insert mode.
+ */
+export type InserMode = 'Last' | 'After' | 'First';

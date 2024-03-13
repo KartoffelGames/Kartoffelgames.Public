@@ -1,5 +1,4 @@
 import { Dictionary, List } from '@kartoffelgames/core.data';
-import { ComponentConnection } from '../../component-connection';
 import { ComponentManager } from '../../component-manager';
 import { ComponentModules } from '../../component-modules';
 import { ElementCreator } from '../../element-creator';
@@ -87,16 +86,11 @@ export abstract class BaseBuilderData {
         }
 
         // Get current builder parent element. Skip deletion when it is not attached to any document.
-        const lBuilderParent: HTMLElement | null = this.contentAnchor.parentElement;
-        if(!lBuilderParent){
-            return;
-        }
-
         // Remove all content. Only remove root elements. GC makes the rest.
         for (const lRootChild of this.mRootChildList) {
             // Only remove elements. Builder and componentes are already deconstructed.
             if (!(lRootChild instanceof BaseBuilder)) {
-                lBuilderParent.removeChild(lRootChild);
+                lRootChild.remove();
             }
         }
 
@@ -129,30 +123,37 @@ export abstract class BaseBuilderData {
     }
 
     /**
-     * Remove and deconstruct content. // TODO: We can do better.
-     * @param pChild - Child element of layer.
+     * Remove and deconstruct content.
+     * Can change the content boundary when the last element of the root content list is deleted.
+     * 
+     * @remarks
+     * This method removes content even not assigned to this builder data.
+     * So be shure that it belong to it.
+     * 
+     * @param pChild - Content of builder data.
      */
     public remove(pChild: Content): void {
         if (pChild instanceof BaseBuilder) {
             // Remove from builder or component storage.
             this.mChildBuilderList.remove(pChild);
 
+            // Deconstruct builder.
             pChild.deconstruct();
         } else {
-            // Check if element is a component. If so deconstruct.
-            const lComponentManager: ComponentManager | undefined = ComponentConnection.componentManagerOf(pChild);
-            lComponentManager?.deconstruct();
+            // Get elements component manager. If it exists deconstruct it.
+            this.mChildComponents.get(pChild)?.deconstruct();
 
             // Remove from parent.
-            if (pChild.parentElement) {
-                pChild.parentElement.removeChild(pChild);
-            } else {
-                pChild.getRootNode().removeChild(pChild);
-            }
+            pChild.remove();
         }
 
-        // Remove from storages.
-        this.unregisterContent(pChild);
+        // Remove child from root list.
+        // If was in the list, recalculate boundary.
+        if (this.mRootChildList.remove(pChild)) {
+            // Update boundary end with last content of root. 
+            // When no content exists, the boundary end ist the content anchor.
+            this.mContentBoundary.end = this.mRootChildList.at(-1) ?? this.mContentAnchor;
+        }
     }
 
     /**  // TODO: Please remake this. It is a abominationof code.
@@ -162,8 +163,6 @@ export abstract class BaseBuilderData {
      * @param pTarget - Parent element or target node.
      */
     private insert(pChild: Content, pMode: InserMode, pTarget?: Content): void {
-
-
         // Get anchor of child if child is a builder.
         const lRealChildNode: Node = (pChild instanceof BaseBuilder) ? pChild.anchor : pChild;
 
@@ -278,27 +277,6 @@ export abstract class BaseBuilderData {
     }
 
     /**
-     * Removes child from all storages and shrink boundary.
-     * @param pChild - Child element.
-     */
-    private unregisterContent(pChild: Content) {
-        // Remove from root childs and shrink boundary.
-        const lChildRootIndex: number = this.mRootChildList.indexOf(pChild);
-
-        // Check for boundary shrink.
-        if ((lChildRootIndex + 1) === this.mRootChildList.length) {
-            // Check if one root child remains otherwise use anchor as end boundary.
-            if (this.mRootChildList.length > 1) {
-                this.mContentBoundary.end = this.mRootChildList[lChildRootIndex - 1];
-            } else {
-                this.mContentBoundary.end = this.mContentAnchor;
-            }
-        }
-
-        this.mRootChildList.remove(pChild);
-    }
-
-    /**
      * On deconstruction.
      * Called before any builder and element of this builder was deconstructed. 
      */
@@ -322,7 +300,7 @@ export type Boundary = {
     end: Node;
 };
 
-export type Content = Node | BaseBuilder;
+export type Content = ChildNode | BaseBuilder;
 
 /**
  * Content insert mode.

@@ -2,25 +2,24 @@ import { ChangeState, DifferenceSearch, HistoryItem } from '@kartoffelgames/web.
 import { MultiplicatorModule } from '../../module/multiplicator-module';
 import { ManipulatorElement, MultiplicatorResult } from '../../module/result/multiplicator-result';
 import { ComponentModules } from '../component-modules';
+import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node';
+import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
 import { LayerValues } from '../values/layer-values';
 import { BaseBuilder } from './base-builder';
+import { InstructionBuilderContent } from './content/instruction-builder-content';
 import { StaticBuilder } from './static-builder';
-import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
-import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
 
 // TODO: Rename multiplicator to "Instruction"
-export class MultiplicatorBuilder extends BaseBuilder {
+export class MultiplicatorBuilder extends BaseBuilder<PwbTemplateInstructionNode, InstructionBuilderContent> {
 
     /**
      * Constructor.
-     * @param pTemplate - Template.
-     * @param pShadowParent - Shadow parent html element.
+     * @param pTemplate - Instruction template.
      * @param pModules - Attribute modules.
      * @param pParentLayerValues - Layer value of parent builder.
-     * @param pParentBuilder - Parent builder.
      */
-    public constructor(pTemplate: BasePwbTemplateNode, pShadowParent: BasePwbTemplateNode, pModules: ComponentModules, pParentLayerValues: LayerValues, pParentBuilder: BaseBuilder) {
-        super(pTemplate, pShadowParent, pModules, pParentLayerValues, pParentBuilder);
+    public constructor(pTemplate: PwbTemplateInstructionNode, pModules: ComponentModules, pParentLayerValues: LayerValues,) {
+        super(pTemplate, pParentLayerValues, new InstructionBuilderContent(pModules));
     }
 
     /**

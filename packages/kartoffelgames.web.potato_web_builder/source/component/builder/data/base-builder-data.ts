@@ -188,7 +188,7 @@ export abstract class BaseBuilderData {
 
         // Get real parent element. 
         let lRealParent: Element | ShadowRoot;
-        if (pMode === 'Append' || pMode === 'Prepend') {
+        if (pMode === 'Last' || pMode === 'First') {
             lRealParent = <Element>pTarget;
             if (!lRealParent) {
                 // Parent is null, because element should be append to builder root.
@@ -210,7 +210,7 @@ export abstract class BaseBuilderData {
 
         // Get node the child gets insert AFTER.
         let lRealTarget: Node | null;
-        if (pMode === 'Append') {
+        if (pMode === 'Last') {
             const lParent: Element | null = <Element | null>pTarget;
             // Last element of parent.
             if (lParent) {
@@ -221,7 +221,7 @@ export abstract class BaseBuilderData {
                 // "Parent" is this builder. Get last element boundary.
                 lRealTarget = this.getBoundary().end;
             }
-        } else if (pMode === 'Prepend') {
+        } else if (pMode === 'First') {
             // When parent is set, parent is an element, therefore there is no target before the first element.
             /* istanbul ignore if */
             if (pTarget) {
@@ -240,10 +240,10 @@ export abstract class BaseBuilderData {
         // Get previous sibling content only if added on root.
         let lTargetContent: Content | null = null;
         if (lIsRoot) {
-            if (pMode === 'Prepend') {
+            if (pMode === 'First') {
                 // Sibling before first element => null.
                 lTargetContent = null;
-            } else if (pMode === 'Append') {
+            } else if (pMode === 'Last') {
                 // Last content of builder.
                 lTargetContent = this.mRootChildList[this.mRootChildList.length - 1];
             } else { // pMode === "After"

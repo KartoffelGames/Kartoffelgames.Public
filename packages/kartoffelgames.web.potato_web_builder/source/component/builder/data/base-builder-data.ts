@@ -9,8 +9,10 @@ export abstract class BaseBuilderData {
     private readonly mChildComponents: Dictionary<Content, ComponentManager>;
     private readonly mContentAnchor: Comment;
     private readonly mContentBoundary: RawContentBoundary;
+    private readonly mLinkedContent: WeakSet<Content>;
     private readonly mModules: ComponentModules;
     private readonly mRootChildList: List<Content>;
+
 
     /**
      * Get core content of builder content.
@@ -54,6 +56,7 @@ export abstract class BaseBuilderData {
         this.mChildBuilderList = new List<BaseBuilder>();
         this.mRootChildList = new List<Content>();
         this.mChildComponents = new Dictionary<Content, ComponentManager>();
+        this.mLinkedContent = new WeakSet<Content>();
 
         // Create anchor of content. Anchors marks the beginning of all content nodes.
         this.mContentAnchor = ElementCreator.createComment(Math.random().toString(16).substring(3).toUpperCase()); // TODO: A good way to have better anchor names.
@@ -126,13 +129,18 @@ export abstract class BaseBuilderData {
      * Remove and deconstruct content.
      * Can change the content boundary when the last element of the root content list is deleted.
      * 
-     * @remarks
-     * This method removes content even not assigned to this builder data.
-     * So be shure that it belong to it.
-     * 
      * @param pChild - Content of builder data.
      */
     public remove(pChild: Content): void {
+        // Validate if child is linked to this builder data.
+        if (!this.mLinkedContent.has(pChild)) {
+            return;
+        }
+
+        // Remove content link.
+        this.mLinkedContent.delete(pChild);
+
+        // Different removing strategies for builder and node content.
         if (pChild instanceof BaseBuilder) {
             // Remove from builder or component storage.
             this.mChildBuilderList.remove(pChild);
@@ -141,7 +149,14 @@ export abstract class BaseBuilderData {
             pChild.deconstruct();
         } else {
             // Get elements component manager. If it exists deconstruct it.
-            this.mChildComponents.get(pChild)?.deconstruct();
+            const lComponentManager: ComponentManager | undefined = this.mChildComponents.get(pChild);
+            if (lComponentManager) {
+                // Trigger component deconstruction.
+                lComponentManager.deconstruct();
+
+                // Remove content from child components.
+                this.mChildComponents.delete(pChild);
+            }
 
             // Remove from parent.
             pChild.remove();
@@ -163,6 +178,9 @@ export abstract class BaseBuilderData {
      * @param pTarget - Parent element or target node.
      */
     private insert(pChild: Content, pMode: InserMode, pTarget?: Content): void {
+        // TODO: PLaceholder link, so i dont forget it. HEHE
+        this.mLinkedContent.add(pChild);
+
         // Get anchor of child if child is a builder.
         const lRealChildNode: Node = (pChild instanceof BaseBuilder) ? pChild.anchor : pChild;
 

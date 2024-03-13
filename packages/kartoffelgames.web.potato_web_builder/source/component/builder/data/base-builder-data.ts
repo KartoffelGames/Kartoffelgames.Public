@@ -1,4 +1,4 @@
-import { Dictionary, List } from '@kartoffelgames/core.data';
+import { Dictionary, Exception, List } from '@kartoffelgames/core.data';
 import { ComponentManager } from '../../component-manager';
 import { ComponentModules } from '../../component-modules';
 import { ElementCreator } from '../../element-creator';
@@ -99,6 +99,8 @@ export abstract class BaseBuilderData {
 
         // Remove self from document.
         this.contentAnchor.remove();
+
+        // TODO: Clear lists.
     }
 
     /**
@@ -134,7 +136,7 @@ export abstract class BaseBuilderData {
     public remove(pChild: Content): void {
         // Validate if child is linked to this builder data.
         if (!this.mLinkedContent.has(pChild)) {
-            return;
+            throw new Exception('Child node cant be deleted from builder when it not a child of them', this);
         }
 
         // Remove content link.

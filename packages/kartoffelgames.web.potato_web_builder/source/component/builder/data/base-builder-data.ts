@@ -78,8 +78,9 @@ export abstract class BaseBuilderData {
         // Deconstruct additional data.
         this.onDeconstruct();
 
-        // Deconstruct builder.
-        for (const lBuilder of this.mChildBuilderList) {
+        // Deconstruct builder while clearing list.
+        let lBuilder: BaseBuilder | undefined;
+        while ((lBuilder = this.mChildBuilderList.pop())) {
             lBuilder.deconstruct();
         }
 
@@ -87,10 +88,12 @@ export abstract class BaseBuilderData {
         for (const lComponentManager of this.mChildComponents.values()) {
             lComponentManager.deconstruct();
         }
+        this.mChildComponents.clear();
 
         // Get current builder parent element. Skip deletion when it is not attached to any document.
         // Remove all content. Only remove root elements. GC makes the rest.
-        for (const lRootChild of this.mRootChildList) {
+        let lRootChild: Content | undefined;
+        while ((lRootChild = this.mRootChildList.pop())) {
             // Only remove elements. Builder and componentes are already deconstructed.
             if (!(lRootChild instanceof BaseBuilder)) {
                 lRootChild.remove();
@@ -99,8 +102,6 @@ export abstract class BaseBuilderData {
 
         // Remove self from document.
         this.contentAnchor.remove();
-
-        // TODO: Clear lists.
     }
 
     /**

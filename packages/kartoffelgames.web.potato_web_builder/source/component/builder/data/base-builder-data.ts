@@ -13,7 +13,6 @@ export abstract class BaseBuilderData {
     private readonly mModules: ComponentModules;
     private readonly mRootChildList: List<Content>;
 
-
     /**
      * Get core content of builder content.
      * Elements are returned in DOM order.
@@ -129,63 +128,135 @@ export abstract class BaseBuilderData {
     }
 
     /**
+     * Add element to content by mode.
+     * Can't add {@link pSource} to any {@link pTarget} that is not a content of the builder.
+     * 
+     * @param pSource - The element that should be added.
+     * @param pMode - Insert mode for child.
+     * @param pTarget - Parent element or target node.
+     * 
+     * @throws {@link Exception}
+     * When {@link pTarget} is not a direct content of this builder. Even when pTarget is a content of a nested builder.
+     */
+    public insert(pSource: Content, pMode: InserMode, pTarget: Content): void {
+        // Validate if target is part of builder.
+        if (!this.mLinkedContent.has(pTarget)) {
+            throw new Exception(`Can't add content to builder. Target is not part of builder.`, this);
+        }
+
+        // Get anchor of source if it is a builder.
+        const lSourceNode: Node = (pSource instanceof BaseBuilder) ? pSource.anchor : pSource;
+
+        // Attach source based on mode.
+        switch (pMode) {
+            case 'After': {
+                this.insertAfter(lSourceNode, pTarget);
+                break;
+            }
+            case 'First': {
+                this.insertFirst(lSourceNode, pTarget);
+                break;
+            }
+            case 'Last': {
+                this.insertLast(lSourceNode, pTarget);
+                break;
+            }
+        }
+
+        // Link content to this builder.
+        this.mLinkedContent.add(pSource);
+
+        // Add to builder or component storage.
+        if (pSource instanceof BaseBuilder) {
+            this.mChildBuilderList.push(pSource);
+        }
+
+        // Read new parent of source node and current builder.
+        const lSourceParentNode: Element | ShadowRoot = lSourceNode.parentElement ?? <ShadowRoot>lSourceNode.getRootNode();
+        const lBuilderParentNode: Element | ShadowRoot = this.mContentAnchor.parentElement ?? <ShadowRoot>this.mContentAnchor.getRootNode();
+
+        // If parent of source node is the same as parent of builder, it is allways in root.
+        if (lSourceParentNode === lBuilderParentNode) {
+            // "Calculate" new position index in root child list.
+            let lIndexInRootList: number;
+            switch (pMode) {
+                case 'After': {
+                    lIndexInRootList = this.mRootChildList.indexOf(pTarget) + 1;
+                    break;
+                }
+                case 'First': {
+                    lIndexInRootList = 0;
+                    break;
+                }
+                case 'Last': {
+                    lIndexInRootList = this.mRootChildList.length;
+                    break;
+                }
+            }
+
+            // Extend boundary if child is new last element.
+            if (lIndexInRootList === this.mRootChildList.length) {
+                this.mContentBoundary.end = pSource;
+            }
+
+            // Add root child after previous sibling.
+            this.mRootChildList.splice(lIndexInRootList + 1, 0, pSource);
+        }
+    }
+
+    /**
      * Remove and deconstruct content.
      * Can change the content boundary when the last element of the root content list is deleted.
      * 
-     * @param pChild - Content of builder data.
+     * @param pContent - Content of builder data.
+     * 
+     * @throws {@link Exception}
+     * When {@link pContent} is not a direct content of this builder. Even when pTarget is a content of a nested builder.
      */
-    public remove(pChild: Content): void {
+    public remove(pContent: Content): void {
         // Validate if child is linked to this builder data.
-        if (!this.mLinkedContent.has(pChild)) {
+        if (!this.mLinkedContent.has(pContent)) {
             throw new Exception('Child node cant be deleted from builder when it not a child of them', this);
         }
 
         // Remove content link.
-        this.mLinkedContent.delete(pChild);
+        this.mLinkedContent.delete(pContent);
 
         // Different removing strategies for builder and node content.
-        if (pChild instanceof BaseBuilder) {
+        if (pContent instanceof BaseBuilder) {
             // Remove from builder or component storage.
-            this.mChildBuilderList.remove(pChild);
+            this.mChildBuilderList.remove(pContent);
 
             // Deconstruct builder.
-            pChild.deconstruct();
+            pContent.deconstruct();
         } else {
             // Get elements component manager. If it exists deconstruct it.
-            const lComponentManager: ComponentManager | undefined = this.mChildComponents.get(pChild);
+            const lComponentManager: ComponentManager | undefined = this.mChildComponents.get(pContent);
             if (lComponentManager) {
                 // Trigger component deconstruction.
                 lComponentManager.deconstruct();
 
                 // Remove content from child components.
-                this.mChildComponents.delete(pChild);
+                this.mChildComponents.delete(pContent);
             }
 
             // Remove from parent.
-            pChild.remove();
+            pContent.remove();
         }
 
         // Remove child from root list.
         // If was in the list, recalculate boundary.
-        if (this.mRootChildList.remove(pChild)) {
+        if (this.mRootChildList.remove(pContent)) {
             // Update boundary end with last content of root. 
             // When no content exists, the boundary end ist the content anchor.
             this.mContentBoundary.end = this.mRootChildList.at(-1) ?? this.mContentAnchor;
         }
     }
 
-    /**  // TODO: Please remake this. It is a abominationof code.
-     * Add element to content.
-     * @param pChild - The element that should be added.
-     * @param pMode - Insert mode for child.
-     * @param pTarget - Parent element or target node.
-     */
-    private insert(pChild: Content, pMode: InserMode, pTarget?: Content): void {
-        // TODO: PLaceholder link, so i dont forget it. HEHE
-        this.mLinkedContent.add(pChild);
+    private insertAfter(pSourceNode: Node, pTarget: Content) {
+        // TODO: Get real target node. Get bounds for builder target.
+        // Attach after target node.
 
-        // Get anchor of child if child is a builder.
-        const lRealChildNode: Node = (pChild instanceof BaseBuilder) ? pChild.anchor : pChild;
 
         // Get real parent element. 
         let lRealParent: Element | ShadowRoot;
@@ -257,44 +328,21 @@ export abstract class BaseBuilderData {
             // When there is a target. Get next sibling and append element after that sibling.
             // Like: parent.insertAfter(child, target);
             // If nextSibling is null, insertBefore is called as appendChild(child).
-            lRealParent.insertBefore(lRealChildNode, lRealTarget.nextSibling);
+            lRealParent.insertBefore(lSourceNode, lRealTarget.nextSibling);
         } else {
             // No target means prepend to parent. Parent is allways an element and never a builder.
-            lRealParent.prepend(lRealChildNode);
-        }
-
-        // Register content.
-        if (lIsRoot) {
-            if (lTargetContent !== null) {
-                this.registerContent(pChild, lTargetContent);
-            } else {
-                this.registerContent(pChild);
-            }
+            lRealParent.prepend(lSourceNode);
         }
     }
 
-    /**
-     * Saves element into child storage or root storage.
-     * Extends boundary.
-     * @param pChild - Child element.
-     * @param pRoot - If child is an root element.
-     */
-    private registerContent(pChild: Content, pPreviousSibling?: Content): void {
-        // Add to builder or component storage.
-        if (pChild instanceof BaseBuilder) {
-            this.mChildBuilderList.push(pChild);
-        }
+    private insertFirst(pSourceNode: Node, pTarget: Content) {
+        // TODO: If target is builder. Get anchor and call insertAfter with anchor as target.
+        // TODO: If target is a node, prepend.
+    }
 
-        // Set index to -1 of no previous sibling exists.
-        const lSiblingIndex: number = (pPreviousSibling) ? this.mRootChildList.indexOf(pPreviousSibling) : -1;
-
-        // Extend boundary if child is new last element.
-        if ((lSiblingIndex + 1) === this.mRootChildList.length) {
-            this.mContentBoundary.end = pChild;
-        }
-
-        // Add root child after previous sibling.
-        this.mRootChildList.splice(lSiblingIndex + 1, 0, pChild);
+    private insertLast(pSourceNode: Node, pTarget: Content) {
+        // TODO: If target is builder. Get calculated bound.end and call insertAfter with end node as target
+        // TODO: If target is a node, append.
     }
 
     /**

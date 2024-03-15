@@ -1,8 +1,7 @@
 
 import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
 import { LayerValues } from '../values/layer-values';
-import { BaseBuilderData } from './data/base-builder-data';
-import { Boundary } from './data/static-builder-data';
+import { BaseBuilderData, Boundary } from './data/base-builder-data';
 
 /**
  * Builder that builds and updates content of component.

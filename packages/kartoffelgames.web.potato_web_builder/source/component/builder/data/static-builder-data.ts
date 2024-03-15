@@ -1,23 +1,17 @@
-import { Dictionary } from '@kartoffelgames/core.data';
 import { BaseModule } from '../../../module/base-module';
 import { ExpressionModule } from '../../../module/expression-module';
 import { StaticModule } from '../../../module/static-module';
 import { ComponentModules } from '../../component-modules';
-import { BaseBuilder } from '../base-builder';
 import { BaseBuilderData } from './base-builder-data';
 
 export class StaticBuilderData extends BaseBuilderData {
-    private readonly mLinkedModules: Dictionary<Node, Array<BaseModule<boolean, any>>>;
+    private readonly mLinkedModuleList: Array<BaseModule<boolean, any>>;
 
     /**
      * Get all linked module lists.
      */
     public get linkedModuleList(): Array<BaseModule<boolean, any>> {
-        const lAllModuleList: Array<BaseModule<boolean, any>> = new Array<BaseModule<boolean, any>>();
-        for (const lNodeModuleList of this.mLinkedModules.values()) {
-            lAllModuleList.push(...lNodeModuleList);
-        }
-        return lAllModuleList;
+        return [...this.mLinkedModuleList];
     }
 
     /**
@@ -26,24 +20,18 @@ export class StaticBuilderData extends BaseBuilderData {
     public constructor(pModules: ComponentModules) {
         super(pModules);
 
-        this.mLinkedModules = new Dictionary<Node, Array<BaseModule<boolean, any>>>();
+        this.mLinkedModuleList = new Array<BaseModule<boolean, any>>();
     }
 
     /**
-     * Link module to node.
+     * Link static module to builder.
+     * Linked modules get updated in data access order on every update.
+     * 
      * @param pModule - Module.
-     * @param pNode - Build node.
      */
-    public linkModule(pModule: StaticModule | ExpressionModule, pNode: Node): void {
-        // Get module list of node. Create if it not exists.
-        let lModuleList: Array<BaseModule<boolean, any>> | undefined = this.mLinkedModules.get(pNode);
-        if (!lModuleList) {
-            lModuleList = new Array<BaseModule<boolean, any>>();
-            this.mLinkedModules.set(pNode, lModuleList);
-        }
-
+    public linkModule(pModule: StaticModule | ExpressionModule): void {
         // Add module as linked module to node module list.
-        lModuleList.push(pModule);
+        this.mLinkedModuleList.push(pModule);
     }
 
     /**
@@ -52,19 +40,8 @@ export class StaticBuilderData extends BaseBuilderData {
      */
     protected onDeconstruct(): void {
         // Deconstruct linked modules.
-        for (const lModule of this.linkedModuleList) {
+        for (const lModule of this.mLinkedModuleList) {
             lModule.deconstruct();
         }
     }
 }
-
-export type Boundary = {
-    start: Node;
-    end: Node;
-};
-
-export type BoundaryDescription = {
-    start: Node | BaseBuilder;
-    end: Node | BaseBuilder;
-};
-

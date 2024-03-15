@@ -25,7 +25,7 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
      * Get boundary of builder. Top and bottom element of builder.
      */
     public get boundary(): Boundary {
-        return this.mContent.getBoundary(); // TODO: Validate if boundary needs to be exposed or can be precalculated.
+        return this.mContent.getBoundary();
     }
 
     /**

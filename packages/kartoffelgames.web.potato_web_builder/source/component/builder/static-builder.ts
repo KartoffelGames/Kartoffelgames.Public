@@ -1,4 +1,3 @@
-import { BaseModule } from '../../module/base-module';
 import { ExpressionModule } from '../../module/expression-module';
 import { StaticModule } from '../../module/static-module';
 import { ComponentModules } from '../component-modules';
@@ -8,9 +7,9 @@ import { PwbTemplate } from '../template/nodes/pwb-template';
 import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node';
 import { PwbTemplateTextNode } from '../template/nodes/pwb-template-text-node';
 import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
-import { PwbTemplateExpression } from '../template/nodes/values/pwb-template-expression';
 import { LayerValues } from '../values/layer-values';
 import { BaseBuilder } from './base-builder';
+import { BuilderContent } from './data/base-builder-data';
 import { StaticBuilderData } from './data/static-builder-data';
 import { MultiplicatorBuilder } from './multiplicator-builder';
 
@@ -19,6 +18,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
 
     /**
      * Constructor.
+     * 
      * @param pTemplate - Template.
      * @param pModules - Attribute modules.
      * @param pParentLayerValues - Layer value of parent builder.
@@ -37,40 +37,32 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
         // One time build of template. Statics doesn't change that much...
         if (!this.mInitialized) {
             this.mInitialized = true;
-            this.buildTemplate([this.template]);
+            this.buildTemplate([this.template], this);
         }
 
-        // Get all modules. // TODO: Expressions are no modules.
-        const lModuleList: Array<BaseModule<any, boolean>> = this.content.linkedModuleList;
+        // Get all modules. // TODO: Cache order of linked modules in this.content.
+        const lModuleList: Array<StaticModule> = this.content.linkedStaticModules;
 
         // Sort by write->readwrite->read->expression and update.
         lModuleList.sort((pModuleA, pModuleB): number => {
             // "Calculate" execution priority of module A.
             let lCompareValueA: number;
-            if (pModuleA instanceof StaticModule) {
-                if (pModuleA.isWriting && !pModuleA.isReading) {
-                    lCompareValueA = 4;
-                } else if (pModuleA.isWriting && pModuleA.isReading) {
-                    lCompareValueA = 3;
-                } else { // if (!pModuleA.isWriting && pModuleA.isReading) {
-                    lCompareValueA = 2;
-                }
-            } else { // Expression
-                lCompareValueA = 1;
+            if (pModuleA.isWriting && !pModuleA.isReading) {
+                lCompareValueA = 4;
+            } else if (pModuleA.isWriting && pModuleA.isReading) {
+                lCompareValueA = 3;
+            } else { // if (!pModuleA.isWriting && pModuleA.isReading) {
+                lCompareValueA = 2;
             }
 
             // "Calculate" execution priority of module A.
             let lCompareValueB: number;
-            if (pModuleB instanceof StaticModule) {
-                if (pModuleB.isWriting && !pModuleB.isReading) {
-                    lCompareValueB = 4;
-                } else if (pModuleB.isWriting && pModuleB.isReading) {
-                    lCompareValueB = 3;
-                } else { // if (!pModuleB.isWriting && pModuleB.isReading) 
-                    lCompareValueB = 2;
-                }
-            } else {
-                lCompareValueB = 1;
+            if (pModuleB.isWriting && !pModuleB.isReading) {
+                lCompareValueB = 4;
+            } else if (pModuleB.isWriting && pModuleB.isReading) {
+                lCompareValueB = 3;
+            } else { // if (!pModuleB.isWriting && pModuleB.isReading) 
+                lCompareValueB = 2;
             }
 
             return lCompareValueA - lCompareValueB;
@@ -81,114 +73,96 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
             lUpdated = lModule.update() || lUpdated;
         }
 
-        // TODO: Update expressions after.
+        // Update expressions after.
+        for (const lExpressionModule of this.content.linkedExpressionModules) {
+            lUpdated = lExpressionModule.update() || lUpdated;
+        }
 
         return lUpdated;
     }
 
     /**
-     * Build expression template and append to parent.
-     * @param pExpressionTemplate - Expression template.
-     * @param pParentHtmlElement - Build parent element of template. 
-     */
-    private buildExpressionTemplate(pExpressionTemplate: PwbTemplateExpression, pParentHtmlElement: Element | null): void {
-        // Create and process expression module, append text node to content.
-        const lHtmlNode: Text = ElementCreator.createText('');
-
-        // Create temporary text node. // TODO: Real please.
-        const lTemporaryTextNode: PwbTemplateTextNode = new PwbTemplateTextNode();
-        lTemporaryTextNode.text = `{{${pExpressionTemplate.value}}}`;
-
-        // Create and link expression module, link only if text has any expression.
-        const lExpressionModule: ExpressionModule = this.content.modules.getTextExpressionModule(lTemporaryTextNode, lHtmlNode, this.values);
-        this.content.linkModule(lExpressionModule, lHtmlNode);
-
-        // Append text to parent.
-        this.content.append(lHtmlNode, pParentHtmlElement);
-    }
-
-    /**
-     * Build template with multiplicator module.
-     * Creates a new multiplicator builder and append to content.
+     * Build template with instruction module.
+     * Creates a new instruction builder and append to content.
+     * 
      * @param pMultiplicatorTemplate - Template with multiplicator module.
-     * @param pParentHtmlElement - Build parent element of template.
-     * @param pShadowParent - Parent template element that is loosly linked as parent.
+     * @param pParentContent - Parent content of instruction template.
      */
-    private buildMultiplicatorTemplate(pMultiplicatorTemplate: PwbTemplateXmlNode, pParentHtmlElement: Element | null, pShadowParent: BasePwbTemplateNode): void {
-        // Create new component builder and add to content.
-        const lMultiplicatorBuilder: MultiplicatorBuilder = new MultiplicatorBuilder(pMultiplicatorTemplate, pShadowParent, this.content.modules, this.values, this);
-        this.content.append(lMultiplicatorBuilder, pParentHtmlElement);
+    private buildInstructionTemplate(pMultiplicatorTemplate: PwbTemplateInstructionNode, pParentContent: BuilderContent): void {
+        // Create new instruction builder and add to bottom of parent content.
+        const lInstructionBuilder: MultiplicatorBuilder = new MultiplicatorBuilder(pMultiplicatorTemplate, this.content.modules, this.values);
+        this.content.insert(lInstructionBuilder, 'BottomOf', pParentContent);
     }
 
     /**
      * Build static template.
      * Create and link all modules.
      * @param pElementTemplate - Element template.
-     * @param pParentHtmlElement - Parent of template.
+     * @param pParentContent - Parent of template.
      */
-    private buildStaticTemplate(pElementTemplate: PwbTemplateXmlNode, pParentHtmlElement: Element | null): void {
+    private buildStaticTemplate(pElementTemplate: PwbTemplateXmlNode, pParentContent: BuilderContent): void {
         // Build element.
         const lHtmlNode: Element = ElementCreator.createElement(pElementTemplate);
 
         // Every attribute is a module. Even text attributes without any any expression.
         for (const lModule of this.content.modules.getElementStaticModules(pElementTemplate, lHtmlNode, this.values)) {
             // Link modules.
-            this.content.linkModule(lModule, lHtmlNode);
+            this.content.linkStaticModule(lModule, lHtmlNode);
         }
 
         // Append element to parent.
-        this.content.append(lHtmlNode, pParentHtmlElement);
+        this.content.append(lHtmlNode, pParentContent);
 
         // Build childs.
         this.buildTemplate(pElementTemplate.childList, lHtmlNode);
     }
 
     /**
-     * Build template. Creates and link modules.
+     * Build template. Create and link modules.
+     * 
      * @param pTemplateNodeList - Template node list.
-     * @param pParentElement - Parent element of templates.
+     * @param pParentContent - Parent element of templates.
      */
-    private buildTemplate(pTemplateNodeList: Array<BasePwbTemplateNode>, pParentElement: Element | null = null): void {
-
-        // Create each template.
+    private buildTemplate(pTemplateNodeList: Array<BasePwbTemplateNode>, pParentContent: BuilderContent): void {
+        // Create each template based on template node type.
         for (const lTemplateNode of pTemplateNodeList) {
-            /* istanbul ignore else */
             if (lTemplateNode instanceof PwbTemplate) {
                 // Ignore documents just process body.
-                this.buildTemplate(lTemplateNode.body, pParentElement);
+                this.buildTemplate(lTemplateNode.body, pParentContent);
             } else if (lTemplateNode instanceof PwbTemplateTextNode) {
-                this.buildTextTemplate(lTemplateNode, pParentElement);
-            } else if (lTemplateNode instanceof PwbTemplateExpression) {
-                this.buildExpressionTemplate(lTemplateNode, pParentElement);
+                this.buildTextTemplate(lTemplateNode, pParentContent);
+            } else if (lTemplateNode instanceof PwbTemplateInstructionNode) {
+                this.buildInstructionTemplate(lTemplateNode, pParentContent);
             } else if (lTemplateNode instanceof PwbTemplateXmlNode) {
-                // Differentiate between static and multiplicator templates.
-                const lMultiplicatorAttribute: PwbTemplateAttribute | undefined = this.content.modules.getMultiplicatorAttribute(lTemplateNode);
-                if (lMultiplicatorAttribute) {
-                    this.buildMultiplicatorTemplate(lTemplateNode, pParentElement, lShadowParent);
-                } else {
-                    this.buildStaticTemplate(lTemplateNode, pParentElement);
-                }
+                this.buildStaticTemplate(lTemplateNode, pParentContent);
             }
-
-            // Ignore comments.
         }
     }
 
     /**
-     * Build text template and append to parent.
+     * Build text template and append every value to parent.
+     * Creates and links expression modules for every expression value.
+     * 
      * @param pTextTemplate - Text template.
-     * @param pParentHtmlElement - Build parent element of template. 
+     * @param pParentContent - Build parent content of template. 
      */
-    private buildTextTemplate(pTextTemplate: PwbTemplateTextNode, pParentHtmlElement: Element | null): void {
-        // Create and process expression module, append text node to content.
-        const lHtmlNode: Text = ElementCreator.createText('');
+    private buildTextTemplate(pTextTemplate: PwbTemplateTextNode, pParentContent: BuilderContent): void {
+        // Create values of text nodes.
+        for (const lValue of pTextTemplate.values) {
+            // Create simple and static textnode for string values.
+            if (typeof lValue === 'string') {
+                this.content.insert(ElementCreator.createText(lValue), 'BottomOf', pParentContent);
+                continue;
+            }
 
-        // Create and link expression module, link only if text has any expression.
-        const lExpressionModule: ExpressionModule = this.content.modules.getTextExpressionModule(pTextTemplate, lHtmlNode, this.values);
-        this.content.linkModule(lExpressionModule, lHtmlNode);
+            // Placeholder text node for expression and append it to builder.
+            const lExpressionTextNode: Text = ElementCreator.createText('');
+            this.content.insert(lExpressionTextNode, 'BottomOf', pParentContent);
 
-        // Append text to parent.
-        this.content.append(lHtmlNode, pParentHtmlElement);
+            // Create expression module and link it to builder.
+            const lExpressionModule: ExpressionModule = this.content.modules.createExpressionModule(lValue, lExpressionTextNode, this.values);
+            this.content.linkExpressionModule(lExpressionModule);
+        }
     }
 }
 

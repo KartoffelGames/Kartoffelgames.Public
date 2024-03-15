@@ -1,23 +1,23 @@
-import { ExpressionModule } from '../module/expression-module';
-import { MultiplicatorModule } from '../module/multiplicator-module';
-import { StaticModule } from '../module/static-module';
 import { MustacheExpressionModule } from '../default/mustache_expression/mustache-expression-module';
 import { ModuleType } from '../module/enum/module-type';
+import { ExpressionModule } from '../module/expression-module';
 import { IPwbExpressionModuleClass, IPwbMultiplicatorModuleClass, IPwbStaticModuleClass, ModuleDefinition } from '../module/interface/module';
 import { Modules } from '../module/modules';
+import { MultiplicatorModule } from '../module/multiplicator-module';
+import { StaticModule } from '../module/static-module';
 import { ComponentManager } from './component-manager';
 import { LayerValues } from './values/layer-values';
 
 // Import default modules
 import '../default/component-event/component-event-attribute-module';
-import '../default/pwb_for_of/for-of-manipulator-attribute-module';
-import '../default/pwb_child/pwb-child-attribute-module';
-import '../default/pwb_if/if-manipulator-attribute-module';
 import '../default/one_way_binding/one-way-binding-attribute-module';
+import '../default/pwb_child/pwb-child-attribute-module';
+import '../default/pwb_for_of/for-of-manipulator-attribute-module';
+import '../default/pwb_if/if-manipulator-attribute-module';
 import '../default/slot_attribute/slot-attribute-module';
 import '../default/two_way_binding/two-way-binding-attribute-module';
 import { PwbTemplateAttribute, PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
-import { PwbTemplateTextNode } from './template/nodes/pwb-template-text-node';
+import { PwbTemplateExpression } from './template/nodes/values/pwb-template-expression';
 
 export class ComponentModules {
     private readonly mComponentManager: ComponentManager;
@@ -32,6 +32,25 @@ export class ComponentModules {
         // Get expression module.
         this.mExpressionModule = pExpressionModule ?? <IPwbExpressionModuleClass><any>MustacheExpressionModule;
         this.mComponentManager = pComponentManager;
+    }
+
+    /**
+     * Check if template uses any manipulator modules.
+     * @param pTemplate - Text node template.
+     * @param pTextNode - Build text node.
+     * @param pValues - Values of current layer.
+     */
+    public createExpressionModule(pTemplate: PwbTemplateExpression, pTextNode: Text, pValues: LayerValues): ExpressionModule {
+        const lModule: ExpressionModule = new ExpressionModule({
+            moduleDefinition: <ModuleDefinition>Modules.getModuleDefinition(this.mExpressionModule),
+            moduleClass: this.mExpressionModule,
+            targetTemplate: pTemplate,
+            values: pValues,
+            componentManager: this.mComponentManager,
+            targetNode: pTextNode
+        });
+
+        return lModule;
     }
 
     /**
@@ -137,24 +156,5 @@ export class ComponentModules {
         }
 
         return undefined;
-    }
-
-    /**
-     * Check if template uses any manipulator modules.
-     * @param pTemplate - Text node template.
-     * @param pTextNode - Build text node.
-     * @param pValues - Values of current layer.
-     */
-    public getTextExpressionModule(pTemplate: PwbTemplateTextNode, pTextNode: Text, pValues: LayerValues): ExpressionModule {
-        const lModule: ExpressionModule = new ExpressionModule({
-            moduleDefinition: <ModuleDefinition>Modules.getModuleDefinition(this.mExpressionModule),
-            moduleClass: this.mExpressionModule,
-            targetTemplate: pTemplate,
-            values: pValues,
-            componentManager: this.mComponentManager,
-            targetNode: pTextNode
-        });
-
-        return lModule;
     }
 }

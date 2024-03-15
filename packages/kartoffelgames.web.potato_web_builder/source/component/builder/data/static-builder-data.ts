@@ -10,14 +10,14 @@ export class StaticBuilderData extends BaseBuilderData {
     /**
      * Get all linked expression modules.
      */
-    public get linkedExpressionModuleList(): Array<ExpressionModule> {
+    public get linkedExpressionModules(): Array<ExpressionModule> {
         return [...this.mLinkedExpressionModuleList];
     }
 
     /**
      * Get all linked static modules.
      */
-    public get linkedStaticModuleList(): Array<StaticModule> {
+    public get linkedStaticModules(): Array<StaticModule> {
         return [...this.mLinkedStaticModuleList];
     }
 

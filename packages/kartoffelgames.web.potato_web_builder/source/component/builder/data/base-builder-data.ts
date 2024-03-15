@@ -145,7 +145,7 @@ export abstract class BaseBuilderData {
         }
 
         // Get anchor of source if it is a builder.
-        const lSourceNode: Node = (pSource instanceof BaseBuilder) ? pSource.anchor : pSource;
+        const lSourceNode: ChildNode = (pSource instanceof BaseBuilder) ? pSource.anchor : pSource;
 
         // Attach source based on mode.
         switch (pMode) {
@@ -253,96 +253,83 @@ export abstract class BaseBuilderData {
         }
     }
 
-    private insertAfter(pSourceNode: Node, pTarget: Content) {
-        // TODO: Get real target node. Get bounds for builder target.
-        // Attach after target node.
-
-
-        // Get real parent element. 
-        let lRealParent: Element | ShadowRoot;
-        if (pMode === 'Last' || pMode === 'First') {
-            lRealParent = <Element>pTarget;
-            if (!lRealParent) {
-                // Parent is null, because element should be append to builder root.
-                // Builder parent is builder anchor parent. If anchor parent is null, builder parent is the component shadow root.
-                lRealParent = this.mContentAnchor.parentElement ?? <ShadowRoot>this.mContentAnchor.getRootNode();
-            }
-        } else { // pMode === 'After'
-            // Native elements currently not used. But good to have.
-            /* istanbul ignore next */
-            lRealParent = (pTarget instanceof BaseBuilder) ? <Element>pTarget.anchor.parentElement : <Element>(<Node>pTarget).parentElement;
-
-            // Parent is null, because direct parent is the component shadow root.
-            // When parent element is null "this.mContentAnchor.parentElement" is also null. So this check would be unnessessary. 
-            lRealParent = lRealParent ?? <ShadowRoot>this.mContentAnchor.getRootNode();
-        }
-
-        // If child gets append to builder root. Is is root if real parent is this builders parent element or component shadow root.
-        const lIsRoot: boolean = (lRealParent === this.mContentAnchor.parentElement || lRealParent === this.mContentAnchor.getRootNode());
-
-        // Get node the child gets insert AFTER.
-        let lRealTarget: Node | null;
-        if (pMode === 'Last') {
-            const lParent: Element | null = <Element | null>pTarget;
-            // Last element of parent.
-            if (lParent) {
-                // Parent is element. Get last child of element.
-                const lParentChildNodes: NodeListOf<ChildNode> = lParent.childNodes;
-                lRealTarget = lParentChildNodes[lParentChildNodes.length - 1];
-            } else {
-                // "Parent" is this builder. Get last element boundary.
-                lRealTarget = this.getBoundary().end;
-            }
-        } else if (pMode === 'First') {
-            // When parent is set, parent is an element, therefore there is no target before the first element.
-            /* istanbul ignore if */
-            if (pTarget) {
-                // Not used but good to have.
-                lRealTarget = null;
-            } else {
-                // "Parent" is this builder. Get first element, that is always this builders anchor.
-                lRealTarget = this.getBoundary().start;
-            }
-        } else { // pMode === "After"
-            // Native elements currently not used. But good to have.
-            /* istanbul ignore next */
-            lRealTarget = (pTarget instanceof BaseBuilder) ? pTarget.boundary.end : pTarget;
-        }
-
-        // Get previous sibling content only if added on root.
-        let lTargetContent: Content | null = null;
-        if (lIsRoot) {
-            if (pMode === 'First') {
-                // Sibling before first element => null.
-                lTargetContent = null;
-            } else if (pMode === 'Last') {
-                // Last content of builder.
-                lTargetContent = this.mRootChildList[this.mRootChildList.length - 1];
-            } else { // pMode === "After"
-                lTargetContent = pTarget;
-            }
-        }
-
-        // Insert element.
-        if (lRealTarget) {
-            // When there is a target. Get next sibling and append element after that sibling.
-            // Like: parent.insertAfter(child, target);
-            // If nextSibling is null, insertBefore is called as appendChild(child).
-            lRealParent.insertBefore(lSourceNode, lRealTarget.nextSibling);
+    /**
+     * Insert {@link pSourceNode} after {@link pTarget} in DOM.
+     * 
+     * @param pSourceNode - Source node that should be inserted.
+     * @param pTarget - Target content. Anchor point for inserting.
+     */
+    private insertAfter(pSourceNode: ChildNode, pTarget: Content): void {
+        // Get node of target where source node can be attached after.
+        // If target is a builder, get the end bound node of it.
+        let lTargetNode: Node;
+        if (pTarget instanceof BaseBuilder) {
+            lTargetNode = pTarget.boundary.end;
         } else {
-            // No target means prepend to parent. Parent is allways an element and never a builder.
-            lRealParent.prepend(lSourceNode);
+            lTargetNode = pTarget;
         }
+
+        // Get parent of target node.
+        const lTargetParentNode: Element | ShadowRoot = lTargetNode.parentElement ?? <ShadowRoot>lTargetNode.getRootNode();
+
+        // Attach after target node.
+        // Behaves like: parent.insertAfter(child, target);
+        // If nextSibling is null, insertBefore is called as appendChild(child).
+        lTargetParentNode.insertBefore(pSourceNode, lTargetNode.nextSibling);
     }
 
-    private insertFirst(pSourceNode: Node, pTarget: Content) {
-        // TODO: If target is builder. Get anchor and call insertAfter with anchor as target.
-        // TODO: If target is a node, prepend.
+    /**
+     * Insert {@link pSourceNode} at top inside {@link pTarget} in DOM.
+     * 
+     * @param pSourceNode - Source node that should be inserted.
+     * @param pTarget - Target content. Anchor point for inserting.
+     * 
+     * @throws {@link Exception}
+     * When target node does not support any child nodes.
+     */
+    private insertFirst(pSourceNode: ChildNode, pTarget: Content): void {
+        // Get anchor and call insertAfter with anchor as target when target is a builder.
+        if (pTarget instanceof BaseBuilder) {
+            this.insertAfter(pSourceNode, pTarget.anchor);
+            return;
+        }
+
+        // Target is a normal element. Prepend source node.
+        if (pTarget instanceof Element) {
+            pTarget.prepend(pSourceNode);
+            return;
+        }
+
+        // Fails when node can't have child nodes.
+        throw new Exception(`Source node does not support child nodes.`, this);
+
     }
 
-    private insertLast(pSourceNode: Node, pTarget: Content) {
-        // TODO: If target is builder. Get calculated bound.end and call insertAfter with end node as target
-        // TODO: If target is a node, append.
+    /**
+     * Insert {@link pSourceNode} at bottom inside {@link pTarget} in DOM.
+     * 
+     * @param pSourceNode - Source node that should be inserted.
+     * @param pTarget - Target content. Anchor point for inserting.
+     * 
+     * @throws {@link Exception}
+     * When target node does not support any child nodes.
+     */
+    private insertLast(pSourceNode: ChildNode, pTarget: Content): void {
+        // Insert source "after" target when the target is a builder.
+        // Builders are not nested so appending after the builder is basicly appending inside the builder.
+        if (pTarget instanceof BaseBuilder) {
+            this.insertAfter(pSourceNode, pTarget);
+            return;
+        }
+
+        // Target is a normal element. Append source node. Fails when node can't have child nodes.
+        if (pTarget instanceof Element) {
+            pTarget.appendChild(pSourceNode);
+            return;
+        }
+
+        // Fails when node can't have child nodes.
+        throw new Exception(`Source node does not support child nodes.`, this);
     }
 
     /**

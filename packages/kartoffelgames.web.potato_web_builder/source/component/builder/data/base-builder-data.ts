@@ -128,6 +128,20 @@ export abstract class BaseBuilderData {
     }
 
     /**
+     * Validate if content is attached to this builder.
+     * Matches only when it is attached to this builder,
+     * when the content is nested into another builder, 
+     * this validation will be false.
+     * 
+     * @param pContent - Any Content.
+     * 
+     * @returns if content is attached to this builder. 
+     */
+    public hasContent(pContent: Content): boolean {
+        return this.mLinkedContent.has(pContent);
+    }
+
+    /**
      * Add element to content by mode.
      * Can't add {@link pSource} to any {@link pTarget} that is not a content of the builder.
      * 
@@ -140,7 +154,7 @@ export abstract class BaseBuilderData {
      */
     public insert(pSource: Content, pMode: InserMode, pTarget: Content): void {
         // Validate if target is part of builder.
-        if (!this.mLinkedContent.has(pTarget)) {
+        if (!this.hasContent(pTarget)) {
             throw new Exception(`Can't add content to builder. Target is not part of builder.`, this);
         }
 

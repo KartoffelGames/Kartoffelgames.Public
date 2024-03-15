@@ -1,17 +1,24 @@
-import { BaseModule } from '../../../module/base-module';
 import { ExpressionModule } from '../../../module/expression-module';
 import { StaticModule } from '../../../module/static-module';
 import { ComponentModules } from '../../component-modules';
 import { BaseBuilderData } from './base-builder-data';
 
 export class StaticBuilderData extends BaseBuilderData {
-    private readonly mLinkedModuleList: Array<BaseModule<boolean, any>>;
+    private readonly mLinkedExpressionModuleList: Array<ExpressionModule>;
+    private readonly mLinkedStaticModuleList: Array<StaticModule>;
 
     /**
-     * Get all linked module lists.
+     * Get all linked expression modules.
      */
-    public get linkedModuleList(): Array<BaseModule<boolean, any>> {
-        return [...this.mLinkedModuleList];
+    public get linkedExpressionModuleList(): Array<ExpressionModule> {
+        return [...this.mLinkedExpressionModuleList];
+    }
+
+    /**
+     * Get all linked static modules.
+     */
+    public get linkedStaticModuleList(): Array<StaticModule> {
+        return [...this.mLinkedStaticModuleList];
     }
 
     /**
@@ -20,7 +27,19 @@ export class StaticBuilderData extends BaseBuilderData {
     public constructor(pModules: ComponentModules) {
         super(pModules);
 
-        this.mLinkedModuleList = new Array<BaseModule<boolean, any>>();
+        this.mLinkedExpressionModuleList = new Array<ExpressionModule>();
+        this.mLinkedStaticModuleList = new Array<StaticModule>();
+    }
+
+    /**
+     * Link expression module to builder.
+     * Linked modules get updated on every update.
+     * 
+     * @param pModule - Module.
+     */
+    public linkExpressionModule(pModule: ExpressionModule): void {
+        // Add module as linked module to node module list.
+        this.mLinkedExpressionModuleList.push(pModule);
     }
 
     /**
@@ -29,9 +48,9 @@ export class StaticBuilderData extends BaseBuilderData {
      * 
      * @param pModule - Module.
      */
-    public linkModule(pModule: StaticModule | ExpressionModule): void {
+    public linkStaticModule(pModule: StaticModule): void {
         // Add module as linked module to node module list.
-        this.mLinkedModuleList.push(pModule);
+        this.mLinkedStaticModuleList.push(pModule);
     }
 
     /**
@@ -39,8 +58,13 @@ export class StaticBuilderData extends BaseBuilderData {
      * Deconstruct linked modules.
      */
     protected onDeconstruct(): void {
-        // Deconstruct linked modules.
-        for (const lModule of this.mLinkedModuleList) {
+        // Deconstruct linked static modules.
+        for (const lModule of this.mLinkedStaticModuleList) {
+            lModule.deconstruct();
+        }
+
+        // Deconstruct linked expression modules.
+        for (const lModule of this.mLinkedExpressionModuleList) {
             lModule.deconstruct();
         }
     }

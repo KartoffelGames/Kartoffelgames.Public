@@ -6,18 +6,18 @@ import { BaseBuilder } from '../base-builder';
 
 export abstract class BaseBuilderData {
     private readonly mChildBuilderList: List<BaseBuilder>;
-    private readonly mChildComponents: Dictionary<Content, ComponentManager>;
+    private readonly mChildComponents: Dictionary<BuilderContent, ComponentManager>;
     private readonly mContentAnchor: Comment;
     private readonly mContentBoundary: RawContentBoundary;
-    private readonly mLinkedContent: WeakSet<Content>;
+    private readonly mLinkedContent: WeakSet<BuilderContent>;
     private readonly mModules: ComponentModules;
-    private readonly mRootChildList: List<Content>;
+    private readonly mRootChildList: List<BuilderContent>;
 
     /**
      * Get core content of builder content.
      * Elements are returned in DOM order.
      */
-    public get body(): Array<Content> {
+    public get body(): Array<BuilderContent> {
         return this.mRootChildList;
     }
 
@@ -53,9 +53,9 @@ export abstract class BaseBuilderData {
 
         // Init quick access buffers.
         this.mChildBuilderList = new List<BaseBuilder>();
-        this.mRootChildList = new List<Content>();
-        this.mChildComponents = new Dictionary<Content, ComponentManager>();
-        this.mLinkedContent = new WeakSet<Content>();
+        this.mRootChildList = new List<BuilderContent>();
+        this.mChildComponents = new Dictionary<BuilderContent, ComponentManager>();
+        this.mLinkedContent = new WeakSet<BuilderContent>();
 
         // Create anchor of content. Anchors marks the beginning of all content nodes.
         this.mContentAnchor = ElementCreator.createComment(Math.random().toString(16).substring(3).toUpperCase()); // TODO: A good way to have better anchor names.
@@ -91,7 +91,7 @@ export abstract class BaseBuilderData {
 
         // Get current builder parent element. Skip deletion when it is not attached to any document.
         // Remove all content. Only remove root elements. GC makes the rest.
-        let lRootChild: Content | undefined;
+        let lRootChild: BuilderContent | undefined;
         while ((lRootChild = this.mRootChildList.pop())) {
             // Only remove elements. Builder and componentes are already deconstructed.
             if (!(lRootChild instanceof BaseBuilder)) {
@@ -137,7 +137,7 @@ export abstract class BaseBuilderData {
      * 
      * @returns if content is attached to this builder. 
      */
-    public hasContent(pContent: Content): boolean {
+    public hasContent(pContent: BuilderContent): boolean {
         return this.mLinkedContent.has(pContent);
     }
 
@@ -152,7 +152,7 @@ export abstract class BaseBuilderData {
      * @throws {@link Exception}
      * When {@link pTarget} is not a direct content of this builder. Even when pTarget is a content of a nested builder.
      */
-    public insert(pSource: Content, pMode: InserMode, pTarget: Content): void {
+    public insert(pSource: BuilderContent, pMode: InserMode, pTarget: BuilderContent): void {
         // Validate if target is part of builder.
         if (!this.hasContent(pTarget)) {
             throw new Exception(`Can't add content to builder. Target is not part of builder.`, this);
@@ -227,7 +227,7 @@ export abstract class BaseBuilderData {
      * @throws {@link Exception}
      * When {@link pContent} is not a direct content of this builder. Even when pTarget is a content of a nested builder.
      */
-    public remove(pContent: Content): void {
+    public remove(pContent: BuilderContent): void {
         // Validate if child is linked to this builder data.
         if (!this.mLinkedContent.has(pContent)) {
             throw new Exception('Child node cant be deleted from builder when it not a child of them', this);
@@ -273,7 +273,7 @@ export abstract class BaseBuilderData {
      * @param pSourceNode - Source node that should be inserted.
      * @param pTarget - Target content. Anchor point for inserting.
      */
-    private insertAfter(pSourceNode: ChildNode, pTarget: Content): void {
+    private insertAfter(pSourceNode: ChildNode, pTarget: BuilderContent): void {
         // Get node of target where source node can be attached after.
         // If target is a builder, get the end bound node of it.
         let lTargetNode: Node;
@@ -301,7 +301,7 @@ export abstract class BaseBuilderData {
      * @throws {@link Exception}
      * When target node does not support any child nodes.
      */
-    private insertBottom(pSourceNode: ChildNode, pTarget: Content): void {
+    private insertBottom(pSourceNode: ChildNode, pTarget: BuilderContent): void {
         // Insert source "after" target when the target is a builder.
         // Builders are not nested so appending after the builder is basicly appending inside the builder.
         if (pTarget instanceof BaseBuilder) {
@@ -328,7 +328,7 @@ export abstract class BaseBuilderData {
      * @throws {@link Exception}
      * When target node does not support any child nodes.
      */
-    private insertTop(pSourceNode: ChildNode, pTarget: Content): void {
+    private insertTop(pSourceNode: ChildNode, pTarget: BuilderContent): void {
         // Get anchor and call insertAfter with anchor as target when target is a builder.
         if (pTarget instanceof BaseBuilder) {
             this.insertAfter(pSourceNode, pTarget.anchor);
@@ -370,7 +370,7 @@ export type Boundary = {
     end: Node;
 };
 
-export type Content = ChildNode | BaseBuilder;
+export type BuilderContent = ChildNode | BaseBuilder;
 
 /**
  * Content insert mode.

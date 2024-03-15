@@ -153,12 +153,12 @@ export abstract class BaseBuilderData {
                 this.insertAfter(lSourceNode, pTarget);
                 break;
             }
-            case 'First': {
-                this.insertFirst(lSourceNode, pTarget);
+            case 'TopOf': {
+                this.insertTop(lSourceNode, pTarget);
                 break;
             }
-            case 'Last': {
-                this.insertLast(lSourceNode, pTarget);
+            case 'BottomOf': {
+                this.insertBottom(lSourceNode, pTarget);
                 break;
             }
         }
@@ -184,11 +184,11 @@ export abstract class BaseBuilderData {
                     lIndexInRootList = this.mRootChildList.indexOf(pTarget) + 1;
                     break;
                 }
-                case 'First': {
+                case 'TopOf': {
                     lIndexInRootList = 0;
                     break;
                 }
-                case 'Last': {
+                case 'BottomOf': {
                     lIndexInRootList = this.mRootChildList.length;
                     break;
                 }
@@ -279,33 +279,6 @@ export abstract class BaseBuilderData {
     }
 
     /**
-     * Insert {@link pSourceNode} at top inside {@link pTarget} in DOM.
-     * 
-     * @param pSourceNode - Source node that should be inserted.
-     * @param pTarget - Target content. Anchor point for inserting.
-     * 
-     * @throws {@link Exception}
-     * When target node does not support any child nodes.
-     */
-    private insertFirst(pSourceNode: ChildNode, pTarget: Content): void {
-        // Get anchor and call insertAfter with anchor as target when target is a builder.
-        if (pTarget instanceof BaseBuilder) {
-            this.insertAfter(pSourceNode, pTarget.anchor);
-            return;
-        }
-
-        // Target is a normal element. Prepend source node.
-        if (pTarget instanceof Element) {
-            pTarget.prepend(pSourceNode);
-            return;
-        }
-
-        // Fails when node can't have child nodes.
-        throw new Exception(`Source node does not support child nodes.`, this);
-
-    }
-
-    /**
      * Insert {@link pSourceNode} at bottom inside {@link pTarget} in DOM.
      * 
      * @param pSourceNode - Source node that should be inserted.
@@ -314,7 +287,7 @@ export abstract class BaseBuilderData {
      * @throws {@link Exception}
      * When target node does not support any child nodes.
      */
-    private insertLast(pSourceNode: ChildNode, pTarget: Content): void {
+    private insertBottom(pSourceNode: ChildNode, pTarget: Content): void {
         // Insert source "after" target when the target is a builder.
         // Builders are not nested so appending after the builder is basicly appending inside the builder.
         if (pTarget instanceof BaseBuilder) {
@@ -330,6 +303,33 @@ export abstract class BaseBuilderData {
 
         // Fails when node can't have child nodes.
         throw new Exception(`Source node does not support child nodes.`, this);
+    }
+
+    /**
+     * Insert {@link pSourceNode} at top inside {@link pTarget} in DOM.
+     * 
+     * @param pSourceNode - Source node that should be inserted.
+     * @param pTarget - Target content. Anchor point for inserting.
+     * 
+     * @throws {@link Exception}
+     * When target node does not support any child nodes.
+     */
+    private insertTop(pSourceNode: ChildNode, pTarget: Content): void {
+        // Get anchor and call insertAfter with anchor as target when target is a builder.
+        if (pTarget instanceof BaseBuilder) {
+            this.insertAfter(pSourceNode, pTarget.anchor);
+            return;
+        }
+
+        // Target is a normal element. Prepend source node.
+        if (pTarget instanceof Element) {
+            pTarget.prepend(pSourceNode);
+            return;
+        }
+
+        // Fails when node can't have child nodes.
+        throw new Exception(`Source node does not support child nodes.`, this);
+
     }
 
     /**
@@ -361,4 +361,4 @@ export type Content = ChildNode | BaseBuilder;
 /**
  * Content insert mode.
  */
-export type InserMode = 'Last' | 'After' | 'First';
+export type InserMode = 'BottomOf' | 'After' | 'TopOf';

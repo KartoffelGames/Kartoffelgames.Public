@@ -50,18 +50,18 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
      * Insert new content after last found content.
      * 
      * @param pNewContent - New content.
-     * @param pLastContent - Last content that comes before new content.
+     * @param pContentCursor - Content that comes before new content.
      */
-    private insertNewContent(pNewContent: ManipulatorElement, pLastContent: StaticBuilder | null): StaticBuilder {
+    private insertNewContent(pNewContent: ManipulatorElement, pContentCursor: StaticBuilder | null): StaticBuilder {
         // Create new static builder.
         const lStaticBuilder: StaticBuilder = new StaticBuilder(pNewContent.template, this.content.modules, pNewContent.componentValues);
 
         // Prepend content if no content is before the new content. 
-        if (pLastContent === null) {
+        if (pContentCursor === null) {
             this.content.insert(lStaticBuilder, 'TopOf', this);
         } else {
             // Append after content that is before the new content. Obviously -,-
-            this.content.insert(lStaticBuilder, 'After', pLastContent);
+            this.content.insert(lStaticBuilder, 'After', pContentCursor);
         }
 
         return lStaticBuilder;
@@ -70,8 +70,8 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
     /**
      * Update content of manipulator builder.
      * 
-     * @param pNewContentList - New content list.
      * @param pOldContentList - Old content list.
+     * @param pNewContentList - New content list.
      */
     private updateStaticBuilder(pOldContentList: Array<StaticBuilder>, pNewContentList: Array<ManipulatorElement>): void {
         // Define difference search.

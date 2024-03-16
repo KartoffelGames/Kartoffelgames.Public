@@ -1,11 +1,15 @@
 import { ExpressionModule } from '../../../module/expression-module';
 import { StaticModule } from '../../../module/static-module';
 import { ComponentModules } from '../../component-modules';
+import { PwbTemplateAttribute } from '../../template/nodes/values/pwb-template-attribute';
 import { BaseBuilderData } from './base-builder-data';
 
 export class StaticBuilderData extends BaseBuilderData {
+    private readonly mLinkedAttributeExpressionModules: WeakMap<ExpressionModule, PwbTemplateAttribute>;
+    private readonly mLinkedAttributeNodes: WeakMap<PwbTemplateAttribute, Array<Text>>;
     private readonly mLinkedExpressionModuleList: Array<ExpressionModule>;
     private readonly mLinkedStaticModuleList: Array<StaticModule>;
+
     private mStaticModulesChangedOrder: boolean;
 
     /**
@@ -42,7 +46,31 @@ export class StaticBuilderData extends BaseBuilderData {
         this.mLinkedExpressionModuleList = new Array<ExpressionModule>();
         this.mLinkedStaticModuleList = new Array<StaticModule>();
 
+        // Attribute expression maps.
+        this.mLinkedAttributeExpressionModules = new WeakMap<ExpressionModule, PwbTemplateAttribute>();
+        this.mLinkedAttributeNodes = new WeakMap<PwbTemplateAttribute, Array<Text>>();
+
         this.mStaticModulesChangedOrder = false;
+    }
+
+    /**
+     * Link expression module with a attribute.
+     * 
+     * @param pModule - Expression modules handling a value of {@link pAttribute}.
+     * @param pAttribute - Attribute template with {@link pModule} as child value.
+     */
+    public linkAttributeExpression(pModule: ExpressionModule, pAttribute: PwbTemplateAttribute): void {
+        this.mLinkedAttributeExpressionModules.set(pModule, pAttribute);
+    }
+
+    /**
+     * Link attribute text nodes with a attribute.
+     * 
+     * @param pAttribute - Attribute template with {@link pModule} as child value.
+     * @param pValues - Text node values, containing text nodes with linked expression modules.
+     */
+    public linkAttributeNodes(pAttribute: PwbTemplateAttribute, pValues: Array<Text>): void {
+        this.mLinkedAttributeNodes.set(pAttribute, pValues);
     }
 
     /**

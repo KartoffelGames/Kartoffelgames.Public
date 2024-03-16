@@ -116,11 +116,13 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
                     const lAttributeExpressionModule: ExpressionModule = this.content.modules.createExpressionModule(lValue, lAttributeTextNode, this.values);
                     this.content.linkExpressionModule(lAttributeExpressionModule);
 
-                    // TODO: Link expression to attribute.
+                    // Link expression to attribute.
+                    this.content.linkAttributeExpression(lAttributeExpressionModule, lAttributeTemplate);
 
                 }
 
-                // TODO: Link attribute template with text node list.
+                // Link attribute template with text node list.
+                this.content.linkAttributeNodes(lAttributeTemplate, lAttributeTextNodeList);
 
                 continue;
             }

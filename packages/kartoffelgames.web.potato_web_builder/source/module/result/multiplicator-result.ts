@@ -1,5 +1,5 @@
 import { Exception, List } from '@kartoffelgames/core.data';
-import { BasePwbTemplateNode } from '../../component/template/nodes/base-pwb-template-node';
+import { StaticPwbTemplate } from '../../component/builder/static-builder';
 import { LayerValues } from '../../component/values/layer-values';
 
 /**
@@ -29,7 +29,7 @@ export class MultiplicatorResult {
      * @param pTemplateElement - New template element. Can't use same template for multiple elements.
      * @param pValues - New Value handler of element with current value handler as parent.
      */
-    public addElement(pTemplateElement: BasePwbTemplateNode, pValues: LayerValues): void {
+    public addElement(pTemplateElement: StaticPwbTemplate, pValues: LayerValues): void {
         // Check if value or temple is used in another element.
         const lDoubledIndex: number = this.mElementList.findIndex(pElement => {
             return pElement.template === pTemplateElement || pElement.componentValues === pValues;
@@ -48,6 +48,6 @@ export class MultiplicatorResult {
  * Result element of manipulator module.
  */
 export type ManipulatorElement = {
-    template: BasePwbTemplateNode;
+    template: StaticPwbTemplate;
     componentValues: LayerValues;
 };

@@ -210,4 +210,4 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
     }
 }
 
-type StaticPwbTemplate = PwbTemplate | PwbTemplateTextNode | PwbTemplateXmlNode | PwbTemplateInstructionNode;
+export type StaticPwbTemplate = PwbTemplate | PwbTemplateTextNode | PwbTemplateXmlNode | PwbTemplateInstructionNode;

@@ -13,7 +13,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
      * Constructor.
      * 
      * @param pTemplate - Instruction template.
-     * @param pModules - Attribute modules.
+     * @param pModules - Modules of component scope.
      * @param pParentLayerValues - Layer value of parent builder.
      */
     public constructor(pTemplate: PwbTemplateInstructionNode, pModules: ComponentModules, pParentLayerValues: LayerValues,) {
@@ -32,7 +32,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
         }
 
         // Call module update.
-        const lModuleResult: MultiplicatorResult | null = (<MultiplicatorModule>this.content.instructionModule).update();
+        const lModuleResult: MultiplicatorResult | null = this.content.instructionModule.update();
         if (lModuleResult) {
             // Get current StaticBuilder. Only content are static builder.
             const lOldStaticBuilderList: Array<StaticBuilder> = <Array<StaticBuilder>>this.content.body;
@@ -48,6 +48,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
 
     /**
      * Insert new content after last found content.
+     * 
      * @param pNewContent - New content.
      * @param pLastContent - Last content that comes before new content.
      */
@@ -68,6 +69,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
 
     /**
      * Update content of manipulator builder.
+     * 
      * @param pNewContentList - New content list.
      * @param pOldContentList - Old content list.
      */

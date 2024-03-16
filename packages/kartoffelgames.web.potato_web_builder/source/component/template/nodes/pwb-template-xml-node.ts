@@ -90,7 +90,7 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
      * Compare current node with another one.
      * @param pBaseNode - Base pwb template node.
      */
-    public equals(pBaseNode: PwbTemplateXmlNode): boolean {
+    public equals(pBaseNode: BasePwbTemplateNode): boolean {
         // Check type, tagname.
         if (!(pBaseNode instanceof PwbTemplateXmlNode) || pBaseNode.tagName !== this.tagName) {
             return false;

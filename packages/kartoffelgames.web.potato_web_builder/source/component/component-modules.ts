@@ -57,6 +57,37 @@ export class ComponentModules {
     }
 
     /**
+     * Check if template uses any manipulator modules.
+     * @param pTemplate - Template element.
+     * @param pValues - Values of current layer.
+     */
+    public createInstructionModule(pTemplate: PwbTemplateInstructionNode, pValues: LayerValues): MultiplicatorModule | undefined {
+        // Find manipulator module inside attributes.
+        for (const lDefinition of Modules.moduleDefinitions) {
+            // Only manipulator modules.
+            if (lDefinition.type === ModuleType.Manipulator) {
+                if (lDefinition.selector.test(pTemplate.instructionType)) {
+                    // Get constructor and create new module.
+                    const lModule: MultiplicatorModule = new MultiplicatorModule({
+                        moduleDefinition: lDefinition,
+                        moduleClass: <IPwbMultiplicatorModuleClass>Modules.getModuleClass(lDefinition),
+                        targetTemplate: pTemplate,
+                        targetAttribute: lAttribute,
+                        values: pValues,
+                        componentManager: this.mComponentManager,
+                    });
+
+                    return lModule;
+                }
+            }
+        }
+
+        // Line can be called. But current code does not allow it.
+        /* istanbul ignore next */
+        return undefined;
+    }
+
+    /**
      * Create static module based on attribute.
      * When no module matches for attribute, null is returned instead.
      * 
@@ -86,38 +117,5 @@ export class ComponentModules {
         }
 
         return null;
-    }
-
-    /**
-     * Check if template uses any manipulator modules.
-     * @param pTemplate - Template element.
-     * @param pValues - Values of current layer.
-     */
-    public getElementMultiplicatorModule(pTemplate: PwbTemplateInstructionNode, pValues: LayerValues): MultiplicatorModule | undefined {
-        // Find manipulator module inside attributes.
-        for (const lDefinition of Modules.moduleDefinitions) {
-            // Only manipulator modules.
-            if (lDefinition.type === ModuleType.Manipulator) {
-                for (const lAttribute of pTemplate.attributes) {
-                    if (lDefinition.selector.test(lAttribute.name)) {
-                        // Get constructor and create new module.
-                        const lModule: MultiplicatorModule = new MultiplicatorModule({
-                            moduleDefinition: lDefinition,
-                            moduleClass: <IPwbMultiplicatorModuleClass>Modules.getModuleClass(lDefinition),
-                            targetTemplate: pTemplate,
-                            targetAttribute: lAttribute,
-                            values: pValues,
-                            componentManager: this.mComponentManager,
-                        });
-
-                        return lModule;
-                    }
-                }
-            }
-        }
-
-        // Line can be called. But current code does not allow it.
-        /* istanbul ignore next */
-        return undefined;
     }
 }

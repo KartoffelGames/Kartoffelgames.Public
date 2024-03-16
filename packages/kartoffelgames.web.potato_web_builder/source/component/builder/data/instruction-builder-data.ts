@@ -1,30 +1,36 @@
 import { MultiplicatorModule } from '../../../module/multiplicator-module';
+import { ComponentModules } from '../../component-modules';
 import { BaseBuilderData } from './base-builder-data';
 
 export class InstructionBuilderData extends BaseBuilderData {
-    private mMultiplicatorModule: MultiplicatorModule | null;
+    private mInstructionModule: MultiplicatorModule | null;
 
     /**
-     * Get multiplicator module of layer.
+     * Get instruction module of layer.
      */
-    public get multiplicatorModule(): MultiplicatorModule | null {
-        return this.mMultiplicatorModule;
+    public get instructionModule(): MultiplicatorModule | null {
+        return this.mInstructionModule;
+    } set instructionModule(pModule: MultiplicatorModule | null) {
+        this.mInstructionModule = pModule;
     }
 
     /**
-     * Set multiplicator module of layer.
+     * Constructor.
+     * 
+     * @param pModules - Builder modules.
      */
-    public set multiplicatorModule(pModule: MultiplicatorModule | null) {
-        this.mMultiplicatorModule = pModule;
-    }
+    public constructor(pModules: ComponentModules) {
+        super(pModules);
 
+        this.mInstructionModule = null;
+    }
 
     /**
      * On deconstruction.
-     * Deconstruct linked modules.
+     * Deconstruct linked instruction module.
      */
     protected onDeconstruct(): void {
         // Deconstruct linked modules.
-        this.mMultiplicatorModule.deconstruct();
+        this.mInstructionModule!.deconstruct();
     }
 }

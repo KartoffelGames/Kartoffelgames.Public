@@ -26,17 +26,15 @@ export class MultiplicatorBuilder extends BaseBuilder<PwbTemplateInstructionNode
      * Update content dependent on temporar value. 
      */
     protected onUpdate(): boolean {
-        // Create multiplicator module if is does not exist.
-        if (!this.content.multiplicatorModule) {
-            const lTemplate: PwbTemplateInstructionNode = this.template;
-
-            // Create module and save inside. Allways has existing module bc. can only be called with found multiplicator module.
-            const lManipulatorModule: MultiplicatorModule = <MultiplicatorModule>this.content.modules.getElementMultiplicatorModule(lTemplate, this.values);
-            this.content.multiplicatorModule = lManipulatorModule;
+        // Create instruction module if is does not exist.
+        if (!this.content.instructionModule) {
+            // Create and link instruction module.
+            const lInstructionModule: MultiplicatorModule = <MultiplicatorModule>this.content.modules.createInstructionModule(this.template, this.values);
+            this.content.instructionModule = lInstructionModule;
         }
 
         // Call module update.
-        const lModuleResult: MultiplicatorResult | null = (<MultiplicatorModule>this.content.multiplicatorModule).update();
+        const lModuleResult: MultiplicatorResult | null = (<MultiplicatorModule>this.content.instructionModule).update();
         if (lModuleResult) {
             // Get current StaticBuilder. Only content are static builder.
             const lOldStaticBuilderList: Array<StaticBuilder> = <Array<StaticBuilder>>this.content.body;

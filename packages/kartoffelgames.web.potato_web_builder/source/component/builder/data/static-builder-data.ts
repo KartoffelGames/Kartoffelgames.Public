@@ -41,6 +41,8 @@ export class StaticBuilderData extends BaseBuilderData {
 
     /**
      * Constructor.
+     * 
+     * @param pModules - Builder modules.
      */
     public constructor(pModules: ComponentModules) {
         super(pModules);

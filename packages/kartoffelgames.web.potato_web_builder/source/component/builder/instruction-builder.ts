@@ -17,7 +17,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
      * @param pParentLayerValues - Layer value of parent builder.
      */
     public constructor(pTemplate: PwbTemplateInstructionNode, pModules: ComponentModules, pParentLayerValues: LayerValues,) {
-        super(pTemplate, pParentLayerValues, new InstructionBuilderData(pModules));
+        super(pTemplate, pParentLayerValues, new InstructionBuilderData(pModules, `Instruction - {$${pTemplate.instructionType}}`));
     }
 
     /**
@@ -54,7 +54,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
      */
     private insertNewContent(pNewContent: ManipulatorElement, pContentCursor: StaticBuilder | null): StaticBuilder {
         // Create new static builder.
-        const lStaticBuilder: StaticBuilder = new StaticBuilder(pNewContent.template, this.content.modules, pNewContent.componentValues);
+        const lStaticBuilder: StaticBuilder = new StaticBuilder(pNewContent.template, this.content.modules, pNewContent.componentValues, `Child - {$${this.template.instructionType}}`);
 
         // Prepend content if no content is before the new content. 
         if (pContentCursor === null) {

@@ -47,8 +47,9 @@ export abstract class BaseBuilderData {
     /**
      * Constructor.
      * @param pModules - Available modules of builder-
+     * @param pAnchorName - Name of generated content anchor.
      */
-    public constructor(pModules: ComponentModules) {
+    public constructor(pModules: ComponentModules, pAnchorName: string) {
         this.mModules = pModules;
 
         // Init quick access buffers.
@@ -58,7 +59,7 @@ export abstract class BaseBuilderData {
         this.mLinkedContent = new WeakSet<BuilderContent>();
 
         // Create anchor of content. Anchors marks the beginning of all content nodes.
-        this.mContentAnchor = ElementCreator.createComment(Math.random().toString(16).substring(3).toUpperCase()); // TODO: A good way to have better anchor names.
+        this.mContentAnchor = ElementCreator.createComment(pAnchorName);
 
         // Set starting boundary. Existing only of anchor.
         this.mContentBoundary = {

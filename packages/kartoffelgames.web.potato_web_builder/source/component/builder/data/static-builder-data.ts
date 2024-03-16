@@ -43,9 +43,10 @@ export class StaticBuilderData extends BaseBuilderData {
      * Constructor.
      * 
      * @param pModules - Builder modules.
+     * @param pAnchorName - Name of generated content anchor.
      */
-    public constructor(pModules: ComponentModules) {
-        super(pModules);
+    public constructor(pModules: ComponentModules, pAnchorName: string) {
+        super(pModules, pAnchorName);
 
         this.mLinkedExpressionModuleList = new Array<ExpressionModule>();
         this.mLinkedStaticModuleList = new Array<StaticModule>();

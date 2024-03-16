@@ -24,9 +24,10 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
      * @param pTemplate - Template.
      * @param pModules - Attribute modules.
      * @param pParentLayerValues - Layer value of parent builder.
+     * @param pAnchorName - Name of builder content anchor.
      */
-    public constructor(pTemplate: StaticPwbTemplate, pModules: ComponentModules, pParentLayerValues: LayerValues) {
-        super(pTemplate, pParentLayerValues, new StaticBuilderData(pModules));
+    public constructor(pTemplate: StaticPwbTemplate, pModules: ComponentModules, pParentLayerValues: LayerValues, pAnchorName: string) {
+        super(pTemplate, pParentLayerValues, new StaticBuilderData(pModules, `Static - {${pAnchorName}}`));
 
         // Not initialized on start.
         this.mInitialized = false;

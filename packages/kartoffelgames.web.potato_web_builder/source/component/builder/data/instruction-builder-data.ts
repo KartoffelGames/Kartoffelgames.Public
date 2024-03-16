@@ -18,9 +18,10 @@ export class InstructionBuilderData extends BaseBuilderData {
      * Constructor.
      * 
      * @param pModules - Builder modules.
+     * @param pAnchorName - Name of generated content anchor.
      */
-    public constructor(pModules: ComponentModules) {
-        super(pModules);
+    public constructor(pModules: ComponentModules, pAnchorName: string) {
+        super(pModules, pAnchorName);
 
         this.mInstructionModule = null;
     }

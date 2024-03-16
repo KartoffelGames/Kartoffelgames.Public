@@ -13,7 +13,7 @@ import { LayerValues } from '../values/layer-values';
 import { BaseBuilder } from './base-builder';
 import { BuilderContent } from './data/base-builder-data';
 import { StaticBuilderData, StaticBuilderLinkedAttributeData } from './data/static-builder-data';
-import { MultiplicatorBuilder } from './multiplicator-builder';
+import { InstructionBuilder } from './instruction-builder';
 
 export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderData> {
     private mInitialized: boolean;
@@ -94,7 +94,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
      */
     private buildInstructionTemplate(pMultiplicatorTemplate: PwbTemplateInstructionNode, pParentContent: BuilderContent): void {
         // Create new instruction builder and add to bottom of parent content.
-        const lInstructionBuilder: MultiplicatorBuilder = new MultiplicatorBuilder(pMultiplicatorTemplate, this.content.modules, this.values);
+        const lInstructionBuilder: InstructionBuilder = new InstructionBuilder(pMultiplicatorTemplate, this.content.modules, this.values);
         this.content.insert(lInstructionBuilder, 'BottomOf', pParentContent);
     }
 

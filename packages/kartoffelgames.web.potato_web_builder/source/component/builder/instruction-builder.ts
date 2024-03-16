@@ -8,9 +8,7 @@ import { BaseBuilder } from './base-builder';
 import { InstructionBuilderData } from './data/instruction-builder-data';
 import { StaticBuilder } from './static-builder';
 
-// TODO: Rename multiplicator to "Instruction"
-export class MultiplicatorBuilder extends BaseBuilder<PwbTemplateInstructionNode, InstructionBuilderData> {
-
+export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, InstructionBuilderData> {
     /**
      * Constructor.
      * 

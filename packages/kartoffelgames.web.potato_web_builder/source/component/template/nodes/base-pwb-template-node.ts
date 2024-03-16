@@ -12,14 +12,6 @@ export abstract class BasePwbTemplateNode {
     public get parent(): BasePwbTemplateNode | null {
         return this.mParent;
     } set parent(pParent: BasePwbTemplateNode | null) {
-        // If child has already parent.
-        if (this.mParent !== null && pParent !== this.mParent) {
-            // Remove child from parent based of type.
-            if ('removeChild' in this.mParent && typeof this.mParent.removeChild === 'function') {
-                this.mParent.removeChild(this);
-            }
-        }
-
         this.mParent = pParent;
     }
 

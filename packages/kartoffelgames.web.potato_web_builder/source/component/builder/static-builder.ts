@@ -40,36 +40,11 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
             this.buildTemplate([this.template], this);
         }
 
-        // Get all modules. // TODO: Cache order of linked modules in this.content.
-        const lModuleList: Array<StaticModule> = this.content.linkedStaticModules;
-
-        // Sort by write->readwrite->read->expression and update.
-        lModuleList.sort((pModuleA, pModuleB): number => {
-            // "Calculate" execution priority of module A.
-            let lCompareValueA: number;
-            if (pModuleA.isWriting && !pModuleA.isReading) {
-                lCompareValueA = 4;
-            } else if (pModuleA.isWriting && pModuleA.isReading) {
-                lCompareValueA = 3;
-            } else { // if (!pModuleA.isWriting && pModuleA.isReading) {
-                lCompareValueA = 2;
-            }
-
-            // "Calculate" execution priority of module A.
-            let lCompareValueB: number;
-            if (pModuleB.isWriting && !pModuleB.isReading) {
-                lCompareValueB = 4;
-            } else if (pModuleB.isWriting && pModuleB.isReading) {
-                lCompareValueB = 3;
-            } else { // if (!pModuleB.isWriting && pModuleB.isReading) 
-                lCompareValueB = 2;
-            }
-
-            return lCompareValueA - lCompareValueB;
-        });
-
+        // Save accumulated update state for all modules.
         let lUpdated: boolean = false;
-        for (const lModule of lModuleList) {
+
+        // Update static modules.
+        for (const lModule of this.content.linkedStaticModules) {
             lUpdated = lModule.update() || lUpdated;
         }
 

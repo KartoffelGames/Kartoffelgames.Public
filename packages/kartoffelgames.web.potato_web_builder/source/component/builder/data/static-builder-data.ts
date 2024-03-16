@@ -6,19 +6,31 @@ import { BaseBuilderData } from './base-builder-data';
 export class StaticBuilderData extends BaseBuilderData {
     private readonly mLinkedExpressionModuleList: Array<ExpressionModule>;
     private readonly mLinkedStaticModuleList: Array<StaticModule>;
+    private mStaticModulesChangedOrder: boolean;
 
     /**
      * Get all linked expression modules.
+     * 
+     * Ordered by time of linking. There is no need to order expressions as they all are readonly modules.
      */
     public get linkedExpressionModules(): Array<ExpressionModule> {
-        return [...this.mLinkedExpressionModuleList];
+        return this.mLinkedExpressionModuleList;
     }
 
     /**
      * Get all linked static modules.
+     * 
+     * Static modules are allways ordered by read and write access.
      */
     public get linkedStaticModules(): Array<StaticModule> {
-        return [...this.mLinkedStaticModuleList];
+        // Reorder module list when it has new modules.
+        if (this.mStaticModulesChangedOrder) {
+            this.mStaticModulesChangedOrder = false;
+
+            this.orderStaticModules();
+        }
+
+        return this.mLinkedStaticModuleList;
     }
 
     /**
@@ -29,6 +41,8 @@ export class StaticBuilderData extends BaseBuilderData {
 
         this.mLinkedExpressionModuleList = new Array<ExpressionModule>();
         this.mLinkedStaticModuleList = new Array<StaticModule>();
+
+        this.mStaticModulesChangedOrder = false;
     }
 
     /**
@@ -51,6 +65,9 @@ export class StaticBuilderData extends BaseBuilderData {
     public linkStaticModule(pModule: StaticModule): void {
         // Add module as linked module to node module list.
         this.mLinkedStaticModuleList.push(pModule);
+
+        // Retrigger module reorder.
+        this.mStaticModulesChangedOrder = true;
     }
 
     /**
@@ -67,5 +84,36 @@ export class StaticBuilderData extends BaseBuilderData {
         for (const lModule of this.mLinkedExpressionModuleList) {
             lModule.deconstruct();
         }
+    }
+
+    /**
+     * Order static modules. Sorts {@link mLinkedStaticModuleList} reference.
+     * Sort orders are: write - readwrite - read.
+     */
+    private orderStaticModules(): void {
+        // Sort by write->readwrite->read->expression and update.
+        this.mLinkedStaticModuleList.sort((pModuleA, pModuleB): number => {
+            // "Calculate" execution priority of module A.
+            let lCompareValueA: number;
+            if (pModuleA.isWriting && !pModuleA.isReading) {
+                lCompareValueA = 4;
+            } else if (pModuleA.isWriting && pModuleA.isReading) {
+                lCompareValueA = 3;
+            } else { // if (!pModuleA.isWriting && pModuleA.isReading) {
+                lCompareValueA = 2;
+            }
+
+            // "Calculate" execution priority of module A.
+            let lCompareValueB: number;
+            if (pModuleB.isWriting && !pModuleB.isReading) {
+                lCompareValueB = 4;
+            } else if (pModuleB.isWriting && pModuleB.isReading) {
+                lCompareValueB = 3;
+            } else { // if (!pModuleB.isWriting && pModuleB.isReading) 
+                lCompareValueB = 2;
+            }
+
+            return lCompareValueA - lCompareValueB;
+        });
     }
 }

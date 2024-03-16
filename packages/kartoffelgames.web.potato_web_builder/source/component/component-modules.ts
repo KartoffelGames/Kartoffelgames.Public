@@ -16,8 +16,9 @@ import '../default/pwb_for_of/for-of-manipulator-attribute-module';
 import '../default/pwb_if/if-manipulator-attribute-module';
 import '../default/slot_attribute/slot-attribute-module';
 import '../default/two_way_binding/two-way-binding-attribute-module';
-import { PwbTemplateAttribute, PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
+import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 import { PwbTemplateExpression } from './template/nodes/values/pwb-template-expression';
+import { PwbTemplateAttribute } from './template/nodes/values/pwb-template-attribute';
 
 export class ComponentModules {
     private readonly mComponentManager: ComponentManager;
@@ -37,20 +38,52 @@ export class ComponentModules {
     /**
      * Check if template uses any manipulator modules.
      * @param pTemplate - Text node template.
-     * @param pTextNode - Build text node.
+     * @param pTargetNode - Build text node.
      * @param pValues - Values of current layer.
      */
-    public createExpressionModule(pTemplate: PwbTemplateExpression, pTextNode: Text, pValues: LayerValues): ExpressionModule {
+    public createExpressionModule(pTemplate: PwbTemplateExpression, pTargetNode: Text, pValues: LayerValues): ExpressionModule {
         const lModule: ExpressionModule = new ExpressionModule({
             moduleDefinition: <ModuleDefinition>Modules.getModuleDefinition(this.mExpressionModule),
             moduleClass: this.mExpressionModule,
             targetTemplate: pTemplate,
             values: pValues,
             componentManager: this.mComponentManager,
-            targetNode: pTextNode
+            targetNode: pTargetNode
         });
 
         return lModule;
+    }
+
+    /**
+     * Create static module based on attribute.
+     * When no module matches for attribute, null is returned instead.
+     * 
+     * @param pTemplate - Attribute template.
+     * @param pTargetNode - Target element of static module.
+     * @param pValues - Values of current layer.
+     * 
+     * @returns Created static module when it was matched, otherwise null.
+     */
+    public createStaticModule(pTemplate: PwbTemplateAttribute, pTargetNode: Element, pValues: LayerValues): StaticModule | null {
+        // Find static modules.
+        for (const lDefinition of Modules.moduleDefinitions) {
+            if (lDefinition.type === ModuleType.Static && lDefinition.selector.test(pTemplate.name)) {
+                // Get constructor and create new module.
+                const lModule: StaticModule = new StaticModule({
+                    moduleDefinition: lDefinition,
+                    moduleClass: <IPwbStaticModuleClass>Modules.getModuleClass(lDefinition),
+                    targetTemplate: pTemplate.node,
+                    targetAttribute: pTemplate,
+                    values: pValues,
+                    componentManager: this.mComponentManager,
+                    targetNode: pTargetNode
+                });
+
+                return lModule;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -84,58 +117,6 @@ export class ComponentModules {
         // Line can be called. But current code does not allow it.
         /* istanbul ignore next */
         return undefined;
-    }
-
-    /**
-     * Get all static modules of template.
-     * @param pTemplate - Template
-     * @param pElement - Build template.
-     * @param pValues - Layer values.
-     */
-    public getElementStaticModules(pTemplate: PwbTemplateXmlNode, pElement: Element, pValues: LayerValues): Array<ExpressionModule | StaticModule> {
-        const lModules: Array<ExpressionModule | StaticModule> = new Array<ExpressionModule | StaticModule>();
-
-        // Find static modules inside attributes.
-        for (const lAttribute of pTemplate.attributes) {
-            let lModuleFound: boolean = false;
-
-            // Find static modules.
-            for (const lDefinition of Modules.moduleDefinitions) {
-                if (lDefinition.type === ModuleType.Static && lDefinition.selector.test(lAttribute.name)) {
-                    // Get constructor and create new module.
-                    const lModule: StaticModule = new StaticModule({
-                        moduleDefinition: lDefinition,
-                        moduleClass: <IPwbStaticModuleClass>Modules.getModuleClass(lDefinition),
-                        targetTemplate: pTemplate,
-                        targetAttribute: lAttribute,
-                        values: pValues,
-                        componentManager: this.mComponentManager,
-                        targetNode: pElement
-                    });
-
-                    lModules.push(lModule);
-                    lModuleFound = true;
-                    break;
-                }
-            }
-
-            // When no static module is found, use expression module.
-            if (!lModuleFound) {
-                const lModule: ExpressionModule = new ExpressionModule({
-                    moduleDefinition: <ModuleDefinition>Modules.getModuleDefinition(this.mExpressionModule),
-                    moduleClass: this.mExpressionModule,
-                    targetTemplate: pTemplate,
-                    targetAttribute: lAttribute,
-                    values: pValues,
-                    componentManager: this.mComponentManager,
-                    targetNode: pElement
-                });
-
-                lModules.push(lModule);
-            }
-        }
-
-        return lModules;
     }
 
     /**

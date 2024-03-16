@@ -5,6 +5,7 @@ import { PwbTemplateExpression } from './values/pwb-template-expression';
  * Node only contains text.
  */
 export class PwbTemplateTextNode extends BasePwbTemplateNode {
+    private mTextValue: string;
     private readonly mValues: Array<string | PwbTemplateExpression>;
 
     /**
@@ -19,6 +20,8 @@ export class PwbTemplateTextNode extends BasePwbTemplateNode {
      */
     public constructor() {
         super();
+
+        this.mTextValue = '';
         this.mValues = [];
     }
 
@@ -37,6 +40,9 @@ export class PwbTemplateTextNode extends BasePwbTemplateNode {
             }
 
             this.mValues.push(lValue);
+
+            // Extends text value.
+            this.mTextValue += lValue.toString();
         }
     }
 
@@ -97,5 +103,14 @@ export class PwbTemplateTextNode extends BasePwbTemplateNode {
         }
 
         return true;
+    }
+
+    /**
+     * Get value as pure text.
+     * 
+     * @returns text node template as text.
+     */
+    public override toString(): string {
+        return this.mTextValue;
     }
 }

@@ -38,4 +38,13 @@ export class PwbTemplateExpression extends BasePwbTemplateValue {
     public equals(pBaseNode: PwbTemplateExpression): boolean {
         return pBaseNode instanceof PwbTemplateExpression && pBaseNode.value === this.value;
     }
+
+    /**
+     * Read expression as text.
+     * 
+     * @returns Expression as text. 
+     */
+    public override toString(): string {
+        return `{{ ${this.mExpression} }}`;
+    }
 } 

@@ -1,4 +1,5 @@
 import { ExpressionModule } from '../../module/expression-module';
+import { StaticModule } from '../../module/static-module';
 import { ComponentModules } from '../component-modules';
 import { ElementCreator } from '../element-creator';
 import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
@@ -6,6 +7,7 @@ import { PwbTemplate } from '../template/nodes/pwb-template';
 import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node';
 import { PwbTemplateTextNode } from '../template/nodes/pwb-template-text-node';
 import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
+import { PwbTemplateExpression } from '../template/nodes/values/pwb-template-expression';
 import { LayerValues } from '../values/layer-values';
 import { BaseBuilder } from './base-builder';
 import { BuilderContent } from './data/base-builder-data';
@@ -50,7 +52,12 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
         // Update expressions after.
         for (const lExpressionModule of this.content.linkedExpressionModules) {
             lUpdated = lExpressionModule.update() || lUpdated;
+
+            // TODO: Check if expression is mapped with any attribute.
+            // => Write attribute in Set.
         }
+
+        // TODO: Update any attribute.
 
         return lUpdated;
     }
@@ -79,29 +86,51 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
         const lHtmlNode: Element = ElementCreator.createElement(pElementTemplate);
         this.content.insert(lHtmlNode, 'BottomOf', pParentContent);
 
-        // TODO: Read all static modules of attributes.
-        // TODO: Create and link all static modules.
+        for (const lAttributeTemplate of pElementTemplate.attributes) {
 
-        // TODO: Search for expression values in remaining attributes.
-        // TODO: A good way to split and update expression values inside atttribute.
-        // => Create textnode and attach expressionmodule. When expression module has been updated, rebuild attribute text and change. 
+            // Read static module.
+            const lStaticModule: StaticModule | null = this.content.modules.createStaticModule(lAttributeTemplate, lHtmlNode, this.values);
+            if (lStaticModule) {
+                // Link modules.
+                this.content.linkStaticModule(lStaticModule);
+                continue;
+            }
 
+            // Check for expression values in attribute.
+            if (lAttributeTemplate.values.containsExpression) {
+                const lAttributeTextNodeList: Array<Text> = new Array<Text>();
 
+                // Create text nodes for each attribute value and link expressions to those textnodes.
+                for (const lValue of lAttributeTemplate.values.values) {
+                    // Create text node for attribute value.
+                    const lAttributeTextNode: Text = ElementCreator.createText('');
+                    lAttributeTextNodeList.push(lAttributeTextNode);
 
+                    // Add text value for non expressions.
+                    if (!(lValue instanceof PwbTemplateExpression)) {
+                        lAttributeTextNode.data = lValue;
+                        continue;
+                    }
 
+                    // Create expression module for attribute expression value and link it to builder.
+                    const lAttributeExpressionModule: ExpressionModule = this.content.modules.createExpressionModule(lValue, lAttributeTextNode, this.values);
+                    this.content.linkExpressionModule(lAttributeExpressionModule);
 
-        // --------------------  OLD
-        // -------------------------
+                    // TODO: Link expression to attribute.
 
+                }
 
-        // Every attribute is a module. Even text attributes without any any expression.
-        for (const lModule of this.content.modules.getElementStaticModules(pElementTemplate, lHtmlNode, this.values)) {
-            // Link modules.
-            this.content.linkStaticModule(lModule, lHtmlNode);
+                // TODO: Link attribute template with text node list.
+
+                continue;
+            }
+
+            // If it is not a static module nor an expression attribute, add it as simple text attribute.
+            lHtmlNode.setAttribute(lAttributeTemplate.name, lAttributeTemplate.values.toString());
         }
 
         // Append element to parent.
-        this.content.append(lHtmlNode, pParentContent);
+        this.content.insert(lHtmlNode, 'BottomOf', pParentContent);
 
         // Build childs.
         this.buildTemplate(pElementTemplate.childList, lHtmlNode);

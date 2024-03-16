@@ -1,3 +1,4 @@
+import { Exception } from '@kartoffelgames/core.data';
 import { BasePwbTemplateNode } from '../base-pwb-template-node';
 
 /**
@@ -8,10 +9,17 @@ export abstract class BasePwbTemplateValue {
 
     /**
      * Get node of template value.
+     * 
+     * @throws {@link Exception}
+     * When template value is not attached to any node.
      */
-    public get node(): BasePwbTemplateNode | null {
+    public get node(): BasePwbTemplateNode {
+        if (!this.mNode) {
+            throw new Exception('Template value is not attached to any template node.', this);
+        }
+
         return this.mNode;
-    } set node(pParent: BasePwbTemplateNode | null) {
+    } set node(pParent: BasePwbTemplateNode) {
         this.mNode = pParent;
     }
 

@@ -118,24 +118,4 @@ export class ComponentModules {
         /* istanbul ignore next */
         return undefined;
     }
-
-    /**
-     * Check if template uses any manipulator modules.
-     * @param pTemplate - Key list for possible multiplicator modules.
-     */
-    public getMultiplicatorAttribute(pTemplate: PwbTemplateXmlNode): PwbTemplateAttribute | undefined {
-        // Find manipulator module inside attributes.
-        for (const lDefinition of Modules.moduleDefinitions) {
-            // Only manipulator modules.
-            if (lDefinition.type === ModuleType.Manipulator) {
-                for (const lAttribute of pTemplate.attributes) {
-                    if (lDefinition.selector.test(lAttribute.name)) {
-                        return lAttribute;
-                    }
-                }
-            }
-        }
-
-        return undefined;
-    }
 }

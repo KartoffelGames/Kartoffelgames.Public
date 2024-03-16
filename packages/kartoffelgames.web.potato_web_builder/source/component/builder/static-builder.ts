@@ -1,5 +1,4 @@
 import { ExpressionModule } from '../../module/expression-module';
-import { StaticModule } from '../../module/static-module';
 import { ComponentModules } from '../component-modules';
 import { ElementCreator } from '../element-creator';
 import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
@@ -76,8 +75,22 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
      * @param pParentContent - Parent of template.
      */
     private buildStaticTemplate(pElementTemplate: PwbTemplateXmlNode, pParentContent: BuilderContent): void {
-        // Build element.
+        // Build element and append to builder.
         const lHtmlNode: Element = ElementCreator.createElement(pElementTemplate);
+        this.content.insert(lHtmlNode, 'BottomOf', pParentContent);
+
+        // TODO: Read all static modules of attributes.
+        // TODO: Create and link all static modules.
+
+        // TODO: Search for expression values in remaining attributes.
+        // TODO: A good way to split and update expression values inside atttribute.
+
+
+
+
+        // --------------------  OLD
+        // -------------------------
+
 
         // Every attribute is a module. Even text attributes without any any expression.
         for (const lModule of this.content.modules.getElementStaticModules(pElementTemplate, lHtmlNode, this.values)) {

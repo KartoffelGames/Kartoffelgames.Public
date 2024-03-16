@@ -84,6 +84,8 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
 
         // TODO: Search for expression values in remaining attributes.
         // TODO: A good way to split and update expression values inside atttribute.
+        // => Create textnode and attach expressionmodule. When expression module has been updated, rebuild attribute text and change. 
+
 
 
 

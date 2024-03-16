@@ -28,6 +28,13 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
     }
 
     /**
+     * Content template.
+     */
+    public get template(): TTemplates {
+        return this.mTemplate;
+    }
+
+    /**
      * Get component values of builder.
      */
     public get values(): LayerValues {
@@ -42,13 +49,6 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
     }
 
     /**
-     * Content template.
-     */
-    protected get template(): TTemplates {
-        return this.mTemplate;
-    }
-
-    /**
      * Constructor.
      * @param pTemplate - Builder template.
      * @param pParentLayerValues - New component values.
@@ -60,7 +60,7 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
 
         // Create new layer of values.
         this.mComponentValues = new LayerValues(pParentLayerValues);
-        this.mContent = pContent; 
+        this.mContent = pContent;
     }
 
     /**

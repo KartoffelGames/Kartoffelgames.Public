@@ -6,6 +6,9 @@ import { Modules } from '../module/modules';
 import { MultiplicatorModule } from '../module/multiplicator-module';
 import { StaticModule } from '../module/static-module';
 import { ComponentManager } from './component-manager';
+import { PwbTemplateInstructionNode } from './template/nodes/pwb-template-instruction-node';
+import { PwbTemplateAttribute } from './template/nodes/values/pwb-template-attribute';
+import { PwbTemplateExpression } from './template/nodes/values/pwb-template-expression';
 import { LayerValues } from './values/layer-values';
 
 // Import default modules
@@ -16,9 +19,8 @@ import '../default/pwb_for_of/for-of-manipulator-attribute-module';
 import '../default/pwb_if/if-manipulator-attribute-module';
 import '../default/slot_attribute/slot-attribute-module';
 import '../default/two_way_binding/two-way-binding-attribute-module';
-import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
-import { PwbTemplateExpression } from './template/nodes/values/pwb-template-expression';
-import { PwbTemplateAttribute } from './template/nodes/values/pwb-template-attribute';
+
+
 
 export class ComponentModules {
     private readonly mComponentManager: ComponentManager;
@@ -91,7 +93,7 @@ export class ComponentModules {
      * @param pTemplate - Template element.
      * @param pValues - Values of current layer.
      */
-    public getElementMultiplicatorModule(pTemplate: PwbTemplateXmlNode, pValues: LayerValues): MultiplicatorModule | undefined {
+    public getElementMultiplicatorModule(pTemplate: PwbTemplateInstructionNode, pValues: LayerValues): MultiplicatorModule | undefined {
         // Find manipulator module inside attributes.
         for (const lDefinition of Modules.moduleDefinitions) {
             // Only manipulator modules.

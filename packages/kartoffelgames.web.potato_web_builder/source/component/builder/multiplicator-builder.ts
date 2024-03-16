@@ -3,7 +3,6 @@ import { MultiplicatorModule } from '../../module/multiplicator-module';
 import { ManipulatorElement, MultiplicatorResult } from '../../module/result/multiplicator-result';
 import { ComponentModules } from '../component-modules';
 import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node';
-import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
 import { LayerValues } from '../values/layer-values';
 import { BaseBuilder } from './base-builder';
 import { InstructionBuilderData } from './data/instruction-builder-data';
@@ -14,6 +13,7 @@ export class MultiplicatorBuilder extends BaseBuilder<PwbTemplateInstructionNode
 
     /**
      * Constructor.
+     * 
      * @param pTemplate - Instruction template.
      * @param pModules - Attribute modules.
      * @param pParentLayerValues - Layer value of parent builder.
@@ -23,19 +23,12 @@ export class MultiplicatorBuilder extends BaseBuilder<PwbTemplateInstructionNode
     }
 
     /**
-     * If builder is multiplicator.
-     */
-    protected isMultiplicator(): boolean {
-        return true;
-    }
-
-    /**
      * Update content dependent on temporar value. 
      */
     protected onUpdate(): boolean {
         // Create multiplicator module if is does not exist.
         if (!this.content.multiplicatorModule) {
-            const lTemplate: PwbTemplateXmlNode = <PwbTemplateXmlNode>this.template;
+            const lTemplate: PwbTemplateInstructionNode = this.template;
 
             // Create module and save inside. Allways has existing module bc. can only be called with found multiplicator module.
             const lManipulatorModule: MultiplicatorModule = <MultiplicatorModule>this.content.modules.getElementMultiplicatorModule(lTemplate, this.values);
@@ -45,11 +38,6 @@ export class MultiplicatorBuilder extends BaseBuilder<PwbTemplateInstructionNode
         // Call module update.
         const lModuleResult: MultiplicatorResult | null = (<MultiplicatorModule>this.content.multiplicatorModule).update();
         if (lModuleResult) {
-            // Add shadow parent to all module results.
-            for (const lResult of lModuleResult.elementList) {
-                lResult.template.parent = this.shadowParent;
-            }
-
             // Get current StaticBuilder. Only content are static builder.
             const lOldStaticBuilderList: Array<StaticBuilder> = <Array<StaticBuilder>>this.content.body;
 
@@ -58,7 +46,7 @@ export class MultiplicatorBuilder extends BaseBuilder<PwbTemplateInstructionNode
         }
 
         // No need to report any update.
-        // New static builder are always updating.
+        // Builder are updated in base builder and will report itself.
         return false;
     }
 
@@ -69,14 +57,14 @@ export class MultiplicatorBuilder extends BaseBuilder<PwbTemplateInstructionNode
      */
     private insertNewContent(pNewContent: ManipulatorElement, pLastContent: StaticBuilder | null): StaticBuilder {
         // Create new static builder.
-        const lStaticBuilder: StaticBuilder = new StaticBuilder(pNewContent.template, this.shadowParent, this.content.modules, pNewContent.componentValues, this);
+        const lStaticBuilder: StaticBuilder = new StaticBuilder(pNewContent.template, this.content.modules, pNewContent.componentValues);
 
         // Prepend content if no content is before the new content. 
         if (pLastContent === null) {
-            this.content.prepend(lStaticBuilder);
+            this.content.insert(lStaticBuilder, 'TopOf', this);
         } else {
             // Append after content that is before the new content. Obviously -,-
-            this.content.after(lStaticBuilder, pLastContent);
+            this.content.insert(lStaticBuilder, 'After', pLastContent);
         }
 
         return lStaticBuilder;
@@ -96,16 +84,16 @@ export class MultiplicatorBuilder extends BaseBuilder<PwbTemplateInstructionNode
         // Get differences of old an new content.
         const lDifferenceList: Array<HistoryItem<StaticBuilder, ManipulatorElement>> = lDifferenceSearch.differencesOf(pOldContentList, pNewContentList);
 
-        let lLastContent: StaticBuilder | null = null;
+        let lLastExistingChildBuilder: StaticBuilder | null = null;
         for (const lHistoryItem of lDifferenceList) {
             // Update, Remove or do nothing with static builder depended on change state.
-            if (lHistoryItem.changeState === ChangeState.Keep) {
-                lLastContent = lHistoryItem.item;
-            } else if (lHistoryItem.changeState === ChangeState.Remove) {
+            if (lHistoryItem.changeState === ChangeState.Remove) {
                 this.content.remove(lHistoryItem.item);
-            } else { // if (lHistoryItem.changeState === ChangeState.Insert)
+            } else if (lHistoryItem.changeState === ChangeState.Insert) {
                 // Create new static builder, insert after last content.
-                lLastContent = this.insertNewContent(lHistoryItem.item, lLastContent);
+                lLastExistingChildBuilder = this.insertNewContent(lHistoryItem.item, lLastExistingChildBuilder);
+            } else { // if (lHistoryItem.changeState === ChangeState.Keep) {
+                lLastExistingChildBuilder = lHistoryItem.item;
             }
         }
     }

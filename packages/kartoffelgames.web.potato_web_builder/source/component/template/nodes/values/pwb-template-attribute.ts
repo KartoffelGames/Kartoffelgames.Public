@@ -2,7 +2,7 @@ import { PwbTemplateTextNode } from '../pwb-template-text-node';
 import { BasePwbTemplateValue } from './base-pwb-template-value';
 import { PwbTemplateExpression } from './pwb-template-expression';
 
-export class PwbTemplateAttributeNode extends BasePwbTemplateValue {
+export class PwbTemplateAttribute extends BasePwbTemplateValue {
     private mName: string;
     private readonly mValue: PwbTemplateTextNode;
 
@@ -14,6 +14,7 @@ export class PwbTemplateAttributeNode extends BasePwbTemplateValue {
     } set name(pValue: string) {
         this.mName = pValue;
     }
+
 
     /**
      * Attribute value.
@@ -35,8 +36,8 @@ export class PwbTemplateAttributeNode extends BasePwbTemplateValue {
     /**
      * Clone current node.
      */
-    public override clone(): PwbTemplateAttributeNode {
-        const lCloneNode = new PwbTemplateAttributeNode();
+    public override clone(): PwbTemplateAttribute {
+        const lCloneNode = new PwbTemplateAttribute();
         lCloneNode.name = this.name;
 
         // Deep clone attribute values.
@@ -54,7 +55,7 @@ export class PwbTemplateAttributeNode extends BasePwbTemplateValue {
      */
     public override equals(pBaseNode: BasePwbTemplateValue): boolean {
         // Check type and name.
-        if (!(pBaseNode instanceof PwbTemplateAttributeNode) || pBaseNode.name !== this.name) {
+        if (!(pBaseNode instanceof PwbTemplateAttribute) || pBaseNode.name !== this.name) {
             return false;
         }
 
@@ -66,8 +67,3 @@ export class PwbTemplateAttributeNode extends BasePwbTemplateValue {
         return true;
     }
 }
-
-export type PwbTemplateAttribute = {
-    name: string;
-    values: Array<string | PwbTemplateExpression>;
-}; 

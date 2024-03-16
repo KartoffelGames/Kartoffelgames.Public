@@ -1,6 +1,6 @@
 import { Dictionary, List } from '@kartoffelgames/core.data';
 import { BasePwbTemplateNode } from './base-pwb-template-node';
-import { PwbTemplateAttributeNode } from './values/pwb-template-attribute';
+import { PwbTemplateAttribute } from './values/pwb-template-attribute';
 import { PwbTemplateTextNode } from './pwb-template-text-node';
 import { PwbTemplateExpression } from './values/pwb-template-expression';
 
@@ -8,14 +8,14 @@ import { PwbTemplateExpression } from './values/pwb-template-expression';
  * Pwb template xml node.
  */
 export class PwbTemplateXmlNode extends BasePwbTemplateNode {
-    private readonly mAttributeDictionary: Dictionary<string, PwbTemplateAttributeNode>;
+    private readonly mAttributeDictionary: Dictionary<string, PwbTemplateAttribute>;
     private readonly mChildList: Array<BasePwbTemplateNode>;
     private mTagName: string;
 
     /**
      * Get all attributes from xml node.
      */
-    public get attributes(): Array<PwbTemplateAttributeNode> {
+    public get attributes(): Array<PwbTemplateAttribute> {
         return List.newListWith(...this.mAttributeDictionary.values());
     }
 
@@ -40,7 +40,7 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
      */
     public constructor() {
         super();
-        this.mAttributeDictionary = new Dictionary<string, PwbTemplateAttributeNode>();
+        this.mAttributeDictionary = new Dictionary<string, PwbTemplateAttribute>();
         this.mChildList = Array<BasePwbTemplateNode>();
 
         this.mTagName = '';
@@ -104,7 +104,7 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
         // Check all attributes.
         for (const lAttributeOne of pBaseNode.mAttributeDictionary.values()) {
             // This checks also for wrong namespace prefix by checking for qualified attribute name.
-            const lAttributeTwo: PwbTemplateAttributeNode | undefined = this.mAttributeDictionary.get(lAttributeOne.name);
+            const lAttributeTwo: PwbTemplateAttribute | undefined = this.mAttributeDictionary.get(lAttributeOne.name);
 
             if (!lAttributeTwo || lAttributeTwo.equals(lAttributeOne)) {
                 return false;
@@ -166,11 +166,11 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
      */
     public setAttribute(pKey: string): PwbTemplateTextNode {
         // Read potential attribte.
-        let lAttribute: PwbTemplateAttributeNode | undefined = this.mAttributeDictionary.get(pKey);
+        let lAttribute: PwbTemplateAttribute | undefined = this.mAttributeDictionary.get(pKey);
 
         // Create and register new attribute when it does not exists.
         if (!lAttribute) {
-            lAttribute = new PwbTemplateAttributeNode();
+            lAttribute = new PwbTemplateAttribute();
             lAttribute.name = pKey;
             lAttribute.parent = this;
 

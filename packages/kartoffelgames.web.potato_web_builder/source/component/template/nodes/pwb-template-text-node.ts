@@ -5,8 +5,16 @@ import { PwbTemplateExpression } from './values/pwb-template-expression';
  * Node only contains text.
  */
 export class PwbTemplateTextNode extends BasePwbTemplateNode {
+    private mContainsExpression: boolean;
     private mTextValue: string;
     private readonly mValues: Array<string | PwbTemplateExpression>;
+
+    /**
+     * Text node contains expression.
+     */
+    public get containsExpression(): boolean {
+        return this.mContainsExpression;
+    }
 
     /**
      * Attribute values.
@@ -22,6 +30,7 @@ export class PwbTemplateTextNode extends BasePwbTemplateNode {
         super();
 
         this.mTextValue = '';
+        this.mContainsExpression = false;
         this.mValues = [];
     }
 
@@ -37,6 +46,9 @@ export class PwbTemplateTextNode extends BasePwbTemplateNode {
             // Link expression parent to this attribute. 
             if (lValue instanceof PwbTemplateExpression) {
                 lValue.node = this;
+
+                // Set contains expression flag.
+                this.mContainsExpression = true;
             }
 
             this.mValues.push(lValue);

@@ -4,30 +4,22 @@ import { BasePwbTemplateNode } from '../base-pwb-template-node';
  * Basic node.
  */
 export abstract class BasePwbTemplateValue {
-    private mParent: BasePwbTemplateNode | null;
+    private mNode: BasePwbTemplateNode | null;
 
     /**
-     * Get Parent of node.
+     * Get node of template value.
      */
-    public get parent(): BasePwbTemplateNode | null {
-        return this.mParent;
-    } set parent(pParent: BasePwbTemplateNode | null) {
-        // If child has already parent.
-        if (this.mParent !== null && pParent !== this.mParent) {
-            // Remove child from parent based of type.
-            if ('removeChild' in this.mParent && typeof this.mParent.removeChild === 'function') {
-                this.mParent.removeChild(this);
-            }
-        }
-
-        this.mParent = pParent;
+    public get node(): BasePwbTemplateNode | null {
+        return this.mNode;
+    } set node(pParent: BasePwbTemplateNode | null) {
+        this.mNode = pParent;
     }
 
     /**
      * Constructor.
      */
     public constructor() {
-        this.mParent = null;
+        this.mNode = null;
     }
 
     /**

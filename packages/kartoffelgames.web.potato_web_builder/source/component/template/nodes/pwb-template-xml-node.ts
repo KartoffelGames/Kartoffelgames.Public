@@ -172,7 +172,7 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
         if (!lAttribute) {
             lAttribute = new PwbTemplateAttribute();
             lAttribute.name = pKey;
-            lAttribute.parent = this;
+            lAttribute.node = this;
 
             this.mAttributeDictionary.set(pKey, lAttribute);
         }

@@ -33,7 +33,7 @@ export class PwbTemplateTextNode extends BasePwbTemplateNode {
         for (const lValue of pValues) {
             // Link expression parent to this attribute. 
             if (lValue instanceof PwbTemplateExpression) {
-                lValue.parent = this;
+                lValue.node = this;
             }
 
             this.mValues.push(lValue);

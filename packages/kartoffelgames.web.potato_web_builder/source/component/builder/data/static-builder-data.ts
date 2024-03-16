@@ -1,3 +1,4 @@
+import { Exception } from '@kartoffelgames/core.data';
 import { ExpressionModule } from '../../../module/expression-module';
 import { StaticModule } from '../../../module/static-module';
 import { ComponentModules } from '../../component-modules';
@@ -5,6 +6,7 @@ import { PwbTemplateAttribute } from '../../template/nodes/values/pwb-template-a
 import { BaseBuilderData } from './base-builder-data';
 
 export class StaticBuilderData extends BaseBuilderData {
+    private readonly mLinkedAttributeElement: WeakMap<PwbTemplateAttribute, Element>;
     private readonly mLinkedAttributeExpressionModules: WeakMap<ExpressionModule, PwbTemplateAttribute>;
     private readonly mLinkedAttributeNodes: WeakMap<PwbTemplateAttribute, Array<Text>>;
     private readonly mLinkedExpressionModuleList: Array<ExpressionModule>;
@@ -49,8 +51,46 @@ export class StaticBuilderData extends BaseBuilderData {
         // Attribute expression maps.
         this.mLinkedAttributeExpressionModules = new WeakMap<ExpressionModule, PwbTemplateAttribute>();
         this.mLinkedAttributeNodes = new WeakMap<PwbTemplateAttribute, Array<Text>>();
+        this.mLinkedAttributeElement = new WeakMap<PwbTemplateAttribute, Element>();
 
         this.mStaticModulesChangedOrder = false;
+    }
+
+    /**
+     * Get linked attribute of expression module.
+     * Return undefined when no attribute is linked to the module.
+     * 
+     * @param pModule - Expression module.
+     * 
+     * @returns linked attribute of expression module.
+     */
+    public attributeOfLinkedExpressionModule(pModule: ExpressionModule): PwbTemplateAttribute | undefined {
+        return this.mLinkedAttributeExpressionModules.get(pModule);
+    }
+
+    /**
+     * Get linked data of attribute.
+     * Includes linked element and text values of attribute. 
+     * 
+     * @param pAttribute - Attribute template with linked data.
+     * 
+     * @returns Linked text nodes and element of {@link pAttribute}.
+     * 
+     * @throws {@link Exception}
+     * When {@link pAttribute} has no linked data.
+     */
+    public getLinkedAttributeData(pAttribute: PwbTemplateAttribute): StaticBuilderLinkedAttributeData {
+        // Read linked attribute nodes. Throw when no are linked.
+        const lLinkedAttributeNodeList: Array<Text> | undefined = this.mLinkedAttributeNodes.get(pAttribute);
+        const lLinedAttributeElement: Element | undefined = this.mLinkedAttributeElement.get(pAttribute);
+        if (!lLinkedAttributeNodeList || !lLinedAttributeElement) {
+            throw new Exception(`Attribute has no linked data.`, this);
+        }
+
+        return {
+            values: lLinkedAttributeNodeList,
+            node: lLinedAttributeElement
+        };
     }
 
     /**
@@ -64,13 +104,15 @@ export class StaticBuilderData extends BaseBuilderData {
     }
 
     /**
-     * Link attribute text nodes with a attribute.
+     * Link attribute data with a attribute.
      * 
      * @param pAttribute - Attribute template with {@link pModule} as child value.
+     * @param pElement - Element of {@link pAttribute}.
      * @param pValues - Text node values, containing text nodes with linked expression modules.
      */
-    public linkAttributeNodes(pAttribute: PwbTemplateAttribute, pValues: Array<Text>): void {
+    public linkAttributeNodes(pAttribute: PwbTemplateAttribute, pElement: Element, pValues: Array<Text>): void {
         this.mLinkedAttributeNodes.set(pAttribute, pValues);
+        this.mLinkedAttributeElement.set(pAttribute, pElement);
     }
 
     /**
@@ -145,3 +187,8 @@ export class StaticBuilderData extends BaseBuilderData {
         });
     }
 }
+
+export type StaticBuilderLinkedAttributeData = {
+    values: Array<Text>;
+    node: Element;
+};

@@ -7,11 +7,12 @@ import { PwbTemplate } from '../template/nodes/pwb-template';
 import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node';
 import { PwbTemplateTextNode } from '../template/nodes/pwb-template-text-node';
 import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
+import { PwbTemplateAttribute } from '../template/nodes/values/pwb-template-attribute';
 import { PwbTemplateExpression } from '../template/nodes/values/pwb-template-expression';
 import { LayerValues } from '../values/layer-values';
 import { BaseBuilder } from './base-builder';
 import { BuilderContent } from './data/base-builder-data';
-import { StaticBuilderData } from './data/static-builder-data';
+import { StaticBuilderData, StaticBuilderLinkedAttributeData } from './data/static-builder-data';
 import { MultiplicatorBuilder } from './multiplicator-builder';
 
 export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderData> {
@@ -49,15 +50,37 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
             lUpdated = lModule.update() || lUpdated;
         }
 
+        // List with all expression that are updated and linked with any attribute.
+        const lAttributesWithExpressionModuleLink: Set<PwbTemplateAttribute> = new Set<PwbTemplateAttribute>();
+
         // Update expressions after.
         for (const lExpressionModule of this.content.linkedExpressionModules) {
-            lUpdated = lExpressionModule.update() || lUpdated;
+            // Update expression and save updatestate.
+            const lExpressionUpdated: boolean = lExpressionModule.update();
 
-            // TODO: Check if expression is mapped with any attribute.
-            // => Write attribute in Set.
+            // Update accumulated modules update state.
+            lUpdated = lExpressionUpdated || lUpdated;
+
+            // Check if expression is mapped with any attribute.
+            if (lExpressionUpdated) {
+                const lLinkedAttribute: PwbTemplateAttribute | undefined = this.content.attributeOfLinkedExpressionModule(lExpressionModule);
+                if (lLinkedAttribute) {
+                    lAttributesWithExpressionModuleLink.add(lLinkedAttribute);
+                }
+            }
         }
 
-        // TODO: Update any attribute.
+        // Update any attribute with linked expression modules that has been updated.
+        for (const lUpdatedAttribute of lAttributesWithExpressionModuleLink) {
+            // Read all attribute text nodes.
+            const lLinkedAttributeData: StaticBuilderLinkedAttributeData = this.content.getLinkedAttributeData(lUpdatedAttribute);
+
+            // Accumulate all up to date text data.
+            const lAccumulatedText: string = lLinkedAttributeData.values.reduce((pCurrent: string, pNext: Text) => { return pCurrent + pNext.data; }, '');
+
+            // Update DOM attribute value with accumulated text.
+            lLinkedAttributeData.node.setAttribute(lUpdatedAttribute.name, lAccumulatedText);
+        }
 
         return lUpdated;
     }
@@ -122,7 +145,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
                 }
 
                 // Link attribute template with text node list.
-                this.content.linkAttributeNodes(lAttributeTemplate, lAttributeTextNodeList);
+                this.content.linkAttributeNodes(lAttributeTemplate, lHtmlNode, lAttributeTextNodeList);
 
                 continue;
             }

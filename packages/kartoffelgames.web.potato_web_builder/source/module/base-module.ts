@@ -10,7 +10,7 @@ import { LayerValues } from '../component/values/layer-values';
 import { ModuleAccessType } from '../enum/module-access-type';
 import { ComponentManagerReference } from '../injection_reference/component-manager-reference';
 import { ModuleAttributeReference } from '../injection_reference/module-attribute-reference';
-import { ModuleExpressionReference } from '../injection_reference/module/module-expression-reference';
+import { ModuleExpressionReference } from '../injection_reference/module/module-value-reference';
 import { ModuleLayerValuesReference } from '../injection_reference/module-layer-values-reference';
 import { ModuleTargetReference } from '../injection_reference/module-target-reference';
 import { ModuleTemplateReference } from '../injection_reference/module-template-reference';

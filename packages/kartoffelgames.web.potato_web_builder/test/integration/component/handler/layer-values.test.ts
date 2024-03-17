@@ -58,7 +58,7 @@ describe('LayerValues', () => {
             const lRootValues: LayerValues = (<ComponentManager>ComponentConnection.componentManagerOf(lComponent)).rootValues;
 
             // Process. Create child layer.
-            const lIsEqual: boolean = lRootValues.equal(lRootValues);
+            const lIsEqual: boolean = lRootValues.equals(lRootValues);
 
             // Evaluation.
             expect(lIsEqual).to.be.true;
@@ -84,7 +84,7 @@ describe('LayerValues', () => {
             const lRootValuesTwo: LayerValues = (<ComponentManager>ComponentConnection.componentManagerOf(lComponentTwo)).rootValues;
 
             // Process.
-            const lIsEqual: boolean = lRootValuesOne.equal(lRootValuesTwo);
+            const lIsEqual: boolean = lRootValuesOne.equals(lRootValuesTwo);
 
             // Evaluation.
             expect(lIsEqual).to.be.false;
@@ -107,7 +107,7 @@ describe('LayerValues', () => {
             lChildLayerTwo.setLayerValue('Temporary-Key', 'Temporary-Value');
 
             // Process.
-            const lIsEqual: boolean = lChildLayerOne.equal(lChildLayerTwo);
+            const lIsEqual: boolean = lChildLayerOne.equals(lChildLayerTwo);
 
             // Evaluation.
             expect(lIsEqual).to.be.false;
@@ -131,7 +131,7 @@ describe('LayerValues', () => {
             lChildLayerTwo.setLayerValue('Temporary-Key', 'Temporary-Value-Two');
 
             // Process.
-            const lIsEqual: boolean = lChildLayerOne.equal(lChildLayerTwo);
+            const lIsEqual: boolean = lChildLayerOne.equals(lChildLayerTwo);
 
             // Evaluation.
             expect(lIsEqual).to.be.false;

@@ -76,7 +76,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
     private updateStaticBuilder(pOldContentList: Array<StaticBuilder>, pNewContentList: Array<ManipulatorElement>): void {
         // Define difference search.
         const lDifferenceSearch: DifferenceSearch<StaticBuilder, ManipulatorElement> = new DifferenceSearch<StaticBuilder, ManipulatorElement>((pA, pB) => {
-            return pB.componentValues.equal(pA.values) && pB.template.equals(pA.template);
+            return pB.componentValues.equals(pA.values) && pB.template.equals(pA.template);
         });
 
         // Get differences of old an new content.

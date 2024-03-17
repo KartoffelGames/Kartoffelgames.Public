@@ -66,7 +66,7 @@ export class LayerValues {
      * Check for changes into two value handler.
      * @param pHandler - Handler two.
      */
-    public equal(pHandler: LayerValues): boolean {
+    public equals(pHandler: LayerValues): boolean {
         // Compare if it has the same user class object.
         if (this.componentManager.userObjectHandler.userObject !== pHandler.componentManager.userObjectHandler.userObject) {
             return false;

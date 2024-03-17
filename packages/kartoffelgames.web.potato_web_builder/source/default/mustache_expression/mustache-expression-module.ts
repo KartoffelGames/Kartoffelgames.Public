@@ -1,7 +1,7 @@
 import { LayerValues } from '../../component/values/layer-values';
 import { PwbExpressionModule } from '../../decorator/pwb-expression-module.decorator';
 import { IPwbExpressionModuleOnUpdate } from '../../interface/module';
-import { ModuleExpressionReference } from '../../injection_reference/module/module-expression-reference';
+import { ModuleExpressionReference } from '../../injection_reference/module/module-value-reference';
 import { ModuleLayerValuesReference } from '../../injection_reference/module-layer-values-reference';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
 

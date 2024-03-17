@@ -7,15 +7,15 @@ import { ModuleValueReference } from '../injection_reference/module/module-value
 import { IPwbInstructionModuleProcessor } from '../interface/module';
 import { BaseModule } from './base-module';
 import { InstructionModuleConfiguration } from './global-module-storage';
-import { ManipulatorElement, MultiplicatorResult } from './result/multiplicator-result';
+import { InstructionResultElement, InstructionResult } from './result/instruction-result';
 
 export class MultiplicatorModule extends BaseModule<Comment, IPwbInstructionModuleProcessor> {
-    private mLastResult: MultiplicatorResult;
+    private mLastResult: InstructionResult;
 
     /**
      * Current instruction result.
      */
-    public get instructionResult(): MultiplicatorResult {
+    public get instructionResult(): InstructionResult {
         return this.mLastResult;
     }
 
@@ -34,7 +34,7 @@ export class MultiplicatorModule extends BaseModule<Comment, IPwbInstructionModu
         this.setProcessorAttributes(ModuleKeyReference, new ModuleKeyReference(pParameter.targetTemplate.instructionType));
 
         // Set starting value of instruction => Empty.
-        this.mLastResult = new MultiplicatorResult();
+        this.mLastResult = new InstructionResult();
     }
 
     /**
@@ -42,14 +42,14 @@ export class MultiplicatorModule extends BaseModule<Comment, IPwbInstructionModu
      */
     public update(): boolean {
         // Try to update instruction when an onUpdate method is defined.
-        let lNewValue: MultiplicatorResult | null = null;
+        let lNewValue: InstructionResult | null = null;
         if ('onUpdate' in this.processor) {
             lNewValue = this.processor.onUpdate();
         }
 
         // Reset null values to empty multiplicator result.
         if (!lNewValue) {
-            lNewValue = new MultiplicatorResult();
+            lNewValue = new InstructionResult();
         }
 
         // Check for changes in last and new result.
@@ -61,8 +61,8 @@ export class MultiplicatorModule extends BaseModule<Comment, IPwbInstructionModu
 
             // Compare each element of instruction result.
             for (let lElementIndex: number = 0; lElementIndex < lNewValue.elementList.length; lElementIndex++) {
-                const lNewElement: ManipulatorElement = lNewValue.elementList[lElementIndex];
-                const lOldElement: ManipulatorElement = this.mLastResult.elementList[lElementIndex];
+                const lNewElement: InstructionResultElement = lNewValue.elementList[lElementIndex];
+                const lOldElement: InstructionResultElement = this.mLastResult.elementList[lElementIndex];
 
                 // Compare new and old template.
                 if(!lNewElement.template.equals(lOldElement.template)){

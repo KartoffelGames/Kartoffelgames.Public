@@ -4,7 +4,7 @@ import { IPwbInstructionModuleOnUpdate } from '../../interface/module';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ModuleLayerValuesReference } from '../../injection_reference/module-layer-values-reference';
 import { ModuleTemplateReference } from '../../injection_reference/module-template-reference';
-import { MultiplicatorResult } from '../../module/result/multiplicator-result';
+import { InstructionResult } from '../../module/result/instruction-result';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
 
 /**
@@ -39,7 +39,7 @@ export class IfManipulatorAttributeModule implements IPwbInstructionModuleOnUpda
      * Decide if module / element should be updated.
      * @returns if element of module should be updated.
      */
-    public onUpdate(): MultiplicatorResult | null {
+    public onUpdate(): InstructionResult | null {
         const lExecutionResult: any = ComponentScopeExecutor.executeSilent(this.mAttributeReference.value.asText, this.mValueHandler);
 
         if (this.mFirstCompare || !!lExecutionResult !== this.mLastBoolean) {
@@ -47,7 +47,7 @@ export class IfManipulatorAttributeModule implements IPwbInstructionModuleOnUpda
             this.mFirstCompare = false;
 
             // If in any way the execution result is true, add template to result.
-            const lModuleResult: MultiplicatorResult = new MultiplicatorResult();
+            const lModuleResult: InstructionResult = new InstructionResult();
             if (lExecutionResult) {
                 lModuleResult.addElement(this.mTemplateReference.value.clone(), new LayerValues(this.mValueHandler));
             }

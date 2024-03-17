@@ -6,7 +6,7 @@ import { IPwbInstructionModuleOnUpdate } from '../../interface/module';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ModuleLayerValuesReference } from '../../injection_reference/module-layer-values-reference';
 import { ModuleTemplateReference } from '../../injection_reference/module-template-reference';
-import { MultiplicatorResult } from '../../module/result/multiplicator-result';
+import { InstructionResult } from '../../module/result/instruction-result';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
 import { PwbTemplateXmlNode } from '../../component/template/nodes/pwb-template-xml-node';
 
@@ -41,7 +41,7 @@ export class ForOfManipulatorAttributeModule implements IPwbInstructionModuleOnU
      * Process module.
      * Execute attribute value and decide if template should be rendered.
      */
-    public onUpdate(): MultiplicatorResult | null {
+    public onUpdate(): InstructionResult | null {
         // [CustomName:1] of [List value:2] (;[CustomIndexName:4]=[Index calculating with "index" as key:5])?
         const lRegexAttributeInformation: RegExp = new RegExp(/^\s*([a-zA-Z]+[a-zA-Z0-9]*)\s*of\s+([^;]+)\s*(;\s*([a-zA-Z]+[a-zA-Z0-9]*)\s*=\s*(.*)\s*)?$/);
 
@@ -58,7 +58,7 @@ export class ForOfManipulatorAttributeModule implements IPwbInstructionModuleOnU
             };
 
             // Create module result that watches for changes in [PropertyName].
-            const lModuleResult: MultiplicatorResult = new MultiplicatorResult();
+            const lModuleResult: InstructionResult = new InstructionResult();
 
             // Try to get list object from component values.
             const lListObject: { [key: string]: any; } = ComponentScopeExecutor.executeSilent(lExpression.value, this.mValueHandler);
@@ -101,7 +101,7 @@ export class ForOfManipulatorAttributeModule implements IPwbInstructionModuleOnU
      * @param pObjectValue - value.
      * @param pObjectKey - value key.
      */
-    private readonly addTempateForElement = (pModuleResult: MultiplicatorResult, pExpression: ForOfExpression, pObjectValue: any, pObjectKey: number | string) => {
+    private readonly addTempateForElement = (pModuleResult: InstructionResult, pExpression: ForOfExpression, pObjectValue: any, pObjectKey: number | string) => {
         const lClonedTemplate: PwbTemplateXmlNode = <PwbTemplateXmlNode>this.mTemplateReference.value.clone();
         const lComponentValues: LayerValues = new LayerValues(this.mValueHandler);
         lComponentValues.setLayerValue(pExpression.variable, pObjectValue);

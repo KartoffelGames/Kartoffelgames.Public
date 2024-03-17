@@ -3,30 +3,32 @@ import { StaticPwbTemplate } from '../../component/builder/static-builder';
 import { LayerValues } from '../../component/values/layer-values';
 
 /**
- * Results for html manipulator attribute module.
+ * Results for instruction module.
+ * 
+ * @public
  */
-export class MultiplicatorResult {
-    private readonly mElementList: Array<ManipulatorElement>;
+export class InstructionResult {
+    private readonly mElementList: Array<InstructionResultElement>;
 
     /**
      * Get list of created elements.
      */
-    public get elementList(): Array<ManipulatorElement> {
+    public get elementList(): Array<InstructionResultElement> {
         return List.newListWith(...this.mElementList);
     }
 
     /**
      * Constructor.
-     * Initialize new html manipulator attribute module result.
      */
     public constructor() {
-        // Initialize list.
-        this.mElementList = new Array<ManipulatorElement>();
+        this.mElementList = new Array<InstructionResultElement>();
     }
 
     /**
      * Add new element to result.
-     * @param pTemplateElement - New template element. Can't use same template for multiple elements.
+     * Can't use same template for multiple elements.
+     * 
+     * @param pTemplateElement - New template element.
      * @param pValues - New Value handler of element with current value handler as parent.
      */
     public addElement(pTemplateElement: StaticPwbTemplate, pValues: LayerValues): void {
@@ -46,8 +48,10 @@ export class MultiplicatorResult {
 
 /**
  * Result element of manipulator module.
+ * 
+ * @internal
  */
-export type ManipulatorElement = {
+export type InstructionResultElement = {
     template: StaticPwbTemplate;
     componentValues: LayerValues;
 };

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 
-import { MultiplicatorResult } from '../module/result/multiplicator-result';
+import { InstructionResult } from '../module/result/instruction-result';
 
 // Base.
 export interface IPwbModuleProcessor { }
@@ -36,7 +36,7 @@ export interface IPwbExpressionModuleProcessorConstructor extends IPwbModuleProc
 
 
 // Instruction.
-export interface IPwbInstructionModuleOnUpdate extends IPwbModuleOnUpdate<MultiplicatorResult> { }
+export interface IPwbInstructionModuleOnUpdate extends IPwbModuleOnUpdate<InstructionResult> { }
 export interface IPwbInstructionModuleOnDeconstruct extends IPwbModuleOnDeconstruct { }
 export interface IPwbInstructionModuleProcessor extends IPwbModuleProcessor, Partial<IPwbInstructionModuleOnUpdate>, Partial<IPwbInstructionModuleOnDeconstruct> { }
 export interface IPwbInstructionModuleProcessorConstructor extends IPwbModuleProcessorConstructor<IPwbInstructionModuleProcessor> { }

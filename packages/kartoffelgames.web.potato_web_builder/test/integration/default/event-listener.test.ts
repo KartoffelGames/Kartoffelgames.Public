@@ -13,7 +13,7 @@ import { PwbInstructionAttributeModule } from '../../../source/decorator/pwb-mul
 import { PwbAttributeAttributeModule } from '../../../source/decorator/pwb-static-attribute-module.decorator';
 import { ModuleAccessType } from '../../../source/enum/module-access-type';
 import { IPwbInstructionModuleOnUpdate } from '../../../source/interface/module';
-import { MultiplicatorResult } from '../../../source/module/result/multiplicator-result';
+import { InstructionResult } from '../../../source/module/result/instruction-result';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
@@ -280,8 +280,8 @@ describe('PwbEventListener', () => {
         class MyModule implements IPwbInstructionModuleOnUpdate {
             public constructor(private readonly mTemplate: ModuleTemplateReference, private readonly mValue: ModuleLayerValuesReference) { }
 
-            onUpdate(): MultiplicatorResult {
-                const lResult: MultiplicatorResult = new MultiplicatorResult();
+            onUpdate(): InstructionResult {
+                const lResult: InstructionResult = new InstructionResult();
                 lResult.addElement(this.mTemplate.value.clone(), new LayerValues(this.mValue.value));
 
                 return lResult;

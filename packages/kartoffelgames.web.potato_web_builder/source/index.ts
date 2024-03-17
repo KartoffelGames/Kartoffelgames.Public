@@ -22,7 +22,7 @@ export { ComponentScopeExecutor } from './module/execution/component-scope-execu
 export { IPwbExpressionModuleOnUpdate, IPwbAttributeModuleOnUpdate, IPwbInstructionModuleOnUpdate, IPwbModuleOnDeconstruct } from './interface/module';
 export { ModuleAccessType } from './enum/module-access-type';
 export { LayerValues } from './component/values/layer-values';
-export { MultiplicatorResult } from './module/result/multiplicator-result';
+export { InstructionResult } from './module/result/instruction-result';
 export { PwbExpressionModule } from './decorator/pwb-expression-module.decorator';
 export { PwbInstructionAttributeModule } from './decorator/pwb-multiplicator-attribute-module.decorator';
 export { PwbAttributeAttributeModule } from './decorator/pwb-static-attribute-module.decorator';

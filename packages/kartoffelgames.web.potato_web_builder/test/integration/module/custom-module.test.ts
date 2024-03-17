@@ -7,7 +7,7 @@ import { PwbInstructionAttributeModule } from '../../../source/decorator/pwb-mul
 import { PwbAttributeAttributeModule } from '../../../source/decorator/pwb-static-attribute-module.decorator';
 import { ModuleAccessType } from '../../../source/enum/module-access-type';
 import { IPwbInstructionModuleOnUpdate } from '../../../source/interface/module';
-import { MultiplicatorResult } from '../../../source/module/result/multiplicator-result';
+import { InstructionResult } from '../../../source/module/result/instruction-result';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
@@ -26,9 +26,9 @@ describe('Custom Module', () => {
                 this.mValueHandler = pValueReference.value;
             }
 
-            public onUpdate(): MultiplicatorResult {
+            public onUpdate(): InstructionResult {
                 // If in any way the execution result is true, add template to result.
-                const lModuleResult: MultiplicatorResult = new MultiplicatorResult();
+                const lModuleResult: InstructionResult = new InstructionResult();
                 lModuleResult.addElement(new PwbTemplateXmlNode(), this.mValueHandler);
                 lModuleResult.addElement(new PwbTemplateXmlNode(), this.mValueHandler);
 

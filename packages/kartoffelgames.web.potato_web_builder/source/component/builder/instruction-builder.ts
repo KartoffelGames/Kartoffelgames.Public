@@ -1,6 +1,6 @@
 import { ChangeState, DifferenceSearch, HistoryItem } from '@kartoffelgames/web.change-detection';
 import { MultiplicatorModule } from '../../module/multiplicator-module';
-import { ManipulatorElement, MultiplicatorResult } from '../../module/result/multiplicator-result';
+import { InstructionResultElement, InstructionResult } from '../../module/result/instruction-result';
 import { ComponentModules } from '../component-modules';
 import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node';
 import { LayerValues } from '../values/layer-values';
@@ -32,7 +32,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
         }
 
         // Call module update.
-        const lModuleResult: MultiplicatorResult | null = this.content.instructionModule.update();
+        const lModuleResult: InstructionResult | null = this.content.instructionModule.update();
         if (lModuleResult) {
             // Get current StaticBuilder. Only content are static builder.
             const lOldStaticBuilderList: Array<StaticBuilder> = <Array<StaticBuilder>>this.content.body;
@@ -52,7 +52,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
      * @param pNewContent - New content.
      * @param pContentCursor - Content that comes before new content.
      */
-    private insertNewContent(pNewContent: ManipulatorElement, pContentCursor: StaticBuilder | null): StaticBuilder {
+    private insertNewContent(pNewContent: InstructionResultElement, pContentCursor: StaticBuilder | null): StaticBuilder {
         // Create new static builder.
         const lStaticBuilder: StaticBuilder = new StaticBuilder(pNewContent.template, this.content.modules, pNewContent.componentValues, `Child - {$${this.template.instructionType}}`);
 
@@ -73,14 +73,14 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
      * @param pOldContentList - Old content list.
      * @param pNewContentList - New content list.
      */
-    private updateStaticBuilder(pOldContentList: Array<StaticBuilder>, pNewContentList: Array<ManipulatorElement>): void {
+    private updateStaticBuilder(pOldContentList: Array<StaticBuilder>, pNewContentList: Array<InstructionResultElement>): void {
         // Define difference search.
-        const lDifferenceSearch: DifferenceSearch<StaticBuilder, ManipulatorElement> = new DifferenceSearch<StaticBuilder, ManipulatorElement>((pA, pB) => {
+        const lDifferenceSearch: DifferenceSearch<StaticBuilder, InstructionResultElement> = new DifferenceSearch<StaticBuilder, InstructionResultElement>((pA, pB) => {
             return pB.componentValues.equals(pA.values) && pB.template.equals(pA.template);
         });
 
         // Get differences of old an new content.
-        const lDifferenceList: Array<HistoryItem<StaticBuilder, ManipulatorElement>> = lDifferenceSearch.differencesOf(pOldContentList, pNewContentList);
+        const lDifferenceList: Array<HistoryItem<StaticBuilder, InstructionResultElement>> = lDifferenceSearch.differencesOf(pOldContentList, pNewContentList);
 
         let lLastExistingChildBuilder: StaticBuilder | null = null;
         for (const lHistoryItem of lDifferenceList) {

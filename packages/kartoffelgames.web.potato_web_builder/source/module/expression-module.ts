@@ -1,55 +1,30 @@
 import { ComponentManager } from '../component/component-manager';
-import { PwbTemplateTextNode } from '../component/template/nodes/pwb-template-text-node';
-import { PwbTemplateAttribute, PwbTemplateXmlNode } from '../component/template/nodes/pwb-template-xml-node';
+import { PwbTemplateExpression } from '../component/template/nodes/values/pwb-template-expression';
 import { LayerValues } from '../component/values/layer-values';
 import { BaseModule } from './base-module';
-import { IPwbExpressionModuleClass, IPwbExpressionModuleObject, ModuleDefinition } from '../interface/module';
+import { ExpressionModuleConfiguration } from './global-module-storage';
 
-export class ExpressionModule extends BaseModule<boolean, string> {
-    private mLastResult: string | null;
-    private readonly mProcessList: Array<string | IPwbExpressionModuleObject>;
-    private mValueWasSet: boolean = false;
+export class ExpressionModule extends BaseModule<Text, string> {
+    private mLastResult: string | undefined;
 
     /**
      * Constructor.
      * @param pParameter - Constructor parameter.
      */
-    public constructor(pParameter: ExpressionModuleConstructorParameterAttribute | ExpressionModuleConstructorParameterTextNode) {
+    public constructor(pParameter: ExpressionModuleConstructorParameter) {
         super({
-            ...pParameter,
-            targetAttribute: ('targetAttribute' in pParameter) ? pParameter.targetAttribute : null
+            module: pParameter.module,
+            targetTemplate: pParameter.targetTemplate,
+            values: pParameter.values,
+            componentManager: pParameter.componentManager,
+            targetNode: pParameter.targetNode,
         });
-        this.mProcessList = new Array<string | IPwbExpressionModuleObject>();
-        this.mLastResult = null;
-        this.mValueWasSet = false;
+
+        // Set starting value of expression.
+        this.mLastResult = undefined;
 
         // Get value from attribute or use target textnode.
-        let lTargetValue: string;
-        if ('targetAttribute' in pParameter) {
-            lTargetValue = pParameter.targetAttribute.asText;
-        } else {
-            lTargetValue = pParameter.targetTemplate.text;
-        }
-
-        // Create module object for every expression inside value.
-        const lModuleList: Array<IPwbExpressionModuleObject> = new Array<IPwbExpressionModuleObject>();
-        for (const lExpressionMatch of lTargetValue.matchAll(new RegExp(pParameter.moduleDefinition.selector, 'g'))) {
-            lModuleList.push(this.createModuleObject(lExpressionMatch[0]));
-        }
-
-        // Split list by every expression.
-        const lEmptyValueList = lTargetValue.split(new RegExp(pParameter.moduleDefinition.selector, 'g'));
-
-        // Zip empty expressions with module object list.
-        let lModuleIndex: number = 0;
-        for (const lEmptyValue of lEmptyValueList) {
-            this.mProcessList.push(lEmptyValue);
-
-            if (lModuleIndex < lModuleList.length) {
-                this.mProcessList.push(lModuleList[lModuleIndex]);
-            }
-            lModuleIndex++;
-        }
+        this.setProcessorAttributes(pParameter.targetTemplate.value);
     }
 
     /**
@@ -57,57 +32,27 @@ export class ExpressionModule extends BaseModule<boolean, string> {
      */
     public update(): boolean {
         // Reduce process list to single string.
-        const lNewValue: string = this.mProcessList.reduce<string>((pReducedValue: string, pNextValue: string | IPwbExpressionModuleObject) => {
-            let lProcessedValue: string;
-            if (typeof pNextValue === 'string') {
-                lProcessedValue = pNextValue;
-            } else {
-                lProcessedValue = pNextValue.onUpdate();
-            }
-
-            return pReducedValue + lProcessedValue;
-        }, '');
+        const lNewValue: string = this.processor.onUpdate();
 
         // Update value if new value was processed.
-        if (!this.mValueWasSet || this.mLastResult !== lNewValue) {
-            this.mValueWasSet = true;
-
-            // Node for expressions is allways set.
-            const lNode: Node = <Node>this.node;
-
-            // Add result text to TextNode or as attribute.
-            if (lNode instanceof Element) {
-                const lAttribute: PwbTemplateAttribute = this.attribute!;
-                lNode.setAttribute(lAttribute.name, lNewValue);
-            } else { // Text
-                lNode.nodeValue = lNewValue;
-            }
+        const lValueHasChanged: boolean = this.mLastResult !== lNewValue;
+        if (lValueHasChanged) {
+            // Update text data of node.
+            const lNode: Text = this.node;
+            lNode.data = lNewValue;
 
             // Save last value.
             this.mLastResult = lNewValue;
-
-            return true;
-        } else {
-            return false;
         }
+
+        return lValueHasChanged;
     }
 }
 
-export type ExpressionModuleConstructorParameterTextNode = {
-    moduleDefinition: ModuleDefinition,
-    moduleClass: IPwbExpressionModuleClass,
-    targetTemplate: PwbTemplateTextNode,
+export type ExpressionModuleConstructorParameter = {
+    module: ExpressionModuleConfiguration,
+    targetTemplate: PwbTemplateExpression,
     values: LayerValues,
     componentManager: ComponentManager,
     targetNode: Text;
-};
-
-export type ExpressionModuleConstructorParameterAttribute = {
-    moduleDefinition: ModuleDefinition,
-    moduleClass: IPwbExpressionModuleClass,
-    targetTemplate: PwbTemplateXmlNode,
-    targetAttribute: PwbTemplateAttribute,
-    values: LayerValues,
-    componentManager: ComponentManager,
-    targetNode: Element;
 };

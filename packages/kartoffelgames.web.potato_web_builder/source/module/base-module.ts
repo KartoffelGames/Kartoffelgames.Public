@@ -1,29 +1,33 @@
-import { Dictionary } from '@kartoffelgames/core.data';
+import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { ComponentManager } from '../component/component-manager';
+import { BasePwbTemplateNode } from '../component/template/nodes/base-pwb-template-node';
+import { PwbTemplateInstructionNode } from '../component/template/nodes/pwb-template-instruction-node';
+import { PwbTemplateXmlNode } from '../component/template/nodes/pwb-template-xml-node';
+import { PwbTemplateAttribute } from '../component/template/nodes/values/pwb-template-attribute';
+import { PwbTemplateExpression } from '../component/template/nodes/values/pwb-template-expression';
 import { LayerValues } from '../component/values/layer-values';
+import { ModuleAccessType } from '../enum/module-access-type';
 import { ComponentManagerReference } from '../injection_reference/component-manager-reference';
 import { ModuleAttributeReference } from '../injection_reference/module-attribute-reference';
 import { ModuleExpressionReference } from '../injection_reference/module-expression-reference';
 import { ModuleLayerValuesReference } from '../injection_reference/module-layer-values-reference';
 import { ModuleTargetReference } from '../injection_reference/module-target-reference';
 import { ModuleTemplateReference } from '../injection_reference/module-template-reference';
-import { ModuleAccessType } from '../enum/module-access-type';
-import { IPwbModuleClass, IPwbModuleObject, ModuleDefinition } from '../interface/module';
+import { IPwbModuleClass, IPwbModuleObject } from '../interface/module';
+import { ModuleConfiguration } from './global-module-storage';
 import { ModuleExtensions } from './module-extensions';
-import { PwbTemplateAttribute, PwbTemplateXmlNode } from '../component/template/nodes/pwb-template-xml-node';
-import { BasePwbTemplateNode } from '../component/template/nodes/base-pwb-template-node';
 
-export abstract class BaseModule<TModuleResult, TModuleObjectResult> {
+export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor> {
     private readonly mComponentManager: ComponentManager;
     private readonly mExtensionList: Array<ModuleExtensions>;
     private readonly mInjections: Dictionary<InjectionConstructor, any>;
     private readonly mLayerValues: LayerValues;
     private readonly mModuleClass: IPwbModuleClass<TModuleObjectResult>;
-    private readonly mModuleDefinition: ModuleDefinition;
-    private readonly mModuleObjectList: Array<IPwbModuleObject<TModuleObjectResult>>;
+    private readonly mModuleDefinition: ModuleConfiguration;
+    private mModuleProcessor: IPwbModuleObject<TModuleObjectResult> | null;
     private readonly mTargetAttribute: PwbTemplateAttribute | null;
-    private readonly mTargetNode: Node | null;
+    private readonly mTargetNode: TTargetNode;
     private readonly mTemplateClone: BasePwbTemplateNode;
 
     /**
@@ -43,7 +47,7 @@ export abstract class BaseModule<TModuleResult, TModuleObjectResult> {
     /**
      * Get module definition.
      */
-    public get moduleDefinition(): ModuleDefinition {
+    public get moduleDefinition(): ModuleConfiguration {
         return this.mModuleDefinition;
     }
 
@@ -57,15 +61,29 @@ export abstract class BaseModule<TModuleResult, TModuleObjectResult> {
     /**
      * Get target node.
      */
-    protected get node(): Node | null {
+    protected get node(): TTargetNode {
         return this.mTargetNode;
+    }
+
+    /**
+     * Processor of module.
+     * 
+     * @throws {@link Exception}
+     * When the processor was not initialized.
+     */
+    protected get processor(): IPwbModuleObject<TModuleObjectResult> {
+        if (!this.mModuleProcessor) {
+            throw new Exception('No module processor was initialized.', this);
+        }
+
+        return this.mModuleProcessor;
     }
 
     /**
      * Constructor.
      * @param pParameter - Parameter.
      */
-    constructor(pParameter: BaseModuleConstructorParameter<TModuleObjectResult>) {
+    constructor(pParameter: BaseModuleConstructorParameter) {
         // Clone template.
         this.mTemplateClone = pParameter.targetTemplate.clone();
         this.mTemplateClone.parent = pParameter.targetTemplate.parent;
@@ -75,14 +93,14 @@ export abstract class BaseModule<TModuleResult, TModuleObjectResult> {
             this.mTemplateClone.removeAttribute(pParameter.targetAttribute.name);
         }
 
-        this.mModuleDefinition = pParameter.moduleDefinition;
-        this.mModuleClass = pParameter.moduleClass;
+        this.mModuleDefinition = pParameter.module;
+        this.mModuleClass = pParameter.module.constructor;
         this.mTargetNode = pParameter.targetNode;
         this.mTargetAttribute = pParameter.targetAttribute;
         this.mComponentManager = pParameter.componentManager;
         this.mLayerValues = pParameter.values;
-        this.mModuleObjectList = new Array<IPwbModuleObject<TModuleObjectResult>>();
         this.mExtensionList = new Array<ModuleExtensions>();
+        this.mModuleProcessor = null;
 
         // Create injection mapping.
         this.mInjections = new Dictionary<InjectionConstructor, any>();
@@ -105,16 +123,22 @@ export abstract class BaseModule<TModuleResult, TModuleObjectResult> {
         }
 
         // Deconstruct modules.
-        for (const lModule of this.mModuleObjectList) {
+        for (const lModule of this.mModuleProcessor) {
             lModule.onDeconstruct?.();
         }
+    }
+
+    protected setProcessorAttributes(pValue: string): void {
+        // TODO: Please redo id. PLEASE :.(
+
+        this.mModuleProcessor = this.createModuleObject(pValue);
     }
 
     /**
       * Create module object.
       * @param pValue - Value for module object.
       */
-    protected createModuleObject(pValue: string): IPwbModuleObject<TModuleObjectResult> {
+    private createModuleObject(pValue: string): IPwbModuleObject<TModuleObjectResult> {
         // Clone injections and extend by value reference.
         const lInjections = new Dictionary<InjectionConstructor, any>(this.mInjections);
         lInjections.set(ModuleExpressionReference, new ModuleExpressionReference(pValue));
@@ -139,7 +163,6 @@ export abstract class BaseModule<TModuleResult, TModuleObjectResult> {
 
         // Create module object with local injections.
         const lModuleObject: IPwbModuleObject<TModuleObjectResult> = Injection.createObject(this.mModuleClass, lInjections);
-        this.mModuleObjectList.push(lModuleObject);
 
         // Execute patcher extensions and save extension for deconstructing.
         this.mExtensionList.push(lExtensions);
@@ -162,12 +185,12 @@ export abstract class BaseModule<TModuleResult, TModuleObjectResult> {
     public abstract update(): TModuleResult;
 }
 
-export type BaseModuleConstructorParameter<TModuleObjectResult> = {
-    moduleDefinition: ModuleDefinition,
-    moduleClass: IPwbModuleClass<TModuleObjectResult>,
-    targetTemplate: BasePwbTemplateNode,
-    targetAttribute: PwbTemplateAttribute | null, // Null for native text expression.
-    values: LayerValues,
+export type BaseModuleConstructorParameter = {
     componentManager: ComponentManager,
-    targetNode: Node | null; // Null for Multiplicator modules. 
+    module: ModuleConfiguration,
+    targetNode: Node | null;
+    targetTemplate: BaseModuleTargetTemplate,
+    values: LayerValues;
 };
+
+type BaseModuleTargetTemplate = PwbTemplateAttribute | PwbTemplateExpression | PwbTemplateInstructionNode;

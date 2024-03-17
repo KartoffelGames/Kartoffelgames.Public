@@ -134,4 +134,4 @@ export type InstructionModuleConfiguration = {
     instructionType: string;
 };
 
-export type ModuleDefinition = AttributeModuleConfiguration | ExpressionModuleConfiguration | InstructionModuleConfiguration;
+export type ModuleConfiguration = AttributeModuleConfiguration | ExpressionModuleConfiguration | InstructionModuleConfiguration;

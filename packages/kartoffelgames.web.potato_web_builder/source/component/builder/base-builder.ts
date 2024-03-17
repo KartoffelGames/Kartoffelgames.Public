@@ -55,7 +55,7 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
      */
     public constructor(pTemplate: TTemplates, pParentLayerValues: LayerValues, pContent: TContent) {
         // Clone template.
-        this.mTemplate = <TTemplates>pTemplate.clone(); // TODO: Validate if this needs to be cloned.
+        this.mTemplate = pTemplate;
         this.mTemplate.parent = null; // Nodes doesn't need a real parent. Maidenless nodes.
 
         // Create new layer of values.

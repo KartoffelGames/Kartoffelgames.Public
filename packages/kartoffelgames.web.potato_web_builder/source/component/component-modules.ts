@@ -1,7 +1,7 @@
 import { MustacheExpressionModule } from '../default/mustache_expression/mustache-expression-module';
 import { ExpressionModule } from '../module/expression-module';
 import { GlobalModuleStorage } from '../module/global-module-storage';
-import { IPwbExpressionModuleClass } from '../interface/module';
+import { IPwbExpressionModuleProcessorConstructor } from '../interface/module';
 import { MultiplicatorModule } from '../module/multiplicator-module';
 import { StaticModule } from '../module/static-module';
 import { ComponentManager } from './component-manager';
@@ -13,7 +13,7 @@ import { Exception } from '@kartoffelgames/core.data';
 
 export class ComponentModules {
     private readonly mComponentManager: ComponentManager;
-    private readonly mExpressionModule: IPwbExpressionModuleClass;
+    private readonly mExpressionModule: IPwbExpressionModuleProcessorConstructor;
     private readonly mGlobalModuleStorage: GlobalModuleStorage;
 
     /**
@@ -21,9 +21,9 @@ export class ComponentModules {
      * @param pExpressionModule - default expression module for this component. 
      * @param pComponentManager - Component manager.
      */
-    public constructor(pComponentManager: ComponentManager, pExpressionModule?: IPwbExpressionModuleClass) {
+    public constructor(pComponentManager: ComponentManager, pExpressionModule?: IPwbExpressionModuleProcessorConstructor) {
         // Get expression module.
-        this.mExpressionModule = pExpressionModule ?? <IPwbExpressionModuleClass><any>MustacheExpressionModule;
+        this.mExpressionModule = pExpressionModule ?? <IPwbExpressionModuleProcessorConstructor><any>MustacheExpressionModule;
         this.mComponentManager = pComponentManager;
         this.mGlobalModuleStorage = new GlobalModuleStorage();
     }

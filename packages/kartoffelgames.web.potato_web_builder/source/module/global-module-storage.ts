@@ -1,6 +1,6 @@
 import { Dictionary, List } from '@kartoffelgames/core.data';
 import { ModuleAccessType } from '../enum/module-access-type';
-import { IPwbAttributeModuleClass, IPwbExpressionModuleClass, IPwbInstructionModuleClass } from '../interface/module';
+import { IPwbAttributeModuleProcessorConstructor, IPwbExpressionModuleProcessorConstructor, IPwbInstructionModuleProcessorConstructor } from '../interface/module';
 
 /**
  * Global module storage.
@@ -13,12 +13,12 @@ import { IPwbAttributeModuleClass, IPwbExpressionModuleClass, IPwbInstructionMod
 export class GlobalModuleStorage {
     private static mInstance: GlobalModuleStorage;
 
-    private readonly mAttributeModuleClasses!: Dictionary<AttributeModuleConfiguration, IPwbAttributeModuleClass>;
-    private readonly mAttributeModuleConfigurations!: Dictionary<IPwbAttributeModuleClass, AttributeModuleConfiguration>;
-    private readonly mExpressionModuleClasses!: Dictionary<ExpressionModuleConfiguration, IPwbExpressionModuleClass>;
-    private readonly mExpressionModuleConfigurations!: Dictionary<IPwbExpressionModuleClass, ExpressionModuleConfiguration>;
-    private readonly mInstructionModuleClasses!: Dictionary<InstructionModuleConfiguration, IPwbInstructionModuleClass>;
-    private readonly mInstructionModuleConfigurations!: Dictionary<IPwbInstructionModuleClass, InstructionModuleConfiguration>;
+    private readonly mAttributeModuleClasses!: Dictionary<AttributeModuleConfiguration, IPwbAttributeModuleProcessorConstructor>;
+    private readonly mAttributeModuleConfigurations!: Dictionary<IPwbAttributeModuleProcessorConstructor, AttributeModuleConfiguration>;
+    private readonly mExpressionModuleClasses!: Dictionary<ExpressionModuleConfiguration, IPwbExpressionModuleProcessorConstructor>;
+    private readonly mExpressionModuleConfigurations!: Dictionary<IPwbExpressionModuleProcessorConstructor, ExpressionModuleConfiguration>;
+    private readonly mInstructionModuleClasses!: Dictionary<InstructionModuleConfiguration, IPwbInstructionModuleProcessorConstructor>;
+    private readonly mInstructionModuleConfigurations!: Dictionary<IPwbInstructionModuleProcessorConstructor, InstructionModuleConfiguration>;
 
     /**
      * Get attribute module configurations of all attribute modules.
@@ -54,14 +54,14 @@ export class GlobalModuleStorage {
         GlobalModuleStorage.mInstance = this;
 
         // Class storages.
-        this.mAttributeModuleClasses = new Dictionary<AttributeModuleConfiguration, IPwbAttributeModuleClass>();
-        this.mExpressionModuleClasses = new Dictionary<ExpressionModuleConfiguration, IPwbExpressionModuleClass>();
-        this.mInstructionModuleClasses = new Dictionary<InstructionModuleConfiguration, IPwbInstructionModuleClass>();
+        this.mAttributeModuleClasses = new Dictionary<AttributeModuleConfiguration, IPwbAttributeModuleProcessorConstructor>();
+        this.mExpressionModuleClasses = new Dictionary<ExpressionModuleConfiguration, IPwbExpressionModuleProcessorConstructor>();
+        this.mInstructionModuleClasses = new Dictionary<InstructionModuleConfiguration, IPwbInstructionModuleProcessorConstructor>();
 
         // Config storages.
-        this.mAttributeModuleConfigurations = new Dictionary<IPwbAttributeModuleClass, AttributeModuleConfiguration>();
-        this.mExpressionModuleConfigurations = new Dictionary<IPwbExpressionModuleClass, ExpressionModuleConfiguration>();
-        this.mInstructionModuleConfigurations = new Dictionary<IPwbInstructionModuleClass, InstructionModuleConfiguration>();
+        this.mAttributeModuleConfigurations = new Dictionary<IPwbAttributeModuleProcessorConstructor, AttributeModuleConfiguration>();
+        this.mExpressionModuleConfigurations = new Dictionary<IPwbExpressionModuleProcessorConstructor, ExpressionModuleConfiguration>();
+        this.mInstructionModuleConfigurations = new Dictionary<IPwbInstructionModuleProcessorConstructor, InstructionModuleConfiguration>();
     }
 
     /**
@@ -98,7 +98,7 @@ export class GlobalModuleStorage {
      * Get attribute module definition for attribute module class.
      * @param pModuleClass - Module class.
      */
-    public getAttributeModuleConfiguration(pModuleClass: IPwbAttributeModuleClass): AttributeModuleConfiguration | undefined {
+    public getAttributeModuleConfiguration(pModuleClass: IPwbAttributeModuleProcessorConstructor): AttributeModuleConfiguration | undefined {
         return this.mAttributeModuleConfigurations.get(pModuleClass);
     }
 
@@ -106,7 +106,7 @@ export class GlobalModuleStorage {
      * Get expression module configuration for expression module class.
      * @param pModuleClass - Module class.
      */
-    public getExpressionModuleConfiguration(pModuleClass: IPwbExpressionModuleClass): ExpressionModuleConfiguration | undefined {
+    public getExpressionModuleConfiguration(pModuleClass: IPwbExpressionModuleProcessorConstructor): ExpressionModuleConfiguration | undefined {
         return this.mExpressionModuleConfigurations.get(pModuleClass);
     }
 
@@ -114,23 +114,23 @@ export class GlobalModuleStorage {
      * Get instruction module definition for instruction module class.
      * @param pModuleClass - Module class.
      */
-    public getInstructionModuleConfiguration(pModuleClass: IPwbInstructionModuleClass): InstructionModuleConfiguration | undefined {
+    public getInstructionModuleConfiguration(pModuleClass: IPwbInstructionModuleProcessorConstructor): InstructionModuleConfiguration | undefined {
         return this.mInstructionModuleConfigurations.get(pModuleClass);
     }
 }
 
 export type AttributeModuleConfiguration = {
-    constructor: IPwbAttributeModuleClass,
+    constructor: IPwbAttributeModuleProcessorConstructor,
     selector: RegExp;
     access: ModuleAccessType;
 };
 
 export type ExpressionModuleConfiguration = {
-    constructor: IPwbExpressionModuleClass,
+    constructor: IPwbExpressionModuleProcessorConstructor,
 };
 
 export type InstructionModuleConfiguration = {
-    constructor: IPwbInstructionModuleClass,
+    constructor: IPwbInstructionModuleProcessorConstructor,
     instructionType: string;
 };
 

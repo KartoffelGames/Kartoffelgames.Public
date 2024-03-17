@@ -1,5 +1,5 @@
 import { InjectionConstructor, Injector, Metadata } from '@kartoffelgames/core.dependency-injection';
-import { IPwbExpressionModuleClass, IPwbInstructionModuleClass, IPwbAttributeModuleClass } from '../interface/module';
+import { IPwbExpressionModuleProcessorConstructor, IPwbInstructionModuleProcessorConstructor, IPwbAttributeModuleProcessorConstructor } from '../interface/module';
 import { ComponentManager } from '../component/component-manager';
 import { UpdateScope } from '../enum/update-scope';
 import { UserClass } from '../interface/user-class';
@@ -69,12 +69,12 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
  * Html component parameter.
  */
 type HtmlComponentParameter = {
-    expressionmodule?: IPwbExpressionModuleClass | any;
+    expressionmodule?: IPwbExpressionModuleProcessorConstructor | any;
     style?: string,
     selector: string;
     template?: string;
     // Placeholder for listing modules that should be imported.
-    modules?: Array<IPwbInstructionModuleClass | IPwbAttributeModuleClass | any>;
+    modules?: Array<IPwbInstructionModuleProcessorConstructor | IPwbAttributeModuleProcessorConstructor | any>;
     // Placeholder for listing components that should be imported.
     components?: Array<InjectionConstructor>;
     updateScope?: UpdateScope;

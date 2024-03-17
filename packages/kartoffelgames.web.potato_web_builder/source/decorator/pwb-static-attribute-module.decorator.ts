@@ -1,14 +1,14 @@
 import { Injector } from '@kartoffelgames/core.dependency-injection';
 import { ModuleAccessType } from '../enum/module-access-type';
 import { GlobalModuleStorage } from '../module/global-module-storage';
-import { IPwbAttributeModuleClass } from '../interface/module';
+import { IPwbAttributeModuleProcessorConstructor } from '../interface/module';
 
 /**
  * AtScript. PWB attribute attribute module.
  * @param pSettings - Module settings.
  */
 export function PwbAttributeAttributeModule(pSettings: AttributeModuleSettings): any {
-    return (pAttributeModuleConstructor: IPwbAttributeModuleClass) => {
+    return (pAttributeModuleConstructor: IPwbAttributeModuleProcessorConstructor) => {
 
         // Set user class to be injectable
         Injector.Injectable(pAttributeModuleConstructor);

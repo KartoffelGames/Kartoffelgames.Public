@@ -1,13 +1,13 @@
 import { Injector } from '@kartoffelgames/core.dependency-injection';
 import { GlobalModuleStorage } from '../module/global-module-storage';
-import { IPwbInstructionModuleClass } from '../interface/module';
+import { IPwbInstructionModuleProcessorConstructor } from '../interface/module';
 
 /**
  * AtScript. PWB instruction attribute module.
  * @param pSettings - Module settings.
  */
 export function PwbInstructionAttributeModule(pSettings: InstructionModuleSettings): any {
-    return (pInstructionModuleConstructor: IPwbInstructionModuleClass) => {
+    return (pInstructionModuleConstructor: IPwbInstructionModuleProcessorConstructor) => {
 
         // Set user class to be injectable
         Injector.Injectable(pInstructionModuleConstructor);

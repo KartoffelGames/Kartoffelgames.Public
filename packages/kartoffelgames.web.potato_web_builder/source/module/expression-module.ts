@@ -1,11 +1,12 @@
 import { ComponentManager } from '../component/component-manager';
 import { PwbTemplateExpression } from '../component/template/nodes/values/pwb-template-expression';
 import { LayerValues } from '../component/values/layer-values';
+import { IPwbExpressionModuleProcessor } from '../interface/module';
 import { BaseModule } from './base-module';
 import { ExpressionModuleConfiguration } from './global-module-storage';
 
-export class ExpressionModule extends BaseModule<Text, string> {
-    private mLastResult: string | undefined;
+export class ExpressionModule extends BaseModule<Text, IPwbExpressionModuleProcessor> {
+    private mLastResult: string;
 
     /**
      * Constructor.
@@ -21,7 +22,7 @@ export class ExpressionModule extends BaseModule<Text, string> {
         });
 
         // Set starting value of expression.
-        this.mLastResult = undefined;
+        this.mLastResult = '';
 
         // Get value from attribute or use target textnode.
         this.setProcessorAttributes(pParameter.targetTemplate.value);
@@ -29,10 +30,21 @@ export class ExpressionModule extends BaseModule<Text, string> {
 
     /**
      * Update expressions.
+     * 
+     * @remarks
+     * Allways invokes {@link IPwbExpressionModuleOnUpdate.onUpdate} and decides on result if any update happened.
      */
     public update(): boolean {
-        // Reduce process list to single string.
-        const lNewValue: string = this.processor.onUpdate();
+        // Try to update expression when an onUpdate method is defined.
+        let lNewValue: string | undefined = undefined;
+        if ('onUpdate' in this.processor) {
+            lNewValue = this.processor.onUpdate();
+        }
+
+        // Reset undefined to empty string.
+        if (typeof lNewValue === 'undefined') {
+            lNewValue = '';
+        }
 
         // Update value if new value was processed.
         const lValueHasChanged: boolean = this.mLastResult !== lNewValue;

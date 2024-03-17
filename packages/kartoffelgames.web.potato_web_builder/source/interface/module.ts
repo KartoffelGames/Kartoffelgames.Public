@@ -3,31 +3,16 @@
 import { MultiplicatorResult } from '../module/result/multiplicator-result';
 
 // Base.
-export interface IPwbModuleObject<TResult> extends IPwbModuleOnUpdate<TResult>, IPwbModuleOnDeconstruct { }
-export interface IPwbModuleClass<TResult> {
-    new(): IPwbModuleObject<TResult>;
+export interface IPwbModuleProcessor { }
+export interface IPwbModuleProcessorConstructor<T extends IPwbModuleProcessor> {
+    new(...args: Array<any>): T;
 }
 
-// Attribute.
-export interface IPwbAttributeModuleObject extends IPwbModuleObject<boolean> { }
-export interface IPwbAttributeModuleClass extends IPwbModuleClass<boolean> { }
-export interface IPwbAttributeModuleOnUpdate extends IPwbModuleOnUpdate<boolean> { }
-
-// Expression.
-export interface IPwbExpressionModuleObject extends IPwbModuleObject<string> { }
-export interface IPwbExpressionModuleClass extends IPwbModuleClass<string> { }
-export interface IPwbExpressionModuleOnUpdate extends IPwbModuleOnUpdate<string> { }
-
-// Instruction.
-export interface IPwbInstructionModuleObject extends IPwbModuleObject<MultiplicatorResult> { }
-export interface IPwbInstructionModuleClass extends IPwbModuleClass<MultiplicatorResult> { }
-export interface IPwbInstructionModuleOnUpdate extends IPwbModuleOnUpdate<MultiplicatorResult | null> { }
-
-export interface IPwbModuleOnUpdate<TResult> {
+export interface IPwbModuleOnUpdate<TUpdateResult> {
     /**
      * Called on update.
      */
-    onUpdate(): TResult;
+    onUpdate(): TUpdateResult;
 }
 
 export interface IPwbModuleOnDeconstruct {
@@ -36,3 +21,24 @@ export interface IPwbModuleOnDeconstruct {
      */
     onDeconstruct(): void;
 }
+
+// Attribute.
+export interface IPwbAttributeModuleOnUpdate extends IPwbModuleOnUpdate<boolean> { }
+export interface IPwbAttributeModuleOnDeconstruct extends IPwbModuleOnDeconstruct { }
+export interface IPwbAttributeModuleProcessor extends IPwbModuleProcessor, Partial<IPwbAttributeModuleOnUpdate>, Partial<IPwbAttributeModuleOnDeconstruct> { }
+export interface IPwbAttributeModuleProcessorConstructor extends IPwbModuleProcessorConstructor<IPwbAttributeModuleProcessor> { }
+
+// Expression.
+export interface IPwbExpressionModuleOnUpdate extends IPwbModuleOnUpdate<string> { }
+export interface IPwbExpressionModuleOnDeconstruct extends IPwbModuleOnDeconstruct { }
+export interface IPwbExpressionModuleProcessor extends IPwbModuleProcessor, Partial<IPwbExpressionModuleOnUpdate>, Partial<IPwbExpressionModuleOnDeconstruct> { }
+export interface IPwbExpressionModuleProcessorConstructor extends IPwbModuleProcessorConstructor<IPwbExpressionModuleProcessor> { }
+
+
+// Instruction.
+export interface IPwbInstructionModuleOnUpdate extends IPwbModuleOnUpdate<MultiplicatorResult> { }
+export interface IPwbInstructionModuleOnDeconstruct extends IPwbModuleOnDeconstruct { }
+export interface IPwbInstructionModuleProcessor extends IPwbModuleProcessor, Partial<IPwbInstructionModuleOnUpdate>, Partial<IPwbInstructionModuleOnDeconstruct> { }
+export interface IPwbInstructionModuleProcessorConstructor extends IPwbModuleProcessorConstructor<IPwbInstructionModuleProcessor> { }
+
+

@@ -1,7 +1,7 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { ComponentElementReference } from '../injection_reference/component-element-reference';
 import { ComponentUpdateReference } from '../injection_reference/component-update-reference';
-import { IPwbExpressionModuleClass } from '../interface/module';
+import { IPwbExpressionModuleProcessorConstructor } from '../interface/module';
 import { StaticBuilder } from './builder/static-builder';
 import { ComponentConnection } from './component-connection';
 import { ComponentExtensions } from './component-extensions';
@@ -68,7 +68,7 @@ export class ComponentManager {
      * @param pHtmlComponent - HTMLElement of component.
      * @param pUpdateScope - Update scope of component.
      */
-    public constructor(pUserClass: UserClass, pTemplateString: string | null, pExpressionModule: IPwbExpressionModuleClass, pHtmlComponent: HTMLElement, pUpdateScope: UpdateScope) {
+    public constructor(pUserClass: UserClass, pTemplateString: string | null, pExpressionModule: IPwbExpressionModuleProcessorConstructor, pHtmlComponent: HTMLElement, pUpdateScope: UpdateScope) {
         // Load cached or create new module handler and template.
         let lTemplate: PwbTemplate | undefined = ComponentManager.mComponentCache.get(pUserClass);
         if (!lTemplate) {

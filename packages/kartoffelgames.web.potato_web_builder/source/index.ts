@@ -20,13 +20,13 @@ export { ModuleTemplateReference } from './injection_reference/module-template-r
 
 // Modules
 export { ComponentScopeExecutor } from './module/execution/component-scope-executor';
-export { IPwbExpressionModuleOnUpdate, IPwbAttributeModuleOnUpdate as IPwbStaticModuleOnUpdate, IPwbInstructionModuleOnUpdate as IPwbMultiplicatorModuleOnUpdate, IPwbModuleOnDeconstruct } from './module/interface/module';
+export { IPwbExpressionModuleOnUpdate, IPwbAttributeModuleOnUpdate, IPwbInstructionModuleOnUpdate, IPwbModuleOnDeconstruct } from './module/interface/module';
 export { ModuleAccessType } from './module/enum/module-access-type';
 export { LayerValues } from './component/values/layer-values';
 export { MultiplicatorResult } from './module/result/multiplicator-result';
 export { PwbExpressionModule } from './module/decorator/pwb-expression-module.decorator';
-export { PwbInstructionAttributeModule as PwbMultiplicatorAttributeModule } from './module/decorator/pwb-multiplicator-attribute-module.decorator';
-export { PwbAttributeAttributeModule as PwbStaticAttributeModule } from './module/decorator/pwb-static-attribute-module.decorator';
+export { PwbInstructionAttributeModule } from './module/decorator/pwb-multiplicator-attribute-module.decorator';
+export { PwbAttributeAttributeModule } from './module/decorator/pwb-static-attribute-module.decorator';
 
 // Extension
 export { PwbExtension } from './extension/decorator/pwb-extension.decorator';
@@ -43,3 +43,12 @@ export { PwbEventListener } from './default/event-listener/pwb-event-listener.de
 // Xml
 export { TemplateParser } from './component/template/template-parser';
 export { TextNode, XmlElement, XmlAttribute } from '@kartoffelgames/core.xml';
+
+// Import default modules
+import '../default/component-event/component-event-attribute-module';
+import '../default/one_way_binding/one-way-binding-attribute-module';
+import '../default/pwb_child/pwb-child-attribute-module';
+import '../default/pwb_for_of/for-of-manipulator-attribute-module';
+import '../default/pwb_if/if-manipulator-attribute-module';
+import '../default/slot_attribute/slot-attribute-module';
+import '../default/two_way_binding/two-way-binding-attribute-module';

@@ -10,15 +10,6 @@ import { PwbTemplateAttribute } from './template/nodes/values/pwb-template-attri
 import { PwbTemplateExpression } from './template/nodes/values/pwb-template-expression';
 import { LayerValues } from './values/layer-values';
 
-// Import default modules
-import '../default/component-event/component-event-attribute-module';
-import '../default/one_way_binding/one-way-binding-attribute-module';
-import '../default/pwb_child/pwb-child-attribute-module';
-import '../default/pwb_for_of/for-of-manipulator-attribute-module';
-import '../default/pwb_if/if-manipulator-attribute-module';
-import '../default/slot_attribute/slot-attribute-module';
-import '../default/two_way_binding/two-way-binding-attribute-module';
-
 export class ComponentModules {
     private readonly mComponentManager: ComponentManager;
     private readonly mExpressionModule: IPwbExpressionModuleClass;

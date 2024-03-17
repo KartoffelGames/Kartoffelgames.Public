@@ -7,16 +7,16 @@ import { IPwbAttributeModuleClass, IPwbExpressionModuleClass, IPwbInstructionMod
  * Containing all imported modules.
  * 
  * Singleton instance.
+ * 
+ * @internal
  */
 export class GlobalModuleStorage {
     private static mInstance: GlobalModuleStorage;
 
     private readonly mAttributeModuleClasses!: Dictionary<AttributeModuleDefinition, IPwbAttributeModuleClass>;
     private readonly mAttributeModuleConfigurations!: Dictionary<IPwbAttributeModuleClass, AttributeModuleDefinition>;
-
     private readonly mExpressionModuleClasses!: Dictionary<ExpressionModuleDefinition, IPwbExpressionModuleClass>;
     private readonly mExpressionModuleConfigurations!: Dictionary<IPwbExpressionModuleClass, ExpressionModuleDefinition>;
-
     private readonly mInstructionModuleClasses!: Dictionary<InstructionModuleDefinition, IPwbInstructionModuleClass>;
     private readonly mInstructionModuleConfigurations!: Dictionary<IPwbInstructionModuleClass, InstructionModuleDefinition>;
 

@@ -27,7 +27,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
         // Create instruction module if is does not exist.
         if (!this.content.instructionModule) {
             // Create and link instruction module.
-            const lInstructionModule: MultiplicatorModule = <MultiplicatorModule>this.content.modules.createInstructionModule(this.template, this.values);
+            const lInstructionModule: MultiplicatorModule = this.content.modules.createInstructionModule(this.template, this.values);
             this.content.instructionModule = lInstructionModule;
         }
 

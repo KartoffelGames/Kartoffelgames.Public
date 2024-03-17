@@ -9,6 +9,7 @@ import { PwbTemplateInstructionNode } from './template/nodes/pwb-template-instru
 import { PwbTemplateAttribute } from './template/nodes/values/pwb-template-attribute';
 import { PwbTemplateExpression } from './template/nodes/values/pwb-template-expression';
 import { LayerValues } from './values/layer-values';
+import { Exception } from '@kartoffelgames/core.data';
 
 export class ComponentModules {
     private readonly mComponentManager: ComponentManager;
@@ -82,8 +83,11 @@ export class ComponentModules {
      * Check if template uses any manipulator modules.
      * @param pTemplate - Template element.
      * @param pValues - Values of current layer.
+     * 
+     * @throws {@link Exception}
+     * When no instruction node with type could be found.
      */
-    public createInstructionModule(pTemplate: PwbTemplateInstructionNode, pValues: LayerValues): MultiplicatorModule | undefined {
+    public createInstructionModule(pTemplate: PwbTemplateInstructionNode, pValues: LayerValues): MultiplicatorModule {
         // Find manipulator module inside attributes.
         for (const lDefinition of this.mGlobalModuleStorage.instructionModuleConfigurations) {
             // Only manipulator modules.
@@ -102,8 +106,7 @@ export class ComponentModules {
             }
         }
 
-        // Line can be called. But current code does not allow it.
-        /* istanbul ignore next */
-        return undefined;
+        // Instruction module could not be found.
+        throw new Exception(`Instruction module type "${pTemplate.instructionType}" not found.`, this);
     }
 }

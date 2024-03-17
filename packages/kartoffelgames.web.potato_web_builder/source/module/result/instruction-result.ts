@@ -30,6 +30,9 @@ export class InstructionResult {
      * 
      * @param pTemplateElement - New template element.
      * @param pValues - New Value handler of element with current value handler as parent.
+     * 
+     * @throws {@link Exception}
+     * When the same template reference should be added more than once.
      */
     public addElement(pTemplateElement: StaticPwbTemplate, pValues: LayerValues): void {
         // Check if value or temple is used in another element.

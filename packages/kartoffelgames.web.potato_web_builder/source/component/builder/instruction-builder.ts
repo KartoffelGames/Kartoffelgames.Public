@@ -1,6 +1,6 @@
 import { ChangeState, DifferenceSearch, HistoryItem } from '@kartoffelgames/web.change-detection';
 import { MultiplicatorModule } from '../../module/multiplicator-module';
-import { InstructionResultElement, InstructionResult } from '../../module/result/instruction-result';
+import { InstructionResultElement } from '../../module/result/instruction-result';
 import { ComponentModules } from '../component-modules';
 import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node';
 import { LayerValues } from '../values/layer-values';
@@ -32,13 +32,13 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
         }
 
         // Call module update.
-        const lModuleResult: InstructionResult | null = this.content.instructionModule.update();
-        if (lModuleResult) {
+        const lInstructionUpdated: boolean = this.content.instructionModule.update();
+        if (lInstructionUpdated) {
             // Get current StaticBuilder. Only content are static builder.
             const lOldStaticBuilderList: Array<StaticBuilder> = <Array<StaticBuilder>>this.content.body;
 
             // Update content and save new added builder.
-            this.updateStaticBuilder(lOldStaticBuilderList, lModuleResult.elementList);
+            this.updateStaticBuilder(lOldStaticBuilderList, this.content.instructionModule.instructionResult.elementList);
         }
 
         // No need to report any update.

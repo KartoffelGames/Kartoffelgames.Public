@@ -1,7 +1,7 @@
 import { Injector } from '@kartoffelgames/core.dependency-injection';
 import { ExtensionMode } from '../enum/extension-mode';
 import { ExtensionType } from '../enum/extension-type';
-import { Extensions } from '../extensions';
+import { Extensions } from '../extension/extensions';
 import { IPwbExtensionClass } from '../interface/extension';
 
 /**

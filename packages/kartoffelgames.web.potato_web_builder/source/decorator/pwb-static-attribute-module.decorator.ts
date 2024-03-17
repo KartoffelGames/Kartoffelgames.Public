@@ -1,6 +1,6 @@
 import { Injector } from '@kartoffelgames/core.dependency-injection';
 import { ModuleAccessType } from '../enum/module-access-type';
-import { GlobalModuleStorage } from '../global-module-storage';
+import { GlobalModuleStorage } from '../module/global-module-storage';
 import { IPwbAttributeModuleClass } from '../interface/module';
 
 /**

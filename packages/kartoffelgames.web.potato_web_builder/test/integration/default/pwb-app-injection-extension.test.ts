@@ -1,6 +1,6 @@
 import { expect } from 'chai';
-import { PwbComponent } from '../../../source/component/decorator/pwb-component.decorator';
-import { UpdateScope } from '../../../source/component/enum/update-scope';
+import { PwbComponent } from '../../../source/decorator/pwb-component.decorator';
+import { UpdateScope } from '../../../source/enum/update-scope';
 import { PwbApp } from '../../../source/pwb-app';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';

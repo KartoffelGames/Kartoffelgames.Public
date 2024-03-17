@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 
-import { MultiplicatorResult } from '../result/multiplicator-result';
+import { MultiplicatorResult } from '../module/result/multiplicator-result';
 
 // Base.
 export interface IPwbModuleObject<TResult> extends IPwbModuleOnUpdate<TResult>, IPwbModuleOnDeconstruct { }

@@ -1,10 +1,10 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
 import { ChangeDetection } from '@kartoffelgames/web.change-detection';
-import { PwbExtension } from '../../extension/decorator/pwb-extension.decorator';
-import { ExtensionMode } from '../../extension/enum/extension-mode';
-import { ExtensionType } from '../../extension/enum/extension-type';
-import { IPwbExtensionOnDeconstruct } from '../../extension/interface/extension';
+import { PwbExtension } from '../../decorator/pwb-extension.decorator';
+import { ExtensionMode } from '../../enum/extension-mode';
+import { ExtensionType } from '../../enum/extension-type';
+import { IPwbExtensionOnDeconstruct } from '../../interface/extension';
 import { ComponentManagerReference } from '../../injection_reference/component-manager-reference';
 import { ExtensionTargetClassReference } from '../../injection_reference/extension-target-class-reference';
 import { ExtensionTargetObjectReference } from '../../injection_reference/extension-target-object-reference';

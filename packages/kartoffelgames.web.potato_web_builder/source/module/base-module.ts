@@ -8,8 +8,8 @@ import { ModuleExpressionReference } from '../injection_reference/module-express
 import { ModuleLayerValuesReference } from '../injection_reference/module-layer-values-reference';
 import { ModuleTargetReference } from '../injection_reference/module-target-reference';
 import { ModuleTemplateReference } from '../injection_reference/module-template-reference';
-import { ModuleAccessType } from './enum/module-access-type';
-import { IPwbModuleClass, IPwbModuleObject, ModuleDefinition } from './interface/module';
+import { ModuleAccessType } from '../enum/module-access-type';
+import { IPwbModuleClass, IPwbModuleObject, ModuleDefinition } from '../interface/module';
 import { ModuleExtensions } from './module-extensions';
 import { PwbTemplateAttribute, PwbTemplateXmlNode } from '../component/template/nodes/pwb-template-xml-node';
 import { BasePwbTemplateNode } from '../component/template/nodes/base-pwb-template-node';

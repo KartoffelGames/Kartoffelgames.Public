@@ -1,6 +1,6 @@
 import { LayerValues } from '../../component/values/layer-values';
-import { PwbInstructionAttributeModule } from '../../module/decorator/pwb-multiplicator-attribute-module.decorator';
-import { IPwbInstructionModuleOnUpdate } from '../../module/interface/module';
+import { PwbInstructionAttributeModule } from '../../decorator/pwb-multiplicator-attribute-module.decorator';
+import { IPwbInstructionModuleOnUpdate } from '../../interface/module';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ModuleLayerValuesReference } from '../../injection_reference/module-layer-values-reference';
 import { ModuleTemplateReference } from '../../injection_reference/module-template-reference';

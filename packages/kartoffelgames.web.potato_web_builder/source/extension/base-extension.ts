@@ -4,7 +4,7 @@ import { ComponentManager } from '../component/component-manager';
 import { ComponentManagerReference } from '../injection_reference/component-manager-reference';
 import { ExtensionTargetClassReference } from '../injection_reference/extension-target-class-reference';
 import { ExtensionTargetObjectReference } from '../injection_reference/extension-target-object-reference';
-import { IPwbExtensionClass, IPwbExtensionObject } from './interface/extension';
+import { IPwbExtensionClass, IPwbExtensionObject } from '../interface/extension';
 
 export class BaseExtension {
     private readonly mExtensionClass: IPwbExtensionClass;

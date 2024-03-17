@@ -1,5 +1,5 @@
 import { Injector } from '@kartoffelgames/core.dependency-injection';
-import { GlobalModuleStorage } from '../global-module-storage';
+import { GlobalModuleStorage } from '../module/global-module-storage';
 import { IPwbInstructionModuleClass } from '../interface/module';
 
 /**

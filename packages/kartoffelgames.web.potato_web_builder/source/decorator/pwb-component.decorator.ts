@@ -1,6 +1,6 @@
 import { InjectionConstructor, Injector, Metadata } from '@kartoffelgames/core.dependency-injection';
-import { IPwbExpressionModuleClass, IPwbInstructionModuleClass, IPwbAttributeModuleClass } from '../../module/interface/module';
-import { ComponentManager } from '../component-manager';
+import { IPwbExpressionModuleClass, IPwbInstructionModuleClass, IPwbAttributeModuleClass } from '../interface/module';
+import { ComponentManager } from '../component/component-manager';
 import { UpdateScope } from '../enum/update-scope';
 import { UserClass } from '../interface/user-class';
 

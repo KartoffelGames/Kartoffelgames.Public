@@ -1,9 +1,9 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { CompareHandler } from '@kartoffelgames/web.change-detection';
 import { LayerValues } from '../../component/values/layer-values';
-import { PwbAttributeAttributeModule } from '../../module/decorator/pwb-static-attribute-module.decorator';
-import { ModuleAccessType } from '../../module/enum/module-access-type';
-import { IPwbAttributeModuleOnUpdate } from '../../module/interface/module';
+import { PwbAttributeAttributeModule } from '../../decorator/pwb-static-attribute-module.decorator';
+import { ModuleAccessType } from '../../enum/module-access-type';
+import { IPwbAttributeModuleOnUpdate } from '../../interface/module';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ComponentManagerReference } from '../../injection_reference/component-manager-reference';
 import { ModuleLayerValuesReference } from '../../injection_reference/module-layer-values-reference';

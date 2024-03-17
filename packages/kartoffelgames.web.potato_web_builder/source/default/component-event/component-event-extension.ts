@@ -1,8 +1,8 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
-import { PwbExtension } from '../../extension/decorator/pwb-extension.decorator';
-import { ExtensionMode } from '../../extension/enum/extension-mode';
-import { ExtensionType } from '../../extension/enum/extension-type';
+import { PwbExtension } from '../../decorator/pwb-extension.decorator';
+import { ExtensionMode } from '../../enum/extension-mode';
+import { ExtensionType } from '../../enum/extension-type';
 import { ComponentElementReference } from '../../injection_reference/component-element-reference';
 import { ExtensionTargetClassReference } from '../../injection_reference/extension-target-class-reference';
 import { ExtensionTargetObjectReference } from '../../injection_reference/extension-target-object-reference';

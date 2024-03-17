@@ -1,10 +1,10 @@
 /* istanbul ignore file */
 
 // Component
-export { UserObject, UserClass } from './component/interface/user-class';
+export { UserObject, UserClass } from './interface/user-class';
 export { PwbApp } from './pwb-app';
-export { IPwbOnInit, IPwbAfterInit, IPwbOnDeconstruct, IPwbSlotAssign, IPwbAfterUpdate, IPwbOnUpdate, IPwbOnAttributeChange } from './component/interface/user-class';
-export { PwbComponent } from './component/decorator/pwb-component.decorator';
+export { IPwbOnInit, IPwbAfterInit, IPwbOnDeconstruct, IPwbSlotAssign, IPwbAfterUpdate, IPwbOnUpdate, IPwbOnAttributeChange } from './interface/user-class';
+export { PwbComponent } from './decorator/pwb-component.decorator';
 
 // Injections
 export { ComponentElementReference } from './injection_reference/component-element-reference';
@@ -20,17 +20,17 @@ export { ModuleTemplateReference } from './injection_reference/module-template-r
 
 // Modules
 export { ComponentScopeExecutor } from './module/execution/component-scope-executor';
-export { IPwbExpressionModuleOnUpdate, IPwbAttributeModuleOnUpdate, IPwbInstructionModuleOnUpdate, IPwbModuleOnDeconstruct } from './module/interface/module';
-export { ModuleAccessType } from './module/enum/module-access-type';
+export { IPwbExpressionModuleOnUpdate, IPwbAttributeModuleOnUpdate, IPwbInstructionModuleOnUpdate, IPwbModuleOnDeconstruct } from './interface/module';
+export { ModuleAccessType } from './enum/module-access-type';
 export { LayerValues } from './component/values/layer-values';
 export { MultiplicatorResult } from './module/result/multiplicator-result';
-export { PwbExpressionModule } from './module/decorator/pwb-expression-module.decorator';
-export { PwbInstructionAttributeModule } from './module/decorator/pwb-multiplicator-attribute-module.decorator';
-export { PwbAttributeAttributeModule } from './module/decorator/pwb-static-attribute-module.decorator';
+export { PwbExpressionModule } from './decorator/pwb-expression-module.decorator';
+export { PwbInstructionAttributeModule } from './decorator/pwb-multiplicator-attribute-module.decorator';
+export { PwbAttributeAttributeModule } from './decorator/pwb-static-attribute-module.decorator';
 
 // Extension
-export { PwbExtension } from './extension/decorator/pwb-extension.decorator';
-export { IPwbExtensionOnDeconstruct } from './extension/interface/extension';
+export { PwbExtension } from './decorator/pwb-extension.decorator';
+export { IPwbExtensionOnDeconstruct } from './interface/extension';
 
 // Default extensions.
 export { ComponentEvent } from './default/component-event/component-event';

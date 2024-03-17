@@ -3,7 +3,7 @@ import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection'
 import { ComponentManager } from '../component/component-manager';
 import { ComponentElementReference } from '../injection_reference/component-element-reference';
 import { BaseExtension } from './base-extension';
-import { IPwbExtensionClass } from './interface/extension';
+import { IPwbExtensionClass } from '../interface/extension';
 
 export class ComponentExtension extends BaseExtension {
     /**

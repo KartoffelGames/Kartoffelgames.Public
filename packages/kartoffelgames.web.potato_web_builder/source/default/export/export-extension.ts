@@ -1,9 +1,9 @@
 import { List } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
 import { UserObjectHandler } from '../../component/handler/user-object-handler';
-import { PwbExtension } from '../../extension/decorator/pwb-extension.decorator';
-import { ExtensionMode } from '../../extension/enum/extension-mode';
-import { ExtensionType } from '../../extension/enum/extension-type';
+import { PwbExtension } from '../../decorator/pwb-extension.decorator';
+import { ExtensionMode } from '../../enum/extension-mode';
+import { ExtensionType } from '../../enum/extension-type';
 import { ComponentElementReference } from '../../injection_reference/component-element-reference';
 import { ComponentManagerReference } from '../../injection_reference/component-manager-reference';
 

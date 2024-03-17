@@ -3,7 +3,7 @@ import { PwbTemplateTextNode } from '../component/template/nodes/pwb-template-te
 import { PwbTemplateAttribute, PwbTemplateXmlNode } from '../component/template/nodes/pwb-template-xml-node';
 import { LayerValues } from '../component/values/layer-values';
 import { BaseModule } from './base-module';
-import { IPwbExpressionModuleClass, IPwbExpressionModuleObject, ModuleDefinition } from './interface/module';
+import { IPwbExpressionModuleClass, IPwbExpressionModuleObject, ModuleDefinition } from '../interface/module';
 
 export class ExpressionModule extends BaseModule<boolean, string> {
     private mLastResult: string | null;

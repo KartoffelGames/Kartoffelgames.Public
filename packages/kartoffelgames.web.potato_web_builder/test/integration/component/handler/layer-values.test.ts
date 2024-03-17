@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { ComponentConnection } from '../../../../source/component/component-connection';
 import { ComponentManager } from '../../../../source/component/component-manager';
-import { PwbComponent } from '../../../../source/component/decorator/pwb-component.decorator';
+import { PwbComponent } from '../../../../source/decorator/pwb-component.decorator';
 import { TestUtil } from '../../../utility/test-util';
 import '../../../mock/request-animation-frame-mock-session';
 import '../../../utility/chai-helper';

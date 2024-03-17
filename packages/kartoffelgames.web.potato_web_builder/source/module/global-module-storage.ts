@@ -1,6 +1,6 @@
 import { Dictionary, List } from '@kartoffelgames/core.data';
-import { ModuleAccessType } from './enum/module-access-type';
-import { IPwbAttributeModuleClass, IPwbExpressionModuleClass, IPwbInstructionModuleClass } from './interface/module';
+import { ModuleAccessType } from '../enum/module-access-type';
+import { IPwbAttributeModuleClass, IPwbExpressionModuleClass, IPwbInstructionModuleClass } from '../interface/module';
 
 /**
  * Global module storage.
@@ -117,7 +117,6 @@ export class GlobalModuleStorage {
     public getInstructionModuleConfiguration(pModuleClass: IPwbInstructionModuleClass): InstructionModuleDefinition | undefined {
         return this.mInstructionModuleConfigurations.get(pModuleClass);
     }
-
 }
 
 type AttributeModuleDefinition = {

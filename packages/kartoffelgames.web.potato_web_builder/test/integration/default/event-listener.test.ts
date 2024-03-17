@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { expect } from 'chai';
-import { PwbComponent } from '../../../source/component/decorator/pwb-component.decorator';
+import { PwbComponent } from '../../../source/decorator/pwb-component.decorator';
 import { LayerValues } from '../../../source/component/values/layer-values';
 import { ComponentEvent } from '../../../source/default/component-event/component-event';
 import { ComponentEventEmitter } from '../../../source/default/component-event/component-event-emitter';
@@ -9,10 +9,10 @@ import { PwbEventListener } from '../../../source/default/event-listener/pwb-eve
 import { PwbExport } from '../../../source/default/export/pwb-export.decorator';
 import { ModuleLayerValuesReference } from '../../../source/injection_reference/module-layer-values-reference';
 import { ModuleTemplateReference } from '../../../source/injection_reference/module-template-reference';
-import { PwbInstructionAttributeModule } from '../../../source/module/decorator/pwb-multiplicator-attribute-module.decorator';
-import { PwbAttributeAttributeModule } from '../../../source/module/decorator/pwb-static-attribute-module.decorator';
-import { ModuleAccessType } from '../../../source/module/enum/module-access-type';
-import { IPwbInstructionModuleOnUpdate } from '../../../source/module/interface/module';
+import { PwbInstructionAttributeModule } from '../../../source/decorator/pwb-multiplicator-attribute-module.decorator';
+import { PwbAttributeAttributeModule } from '../../../source/decorator/pwb-static-attribute-module.decorator';
+import { ModuleAccessType } from '../../../source/enum/module-access-type';
+import { IPwbInstructionModuleOnUpdate } from '../../../source/interface/module';
 import { MultiplicatorResult } from '../../../source/module/result/multiplicator-result';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';

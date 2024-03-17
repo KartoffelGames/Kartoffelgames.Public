@@ -9,7 +9,7 @@ import { ModuleLayerValuesReference } from '../injection_reference/module-layer-
 import { ModuleTargetReference } from '../injection_reference/module-target-reference';
 import { ModuleTemplateReference } from '../injection_reference/module-template-reference';
 import { BaseExtension } from './base-extension';
-import { IPwbExtensionClass } from './interface/extension';
+import { IPwbExtensionClass } from '../interface/extension';
 
 export class ModuleExtension extends BaseExtension {
     /**

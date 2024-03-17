@@ -2,7 +2,7 @@ import { ComponentManager } from '../component/component-manager';
 import { PwbTemplateAttribute, PwbTemplateXmlNode } from '../component/template/nodes/pwb-template-xml-node';
 import { LayerValues } from '../component/values/layer-values';
 import { BaseModule } from './base-module';
-import { IPwbAttributeModuleClass, IPwbAttributeModuleObject, ModuleDefinition } from './interface/module';
+import { IPwbAttributeModuleClass, IPwbAttributeModuleObject, ModuleDefinition } from '../interface/module';
 
 export class StaticModule extends BaseModule<boolean, boolean> {
     private readonly mModuleObject: IPwbAttributeModuleObject;

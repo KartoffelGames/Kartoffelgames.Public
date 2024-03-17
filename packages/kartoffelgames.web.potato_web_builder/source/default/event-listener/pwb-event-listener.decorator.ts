@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { Metadata } from '@kartoffelgames/core.dependency-injection';
-import { UserClass } from '../../component/interface/user-class';
+import { UserClass } from '../../interface/user-class';
 import { EventListenerComponentExtension } from './event-listener-component-extension';
 
 /**

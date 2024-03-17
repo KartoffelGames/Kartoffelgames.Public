@@ -13,7 +13,7 @@ export { ComponentManagerReference } from './injection_reference/component-manag
 export { ExtensionTargetClassReference } from './injection_reference/extension-target-class-reference';
 export { ExtensionTargetObjectReference } from './injection_reference/extension-target-object-reference';
 export { ModuleAttributeReference } from './injection_reference/module-attribute-reference';
-export { ModuleExpressionReference } from './injection_reference/module-expression-reference';
+export { ModuleExpressionReference } from './injection_reference/module/module-expression-reference';
 export { ModuleLayerValuesReference } from './injection_reference/module-layer-values-reference';
 export { ModuleTargetReference } from './injection_reference/module-target-reference';
 export { ModuleTemplateReference } from './injection_reference/module-template-reference';

@@ -10,13 +10,14 @@ import { LayerValues } from '../component/values/layer-values';
 import { ModuleAccessType } from '../enum/module-access-type';
 import { ComponentManagerReference } from '../injection_reference/component-manager-reference';
 import { ModuleAttributeReference } from '../injection_reference/module-attribute-reference';
-import { ModuleExpressionReference } from '../injection_reference/module-expression-reference';
+import { ModuleExpressionReference } from '../injection_reference/module/module-expression-reference';
 import { ModuleLayerValuesReference } from '../injection_reference/module-layer-values-reference';
 import { ModuleTargetReference } from '../injection_reference/module-target-reference';
 import { ModuleTemplateReference } from '../injection_reference/module-template-reference';
 import { IPwbModuleProcessorConstructor, IPwbModuleProcessor } from '../interface/module';
 import { ModuleConfiguration } from './global-module-storage';
 import { ModuleExtensions } from './module-extensions';
+import { IAnyParameterConstructor } from '@kartoffelgames/core.data/library/source/interface/i-constructor';
 
 export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor extends IPwbModuleProcessor> {
     private readonly mComponentManager: ComponentManager;
@@ -29,6 +30,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
     private readonly mTargetAttribute: PwbTemplateAttribute | null;
     private readonly mTargetNode: TTargetNode;
     private readonly mTemplateClone: BasePwbTemplateNode;
+    private readonly mInjections: Dictionary<InjectionConstructor, object>;
 
     /**
      * If modules reads data into the view.
@@ -101,6 +103,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
         this.mLayerValues = pParameter.values;
         this.mExtensionList = new Array<ModuleExtensions>();
         this.mModuleProcessor = null;
+        this.mInjections = new Dictionary<InjectionConstructor, object>();
 
         // Create injection mapping.
         this.mInjections = new Dictionary<InjectionConstructor, any>();
@@ -111,6 +114,11 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
         }
         this.mInjections.set(ModuleTemplateReference, new ModuleTemplateReference(this.mTemplateClone));
         this.mInjections.set(ModuleTargetReference, new ModuleTargetReference(pParameter.targetNode));
+
+
+        // TODO: Please redo id. PLEASE :.(
+        // TODO: Call this before update when no module exists.
+        this.mModuleProcessor = this.createModuleObject(pValue);
     }
 
     /**
@@ -128,10 +136,14 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
         }
     }
 
-    protected setProcessorAttributes(pValue: string): void {
-        // TODO: Please redo id. PLEASE :.(
-
-        this.mModuleProcessor = this.createModuleObject(pValue);
+    /**
+     * Set injection parameter for the module processor class construction. 
+     * 
+     * @param pInjectionTarget - Injection type that should be provided to processor.
+     * @param pInjectionValue - Actual injected value in replacement for {@link pInjectionTarget}.
+     */
+    protected setProcessorAttributes(pInjectionTarget: InjectionConstructor, pInjectionValue: object): void {
+        this.mInjections.set(pInjectionTarget, pInjectionValue);
     }
 
     /**
@@ -140,7 +152,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
       */
     private createModuleObject(pValue: string): IPwbModuleProcessor<TModuleObjectResult> {
         // Clone injections and extend by value reference.
-        const lInjections = new Dictionary<InjectionConstructor, any>(this.mInjections);
+        const lInjections = new Dictionary<InjectionConstructor, object>(this.mInjections);
         lInjections.set(ModuleExpressionReference, new ModuleExpressionReference(pValue));
 
         // Create extensions and collect extension injections.
@@ -181,8 +193,10 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
 
     /**
      * Update module.
+     * 
+     * @returns True when any update happened, false when all values stayed the same.
      */
-    public abstract update(): TModuleResult;
+    public abstract update(): boolean;
 }
 
 export type BaseModuleConstructorParameter = {

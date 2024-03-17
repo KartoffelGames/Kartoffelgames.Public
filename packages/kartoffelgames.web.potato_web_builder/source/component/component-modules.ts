@@ -1,6 +1,6 @@
 import { MustacheExpressionModule } from '../default/mustache_expression/mustache-expression-module';
 import { ExpressionModule } from '../module/expression-module';
-import { GlobalModuleStorage } from '../module/global-module-storage';
+import { ExpressionModuleConfiguration, GlobalModuleStorage } from '../module/global-module-storage';
 import { IPwbExpressionModuleProcessorConstructor } from '../interface/module';
 import { MultiplicatorModule } from '../module/multiplicator-module';
 import { StaticModule } from '../module/static-module';
@@ -40,12 +40,12 @@ export class ComponentModules {
      */
     public createAttributeModule(pTemplate: PwbTemplateAttribute, pTargetNode: Element, pValues: LayerValues): StaticModule | null {
         // Find static modules.
-        for (const lDefinition of this.mGlobalModuleStorage.attributeModuleConfigurations) {
-            if (lDefinition.selector.test(pTemplate.name)) {
+        for (const lModuleConfiguration of this.mGlobalModuleStorage.attributeModuleConfigurations) {
+            if (lModuleConfiguration.selector.test(pTemplate.name)) {
                 // Get constructor and create new module.
                 const lModule: StaticModule = new StaticModule({
-                    moduleDefinition: lDefinition,
-                    moduleClass: lDefinition.constructor,
+                    moduleDefinition: lModuleConfiguration,
+                    moduleClass: lModuleConfiguration.constructor,
                     targetTemplate: pTemplate.node,
                     targetAttribute: pTemplate,
                     values: pValues,
@@ -65,11 +65,18 @@ export class ComponentModules {
      * @param pTemplate - Text node template.
      * @param pTargetNode - Build text node.
      * @param pValues - Values of current layer.
+     * 
+     * @throws {@link Exception}
+     * When no expression node could be found.
      */
     public createExpressionModule(pTemplate: PwbTemplateExpression, pTargetNode: Text, pValues: LayerValues): ExpressionModule {
+        const lModuleConfiguration: ExpressionModuleConfiguration | undefined = this.mGlobalModuleStorage.getExpressionModuleConfiguration(this.mExpressionModule);
+        if(!lModuleConfiguration) {
+            throw new Exception(`An expression module could not be found.`, this);
+        }
+
         const lModule: ExpressionModule = new ExpressionModule({
-            moduleDefinition: this.mGlobalModuleStorage.getExpressionModuleConfiguration(this.mExpressionModule),
-            moduleClass: this.mExpressionModule,
+            module: lModuleConfiguration,
             targetTemplate: pTemplate,
             values: pValues,
             componentManager: this.mComponentManager,
@@ -89,15 +96,13 @@ export class ComponentModules {
      */
     public createInstructionModule(pTemplate: PwbTemplateInstructionNode, pValues: LayerValues): MultiplicatorModule {
         // Find manipulator module inside attributes.
-        for (const lDefinition of this.mGlobalModuleStorage.instructionModuleConfigurations) {
+        for (const lModuleConfiguration of this.mGlobalModuleStorage.instructionModuleConfigurations) {
             // Only manipulator modules.
-            if (lDefinition.instructionType === pTemplate.instructionType) {
+            if (lModuleConfiguration.instructionType === pTemplate.instructionType) {
                 // Get constructor and create new module.
                 const lModule: MultiplicatorModule = new MultiplicatorModule({
-                    moduleDefinition: lDefinition,
-                    moduleClass: lDefinition.constructor,
+                    module: lModuleConfiguration,
                     targetTemplate: pTemplate,
-                    targetAttribute: lAttribute,
                     values: pValues,
                     componentManager: this.mComponentManager,
                 });

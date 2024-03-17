@@ -1,12 +1,13 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { ComponentManager } from '../component/component-manager';
+import { ElementCreator } from '../component/element-creator';
+import { PwbTemplateInstructionNode } from '../component/template/nodes/pwb-template-instruction-node';
 import { LayerValues } from '../component/values/layer-values';
-import { IPwbInstructionModuleProcessorConstructor, IPwbInstructionModuleObject, ModuleDefinition } from '../interface/module';
 import { BaseModule } from './base-module';
+import { InstructionModuleConfiguration } from './global-module-storage';
 import { MultiplicatorResult } from './result/multiplicator-result';
-import { PwbTemplateAttribute, PwbTemplateXmlNode } from '../component/template/nodes/pwb-template-xml-node';
 
-export class MultiplicatorModule extends BaseModule<MultiplicatorResult | null, MultiplicatorResult> {
+export class MultiplicatorModule extends BaseModule<Comment, MultiplicatorResult> {
     private readonly mModuleObject: IPwbInstructionModuleObject;
 
     /**
@@ -16,7 +17,7 @@ export class MultiplicatorModule extends BaseModule<MultiplicatorResult | null, 
     public constructor(pParameter: MultiplicatorModuleConstructorParameter) {
         super({
             ...pParameter,
-            targetNode: null
+            targetNode: ElementCreator.createComment('InstructionModule-Node')
         });
 
         // Attribute is always set for multiplicator modules.
@@ -27,20 +28,20 @@ export class MultiplicatorModule extends BaseModule<MultiplicatorResult | null, 
     /**
      * Update module.
      */
-    public update(): MultiplicatorResult | null {
+    public update(): boolean {
         if (!this.mModuleObject.onUpdate) {
             throw new Exception('Multiplicator modules need to implement IPwbMultiplicatorModuleOnUpdate', this);
         }
+
+        // TODO: Save updateResult.
 
         return this.mModuleObject.onUpdate();
     }
 }
 
 export type MultiplicatorModuleConstructorParameter = {
-    moduleDefinition: ModuleDefinition,
-    moduleClass: IPwbInstructionModuleProcessorConstructor,
-    targetTemplate: PwbTemplateXmlNode,
-    targetAttribute: PwbTemplateAttribute,
+    module: InstructionModuleConfiguration,
+    targetTemplate: PwbTemplateInstructionNode,
     values: LayerValues,
     componentManager: ComponentManager,
 };

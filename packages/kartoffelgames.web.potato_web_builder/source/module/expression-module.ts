@@ -1,6 +1,7 @@
 import { ComponentManager } from '../component/component-manager';
 import { PwbTemplateExpression } from '../component/template/nodes/values/pwb-template-expression';
 import { LayerValues } from '../component/values/layer-values';
+import { ModuleValueReference } from '../injection_reference/module/module-expression-reference';
 import { IPwbExpressionModuleProcessor } from '../interface/module';
 import { BaseModule } from './base-module';
 import { ExpressionModuleConfiguration } from './global-module-storage';
@@ -25,7 +26,7 @@ export class ExpressionModule extends BaseModule<Text, IPwbExpressionModuleProce
         this.mLastResult = '';
 
         // Get value from attribute or use target textnode.
-        this.setProcessorAttributes(pParameter.targetTemplate.value);
+        this.setProcessorAttributes(ModuleValueReference, new ModuleValueReference(pParameter.targetTemplate.value));
     }
 
     /**

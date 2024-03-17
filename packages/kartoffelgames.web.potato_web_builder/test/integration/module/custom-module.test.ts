@@ -3,10 +3,10 @@ import { PwbComponent } from '../../../source/component/decorator/pwb-component.
 import { PwbTemplateXmlNode } from '../../../source/component/template/nodes/pwb-template-xml-node';
 import { LayerValues } from '../../../source/component/values/layer-values';
 import { ModuleLayerValuesReference } from '../../../source/injection_reference/module-layer-values-reference';
-import { PwbMultiplicatorAttributeModule } from '../../../source/module/decorator/pwb-multiplicator-attribute-module.decorator';
-import { PwbStaticAttributeModule } from '../../../source/module/decorator/pwb-static-attribute-module.decorator';
+import { PwbInstructionAttributeModule } from '../../../source/module/decorator/pwb-multiplicator-attribute-module.decorator';
+import { PwbAttributeAttributeModule } from '../../../source/module/decorator/pwb-static-attribute-module.decorator';
 import { ModuleAccessType } from '../../../source/module/enum/module-access-type';
-import { IPwbMultiplicatorModuleOnUpdate } from '../../../source/module/interface/module';
+import { IPwbInstructionModuleOnUpdate } from '../../../source/module/interface/module';
 import { MultiplicatorResult } from '../../../source/module/result/multiplicator-result';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
@@ -15,11 +15,11 @@ import { TestUtil } from '../../utility/test-util';
 describe('Custom Module', () => {
     it('-- Same result, twice', async () => {
         // Setup. Define module.
-        @PwbMultiplicatorAttributeModule({
+        @PwbInstructionAttributeModule({
             selector: /^\*multiresult$/
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class WrongModule implements IPwbMultiplicatorModuleOnUpdate {
+        class WrongModule implements IPwbInstructionModuleOnUpdate {
             private readonly mValueHandler: LayerValues;
 
             public constructor(pValueReference: ModuleLayerValuesReference) {
@@ -58,7 +58,7 @@ describe('Custom Module', () => {
 
     it('-- Manupulator without update method', async () => {
         // Setup. Define module.
-        @PwbMultiplicatorAttributeModule({
+        @PwbInstructionAttributeModule({
             selector: /^\*noupdatemethod$/
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -86,7 +86,7 @@ describe('Custom Module', () => {
 
     it('-- Deconstruct module without deconstructor method', async () => {
         // Setup. Define module.
-        @PwbStaticAttributeModule({
+        @PwbAttributeAttributeModule({
             selector: /^nodeconstructmethod$/,
             forbiddenInManipulatorScopes: false,
             access: ModuleAccessType.Read

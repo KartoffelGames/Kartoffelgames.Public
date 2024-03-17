@@ -1,29 +1,25 @@
 import { Injector } from '@kartoffelgames/core.dependency-injection';
-import { ModuleAccessType } from '../enum/module-access-type';
-import { ModuleType } from '../enum/module-type';
-import { IPwbMultiplicatorModuleClass } from '../interface/module';
-import { Modules } from '../modules';
+import { GlobalModuleStorage } from '../global-module-storage';
+import { IPwbInstructionModuleClass } from '../interface/module';
 
 /**
- * AtScript. PWB Multiplicator attribute module.
+ * AtScript. PWB instruction attribute module.
  * @param pSettings - Module settings.
  */
-export function PwbMultiplicatorAttributeModule(pSettings: AttributeModuleSettings): any {
-    return (pManipulatorModuleConstructor: IPwbMultiplicatorModuleClass) => {
+export function PwbInstructionAttributeModule(pSettings: InstructionModuleSettings): any {
+    return (pInstructionModuleConstructor: IPwbInstructionModuleClass) => {
 
         // Set user class to be injectable
-        Injector.Injectable(pManipulatorModuleConstructor);
+        Injector.Injectable(pInstructionModuleConstructor);
 
         // Register module.
-        Modules.add(pManipulatorModuleConstructor, {
-            type: ModuleType.Manipulator,
-            selector: pSettings.selector,
-            forbiddenInManipulatorScopes: false,
-            access: ModuleAccessType.Write
+        new GlobalModuleStorage().addInstructionModule(pInstructionModuleConstructor, {
+            constructor: pInstructionModuleConstructor,
+            instructionType: pSettings.instructionType
         });
     };
 }
 
-type AttributeModuleSettings = {
-    selector: RegExp;
+type InstructionModuleSettings = {
+    instructionType: string;
 };

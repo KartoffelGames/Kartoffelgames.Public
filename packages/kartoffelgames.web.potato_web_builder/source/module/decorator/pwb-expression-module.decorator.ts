@@ -1,8 +1,6 @@
 import { Injector } from '@kartoffelgames/core.dependency-injection';
-import { ModuleAccessType } from '../enum/module-access-type';
-import { ModuleType } from '../enum/module-type';
+import { GlobalModuleStorage } from '../global-module-storage';
 import { IPwbExpressionModuleClass } from '../interface/module';
-import { Modules } from '../modules';
 
 /**
  * AtScript. PWB Expression module.
@@ -14,9 +12,8 @@ export function PwbExpressionModule(): any {
         Injector.Injectable(pExpressionModuleConstructor);
 
         // Register module.
-        Modules.add(pExpressionModuleConstructor, {
-            type: ModuleType.Expression,
-            access: ModuleAccessType.Write
+        new GlobalModuleStorage().addExpressionModule(pExpressionModuleConstructor, {
+            constructor: pExpressionModuleConstructor
         });
     };
 }

@@ -1,8 +1,7 @@
 import { MustacheExpressionModule } from '../default/mustache_expression/mustache-expression-module';
-import { ModuleType } from '../module/enum/module-type';
 import { ExpressionModule } from '../module/expression-module';
-import { IPwbExpressionModuleClass, IPwbMultiplicatorModuleClass, IPwbStaticModuleClass, ModuleDefinition } from '../module/interface/module';
-import { Modules } from '../module/modules';
+import { GlobalModuleStorage } from '../module/global-module-storage';
+import { IPwbExpressionModuleClass } from '../module/interface/module';
 import { MultiplicatorModule } from '../module/multiplicator-module';
 import { StaticModule } from '../module/static-module';
 import { ComponentManager } from './component-manager';
@@ -20,11 +19,10 @@ import '../default/pwb_if/if-manipulator-attribute-module';
 import '../default/slot_attribute/slot-attribute-module';
 import '../default/two_way_binding/two-way-binding-attribute-module';
 
-
-
 export class ComponentModules {
     private readonly mComponentManager: ComponentManager;
     private readonly mExpressionModule: IPwbExpressionModuleClass;
+    private readonly mGlobalModuleStorage: GlobalModuleStorage;
 
     /**
      * Constructor.
@@ -35,6 +33,39 @@ export class ComponentModules {
         // Get expression module.
         this.mExpressionModule = pExpressionModule ?? <IPwbExpressionModuleClass><any>MustacheExpressionModule;
         this.mComponentManager = pComponentManager;
+        this.mGlobalModuleStorage = new GlobalModuleStorage();
+    }
+
+    /**
+     * Create static module based on attribute.
+     * When no module matches for attribute, null is returned instead.
+     * 
+     * @param pTemplate - Attribute template.
+     * @param pTargetNode - Target element of static module.
+     * @param pValues - Values of current layer.
+     * 
+     * @returns Created static module when it was matched, otherwise null.
+     */
+    public createAttributeModule(pTemplate: PwbTemplateAttribute, pTargetNode: Element, pValues: LayerValues): StaticModule | null {
+        // Find static modules.
+        for (const lDefinition of this.mGlobalModuleStorage.attributeModuleConfigurations) {
+            if (lDefinition.selector.test(pTemplate.name)) {
+                // Get constructor and create new module.
+                const lModule: StaticModule = new StaticModule({
+                    moduleDefinition: lDefinition,
+                    moduleClass: lDefinition.constructor,
+                    targetTemplate: pTemplate.node,
+                    targetAttribute: pTemplate,
+                    values: pValues,
+                    componentManager: this.mComponentManager,
+                    targetNode: pTargetNode
+                });
+
+                return lModule;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -45,7 +76,7 @@ export class ComponentModules {
      */
     public createExpressionModule(pTemplate: PwbTemplateExpression, pTargetNode: Text, pValues: LayerValues): ExpressionModule {
         const lModule: ExpressionModule = new ExpressionModule({
-            moduleDefinition: <ModuleDefinition>Modules.getModuleDefinition(this.mExpressionModule),
+            moduleDefinition: this.mGlobalModuleStorage.getExpressionModuleConfiguration(this.mExpressionModule),
             moduleClass: this.mExpressionModule,
             targetTemplate: pTemplate,
             values: pValues,
@@ -63,59 +94,25 @@ export class ComponentModules {
      */
     public createInstructionModule(pTemplate: PwbTemplateInstructionNode, pValues: LayerValues): MultiplicatorModule | undefined {
         // Find manipulator module inside attributes.
-        for (const lDefinition of Modules.moduleDefinitions) {
+        for (const lDefinition of this.mGlobalModuleStorage.instructionModuleConfigurations) {
             // Only manipulator modules.
-            if (lDefinition.type === ModuleType.Manipulator) {
-                if (lDefinition.selector.test(pTemplate.instructionType)) {
-                    // Get constructor and create new module.
-                    const lModule: MultiplicatorModule = new MultiplicatorModule({
-                        moduleDefinition: lDefinition,
-                        moduleClass: <IPwbMultiplicatorModuleClass>Modules.getModuleClass(lDefinition),
-                        targetTemplate: pTemplate,
-                        targetAttribute: lAttribute,
-                        values: pValues,
-                        componentManager: this.mComponentManager,
-                    });
-
-                    return lModule;
-                }
-            }
-        }
-
-        // Line can be called. But current code does not allow it.
-        /* istanbul ignore next */
-        return undefined;
-    }
-
-    /**
-     * Create static module based on attribute.
-     * When no module matches for attribute, null is returned instead.
-     * 
-     * @param pTemplate - Attribute template.
-     * @param pTargetNode - Target element of static module.
-     * @param pValues - Values of current layer.
-     * 
-     * @returns Created static module when it was matched, otherwise null.
-     */
-    public createStaticModule(pTemplate: PwbTemplateAttribute, pTargetNode: Element, pValues: LayerValues): StaticModule | null {
-        // Find static modules.
-        for (const lDefinition of Modules.moduleDefinitions) {
-            if (lDefinition.type === ModuleType.Static && lDefinition.selector.test(pTemplate.name)) {
+            if (lDefinition.instructionType === pTemplate.instructionType) {
                 // Get constructor and create new module.
-                const lModule: StaticModule = new StaticModule({
+                const lModule: MultiplicatorModule = new MultiplicatorModule({
                     moduleDefinition: lDefinition,
-                    moduleClass: <IPwbStaticModuleClass>Modules.getModuleClass(lDefinition),
-                    targetTemplate: pTemplate.node,
-                    targetAttribute: pTemplate,
+                    moduleClass: lDefinition.constructor,
+                    targetTemplate: pTemplate,
+                    targetAttribute: lAttribute,
                     values: pValues,
                     componentManager: this.mComponentManager,
-                    targetNode: pTargetNode
                 });
 
                 return lModule;
             }
         }
 
-        return null;
+        // Line can be called. But current code does not allow it.
+        /* istanbul ignore next */
+        return undefined;
     }
 }

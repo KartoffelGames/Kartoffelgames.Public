@@ -1,21 +1,21 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { CompareHandler } from '@kartoffelgames/web.change-detection';
 import { LayerValues } from '../../component/values/layer-values';
-import { PwbStaticAttributeModule } from '../../module/decorator/pwb-static-attribute-module.decorator';
+import { PwbAttributeAttributeModule } from '../../module/decorator/pwb-static-attribute-module.decorator';
 import { ModuleAccessType } from '../../module/enum/module-access-type';
-import { IPwbStaticModuleOnUpdate } from '../../module/interface/module';
+import { IPwbAttributeModuleOnUpdate } from '../../module/interface/module';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ComponentManagerReference } from '../../injection_reference/component-manager-reference';
 import { ModuleLayerValuesReference } from '../../injection_reference/module-layer-values-reference';
 import { ModuleTargetReference } from '../../injection_reference/module-target-reference';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
 
-@PwbStaticAttributeModule({
+@PwbAttributeAttributeModule({
     selector: /^\[\([[\w$]+\)\]$/,
     access: ModuleAccessType.ReadWrite,
     forbiddenInManipulatorScopes: false
 })
-export class TwoWayBindingAttributeModule implements IPwbStaticModuleOnUpdate {
+export class TwoWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate {
     private readonly mAttributeReference: ModuleAttributeReference;
     private readonly mTarget: Node;
     private readonly mThisProperty: string;

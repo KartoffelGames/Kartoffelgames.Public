@@ -1,8 +1,8 @@
 import { CompareHandler } from '@kartoffelgames/web.change-detection';
 import { LayerValues } from '../../component/values/layer-values';
-import { PwbStaticAttributeModule } from '../../module/decorator/pwb-static-attribute-module.decorator';
+import { PwbAttributeAttributeModule } from '../../module/decorator/pwb-static-attribute-module.decorator';
 import { ModuleAccessType } from '../../module/enum/module-access-type';
-import { IPwbStaticModuleOnUpdate } from '../../module/interface/module';
+import { IPwbAttributeModuleOnUpdate } from '../../module/interface/module';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ModuleLayerValuesReference } from '../../injection_reference/module-layer-values-reference';
 import { ModuleTargetReference } from '../../injection_reference/module-target-reference';
@@ -12,12 +12,12 @@ import { ComponentScopeExecutor } from '../../module/execution/component-scope-e
  * Bind value to view object.
  * If the user class object changes, the view object value gets updated.
  */
-@PwbStaticAttributeModule({
+@PwbAttributeAttributeModule({
     selector: /^\[[\w$]+\]$/,
     access: ModuleAccessType.Read,
     forbiddenInManipulatorScopes: false
 })
-export class OneWayBindingAttributeModule implements IPwbStaticModuleOnUpdate {
+export class OneWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate {
     private readonly mExecutionString: string;
     private readonly mTarget: Node;
     private readonly mTargetProperty: string;

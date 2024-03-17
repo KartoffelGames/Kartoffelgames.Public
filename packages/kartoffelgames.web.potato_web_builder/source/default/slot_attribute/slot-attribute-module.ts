@@ -2,10 +2,10 @@ import { ElementCreator } from '../../component/element-creator';
 import { PwbTemplateAttribute, PwbTemplateXmlNode } from '../../component/template/nodes/pwb-template-xml-node';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ModuleTargetReference } from '../../injection_reference/module-target-reference';
-import { PwbStaticAttributeModule } from '../../module/decorator/pwb-static-attribute-module.decorator';
+import { PwbAttributeAttributeModule } from '../../module/decorator/pwb-static-attribute-module.decorator';
 import { ModuleAccessType } from '../../module/enum/module-access-type';
 
-@PwbStaticAttributeModule({
+@PwbAttributeAttributeModule({
     selector: /^\$[\w]+$/,
     forbiddenInManipulatorScopes: false,
     access: ModuleAccessType.Write

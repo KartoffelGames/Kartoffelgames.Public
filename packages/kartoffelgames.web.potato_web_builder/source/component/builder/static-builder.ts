@@ -113,7 +113,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
         for (const lAttributeTemplate of pElementTemplate.attributes) {
 
             // Read static module.
-            const lStaticModule: StaticModule | null = this.content.modules.createStaticModule(lAttributeTemplate, lHtmlNode, this.values);
+            const lStaticModule: StaticModule | null = this.content.modules.createAttributeModule(lAttributeTemplate, lHtmlNode, this.values);
             if (lStaticModule) {
                 // Link modules.
                 this.content.linkStaticModule(lStaticModule);

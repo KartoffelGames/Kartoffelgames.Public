@@ -1,25 +1,22 @@
 import { Injector } from '@kartoffelgames/core.dependency-injection';
-import { Modules } from '../modules';
 import { ModuleAccessType } from '../enum/module-access-type';
-import { ModuleType } from '../enum/module-type';
-import { IPwbStaticModuleClass } from '../interface/module';
-
+import { GlobalModuleStorage } from '../global-module-storage';
+import { IPwbAttributeModuleClass } from '../interface/module';
 
 /**
- * AtScript. PWB static attribute module.
+ * AtScript. PWB attribute attribute module.
  * @param pSettings - Module settings.
  */
-export function PwbStaticAttributeModule(pSettings: AttributeModuleSettings): any {
-    return (pStaticModuleConstructor: IPwbStaticModuleClass) => {
+export function PwbAttributeAttributeModule(pSettings: AttributeModuleSettings): any {
+    return (pAttributeModuleConstructor: IPwbAttributeModuleClass) => {
 
         // Set user class to be injectable
-        Injector.Injectable(pStaticModuleConstructor);
+        Injector.Injectable(pAttributeModuleConstructor);
 
         // Register module.
-        Modules.add(pStaticModuleConstructor, {
-            type: ModuleType.Static,
+        new GlobalModuleStorage().addAttributeModule(pAttributeModuleConstructor, {
+            constructor: pAttributeModuleConstructor,
             selector: pSettings.selector,
-            forbiddenInManipulatorScopes: pSettings.forbiddenInManipulatorScopes,
             access: pSettings.access
         });
     };
@@ -27,6 +24,5 @@ export function PwbStaticAttributeModule(pSettings: AttributeModuleSettings): an
 
 type AttributeModuleSettings = {
     selector: RegExp,
-    forbiddenInManipulatorScopes: boolean,
     access: ModuleAccessType;
 };

@@ -1,13 +1,13 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { ComponentManager } from '../component/component-manager';
 import { LayerValues } from '../component/values/layer-values';
-import { IPwbMultiplicatorModuleClass, IPwbMultiplicatorModuleObject, ModuleDefinition } from './interface/module';
+import { IPwbInstructionModuleClass, IPwbInstructionModuleObject, ModuleDefinition } from './interface/module';
 import { BaseModule } from './base-module';
 import { MultiplicatorResult } from './result/multiplicator-result';
 import { PwbTemplateAttribute, PwbTemplateXmlNode } from '../component/template/nodes/pwb-template-xml-node';
 
 export class MultiplicatorModule extends BaseModule<MultiplicatorResult | null, MultiplicatorResult> {
-    private readonly mModuleObject: IPwbMultiplicatorModuleObject;
+    private readonly mModuleObject: IPwbInstructionModuleObject;
 
     /**
      * Constructor.
@@ -38,7 +38,7 @@ export class MultiplicatorModule extends BaseModule<MultiplicatorResult | null, 
 
 export type MultiplicatorModuleConstructorParameter = {
     moduleDefinition: ModuleDefinition,
-    moduleClass: IPwbMultiplicatorModuleClass,
+    moduleClass: IPwbInstructionModuleClass,
     targetTemplate: PwbTemplateXmlNode,
     targetAttribute: PwbTemplateAttribute,
     values: LayerValues,

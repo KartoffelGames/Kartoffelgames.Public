@@ -2,10 +2,10 @@ import { ComponentManager } from '../component/component-manager';
 import { PwbTemplateAttribute, PwbTemplateXmlNode } from '../component/template/nodes/pwb-template-xml-node';
 import { LayerValues } from '../component/values/layer-values';
 import { BaseModule } from './base-module';
-import { IPwbStaticModuleClass, IPwbStaticModuleObject, ModuleDefinition } from './interface/module';
+import { IPwbAttributeModuleClass, IPwbAttributeModuleObject, ModuleDefinition } from './interface/module';
 
 export class StaticModule extends BaseModule<boolean, boolean> {
-    private readonly mModuleObject: IPwbStaticModuleObject;
+    private readonly mModuleObject: IPwbAttributeModuleObject;
 
     /**
      * Constructor.
@@ -29,7 +29,7 @@ export class StaticModule extends BaseModule<boolean, boolean> {
 
 export type StaticModuleConstructorParameter = {
     moduleDefinition: ModuleDefinition,
-    moduleClass: IPwbStaticModuleClass,
+    moduleClass: IPwbAttributeModuleClass,
     targetTemplate: PwbTemplateXmlNode,
     targetAttribute: PwbTemplateAttribute,
     values: LayerValues,

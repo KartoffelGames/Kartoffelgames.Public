@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 
-import { ModuleAccessType } from '../enum/module-access-type';
-import { ModuleType } from '../enum/module-type';
 import { MultiplicatorResult } from '../result/multiplicator-result';
 
 // Base.
@@ -10,20 +8,20 @@ export interface IPwbModuleClass<TResult> {
     new(): IPwbModuleObject<TResult>;
 }
 
+// Attribute.
+export interface IPwbAttributeModuleObject extends IPwbModuleObject<boolean> { }
+export interface IPwbAttributeModuleClass extends IPwbModuleClass<boolean> { }
+export interface IPwbAttributeModuleOnUpdate extends IPwbModuleOnUpdate<boolean> { }
+
 // Expression.
 export interface IPwbExpressionModuleObject extends IPwbModuleObject<string> { }
 export interface IPwbExpressionModuleClass extends IPwbModuleClass<string> { }
 export interface IPwbExpressionModuleOnUpdate extends IPwbModuleOnUpdate<string> { }
 
-// Static.
-export interface IPwbStaticModuleObject extends IPwbModuleObject<boolean> { }
-export interface IPwbStaticModuleClass extends IPwbModuleClass<boolean> { }
-export interface IPwbStaticModuleOnUpdate extends IPwbModuleOnUpdate<boolean> { }
-
-// Multiplicator.
-export interface IPwbMultiplicatorModuleObject extends IPwbModuleObject<MultiplicatorResult> { }
-export interface IPwbMultiplicatorModuleClass extends IPwbModuleClass<MultiplicatorResult> { }
-export interface IPwbMultiplicatorModuleOnUpdate extends IPwbModuleOnUpdate<MultiplicatorResult | null> { }
+// Instruction.
+export interface IPwbInstructionModuleObject extends IPwbModuleObject<MultiplicatorResult> { }
+export interface IPwbInstructionModuleClass extends IPwbModuleClass<MultiplicatorResult> { }
+export interface IPwbInstructionModuleOnUpdate extends IPwbModuleOnUpdate<MultiplicatorResult | null> { }
 
 export interface IPwbModuleOnUpdate<TResult> {
     /**
@@ -37,10 +35,4 @@ export interface IPwbModuleOnDeconstruct {
      * Cleanup events and other data that does not delete itself.
      */
     onDeconstruct(): void;
-}
-
-export interface ModuleDefinition {
-    type: ModuleType;
-    selector: RegExp;
-    access: ModuleAccessType;
 }

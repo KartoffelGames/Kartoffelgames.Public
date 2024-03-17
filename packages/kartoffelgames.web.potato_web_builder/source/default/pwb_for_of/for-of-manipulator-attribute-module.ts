@@ -1,8 +1,8 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { CompareHandler } from '@kartoffelgames/web.change-detection';
 import { LayerValues } from '../../component/values/layer-values';
-import { PwbMultiplicatorAttributeModule } from '../../module/decorator/pwb-multiplicator-attribute-module.decorator';
-import { IPwbMultiplicatorModuleOnUpdate } from '../../module/interface/module';
+import { PwbInstructionAttributeModule } from '../../module/decorator/pwb-multiplicator-attribute-module.decorator';
+import { IPwbInstructionModuleOnUpdate } from '../../module/interface/module';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ModuleLayerValuesReference } from '../../injection_reference/module-layer-values-reference';
 import { ModuleTemplateReference } from '../../injection_reference/module-template-reference';
@@ -15,10 +15,10 @@ import { PwbTemplateXmlNode } from '../../component/template/nodes/pwb-template-
  * Doublicates html element for each item in object or array.
  * Syntax: "[CustomName] of [List] (;[CustomIndexName] = $index)?"
  */
-@PwbMultiplicatorAttributeModule({
+@PwbInstructionAttributeModule({
     selector: /^\*pwbFor$/
 })
-export class ForOfManipulatorAttributeModule implements IPwbMultiplicatorModuleOnUpdate {
+export class ForOfManipulatorAttributeModule implements IPwbInstructionModuleOnUpdate {
     private readonly mAttributeReference: ModuleAttributeReference;
     private readonly mCompareHandler: CompareHandler<any>;
     private readonly mTemplateReference: ModuleTemplateReference;

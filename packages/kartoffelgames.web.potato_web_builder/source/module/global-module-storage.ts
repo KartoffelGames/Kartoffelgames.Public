@@ -1,6 +1,6 @@
 import { Dictionary, List } from '@kartoffelgames/core.data';
 import { ModuleAccessType } from './enum/module-access-type';
-import { IPwbExpressionModuleClass, IPwbModuleClass, IPwbAttributeModuleClass } from './interface/module';
+import { IPwbAttributeModuleClass, IPwbExpressionModuleClass, IPwbInstructionModuleClass } from './interface/module';
 
 /**
  * Global module storage.
@@ -17,8 +17,8 @@ export class GlobalModuleStorage {
     private readonly mExpressionModuleClasses!: Dictionary<ExpressionModuleDefinition, IPwbExpressionModuleClass>;
     private readonly mExpressionModuleConfigurations!: Dictionary<IPwbExpressionModuleClass, ExpressionModuleDefinition>;
 
-    private readonly mInstructionModuleClasses!: Dictionary<InstructionModuleDefinition, IPwbModuleClass<unknown>>;
-    private readonly mInstructionModuleConfigurations!: Dictionary<IPwbModuleClass<unknown>, InstructionModuleDefinition>;
+    private readonly mInstructionModuleClasses!: Dictionary<InstructionModuleDefinition, IPwbInstructionModuleClass>;
+    private readonly mInstructionModuleConfigurations!: Dictionary<IPwbInstructionModuleClass, InstructionModuleDefinition>;
 
     /**
      * Get attribute module configurations of all attribute modules.
@@ -56,12 +56,12 @@ export class GlobalModuleStorage {
         // Class storages.
         this.mAttributeModuleClasses = new Dictionary<AttributeModuleDefinition, IPwbAttributeModuleClass>();
         this.mExpressionModuleClasses = new Dictionary<ExpressionModuleDefinition, IPwbExpressionModuleClass>();
-        this.mInstructionModuleClasses = new Dictionary<InstructionModuleDefinition, IPwbModuleClass<unknown>>();
+        this.mInstructionModuleClasses = new Dictionary<InstructionModuleDefinition, IPwbInstructionModuleClass>();
 
         // Config storages.
         this.mAttributeModuleConfigurations = new Dictionary<IPwbAttributeModuleClass, AttributeModuleDefinition>();
         this.mExpressionModuleConfigurations = new Dictionary<IPwbExpressionModuleClass, ExpressionModuleDefinition>();
-        this.mInstructionModuleConfigurations = new Dictionary<IPwbModuleClass<unknown>, InstructionModuleDefinition>();
+        this.mInstructionModuleConfigurations = new Dictionary<IPwbInstructionModuleClass, InstructionModuleDefinition>();
     }
 
     /**
@@ -89,7 +89,7 @@ export class GlobalModuleStorage {
      * @param pModuleClass - User module class.
      * @param pModuleDefinition - Module definition.
      */
-    public addInstructionModule(pModuleClass: IPwbModuleClass<unknown>, pModuleDefinition: InstructionModuleDefinition): void {
+    public addInstructionModule(pModuleClass: IPwbInstructionModuleClass, pModuleDefinition: InstructionModuleDefinition): void {
         this.mInstructionModuleClasses.set(pModuleDefinition, pModuleClass);
         this.mInstructionModuleConfigurations.set(pModuleClass, pModuleDefinition);
     }
@@ -114,7 +114,7 @@ export class GlobalModuleStorage {
      * Get instruction module definition for instruction module class.
      * @param pModuleClass - Module class.
      */
-    public getInstructionModuleConfiguration(pModuleClass: IPwbModuleClass<unknown>): InstructionModuleDefinition | undefined {
+    public getInstructionModuleConfiguration(pModuleClass: IPwbInstructionModuleClass): InstructionModuleDefinition | undefined {
         return this.mInstructionModuleConfigurations.get(pModuleClass);
     }
 
@@ -127,10 +127,10 @@ type AttributeModuleDefinition = {
 };
 
 type ExpressionModuleDefinition = {
-    constructor: IPwbAttributeModuleClass,
+    constructor: IPwbExpressionModuleClass,
 };
 
 type InstructionModuleDefinition = {
-    constructor: IPwbAttributeModuleClass,
+    constructor: IPwbInstructionModuleClass,
     instructionType: string;
 };

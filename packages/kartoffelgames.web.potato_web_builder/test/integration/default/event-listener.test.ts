@@ -9,10 +9,10 @@ import { PwbEventListener } from '../../../source/default/event-listener/pwb-eve
 import { PwbExport } from '../../../source/default/export/pwb-export.decorator';
 import { ModuleLayerValuesReference } from '../../../source/injection_reference/module-layer-values-reference';
 import { ModuleTemplateReference } from '../../../source/injection_reference/module-template-reference';
-import { PwbMultiplicatorAttributeModule } from '../../../source/module/decorator/pwb-multiplicator-attribute-module.decorator';
-import { PwbStaticAttributeModule } from '../../../source/module/decorator/pwb-static-attribute-module.decorator';
+import { PwbInstructionAttributeModule } from '../../../source/module/decorator/pwb-multiplicator-attribute-module.decorator';
+import { PwbAttributeAttributeModule } from '../../../source/module/decorator/pwb-static-attribute-module.decorator';
 import { ModuleAccessType } from '../../../source/module/enum/module-access-type';
-import { IPwbMultiplicatorModuleOnUpdate } from '../../../source/module/interface/module';
+import { IPwbInstructionModuleOnUpdate } from '../../../source/module/interface/module';
 import { MultiplicatorResult } from '../../../source/module/result/multiplicator-result';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
@@ -174,7 +174,7 @@ describe('PwbEventListener', () => {
         // Process.
         let lEventCalled: boolean = false;
 
-        @PwbStaticAttributeModule({
+        @PwbAttributeAttributeModule({
             selector: /^listenerTestModuleOne$/,
             forbiddenInManipulatorScopes: false,
             access: ModuleAccessType.Read
@@ -207,7 +207,7 @@ describe('PwbEventListener', () => {
         // Process.
         let lEventCalled: boolean = false;
 
-        @PwbStaticAttributeModule({
+        @PwbAttributeAttributeModule({
             selector: /^listenerTestModuleTwo$/,
             forbiddenInManipulatorScopes: false,
             access: ModuleAccessType.Read
@@ -238,7 +238,7 @@ describe('PwbEventListener', () => {
 
     it('-- Error on static properties on static module', async () => {
         // Setup. Create static module.
-        @PwbStaticAttributeModule({
+        @PwbAttributeAttributeModule({
             selector: /^listenerTestModuleThree$/,
             forbiddenInManipulatorScopes: false,
             access: ModuleAccessType.Read
@@ -273,11 +273,11 @@ describe('PwbEventListener', () => {
         // Process.
         let lEventCalled: boolean = false;
 
-        @PwbMultiplicatorAttributeModule({
+        @PwbInstructionAttributeModule({
             selector: /^\*listenerTestModuleFour$/
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class MyModule implements IPwbMultiplicatorModuleOnUpdate {
+        class MyModule implements IPwbInstructionModuleOnUpdate {
             public constructor(private readonly mTemplate: ModuleTemplateReference, private readonly mValue: ModuleLayerValuesReference) { }
 
             onUpdate(): MultiplicatorResult {

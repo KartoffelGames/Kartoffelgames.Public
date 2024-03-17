@@ -20,13 +20,13 @@ export { ModuleTemplateReference } from './injection_reference/module-template-r
 
 // Modules
 export { ComponentScopeExecutor } from './module/execution/component-scope-executor';
-export { IPwbExpressionModuleOnUpdate, IPwbStaticModuleOnUpdate, IPwbMultiplicatorModuleOnUpdate, IPwbModuleOnDeconstruct } from './module/interface/module';
+export { IPwbExpressionModuleOnUpdate, IPwbAttributeModuleOnUpdate as IPwbStaticModuleOnUpdate, IPwbInstructionModuleOnUpdate as IPwbMultiplicatorModuleOnUpdate, IPwbModuleOnDeconstruct } from './module/interface/module';
 export { ModuleAccessType } from './module/enum/module-access-type';
 export { LayerValues } from './component/values/layer-values';
 export { MultiplicatorResult } from './module/result/multiplicator-result';
 export { PwbExpressionModule } from './module/decorator/pwb-expression-module.decorator';
-export { PwbMultiplicatorAttributeModule } from './module/decorator/pwb-multiplicator-attribute-module.decorator';
-export { PwbStaticAttributeModule } from './module/decorator/pwb-static-attribute-module.decorator';
+export { PwbInstructionAttributeModule as PwbMultiplicatorAttributeModule } from './module/decorator/pwb-multiplicator-attribute-module.decorator';
+export { PwbAttributeAttributeModule as PwbStaticAttributeModule } from './module/decorator/pwb-static-attribute-module.decorator';
 
 // Extension
 export { PwbExtension } from './extension/decorator/pwb-extension.decorator';

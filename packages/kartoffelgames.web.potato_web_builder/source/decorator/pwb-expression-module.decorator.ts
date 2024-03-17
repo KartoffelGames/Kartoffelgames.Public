@@ -12,7 +12,7 @@ export function PwbExpressionModule(): any {
         Injector.Injectable(pExpressionModuleConstructor);
 
         // Register module.
-        new GlobalModuleStorage().addExpressionModule(pExpressionModuleConstructor, {
+        new GlobalModuleStorage().addExpressionModule({
             constructor: pExpressionModuleConstructor
         });
     };

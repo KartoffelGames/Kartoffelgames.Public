@@ -14,7 +14,7 @@ export function PwbAttributeAttributeModule(pSettings: AttributeModuleSettings):
         Injector.Injectable(pAttributeModuleConstructor);
 
         // Register module.
-        new GlobalModuleStorage().addAttributeModule(pAttributeModuleConstructor, {
+        new GlobalModuleStorage().addAttributeModule({
             constructor: pAttributeModuleConstructor,
             selector: pSettings.selector,
             access: pSettings.access

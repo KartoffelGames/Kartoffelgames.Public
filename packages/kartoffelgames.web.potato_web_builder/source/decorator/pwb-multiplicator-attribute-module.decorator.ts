@@ -13,7 +13,7 @@ export function PwbInstructionAttributeModule(pSettings: InstructionModuleSettin
         Injector.Injectable(pInstructionModuleConstructor);
 
         // Register module.
-        new GlobalModuleStorage().addInstructionModule(pInstructionModuleConstructor, {
+        new GlobalModuleStorage().addInstructionModule({
             constructor: pInstructionModuleConstructor,
             instructionType: pSettings.instructionType
         });

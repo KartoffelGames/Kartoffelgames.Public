@@ -1,3 +1,4 @@
+import { Exception } from '@kartoffelgames/core.data';
 import { BasePwbTemplateNode } from '../../component/template/nodes/base-pwb-template-node';
 
 /**
@@ -7,14 +8,16 @@ import { BasePwbTemplateNode } from '../../component/template/nodes/base-pwb-tem
  * Should never be initialized.
  */
 export class ModuleTemplateReference extends BasePwbTemplateNode {
-
     /**
-     * Private constructor. Should not be initialied.
+     * Constructor. Allways throws exception.
      * 
-     * @internal
+     * @throws {@link Exception}
+     * Allways.
      */
     public constructor() {
         super();
+
+        throw new Exception('Reference should not be instanced.', this);
     }
 
     /**

@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { ExpressionModule } from '../../../module/expression-module';
-import { StaticModule } from '../../../module/static-module';
+import { AttributeModule } from '../../../module/static-module';
 import { ComponentModules } from '../../component-modules';
 import { PwbTemplateAttribute } from '../../template/nodes/values/pwb-template-attribute';
 import { BaseBuilderData } from './base-builder-data';
@@ -10,7 +10,7 @@ export class StaticBuilderData extends BaseBuilderData {
     private readonly mLinkedAttributeExpressionModules: WeakMap<ExpressionModule, PwbTemplateAttribute>;
     private readonly mLinkedAttributeNodes: WeakMap<PwbTemplateAttribute, Array<Text>>;
     private readonly mLinkedExpressionModuleList: Array<ExpressionModule>;
-    private readonly mLinkedStaticModuleList: Array<StaticModule>;
+    private readonly mLinkedStaticModuleList: Array<AttributeModule>;
 
     private mStaticModulesChangedOrder: boolean;
 
@@ -28,7 +28,7 @@ export class StaticBuilderData extends BaseBuilderData {
      * 
      * Static modules are allways ordered by read and write access.
      */
-    public get linkedStaticModules(): Array<StaticModule> {
+    public get linkedStaticModules(): Array<AttributeModule> {
         // Reorder module list when it has new modules.
         if (this.mStaticModulesChangedOrder) {
             this.mStaticModulesChangedOrder = false;
@@ -49,7 +49,7 @@ export class StaticBuilderData extends BaseBuilderData {
         super(pModules, pAnchorName);
 
         this.mLinkedExpressionModuleList = new Array<ExpressionModule>();
-        this.mLinkedStaticModuleList = new Array<StaticModule>();
+        this.mLinkedStaticModuleList = new Array<AttributeModule>();
 
         // Attribute expression maps.
         this.mLinkedAttributeExpressionModules = new WeakMap<ExpressionModule, PwbTemplateAttribute>();
@@ -135,7 +135,7 @@ export class StaticBuilderData extends BaseBuilderData {
      * 
      * @param pModule - Module.
      */
-    public linkStaticModule(pModule: StaticModule): void {
+    public linkStaticModule(pModule: AttributeModule): void {
         // Add module as linked module to node module list.
         this.mLinkedStaticModuleList.push(pModule);
 

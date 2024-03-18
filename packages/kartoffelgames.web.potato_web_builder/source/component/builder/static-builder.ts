@@ -1,5 +1,5 @@
 import { ExpressionModule } from '../../module/expression-module';
-import { StaticModule } from '../../module/static-module';
+import { AttributeModule } from '../../module/static-module';
 import { ComponentModules } from '../component-modules';
 import { ElementCreator } from '../element-creator';
 import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
@@ -113,7 +113,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
         for (const lAttributeTemplate of pElementTemplate.attributes) {
 
             // Read static module.
-            const lStaticModule: StaticModule | null = this.content.modules.createAttributeModule(lAttributeTemplate, lHtmlNode, this.values);
+            const lStaticModule: AttributeModule | null = this.content.modules.createAttributeModule(lAttributeTemplate, lHtmlNode, this.values);
             if (lStaticModule) {
                 // Link modules.
                 this.content.linkStaticModule(lStaticModule);

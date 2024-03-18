@@ -3,7 +3,7 @@ import { ExpressionModule } from '../module/expression-module';
 import { ExpressionModuleConfiguration, GlobalModuleStorage } from '../module/global-module-storage';
 import { IPwbExpressionModuleProcessorConstructor } from '../interface/module';
 import { MultiplicatorModule } from '../module/multiplicator-module';
-import { StaticModule } from '../module/static-module';
+import { AttributeModule } from '../module/static-module';
 import { ComponentManager } from './component-manager';
 import { PwbTemplateInstructionNode } from './template/nodes/pwb-template-instruction-node';
 import { PwbTemplateAttribute } from './template/nodes/values/pwb-template-attribute';
@@ -38,16 +38,14 @@ export class ComponentModules {
      * 
      * @returns Created static module when it was matched, otherwise null.
      */
-    public createAttributeModule(pTemplate: PwbTemplateAttribute, pTargetNode: Element, pValues: LayerValues): StaticModule | null {
+    public createAttributeModule(pTemplate: PwbTemplateAttribute, pTargetNode: Element, pValues: LayerValues): AttributeModule | null {
         // Find static modules.
         for (const lModuleConfiguration of this.mGlobalModuleStorage.attributeModuleConfigurations) {
             if (lModuleConfiguration.selector.test(pTemplate.name)) {
                 // Get constructor and create new module.
-                const lModule: StaticModule = new StaticModule({
-                    moduleDefinition: lModuleConfiguration,
-                    moduleClass: lModuleConfiguration.constructor,
-                    targetTemplate: pTemplate.node,
-                    targetAttribute: pTemplate,
+                const lModule: AttributeModule = new AttributeModule({
+                    module: lModuleConfiguration,
+                    targetTemplate: pTemplate,
                     values: pValues,
                     componentManager: this.mComponentManager,
                     targetNode: pTargetNode
@@ -71,7 +69,7 @@ export class ComponentModules {
      */
     public createExpressionModule(pTemplate: PwbTemplateExpression, pTargetNode: Text, pValues: LayerValues): ExpressionModule {
         const lModuleConfiguration: ExpressionModuleConfiguration | undefined = this.mGlobalModuleStorage.getExpressionModuleConfiguration(this.mExpressionModule);
-        if(!lModuleConfiguration) {
+        if (!lModuleConfiguration) {
             throw new Exception(`An expression module could not be found.`, this);
         }
 

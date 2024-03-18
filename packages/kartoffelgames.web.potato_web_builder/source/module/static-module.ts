@@ -1,12 +1,13 @@
 import { ComponentManager } from '../component/component-manager';
-import { PwbTemplateAttribute, PwbTemplateXmlNode } from '../component/template/nodes/pwb-template-xml-node';
+import { PwbTemplateAttribute } from '../component/template/nodes/values/pwb-template-attribute';
 import { LayerValues } from '../component/values/layer-values';
+import { ModuleKeyReference } from '../injection_reference/module/module-key-reference';
+import { ModuleValueReference } from '../injection_reference/module/module-value-reference';
+import { IPwbAttributeModuleProcessor } from '../interface/module';
 import { BaseModule } from './base-module';
-import { IPwbAttributeModuleProcessorConstructor, IPwbAttributeModuleObject, ModuleDefinition } from '../interface/module';
+import { AttributeModuleConfiguration } from './global-module-storage';
 
-export class StaticModule extends BaseModule<boolean, boolean> {
-    private readonly mModuleObject: IPwbAttributeModuleObject;
-
+export class AttributeModule extends BaseModule<Element, IPwbAttributeModuleProcessor> {
     /**
      * Constructor.
      * @param pParameter - Constructor parameter.
@@ -14,24 +15,26 @@ export class StaticModule extends BaseModule<boolean, boolean> {
     public constructor(pParameter: StaticModuleConstructorParameter) {
         super(pParameter);
 
-        // Create module object with attribute value. Attribute is always set for static modules.
-        const lAttribute: PwbTemplateAttribute = this.attribute!;
-        this.mModuleObject = this.createModuleObject(lAttribute.asText);
+        // Set processor attribute values from injection template.
+        this.setProcessorAttributes(ModuleValueReference, new ModuleValueReference(pParameter.targetTemplate.name));
+        this.setProcessorAttributes(ModuleKeyReference, new ModuleKeyReference(pParameter.targetTemplate.values.toString()));
     }
 
     /**
      * Update module.
      */
     public update(): boolean {
-        return this.mModuleObject.onUpdate?.() ?? false;
+        if('onUpdate' in this.processor){
+            return this.processor.onUpdate();
+        }
+
+        return false;
     }
 }
 
 export type StaticModuleConstructorParameter = {
-    moduleDefinition: ModuleDefinition,
-    moduleClass: IPwbAttributeModuleProcessorConstructor,
-    targetTemplate: PwbTemplateXmlNode,
-    targetAttribute: PwbTemplateAttribute,
+    module: AttributeModuleConfiguration,
+    targetTemplate: PwbTemplateAttribute,
     values: LayerValues,
     componentManager: ComponentManager,
     targetNode: Element;

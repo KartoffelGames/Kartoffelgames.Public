@@ -34,7 +34,6 @@ export interface IPwbExpressionModuleOnDeconstruct extends IPwbModuleOnDeconstru
 export interface IPwbExpressionModuleProcessor extends IPwbModuleProcessor, Partial<IPwbExpressionModuleOnUpdate>, Partial<IPwbExpressionModuleOnDeconstruct> { }
 export interface IPwbExpressionModuleProcessorConstructor extends IPwbModuleProcessorConstructor<IPwbExpressionModuleProcessor> { }
 
-
 // Instruction.
 export interface IPwbInstructionModuleOnUpdate extends IPwbModuleOnUpdate<InstructionResult> { }
 export interface IPwbInstructionModuleOnDeconstruct extends IPwbModuleOnDeconstruct { }

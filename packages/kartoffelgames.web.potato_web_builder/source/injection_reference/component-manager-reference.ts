@@ -1,5 +1,9 @@
 import { ComponentManager } from '../component/component-manager';
-import { BaseReference } from './base-reference';
 
-
-export class ComponentManagerReference extends BaseReference<ComponentManager> { }
+/**
+ * ComponentManager reference.
+ * Acts as injection reference but the actual ComponentManager should be injected instead.
+ * 
+ * Should never be initialized.
+ */
+export class ComponentManagerReference extends ComponentManager { }

@@ -1,5 +1,5 @@
 import { Injector } from '@kartoffelgames/core.dependency-injection';
-import { ModuleAccessType } from '../enum/module-access-type';
+import { ModuleAccessMode } from '../enum/module-access-mode';
 import { GlobalModuleStorage } from '../module/global-module-storage';
 import { IPwbAttributeModuleProcessorConstructor } from '../interface/module';
 
@@ -15,14 +15,14 @@ export function PwbAttributeModule(pSettings: AttributeModuleSettings): any {
 
         // Register module.
         new GlobalModuleStorage().addAttributeModule({
+            access: pSettings.access,
             constructor: pAttributeModuleConstructor,
-            selector: pSettings.selector,
-            access: pSettings.access
+            selector: pSettings.selector
         });
     };
 }
 
 type AttributeModuleSettings = {
     selector: RegExp,
-    access: ModuleAccessType;
+    access: ModuleAccessMode;
 };

@@ -1,5 +1,5 @@
 import { Dictionary, List } from '@kartoffelgames/core.data';
-import { ModuleAccessType } from '../enum/module-access-type';
+import { ModuleAccessMode } from '../enum/module-access-mode';
 import { IPwbAttributeModuleProcessorConstructor, IPwbExpressionModuleProcessorConstructor, IPwbInstructionModuleProcessorConstructor } from '../interface/module';
 
 /**
@@ -120,17 +120,17 @@ export class GlobalModuleStorage {
 }
 
 export type AttributeModuleConfiguration = {
-    constructor: IPwbAttributeModuleProcessorConstructor,
+    access: ModuleAccessMode;
+    constructor: IPwbAttributeModuleProcessorConstructor;
     selector: RegExp;
-    access: ModuleAccessType;
 };
 
 export type ExpressionModuleConfiguration = {
-    constructor: IPwbExpressionModuleProcessorConstructor,
+    constructor: IPwbExpressionModuleProcessorConstructor;
 };
 
 export type InstructionModuleConfiguration = {
-    constructor: IPwbInstructionModuleProcessorConstructor,
+    constructor: IPwbInstructionModuleProcessorConstructor;
     instructionType: string;
 };
 

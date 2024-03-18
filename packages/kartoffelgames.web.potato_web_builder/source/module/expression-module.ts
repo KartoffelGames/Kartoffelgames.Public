@@ -26,7 +26,7 @@ export class ExpressionModule extends BaseModule<Text, IPwbExpressionModuleProce
         this.mLastResult = '';
 
         // Set module value from template value.
-        this.setProcessorAttributes(ModuleValueReference, new ModuleValueReference(pParameter.targetTemplate.value));
+        this.setProcessorAttributes(ModuleValueReference, pParameter.targetTemplate.value);
     }
 
     /**

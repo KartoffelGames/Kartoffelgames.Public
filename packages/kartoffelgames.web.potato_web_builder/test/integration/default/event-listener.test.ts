@@ -7,11 +7,11 @@ import { ComponentEventEmitter } from '../../../source/default/component-event/c
 import { PwbComponentEvent } from '../../../source/default/component-event/pwb-component-event.decorator';
 import { PwbEventListener } from '../../../source/default/event-listener/pwb-event-listener.decorator';
 import { PwbExport } from '../../../source/default/export/pwb-export.decorator';
-import { ModuleLayerValuesReference } from '../../../source/injection_reference/module-layer-values-reference';
-import { ModuleTemplateReference } from '../../../source/injection_reference/module-template-reference';
+import { ModuleLayerValuesReference } from '../../../source/injection_reference/module/module-layer-values-reference';
+import { ModuleTemplateReference } from '../../../source/injection_reference/module/module-template-reference';
 import { PwbInstructionModule } from '../../../source/decorator/pwb-instruction-module.decorator';
 import { PwbAttributeModule } from '../../../source/decorator/pwb-attribute-module.decorator';
-import { ModuleAccessType } from '../../../source/enum/module-access-type';
+import { ModuleAccessMode } from '../../../source/enum/module-access-mode';
 import { IPwbInstructionModuleOnUpdate } from '../../../source/interface/module';
 import { InstructionResult } from '../../../source/module/result/instruction-result';
 import '../../mock/request-animation-frame-mock-session';
@@ -177,7 +177,7 @@ describe('PwbEventListener', () => {
         @PwbAttributeModule({
             selector: /^listenerTestModuleOne$/,
             forbiddenInManipulatorScopes: false,
-            access: ModuleAccessType.Read
+            access: ModuleAccessMode.Read
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class MyModule {
@@ -210,7 +210,7 @@ describe('PwbEventListener', () => {
         @PwbAttributeModule({
             selector: /^listenerTestModuleTwo$/,
             forbiddenInManipulatorScopes: false,
-            access: ModuleAccessType.Read
+            access: ModuleAccessMode.Read
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class MyModule {
@@ -241,7 +241,7 @@ describe('PwbEventListener', () => {
         @PwbAttributeModule({
             selector: /^listenerTestModuleThree$/,
             forbiddenInManipulatorScopes: false,
-            access: ModuleAccessType.Read
+            access: ModuleAccessMode.Read
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class MyModule {

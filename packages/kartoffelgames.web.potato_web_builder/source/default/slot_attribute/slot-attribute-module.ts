@@ -3,12 +3,12 @@ import { PwbTemplateAttribute, PwbTemplateXmlNode } from '../../component/templa
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ModuleTargetReference } from '../../injection_reference/module-target-reference';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
-import { ModuleAccessType } from '../../enum/module-access-type';
+import { ModuleAccessMode } from '../../enum/module-access-mode';
 
 @PwbAttributeModule({
     selector: /^\$[\w]+$/,
     forbiddenInManipulatorScopes: false,
-    access: ModuleAccessType.Write
+    access: ModuleAccessMode.Write
 })
 export class SlotAttributeModule {
     private readonly mAttributeReference: ModuleAttributeReference;

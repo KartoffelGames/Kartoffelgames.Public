@@ -13,14 +13,14 @@ export { ComponentManagerReference } from './injection_reference/component-manag
 export { ExtensionTargetClassReference } from './injection_reference/extension-target-class-reference';
 export { ExtensionTargetObjectReference } from './injection_reference/extension-target-object-reference';
 export { ModuleAttributeReference } from './injection_reference/module-attribute-reference';
-export { ModuleLayerValuesReference } from './injection_reference/module-layer-values-reference';
+export { ModuleLayerValuesReference } from './injection_reference/module/module-layer-values-reference';
 export { ModuleTargetReference } from './injection_reference/module-target-reference';
-export { ModuleTemplateReference } from './injection_reference/module-template-reference';
+export { ModuleTemplateReference } from './injection_reference/module/module-template-reference';
 
 // Modules
 export { ComponentScopeExecutor } from './module/execution/component-scope-executor';
 export { IPwbExpressionModuleOnUpdate, IPwbAttributeModuleOnUpdate, IPwbInstructionModuleOnUpdate, IPwbModuleOnDeconstruct } from './interface/module';
-export { ModuleAccessType } from './enum/module-access-type';
+export { ModuleAccessMode as ModuleAccessType } from './enum/module-access-mode';
 export { LayerValues } from './component/values/layer-values';
 export { InstructionResult } from './module/result/instruction-result';
 export { PwbExpressionModule } from './decorator/pwb-expression-module.decorator';

@@ -1,22 +1,7 @@
 /**
- * Injection target type hat holds the module key.
+ * Module key reference.
+ * Acts as injection reference but the actual key string should be injected instead.
+ * 
+ * Should never be initialized.
  */
-export class ModuleKeyReference  {
-    private readonly mValue: string;
-
-    /**
-     * Value.
-     */
-    public get value(): string {
-        return this.mValue;
-    }
-
-    /**
-     * Constructor.
-     * 
-     * @param pValue - Module key value.
-     */
-    public constructor(pValue: string) {
-        this.mValue = pValue;
-    }
- }
+export class ModuleKeyReference extends String {}

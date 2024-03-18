@@ -1,10 +1,10 @@
 import { CompareHandler } from '@kartoffelgames/web.change-detection';
 import { LayerValues } from '../../component/values/layer-values';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
-import { ModuleAccessType } from '../../enum/module-access-type';
+import { ModuleAccessMode } from '../../enum/module-access-mode';
 import { IPwbAttributeModuleOnUpdate } from '../../interface/module';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
-import { ModuleLayerValuesReference } from '../../injection_reference/module-layer-values-reference';
+import { ModuleLayerValuesReference } from '../../injection_reference/module/module-layer-values-reference';
 import { ModuleTargetReference } from '../../injection_reference/module-target-reference';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
 
@@ -14,7 +14,7 @@ import { ComponentScopeExecutor } from '../../module/execution/component-scope-e
  */
 @PwbAttributeModule({
     selector: /^\[[\w$]+\]$/,
-    access: ModuleAccessType.Read,
+    access: ModuleAccessMode.Read,
     forbiddenInManipulatorScopes: false
 })
 export class OneWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate {

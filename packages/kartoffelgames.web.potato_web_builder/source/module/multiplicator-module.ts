@@ -30,8 +30,8 @@ export class MultiplicatorModule extends BaseModule<Comment, IPwbInstructionModu
         });
 
         // Set processor attribute values from injection template.
-        this.setProcessorAttributes(ModuleValueReference, new ModuleValueReference(pParameter.targetTemplate.instruction));
-        this.setProcessorAttributes(ModuleKeyReference, new ModuleKeyReference(pParameter.targetTemplate.instructionType));
+        this.setProcessorAttributes(ModuleValueReference, pParameter.targetTemplate.instruction);
+        this.setProcessorAttributes(ModuleKeyReference, pParameter.targetTemplate.instructionType);
 
         // Set starting value of instruction => Empty.
         this.mLastResult = new InstructionResult();
@@ -65,12 +65,12 @@ export class MultiplicatorModule extends BaseModule<Comment, IPwbInstructionModu
                 const lOldElement: InstructionResultElement = this.mLastResult.elementList[lElementIndex];
 
                 // Compare new and old template.
-                if(!lNewElement.template.equals(lOldElement.template)){
+                if (!lNewElement.template.equals(lOldElement.template)) {
                     return true;
                 }
 
                 // Compare new and old values.
-                if(!lNewElement.componentValues.equals(lOldElement.componentValues)){
+                if (!lNewElement.componentValues.equals(lOldElement.componentValues)) {
                     return true;
                 }
             }

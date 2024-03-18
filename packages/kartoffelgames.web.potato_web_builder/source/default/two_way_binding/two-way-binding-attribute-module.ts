@@ -2,17 +2,17 @@ import { Dictionary } from '@kartoffelgames/core.data';
 import { CompareHandler } from '@kartoffelgames/web.change-detection';
 import { LayerValues } from '../../component/values/layer-values';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
-import { ModuleAccessType } from '../../enum/module-access-type';
+import { ModuleAccessMode } from '../../enum/module-access-mode';
 import { IPwbAttributeModuleOnUpdate } from '../../interface/module';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ComponentManagerReference } from '../../injection_reference/component-manager-reference';
-import { ModuleLayerValuesReference } from '../../injection_reference/module-layer-values-reference';
+import { ModuleLayerValuesReference } from '../../injection_reference/module/module-layer-values-reference';
 import { ModuleTargetReference } from '../../injection_reference/module-target-reference';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
 
 @PwbAttributeModule({
     selector: /^\[\([[\w$]+\)\]$/,
-    access: ModuleAccessType.ReadWrite,
+    access: ModuleAccessMode.ReadWrite,
     forbiddenInManipulatorScopes: false
 })
 export class TwoWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate {

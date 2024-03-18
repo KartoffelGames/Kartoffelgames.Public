@@ -1,15 +1,15 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
-import { ModuleLayerValuesReference } from '../../injection_reference/module-layer-values-reference';
+import { ModuleLayerValuesReference } from '../../injection_reference/module/module-layer-values-reference';
 import { ModuleTargetReference } from '../../injection_reference/module-target-reference';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
-import { ModuleAccessType } from '../../enum/module-access-type';
+import { ModuleAccessMode } from '../../enum/module-access-mode';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
 import { IPwbModuleOnDeconstruct } from '../../interface/module';
 
 @PwbAttributeModule({
     selector: /^\([[\w\-$]+\)$/,
-    access: ModuleAccessType.Write,
+    access: ModuleAccessMode.Write,
     forbiddenInManipulatorScopes: false
 })
 export class EventAttributeModule implements IPwbModuleOnDeconstruct {

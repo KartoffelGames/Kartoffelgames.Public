@@ -2,10 +2,10 @@ import { expect } from 'chai';
 import { PwbComponent } from '../../../source/decorator/pwb-component.decorator';
 import { PwbTemplateXmlNode } from '../../../source/component/template/nodes/pwb-template-xml-node';
 import { LayerValues } from '../../../source/component/values/layer-values';
-import { ModuleLayerValuesReference } from '../../../source/injection_reference/module-layer-values-reference';
+import { ModuleLayerValuesReference } from '../../../source/injection_reference/module/module-layer-values-reference';
 import { PwbInstructionModule } from '../../../source/decorator/pwb-instruction-module.decorator';
 import { PwbAttributeModule } from '../../../source/decorator/pwb-attribute-module.decorator';
-import { ModuleAccessType } from '../../../source/enum/module-access-type';
+import { ModuleAccessMode } from '../../../source/enum/module-access-mode';
 import { IPwbInstructionModuleOnUpdate } from '../../../source/interface/module';
 import { InstructionResult } from '../../../source/module/result/instruction-result';
 import '../../mock/request-animation-frame-mock-session';
@@ -89,7 +89,7 @@ describe('Custom Module', () => {
         @PwbAttributeModule({
             selector: /^nodeconstructmethod$/,
             forbiddenInManipulatorScopes: false,
-            access: ModuleAccessType.Read
+            access: ModuleAccessMode.Read
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class Module { }

@@ -11,8 +11,8 @@ import { ModuleLayerValuesReference } from '../../../source/injection_reference/
 import { ModuleTemplateReference } from '../../../source/injection_reference/module/module-template-reference';
 import { PwbInstructionModule } from '../../../source/decorator/pwb-instruction-module.decorator';
 import { PwbAttributeModule } from '../../../source/decorator/pwb-attribute-module.decorator';
-import { ModuleAccessMode } from '../../../source/enum/module-access-mode';
-import { IPwbInstructionModuleOnUpdate } from '../../../source/interface/module';
+import { ModuleAccessMode } from '../../../source/enum/module-access-mode.enum';
+import { IPwbInstructionModuleOnUpdate } from '../../../source/interface/module.interface';
 import { InstructionResult } from '../../../source/module/result/instruction-result';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';

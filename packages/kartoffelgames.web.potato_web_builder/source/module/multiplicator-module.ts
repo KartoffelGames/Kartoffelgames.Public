@@ -4,7 +4,7 @@ import { PwbTemplateInstructionNode } from '../component/template/nodes/pwb-temp
 import { LayerValues } from '../component/values/layer-values';
 import { ModuleKeyReference } from '../injection_reference/module/module-key-reference';
 import { ModuleValueReference } from '../injection_reference/module/module-value-reference';
-import { IPwbInstructionModuleProcessor } from '../interface/module';
+import { IPwbInstructionModuleProcessor } from '../interface/module.interface';
 import { BaseModule } from './base-module';
 import { InstructionModuleConfiguration } from './global-module-storage';
 import { InstructionResultElement, InstructionResult } from './result/instruction-result';

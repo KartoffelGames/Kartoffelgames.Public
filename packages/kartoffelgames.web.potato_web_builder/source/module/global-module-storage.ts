@@ -1,6 +1,6 @@
 import { Dictionary, List } from '@kartoffelgames/core.data';
-import { ModuleAccessMode } from '../enum/module-access-mode';
-import { IPwbAttributeModuleProcessorConstructor, IPwbExpressionModuleProcessorConstructor, IPwbInstructionModuleProcessorConstructor } from '../interface/module';
+import { ModuleAccessMode } from '../enum/module-access-mode.enum';
+import { IPwbAttributeModuleProcessorConstructor, IPwbExpressionModuleProcessorConstructor, IPwbInstructionModuleProcessorConstructor } from '../interface/module.interface';
 
 /**
  * Global module storage.

@@ -3,7 +3,7 @@ import { ModuleAttributeReference } from '../../injection_reference/module-attri
 import { ModuleLayerValuesReference } from '../../injection_reference/module/module-layer-values-reference';
 import { ModuleTargetReference } from '../../injection_reference/module-target-reference';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
-import { ModuleAccessMode } from '../../enum/module-access-mode';
+import { ModuleAccessMode } from '../../enum/module-access-mode.enum';
 
 /**
  * Used with "#IdChildName" like - #PasswordInput.

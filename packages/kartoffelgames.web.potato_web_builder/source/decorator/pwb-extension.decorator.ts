@@ -1,8 +1,8 @@
 import { Injector } from '@kartoffelgames/core.dependency-injection';
-import { ExtensionMode } from '../enum/extension-mode';
-import { ExtensionType } from '../enum/extension-type';
+import { ExtensionMode } from '../enum/extension-mode.enum';
+import { ExtensionType } from '../enum/extension-type.enum';
 import { Extensions } from '../extension/extensions';
-import { IPwbExtensionClass } from '../interface/extension';
+import { IPwbExtensionClass } from '../interface/extension.interface';
 
 /**
  * AtScript. PWB component extension.

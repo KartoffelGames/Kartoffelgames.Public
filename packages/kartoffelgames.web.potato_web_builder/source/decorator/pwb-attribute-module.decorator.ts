@@ -1,7 +1,7 @@
 import { Injector } from '@kartoffelgames/core.dependency-injection';
-import { ModuleAccessMode } from '../enum/module-access-mode';
+import { ModuleAccessMode } from '../enum/module-access-mode.enum';
 import { GlobalModuleStorage } from '../module/global-module-storage';
-import { IPwbAttributeModuleProcessorConstructor } from '../interface/module';
+import { IPwbAttributeModuleProcessorConstructor } from '../interface/module.interface';
 
 /**
  * AtScript. PWB attribute attribute module.

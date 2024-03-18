@@ -1,7 +1,7 @@
 import { MustacheExpressionModule } from '../default/mustache_expression/mustache-expression-module';
 import { ExpressionModule } from '../module/expression-module';
 import { ExpressionModuleConfiguration, GlobalModuleStorage } from '../module/global-module-storage';
-import { IPwbExpressionModuleProcessorConstructor } from '../interface/module';
+import { IPwbExpressionModuleProcessorConstructor } from '../interface/module.interface';
 import { MultiplicatorModule } from '../module/multiplicator-module';
 import { AttributeModule } from '../module/static-module';
 import { ComponentManager } from './component-manager';

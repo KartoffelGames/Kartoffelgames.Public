@@ -3,9 +3,9 @@ import { ModuleAttributeReference } from '../../injection_reference/module-attri
 import { ModuleLayerValuesReference } from '../../injection_reference/module/module-layer-values-reference';
 import { ModuleTargetReference } from '../../injection_reference/module-target-reference';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
-import { ModuleAccessMode } from '../../enum/module-access-mode';
+import { ModuleAccessMode } from '../../enum/module-access-mode.enum';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
-import { IPwbModuleOnDeconstruct } from '../../interface/module';
+import { IPwbModuleOnDeconstruct } from '../../interface/module.interface';
 
 @PwbAttributeModule({
     selector: /^\([[\w\-$]+\)$/,

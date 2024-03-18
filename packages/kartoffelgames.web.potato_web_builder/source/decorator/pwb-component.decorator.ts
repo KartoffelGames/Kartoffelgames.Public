@@ -1,8 +1,8 @@
 import { InjectionConstructor, Injector, Metadata } from '@kartoffelgames/core.dependency-injection';
-import { IPwbExpressionModuleProcessorConstructor, IPwbInstructionModuleProcessorConstructor, IPwbAttributeModuleProcessorConstructor } from '../interface/module';
+import { IPwbExpressionModuleProcessorConstructor, IPwbInstructionModuleProcessorConstructor, IPwbAttributeModuleProcessorConstructor } from '../interface/module.interface';
 import { ComponentManager } from '../component/component-manager';
-import { UpdateScope } from '../enum/update-scope';
-import { UserClass } from '../interface/user-class';
+import { UpdateScope } from '../enum/update-scope.enum';
+import { UserClass } from '../interface/user-class.interface';
 
 /**
  * AtScript. PWB Component.

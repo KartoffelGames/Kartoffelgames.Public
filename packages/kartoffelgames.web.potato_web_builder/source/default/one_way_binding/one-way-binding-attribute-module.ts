@@ -1,8 +1,8 @@
 import { CompareHandler } from '@kartoffelgames/web.change-detection';
 import { LayerValues } from '../../component/values/layer-values';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
-import { ModuleAccessMode } from '../../enum/module-access-mode';
-import { IPwbAttributeModuleOnUpdate } from '../../interface/module';
+import { ModuleAccessMode } from '../../enum/module-access-mode.enum';
+import { IPwbAttributeModuleOnUpdate } from '../../interface/module.interface';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ModuleLayerValuesReference } from '../../injection_reference/module/module-layer-values-reference';
 import { ModuleTargetReference } from '../../injection_reference/module-target-reference';

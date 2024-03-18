@@ -10,7 +10,7 @@ import { ComponentManagerReference } from '../injection_reference/component-mana
 import { ModuleTargetReference } from '../injection_reference/module-target-reference';
 import { ModuleLayerValuesReference } from '../injection_reference/module/module-layer-values-reference';
 import { ModuleTemplateReference } from '../injection_reference/module/module-template-reference';
-import { IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../interface/module';
+import { IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../interface/module.interface';
 import { ModuleConfiguration } from './global-module-storage';
 import { ModuleExtensions } from './module-extensions';
 

@@ -1,6 +1,6 @@
 import { Dictionary, List } from '@kartoffelgames/core.data';
 import { ChangeDetection } from '@kartoffelgames/web.change-detection';
-import { UserObject } from '../../interface/user-class';
+import { UserObject } from '../../interface/user-class.interface';
 import { LayerValues } from '../../component/values/layer-values';
 
 

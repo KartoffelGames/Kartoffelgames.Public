@@ -1,6 +1,6 @@
 import { Injector } from '@kartoffelgames/core.dependency-injection';
 import { GlobalModuleStorage } from '../module/global-module-storage';
-import { IPwbExpressionModuleProcessorConstructor } from '../interface/module';
+import { IPwbExpressionModuleProcessorConstructor } from '../interface/module.interface';
 
 /**
  * AtScript. PWB Expression module.

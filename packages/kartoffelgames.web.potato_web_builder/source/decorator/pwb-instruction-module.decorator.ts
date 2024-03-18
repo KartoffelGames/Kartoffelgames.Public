@@ -1,6 +1,6 @@
 import { Injector } from '@kartoffelgames/core.dependency-injection';
 import { GlobalModuleStorage } from '../module/global-module-storage';
-import { IPwbInstructionModuleProcessorConstructor } from '../interface/module';
+import { IPwbInstructionModuleProcessorConstructor } from '../interface/module.interface';
 
 /**
  * AtScript. PWB instruction attribute module.

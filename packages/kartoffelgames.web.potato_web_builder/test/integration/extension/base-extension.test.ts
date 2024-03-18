@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import { PwbComponent } from '../../../source/decorator/pwb-component.decorator';
 import { PwbExtension } from '../../../source/decorator/pwb-extension.decorator';
-import { ExtensionMode } from '../../../source/enum/extension-mode';
-import { ExtensionType } from '../../../source/enum/extension-type';
+import { ExtensionMode } from '../../../source/enum/extension-mode.enum';
+import { ExtensionType } from '../../../source/enum/extension-type.enum';
 import { TestUtil } from '../../utility/test-util';
 
 describe('BaseExtension', () => {

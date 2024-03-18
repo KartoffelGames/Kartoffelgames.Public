@@ -1,9 +1,9 @@
 /* istanbul ignore file */
 
 // Component
-export { UserObject, UserClass } from './interface/user-class';
+export { UserObject, UserClass } from './interface/user-class.interface';
 export { PwbApp } from './pwb-app';
-export { IPwbOnInit, IPwbAfterInit, IPwbOnDeconstruct, IPwbSlotAssign, IPwbAfterUpdate, IPwbOnUpdate, IPwbOnAttributeChange } from './interface/user-class';
+export { IPwbOnInit, IPwbAfterInit, IPwbOnDeconstruct, IPwbSlotAssign, IPwbAfterUpdate, IPwbOnUpdate, IPwbOnAttributeChange } from './interface/user-class.interface';
 export { PwbComponent } from './decorator/pwb-component.decorator';
 
 // Injections
@@ -19,8 +19,8 @@ export { ModuleTemplateReference } from './injection_reference/module/module-tem
 
 // Modules
 export { ComponentScopeExecutor } from './module/execution/component-scope-executor';
-export { IPwbExpressionModuleOnUpdate, IPwbAttributeModuleOnUpdate, IPwbInstructionModuleOnUpdate, IPwbModuleOnDeconstruct } from './interface/module';
-export { ModuleAccessMode as ModuleAccessType } from './enum/module-access-mode';
+export { IPwbExpressionModuleOnUpdate, IPwbAttributeModuleOnUpdate, IPwbInstructionModuleOnUpdate, IPwbModuleOnDeconstruct } from './interface/module.interface';
+export { ModuleAccessMode as ModuleAccessType } from './enum/module-access-mode.enum';
 export { LayerValues } from './component/values/layer-values';
 export { InstructionResult } from './module/result/instruction-result';
 export { PwbExpressionModule } from './decorator/pwb-expression-module.decorator';
@@ -29,7 +29,7 @@ export { PwbAttributeModule as PwbAttributeAttributeModule } from './decorator/p
 
 // Extension
 export { PwbExtension } from './decorator/pwb-extension.decorator';
-export { IPwbExtensionOnDeconstruct } from './interface/extension';
+export { IPwbExtensionOnDeconstruct } from './interface/extension.interface';
 
 // Default extensions.
 export { ComponentEvent } from './default/component-event/component-event';

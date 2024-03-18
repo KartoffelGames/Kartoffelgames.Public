@@ -1,6 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { Metadata } from '@kartoffelgames/core.dependency-injection';
-import { UserClass } from '../../interface/user-class';
+import { UserClass } from '../../interface/user-class.interface';
 import { ComponentEventExtension } from './component-event-extension';
 
 /**

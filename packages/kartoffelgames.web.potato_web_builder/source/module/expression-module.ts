@@ -2,7 +2,7 @@ import { ComponentManager } from '../component/component-manager';
 import { PwbTemplateExpression } from '../component/template/nodes/values/pwb-template-expression';
 import { LayerValues } from '../component/values/layer-values';
 import { ModuleValueReference } from '../injection_reference/module/module-value-reference';
-import { IPwbExpressionModuleProcessor } from '../interface/module';
+import { IPwbExpressionModuleProcessor } from '../interface/module.interface';
 import { BaseModule } from './base-module';
 import { ExpressionModuleConfiguration } from './global-module-storage';
 

@@ -1,14 +1,14 @@
 import { ChangeDetection, ChangeDetectionReason } from '@kartoffelgames/web.change-detection';
 import { expect } from 'chai';
 import { PwbComponent } from '../../source/decorator/pwb-component.decorator';
-import { UpdateScope } from '../../source/enum/update-scope';
+import { UpdateScope } from '../../source/enum/update-scope.enum';
 import { LoopError } from '../../source/component/handler/loop-detection-handler';
-import { IPwbAfterInit, IPwbAfterUpdate, IPwbOnAttributeChange, IPwbOnDeconstruct, IPwbOnInit, IPwbOnUpdate } from '../../source/interface/user-class';
+import { IPwbAfterInit, IPwbAfterUpdate, IPwbOnAttributeChange, IPwbOnDeconstruct, IPwbOnInit, IPwbOnUpdate } from '../../source/interface/user-class.interface';
 import { PwbExport } from '../../source/default/export/pwb-export.decorator';
 import { ComponentElementReference } from '../../source/injection_reference/component-element-reference';
 import { ComponentUpdateReference } from '../../source/injection_reference/component-update-reference';
 import { PwbExpressionModule } from '../../source/decorator/pwb-expression-module.decorator';
-import { IPwbExpressionModuleOnUpdate } from '../../source/interface/module';
+import { IPwbExpressionModuleOnUpdate } from '../../source/interface/module.interface';
 import '../mock/request-animation-frame-mock-session';
 import '../utility/chai-helper';
 import { TestUtil } from '../utility/test-util';

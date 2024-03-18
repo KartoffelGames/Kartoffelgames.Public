@@ -5,7 +5,7 @@ import { UpdateScope } from '../../source/enum/update-scope.enum';
 import { LoopError } from '../../source/component/handler/loop-detection-handler';
 import { IPwbAfterInit, IPwbAfterUpdate, IPwbOnAttributeChange, IPwbOnDeconstruct, IPwbOnInit, IPwbOnUpdate } from '../../source/interface/user-class.interface';
 import { PwbExport } from '../../source/default/export/pwb-export.decorator';
-import { ComponentElementReference } from '../../source/injection_reference/component-element-reference';
+import { ComponentElementReference } from '../../source/injection_reference/general/component-element-reference';
 import { ComponentUpdateReference } from '../../source/injection_reference/component-update-reference';
 import { PwbExpressionModule } from '../../source/decorator/pwb-expression-module.decorator';
 import { IPwbExpressionModuleOnUpdate } from '../../source/interface/module.interface';

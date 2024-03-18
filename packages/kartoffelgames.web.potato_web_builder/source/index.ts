@@ -7,7 +7,7 @@ export { IPwbOnInit, IPwbAfterInit, IPwbOnDeconstruct, IPwbSlotAssign, IPwbAfter
 export { PwbComponent } from './decorator/pwb-component.decorator';
 
 // Injections
-export { ComponentElementReference } from './injection_reference/component-element-reference';
+export { ComponentElementReference } from './injection_reference/general/component-element-reference';
 export { ComponentUpdateReference } from './injection_reference/component-update-reference';
 export { ComponentManagerReference } from './injection_reference/general/component-manager-reference';
 export { ExtensionTargetClassReference } from './injection_reference/extension-target-class-reference';

@@ -7,19 +7,20 @@ import { PwbTemplateAttribute } from '../component/template/nodes/values/pwb-tem
 import { PwbTemplateExpression } from '../component/template/nodes/values/pwb-template-expression';
 import { LayerValues } from '../component/values/layer-values';
 import { ComponentManagerReference } from '../injection_reference/general/component-manager-reference';
-import { ModuleTargetNode } from '../injection_reference/module/module-target-node-reference';
 import { ModuleLayerValuesReference } from '../injection_reference/module/module-layer-values-reference';
+import { ModuleTargetNode } from '../injection_reference/module/module-target-node-reference';
 import { ModuleTemplateReference } from '../injection_reference/module/module-template-reference';
-import { IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../interface/module.interface';
+import { IPwbModuleProcessor } from '../interface/module.interface';
 import { ModuleConfiguration } from './global-module-storage';
 import { ModuleExtensions } from './module-extensions';
+import { ComponentElementReference } from '../injection_reference/general/component-element-reference';
 
 export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor extends IPwbModuleProcessor> {
     private readonly mComponentManager: ComponentManager;
     private readonly mExtensionList: Array<ModuleExtensions>;
     private readonly mInjections: Dictionary<InjectionConstructor, any>;
     private readonly mLayerValues: LayerValues;
-    private readonly mModuleClass: IPwbModuleProcessorConstructor<TModuleProcessor>;
+    private readonly mModuleClass: InjectionConstructor;
     private mModuleProcessor: TModuleProcessor | null;
     private readonly mTargetNode: TTargetNode;
     private readonly mTemplateClone: BasePwbTemplateNode;
@@ -60,9 +61,12 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
         this.mExtensionList = new Array<ModuleExtensions>();
         this.mInjections = new Dictionary<InjectionConstructor, any>();
 
-        // Create injection mapping.
-        this.setProcessorAttributes(ModuleLayerValuesReference, this.mLayerValues);
+        // Create component injections mapping.
         this.setProcessorAttributes(ComponentManagerReference, pParameter.componentManager);
+        this.setProcessorAttributes(ComponentElementReference, pParameter.componentManager.elementHandler.htmlElement);
+
+        // Create module injection mapping.
+        this.setProcessorAttributes(ModuleLayerValuesReference, this.mLayerValues);
         this.setProcessorAttributes(ModuleTemplateReference, this.mTemplateClone);
         this.setProcessorAttributes(ModuleTargetNode, pParameter.targetNode);
     }

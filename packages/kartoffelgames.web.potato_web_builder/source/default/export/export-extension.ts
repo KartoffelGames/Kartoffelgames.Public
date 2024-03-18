@@ -4,7 +4,7 @@ import { UserObjectHandler } from '../../component/handler/user-object-handler';
 import { PwbExtension } from '../../decorator/pwb-extension.decorator';
 import { ExtensionMode } from '../../enum/extension-mode.enum';
 import { ExtensionType } from '../../enum/extension-type.enum';
-import { ComponentElementReference } from '../../injection_reference/component-element-reference';
+import { ComponentElementReference } from '../../injection_reference/general/component-element-reference';
 import { ComponentManagerReference } from '../../injection_reference/general/component-manager-reference';
 
 @PwbExtension({

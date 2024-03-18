@@ -5,6 +5,8 @@ import { IPwbExpressionModuleProcessorConstructor } from '../../interface/module
 import { UserClass } from '../../interface/user-class.interface';
 
 /**
+ * // TODO: This should not exists. Really try to remove it and pass single handlers of it instead. 
+ * 
  * ComponentManager reference.
  * Acts as injection reference but the actual ComponentManager should be injected instead.
  * 

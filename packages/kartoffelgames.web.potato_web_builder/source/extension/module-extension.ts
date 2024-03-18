@@ -6,7 +6,7 @@ import { PwbTemplateAttribute } from '../component/template/nodes/pwb-template-x
 import { LayerValues } from '../component/values/layer-values';
 import { ModuleAttributeReference } from '../injection_reference/module-attribute-reference';
 import { ModuleLayerValuesReference } from '../injection_reference/module/module-layer-values-reference';
-import { ModuleTargetReference } from '../injection_reference/module-target-reference';
+import { ModuleTargetNode } from '../injection_reference/module-target-node-reference';
 import { ModuleTemplateReference } from '../injection_reference/module/module-template-reference';
 import { BaseExtension } from './base-extension';
 import { IPwbExtensionClass } from '../interface/extension.interface';
@@ -26,7 +26,7 @@ export class ModuleExtension extends BaseExtension {
             lInjections.set(ModuleAttributeReference, new ModuleAttributeReference(pParameter.attribute));
         }
         lInjections.set(ModuleLayerValuesReference, new ModuleLayerValuesReference(pParameter.layerValues));
-        lInjections.set(ModuleTargetReference, new ModuleTargetReference(pParameter.element));
+        lInjections.set(ModuleTargetNode, new ModuleTargetNode(pParameter.element));
 
         // Create extension.
         this.createExtensionObject(lInjections);

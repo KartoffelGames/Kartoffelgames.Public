@@ -14,7 +14,7 @@ export { ExtensionTargetClassReference } from './injection_reference/extension-t
 export { ExtensionTargetObjectReference } from './injection_reference/extension-target-object-reference';
 export { ModuleAttributeReference } from './injection_reference/module-attribute-reference';
 export { ModuleLayerValuesReference } from './injection_reference/module/module-layer-values-reference';
-export { ModuleTargetReference } from './injection_reference/module-target-reference';
+export { ModuleTargetNode as ModuleTargetReference } from './injection_reference/module-target-node-reference';
 export { ModuleTemplateReference } from './injection_reference/module/module-template-reference';
 
 // Modules

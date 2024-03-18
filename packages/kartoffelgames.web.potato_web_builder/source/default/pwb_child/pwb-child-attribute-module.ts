@@ -1,7 +1,7 @@
 import { ComponentManagerReference } from '../../injection_reference/component-manager-reference';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ModuleLayerValuesReference } from '../../injection_reference/module/module-layer-values-reference';
-import { ModuleTargetReference } from '../../injection_reference/module-target-reference';
+import { ModuleTargetNode } from '../../injection_reference/module-target-node-reference';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
 import { ModuleAccessMode } from '../../enum/module-access-mode.enum';
 
@@ -20,7 +20,7 @@ export class PwbChildAttributeModule {
      * @param pLayerValues - Values of component.
      * @param pAttributeReference - Attribute of module.
      */
-    public constructor(pTargetReference: ModuleTargetReference, pValueReference: ModuleLayerValuesReference, pAttributeReference: ModuleAttributeReference, pComponentManager: ComponentManagerReference) {
+    public constructor(pTargetReference: ModuleTargetNode, pValueReference: ModuleLayerValuesReference, pAttributeReference: ModuleAttributeReference, pComponentManager: ComponentManagerReference) {
         const lTarget: Node = <Node>pTargetReference.value;
         const lRegistedElement: Node = pComponentManager.value.updateHandler.registerObject(lTarget);
 

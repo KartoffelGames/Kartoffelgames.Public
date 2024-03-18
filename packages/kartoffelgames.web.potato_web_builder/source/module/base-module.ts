@@ -7,7 +7,7 @@ import { PwbTemplateAttribute } from '../component/template/nodes/values/pwb-tem
 import { PwbTemplateExpression } from '../component/template/nodes/values/pwb-template-expression';
 import { LayerValues } from '../component/values/layer-values';
 import { ComponentManagerReference } from '../injection_reference/component-manager-reference';
-import { ModuleTargetReference } from '../injection_reference/module-target-reference';
+import { ModuleTargetNode } from '../injection_reference/module-target-node-reference';
 import { ModuleLayerValuesReference } from '../injection_reference/module/module-layer-values-reference';
 import { ModuleTemplateReference } from '../injection_reference/module/module-template-reference';
 import { IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../interface/module.interface';
@@ -54,7 +54,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
         this.mTargetNode = pParameter.targetNode;
         this.mComponentManager = pParameter.componentManager;
         this.mLayerValues = pParameter.values;
-        
+
         // Init runtime lists.
         this.mModuleProcessor = null;
         this.mExtensionList = new Array<ModuleExtensions>();
@@ -64,7 +64,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
         this.setProcessorAttributes(ModuleLayerValuesReference, this.mLayerValues);
         this.setProcessorAttributes(ComponentManagerReference, pParameter.componentManager);
         this.setProcessorAttributes(ModuleTemplateReference, this.mTemplateClone);
-        this.setProcessorAttributes(ModuleTargetReference, new ModuleTargetReference(pParameter.targetNode));
+        this.setProcessorAttributes(ModuleTargetNode, pParameter.targetNode);
     }
 
     /**

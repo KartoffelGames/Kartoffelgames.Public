@@ -48,17 +48,17 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
      * @param pParameter - Parameter.
      */
     constructor(pParameter: BaseModuleConstructorParameter) {
-        // Clone template.
+        // Save parameter
         this.mTemplateClone = pParameter.targetTemplate.clone();
         this.mModuleClass = pParameter.module.constructor;
         this.mTargetNode = pParameter.targetNode;
         this.mComponentManager = pParameter.componentManager;
         this.mLayerValues = pParameter.values;
-        this.mExtensionList = new Array<ModuleExtensions>();
+        
+        // Init runtime lists.
         this.mModuleProcessor = null;
+        this.mExtensionList = new Array<ModuleExtensions>();
         this.mInjections = new Dictionary<InjectionConstructor, any>();
-
-
 
         // Create injection mapping.
         this.setProcessorAttributes(ModuleLayerValuesReference, this.mLayerValues);

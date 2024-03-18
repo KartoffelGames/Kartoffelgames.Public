@@ -2,12 +2,12 @@ import { Dictionary } from '@kartoffelgames/core.data';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ModuleLayerValuesReference } from '../../injection_reference/module-layer-values-reference';
 import { ModuleTargetReference } from '../../injection_reference/module-target-reference';
-import { PwbAttributeAttributeModule } from '../../decorator/pwb-static-attribute-module.decorator';
+import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
 import { ModuleAccessType } from '../../enum/module-access-type';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
 import { IPwbModuleOnDeconstruct } from '../../interface/module';
 
-@PwbAttributeAttributeModule({
+@PwbAttributeModule({
     selector: /^\([[\w\-$]+\)$/,
     access: ModuleAccessType.Write,
     forbiddenInManipulatorScopes: false

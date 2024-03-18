@@ -6,7 +6,7 @@ import { IPwbInstructionModuleProcessorConstructor } from '../interface/module';
  * AtScript. PWB instruction attribute module.
  * @param pSettings - Module settings.
  */
-export function PwbInstructionAttributeModule(pSettings: InstructionModuleSettings): any {
+export function PwbInstructionModule(pSettings: InstructionModuleSettings): any {
     return (pInstructionModuleConstructor: IPwbInstructionModuleProcessorConstructor) => {
 
         // Set user class to be injectable

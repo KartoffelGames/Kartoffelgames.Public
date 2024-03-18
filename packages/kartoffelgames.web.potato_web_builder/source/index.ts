@@ -24,8 +24,8 @@ export { ModuleAccessType } from './enum/module-access-type';
 export { LayerValues } from './component/values/layer-values';
 export { InstructionResult } from './module/result/instruction-result';
 export { PwbExpressionModule } from './decorator/pwb-expression-module.decorator';
-export { PwbInstructionAttributeModule } from './decorator/pwb-multiplicator-attribute-module.decorator';
-export { PwbAttributeAttributeModule } from './decorator/pwb-static-attribute-module.decorator';
+export { PwbInstructionModule as PwbInstructionAttributeModule } from './decorator/pwb-instruction-module.decorator';
+export { PwbAttributeModule as PwbAttributeAttributeModule } from './decorator/pwb-attribute-module.decorator';
 
 // Extension
 export { PwbExtension } from './decorator/pwb-extension.decorator';

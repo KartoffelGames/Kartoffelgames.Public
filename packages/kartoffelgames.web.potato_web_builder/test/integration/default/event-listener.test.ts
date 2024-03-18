@@ -9,8 +9,8 @@ import { PwbEventListener } from '../../../source/default/event-listener/pwb-eve
 import { PwbExport } from '../../../source/default/export/pwb-export.decorator';
 import { ModuleLayerValuesReference } from '../../../source/injection_reference/module-layer-values-reference';
 import { ModuleTemplateReference } from '../../../source/injection_reference/module-template-reference';
-import { PwbInstructionAttributeModule } from '../../../source/decorator/pwb-multiplicator-attribute-module.decorator';
-import { PwbAttributeAttributeModule } from '../../../source/decorator/pwb-static-attribute-module.decorator';
+import { PwbInstructionModule } from '../../../source/decorator/pwb-instruction-module.decorator';
+import { PwbAttributeModule } from '../../../source/decorator/pwb-attribute-module.decorator';
 import { ModuleAccessType } from '../../../source/enum/module-access-type';
 import { IPwbInstructionModuleOnUpdate } from '../../../source/interface/module';
 import { InstructionResult } from '../../../source/module/result/instruction-result';
@@ -174,7 +174,7 @@ describe('PwbEventListener', () => {
         // Process.
         let lEventCalled: boolean = false;
 
-        @PwbAttributeAttributeModule({
+        @PwbAttributeModule({
             selector: /^listenerTestModuleOne$/,
             forbiddenInManipulatorScopes: false,
             access: ModuleAccessType.Read
@@ -207,7 +207,7 @@ describe('PwbEventListener', () => {
         // Process.
         let lEventCalled: boolean = false;
 
-        @PwbAttributeAttributeModule({
+        @PwbAttributeModule({
             selector: /^listenerTestModuleTwo$/,
             forbiddenInManipulatorScopes: false,
             access: ModuleAccessType.Read
@@ -238,7 +238,7 @@ describe('PwbEventListener', () => {
 
     it('-- Error on static properties on static module', async () => {
         // Setup. Create static module.
-        @PwbAttributeAttributeModule({
+        @PwbAttributeModule({
             selector: /^listenerTestModuleThree$/,
             forbiddenInManipulatorScopes: false,
             access: ModuleAccessType.Read
@@ -273,7 +273,7 @@ describe('PwbEventListener', () => {
         // Process.
         let lEventCalled: boolean = false;
 
-        @PwbInstructionAttributeModule({
+        @PwbInstructionModule({
             selector: /^\*listenerTestModuleFour$/
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars

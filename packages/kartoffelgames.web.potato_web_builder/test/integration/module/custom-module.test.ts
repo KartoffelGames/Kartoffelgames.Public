@@ -3,8 +3,8 @@ import { PwbComponent } from '../../../source/decorator/pwb-component.decorator'
 import { PwbTemplateXmlNode } from '../../../source/component/template/nodes/pwb-template-xml-node';
 import { LayerValues } from '../../../source/component/values/layer-values';
 import { ModuleLayerValuesReference } from '../../../source/injection_reference/module-layer-values-reference';
-import { PwbInstructionAttributeModule } from '../../../source/decorator/pwb-multiplicator-attribute-module.decorator';
-import { PwbAttributeAttributeModule } from '../../../source/decorator/pwb-static-attribute-module.decorator';
+import { PwbInstructionModule } from '../../../source/decorator/pwb-instruction-module.decorator';
+import { PwbAttributeModule } from '../../../source/decorator/pwb-attribute-module.decorator';
 import { ModuleAccessType } from '../../../source/enum/module-access-type';
 import { IPwbInstructionModuleOnUpdate } from '../../../source/interface/module';
 import { InstructionResult } from '../../../source/module/result/instruction-result';
@@ -15,7 +15,7 @@ import { TestUtil } from '../../utility/test-util';
 describe('Custom Module', () => {
     it('-- Same result, twice', async () => {
         // Setup. Define module.
-        @PwbInstructionAttributeModule({
+        @PwbInstructionModule({
             selector: /^\*multiresult$/
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -58,7 +58,7 @@ describe('Custom Module', () => {
 
     it('-- Manupulator without update method', async () => {
         // Setup. Define module.
-        @PwbInstructionAttributeModule({
+        @PwbInstructionModule({
             selector: /^\*noupdatemethod$/
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -86,7 +86,7 @@ describe('Custom Module', () => {
 
     it('-- Deconstruct module without deconstructor method', async () => {
         // Setup. Define module.
-        @PwbAttributeAttributeModule({
+        @PwbAttributeModule({
             selector: /^nodeconstructmethod$/,
             forbiddenInManipulatorScopes: false,
             access: ModuleAccessType.Read

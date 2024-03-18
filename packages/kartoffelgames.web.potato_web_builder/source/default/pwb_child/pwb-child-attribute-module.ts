@@ -1,4 +1,4 @@
-import { ComponentManagerReference } from '../../injection_reference/component-manager-reference';
+import { ComponentManagerReference } from '../../injection_reference/general/component-manager-reference';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ModuleLayerValuesReference } from '../../injection_reference/module/module-layer-values-reference';
 import { ModuleTargetNode } from '../../injection_reference/module-target-node-reference';

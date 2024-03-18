@@ -6,7 +6,7 @@ import { PwbTemplateAttribute } from '../component/template/nodes/pwb-template-x
 import { LayerValues } from '../component/values/layer-values';
 import { ModuleAttributeReference } from '../injection_reference/module-attribute-reference';
 import { ModuleLayerValuesReference } from '../injection_reference/module/module-layer-values-reference';
-import { ModuleTargetNode } from '../injection_reference/module-target-node-reference';
+import { ModuleTargetNode } from '../injection_reference/module/module-target-node-reference';
 import { ModuleTemplateReference } from '../injection_reference/module/module-template-reference';
 import { BaseExtension } from './base-extension';
 import { IPwbExtensionClass } from '../interface/extension.interface';

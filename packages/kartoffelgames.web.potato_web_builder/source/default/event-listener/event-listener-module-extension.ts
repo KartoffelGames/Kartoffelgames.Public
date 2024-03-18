@@ -8,7 +8,7 @@ import { IPwbExtensionOnDeconstruct } from '../../interface/extension.interface'
 import { ComponentManagerReference } from '../../injection_reference/general/component-manager-reference';
 import { ExtensionTargetClassReference } from '../../injection_reference/extension-target-class-reference';
 import { ExtensionTargetObjectReference } from '../../injection_reference/extension-target-object-reference';
-import { ModuleTargetNode } from '../../injection_reference/module-target-node-reference';
+import { ModuleTargetNode } from '../../injection_reference/module/module-target-node-reference';
 import { EventListenerComponentExtension } from './event-listener-component-extension';
 
 @PwbExtension({

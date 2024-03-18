@@ -7,7 +7,7 @@ import { PwbTemplateAttribute } from '../component/template/nodes/values/pwb-tem
 import { PwbTemplateExpression } from '../component/template/nodes/values/pwb-template-expression';
 import { LayerValues } from '../component/values/layer-values';
 import { ComponentManagerReference } from '../injection_reference/general/component-manager-reference';
-import { ModuleTargetNode } from '../injection_reference/module-target-node-reference';
+import { ModuleTargetNode } from '../injection_reference/module/module-target-node-reference';
 import { ModuleLayerValuesReference } from '../injection_reference/module/module-layer-values-reference';
 import { ModuleTemplateReference } from '../injection_reference/module/module-template-reference';
 import { IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../interface/module.interface';

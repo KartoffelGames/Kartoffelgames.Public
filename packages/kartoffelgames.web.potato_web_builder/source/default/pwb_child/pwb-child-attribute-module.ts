@@ -1,7 +1,7 @@
 import { ComponentManagerReference } from '../../injection_reference/general/component-manager-reference';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ModuleLayerValuesReference } from '../../injection_reference/module/module-layer-values-reference';
-import { ModuleTargetNode } from '../../injection_reference/module-target-node-reference';
+import { ModuleTargetNode } from '../../injection_reference/module/module-target-node-reference';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
 import { ModuleAccessMode } from '../../enum/module-access-mode.enum';
 

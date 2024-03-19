@@ -1,6 +1,6 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { ComponentExtension } from '../extension/component-extension';
-import { Extensions } from '../extension/extensions';
+import { GlobalExtensionsStorage } from '../extension/global-extensions-storage';
 import { ComponentManager } from './component-manager';
 
 // Import default extensions.
@@ -36,7 +36,7 @@ export class ComponentExtensions {
     public executeInjectorExtensions(pParameter: ComponentExtensionsExecuteInjectorExtensionsParameter): Array<object | null> {
         const lInjectionTypeList: Array<object | null> = new Array<object | null>();
 
-        for (const lExtensionClass of Extensions.componentInjectorExtensions) {
+        for (const lExtensionClass of GlobalExtensionsStorage.componentInjectorExtensions) {
             // Create extension and add to extension list.
             const lExtension: ComponentExtension = new ComponentExtension({
                 extensionClass: lExtensionClass,
@@ -59,7 +59,7 @@ export class ComponentExtensions {
      * @param pParameter - Parameter.
      */
     public executePatcherExtensions(pParameter: ComponentExtensionsExecutePatcherExtensionsParameter): void {
-        for (const lExtensionClass of Extensions.componentPatcherExtensions) {
+        for (const lExtensionClass of GlobalExtensionsStorage.componentPatcherExtensions) {
             this.mExtensionList.push(new ComponentExtension({
                 extensionClass: lExtensionClass,
                 componentElement: pParameter.componentElement,

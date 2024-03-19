@@ -1,19 +1,18 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { ComponentManager } from '../component/component-manager';
-import { BasePwbTemplateNode } from '../component/template/nodes/base-pwb-template-node';
 import { PwbTemplateInstructionNode } from '../component/template/nodes/pwb-template-instruction-node';
 import { PwbTemplateAttribute } from '../component/template/nodes/values/pwb-template-attribute';
 import { PwbTemplateExpression } from '../component/template/nodes/values/pwb-template-expression';
 import { LayerValues } from '../component/values/layer-values';
-import { ComponentManagerReference } from '../injection_reference/general/component-manager-reference';
+import { ComponentElementReference } from '../injection_reference/general/component-element-reference';
+import { UpdateHandlerReference } from '../injection_reference/general/component-update-handler-reference';
 import { ModuleLayerValuesReference } from '../injection_reference/module/module-layer-values-reference';
 import { ModuleTargetNode } from '../injection_reference/module/module-target-node-reference';
 import { ModuleTemplateReference } from '../injection_reference/module/module-template-reference';
 import { IPwbModuleProcessor } from '../interface/module.interface';
 import { ModuleConfiguration } from './global-module-storage';
 import { ModuleExtensions } from './module-extensions';
-import { ComponentElementReference } from '../injection_reference/general/component-element-reference';
 
 export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor extends IPwbModuleProcessor> {
     private readonly mComponentManager: ComponentManager;
@@ -23,7 +22,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
     private readonly mModuleClass: InjectionConstructor;
     private mModuleProcessor: TModuleProcessor | null;
     private readonly mTargetNode: TTargetNode;
-    private readonly mTemplateClone: BasePwbTemplateNode;
+    private readonly mTemplateClone: BaseModuleTargetTemplate;
 
     /**
      * Get target node.
@@ -48,7 +47,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
      * Constructor.
      * @param pParameter - Parameter.
      */
-    constructor(pParameter: BaseModuleConstructorParameter) {
+    constructor(pParameter: BaseModuleConstructorParameter<TTargetNode>) {
         // Save parameter
         this.mTemplateClone = pParameter.targetTemplate.clone();
         this.mModuleClass = pParameter.module.constructor;
@@ -62,7 +61,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
         this.mInjections = new Dictionary<InjectionConstructor, any>();
 
         // Create component injections mapping.
-        this.setProcessorAttributes(ComponentManagerReference, pParameter.componentManager);
+        this.setProcessorAttributes(UpdateHandlerReference, pParameter.componentManager.updateHandler);
         this.setProcessorAttributes(ComponentElementReference, pParameter.componentManager.elementHandler.htmlElement);
 
         // Create module injection mapping.
@@ -81,7 +80,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
         }
 
         // Deconstruct modules.
-        if ('onDeconstruct' in this.processor) {
+        if ('onDeconstruct' in this.processor && typeof this.processor.onDeconstruct === 'function') {
             this.processor.onDeconstruct();
         }
     }
@@ -95,7 +94,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
      * @throws {@link Exception}
      * When the processor was already initialized.
      */
-    protected setProcessorAttributes(pInjectionTarget: InjectionConstructor, pInjectionValue: any): void {
+    public setProcessorAttributes(pInjectionTarget: InjectionConstructor, pInjectionValue: any): void {
         if (this.mModuleProcessor) {
             throw new Exception('Cant add attributes to already initialized module.', this);
         }
@@ -113,7 +112,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
 
         // Create extensions and collect extension injections.
         const lExtensions: ModuleExtensions = new ModuleExtensions();
-        const lExtensionInjectionList: Array<object | null> = lExtensions.executeInjectorExtensions({
+        const lExtensionInjectionList: Array<object | null> = lExtensions.executeInjectorExtensions({ // TODO: No need to splitting injection and patcher extensions, Patcher can access ModuleReference and setProcessorAttributes. Find a way to handle priority.
             componentManager: this.mComponentManager,
             targetClass: this.mModuleClass,
             template: this.mTemplateClone,
@@ -155,10 +154,10 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
     public abstract update(): boolean;
 }
 
-export type BaseModuleConstructorParameter = {
+export type BaseModuleConstructorParameter<TTargetNode extends Node> = {
     componentManager: ComponentManager,
     module: ModuleConfiguration,
-    targetNode: Node;
+    targetNode: TTargetNode;
     targetTemplate: BaseModuleTargetTemplate,
     values: LayerValues;
 };

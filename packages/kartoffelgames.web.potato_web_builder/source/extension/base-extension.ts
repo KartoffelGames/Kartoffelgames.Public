@@ -1,15 +1,29 @@
-import { Dictionary } from '@kartoffelgames/core.data';
+import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { ComponentManager } from '../component/component-manager';
-import { ComponentManagerReference } from '../injection_reference/general/component-manager-reference';
 import { ExtensionTargetClassReference } from '../injection_reference/extension-target-class-reference';
 import { ExtensionTargetObjectReference } from '../injection_reference/extension-target-object-reference';
-import { IPwbExtensionClass, IPwbExtensionObject } from '../interface/extension.interface';
+import { IPwbExtensionProcessorClass, IPwbExtensionProcessor } from '../interface/extension.interface';
+import { ComponentElementReference } from '../injection_reference/general/component-element-reference';
+import { ComponentUpdateHandlerReference } from '../injection_reference/general/component-update-handler-reference';
+import { ComponentLayerValuesReference } from '../injection_reference/general/component-layer-values-reference';
 
 export class BaseExtension {
-    private readonly mExtensionClass: IPwbExtensionClass;
-    private readonly mExtensionObjectList: Array<IPwbExtensionObject>;
+    private readonly mExtensionClass: IPwbExtensionProcessorClass;
+    private mExtensionProcessor: IPwbExtensionProcessor | null;
     private readonly mInjections: Dictionary<InjectionConstructor, any>;
+
+    /**
+     * Processor of extension.
+     * Initialize processor when it hasn't already.
+     */
+    protected get processor(): IPwbExtensionProcessor {
+        if (!this.mExtensionProcessor) {
+            this.mExtensionProcessor = this.createExtensionProcessor();
+        }
+
+        return this.mExtensionProcessor;
+    }
 
     /**
      * Constructor.
@@ -17,64 +31,59 @@ export class BaseExtension {
      */
     constructor(pParameter: BaseExtensionConstructorParameter) {
         this.mExtensionClass = pParameter.extensionClass;
-        this.mExtensionObjectList = new Array<IPwbExtensionObject>();
+        this.mInjections = new Dictionary<InjectionConstructor, any>();
+        this.mExtensionProcessor = null;
 
         // Create injection mapping.
-        this.mInjections = new Dictionary<InjectionConstructor, any>();
-        this.mInjections.set(ComponentManagerReference, new ComponentManagerReference(pParameter.componentManager));
+        // Create component injections mapping.
+        this.setProcessorAttributes(ComponentUpdateHandlerReference, pParameter.componentManager.updateHandler);
+        this.setProcessorAttributes(ComponentElementReference, pParameter.componentManager.elementHandler.htmlElement);
+
+
+        // TODO: Set in childs.
+        this.setProcessorAttributes(ComponentLayerValuesReference, this.mLayerValues);
+
+
         this.mInjections.set(ExtensionTargetClassReference, new ExtensionTargetClassReference(pParameter.targetClass));
         this.mInjections.set(ExtensionTargetObjectReference, new ExtensionTargetObjectReference(pParameter.targetObject ?? {}));
-    }
-
-    /**
-     * Collect injections
-     */
-    public collectInjections(): Array<object | null> {
-        const lInjectionTypeList: Array<object | null> = new Array<object | null>();
-
-        for (const lExtension of this.mExtensionObjectList) {
-            const lTypeList: Array<object | null> | undefined = lExtension.onCollectInjections?.();
-            if (lTypeList) {
-                lInjectionTypeList.push(...lTypeList);
-            }
-        }
-
-        return lInjectionTypeList;
     }
 
     /**
      * Deconstruct module.
      */
     public deconstruct(): void {
-        for (const lExtension of this.mExtensionObjectList) {
-            lExtension.onDeconstruct?.();
-        }
+        this.mExtensionProcessor?.onDeconstruct?.();
     }
 
     /**
-      * Create extension object.
-      * @param pInjections - Local injections.
-      */
-    protected createExtensionObject(pInjections: Dictionary<InjectionConstructor, any>): IPwbExtensionObject {
-        // Clone injections and extend by value reference.
-        const lInjections = new Dictionary<InjectionConstructor, any>(this.mInjections);
-
-        // Merge local injections.
-        for (const lKey of pInjections.keys()) {
-            lInjections.set(lKey, pInjections.get(lKey));
+     * Set injection parameter for the extension processor class construction. 
+     * 
+     * @param pInjectionTarget - Injection type that should be provided to processor.
+     * @param pInjectionValue - Actual injected value in replacement for {@link pInjectionTarget}.
+     * 
+     * @throws {@link Exception}
+     * When the processor was already initialized.
+     */
+    public setProcessorAttributes(pInjectionTarget: InjectionConstructor, pInjectionValue: any): void {
+        if (this.mExtensionProcessor) {
+            throw new Exception('Cant add attributes to already initialized module.', this);
         }
 
-        // Create module object with local injections.
-        const lExtensionObject: IPwbExtensionObject = Injection.createObject(this.mExtensionClass, lInjections);
-        this.mExtensionObjectList.push(lExtensionObject);
+        this.mInjections.set(pInjectionTarget, pInjectionValue);
+    }
 
-        return lExtensionObject;
+    /**
+      * Create extension processor.
+      * @param pInjections - Local injections.
+      */
+    protected createExtensionProcessor(): IPwbExtensionProcessor {
+        // Create module object with local injections.
+        return Injection.createObject(this.mExtensionClass, this.mInjections);
     }
 }
 
 type BaseExtensionConstructorParameter = {
-    extensionClass: IPwbExtensionClass;
+    extensionClass: IPwbExtensionProcessorClass;
     componentManager: ComponentManager;
     targetClass: InjectionConstructor;
-    targetObject: object | null;
 };

@@ -2,7 +2,7 @@ import { LayerValues } from '../../component/values/layer-values';
 import { PwbInstructionModule } from '../../decorator/pwb-instruction-module.decorator';
 import { IPwbInstructionModuleOnUpdate } from '../../interface/module.interface';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
-import { ModuleLayerValuesReference } from '../../injection_reference/module/module-layer-values-reference';
+import { ComponentLayerValuesReference } from '../../injection_reference/general/component-layer-values-reference';
 import { ModuleTemplateReference } from '../../injection_reference/module/module-template-reference';
 import { InstructionResult } from '../../module/result/instruction-result';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
@@ -27,7 +27,7 @@ export class IfManipulatorAttributeModule implements IPwbInstructionModuleOnUpda
      * @param pValueReference - Values of component.
      * @param pAttributeReference - Attribute of module.
      */
-    public constructor(pTemplateReference: ModuleTemplateReference, pValueReference: ModuleLayerValuesReference, pAttributeReference: ModuleAttributeReference) {
+    public constructor(pTemplateReference: ModuleTemplateReference, pValueReference: ComponentLayerValuesReference, pAttributeReference: ModuleAttributeReference) {
         this.mTemplateReference = pTemplateReference;
         this.mValueHandler = pValueReference.value;
         this.mAttributeReference = pAttributeReference;

@@ -1,5 +1,5 @@
 import { ExtensionType } from '../enum/extension-type.enum';
-import { IPwbExtensionClass } from '../interface/extension.interface';
+import { IPwbExtensionProcessorClass } from '../interface/extension.interface';
 
 /**
  * Global extension storage.
@@ -12,20 +12,20 @@ import { IPwbExtensionClass } from '../interface/extension.interface';
 export class GlobalExtensionsStorage {
     private static mInstance: GlobalExtensionsStorage;
 
-    private readonly mComponentExtensions!: Array<IPwbExtensionClass>;
-    private readonly mModuleExtensions!: Array<IPwbExtensionClass>;
+    private readonly mComponentExtensions!: Array<IPwbExtensionProcessorClass>;
+    private readonly mModuleExtensions!: Array<IPwbExtensionProcessorClass>;
 
     /**
      * Get all component extensions that inject neew types.
      */
-    public get componentExtensions(): Array<IPwbExtensionClass> {
+    public get componentExtensions(): Array<IPwbExtensionProcessorClass> {
         return this.mComponentExtensions;
     }
 
     /**
      * Get all module extensions that inject neew types.
      */
-    public get moduleExtensions(): Array<IPwbExtensionClass> {
+    public get moduleExtensions(): Array<IPwbExtensionProcessorClass> {
         return this.mModuleExtensions;
     }
 
@@ -41,8 +41,8 @@ export class GlobalExtensionsStorage {
 
         GlobalExtensionsStorage.mInstance = this;
 
-        this.mComponentExtensions = new Array<IPwbExtensionClass>();
-        this.mModuleExtensions = new Array<IPwbExtensionClass>();
+        this.mComponentExtensions = new Array<IPwbExtensionProcessorClass>();
+        this.mModuleExtensions = new Array<IPwbExtensionProcessorClass>();
     }
 
     /**
@@ -50,7 +50,7 @@ export class GlobalExtensionsStorage {
      * @param pExtension - Extension constructor.
      * @param pExtensionType - Type of extension.
      */
-    public add(pExtension: IPwbExtensionClass, pExtensionType: ExtensionType): void {
+    public add(pExtension: IPwbExtensionProcessorClass, pExtensionType: ExtensionType): void {
         // Module extensions.
         if ((pExtensionType & ExtensionType.Module) === ExtensionType.Module) {
             this.mModuleExtensions.push(pExtension);

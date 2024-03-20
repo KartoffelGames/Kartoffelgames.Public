@@ -8,7 +8,7 @@ import { UpdateScope } from '../../enum/update-scope.enum';
  * 
  * Should never be initialized.
  */
-export class UpdateHandlerReference extends UpdateHandler { 
+export class ComponentUpdateHandlerReference extends UpdateHandler { 
     /**
      * Constructor. Allways throws exception.
      * 

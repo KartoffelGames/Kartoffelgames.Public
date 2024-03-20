@@ -8,7 +8,7 @@ import { ComponentManager } from '../../component/component-manager';
  * 
  * Should never be initialized.
  */
-export class ModuleLayerValuesReference extends LayerValues {
+export class ComponentLayerValuesReference extends LayerValues {
     /**
      * Constructor. Allways throws exception.
      * @param pParentLayer - Parent layer. ComponentManager on root layer.

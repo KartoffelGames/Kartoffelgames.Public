@@ -6,8 +6,8 @@ import { PwbTemplateAttribute } from '../component/template/nodes/values/pwb-tem
 import { PwbTemplateExpression } from '../component/template/nodes/values/pwb-template-expression';
 import { LayerValues } from '../component/values/layer-values';
 import { ComponentElementReference } from '../injection_reference/general/component-element-reference';
-import { UpdateHandlerReference } from '../injection_reference/general/component-update-handler-reference';
-import { ModuleLayerValuesReference } from '../injection_reference/module/module-layer-values-reference';
+import { ComponentUpdateHandlerReference } from '../injection_reference/general/component-update-handler-reference';
+import { ComponentLayerValuesReference } from '../injection_reference/general/component-layer-values-reference';
 import { ModuleTargetNode } from '../injection_reference/module/module-target-node-reference';
 import { ModuleTemplateReference } from '../injection_reference/module/module-template-reference';
 import { IPwbModuleProcessor } from '../interface/module.interface';
@@ -37,7 +37,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
      */
     protected get processor(): TModuleProcessor {
         if (!this.mModuleProcessor) {
-            this.mModuleProcessor = this.createModuleObject();
+            this.mModuleProcessor = this.createModuleProcessor();
         }
 
         return this.mModuleProcessor;
@@ -61,11 +61,11 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
         this.mInjections = new Dictionary<InjectionConstructor, any>();
 
         // Create component injections mapping.
-        this.setProcessorAttributes(UpdateHandlerReference, pParameter.componentManager.updateHandler);
+        this.setProcessorAttributes(ComponentUpdateHandlerReference, pParameter.componentManager.updateHandler);
         this.setProcessorAttributes(ComponentElementReference, pParameter.componentManager.elementHandler.htmlElement);
+        this.setProcessorAttributes(ComponentLayerValuesReference, this.mLayerValues);
 
         // Create module injection mapping.
-        this.setProcessorAttributes(ModuleLayerValuesReference, this.mLayerValues);
         this.setProcessorAttributes(ModuleTemplateReference, this.mTemplateClone);
         this.setProcessorAttributes(ModuleTargetNode, pParameter.targetNode);
     }
@@ -106,7 +106,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
       * Create module object.
       * @param pValue - Value for module object.
       */
-    private createModuleObject(): TModuleProcessor {
+    private createModuleProcessor(): TModuleProcessor {
         // Clone injections and extend by value reference.
         const lInjections = new Dictionary<InjectionConstructor, object>(this.mInjections);
 

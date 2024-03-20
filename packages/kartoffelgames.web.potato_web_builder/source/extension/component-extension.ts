@@ -3,7 +3,7 @@ import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection'
 import { ComponentManager } from '../component/component-manager';
 import { ComponentElementReference } from '../injection_reference/general/component-element-reference';
 import { BaseExtension } from './base-extension';
-import { IPwbExtensionClass } from '../interface/extension.interface';
+import { IPwbExtensionProcessorClass } from '../interface/extension.interface';
 
 export class ComponentExtension extends BaseExtension {
     /**
@@ -18,13 +18,13 @@ export class ComponentExtension extends BaseExtension {
         lInjections.set(ComponentElementReference, new ComponentElementReference(pParameter.componentElement));
 
         // Create extension.
-        this.createExtensionObject(lInjections);
+        this.createExtensionProcessor(lInjections);
     }
 }
 
 type ComponentExtensionConstructorParameter = {
     // Base 
-    extensionClass: IPwbExtensionClass;
+    extensionClass: IPwbExtensionProcessorClass;
     componentManager: ComponentManager;
     targetClass: InjectionConstructor;
     targetObject: object | null;

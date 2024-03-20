@@ -4,7 +4,7 @@ import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorat
 import { ModuleAccessMode } from '../../enum/module-access-mode.enum';
 import { IPwbAttributeModuleOnUpdate } from '../../interface/module.interface';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
-import { ModuleLayerValuesReference } from '../../injection_reference/module/module-layer-values-reference';
+import { ComponentLayerValuesReference } from '../../injection_reference/general/component-layer-values-reference';
 import { ModuleTargetNode } from '../../injection_reference/module/module-target-node-reference';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
 
@@ -30,7 +30,7 @@ export class OneWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate
      * @param pValueReference - Values of component.
      * @param pAttributeReference - Attribute of module.
      */
-    public constructor(pTargetReference: ModuleTargetNode, pValueReference: ModuleLayerValuesReference, pAttributeReference: ModuleAttributeReference) {
+    public constructor(pTargetReference: ModuleTargetNode, pValueReference: ComponentLayerValuesReference, pAttributeReference: ModuleAttributeReference) {
         this.mTarget = <Node>pTargetReference.value;
         this.mValueHandler = pValueReference.value;
 

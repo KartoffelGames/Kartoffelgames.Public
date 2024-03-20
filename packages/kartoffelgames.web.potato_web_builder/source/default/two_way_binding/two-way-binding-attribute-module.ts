@@ -6,7 +6,7 @@ import { ModuleAccessMode } from '../../enum/module-access-mode.enum';
 import { IPwbAttributeModuleOnUpdate } from '../../interface/module.interface';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ComponentManagerReference } from '../../injection_reference/general/component-manager-reference';
-import { ModuleLayerValuesReference } from '../../injection_reference/module/module-layer-values-reference';
+import { ComponentLayerValuesReference } from '../../injection_reference/general/component-layer-values-reference';
 import { ModuleTargetNode } from '../../injection_reference/module/module-target-node-reference';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
 
@@ -30,7 +30,7 @@ export class TwoWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate
      * @param pValueReference - Values of component.
      * @param pAttribute - Attribute of module.
      */
-    public constructor(pTargetReference: ModuleTargetNode, pValueReference: ModuleLayerValuesReference, pAttributeReference: ModuleAttributeReference, pComponentManagerReference: ComponentManagerReference) {
+    public constructor(pTargetReference: ModuleTargetNode, pValueReference: ComponentLayerValuesReference, pAttributeReference: ModuleAttributeReference, pComponentManagerReference: ComponentManagerReference) {
         this.mTarget = <Node>pTargetReference.value;
         this.mValueHandler = pValueReference.value;
         this.mAttributeReference = pAttributeReference;

@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 
-// Component extension.
-export interface IPwbExtensionObject extends IPwbExtensionOnDeconstruct { }
-export interface IPwbExtensionClass {
-    new(): IPwbExtensionObject;
+// Extension processor base types..
+export interface IPwbExtensionProcessor extends IPwbExtensionOnDeconstruct { }
+export interface IPwbExtensionProcessorClass {
+    new(): IPwbExtensionProcessor;
 }
 
 export interface IPwbExtensionOnDeconstruct {

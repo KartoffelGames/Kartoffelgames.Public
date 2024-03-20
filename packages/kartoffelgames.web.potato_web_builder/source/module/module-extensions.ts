@@ -1,14 +1,14 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { ComponentManager } from '../component/component-manager';
 import { LayerValues } from '../component/values/layer-values';
-import { ModuleExtension } from '../extension/module-extension';
 import { GlobalExtensionsStorage } from '../extension/global-extensions-storage';
+import { ModuleExtension } from '../extension/module-extension';
 
 // Import default extensions.
+import { BasePwbTemplateNode } from '../component/template/nodes/base-pwb-template-node';
+import { PwbTemplateAttribute } from '../component/template/nodes/pwb-template-xml-node';
 import '../default/event-listener/event-listener-module-extension';
 import '../default/pwb_app_injection/pwb-app-injection-extension';
-import { PwbTemplateAttribute } from '../component/template/nodes/pwb-template-xml-node';
-import { BasePwbTemplateNode } from '../component/template/nodes/base-pwb-template-node';
 
 export class ModuleExtensions {
     private readonly mExtensionList: Array<ModuleExtension>;
@@ -19,6 +19,9 @@ export class ModuleExtensions {
     public constructor() {
         // Create all extensions.
         this.mExtensionList = new Array<ModuleExtension>();
+
+
+        
     }
 
     /**

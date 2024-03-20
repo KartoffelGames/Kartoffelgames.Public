@@ -2,14 +2,14 @@ import { List } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
 import { UserObjectHandler } from '../../component/handler/user-object-handler';
 import { PwbExtension } from '../../decorator/pwb-extension.decorator';
-import { ExtensionMode } from '../../enum/extension-mode.enum';
+import { ExtensionPriority } from '../../enum/extension-priority.enum';
 import { ExtensionType } from '../../enum/extension-type.enum';
 import { ComponentElementReference } from '../../injection_reference/general/component-element-reference';
 import { ComponentManagerReference } from '../../injection_reference/general/component-manager-reference';
 
 @PwbExtension({
     type: ExtensionType.Component,
-    mode: ExtensionMode.Patch
+    mode: ExtensionPriority.Patch
 })
 export class ExportExtension {
     public static readonly METADATA_EXPORTED_PROPERTIES: string = 'pwb:exported_properties';

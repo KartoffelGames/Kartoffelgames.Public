@@ -13,6 +13,7 @@ import { ModuleTemplateReference } from '../injection_reference/module/module-te
 import { IPwbModuleProcessor } from '../interface/module.interface';
 import { ModuleConfiguration } from './global-module-storage';
 import { ModuleExtensions } from './module-extensions';
+import { ComponentConstructorReference } from '../injection_reference/general/component-constructor-reference';
 
 export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor extends IPwbModuleProcessor> {
     private readonly mComponentManager: ComponentManager;
@@ -64,6 +65,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
         this.setProcessorAttributes(ComponentUpdateHandlerReference, pParameter.componentManager.updateHandler);
         this.setProcessorAttributes(ComponentElementReference, pParameter.componentManager.elementHandler.htmlElement);
         this.setProcessorAttributes(ComponentLayerValuesReference, this.mLayerValues);
+        this.setProcessorAttributes(ComponentConstructorReference, pParameter.componentManager.userObjectHandler.userClass);
 
         // Create module injection mapping.
         this.setProcessorAttributes(ModuleTemplateReference, this.mTemplateClone);

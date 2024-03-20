@@ -1,3 +1,4 @@
+import { ExtensionPriority } from '../enum/extension-priority.enum';
 import { ExtensionType } from '../enum/extension-type.enum';
 import { IPwbExtensionProcessorClass } from '../interface/extension.interface';
 
@@ -50,7 +51,7 @@ export class GlobalExtensionsStorage {
      * @param pExtension - Extension constructor.
      * @param pExtensionType - Type of extension.
      */
-    public add(pExtension: IPwbExtensionProcessorClass, pExtensionType: ExtensionType): void {
+    public add(pExtension: IPwbExtensionProcessorClass, pExtensionType: ExtensionType, pExtensionPriority: ExtensionPriority): void {
         // Module extensions.
         if ((pExtensionType & ExtensionType.Module) === ExtensionType.Module) {
             this.mModuleExtensions.push(pExtension);

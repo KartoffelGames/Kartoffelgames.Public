@@ -7,6 +7,7 @@ import { IPwbExtensionProcessorClass, IPwbExtensionProcessor } from '../interfac
 import { ComponentElementReference } from '../injection_reference/general/component-element-reference';
 import { ComponentUpdateHandlerReference } from '../injection_reference/general/component-update-handler-reference';
 import { ComponentLayerValuesReference } from '../injection_reference/general/component-layer-values-reference';
+import { ComponentConstructorReference } from '../injection_reference/general/component-constructor-reference';
 
 export class BaseExtension {
     private readonly mExtensionClass: IPwbExtensionProcessorClass;
@@ -38,10 +39,13 @@ export class BaseExtension {
         // Create component injections mapping.
         this.setProcessorAttributes(ComponentUpdateHandlerReference, pParameter.componentManager.updateHandler);
         this.setProcessorAttributes(ComponentElementReference, pParameter.componentManager.elementHandler.htmlElement);
+        this.setProcessorAttributes(ComponentConstructorReference, pParameter.componentManager.userObjectHandler.userClass);
+        this.setProcessorAttributes(ComponentLayerValuesReference, pParameter.);
+
 
 
         // TODO: Set in childs.
-        this.setProcessorAttributes(ComponentLayerValuesReference, this.mLayerValues);
+        
 
 
         this.mInjections.set(ExtensionTargetClassReference, new ExtensionTargetClassReference(pParameter.targetClass));

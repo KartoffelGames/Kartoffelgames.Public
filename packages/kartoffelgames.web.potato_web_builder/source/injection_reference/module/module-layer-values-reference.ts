@@ -3,12 +3,12 @@ import { LayerValues } from '../../component/values/layer-values';
 import { ComponentManager } from '../../component/component-manager';
 
 /**
- * Component Layer value reference.
+ * Module Layer value reference.
  * Acts as injection reference but the actual Layer value should be injected instead.
  * 
  * Should never be initialized.
  */
-export class ComponentLayerValuesReference extends LayerValues {
+export class ModuleLayerValuesReference extends LayerValues {
     /**
      * Constructor. Allways throws exception.
      * @param pParentLayer - Parent layer. ComponentManager on root layer.

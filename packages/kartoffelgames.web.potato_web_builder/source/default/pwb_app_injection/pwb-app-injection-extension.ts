@@ -1,13 +1,13 @@
 import { ChangeDetection } from '@kartoffelgames/web.change-detection';
 import { PwbExtension } from '../../decorator/pwb-extension.decorator';
-import { ExtensionMode } from '../../enum/extension-mode.enum';
+import { ExtensionPriority } from '../../enum/extension-priority.enum';
 import { ExtensionType } from '../../enum/extension-type.enum';
 import { IPwbExtensionOnCollectInjections } from '../../interface/extension.interface';
 import { PwbApp } from '../../pwb-app';
 
 @PwbExtension({
     type: ExtensionType.Component | ExtensionType.Module,
-    mode: ExtensionMode.Inject
+    mode: ExtensionPriority.Inject
 })
 export class PwbAppInjectionExtension implements IPwbExtensionOnCollectInjections {
     /**

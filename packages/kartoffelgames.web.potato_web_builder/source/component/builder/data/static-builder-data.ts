@@ -166,27 +166,7 @@ export class StaticBuilderData extends BaseBuilderData {
     private orderStaticModules(): void {
         // Sort by write->readwrite->read->expression and update.
         this.mLinkedStaticModuleList.sort((pModuleA, pModuleB): number => {
-            // "Calculate" execution priority of module A.
-            let lCompareValueA: number;
-            if (pModuleA.isWriting && !pModuleA.isReading) {
-                lCompareValueA = 4;
-            } else if (pModuleA.isWriting && pModuleA.isReading) {
-                lCompareValueA = 3;
-            } else { // if (!pModuleA.isWriting && pModuleA.isReading) {
-                lCompareValueA = 2;
-            }
-
-            // "Calculate" execution priority of module A.
-            let lCompareValueB: number;
-            if (pModuleB.isWriting && !pModuleB.isReading) {
-                lCompareValueB = 4;
-            } else if (pModuleB.isWriting && pModuleB.isReading) {
-                lCompareValueB = 3;
-            } else { // if (!pModuleB.isWriting && pModuleB.isReading) 
-                lCompareValueB = 2;
-            }
-
-            return lCompareValueA - lCompareValueB;
+            return pModuleA.accessMode - pModuleB.accessMode;
         });
     }
 }

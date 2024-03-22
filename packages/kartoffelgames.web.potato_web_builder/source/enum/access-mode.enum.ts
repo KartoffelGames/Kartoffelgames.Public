@@ -8,12 +8,12 @@ export enum AccessMode {
     Read = 1,
 
     /**
-     * Writes into target.
-     */
-    Write = 2,
-
-    /**
      * Read and write into target.
      */
-    ReadWrite = 3
+    ReadWrite = 2,
+
+    /**
+     * Writes into target.
+     */
+    Write = 3
 }

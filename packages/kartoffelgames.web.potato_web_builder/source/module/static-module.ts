@@ -12,17 +12,10 @@ export class AttributeModule extends BaseModule<Element, IPwbAttributeModuleProc
     private readonly mAccessMode: AccessMode;
 
     /**
-     * If modules reads data into the view.
+     * Module access mode in view.
      */
-    public get isReading(): boolean {
-        return (this.mAccessMode & AccessMode.Read) === AccessMode.Read;
-    }
-
-    /**
-     * If modules writes data out of the view.
-     */
-    public get isWriting(): boolean {
-        return (this.mAccessMode & AccessMode.Write) === AccessMode.Write;
+    public get accessMode(): AccessMode {
+        return this.mAccessMode;
     }
 
     /**

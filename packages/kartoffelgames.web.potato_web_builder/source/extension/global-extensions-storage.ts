@@ -21,7 +21,8 @@ export class GlobalExtensionsStorage {
     private mModuleExtensionsChangedOrder!: boolean;
 
     /**
-     * Get all component extensions that inject neew types.
+     * Get all component extensions that inject new types.
+     * Automatically reorders list when it has detected any changes.
      */
     public get componentExtensions(): Array<IPwbExtensionProcessorClass> {
         // Resort by access type when it is not already ordered.
@@ -33,7 +34,8 @@ export class GlobalExtensionsStorage {
     }
 
     /**
-     * Get all module extensions that inject neew types.
+     * Get all module extensions that inject new types.
+     * Automatically reorders list when it has detected any changes.
      */
     public get moduleExtensions(): Array<IPwbExtensionProcessorClass> {
         // Resort by access type when it is not already ordered.

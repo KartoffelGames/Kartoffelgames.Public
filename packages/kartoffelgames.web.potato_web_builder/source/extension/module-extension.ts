@@ -2,7 +2,7 @@ import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection'
 import { ModuleLayerValuesReference } from '..';
 import { ComponentManager } from '../component/component-manager';
 import { BasePwbTemplateNode } from '../component/template/nodes/base-pwb-template-node';
-import { PwbTemplateAttribute } from '../component/template/nodes/pwb-template-xml-node';
+import { PwbTemplateAttribute } from '../component/template/nodes/values/pwb-template-attribute';
 import { LayerValues } from '../component/values/layer-values';
 import { ModuleConstructorReference } from '../injection_reference/module/module-constructor-reference';
 import { IPwbExtensionProcessorClass } from '../interface/extension.interface';

@@ -1,10 +1,8 @@
-import { Dictionary } from '@kartoffelgames/core.data';
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { ComponentManager } from '../component/component-manager';
-import { ComponentElementReference } from '../injection_reference/general/component-element-reference';
-import { BaseExtension } from './base-extension';
-import { IPwbExtensionProcessorClass } from '../interface/extension.interface';
 import { ComponentConstructorReference } from '../injection_reference/general/component-constructor-reference';
+import { IPwbExtensionProcessorClass } from '../interface/extension.interface';
+import { BaseExtension } from './base-extension';
 
 export class ComponentExtension extends BaseExtension {
     /**
@@ -14,7 +12,7 @@ export class ComponentExtension extends BaseExtension {
     public constructor(pParameter: ComponentExtensionConstructorParameter) {
         super(pParameter);
 
-        this.setProcessorAttributes(ComponentConstructorReference, this.mLayerValues);
+        this.setProcessorAttributes(ComponentConstructorReference, aaaa);
     }
 }
 

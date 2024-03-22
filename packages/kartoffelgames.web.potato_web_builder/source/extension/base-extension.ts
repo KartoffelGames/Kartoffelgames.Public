@@ -1,13 +1,11 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { ComponentManager } from '../component/component-manager';
-import { ExtensionTargetClassReference } from '../injection_reference/extension-target-class-reference';
-import { ExtensionTargetObjectReference } from '../injection_reference/extension-target-object-reference';
-import { IPwbExtensionProcessorClass, IPwbExtensionProcessor } from '../interface/extension.interface';
-import { ComponentElementReference } from '../injection_reference/general/component-element-reference';
-import { ComponentUpdateHandlerReference } from '../injection_reference/general/component-update-handler-reference';
-import { ComponentLayerValuesReference } from '../injection_reference/general/component-layer-values-reference';
 import { ComponentConstructorReference } from '../injection_reference/general/component-constructor-reference';
+import { ComponentElementReference } from '../injection_reference/general/component-element-reference';
+import { ComponentLayerValuesReference } from '../injection_reference/general/component-layer-values-reference';
+import { ComponentUpdateHandlerReference } from '../injection_reference/general/component-update-handler-reference';
+import { IPwbExtensionProcessor, IPwbExtensionProcessorClass } from '../interface/extension.interface';
 
 export class BaseExtension {
     private readonly mExtensionClass: IPwbExtensionProcessorClass;
@@ -40,16 +38,7 @@ export class BaseExtension {
         this.setProcessorAttributes(ComponentUpdateHandlerReference, pParameter.componentManager.updateHandler);
         this.setProcessorAttributes(ComponentElementReference, pParameter.componentManager.elementHandler.htmlElement);
         this.setProcessorAttributes(ComponentConstructorReference, pParameter.componentManager.userObjectHandler.userClass);
-        this.setProcessorAttributes(ComponentLayerValuesReference, pParameter.);
-
-
-
-        // TODO: Set in childs.
-        
-
-
-        this.mInjections.set(ExtensionTargetClassReference, new ExtensionTargetClassReference(pParameter.targetClass));
-        this.mInjections.set(ExtensionTargetObjectReference, new ExtensionTargetObjectReference(pParameter.targetObject ?? {}));
+        this.setProcessorAttributes(ComponentLayerValuesReference, pParameter.componentManager.rootValues);
     }
 
     /**

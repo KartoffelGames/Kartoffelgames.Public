@@ -6,7 +6,7 @@ import { ModuleExtension } from '../extension/module-extension';
 
 // Import default extensions.
 import { BasePwbTemplateNode } from '../component/template/nodes/base-pwb-template-node';
-import { PwbTemplateAttribute } from '../component/template/nodes/pwb-template-xml-node';
+import { PwbTemplateAttribute } from '../component/template/nodes/values/pwb-template-attribute';
 import '../default/event-listener/event-listener-module-extension';
 import '../default/pwb_app_injection/pwb-app-injection-extension';
 

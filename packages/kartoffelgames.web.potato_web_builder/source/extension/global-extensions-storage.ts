@@ -1,4 +1,4 @@
-import { ExtensionPriority } from '../enum/extension-priority.enum';
+import { AccessMode } from '../enum/access-mode.enum';
 import { ExtensionType } from '../enum/extension-type.enum';
 import { IPwbExtensionProcessorClass } from '../interface/extension.interface';
 
@@ -14,12 +14,18 @@ export class GlobalExtensionsStorage {
     private static mInstance: GlobalExtensionsStorage;
 
     private readonly mComponentExtensions!: Array<IPwbExtensionProcessorClass>;
+    private mComponentExtensionsChangedOrder!: boolean;
     private readonly mModuleExtensions!: Array<IPwbExtensionProcessorClass>;
+    private mModuleExtensionsChangedOrder!: boolean;
 
     /**
      * Get all component extensions that inject neew types.
      */
     public get componentExtensions(): Array<IPwbExtensionProcessorClass> {
+        if (this.mComponentExtensionsChangedOrder) {
+            // TODO: Resort by access type.
+        }
+
         return this.mComponentExtensions;
     }
 
@@ -27,6 +33,10 @@ export class GlobalExtensionsStorage {
      * Get all module extensions that inject neew types.
      */
     public get moduleExtensions(): Array<IPwbExtensionProcessorClass> {
+        if (this.mModuleExtensionsChangedOrder) {
+            // TODO: Resort by access type.
+        }
+
         return this.mModuleExtensions;
     }
 
@@ -44,6 +54,9 @@ export class GlobalExtensionsStorage {
 
         this.mComponentExtensions = new Array<IPwbExtensionProcessorClass>();
         this.mModuleExtensions = new Array<IPwbExtensionProcessorClass>();
+
+        this.mComponentExtensionsChangedOrder = false;
+        this.mModuleExtensionsChangedOrder = false;
     }
 
     /**
@@ -51,15 +64,17 @@ export class GlobalExtensionsStorage {
      * @param pExtension - Extension constructor.
      * @param pExtensionType - Type of extension.
      */
-    public add(pExtension: IPwbExtensionProcessorClass, pExtensionType: ExtensionType, pExtensionPriority: ExtensionPriority): void {
+    public add(pExtension: IPwbExtensionProcessorClass, pExtensionType: ExtensionType, pAccessMode: AccessMode): void {
         // Module extensions.
         if ((pExtensionType & ExtensionType.Module) === ExtensionType.Module) {
             this.mModuleExtensions.push(pExtension);
+            this.mModuleExtensionsChangedOrder = true;
         }
 
         // Component extensions.
         if ((pExtensionType & ExtensionType.Component) === ExtensionType.Component) {
             this.mComponentExtensions.push(pExtension);
+            this.mComponentExtensionsChangedOrder = true;
         }
     }
 }

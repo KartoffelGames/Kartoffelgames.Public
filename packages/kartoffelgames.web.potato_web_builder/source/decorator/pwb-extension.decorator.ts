@@ -1,5 +1,5 @@
 import { Injector } from '@kartoffelgames/core.dependency-injection';
-import { ExtensionPriority } from '../enum/extension-priority.enum';
+import { AccessMode } from '../enum/access-mode.enum';
 import { ExtensionType } from '../enum/extension-type.enum';
 import { GlobalExtensionsStorage } from '../extension/global-extensions-storage';
 import { IPwbExtensionProcessorClass } from '../interface/extension.interface';
@@ -14,11 +14,11 @@ export function PwbExtension(pSettings: ExtensionSettings): any {
         Injector.Injectable(pExtensionConstructor);
 
         // Register module.
-        new GlobalExtensionsStorage().add(pExtensionConstructor, pSettings.type, pSettings.priority);
+        new GlobalExtensionsStorage().add(pExtensionConstructor, pSettings.type, pSettings.access);
     };
 }
 
 type ExtensionSettings = {
     type: ExtensionType;
-    priority: ExtensionPriority;
+    access: AccessMode;
 };

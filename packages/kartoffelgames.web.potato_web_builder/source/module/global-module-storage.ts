@@ -1,5 +1,5 @@
 import { Dictionary, List } from '@kartoffelgames/core.data';
-import { AccessMode } from '../enum/module-access-mode.enum';
+import { AccessMode } from '../enum/access-mode.enum';
 import { IPwbAttributeModuleProcessorConstructor, IPwbExpressionModuleProcessorConstructor, IPwbInstructionModuleProcessorConstructor } from '../interface/module.interface';
 
 /**

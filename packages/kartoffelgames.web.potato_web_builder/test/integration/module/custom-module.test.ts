@@ -5,7 +5,7 @@ import { LayerValues } from '../../../source/component/values/layer-values';
 import { ComponentLayerValuesReference } from '../../../source/injection_reference/general/component-layer-values-reference';
 import { PwbInstructionModule } from '../../../source/decorator/pwb-instruction-module.decorator';
 import { PwbAttributeModule } from '../../../source/decorator/pwb-attribute-module.decorator';
-import { AccessMode } from '../../../source/enum/module-access-mode.enum';
+import { AccessMode } from '../../../source/enum/access-mode.enum';
 import { IPwbInstructionModuleOnUpdate } from '../../../source/interface/module.interface';
 import { InstructionResult } from '../../../source/module/result/instruction-result';
 import '../../mock/request-animation-frame-mock-session';

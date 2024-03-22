@@ -20,7 +20,7 @@ export { ModuleTemplateReference } from './injection_reference/module/module-tem
 // Modules
 export { ComponentScopeExecutor } from './module/execution/component-scope-executor';
 export { IPwbExpressionModuleOnUpdate, IPwbAttributeModuleOnUpdate, IPwbInstructionModuleOnUpdate, IPwbModuleOnDeconstruct } from './interface/module.interface';
-export { AccessMode as ModuleAccessType } from './enum/module-access-mode.enum';
+export { AccessMode as ModuleAccessType } from './enum/access-mode.enum';
 export { LayerValues } from './component/values/layer-values';
 export { InstructionResult } from './module/result/instruction-result';
 export { PwbExpressionModule } from './decorator/pwb-expression-module.decorator';

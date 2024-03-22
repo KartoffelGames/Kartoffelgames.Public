@@ -3,7 +3,7 @@ import { ModuleAttributeReference } from '../../injection_reference/module-attri
 import { ComponentLayerValuesReference } from '../../injection_reference/general/component-layer-values-reference';
 import { ModuleTargetNode } from '../../injection_reference/module/module-target-node-reference';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
-import { AccessMode } from '../../enum/module-access-mode.enum';
+import { AccessMode } from '../../enum/access-mode.enum';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
 import { IPwbModuleOnDeconstruct } from '../../interface/module.interface';
 

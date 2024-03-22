@@ -1,5 +1,5 @@
 import { Injector } from '@kartoffelgames/core.dependency-injection';
-import { AccessMode } from '../enum/module-access-mode.enum';
+import { AccessMode } from '../enum/access-mode.enum';
 import { GlobalModuleStorage } from '../module/global-module-storage';
 import { IPwbAttributeModuleProcessorConstructor } from '../interface/module.interface';
 

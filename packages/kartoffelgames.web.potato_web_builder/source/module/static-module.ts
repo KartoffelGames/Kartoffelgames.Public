@@ -1,7 +1,7 @@
 import { ComponentManager } from '../component/component-manager';
 import { PwbTemplateAttribute } from '../component/template/nodes/values/pwb-template-attribute';
 import { LayerValues } from '../component/values/layer-values';
-import { AccessMode } from '../enum/module-access-mode.enum';
+import { AccessMode } from '../enum/access-mode.enum';
 import { ModuleKeyReference } from '../injection_reference/module/module-key-reference';
 import { ModuleValueReference } from '../injection_reference/module/module-value-reference';
 import { IPwbAttributeModuleProcessor } from '../interface/module.interface';

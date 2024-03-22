@@ -3,7 +3,7 @@ import { PwbTemplateAttribute, PwbTemplateXmlNode } from '../../component/templa
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ModuleTargetNode } from '../../injection_reference/module/module-target-node-reference';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
-import { AccessMode } from '../../enum/module-access-mode.enum';
+import { AccessMode } from '../../enum/access-mode.enum';
 
 @PwbAttributeModule({
     selector: /^\$[\w]+$/,

@@ -1,3 +1,4 @@
+import { Exception } from '@kartoffelgames/core.data';
 import { AccessMode } from '../enum/access-mode.enum';
 import { ExtensionType } from '../enum/extension-type.enum';
 import { IPwbExtensionProcessorClass } from '../interface/extension.interface';
@@ -15,6 +16,7 @@ export class GlobalExtensionsStorage {
 
     private readonly mComponentExtensions!: Array<IPwbExtensionProcessorClass>;
     private mComponentExtensionsChangedOrder!: boolean;
+    private readonly mExtensionsAccessMode!: WeakMap<IPwbExtensionProcessorClass, AccessMode>;
     private readonly mModuleExtensions!: Array<IPwbExtensionProcessorClass>;
     private mModuleExtensionsChangedOrder!: boolean;
 
@@ -22,8 +24,9 @@ export class GlobalExtensionsStorage {
      * Get all component extensions that inject neew types.
      */
     public get componentExtensions(): Array<IPwbExtensionProcessorClass> {
+        // Resort by access type when it is not already ordered.
         if (this.mComponentExtensionsChangedOrder) {
-            // TODO: Resort by access type.
+            this.orderExtensionList(this.mComponentExtensions);
         }
 
         return this.mComponentExtensions;
@@ -33,8 +36,9 @@ export class GlobalExtensionsStorage {
      * Get all module extensions that inject neew types.
      */
     public get moduleExtensions(): Array<IPwbExtensionProcessorClass> {
+        // Resort by access type when it is not already ordered.
         if (this.mModuleExtensionsChangedOrder) {
-            // TODO: Resort by access type.
+            this.orderExtensionList(this.mModuleExtensions);
         }
 
         return this.mModuleExtensions;
@@ -52,10 +56,13 @@ export class GlobalExtensionsStorage {
 
         GlobalExtensionsStorage.mInstance = this;
 
-        this.mComponentExtensions = new Array<IPwbExtensionProcessorClass>();
-        this.mModuleExtensions = new Array<IPwbExtensionProcessorClass>();
+        // Extension access mode mapping.
+        this.mExtensionsAccessMode = new WeakMap<IPwbExtensionProcessorClass, AccessMode>();
 
+        // Setup extension storage lists.
+        this.mComponentExtensions = new Array<IPwbExtensionProcessorClass>();
         this.mComponentExtensionsChangedOrder = false;
+        this.mModuleExtensions = new Array<IPwbExtensionProcessorClass>();
         this.mModuleExtensionsChangedOrder = false;
     }
 
@@ -76,5 +83,28 @@ export class GlobalExtensionsStorage {
             this.mComponentExtensions.push(pExtension);
             this.mComponentExtensionsChangedOrder = true;
         }
+
+        this.mExtensionsAccessMode.set(pExtension, pAccessMode);
+    }
+
+    /**
+     * Order extension list by assigned access modes.
+     * Changes reference.
+     * 
+     * @param pList - List reference.
+     */
+    private orderExtensionList(pList: Array<IPwbExtensionProcessorClass>): void {
+        // Sort by write->readwrite->read->expression and update.
+        pList.sort((pModuleA, pModuleB): number => {
+            const lAccessModeA: AccessMode | undefined = this.mExtensionsAccessMode.get(pModuleA);
+            const lAccessModeB: AccessMode | undefined = this.mExtensionsAccessMode.get(pModuleB);
+
+            // Validate correct setup. This should really never happen.
+            if (!lAccessModeA || !lAccessModeB) {
+                throw new Exception('Extension is not properly setup. No access mode was set.', this);
+            }
+
+            return lAccessModeA - lAccessModeB;
+        });
     }
 }

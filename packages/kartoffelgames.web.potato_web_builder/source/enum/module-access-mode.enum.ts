@@ -1,19 +1,19 @@
 /**
- * Access types of attribute module.
+ * Access types of module and extensions.
  */
-export enum ModuleAccessMode {
+export enum AccessMode {
     /**
-     * Module reads information from view.
+     * Reads information from target.
      */
     Read = 1,
 
     /**
-     * Module writes into view.
+     * Writes into target.
      */
     Write = 2,
 
     /**
-     * Module read from view and writes into view.
+     * Read and write into target.
      */
     ReadWrite = 3
 }

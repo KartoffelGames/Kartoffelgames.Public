@@ -3,14 +3,14 @@ import { ModuleAttributeReference } from '../../injection_reference/module-attri
 import { ComponentLayerValuesReference } from '../../injection_reference/general/component-layer-values-reference';
 import { ModuleTargetNode } from '../../injection_reference/module/module-target-node-reference';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
-import { ModuleAccessMode } from '../../enum/module-access-mode.enum';
+import { AccessMode } from '../../enum/module-access-mode.enum';
 
 /**
  * Used with "#IdChildName" like - #PasswordInput.
  */
 @PwbAttributeModule({
     selector: /^#[[\w$]+$/,
-    access: ModuleAccessMode.Write,
+    access: AccessMode.Write,
     forbiddenInManipulatorScopes: true
 })
 export class PwbChildAttributeModule {

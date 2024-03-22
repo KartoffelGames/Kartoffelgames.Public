@@ -1,5 +1,5 @@
 import { Injector } from '@kartoffelgames/core.dependency-injection';
-import { ModuleAccessMode } from '../enum/module-access-mode.enum';
+import { AccessMode } from '../enum/module-access-mode.enum';
 import { GlobalModuleStorage } from '../module/global-module-storage';
 import { IPwbAttributeModuleProcessorConstructor } from '../interface/module.interface';
 
@@ -24,5 +24,5 @@ export function PwbAttributeModule(pSettings: AttributeModuleSettings): any {
 
 type AttributeModuleSettings = {
     selector: RegExp,
-    access: ModuleAccessMode;
+    access: AccessMode;
 };

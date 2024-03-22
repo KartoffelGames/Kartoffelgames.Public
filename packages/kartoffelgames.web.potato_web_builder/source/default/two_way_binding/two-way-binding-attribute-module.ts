@@ -2,7 +2,7 @@ import { Dictionary } from '@kartoffelgames/core.data';
 import { CompareHandler } from '@kartoffelgames/web.change-detection';
 import { LayerValues } from '../../component/values/layer-values';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
-import { ModuleAccessMode } from '../../enum/module-access-mode.enum';
+import { AccessMode } from '../../enum/module-access-mode.enum';
 import { IPwbAttributeModuleOnUpdate } from '../../interface/module.interface';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ComponentManagerReference } from '../../injection_reference/general/component-manager-reference';
@@ -12,7 +12,7 @@ import { ComponentScopeExecutor } from '../../module/execution/component-scope-e
 
 @PwbAttributeModule({
     selector: /^\[\([[\w$]+\)\]$/,
-    access: ModuleAccessMode.ReadWrite,
+    access: AccessMode.ReadWrite,
     forbiddenInManipulatorScopes: false
 })
 export class TwoWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate {

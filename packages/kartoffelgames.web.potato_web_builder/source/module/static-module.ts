@@ -1,7 +1,7 @@
 import { ComponentManager } from '../component/component-manager';
 import { PwbTemplateAttribute } from '../component/template/nodes/values/pwb-template-attribute';
 import { LayerValues } from '../component/values/layer-values';
-import { ModuleAccessMode } from '../enum/module-access-mode.enum';
+import { AccessMode } from '../enum/module-access-mode.enum';
 import { ModuleKeyReference } from '../injection_reference/module/module-key-reference';
 import { ModuleValueReference } from '../injection_reference/module/module-value-reference';
 import { IPwbAttributeModuleProcessor } from '../interface/module.interface';
@@ -9,20 +9,20 @@ import { BaseModule } from './base-module';
 import { AttributeModuleConfiguration } from './global-module-storage';
 
 export class AttributeModule extends BaseModule<Element, IPwbAttributeModuleProcessor> {
-    private readonly mAccessMode: ModuleAccessMode;
+    private readonly mAccessMode: AccessMode;
 
     /**
      * If modules reads data into the view.
      */
     public get isReading(): boolean {
-        return (this.mAccessMode & ModuleAccessMode.Read) === ModuleAccessMode.Read;
+        return (this.mAccessMode & AccessMode.Read) === AccessMode.Read;
     }
 
     /**
      * If modules writes data out of the view.
      */
     public get isWriting(): boolean {
-        return (this.mAccessMode & ModuleAccessMode.Write) === ModuleAccessMode.Write;
+        return (this.mAccessMode & AccessMode.Write) === AccessMode.Write;
     }
 
     /**

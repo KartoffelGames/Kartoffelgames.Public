@@ -1,16 +1,15 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
 import { PwbExtension } from '../../decorator/pwb-extension.decorator';
-import { ExtensionPriority } from '../../enum/extension-priority.enum';
+import { AccessMode } from '../../enum/access-mode.enum';
 import { ExtensionType } from '../../enum/extension-type.enum';
 import { ComponentElementReference } from '../../injection_reference/component/component-element-reference';
-import { ExtensionTargetClassReference } from '../../injection_reference/extension-target-class-reference';
-import { ExtensionTargetObjectReference } from '../../injection_reference/extension-target-object-reference';
 import { ComponentEventEmitter } from './component-event-emitter';
+import { ComponentConstructorReference } from '../../injection_reference/component/component-constructor-reference';
 
 @PwbExtension({
     type: ExtensionType.Component,
-    mode: ExtensionPriority.Patch
+    access: AccessMode.Read
 })
 export class ComponentEventExtension {
     public static readonly METADATA_USER_EVENT_PROPERIES: string = 'pwb:user_event_properties';
@@ -18,15 +17,15 @@ export class ComponentEventExtension {
     /**
      * Constructor.
      * Override each event emmiter property with a new pre defined event emmiter.
-     * @param pTargetClassReference - User class reference.
+     * @param pModuleProcessorConstructor - User class reference.
      * @param pTargetObjectReference - User object reference.
      * @param pElementReference - Component html element reference.
      */
-    public constructor(pTargetClassReference: ExtensionTargetClassReference, pTargetObjectReference: ExtensionTargetObjectReference, pElementReference: ComponentElementReference) {
+    public constructor(pModuleProcessorConstructor: ComponentConstructorReference, pTargetObjectReference: ComponentP, pElementReference: ComponentElementReference) {
         // Get event metadata.
         const lEventProperties: Dictionary<string, string> = new Dictionary<string, string>();
 
-        let lClass: InjectionConstructor = pTargetClassReference.value;
+        let lClass: InjectionConstructor = <InjectionConstructor>pModuleProcessorConstructor;
         do {
             // Find all event properties of current class layer and add all to merged property list.
             const lEventPropertyList: Dictionary<string, string> | null = Metadata.get(lClass).getMetadata(ComponentEventExtension.METADATA_USER_EVENT_PROPERIES);
@@ -50,7 +49,7 @@ export class ComponentEventExtension {
 
         // Easy access target objects.
         const lTargetObject: object = pTargetObjectReference.value;
-        const lTargetElement: HTMLElement = <HTMLElement>pElementReference.value;
+        const lTargetElement: HTMLElement = pElementReference;
 
         // Override each property with the corresponding component event emitter.
         for (const lEventName of lEventProperties.keys()) {

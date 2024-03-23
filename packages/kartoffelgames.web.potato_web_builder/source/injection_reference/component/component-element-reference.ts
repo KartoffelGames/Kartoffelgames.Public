@@ -6,7 +6,7 @@ import { Exception } from '@kartoffelgames/core.data';
  * 
  * Should never be initialized.
  */
-export class ComponentElementReference extends Node {
+export class ComponentElementReference extends HTMLElement {
     /**
      * Constructor. Allways throws exception.
      * 

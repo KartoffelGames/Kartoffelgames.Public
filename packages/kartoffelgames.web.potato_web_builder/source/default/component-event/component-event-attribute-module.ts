@@ -1,11 +1,12 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ComponentLayerValuesReference } from '../../injection_reference/component/component-layer-values-reference';
 import { ModuleTargetNodeReference } from '../../injection_reference/module/module-target-node-reference';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
 import { IPwbModuleOnDeconstruct } from '../../interface/module.interface';
+import { ModuleValueReference } from '../../injection_reference/module/module-value-reference';
+import { ModuleKeyReference } from '../../injection_reference/module/module-key-reference';
 
 @PwbAttributeModule({
     selector: /^\([[\w\-$]+\)$/,
@@ -18,13 +19,14 @@ export class EventAttributeModule implements IPwbModuleOnDeconstruct {
 
     /**
      * Constructor.
-     * @param pTargetReference - Target element.
-     * @param pValueReference - Values of component.
-     * @param pAttributeReference - Attribute of module.
+     * @param pTargetNode - Target element.
+     * @param pLayerValue - Values of component.
+     * @param pAttributeKey - Attribute key of module.
+     * @param pAttributeValue - Attribute value of module.
      */
-    public constructor(pTargetReference: ModuleTargetNodeReference, pValueReference: ComponentLayerValuesReference, pAttributeReference: ModuleAttributeReference) {
-        this.mTarget = <Node>pTargetReference.value;
-        this.mEventName = pAttributeReference.value.name.substr(1, pAttributeReference.value.name.length - 2);
+    public constructor(pTargetNode: ModuleTargetNodeReference, pLayerValue: ComponentLayerValuesReference, pAttributeKey: ModuleKeyReference, pAttributeValue: ModuleValueReference) {
+        this.mTarget = pTargetNode;
+        this.mEventName = pAttributeKey.substring(1, pAttributeKey.length - 2);
 
         // Define listener.
         this.mListener = (pEvent: any): void => {
@@ -33,7 +35,7 @@ export class EventAttributeModule implements IPwbModuleOnDeconstruct {
             lExternalValues.add('$event', pEvent);
 
             // Execute string with external event value.
-            ComponentScopeExecutor.execute(pAttributeReference.value.asText, pValueReference.value, lExternalValues);
+            ComponentScopeExecutor.execute(pAttributeValue.toString(), pLayerValue, lExternalValues);
         };
 
         // Add native event listener.

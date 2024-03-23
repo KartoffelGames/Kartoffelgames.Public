@@ -2,7 +2,7 @@ import { ComponentEvent } from './component-event';
 
 /**
  * Event emitter.
- * Use in combination with @HtmlComponentEvent.
+ * Use in combination with {@link HtmlComponentEvent}.
  */
 export class ComponentEventEmitter<T> {
     private readonly mElement: HTMLElement;

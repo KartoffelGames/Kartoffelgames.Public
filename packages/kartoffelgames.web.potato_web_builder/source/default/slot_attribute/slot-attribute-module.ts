@@ -1,7 +1,7 @@
 import { ElementCreator } from '../../component/element-creator';
 import { PwbTemplateAttribute, PwbTemplateXmlNode } from '../../component/template/nodes/pwb-template-xml-node';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
-import { ModuleTargetNode } from '../../injection_reference/module/module-target-node-reference';
+import { ModuleTargetNodeReference } from '../../injection_reference/module/module-target-node-reference';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
 
@@ -12,14 +12,14 @@ import { AccessMode } from '../../enum/access-mode.enum';
 })
 export class SlotAttributeModule {
     private readonly mAttributeReference: ModuleAttributeReference;
-    private readonly mTargetReference: ModuleTargetNode;
+    private readonly mTargetReference: ModuleTargetNodeReference;
 
     /**
      * Constructor.
      * @param pAttributeReference - Attribute of module.
      * @param pTargetReference - Target element.
      */
-    public constructor(pAttributeReference: ModuleAttributeReference, pTargetReference: ModuleTargetNode) {
+    public constructor(pAttributeReference: ModuleAttributeReference, pTargetReference: ModuleTargetNodeReference) {
         this.mTargetReference = pTargetReference;
         this.mAttributeReference = pAttributeReference;
 

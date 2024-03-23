@@ -8,7 +8,7 @@ import { IPwbExtensionOnDeconstruct } from '../../interface/extension.interface'
 import { ComponentManagerReference } from '../../injection_reference/component/component-manager-reference';
 import { ExtensionTargetClassReference } from '../../injection_reference/extension-target-class-reference';
 import { ExtensionTargetObjectReference } from '../../injection_reference/extension-target-object-reference';
-import { ModuleTargetNode } from '../../injection_reference/module/module-target-node-reference';
+import { ModuleTargetNodeReference } from '../../injection_reference/module/module-target-node-reference';
 import { EventListenerComponentExtension } from './event-listener-component-extension';
 
 @PwbExtension({
@@ -26,7 +26,7 @@ export class EventListenerModuleExtension implements IPwbExtensionOnDeconstruct 
      * @param pTargetObjectReference - User object reference.
      * @param pElementReference - Component manager.
      */
-    public constructor(pTargetClassReference: ExtensionTargetClassReference, pTargetObjectReference: ExtensionTargetObjectReference, pElementReference: ModuleTargetNode, pComponentManager: ComponentManagerReference) {
+    public constructor(pTargetClassReference: ExtensionTargetClassReference, pTargetObjectReference: ExtensionTargetObjectReference, pElementReference: ModuleTargetNodeReference, pComponentManager: ComponentManagerReference) {
         // Get event metadata.
         const lEventPropertyList: Array<[string, string]> = new Array<[string, string]>();
 

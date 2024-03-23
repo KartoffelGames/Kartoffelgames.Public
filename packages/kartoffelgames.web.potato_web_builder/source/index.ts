@@ -11,7 +11,7 @@ export { ModuleConstructorReference } from './injection_reference/module/module-
 export { ModuleKeyReference } from './injection_reference/module/module-key-reference';
 export { ModuleLayerValuesReference } from './injection_reference/module/module-layer-values-reference';
 export { ModuleReference } from './injection_reference/module/module-reference';
-export { ModuleTargetNode } from './injection_reference/module/module-target-node-reference';
+export { ModuleTargetNodeReference as ModuleTargetNode } from './injection_reference/module/module-target-node-reference';
 export { ModuleTemplateReference } from './injection_reference/module/module-template-reference';
 export { ModuleValueReference } from './injection_reference/module/module-value-reference';
 

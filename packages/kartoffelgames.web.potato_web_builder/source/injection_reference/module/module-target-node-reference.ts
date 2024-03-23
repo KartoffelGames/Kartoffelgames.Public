@@ -6,7 +6,7 @@ import { Exception } from '@kartoffelgames/core.data';
  * 
  * Should never be initialized.
  */
-export class ModuleTargetNode extends Node {
+export class ModuleTargetNodeReference extends Node {
     /**
      * Constructor. Allways throws exception.
      * 

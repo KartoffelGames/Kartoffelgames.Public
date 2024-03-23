@@ -6,7 +6,7 @@ import { PwbTemplateExpression } from '../component/template/nodes/values/pwb-te
 import { LayerValues } from '../component/values/layer-values';
 import { GlobalExtensionsStorage } from '../extension/global-extensions-storage';
 import { ModuleExtension } from '../extension/module-extension';
-import { ModuleTargetNode } from '../injection_reference/module/module-target-node-reference';
+import { ModuleTargetNodeReference } from '../injection_reference/module/module-target-node-reference';
 import { ModuleTemplateReference } from '../injection_reference/module/module-template-reference';
 import { ModuleValueReference } from '../injection_reference/module/module-value-reference';
 import { ComponentHierarchyInjection, IComponentHierarchyParent } from '../interface/component-hierarchy.interface';
@@ -70,7 +70,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
 
         // Create module injection mapping.
         this.setProcessorAttributes(ModuleTemplateReference, pParameter.targetTemplate.clone());
-        this.setProcessorAttributes(ModuleTargetNode, pParameter.targetNode);
+        this.setProcessorAttributes(ModuleTargetNodeReference, pParameter.targetNode);
         this.setProcessorAttributes(ModuleValueReference, pParameter.values);
         this.setProcessorAttributes(ModuleReference, this);
     }

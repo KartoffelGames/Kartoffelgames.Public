@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { PwbComponent } from '../../../source/decorator/pwb-component.decorator';
 import { PwbTemplateXmlNode } from '../../../source/component/template/nodes/pwb-template-xml-node';
 import { LayerValues } from '../../../source/component/values/layer-values';
-import { ComponentLayerValuesReference } from '../../../source/injection_reference/component/component-layer-values-reference';
+import { ComponentValuesReference } from '../../../source/injection_reference/component/component-values-reference';
 import { PwbInstructionModule } from '../../../source/decorator/pwb-instruction-module.decorator';
 import { PwbAttributeModule } from '../../../source/decorator/pwb-attribute-module.decorator';
 import { AccessMode } from '../../../source/enum/access-mode.enum';
@@ -22,7 +22,7 @@ describe('Custom Module', () => {
         class WrongModule implements IPwbInstructionModuleOnUpdate {
             private readonly mValueHandler: LayerValues;
 
-            public constructor(pValueReference: ComponentLayerValuesReference) {
+            public constructor(pValueReference: ComponentValuesReference) {
                 this.mValueHandler = pValueReference.value;
             }
 

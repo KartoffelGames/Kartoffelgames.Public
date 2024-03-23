@@ -20,6 +20,7 @@ import { PwbTemplate } from './template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 import { TemplateParser } from './template/template-parser';
 import { LayerValues } from './values/layer-values';
+import { ComponentReference } from '../injection_reference/component/component-reference';
 
 /**
  * Base component handler. Handles initialisation and update of components.

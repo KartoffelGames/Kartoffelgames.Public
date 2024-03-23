@@ -33,20 +33,12 @@ export class ComponentProcessorHandler {
      * Constrcutor.
      * @param pComponentProcessorConstructor - Component processor constructor.
      */
-    public constructor(pComponentProcessorConstructor: ComponentProcessorConstructor, pUpdateHandler: UpdateHandler, pInjectionList: Array<object | null>) {
-        // Create injection mapping. Ignores none objects.
-        const lLocalInjections: Dictionary<InjectionConstructor, any> = new Dictionary<InjectionConstructor, any>();
-        for (const lInjectionObject of pInjectionList) {
-            if (typeof lInjectionObject === 'object' && lInjectionObject !== null) {
-                lLocalInjections.add(<InjectionConstructor>lInjectionObject.constructor, lInjectionObject);
-            }
-        }
-
+    public constructor(pComponentProcessorConstructor: ComponentProcessorConstructor, pUpdateHandler: UpdateHandler, pInjections: Dictionary<InjectionConstructor, any>) {
         // Create user object inside update zone.
         // Constructor needs to be called inside zone.
         let lUntrackedProcessor: ComponentProcessor | null = null;
         pUpdateHandler.executeInZone(() => {
-            lUntrackedProcessor = Injection.createObject<ComponentProcessor>(pComponentProcessorConstructor, lLocalInjections);
+            lUntrackedProcessor = Injection.createObject<ComponentProcessor>(pComponentProcessorConstructor, pInjections);
         });
         this.mProcessor = pUpdateHandler.registerObject(<ComponentProcessor><any>lUntrackedProcessor);
         this.mProcessorConstructor = pComponentProcessorConstructor;

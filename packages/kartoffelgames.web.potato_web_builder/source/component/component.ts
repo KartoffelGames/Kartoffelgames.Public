@@ -1,4 +1,4 @@
-import { Dictionary } from '@kartoffelgames/core.data';
+import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { UpdateScope } from '../enum/update-scope.enum';
 import { ComponentExtension } from '../extension/component-extension';
 import { GlobalExtensionsStorage } from '../extension/global-extensions-storage';
@@ -17,6 +17,10 @@ import { PwbTemplate } from './template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 import { TemplateParser } from './template/template-parser';
 import { LayerValues } from './values/layer-values';
+import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
+import { ComponentConstructorReference } from '../injection_reference/component/component-constructor-reference';
+import { ComponentLayerValuesReference } from '../injection_reference/component/component-layer-values-reference';
+import { ComponentUpdateHandlerReference } from '../injection_reference/component/component-update-handler-reference';
 
 /**
  * Base component handler. Handles initialisation and update of components.
@@ -29,9 +33,11 @@ export class Component implements IComponentHierarchyParent {
 
     private readonly mElementHandler: ElementHandler;
     private readonly mExtensionList: Array<ComponentExtension>;
+    private readonly mInjections: Dictionary<InjectionConstructor, any>;
     private readonly mRootBuilder: StaticBuilder;
     private readonly mUpdateHandler: UpdateHandler;
     private readonly mComponentProcessor: ComponentProcessorHandler;
+
 
     /**
      * Get element handler.
@@ -80,8 +86,7 @@ export class Component implements IComponentHierarchyParent {
         }
 
         // Create update handler.
-        const lUpdateScope: UpdateScope = pUpdateScope;
-        this.mUpdateHandler = new UpdateHandler(lUpdateScope);
+        this.mUpdateHandler = new UpdateHandler(pUpdateScope);
         this.mUpdateHandler.addUpdateListener(() => {
             // Call component processor on update function.
             this.mUpdateHandler.executeOutZone(() => {
@@ -97,10 +102,17 @@ export class Component implements IComponentHierarchyParent {
         // Create element handler.
         this.mElementHandler = new ElementHandler(pHtmlComponent);
 
+        // Create component builder.
+        const lModules: ComponentModules = new ComponentModules(this, pExpressionModule);
+        this.mRootBuilder = new StaticBuilder(lTemplate, lModules, new LayerValues(this), 'ROOT');
+        this.elementHandler.shadowRoot.appendChild(this.mRootBuilder.anchor);
+
         // Initialize user object injections.
-        const lLocalInjections: Array<object | null> = new Array<object | null>();
-        lLocalInjections.push(new ComponentElementReference(pHtmlComponent));
-        lLocalInjections.push(new ComponentUpdateReference(this.mUpdateHandler));
+        this.mInjections = new Dictionary<InjectionConstructor, any>();
+        this.setProcessorAttributes(ComponentConstructorReference, pComponentProcessorConstructor);
+        this.setProcessorAttributes(ComponentElementReference, pHtmlComponent);
+        this.setProcessorAttributes(ComponentLayerValuesReference, this.mRootBuilder.values);
+        this.setProcessorAttributes(ComponentUpdateHandlerReference, this.mUpdateHandler);
 
         // Create injection extensions.
         this.mExtensionList = new Array<ComponentExtension>();
@@ -119,7 +131,7 @@ export class Component implements IComponentHierarchyParent {
         });
 
         // Create user object handler.
-        this.mComponentProcessor = new ComponentProcessorHandler(pComponentProcessorConstructor, this.updateHandler, lLocalInjections);
+        this.mComponentProcessor = new ComponentProcessorHandler(pComponentProcessorConstructor, this.updateHandler, this.mInjections);
 
         // After build, before initialization.
         this.mComponentProcessor.callOnPwbInitialize();
@@ -129,12 +141,24 @@ export class Component implements IComponentHierarchyParent {
         ComponentConnection.connectComponentWith(this.processor.processor, this);
         ComponentConnection.connectComponentWith(this.processor.untrackedProcessor, this);
 
-        // Create component builder.
-        const lModules: ComponentModules = new ComponentModules(this, pExpressionModule);
-        this.mRootBuilder = new StaticBuilder(lTemplate, lModules, new LayerValues(this), 'ROOT');
-        this.elementHandler.shadowRoot.appendChild(this.mRootBuilder.anchor);
-
         this.mComponentProcessor.callAfterPwbInitialize();
+    }
+
+    /**
+     * Set injection parameter for the module processor class construction. 
+     * 
+     * @param pInjectionTarget - Injection type that should be provided to processor.
+     * @param pInjectionValue - Actual injected value in replacement for {@link pInjectionTarget}.
+     * 
+     * @throws {@link Exception}
+     * When the processor was already initialized.
+     */
+    public setProcessorAttributes(pInjectionTarget: InjectionConstructor, pInjectionValue: any): void {
+        if (this.mComponentProcessor) {
+            throw new Exception('Cant add attributes to already initialized module.', this);
+        }
+
+        this.mInjections.set(pInjectionTarget, pInjectionValue);
     }
 
     /**
@@ -175,7 +199,7 @@ export class Component implements IComponentHierarchyParent {
         this.processor.callOnPwbDeconstruct();
 
         // Deconstruct all extensions.
-        for(const lExtension of this.mExtensionList) {
+        for (const lExtension of this.mExtensionList) {
             lExtension.deconstruct();
         }
 

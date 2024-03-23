@@ -1,22 +1,42 @@
 import { ChangeDetection } from '@kartoffelgames/web.change-detection';
 import { PwbExtension } from '../../decorator/pwb-extension.decorator';
-import { ExtensionPriority } from '../../enum/extension-priority.enum';
+import { AccessMode } from '../../enum/access-mode.enum';
 import { ExtensionType } from '../../enum/extension-type.enum';
-import { IPwbExtensionOnCollectInjections } from '../../interface/extension.interface';
 import { PwbApp } from '../../pwb-app';
+import { ModuleReference } from '../../injection_reference/module/module-reference';
+import { ComponentReference } from '../../injection_reference/component/component-reference';
 
 @PwbExtension({
-    type: ExtensionType.Component | ExtensionType.Module,
-    mode: ExtensionPriority.Inject
+    type: ExtensionType.Module,
+    access: AccessMode.Write
 })
-export class PwbAppInjectionExtension implements IPwbExtensionOnCollectInjections {
+export class PwbAppModuleInjectionExtension {
+
     /**
-     * Collect all injectables.
+     * Constructor.
+     * Sets current {@link PwbApp} as injection target.
+     * 
+     * @param pModule - Module.
      */
-    public onCollectInjections(): Array<object | null> {
-        const lInjectionList: Array<object | null> = new Array<object | null>();
-        lInjectionList.push(PwbApp.getChangeDetectionApp(ChangeDetection.current) ?? null);
-        return lInjectionList;
+    public constructor(pModule: ModuleReference) {
+        pModule.setProcessorAttributes(PwbApp, PwbApp.getChangeDetectionApp(ChangeDetection.current));
     }
 }
 
+
+@PwbExtension({
+    type: ExtensionType.Component,
+    access: AccessMode.Write
+})
+export class PwbAppComponentInjectionExtension {
+
+    /**
+     * Constructor.
+     * Sets current {@link PwbApp} as injection target.
+     * 
+     * @param pModule - Module.
+     */
+    public constructor(pComponent: ComponentReference) {
+        pComponent.setProcessorAttributes(PwbApp, PwbApp.getChangeDetectionApp(ChangeDetection.current));
+    }
+}

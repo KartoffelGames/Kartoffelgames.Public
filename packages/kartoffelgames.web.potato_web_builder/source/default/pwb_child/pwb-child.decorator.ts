@@ -17,7 +17,7 @@ export function PwbChild(pIdChildName: string): any {
         Object.defineProperty(pTarget, pPropertyKey, {
             get(this: ComponentProcessor) {
                 // Get component manager and exit if target is not a component.
-                const lComponentManager: Component | undefined = Component.of(this);
+                const lComponentManager: Component | undefined = this.__component__;
                 if (!lComponentManager) {
                     throw new Exception('Target is not a Component', this);
                 }

@@ -1,6 +1,6 @@
 import { Dictionary, List } from '@kartoffelgames/core.data';
 import { ChangeDetection } from '@kartoffelgames/web.change-detection';
-import { UserObject } from '../../interface/user-class.interface';
+import { ComponentProcessor } from '../../interface/component.interface';
 import { LayerValues } from '../../component/values/layer-values';
 
 
@@ -9,7 +9,7 @@ import { LayerValues } from '../../component/values/layer-values';
  */
 export class ComponentScopeExecutor {
     /**
-     * Execute string in userclass context.
+     * Execute string in component processor context.
      * @param pExpression - Expression to execute.
      * @param pValues - Current component values.
      * @param pExtenedData - Extended data that are only exist for this execution.
@@ -18,14 +18,14 @@ export class ComponentScopeExecutor {
         const lReferencedValues: Array<string> = ComponentScopeExecutor.extractReferences(pExpression);
         const lExtendedData: Dictionary<string, any> = pExtenedData ?? new Dictionary<string, any>();
 
-        const lContext: UserObject = pValues.component.userObjectHandler.userObject;
+        const lContext: ComponentProcessor = pValues.component.processor.processor;
         const lEvaluatedFunction: () => any = ComponentScopeExecutor.createEvaluationFunktion(pExpression, lReferencedValues, pValues, lExtendedData);
 
         return lEvaluatedFunction.call(lContext);
     }
 
     /**
-     * Execute string in userclass context.
+     * Execute string in component processor context.
      * Does not trigger change events.
      * @param pExpression - Expression to execute.
      * @param pValues - Current component values.

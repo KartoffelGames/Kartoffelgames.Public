@@ -1,6 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { Metadata } from '@kartoffelgames/core.dependency-injection';
-import { UserClass } from '../../interface/user-class.interface';
+import { ComponentProcessorConstructor } from '../../interface/component.interface';
 import { ComponentEventExtension } from './component-event-extension';
 
 /**
@@ -11,7 +11,7 @@ export function PwbComponentEvent(pEventName: string): any {
     return (pTarget: object, pPropertyKey: string, _pDescriptor: PropertyDescriptor): void => {
         // Usually Class Prototype. Globaly.
         const lPrototype: object = pTarget;
-        const lUserClassConstructor: UserClass = <any>lPrototype.constructor;
+        const lUserClassConstructor: ComponentProcessorConstructor = <any>lPrototype.constructor;
 
         // Check if real prototype.
         if (typeof pTarget === 'function') {

@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { ComponentConnection } from '../../component/component-connection';
 import { Component } from '../../component/component';
-import { UserObject } from '../../interface/user-class.interface';
+import { ComponentProcessor } from '../../interface/component.interface';
 
 /**
  * AtScript. Id child 
@@ -16,7 +16,7 @@ export function PwbChild(pIdChildName: string): any {
 
         // Define getter accessor that returns id child.
         Object.defineProperty(pTarget, pPropertyKey, {
-            get(this: UserObject) {
+            get(this: ComponentProcessor) {
                 // Get component manager and exit if target is not a component.
                 const lComponentManager: Component | undefined = ComponentConnection.componentOf(this);
                 if (!lComponentManager) {

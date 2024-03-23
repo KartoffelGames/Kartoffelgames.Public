@@ -1,12 +1,12 @@
 import { BaseXmlNode } from '@kartoffelgames/core.xml';
 
-export interface UserObject extends IPwbOnInit, IPwbAfterInit, IPwbOnDeconstruct, IPwbSlotAssign, IPwbAfterUpdate, IPwbOnUpdate, IPwbOnAttributeChange {}
+export interface ComponentProcessor extends Partial<IPwbOnInit>, Partial<IPwbAfterInit>, Partial<IPwbOnDeconstruct>, Partial<IPwbSlotAssign>, Partial<IPwbAfterUpdate>, Partial<IPwbOnUpdate>, Partial<IPwbOnAttributeChange> { }
 
-export type UserClass = {
-    new(...pParameter: Array<any>): UserObject;
-}
+export type ComponentProcessorConstructor = {
+    new(...pParameter: Array<any>): ComponentProcessor;
+};
 
-export interface IPwbSlotAssign {
+export interface IPwbSlotAssign { // TODO: How to get rid of this (assignSlotContent)
     assignSlotContent(pTemplate: BaseXmlNode): string;
 }
 
@@ -30,6 +30,6 @@ export interface IPwbOnUpdate {
     onPwbUpdate(): void;
 }
 
-export interface IPwbOnAttributeChange{
+export interface IPwbOnAttributeChange {
     onPwbAttributeChange(pAttributeName: string): void;
 }

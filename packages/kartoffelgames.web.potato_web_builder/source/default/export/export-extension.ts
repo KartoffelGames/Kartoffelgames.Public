@@ -29,7 +29,7 @@ export class ExportExtension {
         // All exported properties of target and parent classes.
         const lExportedPropertyList: List<string | symbol> = new List<string | symbol>();
 
-        let lClass: InjectionConstructor = this.mUserObjectHandler.userClass;
+        let lClass: InjectionConstructor = this.mUserObjectHandler.processorConstructor;
         do {
             // Find all exported properties of current class layer and add all to merged property list.
             const lPropertyList: Array<string | symbol> | null = Metadata.get(lClass).getMetadata(ExportExtension.METADATA_EXPORTED_PROPERTIES);
@@ -70,17 +70,17 @@ export class ExportExtension {
 
             // Setter and getter of this property. Execute changes inside component handlers change detection.
             lDescriptor.set = (pValue: any) => {
-                Reflect.set(this.mUserObjectHandler.userObject, lExportProperty, pValue);
+                Reflect.set(this.mUserObjectHandler.processor, lExportProperty, pValue);
 
                 // Call OnAttributeChange.
                 this.mUserObjectHandler.callOnPwbAttributeChange(lExportProperty);
             };
             lDescriptor.get = () => {
-                let lValue: any = Reflect.get(this.mUserObjectHandler.userObject, lExportProperty);
+                let lValue: any = Reflect.get(this.mUserObjectHandler.processor, lExportProperty);
 
                 // Bind "this" context to the exported function.
                 if (typeof lValue === 'function') {
-                    lValue = (<(...pArgs: Array<any>) => any>lValue).bind(this.mUserObjectHandler.userObject);
+                    lValue = (<(...pArgs: Array<any>) => any>lValue).bind(this.mUserObjectHandler.processor);
                 }
 
                 return lValue;

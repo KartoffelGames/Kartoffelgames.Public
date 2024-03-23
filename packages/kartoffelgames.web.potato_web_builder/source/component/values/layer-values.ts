@@ -5,7 +5,7 @@ import { Component } from '../component';
  * Interface between persistent values directly from component and temporary values
  * that are not directly inside the component but attached to it.
  *
- * Simple access for all value types: TemporaryValue, IdChild and UserClassValue.
+ * Simple access for all value types: TemporaryValue, IdChild and ComponentProcessor values.
  * has-, get-, set-, remove-.
  */
 export class LayerValues {
@@ -68,7 +68,7 @@ export class LayerValues {
      */
     public equals(pHandler: LayerValues): boolean {
         // Compare if it has the same user class object.
-        if (this.component.userObjectHandler.userObject !== pHandler.component.userObjectHandler.userObject) {
+        if (this.component.processor.processor !== pHandler.component.processor.processor) {
             return false;
         }
 

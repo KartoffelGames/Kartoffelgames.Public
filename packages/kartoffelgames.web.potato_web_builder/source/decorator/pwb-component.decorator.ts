@@ -2,7 +2,7 @@ import { InjectionConstructor, Injector, Metadata } from '@kartoffelgames/core.d
 import { IPwbExpressionModuleProcessorConstructor, IPwbInstructionModuleProcessorConstructor, IPwbAttributeModuleProcessorConstructor } from '../interface/module.interface';
 import { Component } from '../component/component';
 import { UpdateScope } from '../enum/update-scope.enum';
-import { UserClass } from '../interface/user-class.interface';
+import { ComponentProcessorConstructor } from '../interface/component.interface';
 
 /**
  * AtScript. PWB Component.
@@ -10,12 +10,12 @@ import { UserClass } from '../interface/user-class.interface';
  */
 export function PwbComponent(pParameter: HtmlComponentParameter): any {
     // Needs constructor without argument.
-    return (pUserClassConstructor: UserClass) => {
+    return (pComponentProcessorConstructor: ComponentProcessorConstructor) => {
         // Set user class to be injectable.
-        Injector.Injectable(pUserClassConstructor);
+        Injector.Injectable(pComponentProcessorConstructor);
 
         // Set element metadata.
-        Metadata.get(pUserClassConstructor).setMetadata(Component.METADATA_SELECTOR, pParameter.selector);
+        Metadata.get(pComponentProcessorConstructor).setMetadata(Component.METADATA_SELECTOR, pParameter.selector);
 
         // Create custom html element of parent type.
         const lPwbComponentConstructor = class extends HTMLElement {
@@ -30,7 +30,7 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
 
                 // Create component handler.
                 this.mComponent = new Component(
-                    pUserClassConstructor,
+                    pComponentProcessorConstructor,
                     pParameter.template ?? null,
                     pParameter.expressionmodule,
                     this,

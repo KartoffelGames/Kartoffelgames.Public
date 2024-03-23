@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { Metadata } from '@kartoffelgames/core.dependency-injection';
-import { UserClass } from '../../interface/user-class.interface';
+import { ComponentProcessorConstructor } from '../../interface/component.interface';
 import { ExportExtension } from './export-extension';
 
 /**
@@ -10,7 +10,7 @@ import { ExportExtension } from './export-extension';
 export function PwbExport(pTarget: object, pPropertyKey: string): void {
     // Usually Class Prototype. Globaly.
     const lPrototype: object = pTarget;
-    const lUserClassConstructor: UserClass = <any>lPrototype.constructor;
+    const lUserClassConstructor: ComponentProcessorConstructor = <any>lPrototype.constructor;
 
     // Check if real decorator on static property.
     if (typeof pTarget === 'function') {

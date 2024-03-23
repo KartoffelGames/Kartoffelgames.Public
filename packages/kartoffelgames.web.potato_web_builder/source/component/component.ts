@@ -5,7 +5,7 @@ import { GlobalExtensionsStorage } from '../extension/global-extensions-storage'
 import { ComponentElementReference } from '../injection_reference/component/component-element-reference';
 import { ComponentHierarchyInjection, IComponentHierarchyParent } from '../interface/component-hierarchy.interface';
 import { IPwbExpressionModuleProcessorConstructor } from '../interface/module.interface';
-import { UserClass } from '../interface/user-class.interface';
+import { ComponentProcessorConstructor } from '../interface/component.interface';
 import { StaticBuilder } from './builder/static-builder';
 import { ComponentConnection } from './component-connection';
 import { ComponentModules } from './component-modules';
@@ -24,14 +24,14 @@ import { LayerValues } from './values/layer-values';
 export class Component implements IComponentHierarchyParent {
     public static readonly METADATA_SELECTOR: string = 'pwb:selector';
 
-    private static readonly mTemplateCache: Dictionary<UserClass, PwbTemplate> = new Dictionary<UserClass, PwbTemplate>();
+    private static readonly mTemplateCache: Dictionary<ComponentProcessorConstructor, PwbTemplate> = new Dictionary<ComponentProcessorConstructor, PwbTemplate>();
     private static readonly mXmlParser: TemplateParser = new TemplateParser();
 
     private readonly mElementHandler: ElementHandler;
     private readonly mExtensionList: Array<ComponentExtension>;
     private readonly mRootBuilder: StaticBuilder;
     private readonly mUpdateHandler: UpdateHandler;
-    private readonly mUserObjectHandler: UserObjectHandler;
+    private readonly mComponentProcessor: UserObjectHandler;
 
     /**
      * Get element handler.
@@ -59,27 +59,25 @@ export class Component implements IComponentHierarchyParent {
     /**
      * Get user class object.
      */
-    public get userObjectHandler(): UserObjectHandler {
-        return this.mUserObjectHandler;
+    public get processor(): UserObjectHandler {
+        return this.mComponentProcessor;
     }
 
     /**
      * Constructor.
-     * @param pUserClass - User class constructor.
+     * @param pComponentProcessorConstructor - Component processor constructor.
      * @param pTemplateString - Template as xml string.
      * @param pExpressionModule - Expression module constructor.
      * @param pHtmlComponent - HTMLElement of component.
      * @param pUpdateScope - Update scope of component.
      */
-    public constructor(pUserClass: UserClass, pTemplateString: string | null, pExpressionModule: IPwbExpressionModuleProcessorConstructor, pHtmlComponent: HTMLElement, pUpdateScope: UpdateScope) {
+    public constructor(pComponentProcessorConstructor: ComponentProcessorConstructor, pTemplateString: string | null, pExpressionModule: IPwbExpressionModuleProcessorConstructor, pHtmlComponent: HTMLElement, pUpdateScope: UpdateScope) {
         // Load cached or create new module handler and template.
-        let lTemplate: PwbTemplate | undefined = Component.mTemplateCache.get(pUserClass);
+        let lTemplate: PwbTemplate | undefined = Component.mTemplateCache.get(pComponentProcessorConstructor);
         if (!lTemplate) {
             lTemplate = Component.mXmlParser.parse(pTemplateString ?? '');
-            Component.mTemplateCache.set(pUserClass, lTemplate);
+            Component.mTemplateCache.set(pComponentProcessorConstructor, lTemplate);
         }
-
-        const lModules: ComponentModules = new ComponentModules(this, pExpressionModule);
 
         // Create update handler.
         const lUpdateScope: UpdateScope = pUpdateScope;
@@ -87,12 +85,12 @@ export class Component implements IComponentHierarchyParent {
         this.mUpdateHandler.addUpdateListener(() => {
             // Call user class on update function.
             this.mUpdateHandler.executeOutZone(() => {
-                this.mUserObjectHandler.callOnPwbUpdate();
+                this.mComponentProcessor.callOnPwbUpdate();
             });
 
             // Update and callback after update.
             if (this.mRootBuilder.update()) {
-                this.mUserObjectHandler.callAfterPwbUpdate();
+                this.mComponentProcessor.callAfterPwbUpdate();
             }
         });
 
@@ -121,21 +119,22 @@ export class Component implements IComponentHierarchyParent {
         });
 
         // Create user object handler.
-        this.mUserObjectHandler = new UserObjectHandler(pUserClass, this.updateHandler, lLocalInjections);
+        this.mComponentProcessor = new UserObjectHandler(pComponentProcessorConstructor, this.updateHandler, lLocalInjections);
 
         // After build, before initialization.
-        this.mUserObjectHandler.callOnPwbInitialize();
+        this.mComponentProcessor.callOnPwbInitialize();
 
         // Connect with this component manager.
         ComponentConnection.connectComponentWith(this.elementHandler.htmlElement, this);
-        ComponentConnection.connectComponentWith(this.userObjectHandler.userObject, this);
-        ComponentConnection.connectComponentWith(this.userObjectHandler.untrackedUserObject, this);
+        ComponentConnection.connectComponentWith(this.processor.processor, this);
+        ComponentConnection.connectComponentWith(this.processor.untrackedUserObject, this);
 
         // Create component builder.
+        const lModules: ComponentModules = new ComponentModules(this, pExpressionModule);
         this.mRootBuilder = new StaticBuilder(lTemplate, lModules, new LayerValues(this), 'ROOT');
         this.elementHandler.shadowRoot.appendChild(this.mRootBuilder.anchor);
 
-        this.mUserObjectHandler.callAfterPwbInitialize();
+        this.mComponentProcessor.callAfterPwbInitialize();
     }
 
     /**
@@ -159,7 +158,7 @@ export class Component implements IComponentHierarchyParent {
 
         // Trigger light update.
         this.updateHandler.requestUpdate({
-            source: this.userObjectHandler.userObject,
+            source: this.processor.processor,
             property: Symbol('any'),
             stacktrace: <string>Error().stack
         });
@@ -173,7 +172,7 @@ export class Component implements IComponentHierarchyParent {
         this.updateHandler.enabled = false;
 
         // User callback.
-        this.userObjectHandler.callOnPwbDeconstruct();
+        this.processor.callOnPwbDeconstruct();
 
         // Deconstruct all extensions.
         for(const lExtension of this.mExtensionList) {

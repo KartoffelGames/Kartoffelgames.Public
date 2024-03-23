@@ -1,9 +1,9 @@
 /* istanbul ignore file */
 
 // Component
-export { UserObject, UserClass } from './interface/user-class.interface';
+export { ComponentProcessor, ComponentProcessorConstructor } from './interface/component.interface';
 export { PwbApp } from './pwb-app';
-export { IPwbOnInit, IPwbAfterInit, IPwbOnDeconstruct, IPwbSlotAssign, IPwbAfterUpdate, IPwbOnUpdate, IPwbOnAttributeChange } from './interface/user-class.interface';
+export { IPwbOnInit, IPwbAfterInit, IPwbOnDeconstruct, IPwbSlotAssign, IPwbAfterUpdate, IPwbOnUpdate, IPwbOnAttributeChange } from './interface/component.interface';
 export { PwbComponent } from './decorator/pwb-component.decorator';
 
 // Module Injections

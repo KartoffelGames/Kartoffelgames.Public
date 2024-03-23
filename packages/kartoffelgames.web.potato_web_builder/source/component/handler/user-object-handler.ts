@@ -1,39 +1,39 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { ChangeDetection } from '@kartoffelgames/web.change-detection';
-import { UserClass, UserObject } from '../../interface/user-class.interface';
+import { ComponentProcessorConstructor, ComponentProcessor } from '../../interface/component.interface';
 import { UpdateHandler } from './update-handler';
 
 export class UserObjectHandler {
-    private readonly mUserClass: UserClass;
-    private readonly mUserObject: UserObject;
-
-    /**
-     * Untracked user class instance.
-     */
-    public get untrackedUserObject(): UserObject {
-        return ChangeDetection.getUntrackedObject(this.mUserObject);
-    }
-
-    /**
-     * User class.
-     */
-    public get userClass(): UserClass {
-        return this.mUserClass;
-    }
+    private readonly mProcessorConstructor: ComponentProcessorConstructor;
+    private readonly mUserObject: ComponentProcessor;
 
     /**
      * User class instance.
      */
-    public get userObject(): UserObject {
+    public get processor(): ComponentProcessor {
         return this.mUserObject;
     }
 
     /**
-     * Constrcutor.
-     * @param pUserClass - User object constructor.
+     * Component processor constructor.
      */
-    public constructor(pUserClass: UserClass, pUpdateHandler: UpdateHandler, pInjectionList: Array<object | null>) {
+    public get processorConstructor(): ComponentProcessorConstructor {
+        return this.mProcessorConstructor;
+    }
+
+    /**
+     * Untracked user class instance.
+     */
+    public get untrackedUserObject(): ComponentProcessor {
+        return ChangeDetection.getUntrackedObject(this.mUserObject);
+    }
+
+    /**
+     * Constrcutor.
+     * @param pComponentProcessorConstructor - Component processor constructor.
+     */
+    public constructor(pComponentProcessorConstructor: ComponentProcessorConstructor, pUpdateHandler: UpdateHandler, pInjectionList: Array<object | null>) {
         // Create injection mapping. Ignores none objects.
         const lLocalInjections: Dictionary<InjectionConstructor, any> = new Dictionary<InjectionConstructor, any>();
         for (const lInjectionObject of pInjectionList) {
@@ -44,12 +44,12 @@ export class UserObjectHandler {
 
         // Create user object inside update zone.
         // Constructor needs to be called inside zone.
-        let lUntrackedUserObject: UserObject | null = null;
+        let lUntrackedUserObject: ComponentProcessor | null = null;
         pUpdateHandler.executeInZone(() => {
-            lUntrackedUserObject = Injection.createObject<UserObject>(pUserClass, lLocalInjections);
+            lUntrackedUserObject = Injection.createObject<ComponentProcessor>(pComponentProcessorConstructor, lLocalInjections);
         });
-        this.mUserObject = pUpdateHandler.registerObject(<UserObject><any>lUntrackedUserObject);
-        this.mUserClass = pUserClass;
+        this.mUserObject = pUpdateHandler.registerObject(<ComponentProcessor><any>lUntrackedUserObject);
+        this.mProcessorConstructor = pComponentProcessorConstructor;
     }
 
     /**
@@ -107,4 +107,4 @@ export class UserObjectHandler {
     }
 }
 
-type UserObjectCallbacks = keyof UserObject;
+type UserObjectCallbacks = keyof ComponentProcessor;

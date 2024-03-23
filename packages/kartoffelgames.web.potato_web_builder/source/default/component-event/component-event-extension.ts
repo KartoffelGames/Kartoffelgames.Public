@@ -18,9 +18,10 @@ export class ComponentEventExtension {
     /**
      * Constructor.
      * Override each event emmiter property with a new pre defined event emmiter.
-     * @param pComponentProcessorConstructor - User class reference.
-     * @param pComponent - User object reference.
-     * @param pElementReference - Component html element reference.
+     * 
+     * @param pComponentProcessorConstructor - Component processor constructor.
+     * @param pComponent - Component processor.
+     * @param pElementReference - Component html element.
      */
     public constructor(pComponentProcessorConstructor: ComponentConstructorReference, pComponent: ComponentReference, pElementReference: ComponentElementReference) {
         // Get event metadata.

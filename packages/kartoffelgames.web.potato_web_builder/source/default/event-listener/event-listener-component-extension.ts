@@ -22,9 +22,10 @@ export class EventListenerComponentExtension implements IPwbExtensionOnDeconstru
     /**
      * Constructor.
      * Add each event listener to component events.
-     * @param pTargetClassReference - User class reference.
-     * @param pTargetObjectReference - User object reference.
-     * @param pElementReference - Component manager.
+     * 
+     * @param pComponentProcessorConstructor - Component processor constructor.
+     * @param pComponent - Component processor.
+     * @param pElementReference - Component html element.
      */
     public constructor(pComponentProcessorConstructor: ComponentConstructorReference, pComponent: ComponentReference, pElementReference: ComponentElementReference) {
         // Get event metadata.

@@ -110,7 +110,7 @@ export class Component implements IComponentHierarchyParent {
         // Create local injections with extensions.
         this.mUpdateHandler.executeInZone(() => {
             lLocalInjections.push(...this.mExtensions.executeInjectorExtensions({
-                componentManager: this,
+                component: this,
                 componentElement: pHtmlComponent,
                 targetClass: pUserClass
             }));
@@ -123,14 +123,14 @@ export class Component implements IComponentHierarchyParent {
         this.mUserObjectHandler.callOnPwbInitialize();
 
         // Connect with this component manager.
-        ComponentConnection.connectComponentManagerWith(this.elementHandler.htmlElement, this);
-        ComponentConnection.connectComponentManagerWith(this.userObjectHandler.userObject, this);
-        ComponentConnection.connectComponentManagerWith(this.userObjectHandler.untrackedUserObject, this);
+        ComponentConnection.connectComponentWith(this.elementHandler.htmlElement, this);
+        ComponentConnection.connectComponentWith(this.userObjectHandler.userObject, this);
+        ComponentConnection.connectComponentWith(this.userObjectHandler.untrackedUserObject, this);
 
         // Create patcher extensions.
         this.mUpdateHandler.executeInZone(() => {
             this.mExtensions.executePatcherExtensions({
-                componentManager: this,
+                component: this,
                 componentElement: pHtmlComponent,
                 targetClass: this.mUserObjectHandler.userClass,
                 targetObject: this.mUserObjectHandler.userObject

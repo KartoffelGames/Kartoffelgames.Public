@@ -12,19 +12,19 @@ import { LayerValues } from './values/layer-values';
 import { Exception } from '@kartoffelgames/core.data';
 
 export class ComponentModules {
-    private readonly mComponentManager: Component;
+    private readonly mComponent: Component;
     private readonly mExpressionModule: IPwbExpressionModuleProcessorConstructor;
     private readonly mGlobalModuleStorage: GlobalModuleStorage;
 
     /**
      * Constructor.
      * @param pExpressionModule - default expression module for this component. 
-     * @param pComponentManager - Component manager.
+     * @param pComponent - Component.
      */
-    public constructor(pComponentManager: Component, pExpressionModule?: IPwbExpressionModuleProcessorConstructor) {
+    public constructor(pComponent: Component, pExpressionModule?: IPwbExpressionModuleProcessorConstructor) {
         // Get expression module.
         this.mExpressionModule = pExpressionModule ?? <IPwbExpressionModuleProcessorConstructor><any>MustacheExpressionModule;
-        this.mComponentManager = pComponentManager;
+        this.mComponent = pComponent;
         this.mGlobalModuleStorage = new GlobalModuleStorage();
     }
 
@@ -48,7 +48,7 @@ export class ComponentModules {
                     constructor: lModuleConfiguration.constructor,
                     targetTemplate: pTemplate,
                     values: pValues,
-                    parent: this.mComponentManager,
+                    parent: this.mComponent,
                     targetNode: pTargetNode
                 });
 
@@ -78,7 +78,7 @@ export class ComponentModules {
             constructor: lModuleConfiguration.constructor,
             targetTemplate: pTemplate,
             values: pValues,
-            parent: this.mComponentManager,
+            parent: this.mComponent,
             targetNode: pTargetNode
         });
 
@@ -103,7 +103,7 @@ export class ComponentModules {
                     constructor: lModuleConfiguration.constructor,
                     targetTemplate: pTemplate,
                     values: pValues,
-                    parent: this.mComponentManager,
+                    parent: this.mComponent,
                 });
 
                 return lModule;

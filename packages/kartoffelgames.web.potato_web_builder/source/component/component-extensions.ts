@@ -39,11 +39,8 @@ export class ComponentExtensions {
         for (const lExtensionClass of GlobalExtensionsStorage.componentInjectorExtensions) {
             // Create extension and add to extension list.
             const lExtension: ComponentExtension = new ComponentExtension({
-                extensionClass: lExtensionClass,
-                componentElement: pParameter.componentElement,
-                componentManager: pParameter.componentManager,
-                targetClass: pParameter.targetClass,
-                targetObject: null
+                constructor: lExtensionClass,
+                parent: pParameter.component
             });
             this.mExtensionList.push(lExtension);
 
@@ -62,24 +59,21 @@ export class ComponentExtensions {
         for (const lExtensionClass of GlobalExtensionsStorage.componentPatcherExtensions) {
             this.mExtensionList.push(new ComponentExtension({
                 extensionClass: lExtensionClass,
-                componentElement: pParameter.componentElement,
-                componentManager: pParameter.componentManager,
-                targetClass: pParameter.targetClass,
-                targetObject: pParameter.targetObject
+                parent: pParameter.component,
             }));
         }
     }
 }
 
 type ComponentExtensionsExecutePatcherExtensionsParameter = {
-    componentManager: Component;
+    component: Component;
     targetClass: InjectionConstructor;
     targetObject: object;
     componentElement: HTMLElement;
 };
 
 type ComponentExtensionsExecuteInjectorExtensionsParameter = {
-    componentManager: Component;
+    component: Component;
     targetClass: InjectionConstructor;
     componentElement: HTMLElement;
 };

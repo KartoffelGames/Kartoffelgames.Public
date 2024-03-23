@@ -25,7 +25,7 @@ export class TestUtil {
         const lComponent: HTMLElement = <HTMLElement>(<ShadowRoot>lPwbApp.content.shadowRoot).childNodes[1];
 
         // Wait for any update to happen.
-        await ComponentConnection.componentManagerOf(lComponent)?.updateHandler.waitForUpdate();
+        await ComponentConnection.componentOf(lComponent)?.updateHandler.waitForUpdate();
 
         return lComponent;
     }
@@ -35,7 +35,7 @@ export class TestUtil {
      * @param pComponent - Pwb component.
      */
     public static deconstructComponent(pComponent: HTMLElement): void {
-        ComponentConnection.componentManagerOf(pComponent)?.deconstruct();
+        ComponentConnection.componentOf(pComponent)?.deconstruct();
     }
 
     /**
@@ -43,7 +43,7 @@ export class TestUtil {
      * @param pComponent - Pwb component.
      */
     public static getComponentManager(pComponent: HTMLElement): Component | undefined {
-        return ComponentConnection.componentManagerOf(pComponent);
+        return ComponentConnection.componentOf(pComponent);
     }
 
     /**
@@ -77,7 +77,7 @@ export class TestUtil {
      * @param pComponent - Component.
      */
     public static manualUpdate(pComponent: HTMLElement): void {
-        const lComponentManager: Component | undefined = ComponentConnection.componentManagerOf(pComponent);
+        const lComponentManager: Component | undefined = ComponentConnection.componentOf(pComponent);
         lComponentManager?.updateHandler.requestUpdate({ source: pComponent, property: 0, stacktrace: '' });
     }
 
@@ -99,7 +99,7 @@ export class TestUtil {
      * @param pComponent - Component.
      */
     public static async waitForUpdate(pComponent: HTMLElement): Promise<void> {
-        const lComponentManager: Component | undefined = ComponentConnection.componentManagerOf(pComponent);
+        const lComponentManager: Component | undefined = ComponentConnection.componentOf(pComponent);
         await lComponentManager?.updateHandler.waitForUpdate();
     }
 }

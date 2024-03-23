@@ -9,15 +9,15 @@ import { Component } from '../component';
  * has-, get-, set-, remove-.
  */
 export class LayerValues {
-    private readonly mComponentManager: Component;
+    private readonly mComponent: Component;
     private readonly mParentLayer: LayerValues | null;
     private readonly mTemporaryValues: Dictionary<string, any>;
 
     /**
      * Component manager connected with layer value.
      */
-    public get componentManager(): Component {
-        return this.mComponentManager;
+    public get component(): Component {
+        return this.mComponent;
     }
 
     /**
@@ -48,17 +48,17 @@ export class LayerValues {
     /**
      * Constructor.
      * New component value layer.
-     * @param pParentLayer - Parent layer. ComponentManager on root layer.
+     * @param pParentLayer - Parent layer. Values on root layer.
      */
     public constructor(pParentLayer: LayerValues | Component) {
         this.mTemporaryValues = new Dictionary<string, any>();
 
         if (pParentLayer instanceof Component) {
             this.mParentLayer = null;
-            this.mComponentManager = pParentLayer;
+            this.mComponent = pParentLayer;
         } else {
             this.mParentLayer = pParentLayer;
-            this.mComponentManager = pParentLayer.componentManager;
+            this.mComponent = pParentLayer.component;
         }
     }
 
@@ -68,7 +68,7 @@ export class LayerValues {
      */
     public equals(pHandler: LayerValues): boolean {
         // Compare if it has the same user class object.
-        if (this.componentManager.userObjectHandler.userObject !== pHandler.componentManager.userObjectHandler.userObject) {
+        if (this.component.userObjectHandler.userObject !== pHandler.component.userObjectHandler.userObject) {
             return false;
         }
 

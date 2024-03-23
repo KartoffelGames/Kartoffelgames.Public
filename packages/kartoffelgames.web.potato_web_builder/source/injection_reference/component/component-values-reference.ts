@@ -11,7 +11,7 @@ import { Component } from '../../component/component';
 export class ComponentValuesReference extends LayerValues {
     /**
      * Constructor. Allways throws exception.
-     * @param pParentLayer - Parent layer. ComponentManager on root layer.
+     * @param pParentLayer - Parent layer. Values on root layer.
      * 
      * @throws {@link Exception}
      * Allways.

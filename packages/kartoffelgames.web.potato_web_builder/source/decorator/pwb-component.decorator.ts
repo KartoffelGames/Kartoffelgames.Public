@@ -19,7 +19,7 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
 
         // Create custom html element of parent type.
         const lPwbComponentConstructor = class extends HTMLElement {
-            private readonly mComponentManager: Component;
+            private readonly mComponent: Component;
 
             /**
              * Constructor.
@@ -29,7 +29,7 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
                 super();
 
                 // Create component handler.
-                this.mComponentManager = new Component(
+                this.mComponent = new Component(
                     pUserClassConstructor,
                     pParameter.template ?? null,
                     pParameter.expressionmodule,
@@ -39,7 +39,7 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
 
                 // Append style if specified. Styles are scoped on components shadow root.
                 if (pParameter.style) {
-                    this.mComponentManager.addStyle(pParameter.style);
+                    this.mComponent.addStyle(pParameter.style);
                 }
             }
 
@@ -48,7 +48,7 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
              * Callback when element get attached to dom.
              */
             public connectedCallback(): void {
-                this.mComponentManager.connected();
+                this.mComponent.connected();
             }
 
             /**
@@ -56,7 +56,7 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
              * Callback when element get detached from dom.
              */
             public disconnectedCallback(): void {
-                this.mComponentManager.disconnected();
+                this.mComponent.disconnected();
             }
         };
 

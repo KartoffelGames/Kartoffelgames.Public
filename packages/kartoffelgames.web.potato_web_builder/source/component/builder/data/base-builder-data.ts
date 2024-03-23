@@ -85,8 +85,8 @@ export abstract class BaseBuilderData {
         }
 
         // Deconstruct components.
-        for (const lComponentManager of this.mChildComponents.values()) {
-            lComponentManager.deconstruct();
+        for (const lComponent of this.mChildComponents.values()) {
+            lComponent.deconstruct();
         }
         this.mChildComponents.clear();
 
@@ -246,10 +246,10 @@ export abstract class BaseBuilderData {
             pContent.deconstruct();
         } else {
             // Get elements component manager. If it exists deconstruct it.
-            const lComponentManager: Component | undefined = this.mChildComponents.get(pContent);
-            if (lComponentManager) {
+            const lComponent: Component | undefined = this.mChildComponents.get(pContent);
+            if (lComponent) {
                 // Trigger component deconstruction.
-                lComponentManager.deconstruct();
+                lComponent.deconstruct();
 
                 // Remove content from child components.
                 this.mChildComponents.delete(pContent);

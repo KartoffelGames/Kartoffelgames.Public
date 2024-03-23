@@ -3,8 +3,8 @@ import { UpdateHandler } from '../../component/handler/update-handler';
 import { UpdateScope } from '../../enum/update-scope.enum';
 
 /**
- * ComponentManager reference.
- * Acts as injection reference but the actual ComponentManager should be injected instead.
+ * Updatehandler reference.
+ * Acts as injection reference but the actual UpdateHandler should be injected instead.
  * 
  * Should never be initialized.
  */

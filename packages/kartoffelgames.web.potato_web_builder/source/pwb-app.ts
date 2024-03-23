@@ -153,17 +153,17 @@ export class PwbApp {
                 // Create new update waiter for each component.
                 for (const lComponentConstructor of this.mComponentList) {
                     // Create component and forward error.
-                    let lComponent: HTMLElement;
+                    let lComponentElement: HTMLElement;
                     try {
-                        lComponent = this.createComponent(lComponentConstructor);
+                        lComponentElement = this.createComponent(lComponentConstructor);
                     } catch (pError) {
                         pReject(pError);
                         return;
                     }
 
-                    // Get ComponentManager of component and add update waiter to the waiter list. 
-                    const lComponentManager: Component = <Component>ComponentConnection.componentManagerOf(lComponent);
-                    lUpdateWaiter.push(lComponentManager.updateHandler.waitForUpdate());
+                    // Get component of html element and add update waiter to the waiter list. 
+                    const lComponent: Component = <Component>ComponentConnection.componentOf(lComponentElement);
+                    lUpdateWaiter.push(lComponent.updateHandler.waitForUpdate());
                 }
 
                 // Promise that waits for all component to finish updating.

@@ -6,6 +6,7 @@ import { ExtensionType } from '../../enum/extension-type.enum';
 import { ComponentElementReference } from '../../injection_reference/component/component-element-reference';
 import { ComponentEventEmitter } from './component-event-emitter';
 import { ComponentConstructorReference } from '../../injection_reference/component/component-constructor-reference';
+import { ComponentReference } from '../../injection_reference/component/component-reference';
 
 @PwbExtension({
     type: ExtensionType.Component,
@@ -18,10 +19,10 @@ export class ComponentEventExtension {
      * Constructor.
      * Override each event emmiter property with a new pre defined event emmiter.
      * @param pModuleProcessorConstructor - User class reference.
-     * @param pTargetObjectReference - User object reference.
+     * @param pComponent - User object reference.
      * @param pElementReference - Component html element reference.
      */
-    public constructor(pModuleProcessorConstructor: ComponentConstructorReference, pTargetObjectReference: ComponentP, pElementReference: ComponentElementReference) {
+    public constructor(pModuleProcessorConstructor: ComponentConstructorReference, pComponent: ComponentReference, pElementReference: ComponentElementReference) {
         // Get event metadata.
         const lEventProperties: Dictionary<string, string> = new Dictionary<string, string>();
 
@@ -48,7 +49,7 @@ export class ComponentEventExtension {
         } while (lClass = Object.getPrototypeOf(lClass));
 
         // Easy access target objects.
-        const lTargetObject: object = pTargetObjectReference.value;
+        const lTargetObject: object = pComponent.processor;
         const lTargetElement: HTMLElement = pElementReference;
 
         // Override each property with the corresponding component event emitter.

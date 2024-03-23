@@ -155,7 +155,7 @@ export class PwbApp { // TODO: Rework PwbApp to be a component.
 
                     // Get component of html element and add update waiter to the waiter list. 
                     const lComponent: Component = Component.of(lComponentElement)!;
-                    lUpdateWaiter.push(lComponent.updateHandler.waitForUpdate());
+                    lUpdateWaiter.push(lComponent.updater.waitForUpdate());
                 }
 
                 // Promise that waits for all component to finish updating.

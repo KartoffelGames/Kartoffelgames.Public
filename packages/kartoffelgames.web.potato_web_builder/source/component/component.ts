@@ -48,14 +48,6 @@ export class Component implements IComponentHierarchyParent {
     private readonly mRootBuilder: StaticBuilder;
     private readonly mUpdateHandler: UpdateHandler;
 
-
-    /**
-     * Get element handler.
-     */
-    public get elementHandler(): ElementHandler {
-        return this.mElementHandler;
-    }
-
     /**
      * Read all current set injections.
      */
@@ -78,24 +70,10 @@ export class Component implements IComponentHierarchyParent {
     }
 
     /**
-     * Get component values of the root builder. 
-     */
-    public get rootValues(): LayerValues {
-        return this.mRootBuilder.values.rootValue;
-    }
-
-    /**
      * Untracked Component processor.
      */
     public get untrackedProcessor(): ComponentProcessor {
         return ChangeDetection.getUntrackedObject(this.processor);
-    }
-
-    /**
-     * Update handler.
-     */
-    public get updateHandler(): UpdateHandler {
-        return this.mUpdateHandler;
     }
 
     /**
@@ -140,7 +118,7 @@ export class Component implements IComponentHierarchyParent {
         // Create component builder.
         const lModules: ComponentModules = new ComponentModules(this, pExpressionModule);
         this.mRootBuilder = new StaticBuilder(lTemplate, lModules, new LayerValues(this), 'ROOT');
-        this.elementHandler.shadowRoot.appendChild(this.mRootBuilder.anchor);
+        this.mElementHandler.shadowRoot.appendChild(this.mRootBuilder.anchor);
 
         // Initialize user object injections.
         this.mInjections = new Dictionary<InjectionConstructor, any>();
@@ -170,7 +148,7 @@ export class Component implements IComponentHierarchyParent {
         this.callOnPwbInitialize();
 
         // Connect compontent parts with component.
-        Component.mComponentConnections.set(this.elementHandler.htmlElement, this);
+        Component.mComponentConnections.set(this.mElementHandler.htmlElement, this);
 
         this.callAfterPwbInitialize();
     }
@@ -185,7 +163,7 @@ export class Component implements IComponentHierarchyParent {
 
         const lStyleElement: Element = ElementCreator.createElement(lStyleTemplate);
         lStyleElement.innerHTML = pStyle;
-        this.elementHandler.shadowRoot.prepend(lStyleElement);
+        this.mElementHandler.shadowRoot.prepend(lStyleElement);
     }
 
     /**
@@ -235,10 +213,10 @@ export class Component implements IComponentHierarchyParent {
      * Called when component get attached to DOM.
      */
     public connected(): void {
-        this.updateHandler.enabled = true;
+        this.mUpdateHandler.enabled = true;
 
         // Trigger light update.
-        this.updateHandler.requestUpdate({
+        this.mUpdateHandler.requestUpdate({
             source: this.processor,
             property: Symbol('any'),
             stacktrace: <string>Error().stack
@@ -250,7 +228,7 @@ export class Component implements IComponentHierarchyParent {
      */
     public deconstruct(): void {
         // Disable updates.
-        this.updateHandler.enabled = false;
+        this.mUpdateHandler.enabled = false;
 
         // User callback.
         this.callOnPwbDeconstruct();
@@ -261,7 +239,7 @@ export class Component implements IComponentHierarchyParent {
         }
 
         // Remove change listener from app.
-        this.updateHandler.deconstruct();
+        this.mUpdateHandler.deconstruct();
 
         // Deconstruct all child element.
         this.mRootBuilder.deconstruct();
@@ -271,7 +249,7 @@ export class Component implements IComponentHierarchyParent {
      * Called when component gets detached from DOM.
      */
     public disconnected(): void {
-        this.updateHandler.enabled = false;
+        this.mUpdateHandler.enabled = false;
     }
 
     /**

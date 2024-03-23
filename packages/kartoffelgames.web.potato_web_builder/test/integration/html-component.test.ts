@@ -237,13 +237,13 @@ describe('HtmlComponent', () => {
 
         // Set update listener.
         let lWasUpdated: boolean = false;
-        TestUtil.getComponentManager(lComponent)?.updateHandler.addUpdateListener((pReason: ChangeDetectionReason) => {
+        TestUtil.getComponentManager(lComponent)?.updater.addUpdateListener((pReason: ChangeDetectionReason) => {
             lWasUpdated = pReason.property === 'innerValue' || lWasUpdated;
         });
 
         // Set update listener.
         let lInnerValueWasUpdated: boolean = false;
-        TestUtil.getComponentManager(lCapsuledContent)?.updateHandler.addUpdateListener((pReason: ChangeDetectionReason) => {
+        TestUtil.getComponentManager(lCapsuledContent)?.updater.addUpdateListener((pReason: ChangeDetectionReason) => {
             lInnerValueWasUpdated = pReason.property === 'innerValue' || lInnerValueWasUpdated;
         });
 

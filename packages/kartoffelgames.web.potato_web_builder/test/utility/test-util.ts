@@ -24,7 +24,7 @@ export class TestUtil {
         const lComponent: HTMLElement = <HTMLElement>(<ShadowRoot>lPwbApp.content.shadowRoot).childNodes[1];
 
         // Wait for any update to happen.
-        await Component.of(lComponent)?.updateHandler.waitForUpdate();
+        await Component.of(lComponent)?.updater.waitForUpdate();
 
         return lComponent;
     }
@@ -77,7 +77,7 @@ export class TestUtil {
      */
     public static manualUpdate(pComponent: HTMLElement): void {
         const lComponentManager: Component | undefined = Component.of(pComponent);
-        lComponentManager?.updateHandler.requestUpdate({ source: pComponent, property: 0, stacktrace: '' });
+        lComponentManager?.updater.requestUpdate({ source: pComponent, property: 0, stacktrace: '' });
     }
 
     /**
@@ -99,7 +99,7 @@ export class TestUtil {
      */
     public static async waitForUpdate(pComponent: HTMLElement): Promise<void> {
         const lComponentManager: Component | undefined = Component.of(pComponent);
-        await lComponentManager?.updateHandler.waitForUpdate();
+        await lComponentManager?.updater.waitForUpdate();
     }
 }
 

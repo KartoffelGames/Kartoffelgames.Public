@@ -47,7 +47,7 @@ export class ComponentModules {
                     module: lModuleConfiguration,
                     targetTemplate: pTemplate,
                     values: pValues,
-                    componentManager: this.mComponentManager,
+                    parent: this.mComponentManager,
                     targetNode: pTargetNode
                 });
 
@@ -77,7 +77,7 @@ export class ComponentModules {
             module: lModuleConfiguration,
             targetTemplate: pTemplate,
             values: pValues,
-            componentManager: this.mComponentManager,
+            parent: this.mComponentManager,
             targetNode: pTargetNode
         });
 
@@ -102,7 +102,7 @@ export class ComponentModules {
                     module: lModuleConfiguration,
                     targetTemplate: pTemplate,
                     values: pValues,
-                    componentManager: this.mComponentManager,
+                    parent: this.mComponentManager,
                 });
 
                 return lModule;

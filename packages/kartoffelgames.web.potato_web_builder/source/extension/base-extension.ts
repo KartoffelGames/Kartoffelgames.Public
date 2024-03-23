@@ -1,16 +1,12 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { ComponentManager } from '../component/component-manager';
-import { ComponentConstructorReference } from '../injection_reference/general/component-constructor-reference';
-import { ComponentElementReference } from '../injection_reference/general/component-element-reference';
-import { ComponentLayerValuesReference } from '../injection_reference/general/component-layer-values-reference';
-import { ComponentUpdateHandlerReference } from '../injection_reference/general/component-update-handler-reference';
+import { IComponentHierarchyParent } from '../interface/component-hierarchy.interface';
 import { IPwbExtensionProcessor, IPwbExtensionProcessorClass } from '../interface/extension.interface';
 
 export class BaseExtension {
-    private readonly mExtensionClass: IPwbExtensionProcessorClass;
-    private mExtensionProcessor: IPwbExtensionProcessor | null;
+    private mExtensionProcessor: IPwbExtensionProcessor | null;   
     private readonly mInjections: Dictionary<InjectionConstructor, any>;
+    private readonly mProcessorConstructor: IPwbExtensionProcessorClass;
 
     /**
      * Processor of extension.
@@ -29,16 +25,14 @@ export class BaseExtension {
      * @param pParameter - Parameter.
      */
     constructor(pParameter: BaseExtensionConstructorParameter) {
-        this.mExtensionClass = pParameter.extensionClass;
+        this.mProcessorConstructor = pParameter.constructor;
         this.mInjections = new Dictionary<InjectionConstructor, any>();
         this.mExtensionProcessor = null;
 
-        // Create injection mapping.
-        // Create component injections mapping.
-        this.setProcessorAttributes(ComponentUpdateHandlerReference, pParameter.componentManager.updateHandler);
-        this.setProcessorAttributes(ComponentElementReference, pParameter.componentManager.elementHandler.htmlElement);
-        this.setProcessorAttributes(ComponentConstructorReference, pParameter.componentManager.userObjectHandler.userClass);
-        this.setProcessorAttributes(ComponentLayerValuesReference, pParameter.componentManager.rootValues);
+        // Init injections from hierarchy parent.
+        for (const lParentInjection of pParameter.parent.injections) {
+            this.setProcessorAttributes(lParentInjection.target, lParentInjection.value);
+        }
     }
 
     /**
@@ -71,12 +65,11 @@ export class BaseExtension {
       */
     protected createExtensionProcessor(): IPwbExtensionProcessor {
         // Create module object with local injections.
-        return Injection.createObject(this.mExtensionClass, this.mInjections);
+        return Injection.createObject(this.mProcessorConstructor, this.mInjections);
     }
 }
 
 type BaseExtensionConstructorParameter = {
-    extensionClass: IPwbExtensionProcessorClass;
-    componentManager: ComponentManager;
-    targetClass: InjectionConstructor;
+    constructor: IPwbExtensionProcessorClass;
+    parent: IComponentHierarchyParent;
 };

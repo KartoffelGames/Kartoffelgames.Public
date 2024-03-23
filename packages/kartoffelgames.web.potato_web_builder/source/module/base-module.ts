@@ -1,29 +1,33 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { ComponentManager } from '../component/component-manager';
 import { PwbTemplateInstructionNode } from '../component/template/nodes/pwb-template-instruction-node';
 import { PwbTemplateAttribute } from '../component/template/nodes/values/pwb-template-attribute';
 import { PwbTemplateExpression } from '../component/template/nodes/values/pwb-template-expression';
 import { LayerValues } from '../component/values/layer-values';
-import { ComponentElementReference } from '../injection_reference/general/component-element-reference';
-import { ComponentUpdateHandlerReference } from '../injection_reference/general/component-update-handler-reference';
-import { ComponentLayerValuesReference } from '../injection_reference/general/component-layer-values-reference';
+import { GlobalExtensionsStorage } from '../extension/global-extensions-storage';
+import { ModuleExtension } from '../extension/module-extension';
 import { ModuleTargetNode } from '../injection_reference/module/module-target-node-reference';
 import { ModuleTemplateReference } from '../injection_reference/module/module-template-reference';
-import { IPwbModuleProcessor } from '../interface/module.interface';
-import { ModuleConfiguration } from './global-module-storage';
-import { ModuleExtensions } from './module-extensions';
-import { ComponentConstructorReference } from '../injection_reference/general/component-constructor-reference';
+import { ModuleValueReference } from '../injection_reference/module/module-value-reference';
+import { ComponentHierarchyInjection, IComponentHierarchyParent } from '../interface/component-hierarchy.interface';
+import { IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../interface/module.interface';
 
-export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor extends IPwbModuleProcessor> {
-    private readonly mComponentManager: ComponentManager;
-    private readonly mExtensionList: Array<ModuleExtensions>;
+export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor extends IPwbModuleProcessor> implements IComponentHierarchyParent {
+    private readonly mExtensionList: Array<ModuleExtension>;
     private readonly mInjections: Dictionary<InjectionConstructor, any>;
-    private readonly mLayerValues: LayerValues;
-    private readonly mModuleClass: InjectionConstructor;
     private mModuleProcessor: TModuleProcessor | null;
+    private readonly mProcessorConstructor: InjectionConstructor;
     private readonly mTargetNode: TTargetNode;
-    private readonly mTemplateClone: BaseModuleTargetTemplate;
+
+    /**
+     * Read all current set injections.
+     */
+    public get injections(): Array<ComponentHierarchyInjection> {
+        // TODO: Can we cache it.
+        return this.mInjections.map((pKey: InjectionConstructor, pValue: any) => {
+            return { target: pKey, value: pValue };
+        });
+    }
 
     /**
      * Get target node.
@@ -50,26 +54,23 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
      */
     constructor(pParameter: BaseModuleConstructorParameter<TTargetNode>) {
         // Save parameter
-        this.mTemplateClone = pParameter.targetTemplate.clone();
-        this.mModuleClass = pParameter.module.constructor;
+        this.mProcessorConstructor = pParameter.constructor;
         this.mTargetNode = pParameter.targetNode;
-        this.mComponentManager = pParameter.componentManager;
-        this.mLayerValues = pParameter.values;
 
         // Init runtime lists.
         this.mModuleProcessor = null;
-        this.mExtensionList = new Array<ModuleExtensions>();
+        this.mExtensionList = new Array<ModuleExtension>();
         this.mInjections = new Dictionary<InjectionConstructor, any>();
 
-        // Create component injections mapping.
-        this.setProcessorAttributes(ComponentUpdateHandlerReference, pParameter.componentManager.updateHandler);
-        this.setProcessorAttributes(ComponentElementReference, pParameter.componentManager.elementHandler.htmlElement);
-        this.setProcessorAttributes(ComponentLayerValuesReference, this.mLayerValues);
-        this.setProcessorAttributes(ComponentConstructorReference, pParameter.componentManager.userObjectHandler.userClass);
+        // Init injections from hierarchy parent.
+        for (const lParentInjection of pParameter.parent.injections) {
+            this.setProcessorAttributes(lParentInjection.target, lParentInjection.value);
+        }
 
         // Create module injection mapping.
-        this.setProcessorAttributes(ModuleTemplateReference, this.mTemplateClone);
+        this.setProcessorAttributes(ModuleTemplateReference, pParameter.targetTemplate.clone());
         this.setProcessorAttributes(ModuleTargetNode, pParameter.targetNode);
+        this.setProcessorAttributes(ModuleValueReference, pParameter.values);
     }
 
     /**
@@ -109,43 +110,19 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
       * @param pValue - Value for module object.
       */
     private createModuleProcessor(): TModuleProcessor {
-        // Clone injections and extend by value reference.
-        const lInjections = new Dictionary<InjectionConstructor, object>(this.mInjections);
+        const lExtensions: GlobalExtensionsStorage = new GlobalExtensionsStorage();
 
-        // Create extensions and collect extension injections.
-        const lExtensions: ModuleExtensions = new ModuleExtensions();
-        const lExtensionInjectionList: Array<object | null> = lExtensions.executeInjectorExtensions({ // TODO: No need to splitting injection and patcher extensions, Patcher can access ModuleReference and setProcessorAttributes. Find a way to handle priority.
-            componentManager: this.mComponentManager,
-            targetClass: this.mModuleClass,
-            template: this.mTemplateClone,
-            attribute: this.mTargetAttribute,
-            layerValues: this.mLayerValues,
-            element: this.mTargetNode
-        });
+        // Create every module extension.
+        for (const lExtensionProcessorConstructor of lExtensions.moduleExtensions) {
+            const lModuleExtension: ModuleExtension = new ModuleExtension({
+                constructor: lExtensionProcessorConstructor,
+                parent: this
+            });
 
-        // Parse and merge extension injections into local injections.
-        for (const lInjectionObject of lExtensionInjectionList) {
-            if (typeof lInjectionObject === 'object' && lInjectionObject !== null) {
-                lInjections.set(<InjectionConstructor>lInjectionObject.constructor, lInjectionObject);
-            }
+            this.mExtensionList.push(lModuleExtension);
         }
 
-        // Create module object with local injections.
-        const lModuleObject: TModuleProcessor = Injection.createObject<TModuleProcessor>(this.mModuleClass, lInjections);
-
-        // Execute patcher extensions and save extension for deconstructing.
-        this.mExtensionList.push(lExtensions);
-        lExtensions.executePatcherExtensions({
-            componentManager: this.mComponentManager,
-            targetClass: this.mModuleClass,
-            targetObject: lModuleObject,
-            template: this.mTemplateClone,
-            attribute: this.mTargetAttribute,
-            layerValues: this.mLayerValues,
-            element: this.mTargetNode
-        });
-
-        return lModuleObject;
+        return Injection.createObject<TModuleProcessor>(this.mProcessorConstructor, this.mInjections);
     }
 
     /**
@@ -157,8 +134,8 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
 }
 
 export type BaseModuleConstructorParameter<TTargetNode extends Node> = {
-    componentManager: ComponentManager,
-    module: ModuleConfiguration,
+    parent: IComponentHierarchyParent,
+    constructor: IPwbModuleProcessorConstructor<IPwbModuleProcessor>,
     targetNode: TTargetNode;
     targetTemplate: BaseModuleTargetTemplate,
     values: LayerValues;

@@ -1,10 +1,9 @@
-import { ComponentManager } from '../component/component-manager';
 import { PwbTemplateExpression } from '../component/template/nodes/values/pwb-template-expression';
 import { LayerValues } from '../component/values/layer-values';
 import { ModuleValueReference } from '../injection_reference/module/module-value-reference';
-import { IPwbExpressionModuleProcessor } from '../interface/module.interface';
+import { IComponentHierarchyParent } from '../interface/component-hierarchy.interface';
+import { IPwbExpressionModuleProcessor, IPwbExpressionModuleProcessorConstructor } from '../interface/module.interface';
 import { BaseModule } from './base-module';
-import { ExpressionModuleConfiguration } from './global-module-storage';
 
 export class ExpressionModule extends BaseModule<Text, IPwbExpressionModuleProcessor> {
     private mLastResult: string;
@@ -15,11 +14,11 @@ export class ExpressionModule extends BaseModule<Text, IPwbExpressionModuleProce
      */
     public constructor(pParameter: ExpressionModuleConstructorParameter) {
         super({
-            module: pParameter.module,
+            constructor: pParameter.constructor,
             targetTemplate: pParameter.targetTemplate,
             values: pParameter.values,
-            componentManager: pParameter.componentManager,
-            targetNode: pParameter.targetNode,
+            parent: pParameter.parent,
+            targetNode: pParameter.targetNode
         });
 
         // Set starting value of expression.
@@ -63,9 +62,9 @@ export class ExpressionModule extends BaseModule<Text, IPwbExpressionModuleProce
 }
 
 export type ExpressionModuleConstructorParameter = {
-    module: ExpressionModuleConfiguration,
+    constructor: IPwbExpressionModuleProcessorConstructor,
     targetTemplate: PwbTemplateExpression,
     values: LayerValues,
-    componentManager: ComponentManager,
+    parent: IComponentHierarchyParent,
     targetNode: Text;
 };

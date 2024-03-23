@@ -1,9 +1,9 @@
-import { ComponentManager } from '../component/component-manager';
 import { PwbTemplateAttribute } from '../component/template/nodes/values/pwb-template-attribute';
 import { LayerValues } from '../component/values/layer-values';
 import { AccessMode } from '../enum/access-mode.enum';
 import { ModuleKeyReference } from '../injection_reference/module/module-key-reference';
 import { ModuleValueReference } from '../injection_reference/module/module-value-reference';
+import { IComponentHierarchyParent } from '../interface/component-hierarchy.interface';
 import { IPwbAttributeModuleProcessor } from '../interface/module.interface';
 import { BaseModule } from './base-module';
 import { AttributeModuleConfiguration } from './global-module-storage';
@@ -23,7 +23,13 @@ export class AttributeModule extends BaseModule<Element, IPwbAttributeModuleProc
      * @param pParameter - Constructor parameter.
      */
     public constructor(pParameter: StaticModuleConstructorParameter) {
-        super(pParameter);
+        super({
+            module: pParameter.module,
+            targetTemplate: pParameter.targetTemplate,
+            values: pParameter.values,
+            parent: pParameter.parent,
+            targetNode: pParameter.targetNode
+        });
 
         // Save module access mode.
         this.mAccessMode = pParameter.module.access;
@@ -49,6 +55,6 @@ export type StaticModuleConstructorParameter = {
     module: AttributeModuleConfiguration,
     targetTemplate: PwbTemplateAttribute,
     values: LayerValues,
-    componentManager: ComponentManager,
+    parent: IComponentHierarchyParent,
     targetNode: Element;
 };

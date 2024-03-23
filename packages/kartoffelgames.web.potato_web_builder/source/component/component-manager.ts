@@ -16,11 +16,12 @@ import { PwbTemplate } from './template/nodes/pwb-template';
 import { TemplateParser } from './template/template-parser';
 import { LayerValues } from './values/layer-values';
 import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
+import { IComponentHierarchyParent } from '../interface/component-hierarchy.interface';
 
 /**
  * Base component handler. Handles initialisation and update of components.
  */
-export class ComponentManager {
+export class ComponentManager implements IComponentHierarchyParent {
     public static readonly METADATA_SELECTOR: string = 'pwb:selector';
 
     private static readonly mComponentCache: Dictionary<UserClass, PwbTemplate> = new Dictionary<UserClass, PwbTemplate>();

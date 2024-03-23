@@ -1,38 +1,42 @@
 import { List } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
-import { ComponentProcessorHandler } from '../../component/handler/component-processor-handler';
+import { Component } from '../../component/component';
 import { PwbExtension } from '../../decorator/pwb-extension.decorator';
-import { ExtensionPriority } from '../../enum/extension-priority.enum';
+import { AccessMode } from '../../enum/access-mode.enum';
 import { ExtensionType } from '../../enum/extension-type.enum';
+import { ComponentConstructorReference } from '../../injection_reference/component/component-constructor-reference';
 import { ComponentElementReference } from '../../injection_reference/component/component-element-reference';
-import { ComponentManagerReference } from '../../injection_reference/component/component-manager-reference';
+import { ComponentReference } from '../../injection_reference/component/component-reference';
+import { ComponentProcessor } from '../../interface/component.interface';
 
 @PwbExtension({
     type: ExtensionType.Component,
-    mode: ExtensionPriority.Patch
+    access: AccessMode.Read
 })
 export class ExportExtension {
     public static readonly METADATA_EXPORTED_PROPERTIES: string = 'pwb:exported_properties';
 
+    private readonly mComponent: Component;
+    private readonly mComponentProcessor: ComponentProcessor;
     private readonly mHtmlElement: HTMLElement;
-    private readonly mUserObjectHandler: ComponentProcessorHandler;
-
+    
     /**
      * Constructor.
      * @param pTargetElementReference - Component html element reference.
      * @param pComponentManagerReference - Component manager reference.
      */
-    public constructor(pTargetElementReference: ComponentElementReference, pComponentManagerReference: ComponentManagerReference) {
-        this.mHtmlElement = <HTMLElement>pTargetElementReference.value;
-        this.mUserObjectHandler = pComponentManagerReference.value.userObjectHandler;
+    public constructor(pComponentProcessorConstructor: ComponentConstructorReference, pComponent: ComponentReference, pElementReference: ComponentElementReference) {
+        this.mHtmlElement = pElementReference;
+        this.mComponentProcessor = pComponent.processor;
+        this.mComponent = pComponent;
 
         // All exported properties of target and parent classes.
-        const lExportedPropertyList: List<string | symbol> = new List<string | symbol>();
+        const lExportedPropertyList: List<string> = new List<string>();
 
-        let lClass: InjectionConstructor = this.mUserObjectHandler.processorConstructor;
+        let lClass: InjectionConstructor = <InjectionConstructor>pComponentProcessorConstructor;
         do {
             // Find all exported properties of current class layer and add all to merged property list.
-            const lPropertyList: Array<string | symbol> | null = Metadata.get(lClass).getMetadata(ExportExtension.METADATA_EXPORTED_PROPERTIES);
+            const lPropertyList: Array<string> | null = Metadata.get(lClass).getMetadata(ExportExtension.METADATA_EXPORTED_PROPERTIES);
             if (lPropertyList) {
                 lExportedPropertyList.push(...lPropertyList);
             }
@@ -49,7 +53,7 @@ export class ExportExtension {
      * Connect exported properties to html element attributes with the same name.
      * @param pExportedProperties - Exported user object properties.
      */
-    private connectExportedProperties(pExportedProperties: Array<string | symbol>): void {
+    private connectExportedProperties(pExportedProperties: Array<string>): void {
         this.exportPropertyAsAttribute(pExportedProperties);
         this.patchHtmlAttributes(pExportedProperties);
     }
@@ -57,7 +61,7 @@ export class ExportExtension {
     /**
      * Export exported properties so that exported user class properties can be accessed from html element.
      */
-    private exportPropertyAsAttribute(pExportedProperties: Array<string | symbol>): void {
+    private exportPropertyAsAttribute(pExportedProperties: Array<string>): void {
         // Each exported property.
         for (const lExportProperty of pExportedProperties) {
             // Get property descriptor. HTMLElement has no descriptors -,-
@@ -70,17 +74,17 @@ export class ExportExtension {
 
             // Setter and getter of this property. Execute changes inside component handlers change detection.
             lDescriptor.set = (pValue: any) => {
-                Reflect.set(this.mUserObjectHandler.processor, lExportProperty, pValue);
+                Reflect.set(this.mComponentProcessor, lExportProperty, pValue);
 
                 // Call OnAttributeChange.
-                this.mUserObjectHandler.callOnPwbAttributeChange(lExportProperty);
+                this.mComponent.callOnPwbAttributeChange(lExportProperty);
             };
             lDescriptor.get = () => {
-                let lValue: any = Reflect.get(this.mUserObjectHandler.processor, lExportProperty);
+                let lValue: any = Reflect.get(this.mComponentProcessor, lExportProperty);
 
                 // Bind "this" context to the exported function.
                 if (typeof lValue === 'function') {
-                    lValue = (<(...pArgs: Array<any>) => any>lValue).bind(this.mUserObjectHandler.processor);
+                    lValue = (<(...pArgs: Array<any>) => any>lValue).bind(this.mComponentProcessor);
                 }
 
                 return lValue;

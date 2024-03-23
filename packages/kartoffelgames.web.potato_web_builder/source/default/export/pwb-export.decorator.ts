@@ -18,7 +18,7 @@ export function PwbExport(pTarget: object, pPropertyKey: string): void {
     }
 
     // Get property list from constructor metadata.
-    const lExportedPropertyList: Array<string | symbol> = Metadata.get(lUserClassConstructor).getMetadata(ExportExtension.METADATA_EXPORTED_PROPERTIES) ?? new Array<string | symbol>();
+    const lExportedPropertyList: Array<string> = Metadata.get(lUserClassConstructor).getMetadata(ExportExtension.METADATA_EXPORTED_PROPERTIES) ?? new Array<string>();
     lExportedPropertyList.push(pPropertyKey);
 
     // Set metadata.

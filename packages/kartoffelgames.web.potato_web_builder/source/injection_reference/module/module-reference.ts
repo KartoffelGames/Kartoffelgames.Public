@@ -16,7 +16,7 @@ export class ModuleReference extends BaseModule<Node, IPwbModuleProcessor> {
      * Allways.
      */
     public constructor() {
-        super({} as any);
+        super(null as any);
         throw new Exception('Reference should not be instanced.', this);
     }
 

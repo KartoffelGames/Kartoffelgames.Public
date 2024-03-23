@@ -2,10 +2,11 @@ import { CompareHandler } from '@kartoffelgames/web.change-detection';
 import { LayerValues } from '../../component/values/layer-values';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
-import { IPwbAttributeModuleOnUpdate } from '../../interface/module.interface';
-import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ComponentLayerValuesReference } from '../../injection_reference/component/component-layer-values-reference';
+import { ModuleKeyReference } from '../../injection_reference/module/module-key-reference';
 import { ModuleTargetNodeReference } from '../../injection_reference/module/module-target-node-reference';
+import { ModuleValueReference } from '../../injection_reference/module/module-value-reference';
+import { IPwbAttributeModuleOnUpdate } from '../../interface/module.interface';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
 
 /**
@@ -14,8 +15,7 @@ import { ComponentScopeExecutor } from '../../module/execution/component-scope-e
  */
 @PwbAttributeModule({
     selector: /^\[[\w$]+\]$/,
-    access: AccessMode.Read,
-    forbiddenInManipulatorScopes: false
+    access: AccessMode.Read
 })
 export class OneWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate {
     private readonly mExecutionString: string;
@@ -28,18 +28,17 @@ export class OneWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate
      * Constructor.
      * @param pTargetReference - Target element.
      * @param pValueReference - Values of component.
-     * @param pAttributeReference - Attribute of module.
+     * @param pAttributeValueReference - Attribute of module.
      */
-    public constructor(pTargetReference: ModuleTargetNodeReference, pValueReference: ComponentLayerValuesReference, pAttributeReference: ModuleAttributeReference) {
-        this.mTarget = <Node>pTargetReference.value;
-        this.mValueHandler = pValueReference.value;
+    public constructor(pTargetReference: ModuleTargetNodeReference, pValueReference: ComponentLayerValuesReference, pAttributeKeyReference: ModuleValueReference, pAttributeValueReference: ModuleKeyReference) {
+        this.mTarget = pTargetReference;
+        this.mValueHandler = pValueReference;
 
         // Get execution string.
-        this.mExecutionString = pAttributeReference.value.asText;
+        this.mExecutionString = pAttributeValueReference.toString();
 
         // Get view object information. Remove starting [ and end ].
-        const lAttributeKey: string = pAttributeReference.value.name;
-        this.mTargetProperty = lAttributeKey.substr(1, lAttributeKey.length - 2);
+        this.mTargetProperty = pAttributeKeyReference.substr(1, pAttributeKeyReference.length - 2);
 
         // Create empty compare handler with unique symbol.
         this.mValueCompare = new CompareHandler(Symbol('Uncompareable'), 4);

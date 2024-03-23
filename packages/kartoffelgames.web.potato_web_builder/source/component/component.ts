@@ -15,7 +15,7 @@ import { ComponentModules } from './component-modules';
 import { ElementCreator } from './element-creator';
 import { ElementHandler } from './handler/element-handler';
 import { UpdateHandler } from './handler/update-handler';
-import { ComponentProcessorHandler } from './handler/user-object-handler';
+import { ComponentProcessorHandler } from './handler/component-processor-handler';
 import { PwbTemplate } from './template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 import { TemplateParser } from './template/template-parser';

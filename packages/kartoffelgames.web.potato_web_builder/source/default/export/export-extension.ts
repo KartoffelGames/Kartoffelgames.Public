@@ -1,6 +1,6 @@
 import { List } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
-import { ComponentProcessorHandler } from '../../component/handler/user-object-handler';
+import { ComponentProcessorHandler } from '../../component/handler/component-processor-handler';
 import { PwbExtension } from '../../decorator/pwb-extension.decorator';
 import { ExtensionPriority } from '../../enum/extension-priority.enum';
 import { ExtensionType } from '../../enum/extension-type.enum';

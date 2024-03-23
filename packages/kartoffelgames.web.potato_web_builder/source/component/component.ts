@@ -26,19 +26,8 @@ import { ComponentReference } from '../injection_reference/component/component-r
  * Base component handler. Handles initialisation and update of components.
  */
 export class Component implements IComponentHierarchyParent {
-    private static readonly mComponentConnections: WeakMap<object, Component> = new WeakMap<object, Component>();
     private static readonly mTemplateCache: Dictionary<ComponentProcessorConstructor, PwbTemplate> = new Dictionary<ComponentProcessorConstructor, PwbTemplate>();
     private static readonly mXmlParser: TemplateParser = new TemplateParser();
-
-    /**
-     * Get component of html element or component processor
-     * @param pElement - component element or processor.
-     * 
-     * @returns component reference of html element or undefined when element is no component.
-     */
-    public static of(pElement: HTMLElement | object): Component | undefined {
-        return Component.mComponentConnections.get(pElement);
-    }
 
     private readonly mElementHandler: ElementHandler;
     private readonly mExtensionList: Array<ComponentExtension>;
@@ -153,9 +142,6 @@ export class Component implements IComponentHierarchyParent {
 
         // After build, before initialization.
         this.callOnPwbInitialize();
-
-        // Connect compontent parts with component.
-        Component.mComponentConnections.set(this.mElementHandler.htmlElement, this);
 
         this.callAfterPwbInitialize();
     }
@@ -295,10 +281,6 @@ export class Component implements IComponentHierarchyParent {
         });
 
         const lTrackedProcessor: ComponentProcessor = this.mUpdateHandler.registerObject(lUntrackedProcessor!);
-
-        // Link processor to connection.
-        Component.mComponentConnections.set(lUntrackedProcessor!, this);
-        Component.mComponentConnections.set(lTrackedProcessor, this);
 
         return lTrackedProcessor;
     }

@@ -7,13 +7,13 @@ export { IPwbOnInit, IPwbAfterInit, IPwbOnDeconstruct, IPwbSlotAssign, IPwbAfter
 export { PwbComponent } from './decorator/pwb-component.decorator';
 
 // Injections
-export { ComponentElementReference } from './injection_reference/general/component-element-reference';
+export { ComponentElementReference } from './injection_reference/component/component-element-reference';
 export { ComponentUpdateReference } from './injection_reference/component-update-reference';
-export { ComponentManagerReference } from './injection_reference/general/component-manager-reference';
+export { ComponentManagerReference } from './injection_reference/component/component-manager-reference';
 export { ExtensionTargetClassReference } from './injection_reference/extension-target-class-reference';
 export { ExtensionTargetObjectReference } from './injection_reference/extension-target-object-reference';
 export { ModuleAttributeReference } from './injection_reference/module-attribute-reference';
-export { ComponentLayerValuesReference as ModuleLayerValuesReference } from './injection_reference/general/component-layer-values-reference';
+export { ComponentLayerValuesReference as ModuleLayerValuesReference } from './injection_reference/component/component-layer-values-reference';
 export { ModuleTargetNode as ModuleTargetReference } from './injection_reference/module/module-target-node-reference';
 export { ModuleTemplateReference } from './injection_reference/module/module-template-reference';
 

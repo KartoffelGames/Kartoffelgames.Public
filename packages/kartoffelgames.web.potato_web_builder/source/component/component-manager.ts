@@ -1,5 +1,5 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { ComponentElementReference } from '../injection_reference/general/component-element-reference';
+import { ComponentElementReference } from '../injection_reference/component/component-element-reference';
 import { ComponentUpdateReference } from '../injection_reference/component-update-reference';
 import { IPwbExpressionModuleProcessorConstructor } from '../interface/module.interface';
 import { StaticBuilder } from './builder/static-builder';

@@ -5,7 +5,7 @@ import { PwbExtension } from '../../decorator/pwb-extension.decorator';
 import { ExtensionPriority } from '../../enum/extension-priority.enum';
 import { ExtensionType } from '../../enum/extension-type.enum';
 import { IPwbExtensionOnDeconstruct } from '../../interface/extension.interface';
-import { ComponentElementReference } from '../../injection_reference/general/component-element-reference';
+import { ComponentElementReference } from '../../injection_reference/component/component-element-reference';
 import { ExtensionTargetClassReference } from '../../injection_reference/extension-target-class-reference';
 import { ExtensionTargetObjectReference } from '../../injection_reference/extension-target-object-reference';
 

@@ -2,7 +2,7 @@ import { LayerValues } from '../../component/values/layer-values';
 import { PwbExpressionModule } from '../../decorator/pwb-expression-module.decorator';
 import { IPwbExpressionModuleOnUpdate } from '../../interface/module.interface';
 import { ModuleExpressionReference } from '../../injection_reference/module/module-value-reference';
-import { ComponentLayerValuesReference } from '../../injection_reference/general/component-layer-values-reference';
+import { ComponentLayerValuesReference } from '../../injection_reference/component/component-layer-values-reference';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
 
 /**

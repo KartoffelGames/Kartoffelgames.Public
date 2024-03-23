@@ -4,7 +4,7 @@ import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorat
 import { AccessMode } from '../../enum/access-mode.enum';
 import { IPwbAttributeModuleOnUpdate } from '../../interface/module.interface';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
-import { ComponentLayerValuesReference } from '../../injection_reference/general/component-layer-values-reference';
+import { ComponentLayerValuesReference } from '../../injection_reference/component/component-layer-values-reference';
 import { ModuleTargetNode } from '../../injection_reference/module/module-target-node-reference';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
 

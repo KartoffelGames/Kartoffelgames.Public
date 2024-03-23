@@ -1,28 +1,26 @@
 import { LayerValues } from '../../component/values/layer-values';
 import { PwbExpressionModule } from '../../decorator/pwb-expression-module.decorator';
-import { IPwbExpressionModuleOnUpdate } from '../../interface/module.interface';
-import { ModuleExpressionReference } from '../../injection_reference/module/module-value-reference';
 import { ComponentLayerValuesReference } from '../../injection_reference/component/component-layer-values-reference';
+import { ModuleValueReference } from '../../injection_reference/module/module-value-reference';
+import { IPwbExpressionModuleOnUpdate } from '../../interface/module.interface';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
 
 /**
  * Wannabe Mustache expression executor.
  * Executes readonly expressions inside double brackets.
  */
-@PwbExpressionModule({
-    selector: /{{.*?}}/
-})
+@PwbExpressionModule()
 export class MustacheExpressionModule implements IPwbExpressionModuleOnUpdate {
-    private readonly mExpressionReference: ModuleExpressionReference;
+    private readonly mExpressionValue: string;
     private readonly mValueHandler: LayerValues;
 
     /**
      * Constructor.
      * @param pValueReference - Values of component.
      */
-    public constructor(pValueReference: ComponentLayerValuesReference, pExpressionReference: ModuleExpressionReference) {
-        this.mValueHandler = pValueReference.value;
-        this.mExpressionReference = pExpressionReference;
+    public constructor(pValueReference: ComponentLayerValuesReference, pExpressionReference: ModuleValueReference) {
+        this.mValueHandler = pValueReference;
+        this.mExpressionValue = pExpressionReference.toString();
     }
 
     /**
@@ -33,11 +31,10 @@ export class MustacheExpressionModule implements IPwbExpressionModuleOnUpdate {
      */
     public onUpdate(): string {
         // Cut out mustache.
-        const lExpression = this.mExpressionReference.value;
-        const lExpressionText: string = lExpression.substr(2, lExpression.length - 4);
+        const lExpression = this.mExpressionValue;
 
         // Execute string
-        const lExecutionResult: any = ComponentScopeExecutor.executeSilent(lExpressionText, this.mValueHandler);
+        const lExecutionResult: any = ComponentScopeExecutor.executeSilent(lExpression, this.mValueHandler);
 
         return lExecutionResult?.toString();
     }

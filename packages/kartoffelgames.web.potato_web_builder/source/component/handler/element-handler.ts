@@ -19,7 +19,6 @@ export class ElementHandler {
     /**
      * Constructor.
      * @param pHtmlElement - HTMLElement.
-     * @param pUserObjectHandler - User object handler.
      */
     public constructor(pHtmlElement: HTMLElement) {
         this.mHtmlElement = pHtmlElement;

@@ -5,7 +5,7 @@ export class ComponentConnection {
 
     /**
      * Get connected component manager of object.
-     * Supported types are HTMLElements or UserObjects.
+     * Supported types are HTMLElements or component processors.
      * @param pObject - Instace that is connected to 
      * @returns 
      */

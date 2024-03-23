@@ -12,7 +12,7 @@ import { ComponentModules } from './component-modules';
 import { ElementCreator } from './element-creator';
 import { ElementHandler } from './handler/element-handler';
 import { UpdateHandler } from './handler/update-handler';
-import { UserObjectHandler } from './handler/user-object-handler';
+import { ComponentProcessorHandler } from './handler/user-object-handler';
 import { PwbTemplate } from './template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 import { TemplateParser } from './template/template-parser';
@@ -31,7 +31,7 @@ export class Component implements IComponentHierarchyParent {
     private readonly mExtensionList: Array<ComponentExtension>;
     private readonly mRootBuilder: StaticBuilder;
     private readonly mUpdateHandler: UpdateHandler;
-    private readonly mComponentProcessor: UserObjectHandler;
+    private readonly mComponentProcessor: ComponentProcessorHandler;
 
     /**
      * Get element handler.
@@ -59,7 +59,7 @@ export class Component implements IComponentHierarchyParent {
     /**
      * Get user class object.
      */
-    public get processor(): UserObjectHandler {
+    public get processor(): ComponentProcessorHandler {
         return this.mComponentProcessor;
     }
 
@@ -119,7 +119,7 @@ export class Component implements IComponentHierarchyParent {
         });
 
         // Create user object handler.
-        this.mComponentProcessor = new UserObjectHandler(pComponentProcessorConstructor, this.updateHandler, lLocalInjections);
+        this.mComponentProcessor = new ComponentProcessorHandler(pComponentProcessorConstructor, this.updateHandler, lLocalInjections);
 
         // After build, before initialization.
         this.mComponentProcessor.callOnPwbInitialize();
@@ -127,7 +127,7 @@ export class Component implements IComponentHierarchyParent {
         // Connect with this component manager.
         ComponentConnection.connectComponentWith(this.elementHandler.htmlElement, this);
         ComponentConnection.connectComponentWith(this.processor.processor, this);
-        ComponentConnection.connectComponentWith(this.processor.untrackedUserObject, this);
+        ComponentConnection.connectComponentWith(this.processor.untrackedProcessor, this);
 
         // Create component builder.
         const lModules: ComponentModules = new ComponentModules(this, pExpressionModule);

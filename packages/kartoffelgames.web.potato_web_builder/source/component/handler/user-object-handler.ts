@@ -4,15 +4,15 @@ import { ChangeDetection } from '@kartoffelgames/web.change-detection';
 import { ComponentProcessorConstructor, ComponentProcessor } from '../../interface/component.interface';
 import { UpdateHandler } from './update-handler';
 
-export class UserObjectHandler {
+export class ComponentProcessorHandler {
+    private readonly mProcessor: ComponentProcessor;
     private readonly mProcessorConstructor: ComponentProcessorConstructor;
-    private readonly mUserObject: ComponentProcessor;
-
+    
     /**
      * User class instance.
      */
     public get processor(): ComponentProcessor {
-        return this.mUserObject;
+        return this.mProcessor;
     }
 
     /**
@@ -25,8 +25,8 @@ export class UserObjectHandler {
     /**
      * Untracked user class instance.
      */
-    public get untrackedUserObject(): ComponentProcessor {
-        return ChangeDetection.getUntrackedObject(this.mUserObject);
+    public get untrackedProcessor(): ComponentProcessor {
+        return ChangeDetection.getUntrackedObject(this.mProcessor);
     }
 
     /**
@@ -44,11 +44,11 @@ export class UserObjectHandler {
 
         // Create user object inside update zone.
         // Constructor needs to be called inside zone.
-        let lUntrackedUserObject: ComponentProcessor | null = null;
+        let lUntrackedProcessor: ComponentProcessor | null = null;
         pUpdateHandler.executeInZone(() => {
-            lUntrackedUserObject = Injection.createObject<ComponentProcessor>(pComponentProcessorConstructor, lLocalInjections);
+            lUntrackedProcessor = Injection.createObject<ComponentProcessor>(pComponentProcessorConstructor, lLocalInjections);
         });
-        this.mUserObject = pUpdateHandler.registerObject(<ComponentProcessor><any>lUntrackedUserObject);
+        this.mProcessor = pUpdateHandler.registerObject(<ComponentProcessor><any>lUntrackedProcessor);
         this.mProcessorConstructor = pComponentProcessorConstructor;
     }
 
@@ -99,12 +99,12 @@ export class UserObjectHandler {
      * Callback by name.
      * @param pCallbackKey - Callback name.
      */
-    private callUserCallback(pCallbackKey: UserObjectCallbacks, ...pArguments: Array<any>) {
+    private callUserCallback(pCallbackKey: ComponentProcessorCallbacks, ...pArguments: Array<any>) {
         // Callback when it exits
-        if (pCallbackKey in this.mUserObject) {
-            (<(...pArguments: Array<any>) => void>this.mUserObject[pCallbackKey])(...pArguments);
+        if (pCallbackKey in this.mProcessor) {
+            (<(...pArguments: Array<any>) => void>this.mProcessor[pCallbackKey])(...pArguments);
         }
     }
 }
 
-type UserObjectCallbacks = keyof ComponentProcessor;
+type ComponentProcessorCallbacks = keyof ComponentProcessor;

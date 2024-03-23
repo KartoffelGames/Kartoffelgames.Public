@@ -1,6 +1,6 @@
 import { List } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
-import { UserObjectHandler } from '../../component/handler/user-object-handler';
+import { ComponentProcessorHandler } from '../../component/handler/user-object-handler';
 import { PwbExtension } from '../../decorator/pwb-extension.decorator';
 import { ExtensionPriority } from '../../enum/extension-priority.enum';
 import { ExtensionType } from '../../enum/extension-type.enum';
@@ -15,7 +15,7 @@ export class ExportExtension {
     public static readonly METADATA_EXPORTED_PROPERTIES: string = 'pwb:exported_properties';
 
     private readonly mHtmlElement: HTMLElement;
-    private readonly mUserObjectHandler: UserObjectHandler;
+    private readonly mUserObjectHandler: ComponentProcessorHandler;
 
     /**
      * Constructor.

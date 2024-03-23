@@ -3,7 +3,7 @@ import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-
 import { ChangeDetection } from '@kartoffelgames/web.change-detection';
 import { ErrorListener } from '@kartoffelgames/web.change-detection/library/source/change_detection/change-detection';
 import { ComponentConnection } from './component/component-connection';
-import { ComponentManager } from './component/component-manager';
+import { Component } from './component/component';
 import { ElementCreator } from './component/element-creator';
 import { PwbTemplateXmlNode } from './component/template/nodes/pwb-template-xml-node';
 
@@ -94,7 +94,7 @@ export class PwbApp {
         }
 
         // Get content selector.
-        const lSelector: string | null = Metadata.get(pContentClass).getMetadata(ComponentManager.METADATA_SELECTOR);
+        const lSelector: string | null = Metadata.get(pContentClass).getMetadata(Component.METADATA_SELECTOR);
         if (!lSelector) {
             throw new Exception('Content is not a component.', this);
         }
@@ -162,7 +162,7 @@ export class PwbApp {
                     }
 
                     // Get ComponentManager of component and add update waiter to the waiter list. 
-                    const lComponentManager: ComponentManager = <ComponentManager>ComponentConnection.componentManagerOf(lComponent);
+                    const lComponentManager: Component = <Component>ComponentConnection.componentManagerOf(lComponent);
                     lUpdateWaiter.push(lComponentManager.updateHandler.waitForUpdate());
                 }
 
@@ -247,7 +247,7 @@ export class PwbApp {
      */
     private createComponent(pContentClass: InjectionConstructor): HTMLElement {
         // Get content selector. Selector is allways found.
-        const lSelector: string = <string>Metadata.get(pContentClass).getMetadata(ComponentManager.METADATA_SELECTOR);
+        const lSelector: string = <string>Metadata.get(pContentClass).getMetadata(Component.METADATA_SELECTOR);
 
         // Create content template content is always inside xhtml namespace.
         const lContentTemplate: PwbTemplateXmlNode = new PwbTemplateXmlNode();

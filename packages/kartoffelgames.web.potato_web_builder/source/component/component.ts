@@ -21,7 +21,7 @@ import { ComponentHierarchyInjection, IComponentHierarchyParent } from '../inter
 /**
  * Base component handler. Handles initialisation and update of components.
  */
-export class ComponentManager implements IComponentHierarchyParent {
+export class Component implements IComponentHierarchyParent {
     public static readonly METADATA_SELECTOR: string = 'pwb:selector';
 
     private static readonly mComponentCache: Dictionary<UserClass, PwbTemplate> = new Dictionary<UserClass, PwbTemplate>();
@@ -73,10 +73,10 @@ export class ComponentManager implements IComponentHierarchyParent {
      */
     public constructor(pUserClass: UserClass, pTemplateString: string | null, pExpressionModule: IPwbExpressionModuleProcessorConstructor, pHtmlComponent: HTMLElement, pUpdateScope: UpdateScope) {
         // Load cached or create new module handler and template.
-        let lTemplate: PwbTemplate | undefined = ComponentManager.mComponentCache.get(pUserClass);
+        let lTemplate: PwbTemplate | undefined = Component.mComponentCache.get(pUserClass);
         if (!lTemplate) {
-            lTemplate = ComponentManager.mXmlParser.parse(pTemplateString ?? '');
-            ComponentManager.mComponentCache.set(pUserClass, lTemplate);
+            lTemplate = Component.mXmlParser.parse(pTemplateString ?? '');
+            Component.mComponentCache.set(pUserClass, lTemplate);
         }
 
         const lModules: ComponentModules = new ComponentModules(this, pExpressionModule);

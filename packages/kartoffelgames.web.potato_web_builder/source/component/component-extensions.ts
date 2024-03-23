@@ -1,7 +1,7 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { ComponentExtension } from '../extension/component-extension';
 import { GlobalExtensionsStorage } from '../extension/global-extensions-storage';
-import { ComponentManager } from './component-manager';
+import { Component } from './component';
 
 // Import default extensions.
 import '../default/component-event/component-event-extension';
@@ -72,14 +72,14 @@ export class ComponentExtensions {
 }
 
 type ComponentExtensionsExecutePatcherExtensionsParameter = {
-    componentManager: ComponentManager;
+    componentManager: Component;
     targetClass: InjectionConstructor;
     targetObject: object;
     componentElement: HTMLElement;
 };
 
 type ComponentExtensionsExecuteInjectorExtensionsParameter = {
-    componentManager: ComponentManager;
+    componentManager: Component;
     targetClass: InjectionConstructor;
     componentElement: HTMLElement;
 };

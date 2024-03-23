@@ -1,12 +1,12 @@
 import { Dictionary, Exception, List } from '@kartoffelgames/core.data';
-import { ComponentManager } from '../../component-manager';
+import { Component } from '../../component';
 import { ComponentModules } from '../../component-modules';
 import { ElementCreator } from '../../element-creator';
 import { BaseBuilder } from '../base-builder';
 
 export abstract class BaseBuilderData {
     private readonly mChildBuilderList: List<BaseBuilder>;
-    private readonly mChildComponents: Dictionary<BuilderContent, ComponentManager>;
+    private readonly mChildComponents: Dictionary<BuilderContent, Component>;
     private readonly mContentAnchor: Comment;
     private readonly mContentBoundary: RawContentBoundary;
     private readonly mLinkedContent: WeakSet<BuilderContent>;
@@ -55,7 +55,7 @@ export abstract class BaseBuilderData {
         // Init quick access buffers.
         this.mChildBuilderList = new List<BaseBuilder>();
         this.mRootChildList = new List<BuilderContent>();
-        this.mChildComponents = new Dictionary<BuilderContent, ComponentManager>();
+        this.mChildComponents = new Dictionary<BuilderContent, Component>();
         this.mLinkedContent = new WeakSet<BuilderContent>();
 
         // Create anchor of content. Anchors marks the beginning of all content nodes.
@@ -246,7 +246,7 @@ export abstract class BaseBuilderData {
             pContent.deconstruct();
         } else {
             // Get elements component manager. If it exists deconstruct it.
-            const lComponentManager: ComponentManager | undefined = this.mChildComponents.get(pContent);
+            const lComponentManager: Component | undefined = this.mChildComponents.get(pContent);
             if (lComponentManager) {
                 // Trigger component deconstruction.
                 lComponentManager.deconstruct();

@@ -1,5 +1,5 @@
 import { ComponentConnection } from '../../source/component/component-connection';
-import { ComponentManager } from '../../source/component/component-manager';
+import { Component } from '../../source/component/component';
 import { PwbApp } from '../../source/pwb-app';
 
 export class TestUtil {
@@ -42,7 +42,7 @@ export class TestUtil {
      * Get component manager of component.
      * @param pComponent - Pwb component.
      */
-    public static getComponentManager(pComponent: HTMLElement): ComponentManager | undefined {
+    public static getComponentManager(pComponent: HTMLElement): Component | undefined {
         return ComponentConnection.componentManagerOf(pComponent);
     }
 
@@ -77,7 +77,7 @@ export class TestUtil {
      * @param pComponent - Component.
      */
     public static manualUpdate(pComponent: HTMLElement): void {
-        const lComponentManager: ComponentManager | undefined = ComponentConnection.componentManagerOf(pComponent);
+        const lComponentManager: Component | undefined = ComponentConnection.componentManagerOf(pComponent);
         lComponentManager?.updateHandler.requestUpdate({ source: pComponent, property: 0, stacktrace: '' });
     }
 
@@ -99,7 +99,7 @@ export class TestUtil {
      * @param pComponent - Component.
      */
     public static async waitForUpdate(pComponent: HTMLElement): Promise<void> {
-        const lComponentManager: ComponentManager | undefined = ComponentConnection.componentManagerOf(pComponent);
+        const lComponentManager: Component | undefined = ComponentConnection.componentManagerOf(pComponent);
         await lComponentManager?.updateHandler.waitForUpdate();
     }
 }

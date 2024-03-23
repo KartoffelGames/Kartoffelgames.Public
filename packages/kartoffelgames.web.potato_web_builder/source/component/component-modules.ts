@@ -4,7 +4,7 @@ import { ExpressionModuleConfiguration, GlobalModuleStorage } from '../module/gl
 import { IPwbExpressionModuleProcessorConstructor } from '../interface/module.interface';
 import { MultiplicatorModule } from '../module/multiplicator-module';
 import { AttributeModule } from '../module/static-module';
-import { ComponentManager } from './component-manager';
+import { Component } from './component';
 import { PwbTemplateInstructionNode } from './template/nodes/pwb-template-instruction-node';
 import { PwbTemplateAttribute } from './template/nodes/values/pwb-template-attribute';
 import { PwbTemplateExpression } from './template/nodes/values/pwb-template-expression';
@@ -12,7 +12,7 @@ import { LayerValues } from './values/layer-values';
 import { Exception } from '@kartoffelgames/core.data';
 
 export class ComponentModules {
-    private readonly mComponentManager: ComponentManager;
+    private readonly mComponentManager: Component;
     private readonly mExpressionModule: IPwbExpressionModuleProcessorConstructor;
     private readonly mGlobalModuleStorage: GlobalModuleStorage;
 
@@ -21,7 +21,7 @@ export class ComponentModules {
      * @param pExpressionModule - default expression module for this component. 
      * @param pComponentManager - Component manager.
      */
-    public constructor(pComponentManager: ComponentManager, pExpressionModule?: IPwbExpressionModuleProcessorConstructor) {
+    public constructor(pComponentManager: Component, pExpressionModule?: IPwbExpressionModuleProcessorConstructor) {
         // Get expression module.
         this.mExpressionModule = pExpressionModule ?? <IPwbExpressionModuleProcessorConstructor><any>MustacheExpressionModule;
         this.mComponentManager = pComponentManager;

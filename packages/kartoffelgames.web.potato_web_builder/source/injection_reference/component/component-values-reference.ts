@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { LayerValues } from '../../component/values/layer-values';
-import { ComponentManager } from '../../component/component-manager';
+import { Component } from '../../component/component';
 
 /**
  * Component Layer value reference.
@@ -16,7 +16,7 @@ export class ComponentValuesReference extends LayerValues {
      * @throws {@link Exception}
      * Allways.
      */
-    public constructor(pParentLayer: LayerValues | ComponentManager) {
+    public constructor(pParentLayer: LayerValues | Component) {
         super(pParentLayer);
 
         throw new Exception('Reference should not be instanced.', this);

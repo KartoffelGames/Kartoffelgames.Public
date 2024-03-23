@@ -1,7 +1,7 @@
-import { ComponentManager } from './component-manager';
+import { Component } from './component';
 
 export class ComponentConnection {
-    private static readonly mComponentManagerConnections: WeakMap<object, ComponentManager> = new WeakMap<object, ComponentManager>();
+    private static readonly mComponentManagerConnections: WeakMap<object, Component> = new WeakMap<object, Component>();
 
     /**
      * Get connected component manager of object.
@@ -9,7 +9,7 @@ export class ComponentConnection {
      * @param pObject - Instace that is connected to 
      * @returns 
      */
-    public static componentManagerOf(pObject: object): ComponentManager | undefined {
+    public static componentManagerOf(pObject: object): Component | undefined {
         return ComponentConnection.mComponentManagerConnections.get(pObject);
     }
 
@@ -18,7 +18,7 @@ export class ComponentConnection {
      * @param pObject - Instance.
      * @param pComponentManager - Component manager of instance.
      */
-    public static connectComponentManagerWith(pObject: object, pComponentManager: ComponentManager): void {
+    public static connectComponentManagerWith(pObject: object, pComponentManager: Component): void {
         ComponentConnection.mComponentManagerConnections.set(pObject, pComponentManager);
     }
 }

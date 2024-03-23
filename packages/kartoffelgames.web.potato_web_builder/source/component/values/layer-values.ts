@@ -1,5 +1,5 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { ComponentManager } from '../component-manager';
+import { Component } from '../component';
 
 /**
  * Interface between persistent values directly from component and temporary values
@@ -9,14 +9,14 @@ import { ComponentManager } from '../component-manager';
  * has-, get-, set-, remove-.
  */
 export class LayerValues {
-    private readonly mComponentManager: ComponentManager;
+    private readonly mComponentManager: Component;
     private readonly mParentLayer: LayerValues | null;
     private readonly mTemporaryValues: Dictionary<string, any>;
 
     /**
      * Component manager connected with layer value.
      */
-    public get componentManager(): ComponentManager {
+    public get componentManager(): Component {
         return this.mComponentManager;
     }
 
@@ -50,10 +50,10 @@ export class LayerValues {
      * New component value layer.
      * @param pParentLayer - Parent layer. ComponentManager on root layer.
      */
-    public constructor(pParentLayer: LayerValues | ComponentManager) {
+    public constructor(pParentLayer: LayerValues | Component) {
         this.mTemporaryValues = new Dictionary<string, any>();
 
-        if (pParentLayer instanceof ComponentManager) {
+        if (pParentLayer instanceof Component) {
             this.mParentLayer = null;
             this.mComponentManager = pParentLayer;
         } else {

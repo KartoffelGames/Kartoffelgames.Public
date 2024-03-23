@@ -1,6 +1,6 @@
 import { InjectionConstructor, Injector, Metadata } from '@kartoffelgames/core.dependency-injection';
 import { IPwbExpressionModuleProcessorConstructor, IPwbInstructionModuleProcessorConstructor, IPwbAttributeModuleProcessorConstructor } from '../interface/module.interface';
-import { ComponentManager } from '../component/component-manager';
+import { Component } from '../component/component';
 import { UpdateScope } from '../enum/update-scope.enum';
 import { UserClass } from '../interface/user-class.interface';
 
@@ -15,11 +15,11 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
         Injector.Injectable(pUserClassConstructor);
 
         // Set element metadata.
-        Metadata.get(pUserClassConstructor).setMetadata(ComponentManager.METADATA_SELECTOR, pParameter.selector);
+        Metadata.get(pUserClassConstructor).setMetadata(Component.METADATA_SELECTOR, pParameter.selector);
 
         // Create custom html element of parent type.
         const lPwbComponentConstructor = class extends HTMLElement {
-            private readonly mComponentManager: ComponentManager;
+            private readonly mComponentManager: Component;
 
             /**
              * Constructor.
@@ -29,7 +29,7 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
                 super();
 
                 // Create component handler.
-                this.mComponentManager = new ComponentManager(
+                this.mComponentManager = new Component(
                     pUserClassConstructor,
                     pParameter.template ?? null,
                     pParameter.expressionmodule,

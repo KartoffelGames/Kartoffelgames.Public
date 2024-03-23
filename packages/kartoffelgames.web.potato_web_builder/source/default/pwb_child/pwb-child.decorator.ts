@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { ComponentConnection } from '../../component/component-connection';
-import { ComponentManager } from '../../component/component-manager';
+import { Component } from '../../component/component';
 import { UserObject } from '../../interface/user-class.interface';
 
 /**
@@ -18,7 +18,7 @@ export function PwbChild(pIdChildName: string): any {
         Object.defineProperty(pTarget, pPropertyKey, {
             get(this: UserObject) {
                 // Get component manager and exit if target is not a component.
-                const lComponentManager: ComponentManager | undefined = ComponentConnection.componentManagerOf(this);
+                const lComponentManager: Component | undefined = ComponentConnection.componentManagerOf(this);
                 if (!lComponentManager) {
                     throw new Exception('Target is not a Component', this);
                 }

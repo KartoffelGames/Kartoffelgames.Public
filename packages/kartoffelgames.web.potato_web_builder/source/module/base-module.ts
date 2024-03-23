@@ -11,11 +11,12 @@ import { ModuleTemplateReference } from '../injection_reference/module/module-te
 import { ModuleValueReference } from '../injection_reference/module/module-value-reference';
 import { ComponentHierarchyInjection, IComponentHierarchyParent } from '../interface/component-hierarchy.interface';
 import { IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../interface/module.interface';
+import { ModuleReference } from '../injection_reference/module/module-reference';
 
 export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor extends IPwbModuleProcessor> implements IComponentHierarchyParent {
     private readonly mExtensionList: Array<ModuleExtension>;
     private readonly mInjections: Dictionary<InjectionConstructor, any>;
-    private mModuleProcessor: TModuleProcessor | null;
+    private mProcessor: TModuleProcessor | null;
     private readonly mProcessorConstructor: InjectionConstructor;
     private readonly mTargetNode: TTargetNode;
 
@@ -41,11 +42,11 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
      * Initialize processor when it hasn't already.
      */
     protected get processor(): TModuleProcessor {
-        if (!this.mModuleProcessor) {
-            this.mModuleProcessor = this.createModuleProcessor();
+        if (!this.mProcessor) {
+            this.mProcessor = this.createModuleProcessor();
         }
 
-        return this.mModuleProcessor;
+        return this.mProcessor;
     }
 
     /**
@@ -58,7 +59,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
         this.mTargetNode = pParameter.targetNode;
 
         // Init runtime lists.
-        this.mModuleProcessor = null;
+        this.mProcessor = null;
         this.mExtensionList = new Array<ModuleExtension>();
         this.mInjections = new Dictionary<InjectionConstructor, any>();
 
@@ -71,6 +72,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
         this.setProcessorAttributes(ModuleTemplateReference, pParameter.targetTemplate.clone());
         this.setProcessorAttributes(ModuleTargetNode, pParameter.targetNode);
         this.setProcessorAttributes(ModuleValueReference, pParameter.values);
+        this.setProcessorAttributes(ModuleReference, this);
     }
 
     /**
@@ -98,7 +100,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
      * When the processor was already initialized.
      */
     public setProcessorAttributes(pInjectionTarget: InjectionConstructor, pInjectionValue: any): void {
-        if (this.mModuleProcessor) {
+        if (this.mProcessor) {
             throw new Exception('Cant add attributes to already initialized module.', this);
         }
 

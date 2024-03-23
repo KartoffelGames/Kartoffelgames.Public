@@ -4,9 +4,8 @@ import { AccessMode } from '../enum/access-mode.enum';
 import { ModuleKeyReference } from '../injection_reference/module/module-key-reference';
 import { ModuleValueReference } from '../injection_reference/module/module-value-reference';
 import { IComponentHierarchyParent } from '../interface/component-hierarchy.interface';
-import { IPwbAttributeModuleProcessor } from '../interface/module.interface';
+import { IPwbAttributeModuleProcessor, IPwbAttributeModuleProcessorConstructor } from '../interface/module.interface';
 import { BaseModule } from './base-module';
-import { AttributeModuleConfiguration } from './global-module-storage';
 
 export class AttributeModule extends BaseModule<Element, IPwbAttributeModuleProcessor> {
     private readonly mAccessMode: AccessMode;
@@ -24,7 +23,7 @@ export class AttributeModule extends BaseModule<Element, IPwbAttributeModuleProc
      */
     public constructor(pParameter: StaticModuleConstructorParameter) {
         super({
-            module: pParameter.module,
+            constructor: pParameter.constructor,
             targetTemplate: pParameter.targetTemplate,
             values: pParameter.values,
             parent: pParameter.parent,
@@ -32,7 +31,7 @@ export class AttributeModule extends BaseModule<Element, IPwbAttributeModuleProc
         });
 
         // Save module access mode.
-        this.mAccessMode = pParameter.module.access;
+        this.mAccessMode = pParameter.accessMode;
 
         // Set processor attribute values from injection template.
         this.setProcessorAttributes(ModuleValueReference, pParameter.targetTemplate.name);
@@ -52,7 +51,8 @@ export class AttributeModule extends BaseModule<Element, IPwbAttributeModuleProc
 }
 
 export type StaticModuleConstructorParameter = {
-    module: AttributeModuleConfiguration,
+    accessMode: AccessMode,
+    constructor: IPwbAttributeModuleProcessorConstructor,
     targetTemplate: PwbTemplateAttribute,
     values: LayerValues,
     parent: IComponentHierarchyParent,

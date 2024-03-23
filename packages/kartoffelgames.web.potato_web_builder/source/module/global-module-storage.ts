@@ -133,5 +133,3 @@ export type InstructionModuleConfiguration = {
     constructor: IPwbInstructionModuleProcessorConstructor;
     instructionType: string;
 };
-
-export type ModuleConfiguration = AttributeModuleConfiguration | ExpressionModuleConfiguration | InstructionModuleConfiguration;

@@ -16,7 +16,7 @@ import { PwbTemplate } from './template/nodes/pwb-template';
 import { TemplateParser } from './template/template-parser';
 import { LayerValues } from './values/layer-values';
 import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
-import { IComponentHierarchyParent } from '../interface/component-hierarchy.interface';
+import { ComponentHierarchyInjection, IComponentHierarchyParent } from '../interface/component-hierarchy.interface';
 
 /**
  * Base component handler. Handles initialisation and update of components.
@@ -39,6 +39,8 @@ export class ComponentManager implements IComponentHierarchyParent {
     public get elementHandler(): ElementHandler {
         return this.mElementHandler;
     }
+
+    injections: ComponentHierarchyInjection[];
 
     /**
      * Get component values of the root builder. 

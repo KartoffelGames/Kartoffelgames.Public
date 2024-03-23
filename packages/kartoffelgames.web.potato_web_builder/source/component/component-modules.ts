@@ -44,7 +44,8 @@ export class ComponentModules {
             if (lModuleConfiguration.selector.test(pTemplate.name)) {
                 // Get constructor and create new module.
                 const lModule: AttributeModule = new AttributeModule({
-                    module: lModuleConfiguration,
+                    accessMode: lModuleConfiguration.access,
+                    constructor: lModuleConfiguration.constructor,
                     targetTemplate: pTemplate,
                     values: pValues,
                     parent: this.mComponentManager,
@@ -74,7 +75,7 @@ export class ComponentModules {
         }
 
         const lModule: ExpressionModule = new ExpressionModule({
-            module: lModuleConfiguration,
+            constructor: lModuleConfiguration.constructor,
             targetTemplate: pTemplate,
             values: pValues,
             parent: this.mComponentManager,
@@ -99,7 +100,7 @@ export class ComponentModules {
             if (lModuleConfiguration.instructionType === pTemplate.instructionType) {
                 // Get constructor and create new module.
                 const lModule: MultiplicatorModule = new MultiplicatorModule({
-                    module: lModuleConfiguration,
+                    constructor: lModuleConfiguration.constructor,
                     targetTemplate: pTemplate,
                     values: pValues,
                     parent: this.mComponentManager,

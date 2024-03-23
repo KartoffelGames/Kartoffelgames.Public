@@ -11,7 +11,6 @@ import { ComponentHierarchyInjection, IComponentHierarchyParent } from '../inter
 import { ComponentProcessorConstructor } from '../interface/component.interface';
 import { IPwbExpressionModuleProcessorConstructor } from '../interface/module.interface';
 import { StaticBuilder } from './builder/static-builder';
-import { ComponentConnection } from './component-connection';
 import { ComponentModules } from './component-modules';
 import { ElementCreator } from './element-creator';
 import { ElementHandler } from './handler/element-handler';
@@ -26,8 +25,19 @@ import { LayerValues } from './values/layer-values';
  * Base component handler. Handles initialisation and update of components.
  */
 export class Component implements IComponentHierarchyParent {
+    private static readonly mComponentConnections: WeakMap<object, Component> = new WeakMap<object, Component>();
     private static readonly mTemplateCache: Dictionary<ComponentProcessorConstructor, PwbTemplate> = new Dictionary<ComponentProcessorConstructor, PwbTemplate>();
     private static readonly mXmlParser: TemplateParser = new TemplateParser();
+    
+    /**
+     * Get component of html element or component processor
+     * @param pElement - component element or processor.
+     * 
+     * @returns component reference of html element or undefined when element is no component.
+     */
+    public static of(pElement: HTMLElement | object): Component | undefined {
+        return Component.mComponentConnections.get(pElement);
+    }
 
     private readonly mComponentProcessor: ComponentProcessorHandler;
     private readonly mElementHandler: ElementHandler;
@@ -142,10 +152,10 @@ export class Component implements IComponentHierarchyParent {
         // After build, before initialization.
         this.mComponentProcessor.callOnPwbInitialize();
 
-        // Connect with this component manager.
-        ComponentConnection.connectComponentWith(this.elementHandler.htmlElement, this);
-        ComponentConnection.connectComponentWith(this.processor.processor, this);
-        ComponentConnection.connectComponentWith(this.processor.untrackedProcessor, this);
+        // Connect compontent parts with component.
+        Component.mComponentConnections.set(this.elementHandler.htmlElement, this);
+        Component.mComponentConnections.set(this.processor.processor, this);
+        Component.mComponentConnections.set(this.processor.untrackedProcessor, this);
 
         this.mComponentProcessor.callAfterPwbInitialize();
     }

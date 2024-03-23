@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-import { ComponentConnection } from '../../../../source/component/component-connection';
 import { Component } from '../../../../source/component/component';
 import { PwbComponent } from '../../../../source/decorator/pwb-component.decorator';
 import { TestUtil } from '../../../utility/test-util';
@@ -19,7 +18,7 @@ describe('LayerValues', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
 
         // 
-        const lComponentManager: Component = <Component>ComponentConnection.componentOf(lComponent);
+        const lComponentManager: Component = Component.of(lComponent)!;
         const lRootValuesComponentManager: Component = lComponentManager.rootValues.component;
 
         // Evaluation.
@@ -35,7 +34,7 @@ describe('LayerValues', () => {
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lRootValues: LayerValues = (<Component>ComponentConnection.componentOf(lComponent)).rootValues.rootValue;
+        const lRootValues: LayerValues = Component.of(lComponent)!.rootValues.rootValue;
 
         // Process. Create child layer.
         const lChildLayer: LayerValues = new LayerValues(lRootValues);
@@ -55,7 +54,7 @@ describe('LayerValues', () => {
 
             // Setup. Create element.
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-            const lRootValues: LayerValues = (<Component>ComponentConnection.componentOf(lComponent)).rootValues;
+            const lRootValues: LayerValues = Component.of(lComponent)!.rootValues;
 
             // Process. Create child layer.
             const lIsEqual: boolean = lRootValues.equals(lRootValues);
@@ -79,9 +78,9 @@ describe('LayerValues', () => {
 
             // Setup. Create element.
             const lComponentOne: HTMLElement = await <any>TestUtil.createComponent(TestComponentOne);
-            const lRootValuesOne: LayerValues = (<Component>ComponentConnection.componentOf(lComponentOne)).rootValues;
+            const lRootValuesOne: LayerValues = Component.of(lComponentOne)!.rootValues;
             const lComponentTwo: HTMLElement = await <any>TestUtil.createComponent(TestComponentTwo);
-            const lRootValuesTwo: LayerValues = (<Component>ComponentConnection.componentOf(lComponentTwo)).rootValues;
+            const lRootValuesTwo: LayerValues = Component.of(lComponentTwo)!.rootValues;
 
             // Process.
             const lIsEqual: boolean = lRootValuesOne.equals(lRootValuesTwo);
@@ -99,7 +98,7 @@ describe('LayerValues', () => {
 
             // Setup. Create element.
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-            const lRootValues: LayerValues = (<Component>ComponentConnection.componentOf(lComponent)).rootValues.rootValue;
+            const lRootValues: LayerValues = Component.of(lComponent)!.rootValues.rootValue;
 
             // Setup. Create child layer.
             const lChildLayerOne: LayerValues = new LayerValues(lRootValues);
@@ -122,7 +121,7 @@ describe('LayerValues', () => {
 
             // Setup. Create element.
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-            const lRootValues: LayerValues = (<Component>ComponentConnection.componentOf(lComponent)).rootValues.rootValue;
+            const lRootValues: LayerValues = Component.of(lComponent)!.rootValues.rootValue;
 
             // Setup. Create child layer.
             const lChildLayerOne: LayerValues = new LayerValues(lRootValues);
@@ -152,7 +151,7 @@ describe('LayerValues', () => {
 
             // Setup. Create element and get root layer.
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-            const lRootValues: LayerValues = (<Component>ComponentConnection.componentOf(lComponent)).rootValues.rootValue;
+            const lRootValues: LayerValues = Component.of(lComponent)!.rootValues.rootValue;
             lRootValues.setLayerValue(lLayerKey, lLayerValue);
 
             // Process.
@@ -175,7 +174,7 @@ describe('LayerValues', () => {
 
             // Setup. Create element and get root layer.
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-            const lRootValues: LayerValues = (<Component>ComponentConnection.componentOf(lComponent)).rootValues.rootValue;
+            const lRootValues: LayerValues = Component.of(lComponent)!.rootValues.rootValue;
             lRootValues.setLayerValue(lLayerKey, lLayerValue);
 
             // Setup. Create child layer.
@@ -202,7 +201,7 @@ describe('LayerValues', () => {
 
         // Setup. Create element and get root layer.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lRootValues: LayerValues = (<Component>ComponentConnection.componentOf(lComponent)).rootValues.rootValue;
+        const lRootValues: LayerValues = Component.of(lComponent)!.rootValues.rootValue;
         lRootValues.setLayerValue(lLayerKey, lLayerValue);
 
         // Process.
@@ -226,7 +225,7 @@ describe('LayerValues', () => {
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lRootValues: LayerValues = (<Component>ComponentConnection.componentOf(lComponent)).rootValues.rootValue;
+        const lRootValues: LayerValues = Component.of(lComponent)!.rootValues.rootValue;
 
         // Setup. Create child layer.
         const lChildLayerOne: LayerValues = new LayerValues(lRootValues);

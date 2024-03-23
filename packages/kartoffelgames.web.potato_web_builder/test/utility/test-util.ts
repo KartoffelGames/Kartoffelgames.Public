@@ -1,4 +1,3 @@
-import { ComponentConnection } from '../../source/component/component-connection';
 import { Component } from '../../source/component/component';
 import { PwbApp } from '../../source/pwb-app';
 
@@ -25,7 +24,7 @@ export class TestUtil {
         const lComponent: HTMLElement = <HTMLElement>(<ShadowRoot>lPwbApp.content.shadowRoot).childNodes[1];
 
         // Wait for any update to happen.
-        await ComponentConnection.componentOf(lComponent)?.updateHandler.waitForUpdate();
+        await Component.of(lComponent)?.updateHandler.waitForUpdate();
 
         return lComponent;
     }
@@ -35,7 +34,7 @@ export class TestUtil {
      * @param pComponent - Pwb component.
      */
     public static deconstructComponent(pComponent: HTMLElement): void {
-        ComponentConnection.componentOf(pComponent)?.deconstruct();
+        Component.of(pComponent)?.deconstruct();
     }
 
     /**
@@ -43,7 +42,7 @@ export class TestUtil {
      * @param pComponent - Pwb component.
      */
     public static getComponentManager(pComponent: HTMLElement): Component | undefined {
-        return ComponentConnection.componentOf(pComponent);
+        return Component.of(pComponent);
     }
 
     /**
@@ -77,7 +76,7 @@ export class TestUtil {
      * @param pComponent - Component.
      */
     public static manualUpdate(pComponent: HTMLElement): void {
-        const lComponentManager: Component | undefined = ComponentConnection.componentOf(pComponent);
+        const lComponentManager: Component | undefined = Component.of(pComponent);
         lComponentManager?.updateHandler.requestUpdate({ source: pComponent, property: 0, stacktrace: '' });
     }
 
@@ -99,7 +98,7 @@ export class TestUtil {
      * @param pComponent - Component.
      */
     public static async waitForUpdate(pComponent: HTMLElement): Promise<void> {
-        const lComponentManager: Component | undefined = ComponentConnection.componentOf(pComponent);
+        const lComponentManager: Component | undefined = Component.of(pComponent);
         await lComponentManager?.updateHandler.waitForUpdate();
     }
 }

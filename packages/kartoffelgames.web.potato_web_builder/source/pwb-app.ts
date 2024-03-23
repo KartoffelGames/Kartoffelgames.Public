@@ -2,11 +2,10 @@ import { Exception } from '@kartoffelgames/core.data';
 import { ChangeDetection } from '@kartoffelgames/web.change-detection';
 import { ErrorListener } from '@kartoffelgames/web.change-detection/library/source/change_detection/change-detection';
 import { Component } from './component/component';
-import { ComponentConnection } from './component/component-connection';
 import { ElementCreator } from './component/element-creator';
 import { PwbTemplateXmlNode } from './component/template/nodes/pwb-template-xml-node';
 
-export class PwbApp {
+export class PwbApp { // TODO: Rework PwbApp to be a component.
     private static readonly mChangeDetectionToApp: WeakMap<ChangeDetection, PwbApp> = new WeakMap<ChangeDetection, PwbApp>();
 
     /**
@@ -155,7 +154,7 @@ export class PwbApp {
                     }
 
                     // Get component of html element and add update waiter to the waiter list. 
-                    const lComponent: Component = <Component>ComponentConnection.componentOf(lComponentElement);
+                    const lComponent: Component = Component.of(lComponentElement)!;
                     lUpdateWaiter.push(lComponent.updateHandler.waitForUpdate());
                 }
 

@@ -1,5 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
-import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
+import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
+import { ChangeDetection } from '@kartoffelgames/web.change-detection';
 import { UpdateScope } from '../enum/update-scope.enum';
 import { ComponentExtension } from '../extension/component-extension';
 import { GlobalExtensionsStorage } from '../extension/global-extensions-storage';
@@ -8,14 +9,13 @@ import { ComponentElementReference } from '../injection_reference/component/comp
 import { ComponentLayerValuesReference } from '../injection_reference/component/component-layer-values-reference';
 import { ComponentUpdateHandlerReference } from '../injection_reference/component/component-update-handler-reference';
 import { ComponentHierarchyInjection, IComponentHierarchyParent } from '../interface/component-hierarchy.interface';
-import { ComponentProcessorConstructor } from '../interface/component.interface';
+import { ComponentProcessor, ComponentProcessorConstructor } from '../interface/component.interface';
 import { IPwbExpressionModuleProcessorConstructor } from '../interface/module.interface';
 import { StaticBuilder } from './builder/static-builder';
 import { ComponentModules } from './component-modules';
 import { ElementCreator } from './element-creator';
 import { ElementHandler } from './handler/element-handler';
 import { UpdateHandler } from './handler/update-handler';
-import { ComponentProcessorHandler } from './handler/component-processor-handler';
 import { PwbTemplate } from './template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 import { TemplateParser } from './template/template-parser';
@@ -28,7 +28,7 @@ export class Component implements IComponentHierarchyParent {
     private static readonly mComponentConnections: WeakMap<object, Component> = new WeakMap<object, Component>();
     private static readonly mTemplateCache: Dictionary<ComponentProcessorConstructor, PwbTemplate> = new Dictionary<ComponentProcessorConstructor, PwbTemplate>();
     private static readonly mXmlParser: TemplateParser = new TemplateParser();
-    
+
     /**
      * Get component of html element or component processor
      * @param pElement - component element or processor.
@@ -39,10 +39,11 @@ export class Component implements IComponentHierarchyParent {
         return Component.mComponentConnections.get(pElement);
     }
 
-    private readonly mComponentProcessor: ComponentProcessorHandler;
     private readonly mElementHandler: ElementHandler;
     private readonly mExtensionList: Array<ComponentExtension>;
     private readonly mInjections: Dictionary<InjectionConstructor, any>;
+    private mProcessor: ComponentProcessor | null;
+    private readonly mProcessorConstructor: ComponentProcessorConstructor;
     private readonly mRootBuilder: StaticBuilder;
     private readonly mUpdateHandler: UpdateHandler;
 
@@ -65,10 +66,14 @@ export class Component implements IComponentHierarchyParent {
     }
 
     /**
-     * Get component processor object.
+     * Component processor.
      */
-    public get processor(): ComponentProcessorHandler {
-        return this.mComponentProcessor;
+    public get processor(): ComponentProcessor {
+        if (!this.mProcessor) {
+            this.mProcessor = this.createProcessor();
+        }
+
+        return this.mProcessor;
     }
 
     /**
@@ -76,6 +81,13 @@ export class Component implements IComponentHierarchyParent {
      */
     public get rootValues(): LayerValues {
         return this.mRootBuilder.values.rootValue;
+    }
+
+    /**
+     * Untracked Component processor.
+     */
+    public get untrackedProcessor(): ComponentProcessor {
+        return ChangeDetection.getUntrackedObject(this.processor);
     }
 
     /**
@@ -94,11 +106,17 @@ export class Component implements IComponentHierarchyParent {
      * @param pUpdateScope - Update scope of component.
      */
     public constructor(pComponentProcessorConstructor: ComponentProcessorConstructor, pTemplateString: string | null, pExpressionModule: IPwbExpressionModuleProcessorConstructor, pHtmlComponent: HTMLElement, pUpdateScope: UpdateScope) {
+        // Set empty component processor.
+        this.mProcessor = null;
+        this.mProcessorConstructor = pComponentProcessorConstructor;
+
         // Load cached or create new module handler and template.
         let lTemplate: PwbTemplate | undefined = Component.mTemplateCache.get(pComponentProcessorConstructor);
         if (!lTemplate) {
             lTemplate = Component.mXmlParser.parse(pTemplateString ?? '');
             Component.mTemplateCache.set(pComponentProcessorConstructor, lTemplate);
+        } else {
+            lTemplate = lTemplate.clone();
         }
 
         // Create update handler.
@@ -106,12 +124,12 @@ export class Component implements IComponentHierarchyParent {
         this.mUpdateHandler.addUpdateListener(() => {
             // Call component processor on update function.
             this.mUpdateHandler.executeOutZone(() => {
-                this.mComponentProcessor.callOnPwbUpdate();
+                this.callOnPwbUpdate();
             });
 
             // Update and callback after update.
             if (this.mRootBuilder.update()) {
-                this.mComponentProcessor.callAfterPwbUpdate();
+                this.callAfterPwbUpdate();
             }
         });
 
@@ -129,6 +147,7 @@ export class Component implements IComponentHierarchyParent {
         this.setProcessorAttributes(ComponentElementReference, pHtmlComponent);
         this.setProcessorAttributes(ComponentLayerValuesReference, this.mRootBuilder.values);
         this.setProcessorAttributes(ComponentUpdateHandlerReference, this.mUpdateHandler);
+        this.setProcessorAttributes(ComponentReference, this);
 
         // Create injection extensions.
         this.mExtensionList = new Array<ComponentExtension>();
@@ -146,18 +165,13 @@ export class Component implements IComponentHierarchyParent {
             }
         });
 
-        // Create user object handler.
-        this.mComponentProcessor = new ComponentProcessorHandler(pComponentProcessorConstructor, this.updateHandler, this.mInjections);
-
         // After build, before initialization.
-        this.mComponentProcessor.callOnPwbInitialize();
+        this.callOnPwbInitialize();
 
         // Connect compontent parts with component.
         Component.mComponentConnections.set(this.elementHandler.htmlElement, this);
-        Component.mComponentConnections.set(this.processor.processor, this);
-        Component.mComponentConnections.set(this.processor.untrackedProcessor, this);
 
-        this.mComponentProcessor.callAfterPwbInitialize();
+        this.callAfterPwbInitialize();
     }
 
     /**
@@ -174,6 +188,49 @@ export class Component implements IComponentHierarchyParent {
     }
 
     /**
+     * Call onPwbInitialize of component processor object.
+     */
+    public callAfterPwbInitialize(): void {
+        this.processor.afterPwbInitialize?.();
+    }
+
+    /**
+     * Call onPwbInitialize of component processor object.
+     */
+    public callAfterPwbUpdate(): void {
+        this.processor.afterPwbUpdate?.();
+    }
+
+    /**
+     * Call onPwbInitialize of component processor object.
+     * @param pAttributeName - Name of updated attribute.
+     */
+    public callOnPwbAttributeChange(pAttributeName: string): void {
+        this.processor.onPwbAttributeChange?.(pAttributeName);
+    }
+
+    /**
+     * Call onPwbDeconstruct of component processor object.
+     */
+    public callOnPwbDeconstruct(): void {
+        this.processor.onPwbDeconstruct?.();
+    }
+
+    /**
+     * Call onPwbInitialize of component processor object.
+     */
+    public callOnPwbInitialize(): void {
+        this.processor.onPwbInitialize?.();
+    }
+
+    /**
+     * Call onPwbInitialize of component processor object.
+     */
+    public callOnPwbUpdate(): void {
+        this.processor.onPwbUpdate?.();
+    }
+
+    /**
      * Called when component get attached to DOM.
      */
     public connected(): void {
@@ -181,7 +238,7 @@ export class Component implements IComponentHierarchyParent {
 
         // Trigger light update.
         this.updateHandler.requestUpdate({
-            source: this.processor.processor,
+            source: this.processor,
             property: Symbol('any'),
             stacktrace: <string>Error().stack
         });
@@ -195,7 +252,7 @@ export class Component implements IComponentHierarchyParent {
         this.updateHandler.enabled = false;
 
         // User callback.
-        this.processor.callOnPwbDeconstruct();
+        this.callOnPwbDeconstruct();
 
         // Deconstruct all extensions.
         for (const lExtension of this.mExtensionList) {
@@ -226,10 +283,30 @@ export class Component implements IComponentHierarchyParent {
      * When the processor was already initialized.
      */
     public setProcessorAttributes(pInjectionTarget: InjectionConstructor, pInjectionValue: any): void {
-        if (this.mComponentProcessor) {
+        if (this.mProcessor) {
             throw new Exception('Cant add attributes to already initialized module.', this);
         }
 
         this.mInjections.set(pInjectionTarget, pInjectionValue);
+    }
+
+    /**
+     * Create component processor.
+     */
+    private createProcessor(): ComponentProcessor {
+        // Create user object inside update zone.
+        // Constructor needs to be called inside zone.
+        let lUntrackedProcessor: ComponentProcessor | null = null;
+        this.mUpdateHandler.executeInZone(() => {
+            lUntrackedProcessor = Injection.createObject<ComponentProcessor>(this.mProcessorConstructor, this.mInjections);
+        });
+
+        const lTrackedProcessor: ComponentProcessor = this.mUpdateHandler.registerObject(lUntrackedProcessor!);
+
+        // Link processor to connection.
+        Component.mComponentConnections.set(lUntrackedProcessor!, this);
+        Component.mComponentConnections.set(lTrackedProcessor, this);
+
+        return lTrackedProcessor;
     }
 }

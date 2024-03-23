@@ -57,7 +57,7 @@ export class Component implements IComponentHierarchyParent {
     }
 
     /**
-     * Get user class object.
+     * Get component processor object.
      */
     public get processor(): ComponentProcessorHandler {
         return this.mComponentProcessor;
@@ -83,7 +83,7 @@ export class Component implements IComponentHierarchyParent {
         const lUpdateScope: UpdateScope = pUpdateScope;
         this.mUpdateHandler = new UpdateHandler(lUpdateScope);
         this.mUpdateHandler.addUpdateListener(() => {
-            // Call user class on update function.
+            // Call component processor on update function.
             this.mUpdateHandler.executeOutZone(() => {
                 this.mComponentProcessor.callOnPwbUpdate();
             });

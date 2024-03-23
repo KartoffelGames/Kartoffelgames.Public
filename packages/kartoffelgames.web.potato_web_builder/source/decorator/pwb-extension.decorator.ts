@@ -10,7 +10,7 @@ import { IPwbExtensionProcessorClass } from '../interface/extension.interface';
 export function PwbExtension(pSettings: ExtensionSettings): any {
     return (pExtensionConstructor: IPwbExtensionProcessorClass) => {
 
-        // Set user class to be injectable
+        // Set processor to be injectable
         Injector.Injectable(pExtensionConstructor);
 
         // Register module.

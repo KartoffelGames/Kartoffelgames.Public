@@ -67,7 +67,7 @@ export class LayerValues {
      * @param pHandler - Handler two.
      */
     public equals(pHandler: LayerValues): boolean {
-        // Compare if it has the same user class object.
+        // Compare if it has the same component processor object.
         if (this.component.processor.processor !== pHandler.component.processor.processor) {
             return false;
         }

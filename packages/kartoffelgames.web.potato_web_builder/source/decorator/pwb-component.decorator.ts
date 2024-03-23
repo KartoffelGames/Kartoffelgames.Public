@@ -11,7 +11,7 @@ import { ComponentProcessorConstructor } from '../interface/component.interface'
 export function PwbComponent(pParameter: HtmlComponentParameter): any {
     // Needs constructor without argument.
     return (pComponentProcessorConstructor: ComponentProcessorConstructor) => {
-        // Set user class to be injectable.
+        // Set component processor constructor to be injectable.
         Injector.Injectable(pComponentProcessorConstructor);
 
         // Set element metadata.

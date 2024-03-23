@@ -8,7 +8,7 @@ import { IPwbExpressionModuleProcessorConstructor } from '../interface/module.in
  */
 export function PwbExpressionModule(): any {
     return (pExpressionModuleConstructor: IPwbExpressionModuleProcessorConstructor) => {
-        // Set user class to be injectable
+        // Set processor to be injectable
         Injector.Injectable(pExpressionModuleConstructor);
 
         // Register module.

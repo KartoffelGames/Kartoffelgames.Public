@@ -7,9 +7,9 @@ import { UpdateHandler } from './update-handler';
 export class ComponentProcessorHandler {
     private readonly mProcessor: ComponentProcessor;
     private readonly mProcessorConstructor: ComponentProcessorConstructor;
-    
+
     /**
-     * User class instance.
+     * Component processor.
      */
     public get processor(): ComponentProcessor {
         return this.mProcessor;
@@ -23,7 +23,7 @@ export class ComponentProcessorHandler {
     }
 
     /**
-     * Untracked user class instance.
+     * Untracked Component processor.
      */
     public get untrackedProcessor(): ComponentProcessor {
         return ChangeDetection.getUntrackedObject(this.mProcessor);
@@ -53,58 +53,45 @@ export class ComponentProcessorHandler {
     }
 
     /**
-     * Call onPwbInitialize of user class object.
+     * Call onPwbInitialize of component processor object.
      */
     public callAfterPwbInitialize(): void {
-        this.callUserCallback('afterPwbInitialize');
+        this.mProcessor.afterPwbInitialize?.();
     }
 
     /**
-     * Call onPwbInitialize of user class object.
+     * Call onPwbInitialize of component processor object.
      */
     public callAfterPwbUpdate(): void {
-        this.callUserCallback('afterPwbUpdate');
+        this.mProcessor.afterPwbUpdate?.();
     }
 
     /**
-     * Call onPwbInitialize of user class object.
+     * Call onPwbInitialize of component processor object.
      * @param pAttributeName - Name of updated attribute.
      */
-    public callOnPwbAttributeChange(pAttributeName: string | symbol): void {
-        this.callUserCallback('onPwbAttributeChange', pAttributeName);
+    public callOnPwbAttributeChange(pAttributeName: string): void {
+        this.mProcessor.onPwbAttributeChange?.(pAttributeName);
     }
 
     /**
-     * Call onPwbDeconstruct of user class object.
+     * Call onPwbDeconstruct of component processor object.
      */
     public callOnPwbDeconstruct(): void {
-        this.callUserCallback('onPwbDeconstruct');
+        this.mProcessor.onPwbDeconstruct?.();
     }
 
     /**
-     * Call onPwbInitialize of user class object.
+     * Call onPwbInitialize of component processor object.
      */
     public callOnPwbInitialize(): void {
-        this.callUserCallback('onPwbInitialize');
+        this.mProcessor.onPwbInitialize?.();
     }
 
     /**
-     * Call onPwbInitialize of user class object.
+     * Call onPwbInitialize of component processor object.
      */
     public callOnPwbUpdate(): void {
-        this.callUserCallback('onPwbUpdate');
-    }
-
-    /**
-     * Callback by name.
-     * @param pCallbackKey - Callback name.
-     */
-    private callUserCallback(pCallbackKey: ComponentProcessorCallbacks, ...pArguments: Array<any>) {
-        // Callback when it exits
-        if (pCallbackKey in this.mProcessor) {
-            (<(...pArguments: Array<any>) => void>this.mProcessor[pCallbackKey])(...pArguments);
-        }
+        this.mProcessor.onPwbUpdate?.();
     }
 }
-
-type ComponentProcessorCallbacks = keyof ComponentProcessor;

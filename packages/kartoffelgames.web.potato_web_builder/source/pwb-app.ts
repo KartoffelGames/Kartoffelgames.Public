@@ -1,9 +1,8 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
 import { ChangeDetection } from '@kartoffelgames/web.change-detection';
 import { ErrorListener } from '@kartoffelgames/web.change-detection/library/source/change_detection/change-detection';
-import { ComponentConnection } from './component/component-connection';
 import { Component } from './component/component';
+import { ComponentConnection } from './component/component-connection';
 import { ElementCreator } from './component/element-creator';
 import { PwbTemplateXmlNode } from './component/template/nodes/pwb-template-xml-node';
 
@@ -31,7 +30,7 @@ export class PwbApp {
     private readonly mAppComponent: HTMLElement;
     private mAppSealed: boolean;
     private readonly mChangeDetection: ChangeDetection;
-    private readonly mComponentList: Array<InjectionConstructor>;
+    private readonly mComponentList: Array<string>;
     private readonly mShadowRoot: ShadowRoot;
     private readonly mSplashScreen: HTMLElement;
     private mSplashScreenOptions: SplashScreen;
@@ -49,7 +48,7 @@ export class PwbApp {
      */
     public constructor(pAppName: string) {
         this.mAppSealed = false;
-        this.mComponentList = new Array<InjectionConstructor>();
+        this.mComponentList = new Array<string>();
         this.mChangeDetection = new ChangeDetection(pAppName);
         PwbApp.mChangeDetectionToApp.set(this.mChangeDetection, this);
 
@@ -87,20 +86,14 @@ export class PwbApp {
      * Append content to app.
      * @param pContentClass - Content constructor.
      */
-    public addContent(pContentClass: InjectionConstructor): void {
+    public addContent(pContentSelector: string): void {
         // Sealed error.
         if (this.mAppSealed) {
             throw new Exception('App content is sealed after it got append to the DOM', this);
         }
 
-        // Get content selector.
-        const lSelector: string | null = Metadata.get(pContentClass).getMetadata(Component.METADATA_SELECTOR);
-        if (!lSelector) {
-            throw new Exception('Content is not a component.', this);
-        }
-
         // Add content to content list.
-        this.mComponentList.push(pContentClass);
+        this.mComponentList.push(pContentSelector);
     }
 
     /**
@@ -245,13 +238,10 @@ export class PwbApp {
      * Create component.
      * @param pContentClass - Component class.
      */
-    private createComponent(pContentClass: InjectionConstructor): HTMLElement {
-        // Get content selector. Selector is allways found.
-        const lSelector: string = <string>Metadata.get(pContentClass).getMetadata(Component.METADATA_SELECTOR);
-
+    private createComponent(pSelector: string): HTMLElement {
         // Create content template content is always inside xhtml namespace.
         const lContentTemplate: PwbTemplateXmlNode = new PwbTemplateXmlNode();
-        lContentTemplate.tagName = lSelector;
+        lContentTemplate.tagName = pSelector;
 
         // Create content from template inside change detection.
         let lContent: HTMLElement | null = null;

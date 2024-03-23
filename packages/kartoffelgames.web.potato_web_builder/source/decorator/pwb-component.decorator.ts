@@ -1,8 +1,8 @@
-import { InjectionConstructor, Injector, Metadata } from '@kartoffelgames/core.dependency-injection';
-import { IPwbExpressionModuleProcessorConstructor, IPwbInstructionModuleProcessorConstructor, IPwbAttributeModuleProcessorConstructor } from '../interface/module.interface';
+import { InjectionConstructor, Injector } from '@kartoffelgames/core.dependency-injection';
 import { Component } from '../component/component';
 import { UpdateScope } from '../enum/update-scope.enum';
 import { ComponentProcessorConstructor } from '../interface/component.interface';
+import { IPwbAttributeModuleProcessorConstructor, IPwbExpressionModuleProcessorConstructor, IPwbInstructionModuleProcessorConstructor } from '../interface/module.interface';
 
 /**
  * AtScript. PWB Component.
@@ -13,9 +13,6 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
     return (pComponentProcessorConstructor: ComponentProcessorConstructor) => {
         // Set component processor constructor to be injectable.
         Injector.Injectable(pComponentProcessorConstructor);
-
-        // Set element metadata.
-        Metadata.get(pComponentProcessorConstructor).setMetadata(Component.METADATA_SELECTOR, pParameter.selector);
 
         // Create custom html element of parent type.
         const lPwbComponentConstructor = class extends HTMLElement {

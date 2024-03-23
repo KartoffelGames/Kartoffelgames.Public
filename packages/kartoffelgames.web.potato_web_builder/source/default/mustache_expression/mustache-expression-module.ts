@@ -2,7 +2,7 @@ import { LayerValues } from '../../component/values/layer-values';
 import { PwbExpressionModule } from '../../decorator/pwb-expression-module.decorator';
 import { IPwbExpressionModuleOnUpdate } from '../../interface/module.interface';
 import { ModuleExpressionReference } from '../../injection_reference/module/module-value-reference';
-import { ComponentValuesReference } from '../../injection_reference/component/component-values-reference';
+import { ComponentLayerValuesReference } from '../../injection_reference/component/component-layer-values-reference';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
 
 /**
@@ -20,7 +20,7 @@ export class MustacheExpressionModule implements IPwbExpressionModuleOnUpdate {
      * Constructor.
      * @param pValueReference - Values of component.
      */
-    public constructor(pValueReference: ComponentValuesReference, pExpressionReference: ModuleExpressionReference) {
+    public constructor(pValueReference: ComponentLayerValuesReference, pExpressionReference: ModuleExpressionReference) {
         this.mValueHandler = pValueReference.value;
         this.mExpressionReference = pExpressionReference;
     }

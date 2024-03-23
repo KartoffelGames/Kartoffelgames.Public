@@ -8,7 +8,7 @@ import { Component } from '../../component/component';
  * 
  * Should never be initialized.
  */
-export class ComponentValuesReference extends LayerValues {
+export class ComponentLayerValuesReference extends LayerValues {
     /**
      * Constructor. Allways throws exception.
      * @param pParentLayer - Parent layer. Values on root layer.

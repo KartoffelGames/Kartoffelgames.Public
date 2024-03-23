@@ -6,21 +6,25 @@ export { PwbApp } from './pwb-app';
 export { IPwbOnInit, IPwbAfterInit, IPwbOnDeconstruct, IPwbSlotAssign, IPwbAfterUpdate, IPwbOnUpdate, IPwbOnAttributeChange } from './interface/user-class.interface';
 export { PwbComponent } from './decorator/pwb-component.decorator';
 
-// Injections
-export { ComponentElementReference } from './injection_reference/component/component-element-reference';
-export { ComponentUpdateReference } from './injection_reference/component-update-reference';
-export { ComponentManagerReference } from './injection_reference/component/component-manager-reference';
-export { ExtensionTargetClassReference } from './injection_reference/extension-target-class-reference';
-export { ExtensionTargetObjectReference } from './injection_reference/extension-target-object-reference';
-export { ModuleAttributeReference } from './injection_reference/module-attribute-reference';
-export { ComponentValuesReference as ModuleLayerValuesReference } from './injection_reference/component/component-values-reference';
-export { ModuleTargetNode as ModuleTargetReference } from './injection_reference/module/module-target-node-reference';
+// Module Injections
+export { ModuleConstructorReference } from './injection_reference/module/module-constructor-reference';
+export { ModuleKeyReference } from './injection_reference/module/module-key-reference';
+export { ModuleLayerValuesReference } from './injection_reference/module/module-layer-values-reference';
+export { ModuleReference } from './injection_reference/module/module-reference';
+export { ModuleTargetNode } from './injection_reference/module/module-target-node-reference';
 export { ModuleTemplateReference } from './injection_reference/module/module-template-reference';
+export { ModuleValueReference } from './injection_reference/module/module-value-reference';
+
+// Component Injections
+export { ComponentConstructorReference } from './injection_reference/component/component-constructor-reference';
+export { ComponentElementReference } from './injection_reference/component/component-element-reference';
+export { ComponentUpdateHandlerReference } from './injection_reference/component/component-update-handler-reference';
+export { ComponentLayerValuesReference as ComponentValuesReference } from './injection_reference/component/component-layer-values-reference';
 
 // Modules
 export { ComponentScopeExecutor } from './module/execution/component-scope-executor';
 export { IPwbExpressionModuleOnUpdate, IPwbAttributeModuleOnUpdate, IPwbInstructionModuleOnUpdate, IPwbModuleOnDeconstruct } from './interface/module.interface';
-export { AccessMode as ModuleAccessType } from './enum/access-mode.enum';
+export { AccessMode } from './enum/access-mode.enum';
 export { LayerValues } from './component/values/layer-values';
 export { InstructionResult } from './module/result/instruction-result';
 export { PwbExpressionModule } from './decorator/pwb-expression-module.decorator';
@@ -51,3 +55,6 @@ import '../default/pwb_for_of/for-of-manipulator-attribute-module';
 import '../default/pwb_if/if-manipulator-attribute-module';
 import '../default/slot_attribute/slot-attribute-module';
 import '../default/two_way_binding/two-way-binding-attribute-module';
+
+
+

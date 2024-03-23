@@ -1,6 +1,6 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
-import { ComponentValuesReference } from '../../injection_reference/component/component-values-reference';
+import { ComponentLayerValuesReference } from '../../injection_reference/component/component-layer-values-reference';
 import { ModuleTargetNode } from '../../injection_reference/module/module-target-node-reference';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
@@ -23,7 +23,7 @@ export class EventAttributeModule implements IPwbModuleOnDeconstruct {
      * @param pValueReference - Values of component.
      * @param pAttributeReference - Attribute of module.
      */
-    public constructor(pTargetReference: ModuleTargetNode, pValueReference: ComponentValuesReference, pAttributeReference: ModuleAttributeReference) {
+    public constructor(pTargetReference: ModuleTargetNode, pValueReference: ComponentLayerValuesReference, pAttributeReference: ModuleAttributeReference) {
         this.mTarget = <Node>pTargetReference.value;
         this.mEventName = pAttributeReference.value.name.substr(1, pAttributeReference.value.name.length - 2);
 

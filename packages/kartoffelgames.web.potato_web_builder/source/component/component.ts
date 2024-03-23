@@ -112,6 +112,13 @@ export class Component implements IComponentHierarchyParent {
             }
         });
 
+        // Add __component__ property to processor.
+        Object.defineProperty(pHtmlComponent, '__component__', {
+            get: () => {
+                return this;
+            }
+        });
+
         // Create element handler.
         this.mElementHandler = new ElementHandler(pHtmlComponent);
 
@@ -278,6 +285,13 @@ export class Component implements IComponentHierarchyParent {
         let lUntrackedProcessor: ComponentProcessor | null = null;
         this.mUpdateHandler.executeInZone(() => {
             lUntrackedProcessor = Injection.createObject<ComponentProcessor>(this.mProcessorConstructor, this.mInjections);
+        });
+
+        // Add __component__ property to processor.
+        Object.defineProperty(lUntrackedProcessor, '__component__', {
+            get: () => {
+                return this;
+            }
         });
 
         const lTrackedProcessor: ComponentProcessor = this.mUpdateHandler.registerObject(lUntrackedProcessor!);

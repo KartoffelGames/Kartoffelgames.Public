@@ -108,9 +108,9 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
     }
 
     /**
-      * Create module object.
-      * @param pValue - Value for module object.
-      */
+     * Create module object.
+     * @param pValue - Value for module object.
+     */
     private createModuleProcessor(): TModuleProcessor {
         const lExtensions: GlobalExtensionsStorage = new GlobalExtensionsStorage();
 

@@ -5,13 +5,19 @@ import { ComponentProcessorConstructor, ComponentProcessor } from '../../interfa
 import { UpdateHandler } from './update-handler';
 
 export class ComponentProcessorHandler {
-    private readonly mProcessor: ComponentProcessor;
+    private readonly mInjections: Dictionary<InjectionConstructor, any>;
+    private mProcessor: ComponentProcessor | null;
     private readonly mProcessorConstructor: ComponentProcessorConstructor;
+    private readonly mUpdateHandler: UpdateHandler;
 
     /**
      * Component processor.
      */
     public get processor(): ComponentProcessor {
+        if (!this.mProcessor) {
+            this.mProcessor = this.createProcessor();
+        }
+
         return this.mProcessor;
     }
 
@@ -26,7 +32,7 @@ export class ComponentProcessorHandler {
      * Untracked Component processor.
      */
     public get untrackedProcessor(): ComponentProcessor {
-        return ChangeDetection.getUntrackedObject(this.mProcessor);
+        return ChangeDetection.getUntrackedObject(this.processor);
     }
 
     /**
@@ -34,28 +40,24 @@ export class ComponentProcessorHandler {
      * @param pComponentProcessorConstructor - Component processor constructor.
      */
     public constructor(pComponentProcessorConstructor: ComponentProcessorConstructor, pUpdateHandler: UpdateHandler, pInjections: Dictionary<InjectionConstructor, any>) {
-        // Create user object inside update zone.
-        // Constructor needs to be called inside zone.
-        let lUntrackedProcessor: ComponentProcessor | null = null;
-        pUpdateHandler.executeInZone(() => {
-            lUntrackedProcessor = Injection.createObject<ComponentProcessor>(pComponentProcessorConstructor, pInjections);
-        });
-        this.mProcessor = pUpdateHandler.registerObject(<ComponentProcessor><any>lUntrackedProcessor);
+        this.mProcessor = null;
+        this.mUpdateHandler = pUpdateHandler;
         this.mProcessorConstructor = pComponentProcessorConstructor;
+        this.mInjections = pInjections;
     }
 
     /**
      * Call onPwbInitialize of component processor object.
      */
     public callAfterPwbInitialize(): void {
-        this.mProcessor.afterPwbInitialize?.();
+        this.processor.afterPwbInitialize?.();
     }
 
     /**
      * Call onPwbInitialize of component processor object.
      */
     public callAfterPwbUpdate(): void {
-        this.mProcessor.afterPwbUpdate?.();
+        this.processor.afterPwbUpdate?.();
     }
 
     /**
@@ -63,27 +65,41 @@ export class ComponentProcessorHandler {
      * @param pAttributeName - Name of updated attribute.
      */
     public callOnPwbAttributeChange(pAttributeName: string): void {
-        this.mProcessor.onPwbAttributeChange?.(pAttributeName);
+        this.processor.onPwbAttributeChange?.(pAttributeName);
     }
 
     /**
      * Call onPwbDeconstruct of component processor object.
      */
     public callOnPwbDeconstruct(): void {
-        this.mProcessor.onPwbDeconstruct?.();
+        this.processor.onPwbDeconstruct?.();
     }
 
     /**
      * Call onPwbInitialize of component processor object.
      */
     public callOnPwbInitialize(): void {
-        this.mProcessor.onPwbInitialize?.();
+        this.processor.onPwbInitialize?.();
     }
 
     /**
      * Call onPwbInitialize of component processor object.
      */
     public callOnPwbUpdate(): void {
-        this.mProcessor.onPwbUpdate?.();
+        this.processor.onPwbUpdate?.();
+    }
+
+    /**
+     * Create component processor.
+     */
+    private createProcessor(): ComponentProcessor {
+        // Create user object inside update zone.
+        // Constructor needs to be called inside zone.
+        let lUntrackedProcessor: ComponentProcessor | null = null;
+        this.mUpdateHandler.executeInZone(() => {
+            lUntrackedProcessor = Injection.createObject<ComponentProcessor>(this.mProcessorConstructor, this.mInjections);
+        });
+
+        return this.mUpdateHandler.registerObject(<ComponentProcessor><any>lUntrackedProcessor);
     }
 }

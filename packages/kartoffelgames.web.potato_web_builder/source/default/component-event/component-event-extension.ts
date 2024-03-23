@@ -18,15 +18,15 @@ export class ComponentEventExtension {
     /**
      * Constructor.
      * Override each event emmiter property with a new pre defined event emmiter.
-     * @param pModuleProcessorConstructor - User class reference.
+     * @param pComponentProcessorConstructor - User class reference.
      * @param pComponent - User object reference.
      * @param pElementReference - Component html element reference.
      */
-    public constructor(pModuleProcessorConstructor: ComponentConstructorReference, pComponent: ComponentReference, pElementReference: ComponentElementReference) {
+    public constructor(pComponentProcessorConstructor: ComponentConstructorReference, pComponent: ComponentReference, pElementReference: ComponentElementReference) {
         // Get event metadata.
         const lEventProperties: Dictionary<string, string> = new Dictionary<string, string>();
 
-        let lClass: InjectionConstructor = <InjectionConstructor>pModuleProcessorConstructor;
+        let lClass: InjectionConstructor = <InjectionConstructor>pComponentProcessorConstructor;
         do {
             // Find all event properties of current class layer and add all to merged property list.
             const lEventPropertyList: Dictionary<string, string> | null = Metadata.get(lClass).getMetadata(ComponentEventExtension.METADATA_USER_EVENT_PROPERIES);

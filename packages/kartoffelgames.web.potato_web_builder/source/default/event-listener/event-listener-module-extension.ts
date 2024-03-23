@@ -2,18 +2,17 @@ import { Exception } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
 import { ChangeDetection } from '@kartoffelgames/web.change-detection';
 import { PwbExtension } from '../../decorator/pwb-extension.decorator';
-import { ExtensionPriority } from '../../enum/extension-priority.enum';
+import { AccessMode } from '../../enum/access-mode.enum';
 import { ExtensionType } from '../../enum/extension-type.enum';
+import { ComponentConstructorReference } from '../../injection_reference/component/component-constructor-reference';
+import { ComponentElementReference } from '../../injection_reference/component/component-element-reference';
+import { ComponentReference } from '../../injection_reference/component/component-reference';
 import { IPwbExtensionOnDeconstruct } from '../../interface/extension.interface';
-import { ComponentManagerReference } from '../../injection_reference/component/component-manager-reference';
-import { ExtensionTargetClassReference } from '../../injection_reference/extension-target-class-reference';
-import { ExtensionTargetObjectReference } from '../../injection_reference/extension-target-object-reference';
-import { ModuleTargetNodeReference } from '../../injection_reference/module/module-target-node-reference';
 import { EventListenerComponentExtension } from './event-listener-component-extension';
 
 @PwbExtension({
     type: ExtensionType.Module,
-    mode: ExtensionPriority.Patch
+    access: AccessMode.Read
 })
 export class EventListenerModuleExtension implements IPwbExtensionOnDeconstruct {
     private readonly mEventListenerList: Array<[string, EventListener]>;
@@ -26,11 +25,11 @@ export class EventListenerModuleExtension implements IPwbExtensionOnDeconstruct 
      * @param pTargetObjectReference - User object reference.
      * @param pElementReference - Component manager.
      */
-    public constructor(pTargetClassReference: ExtensionTargetClassReference, pTargetObjectReference: ExtensionTargetObjectReference, pElementReference: ModuleTargetNodeReference, pComponentManager: ComponentManagerReference) {
+    public constructor(pComponentProcessorConstructor: ComponentConstructorReference, pComponent: ComponentReference, pElementReference: ComponentElementReference) {
         // Get event metadata.
         const lEventPropertyList: Array<[string, string]> = new Array<[string, string]>();
 
-        let lClass: InjectionConstructor = pTargetClassReference.value;
+        let lClass: InjectionConstructor = <InjectionConstructor>pComponentProcessorConstructor;
         do {
             // Find all event properties of current class layer and add all to merged property list.
             const lPropertyList: Array<[string, string]> | null = Metadata.get(lClass).getMetadata(EventListenerComponentExtension.METADATA_USER_EVENT_LISTENER_PROPERIES);
@@ -54,8 +53,8 @@ export class EventListenerModuleExtension implements IPwbExtensionOnDeconstruct 
         this.mEventListenerList = new Array<[string, EventListener]>();
 
         // Easy access target objects.
-        const lTargetObject: object = pTargetObjectReference.value;
-        this.mTargetElement = <HTMLElement>pElementReference.value ?? pComponentManager.value.elementHandler.htmlElement;
+        const lTargetObject: object = pComponent.processor;
+        this.mTargetElement = pElementReference;
 
         // Override each property with the corresponding component event emitter.
         for (const lEventProperty of lEventPropertyList) {

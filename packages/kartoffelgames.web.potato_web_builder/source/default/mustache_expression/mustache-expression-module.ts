@@ -16,7 +16,9 @@ export class MustacheExpressionModule implements IPwbExpressionModuleOnUpdate {
 
     /**
      * Constructor.
+     * 
      * @param pValueReference - Values of component.
+     * @param pExpressionReference - Expression value.
      */
     public constructor(pValueReference: ComponentLayerValuesReference, pExpressionReference: ModuleValueReference) {
         this.mValueHandler = pValueReference;

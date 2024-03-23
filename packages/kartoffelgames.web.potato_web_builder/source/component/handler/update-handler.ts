@@ -128,7 +128,7 @@ export class UpdateHandler {
 
     /**
      * Request update.
-     * @param pReason 
+     * @param pReason - Update reason. Description of changed state.
      */
     public requestUpdate(pReason: ChangeDetectionReason): void {
         this.mChangeDetection.dispatchChangeEvent(pReason);

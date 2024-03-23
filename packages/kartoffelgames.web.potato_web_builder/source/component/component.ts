@@ -1,11 +1,15 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
+import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { UpdateScope } from '../enum/update-scope.enum';
 import { ComponentExtension } from '../extension/component-extension';
 import { GlobalExtensionsStorage } from '../extension/global-extensions-storage';
+import { ComponentConstructorReference } from '../injection_reference/component/component-constructor-reference';
 import { ComponentElementReference } from '../injection_reference/component/component-element-reference';
+import { ComponentLayerValuesReference } from '../injection_reference/component/component-layer-values-reference';
+import { ComponentUpdateHandlerReference } from '../injection_reference/component/component-update-handler-reference';
 import { ComponentHierarchyInjection, IComponentHierarchyParent } from '../interface/component-hierarchy.interface';
-import { IPwbExpressionModuleProcessorConstructor } from '../interface/module.interface';
 import { ComponentProcessorConstructor } from '../interface/component.interface';
+import { IPwbExpressionModuleProcessorConstructor } from '../interface/module.interface';
 import { StaticBuilder } from './builder/static-builder';
 import { ComponentConnection } from './component-connection';
 import { ComponentModules } from './component-modules';
@@ -17,10 +21,6 @@ import { PwbTemplate } from './template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 import { TemplateParser } from './template/template-parser';
 import { LayerValues } from './values/layer-values';
-import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { ComponentConstructorReference } from '../injection_reference/component/component-constructor-reference';
-import { ComponentLayerValuesReference } from '../injection_reference/component/component-layer-values-reference';
-import { ComponentUpdateHandlerReference } from '../injection_reference/component/component-update-handler-reference';
 
 /**
  * Base component handler. Handles initialisation and update of components.
@@ -31,12 +31,12 @@ export class Component implements IComponentHierarchyParent {
     private static readonly mTemplateCache: Dictionary<ComponentProcessorConstructor, PwbTemplate> = new Dictionary<ComponentProcessorConstructor, PwbTemplate>();
     private static readonly mXmlParser: TemplateParser = new TemplateParser();
 
+    private readonly mComponentProcessor: ComponentProcessorHandler;
     private readonly mElementHandler: ElementHandler;
     private readonly mExtensionList: Array<ComponentExtension>;
     private readonly mInjections: Dictionary<InjectionConstructor, any>;
     private readonly mRootBuilder: StaticBuilder;
     private readonly mUpdateHandler: UpdateHandler;
-    private readonly mComponentProcessor: ComponentProcessorHandler;
 
 
     /**
@@ -46,7 +46,22 @@ export class Component implements IComponentHierarchyParent {
         return this.mElementHandler;
     }
 
-    injections: ComponentHierarchyInjection[];
+    /**
+     * Read all current set injections.
+     */
+    public get injections(): Array<ComponentHierarchyInjection> {
+        // TODO: Can we cache it.
+        return this.mInjections.map((pKey: InjectionConstructor, pValue: any) => {
+            return { target: pKey, value: pValue };
+        });
+    }
+
+    /**
+     * Get component processor object.
+     */
+    public get processor(): ComponentProcessorHandler {
+        return this.mComponentProcessor;
+    }
 
     /**
      * Get component values of the root builder. 
@@ -60,13 +75,6 @@ export class Component implements IComponentHierarchyParent {
      */
     public get updateHandler(): UpdateHandler {
         return this.mUpdateHandler;
-    }
-
-    /**
-     * Get component processor object.
-     */
-    public get processor(): ComponentProcessorHandler {
-        return this.mComponentProcessor;
     }
 
     /**
@@ -145,23 +153,6 @@ export class Component implements IComponentHierarchyParent {
     }
 
     /**
-     * Set injection parameter for the module processor class construction. 
-     * 
-     * @param pInjectionTarget - Injection type that should be provided to processor.
-     * @param pInjectionValue - Actual injected value in replacement for {@link pInjectionTarget}.
-     * 
-     * @throws {@link Exception}
-     * When the processor was already initialized.
-     */
-    public setProcessorAttributes(pInjectionTarget: InjectionConstructor, pInjectionValue: any): void {
-        if (this.mComponentProcessor) {
-            throw new Exception('Cant add attributes to already initialized module.', this);
-        }
-
-        this.mInjections.set(pInjectionTarget, pInjectionValue);
-    }
-
-    /**
      * Create style element and prepend it to this component.
      * @param pStyle - Css style as string.
      */
@@ -215,5 +206,22 @@ export class Component implements IComponentHierarchyParent {
      */
     public disconnected(): void {
         this.updateHandler.enabled = false;
+    }
+
+    /**
+     * Set injection parameter for the module processor class construction. 
+     * 
+     * @param pInjectionTarget - Injection type that should be provided to processor.
+     * @param pInjectionValue - Actual injected value in replacement for {@link pInjectionTarget}.
+     * 
+     * @throws {@link Exception}
+     * When the processor was already initialized.
+     */
+    public setProcessorAttributes(pInjectionTarget: InjectionConstructor, pInjectionValue: any): void {
+        if (this.mComponentProcessor) {
+            throw new Exception('Cant add attributes to already initialized module.', this);
+        }
+
+        this.mInjections.set(pInjectionTarget, pInjectionValue);
     }
 }

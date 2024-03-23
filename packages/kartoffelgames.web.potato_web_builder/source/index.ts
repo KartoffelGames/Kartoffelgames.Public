@@ -56,5 +56,9 @@ import '../default/pwb_if/if-manipulator-attribute-module';
 import '../default/slot_attribute/slot-attribute-module';
 import '../default/two_way_binding/two-way-binding-attribute-module';
 
-
+// Import default extensions.
+import '../default/component-event/component-event-extension';
+import '../default/event-listener/event-listener-component-extension';
+import '../default/export/export-extension';
+import '../default/pwb_app_injection/pwb-app-injection-extension';
 

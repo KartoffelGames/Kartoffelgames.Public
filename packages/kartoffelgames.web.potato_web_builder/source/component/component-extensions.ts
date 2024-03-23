@@ -3,12 +3,6 @@ import { ComponentExtension } from '../extension/component-extension';
 import { GlobalExtensionsStorage } from '../extension/global-extensions-storage';
 import { Component } from './component';
 
-// Import default extensions.
-import '../default/component-event/component-event-extension';
-import '../default/event-listener/event-listener-component-extension';
-import '../default/export/export-extension';
-import '../default/pwb_app_injection/pwb-app-injection-extension';
-
 export class ComponentExtensions {
     private readonly mExtensionList: Array<ComponentExtension>;
 

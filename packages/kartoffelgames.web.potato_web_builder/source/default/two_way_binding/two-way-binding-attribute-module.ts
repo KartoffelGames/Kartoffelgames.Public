@@ -4,48 +4,45 @@ import { LayerValues } from '../../component/values/layer-values';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { IPwbAttributeModuleOnUpdate } from '../../interface/module.interface';
-import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
-import { ComponentManagerReference } from '../../injection_reference/component/component-manager-reference';
 import { ComponentLayerValuesReference } from '../../injection_reference/component/component-layer-values-reference';
 import { ModuleTargetNodeReference } from '../../injection_reference/module/module-target-node-reference';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
+import { ModuleKeyReference } from '../../injection_reference/module/module-key-reference';
+import { ModuleValueReference } from '../../injection_reference/module/module-value-reference';
+import { ComponentUpdateHandlerReference } from '../../injection_reference/component/component-update-handler-reference';
 
 @PwbAttributeModule({
     selector: /^\[\([[\w$]+\)\]$/,
-    access: AccessMode.ReadWrite,
-    forbiddenInManipulatorScopes: false
+    access: AccessMode.ReadWrite
 })
 export class TwoWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate {
-    private readonly mAttributeReference: ModuleAttributeReference;
+    private readonly mLayerValues: LayerValues;
     private readonly mTarget: Node;
     private readonly mThisProperty: string;
     private readonly mUserObjectCompareHandler: CompareHandler<any>;
-    private readonly mValueHandler: LayerValues;
     private readonly mViewCompareHandler: CompareHandler<any>;
     private readonly mViewProperty: string;
 
     /**
      * Constructor.
-     * @param pTargetReference - Target element.
-     * @param pValueReference - Values of component.
+     * @param pTargetNode - Target element.
+     * @param pLayerValues - Values of component.
      * @param pAttribute - Attribute of module.
      */
-    public constructor(pTargetReference: ModuleTargetNodeReference, pValueReference: ComponentLayerValuesReference, pAttributeReference: ModuleAttributeReference, pComponentManagerReference: ComponentManagerReference) {
-        this.mTarget = <Node>pTargetReference.value;
-        this.mValueHandler = pValueReference.value;
-        this.mAttributeReference = pAttributeReference;
+    public constructor(pTargetNode: ModuleTargetNodeReference, pLayerValues: ComponentLayerValuesReference, pAttributeKey: ModuleKeyReference, pAttributeValue: ModuleValueReference, pUpdateHandler: ComponentUpdateHandlerReference) {
+        this.mTarget = pTargetNode;
+        this.mLayerValues = pLayerValues;
 
         // Get property name.
-        const lAttributeKey: string = this.mAttributeReference.value.name;
-        this.mViewProperty = lAttributeKey.substr(2, lAttributeKey.length - 4);
-        this.mThisProperty = this.mAttributeReference.value.asText;
+        this.mViewProperty = pAttributeKey.substring(2, pAttributeKey.length - 2);
+        this.mThisProperty = pAttributeValue.toString();
 
         // Add comparison handler for this and for the target view value.
         this.mUserObjectCompareHandler = new CompareHandler(Symbol('Uncompareable'), 4);
         this.mViewCompareHandler = new CompareHandler(Symbol('Uncompareable'), 4);
 
         // Patch target. Do nothing with it.
-        pComponentManagerReference.value.updateHandler.registerObject(this.mTarget);
+        pUpdateHandler.registerObject(this.mTarget);
     }
 
     /**
@@ -55,7 +52,7 @@ export class TwoWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate
     public onUpdate(): boolean {
         let lValueChanged: boolean = false;
         // Try to update view only on module initialize.
-        const lThisValue: any = ComponentScopeExecutor.executeSilent(this.mThisProperty, this.mValueHandler);
+        const lThisValue: any = ComponentScopeExecutor.executeSilent(this.mThisProperty, this.mLayerValues);
 
         // Check for changes in this value.
         if (!this.mUserObjectCompareHandler.compareAndUpdate(lThisValue)) {
@@ -76,7 +73,7 @@ export class TwoWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate
                 lExtendedValues.set('$DATA', lTargetViewValue);
 
                 // Update value.
-                ComponentScopeExecutor.execute(`${this.mThisProperty} = $DATA;`, this.mValueHandler, lExtendedValues);
+                ComponentScopeExecutor.execute(`${this.mThisProperty} = $DATA;`, this.mLayerValues, lExtendedValues);
 
                 // Update compare.
                 this.mUserObjectCompareHandler.update(lTargetViewValue);

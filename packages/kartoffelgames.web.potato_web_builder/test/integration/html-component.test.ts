@@ -6,12 +6,13 @@ import { LoopError } from '../../source/component/handler/loop-detection-handler
 import { IPwbAfterInit, IPwbAfterUpdate, IPwbOnAttributeChange, IPwbOnDeconstruct, IPwbOnInit, IPwbOnUpdate } from '../../source/interface/component.interface';
 import { PwbExport } from '../../source/default/export/pwb-export.decorator';
 import { ComponentElementReference } from '../../source/injection_reference/component/component-element-reference';
-import { ComponentUpdateReference } from '../../source/injection_reference/component-update-reference';
 import { PwbExpressionModule } from '../../source/decorator/pwb-expression-module.decorator';
 import { IPwbExpressionModuleOnUpdate } from '../../source/interface/module.interface';
 import '../mock/request-animation-frame-mock-session';
 import '../utility/chai-helper';
 import { TestUtil } from '../utility/test-util';
+import { ComponentUpdateHandlerReference } from '../../source';
+import { UpdateHandler } from '../../source/component/handler/update-handler';
 
 describe('HtmlComponent', () => {
     it('-- Single element', async () => {
@@ -184,14 +185,18 @@ describe('HtmlComponent', () => {
             updateScope: UpdateScope.Manual
         })
         class TestComponent {
-            private readonly mUpdateReference: ComponentUpdateReference;
-            public constructor(pUpdateReference: ComponentUpdateReference) {
-                this.mUpdateReference = pUpdateReference;
+            private readonly mUpdater: UpdateHandler;
+            public constructor(pUpdateReference: ComponentUpdateHandlerReference) {
+                this.mUpdater = pUpdateReference;
             }
 
             @PwbExport
             public update(): void {
-                this.mUpdateReference.update();
+                this.mUpdater.requestUpdate({
+                    source: this,
+                    property: Symbol('any'),
+                    stacktrace: 'ManualUpdate'
+                });
             }
         }
 
@@ -237,13 +242,13 @@ describe('HtmlComponent', () => {
 
         // Set update listener.
         let lWasUpdated: boolean = false;
-        TestUtil.getComponentManager(lComponent)?.updater.addUpdateListener((pReason: ChangeDetectionReason) => {
+        TestUtil.getComponentManager(lComponent)?.getProcessorAttribute<UpdateHandler>(ComponentUpdateHandlerReference)?.addUpdateListener((pReason: ChangeDetectionReason) => {
             lWasUpdated = pReason.property === 'innerValue' || lWasUpdated;
         });
 
         // Set update listener.
         let lInnerValueWasUpdated: boolean = false;
-        TestUtil.getComponentManager(lCapsuledContent)?.updater.addUpdateListener((pReason: ChangeDetectionReason) => {
+        TestUtil.getComponentManager(lCapsuledContent)?.getProcessorAttribute<UpdateHandler>(ComponentUpdateHandlerReference)?.addUpdateListener((pReason: ChangeDetectionReason) => {
             lInnerValueWasUpdated = pReason.property === 'innerValue' || lInnerValueWasUpdated;
         });
 
@@ -262,9 +267,7 @@ describe('HtmlComponent', () => {
         const lExpressionValue: string = 'EXPRESSION-VALUE';
 
         // Setup. Custom expression module.
-        @PwbExpressionModule({
-            selector: /{{.*}}/
-        })
+        @PwbExpressionModule()
         class TestExpressionModule implements IPwbExpressionModuleOnUpdate {
             public onUpdate(): string {
                 return lExpressionValue;
@@ -332,20 +335,20 @@ describe('HtmlComponent', () => {
             selector: TestUtil.randomSelector(),
         })
         class TestComponent {
-            private readonly mElementReference: ComponentElementReference;
+            private readonly mElementReference: Node;
             public constructor(pElementReference: ComponentElementReference) {
                 this.mElementReference = pElementReference;
             }
 
             @PwbExport
             public element(): Node {
-                return this.mElementReference.value;
+                return this.mElementReference;
             }
         }
 
         // Process. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lComponentReference: HTMLElement = <HTMLElement>ChangeDetection.getUntrackedObject(lComponent.element());
+        const lComponentReference: Node = ChangeDetection.getUntrackedObject(lComponent.element());
 
         // Evaluation
         // 2 => StaticAnchor, unknown-component.
@@ -459,9 +462,9 @@ describe('HtmlComponent', () => {
         class TestComponent implements IPwbAfterUpdate {
             public innerValue: number = 1;
 
-            private readonly mUpdateReference: ComponentUpdateReference;
-            public constructor(pUpdateReference: ComponentUpdateReference) {
-                this.mUpdateReference = pUpdateReference;
+            private readonly mUpdater: UpdateHandler;
+            public constructor(pUpdateReference: ComponentUpdateHandlerReference) {
+                this.mUpdater = pUpdateReference;
             }
 
             public afterPwbUpdate(): void {
@@ -471,7 +474,11 @@ describe('HtmlComponent', () => {
 
             private triggerUpdate(): void {
                 this.innerValue++;
-                this.mUpdateReference.update();
+                this.mUpdater.requestUpdate({
+                    source: this,
+                    property: Symbol('any'),
+                    stacktrace: 'ManualUpdate'
+                });
             }
         }
 

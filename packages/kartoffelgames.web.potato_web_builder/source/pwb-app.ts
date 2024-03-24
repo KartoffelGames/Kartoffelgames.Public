@@ -1,9 +1,11 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { ChangeDetection } from '@kartoffelgames/web.change-detection';
 import { ErrorListener } from '@kartoffelgames/web.change-detection/library/source/change_detection/change-detection';
-import { Component } from './component/component';
 import { ElementCreator } from './component/element-creator';
+import { UpdateHandler } from './component/handler/update-handler';
 import { PwbTemplateXmlNode } from './component/template/nodes/pwb-template-xml-node';
+import { ComponentUpdateHandlerReference } from './injection_reference/component/component-update-handler-reference';
+import { ComponentElement } from './interface/component.interface';
 
 export class PwbApp { // TODO: Rework PwbApp to be a component.
     private static readonly mChangeDetectionToApp: WeakMap<ChangeDetection, PwbApp> = new WeakMap<ChangeDetection, PwbApp>();
@@ -145,17 +147,17 @@ export class PwbApp { // TODO: Rework PwbApp to be a component.
                 // Create new update waiter for each component.
                 for (const lComponentConstructor of this.mComponentList) {
                     // Create component and forward error.
-                    let lComponentElement: HTMLElement;
+                    let lComponentElement: ComponentElement;
                     try {
-                        lComponentElement = this.createComponent(lComponentConstructor);
+                        lComponentElement = <ComponentElement>this.createComponent(lComponentConstructor);
                     } catch (pError) {
                         pReject(pError);
                         return;
                     }
 
                     // Get component of html element and add update waiter to the waiter list. 
-                    const lComponent: Component = Component.of(lComponentElement)!;
-                    lUpdateWaiter.push(lComponent.updater.waitForUpdate());
+                    const lUpdater: UpdateHandler = lComponentElement.__component__.getProcessorAttribute<UpdateHandler>(ComponentUpdateHandlerReference)!;
+                    lUpdateWaiter.push(lUpdater.waitForUpdate());
                 }
 
                 // Promise that waits for all component to finish updating.

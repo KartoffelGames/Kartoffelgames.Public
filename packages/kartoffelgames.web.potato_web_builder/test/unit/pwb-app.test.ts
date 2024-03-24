@@ -31,10 +31,11 @@ describe('PwbApp', () => {
                 selector: lComponentSelector,
                 template: '<div/>'
             })
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             class TestComponent { }
 
             // Process.
-            lApp.addContent(TestComponent);
+            lApp.addContent(lComponentSelector);
             await lApp.appendTo(document.body);
             const lContent: Element = <Element>(<ShadowRoot>lApp.content.shadowRoot).childNodes[1];
 
@@ -47,17 +48,19 @@ describe('PwbApp', () => {
             const lApp: PwbApp = new PwbApp('Name');
             lApp.setSplashScreen({ content: '', background: '', manual: true, animationTime: 10 });
             await lApp.appendTo(document.body);
+            const lComponentSelector: string = TestUtil.randomSelector();
 
             // Setup. Define component.
             @PwbComponent({
-                selector: TestUtil.randomSelector(),
+                selector: lComponentSelector,
                 template: '<div/>'
             })
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             class TestComponent { }
 
             // Process.
             const lErrorFunction = () => {
-                lApp.addContent(TestComponent);
+                lApp.addContent(lComponentSelector);
             };
 
             // Evaluation.
@@ -68,16 +71,17 @@ describe('PwbApp', () => {
             // Setup.
             const lApp: PwbApp = new PwbApp('Name');
             lApp.setSplashScreen({ content: '', background: '', manual: true, animationTime: 10 });
+            const lComponentSelector: string = TestUtil.randomSelector();
 
             // Setup. Define component.
             @PwbComponent({
-                selector: TestUtil.randomSelector(),
+                selector: lComponentSelector,
                 template: '<div/>'
             })
             class TestComponent { }
 
             // Process.
-            lApp.addContent(TestComponent);
+            lApp.addContent(lComponentSelector);
             await lApp.appendTo(document.body);
             const lContent: HTMLElement & TestComponent = <any>(<ShadowRoot>lApp.content.shadowRoot).childNodes[1];
             await TestUtil.waitForUpdate(lContent);
@@ -95,7 +99,7 @@ describe('PwbApp', () => {
 
             // Process.
             const lErrorFunction = () => {
-                lApp.addContent(class WhatEver { });
+                lApp.addContent('definitly-not-a-selector');
             };
 
             // Evaluation.
@@ -160,11 +164,13 @@ describe('PwbApp', () => {
     it('Method: addErrorListener', async () => {
         // Setup.
         const lErrorMessage: string = 'Custom Error';
+        const lComponentSelector: string = TestUtil.randomSelector();
 
         // Setup. Define component.
         @PwbComponent({
-            selector: TestUtil.randomSelector(),
+            selector: lComponentSelector,
         })
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class TestComponent {
             public constructor() {
                 throw new Error(lErrorMessage);
@@ -174,7 +180,7 @@ describe('PwbApp', () => {
         // Setup.
         const lApp: PwbApp = new PwbApp('Name');
         lApp.setSplashScreen({ content: '', background: '', manual: true, animationTime: 10 });
-        lApp.addContent(TestComponent);
+        lApp.addContent(lComponentSelector);
 
         // Process. Lof error.
         let lErrorMessageResult: string | null = null;

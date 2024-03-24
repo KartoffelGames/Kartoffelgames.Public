@@ -1,13 +1,14 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { expect } from 'chai';
-import { PwbExport } from '../../../source/default/export/pwb-export.decorator';
 import { PwbComponent } from '../../../source/decorator/pwb-component.decorator';
-import { PwbComponentEvent } from '../../../source/default/component-event/pwb-component-event.decorator';
+import { ComponentEvent } from '../../../source/default/component-event/component-event';
 import { ComponentEventEmitter } from '../../../source/default/component-event/component-event-emitter';
+import { PwbComponentEvent } from '../../../source/default/component-event/pwb-component-event.decorator';
+import { PwbExport } from '../../../source/default/export/pwb-export.decorator';
+import { ComponentElement } from '../../../source/interface/component.interface';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
-import { ComponentEvent } from '../../../source/default/component-event/component-event';
 
 describe('EventAttributeModule', () => {
     it('-- Basic click event', async () => {
@@ -148,7 +149,7 @@ describe('EventAttributeModule', () => {
         }
 
         // Setup. Create element, deconstruct and click div.
-        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
         const lEventChild: HTMLDivElement & EventComponent = TestUtil.getComponentNode(lComponent, lEventComponentSelector);
         TestUtil.deconstructComponent(lComponent);
         lEventChild.callEvent();
@@ -173,7 +174,7 @@ describe('EventAttributeModule', () => {
         }
 
         // Setup. Create element and click div.
-        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
         const lClickableChild: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
         TestUtil.deconstructComponent(lComponent);
         lClickableChild.click();

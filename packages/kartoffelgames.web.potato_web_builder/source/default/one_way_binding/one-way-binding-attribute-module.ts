@@ -38,7 +38,7 @@ export class OneWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate
         this.mExecutionString = pAttributeValueReference.toString();
 
         // Get view object information. Remove starting [ and end ].
-        this.mTargetProperty = pAttributeKeyReference.substr(1, pAttributeKeyReference.length - 2);
+        this.mTargetProperty = pAttributeKeyReference.substring(1, pAttributeKeyReference.length - 1);
 
         // Create empty compare handler with unique symbol.
         this.mValueCompare = new CompareHandler(Symbol('Uncompareable'), 4);

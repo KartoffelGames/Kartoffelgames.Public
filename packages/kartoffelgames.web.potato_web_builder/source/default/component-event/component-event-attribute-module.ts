@@ -26,7 +26,7 @@ export class EventAttributeModule implements IPwbModuleOnDeconstruct {
      */
     public constructor(pTargetNode: ModuleTargetNodeReference, pLayerValue: ComponentLayerValuesReference, pAttributeKey: ModuleKeyReference, pAttributeValue: ModuleValueReference) {
         this.mTarget = pTargetNode;
-        this.mEventName = pAttributeKey.substring(1, pAttributeKey.length - 2);
+        this.mEventName = pAttributeKey.substring(1, pAttributeKey.length - 1);
 
         // Define listener.
         this.mListener = (pEvent: any): void => {

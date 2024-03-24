@@ -1,5 +1,5 @@
 import { ChangeState, DifferenceSearch, HistoryItem } from '@kartoffelgames/web.change-detection';
-import { MultiplicatorModule } from '../../module/multiplicator-module';
+import { InstructionModule } from '../../module/instruction-module';
 import { InstructionResultElement } from '../../module/result/instruction-result';
 import { ComponentModules } from '../component-modules';
 import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node';
@@ -27,7 +27,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
         // Create instruction module if is does not exist.
         if (!this.content.instructionModule) {
             // Create and link instruction module.
-            const lInstructionModule: MultiplicatorModule = this.content.modules.createInstructionModule(this.template, this.values);
+            const lInstructionModule: InstructionModule = this.content.modules.createInstructionModule(this.template, this.values);
             this.content.instructionModule = lInstructionModule;
         }
 

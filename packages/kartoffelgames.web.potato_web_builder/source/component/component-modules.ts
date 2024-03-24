@@ -2,7 +2,7 @@ import { MustacheExpressionModule } from '../default/mustache_expression/mustach
 import { ExpressionModule } from '../module/expression-module';
 import { ExpressionModuleConfiguration, GlobalModuleStorage } from '../module/global-module-storage';
 import { IPwbExpressionModuleProcessorConstructor } from '../interface/module.interface';
-import { MultiplicatorModule } from '../module/multiplicator-module';
+import { InstructionModule } from '../module/instruction-module';
 import { AttributeModule } from '../module/static-module';
 import { Component } from './component';
 import { PwbTemplateInstructionNode } from './template/nodes/pwb-template-instruction-node';
@@ -93,13 +93,13 @@ export class ComponentModules {
      * @throws {@link Exception}
      * When no instruction node with type could be found.
      */
-    public createInstructionModule(pTemplate: PwbTemplateInstructionNode, pValues: LayerValues): MultiplicatorModule {
+    public createInstructionModule(pTemplate: PwbTemplateInstructionNode, pValues: LayerValues): InstructionModule {
         // Find manipulator module inside attributes.
         for (const lModuleConfiguration of this.mGlobalModuleStorage.instructionModuleConfigurations) {
             // Only manipulator modules.
             if (lModuleConfiguration.instructionType === pTemplate.instructionType) {
                 // Get constructor and create new module.
-                const lModule: MultiplicatorModule = new MultiplicatorModule({
+                const lModule: InstructionModule = new InstructionModule({
                     constructor: lModuleConfiguration.constructor,
                     targetTemplate: pTemplate,
                     values: pValues,

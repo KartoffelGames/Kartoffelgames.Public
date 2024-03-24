@@ -8,7 +8,7 @@ import { IPwbInstructionModuleProcessor, IPwbInstructionModuleProcessorConstruct
 import { BaseModule } from './base-module';
 import { InstructionResult, InstructionResultElement } from './result/instruction-result';
 
-export class MultiplicatorModule extends BaseModule<Comment, IPwbInstructionModuleProcessor> {
+export class InstructionModule extends BaseModule<Comment, IPwbInstructionModuleProcessor> {
     private mLastResult: InstructionResult;
 
     /**

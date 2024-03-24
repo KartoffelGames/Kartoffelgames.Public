@@ -1,16 +1,16 @@
-import { MultiplicatorModule } from '../../../module/multiplicator-module';
+import { InstructionModule } from '../../../module/instruction-module';
 import { ComponentModules } from '../../component-modules';
 import { BaseBuilderData } from './base-builder-data';
 
 export class InstructionBuilderData extends BaseBuilderData {
-    private mInstructionModule: MultiplicatorModule | null;
+    private mInstructionModule: InstructionModule | null;
 
     /**
      * Get instruction module of layer.
      */
-    public get instructionModule(): MultiplicatorModule | null {
+    public get instructionModule(): InstructionModule | null {
         return this.mInstructionModule;
-    } set instructionModule(pModule: MultiplicatorModule | null) {
+    } set instructionModule(pModule: InstructionModule | null) {
         this.mInstructionModule = pModule;
     }
 

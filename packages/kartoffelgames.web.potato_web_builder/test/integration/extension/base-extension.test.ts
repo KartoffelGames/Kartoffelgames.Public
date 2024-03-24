@@ -1,7 +1,7 @@
 import { expect } from 'chai';
+import { AccessMode } from '../../../source';
 import { PwbComponent } from '../../../source/decorator/pwb-component.decorator';
 import { PwbExtension } from '../../../source/decorator/pwb-extension.decorator';
-import { ExtensionPriority } from '../../../source/enum/extension-priority.enum';
 import { ExtensionType } from '../../../source/enum/extension-type.enum';
 import { TestUtil } from '../../utility/test-util';
 
@@ -11,7 +11,7 @@ describe('BaseExtension', () => {
         let lExtensionCalled: boolean = false;
         @PwbExtension({
             type: ExtensionType.Component,
-            mode: ExtensionPriority.Inject
+            access: AccessMode.Read
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class UselessExtension {
@@ -38,7 +38,7 @@ describe('BaseExtension', () => {
         let lExtensionCalled: boolean = false;
         @PwbExtension({
             type: ExtensionType.Component | ExtensionType.Module,
-            mode: ExtensionPriority.Inject
+            access: AccessMode.Read
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class UselessExtension {

@@ -35,7 +35,7 @@ export interface IPwbExpressionModuleProcessor extends IPwbModuleProcessor, Part
 export interface IPwbExpressionModuleProcessorConstructor extends IPwbModuleProcessorConstructor<IPwbExpressionModuleProcessor> { }
 
 // Instruction.
-export interface IPwbInstructionModuleOnUpdate extends IPwbModuleOnUpdate<InstructionResult> { }
+export interface IPwbInstructionModuleOnUpdate extends IPwbModuleOnUpdate<InstructionResult | null> { }
 export interface IPwbInstructionModuleOnDeconstruct extends IPwbModuleOnDeconstruct { }
 export interface IPwbInstructionModuleProcessor extends IPwbModuleProcessor, Partial<IPwbInstructionModuleOnUpdate>, Partial<IPwbInstructionModuleOnDeconstruct> { }
 export interface IPwbInstructionModuleProcessorConstructor extends IPwbModuleProcessorConstructor<IPwbInstructionModuleProcessor> { }

@@ -1,14 +1,15 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { CompareHandler } from '@kartoffelgames/web.change-detection';
+import { PwbTemplate } from '../../component/template/nodes/pwb-template';
+import { PwbTemplateInstructionNode } from '../../component/template/nodes/pwb-template-instruction-node';
 import { LayerValues } from '../../component/values/layer-values';
 import { PwbInstructionModule } from '../../decorator/pwb-instruction-module.decorator';
-import { IPwbInstructionModuleOnUpdate } from '../../interface/module.interface';
-import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ComponentLayerValuesReference } from '../../injection_reference/component/component-layer-values-reference';
 import { ModuleTemplateReference } from '../../injection_reference/module/module-template-reference';
-import { InstructionResult } from '../../module/result/instruction-result';
+import { ModuleValueReference } from '../../injection_reference/module/module-value-reference';
+import { IPwbInstructionModuleOnUpdate } from '../../interface/module.interface';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
-import { PwbTemplateXmlNode } from '../../component/template/nodes/pwb-template-xml-node';
+import { InstructionResult } from '../../module/result/instruction-result';
 
 /**
  * For of.
@@ -16,24 +17,24 @@ import { PwbTemplateXmlNode } from '../../component/template/nodes/pwb-template-
  * Syntax: "[CustomName] of [List] (;[CustomIndexName] = $index)?"
  */
 @PwbInstructionModule({
-    selector: /^\*pwbFor$/
+    instructionType: 'for'
 })
 export class ForOfManipulatorAttributeModule implements IPwbInstructionModuleOnUpdate {
-    private readonly mAttributeReference: ModuleAttributeReference;
     private readonly mCompareHandler: CompareHandler<any>;
-    private readonly mTemplateReference: ModuleTemplateReference;
-    private readonly mValueHandler: LayerValues;
+    private readonly mInstruction: string;
+    private readonly mLayerValues: LayerValues;
+    private readonly mTemplate: PwbTemplateInstructionNode;
 
     /**
      * Constructor.
-     * @param pTemplateReference - Target templat.
-     * @param pValueReferece - Values of component.
+     * @param pTemplate - Target templat.
+     * @param pLayerValues - Values of component.
      * @param pAttributeReference - Attribute of module.
      */
-    public constructor(pTemplateReference: ModuleTemplateReference, pValueReferece: ComponentLayerValuesReference, pAttributeReference: ModuleAttributeReference) {
-        this.mTemplateReference = pTemplateReference;
-        this.mValueHandler = pValueReferece.value;
-        this.mAttributeReference = pAttributeReference;
+    public constructor(pTemplate: ModuleTemplateReference, pLayerValues: ComponentLayerValuesReference, pAttributeValue: ModuleValueReference) {
+        this.mTemplate = <PwbTemplateInstructionNode>pTemplate;
+        this.mLayerValues = pLayerValues;
+        this.mInstruction = pAttributeValue.toString();
         this.mCompareHandler = new CompareHandler(Symbol('Uncompareable'), 4);
     }
 
@@ -46,7 +47,7 @@ export class ForOfManipulatorAttributeModule implements IPwbInstructionModuleOnU
         const lRegexAttributeInformation: RegExp = new RegExp(/^\s*([a-zA-Z]+[a-zA-Z0-9]*)\s*of\s+([^;]+)\s*(;\s*([a-zA-Z]+[a-zA-Z0-9]*)\s*=\s*(.*)\s*)?$/);
 
         // If attribute value does match regex.
-        const lAttributeInformation: RegExpExecArray | null = lRegexAttributeInformation.exec(this.mAttributeReference.value.asText);
+        const lAttributeInformation: RegExpExecArray | null = lRegexAttributeInformation.exec(this.mInstruction);
         if (lAttributeInformation) {
 
             // Split match into useable parts.
@@ -61,7 +62,7 @@ export class ForOfManipulatorAttributeModule implements IPwbInstructionModuleOnU
             const lModuleResult: InstructionResult = new InstructionResult();
 
             // Try to get list object from component values.
-            const lListObject: { [key: string]: any; } = ComponentScopeExecutor.executeSilent(lExpression.value, this.mValueHandler);
+            const lListObject: { [key: string]: any; } = ComponentScopeExecutor.executeSilent(lExpression.value, this.mLayerValues);
 
             // Skip if values are the same.
             if (this.mCompareHandler.compareAndUpdate(lListObject)) {
@@ -90,7 +91,7 @@ export class ForOfManipulatorAttributeModule implements IPwbInstructionModuleOnU
                 return null;
             }
         } else {
-            throw new Exception(`pwbFor-Paramater value has wrong format: ${this.mAttributeReference.value.values.toString()}`, this);
+            throw new Exception(`For-Parameter value has wrong format: ${this.mInstruction}`, this);
         }
     }
 
@@ -102,8 +103,7 @@ export class ForOfManipulatorAttributeModule implements IPwbInstructionModuleOnU
      * @param pObjectKey - value key.
      */
     private readonly addTempateForElement = (pModuleResult: InstructionResult, pExpression: ForOfExpression, pObjectValue: any, pObjectKey: number | string) => {
-        const lClonedTemplate: PwbTemplateXmlNode = <PwbTemplateXmlNode>this.mTemplateReference.value.clone();
-        const lComponentValues: LayerValues = new LayerValues(this.mValueHandler);
+        const lComponentValues: LayerValues = new LayerValues(this.mLayerValues);
         lComponentValues.setLayerValue(pExpression.variable, pObjectValue);
 
         // If custom index is used.
@@ -119,8 +119,12 @@ export class ForOfManipulatorAttributeModule implements IPwbInstructionModuleOnU
             lComponentValues.setLayerValue(pExpression.indexName, lIndexExpressionResult);
         }
 
+        // Create template.
+        const lTemplate: PwbTemplate = new PwbTemplate();
+        lTemplate.appendChild(...this.mTemplate.childList);
+
         // Add element.
-        pModuleResult.addElement(lClonedTemplate, lComponentValues);
+        pModuleResult.addElements(lTemplate, lComponentValues);
     };
 }
 

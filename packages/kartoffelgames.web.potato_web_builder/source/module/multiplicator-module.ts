@@ -49,9 +49,9 @@ export class MultiplicatorModule extends BaseModule<Comment, IPwbInstructionModu
             lNewValue = this.processor.onUpdate();
         }
 
-        // Reset null values to empty multiplicator result.
-        if (!lNewValue) {
-            lNewValue = new InstructionResult();
+        // When no result is returned, no update needs to be done.
+        if (!(lNewValue instanceof InstructionResult)) {
+            return false;
         }
 
         // Check for changes in last and new result.

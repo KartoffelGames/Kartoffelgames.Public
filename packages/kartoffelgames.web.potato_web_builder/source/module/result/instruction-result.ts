@@ -1,5 +1,5 @@
 import { Exception, List } from '@kartoffelgames/core.data';
-import { StaticPwbTemplate } from '../../component/builder/static-builder';
+import { PwbTemplate } from '../../component/template/nodes/pwb-template';
 import { LayerValues } from '../../component/values/layer-values';
 
 /**
@@ -34,7 +34,7 @@ export class InstructionResult {
      * @throws {@link Exception}
      * When the same template reference should be added more than once.
      */
-    public addElement(pTemplateElement: StaticPwbTemplate, pValues: LayerValues): void {
+    public addElements(pTemplateElement: PwbTemplate, pValues: LayerValues): void {
         // Check if value or temple is used in another element.
         const lDoubledIndex: number = this.mElementList.findIndex(pElement => {
             return pElement.template === pTemplateElement || pElement.componentValues === pValues;
@@ -55,6 +55,6 @@ export class InstructionResult {
  * @internal
  */
 export type InstructionResultElement = {
-    template: StaticPwbTemplate;
+    template: PwbTemplate;
     componentValues: LayerValues;
 };

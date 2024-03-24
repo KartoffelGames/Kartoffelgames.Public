@@ -1,38 +1,38 @@
 import { LayerValues } from '../../component/values/layer-values';
 import { PwbInstructionModule } from '../../decorator/pwb-instruction-module.decorator';
 import { IPwbInstructionModuleOnUpdate } from '../../interface/module.interface';
-import { ModuleAttributeReference } from '../../injection_reference/module-attribute-reference';
 import { ComponentLayerValuesReference } from '../../injection_reference/component/component-layer-values-reference';
 import { ModuleTemplateReference } from '../../injection_reference/module/module-template-reference';
 import { InstructionResult } from '../../module/result/instruction-result';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
+import { ModuleValueReference } from '../../injection_reference/module/module-value-reference';
+import { PwbTemplateInstructionNode } from '../../component/template/nodes/pwb-template-instruction-node';
+import { PwbTemplate } from '../../component/template/nodes/pwb-template';
 
 /**
  * If expression.
  * If the executed result of the attribute value is false, the element will not be append to view.
  */
 @PwbInstructionModule({
-    selector: /^\*pwbIf$/
+    instructionType: 'if'
 })
-export class IfManipulatorAttributeModule implements IPwbInstructionModuleOnUpdate {
-    private readonly mAttributeReference: ModuleAttributeReference;
-    private mFirstCompare: boolean;
+export class IfInstructionModule implements IPwbInstructionModuleOnUpdate {
+    private readonly mExpression: string;
     private mLastBoolean: boolean;
-    private readonly mTemplateReference: ModuleTemplateReference;
+    private readonly mTemplateReference: PwbTemplateInstructionNode;
     private readonly mValueHandler: LayerValues;
 
     /**
      * Constructor.
-     * @param pTemplateReference - Target templat.
-     * @param pValueReference - Values of component.
+     * @param pTemplate - Target templat.
+     * @param pLayerValues - Values of component.
      * @param pAttributeReference - Attribute of module.
      */
-    public constructor(pTemplateReference: ModuleTemplateReference, pValueReference: ComponentLayerValuesReference, pAttributeReference: ModuleAttributeReference) {
-        this.mTemplateReference = pTemplateReference;
-        this.mValueHandler = pValueReference.value;
-        this.mAttributeReference = pAttributeReference;
+    public constructor(pTemplate: ModuleTemplateReference, pLayerValues: ComponentLayerValuesReference, pAttributeValue: ModuleValueReference) {
+        this.mTemplateReference = <PwbTemplateInstructionNode>pTemplate;
+        this.mValueHandler = pLayerValues;
+        this.mExpression = pAttributeValue.toString();
         this.mLastBoolean = false;
-        this.mFirstCompare = true;
     }
 
     /**
@@ -40,16 +40,18 @@ export class IfManipulatorAttributeModule implements IPwbInstructionModuleOnUpda
      * @returns if element of module should be updated.
      */
     public onUpdate(): InstructionResult | null {
-        const lExecutionResult: any = ComponentScopeExecutor.executeSilent(this.mAttributeReference.value.asText, this.mValueHandler);
+        const lExecutionResult: any = ComponentScopeExecutor.executeSilent(this.mExpression, this.mValueHandler);
 
-        if (this.mFirstCompare || !!lExecutionResult !== this.mLastBoolean) {
+        if (!!lExecutionResult !== this.mLastBoolean) {
             this.mLastBoolean = !!lExecutionResult;
-            this.mFirstCompare = false;
 
             // If in any way the execution result is true, add template to result.
             const lModuleResult: InstructionResult = new InstructionResult();
             if (lExecutionResult) {
-                lModuleResult.addElement(this.mTemplateReference.value.clone(), new LayerValues(this.mValueHandler));
+                const lTemplate: PwbTemplate = new PwbTemplate();
+                lTemplate.appendChild(this.mTemplateReference);
+
+                lModuleResult.addElement(lTemplate, new LayerValues(this.mValueHandler));
             }
 
             return lModuleResult;

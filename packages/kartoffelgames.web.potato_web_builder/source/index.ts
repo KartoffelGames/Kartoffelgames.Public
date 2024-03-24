@@ -11,7 +11,7 @@ export { ModuleConstructorReference } from './injection_reference/module/module-
 export { ModuleKeyReference } from './injection_reference/module/module-key-reference';
 export { ModuleLayerValuesReference } from './injection_reference/module/module-layer-values-reference';
 export { ModuleReference } from './injection_reference/module/module-reference';
-export { ModuleTargetNodeReference as ModuleTargetNode } from './injection_reference/module/module-target-node-reference';
+export { ModuleTargetNodeReference } from './injection_reference/module/module-target-node-reference';
 export { ModuleTemplateReference } from './injection_reference/module/module-template-reference';
 export { ModuleValueReference } from './injection_reference/module/module-value-reference';
 
@@ -19,7 +19,7 @@ export { ModuleValueReference } from './injection_reference/module/module-value-
 export { ComponentConstructorReference } from './injection_reference/component/component-constructor-reference';
 export { ComponentElementReference } from './injection_reference/component/component-element-reference';
 export { ComponentUpdateHandlerReference } from './injection_reference/component/component-update-handler-reference';
-export { ComponentLayerValuesReference as ComponentValuesReference } from './injection_reference/component/component-layer-values-reference';
+export { ComponentLayerValuesReference } from './injection_reference/component/component-layer-values-reference';
 
 // Modules
 export { ComponentScopeExecutor } from './module/execution/component-scope-executor';
@@ -28,8 +28,8 @@ export { AccessMode } from './enum/access-mode.enum';
 export { LayerValues } from './component/values/layer-values';
 export { InstructionResult } from './module/result/instruction-result';
 export { PwbExpressionModule } from './decorator/pwb-expression-module.decorator';
-export { PwbInstructionModule as PwbInstructionAttributeModule } from './decorator/pwb-instruction-module.decorator';
-export { PwbAttributeModule as PwbAttributeAttributeModule } from './decorator/pwb-attribute-module.decorator';
+export { PwbInstructionModule } from './decorator/pwb-instruction-module.decorator';
+export { PwbAttributeModule } from './decorator/pwb-attribute-module.decorator';
 
 // Extension
 export { PwbExtension } from './decorator/pwb-extension.decorator';

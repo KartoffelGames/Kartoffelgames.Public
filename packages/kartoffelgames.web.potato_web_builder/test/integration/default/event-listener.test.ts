@@ -17,6 +17,7 @@ import { InstructionResult } from '../../../source/module/result/instruction-res
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
+import { PwbTemplate } from '../../../source/component/template/nodes/pwb-template';
 
 describe('PwbEventListener', () => {
     it('-- Native listener', async () => {
@@ -176,7 +177,6 @@ describe('PwbEventListener', () => {
 
         @PwbAttributeModule({
             selector: /^listenerTestModuleOne$/,
-            forbiddenInManipulatorScopes: false,
             access: AccessMode.Read
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -209,7 +209,6 @@ describe('PwbEventListener', () => {
 
         @PwbAttributeModule({
             selector: /^listenerTestModuleTwo$/,
-            forbiddenInManipulatorScopes: false,
             access: AccessMode.Read
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -240,7 +239,6 @@ describe('PwbEventListener', () => {
         // Setup. Create static module.
         @PwbAttributeModule({
             selector: /^listenerTestModuleThree$/,
-            forbiddenInManipulatorScopes: false,
             access: AccessMode.Read
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -269,12 +267,12 @@ describe('PwbEventListener', () => {
         expect(lErrorMessage).to.equal('Event listener property must be of type Function');
     });
 
-    it('-- Use component element on multiplicator module', async () => {
+    it('-- Use component element on instruction module', async () => {
         // Process.
         let lEventCalled: boolean = false;
 
         @PwbInstructionModule({
-            selector: /^\*listenerTestModuleFour$/
+            instructionType: 'listenerTestModuleFour'
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class MyModule implements IPwbInstructionModuleOnUpdate {
@@ -282,7 +280,11 @@ describe('PwbEventListener', () => {
 
             onUpdate(): InstructionResult {
                 const lResult: InstructionResult = new InstructionResult();
-                lResult.addElement(this.mTemplate.value.clone(), new LayerValues(this.mValue.value));
+
+                const lTemplate: PwbTemplate = new PwbTemplate();
+                lTemplate.appendChild(this.mTemplate.clone());
+
+                lResult.addElement(lTemplate, new LayerValues(this.mValue));
 
                 return lResult;
             }
@@ -296,7 +298,7 @@ describe('PwbEventListener', () => {
         // Process. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: '<div *listenerTestModuleFour />'
+            template: '$listenerTestModuleFour{<div *listenerTestModuleFour />}'
         })
         class TestComponent { }
 

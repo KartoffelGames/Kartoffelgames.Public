@@ -124,7 +124,7 @@ export class ForInstructionModule implements IPwbInstructionModuleOnUpdate {
         lTemplate.appendChild(...this.mTemplate.childList);
 
         // Add element.
-        pModuleResult.addElements(lTemplate, lComponentValues);
+        pModuleResult.addElement(lTemplate, lComponentValues);
     };
 }
 

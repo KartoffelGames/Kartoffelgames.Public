@@ -34,7 +34,7 @@ export class InstructionResult {
      * @throws {@link Exception}
      * When the same template reference should be added more than once.
      */
-    public addElements(pTemplateElement: PwbTemplate, pValues: LayerValues): void {
+    public addElement(pTemplateElement: PwbTemplate, pValues: LayerValues): void {
         // Check if value or temple is used in another element.
         const lDoubledIndex: number = this.mElementList.findIndex(pElement => {
             return pElement.template === pTemplateElement || pElement.componentValues === pValues;

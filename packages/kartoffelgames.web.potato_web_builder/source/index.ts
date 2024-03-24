@@ -48,17 +48,17 @@ export { TemplateParser } from './component/template/template-parser';
 export { TextNode, XmlElement, XmlAttribute } from '@kartoffelgames/core.xml';
 
 // Import default modules
-import '../default/component-event/component-event-attribute-module';
-import '../default/one_way_binding/one-way-binding-attribute-module';
-import '../default/pwb_child/pwb-child-attribute-module';
-import '../default/pwb_for_of/for-of-manipulator-attribute-module';
-import '../default/pwb_if/if-manipulator-attribute-module';
-import '../default/slot_attribute/slot-attribute-module';
-import '../default/two_way_binding/two-way-binding-attribute-module';
+import './default/component-event/component-event-attribute-module';
+import './default/one_way_binding/one-way-binding-attribute-module';
+import './default/pwb_child/pwb-child-attribute-module';
+import './default/for-instruction/for-instruction-module';
+import './default/pwb_if/if-manipulator-attribute-module';
+import './default/slot_attribute/slot-attribute-module';
+import './default/two_way_binding/two-way-binding-attribute-module';
 
 // Import default extensions.
-import '../default/component-event/component-event-extension';
-import '../default/event-listener/event-listener-component-extension';
-import '../default/export/export-extension';
-import '../default/pwb_app_injection/pwb-app-injection-extension';
+import './default/component-event/component-event-extension';
+import './default/event-listener/event-listener-component-extension';
+import './default/export/export-extension';
+import './default/pwb_app_injection/pwb-app-injection-extension';
 

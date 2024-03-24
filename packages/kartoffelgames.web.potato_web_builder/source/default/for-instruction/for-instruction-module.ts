@@ -19,7 +19,7 @@ import { InstructionResult } from '../../module/result/instruction-result';
 @PwbInstructionModule({
     instructionType: 'for'
 })
-export class ForOfManipulatorAttributeModule implements IPwbInstructionModuleOnUpdate {
+export class ForInstructionModule implements IPwbInstructionModuleOnUpdate {
     private readonly mCompareHandler: CompareHandler<any>;
     private readonly mInstruction: string;
     private readonly mLayerValues: LayerValues;

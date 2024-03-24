@@ -18,7 +18,7 @@ export class ComponentScopeExecutor {
         const lReferencedValues: Array<string> = ComponentScopeExecutor.extractReferences(pExpression);
         const lExtendedData: Dictionary<string, any> = pExtenedData ?? new Dictionary<string, any>();
 
-        const lContext: ComponentProcessor = pValues.component.processor.processor;
+        const lContext: ComponentProcessor = pValues.component.processor;
         const lEvaluatedFunction: () => any = ComponentScopeExecutor.createEvaluationFunktion(pExpression, lReferencedValues, pValues, lExtendedData);
 
         return lEvaluatedFunction.call(lContext);

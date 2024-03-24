@@ -1,4 +1,7 @@
+import { ComponentUpdateHandlerReference } from '../../source';
 import { Component } from '../../source/component/component';
+import { UpdateHandler } from '../../source/component/handler/update-handler';
+import { ComponentElement } from '../../source/interface/component.interface';
 import { PwbApp } from '../../source/pwb-app';
 
 export class TestUtil {
@@ -21,10 +24,10 @@ export class TestUtil {
         await lPwbApp.appendTo(document.body);
 
         // Get component.
-        const lComponent: HTMLElement = <HTMLElement>(<ShadowRoot>lPwbApp.content.shadowRoot).childNodes[1];
+        const lComponent: ComponentElement = <ComponentElement>(<ShadowRoot>lPwbApp.content.shadowRoot).childNodes[1];
 
         // Wait for any update to happen.
-        await Component.of(lComponent)?.updater.waitForUpdate();
+        await lComponent.__component__.getProcessorAttribute<UpdateHandler>(ComponentUpdateHandlerReference)!.waitForUpdate();
 
         return lComponent;
     }
@@ -33,8 +36,8 @@ export class TestUtil {
      * Deconstruct the component.
      * @param pComponent - Pwb component.
      */
-    public static deconstructComponent(pComponent: HTMLElement): void {
-        Component.of(pComponent)?.deconstruct();
+    public static deconstructComponent(pComponent: ComponentElement): void {
+        pComponent.__component__.deconstruct();
     }
 
     /**
@@ -42,7 +45,10 @@ export class TestUtil {
      * @param pComponent - Pwb component.
      */
     public static getComponentManager(pComponent: HTMLElement): Component | undefined {
-        return Component.of(pComponent);
+        if ('__component__' in pComponent) {
+            return <Component>pComponent.__component__;
+        }
+        return undefined;
     }
 
     /**
@@ -76,8 +82,8 @@ export class TestUtil {
      * @param pComponent - Component.
      */
     public static manualUpdate(pComponent: HTMLElement): void {
-        const lComponentManager: Component | undefined = Component.of(pComponent);
-        lComponentManager?.updater.requestUpdate({ source: pComponent, property: 0, stacktrace: '' });
+        const lComponent: Component | undefined = TestUtil.getComponentManager(pComponent);
+        lComponent?.getProcessorAttribute<UpdateHandler>(ComponentUpdateHandlerReference)!.requestUpdate({ source: pComponent, property: 0, stacktrace: '' });
     }
 
     /**
@@ -98,8 +104,8 @@ export class TestUtil {
      * @param pComponent - Component.
      */
     public static async waitForUpdate(pComponent: HTMLElement): Promise<void> {
-        const lComponentManager: Component | undefined = Component.of(pComponent);
-        await lComponentManager?.updater.waitForUpdate();
+        const lComponent: Component | undefined = TestUtil.getComponentManager(pComponent);
+        await lComponent?.getProcessorAttribute<UpdateHandler>(ComponentUpdateHandlerReference)!.waitForUpdate();
     }
 }
 

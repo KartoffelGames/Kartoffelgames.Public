@@ -91,6 +91,15 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
     }
 
     /**
+     * Get injection parameter for the module processor class construction. 
+     * 
+     * @param pInjectionTarget - Injection type that should be provided to processor.
+     */
+    public getProcessorAttribute<T>(pInjectionTarget: InjectionConstructor): T | undefined {
+        return this.mInjections.get(pInjectionTarget);
+    }
+
+    /**
      * Set injection parameter for the module processor class construction. 
      * 
      * @param pInjectionTarget - Injection type that should be provided to processor.

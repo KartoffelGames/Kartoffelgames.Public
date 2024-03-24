@@ -7,12 +7,19 @@ export interface IComponentHierarchyParent {
     readonly injections: Array<ComponentHierarchyInjection>;
 
     /**
-     * Set injection parameter for the module processor class construction. 
+     * Set injection parameter for the processor class construction. 
      * 
      * @param pInjectionTarget - Injection type that should be provided to processor.
      * @param pInjectionValue - Actual injected value in replacement for {@link pInjectionTarget}.
      */
     setProcessorAttributes(pInjectionTarget: InjectionConstructor, pInjectionValue: any): void;
+
+    /**
+     * Get injection parameter for the processor class construction. 
+     * 
+     * @param pInjectionTarget - Injection type that should be provided to processor.
+     */
+    getProcessorAttribute<T>(pInjectionTarget: InjectionConstructor): T | undefined;
 }
 
 export type ComponentHierarchyInjection = {

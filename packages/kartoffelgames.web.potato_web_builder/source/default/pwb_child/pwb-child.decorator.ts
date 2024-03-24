@@ -1,6 +1,8 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { Component } from '../../component/component';
 import { ComponentProcessor } from '../../interface/component.interface';
+import { ComponentLayerValuesReference } from '../../injection_reference/component/component-layer-values-reference';
+import { LayerValues } from '../../component/values/layer-values';
 
 /**
  * AtScript. Id child 
@@ -17,13 +19,14 @@ export function PwbChild(pIdChildName: string): any {
         Object.defineProperty(pTarget, pPropertyKey, {
             get(this: ComponentProcessor) {
                 // Get component manager and exit if target is not a component.
-                const lComponentManager: Component | undefined = this.__component__;
-                if (!lComponentManager) {
+                const lComponent: Component | undefined = this.__component__;
+                if (!lComponent) {
                     throw new Exception('Target is not a Component', this);
                 }
 
                 // Get root value. This should be the child.
-                const lIdChild: any = lComponentManager.rootValues.getValue(pIdChildName);
+                const lLayerValues: LayerValues = lComponent.getProcessorAttribute(ComponentLayerValuesReference);
+                const lIdChild: any = lLayerValues.getValue(pIdChildName);
 
                 if (lIdChild instanceof Element) {
                     return lIdChild;

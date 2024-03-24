@@ -11,26 +11,34 @@ import { InstructionResult } from '../../../source/module/result/instruction-res
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
+import { PwbTemplate } from '../../../source/component/template/nodes/pwb-template';
 
 describe('Custom Module', () => {
     it('-- Same result, twice', async () => {
         // Setup. Define module.
         @PwbInstructionModule({
-            selector: /^\*multiresult$/
+            instructionType: 'multiresult'
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class WrongModule implements IPwbInstructionModuleOnUpdate {
             private readonly mValueHandler: LayerValues;
 
             public constructor(pValueReference: ComponentLayerValuesReference) {
-                this.mValueHandler = pValueReference.value;
+                this.mValueHandler = pValueReference;
             }
 
             public onUpdate(): InstructionResult {
                 // If in any way the execution result is true, add template to result.
                 const lModuleResult: InstructionResult = new InstructionResult();
-                lModuleResult.addElement(new PwbTemplateXmlNode(), this.mValueHandler);
-                lModuleResult.addElement(new PwbTemplateXmlNode(), this.mValueHandler);
+
+                const lTemplateOne: PwbTemplate = new PwbTemplate();
+                lTemplateOne.appendChild(new PwbTemplateXmlNode());
+
+                const lTemplateTwo: PwbTemplate = new PwbTemplate();
+                lTemplateTwo.appendChild(new PwbTemplateXmlNode());
+
+                lModuleResult.addElement(lTemplateOne, this.mValueHandler);
+                lModuleResult.addElement(lTemplateTwo, this.mValueHandler);
 
                 return lModuleResult;
             }
@@ -39,7 +47,7 @@ describe('Custom Module', () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: `<div *multiresult/>`
+            template: `$multiresult`
         })
         class TestComponent { }
 
@@ -59,7 +67,7 @@ describe('Custom Module', () => {
     it('-- Manupulator without update method', async () => {
         // Setup. Define module.
         @PwbInstructionModule({
-            selector: /^\*noupdatemethod$/
+            instructionType: 'noupdatemethod'
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class WrongModule { }
@@ -67,7 +75,7 @@ describe('Custom Module', () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: `<div *noupdatemethod/>`
+            template: `$noupdatemethod`
         })
         class TestComponent { }
 
@@ -88,7 +96,6 @@ describe('Custom Module', () => {
         // Setup. Define module.
         @PwbAttributeModule({
             selector: /^nodeconstructmethod$/,
-            forbiddenInManipulatorScopes: false,
             access: AccessMode.Read
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars

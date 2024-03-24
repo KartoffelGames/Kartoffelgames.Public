@@ -12,6 +12,7 @@ import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
 import { PwbTemplate } from '../../../source/component/template/nodes/pwb-template';
+import { ComponentElement } from '../../../source/interface/component.interface';
 
 describe('Custom Module', () => {
     it('-- Same result, twice', async () => {
@@ -109,7 +110,7 @@ describe('Custom Module', () => {
         class TestComponent { }
 
         // Process. Create element.
-        const lComponent: HTMLElement = await <any>TestUtil.createComponent(TestComponent);
+        const lComponent: ComponentElement = await TestUtil.createComponent(TestComponent);
         TestUtil.deconstructComponent(lComponent);
     });
 });

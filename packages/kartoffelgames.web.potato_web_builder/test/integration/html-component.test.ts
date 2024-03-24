@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { PwbComponent } from '../../source/decorator/pwb-component.decorator';
 import { UpdateScope } from '../../source/enum/update-scope.enum';
 import { LoopError } from '../../source/component/handler/loop-detection-handler';
-import { IPwbAfterInit, IPwbAfterUpdate, IPwbOnAttributeChange, IPwbOnDeconstruct, IPwbOnInit, IPwbOnUpdate } from '../../source/interface/component.interface';
+import { ComponentElement, IPwbAfterInit, IPwbAfterUpdate, IPwbOnAttributeChange, IPwbOnDeconstruct, IPwbOnInit, IPwbOnUpdate } from '../../source/interface/component.interface';
 import { PwbExport } from '../../source/default/export/pwb-export.decorator';
 import { ComponentElementReference } from '../../source/injection_reference/component/component-element-reference';
 import { PwbExpressionModule } from '../../source/decorator/pwb-expression-module.decorator';
@@ -415,7 +415,7 @@ describe('HtmlComponent', () => {
         }
 
         // Process. Create element indirect callback.
-        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
         lComponent.innerValue = 'New-Value';
         TestUtil.deconstructComponent(lComponent);
 
@@ -446,7 +446,7 @@ describe('HtmlComponent', () => {
         }
 
         // Process. Create element indirect callback.
-        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
         TestUtil.deconstructComponent(lComponent);
 
         // Evaluation.

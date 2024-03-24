@@ -18,6 +18,7 @@ import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
 import { PwbTemplate } from '../../../source/component/template/nodes/pwb-template';
+import { ComponentElement } from '../../../source/interface/component.interface';
 
 describe('PwbEventListener', () => {
     it('-- Native listener', async () => {
@@ -163,7 +164,7 @@ describe('PwbEventListener', () => {
         }
 
         // Process. Create element and click div.
-        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
         TestUtil.deconstructComponent(lComponent);
         lComponent.click();
 
@@ -227,7 +228,7 @@ describe('PwbEventListener', () => {
         class TestComponent { }
 
         // Process. Create element and click div.
-        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
         TestUtil.deconstructComponent(lComponent);
         lComponent.click();
 

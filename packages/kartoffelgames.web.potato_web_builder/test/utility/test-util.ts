@@ -9,7 +9,7 @@ export class TestUtil {
      * Create component from selector.
      * @param pSelector - component selector.
      */
-    public static async createComponent(pClass: any, pSilenceErrors: boolean = false): Promise<HTMLElement> {
+    public static async createComponent(pClass: any, pSilenceErrors: boolean = false): Promise<ComponentElement> {
         // Setup. Create app and silence errors.
         const lPwbApp: PwbApp = new PwbApp('Name');
         lPwbApp.addErrorListener(() => {

@@ -4,6 +4,7 @@ import { PwbExport } from '../../../source/default/export/pwb-export.decorator';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
+import { ComponentElement } from '../../../source/interface/component.interface';
 
 describe('ForOfManipulatorAttributeModule', () => {
     it('Array items', async () => {
@@ -461,7 +462,7 @@ describe('ForOfManipulatorAttributeModule', () => {
         }
 
         // Setup. Create element.
-        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
         TestUtil.deconstructComponent(lComponent);
 
         // Evaluation.

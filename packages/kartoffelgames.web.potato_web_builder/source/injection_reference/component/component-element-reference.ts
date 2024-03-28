@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
+
 import { Exception } from '@kartoffelgames/core.data';
 import { ComponentElement } from '../../interface/component.interface';
-import { Component } from '../../component/component';
 
 /**
  * Component element reference.
@@ -8,10 +9,7 @@ import { Component } from '../../component/component';
  * 
  * Should never be initialized.
  */
-export class ComponentElementReference extends HTMLElement implements ComponentElement {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    public readonly __component__: Component;
-
+export class ComponentElementReference {
     /**
      * Constructor. Allways throws exception.
      * 
@@ -19,11 +17,9 @@ export class ComponentElementReference extends HTMLElement implements ComponentE
      * Allways.
      */
     constructor() {
-        super();
-        this.__component__ = null as any;
-
         throw new Exception('Reference should not be instanced.', this);
     }
-
-
 }
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+export declare interface ComponentElementReference extends HTMLElement, ComponentElement { }

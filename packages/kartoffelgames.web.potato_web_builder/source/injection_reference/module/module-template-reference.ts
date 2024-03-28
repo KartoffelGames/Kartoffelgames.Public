@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
+
 import { Exception } from '@kartoffelgames/core.data';
 import { BasePwbTemplateNode } from '../../component/template/nodes/base-pwb-template-node';
 
@@ -7,7 +9,7 @@ import { BasePwbTemplateNode } from '../../component/template/nodes/base-pwb-tem
  * 
  * Should never be initialized.
  */
-export class ModuleTemplateReference extends BasePwbTemplateNode {
+export class ModuleTemplateReference {
     /**
      * Constructor. Allways throws exception.
      * 
@@ -15,28 +17,8 @@ export class ModuleTemplateReference extends BasePwbTemplateNode {
      * Allways.
      */
     public constructor() {
-        super();
-
         throw new Exception('Reference should not be instanced.', this);
     }
-
-    /**
-     * Clone node.
-     * 
-     * @throws {@link Error}
-     * Allways. Because it is not ment to be called.
-     */
-    public override clone(): BasePwbTemplateNode {
-        throw new Error('Method not implemented.');
-    }
-
-    /**
-     * Compare two nodes..
-     * 
-     * @throws {@link Error}
-     * Allways. Because it is not ment to be called.
-     */
-    public override equals(_pBaseNode: BasePwbTemplateNode): boolean {
-        throw new Error('Method not implemented.');
-    }
 }
+
+export declare interface ModuleTemplateReference extends BasePwbTemplateNode { }

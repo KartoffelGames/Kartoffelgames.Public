@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
+
 import { Exception } from '@kartoffelgames/core.data';
 import { LayerValues } from '../../component/values/layer-values';
 
@@ -7,7 +9,7 @@ import { LayerValues } from '../../component/values/layer-values';
  * 
  * Should never be initialized.
  */
-export class ComponentLayerValuesReference extends LayerValues {
+export class ComponentLayerValuesReference {
     /**
      * Constructor. Allways throws exception.
      * 
@@ -15,8 +17,8 @@ export class ComponentLayerValuesReference extends LayerValues {
      * Allways.
      */
     public constructor() {
-        super(null as any);
-
         throw new Exception('Reference should not be instanced.', this);
     }
 }
+
+export declare interface ComponentLayerValuesReference extends LayerValues { }

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
+
 import { Exception } from '@kartoffelgames/core.data';
 
 /**
@@ -6,7 +8,7 @@ import { Exception } from '@kartoffelgames/core.data';
  * 
  * Should never be initialized.
  */
-export class ModuleTargetNodeReference extends Node {
+export class ModuleTargetNodeReference {
     /**
      * Constructor. Allways throws exception.
      * 
@@ -14,8 +16,8 @@ export class ModuleTargetNodeReference extends Node {
      * Allways.
      */
     constructor() {
-        super();
-
         throw new Exception('Reference should not be instanced.', this);
     }
 }
+
+export declare interface ModuleTargetNodeReference extends Node { }

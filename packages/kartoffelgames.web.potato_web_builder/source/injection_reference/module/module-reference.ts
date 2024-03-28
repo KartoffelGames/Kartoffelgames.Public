@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
+
 import { Exception } from '@kartoffelgames/core.data';
 import { BaseModule } from '../../module/base-module';
 import { IPwbModuleProcessor } from '../../interface/module.interface';
@@ -8,7 +10,7 @@ import { IPwbModuleProcessor } from '../../interface/module.interface';
  * 
  * Should never be initialized.
  */
-export class ModuleReference extends BaseModule<Node, IPwbModuleProcessor> {
+export class ModuleReference {
     /**
      * Constructor. Allways throws exception.
      * 
@@ -16,17 +18,8 @@ export class ModuleReference extends BaseModule<Node, IPwbModuleProcessor> {
      * Allways.
      */
     public constructor() {
-        super(null as any);
         throw new Exception('Reference should not be instanced.', this);
     }
-
-    /**
-     * Update linked targets of module
-     * 
-     * @throws {@link Error}
-     * Allways. Because it is not ment to be called.
-     */
-    public override update(): boolean {
-        throw new Error('Method not implemented.');
-    }
 }
+
+export declare interface ModuleReference extends BaseModule<Node, IPwbModuleProcessor> { }

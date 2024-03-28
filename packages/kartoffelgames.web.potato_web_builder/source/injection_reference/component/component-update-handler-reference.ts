@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
+
 import { Exception } from '@kartoffelgames/core.data';
 import { UpdateHandler } from '../../component/handler/update-handler';
 
@@ -7,7 +9,7 @@ import { UpdateHandler } from '../../component/handler/update-handler';
  * 
  * Should never be initialized.
  */
-export class ComponentUpdateHandlerReference extends UpdateHandler { 
+export class ComponentUpdateHandlerReference {
     /**
      * Constructor. Allways throws exception.
      * 
@@ -15,8 +17,8 @@ export class ComponentUpdateHandlerReference extends UpdateHandler {
      * Allways.
      */
     constructor() {
-        super(null as any);
-
         throw new Exception('Reference should not be instanced.', this);
     }
 }
+
+export declare interface ComponentUpdateHandlerReference extends UpdateHandler { }

@@ -1,3 +1,4 @@
+import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { ComponentUpdateHandlerReference } from '../../source';
 import { Component } from '../../source/component/component';
 import { UpdateHandler } from '../../source/component/handler/update-handler';
@@ -9,7 +10,7 @@ export class TestUtil {
      * Create component from selector.
      * @param pSelector - component selector.
      */
-    public static async createComponent(pClass: any, pSilenceErrors: boolean = false): Promise<ComponentElement> {
+    public static async createComponent(pClass: InjectionConstructor, pSilenceErrors: boolean = false): Promise<ComponentElement> {
         // Setup. Create app and silence errors.
         const lPwbApp: PwbApp = new PwbApp('Name');
         lPwbApp.addErrorListener(() => {

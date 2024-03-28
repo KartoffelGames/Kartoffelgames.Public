@@ -5,7 +5,8 @@ import { ElementCreator } from './component/element-creator';
 import { UpdateHandler } from './component/handler/update-handler';
 import { PwbTemplateXmlNode } from './component/template/nodes/pwb-template-xml-node';
 import { ComponentUpdateHandlerReference } from './injection_reference/component/component-update-handler-reference';
-import { ComponentElement } from './interface/component.interface';
+import { ComponentElement, ComponentProcessorConstructor } from './interface/component.interface';
+import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 
 export class PwbApp { // TODO: Rework PwbApp to be a component.
     private static readonly mChangeDetectionToApp: WeakMap<ChangeDetection, PwbApp> = new WeakMap<ChangeDetection, PwbApp>();
@@ -31,7 +32,7 @@ export class PwbApp { // TODO: Rework PwbApp to be a component.
     private readonly mAppComponent: HTMLElement;
     private mAppSealed: boolean;
     private readonly mChangeDetection: ChangeDetection;
-    private readonly mComponentList: Array<string>;
+    private readonly mComponentSelectorList: Array<string>;
     private readonly mShadowRoot: ShadowRoot;
     private readonly mSplashScreen: HTMLElement;
     private mSplashScreenOptions: SplashScreen;
@@ -49,7 +50,7 @@ export class PwbApp { // TODO: Rework PwbApp to be a component.
      */
     public constructor(pAppName: string) {
         this.mAppSealed = false;
-        this.mComponentList = new Array<string>();
+        this.mComponentSelectorList = new Array<string>();
         this.mChangeDetection = new ChangeDetection(pAppName);
         PwbApp.mChangeDetectionToApp.set(this.mChangeDetection, this);
 
@@ -85,16 +86,21 @@ export class PwbApp { // TODO: Rework PwbApp to be a component.
 
     /**
      * Append content to app.
-     * @param pContentClass - Content constructor.
+     * @param pContentConstructor - Content constructor.
      */
-    public addContent(pContentSelector: string): void {
+    public addContent(pContentConstructor: InjectionConstructor | ComponentProcessorConstructor): void {
         // Sealed error.
         if (this.mAppSealed) {
             throw new Exception('App content is sealed after it got append to the DOM', this);
         }
 
+        // Validate constructor to be a component constructor. 
+        if (!('__component_selector__' in pContentConstructor) || typeof pContentConstructor.__component_selector__ !== 'string') {
+            throw new Exception(`Set constructor is not a component constructor.`, this);
+        }
+
         // Add content to content list.
-        this.mComponentList.push(pContentSelector);
+        this.mComponentSelectorList.push(pContentConstructor.__component_selector__);
     }
 
     /**
@@ -145,11 +151,11 @@ export class PwbApp { // TODO: Rework PwbApp to be a component.
                 const lUpdateWaiter: Array<Promise<boolean>> = new Array<Promise<boolean>>();
 
                 // Create new update waiter for each component.
-                for (const lComponentConstructor of this.mComponentList) {
+                for (const lComponentConstructor of this.mComponentSelectorList) {
                     // Create component and forward error.
                     let lComponentElement: ComponentElement;
                     try {
-                        lComponentElement = <ComponentElement>this.createComponent(lComponentConstructor);
+                        lComponentElement = this.createComponent(lComponentConstructor);
                     } catch (pError) {
                         pReject(pError);
                         return;
@@ -239,21 +245,26 @@ export class PwbApp { // TODO: Rework PwbApp to be a component.
      * Create component.
      * @param pContentClass - Component class.
      */
-    private createComponent(pSelector: string): HTMLElement {
+    private createComponent(pSelector: string): ComponentElement {
         // Create content template content is always inside xhtml namespace.
         const lContentTemplate: PwbTemplateXmlNode = new PwbTemplateXmlNode();
         lContentTemplate.tagName = pSelector;
 
         // Create content from template inside change detection.
-        let lContent: HTMLElement | null = null;
+        let lContent: Element | ComponentElement | null = null;
         this.mChangeDetection.execute(() => {
-            lContent = <HTMLElement>ElementCreator.createElement(lContentTemplate);
+            lContent = ElementCreator.createElement(lContentTemplate);
 
             // Append content to shadow root
             this.mShadowRoot.appendChild(lContent);
         });
 
-        return <HTMLElement><any>lContent;
+        // Validate content to be a component.
+        if (!lContent || !('__component__' in lContent)) {
+            throw new Exception(`Selector "${pSelector}" is not a component.`, this);
+        }
+
+        return lContent;
     }
 }
 

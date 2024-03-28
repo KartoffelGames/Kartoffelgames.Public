@@ -28,6 +28,10 @@ export class ElementCreator {
     public static createElement(pXmlElement: PwbTemplateXmlNode): Element {
         const lTagname: string = pXmlElement.tagName;
 
+        if(typeof lTagname !== 'string') {
+            throw lTagname;
+        }
+
         // On custom element
         if (lTagname.includes('-')) {
             // Get custom element.

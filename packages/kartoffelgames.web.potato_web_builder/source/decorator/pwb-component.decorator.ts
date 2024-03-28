@@ -14,6 +14,13 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
         // Set component processor constructor to be injectable.
         Injector.Injectable(pComponentProcessorConstructor);
 
+        // Add __component__ property to processor.
+        Object.defineProperty(pComponentProcessorConstructor, '__component_selector__', {
+            get: () => {
+                return pParameter.selector;
+            }
+        });
+
         // Create custom html element of parent type.
         const lPwbComponentConstructor = class extends HTMLElement {
             private readonly mComponent: Component;

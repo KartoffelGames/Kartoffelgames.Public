@@ -9,6 +9,9 @@ export interface ComponentProcessor extends Partial<IPwbOnInit>, Partial<IPwbAft
 }
 
 export type ComponentProcessorConstructor = {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    readonly __component_selector__: string;
+
     new(...pParameter: Array<any>): ComponentProcessor;
 };
 

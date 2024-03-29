@@ -130,8 +130,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Create part reference.
         const lRootPartReference: GraphPartReference<TTokenType> = new GraphPartReference<TTokenType>(this, this.mRootPartName);
 
-        // Parse root part.
-        const lRootParseData: GraphPartParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphPart(lRootPartReference, lTokenList, 0, 0, new Stack<GraphPartReference<TTokenType> | BaseGrammarNode<TTokenType>>());
+        // Parse root part. Start at 0 recursion level.
+        const lRootParseData: GraphPartParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphPart(lRootPartReference, lTokenList, 0, new Stack<GraphPartReference<TTokenType> | BaseGrammarNode<TTokenType>>());
         if (Array.isArray(lRootParseData)) {
             // Find error with the latest error position.
             let lErrorPosition: GraphParseError<TTokenType> | null = null;
@@ -208,22 +208,21 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @returns The Token data object with all parsed brother node token data merged. Additionally the last used token index is returned.
      * When the parsing fails for this node or a brother node, a complete list with all potential errors are returned instead of the token data.
      */
-    private parseGraphNode(pNode: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionLevel: number, pRecursionStack: Stack<GraphPartReference<TTokenType> | BaseGrammarNode<TTokenType>>): GraphNodeParseResult | Array<GraphParseError<TTokenType>> {
+    private parseGraphNode(pNode: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionItem: GrapthRecursionStack<TTokenType>): GraphNodeParseResult | Array<GraphParseError<TTokenType>> {
+        // Increase recursion level.
+        const lRecursionItem: GrapthRecursionStack<TTokenType> = this.stackRecursion(pRecursionItem, pNode);
+
         // Parse and read current node values. Add each error to the complete error list.
-        const lNodeValueParseResult: GraphNodeValueParseSuccess | GraphNodeValueParseError<TTokenType> = this.retrieveNodeValues(pNode, pTokenList, pCurrentTokenIndex, pRecursionLevel, pRecursionStack);
+        const lNodeValueParseResult: GraphNodeValueParseSuccess | GraphNodeValueParseError<TTokenType> = this.retrieveNodeValues(pNode, pTokenList, pCurrentTokenIndex, lRecursionItem);
 
         // Return parser error when no parse value was found.
         if ('errorList' in lNodeValueParseResult) {
             return lNodeValueParseResult.errorList;
         }
 
-        // Increase recursion level.
-        const lRecursionLevel: number = this.stackRecursion(pRecursionLevel, pRecursionStack, pNode);
-
-
         // Parse and read data of chanined nodes. Add each error to the complete error list.
         // When result contains errors, return the error list.
-        const lChainParseResult: GraphBranchResult | Array<GraphParseError<TTokenType>> = this.retrieveChainedValues(pNode, lNodeValueParseResult.resultList, pTokenList, lRecursionLevel, pRecursionStack.clone());
+        const lChainParseResult: GraphBranchResult | Array<GraphParseError<TTokenType>> = this.retrieveChainedValues(pNode, lNodeValueParseResult.resultList, pTokenList, lRecursionItem);
         if (Array.isArray(lChainParseResult)) {
             return lChainParseResult;
         }
@@ -283,25 +282,28 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * Additionally the last used token index is returned.
      * When the parsing fails for this graph part, a complete list with all potential errors are returned instead of the pared data.
      */
-    private parseGraphPart(pPart: GraphPartReference<TTokenType> | BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionLevel: number, pRecursionStack: Stack<GraphPartReference<TTokenType> | BaseGrammarNode<TTokenType>>): GraphPartParseResult | Array<GraphParseError<TTokenType>> {
+    private parseGraphPart(pPart: GraphPartReference<TTokenType> | BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionItem: GrapthRecursionStack<TTokenType>): GraphPartParseResult | Array<GraphParseError<TTokenType>> {
         let lRootNode: BaseGrammarNode<TTokenType> | null;
         let lCollector: GraphPartDataCollector | null = null;
-        let lRecursionLevel: number = pRecursionLevel;
 
         // Read reference or read branch root of part node.
+        let lRecursionItem: GrapthRecursionStack<TTokenType>;
         if (pPart instanceof GraphPartReference) {
             const lGraphPart: GraphPart<TTokenType> = pPart.resolveReference();
             lRootNode = lGraphPart.graph;
             lCollector = lGraphPart.dataCollector;
 
             // Increase recursion level.
-            lRecursionLevel = this.stackRecursion(lRecursionLevel, pRecursionStack, pPart);
+            lRecursionItem = this.stackRecursion(pRecursionItem, pPart);
         } else {
             lRootNode = pPart.branchRoot;
+
+            // Increase recursion level.
+            lRecursionItem = this.stackRecursion(pRecursionItem, lRootNode);
         }
 
         // Parse branch.
-        const lBranchResult: GraphNodeParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphNode(lRootNode, pTokenList, pCurrentTokenIndex, lRecursionLevel, pRecursionStack.clone());
+        const lBranchResult: GraphNodeParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphNode(lRootNode, pTokenList, pCurrentTokenIndex, lRecursionItem);
 
         // Redirect errors.
         if (Array.isArray(lBranchResult)) {
@@ -353,7 +355,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @throws {@link Exception}
      * When more than one branch resolves to be valid.
      */
-    private retrieveChainedValues(pNode: BaseGrammarNode<TTokenType>, pBranchValues: Array<GraphNodeValueParseResult>, pTokenList: Array<LexerToken<TTokenType>>, pRecursionLevel: number, pRecursionStack: Stack<GraphPartReference<TTokenType> | BaseGrammarNode<TTokenType>>): GraphBranchResult | Array<GraphParseError<TTokenType>> {
+    private retrieveChainedValues(pNode: BaseGrammarNode<TTokenType>, pBranchValues: Array<GraphNodeValueParseResult>, pTokenList: Array<LexerToken<TTokenType>>, pRecursionItem: GrapthRecursionStack<TTokenType>): GraphBranchResult | Array<GraphParseError<TTokenType>> {
         const lErrorList: Array<GraphParseError<TTokenType>> = new Array<GraphParseError<TTokenType>>();
 
         type ChainResult = {
@@ -383,7 +385,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 }
 
                 // Parse chained node. Save all errors.
-                const lChainedNodeParseResult: GraphNodeParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphNode(lChainedNode, pTokenList, lBranch.tokenIndex + 1, pRecursionLevel, pRecursionStack);
+                const lChainedNodeParseResult: GraphNodeParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphNode(lChainedNode, pTokenList, lBranch.tokenIndex + 1, pRecursionItem);
                 if (Array.isArray(lChainedNodeParseResult)) {
                     lErrorList.push(...lChainedNodeParseResult);
                     continue;
@@ -460,7 +462,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * 
      * @returns A error and a result list.
      */
-    private retrieveNodeValues(pNode: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionLevel: number, pRecursionStack: Stack<GraphPartReference<TTokenType> | BaseGrammarNode<TTokenType>>): GraphNodeValueParseSuccess | GraphNodeValueParseError<TTokenType> {
+    private retrieveNodeValues(pNode: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionItem: GrapthRecursionStack<TTokenType>): GraphNodeValueParseSuccess | GraphNodeValueParseError<TTokenType> {
         // Read next token.
         const lCurrentToken: LexerToken<TTokenType> | undefined = pTokenList.at(pCurrentTokenIndex);
 
@@ -512,7 +514,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 };
             } else {
                 // Process inner value but keep on current node.
-                const lInnerValue: GraphPartParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphPart(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionLevel, pRecursionStack);
+                const lInnerValue: GraphPartParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphPart(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionItem);
 
                 // When unsuccessfull save the last error.
                 if (Array.isArray(lInnerValue)) {
@@ -565,20 +567,15 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * 
      * @returns Incremented resursion level. 
      */
-    private stackRecursion(pRecursionLevel: number, pRecursionStack: Stack<GraphPartReference<TTokenType> | BaseGrammarNode<TTokenType>>, pPart: GraphPartReference<TTokenType> | BaseGrammarNode<TTokenType>): number {
-        let lRecursionLevel: number = pRecursionLevel;
+    private stackRecursion(pRecursionStack: GrapthRecursionStack<TTokenType>, pPart: GraphPartReference<TTokenType> | BaseGrammarNode<TTokenType>): GrapthRecursionStack<TTokenType> {
+        const lRecursionStack: Stack<GraphPartReference<TTokenType> | BaseGrammarNode<TTokenType>> = pRecursionStack.clone();
 
         // Increase recursion level and add part reference to recursion stack.
-        lRecursionLevel++;
-        pRecursionStack.push(pPart);
+        lRecursionStack.push(pPart);
 
-        if (lRecursionLevel > this.mMaxRecursion) {
-            const lRecursionChain: Set<GraphPartReference<TTokenType> | BaseGrammarNode<TTokenType>> = new Set<GraphPartReference<TTokenType> | BaseGrammarNode<TTokenType>>();
-
-            // Pop recursion stack to set as long as it has not already the same reference or contains values.
-            while (!!pRecursionStack.top && !lRecursionChain.has(pRecursionStack.top)) {
-                lRecursionChain.add(pRecursionStack.pop()!);
-            }
+        // Throw exception when stack exceeds recursion count.
+        if (lRecursionStack.size > this.mMaxRecursion) {
+            const lRecursionChain: Array<GraphPartReference<TTokenType> | BaseGrammarNode<TTokenType>> = new Array<GraphPartReference<TTokenType> | BaseGrammarNode<TTokenType>>(...lRecursionStack.flush());
 
             // Construct recursion loop name data. Reverse list to set actual call order.
             const lPartNameList: Array<string> = [...lRecursionChain].map((pPart: GraphPartReference<TTokenType> | BaseGrammarNode<TTokenType>) => {
@@ -632,10 +629,10 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             lPartNameList.reverse();
 
             // Throw recursion error.
-            throw new Exception(`Circular dependency detected between: ${lPartNameList.join(' -> ')}`, this);
+            throw new Exception(`${lRecursionChain.length} ${lRecursionStack.size} Circular dependency detected between: ${lPartNameList.join(' -> ')}`, this);
         }
 
-        return lRecursionLevel;
+        return lRecursionStack;
     }
 }
 
@@ -673,3 +670,5 @@ type GraphBranchResult = {
     chainData: Record<string, unknown>;
     tokenIndex: number;
 };
+
+type GrapthRecursionStack<TTokenType extends string> = Stack<GraphPartReference<TTokenType> | BaseGrammarNode<TTokenType>>

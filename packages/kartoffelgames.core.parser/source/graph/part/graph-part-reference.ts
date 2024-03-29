@@ -12,6 +12,13 @@ export class GraphPartReference<TTokenType extends string> {
     private readonly mPartName: string;
 
     /**
+     * Get reference part name.
+     */
+    public get partName(): string {
+        return this.mPartName;
+    }
+
+    /**
      * Constructor.
      * 
      * @param pParser - Parser reference.

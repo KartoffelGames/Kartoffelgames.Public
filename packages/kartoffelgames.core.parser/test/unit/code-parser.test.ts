@@ -50,6 +50,18 @@ describe('CodeParser', () => {
         expect(lParser.lexer).to.equal(lLexer);
     });
 
+    it('Property: maxRecursion', () => {
+        // Setup
+        const lParser = new CodeParser<string, any>(new Lexer<string>());
+        const lRecursionValue: number = 121;
+
+        // Process.
+        lParser.maxRecursion = lRecursionValue;
+
+        // Evaluation
+        expect(lParser.maxRecursion).to.equal(lRecursionValue);
+    });
+
     describe('Method: defineGraphPart', () => {
         it('-- Define default without collector', () => {
             // Setup.
@@ -598,6 +610,32 @@ describe('CodeParser', () => {
 
                 // Evaluation.
                 expect(lErrorFunction).to.throws(Exception, `Graph has ambiguity paths. Values: [\n\t{ const(Modifier) identifier(Identifier) ;(Semicolon) },\n\t{ const(Modifier) identifier(Identifier) ;(Semicolon) }\n]`);
+            });
+
+            it('-- Detect endless circular dependency', () => {
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+
+                lParser.defineGraphPart('Level1',
+                    lParser.graph().optional(TokenType.Modifier).single(lParser.partReference('Level2')),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.defineGraphPart('Level2',
+                    lParser.graph().optional(TokenType.Modifier).single(lParser.partReference('Level1')),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('Level1');
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('identifier');
+                };
+
+                // Evaluation.
+                expect(lErrorFunction).to.throws(Exception, `Circular dependency detected between: ["Level2", "Level1"]`);
             });
         });
 

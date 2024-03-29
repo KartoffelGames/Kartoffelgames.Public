@@ -6,7 +6,15 @@ import { ICloneable } from '../interface/i-cloneable';
  * @public
  */
 export class Stack<T> implements ICloneable<Stack<T>> {
+    private mSize: number;
     private mTopItem: StackItem<T> | null;
+    
+    /**
+     * Get current stack size.
+     */
+    public get size(): number {
+        return this.mSize;
+    }
 
     /**
      * Current top item of stack.
@@ -26,6 +34,7 @@ export class Stack<T> implements ICloneable<Stack<T>> {
      */
     public constructor() {
         this.mTopItem = null;
+        this.mSize = 0;
     }
 
     /**
@@ -39,6 +48,7 @@ export class Stack<T> implements ICloneable<Stack<T>> {
 
         // Only thing that needs to be cloned is the current reference.
         lClonedStack.mTopItem = this.mTopItem;
+        lClonedStack.mSize = this.mSize;
 
         return lClonedStack;
     }
@@ -102,6 +112,7 @@ export class Stack<T> implements ICloneable<Stack<T>> {
 
         // Replace current top item with previous stacked.
         this.mTopItem = this.mTopItem.previous;
+        this.mSize--;
 
         return lCurrentTopValue;
     }
@@ -131,6 +142,7 @@ export class Stack<T> implements ICloneable<Stack<T>> {
 
         // Replace current top item with next.
         this.mTopItem = lNextItem;
+        this.mSize++;
     }
 
     /**

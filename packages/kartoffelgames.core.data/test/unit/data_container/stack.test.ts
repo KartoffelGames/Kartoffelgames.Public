@@ -2,6 +2,63 @@ import { expect } from 'chai';
 import { Stack } from '../../../source/data_container/stack';
 
 describe('Stack', () => {
+    describe('Property: size', () => {
+        it('-- Single value stack', () => {
+            // Setup.
+            const lStack: Stack<string> = new Stack<string>();
+            lStack.push('1');
+
+            // Process.
+            const lSize: number = lStack.size;
+
+            // Evaluation.
+            expect(lSize).to.equals(1);
+        });
+
+        it('-- Multi value stack', () => {
+            // Setup.
+            const lStack: Stack<string> = new Stack<string>();
+            lStack.push('1');
+            lStack.push('2');
+
+            // Process.
+            const lSize: number = lStack.size;
+
+            // Evaluation.
+            expect(lSize).to.equals(2);
+        });
+
+        it('-- Cloned stack', () => {
+            // Setup.
+            const lStack: Stack<string> = new Stack<string>();
+            lStack.push('1');
+            lStack.push('2');
+
+            // Setup. Clone stack.
+            const lStackCopy: Stack<string> = lStack.clone();
+
+            // Process.
+            const lSize: number = lStackCopy.size;
+
+            // Evaluation.
+            expect(lSize).to.equals(2);
+        });
+
+        it('-- Poped stack item', () => {
+            // Setup.
+            const lStack: Stack<string> = new Stack<string>();
+            lStack.push('1');
+            lStack.push('2');
+            lStack.pop();
+
+            // Process.
+            const lSize: number = lStack.size;
+
+            // Evaluation.
+            expect(lSize).to.equals(1);
+        });
+    });
+
     describe('Property: top', () => {
         it('-- Single value stack', () => {
             // Setup.

@@ -37,12 +37,8 @@ export class Stack<T> implements ICloneable<Stack<T>> {
     public clone(): Stack<T> {
         const lClonedStack: Stack<T> = new Stack<T>();
 
-        // Convert stack into Array and reverse it.
-        // So the stack order is preserved.
-        for(const lItem of this.toArray().reverse()){
-            // Add each item to the new stack.
-            lClonedStack.push(lItem);
-        }
+        // Only thing that needs to be cloned is the current reference.
+        lClonedStack.mTopItem = this.mTopItem;
 
         return lClonedStack;
     }

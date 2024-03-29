@@ -635,7 +635,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).to.throws(Exception, `Circular dependency detected between: ["Level2", "Level1"]`);
+                expect(lErrorFunction).to.throws(Exception, `Circular dependency detected between: Optional-Single()[Modifier] -> Part(Level2) -> Optional-Single()[Modifier] -> Part(Level1)`);
             });
         });
 

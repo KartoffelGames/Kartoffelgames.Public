@@ -373,8 +373,8 @@ export class TemplateParser {
             lParser.graph().loop('list', lParser.graph().branch('node', [
                 lParser.partReference('XmlCommentNode'),
                 lParser.partReference('XmlElement'),
-                lParser.partReference('XmlTextNode'),
-                lParser.partReference('InstructionNode')
+                lParser.partReference('InstructionNode'),
+                lParser.partReference('XmlTextNode')
             ])),
             (pData: ContentParseData): Array<BasePwbTemplateNode> => {
                 const lContentList: Array<BasePwbTemplateNode> = new Array<BasePwbTemplateNode>();

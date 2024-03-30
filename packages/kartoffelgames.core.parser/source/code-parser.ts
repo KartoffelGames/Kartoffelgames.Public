@@ -10,6 +10,7 @@ import { LexerToken } from './lexer/lexer-token';
 import { GrammarBranchNode } from './graph/node/grammer-branch-node';
 import { GrammarLoopNode } from './graph/node/grammer-loop-node';
 import { GrammarSingleNode } from './graph/node/grammer-single-node';
+import { GraphParseError, GrapthException } from './exception/graph-exception';
 
 /**
  * Code parser turns a text with the help of a setup lexer into a syntax tree.
@@ -130,23 +131,18 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Create part reference.
         const lRootPartReference: GraphPartReference<TTokenType> = new GraphPartReference<TTokenType>(this, this.mRootPartName);
 
-        // Parse root part. Start at 0 recursion level.
-        const lRootParseData: GraphPartParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphPart(lRootPartReference, lTokenList, 0, new Stack<BaseGrammarNode<TTokenType>>());
-        if (Array.isArray(lRootParseData)) {
-            // Find error with the latest error position.
-            let lErrorPosition: GraphParseError<TTokenType> | null = null;
-            for (const lError of lRootParseData) {
-                // No previous token.
-                if (!lErrorPosition?.errorToken) {
-                    lErrorPosition = lError;
-                    continue;
-                }
-
-                // Error token exists and is at least position.
-                if (lError.errorToken && (lError.errorToken.lineNumber > lErrorPosition.errorToken.lineNumber || lError.errorToken.lineNumber === lErrorPosition.errorToken.lineNumber && lError.errorToken.columnNumber > lErrorPosition.errorToken.columnNumber)) {
-                    lErrorPosition = lError;
-                }
+        let lRootParseData: GraphPartParseResult;
+        try {
+            // Parse root part. Start at 0 recursion level.
+            lRootParseData = this.parseGraphPart(lRootPartReference, lTokenList, 0, new Stack<BaseGrammarNode<TTokenType>>());
+        } catch (pException) {
+            // Only handle exclusive grapth errors.
+            if (!(pException instanceof GrapthException)) {
+                throw pException;
             }
+
+            // Find error with the latest error position.
+            const lErrorPosition: GraphParseError<TTokenType> = pException.mostRelevant();
 
             // At lease one error must be found.
             throw ParserException.fromToken(lErrorPosition!.message, this, lErrorPosition!.errorToken, lErrorPosition!.errorToken);
@@ -665,17 +661,8 @@ type GraphNodeValueParseResult = {
     emptyValue: boolean;
 };
 
-type GraphParseError<TTokenType extends string> = {
-    message: string;
-    errorToken: LexerToken<TTokenType> | undefined;
-};
-
 type GraphNodeValueParseSuccess = {
     resultList: Array<GraphNodeValueParseResult>;
-};
-
-type GraphNodeValueParseError<TTokenType extends string> = {
-    errorList: Array<GraphParseError<TTokenType>>;
 };
 
 type GraphBranchResult = {

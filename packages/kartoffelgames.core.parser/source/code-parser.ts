@@ -1,16 +1,16 @@
 import { Dictionary, Exception, Stack } from '@kartoffelgames/core.data';
+import { GraphParseError, GrapthException } from './exception/graph-exception';
+import { ParserException } from './exception/parser-exception';
 import { AnonymoutGrammarNode } from './graph/node/anonymous-grammar-node';
 import { BaseGrammarNode } from './graph/node/base-grammar-node';
+import { GrammarBranchNode } from './graph/node/grammer-branch-node';
+import { GrammarLoopNode } from './graph/node/grammer-loop-node';
 import { GrammarNodeValueType } from './graph/node/grammer-node-value-type.enum';
+import { GrammarSingleNode } from './graph/node/grammer-single-node';
 import { GraphPart, GraphPartDataCollector } from './graph/part/graph-part';
 import { GraphPartReference } from './graph/part/graph-part-reference';
 import { Lexer } from './lexer/lexer';
-import { ParserException } from './exception/parser-exception';
 import { LexerToken } from './lexer/lexer-token';
-import { GrammarBranchNode } from './graph/node/grammer-branch-node';
-import { GrammarLoopNode } from './graph/node/grammer-loop-node';
-import { GrammarSingleNode } from './graph/node/grammer-single-node';
-import { GraphParseError, GrapthException } from './exception/graph-exception';
 
 /**
  * Code parser turns a text with the help of a setup lexer into a syntax tree.
@@ -362,7 +362,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
                 try {
                     // Parse chained node. Save all errors.
-                    const lChainedNodeParseResult: GraphNodeParseResult | Array<GraphParseError<TTokenType>> = this.parseGraphNode(lChainedNode, pTokenList, lBranch.tokenIndex + 1, pRecursionItem);
+                    const lChainedNodeParseResult: GraphNodeParseResult = this.parseGraphNode(lChainedNode, pTokenList, lBranch.tokenIndex + 1, pRecursionItem);
 
                     // Process branch with chained node values and a new token.
                     lResultList.push({

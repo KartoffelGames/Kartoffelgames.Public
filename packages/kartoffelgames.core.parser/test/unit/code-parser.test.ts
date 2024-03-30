@@ -524,6 +524,28 @@ describe('CodeParser', () => {
 
                 expect(lParsedData).has.property('value').has.property('loop').and.lengthOf(0);
             });
+
+            it('-- Loop with optional inner node.', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'one five';
+
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('LoopCode',
+                    lParser.graph().single('first', TokenType.Identifier).loop(lParser.graph().optional(TokenType.Modifier)).single('second', TokenType.Identifier),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('LoopCode');
+
+                // Process. Convert code.
+                const lParsedData: any = lParser.parse(lCodeText);
+
+                // Evaluation.
+                expect(lParsedData).has.property('first').and.deep.equals('one');
+                expect(lParsedData).has.property('second').and.deep.equals('five');
+            });
         });
 
         describe('-- Parse Graph Errors', () => {

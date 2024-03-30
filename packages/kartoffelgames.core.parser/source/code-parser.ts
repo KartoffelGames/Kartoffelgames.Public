@@ -5,7 +5,7 @@ import { GrammarNodeValueType } from './graph/node/grammer-node-value-type.enum'
 import { GraphPart, GraphPartDataCollector } from './graph/part/graph-part';
 import { GraphPartReference } from './graph/part/graph-part-reference';
 import { Lexer } from './lexer/lexer';
-import { ParserException } from './parser-exception';
+import { ParserException } from './exception/parser-exception';
 import { LexerToken } from './lexer/lexer-token';
 import { GrammarBranchNode } from './graph/node/grammer-branch-node';
 import { GrammarLoopNode } from './graph/node/grammer-loop-node';

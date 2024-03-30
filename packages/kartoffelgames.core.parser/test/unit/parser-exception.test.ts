@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { ParserException } from '../../source/parser-exception';
+import { ParserException } from '../../source/exception/parser-exception';
 
 describe('ParserException', () => {
     it('Method: columnEnd', () => {

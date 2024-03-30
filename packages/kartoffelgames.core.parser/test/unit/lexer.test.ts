@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { Lexer } from '../../source/lexer/lexer';
 import { LexerToken } from '../../source/lexer/lexer-token';
-import { ParserException } from '../../source/parser-exception';
+import { ParserException } from '../../source/exception/parser-exception';
 
 describe('Lexer', () => {
     enum TestTokenType {

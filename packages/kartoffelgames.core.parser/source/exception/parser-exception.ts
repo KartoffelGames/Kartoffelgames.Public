@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { LexerToken } from './lexer/lexer-token';
+import { LexerToken } from '../lexer/lexer-token';
 
 /**
  * Extends {@link Exception} by a {@link ParserException.line} and {@link ParserException.column} field.

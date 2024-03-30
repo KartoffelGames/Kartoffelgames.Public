@@ -38,6 +38,16 @@ export class GrapthException<TTokenType extends string> extends Error {
     }
 
     /**
+     * Merge errors from set execption into current.
+     * Append error list at the end.
+     * 
+     * @param pException - Grapth exception.
+     */
+    public merge(pException: GrapthException<TTokenType>): void {
+        this.mErrorList.push(...pException.mErrorList);
+    }
+
+    /**
      * Read the error with the least token position. 
      * 
      * @returns most relevant error.

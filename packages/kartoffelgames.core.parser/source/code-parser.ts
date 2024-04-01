@@ -203,6 +203,11 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     }
 
     private mergeNodeData(pNode: BaseGrammarNode<TTokenType>, pChainData: Record<string, unknown> | null, pNodeData: unknown | null): Record<string, unknown> | null {
+        // Full empty result. Nothing to merge.
+        if (pChainData === null && pNodeData === null) {
+            return null;
+        }
+
 
 
         // Merge data. Current node data into chained node data.
@@ -262,7 +267,11 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // When result is empty, return empty.
         const lChainParseResult: GraphBranchResult | null = this.retrieveChainedValues(pNode, lNodeValueParseResult, pTokenList, lRecursionItem);
 
-        // TODO: Return null when lNodeValueParseResult and lChainParseResult is null.
+        // Return null when lNodeValueParseResult and lChainParseResult is null.
+        // This means no token was processed.
+        if (lChainParseResult === null && lNodeValueParseResult === null) {
+            return null;
+        }
 
         return {
             data: this.mergeNodeData(pNode, lChainParseResult.chainData, lChainParseResult.nodeData),
@@ -281,7 +290,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * Additionally the last used token index is returned.
      * When the parsing fails for this graph part, a complete list with all potential errors are returned instead of the pared data.
      */
-    private parseGraphReference(pPart: GraphPartReference<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionItem: GrapthRecursionStack<TTokenType>): GraphPartParseResult {
+    private parseGraphReference(pPart: GraphPartReference<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionItem: GrapthRecursionStack<TTokenType>): GraphPartParseResult|null {
         // Read reference or read branch root of part node.
         const lGraphPart: GraphPart<TTokenType> = pPart.resolveReference();
         const lRootNode: BaseGrammarNode<TTokenType> = lGraphPart.graph;
@@ -289,6 +298,11 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
         // Parse branch, return empty when branch has no value.
         const lBranchResult: GraphNodeParseResult | null = this.parseGraphNode(lRootNode, pTokenList, pCurrentTokenIndex, pRecursionItem);
+
+        // When no token was processed, skip the data collector.
+        if(!lBranchResult) {
+            return null;
+        }
 
         // Execute optional collector.
         let lResultData: Record<string, unknown> | unknown = lBranchResult.data;
@@ -465,8 +479,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
         // Process each node value.
         for (const lNodeValue of pNode.nodeValues) {
-            let lNodeParseValue: GraphNodeValueParseResult;
-
             // Static token type of dynamic graph part.
             if (typeof lNodeValue === 'string') {
                 // When no current token was found. Skip node value parsing.
@@ -482,39 +494,40 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 }
 
                 // Set node value.
-                lNodeParseValue = {
+                lResultList.push({
                     data: lCurrentToken.value,
                     tokenIndex: pCurrentTokenIndex
-                };
-            } else {
-                try {
-                    // Process inner value but keep on current node.
-                    let lInnerValue: GraphPartParseResult;
-                    if (lNodeValue instanceof GraphPartReference) {
-                        lInnerValue = this.parseGraphReference(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionItem);
-                    } else {
-                        lInnerValue = this.parseGraphNode(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionItem);
-                    }
-
-                    // TODO: Sometimes, this shouldn't be data. It can return null.
-
-                    lNodeParseValue = {
-                        data: lInnerValue.data,
-                        tokenIndex: lInnerValue.tokenIndex
-                    };
-                } catch (pException) {
-                    // Only handle exclusive grapth errors.
-                    if (!(pException instanceof GrapthException)) {
-                        throw pException;
-                    }
-
-                    // When unsuccessfull save the last error.
-                    lGrapthErrors.merge(pException);
-                    continue;
-                }
+                });
+                continue;
             }
 
-            lResultList.push(lNodeParseValue);
+            try {
+                // Process inner value but keep on current node.
+                let lValueGraph: GraphPartParseResult | null;
+                if (lNodeValue instanceof GraphPartReference) {
+                    lValueGraph = this.parseGraphReference(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionItem);
+                } else {
+                    lValueGraph = this.parseGraphNode(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionItem);
+                }
+
+                // Continue when inner grapth has not processed any token.
+                if (lValueGraph === null) {
+                    continue;
+                }
+
+                lResultList.push({
+                    data: lValueGraph.data,
+                    tokenIndex: lValueGraph.tokenIndex
+                });
+            } catch (pException) {
+                // Only handle exclusive grapth errors.
+                if (!(pException instanceof GrapthException)) {
+                    throw pException;
+                }
+
+                // When unsuccessfull save the last error.
+                lGrapthErrors.merge(pException);
+            }
         }
 
         // Add empty GraphNodeValueParseResult when the node is optional and the node value has no positive result.

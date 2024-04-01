@@ -202,47 +202,59 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         this.mRootPartName = pPartName;
     }
 
-    private mergeNodeData(pNode: BaseGrammarNode<TTokenType>, pChainData: Record<string, unknown> | null, pNodeData: unknown | null): Record<string, unknown> | null {
-        // Full empty result. Nothing to merge.
-        if (pChainData === null && pNodeData === null) {
-            return null;
+    /**
+     * Merge chain and node data into one. 
+     * Alters {@link pChainData} reference data.
+     * 
+     * @param pNode - Node configuration.
+     * @param pChainData - Data that was collected from chained nodes.
+     * @param pNodeData - Data of {@link pNode}
+     * 
+     * @returns Merged data from {@link pChainData} and {@link pNodeData}. 
+     */
+    private mergeNodeData(pNode: BaseGrammarNode<TTokenType>, pChainData: Record<string, unknown> | null, pNodeData: unknown | null): Record<string, unknown> {
+        // Prefill chain data when it does not exists.
+        const lChainData: Record<string, unknown> = pChainData ?? {};
+
+        // When no data is available or node has no identifier, nothing must be merged.
+        if (pNodeData === null || !pNode.identifier) {
+            return lChainData;
         }
-
-
 
         // Merge data. Current node data into chained node data.
         // Merge only when the current node has a value (not optional/skipped) and has a identifier.
-        if (pNode.identifier) {
-            // Set as single value or list.
-            if (pNode.valueType === GrammarNodeValueType.Single && typeof pNodeData !== 'undefined') {
-                // Validate dublicate value identifier.
-                if (pNode.identifier in pChainData) {
-                    throw new Exception(`Grapth path has a dublicate value identifier "${pNode.identifier}"`, this);
-                }
 
-                // Overide value when set.
-                pChainData[pNode.identifier] = pNodeData;
-            } else if (pNode.valueType === GrammarNodeValueType.List) {
-                let lIdentifierValue: unknown = pChainData[pNode.identifier];
+        // Set as single value or list.
+        if (pNode.valueType === GrammarNodeValueType.Single && typeof pNodeData !== 'undefined') {
+            // Validate dublicate value identifier.
+            if (pNode.identifier in lChainData) {
+                throw new Exception(`Grapth path has a dublicate value identifier "${pNode.identifier}"`, this);
+            }
 
-                // Validate value identifier referes to a single value type.
-                if (typeof lIdentifierValue !== 'undefined' && !Array.isArray(lIdentifierValue)) {
-                    throw new Exception(`Grapth path has a dublicate value identifier "${pNode.identifier}" that is not a list value but should be.`, this);
-                }
+            // Overide value when set.
+            lChainData[pNode.identifier] = pNodeData;
+        } else if (pNode.valueType === GrammarNodeValueType.List) {
+            let lIdentifierValue: unknown = lChainData[pNode.identifier];
 
-                // Validate if the array is initialized, when not do so.
-                if (typeof lIdentifierValue === 'undefined') {
-                    // Init array and set it as identifier value.
-                    lIdentifierValue = new Array<unknown>();
-                    pChainData[pNode.identifier] = lIdentifierValue;
-                }
+            // Validate value identifier referes to a single value type.
+            if (typeof lIdentifierValue !== 'undefined' && !Array.isArray(lIdentifierValue)) {
+                throw new Exception(`Grapth path has a dublicate value identifier "${pNode.identifier}" that is not a list value but should be.`, this);
+            }
 
-                // Add value as array item and set, but only when a value was set.
-                if (typeof pNodeData !== 'undefined') {
-                    (<Array<unknown>>lIdentifierValue).unshift(pNodeData);
-                }
+            // Validate if the array is initialized, when not do so.
+            if (typeof lIdentifierValue === 'undefined') {
+                // Init array and set it as identifier value.
+                lIdentifierValue = new Array<unknown>();
+                lChainData[pNode.identifier] = lIdentifierValue;
+            }
+
+            // Add value as array item and set, but only when a value was set.
+            if (typeof pNodeData !== 'undefined') {
+                (<Array<unknown>>lIdentifierValue).unshift(pNodeData);
             }
         }
+
+        return lChainData;
     }
 
     /**
@@ -290,7 +302,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * Additionally the last used token index is returned.
      * When the parsing fails for this graph part, a complete list with all potential errors are returned instead of the pared data.
      */
-    private parseGraphReference(pPart: GraphPartReference<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionItem: GrapthRecursionStack<TTokenType>): GraphPartParseResult|null {
+    private parseGraphReference(pPart: GraphPartReference<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionItem: GrapthRecursionStack<TTokenType>): GraphPartParseResult | null {
         // Read reference or read branch root of part node.
         const lGraphPart: GraphPart<TTokenType> = pPart.resolveReference();
         const lRootNode: BaseGrammarNode<TTokenType> = lGraphPart.graph;
@@ -300,7 +312,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         const lBranchResult: GraphNodeParseResult | null = this.parseGraphNode(lRootNode, pTokenList, pCurrentTokenIndex, pRecursionItem);
 
         // When no token was processed, skip the data collector.
-        if(!lBranchResult) {
+        if (!lBranchResult) {
             return null;
         }
 

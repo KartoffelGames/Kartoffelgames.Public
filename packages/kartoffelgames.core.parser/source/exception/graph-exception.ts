@@ -71,6 +71,27 @@ export class GrapthException<TTokenType extends string> extends Error {
         // At lease one error must be found.
         return lErrorPosition!;
     }
+
+    /**
+     * Executes callback action. 
+     * When the action throws an {@link GrapthException} the exception will be catched and any error within will be merged into this exception.
+     * Any other error beside {@link GrapthException}s are thrown normaly.
+     * 
+     * @param pAction - Action.
+     */
+    public onErrorMergeAndContinue(pAction: () => void): void {
+        try {
+            pAction();
+        } catch (pException) {
+            // Only handle exclusive grapth errors.
+            if (!(pException instanceof GrapthException)) {
+                throw pException;
+            }
+
+            // When unsuccessfull save the last error.
+            this.merge(pException);
+        }
+    }
 }
 
 export type GraphParseError<TTokenType extends string> = {

@@ -396,7 +396,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 // Get current token index of branch value.
                 const lTokenIndex: number = (lNodeValue) ? lNodeValue.tokenIndex + 1 : pCurrentTokenIndex;
 
-                try {
+                // Try to parse next graph node.
+                lGrapthErrors.onErrorMergeAndContinue(() => {
                     // Parse chained node. Save all errors.
                     const lChainedNodeParseResult: GraphNodeParseResult | null = this.parseGraphNode(lChainedNode, pTokenList, lTokenIndex, pRecursionItem);
 
@@ -406,16 +407,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                         chainedValue: lChainedNodeParseResult,
                         loopNode: lChainedNode === pNode,
                     });
-                } catch (pException) {
-                    // Only handle exclusive grapth errors.
-                    if (!(pException instanceof GrapthException)) {
-                        throw pException;
-                    }
-
-                    // When unsuccessfull save the last error.
-                    lGrapthErrors.merge(pException);
-                    continue;
-                }
+                });
             }
         }
 
@@ -492,25 +484,26 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Read next token.
         const lCurrentToken: LexerToken<TTokenType> | undefined = pTokenList.at(pCurrentTokenIndex);
 
+        // Error buffer. Bundles all parser errors so on an error case an detailed error detection can be made.
+        const lGrapthErrors: GrapthException<TTokenType> = new GrapthException<TTokenType>();
+
         // When no current token was found. Skip node value parsing for optional nodes.
-        if (!lCurrentToken && !pNode.required) {
+        if (!lCurrentToken) {
+            // Append error and throw when node was required.
+            if (pNode.required) {
+                lGrapthErrors.appendError(`Unexpected end of statement. TokenIndex: "${pCurrentTokenIndex}" missing.`, pTokenList.at(-1));
+                throw lGrapthErrors;
+            }
+
+            // When no current token was found but node is optional. Skip node value parsing.
             return null;
         }
 
-        // Error buffer. Bundles all parser errors so on an error case an detailed error detection can be made.
-        const lGrapthErrors: GrapthException<TTokenType> = new GrapthException<TTokenType>();
-        const lResultList: Array<GraphParseResult> = new Array<GraphParseResult>();
-
         // Process each node value.
+        const lResultList: Array<GraphParseResult> = new Array<GraphParseResult>();
         for (const lNodeValue of pNode.nodeValues) {
             // Static token type of dynamic graph part.
             if (typeof lNodeValue === 'string') {
-                // When no current token was found. Skip node value parsing.
-                if (!lCurrentToken) {
-                    lGrapthErrors.appendError(`Unexpected end of statement. TokenIndex: "${pCurrentTokenIndex}" missing.`, pTokenList.at(-1));
-                    continue;
-                }
-
                 // Push possible parser error when token type does not match node value.
                 if (lNodeValue !== lCurrentToken.type) {
                     lGrapthErrors.appendError(`Unexpected token. "${lNodeValue}" expected`, lCurrentToken);
@@ -525,7 +518,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 continue;
             }
 
-            try {
+            // Try to retrieve values from graphs.
+            lGrapthErrors.onErrorMergeAndContinue(() => {
                 // Process inner value.
                 let lValueGraph: GraphParseResult | null;
                 if (lNodeValue instanceof GraphPartReference) {
@@ -536,22 +530,14 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
                 // Continue when inner grapth has not processed any token.
                 if (lValueGraph === null) {
-                    continue;
+                    return;
                 }
 
                 lResultList.push({
                     data: lValueGraph.data,
                     tokenIndex: lValueGraph.tokenIndex
                 });
-            } catch (pException) {
-                // Only handle exclusive grapth errors.
-                if (!(pException instanceof GrapthException)) {
-                    throw pException;
-                }
-
-                // When unsuccessfull save the last error.
-                lGrapthErrors.merge(pException);
-            }
+            });
         }
 
         // Add empty GraphNodeValueParseResult when the node is optional and the node value has no positive result.

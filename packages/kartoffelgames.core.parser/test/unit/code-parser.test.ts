@@ -93,7 +93,7 @@ describe('CodeParser', () => {
             expect(lParser.getGraphPart('branch')).has.property('dataCollector').and.equal(lDataCollector);
         });
 
-        it('-- Duplicate grapth part', () => {
+        it('-- Duplicate graph part', () => {
             // Setup.
             const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
 
@@ -680,7 +680,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).to.throws(Exception, `Grapth path has a dublicate value identifier "Something"`);
+                expect(lErrorFunction).to.throws(Exception, `Graph path has a dublicate value identifier "Something"`);
             });
 
             it('-- Graph has dublicate list value identifier. With existing single identifier.', () => {
@@ -701,7 +701,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                expect(lErrorFunction).to.throws(Exception, `Grapth path has a dublicate value identifier "Something" that is not a list value but should be.`);
+                expect(lErrorFunction).to.throws(Exception, `Graph path has a dublicate value identifier "Something" that is not a list value but should be.`);
             });
 
             it('-- Not completing to end and failing on the first token..', () => {

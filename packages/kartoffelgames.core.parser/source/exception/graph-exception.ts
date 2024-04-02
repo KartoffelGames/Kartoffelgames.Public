@@ -1,11 +1,11 @@
 import { LexerToken } from '../lexer/lexer-token';
 
 /**
- * Exception exclusive to grapth errors.
+ * Exception exclusive to graph errors.
  * 
  * @internal
  */
-export class GrapthException<TTokenType extends string> extends Error {
+export class GraphException<TTokenType extends string> extends Error {
     private readonly mErrorList: Array<GraphParseError<TTokenType>>;
 
     /**
@@ -19,7 +19,7 @@ export class GrapthException<TTokenType extends string> extends Error {
      * Constructor.
      */
     public constructor() {
-        super('Grapth Error');
+        super('Graph Error');
 
         this.mErrorList = new Array<GraphParseError<TTokenType>>();
     }
@@ -41,9 +41,9 @@ export class GrapthException<TTokenType extends string> extends Error {
      * Merge errors from set execption into current.
      * Append error list at the end.
      * 
-     * @param pException - Grapth exception.
+     * @param pException - Graph exception.
      */
-    public merge(pException: GrapthException<TTokenType>): void {
+    public merge(pException: GraphException<TTokenType>): void {
         this.mErrorList.push(...pException.mErrorList);
     }
 
@@ -74,8 +74,8 @@ export class GrapthException<TTokenType extends string> extends Error {
 
     /**
      * Executes callback action. 
-     * When the action throws an {@link GrapthException} the exception will be catched and any error within will be merged into this exception.
-     * Any other error beside {@link GrapthException}s are thrown normaly.
+     * When the action throws an {@link GraphException} the exception will be catched and any error within will be merged into this exception.
+     * Any other error beside {@link GraphException}s are thrown normaly.
      * 
      * @param pAction - Action.
      */
@@ -83,8 +83,8 @@ export class GrapthException<TTokenType extends string> extends Error {
         try {
             pAction();
         } catch (pException) {
-            // Only handle exclusive grapth errors.
-            if (!(pException instanceof GrapthException)) {
+            // Only handle exclusive graph errors.
+            if (!(pException instanceof GraphException)) {
                 throw pException;
             }
 

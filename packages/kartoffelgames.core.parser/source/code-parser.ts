@@ -217,15 +217,12 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         const lChainData: Record<string, unknown> = pChainData ?? {};
 
         // When no data is available or node has no identifier, nothing must be merged.
-        if (pNodeData === null || !pNode.identifier) {
+        if (pNodeData === null || typeof pNodeData === 'undefined' || !pNode.identifier) {
             return lChainData;
         }
 
-        // Merge data. Current node data into chained node data.
-        // Merge only when the current node has a value (not optional/skipped) and has a identifier.
-
         // Set as single value or list.
-        if (pNode.valueType === GrammarNodeValueType.Single && typeof pNodeData !== 'undefined') {
+        if (pNode.valueType === GrammarNodeValueType.Single ) {
             // Validate dublicate value identifier.
             if (pNode.identifier in lChainData) {
                 throw new Exception(`Graph path has a dublicate value identifier "${pNode.identifier}"`, this);
@@ -249,9 +246,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             }
 
             // Add value as array item and set, but only when a value was set.
-            if (typeof pNodeData !== 'undefined') {
-                (<Array<unknown>>lIdentifierValue).unshift(pNodeData);
-            }
+            (<Array<unknown>>lIdentifierValue).unshift(pNodeData);
         }
 
         return lChainData;

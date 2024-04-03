@@ -918,15 +918,12 @@ describe('CodeParser', () => {
             it('-- Multi error after line break.', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
-                const lErrorMessage: string = 'Error message';
                 lParser.defineGraphPart('PartName',
                     lParser.graph().branch([
                         lParser.graph().single(TokenType.Modifier).single(TokenType.Semicolon),
                         lParser.graph().single(TokenType.Modifier).single(TokenType.Identifier).single(TokenType.Semicolon),
                     ]),
-                    () => {
-                        throw lErrorMessage;
-                    }
+                    () => {}
                 );
                 lParser.setRootGraphPart('PartName');
 

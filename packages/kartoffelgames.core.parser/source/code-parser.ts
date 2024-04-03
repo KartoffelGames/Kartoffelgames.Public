@@ -222,7 +222,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         }
 
         // Set as single value or list.
-        if (pNode.valueType === GrammarNodeValueType.Single ) {
+        if (pNode.valueType === GrammarNodeValueType.Single) {
             // Validate dublicate value identifier.
             if (pNode.identifier in lChainData) {
                 throw new Exception(`Graph path has a dublicate value identifier "${pNode.identifier}"`, this);
@@ -273,7 +273,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
         // Parse and read data of chanined nodes. Add each error to the complete error list.
         // When result is empty, return empty.
-        const lChainParseResult: GraphChainResult | null = this.retrieveChainedValues(pNode, lNodeValueParseResult, pTokenList, pCurrentTokenIndex, lRecursionItem);
+        const lChainParseResult: GraphChainResult | null = this.retrieveChainedValues(pNode, pCurrentTokenIndex, lNodeValueParseResult, pTokenList, lRecursionItem);
 
         // Return null when lNodeValueParseResult and lChainParseResult is null.
         // This means no token was processed.
@@ -355,9 +355,9 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * Returns null when no token was processed.
      * 
      * @param pNode - Current node.
+     * @param pNodeTokenIndex - Current token index of {@link pNode}.
      * @param pNodeValues - Every sucessfull value of the node.
      * @param pTokenList - Current parsed list of all token in appearing order.
-     * @param pCurrentTokenIndex - Current token index of {@link pNode}.
      * @param pRecursionItem - Recursion tracker item. Tracks depth and potential loops of recursion.
      * 
      * @returns The data of the successfull graph value chain or null when no token was processed.
@@ -368,19 +368,13 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @throws {@link GraphException}
      * When no valid token for the next chaining node was found.
      */
-    private retrieveChainedValues(pNode: BaseGrammarNode<TTokenType>, pNodeValues: Array<GraphParseResult> | null, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionItem: GraphRecursionStack<TTokenType>): GraphChainResult | null {
+    private retrieveChainedValues(pNode: BaseGrammarNode<TTokenType>, pNodeTokenIndex: number, pNodeValues: Array<GraphParseResult> | null, pTokenList: Array<LexerToken<TTokenType>>, pRecursionItem: GraphRecursionStack<TTokenType>): GraphChainResult | null {
         const lGraphErrors: GraphException<TTokenType> = new GraphException<TTokenType>();
 
-        type ChainResult = {
-            nodeValue: GraphParseResult | null;
-            chainedValue: GraphNodeParseResult | null;
-            loopNode: boolean;
-        };
-
         // Convert null value of node value into list.
-        const lNodeValueList: Array<GraphParseResult | null> = pNodeValues ?? new Array<GraphParseResult | null>(null);
+        const lNodeValueList: Array<GraphParseResult | null> = pNodeValues ?? [null];
 
-        let lResultList: Array<ChainResult> = new Array<ChainResult>();
+        let lResultList: Array<ChainGraph> = new Array<ChainGraph>();
         // Run chained node parse for each node value and check for dublicates after that.
         for (const lNodeValue of lNodeValueList) {
             // Process chained nodes in parallel.
@@ -401,7 +395,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 }
 
                 // Get current token index of node value.
-                const lTokenIndex: number = (lNodeValue) ? lNodeValue.tokenIndex + 1 : pCurrentTokenIndex;
+                // When node value is null, the current pNodeTokenIndex was not processed.
+                const lTokenIndex: number = (lNodeValue === null) ? pNodeTokenIndex : lNodeValue.tokenIndex + 1;
 
                 // Try to parse next graph node saves all errors on exception.
                 lGraphErrors.onErrorMergeAndContinue(() => {
@@ -420,21 +415,21 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
         // TODO: This needs to be reevaluated after "null rework"
         // Check for ambiguity paths.
-        if (lResultList.filter((pResult: ChainResult) => { return pResult.chainedValue !== null; }).length > 1) {
+        if (lResultList.filter((pResult: ChainGraph) => { return pResult.chainedValue !== null; }).length > 1) {
             // When a loop node exists use only this looping nodes, omit any other node.
-            const lLoopNodeList: Array<ChainResult> = lResultList.filter((pResult: ChainResult) => { return pResult.chainedValue !== null && pResult.loopNode; });
+            const lLoopNodeList: Array<ChainGraph> = lResultList.filter((pResult: ChainGraph) => { return pResult.chainedValue !== null && pResult.loopNode; });
             if (lLoopNodeList.length > 0) {
                 lResultList = lLoopNodeList;
             }
 
             // Validate if ambiguity paths still exists.
-            const lAmbiguityPathList: Array<ChainResult> = lResultList.filter((pResult) => { return pResult.chainedValue !== null; });
+            const lAmbiguityPathList: Array<ChainGraph> = lResultList.filter((pResult) => { return pResult.chainedValue !== null; });
             if (lAmbiguityPathList.length > 1) {
                 // Recreate token path of every ambiguity path.
                 const lAmbiguityPathDescriptionList: Array<string> = new Array<string>();
                 for (const lAmbiguityPath of lAmbiguityPathList) {
                     // Get current token index of node value.
-                    const lTokenIndex: number = (lAmbiguityPath.nodeValue) ? lAmbiguityPath.nodeValue.tokenIndex - 1 : pCurrentTokenIndex;
+                    const lTokenIndex: number = (lAmbiguityPath.nodeValue) ? lAmbiguityPath.nodeValue.tokenIndex - 1 : pNodeTokenIndex;
 
                     const lAmbiguityPathDescription: string = pTokenList.slice(lTokenIndex, lAmbiguityPath.chainedValue!.tokenIndex + 1)
                         .reduce((pPreviousValue: string, pCurrentValue: LexerToken<TTokenType>) => {
@@ -453,13 +448,13 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         let lChainResult: GraphChainResult | null = null;
         if (lResultList.length > 0) {
             // Find sucessfull chain value or when is does not exists, go for the graph end. At least one of these exists.
-            const lChainResultList: ChainResult = lResultList.find((pResult) => { return pResult.chainedValue !== null; }) ?? lResultList.find((pResult) => { return pResult.chainedValue === null; })!;
+            const lChainResultList: ChainGraph = lResultList.find((pResult) => { return pResult.chainedValue !== null; }) ?? lResultList.find((pResult) => { return pResult.chainedValue === null; })!;
 
             // Read last used token index of chain and polyfill data when this node was the last node of this chain.
             lChainResult = {
                 nodeData: lChainResultList.nodeValue?.data ?? null,
                 chainData: lChainResultList.chainedValue?.data ?? {},
-                tokenIndex: lChainResultList.chainedValue?.tokenIndex ?? lChainResultList.nodeValue?.tokenIndex ?? pCurrentTokenIndex
+                tokenIndex: lChainResultList.chainedValue?.tokenIndex ?? lChainResultList.nodeValue?.tokenIndex ?? pNodeTokenIndex
             };
         }
 
@@ -661,6 +656,12 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         return lRecursionStack;
     }
 }
+
+type ChainGraph = {
+    nodeValue: GraphParseResult | null;
+    chainedValue: GraphNodeParseResult | null;
+    loopNode: boolean;
+};
 
 type GraphNodeParseResult = {
     data: Record<string, Array<unknown> | unknown>;

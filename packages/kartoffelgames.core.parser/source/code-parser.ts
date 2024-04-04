@@ -374,14 +374,14 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Convert null value of node value into list.
         const lNodeValueList: Array<GraphParseResult | null> = pNodeValues ?? [null];
 
-        let lResultList: Array<ChainGraph> = new Array<ChainGraph>();
+        const lChainList: Array<ChainGraph> = new Array<ChainGraph>();
         // Run chained node parse for each node value and check for dublicates after that.
         for (const lNodeValue of lNodeValueList) {
             // Process chained nodes in parallel.
             for (const lChainedNode of pNode.next()) {
                 // Graph end. No chaining value.
                 if (lChainedNode === null) {
-                    lResultList.push({
+                    lChainList.push({
                         nodeValue: lNodeValue,
                         chainedValue: null,
                         loopNode: false
@@ -404,7 +404,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     const lChainedNodeParseResult: GraphNodeParseResult | null = this.parseGraphNode(lChainedNode, pTokenList, lTokenIndex, pRecursionItem);
 
                     // Process graph with chained node values.
-                    lResultList.push({
+                    lChainList.push({
                         nodeValue: lNodeValue,
                         chainedValue: lChainedNodeParseResult,
                         loopNode: lChainedNode === pNode,
@@ -413,57 +413,60 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             }
         }
 
-        // TODO: This needs to be reevaluated after "null rework"
-        // Check for ambiguity paths.
-        if (lResultList.filter((pResult: ChainGraph) => { return pResult.chainedValue !== null; }).length > 1) {
-            // When a loop node exists use only this looping nodes, omit any other node.
-            const lLoopNodeList: Array<ChainGraph> = lResultList.filter((pResult: ChainGraph) => { return pResult.chainedValue !== null && pResult.loopNode; });
-            if (lLoopNodeList.length > 0) {
-                lResultList = lLoopNodeList;
+        // Filtered
+        let lChainResultList: Array<ChainGraph> = lChainList;
+
+        // Enforce greedy loops, Allways choose looped chains over static chains.
+        // When a static and a loop chain exists it does not count as ambiguity paths.
+        const lLoopChainList: Array<ChainGraph> = lChainResultList.filter((pResult: ChainGraph) => { return pResult.loopNode; });
+        if (lLoopChainList.length !== 0) {
+            lChainResultList = lLoopChainList;
+        }
+
+        // Filter all full-optional chains that had no processed token. This Prevent ambiguity paths triggering when the optional chain "failed".
+        // Keep the "failed" optional chains, when no none-optional chain exists.
+        const lNoOptionalChainList: Array<ChainGraph> = lChainResultList.filter((pResult: ChainGraph) => { return pResult.chainedValue !== null; });
+        if (lNoOptionalChainList.length !== 0) {
+            lChainResultList = lNoOptionalChainList;
+        }
+
+        // ------------------------ Rework in process. // TODO:
+
+        // Validate if ambiguity paths still exists.
+        if (lChainResultList.length > 1) {
+            // Recreate token path of every ambiguity path.
+            const lAmbiguityPathDescriptionList: Array<string> = new Array<string>();
+            for (const lAmbiguityPath of lChainResultList) {
+                // Get current token index of node value.
+                const lTokenIndex: number = (lAmbiguityPath.nodeValue) ? lAmbiguityPath.nodeValue.tokenIndex - 1 : pNodeTokenIndex;
+
+                const lAmbiguityPathDescription: string = pTokenList.slice(lTokenIndex, lAmbiguityPath.chainedValue!.tokenIndex + 1)
+                    .reduce((pPreviousValue: string, pCurrentValue: LexerToken<TTokenType>) => {
+                        return `${pPreviousValue} ${pCurrentValue.value}(${pCurrentValue.type})`;
+                    }, '');
+
+                // Iterate over all token and save each of the path.
+                lAmbiguityPathDescriptionList.push(`{${lAmbiguityPathDescription} }`);
             }
 
-            // Validate if ambiguity paths still exists.
-            const lAmbiguityPathList: Array<ChainGraph> = lResultList.filter((pResult) => { return pResult.chainedValue !== null; });
-            if (lAmbiguityPathList.length > 1) {
-                // Recreate token path of every ambiguity path.
-                const lAmbiguityPathDescriptionList: Array<string> = new Array<string>();
-                for (const lAmbiguityPath of lAmbiguityPathList) {
-                    // Get current token index of node value.
-                    const lTokenIndex: number = (lAmbiguityPath.nodeValue) ? lAmbiguityPath.nodeValue.tokenIndex - 1 : pNodeTokenIndex;
-
-                    const lAmbiguityPathDescription: string = pTokenList.slice(lTokenIndex, lAmbiguityPath.chainedValue!.tokenIndex + 1)
-                        .reduce((pPreviousValue: string, pCurrentValue: LexerToken<TTokenType>) => {
-                            return `${pPreviousValue} ${pCurrentValue.value}(${pCurrentValue.type})`;
-                        }, '');
-
-                    // Iterate over all token and save each of the path.
-                    lAmbiguityPathDescriptionList.push(`{${lAmbiguityPathDescription} }`);
-                }
-
-                throw new Exception(`Graph has ambiguity paths. Values: [\n\t${lAmbiguityPathDescriptionList.join(',\n\t')}\n]`, this);
-            }
+            throw new Exception(`Graph has ambiguity paths. Values: [\n\t${lAmbiguityPathDescriptionList.join(',\n\t')}\n]`, this);
         }
 
         // Read single chain result. Polyfill in missing values or when no result exists, use no result. 
-        let lChainResult: GraphChainResult | null = null;
-        if (lResultList.length > 0) {
+        if (lChainList.length > 0) {
             // Find sucessfull chain value or when is does not exists, go for the graph end. At least one of these exists.
-            const lChainResultList: ChainGraph = lResultList.find((pResult) => { return pResult.chainedValue !== null; }) ?? lResultList.find((pResult) => { return pResult.chainedValue === null; })!;
+            const lChainResult: ChainGraph = lChainResultList.find((pResult) => { return pResult.chainedValue !== null; }) ?? lChainResultList.find((pResult) => { return pResult.chainedValue === null; })!;
 
             // Read last used token index of chain and polyfill data when this node was the last node of this chain.
-            lChainResult = {
-                nodeData: lChainResultList.nodeValue?.data ?? null,
-                chainData: lChainResultList.chainedValue?.data ?? {},
-                tokenIndex: lChainResultList.chainedValue?.tokenIndex ?? lChainResultList.nodeValue?.tokenIndex ?? pNodeTokenIndex
+            return {
+                nodeData: lChainResult.nodeValue?.data ?? null,
+                chainData: lChainResult.chainedValue?.data ?? {},
+                tokenIndex: lChainResult.chainedValue?.tokenIndex ?? lChainResult.nodeValue?.tokenIndex ?? pNodeTokenIndex
             };
         }
 
         // Throw error list when no result was found.
-        if (lChainResult === null) {
-            throw lGraphErrors;
-        }
-
-        return lChainResult;
+        throw lGraphErrors;
     }
 
     /**

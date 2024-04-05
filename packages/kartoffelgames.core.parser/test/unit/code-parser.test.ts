@@ -474,9 +474,12 @@ describe('CodeParser', () => {
                 lParser.setRootGraphPart('LoopCode');
 
                 // Process. Convert code.
-                const lParsedData: any = lParser.parse(lCodeText);
+                const lErrorFunction = () => {
+                    lParser.parse(lCodeText);
+                };
 
-                expect(lParsedData).has.property('optional').and.equals('const');
+                // Evaluation. Loop chain twice as long as actual loop.
+                expect(lErrorFunction).to.throws(Exception, `Circular dependency detected between: Optional-Single()[<REF:LoopCode>] -> Optional-Single(optional)[Modifier] -> Optional-Single()[<REF:LoopCode>] -> Optional-Single(optional)[Modifier]`);
             });
 
             it('-- Empty data for loops', () => {

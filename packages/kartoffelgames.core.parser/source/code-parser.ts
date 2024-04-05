@@ -467,6 +467,12 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             // Find sucessfull chain value or when is does not exists, go for the graph end. At least one of these exists.
             const lChainResult: ChainGraph = lChainResultList.at(0)!;
 
+            // When neighter chain nor node has a value, a complete optional chain is selected
+            // and null should returned.
+            if (lChainResult.nodeValue === null && lChainResult.chainedValue === null) {
+                return null;
+            }
+
             // Get node data from path. When no data exists it is null.
             let lNodeData: any | null = null;
             if (lChainResult.nodeValue !== null) {
@@ -524,23 +530,23 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Error buffer. Bundles all parser errors so on an error case an detailed error detection can be made.
         const lGraphErrors: GraphException<TTokenType> = new GraphException<TTokenType>();
 
-        // When no current token was found. Skip node value parsing for optional nodes.
-        if (!lCurrentToken) {
-            // Append error and throw when node was required.
-            if (pNode.required) {
-                lGraphErrors.appendError(`Unexpected end of statement. TokenIndex: "${pCurrentTokenIndex}" missing.`, pTokenList.at(-1));
-                throw lGraphErrors;
-            }
-
-            // When no current token was found but node is optional. Skip node value parsing.
-            return null;
-        }
-
         // Process each node value.
-        const lResultList: Array<GraphParseResult> = new Array<GraphParseResult>();
+        const lResultList: Array<GraphParseResult | null> = new Array<GraphParseResult | null>();
         for (const lNodeValue of pNode.nodeValues) {
             // Static token type of dynamic graph part.
             if (typeof lNodeValue === 'string') {
+                // When no current token was found. Skip node value parsing for optional nodes.
+                if (!lCurrentToken) {
+                    // Append error and throw when node was required.
+                    if (pNode.required) {
+                        lGraphErrors.appendError(`Unexpected end of statement. TokenIndex: "${pCurrentTokenIndex}" missing.`, pTokenList.at(-1));
+                        throw lGraphErrors;
+                    }
+
+                    // When no current token was found but node is optional. Skip node value parsing.
+                    continue;
+                }
+
                 // Push possible parser error when token type does not match node value.
                 if (lNodeValue !== lCurrentToken.type) {
                     lGraphErrors.appendError(`Unexpected token. "${lNodeValue}" expected`, lCurrentToken);
@@ -565,15 +571,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     lValueGraph = this.parseGraphNode(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionItem);
                 }
 
-                // Continue when inner graph has not processed any token.
-                if (lValueGraph === null) {
-                    return;
-                }
-
-                lResultList.push({
-                    data: lValueGraph.data,
-                    tokenIndex: lValueGraph.tokenIndex
-                });
+                lResultList.push(lValueGraph);
             });
         }
 
@@ -587,7 +585,13 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             return null;
         }
 
-        return lResultList;
+        // Filter all null values from result.
+        const lNoNullValueList: Array<GraphParseResult> = lResultList.filter((pItem) => { return pItem !== null; }) as Array<GraphParseResult>;
+        if (lNoNullValueList.length === 0) {
+            return null;
+        }
+
+        return lNoNullValueList;
     }
 
     /**

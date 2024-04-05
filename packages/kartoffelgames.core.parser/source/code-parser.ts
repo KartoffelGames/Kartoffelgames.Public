@@ -253,7 +253,26 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     }
 
     /**
+     * Parse the graph, marked with {@link pCurrentTokenIndex}. Allways uses the root node of the provided
+     * Returns null when the complete graph processed no token.
+     * 
+     * @param pGraph - Node of graph. Used to get the root node.
+     * @param pTokenList - Current parsed list of all token in appearing order.
+     * @param pCurrentTokenIndex - Current token index that should be parsed with the node.
+     * @param pRecursionItem - Recursion tracker item. Tracks depth and potential loops of recursion.
+     * 
+     * @returns The Token data object with all parsed brother node token data merged. Additionally the last used token index is returned.
+     * When the parsing fails for this node or a brother node, a complete list with all potential errors are returned instead of the token data.
+     */
+    private parseGraph(pGraph: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionItem: GraphRecursionStack<TTokenType>): GraphNodeParseResult | null {
+        const lRootNode: BaseGrammarNode<TTokenType> = pGraph.branchRoot;
+
+        return this.parseGraphNode(lRootNode, pTokenList, pCurrentTokenIndex, pRecursionItem);
+    }
+
+    /**
      * Parse the token, marked with {@link pCurrentTokenIndex} with the set node.
+     * Also parses chained nodes.
      * Returns null when the complete node graph chain processed no token.
      * 
      * @param pNode - Current node that should handle the set token.
@@ -568,7 +587,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 if (lNodeValue instanceof GraphPartReference) {
                     lValueGraph = this.parseGraphReference(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionItem);
                 } else {
-                    lValueGraph = this.parseGraphNode(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionItem);
+                    lValueGraph = this.parseGraph(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionItem);
                 }
 
                 lResultList.push(lValueGraph);

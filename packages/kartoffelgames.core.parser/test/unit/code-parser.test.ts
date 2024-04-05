@@ -445,7 +445,7 @@ describe('CodeParser', () => {
 
                 // Setup. Define graph part and set as root.
                 lParser.defineGraphPart('LoopCode',
-                    lParser.graph().single(TokenType.Modifier).loop('data', TokenType.Identifier),
+                    lParser.graph().single(TokenType.Modifier).loop('loop', TokenType.Identifier),
                     (pData: any) => {
                         return pData;
                     }
@@ -456,7 +456,7 @@ describe('CodeParser', () => {
                 const lParsedData: any = lParser.parse(lCodeText);
 
                 // Evaluation.
-                expect(lParsedData).has.property('data').and.deep.equals([]);
+                expect(lParsedData).has.property('loop').and.deep.equals([]);
             });
 
             it('-- Optional recursion loops', () => {

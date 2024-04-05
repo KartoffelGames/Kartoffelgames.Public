@@ -294,15 +294,33 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // When result is empty, return empty.
         const lChainParseResult: GraphChainResult | null = this.retrieveChainedValues(pNode, pCurrentTokenIndex, lNodeValueParseResult, pTokenList, lRecursionItem);
 
+        // Prefill chain value with null
+        let lChainData: Record<string, unknown> | null = null;
+        if (lChainParseResult !== null) {
+            lChainData = lChainParseResult.chainData;
+        }
+
+        // Node value was a full optional graph, but the data needs to be set.
+        let lNodeValue: unknown | null = lChainParseResult?.usedNodeData ?? null;
+        if (lNodeValueParseResult === null && pNode.required) {
+            lNodeValue = {};
+        }
+
         // Return null when lNodeValueParseResult and lChainParseResult is null.
         // This means no token was processed.
-        if (lChainParseResult === null) {
+        if (lChainData === null && lNodeValue === null) {
             return null;
         }
 
+        // Read current token index.
+        let lTokenIndex: number = pCurrentTokenIndex;
+        if (lChainParseResult !== null) {
+            lTokenIndex = lChainParseResult.tokenIndex;
+        }
+
         return {
-            data: this.mergeNodeData(pNode, lChainParseResult.chainData, lChainParseResult.nodeData),
-            tokenIndex: lChainParseResult.tokenIndex
+            data: this.mergeNodeData(pNode, lChainData, lNodeValue),
+            tokenIndex: lTokenIndex
         };
     }
 
@@ -515,7 +533,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
             // Read last used token index of chain and polyfill data when this node was the last node of this chain.
             return {
-                nodeData: lNodeData,
+                usedNodeData: lNodeData,
                 chainData: lChainData,
                 tokenIndex: lCurrentTokenIndex
             };
@@ -731,7 +749,7 @@ type GraphParseResult = {
 };
 
 type GraphChainResult = {
-    nodeData: unknown | null;
+    usedNodeData: unknown | null;
     chainData: Record<string, unknown> | null;
     tokenIndex: number;
 };

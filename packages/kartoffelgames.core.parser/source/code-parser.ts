@@ -430,7 +430,12 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             lChainResultList = lNoOptionalChainList;
         }
 
-        // ------------------------ Rework in process. // TODO:
+        // When chain contains optional at this point, no none optionals where found.
+        // When a optional exists, take the first one. They all should have the same null data and token index.
+        const lOnlyOptionalList: Array<ChainGraph> = lChainResultList.filter((pResult: ChainGraph) => { return pResult.chainedValue === null; });
+        if (lOnlyOptionalList.length !== 0) {
+            lChainResultList = lOnlyOptionalList.slice(0, 1);
+        }
 
         // Validate if ambiguity paths still exists.
         if (lChainResultList.length > 1) {
@@ -438,30 +443,56 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             const lAmbiguityPathDescriptionList: Array<string> = new Array<string>();
             for (const lAmbiguityPath of lChainResultList) {
                 // Get current token index of node value.
-                const lTokenIndex: number = (lAmbiguityPath.nodeValue) ? lAmbiguityPath.nodeValue.tokenIndex - 1 : pNodeTokenIndex;
+                const lStartTokenIndex: number = (lAmbiguityPath.nodeValue) ? lAmbiguityPath.nodeValue.tokenIndex - 1 : pNodeTokenIndex;
+                const lEndTokenIndex: number = lAmbiguityPath.chainedValue!.tokenIndex + 1;
 
-                const lAmbiguityPathDescription: string = pTokenList.slice(lTokenIndex, lAmbiguityPath.chainedValue!.tokenIndex + 1)
-                    .reduce((pPreviousValue: string, pCurrentValue: LexerToken<TTokenType>) => {
-                        return `${pPreviousValue} ${pCurrentValue.value}(${pCurrentValue.type})`;
-                    }, '');
+                // Cut token Ambiguity path from complete token list.
+                const lAmbiguityPathToken: Array<LexerToken<TTokenType>> = pTokenList.slice(lStartTokenIndex, lEndTokenIndex);
 
-                // Iterate over all token and save each of the path.
+                // Build path string from lAmbiguityPathToken. 
+                const lAmbiguityPathDescription: string = lAmbiguityPathToken.reduce((pPreviousValue: string, pCurrentValue: LexerToken<TTokenType>) => {
+                    return `${pPreviousValue} ${pCurrentValue.value}(${pCurrentValue.type})`;
+                }, '');
+
+                // Add ambiguity path description to output list.
                 lAmbiguityPathDescriptionList.push(`{${lAmbiguityPathDescription} }`);
             }
 
+            // Throw error with all ambiguity paths.
             throw new Exception(`Graph has ambiguity paths. Values: [\n\t${lAmbiguityPathDescriptionList.join(',\n\t')}\n]`, this);
         }
 
         // Read single chain result. Polyfill in missing values or when no result exists, use no result. 
-        if (lChainList.length > 0) {
+        if (lChainResultList.length > 0) {
             // Find sucessfull chain value or when is does not exists, go for the graph end. At least one of these exists.
-            const lChainResult: ChainGraph = lChainResultList.find((pResult) => { return pResult.chainedValue !== null; }) ?? lChainResultList.find((pResult) => { return pResult.chainedValue === null; })!;
+            const lChainResult: ChainGraph = lChainResultList.at(0)!;
+
+            // Get node data from path. When no data exists it is null.
+            let lNodeData: any | null = null;
+            if (lChainResult.nodeValue !== null) {
+                lNodeData = lChainResult.nodeValue.data;
+            }
+
+            // Read current token index from chain value. 
+            // When no chain value exists, take from node value, when this also does not exists take the index from current node.
+            let lCurrentTokenIndex: number = pNodeTokenIndex;
+            if (lChainResult.chainedValue !== null) {
+                lCurrentTokenIndex = lChainResult.chainedValue.tokenIndex;
+            } else if (lChainResult.nodeValue !== null) {
+                lCurrentTokenIndex = lChainResult.nodeValue.tokenIndex;
+            }
+
+            // Read chain token and data. When no chain data exists, then it is null.
+            let lChainData: Record<string, unknown> | null = null;
+            if (lChainResult.chainedValue !== null) {
+                lChainData = lChainResult.chainedValue.data;
+            }
 
             // Read last used token index of chain and polyfill data when this node was the last node of this chain.
             return {
-                nodeData: lChainResult.nodeValue?.data ?? null,
-                chainData: lChainResult.chainedValue?.data ?? {},
-                tokenIndex: lChainResult.chainedValue?.tokenIndex ?? lChainResult.nodeValue?.tokenIndex ?? pNodeTokenIndex
+                nodeData: lNodeData,
+                chainData: lChainData,
+                tokenIndex: lCurrentTokenIndex
             };
         }
 

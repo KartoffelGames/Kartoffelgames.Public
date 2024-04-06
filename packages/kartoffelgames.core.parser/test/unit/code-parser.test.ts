@@ -707,7 +707,7 @@ describe('CodeParser', () => {
                 expect(lErrorFunction).to.throws(Exception, `Graph path has a dublicate value identifier "Something" that is not a list value but should be.`);
             });
 
-            it('-- Not completing to end and failing on the first token..', () => {
+            it('-- Not completing to end and failing on the first token.', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lPartName: string = 'FailingToEnd';
@@ -887,7 +887,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                const lException = expect(lErrorFunction).to.throws(ParserException);
+                const lException = expect(lErrorFunction).to.throws(ParserException, 'Text is empty and graph has no output data.');
                 lException.with.property('columnStart', 1);
                 lException.with.property('columnEnd', 1);
                 lException.with.property('lineStart', 1);

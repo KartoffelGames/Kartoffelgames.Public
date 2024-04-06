@@ -149,7 +149,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         }
 
         // Convert parse data of null into index 0 token index. Null means no token was processed.
-        let lCurrentProcessedTokenIndex: number = 0;
+        let lCurrentProcessedTokenIndex: number = -1;
         if (lRootParseData) {
             lCurrentProcessedTokenIndex = lRootParseData.tokenIndex;
         }
@@ -166,7 +166,12 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             throw ParserException.fromToken(`Tokens could not be parsed. Graph end meet without reaching last token. Current: "${lNextToken.value}" (${lNextToken.type})`, this, lNextToken, lLastToken);
         }
 
-        return lRootParseData!.data as TParseResult; // TODO: Not !
+        // Catch complete empty data.
+        if (lRootParseData === null) {
+            throw ParserException.fromToken('Text is empty and graph has no output data.', this);
+        }
+
+        return lRootParseData.data as TParseResult;
     }
 
     /**

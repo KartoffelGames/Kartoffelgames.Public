@@ -688,6 +688,34 @@ describe('CodeParser', () => {
                 expect(lResult).to.have.property('modifier');
                 expect(lResult).to.not.have.property('part');
             });
+
+            it('-- Self reference with same data for inner and outer reference.', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const const const const';
+
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('StartPart',
+                    lParser.graph().single('start', TokenType.Modifier).optional('inner', lParser.partReference('StartPart')).single('end', TokenType.Modifier),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('StartPart');
+
+                // Process. Convert code.
+                const lResult = lParser.parse(lCodeText);
+
+                // Evaluation. Loop chain twice as long as actual loop.
+                expect(lResult).to.deep.equals({
+                    start: 'const',
+                    inner: {
+                        start: 'const',
+                        end: 'const'
+                    },
+                    end: 'const'
+                });
+            });
         });
 
         describe('-- Parse Graph Errors', () => {

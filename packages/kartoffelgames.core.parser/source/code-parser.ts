@@ -235,7 +235,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
             // Overide value when set.
             lChainData[pNode.identifier] = pNodeData;
-        } else if (pNode.valueType === GrammarNodeValueType.List) {
+        } else { // pNode.valueType === GrammarNodeValueType.List
             let lIdentifierValue: unknown = lChainData[pNode.identifier];
 
             // Validate value identifier referes to a single value type.
@@ -385,11 +385,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 const lErrorEndToken: LexerToken<TTokenType> | undefined = pTokenList.at(lNodeParseResult.tokenIndex);
 
                 // When no token was processed, throw default error on first token.
-                if (!lErrorStartToken || !lErrorEndToken) {
-                    throw new ParserException(lMessage, this, 1, 1, 1, 1);
-                } else {
-                    throw ParserException.fromToken(lMessage, this, lErrorStartToken, lErrorEndToken);
-                }
+                throw ParserException.fromToken(lMessage, this, lErrorStartToken, lErrorEndToken);
             }
         }
 
@@ -493,7 +489,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             const lAmbiguityPathDescriptionList: Array<string> = new Array<string>();
             for (const lAmbiguityPath of lChainResultList) {
                 // Get current token index of node value.
-                const lStartTokenIndex: number = (lAmbiguityPath.nodeValue) ? lAmbiguityPath.nodeValue.tokenIndex - 1 : pNodeTokenIndex;
+                // Only one node value can be null, so two ambiguity paths with a node null value does not exists and the node value null check can be omited.
+                const lStartTokenIndex: number = lAmbiguityPath.nodeValue!.tokenIndex - 1;
                 const lEndTokenIndex: number = lAmbiguityPath.chainedValue!.tokenIndex + 1;
 
                 // Cut token Ambiguity path from complete token list.
@@ -534,8 +531,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             let lCurrentTokenIndex: number = pNodeTokenIndex;
             if (lChainResult.chainedValue !== null) {
                 lCurrentTokenIndex = lChainResult.chainedValue.tokenIndex;
-            } else if (lChainResult.nodeValue !== null) {
-                lCurrentTokenIndex = lChainResult.nodeValue.tokenIndex;
+            } else { // if (lChainResult.nodeValue !== null) // When chainedValue is null than nodeValue cant be null. Bc, both values cant be null.
+                lCurrentTokenIndex = lChainResult.nodeValue!.tokenIndex;
             }
 
             // Read chain token and data. When no chain data exists, then it is null.
@@ -689,13 +686,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
             // Construct recursion loop name data. Reverse list to set actual call order.
             const lPartNameList: Array<string> = [...lRecursionChain].map((pPart: BaseGrammarNode<TTokenType>) => {
-                // Part references are resolved by name.
-                if (pPart instanceof GraphPartReference) {
-                    return `Part(${pPart.partName})`;
-                }
-
                 // Get graph name based on type.
-                let lNodeName: string;
+                let lNodeName!: string;
                 switch (true) {
                     case pPart instanceof GrammarBranchNode: {
                         lNodeName = `Branch`;
@@ -708,9 +700,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     case pPart instanceof GrammarSingleNode: {
                         lNodeName = `Single`;
                         break;
-                    }
-                    default: {
-                        lNodeName = `Unknown`;
                     }
                 }
 

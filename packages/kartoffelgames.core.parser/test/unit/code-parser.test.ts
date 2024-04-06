@@ -222,6 +222,29 @@ describe('CodeParser', () => {
                 expect(lParsedData).has.property('variableName').and.equals('name');
                 expect(lParsedData).has.property('typeName').and.equals('number');
             });
+
+            it('-- Linear Parsing with two ending optionals without value', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const name: number';
+
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('LinearCode',
+                    lParser.graph().single('modifier', TokenType.Modifier).single('variableName', TokenType.Identifier).single(TokenType.TypeDelimiter).single('typeName', TokenType.Identifier).optional(TokenType.Semicolon).optional(TokenType.Semicolon),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('LinearCode');
+
+                // Process. Convert code.
+                const lParsedData: any = lParser.parse(lCodeText);
+
+                // Evaluation.
+                expect(lParsedData).has.property('modifier').and.equals('const');
+                expect(lParsedData).has.property('variableName').and.equals('name');
+                expect(lParsedData).has.property('typeName').and.equals('number');
+            });
         });
 
         describe('-- Branches', () => {
@@ -551,6 +574,122 @@ describe('CodeParser', () => {
             });
         });
 
+        describe('--Part references', () => {
+            it('-- Reference with collector', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const';
+
+                // Setup. Define additive part.
+                lParser.defineGraphPart('NewPart',
+                    lParser.graph().single('data', TokenType.Modifier),
+                    (pData: any) => {
+                        return pData.data;
+                    }
+                );
+
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('StartPart',
+                    lParser.graph().optional('part', lParser.partReference('NewPart')),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('StartPart');
+
+                // Process. Convert code.
+                const lResult = lParser.parse(lCodeText);
+
+                // Evaluation. Loop chain twice as long as actual loop.
+                expect(lResult).to.have.property('part').to.equal(lCodeText);
+            });
+
+            it('-- Reference without collector', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const';
+
+                // Setup. Define additive part without collector
+                lParser.defineGraphPart('NewPart',
+                    lParser.graph().single('data', TokenType.Modifier)
+                );
+
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('StartPart',
+                    lParser.graph().optional('part', lParser.partReference('NewPart')),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('StartPart');
+
+                // Process. Convert code.
+                const lResult = lParser.parse(lCodeText);
+
+                // Evaluation. Loop chain twice as long as actual loop.
+                expect(lResult).to.have.property('part').and.property('data').to.equal(lCodeText);
+            });
+
+            it('-- Reference as optional value with value', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const';
+
+                // Setup. Define additive part.
+                lParser.defineGraphPart('NewPart',
+                    lParser.graph().single('data', TokenType.Modifier),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('StartPart',
+                    lParser.graph().optional('part', lParser.partReference('NewPart')),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('StartPart');
+
+                // Process. Convert code.
+                const lResult = lParser.parse(lCodeText);
+
+                // Evaluation. Loop chain twice as long as actual loop.
+                expect(lResult).to.have.property('part').and.property('data');
+            });
+
+            it('-- Reference as optional value without value', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const';
+
+                // Setup. Define additive part.
+                lParser.defineGraphPart('NewPart',
+                    lParser.graph().single('data', TokenType.Identifier),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('StartPart',
+                    lParser.graph().single('modifier', TokenType.Modifier).optional('part', lParser.partReference('NewPart')),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('StartPart');
+
+                // Process. Convert code.
+                const lResult = lParser.parse(lCodeText);
+
+                // Evaluation. Loop chain twice as long as actual loop.
+                expect(lResult).to.have.property('modifier');
+                expect(lResult).to.not.have.property('part');
+            });
+        });
+
         describe('-- Parse Graph Errors', () => {
             it('-- Parse without root part', () => {
                 // Setup.
@@ -565,7 +704,7 @@ describe('CodeParser', () => {
                 expect(lErrorFunction).to.throws(Exception, 'Parser has not root part set.');
             });
 
-            it('-- Single parse error.', () => {
+            it('-- Single parse error, wrong token type.', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lCodeText: string = 'const';
@@ -586,6 +725,52 @@ describe('CodeParser', () => {
 
                 // Evaluation.
                 expect(lErrorFunction).to.throws(Exception, `Unexpected token. "${TokenType.Number}" expected`);
+            });
+
+            it('-- Single parse error, missing token.', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const';
+
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('LinearCode',
+                    lParser.graph().single(TokenType.Modifier).single('Something', TokenType.Number),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('LinearCode');
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse(lCodeText);
+                };
+
+                // Evaluation.
+                expect(lErrorFunction).to.throws(ParserException, `Unexpected end of statement. TokenIndex: "1" missing.`);
+            });
+
+            it('-- Single parse error, no token.', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = '';
+
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('LinearCode',
+                    lParser.graph().single('Something', TokenType.Number),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('LinearCode');
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse(lCodeText);
+                };
+
+                // Evaluation.
+                expect(lErrorFunction).to.throws(ParserException, `Unexpected end of statement. TokenIndex: "0" missing.`);
             });
 
             it('-- Graph end meet without reaching last token.', () => {
@@ -637,7 +822,7 @@ describe('CodeParser', () => {
                 expect(lErrorFunction).to.throws(Exception, `Graph has ambiguity paths. Values: [\n\t{ const(Modifier) identifier(Identifier) ;(Semicolon) },\n\t{ const(Modifier) identifier(Identifier) ;(Semicolon) }\n]`);
             });
 
-            it('-- Detect endless circular dependency', () => {
+            it('-- Detect endless circular dependency over multiple references.', () => {
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
 
                 lParser.defineGraphPart('Level1',
@@ -661,6 +846,49 @@ describe('CodeParser', () => {
 
                 // Evaluation. Loop chain twice as long as actual loop.
                 expect(lErrorFunction).to.throws(Exception, `Circular dependency detected between: Single()[<REF:Level2>] -> Optional-Single()[Modifier] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Single()[<REF:Level2>] -> Optional-Single()[Modifier] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier]`);
+            });
+
+            it('-- Detect endless circular dependency with loop.', () => {
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+
+                lParser.defineGraphPart('Level1',
+                    lParser.graph().optional(TokenType.Modifier).loop(TokenType.Identifier).single(lParser.partReference('Level1')),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('Level1');
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('identifier');
+                };
+
+                // Evaluation. Loop chain twice as long as actual loop.
+                expect(lErrorFunction).to.throws(Exception, `Circular dependency detected between: Optional-Loop()[Identifier] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Optional-Loop()[Identifier] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier]`);
+            });
+
+            it('-- Detect endless circular dependency with branch.', () => {
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+
+                lParser.defineGraphPart('Level1',
+                    lParser.graph().optional(TokenType.Modifier).branch([
+                        lParser.graph().optional(TokenType.Identifier),
+                        lParser.graph().optional(TokenType.Number)
+                    ]).single(lParser.partReference('Level1')),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('Level1');
+
+                // Process.
+                const lErrorFunction = () => {
+                    lParser.parse('identifier');
+                };
+
+                // Evaluation. Loop chain twice as long as actual loop.
+                expect(lErrorFunction).to.throws(Exception, `Circular dependency detected between: Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Branch()[<NODE>, <NODE>] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Branch()[<NODE>, <NODE>]`);
             });
         });
 
@@ -926,7 +1154,7 @@ describe('CodeParser', () => {
                         lParser.graph().single(TokenType.Modifier).single(TokenType.Semicolon),
                         lParser.graph().single(TokenType.Modifier).single(TokenType.Identifier).single(TokenType.Semicolon),
                     ]),
-                    () => {}
+                    () => { }
                 );
                 lParser.setRootGraphPart('PartName');
 

@@ -9,13 +9,6 @@ export class GraphException<TTokenType extends string> extends Error {
     private readonly mErrorList: Array<GraphParseError<TTokenType>>;
 
     /**
-     * Error count.
-     */
-    public get errorCount(): number {
-        return this.mErrorList.length;
-    }
-
-    /**
      * Constructor.
      */
     public constructor() {
@@ -62,8 +55,17 @@ export class GraphException<TTokenType extends string> extends Error {
                 continue;
             }
 
+            // Skip errors without tokens.
+            if (!lError.errorToken) {
+                continue;
+            }
+
+            // Calculate priority
+            const lCurrentPriority: number = (lErrorPosition.errorToken.lineNumber * 10000) + lErrorPosition.errorToken.columnNumber;
+            const lNewPriority: number = (lError.errorToken.lineNumber * 10000) + lError.errorToken.columnNumber;
+
             // Error token exists and is at least position.
-            if (lError.errorToken && (lError.errorToken.lineNumber > lErrorPosition.errorToken.lineNumber || lError.errorToken.lineNumber === lErrorPosition.errorToken.lineNumber && lError.errorToken.columnNumber > lErrorPosition.errorToken.columnNumber)) {
+            if (lCurrentPriority < lNewPriority) {
                 lErrorPosition = lError;
             }
         }

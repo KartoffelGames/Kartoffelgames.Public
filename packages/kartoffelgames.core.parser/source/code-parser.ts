@@ -302,9 +302,11 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             lChainData = lChainParseResult.chainData;
         }
 
-        // Node value was a full optional graph, but the data needs to be set.
+        // Prefill node value as null when no chain result was found.
         let lNodeValue: unknown | null = lChainParseResult?.usedNodeData ?? null;
-        if (lNodeValueParseResult === null) {
+        if (lNodeValue === null && lNodeValueParseResult === null) {
+            // Node value was a full optional graph, but the data needs to be set.
+            // Or node value was not found for a loop.
             if (pNode.required) {
                 lNodeValue = {};
             } else if (pNode.valueType === GrammarNodeValueType.List) {

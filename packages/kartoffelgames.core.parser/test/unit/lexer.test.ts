@@ -390,33 +390,101 @@ describe('Lexer', () => {
             expect(lTokenList[2]).property('type').to.equal(TestTokenType.Custom);
         });
 
-        it('-- Error token', () => {
-            // Setup.
-            const lLexer: Lexer<TestTokenType> = lInitTestLexer();
-            lLexer.errorType = TestTokenType.Error;
+        describe('-- Error token', () => {
+            it('-- Single token', () => {
+                // Setup.
+                const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+                lLexer.errorType = TestTokenType.Error;
+    
+                // Setup. Text.
+                const lErrorText = 'This //// is an error';
+    
+                // Process.
+                const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lErrorText)];
+    
+                // Evaluation
+                expect(lTokenList).has.lengthOf(5);
+    
+                // Error token ////
+                expect(lTokenList[1]).property('value').to.equal('//// ');
+                expect(lTokenList[1]).property('type').to.equal(TestTokenType.Error);
+                expect(lTokenList[1]).property('lineNumber').to.equal(1);
+                expect(lTokenList[1]).property('columnNumber').to.equal(6);
+                expect(lTokenList[1]).property('metas').to.deep.equal([]);
+            });
 
-            // Setup. Text.
-            const lErrorText = 'This //// and \nthis ($%$%) is a error';
+            it('-- Nested', () => {
+                // Setup.
+                const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+                lLexer.errorType = TestTokenType.Error;
+    
+                // Setup. Text.
+                const lErrorText = 'This ($%$%) is a error';
+    
+                // Process.
+                const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lErrorText)];
+    
+                // Evaluation
+                expect(lTokenList).has.lengthOf(7);
+    
+                // Error token ////
+                expect(lTokenList[2]).property('value').to.equal('$%$%');
+                expect(lTokenList[2]).property('type').to.equal(TestTokenType.Error);
+                expect(lTokenList[2]).property('lineNumber').to.equal(1);
+                expect(lTokenList[2]).property('columnNumber').to.equal(7);
+                expect(lTokenList[2]).property('metas').to.deep.equal([TestTokenMetas.Braket, TestTokenMetas.List]);
+            });
 
-            // Process.
-            const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lErrorText)];
+            it('-- Different lines', () => {
+                // Setup.
+                const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+                lLexer.errorType = TestTokenType.Error;
+    
+                // Setup. Text.
+                const lErrorText = 'This //// and \nthis ($%$%) is a error';
+    
+                // Process.
+                const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lErrorText)];
+    
+                // Evaluation
+                expect(lTokenList).has.lengthOf(10);
+    
+                // Error token ////
+                expect(lTokenList[1]).property('value').to.equal('//// ');
+                expect(lTokenList[1]).property('type').to.equal(TestTokenType.Error);
+                expect(lTokenList[1]).property('lineNumber').to.equal(1);
+                expect(lTokenList[1]).property('columnNumber').to.equal(6);
+                expect(lTokenList[1]).property('metas').to.deep.equal([]);
+    
+                // Error token ////
+                expect(lTokenList[5]).property('value').to.equal('$%$%');
+                expect(lTokenList[5]).property('type').to.equal(TestTokenType.Error);
+                expect(lTokenList[5]).property('lineNumber').to.equal(2);
+                expect(lTokenList[5]).property('columnNumber').to.equal(7);
+                expect(lTokenList[5]).property('metas').to.deep.equal([TestTokenMetas.Braket, TestTokenMetas.List]);
+            });
 
-            // Evaluation
-            expect(lTokenList).has.lengthOf(10);
-
-            // Error token ////
-            expect(lTokenList[1]).property('value').to.equal('//// ');
-            expect(lTokenList[1]).property('type').to.equal(TestTokenType.Error);
-            expect(lTokenList[1]).property('lineNumber').to.equal(1);
-            expect(lTokenList[1]).property('columnNumber').to.equal(6);
-            expect(lTokenList[1]).property('metas').to.deep.equal([]);
-
-            // Error token ////
-            expect(lTokenList[5]).property('value').to.equal('$%$%');
-            expect(lTokenList[5]).property('type').to.equal(TestTokenType.Error);
-            expect(lTokenList[5]).property('lineNumber').to.equal(2);
-            expect(lTokenList[5]).property('columnNumber').to.equal(7);
-            expect(lTokenList[5]).property('metas').to.deep.equal([TestTokenMetas.Braket, TestTokenMetas.List]);
+            it('-- At end', () => {
+                // Setup.
+                const lLexer: Lexer<TestTokenType> = lInitTestLexer();
+                lLexer.errorType = TestTokenType.Error;
+    
+                // Setup. Text.
+                const lErrorText = 'An Error at end ////';
+    
+                // Process.
+                const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lErrorText)];
+    
+                // Evaluation
+                expect(lTokenList).has.lengthOf(5);
+    
+                // Error token ////
+                expect(lTokenList[4]).property('value').to.equal('////');
+                expect(lTokenList[4]).property('type').to.equal(TestTokenType.Error);
+                expect(lTokenList[4]).property('lineNumber').to.equal(1);
+                expect(lTokenList[4]).property('columnNumber').to.equal(17);
+                expect(lTokenList[4]).property('metas').to.deep.equal([]);
+            });
         });
 
         it('-- Combined types', () => {

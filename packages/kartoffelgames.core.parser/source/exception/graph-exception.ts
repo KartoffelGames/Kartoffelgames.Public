@@ -1,3 +1,4 @@
+import { Exception } from '@kartoffelgames/core.data';
 import { LexerToken } from '../lexer/lexer-token';
 
 /**
@@ -7,6 +8,13 @@ import { LexerToken } from '../lexer/lexer-token';
  */
 export class GraphException<TTokenType extends string> extends Error {
     private readonly mErrorList: Array<GraphParseError<TTokenType>>;
+
+    /**
+     * Get error count of exception.
+     */
+    public get errorCount(): number {
+        return this.mErrorList.length;
+    }
 
     /**
      * Constructor.
@@ -71,7 +79,11 @@ export class GraphException<TTokenType extends string> extends Error {
         }
 
         // At lease one error must be found.
-        return lErrorPosition!;
+        if (!lErrorPosition) {
+            throw new Exception('No error attached to graph exception.', this);
+        }
+
+        return lErrorPosition;
     }
 
     /**

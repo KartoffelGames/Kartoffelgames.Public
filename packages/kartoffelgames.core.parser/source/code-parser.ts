@@ -216,8 +216,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Prefill chain data when it does not exists.
         const lChainData: Record<string, unknown> = pChainData ?? {};
 
-        // When no data is available or node has no identifier, nothing must be merged.
-        if (pNodeData === null || typeof pNodeData === 'undefined' || !pNode.identifier) {
+        // When no data has no identifier, nothing must be merged.
+        if (!pNode.identifier) {
             return lChainData;
         }
 
@@ -246,7 +246,9 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             }
 
             // Add value as array item and set, but only when a value was set.
-            (<Array<unknown>>lIdentifierValue).unshift(pNodeData);
+            if (pNodeData !== null && typeof pNodeData !== 'undefined') {
+                (<Array<unknown>>lIdentifierValue).unshift(pNodeData);
+            }
         }
 
         return lChainData;
@@ -302,8 +304,12 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
         // Node value was a full optional graph, but the data needs to be set.
         let lNodeValue: unknown | null = lChainParseResult?.usedNodeData ?? null;
-        if (lNodeValueParseResult === null && pNode.required) {
-            lNodeValue = {};
+        if (lNodeValueParseResult === null) {
+            if (pNode.required) {
+                lNodeValue = {};
+            } else if (pNode.valueType === GrammarNodeValueType.List) {
+                lNodeValue = undefined; // Undefined serves as value, but has no value.
+            }
         }
 
         // Return null when lNodeValueParseResult and lChainParseResult is null.

@@ -716,6 +716,34 @@ describe('CodeParser', () => {
                     end: 'const'
                 });
             });
+
+            it('-- Self reference with different start and end data.', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const const indent indent';
+
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('StartPart',
+                    lParser.graph().single('start', TokenType.Modifier).optional('inner', lParser.partReference('StartPart')).single('end', TokenType.Identifier),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('StartPart');
+
+                // Process. Convert code.
+                const lResult = lParser.parse(lCodeText);
+
+                // Evaluation. Loop chain twice as long as actual loop.
+                expect(lResult).to.deep.equals({
+                    start: 'const',
+                    inner: {
+                        start: 'const',
+                        end: 'indent'
+                    },
+                    end: 'indent'
+                });
+            });
         });
 
         describe('-- Parse Graph Errors', () => {

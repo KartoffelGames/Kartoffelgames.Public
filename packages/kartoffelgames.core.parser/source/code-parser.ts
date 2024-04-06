@@ -608,6 +608,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     lValueGraph = this.parseGraph(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionItem);
                 }
 
+                // Adds null when the graph was full optional.
                 lResultList.push(lValueGraph);
             });
         }
@@ -622,7 +623,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             return null;
         }
 
-        // Filter all null values from result.
+        // Filter all null values from result. Happens when the value was a full optional graph.
         const lNoNullValueList: Array<GraphParseResult> = lResultList.filter((pItem) => { return pItem !== null; }) as Array<GraphParseResult>;
         if (lNoNullValueList.length === 0) {
             return null;

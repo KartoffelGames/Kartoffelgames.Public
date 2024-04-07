@@ -426,6 +426,12 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Filtered
         let lChainResultList: Array<ChainGraph> = lChainList;
 
+        // Prefere chains with node value with processed token.
+        const lProcessedNodeValue: Array<ChainGraph> = lChainResultList.filter((pResult: ChainGraph) => { return pResult.nodeValue.tokenProcessed; });
+        if (lProcessedNodeValue.length !== 0) {
+            lChainResultList = lProcessedNodeValue;
+        }
+
         // Filter all full-optional chains that had no processed token. This Prevent ambiguity paths triggering when the optional chain "failed".
         // Keep the "failed" optional chains, when no none-optional chain exists.
         const lNoOptionalChainList: Array<ChainGraph> = lChainResultList.filter((pResult: ChainGraph) => { return pResult.chainedValue.tokenProcessed; });
@@ -449,6 +455,11 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
         // Validate ambiguity paths.
         if (lChainResultList.length > 1) {
+            for(const a of lChainResultList){
+                console.log(a.nodeValue, a.chainedValue)
+            }
+            
+
             // Recreate token path of every ambiguity path.
             const lAmbiguityPathDescriptionList: Array<string> = new Array<string>();
             for (const lAmbiguityPath of lChainResultList) {
@@ -560,7 +571,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         }
 
         // Add single empty data when result was empty and node is optional.
-        if (lResultList.length === 0 && !pNode.required) {
+        if (!pNode.required) {
             lResultList.push({
                 data: undefined,
                 nextTokenIndex: pCurrentTokenIndex,

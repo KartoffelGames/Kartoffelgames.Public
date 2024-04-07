@@ -225,7 +225,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 throw new Exception(`Graph path has a dublicate value identifier "${pNode.identifier}"`, this);
             }
 
-            if (!pNode.required && pData.nodeData.empty) {
+            if (!pNode.required && !pData.nodeData.tokenProcessed) {
                 return lChainData;
             }
 
@@ -247,7 +247,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             }
 
             // Add value as array item but only when a value was set.
-            if (!pData.nodeData.empty) {
+            if (pData.nodeData.tokenProcessed) {
                 (<Array<unknown>>lIdentifierValue).unshift(pData.nodeData.data);
             }
         }
@@ -299,7 +299,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         return {
             data: this.mergeNodeData(pNode, lChainParseResult),
             nextTokenIndex: lChainParseResult.chainData.nextTokenIndex,
-            empty: lChainParseResult.chainData.empty && lChainParseResult.nodeData.empty
+            tokenProcessed: lChainParseResult.chainData.tokenProcessed || lChainParseResult.nodeData.tokenProcessed
         };
     }
 
@@ -353,7 +353,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         return {
             data: lResultData,
             nextTokenIndex: lNodeParseResult.nextTokenIndex,
-            empty: lNodeParseResult.empty
+            tokenProcessed: lNodeParseResult.tokenProcessed
         };
     }
 
@@ -391,7 +391,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                         chainedValue: {
                             data: {}, // Empty chain data.
                             nextTokenIndex: lNodeValue.nextTokenIndex,
-                            empty: true
+                            tokenProcessed: false
                         },
                         loopNode: false
                     });
@@ -399,7 +399,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 }
 
                 // Skip endless loops by preventing the same optional node chaining itself.
-                if (lNodeValue.empty && lChainedNode === pNode) {
+                if (!lNodeValue.tokenProcessed && lChainedNode === pNode) {
                     continue;
                 }
 
@@ -428,7 +428,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
         // Filter all full-optional chains that had no processed token. This Prevent ambiguity paths triggering when the optional chain "failed".
         // Keep the "failed" optional chains, when no none-optional chain exists.
-        const lNoOptionalChainList: Array<ChainGraph> = lChainResultList.filter((pResult: ChainGraph) => { return !pResult.chainedValue.empty; });
+        const lNoOptionalChainList: Array<ChainGraph> = lChainResultList.filter((pResult: ChainGraph) => { return pResult.chainedValue.tokenProcessed; });
         if (lNoOptionalChainList.length !== 0) {
             lChainResultList = lNoOptionalChainList;
         }
@@ -442,7 +442,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
         // When chain contains empty values at this point, no none empty where found.
         // When a optional exists, take the first one. They all should have the same null data and token index.
-        const lOnlyOptionalList: Array<ChainGraph> = lChainResultList.filter((pResult: ChainGraph) => { return pResult.chainedValue.empty; });
+        const lOnlyOptionalList: Array<ChainGraph> = lChainResultList.filter((pResult: ChainGraph) => { return !pResult.chainedValue.tokenProcessed; });
         if (lOnlyOptionalList.length !== 0) {
             lChainResultList = lOnlyOptionalList.slice(0, 1);
         }
@@ -533,7 +533,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 lResultList.push({
                     data: lCurrentToken.value,
                     nextTokenIndex: pCurrentTokenIndex + 1,
-                    empty: false
+                    tokenProcessed: true
                 });
             } else {
                 // Try to retrieve values from graphs.
@@ -549,7 +549,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                         lValueGraphResult = {
                             data: lGraphParseResult.data,
                             nextTokenIndex: lGraphParseResult.nextTokenIndex,
-                            empty: lGraphParseResult.empty,
+                            tokenProcessed: lGraphParseResult.tokenProcessed,
                         };
                     }
 
@@ -564,7 +564,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             lResultList.push({
                 data: undefined,
                 nextTokenIndex: pCurrentTokenIndex,
-                empty: true
+                tokenProcessed: false
             });
         }
 
@@ -678,13 +678,13 @@ type ChainGraph = {
 type GraphNodeParseResult = {
     data: Record<string, unknown>;
     nextTokenIndex: number;
-    empty: boolean;
+    tokenProcessed: boolean;
 };
 
 type GraphParseResult = {
     data: unknown;
     nextTokenIndex: number;
-    empty: boolean;
+    tokenProcessed: boolean;
 };
 
 type GraphChainResult = {

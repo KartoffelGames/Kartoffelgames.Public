@@ -1171,7 +1171,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation.
-                const lException = expect(lErrorFunction).to.throws(ParserException, 'Text is empty and graph has no output data.');
+                const lException = expect(lErrorFunction).to.throws(ParserException, lErrorMessage);
                 lException.with.property('columnStart', 1);
                 lException.with.property('columnEnd', 1);
                 lException.with.property('lineStart', 1);

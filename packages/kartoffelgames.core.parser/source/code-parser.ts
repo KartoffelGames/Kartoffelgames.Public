@@ -163,11 +163,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             throw ParserException.fromToken(`Tokens could not be parsed. Graph end meet without reaching last token. Current: "${lNextToken.value}" (${lNextToken.type})`, this, lNextToken, lLastToken);
         }
 
-        // Catch complete empty data.
-        if (lRootParseData.empty) {
-            throw ParserException.fromToken('Text is empty and graph has no output data.', this);
-        }
-
         return lRootParseData.data as TParseResult;
     }
 
@@ -334,8 +329,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         const lNodeParseResult: GraphNodeParseResult = this.parseGraphNode(lRootNode, pTokenList, pCurrentTokenIndex, pRecursionItem);
 
         // Execute optional collector.
-        let lResultData: unknown = (!lNodeParseResult.empty) ? lNodeParseResult.data : null;
-        if (lCollector && !lNodeParseResult.empty) {
+        let lResultData: unknown = lNodeParseResult.data;
+        if (lCollector) {
             try {
                 lResultData = lCollector(lNodeParseResult.data);
             } catch (pError: any) {

@@ -423,7 +423,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             throw lGraphErrors;
         }
 
-        // Filtered
+        // Filtered result list.
         let lChainResultList: Array<ChainGraph> = lChainList;
 
         // Prefere chains with node value with processed token.
@@ -455,11 +455,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
         // Validate ambiguity paths.
         if (lChainResultList.length > 1) {
-            for(const a of lChainResultList){
-                console.log(a.nodeValue, a.chainedValue)
-            }
-            
-
             // Recreate token path of every ambiguity path.
             const lAmbiguityPathDescriptionList: Array<string> = new Array<string>();
             for (const lAmbiguityPath of lChainResultList) {
@@ -572,11 +567,15 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
         // Add single empty data when result was empty and node is optional.
         if (!pNode.required) {
-            lResultList.push({
-                data: undefined,
-                nextTokenIndex: pCurrentTokenIndex,
-                tokenProcessed: false
-            });
+            // Add it only when it has not already an empty value.
+            const lEmptyNodeValueIndex: number = lResultList.findIndex((pValue) => { return !pValue.tokenProcessed; });
+            if (lEmptyNodeValueIndex === -1) {
+                lResultList.push({
+                    data: undefined,
+                    nextTokenIndex: pCurrentTokenIndex,
+                    tokenProcessed: false
+                });
+            }
         }
 
         // When no result was added, node was required

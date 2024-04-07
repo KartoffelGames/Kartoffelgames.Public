@@ -303,18 +303,10 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Parse and read data of chanined nodes. Add each error to the complete error list.
         const lChainParseResult: GraphChainResult = this.retrieveChainedValues(pNode, lNodeValueParseResult, pTokenList, lRecursionItem);
 
-        // Return empty data when both node data and chain data is empty
-        if (lChainParseResult.chainData.empty && lChainParseResult.nodeData.empty) {
-            return {
-                nextTokenIndex: lChainParseResult.chainData.nextTokenIndex,
-                empty: true
-            };
-        }
-
         return {
             data: this.mergeNodeData(pNode, lChainParseResult),
             nextTokenIndex: lChainParseResult.chainData.nextTokenIndex,
-            empty: false
+            empty: lChainParseResult.chainData.empty && lChainParseResult.nodeData.empty
         };
     }
 
@@ -344,7 +336,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         const lNodeParseResult: GraphNodeParseResult = this.parseGraphNode(lRootNode, pTokenList, pCurrentTokenIndex, pRecursionItem);
 
         // Execute optional collector.
-        let lResultData: unknown;
+        let lResultData: unknown = (!lNodeParseResult.empty) ? lNodeParseResult.data : null;
         if (lCollector && !lNodeParseResult.empty) {
             try {
                 lResultData = lCollector(lNodeParseResult.data);

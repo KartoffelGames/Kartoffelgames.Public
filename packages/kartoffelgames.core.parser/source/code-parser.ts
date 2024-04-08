@@ -379,8 +379,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
     private retrieveChainedValues(pNode: BaseGrammarNode<TTokenType>, pNodeValues: Array<GraphParseResult>, pTokenList: Array<LexerToken<TTokenType>>, pRecursionItem: GraphRecursionStack<TTokenType>): GraphChainResult {
         const lGraphErrors: GraphException<TTokenType> = new GraphException<TTokenType>();
 
+        // Run chained node parse for each node value.
         const lChainList: Array<ChainGraph> = new Array<ChainGraph>();
-        // Run chained node parse for each node value and check for dublicates after that.
         for (const lNodeValue of pNodeValues) {
             // Process chained nodes in parallel.
             for (const lChainedNode of pNode.next()) {
@@ -424,34 +424,38 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         }
 
         // Filtered result list.
-        let lChainResultList: Array<ChainGraph> = lChainList;
+        const lChainResultList: Array<ChainGraph> = ((pChainList: Array<ChainGraph>) => {
+            let lFilterdValues: Array<ChainGraph> = pChainList;
 
-        // Prefere chains with node value with processed token.
-        const lProcessedNodeValue: Array<ChainGraph> = lChainResultList.filter((pResult: ChainGraph) => { return pResult.nodeValue.tokenProcessed; });
-        if (lProcessedNodeValue.length !== 0) {
-            lChainResultList = lProcessedNodeValue;
-        }
+            // Prefere chains with node value with processed token.
+            const lProcessedNodeValue: Array<ChainGraph> = lFilterdValues.filter((pResult: ChainGraph) => { return pResult.nodeValue.tokenProcessed; });
+            if (lProcessedNodeValue.length !== 0) {
+                lFilterdValues = lProcessedNodeValue;
+            }
 
-        // Filter all full-optional chains that had no processed token. This Prevent ambiguity paths triggering when the optional chain "failed".
-        // Keep the "failed" optional chains, when no none-optional chain exists.
-        const lNoOptionalChainList: Array<ChainGraph> = lChainResultList.filter((pResult: ChainGraph) => { return pResult.chainedValue.tokenProcessed; });
-        if (lNoOptionalChainList.length !== 0) {
-            lChainResultList = lNoOptionalChainList;
-        }
+            // Filter all full-optional chains that had no processed token. This Prevent ambiguity paths triggering when the optional chain "failed".
+            // Keep the "failed" optional chains, when no none-optional chain exists.
+            const lNoOptionalChainList: Array<ChainGraph> = lFilterdValues.filter((pResult: ChainGraph) => { return pResult.chainedValue.tokenProcessed; });
+            if (lNoOptionalChainList.length !== 0) {
+                lFilterdValues = lNoOptionalChainList;
+            }
 
-        // Enforce greedy loops, Allways choose looped chains over static chains.
-        // When a static and a loop chain exists it does not count as ambiguity paths.
-        const lLoopChainList: Array<ChainGraph> = lChainResultList.filter((pResult: ChainGraph) => { return pResult.loopNode; });
-        if (lLoopChainList.length !== 0) {
-            lChainResultList = lLoopChainList;
-        }
+            // Enforce greedy loops, Allways choose looped chains over static chains.
+            // When a static and a loop chain exists it does not count as ambiguity paths.
+            const lLoopChainList: Array<ChainGraph> = lFilterdValues.filter((pResult: ChainGraph) => { return pResult.loopNode; });
+            if (lLoopChainList.length !== 0) {
+                lFilterdValues = lLoopChainList;
+            }
 
-        // When chain contains empty values at this point, no none empty where found.
-        // When a optional exists, take the first one. They all should have the same null data and token index.
-        const lOnlyOptionalList: Array<ChainGraph> = lChainResultList.filter((pResult: ChainGraph) => { return !pResult.chainedValue.tokenProcessed; });
-        if (lOnlyOptionalList.length !== 0) {
-            lChainResultList = lOnlyOptionalList.slice(0, 1);
-        }
+            // When chain contains empty values at this point, no none empty where found.
+            // When a optional exists, take the first one. They all should have the same null data and token index.
+            const lOnlyOptionalList: Array<ChainGraph> = lFilterdValues.filter((pResult: ChainGraph) => { return !pResult.chainedValue.tokenProcessed; });
+            if (lOnlyOptionalList.length !== 0) {
+                lFilterdValues = lOnlyOptionalList.slice(0, 1);
+            }
+
+            return lFilterdValues;
+        })(lChainList);
 
         // Validate ambiguity paths.
         if (lChainResultList.length > 1) {
@@ -512,6 +516,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         const lGraphErrors: GraphException<TTokenType> = new GraphException<TTokenType>();
 
         // Process each node value.
+        let lHasEmptyResult: boolean = false;
         const lResultList: Array<GraphParseResult> = new Array<GraphParseResult>();
         for (const lNodeValue of pNode.nodeValues) {
             // Static token type of dynamic graph part.
@@ -551,6 +556,9 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     } else {
                         const lGraphParseResult: GraphNodeParseResult = this.parseGraph(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionItem);
 
+                        // Save if result list has an empty result.
+                        lHasEmptyResult = lHasEmptyResult || !lGraphParseResult.tokenProcessed;
+
                         // Parse empty GraphParseResult with undefined data.
                         lValueGraphResult = {
                             data: lGraphParseResult.data,
@@ -566,16 +574,12 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         }
 
         // Add single empty data when result was empty and node is optional.
-        if (!pNode.required) {
-            // Add it only when it has not already an empty value.
-            const lEmptyNodeValueIndex: number = lResultList.findIndex((pValue) => { return !pValue.tokenProcessed; });
-            if (lEmptyNodeValueIndex === -1) {
-                lResultList.push({
-                    data: undefined,
-                    nextTokenIndex: pCurrentTokenIndex,
-                    tokenProcessed: false
-                });
-            }
+        if (!pNode.required && !lHasEmptyResult) {
+            lResultList.push({
+                data: undefined,
+                nextTokenIndex: pCurrentTokenIndex,
+                tokenProcessed: false
+            });
         }
 
         // When no result was added, node was required

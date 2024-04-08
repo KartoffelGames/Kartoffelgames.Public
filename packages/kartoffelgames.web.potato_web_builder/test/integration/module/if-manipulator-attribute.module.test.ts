@@ -13,7 +13,9 @@ describe('IfManipulatorAttributeModule', () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: `<div *pwbIf="this.displayed"/>`
+            template: `$if(this.displayed) {
+                <div/>
+            }`
         })
         class TestComponent {
             public displayed: boolean = lDisplayed;
@@ -36,7 +38,9 @@ describe('IfManipulatorAttributeModule', () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: `<div *pwbIf="this.displayed"/>`
+            template: `$if(this.displayed) {
+                <div/>
+            }`
         })
         class TestComponent {
             public displayed: boolean = lDisplayed;
@@ -61,7 +65,9 @@ describe('IfManipulatorAttributeModule', () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: `<div *pwbIf="this.displayed"/>`
+            template: `$if(this.displayed) {
+                <div/>
+            }`
         })
         class TestComponent {
             @PwbExport
@@ -87,7 +93,9 @@ describe('IfManipulatorAttributeModule', () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: `<div *pwbIf="this.displayed"/>`
+            template: `$if(this.displayed) {
+                <div/>
+            }`
         })
         class TestComponent {
             @PwbExport
@@ -115,7 +123,9 @@ describe('IfManipulatorAttributeModule', () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: `<div *pwbIf="this.displayed"/>`
+            template: `$if(this.displayed) {
+                <div/>
+            }`
         })
         class TestComponent {
             public displayed: any = lDisplayed;
@@ -138,7 +148,9 @@ describe('IfManipulatorAttributeModule', () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: `<div *pwbIf="this.displayed"/>`
+            template: `$if(this.displayed) {
+                <div/>
+            }`
         })
         class TestComponent {
             public displayed: any = lDisplayed;

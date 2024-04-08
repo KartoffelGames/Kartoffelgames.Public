@@ -13,7 +13,7 @@ describe('SlotAttribute', () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: '<div $DEFAULT/>'
+            template: '$slot'
         })
         class TestComponent { }
 
@@ -39,7 +39,7 @@ describe('SlotAttribute', () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: `<div $${lSlotName}/>`
+            template: `$slot(${lSlotName})`
         })
         class TestComponent { }
 

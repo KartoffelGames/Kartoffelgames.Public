@@ -61,6 +61,9 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
         // Create new layer of values.
         this.mComponentValues = new LayerValues(pParentLayerValues);
         this.mContent = pContent;
+
+        // Link this builder as content.
+        pContent.setCoreBuilder(this);
     }
 
     /**

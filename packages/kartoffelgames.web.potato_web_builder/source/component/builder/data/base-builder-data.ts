@@ -269,6 +269,14 @@ export abstract class BaseBuilderData {
     }
 
     /**
+     * Set core builder of this data.
+     * @param pCoreBuilder - Core builder. Owning this data.
+     */
+    public setCoreBuilder(pCoreBuilder: BaseBuilder): void {
+        this.mLinkedContent.add(pCoreBuilder);
+    }
+
+    /**
      * Insert {@link pSourceNode} after {@link pTarget} in DOM.
      * 
      * @param pSourceNode - Source node that should be inserted.

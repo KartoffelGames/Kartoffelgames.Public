@@ -23,7 +23,6 @@ export class PwbAppModuleInjectionExtension {
     }
 }
 
-
 @PwbExtension({
     type: ExtensionType.Component,
     access: AccessMode.Write

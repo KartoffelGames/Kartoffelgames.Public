@@ -106,7 +106,7 @@ export class GlobalExtensionsStorage {
                 throw new Exception('Extension is not properly setup. No access mode was set.', this);
             }
 
-            return lAccessModeA - lAccessModeB;
+            return lAccessModeB - lAccessModeA;
         });
     }
 }

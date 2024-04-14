@@ -131,12 +131,15 @@ export class Component implements IComponentHierarchyParent {
         const lExtensions: GlobalExtensionsStorage = new GlobalExtensionsStorage();
         this.mUpdateHandler.executeInZone(() => {
             for (const lExtensionConstructor of lExtensions.componentExtensions) {
-                const lExtension: ComponentExtension = new ComponentExtension({
+                const lComponentExtension: ComponentExtension = new ComponentExtension({
                     constructor: lExtensionConstructor,
                     parent: this
                 });
 
-                this.mExtensionList.push(lExtension);
+                // Execute extension.
+                lComponentExtension.execute();
+
+                this.mExtensionList.push(lComponentExtension);
             }
         });
 

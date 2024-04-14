@@ -130,6 +130,9 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
                 parent: this
             });
 
+            // Execute extension.
+            lModuleExtension.execute();
+
             this.mExtensionList.push(lModuleExtension);
         }
 

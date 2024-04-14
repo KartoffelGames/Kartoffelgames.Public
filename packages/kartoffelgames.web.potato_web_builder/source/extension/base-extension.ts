@@ -43,6 +43,17 @@ export class BaseExtension {
     }
 
     /**
+     * Execute extension.
+     */
+    public execute(): void {
+        // Call needed to construct extension!!!
+        const lProcessor: IPwbExtensionProcessor = this.processor;
+
+        // Execute extension.
+        lProcessor?.onExecute?.();
+    }
+
+    /**
      * Set injection parameter for the extension processor class construction. 
      * 
      * @param pInjectionTarget - Injection type that should be provided to processor.

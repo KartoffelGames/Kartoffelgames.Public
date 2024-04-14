@@ -6,7 +6,7 @@ import { IPwbExpressionModuleProcessor, IPwbExpressionModuleProcessorConstructor
 import { BaseModule } from './base-module';
 
 export class ExpressionModule extends BaseModule<Text, IPwbExpressionModuleProcessor> {
-    private mLastResult: string;
+    private mLastResult: string | null;
 
     /**
      * Constructor.
@@ -22,7 +22,7 @@ export class ExpressionModule extends BaseModule<Text, IPwbExpressionModuleProce
         });
 
         // Set starting value of expression.
-        this.mLastResult = '';
+        this.mLastResult = null;
 
         // Set module value from template value.
         this.setProcessorAttributes(ModuleValueReference, pParameter.targetTemplate.value);
@@ -47,7 +47,7 @@ export class ExpressionModule extends BaseModule<Text, IPwbExpressionModuleProce
         }
 
         // Update value if new value was processed.
-        const lValueHasChanged: boolean = this.mLastResult !== lNewValue;
+        const lValueHasChanged: boolean = this.mLastResult === null || this.mLastResult !== lNewValue;
         if (lValueHasChanged) {
             // Update text data of node.
             const lNode: Text = this.node;

@@ -105,8 +105,8 @@ export class TestUtil {
      * @param pComponent - Component.
      */
     public static async waitForUpdate(pComponent: HTMLElement): Promise<void> {
-        const lComponent: Component | undefined = TestUtil.getComponentManager(pComponent);
-        await lComponent?.getProcessorAttribute<UpdateHandler>(ComponentUpdateHandlerReference)!.waitForUpdate();
+        const lComponent: Component = TestUtil.getComponentManager(pComponent)!;
+        await lComponent!.getProcessorAttribute<UpdateHandler>(ComponentUpdateHandlerReference)!.waitForUpdate();
     }
 }
 

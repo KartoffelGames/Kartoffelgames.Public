@@ -299,7 +299,7 @@ describe('PwbEventListener', () => {
         // Process. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: '$listenerTestModuleFour{<div *listenerTestModuleFour />}'
+            template: '$listenerTestModuleFour{<div/>}'
         })
         class TestComponent { }
 

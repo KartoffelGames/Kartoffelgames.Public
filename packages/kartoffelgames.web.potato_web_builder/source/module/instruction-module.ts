@@ -32,9 +32,9 @@ export class InstructionModule extends BaseModule<Comment, IPwbInstructionModule
         });
 
         // Set processor attribute values from injection template.
-        this.setProcessorAttributes(ModuleValueReference, pParameter.targetTemplate.instruction);
         this.setProcessorAttributes(ModuleKeyReference, pParameter.targetTemplate.instructionType);
-
+        this.setProcessorAttributes(ModuleValueReference, pParameter.targetTemplate.instruction);
+        
         // Set starting value of instruction => Empty.
         this.mLastResult = new InstructionResult();
     }

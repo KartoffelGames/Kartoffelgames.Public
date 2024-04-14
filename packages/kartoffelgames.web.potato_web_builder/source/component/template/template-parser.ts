@@ -340,7 +340,7 @@ export class TemplateParser {
         type InstructionParseData = {
             instructionName: string;
             instruction?: { value: string; };
-            body?: { values: Array<BasePwbTemplateNode>; };
+            body?: { value: Array<BasePwbTemplateNode>; };
         };
         lParser.defineGraphPart('InstructionNode',
             lParser.graph()
@@ -357,7 +357,7 @@ export class TemplateParser {
 
                 // Add each body content.
                 if (pData.body) {
-                    lInstruction.appendChild(...pData.body.values);
+                    lInstruction.appendChild(...pData.body.value);
                 }
 
                 return lInstruction;

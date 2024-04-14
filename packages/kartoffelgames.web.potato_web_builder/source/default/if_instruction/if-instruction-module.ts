@@ -49,7 +49,7 @@ export class IfInstructionModule implements IPwbInstructionModuleOnUpdate {
             const lModuleResult: InstructionResult = new InstructionResult();
             if (lExecutionResult) {
                 const lTemplate: PwbTemplate = new PwbTemplate();
-                lTemplate.appendChild(this.mTemplateReference);
+                lTemplate.appendChild(...this.mTemplateReference.childList);
 
                 lModuleResult.addElement(lTemplate, new LayerValues(this.mValueHandler));
             }

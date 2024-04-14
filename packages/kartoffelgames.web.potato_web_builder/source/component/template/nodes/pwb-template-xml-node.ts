@@ -106,7 +106,7 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
             // This checks also for wrong namespace prefix by checking for qualified attribute name.
             const lAttributeTwo: PwbTemplateAttribute | undefined = this.mAttributeDictionary.get(lAttributeOne.name);
 
-            if (!lAttributeTwo || lAttributeTwo.equals(lAttributeOne)) {
+            if (!lAttributeTwo || !lAttributeTwo.equals(lAttributeOne)) {
                 return false;
             }
         }

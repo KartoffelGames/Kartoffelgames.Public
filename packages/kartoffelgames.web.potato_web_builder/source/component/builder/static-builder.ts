@@ -142,7 +142,6 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
 
                     // Link expression to attribute.
                     this.content.linkAttributeExpression(lAttributeExpressionModule, lAttributeTemplate);
-
                 }
 
                 // Link attribute template with text node list.

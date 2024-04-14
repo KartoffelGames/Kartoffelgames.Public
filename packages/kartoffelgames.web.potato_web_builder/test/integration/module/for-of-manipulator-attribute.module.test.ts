@@ -427,7 +427,7 @@ describe('ForOfManipulatorAttributeModule', () => {
         }
 
         // Evaluation.
-        expect(lErrorMessage).to.equal('pwbFor-Paramater value has wrong format: item WRONG this.list');
+        expect(lErrorMessage).to.equal('For-Parameter value has wrong format: item WRONG this.list');
     });
 
     it('-- Wrapped itself', async () => {

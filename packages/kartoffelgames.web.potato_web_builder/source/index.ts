@@ -53,7 +53,7 @@ import './default/one_way_binding/one-way-binding-attribute-module';
 import './default/pwb_child/pwb-child-attribute-module';
 import './default/for-instruction/for-instruction-module';
 import './default/if_instruction/if-instruction-module';
-import './default/slot_attribute/slot-attribute-module';
+import './default/slot_attribute/slot-instruction-module';
 import './default/two_way_binding/two-way-binding-attribute-module';
 
 // Import default extensions.

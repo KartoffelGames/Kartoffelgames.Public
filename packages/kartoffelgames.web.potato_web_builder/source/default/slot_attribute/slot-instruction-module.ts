@@ -9,7 +9,7 @@ import { InstructionResult } from '../../module/result/instruction-result';
 @PwbInstructionModule({
     instructionType: 'slot'
 })
-export class SlotAttributeModule {
+export class SlotInstructionModule {
     private readonly mLayerValues: LayerValues;
     private readonly mSlotName: string;
 

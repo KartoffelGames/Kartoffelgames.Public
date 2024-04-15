@@ -1,11 +1,11 @@
 import { expect } from 'chai';
-import { PwbExport } from '../../../source/default/export/pwb-export.decorator';
-import { PwbComponent } from '../../../source/decorator/pwb-component.decorator';
-import '../../mock/request-animation-frame-mock-session';
-import '../../utility/chai-helper';
-import { TestUtil } from '../../utility/test-util';
+import { PwbExport } from '../../../../source/default/export/pwb-export.decorator';
+import { PwbComponent } from '../../../../source/decorator/pwb-component.decorator';
+import '../../../mock/request-animation-frame-mock-session';
+import '../../../utility/chai-helper';
+import { TestUtil } from '../../../utility/test-util';
 
-describe('IfManipulatorAttributeModule', () => {
+describe('IfInstructionModule', () => {
     it('Initial false', async () => {
         // Setup. Values.
         const lDisplayed: boolean = false;

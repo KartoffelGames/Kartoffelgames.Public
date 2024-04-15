@@ -34,7 +34,7 @@ export class SlotAttributeModule {
         lSlotXmlElement.tagName = 'slot';
 
         // Set slot as default of name is $DEFAUKLT
-        if (this.mSlotName !== 'DEFAULT') {
+        if (this.mSlotName !== '') {
             lSlotXmlElement.setAttribute('name').addValue(this.mSlotName);
         }
 

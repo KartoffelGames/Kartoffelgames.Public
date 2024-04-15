@@ -19,15 +19,14 @@ describe('SlotAttribute', () => {
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lSlotName: string | null = TestUtil.getComponentNode<HTMLSlotElement>(lComponent, 'div slot').getAttribute('name');
+        const lSlotName: string | null = TestUtil.getComponentNode<HTMLSlotElement>(lComponent, 'slot').getAttribute('name');
 
         // Evaluation.
         expect(lComponent).to.have.componentStructure([
             Comment, // Component Anchor
-            {
-                node: HTMLDivElement,
-                childs: [HTMLSlotElement]
-            }
+            Comment, // Instruction Anchor
+            Comment, // Static Anchor
+            HTMLSlotElement
         ], true);
         expect(lSlotName).to.be.null;
     });
@@ -49,12 +48,11 @@ describe('SlotAttribute', () => {
         // Evaluation.
         expect(lComponent).to.have.componentStructure([
             Comment, // Component Anchor
+            Comment, // Instruction Anchor
+            Comment, // Static Anchor
             {
-                node: HTMLDivElement,
-                childs: [{
-                    node: HTMLSlotElement,
-                    attributes: [{ name: 'name', value: lSlotName, }]
-                }]
+                node: HTMLSlotElement,
+                attributes: [{ name: 'name', value: lSlotName, }]
             }
         ], true);
     });

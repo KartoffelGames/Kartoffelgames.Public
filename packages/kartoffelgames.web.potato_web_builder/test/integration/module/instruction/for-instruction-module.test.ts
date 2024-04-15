@@ -486,12 +486,12 @@ describe('ForInstructionModule', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector(),
             template: `$for(outerItem of [1,2]) {
-                <div>
-                    $for(innerItem of this.list) {
-                        <div/>
-                    }
-                </div>
-            }`
+                            <div>
+                                $for(innerItem of this.list) {
+                                    <div/>
+                                }
+                            </div>
+                        }`
         })
         class TestComponent {
             public list: Array<number> = [1];
@@ -528,11 +528,10 @@ describe('ForInstructionModule', () => {
         expect(lComponent).to.have.componentStructure([
             Comment, // Component Anchor
             HTMLDivElement,
-            Comment, // - Manipulator Parent Anchor
-            Comment, // Static
+            Comment, // - Instruction Anchor
+            Comment, // Static Anchor
             HTMLDivElement,
             HTMLDivElement, // Static element
-            HTMLDivElement // Static element
         ], true);
     });
 

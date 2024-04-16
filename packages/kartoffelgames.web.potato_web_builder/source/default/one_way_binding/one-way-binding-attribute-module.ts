@@ -30,7 +30,7 @@ export class OneWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate
      * @param pValueReference - Values of component.
      * @param pAttributeValueReference - Attribute of module.
      */
-    public constructor(pTargetReference: ModuleTargetNodeReference, pValueReference: ModuleLayerValuesReference, pAttributeKeyReference: ModuleValueReference, pAttributeValueReference: ModuleKeyReference) {
+    public constructor(pTargetReference: ModuleTargetNodeReference, pValueReference: ModuleLayerValuesReference, pAttributeKeyReference: ModuleKeyReference, pAttributeValueReference: ModuleValueReference) {
         this.mTarget = pTargetReference;
         this.mValueHandler = pValueReference;
 

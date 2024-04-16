@@ -2,8 +2,8 @@ import { CompareHandler } from '@kartoffelgames/web.change-detection';
 import { LayerValues } from '../../component/values/layer-values';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
-import { ComponentLayerValuesReference } from '../../injection_reference/component/component-layer-values-reference';
 import { ModuleKeyReference } from '../../injection_reference/module/module-key-reference';
+import { ModuleLayerValuesReference } from '../../injection_reference/module/module-layer-values-reference';
 import { ModuleTargetNodeReference } from '../../injection_reference/module/module-target-node-reference';
 import { ModuleValueReference } from '../../injection_reference/module/module-value-reference';
 import { IPwbAttributeModuleOnUpdate } from '../../interface/module.interface';
@@ -30,7 +30,7 @@ export class OneWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate
      * @param pValueReference - Values of component.
      * @param pAttributeValueReference - Attribute of module.
      */
-    public constructor(pTargetReference: ModuleTargetNodeReference, pValueReference: ComponentLayerValuesReference, pAttributeKeyReference: ModuleValueReference, pAttributeValueReference: ModuleKeyReference) {
+    public constructor(pTargetReference: ModuleTargetNodeReference, pValueReference: ModuleLayerValuesReference, pAttributeKeyReference: ModuleValueReference, pAttributeValueReference: ModuleKeyReference) {
         this.mTarget = pTargetReference;
         this.mValueHandler = pValueReference;
 

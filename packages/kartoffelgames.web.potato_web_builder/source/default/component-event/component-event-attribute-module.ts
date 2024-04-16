@@ -1,12 +1,12 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { ComponentLayerValuesReference } from '../../injection_reference/component/component-layer-values-reference';
-import { ModuleTargetNodeReference } from '../../injection_reference/module/module-target-node-reference';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
-import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
-import { IPwbModuleOnDeconstruct } from '../../interface/module.interface';
-import { ModuleValueReference } from '../../injection_reference/module/module-value-reference';
 import { ModuleKeyReference } from '../../injection_reference/module/module-key-reference';
+import { ModuleLayerValuesReference } from '../../injection_reference/module/module-layer-values-reference';
+import { ModuleTargetNodeReference } from '../../injection_reference/module/module-target-node-reference';
+import { ModuleValueReference } from '../../injection_reference/module/module-value-reference';
+import { IPwbModuleOnDeconstruct } from '../../interface/module.interface';
+import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
 
 @PwbAttributeModule({
     selector: /^\([[\w\-$]+\)$/,
@@ -24,7 +24,7 @@ export class EventAttributeModule implements IPwbModuleOnDeconstruct {
      * @param pAttributeKey - Attribute key of module.
      * @param pAttributeValue - Attribute value of module.
      */
-    public constructor(pTargetNode: ModuleTargetNodeReference, pLayerValue: ComponentLayerValuesReference, pAttributeKey: ModuleKeyReference, pAttributeValue: ModuleValueReference) {
+    public constructor(pTargetNode: ModuleTargetNodeReference, pLayerValue: ModuleLayerValuesReference, pAttributeKey: ModuleKeyReference, pAttributeValue: ModuleValueReference) {
         this.mTarget = pTargetNode;
         this.mEventName = pAttributeKey.substring(1, pAttributeKey.length - 1);
 

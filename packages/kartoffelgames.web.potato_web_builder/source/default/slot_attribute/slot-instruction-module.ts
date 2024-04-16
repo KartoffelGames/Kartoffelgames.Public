@@ -2,7 +2,7 @@ import { PwbTemplate } from '../../component/template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from '../../component/template/nodes/pwb-template-xml-node';
 import { LayerValues } from '../../component/values/layer-values';
 import { PwbInstructionModule } from '../../decorator/pwb-instruction-module.decorator';
-import { ComponentLayerValuesReference } from '../../injection_reference/component/component-layer-values-reference';
+import { ModuleLayerValuesReference } from '../../injection_reference/module/module-layer-values-reference';
 import { ModuleValueReference } from '../../injection_reference/module/module-value-reference';
 import { InstructionResult } from '../../module/result/instruction-result';
 
@@ -19,7 +19,7 @@ export class SlotInstructionModule {
      * @param pLayerValues - Values of component.
      * @param pAttributeReference - Attribute of module.
      */
-    public constructor(pLayerValues: ComponentLayerValuesReference, pAttributeValue: ModuleValueReference) {
+    public constructor(pLayerValues: ModuleLayerValuesReference, pAttributeValue: ModuleValueReference) {
         this.mLayerValues = pLayerValues;
         this.mSlotName = pAttributeValue.toString();
     }

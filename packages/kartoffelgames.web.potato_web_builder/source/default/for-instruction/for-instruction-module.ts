@@ -4,7 +4,7 @@ import { PwbTemplate } from '../../component/template/nodes/pwb-template';
 import { PwbTemplateInstructionNode } from '../../component/template/nodes/pwb-template-instruction-node';
 import { LayerValues } from '../../component/values/layer-values';
 import { PwbInstructionModule } from '../../decorator/pwb-instruction-module.decorator';
-import { ComponentLayerValuesReference } from '../../injection_reference/component/component-layer-values-reference';
+import { ModuleLayerValuesReference } from '../../injection_reference/module/module-layer-values-reference';
 import { ModuleTemplateReference } from '../../injection_reference/module/module-template-reference';
 import { ModuleValueReference } from '../../injection_reference/module/module-value-reference';
 import { IPwbInstructionModuleOnUpdate } from '../../interface/module.interface';
@@ -31,7 +31,7 @@ export class ForInstructionModule implements IPwbInstructionModuleOnUpdate {
      * @param pLayerValues - Values of component.
      * @param pAttributeReference - Attribute of module.
      */
-    public constructor(pTemplate: ModuleTemplateReference, pLayerValues: ComponentLayerValuesReference, pAttributeValue: ModuleValueReference) {
+    public constructor(pTemplate: ModuleTemplateReference, pLayerValues: ModuleLayerValuesReference, pAttributeValue: ModuleValueReference) {
         this.mTemplate = <PwbTemplateInstructionNode>pTemplate;
         this.mLayerValues = pLayerValues;
         this.mInstruction = pAttributeValue.toString();

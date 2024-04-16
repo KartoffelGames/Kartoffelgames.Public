@@ -379,8 +379,9 @@ describe('ForInstructionModule', () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: `$for(item of this.list; index = $index * item) {
-                <div>{{item}}</div>
+            template: `
+            $for(item of this.list; index = $index * item) {
+                <div>{{index}}</div>
             }`
         })
         class TestComponent {

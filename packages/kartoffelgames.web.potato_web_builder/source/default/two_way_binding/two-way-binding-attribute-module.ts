@@ -3,13 +3,13 @@ import { CompareHandler } from '@kartoffelgames/web.change-detection';
 import { LayerValues } from '../../component/values/layer-values';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
-import { IPwbAttributeModuleOnUpdate } from '../../interface/module.interface';
-import { ComponentLayerValuesReference } from '../../injection_reference/component/component-layer-values-reference';
-import { ModuleTargetNodeReference } from '../../injection_reference/module/module-target-node-reference';
-import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
-import { ModuleKeyReference } from '../../injection_reference/module/module-key-reference';
-import { ModuleValueReference } from '../../injection_reference/module/module-value-reference';
 import { ComponentUpdateHandlerReference } from '../../injection_reference/component/component-update-handler-reference';
+import { ModuleKeyReference } from '../../injection_reference/module/module-key-reference';
+import { ModuleLayerValuesReference } from '../../injection_reference/module/module-layer-values-reference';
+import { ModuleTargetNodeReference } from '../../injection_reference/module/module-target-node-reference';
+import { ModuleValueReference } from '../../injection_reference/module/module-value-reference';
+import { IPwbAttributeModuleOnUpdate } from '../../interface/module.interface';
+import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
 
 @PwbAttributeModule({
     selector: /^\[\([[\w$]+\)\]$/,
@@ -29,7 +29,7 @@ export class TwoWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate
      * @param pLayerValues - Values of component.
      * @param pAttribute - Attribute of module.
      */
-    public constructor(pTargetNode: ModuleTargetNodeReference, pLayerValues: ComponentLayerValuesReference, pAttributeKey: ModuleKeyReference, pAttributeValue: ModuleValueReference, pUpdateHandler: ComponentUpdateHandlerReference) {
+    public constructor(pTargetNode: ModuleTargetNodeReference, pLayerValues: ModuleLayerValuesReference, pAttributeKey: ModuleKeyReference, pAttributeValue: ModuleValueReference, pUpdateHandler: ComponentUpdateHandlerReference) {
         this.mTargetNode = pTargetNode;
         this.mLayerValues = pLayerValues;
 

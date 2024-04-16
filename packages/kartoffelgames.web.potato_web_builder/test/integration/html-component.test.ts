@@ -206,7 +206,7 @@ describe('HtmlComponent', () => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent.shadowRoot?.childNodes).to.have.lengthOf(2);
+        expect(lComponent.shadowRoot?.childNodes.length).to.be.equal(2);
     });
 
     it('-- Capsuled update scope', async () => {

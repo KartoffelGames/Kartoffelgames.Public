@@ -81,16 +81,9 @@ describe('Custom Module', () => {
         class TestComponent { }
 
         // Process. Create element.
-        let lErrorMessage: string | null = null;
-        try {
-            await <any>TestUtil.createComponent(TestComponent, true);
-        } catch (pError) {
-            const lError: Error = <Error>pError;
-            lErrorMessage = lError.message;
-        }
+        await <any>TestUtil.createComponent(TestComponent, true);
 
-        // Evaluation.
-        expect(lErrorMessage).to.equal(`Multiplicator modules need to implement IPwbMultiplicatorModuleOnUpdate`);
+        // Should be allowed. No errors.
     });
 
     it('-- Deconstruct module without deconstructor method', async () => {

@@ -311,7 +311,7 @@ describe('ForInstructionModule', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector(),
             template: `$for(item of this.list; index = $index) {
-                <div>{{item}}</div>
+                <div>{{index}}</div>
             }`
         })
         class TestComponent {
@@ -343,13 +343,13 @@ describe('ForInstructionModule', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector(),
             template: `$for(item of this.list; index = $index) {
-                <div>{{item}}</div>
+                <div>{{index}}</div>
             }`
         })
         class TestComponent {
             public list: object = {
-                one: 'One',
-                two: 'Two'
+                one: 'SomeValue',
+                two: 'SomeSecondValue'
             };
         }
 

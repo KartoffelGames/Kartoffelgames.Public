@@ -135,6 +135,17 @@ export class UpdateHandler {
     }
 
     /**
+     * Manual update component.
+     */
+    public update(): void {
+        this.forceUpdate({
+            source: this,
+            property: Symbol('ManualUpdate'),
+            stacktrace: 'ManualUpdate'
+        });
+    }
+
+    /**
      * Wait for the component update.
      * Returns Promise<false> if there is currently no update cycle.
      */

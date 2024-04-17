@@ -174,7 +174,9 @@ describe('HtmlComponent', () => {
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lComponent.shadowRoot?.childNodes).to.have.lengthOf(1);
+        expect(lComponent).to.have.componentStructure([
+            Comment
+        ], true);
     });
 
     it('-- Manual update. User triggered update.', async () => {
@@ -192,11 +194,7 @@ describe('HtmlComponent', () => {
 
             @PwbExport
             public update(): void {
-                this.mUpdater.requestUpdate({
-                    source: this,
-                    property: Symbol('any'),
-                    stacktrace: 'ManualUpdate'
-                });
+                this.mUpdater.update();
             }
         }
 
@@ -206,7 +204,10 @@ describe('HtmlComponent', () => {
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
-        expect(lComponent.shadowRoot?.childNodes.length).to.be.equal(2);
+        expect(lComponent).to.have.componentStructure([
+            Comment,
+            HTMLDivElement
+        ], true);
     });
 
     it('-- Capsuled update scope', async () => {

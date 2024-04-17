@@ -19,7 +19,10 @@ export class PwbAppModuleInjectionExtension {
      * @param pModule - Module.
      */
     public constructor(pModule: ModuleReference) {
-        pModule.setProcessorAttributes(PwbApp, PwbApp.getChangeDetectionApp(ChangeDetection.current));
+        const lPwbApp: PwbApp | undefined = PwbApp.getChangeDetectionApp(ChangeDetection.current);
+        if (lPwbApp) {
+            pModule.setProcessorAttributes(PwbApp, lPwbApp);
+        }
     }
 }
 
@@ -36,6 +39,9 @@ export class PwbAppComponentInjectionExtension {
      * @param pModule - Module.
      */
     public constructor(pComponent: ComponentReference) {
-        pComponent.setProcessorAttributes(PwbApp, PwbApp.getChangeDetectionApp(ChangeDetection.current));
+        const lPwbApp: PwbApp | undefined = PwbApp.getChangeDetectionApp(ChangeDetection.current);
+        if (lPwbApp) {
+            pComponent.setProcessorAttributes(PwbApp, lPwbApp);
+        }
     }
 }

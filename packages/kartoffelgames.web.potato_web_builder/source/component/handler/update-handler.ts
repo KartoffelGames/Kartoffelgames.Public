@@ -3,6 +3,7 @@ import { ChangeDetection, ChangeDetectionReason } from '@kartoffelgames/web.chan
 import { UpdateScope } from '../../enum/update-scope.enum';
 import { LoopDetectionHandler } from './loop-detection-handler';
 
+// TODO: Needs a rework to better manual update things.
 export class UpdateHandler {
     private readonly mChangeDetection: ChangeDetection;
     private readonly mChangeDetectionListener: (pReason: ChangeDetectionReason) => void;

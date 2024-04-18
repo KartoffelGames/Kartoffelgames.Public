@@ -5,8 +5,8 @@ import { PwbExtension } from '../../decorator/pwb-extension.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { ExtensionType } from '../../enum/extension-type.enum';
 import { ComponentConstructorReference } from '../../injection_reference/component/component-constructor-reference';
-import { ComponentElementReference } from '../../injection_reference/component/component-element-reference';
 import { ComponentReference } from '../../injection_reference/component/component-reference';
+import { ModuleTargetNodeReference } from '../../injection_reference/module/module-target-node-reference';
 import { IPwbExtensionOnDeconstruct } from '../../interface/extension.interface';
 import { EventListenerComponentExtension } from './event-listener-component-extension';
 
@@ -16,7 +16,7 @@ import { EventListenerComponentExtension } from './event-listener-component-exte
 })
 export class EventListenerModuleExtension implements IPwbExtensionOnDeconstruct {
     private readonly mEventListenerList: Array<[string, EventListener]>;
-    private readonly mTargetElement: HTMLElement;
+    private readonly mTargetElement: Node;
 
     /**
      * Constructor.
@@ -26,7 +26,7 @@ export class EventListenerModuleExtension implements IPwbExtensionOnDeconstruct 
      * @param pComponent - Component processor.
      * @param pElementReference - Component html element.
      */
-    public constructor(pComponentProcessorConstructor: ComponentConstructorReference, pComponent: ComponentReference, pElementReference: ComponentElementReference) {
+    public constructor(pComponentProcessorConstructor: ComponentConstructorReference, pComponent: ComponentReference, pElementReference: ModuleTargetNodeReference) {
         // Get event metadata.
         const lEventPropertyList: Array<[string, string]> = new Array<[string, string]>();
 

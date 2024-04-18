@@ -1,24 +1,25 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { expect } from 'chai';
-import { PwbComponent } from '../../../source/decorator/pwb-component.decorator';
+import { ModuleLayerValuesReference } from '../../../source';
+import { PwbTemplate } from '../../../source/component/template/nodes/pwb-template';
+import { PwbTemplateInstructionNode } from '../../../source/component/template/nodes/pwb-template-instruction-node';
 import { LayerValues } from '../../../source/component/values/layer-values';
+import { PwbAttributeModule } from '../../../source/decorator/pwb-attribute-module.decorator';
+import { PwbComponent } from '../../../source/decorator/pwb-component.decorator';
+import { PwbInstructionModule } from '../../../source/decorator/pwb-instruction-module.decorator';
 import { ComponentEvent } from '../../../source/default/component-event/component-event';
 import { ComponentEventEmitter } from '../../../source/default/component-event/component-event-emitter';
 import { PwbComponentEvent } from '../../../source/default/component-event/pwb-component-event.decorator';
 import { PwbEventListener } from '../../../source/default/event-listener/pwb-event-listener.decorator';
 import { PwbExport } from '../../../source/default/export/pwb-export.decorator';
-import { ComponentLayerValuesReference } from '../../../source/injection_reference/component/component-layer-values-reference';
-import { ModuleTemplateReference } from '../../../source/injection_reference/module/module-template-reference';
-import { PwbInstructionModule } from '../../../source/decorator/pwb-instruction-module.decorator';
-import { PwbAttributeModule } from '../../../source/decorator/pwb-attribute-module.decorator';
 import { AccessMode } from '../../../source/enum/access-mode.enum';
+import { ModuleTemplateReference } from '../../../source/injection_reference/module/module-template-reference';
+import { ComponentElement } from '../../../source/interface/component.interface';
 import { IPwbInstructionModuleOnUpdate } from '../../../source/interface/module.interface';
 import { InstructionResult } from '../../../source/module/result/instruction-result';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
-import { PwbTemplate } from '../../../source/component/template/nodes/pwb-template';
-import { ComponentElement } from '../../../source/interface/component.interface';
 
 describe('PwbEventListener', () => {
     it('-- Native listener', async () => {
@@ -236,7 +237,7 @@ describe('PwbEventListener', () => {
         expect(lEventCalled).to.be.false;
     });
 
-    it('-- Error on static properties on static module', async () => {
+    it('-- Error on none function properties on static module', async () => {
         // Setup. Create static module.
         @PwbAttributeModule({
             selector: /^listenerTestModuleThree$/,
@@ -277,13 +278,13 @@ describe('PwbEventListener', () => {
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class MyModule implements IPwbInstructionModuleOnUpdate {
-            public constructor(private readonly mTemplate: ModuleTemplateReference, private readonly mValue: ComponentLayerValuesReference) { }
+            public constructor(private readonly mTemplate: ModuleTemplateReference, private readonly mValue: ModuleLayerValuesReference) { }
 
-            onUpdate(): InstructionResult {
+            onUpdate(): InstructionResult | null {
                 const lResult: InstructionResult = new InstructionResult();
 
                 const lTemplate: PwbTemplate = new PwbTemplate();
-                lTemplate.appendChild(this.mTemplate.clone());
+                lTemplate.appendChild(...(<PwbTemplateInstructionNode>this.mTemplate).childList);
 
                 lResult.addElement(lTemplate, new LayerValues(this.mValue));
 

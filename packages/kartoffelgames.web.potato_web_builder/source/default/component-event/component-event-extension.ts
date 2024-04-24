@@ -3,10 +3,10 @@ import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-
 import { PwbExtension } from '../../decorator/pwb-extension.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { ExtensionType } from '../../enum/extension-type.enum';
-import { ComponentElementReference } from '../../injection_reference/component/component-element-reference';
 import { ComponentEventEmitter } from './component-event-emitter';
-import { ComponentConstructorReference } from '../../injection_reference/component/component-constructor-reference';
-import { ComponentReference } from '../../injection_reference/component/component-reference';
+import { ComponentConstructorReference } from '../../injection/references/component/component-constructor-reference';
+import { ComponentReference } from '../../injection/references/component/component-reference';
+import { ComponentElementReference } from '../../injection/references/component/component-element-reference';
 
 @PwbExtension({
     type: ExtensionType.Component,

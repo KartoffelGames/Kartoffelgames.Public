@@ -1,24 +1,24 @@
 /* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
 
 import { Exception } from '@kartoffelgames/core.data';
-import { Component } from '../../component/component';
+import { UpdateHandler } from '../../../component/handler/update-handler';
 
 /**
- * Component reference.
- * Acts as injection reference but the actual component should be injected instead.
+ * Updatehandler reference.
+ * Acts as injection reference but the actual UpdateHandler should be injected instead.
  * 
  * Should never be initialized.
  */
-export class ComponentReference {
+export class ComponentUpdateHandlerReference {
     /**
      * Constructor. Allways throws exception.
      * 
      * @throws {@link Exception}
      * Allways.
      */
-    public constructor() {
+    constructor() {
         throw new Exception('Reference should not be instanced.', this);
     }
 }
 
-export declare interface ComponentReference extends Component { }
+export declare interface ComponentUpdateHandlerReference extends UpdateHandler { }

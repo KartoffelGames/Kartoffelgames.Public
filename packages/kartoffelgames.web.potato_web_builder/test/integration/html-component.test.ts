@@ -5,7 +5,6 @@ import { UpdateScope } from '../../source/enum/update-scope.enum';
 import { LoopError } from '../../source/component/handler/loop-detection-handler';
 import { ComponentElement, IPwbAfterInit, IPwbAfterUpdate, IPwbOnAttributeChange, IPwbOnDeconstruct, IPwbOnInit, IPwbOnUpdate } from '../../source/interface/component.interface';
 import { PwbExport } from '../../source/default/export/pwb-export.decorator';
-import { ComponentElementReference } from '../../source/injection_reference/component/component-element-reference';
 import { PwbExpressionModule } from '../../source/decorator/pwb-expression-module.decorator';
 import { IPwbExpressionModuleOnUpdate } from '../../source/interface/module.interface';
 import '../mock/request-animation-frame-mock-session';
@@ -13,6 +12,7 @@ import '../utility/chai-helper';
 import { TestUtil } from '../utility/test-util';
 import { ComponentUpdateHandlerReference } from '../../source';
 import { UpdateHandler } from '../../source/component/handler/update-handler';
+import { ComponentElementReference } from '../../source/injection/references/component/component-element-reference';
 
 describe('HtmlComponent', () => {
     it('-- Single element', async () => {

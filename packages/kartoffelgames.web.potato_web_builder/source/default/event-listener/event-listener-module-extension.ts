@@ -4,11 +4,11 @@ import { ChangeDetection } from '@kartoffelgames/web.change-detection';
 import { PwbExtension } from '../../decorator/pwb-extension.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { ExtensionType } from '../../enum/extension-type.enum';
-import { ComponentReference } from '../../injection_reference/component/component-reference';
-import { ModuleConstructorReference } from '../../injection_reference/module/module-constructor-reference';
-import { ModuleTargetNodeReference } from '../../injection_reference/module/module-target-node-reference';
 import { IPwbExtensionOnDeconstruct } from '../../interface/extension.interface';
 import { EventListenerComponentExtension } from './event-listener-component-extension';
+import { ModuleConstructorReference } from '../../injection/references/module/module-constructor-reference';
+import { ModuleReference } from '../../injection/references/module/module-reference';
+import { ModuleTargetNodeReference } from '../../injection/references/module/module-target-node-reference';
 
 @PwbExtension({
     type: ExtensionType.Module,
@@ -23,10 +23,10 @@ export class EventListenerModuleExtension implements IPwbExtensionOnDeconstruct 
      * Add each event listener to component events.
      * 
      * @param pModuleProcessorConstructor - Module processor constructor.
-     * @param pComponent - Component processor.
+     * @param pModule - Module processor.
      * @param pElementReference - Component html element.
      */
-    public constructor(pModuleProcessorConstructor: ModuleConstructorReference, pComponent: ComponentReference, pElementReference: ModuleTargetNodeReference) {
+    public constructor(pModuleProcessorConstructor: ModuleConstructorReference, pModule: ModuleReference, pElementReference: ModuleTargetNodeReference) {
         // Get event metadata.
         const lEventPropertyList: Array<[string, string]> = new Array<[string, string]>();
 
@@ -54,7 +54,7 @@ export class EventListenerModuleExtension implements IPwbExtensionOnDeconstruct 
         this.mEventListenerList = new Array<[string, EventListener]>();
 
         // Easy access target objects.
-        const lTargetObject: object = pComponent.processor;
+        const lTargetObject: object = pModule.processor;
         this.mTargetElement = pElementReference;
 
         // Override each property with the corresponding component event emitter.
@@ -63,7 +63,7 @@ export class EventListenerModuleExtension implements IPwbExtensionOnDeconstruct 
 
             // Get target event listener function.
             let lEventListener: EventListener = Reflect.get(lTargetObject, lPropertyKey);
-            lEventListener = ChangeDetection.getUntrackedObject(lEventListener);
+            lEventListener = ChangeDetection.getUntrackedObject(lEventListener).bind(lTargetObject);
 
             // Add listener element and save for deconstruct.
             this.mEventListenerList.push([lEventName, lEventListener]);

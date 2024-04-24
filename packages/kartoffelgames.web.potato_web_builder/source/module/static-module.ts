@@ -1,9 +1,9 @@
 import { PwbTemplateAttribute } from '../component/template/nodes/values/pwb-template-attribute';
 import { LayerValues } from '../component/values/layer-values';
 import { AccessMode } from '../enum/access-mode.enum';
-import { ModuleKeyReference } from '../injection_reference/module/module-key-reference';
-import { ModuleValueReference } from '../injection_reference/module/module-value-reference';
-import { IComponentHierarchyParent } from '../interface/component-hierarchy.interface';
+import { InjectionHierarchyParent } from '../injection/injection-hierarchy-parent';
+import { ModuleKeyReference } from '../injection/references/module/module-key-reference';
+import { ModuleValueReference } from '../injection/references/module/module-value-reference';
 import { IPwbAttributeModuleProcessor, IPwbAttributeModuleProcessorConstructor } from '../interface/module.interface';
 import { BaseModule } from './base-module';
 
@@ -55,6 +55,6 @@ export type StaticModuleConstructorParameter = {
     constructor: IPwbAttributeModuleProcessorConstructor,
     targetTemplate: PwbTemplateAttribute,
     values: LayerValues,
-    parent: IComponentHierarchyParent,
+    parent: InjectionHierarchyParent,
     targetNode: Element;
 };

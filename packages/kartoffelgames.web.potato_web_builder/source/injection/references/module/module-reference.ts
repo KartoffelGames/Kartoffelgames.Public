@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
 
 import { Exception } from '@kartoffelgames/core.data';
-import { BaseModule } from '../../module/base-module';
-import { IPwbModuleProcessor } from '../../interface/module.interface';
+import { BaseModule } from '../../../module/base-module';
+import { IPwbModuleProcessor } from '../../../interface/module.interface';
 
 /**
  * Module reference.

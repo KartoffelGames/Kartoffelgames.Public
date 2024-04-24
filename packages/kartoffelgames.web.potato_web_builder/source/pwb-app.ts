@@ -4,9 +4,9 @@ import { ErrorListener } from '@kartoffelgames/web.change-detection/library/sour
 import { ElementCreator } from './component/element-creator';
 import { UpdateHandler } from './component/handler/update-handler';
 import { PwbTemplateXmlNode } from './component/template/nodes/pwb-template-xml-node';
-import { ComponentUpdateHandlerReference } from './injection_reference/component/component-update-handler-reference';
 import { ComponentElement, ComponentProcessorConstructor } from './interface/component.interface';
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
+import { ComponentUpdateHandlerReference } from './injection/references/component/component-update-handler-reference';
 
 export class PwbApp { // TODO: Rework PwbApp to be a component.
     private static readonly mChangeDetectionToApp: WeakMap<ChangeDetection, PwbApp> = new WeakMap<ChangeDetection, PwbApp>();

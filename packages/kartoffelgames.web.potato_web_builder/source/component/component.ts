@@ -1,14 +1,9 @@
-import { Dictionary, Exception } from '@kartoffelgames/core.data';
-import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
+import { Dictionary } from '@kartoffelgames/core.data';
+import { Injection } from '@kartoffelgames/core.dependency-injection';
 import { ChangeDetection } from '@kartoffelgames/web.change-detection';
 import { UpdateScope } from '../enum/update-scope.enum';
 import { ComponentExtension } from '../extension/component-extension';
 import { GlobalExtensionsStorage } from '../extension/global-extensions-storage';
-import { ComponentConstructorReference } from '../injection_reference/component/component-constructor-reference';
-import { ComponentElementReference } from '../injection_reference/component/component-element-reference';
-import { ComponentLayerValuesReference } from '../injection_reference/component/component-layer-values-reference';
-import { ComponentUpdateHandlerReference } from '../injection_reference/component/component-update-handler-reference';
-import { ComponentHierarchyInjection, IComponentHierarchyParent } from '../interface/component-hierarchy.interface';
 import { ComponentProcessor, ComponentProcessorConstructor } from '../interface/component.interface';
 import { IPwbExpressionModuleProcessorConstructor } from '../interface/module.interface';
 import { StaticBuilder } from './builder/static-builder';
@@ -20,32 +15,26 @@ import { PwbTemplate } from './template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 import { TemplateParser } from './template/template-parser';
 import { LayerValues } from './values/layer-values';
-import { ComponentReference } from '../injection_reference/component/component-reference';
+import { InjectionHierarchyParent } from '../injection/injection-hierarchy-parent';
+import { ComponentReference } from '../injection/references/component/component-reference';
+import { ComponentConstructorReference } from '../injection/references/component/component-constructor-reference';
+import { ComponentElementReference } from '../injection/references/component/component-element-reference';
+import { ComponentLayerValuesReference } from '../injection/references/component/component-layer-values-reference';
+import { ComponentUpdateHandlerReference } from '../injection/references/component/component-update-handler-reference';
 
 /**
  * Base component handler. Handles initialisation and update of components.
  */
-export class Component implements IComponentHierarchyParent {
+export class Component extends InjectionHierarchyParent {
     private static readonly mTemplateCache: Dictionary<ComponentProcessorConstructor, PwbTemplate> = new Dictionary<ComponentProcessorConstructor, PwbTemplate>();
     private static readonly mXmlParser: TemplateParser = new TemplateParser();
 
     private readonly mElementHandler: ElementHandler;
     private readonly mExtensionList: Array<ComponentExtension>;
-    private readonly mInjections: Dictionary<InjectionConstructor, any>;
     private mProcessor: ComponentProcessor | null;
     private readonly mProcessorConstructor: ComponentProcessorConstructor;
     private readonly mRootBuilder: StaticBuilder;
     private readonly mUpdateHandler: UpdateHandler;
-
-    /**
-     * Read all current set injections.
-     */
-    public get injections(): Array<ComponentHierarchyInjection> {
-        // TODO: Can we cache it.
-        return this.mInjections.map((pKey: InjectionConstructor, pValue: any) => {
-            return { target: pKey, value: pValue };
-        });
-    }
 
     /**
      * Component processor.
@@ -74,6 +63,8 @@ export class Component implements IComponentHierarchyParent {
      * @param pUpdateScope - Update scope of component.
      */
     public constructor(pComponentProcessorConstructor: ComponentProcessorConstructor, pTemplateString: string | null, pExpressionModule: IPwbExpressionModuleProcessorConstructor, pHtmlComponent: HTMLElement, pUpdateScope: UpdateScope) {
+        super(null);
+
         // Set empty component processor.
         this.mProcessor = null;
         this.mProcessorConstructor = pComponentProcessorConstructor;
@@ -117,7 +108,6 @@ export class Component implements IComponentHierarchyParent {
         this.mElementHandler.shadowRoot.appendChild(this.mRootBuilder.anchor);
 
         // Initialize user object injections.
-        this.mInjections = new Dictionary<InjectionConstructor, any>();
         this.setProcessorAttributes(ComponentConstructorReference, pComponentProcessorConstructor);
         this.setProcessorAttributes(ComponentElementReference, pHtmlComponent);
         this.setProcessorAttributes(ComponentLayerValuesReference, this.mRootBuilder.values);
@@ -126,22 +116,6 @@ export class Component implements IComponentHierarchyParent {
 
         // Create injection extensions.
         this.mExtensionList = new Array<ComponentExtension>();
-
-        // Create local injections with extensions.
-        const lExtensions: GlobalExtensionsStorage = new GlobalExtensionsStorage();
-        this.mUpdateHandler.executeInZone(() => {
-            for (const lExtensionConstructor of lExtensions.componentExtensions) {
-                const lComponentExtension: ComponentExtension = new ComponentExtension({
-                    constructor: lExtensionConstructor,
-                    parent: this
-                });
-
-                // Execute extension.
-                lComponentExtension.execute();
-
-                this.mExtensionList.push(lComponentExtension);
-            }
-        });
 
         // After build, before initialization.
         this.callOnPwbInitialize();
@@ -247,42 +221,34 @@ export class Component implements IComponentHierarchyParent {
     public disconnected(): void {
         this.mUpdateHandler.enabled = false;
     }
-
-    /**
-     * Get injection parameter for the processor class construction. 
-     * 
-     * @param pInjectionTarget - Injection type that should be provided to processor.
-     */
-    public getProcessorAttribute<T>(pInjectionTarget: InjectionConstructor): T | undefined {
-        return this.mInjections.get(pInjectionTarget);
-    }
-
-    /**
-     * Set injection parameter for the module processor class construction. 
-     * 
-     * @param pInjectionTarget - Injection type that should be provided to processor.
-     * @param pInjectionValue - Actual injected value in replacement for {@link pInjectionTarget}.
-     * 
-     * @throws {@link Exception}
-     * When the processor was already initialized.
-     */
-    public setProcessorAttributes(pInjectionTarget: InjectionConstructor, pInjectionValue: any): void {
-        if (this.mProcessor) {
-            throw new Exception('Cant add attributes to already initialized module.', this);
-        }
-
-        this.mInjections.set(pInjectionTarget, pInjectionValue);
-    }
-
     /**
      * Create component processor.
      */
     private createProcessor(): ComponentProcessor {
+        // Create local injections with extensions.
+        const lExtensions: GlobalExtensionsStorage = new GlobalExtensionsStorage();
+        this.mUpdateHandler.executeInZone(() => {
+            for (const lExtensionConstructor of lExtensions.componentExtensions) {
+                const lComponentExtension: ComponentExtension = new ComponentExtension({
+                    constructor: lExtensionConstructor,
+                    parent: this
+                });
+
+                // Execute extension.
+                lComponentExtension.execute();
+
+                this.mExtensionList.push(lComponentExtension);
+            }
+        });
+
+        // Lock injections.
+        this.lock();
+
         // Create user object inside update zone.
         // Constructor needs to be called inside zone.
         let lUntrackedProcessor: ComponentProcessor | null = null;
         this.mUpdateHandler.executeInZone(() => {
-            lUntrackedProcessor = Injection.createObject<ComponentProcessor>(this.mProcessorConstructor, this.mInjections);
+            lUntrackedProcessor = Injection.createObject<ComponentProcessor>(this.mProcessorConstructor, this.injections);
         });
 
         // Add __component__ property to processor.

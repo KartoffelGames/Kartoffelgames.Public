@@ -2,12 +2,12 @@ import { CompareHandler } from '@kartoffelgames/web.change-detection';
 import { LayerValues } from '../../component/values/layer-values';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
-import { ModuleKeyReference } from '../../injection_reference/module/module-key-reference';
-import { ModuleLayerValuesReference } from '../../injection_reference/module/module-layer-values-reference';
-import { ModuleTargetNodeReference } from '../../injection_reference/module/module-target-node-reference';
-import { ModuleValueReference } from '../../injection_reference/module/module-value-reference';
 import { IPwbAttributeModuleOnUpdate } from '../../interface/module.interface';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
+import { ModuleTargetNodeReference } from '../../injection/references/module/module-target-node-reference';
+import { ModuleLayerValuesReference } from '../../injection/references/module/module-layer-values-reference';
+import { ModuleKeyReference } from '../../injection/references/module/module-key-reference';
+import { ModuleValueReference } from '../../injection/references/module/module-value-reference';
 
 /**
  * Bind value to view object.

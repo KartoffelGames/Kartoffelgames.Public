@@ -1,9 +1,9 @@
-import { ComponentLayerValuesReference } from '../../injection_reference/component/component-layer-values-reference';
-import { ModuleTargetNodeReference } from '../../injection_reference/module/module-target-node-reference';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
-import { ModuleKeyReference } from '../../injection_reference/module/module-key-reference';
-import { ComponentUpdateHandlerReference } from '../../injection_reference/component/component-update-handler-reference';
+import { ComponentLayerValuesReference } from '../../injection/references/component/component-layer-values-reference';
+import { ComponentUpdateHandlerReference } from '../../injection/references/component/component-update-handler-reference';
+import { ModuleKeyReference } from '../../injection/references/module/module-key-reference';
+import { ModuleTargetNodeReference } from '../../injection/references/module/module-target-node-reference';
 
 /**
  * Used with "#IdChildName" like - #PasswordInput.

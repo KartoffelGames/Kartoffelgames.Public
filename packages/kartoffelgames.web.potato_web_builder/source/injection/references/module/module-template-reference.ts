@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
 
 import { Exception } from '@kartoffelgames/core.data';
-import { LayerValues } from '../../component/values/layer-values';
+import { BasePwbTemplateNode } from '../../../component/template/nodes/base-pwb-template-node';
 
 /**
- * Module Layer value reference.
- * Acts as injection reference but the actual Layer value should be injected instead.
+ * Template reference.
+ * Acts as injection reference but the actual template should be injected instead.
  * 
  * Should never be initialized.
  */
-export class ModuleLayerValuesReference {
+export class ModuleTemplateReference {
     /**
      * Constructor. Allways throws exception.
      * 
@@ -21,4 +21,4 @@ export class ModuleLayerValuesReference {
     }
 }
 
-export declare interface ModuleLayerValuesReference extends LayerValues { }
+export declare interface ModuleTemplateReference extends BasePwbTemplateNode { }

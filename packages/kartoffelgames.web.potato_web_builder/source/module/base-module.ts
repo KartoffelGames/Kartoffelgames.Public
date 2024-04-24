@@ -1,4 +1,3 @@
-import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { PwbTemplateInstructionNode } from '../component/template/nodes/pwb-template-instruction-node';
 import { PwbTemplateAttribute } from '../component/template/nodes/values/pwb-template-attribute';
@@ -6,29 +5,30 @@ import { PwbTemplateExpression } from '../component/template/nodes/values/pwb-te
 import { LayerValues } from '../component/values/layer-values';
 import { GlobalExtensionsStorage } from '../extension/global-extensions-storage';
 import { ModuleExtension } from '../extension/module-extension';
-import { ModuleLayerValuesReference } from '../injection_reference/module/module-layer-values-reference';
-import { ModuleReference } from '../injection_reference/module/module-reference';
-import { ModuleTargetNodeReference } from '../injection_reference/module/module-target-node-reference';
-import { ModuleTemplateReference } from '../injection_reference/module/module-template-reference';
-import { ComponentHierarchyInjection, IComponentHierarchyParent } from '../interface/component-hierarchy.interface';
 import { IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../interface/module.interface';
-import { ModuleConstructorReference } from '../injection_reference/module/module-constructor-reference';
+import { InjectionHierarchyParent } from '../injection/injection-hierarchy-parent';
+import { ModuleTemplateReference } from '../injection/references/module/module-template-reference';
+import { ModuleTargetNodeReference } from '../injection/references/module/module-target-node-reference';
+import { ModuleLayerValuesReference } from '../injection/references/module/module-layer-values-reference';
+import { ModuleConstructorReference } from '../injection/references/module/module-constructor-reference';
+import { ModuleReference } from '../injection/references/module/module-reference';
 
-export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor extends IPwbModuleProcessor> implements IComponentHierarchyParent {
+export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor extends IPwbModuleProcessor> extends InjectionHierarchyParent {
     private readonly mExtensionList: Array<ModuleExtension>;
-    private readonly mInjections: Dictionary<InjectionConstructor, any>;
     private mProcessor: TModuleProcessor | null;
     private readonly mProcessorConstructor: InjectionConstructor;
     private readonly mTargetNode: TTargetNode;
 
     /**
-     * Read all current set injections.
+     * Processor of module.
+     * Initialize processor when it hasn't already.
      */
-    public get injections(): Array<ComponentHierarchyInjection> {
-        // TODO: Can we cache it.
-        return this.mInjections.map((pKey: InjectionConstructor, pValue: any) => {
-            return { target: pKey, value: pValue };
-        });
+    public get processor(): TModuleProcessor {
+        if (!this.mProcessor) {
+            this.mProcessor = this.createModuleProcessor();
+        }
+
+        return this.mProcessor;
     }
 
     /**
@@ -39,22 +39,12 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
     }
 
     /**
-     * Processor of module.
-     * Initialize processor when it hasn't already.
-     */
-    protected get processor(): TModuleProcessor {
-        if (!this.mProcessor) {
-            this.mProcessor = this.createModuleProcessor();
-        }
-
-        return this.mProcessor;
-    }
-
-    /**
      * Constructor.
      * @param pParameter - Parameter.
      */
     constructor(pParameter: BaseModuleConstructorParameter<TTargetNode>) {
+        super(pParameter.parent);
+
         // Save parameter
         this.mProcessorConstructor = pParameter.constructor;
         this.mTargetNode = pParameter.targetNode;
@@ -62,12 +52,6 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
         // Init runtime lists.
         this.mProcessor = null;
         this.mExtensionList = new Array<ModuleExtension>();
-        this.mInjections = new Dictionary<InjectionConstructor, any>();
-
-        // Init injections from hierarchy parent.
-        for (const lParentInjection of pParameter.parent.injections) {
-            this.setProcessorAttributes(lParentInjection.target, lParentInjection.value);
-        }
 
         // Create module injection mapping.
         this.setProcessorAttributes(ModuleTemplateReference, pParameter.targetTemplate.clone());
@@ -93,32 +77,6 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
     }
 
     /**
-     * Get injection parameter for the module processor class construction. 
-     * 
-     * @param pInjectionTarget - Injection type that should be provided to processor.
-     */
-    public getProcessorAttribute<T>(pInjectionTarget: InjectionConstructor): T | undefined {
-        return this.mInjections.get(pInjectionTarget);
-    }
-
-    /**
-     * Set injection parameter for the module processor class construction. 
-     * 
-     * @param pInjectionTarget - Injection type that should be provided to processor.
-     * @param pInjectionValue - Actual injected value in replacement for {@link pInjectionTarget}.
-     * 
-     * @throws {@link Exception}
-     * When the processor was already initialized.
-     */
-    public setProcessorAttributes(pInjectionTarget: InjectionConstructor, pInjectionValue: any): void {
-        if (this.mProcessor) {
-            throw new Exception('Cant add attributes to already initialized module.', this);
-        }
-
-        this.mInjections.set(pInjectionTarget, pInjectionValue);
-    }
-
-    /**
      * Create module object.
      * @param pValue - Value for module object.
      */
@@ -138,7 +96,10 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
             this.mExtensionList.push(lModuleExtension);
         }
 
-        return Injection.createObject<TModuleProcessor>(this.mProcessorConstructor, this.mInjections);
+        // Lock new injections.
+        this.lock();
+
+        return Injection.createObject<TModuleProcessor>(this.mProcessorConstructor, this.injections);
     }
 
     /**
@@ -150,7 +111,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
 }
 
 export type BaseModuleConstructorParameter<TTargetNode extends Node> = {
-    parent: IComponentHierarchyParent,
+    parent: InjectionHierarchyParent,
     constructor: IPwbModuleProcessorConstructor<IPwbModuleProcessor>,
     targetNode: TTargetNode;
     targetTemplate: BaseModuleTargetTemplate,

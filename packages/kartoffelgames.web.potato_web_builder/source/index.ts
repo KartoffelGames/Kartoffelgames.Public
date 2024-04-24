@@ -7,19 +7,19 @@ export { IPwbOnInit, IPwbAfterInit, IPwbOnDeconstruct, IPwbAfterUpdate, IPwbOnUp
 export { PwbComponent } from './decorator/pwb-component.decorator';
 
 // Module Injections
-export { ModuleConstructorReference } from './injection_reference/module/module-constructor-reference';
-export { ModuleKeyReference } from './injection_reference/module/module-key-reference';
-export { ModuleLayerValuesReference } from './injection_reference/module/module-layer-values-reference';
-export { ModuleReference } from './injection_reference/module/module-reference';
-export { ModuleTargetNodeReference } from './injection_reference/module/module-target-node-reference';
-export { ModuleTemplateReference } from './injection_reference/module/module-template-reference';
-export { ModuleValueReference } from './injection_reference/module/module-value-reference';
+export { ModuleConstructorReference } from './injection/references/module/module-constructor-reference';
+export { ModuleKeyReference } from './injection/references/module/module-key-reference';
+export { ModuleLayerValuesReference } from './injection/references/module/module-layer-values-reference';
+export { ModuleReference } from './injection/references/module/module-reference';
+export { ModuleTargetNodeReference } from './injection/references/module/module-target-node-reference';
+export { ModuleTemplateReference } from './injection/references/module/module-template-reference';
+export { ModuleValueReference } from './injection/references/module/module-value-reference';
 
 // Component Injections
-export { ComponentConstructorReference } from './injection_reference/component/component-constructor-reference';
-export { ComponentElementReference } from './injection_reference/component/component-element-reference';
-export { ComponentUpdateHandlerReference } from './injection_reference/component/component-update-handler-reference';
-export { ComponentLayerValuesReference } from './injection_reference/component/component-layer-values-reference';
+export { ComponentConstructorReference } from './injection/references/component/component-constructor-reference';
+export { ComponentElementReference } from './injection/references/component/component-element-reference';
+export { ComponentUpdateHandlerReference } from './injection/references/component/component-update-handler-reference';
+export { ComponentLayerValuesReference } from './injection/references/component/component-layer-values-reference';
 
 // Modules
 export { ComponentScopeExecutor } from './module/execution/component-scope-executor';

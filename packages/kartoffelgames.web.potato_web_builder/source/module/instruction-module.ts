@@ -1,9 +1,9 @@
 import { ElementCreator } from '../component/element-creator';
 import { PwbTemplateInstructionNode } from '../component/template/nodes/pwb-template-instruction-node';
 import { LayerValues } from '../component/values/layer-values';
-import { ModuleKeyReference } from '../injection_reference/module/module-key-reference';
-import { ModuleValueReference } from '../injection_reference/module/module-value-reference';
-import { IComponentHierarchyParent } from '../interface/component-hierarchy.interface';
+import { InjectionHierarchyParent } from '../injection/injection-hierarchy-parent';
+import { ModuleKeyReference } from '../injection/references/module/module-key-reference';
+import { ModuleValueReference } from '../injection/references/module/module-value-reference';
 import { IPwbInstructionModuleProcessor, IPwbInstructionModuleProcessorConstructor } from '../interface/module.interface';
 import { BaseModule } from './base-module';
 import { InstructionResult, InstructionResultElement } from './result/instruction-result';
@@ -93,5 +93,5 @@ export type MultiplicatorModuleConstructorParameter = {
     constructor: IPwbInstructionModuleProcessorConstructor,
     targetTemplate: PwbTemplateInstructionNode,
     values: LayerValues,
-    parent: IComponentHierarchyParent,
+    parent: InjectionHierarchyParent,
 };

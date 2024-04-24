@@ -13,13 +13,13 @@ import { PwbComponentEvent } from '../../../source/default/component-event/pwb-c
 import { PwbEventListener } from '../../../source/default/event-listener/pwb-event-listener.decorator';
 import { PwbExport } from '../../../source/default/export/pwb-export.decorator';
 import { AccessMode } from '../../../source/enum/access-mode.enum';
-import { ModuleTemplateReference } from '../../../source/injection_reference/module/module-template-reference';
 import { ComponentElement } from '../../../source/interface/component.interface';
 import { IPwbInstructionModuleOnUpdate } from '../../../source/interface/module.interface';
 import { InstructionResult } from '../../../source/module/result/instruction-result';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
+import { ModuleTemplateReference } from '../../../source/injection/references/module/module-template-reference';
 
 describe('PwbEventListener', () => {
     it('-- Native listener', async () => {

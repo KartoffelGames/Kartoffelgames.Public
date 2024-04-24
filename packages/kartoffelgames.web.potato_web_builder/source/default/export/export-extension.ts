@@ -4,10 +4,10 @@ import { Component } from '../../component/component';
 import { PwbExtension } from '../../decorator/pwb-extension.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { ExtensionType } from '../../enum/extension-type.enum';
-import { ComponentConstructorReference } from '../../injection_reference/component/component-constructor-reference';
-import { ComponentElementReference } from '../../injection_reference/component/component-element-reference';
-import { ComponentReference } from '../../injection_reference/component/component-reference';
 import { ComponentProcessor } from '../../interface/component.interface';
+import { ComponentConstructorReference } from '../../injection/references/component/component-constructor-reference';
+import { ComponentReference } from '../../injection/references/component/component-reference';
+import { ComponentElementReference } from '../../injection/references/component/component-element-reference';
 
 @PwbExtension({
     type: ExtensionType.Component,

@@ -1,7 +1,7 @@
 import { PwbTemplateExpression } from '../component/template/nodes/values/pwb-template-expression';
 import { LayerValues } from '../component/values/layer-values';
-import { ModuleValueReference } from '../injection_reference/module/module-value-reference';
-import { IComponentHierarchyParent } from '../interface/component-hierarchy.interface';
+import { InjectionHierarchyParent } from '../injection/injection-hierarchy-parent';
+import { ModuleValueReference } from '../injection/references/module/module-value-reference';
 import { IPwbExpressionModuleProcessor, IPwbExpressionModuleProcessorConstructor } from '../interface/module.interface';
 import { BaseModule } from './base-module';
 
@@ -65,6 +65,6 @@ export type ExpressionModuleConstructorParameter = {
     constructor: IPwbExpressionModuleProcessorConstructor,
     targetTemplate: PwbTemplateExpression,
     values: LayerValues,
-    parent: IComponentHierarchyParent,
+    parent: InjectionHierarchyParent,
     targetNode: Text;
 };

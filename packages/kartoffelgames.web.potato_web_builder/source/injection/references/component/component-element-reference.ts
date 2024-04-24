@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
 
 import { Exception } from '@kartoffelgames/core.data';
-import { UpdateHandler } from '../../component/handler/update-handler';
+import { ComponentElement } from '../../../interface/component.interface';
 
 /**
- * Updatehandler reference.
- * Acts as injection reference but the actual UpdateHandler should be injected instead.
+ * Component element reference.
+ * Acts as injection reference but the actual component node should be injected instead.
  * 
  * Should never be initialized.
  */
-export class ComponentUpdateHandlerReference {
+export class ComponentElementReference {
     /**
      * Constructor. Allways throws exception.
      * 
@@ -21,4 +21,5 @@ export class ComponentUpdateHandlerReference {
     }
 }
 
-export declare interface ComponentUpdateHandlerReference extends UpdateHandler { }
+// eslint-disable-next-line @typescript-eslint/ban-types
+export declare interface ComponentElementReference extends HTMLElement, ComponentElement { }

@@ -136,6 +136,12 @@ export class Patcher {
             // Remove event.
             const lOriginalRemoveEventListener = lProto.removeEventListener;
             lProto.removeEventListener = function (pType: string, pCallback: EventListenerOrEventListenerObject, pOptions?: EventListenerOptions | boolean): void {
+                // When event listener is not a function. Let the browser decide the error.
+                if(typeof pCallback !== 'function'){
+                    lOriginalRemoveEventListener.call(this, pType, pCallback, pOptions);
+                    return;
+                }
+                
                 const lPatchedCallback: any = Reflect.get(pCallback, Patcher.PATCHED_FUNCTION_KEY);
                 lOriginalRemoveEventListener.call(this, pType, lPatchedCallback, pOptions);
             };

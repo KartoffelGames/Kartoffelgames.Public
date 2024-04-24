@@ -185,6 +185,40 @@ describe('Patcher', () => {
             expect(lFunction).to.have.key(<any>Patcher.PATCHED_FUNCTION_KEY);
             expect(lListenerCalled).to.be.false;
         });
+
+        it('-- Call removeEventListener with null as callback', () => {
+            // Setup.
+            const lPatcher: Patcher = new Patcher();
+            const lEventTarget: EventTarget = new EventTarget();
+
+            // Setup. Patch.
+            (<any>lPatcher).patchEventTarget(globalThis);
+
+            // Process.
+            const lErroFunction = () => {
+                lEventTarget.removeEventListener('click', null);
+            };
+
+            // Evaluation.
+            expect(lErroFunction).to.not.throw();
+        });
+
+        it('-- Call removeEventListener with string as callback', () => {
+            // Setup.
+            const lPatcher: Patcher = new Patcher();
+            const lEventTarget: EventTarget = new EventTarget();
+
+            // Setup. Patch.
+            (<any>lPatcher).patchEventTarget(globalThis);
+
+            // Process.
+            const lErroFunction = () => {
+                lEventTarget.removeEventListener('click', <any>'Not an object');
+            };
+
+            // Evaluation.
+            expect(lErroFunction).to.throw();
+        });
     });
 
     describe('Functionality: patchOnProperties', () => {

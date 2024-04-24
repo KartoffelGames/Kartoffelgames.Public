@@ -12,6 +12,9 @@ import { ModuleTargetNodeReference } from '../injection/references/module/module
 import { ModuleLayerValuesReference } from '../injection/references/module/module-layer-values-reference';
 import { ModuleConstructorReference } from '../injection/references/module/module-constructor-reference';
 import { ModuleReference } from '../injection/references/module/module-reference';
+import { ExtensionType } from '../enum/extension-type.enum';
+import { AccessMode } from '../enum/access-mode.enum';
+import { IPwbExtensionProcessorClass } from '../interface/extension.interface';
 
 export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor extends IPwbModuleProcessor> extends InjectionHierarchyParent {
     private readonly mExtensionList: Array<ModuleExtension>;
@@ -25,10 +28,10 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
      */
     public get processor(): TModuleProcessor {
         if (!this.mProcessor) {
-            this.mProcessor = this.createModuleProcessor();
+            this.createModuleProcessor();
         }
 
-        return this.mProcessor;
+        return this.mProcessor!;
     }
 
     /**
@@ -80,11 +83,11 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
      * Create module object.
      * @param pValue - Value for module object.
      */
-    private createModuleProcessor(): TModuleProcessor {
+    private createModuleProcessor(): void {
         const lExtensions: GlobalExtensionsStorage = new GlobalExtensionsStorage();
 
-        // Create every module extension.
-        for (const lExtensionProcessorConstructor of lExtensions.moduleExtensions) {
+        // Create every write module extension.
+        for (const lExtensionProcessorConstructor of lExtensions.get(ExtensionType.Module, AccessMode.Write)) {
             const lModuleExtension: ModuleExtension = new ModuleExtension({
                 constructor: lExtensionProcessorConstructor,
                 parent: this
@@ -99,7 +102,27 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
         // Lock new injections.
         this.lock();
 
-        return Injection.createObject<TModuleProcessor>(this.mProcessorConstructor, this.injections);
+        // Create and store processor to be accessable for all read extensions.
+        this.mProcessor = Injection.createObject<TModuleProcessor>(this.mProcessorConstructor, this.injections);
+
+        // Get all read extensions. Keep order to execute readWrite extensions first.
+        const lReadExtensions: Array<IPwbExtensionProcessorClass> = [
+            ...lExtensions.get(ExtensionType.Module, AccessMode.ReadWrite),
+            ...lExtensions.get(ExtensionType.Module, AccessMode.Read)
+        ];
+
+        // Create every read module extension.
+        for (const lExtensionProcessorConstructor of lReadExtensions) {
+            const lModuleExtension: ModuleExtension = new ModuleExtension({
+                constructor: lExtensionProcessorConstructor,
+                parent: this
+            });
+
+            // Execute extension.
+            lModuleExtension.execute();
+
+            this.mExtensionList.push(lModuleExtension);
+        }
     }
 
     /**

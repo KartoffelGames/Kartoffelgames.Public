@@ -21,6 +21,9 @@ import { ComponentConstructorReference } from '../injection/references/component
 import { ComponentElementReference } from '../injection/references/component/component-element-reference';
 import { ComponentLayerValuesReference } from '../injection/references/component/component-layer-values-reference';
 import { ComponentUpdateHandlerReference } from '../injection/references/component/component-update-handler-reference';
+import { ExtensionType } from '../enum/extension-type.enum';
+import { AccessMode } from '../enum/access-mode.enum';
+import { IPwbExtensionProcessorClass } from '../interface/extension.interface';
 
 /**
  * Base component handler. Handles initialisation and update of components.
@@ -41,10 +44,10 @@ export class Component extends InjectionHierarchyParent {
      */
     public get processor(): ComponentProcessor {
         if (!this.mProcessor) {
-            this.mProcessor = this.createProcessor();
+            this.createProcessor();
         }
 
-        return this.mProcessor;
+        return this.mProcessor!;
     }
 
     /**
@@ -221,14 +224,18 @@ export class Component extends InjectionHierarchyParent {
     public disconnected(): void {
         this.mUpdateHandler.enabled = false;
     }
+
     /**
      * Create component processor.
      */
-    private createProcessor(): ComponentProcessor {
-        // Create local injections with extensions.
+    private createProcessor(): void {
         const lExtensions: GlobalExtensionsStorage = new GlobalExtensionsStorage();
+
+        // Create local injections with write extensions.
+        // Execute all inside the zone.
         this.mUpdateHandler.executeInZone(() => {
-            for (const lExtensionConstructor of lExtensions.componentExtensions) {
+
+            for (const lExtensionConstructor of lExtensions.get(ExtensionType.Component, AccessMode.Write)) {
                 const lComponentExtension: ComponentExtension = new ComponentExtension({
                     constructor: lExtensionConstructor,
                     parent: this
@@ -245,7 +252,6 @@ export class Component extends InjectionHierarchyParent {
         this.lock();
 
         // Create user object inside update zone.
-        // Constructor needs to be called inside zone.
         let lUntrackedProcessor: ComponentProcessor | null = null;
         this.mUpdateHandler.executeInZone(() => {
             lUntrackedProcessor = Injection.createObject<ComponentProcessor>(this.mProcessorConstructor, this.injections);
@@ -258,8 +264,28 @@ export class Component extends InjectionHierarchyParent {
             }
         });
 
-        const lTrackedProcessor: ComponentProcessor = this.mUpdateHandler.registerObject(lUntrackedProcessor!);
+        // Store processor to be able to read for all read extensions.
+        this.mProcessor = this.mUpdateHandler.registerObject(lUntrackedProcessor!);
 
-        return lTrackedProcessor;
+        // Create execute all other read extensions.
+        // Execute all inside the zone.
+        this.mUpdateHandler.executeInZone(() => {
+            const lReadExtensions: Array<IPwbExtensionProcessorClass> = [
+                ...lExtensions.get(ExtensionType.Component, AccessMode.ReadWrite),
+                ...lExtensions.get(ExtensionType.Component, AccessMode.Read)
+            ];
+
+            for (const lExtensionConstructor of lReadExtensions) {
+                const lComponentExtension: ComponentExtension = new ComponentExtension({
+                    constructor: lExtensionConstructor,
+                    parent: this
+                });
+
+                // Execute extension.
+                lComponentExtension.execute();
+
+                this.mExtensionList.push(lComponentExtension);
+            }
+        });
     }
 }

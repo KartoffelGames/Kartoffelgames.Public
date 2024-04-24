@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Dictionary } from '@kartoffelgames/core.data';
 import { AccessMode } from '../enum/access-mode.enum';
 import { ExtensionType } from '../enum/extension-type.enum';
 import { IPwbExtensionProcessorClass } from '../interface/extension.interface';
@@ -14,37 +14,7 @@ import { IPwbExtensionProcessorClass } from '../interface/extension.interface';
 export class GlobalExtensionsStorage {
     private static mInstance: GlobalExtensionsStorage;
 
-    private readonly mComponentExtensions!: Array<IPwbExtensionProcessorClass>;
-    private mComponentExtensionsChangedOrder!: boolean;
-    private readonly mExtensionsAccessMode!: WeakMap<IPwbExtensionProcessorClass, AccessMode>;
-    private readonly mModuleExtensions!: Array<IPwbExtensionProcessorClass>;
-    private mModuleExtensionsChangedOrder!: boolean;
-
-    /**
-     * Get all component extensions that inject new types.
-     * Automatically reorders list when it has detected any changes.
-     */
-    public get componentExtensions(): Array<IPwbExtensionProcessorClass> {
-        // Resort by access type when it is not already ordered.
-        if (this.mComponentExtensionsChangedOrder) {
-            this.orderExtensionList(this.mComponentExtensions);
-        }
-
-        return this.mComponentExtensions;
-    }
-
-    /**
-     * Get all module extensions that inject new types.
-     * Automatically reorders list when it has detected any changes.
-     */
-    public get moduleExtensions(): Array<IPwbExtensionProcessorClass> {
-        // Resort by access type when it is not already ordered.
-        if (this.mModuleExtensionsChangedOrder) {
-            this.orderExtensionList(this.mModuleExtensions);
-        }
-
-        return this.mModuleExtensions;
-    }
+    private readonly mExtensions!: Dictionary<ExtensionType, Dictionary<AccessMode, Array<IPwbExtensionProcessorClass>>>;
 
     /**
      * Constructor.
@@ -58,14 +28,8 @@ export class GlobalExtensionsStorage {
 
         GlobalExtensionsStorage.mInstance = this;
 
-        // Extension access mode mapping.
-        this.mExtensionsAccessMode = new WeakMap<IPwbExtensionProcessorClass, AccessMode>();
-
-        // Setup extension storage lists.
-        this.mComponentExtensions = new Array<IPwbExtensionProcessorClass>();
-        this.mComponentExtensionsChangedOrder = false;
-        this.mModuleExtensions = new Array<IPwbExtensionProcessorClass>();
-        this.mModuleExtensionsChangedOrder = false;
+        // Init some big ass dictionary containing both extension type and acces mode.
+        this.mExtensions = new Dictionary<ExtensionType, Dictionary<AccessMode, Array<IPwbExtensionProcessorClass>>>();
     }
 
     /**
@@ -74,39 +38,68 @@ export class GlobalExtensionsStorage {
      * @param pExtensionType - Type of extension.
      */
     public add(pExtension: IPwbExtensionProcessorClass, pExtensionType: ExtensionType, pAccessMode: AccessMode): void {
-        // Module extensions.
-        if ((pExtensionType & ExtensionType.Module) === ExtensionType.Module) {
-            this.mModuleExtensions.push(pExtension);
-            this.mModuleExtensionsChangedOrder = true;
-        }
-
-        // Component extensions.
+        // Add for component type.
         if ((pExtensionType & ExtensionType.Component) === ExtensionType.Component) {
-            this.mComponentExtensions.push(pExtension);
-            this.mComponentExtensionsChangedOrder = true;
+            // Init component type dictionary.
+            if (!this.mExtensions.has(ExtensionType.Component)) {
+                this.mExtensions.set(ExtensionType.Component, new Dictionary<AccessMode, Array<IPwbExtensionProcessorClass>>());
+            }
+
+            // Read access map by component type.
+            const lAccessModeMap: Dictionary<AccessMode, Array<IPwbExtensionProcessorClass>> = this.mExtensions.get(ExtensionType.Component)!;
+
+            // Init access mode map.
+            if (!lAccessModeMap.has(pAccessMode)) {
+                lAccessModeMap.set(pAccessMode, new Array<IPwbExtensionProcessorClass>());
+            }
+
+            // Read and add extension fro access mode.
+            lAccessModeMap.get(pAccessMode)!.push(pExtension);
         }
 
-        this.mExtensionsAccessMode.set(pExtension, pAccessMode);
+        // Add for module type.
+        // Add for Module type
+        if ((pExtensionType & ExtensionType.Module) === ExtensionType.Module) {
+            // Init Module type dictionary.
+            if (!this.mExtensions.has(ExtensionType.Module)) {
+                this.mExtensions.set(ExtensionType.Module, new Dictionary<AccessMode, Array<IPwbExtensionProcessorClass>>());
+            }
+
+            // Read access map by Module type.
+            const lAccessModeMap: Dictionary<AccessMode, Array<IPwbExtensionProcessorClass>> = this.mExtensions.get(ExtensionType.Module)!;
+
+            // Init access mode map.
+            if (!lAccessModeMap.has(pAccessMode)) {
+                lAccessModeMap.set(pAccessMode, new Array<IPwbExtensionProcessorClass>());
+            }
+
+            // Read and add extension fro access mode.
+            lAccessModeMap.get(pAccessMode)!.push(pExtension);
+        }
     }
 
     /**
-     * Order extension list by assigned access modes.
-     * Changes reference.
+     * Read a list of all extension with the set {@link pExtensionType} and {@link pAccessMode}.
+     * Returns an empty list when no extension are found.
      * 
-     * @param pList - List reference.
+     * @param pExtensionType - Extension type.
+     * @param pAccessMode - Extension access mode.
+     * 
+     * @returns list of extension with set modifier. Return an empty list as default.
      */
-    private orderExtensionList(pList: Array<IPwbExtensionProcessorClass>): void {
-        // Sort by write->readwrite->read->expression and update.
-        pList.sort((pModuleA, pModuleB): number => {
-            const lAccessModeA: AccessMode | undefined = this.mExtensionsAccessMode.get(pModuleA);
-            const lAccessModeB: AccessMode | undefined = this.mExtensionsAccessMode.get(pModuleB);
+    public get(pExtensionType: ExtensionType, pAccessMode: AccessMode): Array<IPwbExtensionProcessorClass> {
+        // Read possible extensions by extension type.
+        const lExtensionTypeMap: Dictionary<AccessMode, Array<IPwbExtensionProcessorClass>> | undefined = this.mExtensions.get(pExtensionType);
+        if (!lExtensionTypeMap) {
+            return new Array<IPwbExtensionProcessorClass>();
+        }
 
-            // Validate correct setup. This should really never happen.
-            if (!lAccessModeA || !lAccessModeB) {
-                throw new Exception('Extension is not properly setup. No access mode was set.', this);
-            }
+        // Read possible extensions by access mode.
+        const lExtensionList: Array<IPwbExtensionProcessorClass> | undefined = lExtensionTypeMap.get(pAccessMode);
+        if (!lExtensionList) {
+            return new Array<IPwbExtensionProcessorClass>();
+        }
 
-            return lAccessModeB - lAccessModeA;
-        });
+        return lExtensionList;
     }
 }

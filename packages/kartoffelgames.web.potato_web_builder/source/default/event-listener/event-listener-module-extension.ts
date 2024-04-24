@@ -9,6 +9,7 @@ import { EventListenerComponentExtension } from './event-listener-component-exte
 import { ModuleConstructorReference } from '../../injection/references/module/module-constructor-reference';
 import { ModuleReference } from '../../injection/references/module/module-reference';
 import { ModuleTargetNodeReference } from '../../injection/references/module/module-target-node-reference';
+import { ComponentElementReference } from '../../injection/references/component/component-element-reference';
 
 @PwbExtension({
     type: ExtensionType.Module,
@@ -24,9 +25,9 @@ export class EventListenerModuleExtension implements IPwbExtensionOnDeconstruct 
      * 
      * @param pModuleProcessorConstructor - Module processor constructor.
      * @param pModule - Module processor.
-     * @param pElementReference - Component html element.
+     * @param pModuleElementReference - Component html element.
      */
-    public constructor(pModuleProcessorConstructor: ModuleConstructorReference, pModule: ModuleReference, pElementReference: ModuleTargetNodeReference) {
+    public constructor(pModuleProcessorConstructor: ModuleConstructorReference, pModule: ModuleReference, pModuleElementReference: ModuleTargetNodeReference, pComponentElementReference: ComponentElementReference) {
         // Get event metadata.
         const lEventPropertyList: Array<[string, string]> = new Array<[string, string]>();
 
@@ -55,7 +56,13 @@ export class EventListenerModuleExtension implements IPwbExtensionOnDeconstruct 
 
         // Easy access target objects.
         const lTargetObject: object = pModule.processor;
-        this.mTargetElement = pElementReference;
+
+        // Fallback to component element, when module element reference is not a "html" element.
+        if (pModuleElementReference instanceof Element) {
+            this.mTargetElement = pModuleElementReference;
+        } else {
+            this.mTargetElement = pComponentElementReference;
+        }
 
         // Override each property with the corresponding component event emitter.
         for (const lEventProperty of lEventPropertyList) {

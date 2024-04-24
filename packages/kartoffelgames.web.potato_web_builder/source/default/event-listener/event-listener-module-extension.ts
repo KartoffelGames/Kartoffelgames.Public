@@ -4,8 +4,8 @@ import { ChangeDetection } from '@kartoffelgames/web.change-detection';
 import { PwbExtension } from '../../decorator/pwb-extension.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { ExtensionType } from '../../enum/extension-type.enum';
-import { ComponentConstructorReference } from '../../injection_reference/component/component-constructor-reference';
 import { ComponentReference } from '../../injection_reference/component/component-reference';
+import { ModuleConstructorReference } from '../../injection_reference/module/module-constructor-reference';
 import { ModuleTargetNodeReference } from '../../injection_reference/module/module-target-node-reference';
 import { IPwbExtensionOnDeconstruct } from '../../interface/extension.interface';
 import { EventListenerComponentExtension } from './event-listener-component-extension';
@@ -22,15 +22,15 @@ export class EventListenerModuleExtension implements IPwbExtensionOnDeconstruct 
      * Constructor.
      * Add each event listener to component events.
      * 
-     * @param pComponentProcessorConstructor - Component processor constructor.
+     * @param pModuleProcessorConstructor - Module processor constructor.
      * @param pComponent - Component processor.
      * @param pElementReference - Component html element.
      */
-    public constructor(pComponentProcessorConstructor: ComponentConstructorReference, pComponent: ComponentReference, pElementReference: ModuleTargetNodeReference) {
+    public constructor(pModuleProcessorConstructor: ModuleConstructorReference, pComponent: ComponentReference, pElementReference: ModuleTargetNodeReference) {
         // Get event metadata.
         const lEventPropertyList: Array<[string, string]> = new Array<[string, string]>();
 
-        let lClass: InjectionConstructor = <InjectionConstructor>pComponentProcessorConstructor;
+        let lClass: InjectionConstructor = <InjectionConstructor>pModuleProcessorConstructor;
         do {
             // Find all event properties of current class layer and add all to merged property list.
             const lPropertyList: Array<[string, string]> | null = Metadata.get(lClass).getMetadata(EventListenerComponentExtension.METADATA_USER_EVENT_LISTENER_PROPERIES);

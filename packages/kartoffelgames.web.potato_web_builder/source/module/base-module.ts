@@ -12,6 +12,7 @@ import { ModuleTargetNodeReference } from '../injection_reference/module/module-
 import { ModuleTemplateReference } from '../injection_reference/module/module-template-reference';
 import { ComponentHierarchyInjection, IComponentHierarchyParent } from '../interface/component-hierarchy.interface';
 import { IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../interface/module.interface';
+import { ModuleConstructorReference } from '../injection_reference/module/module-constructor-reference';
 
 export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor extends IPwbModuleProcessor> implements IComponentHierarchyParent {
     private readonly mExtensionList: Array<ModuleExtension>;
@@ -72,6 +73,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
         this.setProcessorAttributes(ModuleTemplateReference, pParameter.targetTemplate.clone());
         this.setProcessorAttributes(ModuleTargetNodeReference, pParameter.targetNode);
         this.setProcessorAttributes(ModuleLayerValuesReference, pParameter.values);
+        this.setProcessorAttributes(ModuleConstructorReference, pParameter.constructor);
         this.setProcessorAttributes(ModuleReference, this);
     }
 

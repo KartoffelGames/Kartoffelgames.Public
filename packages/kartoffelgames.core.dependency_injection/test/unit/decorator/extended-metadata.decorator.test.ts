@@ -14,7 +14,7 @@ describe('ExtendedMetadata', () => {
             class TestA { }
 
             // Process. Read metadata.
-            const lResultMetadataValue: object | null = AddMetadata.get(TestA).getMetadata(lMetadataKey);
+            const lResultMetadataValue: object | null = Metadata.get(TestA).getMetadata(lMetadataKey);
 
             // Evaluation.
             expect(lResultMetadataValue).to.equal(lMetadataValue);
@@ -33,7 +33,7 @@ describe('ExtendedMetadata', () => {
             }
 
             // Process. Read metadata.
-            const lResultMetadataValue: object = AddMetadata.get(TestA).getProperty(lPropertyName).getMetadata(lMetadataKey);
+            const lResultMetadataValue: object = Metadata.get(TestA).getProperty(lPropertyName).getMetadata(lMetadataKey);
 
             // Evaluation.
             expect(lResultMetadataValue).to.equal(lMetadataValue);
@@ -51,7 +51,7 @@ describe('ExtendedMetadata', () => {
             }
 
             // Process. Read metadata.
-            const lResultMetadataValue: object = AddMetadata.get(TestA).getProperty('function').getMetadata(lMetadataKey);
+            const lResultMetadataValue: object = Metadata.get(TestA).getProperty('function').getMetadata(lMetadataKey);
 
             // Evaluation.
             expect(lResultMetadataValue).to.equal(lMetadataValue);
@@ -70,7 +70,7 @@ describe('ExtendedMetadata', () => {
             }
 
             // Process. Read metadata.
-            const lResultMetadataValue: object = AddMetadata.get(TestA).getProperty(lPropertyName).getMetadata(lMetadataKey);
+            const lResultMetadataValue: object = Metadata.get(TestA).getProperty(lPropertyName).getMetadata(lMetadataKey);
 
             // Evaluation.
             expect(lResultMetadataValue).to.equal(lMetadataValue);

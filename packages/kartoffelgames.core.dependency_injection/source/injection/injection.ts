@@ -23,21 +23,21 @@ export class Injection {
     public static createObject<T extends object>(pConstructor: InjectionConstructor, pForceCreate?: boolean, pLocalInjections?: Dictionary<InjectionConstructor, any>): T;
     public static createObject<T extends object>(pConstructor: InjectionConstructor, pForceCreateOrLocalInjections?: boolean | Dictionary<InjectionConstructor, any>, pLocalInjections?: Dictionary<InjectionConstructor, any>): T {
         // Decide between local injection or force creation parameter.
-        let lLocalInjections: Dictionary<InjectionConstructor, any>;
-        let lForceCreate: boolean;
-        if (typeof pForceCreateOrLocalInjections === 'object' && pForceCreateOrLocalInjections !== null) {
-            lForceCreate = false;
-            lLocalInjections = pForceCreateOrLocalInjections;
-        } else {
-            lForceCreate = !!pForceCreateOrLocalInjections;
-            lLocalInjections = pLocalInjections ?? new Dictionary<InjectionConstructor, any>();
-        }
+        const [lForceCreate, lLocalInjections] = (() => {
+            if (typeof pForceCreateOrLocalInjections === 'object' && pForceCreateOrLocalInjections !== null) {
+                return [false, pForceCreateOrLocalInjections];
+            }
 
-        // Find constructor in decoration history that was used for registering. Only root can be registered.
+            return [!!pForceCreateOrLocalInjections, pLocalInjections ?? new Dictionary<InjectionConstructor, any>()];
+        })();
+
+        // Find constructor in decoration replacement history that was used for registering. Only root can be registered.
         let lRegisteredConstructor: InjectionConstructor = DecorationReplacementHistory.getOriginalOf(pConstructor);
         if (!Injection.mInjectableConstructor.has(lRegisteredConstructor)) {
             throw new Exception(`Constructor "${pConstructor.name}" is not registered for injection and can not be build`, Injection);
         }
+
+        // TODO: Do not replace this constructor. Replace the constructor for every parameter.
 
         // Replace current constructor with global replacement.
         let lConstructor: InjectionConstructor;

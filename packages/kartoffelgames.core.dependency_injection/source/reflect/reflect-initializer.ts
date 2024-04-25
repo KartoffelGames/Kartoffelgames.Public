@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { InjectionConstructor } from '../type';
-import { DecorationHistory } from '../decoration-history/decoration-history';
+import { DecorationReplacementHistory } from '../decoration-history/decoration-history';
 import { Metadata } from '../metadata/metadata';
 import { PropertyMetadata } from '../metadata/property-metadata';
 import { ConstructorMetadata } from '../metadata/constructor-metadata';
@@ -71,7 +71,7 @@ export class ReflectInitializer {
                 if (!!lNewConstructor && lNewConstructor !== lCurrentConstrutor) {
                     if (typeof lNewConstructor === 'function') {
                         // Add changed construtor to the decoration history.
-                        DecorationHistory.addHistory(lCurrentConstrutor, lNewConstructor);
+                        DecorationReplacementHistory.add(lCurrentConstrutor, lNewConstructor);
                         lCurrentConstrutor = lNewConstructor;
                     } else {
                         throw new Exception('Constructor decorator does not return supported value.', lDecorator);

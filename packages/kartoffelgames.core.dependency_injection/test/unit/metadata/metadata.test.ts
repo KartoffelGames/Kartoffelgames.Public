@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { ConstructorMetadata } from '../../../source/metadata/constructor-metadata';
 import { Metadata } from '../../../source/metadata/metadata';
-import { DecorationHistory } from '../../../source/decoration-history/decoration-history';
+import { DecorationReplacementHistory } from '../../../source/decoration-history/decoration-history';
 import { InjectionConstructor } from '../../../source/type';
 
 /**
@@ -45,7 +45,7 @@ describe('Metadata', () => {
             class Test {}
 
             // Setup. Get base class.
-            const lTestParent = DecorationHistory.getRootOf(Test);
+            const lTestParent = DecorationReplacementHistory.getOriginalOf(Test);
 
             // Process.
             const lChildConstructorMetadata = Metadata.get(Test);

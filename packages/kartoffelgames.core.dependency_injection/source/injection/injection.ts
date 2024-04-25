@@ -1,6 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { InjectMode } from '../enum/inject-mode';
-import { DecorationHistory } from '../decoration-history/decoration-history';
+import { DecorationReplacementHistory } from '../decoration-history/decoration-history';
 import { InjectionConstructor } from '../type';
 import { Metadata } from '../metadata/metadata';
 
@@ -34,7 +34,7 @@ export class Injection {
         }
 
         // Find constructor in decoration history that was used for registering. Only root can be registered.
-        let lRegisteredConstructor: InjectionConstructor = DecorationHistory.getRootOf(pConstructor);
+        let lRegisteredConstructor: InjectionConstructor = DecorationReplacementHistory.getOriginalOf(pConstructor);
         if (!Injection.mInjectableConstructor.has(lRegisteredConstructor)) {
             throw new Exception(`Constructor "${pConstructor.name}" is not registered for injection and can not be build`, Injection);
         }
@@ -46,7 +46,7 @@ export class Injection {
             lConstructor = lReplacementConstructor;
 
             // Set replacement constructor that was used for registering. Is allways registered.
-            lRegisteredConstructor = DecorationHistory.getRootOf(lReplacementConstructor);
+            lRegisteredConstructor = DecorationReplacementHistory.getOriginalOf(lReplacementConstructor);
         } else {
             lConstructor = pConstructor;
         }
@@ -107,7 +107,7 @@ export class Injection {
      */
     public static registerInjectable(pConstructor: InjectionConstructor, pMode: InjectMode): void {
         // Find root constructor of decorated constructor to habe registered constructor allways available top down.
-        const lBaseConstructor: InjectionConstructor = DecorationHistory.getRootOf(pConstructor);
+        const lBaseConstructor: InjectionConstructor = DecorationReplacementHistory.getOriginalOf(pConstructor);
 
         // Map constructor.
         Injection.mInjectableConstructor.add(lBaseConstructor, pConstructor);
@@ -122,13 +122,13 @@ export class Injection {
      */
     public static replaceInjectable(pOriginalConstructor: InjectionConstructor, pReplacementConstructor: InjectionConstructor): void {
         // Find original registered original. Only root can be registerd.
-        const lRegisteredOriginal: InjectionConstructor = DecorationHistory.getRootOf(pOriginalConstructor);
+        const lRegisteredOriginal: InjectionConstructor = DecorationReplacementHistory.getOriginalOf(pOriginalConstructor);
         if (!Injection.mInjectableConstructor.has(lRegisteredOriginal)) {
             throw new Exception('Original constructor is not registered.', Injection);
         }
 
         // Find replacement registered original. Only root can be registered.
-        const lRegisteredReplacement: InjectionConstructor = DecorationHistory.getRootOf(pReplacementConstructor);
+        const lRegisteredReplacement: InjectionConstructor = DecorationReplacementHistory.getOriginalOf(pReplacementConstructor);
         if (!Injection.mInjectableConstructor.has(lRegisteredReplacement)) {
             throw new Exception('Replacement constructor is not registered.', Injection);
         }

@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { DecorationHistory } from '../../source/decoration-history/decoration-history';
+import { DecorationReplacementHistory } from '../../source/decoration-history/decoration-history';
 import { InjectionConstructor } from '../../source/type';
 
 describe('DecorationHistory', () => {
@@ -10,9 +10,9 @@ describe('DecorationHistory', () => {
         class TestLayer3 { }
 
         // Process. Add history and read hisory.
-        DecorationHistory.addHistory(TestLayer1, TestLayer2);
-        DecorationHistory.addHistory(TestLayer2, TestLayer3);
-        const lRootConstructor: InjectionConstructor = DecorationHistory.getRootOf(TestLayer3);
+        DecorationReplacementHistory.add(TestLayer1, TestLayer2);
+        DecorationReplacementHistory.add(TestLayer2, TestLayer3);
+        const lRootConstructor: InjectionConstructor = DecorationReplacementHistory.getOriginalOf(TestLayer3);
 
         // Evaluation.
         expect(lRootConstructor).to.equal(TestLayer1);
@@ -25,9 +25,9 @@ describe('DecorationHistory', () => {
         class TestLayer3 { }
 
         // Process. Add history and read hisory.
-        DecorationHistory.addHistory(TestLayer1, TestLayer2);
-        DecorationHistory.addHistory(TestLayer2, TestLayer3);
-        const lRootConstructor: InjectionConstructor = DecorationHistory.getRootOf(TestLayer3);
+        DecorationReplacementHistory.add(TestLayer1, TestLayer2);
+        DecorationReplacementHistory.add(TestLayer2, TestLayer3);
+        const lRootConstructor: InjectionConstructor = DecorationReplacementHistory.getOriginalOf(TestLayer3);
 
         // Evaluation.
         expect(lRootConstructor).to.equal(TestLayer1);

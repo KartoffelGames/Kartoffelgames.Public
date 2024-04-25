@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { ExtendedMetadata } from '../../../source/decorator/extended-metadata.decorator';
+import { AddMetadata } from '../../../source/decorator/add-metadata.decorator';
 import { Metadata } from '../../../source/metadata/metadata';
 
 describe('ExtendedMetadata', () => {
@@ -10,11 +10,11 @@ describe('ExtendedMetadata', () => {
             const lMetadataValue: object = {};
 
             // Process.
-            @ExtendedMetadata(lMetadataKey, lMetadataValue)
+            @AddMetadata(lMetadataKey, lMetadataValue)
             class TestA { }
 
             // Process. Read metadata.
-            const lResultMetadataValue: object | null = Metadata.get(TestA).getMetadata(lMetadataKey);
+            const lResultMetadataValue: object | null = AddMetadata.get(TestA).getMetadata(lMetadataKey);
 
             // Evaluation.
             expect(lResultMetadataValue).to.equal(lMetadataValue);
@@ -28,12 +28,12 @@ describe('ExtendedMetadata', () => {
 
             // Process.         
             class TestA {
-                @ExtendedMetadata(lMetadataKey, lMetadataValue)
+                @AddMetadata(lMetadataKey, lMetadataValue)
                 public [lPropertyName]?: string;
             }
 
             // Process. Read metadata.
-            const lResultMetadataValue: object = Metadata.get(TestA).getProperty(lPropertyName).getMetadata(lMetadataKey);
+            const lResultMetadataValue: object = AddMetadata.get(TestA).getProperty(lPropertyName).getMetadata(lMetadataKey);
 
             // Evaluation.
             expect(lResultMetadataValue).to.equal(lMetadataValue);
@@ -46,12 +46,12 @@ describe('ExtendedMetadata', () => {
 
             // Process.         
             class TestA {
-                @ExtendedMetadata(lMetadataKey, lMetadataValue)
+                @AddMetadata(lMetadataKey, lMetadataValue)
                 public function(): string { return ''; }
             }
 
             // Process. Read metadata.
-            const lResultMetadataValue: object = Metadata.get(TestA).getProperty('function').getMetadata(lMetadataKey);
+            const lResultMetadataValue: object = AddMetadata.get(TestA).getProperty('function').getMetadata(lMetadataKey);
 
             // Evaluation.
             expect(lResultMetadataValue).to.equal(lMetadataValue);
@@ -65,12 +65,12 @@ describe('ExtendedMetadata', () => {
 
             // Process.         
             class TestA {
-                @ExtendedMetadata(lMetadataKey, lMetadataValue)
+                @AddMetadata(lMetadataKey, lMetadataValue)
                 public get [lPropertyName](): string { return ''; }
             }
 
             // Process. Read metadata.
-            const lResultMetadataValue: object = Metadata.get(TestA).getProperty(lPropertyName).getMetadata(lMetadataKey);
+            const lResultMetadataValue: object = AddMetadata.get(TestA).getProperty(lPropertyName).getMetadata(lMetadataKey);
 
             // Evaluation.
             expect(lResultMetadataValue).to.equal(lMetadataValue);

@@ -1,27 +1,27 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { InjectionConstructor } from '../type';
 
-export class DecorationHistory {
+export class DecorationReplacementHistory {
     private static readonly mBackwardHistory: Dictionary<InjectionConstructor, InjectionConstructor> = new Dictionary<InjectionConstructor, InjectionConstructor>();
 
     /**
-     * Add an decoration history.
+     * Add an decoration parent.
      * @param pFromConstructor - Previous constructor.
      * @param pToConstructor - Changed / next construtor.
      */
-    public static addHistory(pFromConstructor: InjectionConstructor, pToConstructor: InjectionConstructor): void {
-        DecorationHistory.mBackwardHistory.add(pToConstructor, pFromConstructor);
+    public static add(pFromConstructor: InjectionConstructor, pToConstructor: InjectionConstructor): void {
+        DecorationReplacementHistory.mBackwardHistory.add(pToConstructor, pFromConstructor);
     }
 
     /**
-     * Get the root constructor of decoration history.
+     * Get the original constructor from a decorator replaced constructor.
      * @param pConstructor - Constructor with decorations.
      */
-    public static getRootOf(pConstructor: InjectionConstructor): InjectionConstructor {
+    public static getOriginalOf(pConstructor: InjectionConstructor): InjectionConstructor {
         // Iterate over history as long as history can't go back.
         let lNextEntry: InjectionConstructor = pConstructor;
-        while (DecorationHistory.mBackwardHistory.has(lNextEntry)) {
-            lNextEntry = <InjectionConstructor>DecorationHistory.mBackwardHistory.get(lNextEntry);
+        while (DecorationReplacementHistory.mBackwardHistory.has(lNextEntry)) {
+            lNextEntry = <InjectionConstructor>DecorationReplacementHistory.mBackwardHistory.get(lNextEntry);
         }
 
         return lNextEntry;

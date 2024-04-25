@@ -9,4 +9,4 @@ export { InjectionConstructor } from './type';
 export { Metadata } from './metadata/metadata';
 
 // Decoration
-export { DecorationHistory } from './decoration-history/decoration-history';
+export { DecorationReplacementHistory as DecorationHistory } from './decoration-history/decoration-history';

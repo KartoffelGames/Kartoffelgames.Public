@@ -18,13 +18,12 @@ export class DecorationReplacementHistory {
      * @param pConstructor - Constructor with decorations.
      */
     public static getOriginalOf(pConstructor: InjectionConstructor): InjectionConstructor {
-        let lCurrentConstructor: InjectionConstructor = pConstructor;
-
+        let lCurrentConstructor: InjectionConstructor;
         // Iterate over history as long as history can't go back.
-        for (let lNextEntry: InjectionConstructor | undefined = lCurrentConstructor; lNextEntry; lNextEntry = DecorationReplacementHistory.mBackwardHistory.get(lNextEntry)) {
+        for (let lNextEntry: InjectionConstructor | undefined = pConstructor; lNextEntry; lNextEntry = DecorationReplacementHistory.mBackwardHistory.get(lNextEntry)) {
             lCurrentConstructor = lNextEntry;
         }
 
-        return lCurrentConstructor;
+        return lCurrentConstructor!;
     }
 }

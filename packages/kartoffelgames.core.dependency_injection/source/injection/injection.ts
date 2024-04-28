@@ -32,29 +32,9 @@ export class Injection {
         })();
 
         // Find constructor in decoration replacement history that was used for registering. Only root can be registered.
-        let lRegisteredConstructor: InjectionConstructor = DecorationReplacementHistory.getOriginalOf(pConstructor);
+        const lRegisteredConstructor: InjectionConstructor = DecorationReplacementHistory.getOriginalOf(pConstructor);
         if (!Injection.mInjectableConstructor.has(lRegisteredConstructor)) {
             throw new Exception(`Constructor "${pConstructor.name}" is not registered for injection and can not be build`, Injection);
-        }
-
-        // TODO: Do not replace this constructor. Replace the constructor for every parameter.
-
-        // Replace current constructor with global replacement.
-        let lConstructor: InjectionConstructor;
-        if (Injection.mInjectableReplacement.has(lRegisteredConstructor)) {
-            const lReplacementConstructor: InjectionConstructor = <InjectionConstructor>Injection.mInjectableReplacement.get(lRegisteredConstructor);
-            lConstructor = lReplacementConstructor;
-
-            // Set replacement constructor that was used for registering. Is allways registered.
-            lRegisteredConstructor = DecorationReplacementHistory.getOriginalOf(lReplacementConstructor);
-        } else {
-            lConstructor = pConstructor;
-        }
-
-        // Get constructor parameter type information and default to empty parameter list.
-        let lParameterTypeList: Array<InjectionConstructor> | null = Metadata.get(lRegisteredConstructor).parameterTypeList;
-        if (lParameterTypeList === null) {
-            lParameterTypeList = new Array<InjectionConstructor>();
         }
 
         // Get injection mode.
@@ -65,23 +45,36 @@ export class Injection {
             return <T>Injection.mSingletonMapping.get(lRegisteredConstructor);
         }
 
+        // Get constructor parameter type information and default to empty parameter list.
+        let lParameterTypeList: Array<InjectionConstructor> | null = Metadata.get(pConstructor).parameterTypeList;
+        if (lParameterTypeList === null) {
+            lParameterTypeList = new Array<InjectionConstructor>();
+        }
+
         // Create parameter.
         const lConstructorParameter: Array<object> = new Array<object>();
         for (const lParameterType of lParameterTypeList) {
             let lCreatedParameter: object;
 
             // Check if parameter can be replaced with an local injection
-            if ((lInjecttionMode !== InjectMode.Singleton || lForceCreate) && lLocalInjections.has(lParameterType)) {
+            if (lLocalInjections.has(lParameterType)) {
                 lCreatedParameter = lLocalInjections.get(lParameterType);
             } else {
                 // Proxy exception.
                 try {
+                    let lParameterConstructor: InjectionConstructor;
+                    if (Injection.mInjectableReplacement.has(lParameterType)) {
+                        lParameterConstructor = <InjectionConstructor>Injection.mInjectableReplacement.get(lParameterType);
+                    } else {
+                        lParameterConstructor = lParameterType;
+                    }
+
                     // Get injectable parameter.
-                    lCreatedParameter = Injection.createObject(lParameterType, lLocalInjections);
+                    lCreatedParameter = Injection.createObject(lParameterConstructor, lLocalInjections);
                 } catch (pException) {
                     // Error is always an Exception.
                     const lException: Exception<any> = <Exception<any>>pException;
-                    throw new Exception(`Parameter "${lParameterType.name}" of ${lConstructor.name} is not injectable.\n` + lException.message, Injection);
+                    throw new Exception(`Parameter "${lParameterType.name}" of ${pConstructor.name} is not injectable.\n` + lException.message, Injection);
                 }
             }
 
@@ -90,10 +83,10 @@ export class Injection {
         }
 
         // Create object.
-        const lCreatedObject: T = <T>new lConstructor(...lConstructorParameter);
+        const lCreatedObject: T = <T>new pConstructor(...lConstructorParameter);
 
         // Cache singleton objects but only if not forced to create.
-        if (!lForceCreate && lInjecttionMode === InjectMode.Singleton) {
+        if (lInjecttionMode === InjectMode.Singleton && !Injection.mSingletonMapping.has(lRegisteredConstructor)) {
             Injection.mSingletonMapping.add(lRegisteredConstructor, lCreatedObject);
         }
 

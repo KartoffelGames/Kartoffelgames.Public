@@ -338,6 +338,30 @@ describe('Injection', () => {
             expect(lCreatedObject).to.be.instanceOf(TestA);
             expect(lCreatedObject.mParameter).to.equal(lLocalInjectionParameter);
         });
+
+        it('-- Default with with faulty parameter.', () => {
+            // Setupt. Values
+            const lErrorMessage: string = 'Special error message';
+
+            // Setup.
+            @Injectable
+            class TestParameterA {
+                constructor() {
+                    throw new Error(lErrorMessage);
+                }
+            }
+
+            @Injectable
+            class TestA { constructor(public mParameterA: TestParameterA) { } }
+
+            // Process.
+            const lErrorFunction = () => {
+                Injection.createObject(TestA);
+            };
+
+            // Evaluation.
+            expect(lErrorFunction).to.throw(`Parameter "${TestParameterA.name}" of ${TestA.name} is not injectable.\n${lErrorMessage}`);
+        });
     });
 
     it('Static Method: registerInjectable', () => {

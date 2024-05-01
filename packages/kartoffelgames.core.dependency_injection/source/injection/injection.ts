@@ -54,11 +54,11 @@ export class Injection {
         // Create parameter.
         const lConstructorParameter: Array<object> = new Array<object>();
         for (const lParameterType of lParameterTypeList) {
-            let lCreatedParameter: object;
+            let lParameterObject: object;
 
             // Check if parameter can be replaced with an local injection
             if (lLocalInjections.has(lParameterType)) {
-                lCreatedParameter = lLocalInjections.get(lParameterType);
+                lParameterObject = lLocalInjections.get(lParameterType);
             } else {
                 // Read original parameter type used as replacement key.
                 const lOriginalParameterType: InjectionConstructor = DecorationReplacementHistory.getOriginalOf(lParameterType);
@@ -77,7 +77,7 @@ export class Injection {
                 // Proxy exception.
                 try {
                     // Get injectable parameter.
-                    lCreatedParameter = Injection.createObject(lParameterConstructor, lLocalInjections);
+                    lParameterObject = Injection.createObject(lParameterConstructor, lLocalInjections);
                 } catch (pException) {
                     // Error is always an Exception.
                     const lException: Exception<any> = <Exception<any>>pException;
@@ -86,7 +86,7 @@ export class Injection {
             }
 
             // Add parameter to construction parameter list.
-            lConstructorParameter.push(lCreatedParameter);
+            lConstructorParameter.push(lParameterObject);
         }
 
         // Create object.

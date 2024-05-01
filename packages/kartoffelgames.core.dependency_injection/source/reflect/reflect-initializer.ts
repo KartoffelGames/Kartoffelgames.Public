@@ -1,9 +1,7 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { InjectionConstructor } from '../type';
 import { DecorationReplacementHistory } from '../decoration-history/decoration-history';
-import { Metadata } from '../metadata/metadata';
-import { PropertyMetadata } from '../metadata/property-metadata';
-import { ConstructorMetadata } from '../metadata/constructor-metadata';
+import { AddMetadata } from '../decorator/add-metadata.decorator';
+import { InjectionConstructor } from '../type';
 
 export class ReflectInitializer {
     private static mExported: boolean = false;
@@ -142,19 +140,6 @@ export class ReflectInitializer {
     }
 
     /**
-     * Get constructor from prototype.
-     * @param pPrototypeOrConstructor - Prototype or constructor of class.
-     */
-    private static getConstructor(pPrototypeOrConstructor: InjectionConstructor | object): InjectionConstructor {
-        // Get constructor from prototype if is an instanced member.
-        if (typeof pPrototypeOrConstructor !== 'function') {
-            return <InjectionConstructor>(<object>pPrototypeOrConstructor).constructor;
-        } else {
-            return <InjectionConstructor>pPrototypeOrConstructor;
-        }
-    }
-
-    /**
      * Entry point for Typescripts emitDecoratorMetadata data. 
      * @param pMetadataKey - Key of metadata.
      * @param pMetadataValue - Value of metadata. Usually only "design:paramtypes" data.
@@ -166,37 +151,13 @@ export class ReflectInitializer {
            __metadata("design:returntype", void 0) // Function return type.
         */
         const lResultDecorator: Decorator = (pConstructorOrPrototype: object, pProperty?: string | symbol, pDescriptorOrIndex?: PropertyDescriptor | number): void => {
-            // Get constructor from prototype if is an instanced member.
-            const lConstructor: InjectionConstructor = ReflectInitializer.getConstructor(pConstructorOrPrototype);
-            const lConstructorMetadata: ConstructorMetadata = Metadata.get(lConstructor);
-
-            if (pProperty) {
-                const lPropertyMetadata: PropertyMetadata = lConstructorMetadata.getProperty(pProperty);
-
-                // If not parameter index.
-                /* istanbul ignore else */
-                if (typeof pDescriptorOrIndex !== 'number') {
-                    // Property decorator.
-                    /* istanbul ignore else */
-                    if (pMetadataKey === 'design:paramtypes') {
-                        lPropertyMetadata.parameterTypes = <Array<InjectionConstructor>>pMetadataValue;
-                    } else if (pMetadataKey === 'design:type') {
-                        lPropertyMetadata.type = <InjectionConstructor>pMetadataValue;
-                    } else if (pMetadataKey === 'design:returntype') {
-                        lPropertyMetadata.returnType = <InjectionConstructor>pMetadataValue;
-                    }
-                    // Ignore future metadata.
-                }
-                // Else. Parameter decorator.
-                // Ignore else case. Not supported.
-            } else {
-                // Class decorator.
-                /* istanbul ignore else */
-                if (pMetadataKey === 'design:paramtypes') {
-                    lConstructorMetadata.parameterTypeList = <Array<InjectionConstructor>>pMetadataValue;
-                }
-                // Ignore future metadata.
+            // Ignore all parameter decorators.
+            if (pProperty && typeof pDescriptorOrIndex === 'number') {
+                return;
             }
+
+            // Call add metadata decorator.
+            AddMetadata(pMetadataKey, pMetadataValue)(pConstructorOrPrototype, pProperty);
         };
 
         // Set as metadata constructor and return.

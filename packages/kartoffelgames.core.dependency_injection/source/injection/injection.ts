@@ -46,7 +46,7 @@ export class Injection {
         }
 
         // Get constructor parameter type information and default to empty parameter list.
-        let lParameterTypeList: Array<InjectionConstructor> | null = Metadata.get(pConstructor).parameterTypeList;
+        let lParameterTypeList: Array<InjectionConstructor> | null = Metadata.get(pConstructor).parameterTypes;
         if (lParameterTypeList === null) {
             lParameterTypeList = new Array<InjectionConstructor>();
         }

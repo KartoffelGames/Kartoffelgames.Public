@@ -76,7 +76,7 @@ describe('ReflectInitializer', () => {
             }
 
             // Process. Get type information.
-            const lConstructorParameterTypeList: Array<InjectionConstructor> | null = Metadata.get(TestA).parameterTypeList;
+            const lConstructorParameterTypeList: Array<InjectionConstructor> | null = Metadata.get(TestA).parameterTypes;
 
             // Process.
             expect(lConstructorParameterTypeList).to.have.ordered.members([String, Number]);

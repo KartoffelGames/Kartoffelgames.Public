@@ -9,10 +9,10 @@ describe('ConstructorMetadata', () => {
             // Setup. Specify values.
             const lParameterTypeList: Array<InjectionConstructor> = [String, Number];
             const lMetadata: ConstructorMetadata = new ConstructorMetadata();
-            lMetadata.parameterTypeList = lParameterTypeList;
+            lMetadata.setMetadata('design:paramtypes', lParameterTypeList);
 
             // Process.
-            const lResultParameterList: Array<InjectionConstructor> = lMetadata.parameterTypeList;
+            const lResultParameterList: Array<InjectionConstructor> | null = lMetadata.parameterTypes;
 
             // Evaluation.
             expect(lResultParameterList).to.have.ordered.members(lParameterTypeList);
@@ -23,7 +23,7 @@ describe('ConstructorMetadata', () => {
             const lMetadata: ConstructorMetadata = new ConstructorMetadata();
 
             // Process.
-            const lResultParameterList: Array<InjectionConstructor> | null = lMetadata.parameterTypeList;
+            const lResultParameterList: Array<InjectionConstructor> | null = lMetadata.parameterTypes;
 
             // Evaluation.
             expect(lResultParameterList).to.be.null;
@@ -35,8 +35,8 @@ describe('ConstructorMetadata', () => {
             const lMetadata: ConstructorMetadata = new ConstructorMetadata();
 
             // Process.
-            lMetadata.parameterTypeList = lParameterTypeList;
-            const lResultParameterList: Array<InjectionConstructor> = lMetadata.parameterTypeList;
+            lMetadata.setMetadata('design:paramtypes', lParameterTypeList);
+            const lResultParameterList: Array<InjectionConstructor> | null = lMetadata.parameterTypes;
 
             // Evaluation.
             expect(lResultParameterList).to.have.ordered.members(lParameterTypeList);

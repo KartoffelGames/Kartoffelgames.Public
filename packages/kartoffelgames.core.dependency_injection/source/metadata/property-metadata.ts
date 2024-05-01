@@ -1,58 +1,29 @@
-import { Dictionary, List } from '@kartoffelgames/core.data';
+import { Dictionary } from '@kartoffelgames/core.data';
 import { InjectionConstructor } from '../type';
 
 
 export class PropertyMetadata {
     private readonly mCustomMetadata: Dictionary<string, any>;
-    private mParameterTypes: Array<InjectionConstructor> | null;
-    private mReturnType: InjectionConstructor | null;
-    private mType: InjectionConstructor | null;
 
     /**
      * Get parameter type information.
      */
     public get parameterTypes(): Array<InjectionConstructor> | null {
-        return this.mParameterTypes;
-    }
-
-    /**
-     * Set parameter type information.
-     */
-    public set parameterTypes(pParameterTypes: Array<InjectionConstructor> | null) {
-        // Copy array.
-        if (pParameterTypes !== null) {
-            this.mParameterTypes = List.newListWith(...pParameterTypes);
-        } else {
-            this.mParameterTypes = null;
-        }
+        return this.getMetadata<Array<InjectionConstructor>>('design:paramtypes');
     }
 
     /**
      * Get return type information.
      */
     public get returnType(): InjectionConstructor | null {
-        return this.mReturnType;
-    }
-
-    /**
-     * Set return type information.
-     */
-    public set returnType(pReturnType: InjectionConstructor | null) {
-        this.mReturnType = pReturnType;
+        return this.getMetadata<InjectionConstructor>('design:returntype');
     }
 
     /**
      * Get property type information.
      */
     public get type(): InjectionConstructor | null {
-        return this.mType;
-    }
-
-    /**
-     * Set property type information.
-     */
-    public set type(pReturnType: InjectionConstructor | null) {
-        this.mType = pReturnType;
+        return this.getMetadata<InjectionConstructor>('design:type');
     }
 
     /**
@@ -61,9 +32,6 @@ export class PropertyMetadata {
      */
     public constructor() {
         this.mCustomMetadata = new Dictionary<string, any>();
-        this.mParameterTypes = null;
-        this.mType = null;
-        this.mReturnType = null;
     }
 
     /**

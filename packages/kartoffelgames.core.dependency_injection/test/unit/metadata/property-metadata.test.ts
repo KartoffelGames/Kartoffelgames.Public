@@ -8,10 +8,10 @@ describe('ConstructorMetadata', () => {
             // Setup. Specify values.
             const lParameterTypeList: Array<InjectionConstructor> = [String, Number];
             const lMetadata: PropertyMetadata = new PropertyMetadata();
-            lMetadata.parameterTypes = lParameterTypeList;
+            lMetadata.setMetadata('design:paramtypes', lParameterTypeList);
 
             // Process.
-            const lResultParameterList: Array<InjectionConstructor> = lMetadata.parameterTypes;
+            const lResultParameterList: Array<InjectionConstructor> | null = lMetadata.parameterTypes;
 
             // Evaluation.
             expect(lResultParameterList).to.have.ordered.members(lParameterTypeList);
@@ -34,8 +34,8 @@ describe('ConstructorMetadata', () => {
             const lMetadata: PropertyMetadata = new PropertyMetadata();
 
             // Process.
-            lMetadata.parameterTypes = lParameterTypeList;
-            const lResultParameterList: Array<InjectionConstructor> = lMetadata.parameterTypes;
+            lMetadata.setMetadata('design:paramtypes', lParameterTypeList);
+            const lResultParameterList: Array<InjectionConstructor> | null = lMetadata.parameterTypes;
 
             // Evaluation.
             expect(lResultParameterList).to.have.ordered.members(lParameterTypeList);
@@ -46,8 +46,8 @@ describe('ConstructorMetadata', () => {
             const lMetadata: PropertyMetadata = new PropertyMetadata();
 
             // Process.
-            lMetadata.parameterTypes = null;
-            const lResultParameterList: null = lMetadata.parameterTypes;
+            lMetadata.setMetadata('design:paramtypes', null);
+            const lResultParameterList: Array<InjectionConstructor> | null = lMetadata.parameterTypes;
 
             // Evaluation.
             expect(lResultParameterList).to.be.null;
@@ -59,10 +59,10 @@ describe('ConstructorMetadata', () => {
             // Setup. Specify values.
             const lReturnType: InjectionConstructor = Number;
             const lMetadata: PropertyMetadata = new PropertyMetadata();
-            lMetadata.returnType = lReturnType;
+            lMetadata.setMetadata('design:returntype', lReturnType);
 
             // Process.
-            const lResultReturnType: InjectionConstructor = lMetadata.returnType;
+            const lResultReturnType: InjectionConstructor | null = lMetadata.returnType;
 
             // Evaluation.
             expect(lResultReturnType).to.equal(lReturnType);
@@ -85,8 +85,8 @@ describe('ConstructorMetadata', () => {
             const lMetadata: PropertyMetadata = new PropertyMetadata();
 
             // Process.
-            lMetadata.returnType = lReturnType;
-            const lResultReturnType: InjectionConstructor = lMetadata.returnType;
+            lMetadata.setMetadata('design:returntype', lReturnType);
+            const lResultReturnType: InjectionConstructor | null = lMetadata.returnType;
 
             // Evaluation.
             expect(lResultReturnType).to.equal(lReturnType);
@@ -98,10 +98,10 @@ describe('ConstructorMetadata', () => {
             // Setup. Specify values.
             const lType: InjectionConstructor = Number;
             const lMetadata: PropertyMetadata = new PropertyMetadata();
-            lMetadata.type = lType;
+            lMetadata.setMetadata('design:type', lType);
 
             // Process.
-            const lResultType: InjectionConstructor = lMetadata.type;
+            const lResultType: InjectionConstructor | null = lMetadata.type;
 
             // Evaluation.
             expect(lResultType).to.equal(lType);
@@ -124,8 +124,8 @@ describe('ConstructorMetadata', () => {
             const lMetadata: PropertyMetadata = new PropertyMetadata();
 
             // Process.
-            lMetadata.type = lType;
-            const lResultType: InjectionConstructor = lMetadata.type;
+            lMetadata.setMetadata('design:type', lType);
+            const lResultType: InjectionConstructor | null = lMetadata.type;
 
             // Evaluation.
             expect(lResultType).to.equal(lType);

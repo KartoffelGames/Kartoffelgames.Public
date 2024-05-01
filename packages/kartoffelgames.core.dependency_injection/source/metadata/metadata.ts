@@ -22,7 +22,7 @@ export class Metadata {
         if (this.mConstructorMetadata.has(lRegisteredConstructor)) {
             lMetadata = <ConstructorMetadata>Metadata.mConstructorMetadata.get(lRegisteredConstructor);
         } else {
-            lMetadata = new ConstructorMetadata();
+            lMetadata = new ConstructorMetadata(lRegisteredConstructor);
             Metadata.mConstructorMetadata.add(lRegisteredConstructor, lMetadata);
         }
 

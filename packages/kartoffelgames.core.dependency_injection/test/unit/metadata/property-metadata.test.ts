@@ -7,7 +7,7 @@ describe('ConstructorMetadata', () => {
         it('-- Read', () => {
             // Setup. Specify values.
             const lParameterTypeList: Array<InjectionConstructor> = [String, Number];
-            const lMetadata: PropertyMetadata = new PropertyMetadata();
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
             lMetadata.setMetadata('design:paramtypes', lParameterTypeList);
 
             // Process.
@@ -19,7 +19,7 @@ describe('ConstructorMetadata', () => {
 
         it('-- Read: No Data', () => {
             // Setup. Specify values.
-            const lMetadata: PropertyMetadata = new PropertyMetadata();
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
 
             // Process.
             const lResultParameterList: Array<InjectionConstructor> | null = lMetadata.parameterTypes;
@@ -31,7 +31,7 @@ describe('ConstructorMetadata', () => {
         it('-- Write', () => {
             // Setup. Specify values.
             const lParameterTypeList: Array<InjectionConstructor> = [String, Number];
-            const lMetadata: PropertyMetadata = new PropertyMetadata();
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
 
             // Process.
             lMetadata.setMetadata('design:paramtypes', lParameterTypeList);
@@ -43,7 +43,7 @@ describe('ConstructorMetadata', () => {
 
         it('-- Write null', () => {
             // Setup. Specify values.
-            const lMetadata: PropertyMetadata = new PropertyMetadata();
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
 
             // Process.
             lMetadata.setMetadata('design:paramtypes', null);
@@ -58,7 +58,7 @@ describe('ConstructorMetadata', () => {
         it('-- Read', () => {
             // Setup. Specify values.
             const lReturnType: InjectionConstructor = Number;
-            const lMetadata: PropertyMetadata = new PropertyMetadata();
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
             lMetadata.setMetadata('design:returntype', lReturnType);
 
             // Process.
@@ -70,7 +70,7 @@ describe('ConstructorMetadata', () => {
 
         it('-- Read: No Data', () => {
             // Setup. Specify values.
-            const lMetadata: PropertyMetadata = new PropertyMetadata();
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
 
             // Process.
             const lResultReturnType: InjectionConstructor | null = lMetadata.returnType;
@@ -82,7 +82,7 @@ describe('ConstructorMetadata', () => {
         it('-- Write', () => {
             // Setup. Specify values.
             const lReturnType: InjectionConstructor = Number;
-            const lMetadata: PropertyMetadata = new PropertyMetadata();
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
 
             // Process.
             lMetadata.setMetadata('design:returntype', lReturnType);
@@ -97,7 +97,7 @@ describe('ConstructorMetadata', () => {
         it('-- Read', () => {
             // Setup. Specify values.
             const lType: InjectionConstructor = Number;
-            const lMetadata: PropertyMetadata = new PropertyMetadata();
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
             lMetadata.setMetadata('design:type', lType);
 
             // Process.
@@ -109,7 +109,7 @@ describe('ConstructorMetadata', () => {
 
         it('-- Read: No Data', () => {
             // Setup. Specify values.
-            const lMetadata: PropertyMetadata = new PropertyMetadata();
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
 
             // Process.
             const lResultType: InjectionConstructor | null = lMetadata.type;
@@ -121,7 +121,7 @@ describe('ConstructorMetadata', () => {
         it('-- Write', () => {
             // Setup. Specify values.
             const lType: InjectionConstructor = Number;
-            const lMetadata: PropertyMetadata = new PropertyMetadata();
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
 
             // Process.
             lMetadata.setMetadata('design:type', lType);
@@ -137,7 +137,7 @@ describe('ConstructorMetadata', () => {
             // Setup. Specify values.
             const lMetadataKey: string = 'MetadataKey';
             const lMetadataValue: string = 'MetadataValue';
-            const lMetadata: PropertyMetadata = new PropertyMetadata();
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
             lMetadata.setMetadata(lMetadataKey, lMetadataValue);
 
             // Process.
@@ -149,7 +149,7 @@ describe('ConstructorMetadata', () => {
 
         it('-- Missing Metadata', () => {
             // Setup. Specify values.
-            const lMetadata: PropertyMetadata = new PropertyMetadata();
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
 
             // Process.
             const lResultMetadatavalue: string = lMetadata.getMetadata('AnyKey');
@@ -164,7 +164,7 @@ describe('ConstructorMetadata', () => {
             // Setup. Specify values.
             const lMetadataKey: string = 'MetadataKey';
             const lMetadataValue: string = 'MetadataValue';
-            const lMetadata: PropertyMetadata = new PropertyMetadata();
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
             lMetadata.setMetadata(lMetadataKey, lMetadataValue);
 
             // Process.
@@ -178,7 +178,7 @@ describe('ConstructorMetadata', () => {
             // Setup. Specify values.
             const lMetadataKey: string = 'MetadataKey';
             const lMetadataValue: string = 'NewMetadataValue';
-            const lMetadata: PropertyMetadata = new PropertyMetadata();
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
 
             // Process.
             lMetadata.setMetadata(lMetadataKey, 'OldMetadataValue');

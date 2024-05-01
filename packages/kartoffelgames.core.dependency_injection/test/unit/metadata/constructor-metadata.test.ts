@@ -8,7 +8,7 @@ describe('ConstructorMetadata', () => {
         it('-- Read', () => {
             // Setup. Specify values.
             const lParameterTypeList: Array<InjectionConstructor> = [String, Number];
-            const lMetadata: ConstructorMetadata = new ConstructorMetadata();
+            const lMetadata: ConstructorMetadata = new ConstructorMetadata(class { });
             lMetadata.setMetadata('design:paramtypes', lParameterTypeList);
 
             // Process.
@@ -20,7 +20,7 @@ describe('ConstructorMetadata', () => {
 
         it('-- Read: No Data', () => {
             // Setup. Specify values.
-            const lMetadata: ConstructorMetadata = new ConstructorMetadata();
+            const lMetadata: ConstructorMetadata = new ConstructorMetadata(class { });
 
             // Process.
             const lResultParameterList: Array<InjectionConstructor> | null = lMetadata.parameterTypes;
@@ -32,7 +32,7 @@ describe('ConstructorMetadata', () => {
         it('-- Write', () => {
             // Setup. Specify values.
             const lParameterTypeList: Array<InjectionConstructor> = [String, Number];
-            const lMetadata: ConstructorMetadata = new ConstructorMetadata();
+            const lMetadata: ConstructorMetadata = new ConstructorMetadata(class { });
 
             // Process.
             lMetadata.setMetadata('design:paramtypes', lParameterTypeList);
@@ -48,7 +48,7 @@ describe('ConstructorMetadata', () => {
             // Setup. Specify values.
             const lMetadataKey: string = 'MetadataKey';
             const lMetadataValue: string = 'MetadataValue';
-            const lMetadata: ConstructorMetadata = new ConstructorMetadata();
+            const lMetadata: ConstructorMetadata = new ConstructorMetadata(class { });
             lMetadata.setMetadata(lMetadataKey, lMetadataValue);
 
             // Process.
@@ -60,7 +60,7 @@ describe('ConstructorMetadata', () => {
 
         it('-- Missing Metadata', () => {
             // Setup. Specify values.
-            const lMetadata: ConstructorMetadata = new ConstructorMetadata();
+            const lMetadata: ConstructorMetadata = new ConstructorMetadata(class { });
 
             // Process.
             const lResultMetadatavalue: string | null = lMetadata.getMetadata('AnyKey');
@@ -75,7 +75,7 @@ describe('ConstructorMetadata', () => {
             // Setup. Specify values.
             const lMetadataKey: string = 'MetadataKey';
             const lMetadataValue: string = 'MetadataValue';
-            const lMetadata: ConstructorMetadata = new ConstructorMetadata();
+            const lMetadata: ConstructorMetadata = new ConstructorMetadata(class { });
             lMetadata.setMetadata(lMetadataKey, lMetadataValue);
 
             // Process.
@@ -89,7 +89,7 @@ describe('ConstructorMetadata', () => {
             // Setup. Specify values.
             const lMetadataKey: string = 'MetadataKey';
             const lMetadataValue: string = 'NewMetadataValue';
-            const lMetadata: ConstructorMetadata = new ConstructorMetadata();
+            const lMetadata: ConstructorMetadata = new ConstructorMetadata(class { });
 
             // Process.
             lMetadata.setMetadata(lMetadataKey, 'OldMetadataValue');
@@ -104,7 +104,7 @@ describe('ConstructorMetadata', () => {
     describe('-- Static Method: get', () => {
         it('-- Create New Metadata', () => {
             // Setup.
-            const lMetadata: ConstructorMetadata = new ConstructorMetadata();
+            const lMetadata: ConstructorMetadata = new ConstructorMetadata(class { });
 
             // Process.
             const lConstructorMetadata = lMetadata.getProperty('SomeProperty');
@@ -116,7 +116,7 @@ describe('ConstructorMetadata', () => {
         it('-- Get Existing Metadata ', () => {
             // Setup.
             const lPropertyName: string = 'SomeProperty';
-            const lMetadata: ConstructorMetadata = new ConstructorMetadata();
+            const lMetadata: ConstructorMetadata = new ConstructorMetadata(class { });
 
             // Process.
             const lOldConstructorMetadata = lMetadata.getProperty(lPropertyName);

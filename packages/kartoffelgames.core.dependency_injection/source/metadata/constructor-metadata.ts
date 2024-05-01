@@ -1,12 +1,12 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { InjectionConstructor } from '../type';
 import { PropertyMetadata } from './property-metadata';
+import { BaseMetadata } from './base-metadata';
 
 /**
  * Constructor metadata.
  */
-export class ConstructorMetadata {
-    private readonly mCustomMetadata: Dictionary<string, any>;
+export class ConstructorMetadata extends BaseMetadata {
     private readonly mPropertyMetadata: Dictionary<string | symbol, PropertyMetadata>;
 
     /**
@@ -19,18 +19,13 @@ export class ConstructorMetadata {
     /**
      * Constructor.
      * Initialize lists.
+     * 
+     * @param pConstructor - Constructor where all metadata are attached.
      */
-    public constructor() {
-        this.mCustomMetadata = new Dictionary<string, any>();
-        this.mPropertyMetadata = new Dictionary<string | symbol, PropertyMetadata>();
-    }
+    public constructor(pConstructor: InjectionConstructor) {
+        super(pConstructor);
 
-    /**
-     * Get metadata of constructor.
-     * @param pMetadataKey - Metadata key.
-     */
-    public getMetadata<T>(pMetadataKey: string): T | null {
-        return this.mCustomMetadata.get(pMetadataKey) ?? null;
+        this.mPropertyMetadata = new Dictionary<string | symbol, PropertyMetadata>();
     }
 
     /**
@@ -41,18 +36,9 @@ export class ConstructorMetadata {
     public getProperty(pPropertyKey: string | symbol): PropertyMetadata {
         // Create if missing.
         if (!this.mPropertyMetadata.has(pPropertyKey)) {
-            this.mPropertyMetadata.add(pPropertyKey, new PropertyMetadata());
+            this.mPropertyMetadata.add(pPropertyKey, new PropertyMetadata(this.injectionConstructor));
         }
 
         return <PropertyMetadata>this.mPropertyMetadata.get(pPropertyKey);
-    }
-
-    /**
-     * Set metadata of constructor.
-     * @param pMetadataKey - Metadata key.
-     * @param pMetadataValue - Metadata value.
-     */
-    public setMetadata<T>(pMetadataKey: string, pMetadataValue: T): void {
-        this.mCustomMetadata.set(pMetadataKey, pMetadataValue);
     }
 }

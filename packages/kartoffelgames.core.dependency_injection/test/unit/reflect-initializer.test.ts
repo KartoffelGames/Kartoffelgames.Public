@@ -111,6 +111,27 @@ describe('ReflectInitializer', () => {
             // Process.
             expect(lAccessorParameterTypeList).to.have.ordered.members([Number]);
         });
+
+        it('-- Ignore constructor parameter decorator metadata', () => {
+            // Setup.
+            class TestA {
+                public constructor(@gPlaceholderDecorator _pConstructorParameterWithDecorator: string) { /* Nothing */ }
+            }
+
+            // This does nothing, but should also not fail.
+            new TestA('');
+        });
+
+        it('-- Ignore constructor parameter decorator metadata', () => {
+            // Setup.
+            class TestA {
+                public function(@gPlaceholderDecorator _pParameterWithDecorator: number): string { return ''; }
+            }
+
+            // This does nothing, but should also not fail.
+            new TestA().function(1);
+        });
+
     });
 
     describe('Functionality: Decorate', () => {

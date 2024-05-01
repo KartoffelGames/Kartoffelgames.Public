@@ -150,12 +150,7 @@ export class ReflectInitializer {
            __metadata("design:paramtypes", [Number, String]), // Function or Constructor Parameter
            __metadata("design:returntype", void 0) // Function return type.
         */
-        const lResultDecorator: Decorator = (pConstructorOrPrototype: object, pProperty?: string | symbol, pDescriptorOrIndex?: PropertyDescriptor | number): void => {
-            // Ignore all parameter decorators.
-            if (pProperty && typeof pDescriptorOrIndex === 'number') {
-                return;
-            }
-
+        const lResultDecorator: Decorator = (pConstructorOrPrototype: object, pProperty?: string | symbol): void => {
             // Call add metadata decorator.
             AddMetadata(pMetadataKey, pMetadataValue)(pConstructorOrPrototype, pProperty);
         };

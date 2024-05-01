@@ -92,7 +92,7 @@ describe('Injection', () => {
             };
 
             // Evaluation.
-            expect(lThrows).to.throw(`Parameter "${TestParameter.name}" of ${TestA.name} is not injectable.`);
+            expect(lThrows).to.throw(`Parameter "${TestParameter.name}" of ${TestA.name} is not registered to be injectable.`);
         });
 
         it('-- Singleton without parameter', () => {

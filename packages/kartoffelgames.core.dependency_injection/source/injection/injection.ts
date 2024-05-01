@@ -60,22 +60,22 @@ export class Injection {
             if (lLocalInjections.has(lParameterType)) {
                 lCreatedParameter = lLocalInjections.get(lParameterType);
             } else {
+                // Read original parameter type used as replacement key.
+                const lOriginalParameterType: InjectionConstructor = DecorationReplacementHistory.getOriginalOf(lParameterType);
+                if (!Injection.mInjectableConstructor.has(lOriginalParameterType)) {
+                    throw new Exception(`Parameter "${lParameterType.name}" of ${pConstructor.name} is not registered to be injectable.`, Injection);
+                }
+
+                // Try to find global replacement.
+                let lParameterConstructor: InjectionConstructor;
+                if (Injection.mInjectableReplacement.has(lOriginalParameterType)) {
+                    lParameterConstructor = <InjectionConstructor>Injection.mInjectableReplacement.get(lOriginalParameterType);
+                } else {
+                    lParameterConstructor = lParameterType;
+                }
+
                 // Proxy exception.
                 try {
-                    // Read original parameter type used as replacement key.
-                    const lOriginalParameterType: InjectionConstructor = DecorationReplacementHistory.getOriginalOf(lParameterType);
-                    if (!Injection.mInjectableConstructor.has(lOriginalParameterType)) {
-                        throw new Exception('', Injection); // Empty message to not mess with proxied error message.
-                    }
-
-                    // Try to find global replacement.
-                    let lParameterConstructor: InjectionConstructor;
-                    if (Injection.mInjectableReplacement.has(lOriginalParameterType)) {
-                        lParameterConstructor = <InjectionConstructor>Injection.mInjectableReplacement.get(lOriginalParameterType);
-                    } else {
-                        lParameterConstructor = lParameterType;
-                    }
-
                     // Get injectable parameter.
                     lCreatedParameter = Injection.createObject(lParameterConstructor, lLocalInjections);
                 } catch (pException) {

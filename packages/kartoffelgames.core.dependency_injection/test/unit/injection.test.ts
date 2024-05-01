@@ -194,23 +194,6 @@ describe('Injection', () => {
             expect(lCreatedObject.mParameterA).to.be.instanceOf(TestParameterA);
         });
 
-        it('-- Default injection replacement without parameter', () => {
-            // Setup.
-            @Injectable
-            class TestA { }
-            @Injectable
-            class ReplacementTestA { }
-
-            // Setup. Set replacement.
-            Injection.replaceInjectable(TestA, ReplacementTestA);
-
-            // Process.
-            const lCreatedObject: TestA = Injection.createObject(TestA);
-
-            // Evaluation.
-            expect(lCreatedObject).to.be.instanceOf(ReplacementTestA);
-        });
-
         it('-- Default with parameter with injection replacement', () => {
             // Setup.
             @Injectable
@@ -235,19 +218,26 @@ describe('Injection', () => {
             // Setup.
             @Injectable
             @gPlaceholderDecorator
-            class TestA { }
+            class TestParameterA { }
+
             @Injectable
             @gPlaceholderDecorator
-            class ReplacementTestA { }
+            class ReplacementTestParameterA { }
+
+            // Setup.
+            @Injectable
+            class TestA { constructor(public mParameterA: TestParameterA) { } }
 
             // Setup. Set replacement.
-            Injection.replaceInjectable(TestA, ReplacementTestA);
+            Injection.replaceInjectable(TestParameterA, ReplacementTestParameterA);
 
             // Process.
-            const lCreatedObjectA: TestA = Injection.createObject(TestA);
+            const lCreatedObject: TestA = Injection.createObject(TestA);
 
             // Evaluation.
-            expect(lCreatedObjectA).to.be.instanceOf(ReplacementTestA);
+            // Evaluation.
+            expect(lCreatedObject).to.be.instanceOf(TestA);
+            expect(lCreatedObject.mParameterA).to.be.instanceOf(ReplacementTestParameterA);
         });
 
         it('-- Default with second layer local injection', () => {
@@ -274,7 +264,7 @@ describe('Injection', () => {
             expect(lCreatedObject.mParameter.mParameter).to.equal(lLocalInjectionParameter);
         });
 
-        it('-- Default with local injection', () => {
+        it('-- Singleton create new with local injection', () => {
             // Setup.
             @Injectable
             class TestParameter { }
@@ -292,11 +282,43 @@ describe('Injection', () => {
 
             // Evaluation.
             expect(lCreatedObject).to.be.instanceOf(TestA);
-            expect(lCreatedObject.mParameter).to.not.equal(lLocalInjectionParameter);
-            expect(lCreatedObject.mParameter).to.be.instanceOf(TestParameter);
+            expect(lCreatedObject.mParameter).to.equal(lLocalInjectionParameter);
+            expect(lCreatedObject.mParameter).to.be.instanceOf(TestParameterLocalInjection);
         });
 
-        it('-- Default with local injection with force', () => {
+        it('-- Singleton create with and without local injections', () => {
+            // Setup.
+            @Injectable
+            class TestParameter { }
+            class TestParameterLocalInjection { }
+
+            @InjectableSingleton
+            class TestA { constructor(public mParameter: TestParameter) { } }
+
+            // Setup. Create local injection.
+            const lLocalInjectionParameter: TestParameterLocalInjection = new TestParameterLocalInjection();
+            const lLocalInjectionMap: Dictionary<InjectionConstructor, any> = new Dictionary<InjectionConstructor, any>();
+            lLocalInjectionMap.add(TestParameter, lLocalInjectionParameter);
+
+            // Process.
+            const lObjectLocalInjections: TestA = Injection.createObject(TestA, lLocalInjectionMap);
+            const lObjectOne: TestA = Injection.createObject(TestA);
+            const lObjectTwo: TestA = Injection.createObject(TestA);
+
+            // Evaluation.
+            expect(lObjectLocalInjections).to.be.instanceOf(TestA);
+            expect(lObjectOne).to.be.instanceOf(TestA);
+
+            expect(lObjectOne).to.equal(lObjectTwo);
+
+            expect(lObjectLocalInjections.mParameter).to.equal(lLocalInjectionParameter);
+            expect(lObjectLocalInjections.mParameter).to.be.instanceOf(TestParameterLocalInjection);
+
+            expect(lObjectOne.mParameter).to.not.equal(lLocalInjectionParameter);
+            expect(lObjectOne.mParameter).to.be.instanceOf(TestParameter);
+        });
+
+        it('-- Singleton with local injection with force', () => {
             // Setup.
             @Injectable
             class TestParameter { }

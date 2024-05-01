@@ -62,9 +62,16 @@ export class Injection {
             } else {
                 // Proxy exception.
                 try {
+                    // Read original parameter type used as replacement key.
+                    const lOriginalParameterType: InjectionConstructor = DecorationReplacementHistory.getOriginalOf(lParameterType);
+                    if (!Injection.mInjectableConstructor.has(lOriginalParameterType)) {
+                        throw new Exception('', Injection); // Empty message to not mess with proxied error message.
+                    }
+
+                    // Try to find global replacement.
                     let lParameterConstructor: InjectionConstructor;
-                    if (Injection.mInjectableReplacement.has(lParameterType)) {
-                        lParameterConstructor = <InjectionConstructor>Injection.mInjectableReplacement.get(lParameterType);
+                    if (Injection.mInjectableReplacement.has(lOriginalParameterType)) {
+                        lParameterConstructor = <InjectionConstructor>Injection.mInjectableReplacement.get(lOriginalParameterType);
                     } else {
                         lParameterConstructor = lParameterType;
                     }
@@ -86,7 +93,7 @@ export class Injection {
         const lCreatedObject: T = <T>new pConstructor(...lConstructorParameter);
 
         // Cache singleton objects but only if not forced to create.
-        if (lInjecttionMode === InjectMode.Singleton && !Injection.mSingletonMapping.has(lRegisteredConstructor)) {
+        if (lInjecttionMode === InjectMode.Singleton && lLocalInjections.size === 0 && !Injection.mSingletonMapping.has(lRegisteredConstructor)) {
             Injection.mSingletonMapping.add(lRegisteredConstructor, lCreatedObject);
         }
 

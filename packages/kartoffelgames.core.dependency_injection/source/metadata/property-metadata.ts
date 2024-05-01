@@ -29,8 +29,9 @@ export class PropertyMetadata extends BaseMetadata{
      * Initialize lists.
      * 
      * @param pConstructor - Constructor where all metadata are attached.
+     * @param pPropertyKey - Key of property where all metadata is attached.
      */
-    public constructor(pConstructor: InjectionConstructor) {
-        super(pConstructor);
+    public constructor(pConstructor: InjectionConstructor, pPropertyKey: string | symbol) {
+        super(pConstructor, pPropertyKey);
     }
 }

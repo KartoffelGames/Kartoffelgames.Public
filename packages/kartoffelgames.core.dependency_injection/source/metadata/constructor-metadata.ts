@@ -23,7 +23,7 @@ export class ConstructorMetadata extends BaseMetadata {
      * @param pConstructor - Constructor where all metadata are attached.
      */
     public constructor(pConstructor: InjectionConstructor) {
-        super(pConstructor);
+        super(pConstructor, null);
 
         this.mPropertyMetadata = new Dictionary<string | symbol, PropertyMetadata>();
     }
@@ -36,7 +36,7 @@ export class ConstructorMetadata extends BaseMetadata {
     public getProperty(pPropertyKey: string | symbol): PropertyMetadata {
         // Create if missing.
         if (!this.mPropertyMetadata.has(pPropertyKey)) {
-            this.mPropertyMetadata.add(pPropertyKey, new PropertyMetadata(this.injectionConstructor));
+            this.mPropertyMetadata.add(pPropertyKey, new PropertyMetadata(this.injectionConstructor, pPropertyKey));
         }
 
         return <PropertyMetadata>this.mPropertyMetadata.get(pPropertyKey);

@@ -2,12 +2,12 @@ import { expect } from 'chai';
 import { PropertyMetadata } from '../../../source/metadata/property-metadata';
 import { InjectionConstructor } from '../../../source/type';
 
-describe('ConstructorMetadata', () => {
+describe('PropertyMetadata', () => {
     describe('Property: parameterTypes', () => {
         it('-- Read', () => {
             // Setup. Specify values.
             const lParameterTypeList: Array<InjectionConstructor> = [String, Number];
-            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { }, '');
             lMetadata.setMetadata('design:paramtypes', lParameterTypeList);
 
             // Process.
@@ -19,7 +19,7 @@ describe('ConstructorMetadata', () => {
 
         it('-- Read: No Data', () => {
             // Setup. Specify values.
-            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { }, '');
 
             // Process.
             const lResultParameterList: Array<InjectionConstructor> | null = lMetadata.parameterTypes;
@@ -31,7 +31,7 @@ describe('ConstructorMetadata', () => {
         it('-- Write', () => {
             // Setup. Specify values.
             const lParameterTypeList: Array<InjectionConstructor> = [String, Number];
-            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { }, '');
 
             // Process.
             lMetadata.setMetadata('design:paramtypes', lParameterTypeList);
@@ -43,7 +43,7 @@ describe('ConstructorMetadata', () => {
 
         it('-- Write null', () => {
             // Setup. Specify values.
-            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { }, '');
 
             // Process.
             lMetadata.setMetadata('design:paramtypes', null);
@@ -58,7 +58,7 @@ describe('ConstructorMetadata', () => {
         it('-- Read', () => {
             // Setup. Specify values.
             const lReturnType: InjectionConstructor = Number;
-            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { }, '');
             lMetadata.setMetadata('design:returntype', lReturnType);
 
             // Process.
@@ -70,7 +70,7 @@ describe('ConstructorMetadata', () => {
 
         it('-- Read: No Data', () => {
             // Setup. Specify values.
-            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { }, '');
 
             // Process.
             const lResultReturnType: InjectionConstructor | null = lMetadata.returnType;
@@ -82,7 +82,7 @@ describe('ConstructorMetadata', () => {
         it('-- Write', () => {
             // Setup. Specify values.
             const lReturnType: InjectionConstructor = Number;
-            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { }, '');
 
             // Process.
             lMetadata.setMetadata('design:returntype', lReturnType);
@@ -97,7 +97,7 @@ describe('ConstructorMetadata', () => {
         it('-- Read', () => {
             // Setup. Specify values.
             const lType: InjectionConstructor = Number;
-            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { }, '');
             lMetadata.setMetadata('design:type', lType);
 
             // Process.
@@ -109,7 +109,7 @@ describe('ConstructorMetadata', () => {
 
         it('-- Read: No Data', () => {
             // Setup. Specify values.
-            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { }, '');
 
             // Process.
             const lResultType: InjectionConstructor | null = lMetadata.type;
@@ -121,7 +121,7 @@ describe('ConstructorMetadata', () => {
         it('-- Write', () => {
             // Setup. Specify values.
             const lType: InjectionConstructor = Number;
-            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { }, '');
 
             // Process.
             lMetadata.setMetadata('design:type', lType);
@@ -137,11 +137,11 @@ describe('ConstructorMetadata', () => {
             // Setup. Specify values.
             const lMetadataKey: string = 'MetadataKey';
             const lMetadataValue: string = 'MetadataValue';
-            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { }, '');
             lMetadata.setMetadata(lMetadataKey, lMetadataValue);
 
             // Process.
-            const lResultMetadatavalue: string = lMetadata.getMetadata(lMetadataKey);
+            const lResultMetadatavalue: string | null = lMetadata.getMetadata(lMetadataKey);
 
             // Evaluation.
             expect(lResultMetadatavalue).to.equal(lMetadataValue);
@@ -149,10 +149,10 @@ describe('ConstructorMetadata', () => {
 
         it('-- Missing Metadata', () => {
             // Setup. Specify values.
-            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { }, '');
 
             // Process.
-            const lResultMetadatavalue: string = lMetadata.getMetadata('AnyKey');
+            const lResultMetadatavalue: string | null = lMetadata.getMetadata('AnyKey');
 
             // Evaluation.
             expect(lResultMetadatavalue).to.be.null;
@@ -164,11 +164,11 @@ describe('ConstructorMetadata', () => {
             // Setup. Specify values.
             const lMetadataKey: string = 'MetadataKey';
             const lMetadataValue: string = 'MetadataValue';
-            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { }, '');
             lMetadata.setMetadata(lMetadataKey, lMetadataValue);
 
             // Process.
-            const lResultMetadatavalue: string = lMetadata.getMetadata(lMetadataKey);
+            const lResultMetadatavalue: string | null = lMetadata.getMetadata(lMetadataKey);
 
             // Evaluation.
             expect(lResultMetadatavalue).to.equal(lMetadataValue);
@@ -178,15 +178,138 @@ describe('ConstructorMetadata', () => {
             // Setup. Specify values.
             const lMetadataKey: string = 'MetadataKey';
             const lMetadataValue: string = 'NewMetadataValue';
-            const lMetadata: PropertyMetadata = new PropertyMetadata(class { });
+            const lMetadata: PropertyMetadata = new PropertyMetadata(class { }, '');
 
             // Process.
             lMetadata.setMetadata(lMetadataKey, 'OldMetadataValue');
             lMetadata.setMetadata(lMetadataKey, lMetadataValue);
-            const lResultMetadatavalue: string = lMetadata.getMetadata(lMetadataKey);
+            const lResultMetadatavalue: string | null = lMetadata.getMetadata(lMetadataKey);
 
             // Evaluation.
             expect(lResultMetadatavalue).to.equal(lMetadataValue);
+        });
+    });
+
+    describe('Method: getInheritedMetadata', () => {
+        it('-- Without inherited data', () => {
+            // Setup. Global information.
+            const lPropertyKey: string = 'PropertyKey';
+
+            // Setup. Inheritance chain.
+            class A { }
+            class B extends A { }
+            class C extends B { }
+
+            // Setup. Specify values.
+            const lMetadataKey: string = 'MetadataKey';
+            const lMetadataValue: string = 'NewMetadataValue';
+            const lMetadata: PropertyMetadata = new PropertyMetadata(C, lPropertyKey);
+
+            // Setup set metadata.
+            lMetadata.setMetadata(lMetadataKey, lMetadataValue);
+
+            // Process.
+            const lResultMetadatavalue: Array<string> = lMetadata.getInheritedMetadata(lMetadataKey);
+
+            // Evaluation.
+            expect(lResultMetadatavalue).to.deep.equal([lMetadataValue]);
+        });
+
+        it('-- With inherited data', () => {
+            // Setup. Global information.
+            const lPropertyKey: string = 'PropertyKey';
+
+            // Setup. Inheritance chain.
+            class A { }
+            class B extends A { }
+            class C extends B { }
+
+            const lMetadataKey: string = 'MetadataKey';
+
+            // Setup. C.
+            const lMetadataValueC: string = 'NewMetadataValueC';
+            const lMetadataC: PropertyMetadata = new PropertyMetadata(C, lPropertyKey);
+            lMetadataC.setMetadata(lMetadataKey, lMetadataValueC);
+
+            // Setup. B.
+            const lMetadataValueB: string = 'NewMetadataValueB';
+            const lMetadataB: PropertyMetadata = new PropertyMetadata(B, lPropertyKey);
+            lMetadataB.setMetadata(lMetadataKey, lMetadataValueB);
+
+            // Setup. A.
+            const lMetadataValueA: string = 'NewMetadataValueA';
+            const lMetadataA: PropertyMetadata = new PropertyMetadata(A, lPropertyKey);
+            lMetadataA.setMetadata(lMetadataKey, lMetadataValueA);
+
+            // Process.
+            const lResultMetadatavalue: Array<string> = lMetadataC.getInheritedMetadata(lMetadataKey);
+
+            // Evaluation.
+            expect(lResultMetadatavalue).to.deep.equal([lMetadataValueA, lMetadataValueB, lMetadataValueC]);
+        });
+
+        it('-- With only inherited data', () => {
+            // Setup. Global information.
+            const lPropertyKey: string = 'PropertyKey';
+
+            // Setup. Inheritance chain.
+            class A { }
+            class B extends A { }
+            class C extends B { }
+
+            const lMetadataKey: string = 'MetadataKey';
+
+            // Setup. C.
+            const lMetadataC: PropertyMetadata = new PropertyMetadata(C, lPropertyKey);
+
+            // Setup. B.
+            const lMetadataValueB: string = 'NewMetadataValueB';
+            const lMetadataB: PropertyMetadata = new PropertyMetadata(B, lPropertyKey);
+            lMetadataB.setMetadata(lMetadataKey, lMetadataValueB);
+
+            // Setup. A.
+            const lMetadataValueA: string = 'NewMetadataValueA';
+            const lMetadataA: PropertyMetadata = new PropertyMetadata(A, lPropertyKey);
+            lMetadataA.setMetadata(lMetadataKey, lMetadataValueA);
+
+            // Process.
+            const lResultMetadatavalue: Array<string> = lMetadataC.getInheritedMetadata(lMetadataKey);
+
+            // Evaluation.
+            expect(lResultMetadatavalue).to.deep.equal([lMetadataValueA, lMetadataValueB]);
+        });
+
+        it('-- Read inherited data from parent', () => {
+            // Setup. Global information.
+            const lPropertyKey: string = 'PropertyKey';
+
+            // Setup. Inheritance chain.
+            class A { }
+            class B extends A { }
+            class C extends B { }
+
+            const lMetadataKey: string = 'MetadataKey';
+
+            // Setup. C.
+            const lMetadataValueC: string = 'NewMetadataValueC';
+            const lMetadataC: PropertyMetadata = new PropertyMetadata(C, lPropertyKey);
+            lMetadataC.setMetadata(lMetadataKey, lMetadataValueC);
+
+            // Setup. B.
+            const lMetadataValueB: string = 'NewMetadataValueB';
+            const lMetadataB: PropertyMetadata = new PropertyMetadata(B, lPropertyKey);
+            lMetadataB.setMetadata(lMetadataKey, lMetadataValueB);
+
+            // Setup. A.
+            const lMetadataValueA: string = 'NewMetadataValueA';
+            const lMetadataA: PropertyMetadata = new PropertyMetadata(A, lPropertyKey);
+            lMetadataA.setMetadata(lMetadataKey, lMetadataValueA);
+
+            // Process.
+            const lResultMetadatavalue: Array<string> = lMetadataB.getInheritedMetadata(lMetadataKey);
+
+            // Evaluation.
+            expect(lResultMetadatavalue).to.deep.equal([lMetadataValueA, lMetadataValueB]);
         });
     });
 });

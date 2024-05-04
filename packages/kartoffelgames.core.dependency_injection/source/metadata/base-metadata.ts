@@ -39,7 +39,7 @@ export class BaseMetadata {
      */
     public getInheritedMetadata<T>(pMetadataKey: string): Array<T> {
         // Try to get parent metadata.
-        const lParentClass: InjectionConstructor | undefined = Object.getPrototypeOf(this.mConstructor);
+        const lParentClass: InjectionConstructor | null = Object.getPrototypeOf(this.mConstructor);
 
         // Read parent metadata or create new metadata list when no inheritance was found.
         let lMetadataValueList: Array<T>;

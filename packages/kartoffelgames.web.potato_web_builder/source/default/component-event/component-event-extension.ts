@@ -1,4 +1,4 @@
-import { Dictionary, Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
 import { PwbExtension } from '../../decorator/pwb-extension.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
@@ -6,8 +6,8 @@ import { ExtensionType } from '../../enum/extension-type.enum';
 import { ComponentConstructorReference } from '../../injection/references/component/component-constructor-reference';
 import { ComponentElementReference } from '../../injection/references/component/component-element-reference';
 import { ComponentReference } from '../../injection/references/component/component-reference';
-import { ComponentEventEmitter } from './component-event-emitter';
 import { ComponentProcessorConstructor } from '../../interface/component.interface';
+import { ComponentEventEmitter } from './component-event-emitter';
 
 @PwbExtension({
     type: ExtensionType.Component,
@@ -25,8 +25,9 @@ export class ComponentEventExtension {
      * @param pElementReference - Component html element.
      */
     public constructor(pComponentProcessorConstructor: ComponentConstructorReference, pComponent: ComponentReference, pElementReference: ComponentElementReference) {
-        // Get event metadata.
-        const lEventProperties: Dictionary<string, string> = new Dictionary<string, string>();
+        // Easy access target objects.
+        const lTargetObject: object = pComponent.processor;
+        const lTargetElement: HTMLElement = pElementReference;
 
         // Find all event properties of current class layer and add all to merged property list.
         const lEventPropertyMapList: Array<Array<[string, string, ComponentProcessorConstructor]>> = Metadata.get(<InjectionConstructor>pComponentProcessorConstructor).getInheritedMetadata(ComponentEventExtension.METADATA_USER_EVENT_PROPERIES);
@@ -37,27 +38,16 @@ export class ComponentEventExtension {
                     throw new Exception(`Event emitter property must be of type ${ComponentEventEmitter.name}`, this);
                 }
 
-                lEventProperties.set(lEventName, lPropertyKey);
+                // Create component event emitter.
+                const lEventEmitter: ComponentEventEmitter<any> = new ComponentEventEmitter(lEventName, lTargetElement);
+
+                // Override property with created component event emmiter getter.
+                Object.defineProperty(lTargetObject, lPropertyKey, {
+                    get: () => {
+                        return lEventEmitter;
+                    }
+                });
             }
-        }
-
-        // Easy access target objects.
-        const lTargetObject: object = pComponent.processor;
-        const lTargetElement: HTMLElement = pElementReference;
-
-        // Override each property with the corresponding component event emitter.
-        for (const lEventName of lEventProperties.keys()) {
-            const lPropertyKey: string = <string>lEventProperties.get(lEventName);
-
-            // Create component event emitter.
-            const lEventEmitter: ComponentEventEmitter<any> = new ComponentEventEmitter(lEventName, lTargetElement);
-
-            // Override property with created component event emmiter getter.
-            Object.defineProperty(lTargetObject, lPropertyKey, {
-                get: () => {
-                    return lEventEmitter;
-                }
-            });
         }
     }
 }

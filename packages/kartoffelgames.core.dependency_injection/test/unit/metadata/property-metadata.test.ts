@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { PropertyMetadata } from '../../../source/metadata/property-metadata';
 import { InjectionConstructor } from '../../../source/type';
+import { Metadata } from '../../../source/metadata/metadata';
 
 describe('PropertyMetadata', () => {
     describe('Property: parameterTypes', () => {
@@ -228,17 +229,17 @@ describe('PropertyMetadata', () => {
 
             // Setup. C.
             const lMetadataValueC: string = 'NewMetadataValueC';
-            const lMetadataC: PropertyMetadata = new PropertyMetadata(C, lPropertyKey);
+            const lMetadataC: PropertyMetadata = Metadata.get(C).getProperty(lPropertyKey);
             lMetadataC.setMetadata(lMetadataKey, lMetadataValueC);
 
             // Setup. B.
             const lMetadataValueB: string = 'NewMetadataValueB';
-            const lMetadataB: PropertyMetadata = new PropertyMetadata(B, lPropertyKey);
+            const lMetadataB: PropertyMetadata = Metadata.get(B).getProperty(lPropertyKey);
             lMetadataB.setMetadata(lMetadataKey, lMetadataValueB);
 
             // Setup. A.
             const lMetadataValueA: string = 'NewMetadataValueA';
-            const lMetadataA: PropertyMetadata = new PropertyMetadata(A, lPropertyKey);
+            const lMetadataA: PropertyMetadata = Metadata.get(A).getProperty(lPropertyKey);
             lMetadataA.setMetadata(lMetadataKey, lMetadataValueA);
 
             // Process.
@@ -260,16 +261,16 @@ describe('PropertyMetadata', () => {
             const lMetadataKey: string = 'MetadataKey';
 
             // Setup. C.
-            const lMetadataC: PropertyMetadata = new PropertyMetadata(C, lPropertyKey);
+            const lMetadataC: PropertyMetadata = Metadata.get(C).getProperty(lPropertyKey);
 
             // Setup. B.
             const lMetadataValueB: string = 'NewMetadataValueB';
-            const lMetadataB: PropertyMetadata = new PropertyMetadata(B, lPropertyKey);
+            const lMetadataB: PropertyMetadata = Metadata.get(B).getProperty(lPropertyKey);
             lMetadataB.setMetadata(lMetadataKey, lMetadataValueB);
 
             // Setup. A.
             const lMetadataValueA: string = 'NewMetadataValueA';
-            const lMetadataA: PropertyMetadata = new PropertyMetadata(A, lPropertyKey);
+            const lMetadataA: PropertyMetadata = Metadata.get(A).getProperty(lPropertyKey);
             lMetadataA.setMetadata(lMetadataKey, lMetadataValueA);
 
             // Process.
@@ -292,17 +293,17 @@ describe('PropertyMetadata', () => {
 
             // Setup. C.
             const lMetadataValueC: string = 'NewMetadataValueC';
-            const lMetadataC: PropertyMetadata = new PropertyMetadata(C, lPropertyKey);
+            const lMetadataC: PropertyMetadata = Metadata.get(C).getProperty(lPropertyKey);
             lMetadataC.setMetadata(lMetadataKey, lMetadataValueC);
 
             // Setup. B.
             const lMetadataValueB: string = 'NewMetadataValueB';
-            const lMetadataB: PropertyMetadata = new PropertyMetadata(B, lPropertyKey);
+            const lMetadataB: PropertyMetadata = Metadata.get(B).getProperty(lPropertyKey);
             lMetadataB.setMetadata(lMetadataKey, lMetadataValueB);
 
             // Setup. A.
             const lMetadataValueA: string = 'NewMetadataValueA';
-            const lMetadataA: PropertyMetadata = new PropertyMetadata(A, lPropertyKey);
+            const lMetadataA: PropertyMetadata = Metadata.get(A).getProperty(lPropertyKey);
             lMetadataA.setMetadata(lMetadataKey, lMetadataValueA);
 
             // Process.

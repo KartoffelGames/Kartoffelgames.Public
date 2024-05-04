@@ -3,10 +3,11 @@ import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-
 import { PwbExtension } from '../../decorator/pwb-extension.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { ExtensionType } from '../../enum/extension-type.enum';
-import { ComponentEventEmitter } from './component-event-emitter';
 import { ComponentConstructorReference } from '../../injection/references/component/component-constructor-reference';
-import { ComponentReference } from '../../injection/references/component/component-reference';
 import { ComponentElementReference } from '../../injection/references/component/component-element-reference';
+import { ComponentReference } from '../../injection/references/component/component-reference';
+import { ComponentEventEmitter } from './component-event-emitter';
+import { ComponentProcessorConstructor } from '../../interface/component.interface';
 
 @PwbExtension({
     type: ExtensionType.Component,
@@ -27,27 +28,18 @@ export class ComponentEventExtension {
         // Get event metadata.
         const lEventProperties: Dictionary<string, string> = new Dictionary<string, string>();
 
-        let lClass: InjectionConstructor = <InjectionConstructor>pComponentProcessorConstructor;
-        do {
-            // Find all event properties of current class layer and add all to merged property list.
-            const lEventPropertyList: Dictionary<string, string> | null = Metadata.get(lClass).getMetadata(ComponentEventExtension.METADATA_USER_EVENT_PROPERIES);
-            if (lEventPropertyList) {
-                // Merge all properies into event properties, do not override.
-                for (const [lEventName, lPropertyName] of lEventPropertyList) {
-                    if (!lEventProperties.has(lEventName)) {
-                        lEventProperties.set(lEventName, lPropertyName);
-
-                        // Validate event emitter property type.
-                        if (Metadata.get(lClass).getProperty(lPropertyName).type !== ComponentEventEmitter) {
-                            throw new Exception(`Event emitter property must be of type ${ComponentEventEmitter.name}`, this);
-                        }
-                    }
+        // Find all event properties of current class layer and add all to merged property list.
+        const lEventPropertyMapList: Array<Array<[string, string, ComponentProcessorConstructor]>> = Metadata.get(<InjectionConstructor>pComponentProcessorConstructor).getInheritedMetadata(ComponentEventExtension.METADATA_USER_EVENT_PROPERIES);
+        for (const lEventPropertyList of lEventPropertyMapList) {
+            for (const [lEventName, lPropertyKey, lConstructor] of lEventPropertyList) {
+                // Validate event emitter property type.
+                if (Metadata.get(lConstructor).getProperty(lPropertyKey).type !== ComponentEventEmitter) {
+                    throw new Exception(`Event emitter property must be of type ${ComponentEventEmitter.name}`, this);
                 }
-            }
 
-            // Get next inherited parent class. Exit when no parent was found.
-            // eslint-disable-next-line no-cond-assign
-        } while (lClass = Object.getPrototypeOf(lClass));
+                lEventProperties.set(lEventName, lPropertyKey);
+            }
+        }
 
         // Easy access target objects.
         const lTargetObject: object = pComponent.processor;

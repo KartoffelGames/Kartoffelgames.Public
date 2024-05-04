@@ -1,4 +1,4 @@
-import { Dictionary, Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core.data';
 import { Metadata } from '@kartoffelgames/core.dependency-injection';
 import { ComponentProcessorConstructor } from '../../interface/component.interface';
 import { ComponentEventExtension } from './component-event-extension';
@@ -19,8 +19,8 @@ export function PwbComponentEvent(pEventName: string): any {
         }
 
         // Get property list from constructor metadata.
-        const lEventProperties: Dictionary<string, string> = Metadata.get(lUserClassConstructor).getMetadata(ComponentEventExtension.METADATA_USER_EVENT_PROPERIES) ?? new Dictionary<string, string>();
-        lEventProperties.add(pEventName, pPropertyKey);
+        const lEventProperties: Array<[string, string, ComponentProcessorConstructor]> = Metadata.get(lUserClassConstructor).getMetadata(ComponentEventExtension.METADATA_USER_EVENT_PROPERIES) ?? Array<[string, string, ComponentProcessorConstructor]>();
+        lEventProperties.push([pEventName, pPropertyKey, lUserClassConstructor]);
 
         // Set metadata.
         Metadata.get(lUserClassConstructor).setMetadata(ComponentEventExtension.METADATA_USER_EVENT_PROPERIES, lEventProperties);

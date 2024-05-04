@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { DecorationReplacementHistory } from '../decoration-history/decoration-history';
-import { AddMetadata } from '../decorator/add-metadata.decorator';
+import { Metadata } from '../metadata/metadata';
 import { InjectionConstructor } from '../type';
 
 export class ReflectInitializer {
@@ -144,15 +144,27 @@ export class ReflectInitializer {
      * @param pMetadataKey - Key of metadata.
      * @param pMetadataValue - Value of metadata. Usually only "design:paramtypes" data.
      */
-    private static metadata(pMetadataKey: string, pMetadataValue: Array<InjectionConstructor> | InjectionConstructor): Decorator {
+    private static metadata(pMetadataKey: string, pMetadataValue: any): Decorator {
         /*
            __metadata("design:type", Function), // Parameter Value
            __metadata("design:paramtypes", [Number, String]), // Function or Constructor Parameter
            __metadata("design:returntype", void 0) // Function return type.
         */
-        const lResultDecorator: Decorator = (pConstructorOrPrototype: object, pProperty?: string | symbol): void => {
-            // Call add metadata decorator.
-            AddMetadata(pMetadataKey, pMetadataValue)(pConstructorOrPrototype, pProperty);
+        const lResultDecorator: Decorator = (pTarget: object, pProperty?: string | symbol): void => {
+            // Get constructor from prototype if is an instanced member.
+            let lConstructor: InjectionConstructor;
+            if (typeof pTarget !== 'function') {
+                lConstructor = <InjectionConstructor>(<object>pTarget).constructor;
+            } else {
+                lConstructor = <InjectionConstructor>pTarget;
+            }
+
+            // Set metadata for property or class.
+            if (pProperty) {
+                Metadata.get(lConstructor).getProperty(pProperty).setMetadata(pMetadataKey, pMetadataValue);
+            } else {
+                Metadata.get(lConstructor).setMetadata(pMetadataKey, pMetadataValue);
+            }
         };
 
         // Set as metadata constructor and return.
@@ -166,3 +178,10 @@ export class ReflectInitializer {
  */
 type Decorator = (ClassDecorator | PropertyDecorator | MethodDecorator | ParameterDecorator) & { isMetadata: boolean; };
 
+declare global {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
+    namespace Reflect {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        function metadata(pMetadataKey: string, pMetadataValue: any): Decorator;
+    }
+}

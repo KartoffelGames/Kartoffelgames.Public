@@ -8,6 +8,7 @@ ReflectInitializer.initialize();
 /**
  * AtScript.
  * Mark class to be injectable as an instanced object.
+ * 
  * @param pConstructor - Constructor.
  */
 export function Injectable(pConstructor: InjectionConstructor): void {

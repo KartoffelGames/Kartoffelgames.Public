@@ -6,6 +6,7 @@ export class Injector {
     /**
      * AtScript.
      * Mark class to be injectable as an instanced object.
+     * 
      * @param pConstructor - Constructor.
      */
     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -14,6 +15,7 @@ export class Injector {
     /**
      * AtScript.
      * Mark class to be injectable as an singleton object.
+     * 
      * @param pConstructor - Constructor.
      */
     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -22,6 +24,7 @@ export class Injector {
     /**
      * AtScript.
      * Add metadata to class, method, accessor or property
+     * 
      * @param pMetadataKey - Key of metadata.
      * @param pMetadataValue - Value of metadata.
      */

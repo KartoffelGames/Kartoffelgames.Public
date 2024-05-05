@@ -3,6 +3,11 @@ import { DecorationReplacementHistory } from '../decoration-history/decoration-h
 import { Metadata } from '../metadata/metadata';
 import { InjectionConstructor } from '../type';
 
+/**
+ * Initializes global metadata reflection functionality of typescript.
+ * Adds {@link Reflect.metadata} and {@link Reflect.decorate} function to the global {@link Reflect} object.
+ * These functions are used by Typescript to inject type information on compile time.
+ */
 export class ReflectInitializer {
     private static mExported: boolean = false;
 
@@ -20,6 +25,7 @@ export class ReflectInitializer {
 
     /**
      * Decorate class, method, parameter or property.
+     * 
      * @param pDecoratorList - List of decorators.
      * @param pTarget - Target for decorator.
      * @param pPropertyKey - Key of property on member decorator.
@@ -44,6 +50,7 @@ export class ReflectInitializer {
 
     /**
      * Decorate class.
+     * 
      * @param pDecoratorList - Decorators.
      * @param pConstructor - Target constructor.
      */
@@ -83,6 +90,7 @@ export class ReflectInitializer {
 
     /**
      * Decorate method or accessor.
+     * 
      * @param pDecoratorList - Decorators.
      * @param pTarget - Is on instanced target the prototype and on static the constructor.s
      * @param pPropertyKey - Key of property decorator. 
@@ -110,7 +118,8 @@ export class ReflectInitializer {
     }
 
     /**
-     * Decorate property or parameter..
+     * Decorate property or parameter.
+     * 
      * @param pDecoratorList - Decorators.
      * @param pTarget - Is on instanced target the prototype and on static the constructor.s
      * @param pPropertyKey - Key of property decorator. 
@@ -125,6 +134,7 @@ export class ReflectInitializer {
 
     /**
      * Export property into Reflect object.
+     * 
      * @param pKey - Key of property.
      * @param pValue - Value of property.
      */
@@ -141,11 +151,14 @@ export class ReflectInitializer {
 
     /**
      * Entry point for Typescripts emitDecoratorMetadata data. 
+     * 
      * @param pMetadataKey - Key of metadata.
      * @param pMetadataValue - Value of metadata. Usually only "design:paramtypes" data.
      */
     private static metadata(pMetadataKey: string, pMetadataValue: any): Decorator {
         /*
+            Typescript injected metadata. __metadata is called as decorator and calls this metadata function.
+            
            __metadata("design:type", Function), // Parameter Value
            __metadata("design:paramtypes", [Number, String]), // Function or Constructor Parameter
            __metadata("design:returntype", void 0) // Function return type.
@@ -178,9 +191,14 @@ export class ReflectInitializer {
  */
 type Decorator = (ClassDecorator | PropertyDecorator | MethodDecorator | ParameterDecorator) & { isMetadata: boolean; };
 
+
+// Global definition for reflect metadata and decorate functions.
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace Reflect {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        function decorate(pDecoratorList: Array<Decorator>, pTarget: any, pPropertyKey?: string | symbol, pDescriptor?: TypedPropertyDescriptor<any>): any
+
         // eslint-disable-next-line @typescript-eslint/naming-convention
         function metadata(pMetadataKey: string, pMetadataValue: any): Decorator;
     }

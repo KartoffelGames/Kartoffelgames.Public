@@ -4,6 +4,12 @@ import { DecorationReplacementHistory } from '../decoration-history/decoration-h
 import { InjectionConstructor } from '../type';
 import { Metadata } from '../metadata/metadata';
 
+/**
+ * Injection configuration and creator.
+ * Handes global injection configuration for replaced injections and creates new instances from injectable classes.
+ * 
+ * @public 
+ */
 export class Injection {
     private static readonly mInjectMode: Dictionary<InjectionConstructor, InjectMode> = new Dictionary<InjectionConstructor, InjectMode>();
     private static readonly mInjectableConstructor: Dictionary<InjectionConstructor, InjectionConstructor> = new Dictionary<InjectionConstructor, InjectionConstructor>();
@@ -11,12 +17,34 @@ export class Injection {
     private static readonly mSingletonMapping: Dictionary<InjectionConstructor, object> = new Dictionary<InjectionConstructor, object>();
 
     /**
-     * Create object and auto inject parameter.
+     * Create object and auto inject parameter. Replaces parameter set by {@link replaceInjectable}.
+     * 
+     * @remarks
+     * Instancing configuration is set on {@link Injector.Injectable} or {@link Injector.InjectableSingleton} decorators.
+     * 
      * @param pConstructor - Constructor that should be created.
      * @param pLocalInjections - [Optional] Type objects pairs that replaces parameter with given type.
      *                           Does not inject those types any further into create object of parameters.
      * @param pForceCreate - [Optional] Force create new objects. Ignores the singleton injection restriction and creates a new object.
      *                       Has no effect on none singleton injections.
+     * 
+     * @throws {@link Exception}
+     * When either the {@link pConstructor} is not injectable or any of its parameter fails to construct.
+     * Construction of parameters fail when they are not registered or an error occurred on construction. 
+     * 
+     * @example Adding a new and existing key.
+     * ```TypeScript
+     * @Injector.Injectable
+     * class Foo {}
+     * 
+     * @Injector.InjectableSingleton
+     * class Bar {}
+     * 
+     * const instance = Injection.createObject(Foo);
+     * const singleton = Injection.createObject(Bar);
+     * ```
+     * 
+     * @returns a singleton or new instance of {@link pConstructor} based on it set injection configuration.
      */
     public static createObject<T extends object>(pConstructor: InjectionConstructor, pForceCreate?: boolean): T;
     public static createObject<T extends object>(pConstructor: InjectionConstructor, pLocalInjections?: Dictionary<InjectionConstructor, any>): T;
@@ -102,6 +130,10 @@ export class Injection {
 
     /**
      * Register an constructor for injection.
+     * 
+     * @remarks
+     * Any constructor can be registred but only constructors that have a attached decorator of any kind are able to be injected.
+     * 
      * @param pConstructor - Constructor that can be injected.
      * @param pMode - Mode of injection.
      */
@@ -116,9 +148,13 @@ export class Injection {
 
     /**
      * Replaces an constructor so instead of the original, the replacement gets injected.
-     * Both consructors must be registered.
+     * Both constructors must be registered with {@link registerInjectable}.
+     * 
      * @param pOriginalConstructor - Original constructor that should be replaced.
      * @param pReplacementConstructor - Replacement constructor that gets injected instead of original constructor.
+     * 
+     * @throws {@link Exception}
+     * When a constructor is not registed with {@link registerInjectable}.
      */
     public static replaceInjectable(pOriginalConstructor: InjectionConstructor, pReplacementConstructor: InjectionConstructor): void {
         // Find original registered original. Only root can be registerd.

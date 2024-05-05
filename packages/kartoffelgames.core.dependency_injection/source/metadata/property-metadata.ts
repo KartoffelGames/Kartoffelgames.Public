@@ -1,7 +1,9 @@
 import { InjectionConstructor } from '../type';
 import { BaseMetadata } from './base-metadata';
 
-
+/**
+ * Property metadata.
+ */
 export class PropertyMetadata extends BaseMetadata{
     /**
      * Get parameter type information.
@@ -28,8 +30,8 @@ export class PropertyMetadata extends BaseMetadata{
      * Constructor.
      * Initialize lists.
      * 
-     * @param pConstructor - Constructor where all metadata are attached.
-     * @param pPropertyKey - Key of property where all metadata is attached.
+     * @param pConstructor - Constructor where all metadata should be attached.
+     * @param pPropertyKey - Key of property where all metadata should be attached.
      */
     public constructor(pConstructor: InjectionConstructor, pPropertyKey: string | symbol) {
         super(pConstructor, pPropertyKey);

@@ -20,7 +20,7 @@ export class ConstructorMetadata extends BaseMetadata {
      * Constructor.
      * Initialize lists.
      * 
-     * @param pConstructor - Constructor where all metadata are attached.
+     * @param pConstructor - Constructor where all metadata should be attached.
      */
     public constructor(pConstructor: InjectionConstructor) {
         super(pConstructor, null);
@@ -31,10 +31,11 @@ export class ConstructorMetadata extends BaseMetadata {
     /**
      * Get property by key.
      * Creates new property metadata if it not already exists.
+     * 
      * @param pPropertyKey - Key of property.
      */
     public getProperty(pPropertyKey: string | symbol): PropertyMetadata {
-        // Create if missing.
+        // Create new property mapping when no mapping is found.
         if (!this.mPropertyMetadata.has(pPropertyKey)) {
             this.mPropertyMetadata.add(pPropertyKey, new PropertyMetadata(this.injectionConstructor, pPropertyKey));
         }

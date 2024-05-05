@@ -15,6 +15,11 @@ import { BuilderContent } from './data/base-builder-data';
 import { StaticBuilderData, StaticBuilderLinkedAttributeData } from './data/static-builder-data';
 import { InstructionBuilder } from './instruction-builder';
 
+/**
+ * Static builder. Handles any type of pwb template but creates new {@link InstructionBuilder} for every instruction node.
+ * 
+ * @internal
+ */
 export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderData> {
     private mInitialized: boolean;
 
@@ -102,6 +107,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
     /**
      * Build static template.
      * Create and link all modules.
+     * 
      * @param pElementTemplate - Element template.
      * @param pParentContent - Parent of template.
      */

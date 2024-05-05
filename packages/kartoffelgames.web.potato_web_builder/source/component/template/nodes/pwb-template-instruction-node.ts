@@ -62,6 +62,7 @@ export class PwbTemplateInstructionNode extends BasePwbTemplateNode {
 
     /**
      * Add child node to node list.
+     * 
      * @param pNode - Base node.
      */
     public appendChild(...pNode: Array<BasePwbTemplateNode>): void {
@@ -121,6 +122,7 @@ export class PwbTemplateInstructionNode extends BasePwbTemplateNode {
     /**
      * Remove child from XmlNode.
      * Return removed child.
+     * 
      * @param pNode - Child to remove.
      */
     public removeChild(pNode: BasePwbTemplateNode): BasePwbTemplateNode | undefined {

@@ -1,6 +1,6 @@
 import { Component } from '../component/component';
 
-export interface ComponentProcessor extends Partial<IPwbOnInit>, Partial<IPwbAfterInit>, Partial<IPwbOnDeconstruct>, Partial<IPwbAfterUpdate>, Partial<IPwbOnUpdate>, Partial<IPwbOnAttributeChange> {
+export interface ComponentProcessor extends Partial<IPwbOnDeconstruct>, Partial<IPwbAfterUpdate>, Partial<IPwbOnUpdate>, Partial<IPwbOnAttributeChange> {
     /**
      * Exposure of component object.
      */
@@ -23,16 +23,8 @@ export interface ComponentElement extends HTMLElement {
     readonly __component__: Component;
 }
 
-export interface IPwbOnInit {
-    onPwbInitialize(): void;
-}
-
 export interface IPwbOnDeconstruct {
     onPwbDeconstruct(): void;
-}
-
-export interface IPwbAfterInit {
-    afterPwbInitialize(): void;
 }
 
 export interface IPwbAfterUpdate {

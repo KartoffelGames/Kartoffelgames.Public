@@ -2,7 +2,7 @@ import { List } from '@kartoffelgames/core.data';
 import { BasePwbTemplateNode } from './base-pwb-template-node';
 
 /**
- * XMLDocument.
+ * Pwb template document. Root layer of every template.
  */
 export class PwbTemplate extends BasePwbTemplateNode {
     private readonly mBodyElementList: List<BasePwbTemplateNode>;
@@ -31,6 +31,7 @@ export class PwbTemplate extends BasePwbTemplateNode {
 
     /**
      * Append child to document body.
+     * 
      * @param pNodeList - Template nodes.
      */
     public appendChild(...pNodeList: Array<BasePwbTemplateNode>): void {
@@ -57,7 +58,10 @@ export class PwbTemplate extends BasePwbTemplateNode {
 
     /**
      * Compare two templates for equality.
+     * 
      * @param pBaseNode - Node that should be compared.
+     * 
+     * @returns true on equality and false otherwise.
      */
     public equals(pBaseNode: BasePwbTemplateNode): boolean {
         // Check type, tagname, namespace and namespace prefix.
@@ -83,7 +87,10 @@ export class PwbTemplate extends BasePwbTemplateNode {
     /**
      * Remove child from template.
      * Return removed child.
+     * 
      * @param pNode - Child to remove.
+     * 
+     * @returns removed child. Undefined when nothing was removed.
      */
     public removeChild(pNode: BasePwbTemplateNode): BasePwbTemplateNode | undefined {
         const lIndex: number = this.mBodyElementList.indexOf(pNode);

@@ -11,6 +11,12 @@ import { PwbTemplateExpression } from './template/nodes/values/pwb-template-expr
 import { LayerValues } from './values/layer-values';
 import { Exception } from '@kartoffelgames/core.data';
 
+/**
+ * Handles every kind of component modules. Keeps the current used expression module.
+ * Main entry point for creating new module instances.
+ * 
+ * @internal
+ */
 export class ComponentModules {
     private readonly mComponent: Component;
     private readonly mExpressionModule: IPwbExpressionModuleProcessorConstructor;
@@ -18,6 +24,7 @@ export class ComponentModules {
 
     /**
      * Constructor.
+     * 
      * @param pExpressionModule - default expression module for this component. 
      * @param pComponent - Component.
      */

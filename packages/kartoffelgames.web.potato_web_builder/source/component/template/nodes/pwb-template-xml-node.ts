@@ -48,6 +48,7 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
 
     /**
      * Add child node to node list.
+     * 
      * @param pNode - Base node.
      */
     public appendChild(...pNode: Array<BasePwbTemplateNode>): void {
@@ -88,6 +89,7 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
 
     /**
      * Compare current node with another one.
+     * 
      * @param pBaseNode - Base pwb template node.
      */
     public equals(pBaseNode: BasePwbTemplateNode): boolean {
@@ -128,6 +130,7 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
 
     /**
      * Removes attribute and return if attribute was removed/existed.
+     * 
      * @param pKey - Key of attribute.
      */
     public removeAttribute(pKey: string): boolean {
@@ -142,6 +145,7 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
     /**
      * Remove child from XmlNode.
      * Return removed child.
+     * 
      * @param pNode - Child to remove.
      */
     public removeChild(pNode: BasePwbTemplateNode): BasePwbTemplateNode | undefined {
@@ -162,6 +166,7 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
     /**
      * Get attribute value of xml node.
      * Returns creates new attribute if it does not exist.
+     * 
      * @param pKey - Name of attribute.
      */
     public setAttribute(pKey: string): PwbTemplateTextNode {

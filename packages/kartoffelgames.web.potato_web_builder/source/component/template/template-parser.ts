@@ -39,6 +39,8 @@ export class TemplateParser {
 
     /**
      * Create a new lexer instance.
+     * 
+     * @returns new lexer instance with updated configuration.
      */
     private createLexer(): Lexer<PwbTemplateToken> {
         const lLexer: Lexer<PwbTemplateToken> = new Lexer<PwbTemplateToken>();
@@ -65,7 +67,7 @@ export class TemplateParser {
             'XmlValue'
         );
 
-        // Apply token stack to current context.
+        // Apply token stack to current lexer context.
         const lApplyTokenStack = () => {
             for (let lSpecificity: number = 0; lSpecificity < lTokenSpecificityOrder.length; lSpecificity++) {
                 const lTokenTemplateName: string = lTokenSpecificityOrder[lSpecificity];
@@ -186,6 +188,8 @@ export class TemplateParser {
      * Create new code parser instance.
      * 
      * @param pLexer - Lexer instance.
+     * 
+     * @returns a new code parser instance with set {@link pLexer}.
      */
     private createParser(pLexer: Lexer<PwbTemplateToken>): CodeParser<PwbTemplateToken, PwbTemplate> {
         const lParser: CodeParser<PwbTemplateToken, PwbTemplate> = new CodeParser<PwbTemplateToken, PwbTemplate>(pLexer);

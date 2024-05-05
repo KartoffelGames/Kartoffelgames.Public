@@ -3,7 +3,7 @@
 // Component
 export { ComponentProcessor, ComponentProcessorConstructor } from './interface/component.interface';
 export { PwbApp } from './pwb-app';
-export { IPwbOnInit, IPwbAfterInit, IPwbOnDeconstruct, IPwbAfterUpdate, IPwbOnUpdate, IPwbOnAttributeChange } from './interface/component.interface';
+export { IPwbOnDeconstruct, IPwbAfterUpdate, IPwbOnUpdate, IPwbOnAttributeChange } from './interface/component.interface';
 export { PwbComponent } from './decorator/pwb-component.decorator';
 
 // Module Injections

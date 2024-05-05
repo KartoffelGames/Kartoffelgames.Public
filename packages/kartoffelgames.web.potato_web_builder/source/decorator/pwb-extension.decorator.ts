@@ -6,6 +6,8 @@ import { IPwbExtensionProcessorClass } from '../interface/extension.interface';
 
 /**
  * AtScript. PWB component extension.
+ * 
+ * @param pSettings - Extension settings.
  */
 export function PwbExtension(pSettings: ExtensionSettings): any {
     return (pExtensionConstructor: IPwbExtensionProcessorClass) => {

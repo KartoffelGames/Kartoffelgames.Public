@@ -4,7 +4,6 @@ import { IPwbExpressionModuleProcessorConstructor } from '../interface/module.in
 
 /**
  * AtScript. PWB Expression module.
- * @param pSettings - Module settings.
  */
 export function PwbExpressionModule(): any {
     return (pExpressionModuleConstructor: IPwbExpressionModuleProcessorConstructor) => {

@@ -9,6 +9,7 @@ import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 export class ElementCreator {
     /**
      * Create comment node with set text.
+     * 
      * @param pText - Comment text.
      * 
      * @returns XML-Comment with provided text.
@@ -48,6 +49,7 @@ export class ElementCreator {
 
     /**
      * Create html text node.
+     * 
      * @param pText - Text.
      * 
      * @returns text node with specified text.

@@ -1,7 +1,7 @@
 import { PwbTemplate } from './pwb-template';
 
 /**
- * Basic node.
+ * Basic pwb template node.
  */
 export abstract class BasePwbTemplateNode {
     private mParent: BasePwbTemplateNode | null;
@@ -36,6 +36,7 @@ export abstract class BasePwbTemplateNode {
 
     /**
      * Compare current node with another one.
+     * 
      * @param pBaseNode - Base xml node.
      */
     public abstract equals(pBaseNode: BasePwbTemplateNode): boolean;

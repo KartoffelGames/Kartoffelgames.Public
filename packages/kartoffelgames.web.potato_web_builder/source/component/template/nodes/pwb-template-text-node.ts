@@ -2,7 +2,7 @@ import { BasePwbTemplateNode } from './base-pwb-template-node';
 import { PwbTemplateExpression } from './values/pwb-template-expression';
 
 /**
- * Node only contains text.
+ * Pwb template node only containing text.
  */
 export class PwbTemplateTextNode extends BasePwbTemplateNode {
     private mContainsExpression: boolean;
@@ -75,6 +75,7 @@ export class PwbTemplateTextNode extends BasePwbTemplateNode {
 
     /**
      * Compare current node with another one.
+     * 
      * @param pBaseNode - Base pwb template node.
      */
     public override equals(pBaseNode: BasePwbTemplateNode): boolean {

@@ -5,6 +5,7 @@ import { IPwbAttributeModuleProcessorConstructor } from '../interface/module.int
 
 /**
  * AtScript. PWB attribute attribute module.
+ * 
  * @param pSettings - Module settings.
  */
 export function PwbAttributeModule(pSettings: AttributeModuleSettings): any {

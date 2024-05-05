@@ -8,6 +8,12 @@ import { BaseBuilder } from './base-builder';
 import { InstructionBuilderData } from './data/instruction-builder-data';
 import { StaticBuilder } from './static-builder';
 
+/**
+ * Instruction builder. Only builds and handles instruction templates.
+ * Creates new static builder for every generated instruction result.
+ * 
+ * @internal
+ */
 export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, InstructionBuilderData> {
     /**
      * Constructor.
@@ -51,6 +57,8 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
      * 
      * @param pNewContent - New content.
      * @param pContentCursor - Content that comes before new content.
+     * 
+     * @returns a new {@link StaticBuilder} instance for the generated instruction result.
      */
     private insertNewContent(pNewContent: InstructionResultElement, pContentCursor: StaticBuilder | null): StaticBuilder {
         // Create new static builder.
@@ -69,6 +77,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
 
     /**
      * Update content of manipulator builder.
+     * Uses {@link DifferenceSearch} to decide wich static item needs to be removed or created.
      * 
      * @param pOldContentList - Old content list.
      * @param pNewContentList - New content list.

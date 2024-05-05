@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { PwbComponent } from '../../source/decorator/pwb-component.decorator';
 import { UpdateScope } from '../../source/enum/update-scope.enum';
 import { LoopError } from '../../source/component/handler/loop-detection-handler';
-import { ComponentElement, IPwbAfterInit, IPwbAfterUpdate, IPwbOnAttributeChange, IPwbOnDeconstruct, IPwbOnInit, IPwbOnUpdate } from '../../source/interface/component.interface';
+import { ComponentElement, IPwbAfterUpdate, IPwbOnAttributeChange, IPwbOnDeconstruct, IPwbOnUpdate } from '../../source/interface/component.interface';
 import { PwbExport } from '../../source/default/export/pwb-export.decorator';
 import { PwbExpressionModule } from '../../source/decorator/pwb-expression-module.decorator';
 import { IPwbExpressionModuleOnUpdate } from '../../source/interface/module.interface';
@@ -360,7 +360,6 @@ describe('HtmlComponent', () => {
         // Setup.
         const lCallPosition = {
             onPwbInitialize: 1,
-            afterPwbInitialize: 2,
             onPwbUpdate: 3,
             afterPwbUpdate: 4,
             onPwbAttributeChange: 5,
@@ -375,15 +374,15 @@ describe('HtmlComponent', () => {
             selector: TestUtil.randomSelector(),
             template: '<div>{{this.innerValue}}</div>'
         })
-        class TestComponent implements IPwbOnInit, IPwbAfterInit, IPwbOnUpdate, IPwbAfterUpdate, IPwbOnAttributeChange, IPwbOnDeconstruct {
+        class TestComponent implements IPwbOnUpdate, IPwbAfterUpdate, IPwbOnAttributeChange, IPwbOnDeconstruct {
             @PwbExport
             public innerValue: string = 'DUMMY-VALUE';
 
             private mAfterPwbUpdateCalled: boolean = false;
             private mOnPwbUpdateCalled: boolean = false;
 
-            public afterPwbInitialize(): void {
-                lExpectedCallOrder.push(lCallPosition.afterPwbInitialize);
+            public constructor() {
+                lExpectedCallOrder.push(lCallPosition.onPwbInitialize);
             }
 
             public afterPwbUpdate(): void {
@@ -400,10 +399,6 @@ describe('HtmlComponent', () => {
 
             public onPwbDeconstruct(): void {
                 lExpectedCallOrder.push(lCallPosition.onPwbDeconstruct);
-            }
-
-            public onPwbInitialize(): void {
-                lExpectedCallOrder.push(lCallPosition.onPwbInitialize);
             }
 
             public onPwbUpdate(): void {
@@ -424,7 +419,6 @@ describe('HtmlComponent', () => {
         expect(lExpectedCallOrder).to.deep.equal(
             [
                 lCallPosition.onPwbInitialize,
-                lCallPosition.afterPwbInitialize,
                 lCallPosition.onPwbUpdate,
                 lCallPosition.afterPwbUpdate,
                 lCallPosition.onPwbAttributeChange,

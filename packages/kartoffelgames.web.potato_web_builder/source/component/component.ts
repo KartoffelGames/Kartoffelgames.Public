@@ -1,10 +1,18 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { Injection } from '@kartoffelgames/core.dependency-injection';
-import { ChangeDetection } from '@kartoffelgames/web.change-detection';
+import { AccessMode } from '../enum/access-mode.enum';
+import { ExtensionType } from '../enum/extension-type.enum';
 import { UpdateScope } from '../enum/update-scope.enum';
 import { ComponentExtension } from '../extension/component-extension';
 import { GlobalExtensionsStorage } from '../extension/global-extensions-storage';
+import { InjectionHierarchyParent } from '../injection/injection-hierarchy-parent';
+import { ComponentConstructorReference } from '../injection/references/component/component-constructor-reference';
+import { ComponentElementReference } from '../injection/references/component/component-element-reference';
+import { ComponentLayerValuesReference } from '../injection/references/component/component-layer-values-reference';
+import { ComponentReference } from '../injection/references/component/component-reference';
+import { ComponentUpdateHandlerReference } from '../injection/references/component/component-update-handler-reference';
 import { ComponentProcessor, ComponentProcessorConstructor } from '../interface/component.interface';
+import { IPwbExtensionProcessorClass } from '../interface/extension.interface';
 import { IPwbExpressionModuleProcessorConstructor } from '../interface/module.interface';
 import { StaticBuilder } from './builder/static-builder';
 import { ComponentModules } from './component-modules';
@@ -15,15 +23,6 @@ import { PwbTemplate } from './template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 import { TemplateParser } from './template/template-parser';
 import { LayerValues } from './values/layer-values';
-import { InjectionHierarchyParent } from '../injection/injection-hierarchy-parent';
-import { ComponentReference } from '../injection/references/component/component-reference';
-import { ComponentConstructorReference } from '../injection/references/component/component-constructor-reference';
-import { ComponentElementReference } from '../injection/references/component/component-element-reference';
-import { ComponentLayerValuesReference } from '../injection/references/component/component-layer-values-reference';
-import { ComponentUpdateHandlerReference } from '../injection/references/component/component-update-handler-reference';
-import { ExtensionType } from '../enum/extension-type.enum';
-import { AccessMode } from '../enum/access-mode.enum';
-import { IPwbExtensionProcessorClass } from '../interface/extension.interface';
 
 /**
  * Base component handler. Handles initialisation and update of components.
@@ -51,14 +50,8 @@ export class Component extends InjectionHierarchyParent {
     }
 
     /**
-     * Untracked Component processor.
-     */
-    public get untrackedProcessor(): ComponentProcessor {
-        return ChangeDetection.getUntrackedObject(this.processor);
-    }
-
-    /**
      * Constructor.
+     * 
      * @param pComponentProcessorConstructor - Component processor constructor.
      * @param pTemplateString - Template as xml string.
      * @param pExpressionModule - Expression module constructor.
@@ -119,15 +112,11 @@ export class Component extends InjectionHierarchyParent {
 
         // Create injection extensions.
         this.mExtensionList = new Array<ComponentExtension>();
-
-        // After build, before initialization.
-        this.callOnPwbInitialize();
-
-        this.callAfterPwbInitialize();
     }
 
     /**
      * Create style element and prepend it to this component.
+     * 
      * @param pStyle - Css style as string.
      */
     public addStyle(pStyle: string): void {
@@ -137,13 +126,6 @@ export class Component extends InjectionHierarchyParent {
         const lStyleElement: Element = ElementCreator.createElement(lStyleTemplate);
         lStyleElement.innerHTML = pStyle;
         this.mElementHandler.shadowRoot.prepend(lStyleElement);
-    }
-
-    /**
-     * Call onPwbInitialize of component processor object.
-     */
-    public callAfterPwbInitialize(): void {
-        this.processor.afterPwbInitialize?.();
     }
 
     /**
@@ -166,13 +148,6 @@ export class Component extends InjectionHierarchyParent {
      */
     public callOnPwbDeconstruct(): void {
         this.processor.onPwbDeconstruct?.();
-    }
-
-    /**
-     * Call onPwbInitialize of component processor object.
-     */
-    public callOnPwbInitialize(): void {
-        this.processor.onPwbInitialize?.();
     }
 
     /**

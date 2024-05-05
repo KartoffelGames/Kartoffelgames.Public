@@ -6,6 +6,7 @@ import { IPwbAttributeModuleProcessorConstructor, IPwbExpressionModuleProcessorC
 
 /**
  * AtScript. PWB Component.
+ * 
  * @param pParameter - Parameter defaults on creation.
  */
 export function PwbComponent(pParameter: HtmlComponentParameter): any {

@@ -50,6 +50,7 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
 
     /**
      * Constructor.
+     * 
      * @param pTemplate - Builder template.
      * @param pParentLayerValues - New component values.
      */

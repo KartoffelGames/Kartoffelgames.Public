@@ -1,5 +1,10 @@
 import { BasePwbTemplateValue } from './base-pwb-template-value';
 
+/**
+ * Pwb template expression.
+ * Expects expressions to be between double brakets.
+ * The string output is modified to expect this.
+ */
 export class PwbTemplateExpression extends BasePwbTemplateValue {
     public mExpression: string;
 
@@ -33,6 +38,7 @@ export class PwbTemplateExpression extends BasePwbTemplateValue {
 
     /**
      * Compare current node with another one.
+     * 
      * @param pBaseNode - Base xml node.
      */
     public equals(pBaseNode: PwbTemplateExpression): boolean {

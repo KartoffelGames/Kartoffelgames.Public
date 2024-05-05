@@ -1,3 +1,7 @@
+/**
+ * Handles the component element.
+ * Creates and attaches a new shadowroot.
+ */
 export class ElementHandler {
     private readonly mHtmlElement: HTMLElement;
     private readonly mShadowRoot: ShadowRoot;
@@ -18,6 +22,7 @@ export class ElementHandler {
 
     /**
      * Constructor.
+     * 
      * @param pHtmlElement - HTMLElement.
      */
     public constructor(pHtmlElement: HTMLElement) {

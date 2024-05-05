@@ -2,6 +2,10 @@ import { PwbTemplateTextNode } from '../pwb-template-text-node';
 import { BasePwbTemplateValue } from './base-pwb-template-value';
 import { PwbTemplateExpression } from './pwb-template-expression';
 
+/**
+ * Pwb xml template attribute.
+ * Saves name and value of a xml attribute. 
+ */
 export class PwbTemplateAttribute extends BasePwbTemplateValue {
     private mName: string;
     private readonly mValue: PwbTemplateTextNode;
@@ -51,6 +55,7 @@ export class PwbTemplateAttribute extends BasePwbTemplateValue {
 
     /**
      * Compare current node with another one.
+     * 
      * @param pBaseNode - Base pwb template node.
      */
     public override equals(pBaseNode: BasePwbTemplateValue): boolean {

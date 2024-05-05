@@ -8,6 +8,7 @@ import { Component } from '../component';
  * Simple access for all value types: TemporaryValue, IdChild and ComponentProcessor values.
  * has-, get-, set-, remove-.
  */
+// TODO: Rework for proxy object for getter and setter. Remove public root value (ComponentValue reference should be enough)
 export class LayerValues {
     private readonly mComponent: Component;
     private readonly mParentLayer: LayerValues | null;

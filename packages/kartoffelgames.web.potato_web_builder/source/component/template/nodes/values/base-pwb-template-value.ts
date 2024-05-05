@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core.data';
 import { BasePwbTemplateNode } from '../base-pwb-template-node';
 
 /**
- * Basic node.
+ * Basic pwb template value used to save node values.
  */
 export abstract class BasePwbTemplateValue {
     private mNode: BasePwbTemplateNode | null;

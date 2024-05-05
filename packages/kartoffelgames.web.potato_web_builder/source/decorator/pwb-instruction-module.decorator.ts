@@ -4,6 +4,7 @@ import { IPwbInstructionModuleProcessorConstructor } from '../interface/module.i
 
 /**
  * AtScript. PWB instruction attribute module.
+ * 
  * @param pSettings - Module settings.
  */
 export function PwbInstructionModule(pSettings: InstructionModuleSettings): any {

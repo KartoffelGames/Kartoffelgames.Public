@@ -1,6 +1,7 @@
 import { List } from '@kartoffelgames/core.data';
 import { ChangeDetection, ChangeDetectionReason } from '@kartoffelgames/web.change-detection';
 
+// TODO: Needs a slight rework.
 export class LoopDetectionHandler {
     private readonly mCurrentCallChain: List<ChangeDetectionReason>;
     private mInActiveChain: boolean;

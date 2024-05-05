@@ -7,6 +7,8 @@ import { InjectionConstructor } from '../type';
  * Initializes global metadata reflection functionality of typescript.
  * Adds {@link Reflect.metadata} and {@link Reflect.decorate} function to the global {@link Reflect} object.
  * These functions are used by Typescript to inject type information on compile time.
+ * 
+ * @internal
  */
 export class ReflectInitializer {
     private static mExported: boolean = false;

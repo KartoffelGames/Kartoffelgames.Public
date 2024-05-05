@@ -3,6 +3,8 @@ import { InjectionConstructor } from '../type';
 
 /**
  * Decoration history keeps track of any class that was replaces through a decorator.
+ * 
+ * @internal
  */
 export class DecorationReplacementHistory {
     private static readonly mBackwardHistory: Dictionary<InjectionConstructor, InjectionConstructor> = new Dictionary<InjectionConstructor, InjectionConstructor>();

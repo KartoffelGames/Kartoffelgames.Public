@@ -510,4 +510,27 @@ describe('HtmlComponent', () => {
         // Evaluation.
         expect(lComponent).to.be.instanceOf(HTMLElement);
     });
+
+    it('-- Prevent construction of processor when not needed.', async () => {
+        // Setup. Define flag.
+        let lConstructionCalled: boolean = false;
+
+        // Setup. Define component.
+        @PwbComponent({
+            selector: TestUtil.randomSelector(),
+            template: `<div/>`
+        })
+        class TestComponent {
+            public constructor() {
+                lConstructionCalled = true;
+            }
+        }
+
+        // Process. Create element.
+        const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
+        await TestUtil.waitForUpdate(lComponent);
+
+        // Evaluation
+        expect(lConstructionCalled).to.be.false;
+    });
 });

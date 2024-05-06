@@ -176,7 +176,6 @@ describe('PwbAppInjectionExtension', () => {
         try {
             const lComponent: HTMLElement & TestComponent = new lComponentConstructor() as any;
             await TestUtil.waitForUpdate(lComponent);
-
         } catch (pException) {
             const lError: Error = <Error>pException;
             lMessage = lError.message;

@@ -55,7 +55,6 @@ export class EventListenerComponentExtension implements IPwbExtensionOnDeconstru
         this.mEventListenerList = new Array<[string, EventListener]>();
 
         // Easy access target objects.
-        const lTargetObject: object = pComponent.processor;
         this.mTargetElement = pElementReference;
 
         // Override each property with the corresponding component event emitter.
@@ -63,8 +62,8 @@ export class EventListenerComponentExtension implements IPwbExtensionOnDeconstru
             const [lPropertyKey, lEventName] = lEventProperty;
 
             // Get target event listener function.
-            let lEventListener: EventListener = Reflect.get(lTargetObject, lPropertyKey);
-            lEventListener = ChangeDetection.getUntrackedObject(lEventListener).bind(lTargetObject);
+            let lEventListener: EventListener = Reflect.get(pComponent.processor, lPropertyKey);
+            lEventListener = ChangeDetection.getUntrackedObject(lEventListener).bind(pComponent.processor);
 
             // Add listener element and save for deconstruct.
             this.mEventListenerList.push([lEventName, lEventListener]);

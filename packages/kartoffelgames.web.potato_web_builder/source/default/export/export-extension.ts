@@ -4,10 +4,9 @@ import { Component } from '../../component/component';
 import { PwbExtension } from '../../decorator/pwb-extension.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { ExtensionType } from '../../enum/extension-type.enum';
-import { ComponentProcessor } from '../../interface/component.interface';
 import { ComponentConstructorReference } from '../../injection/references/component/component-constructor-reference';
-import { ComponentReference } from '../../injection/references/component/component-reference';
 import { ComponentElementReference } from '../../injection/references/component/component-element-reference';
+import { ComponentReference } from '../../injection/references/component/component-reference';
 
 @PwbExtension({
     type: ExtensionType.Component,
@@ -17,7 +16,6 @@ export class ExportExtension {
     public static readonly METADATA_EXPORTED_PROPERTIES: string = 'pwb:exported_properties';
 
     private readonly mComponent: Component;
-    private readonly mComponentProcessor: ComponentProcessor;
     private readonly mHtmlElement: HTMLElement;
     
     /**
@@ -27,7 +25,6 @@ export class ExportExtension {
      */
     public constructor(pComponentProcessorConstructor: ComponentConstructorReference, pComponent: ComponentReference, pElementReference: ComponentElementReference) {
         this.mHtmlElement = pElementReference;
-        this.mComponentProcessor = pComponent.processor;
         this.mComponent = pComponent;
 
         // All exported properties of target and parent classes.
@@ -74,17 +71,17 @@ export class ExportExtension {
 
             // Setter and getter of this property. Execute changes inside component handlers change detection.
             lDescriptor.set = (pValue: any) => {
-                Reflect.set(this.mComponentProcessor, lExportProperty, pValue);
+                Reflect.set(this.mComponent.processor, lExportProperty, pValue);
 
                 // Call OnAttributeChange.
                 this.mComponent.callOnPwbAttributeChange(lExportProperty);
             };
             lDescriptor.get = () => {
-                let lValue: any = Reflect.get(this.mComponentProcessor, lExportProperty);
+                let lValue: any = Reflect.get(this.mComponent.processor, lExportProperty);
 
                 // Bind "this" context to the exported function.
                 if (typeof lValue === 'function') {
-                    lValue = (<(...pArgs: Array<any>) => any>lValue).bind(this.mComponentProcessor);
+                    lValue = (<(...pArgs: Array<any>) => any>lValue).bind(this.mComponent.processor);
                 }
 
                 return lValue;

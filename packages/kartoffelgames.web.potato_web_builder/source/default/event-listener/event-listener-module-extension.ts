@@ -54,9 +54,6 @@ export class EventListenerModuleExtension implements IPwbExtensionOnDeconstruct 
         // Initialize lists.
         this.mEventListenerList = new Array<[string, EventListener]>();
 
-        // Easy access target objects.
-        const lTargetObject: object = pModule.processor;
-
         // Fallback to component element, when module element reference is not a "html" element.
         if (pModuleElementReference instanceof Element) {
             this.mTargetElement = pModuleElementReference;
@@ -69,8 +66,8 @@ export class EventListenerModuleExtension implements IPwbExtensionOnDeconstruct 
             const [lPropertyKey, lEventName] = lEventProperty;
 
             // Get target event listener function.
-            let lEventListener: EventListener = Reflect.get(lTargetObject, lPropertyKey);
-            lEventListener = ChangeDetection.getUntrackedObject(lEventListener).bind(lTargetObject);
+            let lEventListener: EventListener = Reflect.get(pModule.processor, lPropertyKey);
+            lEventListener = ChangeDetection.getUntrackedObject(lEventListener).bind(pModule.processor);
 
             // Add listener element and save for deconstruct.
             this.mEventListenerList.push([lEventName, lEventListener]);

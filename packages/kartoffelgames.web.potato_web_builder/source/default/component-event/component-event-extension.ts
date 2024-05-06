@@ -25,10 +25,6 @@ export class ComponentEventExtension {
      * @param pElementReference - Component html element.
      */
     public constructor(pComponentProcessorConstructor: ComponentConstructorReference, pComponent: ComponentReference, pElementReference: ComponentElementReference) {
-        // Easy access target objects.
-        const lTargetObject: object = pComponent.processor;
-        const lTargetElement: HTMLElement = pElementReference;
-
         // Find all event properties of current class layer and add all to merged property list.
         const lEventPropertyMapList: Array<Array<[string, string, ComponentProcessorConstructor]>> = Metadata.get(<InjectionConstructor>pComponentProcessorConstructor).getInheritedMetadata(ComponentEventExtension.METADATA_USER_EVENT_PROPERIES);
         for (const lEventPropertyList of lEventPropertyMapList) {
@@ -39,10 +35,10 @@ export class ComponentEventExtension {
                 }
 
                 // Create component event emitter.
-                const lEventEmitter: ComponentEventEmitter<any> = new ComponentEventEmitter(lEventName, lTargetElement);
+                const lEventEmitter: ComponentEventEmitter<any> = new ComponentEventEmitter(lEventName, pElementReference);
 
                 // Override property with created component event emmiter getter.
-                Object.defineProperty(lTargetObject, lPropertyKey, {
+                Object.defineProperty(pComponent.processor, lPropertyKey, {
                     get: () => {
                         return lEventEmitter;
                     }

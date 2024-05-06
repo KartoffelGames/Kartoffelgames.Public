@@ -11,7 +11,6 @@ import { ComponentReference } from '../../injection/references/component/compone
     access: AccessMode.Write
 })
 export class PwbAppModuleInjectionExtension {
-
     /**
      * Constructor.
      * Sets current {@link PwbApp} as injection target.
@@ -31,7 +30,6 @@ export class PwbAppModuleInjectionExtension {
     access: AccessMode.Write
 })
 export class PwbAppComponentInjectionExtension {
-
     /**
      * Constructor.
      * Sets current {@link PwbApp} as injection target.

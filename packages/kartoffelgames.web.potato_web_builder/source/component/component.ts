@@ -112,6 +112,8 @@ export class Component extends InjectionHierarchyParent {
 
         // Create injection extensions.
         this.mExtensionList = new Array<ComponentExtension>();
+
+        this.executeExtensions();
     }
 
     /**
@@ -204,25 +206,6 @@ export class Component extends InjectionHierarchyParent {
      * Create component processor.
      */
     private createProcessor(): void {
-        const lExtensions: GlobalExtensionsStorage = new GlobalExtensionsStorage();
-
-        // Create local injections with write extensions.
-        // Execute all inside the zone.
-        this.mUpdateHandler.executeInZone(() => {
-
-            for (const lExtensionConstructor of lExtensions.get(ExtensionType.Component, AccessMode.Write)) {
-                const lComponentExtension: ComponentExtension = new ComponentExtension({
-                    constructor: lExtensionConstructor,
-                    parent: this
-                });
-
-                // Execute extension.
-                lComponentExtension.execute();
-
-                this.mExtensionList.push(lComponentExtension);
-            }
-        });
-
         // Lock injections.
         this.lock();
 
@@ -241,6 +224,26 @@ export class Component extends InjectionHierarchyParent {
 
         // Store processor to be able to read for all read extensions.
         this.mProcessor = this.mUpdateHandler.registerObject(lUntrackedProcessor!);
+    }
+
+    private executeExtensions(): void {
+        const lExtensions: GlobalExtensionsStorage = new GlobalExtensionsStorage();
+
+        // Create local injections with write extensions.
+        // Execute all inside the zone.
+        this.mUpdateHandler.executeInZone(() => {
+            for (const lExtensionConstructor of lExtensions.get(ExtensionType.Component, AccessMode.Write)) {
+                const lComponentExtension: ComponentExtension = new ComponentExtension({
+                    constructor: lExtensionConstructor,
+                    parent: this
+                });
+
+                // Execute extension.
+                lComponentExtension.execute();
+
+                this.mExtensionList.push(lComponentExtension);
+            }
+        });
 
         // Create execute all other read extensions.
         // Execute all inside the zone.
@@ -263,4 +266,5 @@ export class Component extends InjectionHierarchyParent {
             }
         });
     }
+
 }

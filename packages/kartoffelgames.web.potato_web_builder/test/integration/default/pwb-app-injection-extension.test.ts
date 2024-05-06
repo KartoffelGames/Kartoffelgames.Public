@@ -5,6 +5,7 @@ import { PwbApp } from '../../../source/pwb-app';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
+import { PwbExport } from '../../../source';
 
 describe('PwbAppInjectionExtension', () => {
     it('-- PwbApp injection on global element', async () => {
@@ -159,19 +160,23 @@ describe('PwbAppInjectionExtension', () => {
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class TestComponent {
-            public constructor(_pApp: PwbApp) {/* Empty */ }
+            @PwbExport
+            public app: PwbApp;
+
+            public constructor(pApp: PwbApp) {
+                this.app = pApp;
+            }
         }
 
         // Process. Create element.
-        const lComponentConstructor: CustomElementConstructor | undefined = window.customElements.get(lSelector);
+        const lComponentConstructor: CustomElementConstructor = <CustomElementConstructor>window.customElements.get(lSelector);
 
         // Process.
         let lMessage: string | null = null;
         try {
-            if (lComponentConstructor) {
-                const lComponent: HTMLElement = new lComponentConstructor();
-                await TestUtil.waitForUpdate(lComponent);
-            }
+            const lComponent: HTMLElement & TestComponent = new lComponentConstructor() as any;
+            await TestUtil.waitForUpdate(lComponent);
+
         } catch (pException) {
             const lError: Error = <Error>pException;
             lMessage = lError.message;

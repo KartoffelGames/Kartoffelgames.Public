@@ -187,7 +187,7 @@ export class Component extends InjectionHierarchyParent {
 
         // Trigger light update.
         this.mUpdateHandler.requestUpdate({
-            source: this.processor,
+            source: this.mProcessor ?? this,
             property: Symbol('any'),
             stacktrace: <string>Error().stack
         });
@@ -228,8 +228,6 @@ export class Component extends InjectionHierarchyParent {
     private createProcessor(): void {
         // Lock injections.
         this.lock();
-
-        //console.log(new Error().stack);
 
         // Create user object inside update zone.
         let lUntrackedProcessor: ComponentProcessor | null = null;

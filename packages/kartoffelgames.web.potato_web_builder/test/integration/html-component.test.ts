@@ -480,7 +480,7 @@ describe('HtmlComponent', () => {
         // Process. Create element.
         let lError: any;
         try {
-            await <any>TestUtil.createComponent(TestComponent, true);
+            await <any>TestUtil.createComponent(TestComponent);
         } catch (e) {
             lError = e;
         }
@@ -527,8 +527,7 @@ describe('HtmlComponent', () => {
         }
 
         // Process. Create element.
-        const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
-        await TestUtil.waitForUpdate(lComponent);
+        await TestUtil.createComponent(TestComponent);
 
         // Evaluation
         expect(lConstructionCalled).to.be.false;

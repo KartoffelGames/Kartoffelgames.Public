@@ -1,11 +1,12 @@
 import { expect } from 'chai';
+import { PwbExport } from '../../../source';
 import { PwbComponent } from '../../../source/decorator/pwb-component.decorator';
 import { UpdateScope } from '../../../source/enum/update-scope.enum';
+import { ComponentElement } from '../../../source/interface/component.interface';
 import { PwbApp } from '../../../source/pwb-app';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
-import { PwbExport } from '../../../source';
 
 describe('PwbAppInjectionExtension', () => {
     it('-- PwbApp injection on global element', async () => {
@@ -22,8 +23,17 @@ describe('PwbAppInjectionExtension', () => {
             }
         }
 
-        // Process. Create element and click div.
-        await <any>TestUtil.createComponent(TestComponent);
+        // Process. Create app and skip wait for splash screen.
+        const lPwbApp: PwbApp = new PwbApp('Name');
+        lPwbApp.setSplashScreen({ content: '', background: '', manual: true, animationTime: 10 });
+
+        // Process. Add component to pwb app.
+        lPwbApp.addContent(TestComponent);
+        await lPwbApp.appendTo(document.body);
+
+        // Process. Create elements and wait for update.
+        const lComponent: ComponentElement = <ComponentElement>(<ShadowRoot>lPwbApp.content.shadowRoot).childNodes[1];
+        await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
         expect(lApp).to.be.instanceOf(PwbApp);
@@ -56,8 +66,18 @@ describe('PwbAppInjectionExtension', () => {
         })
         class TestComponent { }
 
+        // Process. Create app and skip wait for splash screen.
+        const lPwbApp: PwbApp = new PwbApp('Name');
+        lPwbApp.setSplashScreen({ content: '', background: '', manual: true, animationTime: 10 });
+
+        // Process. Add component to pwb app.
+        lPwbApp.addContent(TestComponent);
+        await lPwbApp.appendTo(document.body);
+
         // Process. Create elements and wait for update.
-        const lComponent: HTMLElement = await <any>TestUtil.createComponent(TestComponent);
+        const lComponent: ComponentElement = <ComponentElement>(<ShadowRoot>lPwbApp.content.shadowRoot).childNodes[1];
+        await TestUtil.waitForUpdate(lComponent);
+
         const lChildContent: HTMLElement = <HTMLElement>(<ShadowRoot>lComponent.shadowRoot).childNodes[1];
         await TestUtil.waitForUpdate(lChildContent);
 
@@ -92,10 +112,17 @@ describe('PwbAppInjectionExtension', () => {
         })
         class TestComponent { }
 
+        // Process. Create app and skip wait for splash screen.
+        const lPwbApp: PwbApp = new PwbApp('Name');
+        lPwbApp.setSplashScreen({ content: '', background: '', manual: true, animationTime: 10 });
+
+        // Process. Add component to pwb app.
+        lPwbApp.addContent(TestComponent);
+        await lPwbApp.appendTo(document.body);
+
         // Process. Create elements and wait for update.
-        const lComponent: HTMLElement = await <any>TestUtil.createComponent(TestComponent);
-        const lChildContent: HTMLElement = <HTMLElement>(<ShadowRoot>lComponent.shadowRoot).childNodes[1];
-        await TestUtil.waitForUpdate(lChildContent);
+        const lComponent: ComponentElement = <ComponentElement>(<ShadowRoot>lPwbApp.content.shadowRoot).childNodes[1];
+        await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
         expect(lApp).to.be.instanceOf(PwbApp);
@@ -138,10 +165,18 @@ describe('PwbAppInjectionExtension', () => {
         })
         class TestComponent { }
 
+        // Process. Create app and skip wait for splash screen.
+        const lPwbApp: PwbApp = new PwbApp('Name');
+        lPwbApp.setSplashScreen({ content: '', background: '', manual: true, animationTime: 10 });
+
+        // Process. Add component to pwb app.
+        lPwbApp.addContent(TestComponent);
+        await lPwbApp.appendTo(document.body);
+
         // Process. Create elements and wait for update.
-        const lComponent: HTMLElement = await <any>TestUtil.createComponent(TestComponent);
-        const lChildContent: HTMLElement & ChildTestComponent = <any>(<ShadowRoot>lComponent.shadowRoot).childNodes[1];
-        await TestUtil.waitForUpdate(lChildContent);
+        const lComponent: ComponentElement = <ComponentElement>(<ShadowRoot>lPwbApp.content.shadowRoot).childNodes[1];
+        await TestUtil.waitForUpdate(lComponent);
+
         const lChildChildContent: HTMLElement & ChildTestComponent = <any>(<ShadowRoot>lComponent.shadowRoot).childNodes[1];
         await TestUtil.waitForUpdate(lChildChildContent);
 

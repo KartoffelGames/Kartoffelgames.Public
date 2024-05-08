@@ -55,7 +55,7 @@ describe('Custom Module', () => {
         // Process. Create element.
         let lErrorMessage: string | null = null;
         try {
-            await <any>TestUtil.createComponent(TestComponent, true);
+            await <any>TestUtil.createComponent(TestComponent);
         } catch (pError) {
             const lError: Error = <Error>pError;
             lErrorMessage = lError.message;
@@ -81,7 +81,7 @@ describe('Custom Module', () => {
         class TestComponent { }
 
         // Process. Create element.
-        await <any>TestUtil.createComponent(TestComponent, true);
+        await <any>TestUtil.createComponent(TestComponent);
 
         // Should be allowed. No errors.
     });

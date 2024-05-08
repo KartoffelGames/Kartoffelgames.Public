@@ -209,6 +209,8 @@ export class Component extends InjectionHierarchyParent {
         // Lock injections.
         this.lock();
 
+        //console.log(new Error().stack);
+
         // Create user object inside update zone.
         let lUntrackedProcessor: ComponentProcessor | null = null;
         this.mUpdateHandler.executeInZone(() => {

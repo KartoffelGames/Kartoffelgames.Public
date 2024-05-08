@@ -2,33 +2,26 @@ import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection'
 import { ComponentUpdateHandlerReference } from '../../source';
 import { Component } from '../../source/component/component';
 import { UpdateHandler } from '../../source/component/handler/update-handler';
-import { ComponentElement } from '../../source/interface/component.interface';
-import { PwbApp } from '../../source/pwb-app';
+import { ComponentElement, ComponentProcessorConstructor } from '../../source/interface/component.interface';
 
 export class TestUtil {
     /**
      * Create component from selector.
      * @param pSelector - component selector.
      */
-    public static async createComponent(pClass: InjectionConstructor, pSilenceErrors: boolean = false): Promise<ComponentElement> {
-        // Setup. Create app and silence errors.
-        const lPwbApp: PwbApp = new PwbApp('Name');
-        lPwbApp.addErrorListener(() => {
-            return !pSilenceErrors;
-        });
-
-        // Skip wait for splash screen.
-        lPwbApp.setSplashScreen({ content: '', background: '', manual: true, animationTime: 10 });
-
-        // Add component and append app to dom.
-        lPwbApp.addContent(pClass);
-        await lPwbApp.appendTo(document.body);
+    public static async createComponent(pClass: InjectionConstructor): Promise<ComponentElement> {
+        // Get component html constructor from class.
+        const lSelector = (<ComponentProcessorConstructor>pClass).__component_selector__;
+        const lComponentConstructor: CustomElementConstructor = <CustomElementConstructor>window.customElements.get(lSelector);
 
         // Get component.
-        const lComponent: ComponentElement = <ComponentElement>(<ShadowRoot>lPwbApp.content.shadowRoot).childNodes[1];
+        const lComponent: ComponentElement = new lComponentConstructor() as any;
+
+        // Connect to a document to trigger updates.
+        document.body.appendChild(lComponent);
 
         // Wait for any update to happen.
-        await lComponent.__component__.getProcessorAttribute<UpdateHandler>(ComponentUpdateHandlerReference)!.waitForUpdate();
+        await TestUtil.waitForUpdate(lComponent);
 
         return lComponent;
     }

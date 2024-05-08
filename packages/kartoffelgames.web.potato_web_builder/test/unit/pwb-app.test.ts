@@ -183,9 +183,11 @@ describe('PwbApp', () => {
         let lErrorMessageResult: string | null = null;
         lApp.addErrorListener((pError: Error) => {
             lErrorMessageResult = pError.message;
+
+            return false;
         });
 
-        // Trow and catch error.
+        // Throw and catch error.
         try {
             await lApp.appendTo(document.body);
         } catch (pError) {

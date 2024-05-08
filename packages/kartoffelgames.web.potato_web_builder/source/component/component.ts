@@ -134,6 +134,11 @@ export class Component extends InjectionHierarchyParent {
      * Call onPwbInitialize of component processor object.
      */
     public callAfterPwbUpdate(): void {
+        // Skip callback call when the processor was not even created.
+        if (!this.mProcessor) {
+            return;
+        }
+
         this.processor.afterPwbUpdate?.();
     }
 
@@ -142,6 +147,11 @@ export class Component extends InjectionHierarchyParent {
      * @param pAttributeName - Name of updated attribute.
      */
     public callOnPwbAttributeChange(pAttributeName: string): void {
+        // Skip callback call when the processor was not even created.
+        if (!this.mProcessor) {
+            return;
+        }
+
         this.processor.onPwbAttributeChange?.(pAttributeName);
     }
 
@@ -149,6 +159,11 @@ export class Component extends InjectionHierarchyParent {
      * Call onPwbDeconstruct of component processor object.
      */
     public callOnPwbDeconstruct(): void {
+        // Skip callback call when the processor was not even created.
+        if (!this.mProcessor) {
+            return;
+        }
+
         this.processor.onPwbDeconstruct?.();
     }
 
@@ -156,6 +171,11 @@ export class Component extends InjectionHierarchyParent {
      * Call onPwbInitialize of component processor object.
      */
     public callOnPwbUpdate(): void {
+        // Skip callback call when the processor was not even created.
+        if (!this.mProcessor) {
+            return;
+        }
+
         this.processor.onPwbUpdate?.();
     }
 

@@ -180,6 +180,8 @@ export class ChangeDetection implements IDeconstructable {
 
     /**
      * Add listener for error events.
+     * Prevent error defaults like print on console when {@link pListener} return the actual value false.
+     * 
      * @param pListener - Listener.
      */
     public addErrorListener(pListener: ErrorListener): void {
@@ -303,6 +305,7 @@ export class ChangeDetection implements IDeconstructable {
 
     /**
      * Call all registered error listener.
+     * Prevent defaults like print on console when any of the callbacks return the actual value false.
      */
     private callErrorListener(pError: any): boolean {
         let lExecuteDefault: boolean = true;

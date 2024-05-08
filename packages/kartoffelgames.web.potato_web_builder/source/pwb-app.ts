@@ -105,6 +105,8 @@ export class PwbApp { // TODO: Rework PwbApp to be a component.
 
     /**
      * Add error listener that listens for any uncatched error.
+     * Prevent error defaults like print on console when {@link pListener} return the actual value false.
+     * 
      * @param pListener - Error listener.
      */
     public addErrorListener(pListener: ErrorListener): void {

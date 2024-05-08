@@ -156,7 +156,7 @@ describe('PwbAppInjectionExtension', () => {
         // Setup. Define component.
         @PwbComponent({
             selector: lSelector,
-            template: '<div #child />'
+            template: '<div/>'
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class TestComponent {
@@ -175,6 +175,7 @@ describe('PwbAppInjectionExtension', () => {
         let lMessage: string | null = null;
         try {
             const lComponent: HTMLElement & TestComponent = new lComponentConstructor() as any;
+            lComponent.app; // Force creation off component processor by accessing it.
             await TestUtil.waitForUpdate(lComponent);
         } catch (pException) {
             const lError: Error = <Error>pException;
@@ -182,6 +183,6 @@ describe('PwbAppInjectionExtension', () => {
         }
 
         // Evaluation.
-        expect(lMessage).to.not.be.null;
+        expect(lMessage).to.be.equal('Parameter "PwbApp" of TestComponent is not registered to be injectable.');
     });
 });

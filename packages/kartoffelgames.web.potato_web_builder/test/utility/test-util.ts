@@ -35,6 +35,15 @@ export class TestUtil {
     }
 
     /**
+     * Force creation of component processor.
+     * 
+     * @param pComponent - Pwb component.
+     */
+    public static forceProcessorCreation(pComponent: ComponentElement): void {
+        pComponent.__component__.processor;
+    }
+
+    /**
      * Get component manager of component.
      * @param pComponent - Pwb component.
      */

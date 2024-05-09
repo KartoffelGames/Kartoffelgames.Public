@@ -82,8 +82,16 @@ export class Component extends InjectionHierarchyParent {
                 this.callOnPwbUpdate();
             });
 
+            // Save if processor was created before update.
+            const lProcessorWasCreated: boolean = !!this.mProcessor;
+
             // Update and callback after update.
             if (this.mRootBuilder.update()) {
+                // Try to call update before "AfterUpdate" when the processor was created on builder update.
+                if (!lProcessorWasCreated) {
+                    this.callOnPwbUpdate();
+                }
+
                 this.callAfterPwbUpdate();
             }
         });

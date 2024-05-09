@@ -33,6 +33,7 @@ describe('PwbAppInjectionExtension', () => {
 
         // Process. Create elements and wait for update.
         const lComponent: ComponentElement = <ComponentElement>(<ShadowRoot>lPwbApp.content.shadowRoot).childNodes[1];
+        TestUtil.forceProcessorCreation(lComponent);
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
@@ -78,7 +79,8 @@ describe('PwbAppInjectionExtension', () => {
         const lComponent: ComponentElement = <ComponentElement>(<ShadowRoot>lPwbApp.content.shadowRoot).childNodes[1];
         await TestUtil.waitForUpdate(lComponent);
 
-        const lChildContent: HTMLElement = <HTMLElement>(<ShadowRoot>lComponent.shadowRoot).childNodes[1];
+        const lChildContent: ComponentElement = <ComponentElement>(<ShadowRoot>lComponent.shadowRoot).childNodes[1];
+        TestUtil.forceProcessorCreation(lChildContent);
         await TestUtil.waitForUpdate(lChildContent);
 
         // Evaluation.
@@ -123,6 +125,11 @@ describe('PwbAppInjectionExtension', () => {
         // Process. Create elements and wait for update.
         const lComponent: ComponentElement = <ComponentElement>(<ShadowRoot>lPwbApp.content.shadowRoot).childNodes[1];
         await TestUtil.waitForUpdate(lComponent);
+
+        // Read cild component.
+        const lChildChildContent: ComponentElement = <any>(<ShadowRoot>lComponent.shadowRoot).childNodes[1];
+        TestUtil.forceProcessorCreation(lChildChildContent);
+        await TestUtil.waitForUpdate(lChildChildContent);
 
         // Evaluation.
         expect(lApp).to.be.instanceOf(PwbApp);
@@ -177,8 +184,14 @@ describe('PwbAppInjectionExtension', () => {
         const lComponent: ComponentElement = <ComponentElement>(<ShadowRoot>lPwbApp.content.shadowRoot).childNodes[1];
         await TestUtil.waitForUpdate(lComponent);
 
-        const lChildChildContent: HTMLElement & ChildTestComponent = <any>(<ShadowRoot>lComponent.shadowRoot).childNodes[1];
+        // Read cild component.
+        const lChildChildContent: ComponentElement = <any>(<ShadowRoot>lComponent.shadowRoot).childNodes[1];
         await TestUtil.waitForUpdate(lChildChildContent);
+
+        // Read cild component.
+        const lChildChildChildContent: ComponentElement = <any>(<ShadowRoot>lChildChildContent.shadowRoot).childNodes[1];
+        TestUtil.forceProcessorCreation(lChildChildChildContent);
+        await TestUtil.waitForUpdate(lChildChildChildContent);
 
         // Evaluation.
         expect(lApp).to.be.instanceOf(PwbApp);

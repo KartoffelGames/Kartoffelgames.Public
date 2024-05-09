@@ -5,6 +5,7 @@ import { PwbApp } from '../../source/pwb-app';
 import '../mock/request-animation-frame-mock-session';
 import '../utility/chai-helper';
 import { TestUtil } from '../utility/test-util';
+import { ComponentElement } from '../../source/interface/component.interface';
 
 describe('PwbApp', () => {
     it('Property: content', () => {
@@ -190,6 +191,10 @@ describe('PwbApp', () => {
         // Throw and catch error.
         try {
             await lApp.appendTo(document.body);
+
+            // Trigger processor creation.
+            const lContent: ComponentElement = <ComponentElement>(<ShadowRoot>lApp.content.shadowRoot).childNodes[1];
+            lContent.__component__.processor;
         } catch (pError) {
             const lError: Error = <Error>pError;
             window.dispatchEvent(new ErrorEvent('error', {

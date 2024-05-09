@@ -41,12 +41,15 @@ export class LoopDetectionHandler {
 
     /**
      * Calls function asynchron. Checks for loops and
-     * Throws error if stack overflows.
+     * Callbacks errors on the {@link onError} callback.
+     * 
+     * @remarks 
+     * Task will be executed outside any change detection scope. So the task itself must handle the actual scope.
      * 
      * @param pUserFunction - Function that should be called.
      * @param pReason - Stack reason.
      */
-    public callAsynchron<T>(pUserFunction: () => T, pReason: ChangeDetectionReason): void {
+    public sheduleTask<T>(pUserFunction: () => T, pReason: ChangeDetectionReason): void {
         // Skip asynchron task when currently a call is sheduled.
         if (this.mAnotherTaskSheduled) {
             return;
@@ -95,7 +98,7 @@ export class LoopDetectionHandler {
         };
 
         // Call on next frame. 
-        // Do not call change detection on requestAnimationFrame but anything in the task has change detection.
+        // Do not call change detection on requestAnimationFrame. The task function should handle the actual change detection scope.
         this.mNextSheduledTask = ChangeDetection.current.silentExecution(globalThis.requestAnimationFrame, lAsynchronTask);
     }
 }

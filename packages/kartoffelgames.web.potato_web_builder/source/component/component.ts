@@ -78,7 +78,7 @@ export class Component extends InjectionHierarchyParent {
         this.mUpdateHandler = new UpdateHandler(pUpdateScope);
         this.mUpdateHandler.addUpdateListener(() => {
             // Call component processor on update function.
-            this.mUpdateHandler.executeOutZone(() => {
+            this.mUpdateHandler.disableChangeDetectionFor(() => {
                 this.callOnPwbUpdate();
             });
 
@@ -239,7 +239,7 @@ export class Component extends InjectionHierarchyParent {
 
         // Create user object inside update zone.
         let lUntrackedProcessor: ComponentProcessor | null = null;
-        this.mUpdateHandler.executeInZone(() => {
+        this.mUpdateHandler.enableChangeDetectionFor(() => {
             lUntrackedProcessor = Injection.createObject<ComponentProcessor>(this.mProcessorConstructor, this.injections);
         });
 
@@ -259,7 +259,7 @@ export class Component extends InjectionHierarchyParent {
 
         // Create local injections with write extensions.
         // Execute all inside the zone.
-        this.mUpdateHandler.executeInZone(() => {
+        this.mUpdateHandler.enableChangeDetectionFor(() => {
             for (const lExtensionConstructor of lExtensions.get(ExtensionType.Component, AccessMode.Write)) {
                 const lComponentExtension: ComponentExtension = new ComponentExtension({
                     constructor: lExtensionConstructor,
@@ -275,7 +275,7 @@ export class Component extends InjectionHierarchyParent {
 
         // Create execute all other read extensions.
         // Execute all inside the zone.
-        this.mUpdateHandler.executeInZone(() => {
+        this.mUpdateHandler.enableChangeDetectionFor(() => {
             const lReadExtensions: Array<IPwbExtensionProcessorClass> = [
                 ...lExtensions.get(ExtensionType.Component, AccessMode.ReadWrite),
                 ...lExtensions.get(ExtensionType.Component, AccessMode.Read)

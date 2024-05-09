@@ -62,7 +62,7 @@ export class UpdateHandler {
         this.mLoopDetectionHandler.onError = (pError: any) => {
             // Supress error of any waiter were waiting.
             // Error should be handled by the async waiter.
-            return this.releaseWaiter(pError);
+            this.releaseWaiter(pError);
         };
     }
 
@@ -151,7 +151,7 @@ export class UpdateHandler {
      * Returns Promise<false> if there is currently no update cycle.
      */
     public async waitForUpdate(): Promise<boolean> {
-        if (this.mLoopDetectionHandler.activeChain) {
+        if (this.mLoopDetectionHandler.hasActiveTask) {
             // Add new callback to waiter line.
             return new Promise<boolean>((pResolve: (pValue: boolean) => void, pReject: (pError: any) => void) => {
                 this.mUpdateWaiter.push((pError: any) => {
@@ -213,7 +213,7 @@ export class UpdateHandler {
                 this.dispatchUpdateListener(pReason);
 
                 // Check if any changes where made during the listener calls. If not, release all waiter.
-                if (!this.mLoopDetectionHandler.activeChain) {
+                if (!this.mLoopDetectionHandler.hasActiveTask) {
                     this.releaseWaiter();
                 }
             });

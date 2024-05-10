@@ -3,7 +3,7 @@ import { PwbExport } from '../../../source';
 import { PwbComponent } from '../../../source/decorator/pwb-component.decorator';
 import { UpdateScope } from '../../../source/enum/update-scope.enum';
 import { ComponentElement } from '../../../source/interface/component.interface';
-import { PwbApp } from '../../../source/pwb-app';
+import { PwbApp } from '../../../source/pwb-app/pwb-app';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';

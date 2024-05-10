@@ -2,7 +2,7 @@ import { ChangeDetection } from '@kartoffelgames/web.change-detection';
 import { PwbExtension } from '../../decorator/pwb-extension.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { ExtensionType } from '../../enum/extension-type.enum';
-import { PwbApp } from '../../pwb-app';
+import { PwbApp } from '../../pwb-app/pwb-app';
 import { ModuleReference } from '../../injection/references/module/module-reference';
 import { ComponentReference } from '../../injection/references/component/component-reference';
 

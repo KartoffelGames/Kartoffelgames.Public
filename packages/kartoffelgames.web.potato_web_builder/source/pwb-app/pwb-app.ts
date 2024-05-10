@@ -1,12 +1,12 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { ChangeDetection } from '@kartoffelgames/web.change-detection';
 import { ErrorListener } from '@kartoffelgames/web.change-detection/library/source/change_detection/change-detection';
-import { ElementCreator } from './component/element-creator';
-import { UpdateHandler } from './component/handler/update-handler';
-import { PwbTemplateXmlNode } from './component/template/nodes/pwb-template-xml-node';
-import { ComponentElement, ComponentProcessorConstructor } from './interface/component.interface';
+import { ElementCreator } from '../component/element-creator';
+import { UpdateHandler } from '../component/handler/update-handler';
+import { PwbTemplateXmlNode } from '../component/template/nodes/pwb-template-xml-node';
+import { ComponentElement, ComponentProcessorConstructor } from '../interface/component.interface';
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { ComponentUpdateHandlerReference } from './injection/references/component/component-update-handler-reference';
+import { ComponentUpdateHandlerReference } from '../injection/references/component/component-update-handler-reference';
 
 export class PwbApp { // TODO: Rework PwbApp to be a component.
     private static readonly mChangeDetectionToApp: WeakMap<ChangeDetection, PwbApp> = new WeakMap<ChangeDetection, PwbApp>();

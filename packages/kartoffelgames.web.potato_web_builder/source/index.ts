@@ -2,7 +2,7 @@
 
 // Component
 export { ComponentProcessor, ComponentProcessorConstructor } from './interface/component.interface';
-export { PwbApp } from './pwb-app';
+export { PwbApp } from './pwb-app/pwb-app';
 export { IPwbOnDeconstruct, IPwbAfterUpdate, IPwbOnUpdate, IPwbOnAttributeChange } from './interface/component.interface';
 export { PwbComponent } from './decorator/pwb-component.decorator';
 
@@ -55,6 +55,7 @@ import './default/for-instruction/for-instruction-module';
 import './default/if_instruction/if-instruction-module';
 import './default/slot_attribute/slot-instruction-module';
 import './default/two_way_binding/two-way-binding-attribute-module';
+import './default/dynamic-content/dynamic-content-module';
 
 // Import default extensions.
 import './default/component-event/component-event-extension';

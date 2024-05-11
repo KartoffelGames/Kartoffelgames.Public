@@ -131,8 +131,8 @@ export class UpdateHandler {
      * @remarks 
      * Nesting {@link disableChangeDetectionFor} and {@link enableChangeDetectionFor} is allowed.
      */
-    public disableChangeDetectionFor(pFunction: () => void): void {
-        this.mChangeDetection.silentExecution(pFunction);
+    public disableChangeDetectionFor<T>(pFunction: () => T): T {
+        return this.mChangeDetection.silentExecution(pFunction);
     }
 
     /**
@@ -143,8 +143,8 @@ export class UpdateHandler {
      * @remarks 
      * Nesting {@link disableChangeDetectionFor} and {@link enableChangeDetectionFor} is allowed.
      */
-    public enableChangeDetectionFor(pFunction: () => void): void {
-        this.mChangeDetection.execute(pFunction);
+    public enableChangeDetectionFor<T>(pFunction: () => T): T {
+        return this.mChangeDetection.execute(pFunction);
     }
 
     /**

@@ -1,24 +1,23 @@
-import { Exception } from '@kartoffelgames/core.data';
 import { expect } from 'chai';
+import { PwbTemplate } from '../../source/component/template/nodes/pwb-template';
+import { PwbTemplateXmlNode } from '../../source/component/template/nodes/pwb-template-xml-node';
 import { PwbComponent } from '../../source/decorator/pwb-component.decorator';
+import { ComponentElement } from '../../source/interface/component.interface';
 import { PwbApp } from '../../source/pwb-app/pwb-app';
 import '../mock/request-animation-frame-mock-session';
 import '../utility/chai-helper';
 import { TestUtil } from '../utility/test-util';
-import { ComponentElement } from '../../source/interface/component.interface';
-import { PwbTemplate } from '../../source/component/template/nodes/pwb-template';
-import { PwbTemplateXmlNode } from '../../source/component/template/nodes/pwb-template-xml-node';
 
 describe('PwbApp', () => {
-    it('Property: content', () => {
+    it('Property: component', () => {
         // Setup.
         const lApp: PwbApp = new PwbApp();
 
         // Process.
-        const lContent: Element = lApp.content;
+        const lContent: Element = lApp.component;
 
         // Evaluation.
-        expect(lContent.tagName.toLowerCase()).to.equal('div');
+        expect(lContent.tagName.toLowerCase()).to.equal('pwb-app');
         expect(lContent.shadowRoot).to.be.not.null;
     });
 
@@ -40,43 +39,21 @@ describe('PwbApp', () => {
             // Process.
             lApp.addContent(TestComponent);
             await lApp.appendTo(document.body);
-            const lContent: Element = <Element>(<ShadowRoot>lApp.content.shadowRoot).childNodes[1];
+            const lContent: Element = <Element>lApp.component.shadowRoot!.querySelector(lComponentSelector);
 
             // Evaluation.
             expect(lContent.tagName.toLowerCase()).to.equal(lComponentSelector);
         });
 
-        it('-- Initialize component after appendTo', async () => {
-            // Setup.
-            const lApp: PwbApp = new PwbApp();
-            lApp.setSplashScreen({ manual: true, animationTime: 10 });
-            await lApp.appendTo(document.body);
-
-            // Setup. Define component.
-            @PwbComponent({
-                selector: TestUtil.randomSelector(),
-                template: '<div/>'
-            })
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            class TestComponent { }
-
-            // Process.
-            const lErrorFunction = () => {
-                lApp.addContent(TestComponent);
-            };
-
-            // Evaluation.
-            expect(lErrorFunction).to.throw(Exception, 'App content is sealed after it got append to the DOM');
-        });
-
         it('-- Initialize component before appendTo', async () => {
             // Setup.
+            const lSelector: string = TestUtil.randomSelector();
             const lApp: PwbApp = new PwbApp();
             lApp.setSplashScreen({ manual: true, animationTime: 10 });
 
             // Setup. Define component.
             @PwbComponent({
-                selector: TestUtil.randomSelector(),
+                selector: lSelector,
                 template: '<div/>'
             })
             class TestComponent { }
@@ -84,7 +61,7 @@ describe('PwbApp', () => {
             // Process.
             lApp.addContent(TestComponent);
             await lApp.appendTo(document.body);
-            const lContent: HTMLElement & TestComponent = <any>(<ShadowRoot>lApp.content.shadowRoot).childNodes[1];
+            const lContent: ComponentElement = <ComponentElement>lApp.component.shadowRoot!.querySelector(lSelector);
             await TestUtil.waitForUpdate(lContent);
 
             // Evaluation.
@@ -119,54 +96,42 @@ describe('PwbApp', () => {
             await lApp.appendTo(lDummyElement);
 
             // Evaluation.
-            expect(lDummyElement.childNodes[0]).to.equal(lApp.content);
-        });
-
-        it('-- Remove splash screen', async () => {
-            // Setup.
-            const lDummyElement: HTMLDivElement = document.createElement('div');
-            const lApp: PwbApp = new PwbApp();
-            lApp.setSplashScreen({ animationTime: 10 });
-
-            // Process.
-            await lApp.appendTo(lDummyElement);
-            const lContent: ShadowRoot = <ShadowRoot>lApp.content.shadowRoot;
-
-            // Evaluation.
-            expect(lContent.childNodes).to.have.lengthOf(0);
+            expect(lDummyElement.childNodes[0]).to.equal(lApp.component);
         });
 
         it('-- No double splash screen remove', async () => {
             // Setup. Create app.
             const lApp: PwbApp = new PwbApp();
-            const lContent: ShadowRoot = <ShadowRoot>lApp.content.shadowRoot;
 
             // Process. Create splash screen.
             lApp.setSplashScreen({
-                animationTime: 10
+                animationTime: 0
             });
 
             // Process. Append and wait for splash screen remove
             await lApp.appendTo(document.body);
-            const lBeforeRemoveChildLength: number = lContent.childNodes.length;
+            await TestUtil.waitForUpdate(lApp.component);
+            const lBeforeRemoveChildState: boolean = !!lApp.component.shadowRoot?.querySelector('.splashscreen');
 
             // Process
             await lApp.appendTo(document.body);
-            const lAfterRemoveChildLength: number = lContent.childNodes.length;
+            await TestUtil.waitForUpdate(lApp.component);
+            const lAfterRemoveChildState: boolean = !!lApp.component.shadowRoot?.querySelector('.splashscreen');
 
             // Evaluation.
-            expect(lBeforeRemoveChildLength).to.equal(0);
-            expect(lAfterRemoveChildLength).to.equal(0);
+            expect(lBeforeRemoveChildState).to.be.false;
+            expect(lAfterRemoveChildState).to.be.false;
         });
     });
 
     it('Method: addErrorListener', async () => {
         // Setup.
         const lErrorMessage: string = 'Custom Error';
+        const lSelector: string = TestUtil.randomSelector();
 
         // Setup. Define component.
         @PwbComponent({
-            selector: TestUtil.randomSelector(),
+            selector: lSelector,
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class TestComponent {
@@ -193,8 +158,8 @@ describe('PwbApp', () => {
             await lApp.appendTo(document.body);
 
             // Trigger processor creation.
-            const lContent: ComponentElement = <ComponentElement>(<ShadowRoot>lApp.content.shadowRoot).childNodes[1];
-            lContent.__component__.processor;
+            const lContent: ComponentElement = <ComponentElement>lApp.component.shadowRoot!.querySelector(lSelector);
+            TestUtil.forceProcessorCreation(lContent);
         } catch (pError) {
             const lError: Error = <Error>pError;
             window.dispatchEvent(new ErrorEvent('error', {
@@ -208,14 +173,15 @@ describe('PwbApp', () => {
     });
 
     describe('Method: addStyle', () => {
-        it('-- Default', () => {
+        it('-- Default', async () => {
             // Setup.
             const lApp: PwbApp = new PwbApp();
             const lStyleContent: string = 'Content';
 
             // Process.
             lApp.addStyle(lStyleContent);
-            const lContent: HTMLStyleElement = <HTMLStyleElement>(<ShadowRoot>lApp.content.shadowRoot).childNodes[0];
+            await lApp.appendTo(document.body);
+            const lContent: HTMLStyleElement = <HTMLStyleElement>lApp.component.shadowRoot!.querySelectorAll('style')[1];
 
             // Evaluation.
             expect(lContent instanceof HTMLStyleElement).to.be.true;
@@ -224,17 +190,21 @@ describe('PwbApp', () => {
 
         it('-- Add style after append', async () => {
             // Setup.
+            const lStyleContent: string = 'Content';
             const lApp: PwbApp = new PwbApp();
             lApp.setSplashScreen({ animationTime: 10 });
             await lApp.appendTo(document.body);
 
-            // Process.
-            const lErrorFunction = () => {
-                lApp.addStyle('');
-            };
+            // Process. Add style and wait.
+            lApp.addStyle(lStyleContent);
+            await TestUtil.waitForUpdate(lApp.component);
+
+            // Get style content.
+            const lContent: HTMLStyleElement = <HTMLStyleElement>lApp.component.shadowRoot!.querySelectorAll('style')[1];
 
             // Evaluation.
-            expect(lErrorFunction).to.throw(Exception, 'App content is sealed after it got append to the DOM');
+            expect(lContent instanceof HTMLStyleElement).to.be.true;
+            expect(lContent.textContent).to.equal(lStyleContent);
         });
     });
 
@@ -245,14 +215,14 @@ describe('PwbApp', () => {
 
         // Process
         await lApp.removeSplashScreen();
-        const lContent: ShadowRoot = <ShadowRoot>lApp.content.shadowRoot;
+        const lContent: Element | null = lApp.component.shadowRoot!.querySelector('.splashscreen');
 
         // Evaluation.
-        expect(lContent.childNodes).to.have.lengthOf(0);
+        expect(lContent).to.be.null;
     });
 
     describe('Method: setSplashScreen', () => {
-        it('-- Default', () => {
+        it('-- Default', async () => {
             // Setup.
             const lBackground: string = 'red';
 
@@ -275,20 +245,20 @@ describe('PwbApp', () => {
                 animationTime: 10
             });
 
-            // Process. Read splash screen data.
-            const lSplashScreen: HTMLElement = <HTMLElement>(<ShadowRoot>lApp.content.shadowRoot).childNodes[0];
-            const lContentWrapper: HTMLElement = <HTMLElement>lSplashScreen.childNodes[0];
-            const lContentElement: HTMLElement = <HTMLElement>lContentWrapper.childNodes[0];
-            const lContentString: string = lContentElement.innerHTML;
+            // Settup. Add app to document.
+            await lApp.appendTo(document.body);
 
-            expect(lContentWrapper.style.getPropertyValue('background')).to.equal(lBackground);
-            expect(lContent).to.equal(lContentString);
+            // Process. Read splash screen data.
+            const lSplashScreen: HTMLElement = <HTMLElement>lApp.component.shadowRoot!.querySelector('.splashscreen');
+            const lContentElement: HTMLElement = lApp.component.shadowRoot!.querySelector('span')!;
+
+            expect(lSplashScreen.style.getPropertyValue('--background')).to.equal(lBackground);
+            expect(lContentElement.getAttribute('style')).to.equal('color: #fff;');
         });
 
         it('-- Manual splash screen', async () => {
             // Setup. Create app.
             const lApp: PwbApp = new PwbApp();
-            const lContent: ShadowRoot = <ShadowRoot>lApp.content.shadowRoot;
 
             // Process. Create splash screen.
             lApp.setSplashScreen({
@@ -298,32 +268,16 @@ describe('PwbApp', () => {
 
             // Process. Append and wait for splash screen remove
             await lApp.appendTo(document.body);
-            const lBeforeRemoveChildLength: number = lContent.childNodes.length;
+            const lBeforeRemoveState: boolean = !!lApp.component.shadowRoot?.querySelector('.splashscreen');
 
             // Process
             await lApp.removeSplashScreen();
-            const lAfterRemoveChildLength: number = lContent.childNodes.length;
+            await TestUtil.waitForUpdate(lApp.component);
+            const lAfterRemoveState: boolean = !!lApp.component.shadowRoot?.querySelector('.splashscreen');
 
             // Evaluation.
-            expect(lBeforeRemoveChildLength).to.equal(1);
-            expect(lAfterRemoveChildLength).to.equal(0);
-        });
-
-        it('-- Add splashscreen after append', async () => {
-            // Setup.
-            const lApp: PwbApp = new PwbApp();
-            lApp.setSplashScreen({ animationTime: 10 });
-            await lApp.appendTo(document.body);
-
-            // Process.
-            const lErrorFunction = () => {
-                lApp.setSplashScreen({
-                    animationTime: 10
-                });
-            };
-
-            // Evaluation.
-            expect(lErrorFunction).to.throw(Exception, 'App content is sealed after it got append to the DOM');
+            expect(lBeforeRemoveState).to.be.true;
+            expect(lAfterRemoveState).to.be.false;
         });
     });
 });

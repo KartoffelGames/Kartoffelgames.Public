@@ -284,6 +284,10 @@ export class Component extends InjectionHierarchyParent {
         this.mProcessor = this.mUpdateHandler.registerObject(lUntrackedProcessor!);
     }
 
+    /**
+     * Execute component extensions ordered by priority from write to read extensions.
+     * At most times in a read extension the processor is created so new injections should be added in write extensions.
+     */
     private executeExtensions(): void {
         const lExtensions: GlobalExtensionsStorage = new GlobalExtensionsStorage();
 

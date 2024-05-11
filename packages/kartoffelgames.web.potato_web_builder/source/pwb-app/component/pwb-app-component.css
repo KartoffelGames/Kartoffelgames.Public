@@ -17,8 +17,8 @@
     /* Transition */
     transition: var(--transition-time-ms, 1000s) linear;
 
-    /* Default background */
-    background: blue;
+    /* Background */
+    background: var(--background, blue);
 }
 
 .splashscreen.hide {

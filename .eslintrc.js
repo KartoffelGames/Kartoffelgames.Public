@@ -135,12 +135,9 @@ module.exports = {
                         "protected-abstract-field",
 
                         // Accessors.
-                        ["public-decorated-get", "public-decorated-set"],
-                        ["protected-decorated-get", "protected-decorated-set"],
-                        ["private-decorated-get", "private-decorated-set"],
-                        ["public-instance-get", "public-instance-set"],
-                        ["protected-instance-get", "protected-instance-set"],
-                        ["private-instance-get", "private-instance-set"],
+                        ["public-instance-get", "public-instance-set", "public-decorated-get", "public-decorated-set"],
+                        ["protected-instance-get", "protected-instance-set", "protected-decorated-get", "protected-decorated-set"],
+                        ["private-instance-get", "private-instance-set", "private-decorated-get", "private-decorated-set"],
                         ["public-abstract-get", "public-abstract-set"],
                         ["protected-abstract-get", "protected-abstract-set"],
 

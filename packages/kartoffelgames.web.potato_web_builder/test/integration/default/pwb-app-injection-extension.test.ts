@@ -24,8 +24,8 @@ describe('PwbAppInjectionExtension', () => {
         }
 
         // Process. Create app and skip wait for splash screen.
-        const lPwbApp: PwbApp = new PwbApp('Name');
-        lPwbApp.setSplashScreen({ content: '', background: '', manual: true, animationTime: 10 });
+        const lPwbApp: PwbApp = new PwbApp();
+        lPwbApp.setSplashScreen({ manual: true, animationTime: 10 });
 
         // Process. Add component to pwb app.
         lPwbApp.addContent(TestComponent);
@@ -68,8 +68,8 @@ describe('PwbAppInjectionExtension', () => {
         class TestComponent { }
 
         // Process. Create app and skip wait for splash screen.
-        const lPwbApp: PwbApp = new PwbApp('Name');
-        lPwbApp.setSplashScreen({ content: '', background: '', manual: true, animationTime: 10 });
+        const lPwbApp: PwbApp = new PwbApp();
+        lPwbApp.setSplashScreen({ manual: true, animationTime: 10 });
 
         // Process. Add component to pwb app.
         lPwbApp.addContent(TestComponent);
@@ -115,8 +115,8 @@ describe('PwbAppInjectionExtension', () => {
         class TestComponent { }
 
         // Process. Create app and skip wait for splash screen.
-        const lPwbApp: PwbApp = new PwbApp('Name');
-        lPwbApp.setSplashScreen({ content: '', background: '', manual: true, animationTime: 10 });
+        const lPwbApp: PwbApp = new PwbApp();
+        lPwbApp.setSplashScreen({ manual: true, animationTime: 10 });
 
         // Process. Add component to pwb app.
         lPwbApp.addContent(TestComponent);
@@ -173,8 +173,8 @@ describe('PwbAppInjectionExtension', () => {
         class TestComponent { }
 
         // Process. Create app and skip wait for splash screen.
-        const lPwbApp: PwbApp = new PwbApp('Name');
-        lPwbApp.setSplashScreen({ content: '', background: '', manual: true, animationTime: 10 });
+        const lPwbApp: PwbApp = new PwbApp();
+        lPwbApp.setSplashScreen({ manual: true, animationTime: 10 });
 
         // Process. Add component to pwb app.
         lPwbApp.addContent(TestComponent);

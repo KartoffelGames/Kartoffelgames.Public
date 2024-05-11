@@ -35,6 +35,13 @@ export class PwbAppComponent implements IPwbOnConnect, IPwbOnDisconnect {
     }
 
     /**
+     * UpdateHandler
+     */
+    @PwbExport get updateHandler(): UpdateHandler {
+        return this.mUpdateHandler;
+    }
+
+    /**
      * Constructor.
      */
     constructor(pUpdateHandler: ComponentUpdateHandlerReference) {
@@ -130,12 +137,12 @@ export class PwbAppComponent implements IPwbOnConnect, IPwbOnDisconnect {
      */
     public onPwbConnect(): void {
         // Skip any automatic handling when manual is set up.
-        if(this.splashscreenConfig.manual) {
+        if (this.splashscreenConfig.manual) {
             return;
         }
 
         // Remove splashscreen when any component was updated.
-        this.mUpdateHandler.waitForUpdate().then(()=>{
+        this.mUpdateHandler.waitForUpdate().then(() => {
             this.removeSplashScreen();
         });
     }

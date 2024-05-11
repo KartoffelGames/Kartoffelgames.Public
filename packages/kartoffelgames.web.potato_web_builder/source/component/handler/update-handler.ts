@@ -19,6 +19,13 @@ export class UpdateHandler {
     private readonly mUpdateWaiter: List<UpdateWaiter>;
 
     /**
+     * Get change detection of update handler.
+     */
+    public get changeDetection(): ChangeDetection {
+        return this.mChangeDetection;
+    }
+
+    /**
      * Get enabled state of update handler.
      * Does not report any updates on disabled state.
      */

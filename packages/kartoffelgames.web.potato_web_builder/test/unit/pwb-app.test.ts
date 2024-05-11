@@ -6,11 +6,13 @@ import '../mock/request-animation-frame-mock-session';
 import '../utility/chai-helper';
 import { TestUtil } from '../utility/test-util';
 import { ComponentElement } from '../../source/interface/component.interface';
+import { PwbTemplate } from '../../source/component/template/nodes/pwb-template';
+import { PwbTemplateXmlNode } from '../../source/component/template/nodes/pwb-template-xml-node';
 
 describe('PwbApp', () => {
     it('Property: content', () => {
         // Setup.
-        const lApp: PwbApp = new PwbApp('Name');
+        const lApp: PwbApp = new PwbApp();
 
         // Process.
         const lContent: Element = lApp.content;
@@ -23,8 +25,8 @@ describe('PwbApp', () => {
     describe('Method: addContent', () => {
         it('-- Correct component', async () => {
             // Setup.
-            const lApp: PwbApp = new PwbApp('Name');
-            lApp.setSplashScreen({ content: '', background: '', manual: true, animationTime: 10 });
+            const lApp: PwbApp = new PwbApp();
+            lApp.setSplashScreen({ manual: true, animationTime: 10 });
             const lComponentSelector: string = TestUtil.randomSelector();
 
             // Setup. Define component.
@@ -46,8 +48,8 @@ describe('PwbApp', () => {
 
         it('-- Initialize component after appendTo', async () => {
             // Setup.
-            const lApp: PwbApp = new PwbApp('Name');
-            lApp.setSplashScreen({ content: '', background: '', manual: true, animationTime: 10 });
+            const lApp: PwbApp = new PwbApp();
+            lApp.setSplashScreen({ manual: true, animationTime: 10 });
             await lApp.appendTo(document.body);
 
             // Setup. Define component.
@@ -69,8 +71,8 @@ describe('PwbApp', () => {
 
         it('-- Initialize component before appendTo', async () => {
             // Setup.
-            const lApp: PwbApp = new PwbApp('Name');
-            lApp.setSplashScreen({ content: '', background: '', manual: true, animationTime: 10 });
+            const lApp: PwbApp = new PwbApp();
+            lApp.setSplashScreen({ manual: true, animationTime: 10 });
 
             // Setup. Define component.
             @PwbComponent({
@@ -94,7 +96,7 @@ describe('PwbApp', () => {
 
         it('-- Wrong component type', () => {
             // Setup.
-            const lApp: PwbApp = new PwbApp('Name');
+            const lApp: PwbApp = new PwbApp();
 
             // Process.
             const lErrorFunction = () => {
@@ -110,8 +112,8 @@ describe('PwbApp', () => {
         it('-- Default', async () => {
             // Setup.
             const lDummyElement: HTMLDivElement = document.createElement('div');
-            const lApp: PwbApp = new PwbApp('Name');
-            lApp.setSplashScreen({ content: '', background: '', manual: true, animationTime: 10 });
+            const lApp: PwbApp = new PwbApp();
+            lApp.setSplashScreen({ manual: true, animationTime: 10 });
 
             // Process.
             await lApp.appendTo(lDummyElement);
@@ -123,8 +125,8 @@ describe('PwbApp', () => {
         it('-- Remove splash screen', async () => {
             // Setup.
             const lDummyElement: HTMLDivElement = document.createElement('div');
-            const lApp: PwbApp = new PwbApp('Name');
-            lApp.setSplashScreen({ background: 'red', content: '', animationTime: 10 });
+            const lApp: PwbApp = new PwbApp();
+            lApp.setSplashScreen({ animationTime: 10 });
 
             // Process.
             await lApp.appendTo(lDummyElement);
@@ -136,13 +138,11 @@ describe('PwbApp', () => {
 
         it('-- No double splash screen remove', async () => {
             // Setup. Create app.
-            const lApp: PwbApp = new PwbApp('Name');
+            const lApp: PwbApp = new PwbApp();
             const lContent: ShadowRoot = <ShadowRoot>lApp.content.shadowRoot;
 
             // Process. Create splash screen.
             lApp.setSplashScreen({
-                background: 'red',
-                content: '',
                 animationTime: 10
             });
 
@@ -176,8 +176,8 @@ describe('PwbApp', () => {
         }
 
         // Setup.
-        const lApp: PwbApp = new PwbApp('Name');
-        lApp.setSplashScreen({ content: '', background: '', manual: true, animationTime: 10 });
+        const lApp: PwbApp = new PwbApp();
+        lApp.setSplashScreen({ manual: true, animationTime: 10 });
         lApp.addContent(TestComponent);
 
         // Process. Lof error.
@@ -210,7 +210,7 @@ describe('PwbApp', () => {
     describe('Method: addStyle', () => {
         it('-- Default', () => {
             // Setup.
-            const lApp: PwbApp = new PwbApp('Name');
+            const lApp: PwbApp = new PwbApp();
             const lStyleContent: string = 'Content';
 
             // Process.
@@ -224,8 +224,8 @@ describe('PwbApp', () => {
 
         it('-- Add style after append', async () => {
             // Setup.
-            const lApp: PwbApp = new PwbApp('Name');
-            lApp.setSplashScreen({ content: '', background: '', manual: true, animationTime: 10 });
+            const lApp: PwbApp = new PwbApp();
+            lApp.setSplashScreen({ animationTime: 10 });
             await lApp.appendTo(document.body);
 
             // Process.
@@ -240,8 +240,8 @@ describe('PwbApp', () => {
 
     it('Method: removeSplashScreen', async () => {
         // Setup.
-        const lApp: PwbApp = new PwbApp('Name');
-        lApp.setSplashScreen({ background: 'red', content: '', animationTime: 10 });
+        const lApp: PwbApp = new PwbApp();
+        lApp.setSplashScreen({ animationTime: 10 });
 
         // Process
         await lApp.removeSplashScreen();
@@ -255,10 +255,18 @@ describe('PwbApp', () => {
         it('-- Default', () => {
             // Setup.
             const lBackground: string = 'red';
-            const lContent: string = '<span style="color: #fff;">Anything</span>';
+
+            // Setup. Content.
+            const lContentSpan = new PwbTemplateXmlNode();
+            lContentSpan.tagName = 'span';
+            lContentSpan.setAttribute('style').addValue('color: #fff;');
+
+            // Setup. Add content to content template.
+            const lContent = new PwbTemplate();
+            lContent.appendChild(lContentSpan);
 
             // Setup. Create app.
-            const lApp: PwbApp = new PwbApp('Name');
+            const lApp: PwbApp = new PwbApp();
 
             // Process. Create splash screen.
             lApp.setSplashScreen({
@@ -279,13 +287,11 @@ describe('PwbApp', () => {
 
         it('-- Manual splash screen', async () => {
             // Setup. Create app.
-            const lApp: PwbApp = new PwbApp('Name');
+            const lApp: PwbApp = new PwbApp();
             const lContent: ShadowRoot = <ShadowRoot>lApp.content.shadowRoot;
 
             // Process. Create splash screen.
             lApp.setSplashScreen({
-                background: 'red',
-                content: '',
                 manual: true,
                 animationTime: 10
             });
@@ -305,15 +311,13 @@ describe('PwbApp', () => {
 
         it('-- Add splashscreen after append', async () => {
             // Setup.
-            const lApp: PwbApp = new PwbApp('Name');
-            lApp.setSplashScreen({ background: 'red', content: '', animationTime: 10 });
+            const lApp: PwbApp = new PwbApp();
+            lApp.setSplashScreen({ animationTime: 10 });
             await lApp.appendTo(document.body);
 
             // Process.
             const lErrorFunction = () => {
                 lApp.setSplashScreen({
-                    background: 'red',
-                    content: '',
                     animationTime: 10
                 });
             };

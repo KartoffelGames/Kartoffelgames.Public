@@ -536,7 +536,7 @@ describe('Lexer', () => {
             const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
             lLexer.addTokenPattern({
                 pattern: {
-                    regex: /(?<aaa>aaa)/,
+                    regex: /(?<aaa>aaa)|(?<ccc>ccc)/,
                     type: {
                         bbb: TestTokenType.Custom
                     }
@@ -550,7 +550,7 @@ describe('Lexer', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).to.throw('No token type for any defined pattern regex group was found.');
+            expect(lErrorFunction).to.throw('No token type found for any defined pattern regex group. Full: "aaa", Matches: "token, aaa", Groups: "bbb"');
         });
 
         it('-- Has meta check', () => {

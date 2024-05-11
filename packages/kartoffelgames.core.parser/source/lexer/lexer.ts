@@ -427,8 +427,22 @@ export class Lexer<TTokenType extends string> {
             return lGroupType;
         }
 
+        // Collect valid matches groups.
+        const lMatchGroupList: Array<string> = new Array<string>();
+        for (const lGroupName in pTokenMatch.groups!) {
+            if (pTokenMatch.groups[lGroupName]) {
+                lMatchGroupList.push(lGroupName);
+            }
+        }
+
+        // Collect defined group names.
+        const lTokenTypeGroupList: Array<string> = new Array<string>();
+        for (const lTokenTypeGroup in pTypes) {
+            lTokenTypeGroupList.push(lTokenTypeGroup);
+        }
+
         // No group that matched a token type was found.
-        throw new Exception('No token type for any defined pattern regex group was found.', this);
+        throw new Exception(`No token type found for any defined pattern regex group. Full: "${pTokenMatch[0]}", Matches: "${lMatchGroupList.join(', ')}", Groups: "${lTokenTypeGroupList.join(', ')}"`, this);
     }
 
     /**

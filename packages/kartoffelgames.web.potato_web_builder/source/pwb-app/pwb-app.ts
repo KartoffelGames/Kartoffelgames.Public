@@ -105,19 +105,19 @@ export class PwbApp { // TODO: Rework PwbApp to be a component.
      */
     public setSplashScreen(pSplashScreen: SplashScreen): void {
         if (typeof pSplashScreen.background === 'string') {
-            this.mAppComponent.splashscreenConfig.background = pSplashScreen.background;
+            this.mAppComponent.splashscreenBackground = pSplashScreen.background;
         }
 
         if (typeof pSplashScreen.animationTime === 'number') {
-            this.mAppComponent.splashscreenConfig.animationTime = pSplashScreen.animationTime;
+            this.mAppComponent.splashscreenAnimationTime = pSplashScreen.animationTime;
         }
 
         if (typeof pSplashScreen.content !== 'undefined') {
-            this.mAppComponent.splashscreenConfig.content = pSplashScreen.content;
+            this.mAppComponent.splashscreenContent = pSplashScreen.content;
         }
 
         if (typeof pSplashScreen.manual === 'boolean') {
-            this.mAppComponent.splashscreenConfig.manual = pSplashScreen.manual;
+            this.mAppComponent.splashscreenManualMode = pSplashScreen.manual;
         }
     }
 }

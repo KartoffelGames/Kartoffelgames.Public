@@ -26,12 +26,39 @@ export class PwbAppComponent implements IPwbOnConnect, IPwbOnDisconnect {
     private readonly mUpdateHandler: UpdateHandler;
 
     /**
+     * Splashscreen animation time.
+     */
+    @PwbExport get splashscreenAnimationTime(): number {
+        return this.splashscreenConfig.animationTime;
+    } set splashscreenAnimationTime(pMilliseconds: number) {
+        this.splashscreenConfig.animationTime = pMilliseconds;
+    }
+
+    /**
+     * Splashscreen background.
+     */
+    @PwbExport get splashscreenBackground(): string {
+        return this.splashscreenConfig.background;
+    } set splashscreenBackground(pValue: string) {
+        this.splashscreenConfig.background = pValue;
+    }
+
+    /**
      * Splashscreen content
      */
-    @PwbExport get splacescreenContent(): PwbTemplate {
+    @PwbExport get splashscreenContent(): PwbTemplate {
         return this.splashscreenConfig.content;
-    } set splacescreenContent(pTemplate: PwbTemplate) {
+    } set splashscreenContent(pTemplate: PwbTemplate) {
         this.splashscreenConfig.content = pTemplate;
+    }
+
+    /**
+     * Splashscreen manual mode.
+     */
+    @PwbExport get splashscreenManualMode(): boolean {
+        return this.splashscreenConfig.manual;
+    } set splashscreenManualMode(pValue: boolean) {
+        this.splashscreenConfig.manual = pValue;
     }
 
     /**

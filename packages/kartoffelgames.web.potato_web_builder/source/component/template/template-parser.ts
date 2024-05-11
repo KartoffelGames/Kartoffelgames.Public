@@ -44,7 +44,7 @@ export class TemplateParser {
      */
     private createLexer(): Lexer<PwbTemplateToken> {
         const lLexer: Lexer<PwbTemplateToken> = new Lexer<PwbTemplateToken>();
-        lLexer.validWhitespaces = ' \n';
+        lLexer.validWhitespaces = ' \n\r';
         lLexer.trimWhitespace = true;
 
         const lTokenSpecificityOrder: Array<string> = new Array<string>();
@@ -94,7 +94,7 @@ export class TemplateParser {
 
         // Xml token
         lLexer.addTokenTemplate('XmlIdentifier', { pattern: { regex: /[^>\s\n="/]+/, type: PwbTemplateToken.XmlIdentifier } });
-        lLexer.addTokenTemplate('XmlValue', { pattern: { regex: /(?:(?!{{|"|<).)*/, type: PwbTemplateToken.XmlValue } });
+        lLexer.addTokenTemplate('XmlValue', { pattern: { regex: /(?:(?!{{|"|<).)+/, type: PwbTemplateToken.XmlValue } });
         lLexer.addTokenTemplate('XmlComment', { pattern: { regex: /<!--.*?-->/, type: PwbTemplateToken.XmlComment } });
         lLexer.addTokenTemplate('XmlAssignment', { pattern: { regex: /=/, type: PwbTemplateToken.XmlAssignment } });
         lLexer.addTokenTemplate('XmlExplicitValue', {

@@ -1,26 +1,29 @@
+import { Exception } from '@kartoffelgames/core.data';
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
+import { UpdateHandler } from '../../component/handler/update-handler';
 import { PwbTemplate } from '../../component/template/nodes/pwb-template';
+import { PwbTemplateXmlNode } from '../../component/template/nodes/pwb-template-xml-node';
 import { PwbComponent } from '../../decorator/pwb-component.decorator';
 import { PwbExport } from '../../default/export/pwb-export.decorator';
-import { ComponentProcessorConstructor } from '../../interface/component.interface';
+import { ComponentUpdateHandlerReference } from '../../injection/references/component/component-update-handler-reference';
+import { ComponentProcessorConstructor, IPwbOnConnect, IPwbOnDisconnect } from '../../interface/component.interface';
 import pwbAppStyle from './pwb-app-component.css';
 import pwbAppTemplate from './pwb-app-component.html';
-import { Exception } from '@kartoffelgames/core.data';
-import { PwbTemplateXmlNode } from '../../component/template/nodes/pwb-template-xml-node';
-
 
 @PwbComponent({
     selector: 'pwb-app',
     style: pwbAppStyle,
     template: pwbAppTemplate
 })
-export class PwbAppComponent{
+export class PwbAppComponent implements IPwbOnConnect, IPwbOnDisconnect {
+    // Used in view.
     public splashscreenConfig: SplashscreenConfiguration;
     public splashscreenState: SplashscreenState;
-
     public styleList: Array<string>;
 
+    // Only internal.
     private readonly mContent: PwbTemplate;
+    private readonly mUpdateHandler: UpdateHandler;
 
     /**
      * Splashscreen content
@@ -34,9 +37,10 @@ export class PwbAppComponent{
     /**
      * Constructor.
      */
-    constructor() {
+    constructor(pUpdateHandler: ComponentUpdateHandlerReference) {
         this.mContent = new PwbTemplate();
 
+        this.mUpdateHandler = pUpdateHandler;
         this.styleList = new Array<string>();
 
         // Set default splashscreen state. Not hidden and append to component.
@@ -64,7 +68,7 @@ export class PwbAppComponent{
         if (!('__component_selector__' in pContentConstructor) || typeof pContentConstructor.__component_selector__ !== 'string') {
             throw new Exception(`Set constructor is not a component constructor.`, this);
         }
-        
+
         // Create xml template from component class selector.
         const lContentTemplate: PwbTemplateXmlNode = new PwbTemplateXmlNode();
         lContentTemplate.tagName = pContentConstructor.__component_selector__;
@@ -121,7 +125,28 @@ export class PwbAppComponent{
         return this.splashscreenConfig.content;
     }
 
-    // TODO: Add "OnComponentConnected" "OnComponentDisconnected" listeners that adds and removes splashscreen.
+    /**
+     * Remove splashscreen on component connect to a document when any component is updated.
+     */
+    public onPwbConnect(): void {
+        // Skip any automatic handling when manual is set up.
+        if(this.splashscreenConfig.manual) {
+            return;
+        }
+
+        // Remove splashscreen when any component was updated.
+        this.mUpdateHandler.waitForUpdate().then(()=>{
+            this.removeSplashScreen();
+        });
+    }
+
+    /**
+     * Add splashscreen to document when element was moved/reappend to document.
+     */
+    public onPwbDisconnect(): void {
+        this.splashscreenState.hide = false;
+        this.splashscreenState.append = true;
+    }
 }
 
 type SplashscreenState = {

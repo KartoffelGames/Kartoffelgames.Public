@@ -15,6 +15,7 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
         // Set component processor constructor to be injectable.
         Injector.Injectable(pComponentProcessorConstructor);
 
+        // TODO: Add global Component.elementConstructorOf(CLASS)
         // Add __component__ property to processor.
         Object.defineProperty(pComponentProcessorConstructor, '__component_selector__', {
             get: () => {

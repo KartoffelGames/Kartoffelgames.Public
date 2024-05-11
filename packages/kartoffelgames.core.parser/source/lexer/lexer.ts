@@ -389,7 +389,7 @@ export class Lexer<TTokenType extends string> {
         }
 
         // Generate single token, move cursor and yield..
-        const lSingleToken: LexerToken<TTokenType> = this.generateToken(pCursor, [...pCurrentMetas, ...pTokenPattern.meta], lTokenStartMatch, pTokenTypes, pForcedType);
+        const lSingleToken: LexerToken<TTokenType> = this.generateToken(pCursor, [...pCurrentMetas, ...pTokenPattern.meta], lTokenStartMatch, pTokenTypes, pForcedType, lTokenRegex);
         this.moveCursor(pCursor, lSingleToken.value);
 
         // Add found token to token list.
@@ -407,7 +407,7 @@ export class Lexer<TTokenType extends string> {
      * 
      * @returns The found token type of a matched regex match group.  
      */
-    private findTokenTypeOfMatch(pTokenMatch: RegExpExecArray, pTypes: LexerPatternDefinitionType<TTokenType>): TTokenType {
+    private findTokenTypeOfMatch(pTokenMatch: RegExpExecArray, pTypes: LexerPatternDefinitionType<TTokenType>, pTargetRegex: RegExp): TTokenType {
         // Find correct group for match.
         for (const lGroupName in pTokenMatch.groups!) {
             // Get regex group value
@@ -435,14 +435,8 @@ export class Lexer<TTokenType extends string> {
             }
         }
 
-        // Collect defined group names.
-        const lTokenTypeGroupList: Array<string> = new Array<string>();
-        for (const lTokenTypeGroup in pTypes) {
-            lTokenTypeGroupList.push(lTokenTypeGroup);
-        }
-
         // No group that matched a token type was found.
-        throw new Exception(`No token type found for any defined pattern regex group. Full: "${pTokenMatch[0]}", Matches: "${lMatchGroupList.join(', ')}", Groups: "${lTokenTypeGroupList.join(', ')}"`, this);
+        throw new Exception(`No token type found for any defined pattern regex group. Full: "${pTokenMatch[0]}", Matches: "${lMatchGroupList.join(', ')}", Regex: "${pTargetRegex.source}"`, this);
     }
 
     /**
@@ -480,10 +474,10 @@ export class Lexer<TTokenType extends string> {
      * 
      * @returns A new generated token with the current cursor data.  
      */
-    private generateToken(pCursor: LexerCursor, pTokenMetas: Array<string>, pTokenMatch: RegExpExecArray, pAvailableTokenTypes: LexerPatternDefinitionType<TTokenType>, pForcedType: TTokenType | null): LexerToken<TTokenType> {
+    private generateToken(pCursor: LexerCursor, pTokenMetas: Array<string>, pTokenMatch: RegExpExecArray, pAvailableTokenTypes: LexerPatternDefinitionType<TTokenType>, pForcedType: TTokenType | null, pTargetRegex: RegExp): LexerToken<TTokenType> {
         // Read token type of
         const lTokenValue: string = pTokenMatch[0];
-        const lTokenType: TTokenType = this.findTokenTypeOfMatch(pTokenMatch, pAvailableTokenTypes);
+        const lTokenType: TTokenType = this.findTokenTypeOfMatch(pTokenMatch, pAvailableTokenTypes, pTargetRegex);
 
         // Create single value token and append metas. Force token type when forced type is set.
         const lToken: LexerToken<TTokenType> = new LexerToken<TTokenType>(pForcedType ?? lTokenType, lTokenValue, pCursor.currentColumn, pCursor.currentLine);

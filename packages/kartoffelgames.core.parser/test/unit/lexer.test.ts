@@ -550,7 +550,7 @@ describe('Lexer', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).to.throw('No token type found for any defined pattern regex group. Full: "aaa", Matches: "token, aaa", Groups: "bbb"');
+            expect(lErrorFunction).to.throw('No token type found for any defined pattern regex group. Full: "aaa", Matches: "token, aaa", Regex: "(?<token>(?<aaa>aaa)|(?<ccc>ccc))"');
         });
 
         it('-- Has meta check', () => {

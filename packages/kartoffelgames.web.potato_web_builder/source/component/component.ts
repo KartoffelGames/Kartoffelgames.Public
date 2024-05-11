@@ -164,6 +164,18 @@ export class Component extends InjectionHierarchyParent {
     }
 
     /**
+     * Call onPwbConnect of component processor object.
+     */
+    public callOnPwbConnect(): void {
+        // Skip callback call when the processor was not even created.
+        if (!this.mProcessor) {
+            return;
+        }
+
+        this.processor.onPwbConnect?.();
+    }
+
+    /**
      * Call onPwbDeconstruct of component processor object.
      */
     public callOnPwbDeconstruct(): void {
@@ -173,6 +185,18 @@ export class Component extends InjectionHierarchyParent {
         }
 
         this.processor.onPwbDeconstruct?.();
+    }
+
+    /**
+     * Call onPwbDisconnect of component processor object.
+     */
+    public callOnPwbDisconnect(): void {
+        // Skip callback call when the processor was not even created.
+        if (!this.mProcessor) {
+            return;
+        }
+
+        this.processor.onPwbDisconnect?.();
     }
 
     /**
@@ -192,6 +216,9 @@ export class Component extends InjectionHierarchyParent {
      */
     public connected(): void {
         this.mUpdateHandler.enabled = true;
+
+        // Call processor event after enabling updates.
+        this.callOnPwbConnect();
 
         // Trigger light update.
         this.mUpdateHandler.requestUpdate({
@@ -228,6 +255,9 @@ export class Component extends InjectionHierarchyParent {
      */
     public disconnected(): void {
         this.mUpdateHandler.enabled = false;
+
+        // Call processor event after disabling update event..
+        this.callOnPwbDisconnect();
     }
 
     /**

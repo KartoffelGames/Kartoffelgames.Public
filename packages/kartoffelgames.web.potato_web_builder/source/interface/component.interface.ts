@@ -1,6 +1,6 @@
 import { Component } from '../component/component';
 
-export interface ComponentProcessor extends Partial<IPwbOnDeconstruct>, Partial<IPwbAfterUpdate>, Partial<IPwbOnUpdate>, Partial<IPwbOnAttributeChange> {
+export interface ComponentProcessor extends Partial<IPwbOnDeconstruct>, Partial<IPwbAfterUpdate>, Partial<IPwbOnUpdate>, Partial<IPwbOnAttributeChange>, Partial<IPwbOnConnect>,Partial<IPwbOnDisconnect> {
     /**
      * Exposure of component object.
      */
@@ -33,6 +33,14 @@ export interface IPwbAfterUpdate {
 
 export interface IPwbOnUpdate {
     onPwbUpdate(): void;
+}
+
+export interface IPwbOnConnect {
+    onPwbConnect(): void;
+}
+
+export interface IPwbOnDisconnect {
+    onPwbDisconnect(): void;
 }
 
 export interface IPwbOnAttributeChange {

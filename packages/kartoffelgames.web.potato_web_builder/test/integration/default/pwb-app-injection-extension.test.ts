@@ -12,10 +12,11 @@ describe('PwbAppInjectionExtension', () => {
     it('-- PwbApp injection on global element', async () => {
         // Process.
         let lApp: PwbApp | null = null;
+        const lSelector: string = TestUtil.randomSelector();
 
         // Process. Define component.    
         @PwbComponent({
-            selector: TestUtil.randomSelector()
+            selector: lSelector
         })
         class TestComponent {
             public constructor(pApp: PwbApp) {
@@ -32,9 +33,9 @@ describe('PwbAppInjectionExtension', () => {
         await lPwbApp.appendTo(document.body);
 
         // Process. Create elements and wait for update.
-        const lComponent: ComponentElement = <ComponentElement>(<ShadowRoot>lPwbApp.content.shadowRoot).childNodes[1];
+        const lComponent: ComponentElement = <ComponentElement>lPwbApp.component.shadowRoot!.querySelector(lSelector);
         TestUtil.forceProcessorCreation(lComponent);
-        await TestUtil.waitForUpdate(lComponent);
+        await TestUtil.waitForUpdate(lPwbApp.component);
 
         // Evaluation.
         expect(lApp).to.be.instanceOf(PwbApp);
@@ -43,6 +44,7 @@ describe('PwbAppInjectionExtension', () => {
     it('-- PwbApp injection on manual element', async () => {
         // Setup.
         const lCapsuledSelector: string = TestUtil.randomSelector();
+        const lSelector: string = TestUtil.randomSelector();
 
         // Process.
         let lApp: PwbApp | null = null;
@@ -61,7 +63,7 @@ describe('PwbAppInjectionExtension', () => {
 
         // Process. Define component.   
         @PwbComponent({
-            selector: TestUtil.randomSelector(),
+            selector: lSelector,
             template: `<${lCapsuledSelector}/>`,
             updateScope: UpdateScope.Global
         })
@@ -76,10 +78,10 @@ describe('PwbAppInjectionExtension', () => {
         await lPwbApp.appendTo(document.body);
 
         // Process. Create elements and wait for update.
-        const lComponent: ComponentElement = <ComponentElement>(<ShadowRoot>lPwbApp.content.shadowRoot).childNodes[1];
+        const lComponent: ComponentElement = <ComponentElement>lPwbApp.component.shadowRoot!.querySelector(lSelector);
         await TestUtil.waitForUpdate(lComponent);
 
-        const lChildContent: ComponentElement = <ComponentElement>(<ShadowRoot>lComponent.shadowRoot).childNodes[1];
+        const lChildContent: ComponentElement = <ComponentElement>lComponent.shadowRoot!.querySelector(lCapsuledSelector);
         TestUtil.forceProcessorCreation(lChildContent);
         await TestUtil.waitForUpdate(lChildContent);
 
@@ -90,6 +92,7 @@ describe('PwbAppInjectionExtension', () => {
     it('-- PwbApp injection on capsuled element', async () => {
         // Setup.
         const lCapsuledSelector: string = TestUtil.randomSelector();
+        const lSelector: string = TestUtil.randomSelector();
 
         // Process.
         let lApp: PwbApp | null = null;
@@ -108,7 +111,7 @@ describe('PwbAppInjectionExtension', () => {
 
         // Process. Define component.   
         @PwbComponent({
-            selector: TestUtil.randomSelector(),
+            selector: lSelector,
             template: `<${lCapsuledSelector}/>`,
             updateScope: UpdateScope.Global
         })
@@ -123,11 +126,11 @@ describe('PwbAppInjectionExtension', () => {
         await lPwbApp.appendTo(document.body);
 
         // Process. Create elements and wait for update.
-        const lComponent: ComponentElement = <ComponentElement>(<ShadowRoot>lPwbApp.content.shadowRoot).childNodes[1];
+        const lComponent: ComponentElement = <ComponentElement>lPwbApp.component.shadowRoot!.querySelector(lSelector);
         await TestUtil.waitForUpdate(lComponent);
 
         // Read cild component.
-        const lChildChildContent: ComponentElement = <any>(<ShadowRoot>lComponent.shadowRoot).childNodes[1];
+        const lChildChildContent: ComponentElement = <ComponentElement>lComponent.shadowRoot!.querySelector(lCapsuledSelector);
         TestUtil.forceProcessorCreation(lChildChildContent);
         await TestUtil.waitForUpdate(lChildChildContent);
 
@@ -137,6 +140,7 @@ describe('PwbAppInjectionExtension', () => {
 
     it('-- Deep nested manual component', async () => {
         // Setup.
+        const lSelector: string = TestUtil.randomSelector();
         const lChildSelector: string = TestUtil.randomSelector();
         const lChildChildSelector: string = TestUtil.randomSelector();
 
@@ -166,7 +170,7 @@ describe('PwbAppInjectionExtension', () => {
 
         // Process. Define component.   
         @PwbComponent({
-            selector: TestUtil.randomSelector(),
+            selector: lSelector,
             template: `<${lChildSelector}/>`,
             updateScope: UpdateScope.Global
         })
@@ -181,15 +185,15 @@ describe('PwbAppInjectionExtension', () => {
         await lPwbApp.appendTo(document.body);
 
         // Process. Create elements and wait for update.
-        const lComponent: ComponentElement = <ComponentElement>(<ShadowRoot>lPwbApp.content.shadowRoot).childNodes[1];
+        const lComponent: ComponentElement = <ComponentElement>lPwbApp.component.shadowRoot!.querySelector(lSelector);
         await TestUtil.waitForUpdate(lComponent);
 
         // Read cild component.
-        const lChildChildContent: ComponentElement = <any>(<ShadowRoot>lComponent.shadowRoot).childNodes[1];
+        const lChildChildContent: ComponentElement = <ComponentElement>lComponent.shadowRoot!.querySelector(lChildSelector);
         await TestUtil.waitForUpdate(lChildChildContent);
 
         // Read cild component.
-        const lChildChildChildContent: ComponentElement = <any>(<ShadowRoot>lChildChildContent.shadowRoot).childNodes[1];
+        const lChildChildChildContent: ComponentElement = <ComponentElement>lChildChildContent.shadowRoot!.querySelector(lChildChildSelector);
         TestUtil.forceProcessorCreation(lChildChildChildContent);
         await TestUtil.waitForUpdate(lChildChildChildContent);
 

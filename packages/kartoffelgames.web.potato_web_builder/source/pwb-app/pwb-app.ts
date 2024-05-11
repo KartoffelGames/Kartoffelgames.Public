@@ -26,14 +26,14 @@ export class PwbApp { // TODO: Rework PwbApp to be a component.
         return undefined;
     }
 
-    private readonly mAppComponent: HTMLElement & PwbAppComponent;
+    private mAppComponent!: HTMLElement & PwbAppComponent;
     private readonly mChangeDetection: ChangeDetection;
 
 
     /**
      * Get app underlying content.
      */
-    public get content(): Element {
+    public get component(): HTMLElement {
         return this.mAppComponent;
     }
 
@@ -45,12 +45,14 @@ export class PwbApp { // TODO: Rework PwbApp to be a component.
         const lAppComponentSelector: string = (<ComponentProcessorConstructor><unknown>PwbAppComponent).__component_selector__;
         const lAppComponentConstructor: CustomElementConstructor = window.customElements.get(lAppComponentSelector)!;
 
-        // Create app component element.
-        this.mAppComponent = <HTMLElement & PwbAppComponent>new lAppComponentConstructor();
-
         // Read change detection of app component.
-        this.mChangeDetection = this.mAppComponent.updateHandler.changeDetection;
+        this.mChangeDetection = new ChangeDetection('App');
         PwbApp.mChangeDetectionToApp.set(this.mChangeDetection, this);
+
+        // Create app component element inside pwb app change detection.
+        this.mChangeDetection.execute(() => {
+            this.mAppComponent = <HTMLElement & PwbAppComponent>new lAppComponentConstructor();
+        });
     }
 
     /**

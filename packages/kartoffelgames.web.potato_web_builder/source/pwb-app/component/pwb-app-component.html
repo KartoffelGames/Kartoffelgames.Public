@@ -1,0 +1,18 @@
+<!-- Additional styles -->
+$for(let styleText of this.styleList){
+    <style>{{styleText}}</style>
+}
+
+<!-- Splashscreen -->
+$if(this.splashscreenState.append) {
+    <div class="splashscreen {{this.splashscreenState.hide ? 'hide', ''}}" style="--transition-time-ms: {{this.splashscreenConfig.animationTime}}s;">
+        <div class="splashscreen__content">
+            $dynamic-content(this.getSplacescreenContent)
+        </div>
+    </div>
+}
+
+<!-- Actual content -->
+<div>
+    $dynamic-content(this.getContent)
+</div>

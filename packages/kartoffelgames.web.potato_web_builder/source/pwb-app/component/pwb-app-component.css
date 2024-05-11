@@ -1,0 +1,32 @@
+:host {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.splashscreen {
+    position: absolute;
+
+    display: grid;
+    align-content: center;
+    
+    width: 100%;
+    height: 100%;
+    opacity: 1;
+
+    /* Transition */
+    transition: var(--transition-time-ms, 1000s) linear;
+
+    /* Default background */
+    background: blue;
+}
+
+.splashscreen.hide {
+    opacity: 0;
+}
+
+.splashscreen__content {
+    width: fit-content;
+    height: fit-content;
+    margin: 0 auto;
+}

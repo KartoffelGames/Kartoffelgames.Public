@@ -15,6 +15,8 @@ import { BuilderContent } from './data/base-builder-data';
 import { StaticBuilderData, StaticBuilderLinkedAttributeData } from './data/static-builder-data';
 import { InstructionBuilder } from './instruction-builder';
 
+// TODO: FInd a way to get updated template without triggering updates.
+
 /**
  * Static builder. Handles any type of pwb template but creates new {@link InstructionBuilder} for every instruction node.
  * 

@@ -8,6 +8,8 @@ import { BaseBuilder } from './base-builder';
 import { InstructionBuilderData } from './data/instruction-builder-data';
 import { StaticBuilder } from './static-builder';
 
+// TODO: FInd a way to get updated template without triggering updates.
+
 /**
  * Instruction builder. Only builds and handles instruction templates.
  * Creates new static builder for every generated instruction result.

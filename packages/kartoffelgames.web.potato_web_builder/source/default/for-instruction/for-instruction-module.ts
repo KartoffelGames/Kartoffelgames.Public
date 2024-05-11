@@ -77,11 +77,11 @@ export class ForInstructionModule implements IPwbInstructionModuleOnUpdate {
                     let lIndex: number = 0;
                     for (const lValue of lIterator) {
                         // Add new template item and count index.
-                        this.addTempateForElement(lModuleResult, lExpression, lValue, lIndex++);
+                        this.addTemplateForElement(lModuleResult, lExpression, lValue, lIndex++);
                     }
                 } else {
                     for (const lListObjectKey in lListObject) {
-                        this.addTempateForElement(lModuleResult, lExpression, lListObject[lListObjectKey], lListObjectKey);
+                        this.addTemplateForElement(lModuleResult, lExpression, lListObject[lListObjectKey], lListObjectKey);
                     }
                 }
 
@@ -102,7 +102,7 @@ export class ForInstructionModule implements IPwbInstructionModuleOnUpdate {
      * @param pObjectValue - value.
      * @param pObjectKey - value key.
      */
-    private readonly addTempateForElement = (pModuleResult: InstructionResult, pExpression: ForOfExpression, pObjectValue: any, pObjectKey: number | string) => {
+    private readonly addTemplateForElement = (pModuleResult: InstructionResult, pExpression: ForOfExpression, pObjectValue: any, pObjectKey: number | string) => {
         const lComponentValues: LayerValues = new LayerValues(this.mLayerValues);
         lComponentValues.setLayerValue(pExpression.variable, pObjectValue);
 

@@ -26,6 +26,13 @@ export class PwbAppComponent implements IPwbOnConnect, IPwbOnDisconnect {
     private readonly mUpdateHandler: UpdateHandler;
 
     /**
+     * Get app content as pwb template.
+     */
+    @PwbExport get content(): PwbTemplate {
+        return this.mContent;
+    }
+
+    /**
      * Splashscreen animation time.
      */
     @PwbExport get splashscreenAnimationTime(): number {
@@ -139,15 +146,6 @@ export class PwbAppComponent implements IPwbOnConnect, IPwbOnDisconnect {
                 pResolve();
             }, this.splashscreenConfig.animationTime);
         });
-    }
-
-    /**
-     * Get app content as pwb template.
-     * 
-     * @returns template containing all app content.
-     */
-    public getContent(): PwbTemplate {
-        return this.mContent;
     }
 
     /**

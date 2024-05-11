@@ -1,14 +1,14 @@
 import { Exception } from '@kartoffelgames/core.data';
+import { UpdateHandler } from '../../component/handler/update-handler';
 import { PwbTemplate } from '../../component/template/nodes/pwb-template';
 import { LayerValues } from '../../component/values/layer-values';
 import { PwbInstructionModule } from '../../decorator/pwb-instruction-module.decorator';
-import { ComponentReference } from '../../injection/references/component/component-reference';
-import { ModuleValueReference } from '../../injection/references/module/module-value-reference';
-import { ComponentProcessor } from '../../interface/component.interface';
-import { IPwbInstructionModuleOnUpdate } from '../../interface/module.interface';
-import { InstructionResult } from '../../module/result/instruction-result';
+import { ComponentUpdateHandlerReference } from '../../injection/references/component/component-update-handler-reference';
 import { ModuleLayerValuesReference } from '../../injection/references/module/module-layer-values-reference';
+import { ModuleValueReference } from '../../injection/references/module/module-value-reference';
+import { IPwbInstructionModuleOnUpdate } from '../../interface/module.interface';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
+import { InstructionResult } from '../../module/result/instruction-result';
 
 /**
  * Dynamic content instruction.
@@ -18,10 +18,10 @@ import { ComponentScopeExecutor } from '../../module/execution/component-scope-e
     instructionType: 'dynamic-content'
 })
 export class DynamicContentInstructionModule implements IPwbInstructionModuleOnUpdate {
-    private readonly mCallback: DynamicContentCallback;
-    private readonly mComponentProcessor: ComponentProcessor;
+    private readonly mExpression: string;
     private mLastTemplate: PwbTemplate | null;
-    private readonly mValueHandler: LayerValues;
+    private readonly mLayerValues: LayerValues;
+    private readonly mUpdateHandler: UpdateHandler;
 
     /**
      * Constructor.
@@ -29,22 +29,13 @@ export class DynamicContentInstructionModule implements IPwbInstructionModuleOnU
      * @param pLayerValues - Values of component.
      * @param pAttributeReference - Attribute of module.
      */
-    public constructor(pAttributeValue: ModuleValueReference, pComponent: ComponentReference, pLayerValues: ModuleLayerValuesReference) {
-        this.mComponentProcessor = pComponent.processor;
-        this.mValueHandler = pLayerValues;
+    public constructor(pAttributeValue: ModuleValueReference, pLayerValues: ModuleLayerValuesReference, pUpdateHandler: ComponentUpdateHandlerReference) {
+        this.mLayerValues = pLayerValues;
+        this.mUpdateHandler = pUpdateHandler;
         this.mLastTemplate = null;
 
         // Callback expression.
-        const lCallbackExpression = pAttributeValue.toString();
-
-        // Validate if it is a function.
-        const lCallbackFunction: unknown = ComponentScopeExecutor.executeSilent(lCallbackExpression, this.mValueHandler);
-        if (typeof lCallbackFunction !== 'function') {
-            throw new Exception(`Method "${lCallbackExpression}" not a function.`, this);
-        }
-
-        // Save callback.
-        this.mCallback = lCallbackFunction as DynamicContentCallback;
+        this.mExpression = pAttributeValue.toString();
     }
 
     /**
@@ -52,18 +43,21 @@ export class DynamicContentInstructionModule implements IPwbInstructionModuleOnU
      * @returns if element of module should be updated.
      */
     public onUpdate(): InstructionResult | null {
-        const lTemplateResult: PwbTemplate = this.mCallback.call(this.mComponentProcessor);
-        if (!(lTemplateResult instanceof PwbTemplate)) {
+        // Execute content callback silent.
+        const lTemplateResult: PwbTemplate = ComponentScopeExecutor.executeSilent(this.mExpression, this.mLayerValues);
+
+        // Validate correct result.
+        if (!lTemplateResult! || !(lTemplateResult instanceof PwbTemplate)) {
             throw new Exception(`Dynamic content method has a wrong result type.`, this);
         }
 
         // Check for changes.
-        if (!this.mLastTemplate || !lTemplateResult.equals(this.mLastTemplate)) {
+        if (!this.mLastTemplate || this.mLastTemplate !== lTemplateResult) { // TODO: check template by equal.
             this.mLastTemplate = lTemplateResult;
 
             // Add custom template to output.
             const lModuleResult: InstructionResult = new InstructionResult();
-            lModuleResult.addElement(lTemplateResult, new LayerValues(this.mValueHandler));
+            lModuleResult.addElement(lTemplateResult, new LayerValues(this.mLayerValues));
 
             return lModuleResult;
         } else {
@@ -72,5 +66,3 @@ export class DynamicContentInstructionModule implements IPwbInstructionModuleOnU
         }
     }
 }
-
-type DynamicContentCallback = () => PwbTemplate;

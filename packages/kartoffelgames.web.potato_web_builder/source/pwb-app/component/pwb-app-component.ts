@@ -133,7 +133,10 @@ export class PwbAppComponent implements IPwbOnConnect, IPwbOnDisconnect {
      * @returns promise that resolved when the splacescreen remove animation finishes.
      */
     @PwbExport async removeSplashScreen(): Promise<void> {
-        this.splashscreenState.hide = true;
+        // Wait for the next frame to give the splashscreen at least one frame time to set the default styles before applying transitions.
+        window.requestAnimationFrame(() => {
+            this.splashscreenState.hide = true;
+        });
 
         // Remove splashscreen after transition.
         return new Promise<void>((pResolve) => {
@@ -141,7 +144,6 @@ export class PwbAppComponent implements IPwbOnConnect, IPwbOnDisconnect {
             globalThis.setTimeout(() => {
                 // Remove 
                 this.splashscreenState.append = false;
-
                 // Resolve promise after remove.
                 pResolve();
             }, this.splashscreenConfig.animationTime);
@@ -168,7 +170,11 @@ export class PwbAppComponent implements IPwbOnConnect, IPwbOnDisconnect {
 
         // Remove splashscreen when any component was updated.
         this.mUpdateHandler.waitForUpdate().then(() => {
-            this.removeSplashScreen();
+            // TODO: Temporary fix for waitForUpdate inside a Silent CD.
+            // Shedule task executes callbacks in silent cd but promise cd does not take over.
+            this.updateHandler.enableChangeDetectionFor(() => {
+                this.removeSplashScreen();
+            });
         });
     }
 

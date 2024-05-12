@@ -142,7 +142,6 @@ export class PwbApp {
      * template.appendChild(div);
      * 
      * app.setSplashScreen({ content: template });
-     * 
      * ```
      */
     public setSplashScreen(pSplashScreen: SplashScreen): void {

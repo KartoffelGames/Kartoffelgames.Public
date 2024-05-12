@@ -242,10 +242,11 @@ describe('PwbApp', () => {
             lApp.setSplashScreen({
                 background: lBackground,
                 content: lContent,
-                animationTime: 10
+                animationTime: 10,
+                manual: true
             });
 
-            // Settup. Add app to document.
+            // Setup. Add app to document.
             await lApp.appendTo(document.body);
 
             // Process. Read splash screen data.

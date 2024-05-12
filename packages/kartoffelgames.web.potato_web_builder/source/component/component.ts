@@ -273,15 +273,15 @@ export class Component extends InjectionHierarchyParent {
             lUntrackedProcessor = Injection.createObject<ComponentProcessor>(this.mProcessorConstructor, this.injections);
         });
 
+        // Store processor to be able to read for all read extensions.
+        this.mProcessor = this.mUpdateHandler.registerObject(lUntrackedProcessor!);
+
         // Add __component__ property to processor.
-        Object.defineProperty(lUntrackedProcessor, '__component__', {
+        Object.defineProperty(this.mProcessor, '__component__', {
             get: () => {
                 return this;
             }
         });
-
-        // Store processor to be able to read for all read extensions.
-        this.mProcessor = this.mUpdateHandler.registerObject(lUntrackedProcessor!);
     }
 
     /**

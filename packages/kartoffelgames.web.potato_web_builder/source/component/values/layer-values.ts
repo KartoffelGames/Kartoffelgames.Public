@@ -22,17 +22,6 @@ export class LayerValues {
     }
 
     /**
-     * Get root value of component.
-     */
-    public get rootValue(): LayerValues {
-        if (this.mParentLayer === null) {
-            return this;
-        } else {
-            return this.mParentLayer.rootValue;
-        }
-    }
-
-    /**
      * Get all keys of temorary values.
      */
     private get temporaryValuesList(): Array<string> {
@@ -109,15 +98,6 @@ export class LayerValues {
     }
 
     /**
-     * Remove temporary value from this layer.
-     * @param pValueName - Name of value.
-     */
-    public removeLayerValue(pValueName: string): void {
-        // Remove value from html element.
-        this.mTemporaryValues.delete(pValueName);
-    }
-
-    /**
      * Add or replaces temporary value in this manipulator scope.
      * @param pKey - Key of value.
      * @param pValue - Value.
@@ -125,14 +105,5 @@ export class LayerValues {
     public setLayerValue<TValue>(pKey: string, pValue: TValue): void {
         // Set value to current layer.
         this.mTemporaryValues.set(pKey, pValue);
-    }
-
-    /**
-     * Set value to root. All child can access this value.
-     * @param pKey - Value key.
-     * @param pValue - Value.
-     */
-    public setRootValue<TValue>(pKey: string, pValue: TValue): void {
-        this.rootValue.setLayerValue(pKey, pValue);
     }
 }

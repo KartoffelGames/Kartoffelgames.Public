@@ -25,6 +25,6 @@ export class PwbChildAttributeModule {
         const lRegistedElement: Node = pUpdateHandler.registerObject(lTarget);
 
         // Add current html element to temporary root values. Delete starting #.
-        pComponentLayerValue.setRootValue(pAttributeKey.substring(1), lRegistedElement);
+        pComponentLayerValue.setLayerValue(pAttributeKey.substring(1), lRegistedElement);
     }
 }

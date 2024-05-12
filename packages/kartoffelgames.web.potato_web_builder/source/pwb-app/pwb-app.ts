@@ -5,11 +5,15 @@ import { PwbTemplate } from '../component/template/nodes/pwb-template';
 import { ComponentProcessorConstructor } from '../interface/component.interface';
 import { PwbAppComponent } from './component/pwb-app-component';
 
-export class PwbApp { // TODO: Rework PwbApp to be a component.
+/**
+ * Wrapper handles scoped global styles, components and loading splashscreen.
+ */
+export class PwbApp {
     private static readonly mChangeDetectionToApp: WeakMap<ChangeDetection, PwbApp> = new WeakMap<ChangeDetection, PwbApp>();
 
     /**
      * Get app of change detection.
+     * 
      * @param pChangeDetection - Change detection.
      */
     public static getChangeDetectionApp(pChangeDetection: ChangeDetection): PwbApp | undefined {
@@ -28,7 +32,6 @@ export class PwbApp { // TODO: Rework PwbApp to be a component.
 
     private mAppComponent!: HTMLElement & PwbAppComponent;
     private readonly mChangeDetection: ChangeDetection;
-
 
     /**
      * Get app underlying content.
@@ -57,6 +60,7 @@ export class PwbApp { // TODO: Rework PwbApp to be a component.
 
     /**
      * Append content to app.
+     * Component is constructed asynchron after beeing append with {@link appendTo}.
      * 
      * @param pContentConstructor - Content constructor.
      */
@@ -75,7 +79,12 @@ export class PwbApp { // TODO: Rework PwbApp to be a component.
     }
 
     /**
-     * Create style element and prepend it to this component.
+     * Inserts css sttyles into a new created {@link HTMLStyleElement} and prepend it to this app.
+     * This styles are global available but cant penetrate components shadow root barier.
+     * 
+     * @remarks
+     * Splashscreen content can be styles with this function.
+     * 
      * @param pStyle - Css style as string.
      */
     public addStyle(pStyle: string): void {
@@ -83,7 +92,9 @@ export class PwbApp { // TODO: Rework PwbApp to be a component.
     }
 
     /**
-     * Append app to element.
+     * Append this app to an element.
+     * Triggers the automatic splashscreen removal when not set to manual mode.
+     * 
      * @param pElement - Element.
      */
     public async appendTo(pElement: Element): Promise<void> {
@@ -96,28 +107,61 @@ export class PwbApp { // TODO: Rework PwbApp to be a component.
 
     /**
      * Remove splash screen.
+     * 
+     * @returns Promise that resolves when the splacescreen is completly removed.
      */
     public async removeSplashScreen(): Promise<void> {
         return this.mAppComponent.removeSplashScreen();
     }
 
     /**
-     * Set new splash screen.
+     * Set splashscreen configuration. Only updates configurations that are set and leaves the others untouched.
+     * Content is allways centered.
+     * 
      * @param pSplashScreen - Splashscreen settings.
+     * 
+     * @example
+     * ``` Typescript
+     * const app = new PwbApp();
+     * 
+     * // Only change manual mode.
+     * app.setSplashScreen({ manual: true });
+     * 
+     * // Animation time and background.
+     * app.setSplashScreen({ splashscreenAnimationTime: 750, background: '#c24fb7' });
+     *  
+     * // Set custom content.
+     * const text = new PwbTemplateTextNode();
+     * text.addValue('My splashscreen text');
+     *
+     * const div = new PwbTemplateXmlNode();
+     * div.tagName = 'div';
+     * div.appendChild(text);
+     *
+     * const template = new PwbTemplate();
+     * template.appendChild(div);
+     * 
+     * app.setSplashScreen({ content: template });
+     * 
+     * ```
      */
     public setSplashScreen(pSplashScreen: SplashScreen): void {
+        // Set background.
         if (typeof pSplashScreen.background === 'string') {
             this.mAppComponent.splashscreenBackground = pSplashScreen.background;
         }
 
+        // Set splash screen remove animation time.
         if (typeof pSplashScreen.animationTime === 'number') {
             this.mAppComponent.splashscreenAnimationTime = pSplashScreen.animationTime;
         }
 
+        // Set splash screen content template.
         if (typeof pSplashScreen.content !== 'undefined') {
             this.mAppComponent.splashscreenContent = pSplashScreen.content;
         }
 
+        // Set splashscreen manual remove mode.
         if (typeof pSplashScreen.manual === 'boolean') {
             this.mAppComponent.splashscreenManualMode = pSplashScreen.manual;
         }

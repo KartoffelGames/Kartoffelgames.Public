@@ -1,5 +1,5 @@
-import { Exception } from '@kartoffelgames/core.data';
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
+import { Component } from '../../component/component';
 import { UpdateHandler } from '../../component/handler/update-handler';
 import { PwbTemplate } from '../../component/template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from '../../component/template/nodes/pwb-template-xml-node';
@@ -105,14 +105,9 @@ export class PwbAppComponent implements IPwbOnConnect, IPwbOnDisconnect {
      * @param pContentConstructor - Content constructor.
      */
     @PwbExport addContent(pContentConstructor: InjectionConstructor | ComponentProcessorConstructor): void {
-        // Validate constructor to be a component constructor. 
-        if (!('__component_selector__' in pContentConstructor) || typeof pContentConstructor.__component_selector__ !== 'string') {
-            throw new Exception(`Set constructor is not a component constructor.`, this);
-        }
-
         // Create xml template from component class selector.
         const lContentTemplate: PwbTemplateXmlNode = new PwbTemplateXmlNode();
-        lContentTemplate.tagName = pContentConstructor.__component_selector__;
+        lContentTemplate.tagName = Component.elementSelectorOf(pContentConstructor);
 
         // Add content to content template.
         this.mContent.appendChild(lContentTemplate);

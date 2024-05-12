@@ -1,5 +1,5 @@
-import { Dictionary } from '@kartoffelgames/core.data';
-import { Injection } from '@kartoffelgames/core.dependency-injection';
+import { Dictionary, Exception } from '@kartoffelgames/core.data';
+import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { AccessMode } from '../enum/access-mode.enum';
 import { ExtensionType } from '../enum/extension-type.enum';
 import { UpdateScope } from '../enum/update-scope.enum';
@@ -28,8 +28,62 @@ import { LayerValues } from './values/layer-values';
  * Base component handler. Handles initialisation and update of components.
  */
 export class Component extends InjectionHierarchyParent {
+    private static readonly mObjectSelector: WeakMap<object, string> = new WeakMap<object, string>();
     private static readonly mTemplateCache: Dictionary<ComponentProcessorConstructor, PwbTemplate> = new Dictionary<ComponentProcessorConstructor, PwbTemplate>();
     private static readonly mXmlParser: TemplateParser = new TemplateParser();
+
+    /**
+     * Get selector of component or component 
+     *
+     * @param pConstructor - Class of component processor.
+     *
+     * @returns 
+     *  
+     * @throws {@link Exception}
+     * When {@link pConstructor} is not a registered component processor.
+     */
+    public static elementConstructorOf(pConstructor: InjectionConstructor): CustomElementConstructor {
+        const lSelector: string = Component.elementSelectorOf(pConstructor);
+
+        // Get component constructor from custom element registry.
+        const lComponentConstructor: CustomElementConstructor | undefined = window.customElements.get(lSelector);
+        if (!lComponentConstructor) {
+            throw new Exception(`Constructor "${pConstructor.name}" is not a registered custom element`, pConstructor);
+        }
+
+        return lComponentConstructor;
+    }
+
+
+    /**
+     * Get the selector of a component processor class.
+     * 
+     * @param pConstructor - Class of component processor.
+     * 
+     * @returns selector of custom element. 
+     * 
+     * @throws {@link Exception}
+     * When {@link pConstructor} is not a registered component processor.
+     */
+    public static elementSelectorOf(pConstructor: InjectionConstructor): string {
+        const lSelector: string | undefined = Component.mObjectSelector.get(pConstructor);
+        if (!lSelector) {
+            throw new Exception(`Constructor "${pConstructor.name}" is not a PwbComponent.`, pConstructor);
+        }
+
+        return lSelector;
+    }
+
+    /**
+     * Register constructor with its selector.
+     * Can override existing entires.
+     * 
+     * @param pConstructor - Class of component processor.
+     * @param pSelector - Selector of component.
+     */
+    public static registerProcessor(pConstructor: InjectionConstructor, pSelector: string): void {
+        Component.mObjectSelector.set(pConstructor, pSelector);
+    }
 
     private readonly mElementHandler: ElementHandler;
     private readonly mExtensionList: Array<ComponentExtension>;

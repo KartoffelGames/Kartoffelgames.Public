@@ -4,6 +4,7 @@ import { ErrorListener } from '@kartoffelgames/web.change-detection/library/sour
 import { PwbTemplate } from '../component/template/nodes/pwb-template';
 import { ComponentProcessorConstructor } from '../interface/component.interface';
 import { PwbAppComponent } from './component/pwb-app-component';
+import { Component } from '../component/component';
 
 /**
  * Wrapper handles scoped global styles, components and loading splashscreen.
@@ -44,13 +45,12 @@ export class PwbApp {
      * Constructor.
      */
     public constructor() {
-        // Get app component constructor.
-        const lAppComponentSelector: string = (<ComponentProcessorConstructor><unknown>PwbAppComponent).__component_selector__;
-        const lAppComponentConstructor: CustomElementConstructor = window.customElements.get(lAppComponentSelector)!;
-
         // Read change detection of app component.
         this.mChangeDetection = new ChangeDetection('App');
         PwbApp.mChangeDetectionToApp.set(this.mChangeDetection, this);
+
+        // Get app component constructor.
+        const lAppComponentConstructor: CustomElementConstructor = Component.elementConstructorOf(PwbAppComponent);
 
         // Create app component element inside pwb app change detection.
         this.mChangeDetection.execute(() => {

@@ -1,38 +1,24 @@
-import { Dictionary } from '@kartoffelgames/core.data';
+import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { Component } from '../component';
 
 /**
  * Interface between persistent values directly from component and temporary values
  * that are not directly inside the component but attached to it.
  *
- * Simple access for all value types: TemporaryValue, IdChild and ComponentProcessor values.
- * has-, get-, set-, remove-.
+ * Has the {@link data} property that allways sets and gets the data to the correct location
+ * or the {@link setTemporaryValue} function to only set temporary values.
  */
-// TODO: Rework for proxy object for getter and setter. Remove public root value (ComponentValue reference should be enough)
 export class LayerValues {
     private readonly mComponent: Component;
+    private readonly mDataProxy: LayerValueData;
     private readonly mParentLayer: LayerValues | null;
     private readonly mTemporaryValues: Dictionary<string, any>;
 
     /**
-     * Component manager connected with layer value.
+     * Data object with all values of layer.
      */
-    public get component(): Component {
-        return this.mComponent;
-    }
-
-    /**
-     * Get all keys of temorary values.
-     */
-    private get temporaryValuesList(): Array<string> {
-        const lKeyList: Array<string> = this.mTemporaryValues.map<string>((pKey: string) => pKey);
-
-        // Get key list from parent.
-        if (this.mParentLayer) {
-            lKeyList.push(...this.mParentLayer.temporaryValuesList);
-        }
-
-        return lKeyList;
+    public get data(): LayerValueData {
+        return this.mDataProxy;
     }
 
     /**
@@ -48,8 +34,11 @@ export class LayerValues {
             this.mComponent = pParentLayer;
         } else {
             this.mParentLayer = pParentLayer;
-            this.mComponent = pParentLayer.component;
+            this.mComponent = pParentLayer.mComponent;
         }
+
+        // Create data proxy.
+        this.mDataProxy = this.createAccessProxy();
     }
 
     /**
@@ -58,13 +47,13 @@ export class LayerValues {
      */
     public equals(pHandler: LayerValues): boolean {
         // Compare if it has the same component processor object.
-        if (this.component.processor !== pHandler.component.processor) {
+        if (this.mComponent.processor !== pHandler.mComponent.processor) {
             return false;
         }
 
         // Get temporary value keys and sort. 
-        const lSortedTemporaryValueKeyListOne: Array<string> = this.temporaryValuesList.sort();
-        const lSortedTemporaryValueKeyListTwo: Array<string> = pHandler.temporaryValuesList.sort();
+        const lSortedTemporaryValueKeyListOne: Array<string> = this.getTemporaryValuesList().sort();
+        const lSortedTemporaryValueKeyListTwo: Array<string> = pHandler.getTemporaryValuesList().sort();
 
         // Compare temporary value keys.
         if (lSortedTemporaryValueKeyListOne.join() !== lSortedTemporaryValueKeyListTwo.join()) {
@@ -83,27 +72,139 @@ export class LayerValues {
     }
 
     /**
-     * Gets the html element specified temporary value.
-     * @param pValueName - Name of value.
-     */
-    public getValue<TValue>(pValueName: string): TValue {
-        let lValue: any = this.mTemporaryValues.get(pValueName);
-
-        // If value was not found and parent exists, search in parent values.
-        if (typeof lValue === 'undefined' && this.mParentLayer) {
-            lValue = this.mParentLayer.getValue(pValueName);
-        }
-
-        return lValue;
-    }
-
-    /**
      * Add or replaces temporary value in this manipulator scope.
+     * 
      * @param pKey - Key of value.
      * @param pValue - Value.
      */
-    public setLayerValue<TValue>(pKey: string, pValue: TValue): void {
+    public setTemporaryValue<TValue>(pKey: string, pValue: TValue): void {
         // Set value to current layer.
         this.mTemporaryValues.set(pKey, pValue);
     }
+
+    /**
+     * Create a proxy object that decide what data is written to or read from temporary or processor values.
+     * 
+     * @returns Proxy object.
+     */
+    private createAccessProxy(): LayerValueData {
+        return new Proxy(new Object(), {
+            /**
+             * Get value of property.
+             * 
+             * @param _pTargetObject - Something unused. 
+             * @param pPropertyName - Name of requested value.
+             * 
+             * @returns value of property.
+             * 
+             * @throws {@link Exception}
+             * When the property is not set.
+             */
+            get: (_pTargetObject: any, pPropertyName: string): any => {
+                return this.getValue(pPropertyName);
+            },
+
+            /**
+             * 
+             * @param _pTargetObject  - Something unused. 
+             * @param pPropertyName - Target property name. 
+             * @param pNewValue - New set value.
+             */
+            set: (_pTargetObject: any, pPropertyName: string, pNewValue: any): boolean => {
+                // Update temporary value when they have overriden persistent values.
+                if (this.hasTemporaryValue(pPropertyName)) {
+                    this.setTemporaryValue(pPropertyName, pNewValue);
+                }
+
+                // Update component processor values when they exist before setting a new temporary value.
+                if (pPropertyName in this.mComponent.processor) {
+                    (<{ [key: PropertyKey]: any; }>this.mComponent.processor)[pPropertyName] = pNewValue;
+                    return true;
+                }
+
+                // Set new temporary value. 
+                this.setTemporaryValue(pPropertyName, pNewValue);
+                return true;
+            },
+
+            /**
+             * Restrict property deletion.
+             */
+            deleteProperty: (): boolean => {
+                throw new Exception('Deleting properties is not allowed', this);
+            },
+
+            /**
+             * Get a list of all property owned by this data.
+             * @returns list of propery key owned by this data.
+             */
+            ownKeys: () => {
+                // Concat keys from default data and local data. Wrap in Set to distinct array.
+                return [...new Set([...(Object.keys(this.mComponent.processor)), ...this.getTemporaryValuesList()])];
+            }
+        });
+    }
+
+    /**
+     * Get all keys of temorary values.
+     */
+    private getTemporaryValuesList(): Array<string> {
+        const lKeyList: Array<string> = this.mTemporaryValues.map<string>((pKey: string) => pKey);
+
+        // Get key list from parent.
+        if (this.mParentLayer) {
+            lKeyList.push(...this.mParentLayer.getTemporaryValuesList());
+        }
+
+        return lKeyList;
+    }
+
+    /**
+     * Gets the html element specified temporary value.
+     * 
+     * @param pValueName - Name of value.
+     */
+    private getValue<TValue>(pValueName: string): TValue {
+        // Only return value when it exists in current layer.
+        if (this.mTemporaryValues.has(pValueName)) {
+            return this.mTemporaryValues.get(pValueName);
+        }
+
+        // If value was not found and parent exists, search in parent values.
+        if (this.mParentLayer) {
+            return this.mParentLayer.getValue(pValueName);
+        }
+
+        // When it does not exist in current layer nor in parent, return component processor value.
+        // This in hits only on root layer values. child layers can never access the component processor.
+        if (pValueName in this.mComponent.processor) {
+            return (<{ [key: PropertyKey]: any; }>this.mComponent.processor)[pValueName];
+        }
+
+        // Throw undefined exception.
+        throw new Exception(`Variable "${pValueName}" not defined.`, this);
+    }
+
+    /**
+     * Gets the html element specified temporary value.
+     * @param pValueName - Name of value.
+     */
+    private hasTemporaryValue(pValueName: string): boolean {
+        const lExists: boolean = this.mTemporaryValues.has(pValueName);
+
+        // Exists. So it will be.
+        if (lExists) {
+            return true;
+        }
+
+        // No parent and value does not exist.
+        if (!this.mParentLayer) {
+            return false;
+        }
+
+        // If value was not found and parent exists, search in parent values.
+        return this.mParentLayer.hasTemporaryValue(pValueName);
+    }
 }
+
+type LayerValueData = { [key: PropertyKey]: any; };

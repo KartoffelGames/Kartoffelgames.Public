@@ -2,7 +2,7 @@ import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection'
 import { ComponentUpdateHandlerReference } from '../../source';
 import { Component } from '../../source/component/component';
 import { UpdateHandler } from '../../source/component/handler/update-handler';
-import { ComponentElement, ComponentProcessorConstructor } from '../../source/interface/component.interface';
+import { ComponentElement } from '../../source/interface/component.interface';
 
 export class TestUtil {
     /**
@@ -11,8 +11,7 @@ export class TestUtil {
      */
     public static async createComponent(pClass: InjectionConstructor): Promise<ComponentElement> {
         // Get component html constructor from class.
-        const lSelector = (<ComponentProcessorConstructor>pClass).__component_selector__;
-        const lComponentConstructor: CustomElementConstructor = <CustomElementConstructor>window.customElements.get(lSelector);
+        const lComponentConstructor: CustomElementConstructor = Component.elementConstructorOf(pClass);
 
         // Get component.
         const lComponent: ComponentElement = new lComponentConstructor() as any;
@@ -31,7 +30,7 @@ export class TestUtil {
      * @param pComponent - Pwb component.
      */
     public static deconstructComponent(pComponent: ComponentElement): void {
-        pComponent.__component__.deconstruct();
+        Component.componentOf(pComponent).deconstruct();
     }
 
     /**
@@ -40,18 +39,15 @@ export class TestUtil {
      * @param pComponent - Pwb component.
      */
     public static forceProcessorCreation(pComponent: ComponentElement): void {
-        pComponent.__component__.processor;
+        Component.componentOf(pComponent).processor;
     }
 
     /**
      * Get component manager of component.
      * @param pComponent - Pwb component.
      */
-    public static getComponentManager(pComponent: HTMLElement): Component | undefined {
-        if ('__component__' in pComponent) {
-            return <Component>pComponent.__component__;
-        }
-        return undefined;
+    public static getComponentManager(pComponent: HTMLElement): Component {
+        return Component.componentOf(pComponent);
     }
 
     /**

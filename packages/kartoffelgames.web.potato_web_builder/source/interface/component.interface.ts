@@ -13,11 +13,6 @@ export type ComponentProcessorConstructor = {
 };
 
 export interface ComponentElement extends HTMLElement {
-    /**
-     * Exposure of component object.
-     */
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    readonly __component__: Component;
 }
 
 export interface IPwbOnDeconstruct {

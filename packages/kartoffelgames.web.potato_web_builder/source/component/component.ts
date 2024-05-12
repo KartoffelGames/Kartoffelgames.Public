@@ -28,9 +28,29 @@ import { LayerValues } from './values/layer-values';
  * Base component handler. Handles initialisation and update of components.
  */
 export class Component extends InjectionHierarchyParent {
-    private static readonly mObjectSelector: WeakMap<object, string> = new WeakMap<object, string>();
+    private static readonly mConstructorSelector: WeakMap<object, string> = new WeakMap<object, string>();
+    private static readonly mElementComponent: WeakMap<Element, Component> = new WeakMap<Element, Component>();
     private static readonly mTemplateCache: Dictionary<ComponentProcessorConstructor, PwbTemplate> = new Dictionary<ComponentProcessorConstructor, PwbTemplate>();
     private static readonly mXmlParser: TemplateParser = new TemplateParser();
+
+    /**
+     * Get the component manager of a component element.
+     * 
+     * @param pElement - Element of a custom element.
+     * 
+     * @returns Component manager of {@link pElement}s component. 
+     * 
+     * @throws {@link Exception}
+     * When {@link pElement} is not a registered pwb component.
+     */
+    public static componentOf(pElement: Element): Component {
+        const lComponent: Component | undefined = Component.mElementComponent.get(pElement);
+        if (!lComponent) {
+            throw new Exception(`Element "${pElement.tagName}" is not a PwbComponent.`, pElement);
+        }
+
+        return lComponent;
+    }
 
     /**
      * Get selector of component or component 
@@ -66,12 +86,23 @@ export class Component extends InjectionHierarchyParent {
      * When {@link pConstructor} is not a registered component processor.
      */
     public static elementSelectorOf(pConstructor: InjectionConstructor): string {
-        const lSelector: string | undefined = Component.mObjectSelector.get(pConstructor);
+        const lSelector: string | undefined = Component.mConstructorSelector.get(pConstructor);
         if (!lSelector) {
             throw new Exception(`Constructor "${pConstructor.name}" is not a PwbComponent.`, pConstructor);
         }
 
         return lSelector;
+    }
+
+    /**
+     * Register element with its component manager.
+     * Can override existing entires.
+     * 
+     * @param pElement - Html element of component.
+     * @param pComponent - Component object.
+     */
+    public static registerElement(pElement: Element, pComponent: Component): void {
+        Component.mElementComponent.set(pElement, pComponent);
     }
 
     /**
@@ -82,7 +113,7 @@ export class Component extends InjectionHierarchyParent {
      * @param pSelector - Selector of component.
      */
     public static registerProcessor(pConstructor: InjectionConstructor, pSelector: string): void {
-        Component.mObjectSelector.set(pConstructor, pSelector);
+        Component.mConstructorSelector.set(pConstructor, pSelector);
     }
 
     private readonly mElementHandler: ElementHandler;
@@ -114,6 +145,9 @@ export class Component extends InjectionHierarchyParent {
      */
     public constructor(pComponentProcessorConstructor: ComponentProcessorConstructor, pTemplateString: string | null, pExpressionModule: IPwbExpressionModuleProcessorConstructor, pHtmlComponent: HTMLElement, pUpdateScope: UpdateScope) {
         super(null);
+
+        // Add register component element.
+        Component.registerElement(pHtmlComponent, this);
 
         // Set empty component processor.
         this.mProcessor = null;
@@ -147,13 +181,6 @@ export class Component extends InjectionHierarchyParent {
                 }
 
                 this.callAfterPwbUpdate();
-            }
-        });
-
-        // Add __component__ property to processor.
-        Object.defineProperty(pHtmlComponent, '__component__', {
-            get: () => {
-                return this;
             }
         });
 

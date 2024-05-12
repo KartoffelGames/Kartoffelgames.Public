@@ -81,7 +81,7 @@ describe('PwbApp', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).to.throw('Set constructor is not a component constructor.');
+            expect(lErrorFunction).to.throw(`Constructor "${String.name}" is not a PwbComponent`);
         });
     });
 

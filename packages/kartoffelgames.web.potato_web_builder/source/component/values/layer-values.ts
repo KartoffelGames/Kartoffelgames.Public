@@ -164,7 +164,7 @@ export class LayerValues {
      * 
      * @param pValueName - Name of value.
      */
-    private getValue<TValue>(pValueName: string): TValue {
+    private getValue<TValue>(pValueName: string): TValue | undefined {
         // Only return value when it exists in current layer.
         if (this.mTemporaryValues.has(pValueName)) {
             return this.mTemporaryValues.get(pValueName);
@@ -181,8 +181,7 @@ export class LayerValues {
             return (<{ [key: PropertyKey]: any; }>this.mComponent.processor)[pValueName];
         }
 
-        // Throw undefined exception.
-        throw new Exception(`Variable "${pValueName}" not defined.`, this);
+        return undefined;
     }
 
     /**

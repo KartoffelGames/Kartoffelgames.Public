@@ -104,7 +104,7 @@ export class ForInstructionModule implements IPwbInstructionModuleOnUpdate {
      */
     private readonly addTemplateForElement = (pModuleResult: InstructionResult, pExpression: ForOfExpression, pObjectValue: any, pObjectKey: number | string) => {
         const lComponentValues: LayerValues = new LayerValues(this.mLayerValues);
-        lComponentValues.setLayerValue(pExpression.variable, pObjectValue);
+        lComponentValues.setTemporaryValue(pExpression.variable, pObjectValue);
 
         // If custom index is used.
         if (pExpression.indexName) {
@@ -116,7 +116,7 @@ export class ForInstructionModule implements IPwbInstructionModuleOnUpdate {
             const lIndexExpressionResult: any = ComponentScopeExecutor.executeSilent(<string>pExpression.indexExpression, lComponentValues, lExternalValues);
 
             // Set custom index name as temporary value.
-            lComponentValues.setLayerValue(pExpression.indexName, lIndexExpressionResult);
+            lComponentValues.setTemporaryValue(pExpression.indexName, lIndexExpressionResult);
         }
 
         // Create template.

@@ -26,7 +26,7 @@ export function PwbChild(pIdChildName: string): any {
 
                 // Get root value. This should be the child.
                 const lLayerValues: LayerValues = lComponent.getProcessorAttribute(ComponentLayerValuesReference)!;
-                const lIdChild: any = lLayerValues.getValue(pIdChildName);
+                const lIdChild: any = lLayerValues.data[pIdChildName];
 
                 if (lIdChild instanceof Element) {
                     return lIdChild;

@@ -9,24 +9,6 @@ import '../../../utility/chai-helper';
 import { TestUtil } from '../../../utility/test-util';
 
 describe('LayerValues', () => {
-    it('-- Underlying component values', async () => {
-        // Setup. Define component.
-        @PwbComponent({
-            selector: TestUtil.randomSelector()
-        })
-        class TestComponent { }
-
-        // Process. Create element.
-        const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-
-        // Read original and layer values component.
-        const lComponentManager: Component = Component.componentOf(lComponent);
-        const lRootValuesComponentManager: Component = lComponentManager.getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!.component;
-
-        // Evaluation.
-        expect(lRootValuesComponentManager).to.equal(lComponentManager);
-    });
-
     describe('-- Equal', () => {
         it('-- Everything equal', async () => {
             // Setup. Define component.
@@ -86,7 +68,7 @@ describe('LayerValues', () => {
             // Setup. Create child layer.
             const lChildLayerOne: LayerValues = new LayerValues(lRootValues);
             const lChildLayerTwo: LayerValues = new LayerValues(lRootValues);
-            lChildLayerTwo.setLayerValue('Temporary-Key', 'Temporary-Value');
+            lChildLayerTwo.data['Temporary-Key'] = 'Temporary-Value';
 
             // Process.
             const lIsEqual: boolean = lChildLayerOne.equals(lChildLayerTwo);
@@ -108,9 +90,9 @@ describe('LayerValues', () => {
 
             // Setup. Create child layer.
             const lChildLayerOne: LayerValues = new LayerValues(lRootValues);
-            lChildLayerOne.setLayerValue('Temporary-Key', 'Temporary-Value-One');
+            lChildLayerOne.data['Temporary-Key'] = 'Temporary-Value-One';
             const lChildLayerTwo: LayerValues = new LayerValues(lRootValues);
-            lChildLayerTwo.setLayerValue('Temporary-Key', 'Temporary-Value-Two');
+            lChildLayerTwo.data['Temporary-Key'] = 'Temporary-Value-Two';
 
             // Process.
             const lIsEqual: boolean = lChildLayerOne.equals(lChildLayerTwo);
@@ -135,10 +117,10 @@ describe('LayerValues', () => {
             // Setup. Create element and get root layer.
             const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
             const lRootValues: LayerValues = Component.componentOf(lComponent).getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
-            lRootValues.setLayerValue(lLayerKey, lLayerValue);
+            lRootValues.data[lLayerKey] = lLayerValue;
 
             // Process.
-            const lResultValue: string = lRootValues.getValue(lLayerKey);
+            const lResultValue: string = lRootValues.data[lLayerKey];
 
             // Evaluation.
             expect(lResultValue).to.equal(lLayerValue);
@@ -158,13 +140,13 @@ describe('LayerValues', () => {
             // Setup. Create element and get root layer.
             const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
             const lRootValues: LayerValues = Component.componentOf(lComponent).getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
-            lRootValues.setLayerValue(lLayerKey, lLayerValue);
+            lRootValues.data[lLayerKey] = lLayerValue;
 
             // Setup. Create child layer.
             const lChildLayer: LayerValues = new LayerValues(lRootValues);
 
             // Process.
-            const lResultValue: string = lChildLayer.getValue(lLayerKey);
+            const lResultValue: string = lChildLayer.data[lLayerKey];
 
             // Evaluation.
             expect(lResultValue).to.equal(lLayerValue);
@@ -190,8 +172,8 @@ describe('LayerValues', () => {
         const lChildLayer: LayerValues = new LayerValues(lRootValues);
 
         // Process. Set root in child one and access in two.
-        lRootValues.setLayerValue(lLayerKey, lLayerValue);
-        const lResultValue: string = lChildLayer.getValue(lLayerKey);
+        lRootValues.data[lLayerKey] = lLayerValue;
+        const lResultValue: string = lChildLayer.data[lLayerKey];
 
         // Evaluation.
         expect(lResultValue).to.equal(lLayerValue);

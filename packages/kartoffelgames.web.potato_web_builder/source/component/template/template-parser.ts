@@ -146,6 +146,7 @@ export class TemplateParser {
             lLexer.useTokenTemplate('XmlExplicitValue', 1);
         });
 
+        // FIXME: InstructionValue must be self nested with checking opening and closing brackets. Otherwise $aaa(new Array()) will be parsed to "new Array(" and xml value ")"
         // Instruction token
         lLexer.addTokenTemplate('InstructionStart', { pattern: { regex: /\$[^(\s\n/{]+/, type: PwbTemplateToken.InstructionStart } });
         lLexer.addTokenTemplate('InstructionInstructionValue', { pattern: { regex: /[^)]+/, type: PwbTemplateToken.InstructionInstructionValue } });

@@ -119,4 +119,28 @@ describe('MustacheExpressionModule', () => {
             }
         ], true);
     });
+
+    it('Only self created values', async () => {
+        // Setup. Text content.
+        const lTextContent: string = new Array<string>(10).fill('a').join('');
+
+        // Setup. Define component.
+        @PwbComponent({
+            selector: TestUtil.randomSelector(),
+            template: `<div>{{ new Array(10).fill('a').join('') }}</div>`
+        })
+        class TestComponent {}
+
+        // Setup. Create element.
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+
+        // Evaluation.
+        expect(lComponent).to.have.componentStructure([
+            Comment, // Component Anchor
+            {
+                node: HTMLDivElement,
+                textContent: lTextContent
+            }
+        ], true);
+    });
 });

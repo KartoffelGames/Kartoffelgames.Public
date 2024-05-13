@@ -567,4 +567,39 @@ describe('ForInstructionModule', () => {
             }
         ], true);
     });
+
+    it('Only self created values', async () => {
+        // Setup. Define component.
+        @PwbComponent({
+            selector: TestUtil.randomSelector(),
+            template: `$for(item of new Array(3).fill('a')) {
+                <div>{{this.item}}</div>
+            }`
+        })
+        class TestComponent {}
+
+        // Setup. Create element.
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+
+        // Evaluation.
+        expect(lComponent).to.have.componentStructure([
+            Comment, // Component Anchor
+            Comment, // - Manipulator Anchor
+            Comment, // -- Manipulator 1. Child Anchor
+            {
+                node: HTMLDivElement,
+                textContent: 'a'
+            },
+            Comment, // -- Manipulator 2. Child Anchor
+            {
+                node: HTMLDivElement,
+                textContent: 'a'
+            },
+            Comment, // -- Manipulator 3. Child Anchor
+            {
+                node: HTMLDivElement,
+                textContent: 'a'
+            }
+        ], true);
+    });
 });

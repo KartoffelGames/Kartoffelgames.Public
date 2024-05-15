@@ -146,10 +146,110 @@ export class TemplateParser {
             lLexer.useTokenTemplate('XmlExplicitValue', 1);
         });
 
-        // FIXME: InstructionValue must be self nested with checking opening and closing brackets. Otherwise $aaa(new Array()) will be parsed to "new Array(" and xml value ")"
+        // InstructionValue must be self nested with checking opening and closing brackets. Otherwise $aaa(new Array()) will be parsed to "new Array(" and xml value ")"
+        lLexer.addTokenTemplate('InstructionInstructionRawValue', {
+            pattern: {
+                regex: /[^()"'`/)]+/, type: PwbTemplateToken.InstructionInstructionValue
+            }
+        });
+        lLexer.addTokenTemplate('InstructionInstructionRegexValue', {
+            pattern: {
+                innerType: PwbTemplateToken.InstructionInstructionValue,
+                start: {
+                    regex: /\//,
+                    type: PwbTemplateToken.InstructionInstructionValue
+                },
+                end: {
+                    regex: /\//,
+                    type: PwbTemplateToken.InstructionInstructionValue
+                }
+            }
+        }, () => {
+            lLexer.useTokenTemplate('InstructionInstructionDoubleQuotationValue', 2);
+            lLexer.useTokenTemplate('InstructionInstructionSingleQuotationValue', 2);
+            lLexer.useTokenTemplate('InstructionInstructionSpecialQuotationValue', 2);
+            lLexer.useTokenTemplate('InstructionInstructionBraketValue', 3);
+            lLexer.useTokenTemplate('InstructionInstructionRawValue', 4);
+        });
+        lLexer.addTokenTemplate('InstructionInstructionBraketValue', {
+            pattern: {
+                innerType: PwbTemplateToken.InstructionInstructionValue,
+                start: {
+                    regex: /\(/,
+                    type: PwbTemplateToken.InstructionInstructionValue
+                },
+                end: {
+                    regex: /\)/,
+                    type: PwbTemplateToken.InstructionInstructionValue
+                }
+            }
+        }, () => {
+            lLexer.useTokenTemplate('InstructionInstructionRegexValue', 1);
+            lLexer.useTokenTemplate('InstructionInstructionDoubleQuotationValue', 2);
+            lLexer.useTokenTemplate('InstructionInstructionSingleQuotationValue', 2);
+            lLexer.useTokenTemplate('InstructionInstructionSpecialQuotationValue', 2);
+            lLexer.useTokenTemplate('InstructionInstructionRawValue', 4);
+        });
+        lLexer.addTokenTemplate('InstructionInstructionDoubleQuotationValue', {
+            pattern: {
+                innerType: PwbTemplateToken.InstructionInstructionValue,
+                start: {
+                    regex: /"/,
+                    type: PwbTemplateToken.InstructionInstructionValue
+                },
+                end: {
+                    regex: /"/,
+                    type: PwbTemplateToken.InstructionInstructionValue
+                }
+            }
+        }, () => {
+            lLexer.useTokenTemplate('InstructionInstructionRegexValue', 1);
+            lLexer.useTokenTemplate('InstructionInstructionSingleQuotationValue', 2);
+            lLexer.useTokenTemplate('InstructionInstructionSpecialQuotationValue', 2);
+            lLexer.useTokenTemplate('InstructionInstructionBraketValue', 3);
+            lLexer.useTokenTemplate('InstructionInstructionRawValue', 4);
+        });
+        lLexer.addTokenTemplate('InstructionInstructionSingleQuotationValue', {
+            pattern: {
+                innerType: PwbTemplateToken.InstructionInstructionValue,
+                start: {
+                    regex: /'/,
+                    type: PwbTemplateToken.InstructionInstructionValue
+                },
+                end: {
+                    regex: /'/,
+                    type: PwbTemplateToken.InstructionInstructionValue
+                }
+            }
+        }, () => {
+            lLexer.useTokenTemplate('InstructionInstructionRegexValue', 1);
+            lLexer.useTokenTemplate('InstructionInstructionDoubleQuotationValue', 2);
+            lLexer.useTokenTemplate('InstructionInstructionSpecialQuotationValue', 2);
+            lLexer.useTokenTemplate('InstructionInstructionBraketValue', 3);
+            lLexer.useTokenTemplate('InstructionInstructionRawValue', 4);
+        });
+        lLexer.addTokenTemplate('InstructionInstructionSpecialQuotationValue', {
+            pattern: {
+                innerType: PwbTemplateToken.InstructionInstructionValue,
+                start: {
+                    regex: /`/,
+                    type: PwbTemplateToken.InstructionInstructionValue
+                },
+                end: {
+                    regex: /`/,
+                    type: PwbTemplateToken.InstructionInstructionValue
+                }
+            }
+        }, () => {
+            lLexer.useTokenTemplate('InstructionInstructionRegexValue', 1);
+            lLexer.useTokenTemplate('InstructionInstructionDoubleQuotationValue', 2);
+            lLexer.useTokenTemplate('InstructionInstructionSingleQuotationValue', 2);
+            lLexer.useTokenTemplate('InstructionInstructionBraketValue', 3);
+            lLexer.useTokenTemplate('InstructionInstructionRawValue', 4);
+        });
+
         // Instruction token
         lLexer.addTokenTemplate('InstructionStart', { pattern: { regex: /\$[^(\s\n/{]+/, type: PwbTemplateToken.InstructionStart } });
-        lLexer.addTokenTemplate('InstructionInstructionValue', { pattern: { regex: /[^)]+/, type: PwbTemplateToken.InstructionInstructionValue } });
         lLexer.addTokenTemplate('InstructionInstruction', {
             pattern: {
                 start: {
@@ -162,7 +262,12 @@ export class TemplateParser {
                 }
             }
         }, () => {
-            lLexer.useTokenTemplate('InstructionInstructionValue', 1);
+            lLexer.useTokenTemplate('InstructionInstructionRegexValue', 1);
+            lLexer.useTokenTemplate('InstructionInstructionDoubleQuotationValue', 2);
+            lLexer.useTokenTemplate('InstructionInstructionSingleQuotationValue', 2);
+            lLexer.useTokenTemplate('InstructionInstructionSpecialQuotationValue', 2);
+            lLexer.useTokenTemplate('InstructionInstructionBraketValue', 3);
+            lLexer.useTokenTemplate('InstructionInstructionRawValue', 4);
         });
         lLexer.addTokenTemplate('InstructionBody', {
             pattern: {
@@ -344,13 +449,13 @@ export class TemplateParser {
         // Instruction.
         type InstructionParseData = {
             instructionName: string;
-            instruction?: { value: string; };
+            instruction?: { value: Array<string>; };
             body?: { value: Array<BasePwbTemplateNode>; };
         };
         lParser.defineGraphPart('InstructionNode',
             lParser.graph()
                 .single('instructionName', PwbTemplateToken.InstructionStart)
-                .optional('instruction', lParser.graph().single(PwbTemplateToken.InstructionInstructionOpeningBracket).single('value', PwbTemplateToken.InstructionInstructionValue).single(PwbTemplateToken.InstructionInstructionClosingBracket))
+                .optional('instruction', lParser.graph().single(PwbTemplateToken.InstructionInstructionOpeningBracket).loop('value', PwbTemplateToken.InstructionInstructionValue).single(PwbTemplateToken.InstructionInstructionClosingBracket))
                 .optional('body', lParser.graph().single(PwbTemplateToken.InstructionBodyStartBraket).single('value', lParser.partReference('ContentList')).single(PwbTemplateToken.InstructionBodyCloseBraket)),
             (pData: InstructionParseData): PwbTemplateInstructionNode => {
                 // Create instruction.
@@ -358,7 +463,7 @@ export class TemplateParser {
                 lInstruction.instructionType = pData.instructionName.substring(1);
 
                 // Add instruction.
-                lInstruction.instruction = pData.instruction?.value ?? '';
+                lInstruction.instruction = pData.instruction?.value.join('') ?? '';
 
                 // Add each body content.
                 if (pData.body) {

@@ -45,7 +45,6 @@ export { PwbEventListener } from './default/event-listener/pwb-event-listener.de
 
 // Xml
 export { TemplateParser } from './component/template/template-parser';
-export { TextNode, XmlElement, XmlAttribute } from '@kartoffelgames/core.xml';
 
 // Import default modules
 import './default/component-event/component-event-attribute-module';

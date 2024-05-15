@@ -1,11 +1,11 @@
 import { expect } from 'chai';
-import { ChangeState, DifferenceSearch, HistoryItem } from '../../../source/comparison/difference-search';
+import { ChangeState, MyersDiff, HistoryItem } from '../../../source/comparison/myers-diff';
 
-describe('DifferenceSearch', () => {
+describe('MyersDiff', () => {
     describe('Method: differencesOf', () => {
         it('-- Full compare', () => {
             // Setup. Initialize DifferentSearch.
-            const lDifferentReference: DifferenceSearch<string, string> = new DifferenceSearch((pValueOne: string, pValueTwo: string) => {
+            const lDifferentReference: MyersDiff<string, string> = new MyersDiff((pValueOne: string, pValueTwo: string) => {
                 return pValueOne === pValueTwo;
             });
 
@@ -31,7 +31,7 @@ describe('DifferenceSearch', () => {
 
         it('-- Empty compare', () => {
             // Setup. Initialize DifferentSearch.
-            const lDifferentReference: DifferenceSearch<string, string> = new DifferenceSearch((pValueOne: string, pValueTwo: string) => {
+            const lDifferentReference: MyersDiff<string, string> = new MyersDiff((pValueOne: string, pValueTwo: string) => {
                 return pValueOne === pValueTwo;
             });
 

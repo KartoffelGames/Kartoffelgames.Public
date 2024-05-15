@@ -1,4 +1,4 @@
-export class DifferenceSearch<TA, TB> {
+export class MyersDiff<TA, TB> {
     private readonly mCompareFunction: (itemA: TA, itemB: TB) => boolean;
 
     /**

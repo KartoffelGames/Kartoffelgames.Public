@@ -568,7 +568,7 @@ describe('ForInstructionModule', () => {
         ], true);
     });
 
-    it('Only self created values', async () => {
+    it('-- Only self created values', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),

@@ -13,6 +13,7 @@ import { LexerToken } from './lexer-token';
 export class Lexer<TTokenType extends string> {
     private mCurrentPatternScope: Array<LexerPatternDefinition<TTokenType>>;
     private readonly mSettings: LexerSettings<TTokenType>;
+    private mUnresolvedScopes: WeakMap<SplitLexerPatternDefinition<TTokenType>, LexerPatternInnerFetch<TTokenType>>;
 
     // Token pattern data.
     private readonly mTokenPatternTemplates: Dictionary<string, LexerPatternDefinition<TTokenType>>;
@@ -66,6 +67,7 @@ export class Lexer<TTokenType extends string> {
     public constructor() {
         this.mTokenPatterns = new Array<LexerPatternDefinition<TTokenType>>();
         this.mTokenPatternTemplates = new Dictionary<string, LexerPatternDefinition<TTokenType>>();
+        this.mUnresolvedScopes = new WeakMap<SplitLexerPatternDefinition<TTokenType>, LexerPatternInnerFetch<TTokenType>>
 
         // Set defaults.
         this.mCurrentPatternScope = this.mTokenPatterns;
@@ -125,7 +127,7 @@ export class Lexer<TTokenType extends string> {
      * });
      * ```
      */
-    public addTokenPattern(pPattern: LexerPattern<TTokenType>, pInnerFetch?: (pLexer: Lexer<TTokenType>) => void): void {
+    public addTokenPattern(pPattern: LexerPattern<TTokenType>, pInnerFetch?: LexerPatternInnerFetch<TTokenType>): void {
         // Generate random name.
         const lRandomTokenName: string = (Math.random() * Math.pow(10, 16)).toString(16);
 
@@ -175,7 +177,7 @@ export class Lexer<TTokenType extends string> {
      * lexer.useTokenTemplate('quotedString');
      * ``` 
      */
-    public addTokenTemplate(pName: string, pPattern: LexerPatternTemplate<TTokenType>, pInnerFetch?: (pLexer: Lexer<TTokenType>) => void): void {
+    public addTokenTemplate(pName: string, pPattern: LexerPatternTemplate<TTokenType>, pInnerFetch?: LexerPatternInnerFetch<TTokenType>): void {
         // Restrict dublicate template names.
         if (this.mTokenPatternTemplates.has(pName)) {
             throw new Exception(`Can't add dublicate token template "${pName}"`, this);
@@ -199,15 +201,8 @@ export class Lexer<TTokenType extends string> {
 
         // Execute scoped pattern.
         if (pInnerFetch && lConvertedPattern.patternType === 'split') {
-            // Buffer last scope and set created pattern as current scope.
-            const lLastPatternScope: Array<LexerPatternDefinition<TTokenType>> | null = this.mCurrentPatternScope;
-            this.mCurrentPatternScope = lConvertedPattern.innerPattern;
-
-            // Execute inner pattern fetches.
-            pInnerFetch(this);
-
-            // Reset scope to last used scope.
-            this.mCurrentPatternScope = lLastPatternScope;
+            // Add pattern to unresolved scopes.
+            this.mUnresolvedScopes.set(lConvertedPattern, pInnerFetch);
         }
     }
 
@@ -267,13 +262,16 @@ export class Lexer<TTokenType extends string> {
         }
 
         // Read pattern template. Clone template and alter specificity when is differs from parameter.
-        let lTemplate: LexerPatternDefinition<TTokenType> = this.mTokenPatternTemplates.get(pTemplateName)!;
-        if (typeof pSpecificity !== 'undefined' && lTemplate.specificity !== pSpecificity) {
-            lTemplate = { ...lTemplate, specificity: pSpecificity };
+        let lOriginalTemplate: LexerPatternDefinition<TTokenType> = this.mTokenPatternTemplates.get(pTemplateName)!;
+
+        // TODO: How to only use rely on original template and no soft copy.
+        const lModifiedTemplate: LexerPatternDefinition<TTokenType> = { ...lOriginalTemplate, specificity: pSpecificity };
+        if (lOriginalTemplate.patternType === 'split' && this.mUnresolvedScopes.has(lOriginalTemplate)) {
+            this.mUnresolvedScopes.set(<SplitLexerPatternDefinition<TTokenType>>lModifiedTemplate, this.mUnresolvedScopes.get(<SplitLexerPatternDefinition<TTokenType>>lOriginalTemplate)!)
         }
 
         // Set template pattern to current pattern scope.
-        this.mCurrentPatternScope.push(lTemplate);
+        this.mCurrentPatternScope.push(lModifiedTemplate);
     }
 
     /**
@@ -612,6 +610,25 @@ export class Lexer<TTokenType extends string> {
                     continue remainingDataLoop;
                 }
 
+                // Resolve dependency before using it.
+                if (this.mUnresolvedScopes.has(lTokenPattern)) {
+                    // Buffer last scope and set created pattern as current scope.
+                    const lLastPatternScope: Array<LexerPatternDefinition<TTokenType>> | null = this.mCurrentPatternScope;
+                    this.mCurrentPatternScope = lTokenPattern.innerPattern;
+
+                    // Get inner function to fetch scoped lexer.
+                    const lInnerFetchFunction: LexerPatternInnerFetch<TTokenType> = this.mUnresolvedScopes.get(lTokenPattern)!;
+
+                    // Execute inner pattern fetches.
+                    lInnerFetchFunction(this);
+
+                    // Reset scope to last used scope.
+                    this.mCurrentPatternScope = lLastPatternScope;
+
+                    // Remove unresolved scope as it is resolved.
+                    this.mUnresolvedScopes.delete(lTokenPattern)
+                }
+
                 // Yield every inner pattern token.
                 yield* this.tokenizeRecursionLayer(pCursor, lTokenPattern.innerPattern, [...pParentMetas, ...lTokenPattern.meta], pForcedType ?? lTokenPattern.pattern.innerType, lTokenPattern);
 
@@ -669,7 +686,7 @@ type LexerSettings<TTokenType> = {
 };
 
 type LexerPatternDefinitionType<TTokenType> = { [SubGroup: string]: TTokenType; };
-type LexerPatternDefinition<TTokenType> = {
+type SplitLexerPatternDefinition<TTokenType> = {
     patternType: 'split';
     pattern: {
         start: { regex: RegExp; types: LexerPatternDefinitionType<TTokenType>; };
@@ -679,7 +696,8 @@ type LexerPatternDefinition<TTokenType> = {
     specificity: number;
     meta: Array<string>;
     innerPattern: Array<LexerPatternDefinition<TTokenType>>;
-} | {
+}
+type SingleLexerPatternDefinition<TTokenType> = {
     patternType: 'single';
     pattern: {
         single: { regex: RegExp; types: LexerPatternDefinitionType<TTokenType>; };
@@ -687,6 +705,7 @@ type LexerPatternDefinition<TTokenType> = {
     specificity: number;
     meta: Array<string>;
 };
+type LexerPatternDefinition<TTokenType> = SplitLexerPatternDefinition<TTokenType> | SingleLexerPatternDefinition<TTokenType>
 
 /* 
  * Pattern definition.
@@ -712,3 +731,4 @@ type LexerPattern<TTokenType> = {
 };
 
 type LexerPatternTemplate<TTokenType> = Omit<LexerPattern<TTokenType>, 'specificity'>;
+type LexerPatternInnerFetch<TTokenType extends string> = (pLexer: Lexer<TTokenType>) => void;

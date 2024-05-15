@@ -390,21 +390,116 @@ describe('Lexer', () => {
             expect(lTokenList[2]).property('type').to.equal(TestTokenType.Custom);
         });
 
+        it('-- Split token with narrow self reference', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+
+            // Setup. Add nested templates.
+            lLexer.addTokenTemplate('value', { pattern: { regex: /a/, type: TestTokenType.Custom } })
+            lLexer.addTokenTemplate('braket', {
+                pattern: {
+                    start: { regex: /\(/, type: TestTokenType.Braket },
+                    end: { regex: /\)/, type: TestTokenType.Braket }
+                },
+            }, (pLexer: Lexer<TestTokenType>) => {
+                console.log('WAAA')
+                pLexer.useTokenTemplate('braket', 1)
+                pLexer.useTokenTemplate('value', 2)
+            });
+            lLexer.useTokenTemplate('braket', 1);
+
+            const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize('(a(a))')];
+
+            expect(lTokenList[0]).property('type').to.equal(TestTokenType.Braket);
+            expect(lTokenList[1]).property('type').to.equal(TestTokenType.Custom);
+            expect(lTokenList[2]).property('type').to.equal(TestTokenType.Braket);
+            expect(lTokenList[3]).property('type').to.equal(TestTokenType.Custom);
+            expect(lTokenList[4]).property('type').to.equal(TestTokenType.Braket);
+            expect(lTokenList[5]).property('type').to.equal(TestTokenType.Braket);
+        });
+
+        it('-- Split token with narrow self reference second tokenize', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+
+            // Setup. Add nested templates.
+            lLexer.addTokenTemplate('value', { pattern: { regex: /a/, type: TestTokenType.Custom } })
+            lLexer.addTokenTemplate('braket', {
+                pattern: {
+                    start: { regex: /\(/, type: TestTokenType.Braket },
+                    end: { regex: /\)/, type: TestTokenType.Braket }
+                },
+            }, (pLexer: Lexer<TestTokenType>) => {
+                pLexer.useTokenTemplate('braket', 1)
+                pLexer.useTokenTemplate('value', 2)
+            });
+            lLexer.useTokenTemplate('braket', 1);
+
+            // Process.
+            [...lLexer.tokenize('(a(a))')];
+            const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize('(a(a))')];
+
+            expect(lTokenList[0]).property('type').to.equal(TestTokenType.Braket);
+            expect(lTokenList[1]).property('type').to.equal(TestTokenType.Custom);
+            expect(lTokenList[2]).property('type').to.equal(TestTokenType.Braket);
+            expect(lTokenList[3]).property('type').to.equal(TestTokenType.Custom);
+            expect(lTokenList[4]).property('type').to.equal(TestTokenType.Braket);
+            expect(lTokenList[5]).property('type').to.equal(TestTokenType.Braket);
+        });
+
+        it('-- Split token with wide self reference', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+
+            // Process.
+            lLexer.addTokenTemplate('value', { pattern: { regex: /a/, type: TestTokenType.Custom } })
+            lLexer.addTokenTemplate('braketOne', {
+                pattern: {
+                    start: { regex: /\(/, type: TestTokenType.Word },
+                    end: { regex: /\)/, type: TestTokenType.Word }
+                },
+            }, (pLexer: Lexer<TestTokenType>) => {
+                pLexer.useTokenTemplate('braketTwo', 1)
+                pLexer.useTokenTemplate('value', 2)
+            });
+            lLexer.addTokenTemplate('braketTwo', {
+                pattern: {
+                    start: { regex: /\[/, type: TestTokenType.Braket },
+                    end: { regex: /\]/, type: TestTokenType.Braket }
+                },
+            }, (pLexer: Lexer<TestTokenType>) => {
+                pLexer.useTokenTemplate('braketOne', 1)
+                pLexer.useTokenTemplate('value', 2)
+            });
+            lLexer.useTokenTemplate('braketOne', 1);
+
+            const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize('(a[a()])')];
+
+            expect(lTokenList[0]).property('type').to.equal(TestTokenType.Word);
+            expect(lTokenList[1]).property('type').to.equal(TestTokenType.Custom);
+            expect(lTokenList[2]).property('type').to.equal(TestTokenType.Braket);
+            expect(lTokenList[3]).property('type').to.equal(TestTokenType.Custom);
+            expect(lTokenList[4]).property('type').to.equal(TestTokenType.Word);
+            expect(lTokenList[5]).property('type').to.equal(TestTokenType.Word);
+            expect(lTokenList[6]).property('type').to.equal(TestTokenType.Braket);
+            expect(lTokenList[7]).property('type').to.equal(TestTokenType.Word);
+        });
+
         describe('-- Error token', () => {
             it('-- Single token', () => {
                 // Setup.
                 const lLexer: Lexer<TestTokenType> = lInitTestLexer();
                 lLexer.errorType = TestTokenType.Error;
-    
+
                 // Setup. Text.
                 const lErrorText = 'This //// is an error';
-    
+
                 // Process.
                 const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lErrorText)];
-    
+
                 // Evaluation
                 expect(lTokenList).has.lengthOf(5);
-    
+
                 // Error token ////
                 expect(lTokenList[1]).property('value').to.equal('//// ');
                 expect(lTokenList[1]).property('type').to.equal(TestTokenType.Error);
@@ -417,16 +512,16 @@ describe('Lexer', () => {
                 // Setup.
                 const lLexer: Lexer<TestTokenType> = lInitTestLexer();
                 lLexer.errorType = TestTokenType.Error;
-    
+
                 // Setup. Text.
                 const lErrorText = 'This ($%$%) is a error';
-    
+
                 // Process.
                 const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lErrorText)];
-    
+
                 // Evaluation
                 expect(lTokenList).has.lengthOf(7);
-    
+
                 // Error token ////
                 expect(lTokenList[2]).property('value').to.equal('$%$%');
                 expect(lTokenList[2]).property('type').to.equal(TestTokenType.Error);
@@ -439,23 +534,23 @@ describe('Lexer', () => {
                 // Setup.
                 const lLexer: Lexer<TestTokenType> = lInitTestLexer();
                 lLexer.errorType = TestTokenType.Error;
-    
+
                 // Setup. Text.
                 const lErrorText = 'This //// and \nthis ($%$%) is a error';
-    
+
                 // Process.
                 const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lErrorText)];
-    
+
                 // Evaluation
                 expect(lTokenList).has.lengthOf(10);
-    
+
                 // Error token ////
                 expect(lTokenList[1]).property('value').to.equal('//// ');
                 expect(lTokenList[1]).property('type').to.equal(TestTokenType.Error);
                 expect(lTokenList[1]).property('lineNumber').to.equal(1);
                 expect(lTokenList[1]).property('columnNumber').to.equal(6);
                 expect(lTokenList[1]).property('metas').to.deep.equal([]);
-    
+
                 // Error token ////
                 expect(lTokenList[5]).property('value').to.equal('$%$%');
                 expect(lTokenList[5]).property('type').to.equal(TestTokenType.Error);
@@ -468,16 +563,16 @@ describe('Lexer', () => {
                 // Setup.
                 const lLexer: Lexer<TestTokenType> = lInitTestLexer();
                 lLexer.errorType = TestTokenType.Error;
-    
+
                 // Setup. Text.
                 const lErrorText = 'An Error at end ////';
-    
+
                 // Process.
                 const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lErrorText)];
-    
+
                 // Evaluation
                 expect(lTokenList).has.lengthOf(5);
-    
+
                 // Error token ////
                 expect(lTokenList[4]).property('value').to.equal('////');
                 expect(lTokenList[4]).property('type').to.equal(TestTokenType.Error);

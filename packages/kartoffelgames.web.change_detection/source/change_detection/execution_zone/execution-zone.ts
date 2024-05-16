@@ -1,3 +1,5 @@
+import { ChangeReason } from '../change-reason';
+import { DetectionCatchType } from '../enum/detection-catch-type.enum';
 import { ErrorAllocation } from './error-allocation';
 
 /**
@@ -68,8 +70,8 @@ export class ExecutionZone {
             ErrorAllocation.allocateError(pError, this);
             throw pError;
         } finally {
-            // Dispach change event.
-            this.dispatchChangeEvent(this.mName, pFunction, <string>Error().stack);
+            // Dispach change event. // TODO: Add Correct CatchType parameter
+            this.dispatchChangeEvent(new ChangeReason(DetectionCatchType.SyncronCall, pFunction));
 
             // Reset to last zone.
             ExecutionZone.mCurrentZone = lLastZone;
@@ -109,10 +111,10 @@ export class ExecutionZone {
      * Dispatch change event.
      * @param pZoneName - Zone name.
      */
-    private dispatchChangeEvent(pZoneName: string, pFunction: (...pArgs: Array<any>) => any, pStacktrace: string): void {
+    private dispatchChangeEvent(pChangeReason: ChangeReason): void {
         // Call change callbacks.
-        this.onInteraction?.(pZoneName, pFunction, pStacktrace);
+        this.onInteraction?.(pChangeReason);
     }
 }
 
-type InteractionCallback = (pZoneName: string, pFunction: (...pArgs: Array<any>) => any, pStacktrace: string) => void;
+type InteractionCallback = (pChangeReason: ChangeReason) => void;

@@ -3,6 +3,7 @@ import { ErrorAllocation } from './execution_zone/error-allocation';
 import { ExecutionZone } from './execution_zone/execution-zone';
 import { Patcher } from './execution_zone/patcher/patcher';
 import { InteractionDetectionProxy } from './synchron_tracker/interaction-detection-proxy';
+import { ChangeReason } from './change-reason';
 
 /**
  * Merges execution zone and proxy tracking.
@@ -117,8 +118,8 @@ export class ChangeDetection implements IDeconstructable {
         }
 
         // Register interaction event and connect execution zone with change detection.
-        this.mExecutionZone.onInteraction = (_pZoneName: string, pFunction, pStacktrace: string) => {
-            this.dispatchChangeEvent({ source: pFunction, property: 'apply', stacktrace: pStacktrace });
+        this.mExecutionZone.onInteraction = (pChangeReason: ChangeReason) => {
+            this.dispatchChangeEvent(pChangeReason);
         };
         ChangeDetection.mZoneConnectedChangeDetections.set(this.mExecutionZone, this);
 
@@ -201,7 +202,7 @@ export class ChangeDetection implements IDeconstructable {
     /**
      * Trigger all change event.
      */
-    public dispatchChangeEvent(pReason: ChangeDetectionReason): void {
+    public dispatchChangeEvent(pReason: ChangeReason): void {
         // One trigger if change detection is not silent.
         if (!this.mSilent) {
             // Get current executing zone.
@@ -241,8 +242,8 @@ export class ChangeDetection implements IDeconstructable {
 
         // Create interaction proxy and send change and error event to this change detection.
         const lProxy: InteractionDetectionProxy<T> = new InteractionDetectionProxy(pObject);
-        lProxy.onChange = (pSource: object, pProperty, pStacktrace: string) => {
-            this.dispatchChangeEvent({ source: pSource, property: pProperty, stacktrace: pStacktrace });
+        lProxy.onChange = (pChangeReason: ChangeReason) => {
+            this.dispatchChangeEvent(pChangeReason);
         };
 
         return lProxy.proxy;
@@ -287,7 +288,7 @@ export class ChangeDetection implements IDeconstructable {
     /**
      * Call all registered change listener.
      */
-    private callChangeListener(pReason: ChangeDetectionReason): void {
+    private callChangeListener(pReason: ChangeReason): void {
         // Dispatch change event.
         for (const lListener of this.mChangeListenerList) {
             lListener(pReason);
@@ -337,6 +338,5 @@ export class ChangeDetection implements IDeconstructable {
     }
 }
 
-export type ChangeListener = (pReason: ChangeDetectionReason) => void;
+export type ChangeListener = (pReason: ChangeReason) => void;
 export type ErrorListener = (pError: any) => void | boolean;
-export type ChangeDetectionReason = { source: any, property: PropertyKey | ((...pArgs: Array<any>) => any), stacktrace: string; };

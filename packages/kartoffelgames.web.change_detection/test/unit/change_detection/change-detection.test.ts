@@ -1,6 +1,8 @@
 import { expect } from 'chai';
-import { ChangeDetection, ChangeDetectionReason } from '../../../source/change_detection/change-detection';
+import { ChangeDetection } from '../../../source/change_detection/change-detection';
 import { PreventableErrorEvent, PromiseRejectionEvent } from '../../mock/error-event';
+import { ChangeReason } from '../../../source/change_detection/change-reason';
+import { DetectionCatchType } from '../../../source/change_detection/enum/detection-catch-type.enum';
 
 describe('ChangeDetection', () => {
     it('Static Property: current', () => {
@@ -173,7 +175,7 @@ describe('ChangeDetection', () => {
         lChangeDetection.addChangeListener(lListener);
 
         // Process. Call listener.
-        lChangeDetection.dispatchChangeEvent({ source: this, property: '', stacktrace: '' });
+        lChangeDetection.dispatchChangeEvent(new ChangeReason(DetectionCatchType.SyncronProperty, new Object()));
 
         // Evaluation.
         expect(lListenerCalled).to.be.true;
@@ -226,12 +228,12 @@ describe('ChangeDetection', () => {
         it('-- Default', () => {
             // Setup.
             const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
-            const lReason: ChangeDetectionReason = { source: 1, property: 2, stacktrace: '3' };
+            const lReason: ChangeReason = new ChangeReason(DetectionCatchType.SyncronProperty, new Object(), 2);
 
             // Process. Add listener.
             let lListenerCalled: boolean = false;
-            let lReasonResult: ChangeDetectionReason | null = null;
-            const lListener = (pReason: ChangeDetectionReason) => {
+            let lReasonResult: ChangeReason | null = null;
+            const lListener = (pReason: ChangeReason) => {
                 lListenerCalled = true;
                 lReasonResult = pReason;
             };
@@ -257,7 +259,7 @@ describe('ChangeDetection', () => {
             lChangeDetection.addChangeListener(lListener);
 
             // Process. Call listener.
-            lChangeDetection.dispatchChangeEvent({ source: this, property: '', stacktrace: '' });
+            lChangeDetection.dispatchChangeEvent(new ChangeReason(DetectionCatchType.SyncronProperty, new Object()));
 
             // Evaluation.
             expect(lListenerCalled).to.be.false;
@@ -268,12 +270,12 @@ describe('ChangeDetection', () => {
             const lChildChangeDetectionName: string = 'CD-child';
             const lParentChangeDetection: ChangeDetection = new ChangeDetection('Name');
             const lChangeDetection: ChangeDetection = lParentChangeDetection.createChildDetection(lChildChangeDetectionName);
-            const lReason: ChangeDetectionReason = { source: 1, property: 2, stacktrace: '3' };
+            const lReason: ChangeReason = new ChangeReason(DetectionCatchType.SyncronProperty, new Object(), 2);
 
             // Process. Add listener.
             let lListenerCalled: boolean = false;
-            let lReasonResult: ChangeDetectionReason | null = null;
-            const lListener = (pReason: ChangeDetectionReason) => {
+            let lReasonResult: ChangeReason | null = null;
+            const lListener = (pReason: ChangeReason) => {
                 lListenerCalled = true;
                 lReasonResult = pReason;
             };
@@ -300,7 +302,7 @@ describe('ChangeDetection', () => {
             lParentChangeDetection.addChangeListener(lListener);
 
             // Process. Dispatch event on child..
-            lChangeDetection.dispatchChangeEvent({ source: 1, property: 2, stacktrace: '3' });
+            lChangeDetection.dispatchChangeEvent(new ChangeReason(DetectionCatchType.SyncronProperty, new Object()));
 
             // Evaluation.
             expect(lExecutingChangeDetectionName).to.equal('Default');
@@ -321,7 +323,7 @@ describe('ChangeDetection', () => {
 
             // Process. Dispatch event on child..
             lChangeDetection.execute(() => {
-                lChangeDetection.dispatchChangeEvent({ source: 1, property: 2, stacktrace: '3' });
+                lChangeDetection.dispatchChangeEvent(new ChangeReason(DetectionCatchType.SyncronProperty, new Object()));
             });
 
             // Evaluation.
@@ -379,8 +381,8 @@ describe('ChangeDetection', () => {
 
             // Process. Track change event.
             let lChangeEventCalled: boolean = false;
-            let lReason: ChangeDetectionReason | null = null;
-            lChangeDetection.addChangeListener((pReason: ChangeDetectionReason) => {
+            let lReason: ChangeReason | null = null;
+            lChangeDetection.addChangeListener((pReason: ChangeReason) => {
                 lChangeEventCalled = true;
                 lReason = pReason;
             });
@@ -390,7 +392,8 @@ describe('ChangeDetection', () => {
 
             // Evaluation.
             expect(lChangeEventCalled).to.be.true;
-            expect((<ChangeDetectionReason><any>lReason).property).to.equal('a');
+            expect(lReason!.property).to.equal('a');
+            expect(lReason!.catchType).to.equal(DetectionCatchType.SyncronProperty);
         });
     });
 
@@ -407,7 +410,7 @@ describe('ChangeDetection', () => {
         lChangeDetection.removeChangeListener(lListener);
 
         // Process. Call listener.
-        lChangeDetection.dispatchChangeEvent({ source: this, property: '', stacktrace: '' });
+        lChangeDetection.dispatchChangeEvent(new ChangeReason(DetectionCatchType.SyncronProperty, new Object()));
 
         // Evaluation.
         expect(lListenerCalled).to.be.false;

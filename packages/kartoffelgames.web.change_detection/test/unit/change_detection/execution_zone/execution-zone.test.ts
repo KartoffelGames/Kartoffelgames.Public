@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { ExecutionZone } from '../../../../source/change_detection/execution_zone/execution-zone';
 import '../../../mock/request-animation-frame-mock-session';
+import { ChangeReason } from '../../../../source';
 
 describe('ExecutionZone', () => {
    it('Static Property: current', () => {
@@ -137,14 +138,14 @@ describe('ExecutionZone', () => {
          // Process.
          let lZoneNameResult: string | null = null;
          let lExecutedFunction: any;
-         lZone.onInteraction = (pZoneName: string, pFunction: (...pArgs: Array<any>) => any, _pStacktrace: string) => {
-            lZoneNameResult = pZoneName;
-            lExecutedFunction = pFunction;
+         lZone.onInteraction = (pChangeReason: ChangeReason) => {
+            // lZoneNameResult = pZoneName; TODO: Add zone or cd identifier to reason.
+            lExecutedFunction = pChangeReason.source;
          };
          lZone.executeInZone(lFunction);
 
          // Evaluation.
-         expect(lZoneNameResult).to.equal(lZoneName);
+         // expect(lZoneNameResult).to.equal(lZoneName);
          expect(lExecutedFunction).to.equal(lFunction);
       });
    });

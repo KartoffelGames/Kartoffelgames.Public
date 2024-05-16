@@ -1,4 +1,6 @@
 import { ChangeDetection } from '../change-detection';
+import { ChangeReason } from '../change-reason';
+import { DetectionCatchType } from '../enum/detection-catch-type.enum';
 import { Patcher } from '../execution_zone/patcher/patcher';
 
 export class InteractionDetectionProxy<T extends object> {
@@ -38,6 +40,7 @@ export class InteractionDetectionProxy<T extends object> {
 
     /**
      * Change callback.
+     * // TODO: Able to multi chain with addChangeListener(ChangeEventListener)
      */
     public get onChange(): ChangeEventListener | null {
         return this.mChangeCallback;
@@ -86,51 +89,68 @@ export class InteractionDetectionProxy<T extends object> {
             /**
              * Add property to object.
              * Triggers change event.
+             * 
              * @param pTargetObject - Target object.
-             * @param pTarget - Original object.
              * @param pPropertyName - Name of property.
+             * @param pNewPropertyValue - New value of property.
              */
             set: (pTargetObject: T, pPropertyName: PropertyKey, pNewPropertyValue: any): boolean => {
+                // Set value to original target property.
                 const lResult: boolean = Reflect.set(pTargetObject, pPropertyName, pNewPropertyValue);
-                this.dispatchChangeEvent(pTargetObject, pPropertyName, <string>Error().stack);
+
+                // Call change event with synchron property change type.
+                this.dispatchChangeEvent(new ChangeReason(DetectionCatchType.SyncronProperty, pTargetObject, pPropertyName));
+
                 return lResult;
             },
 
             /**
              * Get property from object.
-             * Returns Proxy element on function or object type.
+             * Returns Proxy element on function or object types.
+             * 
              * @param pTarget - The target object.
              * @param pProperty - The name or Symbol  of the property to get.
              * @param lReceiver - Either the proxy or an object that inherits from the proxy.
              */
             get: (pTarget, pProperty: PropertyKey, _pReceiver) => {
+                // Get original value.
                 const lResult: any = Reflect.get(pTarget, pProperty);
 
-                if (typeof lResult === 'object' && lResult !== null || typeof lResult === 'function') {
-                    const lProxy: InteractionDetectionProxy<any> = new InteractionDetectionProxy(lResult);
-                    lProxy.onChange = (pSourceObject: object, pProperty: PropertyKey | ((...pArgs: Array<any>) => any)) => {
-                        this.dispatchChangeEvent(pSourceObject, pProperty, <string>Error().stack);
-                    };
-
-                    return lProxy.proxy;
-                } else {
+                // When the value is not a object or a function these values can not be observed.
+                if (lResult === null || typeof lResult !== 'object' && typeof lResult !== 'function') {
                     return lResult;
                 }
+
+                // But when it is a object or a function, than wrap it into another detection proxy and passthrough any change.
+                // Creates a dependency chain.
+                const lProxy: InteractionDetectionProxy<any> = new InteractionDetectionProxy(lResult);
+                lProxy.onChange = (pChangeReason: ChangeReason) => {
+                    this.dispatchChangeEvent(pChangeReason);
+                };
+
+                return lProxy.proxy;
             },
 
             /**
              * Remove property from object.
+             * 
              * @param pTarget - Original object.
              * @param pPropertyName - Name of property.
              */
             deleteProperty: (pTargetObject: T, pPropertyName: PropertyKey): boolean => {
-                Reflect.deleteProperty(pTargetObject, pPropertyName);
-                this.dispatchChangeEvent(pTargetObject, pPropertyName, <string>Error().stack);
-                return true;
+                // Remove property from original target and save result.
+                const lPropertyExisted: boolean = Reflect.deleteProperty(pTargetObject, pPropertyName);
+
+                // Call change event with synchron property change type.
+                this.dispatchChangeEvent(new ChangeReason(DetectionCatchType.SyncronProperty, pTargetObject, pPropertyName));
+
+                // Passthrough original remove result.
+                return lPropertyExisted;
             },
 
             /**
              * Called on function call.
+             * 
              * @param pTargetObject - Function that was called.
              * @param pThisArgument - This argument of call.
              * @param pArgumentsList - All arguments of call.
@@ -143,9 +163,9 @@ export class InteractionDetectionProxy<T extends object> {
                 // Execute function and dispatch change event on synchron exceptions.
                 try {
                     lFunctionResult = (<(...args: Array<any>) => any>pTargetObject).call(lOriginalThisObject, ...pArgumentsList);
-                } catch (e) {
-                    this.dispatchChangeEvent(lOriginalThisObject, <(...args: Array<any>) => any>pTargetObject, <string>Error().stack);
-                    throw e;
+                } finally {
+                    // Dispatch change event before exception passthrough.
+                    this.dispatchChangeEvent(new ChangeReason(DetectionCatchType.SyncronCall, pTargetObject));
                 }
 
                 // Get original promise constructor.
@@ -157,20 +177,19 @@ export class InteractionDetectionProxy<T extends object> {
 
                 // Override possible system promise. 
                 if (lFunctionResult instanceof lPromiseConstructor) {
-                    lResult = new globalThis.Promise<any>((pResolve, pReject) => {
-                        // Can't call finally because wrong execution queue.
-                        // Wrong: await THIS() -> Code after THIS() -> Dispatched Event.
-                        // Right: await THIS() -> Dispatched Event -> Code after THIS().
-                        lFunctionResult.then((pResult: any) => {
-                            this.dispatchChangeEvent(lOriginalThisObject, <(...args: Array<any>) => any>pTargetObject, <string>Error().stack);
-                            pResolve(pResult);
-                        }).catch((pReason: any) => {
-                            this.dispatchChangeEvent(lOriginalThisObject, <(...args: Array<any>) => any>pTargetObject, <string>Error().stack);
-                            pReject(pReason);
-                        });
+                    lResult = new globalThis.Promise<any>(async (pResolve) => {
+                        // Wait for promise result and passthrough exceptions.
+                        let lPromiseResult: any;
+                        try {
+                            lPromiseResult = await lFunctionResult;
+                        } finally {
+                            this.dispatchChangeEvent(new ChangeReason(DetectionCatchType.AsnychronPromise, lFunctionResult));
+                        }
+
+                        // When no exception occurred resolve the promise result.
+                        pResolve(lPromiseResult);
                     });
                 } else {
-                    this.dispatchChangeEvent(lOriginalThisObject, <(...args: Array<any>) => any>pTargetObject, <string>Error().stack);
                     lResult = lFunctionResult;
                 }
 
@@ -184,12 +203,12 @@ export class InteractionDetectionProxy<T extends object> {
     /**
      * Trigger change event.
      */
-    private dispatchChangeEvent(pSourceObject: object, pProperty: PropertyKey | ((...pArgs: Array<any>) => any), pStacktrace: string) {
+    private dispatchChangeEvent(pChangeReason: ChangeReason) {
         // Only trigger if current change detection is not silent.
         if (!ChangeDetection.current.isSilent) {
-            this.onChange?.(pSourceObject, pProperty, pStacktrace);
+            this.onChange?.(pChangeReason);
         }
     }
 }
 
-type ChangeEventListener = (pSourceObject: object, pProperty: PropertyKey | ((...pArgs: Array<any>) => any), pStacktrace: string) => void;
+type ChangeEventListener = (pChangeReason: ChangeReason) => void;

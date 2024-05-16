@@ -157,7 +157,7 @@ export class InteractionDetectionProxy<T extends object> {
              */
             apply: (pTargetObject: T, pThisArgument: any, pArgumentsList: Array<any>): void => {
                 const lOriginalThisObject: object = InteractionDetectionProxy.getOriginal(pThisArgument);
-                let lResult: any;
+
                 let lFunctionResult: any;
 
                 // Execute function and dispatch change event on synchron exceptions.
@@ -168,32 +168,43 @@ export class InteractionDetectionProxy<T extends object> {
                     this.dispatchChangeEvent(new ChangeReason(DetectionCatchType.SyncronCall, pTargetObject));
                 }
 
-                // Get original promise constructor.
+                // Get original promise constructor. // TODO: Possible a better way to cache this information instead of search for every call.
                 let lPromiseConstructor: typeof Promise = Promise;
                 /* istanbul ignore next */
                 while (Patcher.ORIGINAL_CLASS_KEY in lPromiseConstructor) {
                     lPromiseConstructor = Reflect.get(lPromiseConstructor, Patcher.ORIGINAL_CLASS_KEY);
                 }
 
-                // Override possible system promise. 
-                if (lFunctionResult instanceof lPromiseConstructor) {
-                    lResult = new globalThis.Promise<any>(async (pResolve) => {
-                        // Wait for promise result and passthrough exceptions.
-                        let lPromiseResult: any;
-                        try {
-                            lPromiseResult = await lFunctionResult;
-                        } finally {
-                            this.dispatchChangeEvent(new ChangeReason(DetectionCatchType.AsnychronPromise, lFunctionResult));
-                        }
-
-                        // When no exception occurred resolve the promise result.
-                        pResolve(lPromiseResult);
-                    });
-                } else {
-                    lResult = lFunctionResult;
+                // Result is not a promise. So nothing needs to be overridden.
+                if (!(lFunctionResult instanceof lPromiseConstructor)) {
+                    return lFunctionResult;
                 }
 
-                return lResult;
+                // Override possible system promise by waiting for promise result and passthrough exceptions.
+                const lOverriddenPromise: any = new globalThis.Promise<any>(async (pResolve, pReject) => {
+                    let lPromiseResult: any;
+                    let lPromiseError: any;
+                    let lPromiseErrorTriggered: boolean = false;
+
+                    // Wait for original promise and save result or exceptions.
+                    try {
+                        lPromiseResult = await lFunctionResult;
+                    } catch (pError) {
+                        lPromiseErrorTriggered = true;
+                        lPromiseError = pError;
+                    } finally {
+                        this.dispatchChangeEvent(new ChangeReason(DetectionCatchType.AsnychronPromise, lFunctionResult));
+                    }
+
+                    // When an exception occurred reject the promise.
+                    if (lPromiseErrorTriggered) {
+                        pReject(lPromiseError);
+                    } else {
+                        pResolve(lPromiseResult);
+                    }
+                });
+
+                return lOverriddenPromise;
             }
         });
 

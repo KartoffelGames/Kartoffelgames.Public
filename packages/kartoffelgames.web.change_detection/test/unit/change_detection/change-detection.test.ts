@@ -347,20 +347,6 @@ describe('ChangeDetection', () => {
         expect(lResult).to.equal(lExecutionResult);
     });
 
-    it('Method: getUntrackedObject', () => {
-        // Setup.
-        const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
-        const lOriginalObject: object = {};
-        const lTrackedObject: object = lChangeDetection.registerObject(lOriginalObject);
-
-        // Process.
-        const lUntrackedObject: object = ChangeDetection.getUntrackedObject(lTrackedObject);
-
-        // Evaluation.
-        expect(lOriginalObject).to.not.equal(lTrackedObject);
-        expect(lUntrackedObject).to.equal(lOriginalObject);
-    });
-
     describe('Method: registerObject', () => {
         it('-- EventTarget input event', () => {
             // Setup.

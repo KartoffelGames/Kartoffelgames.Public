@@ -40,15 +40,6 @@ export class ChangeDetection implements IDeconstructable {
         return <ChangeDetection>lCurrent;
     }
 
-    /**
-     * Get original object from InteractionDetectionProxy-Proxy.
-     * @param pObject - Possible ChangeDetectionProxy object.
-     * @returns original object.
-     */
-    public static getUntrackedObject<T extends object>(pObject: T): T {
-        return InteractionDetectionProxy.getOriginal(pObject);
-    }
-
     private readonly mChangeListenerList: List<ChangeListener>;
     private readonly mErrorListenerList: List<ErrorListener>;
     private readonly mExecutionZone: ExecutionZone;

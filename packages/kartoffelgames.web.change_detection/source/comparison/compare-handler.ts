@@ -1,13 +1,10 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { InteractionDetectionProxy } from '../change_detection/synchron_tracker/interaction-detection-proxy';
 
 /**
  * Handler for comparing different values.
  */
 export class CompareHandler<TValue> {
-    private readonly mCloneMemory: Dictionary<any, any>;
-    private readonly mCompareMemory: Dictionary<any, true>;
-    private mCurrentValue: any;
+    private readonly mCompareMemory: Dictionary<object, true>;
     private readonly mMaxDepth: number;
 
     /**
@@ -16,145 +13,23 @@ export class CompareHandler<TValue> {
      * @param pValue - Current value.
      * @param pMaxComparisonDepth - [Default: 4]. Maximal depth for object and array comparison. 
      */
-    public constructor(pValue: TValue, pMaxComparisonDepth: number = 4) {
-        // Get original value to trigger no proxy change detection.
-        const lOriginalValue: TValue = <TValue>InteractionDetectionProxy.getOriginal(<any>pValue);
-
-        this.mCompareMemory = new Dictionary<any, true>();
-        this.mCloneMemory = new Dictionary<any, any>();
+    public constructor(pMaxComparisonDepth: number = 4) {
+        this.mCompareMemory = new Dictionary<object, true>();
         this.mMaxDepth = pMaxComparisonDepth;
-        this.mCurrentValue = this.cloneValue(lOriginalValue, 0);
     }
 
     /**
      * Compare value with internal value.
-     * @param pValue - New value.
+     * @param pTarget - New value.
      */
-    public compare(pValue: TValue): boolean {
-        // Get original value to trigger no proxy change detection.
-        const lOriginalNewValue: TValue = <TValue>InteractionDetectionProxy.getOriginal(<any>pValue);
-
+    public compare(pTarget: TValue, pSource: TValue): boolean {
         // Compare value.
-        const lCompareResult: boolean = this.compareValue(lOriginalNewValue, this.mCurrentValue, 0);
+        const lCompareResult: boolean = this.compareValue(pTarget, pSource, 0);
 
         // Clear compare memory.
         this.mCompareMemory.clear();
 
         return lCompareResult;
-    }
-
-    /**
-     * Compares the last value and the new value.
-     * If the new value has changed, the last value is overriden with the new one.
-     * @param pNewValue - New value.
-     * @returns is the last and the new value are the same.
-     */
-    public compareAndUpdate(pNewValue: TValue): boolean {
-        // Compare
-        const lIsSame: boolean = this.compare(pNewValue);
-
-        // Update only if value is not the same.
-        if (!lIsSame) {
-            this.update(pNewValue);
-        }
-
-        return lIsSame;
-    }
-
-    /**
-     * Update internal value.
-     * Clones value.
-     * @param pValue - New Value.
-     */
-    public update(pValue: TValue): void {
-        // Get original value to trigger no proxy change detection.
-        const lOriginalNewValue: TValue = <TValue>InteractionDetectionProxy.getOriginal(<any>pValue);
-
-        this.mCurrentValue = this.cloneValue(lOriginalNewValue, 0);
-
-        // Clear clone memory.
-        this.mCloneMemory.clear();
-    }
-
-    /**
-     * Depp clone array. Till max depth is reached.
-     * @param pValue - Array.
-     * @param pCurrentDepth - Current depth of cloning.
-     * @returns deep cloned array.
-     */
-    private cloneArray<T>(pValue: Array<any>, pCurrentDepth: number): Array<T> {
-        const lClonedArray: Array<any> = new Array<any>();
-
-        // Do not clone nested parent values again.
-        // Fails for a fraction of cases.
-        if (this.mCloneMemory.has(pValue)) {
-            return this.mCloneMemory.get(pValue);
-        } else {
-            this.mCloneMemory.set(pValue, lClonedArray);
-        }
-
-        // Clone items only if max depth not reached.
-        if (pCurrentDepth < this.mMaxDepth) {
-            for (const lItem of pValue) {
-                lClonedArray.push(this.cloneValue(lItem, pCurrentDepth + 1));
-            }
-        }
-
-        return lClonedArray;
-    }
-
-    /**
-     * Depp clone object. Till max depth is reached.
-     * @param pValue - Object.
-     * @param pCurrentDepth - Current depth of cloning.
-     * @returns deep cloned object.
-     */
-    private cloneObject(pValue: object, pCurrentDepth: number): object {
-        const lObjectClone: { [index: string]: any; } = {};
-
-        // Do not clone nested parent values again.
-        // Fails for a fraction of cases.
-        if (this.mCloneMemory.has(pValue)) {
-            return this.mCloneMemory.get(pValue);
-        } else {
-            this.mCloneMemory.set(pValue, lObjectClone);
-        }
-
-        // Clone items only if max depth not reached.
-        if (pCurrentDepth < this.mMaxDepth) {
-            for (const lKey in pValue) {
-                lObjectClone[lKey] = this.cloneValue((<any>pValue)[lKey], pCurrentDepth + 1);
-            }
-        }
-
-        return lObjectClone;
-    }
-
-    /**
-     * Deep clone value till max depth is reached.
-     * @param pValue - Value to clone.
-     * @param pCurrentDepth - Current depth of cloning.
-     * @returns cloned value. Does not clone instances ot functions.
-     */
-    private cloneValue(pValue: any, pCurrentDepth: number): any {
-        // Check if value is object.
-        if (typeof pValue === 'object' && pValue !== null) {
-            if (Array.isArray(pValue)) {
-                return this.cloneArray(pValue, pCurrentDepth);
-            } else { // Is object
-                // Don't clone html elements.
-                if (pValue instanceof Node) {
-                    return pValue;
-                } else {
-                    return this.cloneObject(pValue, pCurrentDepth);
-                }
-            }
-        } else if (typeof pValue === 'function') {
-            return pValue;
-        } else {
-            // return simple value. Number, String, Function, Boolean, Undefined.
-            return pValue;
-        }
     }
 
     /**

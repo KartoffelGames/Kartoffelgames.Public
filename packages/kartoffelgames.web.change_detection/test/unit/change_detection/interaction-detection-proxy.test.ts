@@ -4,65 +4,6 @@ import { ChangeDetection } from '../../../source/change_detection/change-detecti
 import { ChangeReason } from '../../../source/change_detection/change-reason';
 
 describe('InteractionDetectionProxy', () => {
-    describe('Static Method: getOriginal', () => {
-        it('-- Proxy object', () => {
-            // Setup.
-            const lOriginalObject: object = { a: 1 };
-            const lProxy: object = new InteractionDetectionProxy(lOriginalObject).proxy;
-
-            // Process.
-            const lObject: object = InteractionDetectionProxy.getOriginal(lProxy);
-
-            // Evaluation.
-            expect(lProxy).to.not.equal(lOriginalObject);
-            expect(lObject).to.equal(lOriginalObject);
-        });
-
-        it('-- Original object', () => {
-            // Setup.
-            const lOriginalObject: object = { a: 1 };
-
-            // Process.
-            const lObject: object = InteractionDetectionProxy.getOriginal(lOriginalObject);
-
-            // Evaluation.
-            expect(lObject).to.equal(lOriginalObject);
-        });
-
-        it('-- Proxy Function', () => {
-            // Setup.
-            const lOriginalFunction: () => void = () => { return; };
-            const lProxy: () => void = new InteractionDetectionProxy(lOriginalFunction).proxy;
-
-            // Process.
-            const lFunction: () => void = InteractionDetectionProxy.getOriginal(lProxy);
-
-            // Evaluation.
-            expect(lProxy).to.not.equal(lOriginalFunction);
-            expect(lFunction).to.equal(lOriginalFunction);
-        });
-
-        it('-- Original with attached proxy', () => {
-            // Setup.
-            const lOriginalObject: object = { a: 1 };
-            new InteractionDetectionProxy(lOriginalObject).proxy;
-
-            // Process.
-            const lObject: object = InteractionDetectionProxy.getOriginal(lOriginalObject);
-
-            // Evaluation.
-            expect(lObject).to.equal(lOriginalObject);
-        });
-
-        it('-- Original of NULL', () => {
-            // Process.
-            const lNull: null = InteractionDetectionProxy.getOriginal(null);
-
-            // Evaluation.
-            expect(lNull).to.be.null;
-        });
-    });
-
     it('Property: proxy', () => {
         // Setup.
         const lOriginalObject: object = { a: 1 };
@@ -233,7 +174,7 @@ describe('InteractionDetectionProxy', () => {
 
                 // Evaluation.
                 expect(lResultValue).to.not.equal(lValue);
-                expect(InteractionDetectionProxy.getOriginal(lResultValue)).to.equal(lValue);
+                expect(lResultValue).to.deep.equal(lValue);
             });
 
             it('-- Function', () => {
@@ -247,7 +188,7 @@ describe('InteractionDetectionProxy', () => {
 
                 // Evaluation.
                 expect(lResultValue).to.not.equal(lValue);
-                expect(InteractionDetectionProxy.getOriginal(lResultValue)).to.equal(lValue);
+                expect(lResultValue.name).to.equal(lValue.name);
             });
 
             it('-- Layered change detection', () => {

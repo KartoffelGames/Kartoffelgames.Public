@@ -13,7 +13,7 @@ export class InteractionDetectionProxy<T extends object> {
      * Get original object from InteractionDetectionProxy-Proxy.
      * @param pProxy - Possible ChangeDetectionProxy object.
      */
-    public static getOriginal<TValue>(pProxy: TValue): TValue {
+    private static getOriginal<TValue>(pProxy: TValue): TValue {
         // None object cant be an proxy.
         if (typeof pProxy !== 'object' && typeof pProxy !== 'function' || pProxy === null) {
             return pProxy;

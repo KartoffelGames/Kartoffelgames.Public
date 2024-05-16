@@ -13,12 +13,7 @@ export class InteractionDetectionProxy<T extends object> {
      * Get original object from InteractionDetectionProxy-Proxy.
      * @param pProxy - Possible ChangeDetectionProxy object.
      */
-    private static getOriginal<TValue>(pProxy: TValue): TValue {
-        // None object cant be an proxy.
-        if (typeof pProxy !== 'object' && typeof pProxy !== 'function' || pProxy === null) {
-            return pProxy;
-        }
-
+    private static getOriginal<TValue extends object>(pProxy: TValue): TValue {
         return <TValue>InteractionDetectionProxy.PROXY_TO_ORIGINAL_MAPPING.get(pProxy) ?? pProxy;
     }
 
@@ -29,7 +24,7 @@ export class InteractionDetectionProxy<T extends object> {
      */
     private static getWrapper<TValue extends object>(pProxy: TValue): InteractionDetectionProxy<TValue> | undefined {
         // Get original.
-        const lOriginal: TValue = <TValue>InteractionDetectionProxy.PROXY_TO_ORIGINAL_MAPPING.get(pProxy) ?? pProxy;
+        const lOriginal: TValue = InteractionDetectionProxy.getOriginal(pProxy);
 
         // Get wrapper from original.
         return <InteractionDetectionProxy<TValue> | undefined>InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.get(lOriginal);

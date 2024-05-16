@@ -35,8 +35,9 @@ export class InteractionDetectionProxy<T extends object> {
         return <InteractionDetectionProxy<TValue> | undefined>InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.get(lOriginal);
     }
 
-    private mChangeCallback: ChangeEventListener | null;
-    private readonly mProxyObject: T;
+    private readonly mAllreadySendChangeReasons!: WeakSet<ChangeReason>;
+    private mChangeCallback!: ChangeEventListener | null;
+    private readonly mProxyObject!: T;
 
     /**
      * Change callback.
@@ -61,15 +62,15 @@ export class InteractionDetectionProxy<T extends object> {
      * @param pTarget - Target object or function.
      */
     public constructor(pTarget: T) {
-        // Initialize values. Set to null as long as other wrapper was found. 
-        this.mChangeCallback = null;
-        this.mProxyObject = <any>null;
-
         // Use already created wrapper if it exist.
         const lWrapper: InteractionDetectionProxy<T> | undefined = InteractionDetectionProxy.getWrapper(pTarget);
         if (lWrapper) {
             return lWrapper;
         }
+
+        // Initialize values.
+        this.mAllreadySendChangeReasons = new WeakSet<ChangeReason>();
+        this.mChangeCallback = null;
 
         // Create new proxy object.
         this.mProxyObject = this.createProxyObject(pTarget);
@@ -156,13 +157,20 @@ export class InteractionDetectionProxy<T extends object> {
              * @param pArgumentsList - All arguments of call.
              */
             apply: (pTargetObject: T, pThisArgument: any, pArgumentsList: Array<any>): void => {
-                const lOriginalThisObject: object = InteractionDetectionProxy.getOriginal(pThisArgument);
-
-                let lFunctionResult: any;
-
                 // Execute function and dispatch change event on synchron exceptions.
+                let lFunctionResult: any;
                 try {
-                    lFunctionResult = (<(...args: Array<any>) => any>pTargetObject).call(lOriginalThisObject, ...pArgumentsList);
+                    lFunctionResult = (<CallableObject>pTargetObject).call(pThisArgument, ...pArgumentsList);
+                } catch (pError) {
+                    // Rethrow error when it is not related to any type errors.
+                    // Type errors occure when js internal functions cant be called with a proxy.
+                    if (!(pError instanceof TypeError)) {
+                        throw pError;
+                    }
+
+                    // Get original object of "this"-Scope. and call the function again with it.
+                    const lOriginalThisObject: object = InteractionDetectionProxy.getOriginal(pThisArgument);
+                    lFunctionResult = (<CallableObject>pTargetObject).call(lOriginalThisObject, ...pArgumentsList);
                 } finally {
                     // Dispatch change event before exception passthrough.
                     this.dispatchChangeEvent(new ChangeReason(DetectionCatchType.SyncronCall, pTargetObject));
@@ -215,11 +223,20 @@ export class InteractionDetectionProxy<T extends object> {
      * Trigger change event.
      */
     private dispatchChangeEvent(pChangeReason: ChangeReason) {
-        // Only trigger if current change detection is not silent.
+        // Prevents the same change reason be dispatched over and over again.
+        // Happens when a event target is triggered by a change reason.
+        if (this.mAllreadySendChangeReasons.has(pChangeReason)) {
+            return;
+        }
+
+        this.mAllreadySendChangeReasons.add(pChangeReason);
+
+        // Only trigger if current change detection is not silent. // TODO: Remove silent protection. Why do we need it anyway.
         if (!ChangeDetection.current.isSilent) {
             this.onChange?.(pChangeReason);
         }
     }
 }
 
+type CallableObject = (...args: Array<any>) => any;
 type ChangeEventListener = (pChangeReason: ChangeReason) => void;

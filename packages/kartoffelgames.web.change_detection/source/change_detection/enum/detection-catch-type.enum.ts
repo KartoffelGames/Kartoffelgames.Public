@@ -1,4 +1,4 @@
-export enum DetectionCatch {
+export enum DetectionCatchType {
     None = 0,
 
     SyncronCall = 1,

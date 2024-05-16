@@ -152,6 +152,60 @@ describe('InteractionDetectionProxy', () => {
                 // Evaluation.
                 expect(lPropertyChanged).to.be.true;
             });
+
+            it('-- Nested callback', () => {
+                const lNewValue: number = 22;
+                const lOriginalObject = {
+                    a: 0,
+                    fun: function () {
+                        return this;
+                    }
+                };
+                const lChangeDetection: InteractionDetectionProxy<any> = new InteractionDetectionProxy(lOriginalObject);
+
+                // Setup. ChangeDetection.
+                let lPropertyChanged: boolean = false;
+                lChangeDetection.onChange = (pChangeReason: ChangeReason) => {
+                    if (pChangeReason.property === 'a') {
+                        lPropertyChanged = true;
+                    }
+                };
+
+                // Process.
+                lChangeDetection.proxy.fun().a = lNewValue;
+
+                // Evaluation.
+                expect(lPropertyChanged).to.be.true;
+                expect(lOriginalObject.a).to.equal(lNewValue);
+            });
+
+            it('-- Deep nested callback with arrow functions', () => {
+                const lNewValue: number = 22;
+                const lOriginalObject = {
+                    a: 0,
+                    fun: function () {
+                        return () => {
+                            return this;
+                        };
+                    }
+                };
+                const lChangeDetection: InteractionDetectionProxy<any> = new InteractionDetectionProxy(lOriginalObject);
+
+                // Setup. ChangeDetection.
+                let lPropertyChanged: boolean = false;
+                lChangeDetection.onChange = (pChangeReason: ChangeReason) => {
+                    if (pChangeReason.property === 'a') {
+                        lPropertyChanged = true;
+                    }
+                };
+
+                // Process.
+                lChangeDetection.proxy.fun()().a = lNewValue;
+
+                // Evaluation.
+                expect(lPropertyChanged).to.be.true;
+                expect(lOriginalObject.a).to.equal(lNewValue);
+            });
         });
 
         describe('-- GET', () => {

@@ -33,21 +33,15 @@ export class InteractionDetectionProxy<T extends object> {
         return <InteractionDetectionProxy<TValue> | undefined>InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.get(lOriginal);
     }
 
-    private mChangeCallback: ChangeCallback | null;
-    private readonly mOriginalObject: T;
+    private mChangeCallback: ChangeEventListener | null;
     private readonly mProxyObject: T;
 
     /**
-     * Get change callback.
+     * Change callback.
      */
-    public get onChange(): ChangeCallback | null {
+    public get onChange(): ChangeEventListener | null {
         return this.mChangeCallback;
-    }
-
-    /**
-     * Set change callback.
-     */
-    public set onChange(pChangeCallback: ChangeCallback | null) {
+    } set onChange(pChangeCallback: ChangeEventListener | null) {
         this.mChangeCallback = pChangeCallback;
     }
 
@@ -66,7 +60,6 @@ export class InteractionDetectionProxy<T extends object> {
     public constructor(pTarget: T) {
         // Initialize values. Set to null as long as other wrapper was found. 
         this.mChangeCallback = null;
-        this.mOriginalObject = <any>null;
         this.mProxyObject = <any>null;
 
         // Use already created wrapper if it exist.
@@ -75,11 +68,12 @@ export class InteractionDetectionProxy<T extends object> {
             return lWrapper;
         }
 
-        // Create new wrapper.
-        this.mOriginalObject = InteractionDetectionProxy.getOriginal(pTarget);
-
         // Create new proxy object.
         this.mProxyObject = this.createProxyObject(pTarget);
+
+        // Map proxy with real object and real object to current class.
+        InteractionDetectionProxy.PROXY_TO_ORIGINAL_MAPPING.set(this.mProxyObject, pTarget);
+        InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.set(pTarget, this);
     }
 
     /**
@@ -184,10 +178,6 @@ export class InteractionDetectionProxy<T extends object> {
             }
         });
 
-        // Map proxy with real object and real object to current class.
-        InteractionDetectionProxy.PROXY_TO_ORIGINAL_MAPPING.set(lProxyObject, pTarget);
-        InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.set(pTarget, this);
-
         return lProxyObject;
     }
 
@@ -202,4 +192,4 @@ export class InteractionDetectionProxy<T extends object> {
     }
 }
 
-type ChangeCallback = (pSourceObject: object, pProperty: PropertyKey | ((...pArgs: Array<any>) => any), pStacktrace: string) => void;
+type ChangeEventListener = (pSourceObject: object, pProperty: PropertyKey | ((...pArgs: Array<any>) => any), pStacktrace: string) => void;

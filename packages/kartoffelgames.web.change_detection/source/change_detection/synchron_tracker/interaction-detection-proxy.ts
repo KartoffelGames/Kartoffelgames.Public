@@ -31,18 +31,8 @@ export class InteractionDetectionProxy<T extends object> {
     }
 
     private readonly mAllreadySendChangeReasons!: WeakSet<ChangeReason>;
-    private mChangeCallback!: ChangeEventListener | null;
+    private readonly mChangeCallbackList!: Array<ChangeEventListener>;
     private readonly mProxyObject!: T;
-
-    /**
-     * Change callback.
-     * // TODO: Able to multi chain with addChangeListener(ChangeEventListener)
-     */
-    public get onChange(): ChangeEventListener | null {
-        return this.mChangeCallback;
-    } set onChange(pChangeCallback: ChangeEventListener | null) {
-        this.mChangeCallback = pChangeCallback;
-    }
 
     /**
      * Get proxy object for target.
@@ -65,7 +55,7 @@ export class InteractionDetectionProxy<T extends object> {
 
         // Initialize values.
         this.mAllreadySendChangeReasons = new WeakSet<ChangeReason>();
-        this.mChangeCallback = null;
+        this.mChangeCallbackList = new Array<ChangeEventListener>();
 
         // Create new proxy object.
         this.mProxyObject = this.createProxyObject(pTarget);
@@ -73,6 +63,15 @@ export class InteractionDetectionProxy<T extends object> {
         // Map proxy with real object and real object to current class.
         InteractionDetectionProxy.PROXY_TO_ORIGINAL_MAPPING.set(this.mProxyObject, pTarget);
         InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.set(pTarget, this);
+    }
+
+    /**
+     * Add change listener to detection proxy.
+     * 
+     * @param pChangeListener - On change listener.
+     */
+    public addChangeListener(pChangeListener: ChangeEventListener): void {
+        this.mChangeCallbackList.push(pChangeListener);
     }
 
     /**
@@ -120,9 +119,9 @@ export class InteractionDetectionProxy<T extends object> {
                 // But when it is a object or a function, than wrap it into another detection proxy and passthrough any change.
                 // Creates a dependency chain.
                 const lProxy: InteractionDetectionProxy<any> = new InteractionDetectionProxy(lResult);
-                lProxy.onChange = (pChangeReason: ChangeReason) => {
+                lProxy.addChangeListener((pChangeReason: ChangeReason) => {
                     this.dispatchChangeEvent(pChangeReason);
-                };
+                });
 
                 return lProxy.proxy;
             },
@@ -228,7 +227,9 @@ export class InteractionDetectionProxy<T extends object> {
 
         // Only trigger if current change detection is not silent. // TODO: Remove silent protection. Why do we need it anyway.
         if (!ChangeDetection.current.isSilent) {
-            this.onChange?.(pChangeReason);
+            for (const lListener of this.mChangeCallbackList) {
+                lListener(pChangeReason);
+            }
         }
     }
 }

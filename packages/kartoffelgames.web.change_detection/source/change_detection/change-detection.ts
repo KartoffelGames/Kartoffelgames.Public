@@ -242,9 +242,9 @@ export class ChangeDetection implements IDeconstructable {
 
         // Create interaction proxy and send change and error event to this change detection.
         const lProxy: InteractionDetectionProxy<T> = new InteractionDetectionProxy(pObject);
-        lProxy.onChange = (pChangeReason: ChangeReason) => {
+        lProxy.addChangeListener((pChangeReason: ChangeReason) => {
             this.dispatchChangeEvent(pChangeReason);
-        };
+        });
 
         return lProxy.proxy;
     }

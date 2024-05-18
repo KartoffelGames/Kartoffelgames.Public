@@ -1,6 +1,6 @@
+import '../../../mock/request-animation-frame-mock-session';
 import { expect } from 'chai';
 import { Patcher } from '../../../../source/change_detection/execution_zone/patcher/patcher';
-import '../../../mock/request-animation-frame-mock-session';
 import { ChangeDetection } from '../../../../source';
 
 describe('Patcher', () => {

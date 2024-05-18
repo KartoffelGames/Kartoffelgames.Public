@@ -1,3 +1,4 @@
+import '../../mock/request-animation-frame-mock-session';
 import { expect } from 'chai';
 import { ChangeDetection } from '../../../source/change_detection/change-detection';
 import { PreventableErrorEvent, PromiseRejectionEvent } from '../../mock/error-event';

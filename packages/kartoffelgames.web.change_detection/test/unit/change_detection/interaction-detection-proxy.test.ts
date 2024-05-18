@@ -1,3 +1,4 @@
+import '../../mock/request-animation-frame-mock-session';
 import { expect } from 'chai';
 import { InteractionDetectionProxy } from '../../../source/change_detection/synchron_tracker/interaction-detection-proxy';
 import { ChangeDetection } from '../../../source/change_detection/change-detection';
@@ -7,10 +8,10 @@ describe('InteractionDetectionProxy', () => {
     it('Property: proxy', () => {
         // Setup.
         const lOriginalObject: object = { a: 1 };
-        const lChangeDetection: InteractionDetectionProxy<object> = new InteractionDetectionProxy(lOriginalObject);
+        const lDetectionProxy: InteractionDetectionProxy<object> = new InteractionDetectionProxy(lOriginalObject);
 
         // Process.
-        const lProxy: object = lChangeDetection.proxy;
+        const lProxy: object = lDetectionProxy.proxy;
 
         // Evaluation.
         expect(lProxy).to.not.equal(lOriginalObject);
@@ -19,18 +20,21 @@ describe('InteractionDetectionProxy', () => {
     it('Method: addChangeListener', () => {
         // Setup.
         const lOriginalObject: { a: number; } = { a: 1 };
-        const lChangeDetection: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
+        const lDetectionProxy: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
+        const lChangeDetection: ChangeDetection = new ChangeDetection('CD');
 
         // Setup. ChangeDetection.
         let lPropertyChanged: boolean = false;
-        lChangeDetection.addChangeListener((pChangeReason: ChangeDetectionReason) => {
+        lChangeDetection.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
             if (pChangeReason.property === 'a') {
                 lPropertyChanged = true;
             }
         });
 
         // Process.
-        lChangeDetection.proxy.a = 22;
+        lChangeDetection.execute(() => {
+            lDetectionProxy.proxy.a = 22;
+        });
 
         // Evaluation.
         expect(lPropertyChanged).to.be.true;
@@ -59,10 +63,10 @@ describe('InteractionDetectionProxy', () => {
                 // Setup.
                 const lNewValue: number = 22;
                 const lOriginalObject: { a: number; } = { a: 1 };
-                const lChangeDetection: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
+                const lDetectionProxy: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
 
                 // Process.
-                lChangeDetection.proxy.a = lNewValue;
+                lDetectionProxy.proxy.a = lNewValue;
 
                 // Evaluation.
                 expect(lOriginalObject.a).to.equal(lNewValue);
@@ -72,10 +76,10 @@ describe('InteractionDetectionProxy', () => {
                 // Setup.
                 const lNewValue: number = 22;
                 const lOriginalObject: { a: { b: number; }; } = { a: { b: 1 } };
-                const lChangeDetection: InteractionDetectionProxy<{ a: { b: number; }; }> = new InteractionDetectionProxy(lOriginalObject);
+                const lDetectionProxy: InteractionDetectionProxy<{ a: { b: number; }; }> = new InteractionDetectionProxy(lOriginalObject);
 
                 // Process.
-                lChangeDetection.proxy.a.b = lNewValue;
+                lDetectionProxy.proxy.a.b = lNewValue;
 
                 // Evaluation.
                 expect(lOriginalObject.a.b).to.equal(lNewValue);
@@ -84,18 +88,21 @@ describe('InteractionDetectionProxy', () => {
             it('-- Hook', () => {
                 // Setup.
                 const lOriginalObject: { a: number; } = { a: 1 };
-                const lChangeDetection: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
+                const lDetectionProxy: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
+                const lChangeDetection: ChangeDetection = new ChangeDetection('CD');
 
                 // Setup. ChangeDetection.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addChangeListener((pChangeReason: ChangeDetectionReason) => {
+                lChangeDetection.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
                     if (pChangeReason.property === 'a') {
                         lPropertyChanged = true;
                     }
                 });
 
                 // Process.
-                lChangeDetection.proxy.a = 22;
+                lChangeDetection.execute(() => {
+                    lDetectionProxy.proxy.a = 22;
+                });
 
                 // Evaluation.
                 expect(lPropertyChanged).to.be.true;
@@ -109,18 +116,21 @@ describe('InteractionDetectionProxy', () => {
                         return this;
                     }
                 };
-                const lChangeDetection: InteractionDetectionProxy<any> = new InteractionDetectionProxy(lOriginalObject);
+                const lDetectionProxy: InteractionDetectionProxy<any> = new InteractionDetectionProxy(lOriginalObject);
+                const lChangeDetection: ChangeDetection = new ChangeDetection('CD');
 
                 // Setup. ChangeDetection.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addChangeListener((pChangeReason: ChangeDetectionReason) => {
+                lChangeDetection.addErrorListener((pChangeReason: ChangeDetectionReason) => {
                     if (pChangeReason.property === 'a') {
                         lPropertyChanged = true;
                     }
                 });
 
                 // Process.
-                lChangeDetection.proxy.fun().a = lNewValue;
+                lChangeDetection.execute(() => {
+                    lDetectionProxy.proxy.fun().a = lNewValue;
+                });
 
                 // Evaluation.
                 expect(lPropertyChanged).to.be.true;
@@ -137,18 +147,21 @@ describe('InteractionDetectionProxy', () => {
                         };
                     }
                 };
-                const lChangeDetection: InteractionDetectionProxy<any> = new InteractionDetectionProxy(lOriginalObject);
+                const lDetectionProxy: InteractionDetectionProxy<any> = new InteractionDetectionProxy(lOriginalObject);
+                const lChangeDetection: ChangeDetection = new ChangeDetection('CD');
 
                 // Setup. ChangeDetection.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addChangeListener((pChangeReason: ChangeDetectionReason) => {
+                lChangeDetection.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
                     if (pChangeReason.property === 'a') {
                         lPropertyChanged = true;
                     }
                 });
 
                 // Process.
-                lChangeDetection.proxy.fun()().a = lNewValue;
+                lChangeDetection.execute(() => {
+                    lDetectionProxy.proxy.fun()().a = lNewValue;
+                });
 
                 // Evaluation.
                 expect(lPropertyChanged).to.be.true;
@@ -161,10 +174,10 @@ describe('InteractionDetectionProxy', () => {
                 // Setup.
                 const lValue: number = 22;
                 const lOriginalObject: { a: number; } = { a: lValue };
-                const lChangeDetection: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
+                const lDetectionProxy: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
 
                 // Process.
-                const lResultValue: number = lChangeDetection.proxy.a;
+                const lResultValue: number = lDetectionProxy.proxy.a;
 
                 // Evaluation.
                 expect(lResultValue).to.equal(lValue);
@@ -174,10 +187,10 @@ describe('InteractionDetectionProxy', () => {
                 // Setup.
                 const lValue: object = {};
                 const lOriginalObject: { a: object; } = { a: lValue };
-                const lChangeDetection: InteractionDetectionProxy<{ a: object; }> = new InteractionDetectionProxy(lOriginalObject);
+                const lDetectionProxy: InteractionDetectionProxy<{ a: object; }> = new InteractionDetectionProxy(lOriginalObject);
 
                 // Process.
-                const lResultValue: object = lChangeDetection.proxy.a;
+                const lResultValue: object = lDetectionProxy.proxy.a;
 
                 // Evaluation.
                 expect(lResultValue).to.not.equal(lValue);
@@ -188,10 +201,10 @@ describe('InteractionDetectionProxy', () => {
                 // Setup.
                 const lValue: () => void = () => { return; };
                 const lOriginalObject: { a: () => void; } = { a: lValue };
-                const lChangeDetection: InteractionDetectionProxy<{ a: () => void; }> = new InteractionDetectionProxy(lOriginalObject);
+                const lDetectionProxy: InteractionDetectionProxy<{ a: () => void; }> = new InteractionDetectionProxy(lOriginalObject);
 
                 // Process.
-                const lResultValue: () => void = lChangeDetection.proxy.a;
+                const lResultValue: () => void = lDetectionProxy.proxy.a;
 
                 // Evaluation.
                 expect(lResultValue).to.not.equal(lValue);
@@ -201,18 +214,21 @@ describe('InteractionDetectionProxy', () => {
             it('-- Layered change detection', () => {
                 // Setup.
                 const lOriginalObject: { a: { b: number; }; } = { a: { b: 1 } };
-                const lChangeDetection: InteractionDetectionProxy<{ a: { b: number; }; }> = new InteractionDetectionProxy(lOriginalObject);
+                const lDetectionProxy: InteractionDetectionProxy<{ a: { b: number; }; }> = new InteractionDetectionProxy(lOriginalObject);
+                const lChangeDetection: ChangeDetection = new ChangeDetection('CD');
 
                 // Setup. ChangeDetection.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addChangeListener((pChangeReason: ChangeDetectionReason) => {
+                lChangeDetection.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
                     if (pChangeReason.property === 'b') {
                         lPropertyChanged = true;
                     }
                 });
 
                 // Process.
-                lChangeDetection.proxy.a.b = 22;
+                lChangeDetection.execute(() => {
+                    lDetectionProxy.proxy.a.b = 22;
+                });
 
                 // Evaluation.
                 expect(lPropertyChanged).to.be.true;
@@ -223,10 +239,10 @@ describe('InteractionDetectionProxy', () => {
             it('-- Default', () => {
                 // Setup.
                 const lOriginalObject: { a?: number; } = { a: 1 };
-                const lChangeDetection: InteractionDetectionProxy<{ a?: number; }> = new InteractionDetectionProxy(lOriginalObject);
+                const lDetectionProxy: InteractionDetectionProxy<{ a?: number; }> = new InteractionDetectionProxy(lOriginalObject);
 
                 // Process.
-                delete lChangeDetection.proxy.a;
+                delete lDetectionProxy.proxy.a;
 
                 // Evaluation.
                 expect(lOriginalObject.a).to.be.undefined;
@@ -235,18 +251,21 @@ describe('InteractionDetectionProxy', () => {
             it('-- Hook', () => {
                 // Setup.
                 const lOriginalObject: { a?: number; } = { a: 1 };
-                const lChangeDetection: InteractionDetectionProxy<{ a?: number; }> = new InteractionDetectionProxy(lOriginalObject);
+                const lDetectionProxy: InteractionDetectionProxy<{ a?: number; }> = new InteractionDetectionProxy(lOriginalObject);
+                const lChangeDetection: ChangeDetection = new ChangeDetection('CD');
 
                 // Setup. ChangeDetection.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addChangeListener((pChangeReason: ChangeDetectionReason) => {
+                lChangeDetection.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
                     if (pChangeReason.property === 'a') {
                         lPropertyChanged = true;
                     }
                 });
 
                 // Process.
-                delete lChangeDetection.proxy.a;
+                lChangeDetection.execute(() => {
+                    delete lDetectionProxy.proxy.a;
+                });
 
                 // Evaluation.
                 expect(lPropertyChanged).to.be.true;
@@ -257,8 +276,8 @@ describe('InteractionDetectionProxy', () => {
             it('-- Sync call success', () => {
                 // Setup.
                 const lValue: number = 22;
-                const lChangeDetection: InteractionDetectionProxy<(pValue: number) => number> = new InteractionDetectionProxy((pValue: number) => { return pValue; });
-                const lProxy: (pValue: number) => number = lChangeDetection.proxy;
+                const lDetectionProxy: InteractionDetectionProxy<(pValue: number) => number> = new InteractionDetectionProxy((pValue: number) => { return pValue; });
+                const lProxy: (pValue: number) => number = lDetectionProxy.proxy;
 
                 // Process.
                 const lResultValue: number = lProxy(lValue);
@@ -270,19 +289,22 @@ describe('InteractionDetectionProxy', () => {
             it('-- Hook - Sync call success', () => {
                 // Setup.
                 const lFunction: (pValue: number) => number = (pValue: number) => { return pValue; };
-                const lChangeDetection: InteractionDetectionProxy<(pValue: number) => number> = new InteractionDetectionProxy(lFunction);
-                const lProxy: (pValue: number) => number = lChangeDetection.proxy;
+                const lDetectionProxy: InteractionDetectionProxy<(pValue: number) => number> = new InteractionDetectionProxy(lFunction);
+                const lProxy: (pValue: number) => number = lDetectionProxy.proxy;
+                const lChangeDetection: ChangeDetection = new ChangeDetection('CD');
 
                 // Setup. ChangeDetection.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addChangeListener((pChangeReason: ChangeDetectionReason) => {
+                lChangeDetection.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
                     if (pChangeReason.source === lFunction) {
                         lPropertyChanged = true;
                     }
                 });
 
                 // Process
-                lProxy(22);
+                lChangeDetection.execute(() => {
+                    lProxy(22);
+                });
 
                 // Evaluation.
                 expect(lPropertyChanged).to.be.true;
@@ -291,8 +313,8 @@ describe('InteractionDetectionProxy', () => {
             it('-- Sync call error', () => {
                 // Setup.
                 const lValue: number = 22;
-                const lChangeDetection: InteractionDetectionProxy<() => number> = new InteractionDetectionProxy(() => { throw lValue; });
-                const lProxy: () => number = lChangeDetection.proxy;
+                const lDetectionProxy: InteractionDetectionProxy<() => number> = new InteractionDetectionProxy(() => { throw lValue; });
+                const lProxy: () => number = lDetectionProxy.proxy;
 
                 // Process.
                 let lResultValue: number | null = null;
@@ -309,12 +331,13 @@ describe('InteractionDetectionProxy', () => {
             it('-- Hook - Sync call error', () => {
                 // Setup.
                 const lFunction: () => number = () => { throw 22; };
-                const lChangeDetection: InteractionDetectionProxy<() => number> = new InteractionDetectionProxy(lFunction);
-                const lProxy: () => number = lChangeDetection.proxy;
+                const lDetectionProxy: InteractionDetectionProxy<() => number> = new InteractionDetectionProxy(lFunction);
+                const lProxy: () => number = lDetectionProxy.proxy;
+                const lChangeDetection: ChangeDetection = new ChangeDetection('CD');
 
                 // Setup. ChangeDetection.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addChangeListener((pChangeReason: ChangeDetectionReason) => {
+                lChangeDetection.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
                     if (pChangeReason.source === lFunction) {
                         lPropertyChanged = true;
                     }
@@ -322,7 +345,9 @@ describe('InteractionDetectionProxy', () => {
 
                 // Process
                 try {
-                    lProxy();
+                    lChangeDetection.execute(() => {
+                        lProxy();
+                    });
                 } catch (e) {/* Empty */ }
 
                 // Evaluation.
@@ -332,8 +357,8 @@ describe('InteractionDetectionProxy', () => {
             it('-- Async call success', async () => {
                 // Setup.
                 const lValue: number = 22;
-                const lChangeDetection: InteractionDetectionProxy<(pValue: number) => Promise<number>> = new InteractionDetectionProxy(async (pValue: number) => { return pValue; });
-                const lProxy: (pValue: number) => Promise<number> = lChangeDetection.proxy;
+                const lDetectionProxy: InteractionDetectionProxy<(pValue: number) => Promise<number>> = new InteractionDetectionProxy(async (pValue: number) => { return pValue; });
+                const lProxy: (pValue: number) => Promise<number> = lDetectionProxy.proxy;
 
                 // Process.
                 const lResultValue: number = await lProxy(lValue);
@@ -345,19 +370,22 @@ describe('InteractionDetectionProxy', () => {
             it('-- Hook - async call success', async () => {
                 // Setup.
                 const lFunction: (pValue: number) => Promise<number> = async (pValue: number) => { return pValue; };
-                const lChangeDetection: InteractionDetectionProxy<(pValue: number) => Promise<number>> = new InteractionDetectionProxy(lFunction);
-                const lProxy: (pValue: number) => Promise<number> = lChangeDetection.proxy;
+                const lDetectionProxy: InteractionDetectionProxy<(pValue: number) => Promise<number>> = new InteractionDetectionProxy(lFunction);
+                const lProxy: (pValue: number) => Promise<number> = lDetectionProxy.proxy;
+                const lChangeDetection: ChangeDetection = new ChangeDetection('CD');
 
                 // Setup. ChangeDetection.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addChangeListener((pChangeReason: ChangeDetectionReason) => {
+                lChangeDetection.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
                     if (pChangeReason.source === lFunction) {
                         lPropertyChanged = true;
                     }
                 });
 
                 // Process
-                await lProxy(22);
+                await lChangeDetection.execute(async () => {
+                    return lProxy(22);
+                });
 
                 // Evaluation.
                 expect(lPropertyChanged).to.be.true;
@@ -366,8 +394,8 @@ describe('InteractionDetectionProxy', () => {
             it('-- Async call error', async () => {
                 // Setup.
                 const lValue: number = 22;
-                const lChangeDetection: InteractionDetectionProxy<() => Promise<number>> = new InteractionDetectionProxy(async () => { throw lValue; });
-                const lProxy: () => Promise<number> = lChangeDetection.proxy;
+                const lDetectionProxy: InteractionDetectionProxy<() => Promise<number>> = new InteractionDetectionProxy(async () => { throw lValue; });
+                const lProxy: () => Promise<number> = lDetectionProxy.proxy;
 
                 // Process.
                 let lResultValue: number | null = null;
@@ -380,19 +408,22 @@ describe('InteractionDetectionProxy', () => {
             it('-- Hook - Async call error', async () => {
                 // Setup.
                 const lFunction: () => Promise<number> = async () => { throw 22; };
-                const lChangeDetection: InteractionDetectionProxy<() => Promise<number>> = new InteractionDetectionProxy(lFunction);
-                const lProxy: () => Promise<number> = lChangeDetection.proxy;
+                const lDetectionProxy: InteractionDetectionProxy<() => Promise<number>> = new InteractionDetectionProxy(lFunction);
+                const lProxy: () => Promise<number> = lDetectionProxy.proxy;
+                const lChangeDetection: ChangeDetection = new ChangeDetection('CD');
 
                 // Setup. ChangeDetection.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addChangeListener((pChangeReason: ChangeDetectionReason) => {
+                lChangeDetection.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
                     if (pChangeReason.source === lFunction) {
                         lPropertyChanged = true;
                     }
                 });
 
                 // Process
-                await lProxy().catch((_pError) => { /* Empty */ });
+                await lChangeDetection.execute(async () => {
+                    return lProxy().catch((_pError) => { /* Empty */ });
+                });
 
                 // Evaluation.
                 expect(lPropertyChanged).to.be.true;
@@ -404,37 +435,14 @@ describe('InteractionDetectionProxy', () => {
                 // Setup.
                 const lValue: number = 22;
                 const lOriginalObject: { a: number; } = { a: lValue };
-                const lChangeDetection: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
+                const lDetectionProxy: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
 
                 // Process.
-                const lResultValue: PropertyDescriptor | undefined = Object.getOwnPropertyDescriptor(lChangeDetection.proxy, 'a');
+                const lResultValue: PropertyDescriptor | undefined = Object.getOwnPropertyDescriptor(lDetectionProxy.proxy, 'a');
 
                 // Evaluation.
                 expect(lResultValue?.value).to.equal(lValue);
             });
-        });
-
-        it('-- ChangeDetection silent mode', () => {
-            // Setup.
-            const lChangeDetection = new ChangeDetection('Name', null, false, true);
-            const lOriginalObject: { a: number; } = { a: 1 };
-            const lDetectionProxy: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
-
-            // Setup. ChangeDetection.
-            let lPropertyChanged: boolean = false;
-            lDetectionProxy.addChangeListener((pChangeReason: ChangeDetectionReason) => {
-                if (pChangeReason.property === 'a') {
-                    lPropertyChanged = true;
-                }
-            });
-
-            // Process
-            lChangeDetection.execute(() => {
-                lDetectionProxy.proxy.a = 22;
-            });
-
-            // Evaluation.
-            expect(lPropertyChanged).to.be.false;
         });
     });
 });

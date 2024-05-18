@@ -9,12 +9,16 @@ import { DetectionCatchType } from './enum/detection-catch-type.enum';
  * Merges execution zone and proxy tracking.
  */
 export class ChangeDetection implements IDeconstructable {
-    private static mCurrentZone: ChangeDetection = new ChangeDetection('Default');
+    private static mCurrentZone: ChangeDetection | null = null;
 
     /**
      * Current execution zone.
      */
     public static get current(): ChangeDetection {
+        if (ChangeDetection.mCurrentZone === null) {
+            ChangeDetection.mCurrentZone = new ChangeDetection('Default');
+        }
+
         return ChangeDetection.mCurrentZone;
     }
 
@@ -24,7 +28,7 @@ export class ChangeDetection implements IDeconstructable {
      * @param pChangeReason - Interaction reason.
      */
     public static dispatchInteractionEvent(pChangeReason: ChangeDetectionReason): void {
-        for (const lListener of ChangeDetection.mCurrentZone.mChangeListenerList) {
+        for (const lListener of ChangeDetection.current.mChangeListenerList) {
             lListener(pChangeReason);
         }
 
@@ -71,7 +75,7 @@ export class ChangeDetection implements IDeconstructable {
         this.mErrorListenerList = new List<ErrorListener>();
 
         // Save parent.
-        if (pSettings?.isolate === true) {
+        if (pSettings?.isolate === true || ChangeDetection.mCurrentZone === null) {
             this.mParent = null;
         } else {
             this.mParent = ChangeDetection.current;
@@ -110,9 +114,9 @@ export class ChangeDetection implements IDeconstructable {
             lErrorHandler(pEvent, pEvent.reason);
         };
 
-        // Register global error listener.
-        window.addEventListener('error', this.mWindowErrorListener);
-        window.addEventListener('unhandledrejection', this.mWindowRejectionListener);
+        // Register global error listener. // TODO: Lazy init event handler to prevent loop with Patcher.
+        // window.addEventListener('error', this.mWindowErrorListener);
+        // window.addEventListener('unhandledrejection', this.mWindowRejectionListener);
     }
 
     /**

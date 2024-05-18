@@ -37,7 +37,7 @@ export class Patcher {
      * @param pZone - Zone.
      */
     public static patchObject(pObject: EventTarget, pZone: ExecutionZone): void {
-        pZone.executeInZoneSilent(() => {
+        pZone.executeInZone(() => {
             if (!(Patcher.EVENT_TARGET_PATCHED_KEY in pObject)) {
                 // Add all events without function.
                 for (const lEventName of EventNames.changeCriticalEvents) {

@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { InteractionDetectionProxy } from '../../../source/change_detection/synchron_tracker/interaction-detection-proxy';
 import { ChangeDetection } from '../../../source/change_detection/change-detection';
-import { ChangeReason } from '../../../source/change_detection/change-reason';
+import { ChangeDetectionReason } from '../../../source/change_detection/change-detection-reason';
 
 describe('InteractionDetectionProxy', () => {
     it('Property: proxy', () => {
@@ -23,7 +23,7 @@ describe('InteractionDetectionProxy', () => {
 
         // Setup. ChangeDetection.
         let lPropertyChanged: boolean = false;
-        lChangeDetection.addChangeListener((pChangeReason: ChangeReason) => {
+        lChangeDetection.addChangeListener((pChangeReason: ChangeDetectionReason) => {
             if (pChangeReason.property === 'a') {
                 lPropertyChanged = true;
             }
@@ -88,7 +88,7 @@ describe('InteractionDetectionProxy', () => {
 
                 // Setup. ChangeDetection.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addChangeListener((pChangeReason: ChangeReason) => {
+                lChangeDetection.addChangeListener((pChangeReason: ChangeDetectionReason) => {
                     if (pChangeReason.property === 'a') {
                         lPropertyChanged = true;
                     }
@@ -113,7 +113,7 @@ describe('InteractionDetectionProxy', () => {
 
                 // Setup. ChangeDetection.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addChangeListener((pChangeReason: ChangeReason) => {
+                lChangeDetection.addChangeListener((pChangeReason: ChangeDetectionReason) => {
                     if (pChangeReason.property === 'a') {
                         lPropertyChanged = true;
                     }
@@ -141,7 +141,7 @@ describe('InteractionDetectionProxy', () => {
 
                 // Setup. ChangeDetection.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addChangeListener((pChangeReason: ChangeReason) => {
+                lChangeDetection.addChangeListener((pChangeReason: ChangeDetectionReason) => {
                     if (pChangeReason.property === 'a') {
                         lPropertyChanged = true;
                     }
@@ -205,7 +205,7 @@ describe('InteractionDetectionProxy', () => {
 
                 // Setup. ChangeDetection.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addChangeListener((pChangeReason: ChangeReason) => {
+                lChangeDetection.addChangeListener((pChangeReason: ChangeDetectionReason) => {
                     if (pChangeReason.property === 'b') {
                         lPropertyChanged = true;
                     }
@@ -239,7 +239,7 @@ describe('InteractionDetectionProxy', () => {
 
                 // Setup. ChangeDetection.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addChangeListener((pChangeReason: ChangeReason) => {
+                lChangeDetection.addChangeListener((pChangeReason: ChangeDetectionReason) => {
                     if (pChangeReason.property === 'a') {
                         lPropertyChanged = true;
                     }
@@ -275,7 +275,7 @@ describe('InteractionDetectionProxy', () => {
 
                 // Setup. ChangeDetection.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addChangeListener((pChangeReason: ChangeReason) => {
+                lChangeDetection.addChangeListener((pChangeReason: ChangeDetectionReason) => {
                     if (pChangeReason.source === lFunction) {
                         lPropertyChanged = true;
                     }
@@ -314,7 +314,7 @@ describe('InteractionDetectionProxy', () => {
 
                 // Setup. ChangeDetection.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addChangeListener((pChangeReason: ChangeReason) => {
+                lChangeDetection.addChangeListener((pChangeReason: ChangeDetectionReason) => {
                     if (pChangeReason.source === lFunction) {
                         lPropertyChanged = true;
                     }
@@ -350,7 +350,7 @@ describe('InteractionDetectionProxy', () => {
 
                 // Setup. ChangeDetection.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addChangeListener((pChangeReason: ChangeReason) => {
+                lChangeDetection.addChangeListener((pChangeReason: ChangeDetectionReason) => {
                     if (pChangeReason.source === lFunction) {
                         lPropertyChanged = true;
                     }
@@ -385,7 +385,7 @@ describe('InteractionDetectionProxy', () => {
 
                 // Setup. ChangeDetection.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addChangeListener((pChangeReason: ChangeReason) => {
+                lChangeDetection.addChangeListener((pChangeReason: ChangeDetectionReason) => {
                     if (pChangeReason.source === lFunction) {
                         lPropertyChanged = true;
                     }
@@ -422,7 +422,7 @@ describe('InteractionDetectionProxy', () => {
 
             // Setup. ChangeDetection.
             let lPropertyChanged: boolean = false;
-            lDetectionProxy.addChangeListener((pChangeReason: ChangeReason) => {
+            lDetectionProxy.addChangeListener((pChangeReason: ChangeDetectionReason) => {
                 if (pChangeReason.property === 'a') {
                     lPropertyChanged = true;
                 }

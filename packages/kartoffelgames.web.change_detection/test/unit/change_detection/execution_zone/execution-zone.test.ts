@@ -2,6 +2,8 @@ import { expect } from 'chai';
 import { ExecutionZone } from '../../../../source/change_detection/execution_zone/execution-zone';
 import '../../../mock/request-animation-frame-mock-session';
 import { ChangeReason } from '../../../../source';
+import { ChangeDetectionReason } from '../../../../source/change_detection/change-detection-reason';
+import { DetectionCatchType } from '../../../../source/change_detection/enum/detection-catch-type.enum';
 
 describe('ExecutionZone', () => {
    it('Static Property: current', () => {
@@ -10,6 +12,45 @@ describe('ExecutionZone', () => {
 
       // Evaluation.
       expect(lCurrentZone.name).to.equal('Default');
+   });
+
+   describe('Static Method: dispatchInteractionEvent', () => {
+      it('-- Passthrough change reason', () => {
+         // Setup.
+         const lZone: ExecutionZone = new ExecutionZone('ZoneName');
+         const lReason: ChangeDetectionReason = new ChangeDetectionReason(DetectionCatchType.Syncron, {});
+
+         // Process.
+         let lResultReason: ChangeDetectionReason | null = null;
+         lZone.addInteractionListener((pChangeReason: ChangeReason) => {
+            lResultReason = pChangeReason;
+         });
+         lZone.executeInZone(() => {
+            ExecutionZone.dispatchInteractionEvent(lReason);
+         });
+
+         // Evaluation.
+         expect(lResultReason).to.equal(lReason);
+      });
+
+      it('-- Inore other zones.', () => {
+         // Setup.
+         const lZone: ExecutionZone = new ExecutionZone('ZoneName');
+         const lZoneDifferent: ExecutionZone = new ExecutionZone('ZoneName1');
+         const lReason: ChangeDetectionReason = new ChangeDetectionReason(DetectionCatchType.Syncron, {});
+
+         // Process.
+         let lResultReason: ChangeDetectionReason | null = null;
+         lZone.addInteractionListener((pChangeReason: ChangeReason) => {
+            lResultReason = pChangeReason;
+         });
+         lZoneDifferent.executeInZone(() => {
+            ExecutionZone.dispatchInteractionEvent(lReason);
+         });
+
+         // Evaluation.
+         expect(lResultReason).to.be.null;
+      });
    });
 
    it('Property: name', () => {
@@ -24,30 +65,22 @@ describe('ExecutionZone', () => {
       expect(lNameResult).to.equal(lZoneName);
    });
 
-   describe('Property: onInteraction', () => {
-      it('-- Set value', () => {
-         // Setup.
-         const lOnInteraction = (): void => { /* Empty */ };
-         const lZone: ExecutionZone = new ExecutionZone('Name');
+   it('Method: addInteractionListener', () => {
+      // Setup.
+      const lZone: ExecutionZone = new ExecutionZone('ZoneName');
+      const lSource = {};
 
-         // Process.
-         lZone.onInteraction = lOnInteraction;
-         const lOnInteractionResult = lZone.onInteraction;
-
-         // Evaluation.
-         expect(lOnInteraction).to.equal(lOnInteractionResult);
+      // Process.
+      let lResultSource: any;
+      lZone.addInteractionListener((pChangeReason: ChangeReason) => {
+         lResultSource = pChangeReason.source;
+      });
+      lZone.executeInZone(() => {
+         ExecutionZone.dispatchInteractionEvent(new ChangeDetectionReason(DetectionCatchType.SyncronCall, lSource));
       });
 
-      it('-- Empty value', () => {
-         // Setup.
-         const lZone: ExecutionZone = new ExecutionZone('Name');
-
-         // Process.
-         const lOnInteractionResult = lZone.onInteraction;
-
-         // Evaluation.
-         expect(lOnInteractionResult).to.be.null;
-      });
+      // Evaluation.
+      expect(lResultSource).to.equal(lSource);
    });
 
    describe('Method: executeInZone', () => {
@@ -136,13 +169,15 @@ describe('ExecutionZone', () => {
          const lFunction = () => { /* Empty */ };
 
          // Process.
-         let lZoneNameResult: string | null = null;
          let lExecutedFunction: any;
-         lZone.onInteraction = (pChangeReason: ChangeReason) => {
+         lZone.addInteractionListener((pChangeReason: ChangeReason) => {
             // lZoneNameResult = pZoneName; TODO: Add zone or cd identifier to reason.
             lExecutedFunction = pChangeReason.source;
-         };
-         lZone.executeInZone(lFunction);
+         });
+         lZone.executeInZone(() => {
+            ExecutionZone.dispatchInteractionEvent(new ChangeDetectionReason(DetectionCatchType.SyncronCall, lFunction));
+         });
+
 
          // Evaluation.
          // expect(lZoneNameResult).to.equal(lZoneName);
@@ -158,7 +193,7 @@ describe('ExecutionZone', () => {
 
          // Process.
          let lZoneNameResult: string | null = null;
-         lZone.executeInZoneSilent(() => {
+         lZone.executeInZone(() => {
             lZoneNameResult = ExecutionZone.current.name;
          });
 
@@ -172,7 +207,7 @@ describe('ExecutionZone', () => {
          const lExecutionResult: string = 'ExecutionResult';
 
          // Process.
-         const lResult: string = lZone.executeInZoneSilent((pParameter: string) => {
+         const lResult: string = lZone.executeInZone((pParameter: string) => {
             return pParameter;
          }, lExecutionResult);
 
@@ -190,7 +225,7 @@ describe('ExecutionZone', () => {
          let lZoneNameResult: string | null = null;
          let lErrorResult: string | null = null;
          try {
-            lZone.executeInZoneSilent(() => {
+            lZone.executeInZone(() => {
                lZoneNameResult = ExecutionZone.current.name;
                throw lError;
             });
@@ -213,7 +248,7 @@ describe('ExecutionZone', () => {
          let lZoneNameResultException: string | null = null;
          const lZoneNameResultBefore = ExecutionZone.current.name;
          try {
-            lZone.executeInZoneSilent(() => {
+            lZone.executeInZone(() => {
                lZoneNameResultFunktion = ExecutionZone.current.name;
                throw '';
             });
@@ -235,10 +270,10 @@ describe('ExecutionZone', () => {
 
          // Process.
          let lInteractionCallbackCalled: boolean = false;
-         lZone.onInteraction = () => {
+         lZone.addInteractionListener(() => {
             lInteractionCallbackCalled = true;
-         };
-         lZone.executeInZoneSilent(() => { /* Empty */ });
+         });
+         lZone.executeInZone(() => { /* Empty */ });
 
          // Evaluation.
          expect(lInteractionCallbackCalled).to.be.false;

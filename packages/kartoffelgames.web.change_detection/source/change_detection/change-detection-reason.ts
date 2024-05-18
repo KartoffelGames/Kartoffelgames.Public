@@ -1,6 +1,6 @@
 import { DetectionCatchType } from './enum/detection-catch-type.enum';
 
-export class ChangeReason {
+export class ChangeDetectionReason {
     private readonly mCatchType: DetectionCatchType;
     private readonly mProperty: PropertyKey | undefined;
     private readonly mSource: object;

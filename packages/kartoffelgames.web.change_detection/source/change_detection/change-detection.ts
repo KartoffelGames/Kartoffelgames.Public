@@ -3,7 +3,7 @@ import { ErrorAllocation } from './execution_zone/error-allocation';
 import { ExecutionZone } from './execution_zone/execution-zone';
 import { Patcher } from './execution_zone/patcher/patcher';
 import { InteractionDetectionProxy } from './synchron_tracker/interaction-detection-proxy';
-import { ChangeReason } from './change-reason';
+import { ChangeDetectionReason } from './change-detection-reason';
 
 /**
  * Merges execution zone and proxy tracking.
@@ -118,9 +118,9 @@ export class ChangeDetection implements IDeconstructable {
         }
 
         // Register interaction event and connect execution zone with change detection.
-        this.mExecutionZone.onInteraction = (pChangeReason: ChangeReason) => {
+        this.mExecutionZone.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
             this.dispatchChangeEvent(pChangeReason);
-        };
+        });
         ChangeDetection.mZoneConnectedChangeDetections.set(this.mExecutionZone, this);
 
         // Set silent state. Convert null to false.
@@ -202,7 +202,7 @@ export class ChangeDetection implements IDeconstructable {
     /**
      * Trigger all change event.
      */
-    public dispatchChangeEvent(pReason: ChangeReason): void {
+    public dispatchChangeEvent(pReason: ChangeDetectionReason): void {
         // One trigger if change detection is not silent.
         if (!this.mSilent) {
             // Get current executing zone.
@@ -222,11 +222,12 @@ export class ChangeDetection implements IDeconstructable {
      * Executes function in change detections execution zone.
      * Asynchron calls can only be detected if they are sheduled inside this zone.
      * Does not call change callback.
+     * 
      * @param pFunction - Function.
      * @param pArgs - function execution arguments.
      */
     public execute<T>(pFunction: (...pArgs: Array<any>) => T, ...pArgs: Array<any>): T {
-        return this.mExecutionZone.executeInZoneSilent(pFunction, ...pArgs);
+        return this.mExecutionZone.executeInZone(pFunction, ...pArgs);
     }
 
     /**
@@ -242,7 +243,7 @@ export class ChangeDetection implements IDeconstructable {
 
         // Create interaction proxy and send change and error event to this change detection.
         const lProxy: InteractionDetectionProxy<T> = new InteractionDetectionProxy(pObject);
-        lProxy.addChangeListener((pChangeReason: ChangeReason) => {
+        lProxy.addChangeListener((pChangeReason: ChangeDetectionReason) => {
             this.dispatchChangeEvent(pChangeReason);
         });
 
@@ -288,7 +289,7 @@ export class ChangeDetection implements IDeconstructable {
     /**
      * Call all registered change listener.
      */
-    private callChangeListener(pReason: ChangeReason): void {
+    private callChangeListener(pReason: ChangeDetectionReason): void {
         // Dispatch change event.
         for (const lListener of this.mChangeListenerList) {
             lListener(pReason);
@@ -338,5 +339,5 @@ export class ChangeDetection implements IDeconstructable {
     }
 }
 
-export type ChangeListener = (pReason: ChangeReason) => void;
+export type ChangeListener = (pReason: ChangeDetectionReason) => void;
 export type ErrorListener = (pError: any) => void | boolean;

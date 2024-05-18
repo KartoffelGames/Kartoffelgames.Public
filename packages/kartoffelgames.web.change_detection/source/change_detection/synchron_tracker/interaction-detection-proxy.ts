@@ -1,5 +1,5 @@
 import { ChangeDetection } from '../change-detection';
-import { ChangeReason } from '../change-reason';
+import { ChangeDetectionReason } from '../change-detection-reason';
 import { DetectionCatchType } from '../enum/detection-catch-type.enum';
 import { Patcher } from '../execution_zone/patcher/patcher';
 
@@ -34,7 +34,7 @@ export class InteractionDetectionProxy<T extends object> {
         return <InteractionDetectionProxy<TValue> | undefined>InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.get(lOriginal);
     }
 
-    private readonly mAllreadySendChangeReasons!: WeakSet<ChangeReason>;
+    private readonly mAllreadySendChangeReasons!: WeakSet<ChangeDetectionReason>;
     private readonly mChangeCallbackList!: Array<ChangeEventListener>;
     private readonly mProxyObject!: T;
 
@@ -59,7 +59,7 @@ export class InteractionDetectionProxy<T extends object> {
         }
 
         // Initialize values.
-        this.mAllreadySendChangeReasons = new WeakSet<ChangeReason>();
+        this.mAllreadySendChangeReasons = new WeakSet<ChangeDetectionReason>();
         this.mChangeCallbackList = new Array<ChangeEventListener>();
 
         // Create new proxy object.
@@ -110,7 +110,7 @@ export class InteractionDetectionProxy<T extends object> {
                 const lResult: boolean = Reflect.set(pTargetObject, pPropertyName, pNewPropertyValue);
 
                 // Call change event with synchron property change type.
-                this.dispatchChangeEvent(new ChangeReason(DetectionCatchType.SyncronProperty, pTargetObject, pPropertyName));
+                this.dispatchChangeEvent(new ChangeDetectionReason(DetectionCatchType.SyncronProperty, pTargetObject, pPropertyName));
 
                 return lResult;
             },
@@ -135,7 +135,7 @@ export class InteractionDetectionProxy<T extends object> {
                 // But when it is a object or a function, than wrap it into another detection proxy and passthrough any change.
                 // Creates a dependency chain.
                 const lProxy: InteractionDetectionProxy<any> = new InteractionDetectionProxy(lResult);
-                lProxy.addChangeListener((pChangeReason: ChangeReason) => {
+                lProxy.addChangeListener((pChangeReason: ChangeDetectionReason) => {
                     this.dispatchChangeEvent(pChangeReason);
                 });
 
@@ -153,7 +153,7 @@ export class InteractionDetectionProxy<T extends object> {
                 const lPropertyExisted: boolean = Reflect.deleteProperty(pTargetObject, pPropertyName);
 
                 // Call change event with synchron property change type.
-                this.dispatchChangeEvent(new ChangeReason(DetectionCatchType.SyncronProperty, pTargetObject, pPropertyName));
+                this.dispatchChangeEvent(new ChangeDetectionReason(DetectionCatchType.SyncronProperty, pTargetObject, pPropertyName));
 
                 // Passthrough original remove result.
                 return lPropertyExisted;
@@ -183,7 +183,7 @@ export class InteractionDetectionProxy<T extends object> {
                     lFunctionResult = (<CallableObject>pTargetObject).call(lOriginalThisObject, ...pArgumentsList);
                 } finally {
                     // Dispatch change event before exception passthrough.
-                    this.dispatchChangeEvent(new ChangeReason(DetectionCatchType.SyncronCall, pTargetObject));
+                    this.dispatchChangeEvent(new ChangeDetectionReason(DetectionCatchType.SyncronCall, pTargetObject));
                 }
 
                 // Result is not a promise. So nothing needs to be overridden.
@@ -204,7 +204,7 @@ export class InteractionDetectionProxy<T extends object> {
                         lPromiseErrorTriggered = true;
                         lPromiseError = pError;
                     } finally {
-                        this.dispatchChangeEvent(new ChangeReason(DetectionCatchType.AsnychronPromise, lFunctionResult));
+                        this.dispatchChangeEvent(new ChangeDetectionReason(DetectionCatchType.AsnychronPromise, lFunctionResult));
                     }
 
                     // When an exception occurred reject the promise.
@@ -225,7 +225,7 @@ export class InteractionDetectionProxy<T extends object> {
     /**
      * Trigger change event.
      */
-    private dispatchChangeEvent(pChangeReason: ChangeReason) {
+    private dispatchChangeEvent(pChangeReason: ChangeDetectionReason) {
         // Prevents the same change reason be dispatched over and over again.
         // Happens when a event target is triggered by a change reason.
         if (this.mAllreadySendChangeReasons.has(pChangeReason)) {
@@ -244,4 +244,4 @@ export class InteractionDetectionProxy<T extends object> {
 }
 
 type CallableObject = (...args: Array<any>) => any;
-type ChangeEventListener = (pChangeReason: ChangeReason) => void;
+type ChangeEventListener = (pChangeReason: ChangeDetectionReason) => void;

@@ -1,5 +1,4 @@
-import { ChangeReason } from '../change-reason';
-import { DetectionCatchType } from '../enum/detection-catch-type.enum';
+import { ChangeDetectionReason } from '../change-detection-reason';
 import { ErrorAllocation } from './error-allocation';
 
 /**
@@ -16,7 +15,18 @@ export class ExecutionZone {
         return ExecutionZone.mCurrentZone;
     }
 
-    private mInteractionCallback: InteractionCallback | null;
+    /**
+     * Dispatch interaction event in current zone.
+     * 
+     * @param pChangeReason - Interaction reason.
+     */
+    public static dispatchInteractionEvent(pChangeReason: ChangeDetectionReason): void {
+        for (const lListener of ExecutionZone.mCurrentZone.mInteractionCallbackList) {
+            lListener(pChangeReason);
+        }
+    }
+
+    private readonly mInteractionCallbackList: Array<InteractionCallback>;
     private readonly mName: string;
 
     /**
@@ -27,31 +37,28 @@ export class ExecutionZone {
     }
 
     /**
-     * Get change callback.
-     */
-    public get onInteraction(): InteractionCallback | null {
-        return this.mInteractionCallback;
-    }
-
-    /**
-     * Set change callback.
-     */
-    public set onInteraction(pInteractionCallback: InteractionCallback | null) {
-        this.mInteractionCallback = pInteractionCallback;
-    }
-
-    /**
      * Constructor.
      * Create new zone.
+     * 
      * @param pZoneName - Name of zone.
      */
     public constructor(pZoneName: string) {
         this.mName = pZoneName;
-        this.mInteractionCallback = null;
+        this.mInteractionCallbackList = new Array<InteractionCallback>();
+    }
+
+    /**
+     * Add interaction listener.
+     * 
+     * @param pChangeListener - On interaction listener.
+     */
+    public addInteractionListener(pChangeListener: InteractionCallback): void {
+        this.mInteractionCallbackList.push(pChangeListener);
     }
 
     /**
      * Executes function in this execution zone.
+     * 
      * @param pFunction - Function.
      * @param pArgs - function execution arguments.
      */
@@ -70,51 +77,12 @@ export class ExecutionZone {
             ErrorAllocation.allocateError(pError, this);
             throw pError;
         } finally {
-            // Dispach change event. // TODO: Add Correct CatchType parameter
-            this.dispatchChangeEvent(new ChangeReason(DetectionCatchType.SyncronCall, pFunction));
-
             // Reset to last zone.
             ExecutionZone.mCurrentZone = lLastZone;
         }
 
         return lResult;
-    }
-
-    /**
-     * Executes function in this execution zone.
-     * @param pFunction - Function.
-     * @param pArgs - function execution arguments.
-     */
-    public executeInZoneSilent<T>(pFunction: (...pArgs: Array<any>) => T, ...pArgs: Array<any>): T {
-        // Save current executing zone.
-        const lLastZone: ExecutionZone = ExecutionZone.current;
-
-        // Set this zone as execution zone and execute function.
-        ExecutionZone.mCurrentZone = this;
-        let lResult: any;
-
-        // Try to execute
-        try {
-            lResult = pFunction(...pArgs);
-        } catch (pError) {
-            ErrorAllocation.allocateError(pError, this);
-            throw pError;
-        } finally {
-            // Reset to last zone.
-            ExecutionZone.mCurrentZone = lLastZone;
-        }
-
-        return lResult;
-    }
-
-    /**
-     * Dispatch change event.
-     * @param pZoneName - Zone name.
-     */
-    private dispatchChangeEvent(pChangeReason: ChangeReason): void {
-        // Call change callbacks.
-        this.onInteraction?.(pChangeReason);
     }
 }
 
-type InteractionCallback = (pChangeReason: ChangeReason) => void;
+type InteractionCallback = (pChangeReason: ChangeDetectionReason) => void;

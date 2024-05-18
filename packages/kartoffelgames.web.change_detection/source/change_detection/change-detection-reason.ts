@@ -1,7 +1,7 @@
-import { DetectionCatchType } from './enum/detection-catch-type.enum';
+import { InteractionResponseType } from './enum/interaction-response-type.enum';
 
 export class ChangeDetectionReason {
-    private readonly mCatchType: DetectionCatchType;
+    private readonly mCatchType: InteractionResponseType;
     private readonly mProperty: PropertyKey | undefined;
     private readonly mSource: object;
     private readonly mStackError: Error;
@@ -9,7 +9,7 @@ export class ChangeDetectionReason {
     /**
      * Get what type of change was detected.
      */
-    public get catchType(): DetectionCatchType {
+    public get catchType(): InteractionResponseType {
         return this.mCatchType;
     }
 
@@ -43,7 +43,7 @@ export class ChangeDetectionReason {
      * @param pSource - Change reason object.
      * @param pProperty - Optional change reason property.
      */
-    public constructor(pCatchType: DetectionCatchType, pSource: object, pProperty?: PropertyKey) {
+    public constructor(pCatchType: InteractionResponseType, pSource: object, pProperty?: PropertyKey) {
         this.mCatchType = pCatchType;
         this.mSource = pSource;
         this.mProperty = pProperty;

@@ -1,6 +1,6 @@
 import { ChangeDetection } from '../change-detection';
 import { ChangeDetectionReason } from '../change-detection-reason';
-import { DetectionCatchType } from '../enum/detection-catch-type.enum';
+import { InteractionResponseType } from '../enum/interaction-response-type.enum';
 import { Patcher } from '../execution_zone/patcher/patcher';
 
 /**
@@ -105,7 +105,7 @@ export class InteractionDetectionProxy<T extends object> {
                 const lResult: boolean = Reflect.set(pTargetObject, pPropertyName, pNewPropertyValue);
 
                 // Call change event with synchron property change type.
-                this.dispatchChangeEvent(new ChangeDetectionReason(DetectionCatchType.SyncronProperty, pTargetObject, pPropertyName));
+                this.dispatchChangeEvent(new ChangeDetectionReason(InteractionResponseType.SyncronProperty, pTargetObject, pPropertyName));
 
                 return lResult;
             },
@@ -143,7 +143,7 @@ export class InteractionDetectionProxy<T extends object> {
                 const lPropertyExisted: boolean = Reflect.deleteProperty(pTargetObject, pPropertyName);
 
                 // Call change event with synchron property change type.
-                this.dispatchChangeEvent(new ChangeDetectionReason(DetectionCatchType.SyncronProperty, pTargetObject, pPropertyName));
+                this.dispatchChangeEvent(new ChangeDetectionReason(InteractionResponseType.SyncronProperty, pTargetObject, pPropertyName));
 
                 // Passthrough original remove result.
                 return lPropertyExisted;
@@ -173,7 +173,7 @@ export class InteractionDetectionProxy<T extends object> {
                     lFunctionResult = (<CallableObject>pTargetObject).call(lOriginalThisObject, ...pArgumentsList);
                 } finally {
                     // Dispatch change event before exception passthrough.
-                    this.dispatchChangeEvent(new ChangeDetectionReason(DetectionCatchType.SyncronCall, pTargetObject));
+                    this.dispatchChangeEvent(new ChangeDetectionReason(InteractionResponseType.SyncronCall, pTargetObject));
                 }
 
                 // Result is not a promise or a patches promise. So nothing needs to be overridden.

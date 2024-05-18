@@ -3,7 +3,7 @@ import { ErrorAllocation } from './execution_zone/error-allocation';
 import { Patcher } from './execution_zone/patcher/patcher';
 import { InteractionDetectionProxy } from './synchron_tracker/interaction-detection-proxy';
 import { ChangeDetectionReason } from './change-detection-reason';
-import { DetectionCatchType } from './enum/detection-catch-type.enum';
+import { InteractionResponseType } from './enum/interaction-response-type.enum';
 
 /**
  * Merges execution zone and proxy tracking.
@@ -67,9 +67,6 @@ export class ChangeDetection implements IDeconstructable {
      * @param pSettings - Change detection settings.
      */
     public constructor(pName: string, pSettings?: ChangeDetectionConstructorSettings) {
-        // Patch for execution zone.
-        Patcher.patch(globalThis);
-
         // Initialize lists
         this.mChangeListenerList = new List<ChangeListener>();
         this.mErrorListenerList = new List<ErrorListener>();
@@ -114,9 +111,12 @@ export class ChangeDetection implements IDeconstructable {
             lErrorHandler(pEvent, pEvent.reason);
         };
 
-        // Register global error listener. // TODO: Lazy init event handler to prevent loop with Patcher.
-        // window.addEventListener('error', this.mWindowErrorListener);
-        // window.addEventListener('unhandledrejection', this.mWindowRejectionListener);
+        // Register global error listener.
+        window.addEventListener('error', this.mWindowErrorListener);
+        window.addEventListener('unhandledrejection', this.mWindowRejectionListener);
+
+        // Patch for execution zone.
+        Patcher.patch(globalThis);
     }
 
     /**
@@ -252,6 +252,6 @@ export type ChangeListener = (pReason: ChangeDetectionReason) => void;
 export type ErrorListener = (pError: any) => void | boolean;
 
 type ChangeDetectionConstructorSettings = {
-    trigger: DetectionCatchType,
+    trigger: InteractionResponseType,
     isolate: boolean;
 };

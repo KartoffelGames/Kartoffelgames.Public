@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { ChangeDetection } from '../../../source/change_detection/change-detection';
 import { PreventableErrorEvent, PromiseRejectionEvent } from '../../mock/error-event';
 import { ChangeDetectionReason } from '../../../source/change_detection/change-detection-reason';
-import { DetectionCatchType } from '../../../source/change_detection/enum/detection-catch-type.enum';
+import { InteractionResponseType } from '../../../source/change_detection/enum/interaction-response-type.enum';
 
 describe('ChangeDetection', () => {
     it('Static Property: current', () => {
@@ -88,7 +88,7 @@ describe('ChangeDetection', () => {
 
         // Process. Call listener.
         lChangeDetection.execute(() => {
-            ChangeDetection.dispatchInteractionEvent(new ChangeDetectionReason(DetectionCatchType.SyncronProperty, new Object()));
+            ChangeDetection.dispatchInteractionEvent(new ChangeDetectionReason(InteractionResponseType.SyncronProperty, new Object()));
         });
 
         // Evaluation.
@@ -126,7 +126,7 @@ describe('ChangeDetection', () => {
         it('-- Default', () => {
             // Setup.
             const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
-            const lReason: ChangeDetectionReason = new ChangeDetectionReason(DetectionCatchType.SyncronProperty, new Object(), 2);
+            const lReason: ChangeDetectionReason = new ChangeDetectionReason(InteractionResponseType.SyncronProperty, new Object(), 2);
 
             // Process. Add listener.
             let lListenerCalled: boolean = false;
@@ -150,7 +150,7 @@ describe('ChangeDetection', () => {
         it('-- Pass through', () => {
             // Setup.
             const lParentChangeDetection: ChangeDetection = new ChangeDetection('Name');
-            const lReason: ChangeDetectionReason = new ChangeDetectionReason(DetectionCatchType.SyncronProperty, new Object(), 2);
+            const lReason: ChangeDetectionReason = new ChangeDetectionReason(InteractionResponseType.SyncronProperty, new Object(), 2);
 
             // Setup. Child.
             const lChildChangeDetectionName: string = 'CD-child';
@@ -197,7 +197,7 @@ describe('ChangeDetection', () => {
 
             // Process. Dispatch event on child.
             lChangeDetection!.execute(() => {
-                ChangeDetection.dispatchInteractionEvent(new ChangeDetectionReason(DetectionCatchType.SyncronProperty, new Object()));
+                ChangeDetection.dispatchInteractionEvent(new ChangeDetectionReason(InteractionResponseType.SyncronProperty, new Object()));
             });
 
             // Evaluation.
@@ -224,7 +224,7 @@ describe('ChangeDetection', () => {
 
             // Process. Dispatch event on child..
             lChangeDetection!.execute(() => {
-                ChangeDetection.dispatchInteractionEvent(new ChangeDetectionReason(DetectionCatchType.SyncronProperty, new Object()));
+                ChangeDetection.dispatchInteractionEvent(new ChangeDetectionReason(InteractionResponseType.SyncronProperty, new Object()));
             });
 
             // Evaluation.
@@ -294,7 +294,7 @@ describe('ChangeDetection', () => {
             // Evaluation.
             expect(lChangeEventCalled).to.be.true;
             expect(lReason!.property).to.equal('a');
-            expect(lReason!.catchType).to.equal(DetectionCatchType.SyncronProperty);
+            expect(lReason!.catchType).to.equal(InteractionResponseType.SyncronProperty);
         });
     });
 
@@ -312,7 +312,7 @@ describe('ChangeDetection', () => {
 
         // Process. Call listener.
         lChangeDetection.execute(() => {
-            ChangeDetection.dispatchInteractionEvent(new ChangeDetectionReason(DetectionCatchType.SyncronProperty, new Object()));
+            ChangeDetection.dispatchInteractionEvent(new ChangeDetectionReason(InteractionResponseType.SyncronProperty, new Object()));
         });
 
         // Evaluation.
@@ -360,7 +360,7 @@ describe('ChangeDetection', () => {
         it('-- Passthrough change reason', () => {
             // Setup.
             const lZone: ChangeDetection = new ChangeDetection('ZoneName');
-            const lReason: ChangeDetectionReason = new ChangeDetectionReason(DetectionCatchType.Syncron, {});
+            const lReason: ChangeDetectionReason = new ChangeDetectionReason(InteractionResponseType.Syncron, {});
 
             // Process.
             let lResultReason: ChangeDetectionReason | null = null;
@@ -379,7 +379,7 @@ describe('ChangeDetection', () => {
             // Setup.
             const lZone: ChangeDetection = new ChangeDetection('ZoneName');
             const lZoneDifferent: ChangeDetection = new ChangeDetection('ZoneName1');
-            const lReason: ChangeDetectionReason = new ChangeDetectionReason(DetectionCatchType.Syncron, {});
+            const lReason: ChangeDetectionReason = new ChangeDetectionReason(InteractionResponseType.Syncron, {});
 
             // Process.
             let lResultReason: ChangeDetectionReason | null = null;
@@ -418,7 +418,7 @@ describe('ChangeDetection', () => {
             lResultSource = pChangeReason.source;
         });
         lZone.execute(() => {
-            ChangeDetection.dispatchInteractionEvent(new ChangeDetectionReason(DetectionCatchType.SyncronCall, lSource));
+            ChangeDetection.dispatchInteractionEvent(new ChangeDetectionReason(InteractionResponseType.SyncronCall, lSource));
         });
 
         // Evaluation.
@@ -517,7 +517,7 @@ describe('ChangeDetection', () => {
                 lExecutedFunction = pChangeReason.source;
             });
             lZone.execute(() => {
-                ChangeDetection.dispatchInteractionEvent(new ChangeDetectionReason(DetectionCatchType.SyncronCall, lFunction));
+                ChangeDetection.dispatchInteractionEvent(new ChangeDetectionReason(InteractionResponseType.SyncronCall, lFunction));
             });
 
 

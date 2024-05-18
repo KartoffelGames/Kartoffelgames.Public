@@ -1,6 +1,6 @@
+import { ChangeDetection } from '../change-detection';
 import { ChangeDetectionReason } from '../change-detection-reason';
 import { DetectionCatchType } from '../enum/detection-catch-type.enum';
-import { ExecutionZone } from '../execution_zone/execution-zone';
 import { Patcher } from '../execution_zone/patcher/patcher';
 
 /**
@@ -222,9 +222,8 @@ export class InteractionDetectionProxy<T extends object> {
 
         this.mAllreadySendChangeReasons.add(pChangeReason);
 
-        // TODO: Trigger change event only in current CD instead of seperate listener.
-        // Only trigger if current change detection is not silent. // TODO: Remove silent protection. Why do we need it anyway.
-        ExecutionZone.dispatchInteractionEvent(pChangeReason);
+        // Only trigger if current change detection is not silent.
+        ChangeDetection.dispatchInteractionEvent(pChangeReason);
     }
 }
 

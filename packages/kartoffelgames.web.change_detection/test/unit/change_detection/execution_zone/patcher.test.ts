@@ -1,7 +1,7 @@
 import { expect } from 'chai';
-import { ExecutionZone } from '../../../../source/change_detection/execution_zone/execution-zone';
 import { Patcher } from '../../../../source/change_detection/execution_zone/patcher/patcher';
 import '../../../mock/request-animation-frame-mock-session';
+import { ChangeDetection } from '../../../../source';
 
 describe('Patcher', () => {
     describe('Static Method: patch', () => {
@@ -34,7 +34,7 @@ describe('Patcher', () => {
     describe('Static Method: patchObject', () => {
         it('-- default', () => {
             // Setup.
-            const lZone: ExecutionZone = new ExecutionZone('Name');
+            const lZone: ChangeDetection = new ChangeDetection('Name');
             const lObject = new EventTarget();
 
             // Process.
@@ -46,7 +46,7 @@ describe('Patcher', () => {
 
         it('-- double patch', () => {
             // Setup.
-            const lZone: ExecutionZone = new ExecutionZone('Name');
+            const lZone: ChangeDetection = new ChangeDetection('Name');
             const lObject = new EventTarget();
 
             // Process.

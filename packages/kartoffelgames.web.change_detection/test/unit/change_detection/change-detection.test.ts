@@ -83,10 +83,12 @@ describe('ChangeDetection', () => {
         const lListener = () => {
             lListenerCalled = true;
         };
-        lChangeDetection.addChangeListener(lListener);
+        lChangeDetection.addInteractionListener(lListener);
 
         // Process. Call listener.
-        lChangeDetection.dispatchChangeEvent(new ChangeDetectionReason(DetectionCatchType.SyncronProperty, new Object()));
+        lChangeDetection.execute(() => {
+            ChangeDetection.dispatchInteractionEvent(new ChangeDetectionReason(DetectionCatchType.SyncronProperty, new Object()));
+        });
 
         // Evaluation.
         expect(lListenerCalled).to.be.true;
@@ -119,22 +121,6 @@ describe('ChangeDetection', () => {
         expect(lListenerCalled).to.be.true;
     });
 
-    it('Method: createChildDetection', () => {
-        // Setup.
-        const lParentName: string = 'CD-parent';
-        const lChildName: string = 'CD-child';
-        const lParentChangeDetection: ChangeDetection = new ChangeDetection(lParentName);
-
-        // Process.
-        const lChildChangeDetection: ChangeDetection = lParentChangeDetection.createChildDetection(lChildName);
-        const lParentNameResult: string | undefined = lChildChangeDetection.parent?.name;
-        const lChildNameResult: string = lChildChangeDetection.name;
-
-        // Evaluation.
-        expect(lParentNameResult).to.equal(lParentName);
-        expect(lChildNameResult).to.equal(lChildName);
-    });
-
     describe('Method: dispatchChangeEvent', () => {
         it('-- Default', () => {
             // Setup.
@@ -148,10 +134,12 @@ describe('ChangeDetection', () => {
                 lListenerCalled = true;
                 lReasonResult = pReason;
             };
-            lChangeDetection.addChangeListener(lListener);
+            lChangeDetection.addInteractionListener(lListener);
 
             // Process. Call listener.
-            lChangeDetection.dispatchChangeEvent(lReason);
+            lChangeDetection.execute(() => {
+                ChangeDetection.dispatchInteractionEvent(lReason);
+            });
 
             // Evaluation.
             expect(lListenerCalled).to.be.true;
@@ -160,10 +148,15 @@ describe('ChangeDetection', () => {
 
         it('-- Pass through', () => {
             // Setup.
-            const lChildChangeDetectionName: string = 'CD-child';
             const lParentChangeDetection: ChangeDetection = new ChangeDetection('Name');
-            const lChangeDetection: ChangeDetection = lParentChangeDetection.createChildDetection(lChildChangeDetectionName);
             const lReason: ChangeDetectionReason = new ChangeDetectionReason(DetectionCatchType.SyncronProperty, new Object(), 2);
+
+            // Setup. Child.
+            const lChildChangeDetectionName: string = 'CD-child';
+            let lChangeDetection: ChangeDetection;
+            lParentChangeDetection.execute(() => {
+                lChangeDetection = new ChangeDetection(lChildChangeDetectionName);
+            });
 
             // Process. Add listener.
             let lListenerCalled: boolean = false;
@@ -172,10 +165,12 @@ describe('ChangeDetection', () => {
                 lListenerCalled = true;
                 lReasonResult = pReason;
             };
-            lParentChangeDetection.addChangeListener(lListener);
+            lParentChangeDetection.addInteractionListener(lListener);
 
-            // Process. Dispatch event on child..
-            lChangeDetection.dispatchChangeEvent(lReason);
+            // Process. Dispatch event on child.
+            lChangeDetection!.execute(() => {
+                ChangeDetection.dispatchInteractionEvent(lReason);
+            });
 
             // Evaluation.
             expect(lListenerCalled).to.be.true;
@@ -185,17 +180,24 @@ describe('ChangeDetection', () => {
         it('-- Preserve execution change detection. Default execution.', () => {
             // Setup.
             const lParentChangeDetection: ChangeDetection = new ChangeDetection('Name');
-            const lChangeDetection: ChangeDetection = lParentChangeDetection.createChildDetection('CD-child');
+
+            // Setup. Child.
+            let lChangeDetection: ChangeDetection;
+            lParentChangeDetection.execute(() => {
+                lChangeDetection = new ChangeDetection('CD-child');
+            });
 
             // Process. Add listener.
             let lExecutingChangeDetectionName: string | null = null;
             const lListener = () => {
                 lExecutingChangeDetectionName = ChangeDetection.current.name;
             };
-            lParentChangeDetection.addChangeListener(lListener);
+            lParentChangeDetection.addInteractionListener(lListener);
 
-            // Process. Dispatch event on child..
-            lChangeDetection.dispatchChangeEvent(new ChangeDetectionReason(DetectionCatchType.SyncronProperty, new Object()));
+            // Process. Dispatch event on child.
+            lChangeDetection!.execute(() => {
+                ChangeDetection.dispatchInteractionEvent(new ChangeDetectionReason(DetectionCatchType.SyncronProperty, new Object()));
+            });
 
             // Evaluation.
             expect(lExecutingChangeDetectionName).to.equal('Default');
@@ -203,20 +205,25 @@ describe('ChangeDetection', () => {
 
         it('-- Preserve execution change detection. Zone execution.', () => {
             // Setup.
-            const lChildChangeDetectionName: string = 'CD-child';
             const lParentChangeDetection: ChangeDetection = new ChangeDetection('Name');
-            const lChangeDetection: ChangeDetection = lParentChangeDetection.createChildDetection(lChildChangeDetectionName);
+
+            // Setup. Child.
+            const lChildChangeDetectionName: string = 'CD-child';
+            let lChangeDetection: ChangeDetection;
+            lParentChangeDetection.execute(() => {
+                lChangeDetection = new ChangeDetection(lChildChangeDetectionName);
+            });
 
             // Process. Add listener.
             let lExecutingChangeDetectionName: string | null = null;
             const lListener = () => {
                 lExecutingChangeDetectionName = ChangeDetection.current.name;
             };
-            lParentChangeDetection.addChangeListener(lListener);
+            lParentChangeDetection.addInteractionListener(lListener);
 
             // Process. Dispatch event on child..
-            lChangeDetection.execute(() => {
-                lChangeDetection.dispatchChangeEvent(new ChangeDetectionReason(DetectionCatchType.SyncronProperty, new Object()));
+            lChangeDetection!.execute(() => {
+                ChangeDetection.dispatchInteractionEvent(new ChangeDetectionReason(DetectionCatchType.SyncronProperty, new Object()));
             });
 
             // Evaluation.
@@ -253,7 +260,7 @@ describe('ChangeDetection', () => {
 
             // Process. Track change event.
             let lChangeEventCalled: boolean = false;
-            lChangeDetection.addChangeListener(() => {
+            lChangeDetection.addInteractionListener(() => {
                 lChangeEventCalled = true;
             });
 
@@ -275,7 +282,7 @@ describe('ChangeDetection', () => {
             // Process. Track change event.
             let lChangeEventCalled: boolean = false;
             let lReason: ChangeDetectionReason | null = null;
-            lChangeDetection.addChangeListener((pReason: ChangeDetectionReason) => {
+            lChangeDetection.addInteractionListener((pReason: ChangeDetectionReason) => {
                 lChangeEventCalled = true;
                 lReason = pReason;
             });
@@ -299,11 +306,13 @@ describe('ChangeDetection', () => {
         const lListener = () => {
             lListenerCalled = true;
         };
-        lChangeDetection.addChangeListener(lListener);
+        lChangeDetection.addInteractionListener(lListener);
         lChangeDetection.removeChangeListener(lListener);
 
         // Process. Call listener.
-        lChangeDetection.dispatchChangeEvent(new ChangeDetectionReason(DetectionCatchType.SyncronProperty, new Object()));
+        lChangeDetection.execute(() => {
+            ChangeDetection.dispatchInteractionEvent(new ChangeDetectionReason(DetectionCatchType.SyncronProperty, new Object()));
+        });
 
         // Evaluation.
         expect(lListenerCalled).to.be.false;
@@ -338,21 +347,278 @@ describe('ChangeDetection', () => {
         expect(lListenerCalled).to.be.false;
     });
 
-    it('Method: silentExecution', () => {
-        // Setup.
-        const lExecutionResult: number = 12;
-        const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
-
+    it('Static Property: current', () => {
         // Process.
-        let lIsSilent: boolean = false;
-        const lResult: number = lChangeDetection.silentExecution((pResult: number) => {
-            lIsSilent = ChangeDetection.current.isSilent;
-            return pResult;
-        }, lExecutionResult);
+        const lCurrentZone: ChangeDetection = ChangeDetection.current;
 
         // Evaluation.
-        expect(lIsSilent).to.be.true;
-        expect(lResult).to.equal(lExecutionResult);
+        expect(lCurrentZone.name).to.equal('Default');
+    });
+
+    describe('Static Method: dispatchInteractionEvent', () => {
+        it('-- Passthrough change reason', () => {
+            // Setup.
+            const lZone: ChangeDetection = new ChangeDetection('ZoneName');
+            const lReason: ChangeDetectionReason = new ChangeDetectionReason(DetectionCatchType.Syncron, {});
+
+            // Process.
+            let lResultReason: ChangeDetectionReason | null = null;
+            lZone.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
+                lResultReason = pChangeReason;
+            });
+            lZone.execute(() => {
+                ChangeDetection.dispatchInteractionEvent(lReason);
+            });
+
+            // Evaluation.
+            expect(lResultReason).to.equal(lReason);
+        });
+
+        it('-- Inore other zones.', () => {
+            // Setup.
+            const lZone: ChangeDetection = new ChangeDetection('ZoneName');
+            const lZoneDifferent: ChangeDetection = new ChangeDetection('ZoneName1');
+            const lReason: ChangeDetectionReason = new ChangeDetectionReason(DetectionCatchType.Syncron, {});
+
+            // Process.
+            let lResultReason: ChangeDetectionReason | null = null;
+            lZone.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
+                lResultReason = pChangeReason;
+            });
+            lZoneDifferent.execute(() => {
+                ChangeDetection.dispatchInteractionEvent(lReason);
+            });
+
+            // Evaluation.
+            expect(lResultReason).to.be.null;
+        });
+    });
+
+    it('Property: name', () => {
+        // Setup.
+        const lZoneName: string = 'ZoneName';
+        const lZone: ChangeDetection = new ChangeDetection(lZoneName);
+
+        // Process.
+        const lNameResult: string = lZone.name;
+
+        // Evaluation.
+        expect(lNameResult).to.equal(lZoneName);
+    });
+
+    it('Method: addInteractionListener', () => {
+        // Setup.
+        const lZone: ChangeDetection = new ChangeDetection('ZoneName');
+        const lSource = {};
+
+        // Process.
+        let lResultSource: any;
+        lZone.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
+            lResultSource = pChangeReason.source;
+        });
+        lZone.execute(() => {
+            ChangeDetection.dispatchInteractionEvent(new ChangeDetectionReason(DetectionCatchType.SyncronCall, lSource));
+        });
+
+        // Evaluation.
+        expect(lResultSource).to.equal(lSource);
+    });
+
+    describe('Method: executeInZone', () => {
+        it('-- Execute inside zone', () => {
+            // Setup.
+            const lZoneName: string = 'ZoneName';
+            const lZone: ChangeDetection = new ChangeDetection(lZoneName);
+
+            // Process.
+            let lZoneNameResult: string | null = null;
+            lZone.execute(() => {
+                lZoneNameResult = ChangeDetection.current.name;
+            });
+
+            // Evaluation.
+            expect(lZoneNameResult).to.equal(lZoneName);
+        });
+
+        it('-- Execute inside zone with parameter', () => {
+            // Setup.
+            const lZone: ChangeDetection = new ChangeDetection('Name');
+            const lExecutionResult: string = 'ExecutionResult';
+
+            // Process.
+            const lResult: string = lZone.execute((pParameter: string) => {
+                return pParameter;
+            }, lExecutionResult);
+
+            // Evaluation.
+            expect(lResult).to.equal(lExecutionResult);
+        });
+
+        it('-- Execute inside zone with error', () => {
+            // Setup.
+            const lZoneName: string = 'ZoneName';
+            const lZone: ChangeDetection = new ChangeDetection(lZoneName);
+            const lError: string = 'ErrorName';
+
+            // Process.
+            let lZoneNameResult: string | null = null;
+            let lErrorResult: string | null = null;
+            try {
+                lZone.execute(() => {
+                    lZoneNameResult = ChangeDetection.current.name;
+                    throw lError;
+                });
+            } catch (pError) {
+                lErrorResult = <string>pError;
+            }
+
+            // Evaluation.
+            expect(lZoneNameResult).to.equal(lZoneName);
+            expect(lErrorResult).to.equal(lError);
+        });
+
+        it('-- Error inside zone, ensure correct zones', () => {
+            // Setup.
+            const lZoneName: string = 'ZoneName';
+            const lZone: ChangeDetection = new ChangeDetection(lZoneName);
+
+            // Process.
+            let lZoneNameResultFunktion: string | null = null;
+            let lZoneNameResultException: string | null = null;
+            const lZoneNameResultBefore = ChangeDetection.current.name;
+            try {
+                lZone.execute(() => {
+                    lZoneNameResultFunktion = ChangeDetection.current.name;
+                    throw '';
+                });
+            } catch (pError) {
+                lZoneNameResultException = ChangeDetection.current.name;
+            }
+            const lZoneNameResultAfter = ChangeDetection.current.name;
+
+            // Evaluation.
+            expect(lZoneNameResultBefore).to.equal('Default');
+            expect(lZoneNameResultFunktion).to.equal(lZoneName);
+            expect(lZoneNameResultException).to.equal('Default');
+            expect(lZoneNameResultAfter).to.equal('Default');
+        });
+
+        it('-- Check interaction callback', () => {
+            // Setup.
+            const lZoneName: string = 'ZoneName';
+            const lZone: ChangeDetection = new ChangeDetection(lZoneName);
+            const lFunction = () => { /* Empty */ };
+
+            // Process.
+            let lExecutedFunction: any;
+            lZone.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
+                // lZoneNameResult = pZoneName; TODO: Add zone or cd identifier to reason.
+                lExecutedFunction = pChangeReason.source;
+            });
+            lZone.execute(() => {
+                ChangeDetection.dispatchInteractionEvent(new ChangeDetectionReason(DetectionCatchType.SyncronCall, lFunction));
+            });
+
+
+            // Evaluation.
+            // expect(lZoneNameResult).to.equal(lZoneName);
+            expect(lExecutedFunction).to.equal(lFunction);
+        });
+    });
+
+    describe('Method: executeInZoneSilent', () => {
+        it('-- Execute inside zone', () => {
+            // Setup.
+            const lZoneName: string = 'ZoneName';
+            const lZone: ChangeDetection = new ChangeDetection(lZoneName);
+
+            // Process.
+            let lZoneNameResult: string | null = null;
+            lZone.execute(() => {
+                lZoneNameResult = ChangeDetection.current.name;
+            });
+
+            // Evaluation.
+            expect(lZoneNameResult).to.equal(lZoneName);
+        });
+
+        it('-- Execute inside zone with parameter', () => {
+            // Setup.
+            const lZone: ChangeDetection = new ChangeDetection('Name');
+            const lExecutionResult: string = 'ExecutionResult';
+
+            // Process.
+            const lResult: string = lZone.execute((pParameter: string) => {
+                return pParameter;
+            }, lExecutionResult);
+
+            // Evaluation.
+            expect(lResult).to.equal(lExecutionResult);
+        });
+
+        it('-- Execute inside zone with error', () => {
+            // Setup.
+            const lZoneName: string = 'ZoneName';
+            const lZone: ChangeDetection = new ChangeDetection(lZoneName);
+            const lError: string = 'ErrorName';
+
+            // Process.
+            let lZoneNameResult: string | null = null;
+            let lErrorResult: string | null = null;
+            try {
+                lZone.execute(() => {
+                    lZoneNameResult = ChangeDetection.current.name;
+                    throw lError;
+                });
+            } catch (pError) {
+                lErrorResult = <string>pError;
+            }
+
+            // Evaluation.
+            expect(lZoneNameResult).to.equal(lZoneName);
+            expect(lErrorResult).to.equal(lError);
+        });
+
+        it('-- Error inside zone, ensure correct zones', () => {
+            // Setup.
+            const lZoneName: string = 'ZoneName';
+            const lZone: ChangeDetection = new ChangeDetection(lZoneName);
+
+            // Process.
+            let lZoneNameResultFunktion: string | null = null;
+            let lZoneNameResultException: string | null = null;
+            const lZoneNameResultBefore = ChangeDetection.current.name;
+            try {
+                lZone.execute(() => {
+                    lZoneNameResultFunktion = ChangeDetection.current.name;
+                    throw '';
+                });
+            } catch (pError) {
+                lZoneNameResultException = ChangeDetection.current.name;
+            }
+            const lZoneNameResultAfter = ChangeDetection.current.name;
+
+            // Evaluation.
+            expect(lZoneNameResultBefore).to.equal('Default');
+            expect(lZoneNameResultFunktion).to.equal(lZoneName);
+            expect(lZoneNameResultException).to.equal('Default');
+            expect(lZoneNameResultAfter).to.equal('Default');
+        });
+
+        it('-- Check interaction callback', () => {
+            // Setup.
+            const lZone: ChangeDetection = new ChangeDetection('ZoneName');
+
+            // Process.
+            let lInteractionCallbackCalled: boolean = false;
+            lZone.addInteractionListener(() => {
+                lInteractionCallbackCalled = true;
+            });
+            lZone.execute(() => { /* Empty */ });
+
+            // Evaluation.
+            expect(lInteractionCallbackCalled).to.be.false;
+        });
     });
 
     it('Functionality: Zone error handling', () => {
@@ -525,7 +791,10 @@ describe('ChangeDetection', () => {
         it('-- Parent Zone sync uncatched error report', () => {
             // Setup.
             const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
-            const lChildChangeDetection: ChangeDetection = lChangeDetection.createChildDetection('Child');
+            let lChildChangeDetection: ChangeDetection;
+            lChangeDetection.execute(() => {
+                lChildChangeDetection = new ChangeDetection('Child');
+            });
             const lError: string = 'ERROR-MESSAGE';
 
             // Process. Set error listener.
@@ -539,7 +808,7 @@ describe('ChangeDetection', () => {
             // Process. Throw error in zone.
             let lErrorCatched: string | null = null;
             try {
-                lChildChangeDetection.execute(() => {
+                lChildChangeDetection!.execute(() => {
                     throw lError;
                 });
             } catch (pError) {
@@ -567,7 +836,7 @@ describe('ChangeDetection', () => {
 
             // Process. Track change event.
             let lChangeEventCalled: boolean = false;
-            lChangeDetection.addChangeListener(() => {
+            lChangeDetection.addInteractionListener(() => {
                 lChangeEventCalled = true;
             });
 

@@ -1,35 +1,39 @@
 import { List, IDeconstructable } from '@kartoffelgames/core.data';
 import { ErrorAllocation } from './execution_zone/error-allocation';
-import { ExecutionZone } from './execution_zone/execution-zone';
 import { Patcher } from './execution_zone/patcher/patcher';
 import { InteractionDetectionProxy } from './synchron_tracker/interaction-detection-proxy';
 import { ChangeDetectionReason } from './change-detection-reason';
 import { DetectionCatchType } from './enum/detection-catch-type.enum';
 
 /**
- * Merges execution zone and proxy tracking. // TODO: Integrate Zone into change detection.
+ * Merges execution zone and proxy tracking.
  */
 export class ChangeDetection implements IDeconstructable {
-    private static readonly mZoneConnectedChangeDetections: WeakMap<ExecutionZone, ChangeDetection> = new WeakMap<ExecutionZone, ChangeDetection>();
+    private static mCurrentZone: ChangeDetection = new ChangeDetection('Default');
 
     /**
-     * Get current change detection.
+     * Current execution zone.
      */
     public static get current(): ChangeDetection {
-        const lCurrentZone: ExecutionZone = ExecutionZone.current;
-        let lCurrentChangeDetection: ChangeDetection | undefined = ChangeDetection.mZoneConnectedChangeDetections.get(lCurrentZone);
+        return ChangeDetection.mCurrentZone;
+    }
 
-        // Initialize new change detection
-        if (!lCurrentChangeDetection) {
-            lCurrentChangeDetection = new ChangeDetection(lCurrentZone);
+    /**
+     * Dispatch interaction event in current zone.
+     * 
+     * @param pChangeReason - Interaction reason.
+     */
+    public static dispatchInteractionEvent(pChangeReason: ChangeDetectionReason): void {
+        for (const lListener of ChangeDetection.mCurrentZone.mChangeListenerList) {
+            lListener(pChangeReason);
         }
 
-        return lCurrentChangeDetection;
+        // TODO. call listener from parent.
     }
 
     private readonly mChangeListenerList: List<ChangeListener>;
     private readonly mErrorListenerList: List<ErrorListener>;
-    private readonly mExecutionZone: ExecutionZone;
+    private readonly mName: string;
     private readonly mParent: ChangeDetection | null;
     private readonly mWindowErrorListener: (pEvent: ErrorEvent) => void;
     private readonly mWindowRejectionListener: (pEvent: PromiseRejectionEvent) => void;
@@ -38,7 +42,7 @@ export class ChangeDetection implements IDeconstructable {
      * Get change detection name.
      */
     public get name(): string {
-        return this.mExecutionZone.name;
+        return this.mName;
     }
 
     /**
@@ -73,23 +77,16 @@ export class ChangeDetection implements IDeconstructable {
             this.mParent = ChangeDetection.current;
         }
 
-        // Create new execution zone or use old one.
-        this.mExecutionZone = new ExecutionZone(pName);
+        // Create new execution zone or use old one.#
+        this.mName = pName;
 
-        // Register interaction event and connect execution zone with change detection.
-        this.mExecutionZone.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
-            this.dispatchChangeEvent(pChangeReason);
-        });
-        ChangeDetection.mZoneConnectedChangeDetections.set(this.mExecutionZone, this);
+        // TODO: Create set with cd-type and only dispatch event when reason is included in cd-type set.
 
         // Catch global error, check if allocated zone is child of this change detection and report the error.
         const lErrorHandler = (pErrorEvent: Event, pError: any) => {
             // Get change detection
-            const lErrorZone: ExecutionZone | null = ErrorAllocation.getExecutionZoneOfError(pError);
-            if (lErrorZone) {
-                // Zone error has allways a ChangeDetection.
-                const lChangeDetection: ChangeDetection = <ChangeDetection>ChangeDetection.mZoneConnectedChangeDetections.get(lErrorZone);
-
+            const lChangeDetection: ChangeDetection | null = ErrorAllocation.getChangeDetectionOfError(pError);
+            if (lChangeDetection) {
                 // Check if error change detection is child of the change detection.
                 if (lChangeDetection.isChildOf(this)) {
                     // Suppress console error message if error should be suppressed
@@ -107,7 +104,7 @@ export class ChangeDetection implements IDeconstructable {
         };
         this.mWindowRejectionListener = (pEvent: PromiseRejectionEvent) => {
             const lPromise: Promise<any> = pEvent.promise;
-            const lPromiseZone: ExecutionZone = Reflect.get(lPromise, Patcher.PATCHED_PROMISE_ZONE_KEY);
+            const lPromiseZone: ChangeDetection = Reflect.get(lPromise, Patcher.PATCHED_PROMISE_ZONE_KEY);
             ErrorAllocation.allocateError(pEvent.reason, lPromiseZone);
 
             lErrorHandler(pEvent, pEvent.reason);
@@ -116,14 +113,6 @@ export class ChangeDetection implements IDeconstructable {
         // Register global error listener.
         window.addEventListener('error', this.mWindowErrorListener);
         window.addEventListener('unhandledrejection', this.mWindowRejectionListener);
-    }
-
-    /**
-     * Add listener for change events.
-     * @param pListener - Listener.
-     */
-    public addChangeListener(pListener: ChangeListener): void {
-        this.mChangeListenerList.push(pListener);
     }
 
     /**
@@ -137,6 +126,14 @@ export class ChangeDetection implements IDeconstructable {
     }
 
     /**
+     * Add listener for change events.
+     * @param pListener - Listener.
+     */
+    public addInteractionListener(pListener: ChangeListener): void {
+        this.mChangeListenerList.push(pListener);
+    }
+
+    /**
      * Deconstruct change detection.
      */
     public deconstruct(): void {
@@ -146,34 +143,31 @@ export class ChangeDetection implements IDeconstructable {
     }
 
     /**
-     * Trigger all change event.
-     */
-    public dispatchChangeEvent(pReason: ChangeDetectionReason): void {
-        // One trigger if change detection is not silent.
-        if (!this.mSilent) {
-            // Get current executing zone.
-            const lCurrentChangeDetection: ChangeDetection = ChangeDetection.current;
-
-            // Execute all listener in event target zone.
-            lCurrentChangeDetection.execute(() => {
-                this.callChangeListener(pReason);
-
-                // Pass through change event to parent.
-                this.mParent?.dispatchChangeEvent(pReason);
-            });
-        }
-    }
-
-    /**
-     * Executes function in change detections execution zone.
-     * Asynchron calls can only be detected if they are sheduled inside this zone.
-     * Does not call change callback.
+     * Executes function in this execution zone.
      * 
      * @param pFunction - Function.
      * @param pArgs - function execution arguments.
      */
     public execute<T>(pFunction: (...pArgs: Array<any>) => T, ...pArgs: Array<any>): T {
-        return this.mExecutionZone.executeInZone(pFunction, ...pArgs);
+        // Save current executing zone.
+        const lLastZone: ChangeDetection = ChangeDetection.current;
+
+        // Set this zone as execution zone and execute function.
+        ChangeDetection.mCurrentZone = this;
+        let lResult: any;
+
+        // Try to execute
+        try {
+            lResult = pFunction(...pArgs);
+        } catch (pError) {
+            ErrorAllocation.allocateError(pError, this);
+            throw pError;
+        } finally {
+            // Reset to last zone.
+            ChangeDetection.mCurrentZone = lLastZone;
+        }
+
+        return lResult;
     }
 
     /**
@@ -184,7 +178,7 @@ export class ChangeDetection implements IDeconstructable {
     public registerObject<T extends object>(pObject: T): T {
         // Get change trigger on all events.
         if (pObject instanceof EventTarget) {
-            Patcher.patchObject(pObject, this.mExecutionZone);
+            Patcher.patchObject(pObject, this);
         }
 
         // Create interaction proxy.
@@ -205,36 +199,6 @@ export class ChangeDetection implements IDeconstructable {
      */
     public removeErrorListener(pListener: ErrorListener): void {
         this.mErrorListenerList.remove(pListener);
-    }
-
-    /**
-     * Creates new silent zone and executes function.
-     * Does not call change callback.
-     * @param pFunction - Function.
-     * @param pArgs - function execution arguments.
-     */
-    public silentExecution<T>(pFunction: (...pArgs: Array<any>) => T, ...pArgs: Array<any>): T {
-        const lChangeDetection: ChangeDetection = new ChangeDetection(`${this.name}-SilentCD`, this, false, true);
-
-        let lExecutionResult: any;
-        try {
-            lExecutionResult = lChangeDetection.execute(pFunction, ...pArgs);
-        } finally {
-            // Deconstruct change detection. Error events are not needed on temporary change detections.
-            lChangeDetection.deconstruct();
-        }
-
-        return lExecutionResult;
-    }
-
-    /**
-     * Call all registered change listener.
-     */
-    private callChangeListener(pReason: ChangeDetectionReason): void {
-        // Dispatch change event.
-        for (const lListener of this.mChangeListenerList) {
-            lListener(pReason);
-        }
     }
 
     /**

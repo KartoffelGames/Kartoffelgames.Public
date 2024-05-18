@@ -1,4 +1,4 @@
-import { ExecutionZone } from '../execution-zone';
+import { ChangeDetection } from '../../change-detection';
 import { EventNames } from './event-names';
 
 export class Patcher {
@@ -38,8 +38,8 @@ export class Patcher {
      * @param pObject - EventTarget.
      * @param pZone - Zone.
      */
-    public static patchObject(pObject: EventTarget, pZone: ExecutionZone): void {
-        pZone.executeInZone(() => {
+    public static patchObject(pObject: EventTarget, pZone: ChangeDetection): void {
+        pZone.execute(() => {
             if (!(Patcher.EVENT_TARGET_PATCHED_KEY in pObject)) {
                 // Add all events without function.
                 for (const lEventName of EventNames.changeCriticalEvents) {
@@ -91,7 +91,7 @@ export class Patcher {
              */
             public constructor(...pArgs: Array<any>) {
                 // Get zone.
-                const lCurrentZone = ExecutionZone.current;
+                const lCurrentZone: ChangeDetection = ChangeDetection.current;
 
                 for (let lArgIndex: number = 0; lArgIndex < pArgs.length; lArgIndex++) {
                     const lArgument: any = pArgs[lArgIndex];
@@ -164,7 +164,7 @@ export class Patcher {
         const lSelf: this = this;
         const lPatchedFunction = function (this: any, ...pArgs: Array<any>) {
             // Get zone.
-            const lCurrentZone = ExecutionZone.current;
+            const lCurrentZone = ChangeDetection.current;
 
             for (let lArgIndex: number = 0; lArgIndex < pArgs.length; lArgIndex++) {
                 const lArgument: any = pArgs[lArgIndex];
@@ -294,7 +294,7 @@ export class Patcher {
 
                 if (typeof pEventListener === 'function') {
                     // Save new listener
-                    this[lStorageKey] = lSelf.wrapFunctionInZone(pEventListener, ExecutionZone.current);
+                    this[lStorageKey] = lSelf.wrapFunctionInZone(pEventListener, ChangeDetection.current);
 
                     // Add new listener if defined.
                     this.addEventListener(lEventName, this[lStorageKey]);
@@ -332,7 +332,7 @@ export class Patcher {
                 super(...pArgs);
 
                 // Get zone.
-                const lCurrentZone = ExecutionZone.current;
+                const lCurrentZone = ChangeDetection.current;
                 Reflect.set(this, Patcher.PATCHED_PROMISE_ZONE_KEY, lCurrentZone);
             }
         };
@@ -350,9 +350,9 @@ export class Patcher {
      * @param pFunction - Function.
      * @param pZone - Zone.
      */
-    private wrapFunctionInZone(pFunction: (...pArgs: Array<any>) => any, pZone: ExecutionZone): (...pArgs: Array<any>) => any {
+    private wrapFunctionInZone(pFunction: (...pArgs: Array<any>) => any, pZone: ChangeDetection): (...pArgs: Array<any>) => any {
         const lPatchedFunction = function (...pArgs: Array<any>) {
-            return pZone.executeInZone(pFunction, ...pArgs);
+            return pZone.execute(pFunction, ...pArgs);
         };
 
         // Save original function

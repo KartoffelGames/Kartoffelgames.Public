@@ -4,9 +4,10 @@ import { ExecutionZone } from './execution_zone/execution-zone';
 import { Patcher } from './execution_zone/patcher/patcher';
 import { InteractionDetectionProxy } from './synchron_tracker/interaction-detection-proxy';
 import { ChangeDetectionReason } from './change-detection-reason';
+import { DetectionCatchType } from './enum/detection-catch-type.enum';
 
 /**
- * Merges execution zone and proxy tracking.
+ * Merges execution zone and proxy tracking. // TODO: Integrate Zone into change detection.
  */
 export class ChangeDetection implements IDeconstructable {
     private static readonly mZoneConnectedChangeDetections: WeakMap<ExecutionZone, ChangeDetection> = new WeakMap<ExecutionZone, ChangeDetection>();
@@ -26,45 +27,12 @@ export class ChangeDetection implements IDeconstructable {
         return lCurrentChangeDetection;
     }
 
-    /**
-     * Get current change detection.
-     * Ignores all silent zones and returns next none silent zone.
-     */
-    public static get currentNoneSilent(): ChangeDetection {
-        let lCurrent: ChangeDetection | null = ChangeDetection.current;
-
-        while (lCurrent?.isSilent) {
-            lCurrent = lCurrent.mParent;
-        }
-
-        // There is allways an none silent zone.
-        return <ChangeDetection>lCurrent;
-    }
-
     private readonly mChangeListenerList: List<ChangeListener>;
     private readonly mErrorListenerList: List<ErrorListener>;
     private readonly mExecutionZone: ExecutionZone;
-    private readonly mLooseParent: ChangeDetection | null;
     private readonly mParent: ChangeDetection | null;
-    private readonly mSilent: boolean;
     private readonly mWindowErrorListener: (pEvent: ErrorEvent) => void;
     private readonly mWindowRejectionListener: (pEvent: PromiseRejectionEvent) => void;
-
-
-    /**
-     * If change detection is silent.
-     */
-    public get isSilent(): boolean {
-        return this.mSilent;
-    }
-
-    /**
-     * Get change detection loose parent.
-     * A parent not connected by change detection rather than zones.
-     */
-    public get looseParent(): ChangeDetection | null {
-        return this.mLooseParent;
-    }
 
     /**
      * Get change detection name.
@@ -86,14 +54,11 @@ export class ChangeDetection implements IDeconstructable {
      * Except IndexDB calls.
      * Listens on changes and function calls on registered objects.
      * Child changes triggers parent change detection but parent doesn't trigger child.
+     * 
      * @param pName - Name of change detection or the change detection.
-     * @param pOnChange - Callback function that executes on possible change.
-     * @param pParentChangeDetection - Parent change detection.
-     * @param pSilent - [Optinal] If change detection triggers any change events.
+     * @param pSettings - Change detection settings.
      */
-    public constructor(pChangeDetection: ExecutionZone);
-    public constructor(pName: string, pParentChangeDetection?: ChangeDetection | null, pLooseParent?: boolean, pSilent?: boolean);
-    public constructor(pName: string | ExecutionZone, pParentChangeDetection?: ChangeDetection | null, pLooseParent?: boolean, pSilent?: boolean) {
+    public constructor(pName: string, pSettings?: ChangeDetectionConstructorSettings) {
         // Patch for execution zone.
         Patcher.patch(globalThis);
 
@@ -102,29 +67,20 @@ export class ChangeDetection implements IDeconstructable {
         this.mErrorListenerList = new List<ErrorListener>();
 
         // Save parent.
-        if (pLooseParent) {
+        if (pSettings?.isolate === true) {
             this.mParent = null;
-            this.mLooseParent = pParentChangeDetection ?? null;
         } else {
-            this.mParent = pParentChangeDetection ?? null;
-            this.mLooseParent = pParentChangeDetection ?? null;
+            this.mParent = ChangeDetection.current;
         }
 
         // Create new execution zone or use old one.
-        if (typeof pName === 'string') {
-            this.mExecutionZone = new ExecutionZone(pName);
-        } else {
-            this.mExecutionZone = pName;
-        }
+        this.mExecutionZone = new ExecutionZone(pName);
 
         // Register interaction event and connect execution zone with change detection.
         this.mExecutionZone.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
             this.dispatchChangeEvent(pChangeReason);
         });
         ChangeDetection.mZoneConnectedChangeDetections.set(this.mExecutionZone, this);
-
-        // Set silent state. Convert null to false.
-        this.mSilent = !!pSilent;
 
         // Catch global error, check if allocated zone is child of this change detection and report the error.
         const lErrorHandler = (pErrorEvent: Event, pError: any) => {
@@ -181,16 +137,6 @@ export class ChangeDetection implements IDeconstructable {
     }
 
     /**
-     * Create child detection that does not notice changes from parent.
-     * Parent will notice any change inside child. 
-     * @param pName - Child name.
-     * @returns 
-     */
-    public createChildDetection(pName: string): ChangeDetection {
-        return new ChangeDetection(pName, this);
-    }
-
-    /**
      * Deconstruct change detection.
      */
     public deconstruct(): void {
@@ -241,13 +187,8 @@ export class ChangeDetection implements IDeconstructable {
             Patcher.patchObject(pObject, this.mExecutionZone);
         }
 
-        // Create interaction proxy and send change and error event to this change detection.
-        const lProxy: InteractionDetectionProxy<T> = new InteractionDetectionProxy(pObject);
-        lProxy.addChangeListener((pChangeReason: ChangeDetectionReason) => {
-            this.dispatchChangeEvent(pChangeReason);
-        });
-
-        return lProxy.proxy;
+        // Create interaction proxy.
+        return new InteractionDetectionProxy(pObject).proxy;
     }
 
     /**
@@ -341,3 +282,8 @@ export class ChangeDetection implements IDeconstructable {
 
 export type ChangeListener = (pReason: ChangeDetectionReason) => void;
 export type ErrorListener = (pError: any) => void | boolean;
+
+type ChangeDetectionConstructorSettings = {
+    trigger: DetectionCatchType,
+    isolate: boolean;
+};

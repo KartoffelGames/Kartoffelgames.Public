@@ -1,8 +1,14 @@
-import { ChangeDetection } from '../change-detection';
 import { ChangeDetectionReason } from '../change-detection-reason';
 import { DetectionCatchType } from '../enum/detection-catch-type.enum';
+import { ExecutionZone } from '../execution_zone/execution-zone';
 import { Patcher } from '../execution_zone/patcher/patcher';
 
+/**
+ * Interaction detection proxy. Detects synchron calls and changes on the proxy object.
+ * Creates a nested detection chain on objects and functions.
+ * 
+ * @internal
+ */
 export class InteractionDetectionProxy<T extends object> {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     private static readonly ORIGINAL_TO_INTERACTION_MAPPING: WeakMap<object, object> = new WeakMap<object, object>();
@@ -35,7 +41,6 @@ export class InteractionDetectionProxy<T extends object> {
     }
 
     private readonly mAllreadySendChangeReasons!: WeakSet<ChangeDetectionReason>;
-    private readonly mChangeCallbackList!: Array<ChangeEventListener>;
     private readonly mProxyObject!: T;
 
     /**
@@ -60,7 +65,6 @@ export class InteractionDetectionProxy<T extends object> {
 
         // Initialize values.
         this.mAllreadySendChangeReasons = new WeakSet<ChangeDetectionReason>();
-        this.mChangeCallbackList = new Array<ChangeEventListener>();
 
         // Create new proxy object.
         this.mProxyObject = this.createProxyObject(pTarget);
@@ -78,15 +82,6 @@ export class InteractionDetectionProxy<T extends object> {
 
             InteractionDetectionProxy.mOriginalPromiseConstructor = lPromiseConstructor;
         }
-    }
-
-    /**
-     * Add change listener to detection proxy.
-     * 
-     * @param pChangeListener - On change listener.
-     */
-    public addChangeListener(pChangeListener: ChangeEventListener): void {
-        this.mChangeCallbackList.push(pChangeListener);
     }
 
     /**
@@ -134,12 +129,7 @@ export class InteractionDetectionProxy<T extends object> {
 
                 // But when it is a object or a function, than wrap it into another detection proxy and passthrough any change.
                 // Creates a dependency chain.
-                const lProxy: InteractionDetectionProxy<any> = new InteractionDetectionProxy(lResult);
-                lProxy.addChangeListener((pChangeReason: ChangeDetectionReason) => {
-                    this.dispatchChangeEvent(pChangeReason);
-                });
-
-                return lProxy.proxy;
+                return new InteractionDetectionProxy(lResult).proxy;
             },
 
             /**
@@ -186,8 +176,8 @@ export class InteractionDetectionProxy<T extends object> {
                     this.dispatchChangeEvent(new ChangeDetectionReason(DetectionCatchType.SyncronCall, pTargetObject));
                 }
 
-                // Result is not a promise. So nothing needs to be overridden.
-                if (!(lFunctionResult instanceof InteractionDetectionProxy.mOriginalPromiseConstructor!)) {
+                // Result is not a promise or a patches promise. So nothing needs to be overridden.
+                if (!(lFunctionResult instanceof InteractionDetectionProxy.mOriginalPromiseConstructor!) || lFunctionResult instanceof globalThis.Promise) {
                     return lFunctionResult;
                 }
 
@@ -203,8 +193,6 @@ export class InteractionDetectionProxy<T extends object> {
                     } catch (pError) {
                         lPromiseErrorTriggered = true;
                         lPromiseError = pError;
-                    } finally {
-                        this.dispatchChangeEvent(new ChangeDetectionReason(DetectionCatchType.AsnychronPromise, lFunctionResult));
                     }
 
                     // When an exception occurred reject the promise.
@@ -234,14 +222,10 @@ export class InteractionDetectionProxy<T extends object> {
 
         this.mAllreadySendChangeReasons.add(pChangeReason);
 
+        // TODO: Trigger change event only in current CD instead of seperate listener.
         // Only trigger if current change detection is not silent. // TODO: Remove silent protection. Why do we need it anyway.
-        if (!ChangeDetection.current.isSilent) {
-            for (const lListener of this.mChangeCallbackList) {
-                lListener(pChangeReason);
-            }
-        }
+        ExecutionZone.dispatchInteractionEvent(pChangeReason);
     }
 }
 
 type CallableObject = (...args: Array<any>) => any;
-type ChangeEventListener = (pChangeReason: ChangeDetectionReason) => void;

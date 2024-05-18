@@ -33,61 +33,6 @@ describe('ChangeDetection', () => {
         });
     });
 
-    describe('Static Property: currentNoneSilent', () => {
-        it('-- Parent is none silent', () => {
-            // Setup.
-            const lName: string = 'InnerCD';
-            const lNoneSilentChangeDetection: ChangeDetection = new ChangeDetection(lName);
-            const lSilentChangeDetection: ChangeDetection = new ChangeDetection('Name', lNoneSilentChangeDetection, false, true);
-
-            // Process.
-            let lCurrentChangeDetectionName: string | null = null;
-            lNoneSilentChangeDetection.execute(() => {
-                lSilentChangeDetection.execute(() => {
-                    lCurrentChangeDetectionName = ChangeDetection.currentNoneSilent.name;
-                });
-            });
-
-            // Evaluation.
-            expect(lCurrentChangeDetectionName).to.equal(lName);
-        });
-
-        it('-- No zone', () => {
-            // Process.
-            const lCurrentNoneSilentChangeDetection: ChangeDetection = ChangeDetection.currentNoneSilent;
-
-            // Evaluation.
-            expect(lCurrentNoneSilentChangeDetection).to.be.instanceOf(ChangeDetection);
-        });
-
-        it('-- No none silent zone', () => {
-            // Setup.
-            const lName: string = 'InnerCD';
-            const lNoneSilentChangeDetection: ChangeDetection = new ChangeDetection(lName, null, false, true);
-
-            // Process.
-            let lCurrentChangeDetection: ChangeDetection | null = null;
-            lNoneSilentChangeDetection.execute(() => {
-                lCurrentChangeDetection = ChangeDetection.currentNoneSilent;
-            });
-
-            // Evaluation.
-            expect(lCurrentChangeDetection).to.be.null;
-        });
-    });
-
-    it('Property: isSilent', () => {
-        // Setup.
-        const lSilentState: boolean = true;
-        const lChangeDetection: ChangeDetection = new ChangeDetection('Name', null, false, lSilentState);
-
-        // Process.
-        const lIsSilent: boolean = lChangeDetection.isSilent;
-
-        // Evaluation.
-        expect(lIsSilent).to.equal(lSilentState);
-    });
-
     it('Property: name', () => {
         // Setup.
         const lName: string = 'CD-Name';
@@ -100,52 +45,18 @@ describe('ChangeDetection', () => {
         expect(lNameResult).to.equal(lName);
     });
 
-    describe('Property: looseParent', () => {
-        it('-- Set parent', () => {
-            // Setup.
-            const lParentName: string = 'InnerCD';
-            const lParentChangeDetection: ChangeDetection = new ChangeDetection(lParentName);
-            const lChildChangeDetection: ChangeDetection = new ChangeDetection('Name', lParentChangeDetection, true);
-
-            // Process.
-            const lParentChangeDetectionName: string | undefined = lChildChangeDetection.looseParent?.name;
-
-            // Evaluation.
-            expect(lParentChangeDetectionName).to.equal(lParentName);
-        });
-
-        it('-- No parent', () => {
-            // Setup.
-            const lChildChangeDetection: ChangeDetection = new ChangeDetection('Name');
-
-            // Process.
-            const lParentChangeDetection: ChangeDetection | null = lChildChangeDetection.looseParent;
-
-            // Evaluation.
-            expect(lParentChangeDetection).to.be.null;
-        });
-
-        it('-- No parent explicit set', () => {
-            // Setup.
-            const lChildChangeDetection: ChangeDetection = new ChangeDetection('Name', null, true);
-
-            // Process.
-            const lParentChangeDetection: ChangeDetection | null = lChildChangeDetection.looseParent;
-
-            // Evaluation.
-            expect(lParentChangeDetection).to.be.null;
-        });
-    });
-
     describe('Property: parent', () => {
         it('-- Set parent', () => {
             // Setup.
             const lParentName: string = 'InnerCD';
             const lParentChangeDetection: ChangeDetection = new ChangeDetection(lParentName);
-            const lChildChangeDetection: ChangeDetection = new ChangeDetection('Name', lParentChangeDetection);
+            let lChildChangeDetection: ChangeDetection;
+            lParentChangeDetection.execute(() => {
+                lChildChangeDetection = new ChangeDetection('Name');
+            });
 
             // Process.
-            const lParentChangeDetectionName: string | undefined = lChildChangeDetection.parent?.name;
+            const lParentChangeDetectionName: string | undefined = lChildChangeDetection!.parent?.name;
 
             // Evaluation.
             expect(lParentChangeDetectionName).to.equal(lParentName);
@@ -245,24 +156,6 @@ describe('ChangeDetection', () => {
             // Evaluation.
             expect(lListenerCalled).to.be.true;
             expect(lReasonResult).to.equal(lReason);
-        });
-
-        it('-- Silent', () => {
-            // Setup.
-            const lChangeDetection: ChangeDetection = new ChangeDetection('Name', null, false, true);
-
-            // Process. Add listener.
-            let lListenerCalled: boolean = false;
-            const lListener = () => {
-                lListenerCalled = true;
-            };
-            lChangeDetection.addChangeListener(lListener);
-
-            // Process. Call listener.
-            lChangeDetection.dispatchChangeEvent(new ChangeDetectionReason(DetectionCatchType.SyncronProperty, new Object()));
-
-            // Evaluation.
-            expect(lListenerCalled).to.be.false;
         });
 
         it('-- Pass through', () => {
@@ -462,232 +355,281 @@ describe('ChangeDetection', () => {
         expect(lResult).to.equal(lExecutionResult);
     });
 
-    it('Functionality: Zone sync uncatched error report', () => {
-        // Setup.
-        const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
-        const lError: string = 'ERROR-MESSAGE';
+    it('Functionality: Zone error handling', () => {
+        it('-- Zone sync uncatched error report', () => {
+            // Setup.
+            const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
+            const lError: string = 'ERROR-MESSAGE';
 
-        // Process. Set error listener.
-        let lErrorListenerCalled: boolean = false;
-        let lErrorResult: string | null = null;
-        lChangeDetection.addErrorListener((pError: string) => {
-            lErrorListenerCalled = true;
-            lErrorResult = pError;
-        });
-
-        // Process. Throw error in zone.
-        let lErrorCatched: string | null = null;
-        try {
-            lChangeDetection.execute(() => {
-                throw lError;
-            });
-        } catch (pError) {
-            const lError: string = <string>pError;
-            window.dispatchEvent(new ErrorEvent('error', {
-                error: lError,
-                message: lError,
-            }));
-            lErrorCatched = lError;
-        }
-
-        // Evaluation.
-        expect(lErrorListenerCalled).to.be.true;
-        expect(lErrorResult).to.equal(lError);
-        expect(lErrorCatched).to.equal(lError);
-    });
-
-    it('Functionality: Zone async uncatched error report', async () => {
-        // Setup.
-        const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
-        const lError: string = 'ERROR-MESSAGE';
-
-        // Process. Set error listener.
-        let lErrorListenerCalled: boolean = false;
-        let lErrorResult: string | null = null;
-
-        // Async assertion
-        await new Promise<void>((pResolve) => {
+            // Process. Set error listener.
+            let lErrorListenerCalled: boolean = false;
+            let lErrorResult: string | null = null;
             lChangeDetection.addErrorListener((pError: string) => {
                 lErrorListenerCalled = true;
                 lErrorResult = pError;
-                pResolve();
             });
 
-            let lPromise: Promise<void> | null = null;
-            lChangeDetection.execute(() => {
-                lPromise = new Promise<void>(() => {
+            // Process. Throw error in zone.
+            let lErrorCatched: string | null = null;
+            try {
+                lChangeDetection.execute(() => {
                     throw lError;
                 });
-            });
+            } catch (pError) {
+                const lError: string = <string>pError;
+                window.dispatchEvent(new ErrorEvent('error', {
+                    error: lError,
+                    message: lError,
+                }));
+                lErrorCatched = lError;
+            }
 
-            window.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
-                promise: <Promise<void>><any>lPromise,
-                reason: lError
-            }));
+            // Evaluation.
+            expect(lErrorListenerCalled).to.be.true;
+            expect(lErrorResult).to.equal(lError);
+            expect(lErrorCatched).to.equal(lError);
         });
 
-        // Evaluation.
-        expect(lErrorListenerCalled).to.be.true;
-        expect(lErrorResult).to.equal(lError);
-    });
+        it('-- Zone async uncatched error report', async () => {
+            // Setup.
+            const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
+            const lError: string = 'ERROR-MESSAGE';
 
-    it('Functionality: Zone async uncatched rejection report', async () => {
-        // Setup.
-        const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
-        const lError: string = 'ERROR-MESSAGE';
+            // Process. Set error listener.
+            let lErrorListenerCalled: boolean = false;
+            let lErrorResult: string | null = null;
 
-        // Process. Set error listener.
-        let lErrorListenerCalled: boolean = false;
-        let lErrorResult: string | null = null;
+            // Async assertion
+            await new Promise<void>((pResolve) => {
+                lChangeDetection.addErrorListener((pError: string) => {
+                    lErrorListenerCalled = true;
+                    lErrorResult = pError;
+                    pResolve();
+                });
 
-        // Async assertion
-        await new Promise<void>((pResolve) => {
+                let lPromise: Promise<void> | null = null;
+                lChangeDetection.execute(() => {
+                    lPromise = new Promise<void>(() => {
+                        throw lError;
+                    });
+                });
+
+                window.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
+                    promise: <Promise<void>><any>lPromise,
+                    reason: lError
+                }));
+            });
+
+            // Evaluation.
+            expect(lErrorListenerCalled).to.be.true;
+            expect(lErrorResult).to.equal(lError);
+        });
+
+        it('-- Zone async uncatched rejection report', async () => {
+            // Setup.
+            const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
+            const lError: string = 'ERROR-MESSAGE';
+
+            // Process. Set error listener.
+            let lErrorListenerCalled: boolean = false;
+            let lErrorResult: string | null = null;
+
+            // Async assertion
+            await new Promise<void>((pResolve) => {
+                lChangeDetection.addErrorListener((pError: string) => {
+                    lErrorListenerCalled = true;
+                    lErrorResult = pError;
+                    pResolve();
+                });
+
+                let lPromise: Promise<void> | null = null;
+                lChangeDetection.execute(() => {
+                    lPromise = new Promise<void>((_pResolve, pReject) => {
+                        pReject(lError);
+                    });
+                });
+
+                window.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
+                    promise: <Promise<void>><any>lPromise,
+                    reason: lError
+                }));
+            });
+
+            // Evaluation.
+            expect(lErrorListenerCalled).to.be.true;
+            expect(lErrorResult).to.equal(lError);
+        });
+
+        it('-- Zone sync uncatched rejection prevent default', async () => {
+            // Setup.
+            const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
+            const lError: string = 'ERROR-MESSAGE';
+
+            // Setup. Set error listener.
+            lChangeDetection.addErrorListener((_pError: string) => {
+                return false;
+            });
+
+            // Process. Global error listener.
+            let lErrorPrevented: boolean = false;
+            const lErrorListener = (pEvent: PreventableErrorEvent) => {
+                lErrorPrevented = pEvent.defaultWasPrevented;
+            };
+            window.addEventListener('error', <any>lErrorListener);
+
+            // Process. Throw error inside change detection zone.
+            try {
+                lChangeDetection.execute(() => {
+                    throw lError;
+                });
+            } catch (pError) {
+                const lError: string = <string>pError;
+                window.dispatchEvent(new PreventableErrorEvent('error', {
+                    error: lError,
+                    message: lError,
+                }));
+            }
+
+            // Cleanup.
+            window.removeEventListener('error', <any>lErrorListener);
+
+            // Evaluation.
+            expect(lErrorPrevented).to.be.true;
+        });
+
+        it('-- Sync uncatched error outside zone', () => {
+            // Setup.
+            const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
+
+            // Process. Set error listener.
+            let lErrorListenerCalled: boolean = false;
+            lChangeDetection.addErrorListener((_pError: string) => {
+                lErrorListenerCalled = true;
+            });
+
+            // Process. Throw error in zone.
+            try {
+                throw 11;
+            } catch (pError) {
+                const lError: number = <number>pError;
+                window.dispatchEvent(new ErrorEvent('error', {
+                    error: lError,
+                    message: lError.toString(),
+                }));
+            }
+
+            // Evaluation.
+            expect(lErrorListenerCalled).to.be.false;
+        });
+
+        it('-- Parent Zone sync uncatched error report', () => {
+            // Setup.
+            const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
+            const lChildChangeDetection: ChangeDetection = lChangeDetection.createChildDetection('Child');
+            const lError: string = 'ERROR-MESSAGE';
+
+            // Process. Set error listener.
+            let lErrorListenerCalled: boolean = false;
+            let lErrorResult: string | null = null;
             lChangeDetection.addErrorListener((pError: string) => {
                 lErrorListenerCalled = true;
                 lErrorResult = pError;
-                pResolve();
             });
 
-            let lPromise: Promise<void> | null = null;
-            lChangeDetection.execute(() => {
-                lPromise = new Promise<void>((_pResolve, pReject) => {
-                    pReject(lError);
+            // Process. Throw error in zone.
+            let lErrorCatched: string | null = null;
+            try {
+                lChildChangeDetection.execute(() => {
+                    throw lError;
                 });
+            } catch (pError) {
+                const lError: string = <string>pError;
+                window.dispatchEvent(new ErrorEvent('error', {
+                    error: lError,
+                    message: lError,
+                }));
+                lErrorCatched = lError;
+            }
+
+            // Evaluation.
+            expect(lErrorListenerCalled).to.be.true;
+            expect(lErrorResult).to.equal(lError);
+            expect(lErrorCatched).to.equal(lError);
+        });
+
+        it('-- Continue detection after error', () => {
+            // Setup.
+            const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
+            const lEventTarget: EventTarget = new EventTarget();
+
+            // Process. Track object.
+            const lTrackedEventTarget: EventTarget = lChangeDetection.registerObject(lEventTarget);
+
+            // Process. Track change event.
+            let lChangeEventCalled: boolean = false;
+            lChangeDetection.addChangeListener(() => {
+                lChangeEventCalled = true;
             });
 
-            window.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
-                promise: <Promise<void>><any>lPromise,
-                reason: lError
-            }));
-        });
+            // Process. Trow error.
+            try {
+                lChangeDetection.execute(() => {
+                    throw '';
+                });
+            } catch (_pError) { /* Empty */ }
 
-        // Evaluation.
-        expect(lErrorListenerCalled).to.be.true;
-        expect(lErrorResult).to.equal(lError);
+            // Process. Call input event.
+            lTrackedEventTarget.dispatchEvent(new Event('input'));
+
+            // Evaluation.
+            expect(lChangeEventCalled).to.be.true;
+        });
     });
 
-    it('Functionality: Zone sync uncatched rejection prevent default', async () => {
-        // Setup.
-        const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
-        const lError: string = 'ERROR-MESSAGE';
-
-        // Setup. Set error listener.
-        lChangeDetection.addErrorListener((_pError: string) => {
-            return false;
+    describe('Functionality: DetectionCatchType', () => {
+        describe('-- DetectionCatchType.None', () => {
+            it('-- Positive', () => { });
+            it('-- Negative', () => { });
         });
 
-        // Process. Global error listener.
-        let lErrorPrevented: boolean = false;
-        const lErrorListener = (pEvent: PreventableErrorEvent) => {
-            lErrorPrevented = pEvent.defaultWasPrevented;
-        };
-        window.addEventListener('error', <any>lErrorListener);
-
-        // Process. Throw error inside change detection zone.
-        try {
-            lChangeDetection.execute(() => {
-                throw lError;
-            });
-        } catch (pError) {
-            const lError: string = <string>pError;
-            window.dispatchEvent(new PreventableErrorEvent('error', {
-                error: lError,
-                message: lError,
-            }));
-        }
-
-        // Cleanup.
-        window.removeEventListener('error', <any>lErrorListener);
-
-        // Evaluation.
-        expect(lErrorPrevented).to.be.true;
-    });
-
-    it('Functionality: Sync uncatched error outside zone', () => {
-        // Setup.
-        const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
-
-        // Process. Set error listener.
-        let lErrorListenerCalled: boolean = false;
-        lChangeDetection.addErrorListener((_pError: string) => {
-            lErrorListenerCalled = true;
+        describe('-- DetectionCatchType.SyncronCall', () => {
+            it('-- Positive', () => { });
+            it('-- Negative', () => { });
         });
 
-        // Process. Throw error in zone.
-        try {
-            throw 11;
-        } catch (pError) {
-            const lError: number = <number>pError;
-            window.dispatchEvent(new ErrorEvent('error', {
-                error: lError,
-                message: lError.toString(),
-            }));
-        }
-
-        // Evaluation.
-        expect(lErrorListenerCalled).to.be.false;
-    });
-
-    it('Functionality: Parent Zone sync uncatched error report', () => {
-        // Setup.
-        const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
-        const lChildChangeDetection: ChangeDetection = lChangeDetection.createChildDetection('Child');
-        const lError: string = 'ERROR-MESSAGE';
-
-        // Process. Set error listener.
-        let lErrorListenerCalled: boolean = false;
-        let lErrorResult: string | null = null;
-        lChangeDetection.addErrorListener((pError: string) => {
-            lErrorListenerCalled = true;
-            lErrorResult = pError;
+        describe('-- DetectionCatchType.SyncronProperty', () => {
+            it('-- Positive', () => { });
+            it('-- Negative', () => { });
         });
 
-        // Process. Throw error in zone.
-        let lErrorCatched: string | null = null;
-        try {
-            lChildChangeDetection.execute(() => {
-                throw lError;
-            });
-        } catch (pError) {
-            const lError: string = <string>pError;
-            window.dispatchEvent(new ErrorEvent('error', {
-                error: lError,
-                message: lError,
-            }));
-            lErrorCatched = lError;
-        }
-
-        // Evaluation.
-        expect(lErrorListenerCalled).to.be.true;
-        expect(lErrorResult).to.equal(lError);
-        expect(lErrorCatched).to.equal(lError);
-    });
-
-    it('Functionality: Continue detection after error', () => {
-        // Setup.
-        const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
-        const lEventTarget: EventTarget = new EventTarget();
-
-        // Process. Track object.
-        const lTrackedEventTarget: EventTarget = lChangeDetection.registerObject(lEventTarget);
-
-        // Process. Track change event.
-        let lChangeEventCalled: boolean = false;
-        lChangeDetection.addChangeListener(() => {
-            lChangeEventCalled = true;
+        describe('-- DetectionCatchType.Syncron', () => {
+            it('-- Positive', () => { });
+            it('-- Negative', () => { });
         });
 
-        // Process. Trow error.
-        try {
-            lChangeDetection.execute(() => {
-                throw '';
-            });
-        } catch (_pError) { /* Empty */ }
+        describe('-- DetectionCatchType.AsnychronPromise', () => {
+            it('-- Positive', () => { });
+            it('-- Negative', () => { });
+        });
 
-        // Process. Call input event.
-        lTrackedEventTarget.dispatchEvent(new Event('input'));
+        describe('-- DetectionCatchType.AsnychronCallback', () => {
+            it('-- Positive', () => { });
+            it('-- Negative', () => { });
+        });
 
-        // Evaluation.
-        expect(lChangeEventCalled).to.be.true;
+        describe('-- DetectionCatchType.AsnychronEvent', () => {
+            it('-- Positive', () => { });
+            it('-- Negative', () => { });
+        });
+
+        describe('-- DetectionCatchType.Asnychron', () => {
+            it('-- Positive', () => { });
+            it('-- Negative', () => { });
+        });
+
+        describe('-- DetectionCatchType.All', () => {
+            it('-- Positive', () => { });
+            it('-- Negative', () => { });
+        });
     });
 });

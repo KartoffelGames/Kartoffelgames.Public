@@ -20,6 +20,7 @@ export class Patcher {
 
     /**
      * Patches functions and objects in global scope to track asynchron calls.
+     * 
      * @param pGlobalObject - Global enviroment object
      */
     public static patch(pGlobalObject: typeof globalThis): void {
@@ -33,6 +34,7 @@ export class Patcher {
 
     /**
      * Listen on all event.
+     * 
      * @param pObject - EventTarget.
      * @param pZone - Zone.
      */

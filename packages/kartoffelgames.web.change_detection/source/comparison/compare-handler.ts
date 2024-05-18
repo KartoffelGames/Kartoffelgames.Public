@@ -9,7 +9,8 @@ export class CompareHandler<TValue> {
 
     /**
      * Constructor.
-     * Create Compare that deep compares values up to specified depth. 
+     * Create Compare that deep compares values up to specified depth.
+     * 
      * @param pValue - Current value.
      * @param pMaxComparisonDepth - [Default: 4]. Maximal depth for object and array comparison. 
      */
@@ -20,6 +21,7 @@ export class CompareHandler<TValue> {
 
     /**
      * Compare value with internal value.
+     * 
      * @param pTarget - New value.
      */
     public compare(pTarget: TValue, pSource: TValue): boolean {
@@ -34,6 +36,7 @@ export class CompareHandler<TValue> {
 
     /**
      * Compare two arrays and their keys.
+     * 
      * @param pNewValue - New value.
      * @param pLastValue - Old saved value.
      * @param pCurrentDepth - Current depth of comparison.
@@ -65,6 +68,7 @@ export class CompareHandler<TValue> {
 
     /**
      * Compare two objects and their keys.
+     * 
      * @param pNewValue - New value.
      * @param pLastValue - Old saved value.
      * @param pCurrentDepth - Current depth of comparison.
@@ -103,6 +107,7 @@ export class CompareHandler<TValue> {
 
     /**
      * Compare two values and return if they are the same.
+     * 
      * @param lOriginalNewValue - New value.
      * @param lOriginalCurrentValue - Old saved value.
      * @param pCurrentDepth - Current depth of comparison.

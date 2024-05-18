@@ -13,6 +13,7 @@ export class InteractionDetectionProxy<T extends object> {
 
     /**
      * Get original object from InteractionDetectionProxy-Proxy.
+     * 
      * @param pProxy - Possible ChangeDetectionProxy object.
      */
     private static getOriginal<TValue extends object>(pProxy: TValue): TValue {
@@ -21,6 +22,7 @@ export class InteractionDetectionProxy<T extends object> {
 
     /**
      * Get wrapper object of proxy.
+     * 
      * @param pProxy - Proxy object.
      * @returns InteractionDetectionProxy or null if not a InteractionDetectionProxy-proxy.
      */
@@ -45,7 +47,8 @@ export class InteractionDetectionProxy<T extends object> {
 
     /**
      * Constructor.
-     * Create observation
+     * Creates observation proxy object.
+     * 
      * @param pTarget - Target object or function.
      */
     public constructor(pTarget: T) {
@@ -88,6 +91,7 @@ export class InteractionDetectionProxy<T extends object> {
 
     /**
      * Create change detection proxy from object.
+     * 
      * @param pTarget - Target object.
      */
     private createProxyObject(pTarget: T): T {

@@ -9,6 +9,8 @@ export class InteractionDetectionProxy<T extends object> {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     private static readonly PROXY_TO_ORIGINAL_MAPPING: WeakMap<object, object> = new WeakMap<object, object>();
 
+    private static mOriginalPromiseConstructor: typeof Promise | undefined;
+
     /**
      * Get original object from InteractionDetectionProxy-Proxy.
      * @param pProxy - Possible ChangeDetectionProxy object.
@@ -63,6 +65,16 @@ export class InteractionDetectionProxy<T extends object> {
         // Map proxy with real object and real object to current class.
         InteractionDetectionProxy.PROXY_TO_ORIGINAL_MAPPING.set(this.mProxyObject, pTarget);
         InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.set(pTarget, this);
+
+        // Get original promise constructor and cache it for later.
+        if (!InteractionDetectionProxy.mOriginalPromiseConstructor) {
+            let lPromiseConstructor: typeof Promise = Promise;
+            while (Patcher.ORIGINAL_CLASS_KEY in lPromiseConstructor) {
+                lPromiseConstructor = Reflect.get(lPromiseConstructor, Patcher.ORIGINAL_CLASS_KEY);
+            }
+
+            InteractionDetectionProxy.mOriginalPromiseConstructor = lPromiseConstructor;
+        }
     }
 
     /**
@@ -170,15 +182,8 @@ export class InteractionDetectionProxy<T extends object> {
                     this.dispatchChangeEvent(new ChangeReason(DetectionCatchType.SyncronCall, pTargetObject));
                 }
 
-                // Get original promise constructor. // TODO: Possible a better way to cache this information instead of search for every call.
-                let lPromiseConstructor: typeof Promise = Promise;
-                /* istanbul ignore next */
-                while (Patcher.ORIGINAL_CLASS_KEY in lPromiseConstructor) {
-                    lPromiseConstructor = Reflect.get(lPromiseConstructor, Patcher.ORIGINAL_CLASS_KEY);
-                }
-
                 // Result is not a promise. So nothing needs to be overridden.
-                if (!(lFunctionResult instanceof lPromiseConstructor)) {
+                if (!(lFunctionResult instanceof InteractionDetectionProxy.mOriginalPromiseConstructor!)) {
                     return lFunctionResult;
                 }
 

@@ -1,8 +1,8 @@
 /* istanbul ignore file */
 
 export { CompareHandler } from './comparison/compare-handler';
-export { ChangeDetection } from './change_detection/change-detection';
-export { ChangeDetectionReason as ChangeReason } from './change_detection/change-detection-reason';
+export { InteractionZone } from './change_detection/interaction-zone';
+export { InteractionReason } from './change_detection/interaction-reason';
 
 // Difference search
 export { MyersDiff, HistoryItem, ChangeState } from './comparison/myers-diff';

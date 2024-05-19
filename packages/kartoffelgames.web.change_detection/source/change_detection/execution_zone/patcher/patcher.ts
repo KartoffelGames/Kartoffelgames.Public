@@ -1,4 +1,4 @@
-import { ChangeDetection } from '../../change-detection';
+import { InteractionZone } from '../../interaction-zone';
 import { EventNames } from './event-names';
 
 export class Patcher {
@@ -38,7 +38,7 @@ export class Patcher {
      * @param pObject - EventTarget.
      * @param pZone - Zone.
      */
-    public static patchObject(pObject: EventTarget, pZone: ChangeDetection): void {
+    public static patchObject(pObject: EventTarget, pZone: InteractionZone): void {
         pZone.execute(() => {
             if (!(Patcher.EVENT_TARGET_PATCHED_KEY in pObject)) {
                 // Add all events without function.
@@ -91,7 +91,7 @@ export class Patcher {
              */
             public constructor(...pArgs: Array<any>) {
                 // Get zone.
-                const lCurrentZone: ChangeDetection = ChangeDetection.current;
+                const lCurrentZone: InteractionZone = InteractionZone.current;
 
                 for (let lArgIndex: number = 0; lArgIndex < pArgs.length; lArgIndex++) {
                     const lArgument: any = pArgs[lArgIndex];
@@ -164,7 +164,7 @@ export class Patcher {
         const lSelf: this = this;
         const lPatchedFunction = function (this: any, ...pArgs: Array<any>) {
             // Get zone.
-            const lCurrentZone = ChangeDetection.current;
+            const lCurrentZone = InteractionZone.current;
 
             for (let lArgIndex: number = 0; lArgIndex < pArgs.length; lArgIndex++) {
                 const lArgument: any = pArgs[lArgIndex];
@@ -294,7 +294,7 @@ export class Patcher {
 
                 if (typeof pEventListener === 'function') {
                     // Save new listener
-                    this[lStorageKey] = lSelf.wrapFunctionInZone(pEventListener, ChangeDetection.current);
+                    this[lStorageKey] = lSelf.wrapFunctionInZone(pEventListener, InteractionZone.current);
 
                     // Add new listener if defined.
                     this.addEventListener(lEventName, this[lStorageKey]);
@@ -332,7 +332,7 @@ export class Patcher {
                 super(...pArgs);
 
                 // Get zone.
-                const lCurrentZone = ChangeDetection.current;
+                const lCurrentZone = InteractionZone.current;
                 Reflect.set(this, Patcher.PATCHED_PROMISE_ZONE_KEY, lCurrentZone);
             }
         };
@@ -350,7 +350,7 @@ export class Patcher {
      * @param pFunction - Function.
      * @param pZone - Zone.
      */
-    private wrapFunctionInZone(pFunction: (...pArgs: Array<any>) => any, pZone: ChangeDetection): (...pArgs: Array<any>) => any {
+    private wrapFunctionInZone(pFunction: (...pArgs: Array<any>) => any, pZone: InteractionZone): (...pArgs: Array<any>) => any {
         const lPatchedFunction = function (...pArgs: Array<any>) {
             return pZone.execute(pFunction, ...pArgs);
         };

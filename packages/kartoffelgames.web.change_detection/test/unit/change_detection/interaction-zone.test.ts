@@ -1,46 +1,46 @@
 import '../../mock/request-animation-frame-mock-session';
 import { expect } from 'chai';
-import { ChangeDetection } from '../../../source/change_detection/change-detection';
+import { InteractionZone } from '../../../source/change_detection/interaction-zone';
 import { PreventableErrorEvent, PromiseRejectionEvent } from '../../mock/error-event';
-import { ChangeDetectionReason } from '../../../source/change_detection/change-detection-reason';
+import { InteractionReason } from '../../../source/change_detection/interaction-reason';
 import { InteractionResponseType } from '../../../source/change_detection/enum/interaction-response-type.enum';
 
-describe('ChangeDetection', () => {
+describe('InteractionZone', () => {
     it('Static Property: current', () => {
         it('-- Available Zone', () => {
             // Setup.
             const lName: string = 'InnerCD';
-            const lFirstChangeDetection: ChangeDetection = new ChangeDetection('Name');
-            const lSecondChangeDetection: ChangeDetection = new ChangeDetection(lName);
+            const lFirstInteractionZone: InteractionZone = new InteractionZone('Name');
+            const lSecondInteractionZone: InteractionZone = new InteractionZone(lName);
 
             // Process.
-            let lCurrentChangeDetectionName: string | null = null;
-            lFirstChangeDetection.execute(() => {
-                lSecondChangeDetection.execute(() => {
-                    lCurrentChangeDetectionName = ChangeDetection.current.name;
+            let lCurrentInteractionZoneName: string | null = null;
+            lFirstInteractionZone.execute(() => {
+                lSecondInteractionZone.execute(() => {
+                    lCurrentInteractionZoneName = InteractionZone.current.name;
                 });
             });
 
             // Evaluation.
-            expect(lCurrentChangeDetectionName).to.equal(lName);
+            expect(lCurrentInteractionZoneName).to.equal(lName);
         });
 
         it('-- No Zone', () => {
             // Process.
-            const lCurrentChangeDetection: ChangeDetection = ChangeDetection.current;
+            const lCurrentInteractionZone: InteractionZone = InteractionZone.current;
 
             // Evaluation.
-            expect(lCurrentChangeDetection).to.be.null;
+            expect(lCurrentInteractionZone).to.be.null;
         });
     });
 
     it('Property: name', () => {
         // Setup.
         const lName: string = 'CD-Name';
-        const lChangeDetection: ChangeDetection = new ChangeDetection(lName);
+        const lInteractionZone: InteractionZone = new InteractionZone(lName);
 
         // Process.
-        const lNameResult: string = lChangeDetection.name;
+        const lNameResult: string = lInteractionZone.name;
 
         // Evaluation.
         expect(lNameResult).to.equal(lName);
@@ -50,45 +50,45 @@ describe('ChangeDetection', () => {
         it('-- Set parent', () => {
             // Setup.
             const lParentName: string = 'InnerCD';
-            const lParentChangeDetection: ChangeDetection = new ChangeDetection(lParentName);
-            let lChildChangeDetection: ChangeDetection;
-            lParentChangeDetection.execute(() => {
-                lChildChangeDetection = new ChangeDetection('Name');
+            const lParentInteractionZone: InteractionZone = new InteractionZone(lParentName);
+            let lChildInteractionZone: InteractionZone;
+            lParentInteractionZone.execute(() => {
+                lChildInteractionZone = new InteractionZone('Name');
             });
 
             // Process.
-            const lParentChangeDetectionName: string | undefined = lChildChangeDetection!.parent?.name;
+            const lParentInteractionZoneName: string | undefined = lChildInteractionZone!.parent?.name;
 
             // Evaluation.
-            expect(lParentChangeDetectionName).to.equal(lParentName);
+            expect(lParentInteractionZoneName).to.equal(lParentName);
         });
 
         it('-- No parent', () => {
             // Setup.
-            const lChildChangeDetection: ChangeDetection = new ChangeDetection('Name');
+            const lChildInteractionZone: InteractionZone = new InteractionZone('Name');
 
             // Process.
-            const lParentChangeDetection: ChangeDetection | null = lChildChangeDetection.parent;
+            const lParentInteractionZone: InteractionZone | null = lChildInteractionZone.parent;
 
             // Evaluation.
-            expect(lParentChangeDetection).to.be.null;
+            expect(lParentInteractionZone).to.be.null;
         });
     });
 
     it('Method: addChangeListener', () => {
         // Setup.
-        const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
+        const lInteractionZone: InteractionZone = new InteractionZone('Name');
 
         // Process. Add listener.
         let lListenerCalled: boolean = false;
         const lListener = () => {
             lListenerCalled = true;
         };
-        lChangeDetection.addInteractionListener(lListener);
+        lInteractionZone.addInteractionListener(lListener);
 
         // Process. Call listener.
-        lChangeDetection.execute(() => {
-            ChangeDetection.dispatchInteractionEvent(new ChangeDetectionReason(InteractionResponseType.SyncronProperty, new Object()));
+        lInteractionZone.execute(() => {
+            InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronProperty, new Object()));
         });
 
         // Evaluation.
@@ -97,17 +97,17 @@ describe('ChangeDetection', () => {
 
     it('Method: addErrorListener', () => {
         // Setup.
-        const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
+        const lInteractionZone: InteractionZone = new InteractionZone('Name');
 
         // Process. Add and remove listener.
         let lListenerCalled: boolean = false;
-        lChangeDetection.addErrorListener(() => {
+        lInteractionZone.addErrorListener(() => {
             lListenerCalled = true;
         });
 
         // Process. Throw error inside change detection zone.
         try {
-            lChangeDetection.execute(() => {
+            lInteractionZone.execute(() => {
                 throw 11;
             });
         } catch (pError) {
@@ -125,21 +125,21 @@ describe('ChangeDetection', () => {
     describe('Method: dispatchChangeEvent', () => {
         it('-- Default', () => {
             // Setup.
-            const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
-            const lReason: ChangeDetectionReason = new ChangeDetectionReason(InteractionResponseType.SyncronProperty, new Object(), 2);
+            const lInteractionZone: InteractionZone = new InteractionZone('Name');
+            const lReason: InteractionReason = new InteractionReason(InteractionResponseType.SyncronProperty, new Object(), 2);
 
             // Process. Add listener.
             let lListenerCalled: boolean = false;
-            let lReasonResult: ChangeDetectionReason | null = null;
-            const lListener = (pReason: ChangeDetectionReason) => {
+            let lReasonResult: InteractionReason | null = null;
+            const lListener = (pReason: InteractionReason) => {
                 lListenerCalled = true;
                 lReasonResult = pReason;
             };
-            lChangeDetection.addInteractionListener(lListener);
+            lInteractionZone.addInteractionListener(lListener);
 
             // Process. Call listener.
-            lChangeDetection.execute(() => {
-                ChangeDetection.dispatchInteractionEvent(lReason);
+            lInteractionZone.execute(() => {
+                InteractionZone.dispatchInteractionEvent(lReason);
             });
 
             // Evaluation.
@@ -149,28 +149,28 @@ describe('ChangeDetection', () => {
 
         it('-- Pass through', () => {
             // Setup.
-            const lParentChangeDetection: ChangeDetection = new ChangeDetection('Name');
-            const lReason: ChangeDetectionReason = new ChangeDetectionReason(InteractionResponseType.SyncronProperty, new Object(), 2);
+            const lParentInteractionZone: InteractionZone = new InteractionZone('Name');
+            const lReason: InteractionReason = new InteractionReason(InteractionResponseType.SyncronProperty, new Object(), 2);
 
             // Setup. Child.
-            const lChildChangeDetectionName: string = 'CD-child';
-            let lChangeDetection: ChangeDetection;
-            lParentChangeDetection.execute(() => {
-                lChangeDetection = new ChangeDetection(lChildChangeDetectionName);
+            const lChildInteractionZoneName: string = 'CD-child';
+            let lInteractionZone: InteractionZone;
+            lParentInteractionZone.execute(() => {
+                lInteractionZone = new InteractionZone(lChildInteractionZoneName);
             });
 
             // Process. Add listener.
             let lListenerCalled: boolean = false;
-            let lReasonResult: ChangeDetectionReason | null = null;
-            const lListener = (pReason: ChangeDetectionReason) => {
+            let lReasonResult: InteractionReason | null = null;
+            const lListener = (pReason: InteractionReason) => {
                 lListenerCalled = true;
                 lReasonResult = pReason;
             };
-            lParentChangeDetection.addInteractionListener(lListener);
+            lParentInteractionZone.addInteractionListener(lListener);
 
             // Process. Dispatch event on child.
-            lChangeDetection!.execute(() => {
-                ChangeDetection.dispatchInteractionEvent(lReason);
+            lInteractionZone!.execute(() => {
+                InteractionZone.dispatchInteractionEvent(lReason);
             });
 
             // Evaluation.
@@ -180,55 +180,55 @@ describe('ChangeDetection', () => {
 
         it('-- Preserve execution change detection. Default execution.', () => {
             // Setup.
-            const lParentChangeDetection: ChangeDetection = new ChangeDetection('Name');
+            const lParentInteractionZone: InteractionZone = new InteractionZone('Name');
 
             // Setup. Child.
-            let lChangeDetection: ChangeDetection;
-            lParentChangeDetection.execute(() => {
-                lChangeDetection = new ChangeDetection('CD-child');
+            let lInteractionZone: InteractionZone;
+            lParentInteractionZone.execute(() => {
+                lInteractionZone = new InteractionZone('CD-child');
             });
 
             // Process. Add listener.
-            let lExecutingChangeDetectionName: string | null = null;
+            let lExecutingInteractionZoneName: string | null = null;
             const lListener = () => {
-                lExecutingChangeDetectionName = ChangeDetection.current.name;
+                lExecutingInteractionZoneName = InteractionZone.current.name;
             };
-            lParentChangeDetection.addInteractionListener(lListener);
+            lParentInteractionZone.addInteractionListener(lListener);
 
             // Process. Dispatch event on child.
-            lChangeDetection!.execute(() => {
-                ChangeDetection.dispatchInteractionEvent(new ChangeDetectionReason(InteractionResponseType.SyncronProperty, new Object()));
+            lInteractionZone!.execute(() => {
+                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronProperty, new Object()));
             });
 
             // Evaluation.
-            expect(lExecutingChangeDetectionName).to.equal('Default');
+            expect(lExecutingInteractionZoneName).to.equal('Default');
         });
 
         it('-- Preserve execution change detection. Zone execution.', () => {
             // Setup.
-            const lParentChangeDetection: ChangeDetection = new ChangeDetection('Name');
+            const lParentInteractionZone: InteractionZone = new InteractionZone('Name');
 
             // Setup. Child.
-            const lChildChangeDetectionName: string = 'CD-child';
-            let lChangeDetection: ChangeDetection;
-            lParentChangeDetection.execute(() => {
-                lChangeDetection = new ChangeDetection(lChildChangeDetectionName);
+            const lChildInteractionZoneName: string = 'CD-child';
+            let lInteractionZone: InteractionZone;
+            lParentInteractionZone.execute(() => {
+                lInteractionZone = new InteractionZone(lChildInteractionZoneName);
             });
 
             // Process. Add listener.
-            let lExecutingChangeDetectionName: string | null = null;
+            let lExecutingInteractionZoneName: string | null = null;
             const lListener = () => {
-                lExecutingChangeDetectionName = ChangeDetection.current.name;
+                lExecutingInteractionZoneName = InteractionZone.current.name;
             };
-            lParentChangeDetection.addInteractionListener(lListener);
+            lParentInteractionZone.addInteractionListener(lListener);
 
             // Process. Dispatch event on child..
-            lChangeDetection!.execute(() => {
-                ChangeDetection.dispatchInteractionEvent(new ChangeDetectionReason(InteractionResponseType.SyncronProperty, new Object()));
+            lInteractionZone!.execute(() => {
+                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronProperty, new Object()));
             });
 
             // Evaluation.
-            expect(lExecutingChangeDetectionName).to.equal(lChildChangeDetectionName);
+            expect(lExecutingInteractionZoneName).to.equal(lChildInteractionZoneName);
         });
     });
 
@@ -236,32 +236,32 @@ describe('ChangeDetection', () => {
         // Setup.
         const lName: string = 'CD-Name';
         const lExecutionResult: number = 12;
-        const lChangeDetection: ChangeDetection = new ChangeDetection(lName);
+        const lInteractionZone: InteractionZone = new InteractionZone(lName);
 
         // Process.
-        let lExecutingChangeDetectionName: string | null = null;
-        const lResult: number = lChangeDetection.execute((pResult: number) => {
-            lExecutingChangeDetectionName = ChangeDetection.current.name;
+        let lExecutingInteractionZoneName: string | null = null;
+        const lResult: number = lInteractionZone.execute((pResult: number) => {
+            lExecutingInteractionZoneName = InteractionZone.current.name;
             return pResult;
         }, lExecutionResult);
 
         // Evaluation.
-        expect(lExecutingChangeDetectionName).to.equal(lName);
+        expect(lExecutingInteractionZoneName).to.equal(lName);
         expect(lResult).to.equal(lExecutionResult);
     });
 
     describe('Method: registerObject', () => {
         it('-- EventTarget input event', () => {
             // Setup.
-            const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
+            const lInteractionZone: InteractionZone = new InteractionZone('Name');
             const lEventTarget: EventTarget = new EventTarget();
 
             // Process. Track object.
-            const lTrackedEventTarget: EventTarget = lChangeDetection.registerObject(lEventTarget);
+            const lTrackedEventTarget: EventTarget = lInteractionZone.registerObject(lEventTarget);
 
             // Process. Track change event.
             let lChangeEventCalled: boolean = false;
-            lChangeDetection.addInteractionListener(() => {
+            lInteractionZone.addInteractionListener(() => {
                 lChangeEventCalled = true;
             });
 
@@ -274,16 +274,16 @@ describe('ChangeDetection', () => {
 
         it('-- Object change detection', () => {
             // Setup.
-            const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
+            const lInteractionZone: InteractionZone = new InteractionZone('Name');
             const lOriginalObject: { a: number; } = { a: 1 };
 
             // Process. Track object.
-            const lTrackedEventTarget: { a: number; } = lChangeDetection.registerObject(lOriginalObject);
+            const lTrackedEventTarget: { a: number; } = lInteractionZone.registerObject(lOriginalObject);
 
             // Process. Track change event.
             let lChangeEventCalled: boolean = false;
-            let lReason: ChangeDetectionReason | null = null;
-            lChangeDetection.addInteractionListener((pReason: ChangeDetectionReason) => {
+            let lReason: InteractionReason | null = null;
+            lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
                 lChangeEventCalled = true;
                 lReason = pReason;
             });
@@ -300,19 +300,19 @@ describe('ChangeDetection', () => {
 
     it('Method: removeChangeListener', () => {
         // Setup.
-        const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
+        const lInteractionZone: InteractionZone = new InteractionZone('Name');
 
         // Process. Add and remove listener.
         let lListenerCalled: boolean = false;
         const lListener = () => {
             lListenerCalled = true;
         };
-        lChangeDetection.addInteractionListener(lListener);
-        lChangeDetection.removeChangeListener(lListener);
+        lInteractionZone.addInteractionListener(lListener);
+        lInteractionZone.removeChangeListener(lListener);
 
         // Process. Call listener.
-        lChangeDetection.execute(() => {
-            ChangeDetection.dispatchInteractionEvent(new ChangeDetectionReason(InteractionResponseType.SyncronProperty, new Object()));
+        lInteractionZone.execute(() => {
+            InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronProperty, new Object()));
         });
 
         // Evaluation.
@@ -321,19 +321,19 @@ describe('ChangeDetection', () => {
 
     it('Method: removeErrorListener', () => {
         // Setup.
-        const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
+        const lInteractionZone: InteractionZone = new InteractionZone('Name');
 
         // Process. Add and remove listener.
         let lListenerCalled: boolean = false;
         const lListener = () => {
             lListenerCalled = true;
         };
-        lChangeDetection.addErrorListener(lListener);
-        lChangeDetection.removeErrorListener(lListener);
+        lInteractionZone.addErrorListener(lListener);
+        lInteractionZone.removeErrorListener(lListener);
 
         // Process. Throw error inside change detection zone.
         try {
-            lChangeDetection.execute(() => {
+            lInteractionZone.execute(() => {
                 throw 11;
             });
         } catch (pError) {
@@ -350,7 +350,7 @@ describe('ChangeDetection', () => {
 
     it('Static Property: current', () => {
         // Process.
-        const lCurrentZone: ChangeDetection = ChangeDetection.current;
+        const lCurrentZone: InteractionZone = InteractionZone.current;
 
         // Evaluation.
         expect(lCurrentZone.name).to.equal('Default');
@@ -359,16 +359,16 @@ describe('ChangeDetection', () => {
     describe('Static Method: dispatchInteractionEvent', () => {
         it('-- Passthrough change reason', () => {
             // Setup.
-            const lZone: ChangeDetection = new ChangeDetection('ZoneName');
-            const lReason: ChangeDetectionReason = new ChangeDetectionReason(InteractionResponseType.Syncron, {});
+            const lZone: InteractionZone = new InteractionZone('ZoneName');
+            const lReason: InteractionReason = new InteractionReason(InteractionResponseType.Syncron, {});
 
             // Process.
-            let lResultReason: ChangeDetectionReason | null = null;
-            lZone.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
+            let lResultReason: InteractionReason | null = null;
+            lZone.addInteractionListener((pChangeReason: InteractionReason) => {
                 lResultReason = pChangeReason;
             });
             lZone.execute(() => {
-                ChangeDetection.dispatchInteractionEvent(lReason);
+                InteractionZone.dispatchInteractionEvent(lReason);
             });
 
             // Evaluation.
@@ -377,17 +377,17 @@ describe('ChangeDetection', () => {
 
         it('-- Inore other zones.', () => {
             // Setup.
-            const lZone: ChangeDetection = new ChangeDetection('ZoneName');
-            const lZoneDifferent: ChangeDetection = new ChangeDetection('ZoneName1');
-            const lReason: ChangeDetectionReason = new ChangeDetectionReason(InteractionResponseType.Syncron, {});
+            const lZone: InteractionZone = new InteractionZone('ZoneName');
+            const lZoneDifferent: InteractionZone = new InteractionZone('ZoneName1');
+            const lReason: InteractionReason = new InteractionReason(InteractionResponseType.Syncron, {});
 
             // Process.
-            let lResultReason: ChangeDetectionReason | null = null;
-            lZone.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
+            let lResultReason: InteractionReason | null = null;
+            lZone.addInteractionListener((pChangeReason: InteractionReason) => {
                 lResultReason = pChangeReason;
             });
             lZoneDifferent.execute(() => {
-                ChangeDetection.dispatchInteractionEvent(lReason);
+                InteractionZone.dispatchInteractionEvent(lReason);
             });
 
             // Evaluation.
@@ -398,7 +398,7 @@ describe('ChangeDetection', () => {
     it('Property: name', () => {
         // Setup.
         const lZoneName: string = 'ZoneName';
-        const lZone: ChangeDetection = new ChangeDetection(lZoneName);
+        const lZone: InteractionZone = new InteractionZone(lZoneName);
 
         // Process.
         const lNameResult: string = lZone.name;
@@ -409,16 +409,16 @@ describe('ChangeDetection', () => {
 
     it('Method: addInteractionListener', () => {
         // Setup.
-        const lZone: ChangeDetection = new ChangeDetection('ZoneName');
+        const lZone: InteractionZone = new InteractionZone('ZoneName');
         const lSource = {};
 
         // Process.
         let lResultSource: any;
-        lZone.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
+        lZone.addInteractionListener((pChangeReason: InteractionReason) => {
             lResultSource = pChangeReason.source;
         });
         lZone.execute(() => {
-            ChangeDetection.dispatchInteractionEvent(new ChangeDetectionReason(InteractionResponseType.SyncronCall, lSource));
+            InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronCall, lSource));
         });
 
         // Evaluation.
@@ -429,12 +429,12 @@ describe('ChangeDetection', () => {
         it('-- Execute inside zone', () => {
             // Setup.
             const lZoneName: string = 'ZoneName';
-            const lZone: ChangeDetection = new ChangeDetection(lZoneName);
+            const lZone: InteractionZone = new InteractionZone(lZoneName);
 
             // Process.
             let lZoneNameResult: string | null = null;
             lZone.execute(() => {
-                lZoneNameResult = ChangeDetection.current.name;
+                lZoneNameResult = InteractionZone.current.name;
             });
 
             // Evaluation.
@@ -443,7 +443,7 @@ describe('ChangeDetection', () => {
 
         it('-- Execute inside zone with parameter', () => {
             // Setup.
-            const lZone: ChangeDetection = new ChangeDetection('Name');
+            const lZone: InteractionZone = new InteractionZone('Name');
             const lExecutionResult: string = 'ExecutionResult';
 
             // Process.
@@ -458,7 +458,7 @@ describe('ChangeDetection', () => {
         it('-- Execute inside zone with error', () => {
             // Setup.
             const lZoneName: string = 'ZoneName';
-            const lZone: ChangeDetection = new ChangeDetection(lZoneName);
+            const lZone: InteractionZone = new InteractionZone(lZoneName);
             const lError: string = 'ErrorName';
 
             // Process.
@@ -466,7 +466,7 @@ describe('ChangeDetection', () => {
             let lErrorResult: string | null = null;
             try {
                 lZone.execute(() => {
-                    lZoneNameResult = ChangeDetection.current.name;
+                    lZoneNameResult = InteractionZone.current.name;
                     throw lError;
                 });
             } catch (pError) {
@@ -481,21 +481,21 @@ describe('ChangeDetection', () => {
         it('-- Error inside zone, ensure correct zones', () => {
             // Setup.
             const lZoneName: string = 'ZoneName';
-            const lZone: ChangeDetection = new ChangeDetection(lZoneName);
+            const lZone: InteractionZone = new InteractionZone(lZoneName);
 
             // Process.
             let lZoneNameResultFunktion: string | null = null;
             let lZoneNameResultException: string | null = null;
-            const lZoneNameResultBefore = ChangeDetection.current.name;
+            const lZoneNameResultBefore = InteractionZone.current.name;
             try {
                 lZone.execute(() => {
-                    lZoneNameResultFunktion = ChangeDetection.current.name;
+                    lZoneNameResultFunktion = InteractionZone.current.name;
                     throw '';
                 });
             } catch (pError) {
-                lZoneNameResultException = ChangeDetection.current.name;
+                lZoneNameResultException = InteractionZone.current.name;
             }
-            const lZoneNameResultAfter = ChangeDetection.current.name;
+            const lZoneNameResultAfter = InteractionZone.current.name;
 
             // Evaluation.
             expect(lZoneNameResultBefore).to.equal('Default');
@@ -507,17 +507,17 @@ describe('ChangeDetection', () => {
         it('-- Check interaction callback', () => {
             // Setup.
             const lZoneName: string = 'ZoneName';
-            const lZone: ChangeDetection = new ChangeDetection(lZoneName);
+            const lZone: InteractionZone = new InteractionZone(lZoneName);
             const lFunction = () => { /* Empty */ };
 
             // Process.
             let lExecutedFunction: any;
-            lZone.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
+            lZone.addInteractionListener((pChangeReason: InteractionReason) => {
                 // lZoneNameResult = pZoneName; TODO: Add zone or cd identifier to reason.
                 lExecutedFunction = pChangeReason.source;
             });
             lZone.execute(() => {
-                ChangeDetection.dispatchInteractionEvent(new ChangeDetectionReason(InteractionResponseType.SyncronCall, lFunction));
+                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronCall, lFunction));
             });
 
 
@@ -531,12 +531,12 @@ describe('ChangeDetection', () => {
         it('-- Execute inside zone', () => {
             // Setup.
             const lZoneName: string = 'ZoneName';
-            const lZone: ChangeDetection = new ChangeDetection(lZoneName);
+            const lZone: InteractionZone = new InteractionZone(lZoneName);
 
             // Process.
             let lZoneNameResult: string | null = null;
             lZone.execute(() => {
-                lZoneNameResult = ChangeDetection.current.name;
+                lZoneNameResult = InteractionZone.current.name;
             });
 
             // Evaluation.
@@ -545,7 +545,7 @@ describe('ChangeDetection', () => {
 
         it('-- Execute inside zone with parameter', () => {
             // Setup.
-            const lZone: ChangeDetection = new ChangeDetection('Name');
+            const lZone: InteractionZone = new InteractionZone('Name');
             const lExecutionResult: string = 'ExecutionResult';
 
             // Process.
@@ -560,7 +560,7 @@ describe('ChangeDetection', () => {
         it('-- Execute inside zone with error', () => {
             // Setup.
             const lZoneName: string = 'ZoneName';
-            const lZone: ChangeDetection = new ChangeDetection(lZoneName);
+            const lZone: InteractionZone = new InteractionZone(lZoneName);
             const lError: string = 'ErrorName';
 
             // Process.
@@ -568,7 +568,7 @@ describe('ChangeDetection', () => {
             let lErrorResult: string | null = null;
             try {
                 lZone.execute(() => {
-                    lZoneNameResult = ChangeDetection.current.name;
+                    lZoneNameResult = InteractionZone.current.name;
                     throw lError;
                 });
             } catch (pError) {
@@ -583,21 +583,21 @@ describe('ChangeDetection', () => {
         it('-- Error inside zone, ensure correct zones', () => {
             // Setup.
             const lZoneName: string = 'ZoneName';
-            const lZone: ChangeDetection = new ChangeDetection(lZoneName);
+            const lZone: InteractionZone = new InteractionZone(lZoneName);
 
             // Process.
             let lZoneNameResultFunktion: string | null = null;
             let lZoneNameResultException: string | null = null;
-            const lZoneNameResultBefore = ChangeDetection.current.name;
+            const lZoneNameResultBefore = InteractionZone.current.name;
             try {
                 lZone.execute(() => {
-                    lZoneNameResultFunktion = ChangeDetection.current.name;
+                    lZoneNameResultFunktion = InteractionZone.current.name;
                     throw '';
                 });
             } catch (pError) {
-                lZoneNameResultException = ChangeDetection.current.name;
+                lZoneNameResultException = InteractionZone.current.name;
             }
-            const lZoneNameResultAfter = ChangeDetection.current.name;
+            const lZoneNameResultAfter = InteractionZone.current.name;
 
             // Evaluation.
             expect(lZoneNameResultBefore).to.equal('Default');
@@ -608,7 +608,7 @@ describe('ChangeDetection', () => {
 
         it('-- Check interaction callback', () => {
             // Setup.
-            const lZone: ChangeDetection = new ChangeDetection('ZoneName');
+            const lZone: InteractionZone = new InteractionZone('ZoneName');
 
             // Process.
             let lInteractionCallbackCalled: boolean = false;
@@ -625,13 +625,13 @@ describe('ChangeDetection', () => {
     it('Functionality: Zone error handling', () => {
         it('-- Zone sync uncatched error report', () => {
             // Setup.
-            const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
+            const lInteractionZone: InteractionZone = new InteractionZone('Name');
             const lError: string = 'ERROR-MESSAGE';
 
             // Process. Set error listener.
             let lErrorListenerCalled: boolean = false;
             let lErrorResult: string | null = null;
-            lChangeDetection.addErrorListener((pError: string) => {
+            lInteractionZone.addErrorListener((pError: string) => {
                 lErrorListenerCalled = true;
                 lErrorResult = pError;
             });
@@ -639,7 +639,7 @@ describe('ChangeDetection', () => {
             // Process. Throw error in zone.
             let lErrorCatched: string | null = null;
             try {
-                lChangeDetection.execute(() => {
+                lInteractionZone.execute(() => {
                     throw lError;
                 });
             } catch (pError) {
@@ -659,7 +659,7 @@ describe('ChangeDetection', () => {
 
         it('-- Zone async uncatched error report', async () => {
             // Setup.
-            const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
+            const lInteractionZone: InteractionZone = new InteractionZone('Name');
             const lError: string = 'ERROR-MESSAGE';
 
             // Process. Set error listener.
@@ -668,14 +668,14 @@ describe('ChangeDetection', () => {
 
             // Async assertion
             await new Promise<void>((pResolve) => {
-                lChangeDetection.addErrorListener((pError: string) => {
+                lInteractionZone.addErrorListener((pError: string) => {
                     lErrorListenerCalled = true;
                     lErrorResult = pError;
                     pResolve();
                 });
 
                 let lPromise: Promise<void> | null = null;
-                lChangeDetection.execute(() => {
+                lInteractionZone.execute(() => {
                     lPromise = new Promise<void>(() => {
                         throw lError;
                     });
@@ -694,7 +694,7 @@ describe('ChangeDetection', () => {
 
         it('-- Zone async uncatched rejection report', async () => {
             // Setup.
-            const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
+            const lInteractionZone: InteractionZone = new InteractionZone('Name');
             const lError: string = 'ERROR-MESSAGE';
 
             // Process. Set error listener.
@@ -703,14 +703,14 @@ describe('ChangeDetection', () => {
 
             // Async assertion
             await new Promise<void>((pResolve) => {
-                lChangeDetection.addErrorListener((pError: string) => {
+                lInteractionZone.addErrorListener((pError: string) => {
                     lErrorListenerCalled = true;
                     lErrorResult = pError;
                     pResolve();
                 });
 
                 let lPromise: Promise<void> | null = null;
-                lChangeDetection.execute(() => {
+                lInteractionZone.execute(() => {
                     lPromise = new Promise<void>((_pResolve, pReject) => {
                         pReject(lError);
                     });
@@ -729,11 +729,11 @@ describe('ChangeDetection', () => {
 
         it('-- Zone sync uncatched rejection prevent default', async () => {
             // Setup.
-            const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
+            const lInteractionZone: InteractionZone = new InteractionZone('Name');
             const lError: string = 'ERROR-MESSAGE';
 
             // Setup. Set error listener.
-            lChangeDetection.addErrorListener((_pError: string) => {
+            lInteractionZone.addErrorListener((_pError: string) => {
                 return false;
             });
 
@@ -746,7 +746,7 @@ describe('ChangeDetection', () => {
 
             // Process. Throw error inside change detection zone.
             try {
-                lChangeDetection.execute(() => {
+                lInteractionZone.execute(() => {
                     throw lError;
                 });
             } catch (pError) {
@@ -766,11 +766,11 @@ describe('ChangeDetection', () => {
 
         it('-- Sync uncatched error outside zone', () => {
             // Setup.
-            const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
+            const lInteractionZone: InteractionZone = new InteractionZone('Name');
 
             // Process. Set error listener.
             let lErrorListenerCalled: boolean = false;
-            lChangeDetection.addErrorListener((_pError: string) => {
+            lInteractionZone.addErrorListener((_pError: string) => {
                 lErrorListenerCalled = true;
             });
 
@@ -791,17 +791,17 @@ describe('ChangeDetection', () => {
 
         it('-- Parent Zone sync uncatched error report', () => {
             // Setup.
-            const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
-            let lChildChangeDetection: ChangeDetection;
-            lChangeDetection.execute(() => {
-                lChildChangeDetection = new ChangeDetection('Child');
+            const lInteractionZone: InteractionZone = new InteractionZone('Name');
+            let lChildInteractionZone: InteractionZone;
+            lInteractionZone.execute(() => {
+                lChildInteractionZone = new InteractionZone('Child');
             });
             const lError: string = 'ERROR-MESSAGE';
 
             // Process. Set error listener.
             let lErrorListenerCalled: boolean = false;
             let lErrorResult: string | null = null;
-            lChangeDetection.addErrorListener((pError: string) => {
+            lInteractionZone.addErrorListener((pError: string) => {
                 lErrorListenerCalled = true;
                 lErrorResult = pError;
             });
@@ -809,7 +809,7 @@ describe('ChangeDetection', () => {
             // Process. Throw error in zone.
             let lErrorCatched: string | null = null;
             try {
-                lChildChangeDetection!.execute(() => {
+                lChildInteractionZone!.execute(() => {
                     throw lError;
                 });
             } catch (pError) {
@@ -829,21 +829,21 @@ describe('ChangeDetection', () => {
 
         it('-- Continue detection after error', () => {
             // Setup.
-            const lChangeDetection: ChangeDetection = new ChangeDetection('Name');
+            const lInteractionZone: InteractionZone = new InteractionZone('Name');
             const lEventTarget: EventTarget = new EventTarget();
 
             // Process. Track object.
-            const lTrackedEventTarget: EventTarget = lChangeDetection.registerObject(lEventTarget);
+            const lTrackedEventTarget: EventTarget = lInteractionZone.registerObject(lEventTarget);
 
             // Process. Track change event.
             let lChangeEventCalled: boolean = false;
-            lChangeDetection.addInteractionListener(() => {
+            lInteractionZone.addInteractionListener(() => {
                 lChangeEventCalled = true;
             });
 
             // Process. Trow error.
             try {
-                lChangeDetection.execute(() => {
+                lInteractionZone.execute(() => {
                     throw '';
                 });
             } catch (_pError) { /* Empty */ }

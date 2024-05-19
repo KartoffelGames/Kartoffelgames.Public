@@ -1,5 +1,5 @@
-import { ChangeDetection } from '../change-detection';
-import { ChangeDetectionReason } from '../change-detection-reason';
+import { InteractionZone } from '../interaction-zone';
+import { InteractionReason } from '../interaction-reason';
 import { InteractionResponseType } from '../enum/interaction-response-type.enum';
 import { Patcher } from '../execution_zone/patcher/patcher';
 
@@ -20,7 +20,7 @@ export class InteractionDetectionProxy<T extends object> {
     /**
      * Get original object from InteractionDetectionProxy-Proxy.
      * 
-     * @param pProxy - Possible ChangeDetectionProxy object.
+     * @param pProxy - Possible InteractionDetectionProxy object.
      */
     private static getOriginal<TValue extends object>(pProxy: TValue): TValue {
         return <TValue>InteractionDetectionProxy.PROXY_TO_ORIGINAL_MAPPING.get(pProxy) ?? pProxy;
@@ -40,7 +40,7 @@ export class InteractionDetectionProxy<T extends object> {
         return <InteractionDetectionProxy<TValue> | undefined>InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.get(lOriginal);
     }
 
-    private readonly mAllreadySendChangeReasons!: WeakSet<ChangeDetectionReason>;
+    private readonly mAllreadySendChangeReasons!: WeakSet<InteractionReason>;
     private readonly mProxyObject!: T;
 
     /**
@@ -64,7 +64,7 @@ export class InteractionDetectionProxy<T extends object> {
         }
 
         // Initialize values.
-        this.mAllreadySendChangeReasons = new WeakSet<ChangeDetectionReason>();
+        this.mAllreadySendChangeReasons = new WeakSet<InteractionReason>();
 
         // Create new proxy object.
         this.mProxyObject = this.createProxyObject(pTarget);
@@ -85,7 +85,7 @@ export class InteractionDetectionProxy<T extends object> {
     }
 
     /**
-     * Create change detection proxy from object.
+     * Create interaction detection proxy from object.
      * 
      * @param pTarget - Target object.
      */
@@ -105,7 +105,7 @@ export class InteractionDetectionProxy<T extends object> {
                 const lResult: boolean = Reflect.set(pTargetObject, pPropertyName, pNewPropertyValue);
 
                 // Call change event with synchron property change type.
-                this.dispatchChangeEvent(new ChangeDetectionReason(InteractionResponseType.SyncronProperty, pTargetObject, pPropertyName));
+                this.dispatchChangeEvent(new InteractionReason(InteractionResponseType.SyncronProperty, pTargetObject, pPropertyName));
 
                 return lResult;
             },
@@ -143,7 +143,7 @@ export class InteractionDetectionProxy<T extends object> {
                 const lPropertyExisted: boolean = Reflect.deleteProperty(pTargetObject, pPropertyName);
 
                 // Call change event with synchron property change type.
-                this.dispatchChangeEvent(new ChangeDetectionReason(InteractionResponseType.SyncronProperty, pTargetObject, pPropertyName));
+                this.dispatchChangeEvent(new InteractionReason(InteractionResponseType.SyncronProperty, pTargetObject, pPropertyName));
 
                 // Passthrough original remove result.
                 return lPropertyExisted;
@@ -173,7 +173,7 @@ export class InteractionDetectionProxy<T extends object> {
                     lFunctionResult = (<CallableObject>pTargetObject).call(lOriginalThisObject, ...pArgumentsList);
                 } finally {
                     // Dispatch change event before exception passthrough.
-                    this.dispatchChangeEvent(new ChangeDetectionReason(InteractionResponseType.SyncronCall, pTargetObject));
+                    this.dispatchChangeEvent(new InteractionReason(InteractionResponseType.SyncronCall, pTargetObject));
                 }
 
                 // Result is not a promise or a patches promise. So nothing needs to be overridden.
@@ -213,7 +213,7 @@ export class InteractionDetectionProxy<T extends object> {
     /**
      * Trigger change event.
      */
-    private dispatchChangeEvent(pChangeReason: ChangeDetectionReason) {
+    private dispatchChangeEvent(pChangeReason: InteractionReason) {
         // Prevents the same change reason be dispatched over and over again.
         // Happens when a event target is triggered by a change reason.
         if (this.mAllreadySendChangeReasons.has(pChangeReason)) {
@@ -222,8 +222,8 @@ export class InteractionDetectionProxy<T extends object> {
 
         this.mAllreadySendChangeReasons.add(pChangeReason);
 
-        // Only trigger if current change detection is not silent.
-        ChangeDetection.dispatchInteractionEvent(pChangeReason);
+        // Trigger current interaction zone.
+        InteractionZone.dispatchInteractionEvent(pChangeReason);
     }
 }
 

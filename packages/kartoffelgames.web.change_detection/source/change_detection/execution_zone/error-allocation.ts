@@ -1,28 +1,29 @@
-import { ChangeDetection } from '../change-detection';
+import { InteractionZone } from '../interaction-zone';
 
 /**
- * Allocates current error to its change detection zone.
+ * Allocates current error to its interaction zone.
  */
 export class ErrorAllocation {
     private static mError: any;
-    private static mZone: ChangeDetection;
+    private static mZone: InteractionZone;
 
     /**
      * Allocate error with execution zone.
+     * 
      * @param pError - Error data.
      * @param pZone - Zone of error.
      */
-    public static allocateError(pError: any, pZone: ChangeDetection): void {
+    public static allocateError(pError: any, pZone: InteractionZone): void {
         ErrorAllocation.mZone = pZone;
         ErrorAllocation.mError = pError;
     }
 
     /**
-     * Get changed detection zone of error.
+     * Get interaction zone of error.
      * 
      * @param pError - Error.
      */
-    public static getChangeDetectionOfError(pError: any): ChangeDetection | null {
+    public static getInteractionZone(pError: any): InteractionZone | null {
         if (pError === ErrorAllocation.mError) {
             return ErrorAllocation.mZone;
         }

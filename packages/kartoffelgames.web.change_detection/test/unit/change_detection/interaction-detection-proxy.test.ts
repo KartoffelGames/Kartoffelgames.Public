@@ -1,8 +1,8 @@
 import '../../mock/request-animation-frame-mock-session';
 import { expect } from 'chai';
 import { InteractionDetectionProxy } from '../../../source/change_detection/synchron_tracker/interaction-detection-proxy';
-import { ChangeDetection } from '../../../source/change_detection/change-detection';
-import { ChangeDetectionReason } from '../../../source/change_detection/change-detection-reason';
+import { InteractionZone } from '../../../source/change_detection/interaction-zone';
+import { InteractionReason } from '../../../source/change_detection/interaction-reason';
 
 describe('InteractionDetectionProxy', () => {
     it('Property: proxy', () => {
@@ -21,18 +21,18 @@ describe('InteractionDetectionProxy', () => {
         // Setup.
         const lOriginalObject: { a: number; } = { a: 1 };
         const lDetectionProxy: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
-        const lChangeDetection: ChangeDetection = new ChangeDetection('CD');
+        const lInteractionZone: InteractionZone = new InteractionZone('CD');
 
-        // Setup. ChangeDetection.
+        // Setup. InteractionZone.
         let lPropertyChanged: boolean = false;
-        lChangeDetection.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
+        lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
             if (pChangeReason.property === 'a') {
                 lPropertyChanged = true;
             }
         });
 
         // Process.
-        lChangeDetection.execute(() => {
+        lInteractionZone.execute(() => {
             lDetectionProxy.proxy.a = 22;
         });
 
@@ -40,22 +40,22 @@ describe('InteractionDetectionProxy', () => {
         expect(lPropertyChanged).to.be.true;
     });
 
-    describe('Functionality: ChangeDetection', () => {
+    describe('Functionality: InteractionZone', () => {
         it('-- Double initialization', () => {
             // Setup.
             const lOriginalObject: object = {};
 
             // Process. First Proxy
-            const lFirstChangeDetection: InteractionDetectionProxy<object> = new InteractionDetectionProxy(lOriginalObject);
-            const lFirstProxy: object = lFirstChangeDetection.proxy;
+            const lFirstInteractionZone: InteractionDetectionProxy<object> = new InteractionDetectionProxy(lOriginalObject);
+            const lFirstProxy: object = lFirstInteractionZone.proxy;
 
             // Process. First Proxy
-            const lSecondChangeDetection: InteractionDetectionProxy<object> = new InteractionDetectionProxy(lFirstProxy);
-            const lSecondProxy: object = lSecondChangeDetection.proxy;
+            const lSecondInteractionZone: InteractionDetectionProxy<object> = new InteractionDetectionProxy(lFirstProxy);
+            const lSecondProxy: object = lSecondInteractionZone.proxy;
 
             // Evaluation.
             expect(lFirstProxy).to.equal(lSecondProxy);
-            expect(lFirstChangeDetection).to.equal(lSecondChangeDetection);
+            expect(lFirstInteractionZone).to.equal(lSecondInteractionZone);
         });
 
         describe('-- SET', () => {
@@ -89,18 +89,18 @@ describe('InteractionDetectionProxy', () => {
                 // Setup.
                 const lOriginalObject: { a: number; } = { a: 1 };
                 const lDetectionProxy: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
-                const lChangeDetection: ChangeDetection = new ChangeDetection('CD');
+                const lInteractionZone: InteractionZone = new InteractionZone('CD');
 
-                // Setup. ChangeDetection.
+                // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
+                lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
                     if (pChangeReason.property === 'a') {
                         lPropertyChanged = true;
                     }
                 });
 
                 // Process.
-                lChangeDetection.execute(() => {
+                lInteractionZone.execute(() => {
                     lDetectionProxy.proxy.a = 22;
                 });
 
@@ -117,18 +117,18 @@ describe('InteractionDetectionProxy', () => {
                     }
                 };
                 const lDetectionProxy: InteractionDetectionProxy<any> = new InteractionDetectionProxy(lOriginalObject);
-                const lChangeDetection: ChangeDetection = new ChangeDetection('CD');
+                const lInteractionZone: InteractionZone = new InteractionZone('CD');
 
-                // Setup. ChangeDetection.
+                // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addErrorListener((pChangeReason: ChangeDetectionReason) => {
+                lInteractionZone.addErrorListener((pChangeReason: InteractionReason) => {
                     if (pChangeReason.property === 'a') {
                         lPropertyChanged = true;
                     }
                 });
 
                 // Process.
-                lChangeDetection.execute(() => {
+                lInteractionZone.execute(() => {
                     lDetectionProxy.proxy.fun().a = lNewValue;
                 });
 
@@ -148,18 +148,18 @@ describe('InteractionDetectionProxy', () => {
                     }
                 };
                 const lDetectionProxy: InteractionDetectionProxy<any> = new InteractionDetectionProxy(lOriginalObject);
-                const lChangeDetection: ChangeDetection = new ChangeDetection('CD');
+                const lInteractionZone: InteractionZone = new InteractionZone('CD');
 
-                // Setup. ChangeDetection.
+                // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
+                lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
                     if (pChangeReason.property === 'a') {
                         lPropertyChanged = true;
                     }
                 });
 
                 // Process.
-                lChangeDetection.execute(() => {
+                lInteractionZone.execute(() => {
                     lDetectionProxy.proxy.fun()().a = lNewValue;
                 });
 
@@ -211,22 +211,22 @@ describe('InteractionDetectionProxy', () => {
                 expect(lResultValue.name).to.equal(lValue.name);
             });
 
-            it('-- Layered change detection', () => {
+            it('-- Layered interaction detection', () => {
                 // Setup.
                 const lOriginalObject: { a: { b: number; }; } = { a: { b: 1 } };
                 const lDetectionProxy: InteractionDetectionProxy<{ a: { b: number; }; }> = new InteractionDetectionProxy(lOriginalObject);
-                const lChangeDetection: ChangeDetection = new ChangeDetection('CD');
+                const lInteractionZone: InteractionZone = new InteractionZone('CD');
 
-                // Setup. ChangeDetection.
+                // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
+                lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
                     if (pChangeReason.property === 'b') {
                         lPropertyChanged = true;
                     }
                 });
 
                 // Process.
-                lChangeDetection.execute(() => {
+                lInteractionZone.execute(() => {
                     lDetectionProxy.proxy.a.b = 22;
                 });
 
@@ -252,18 +252,18 @@ describe('InteractionDetectionProxy', () => {
                 // Setup.
                 const lOriginalObject: { a?: number; } = { a: 1 };
                 const lDetectionProxy: InteractionDetectionProxy<{ a?: number; }> = new InteractionDetectionProxy(lOriginalObject);
-                const lChangeDetection: ChangeDetection = new ChangeDetection('CD');
+                const lInteractionZone: InteractionZone = new InteractionZone('CD');
 
-                // Setup. ChangeDetection.
+                // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
+                lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
                     if (pChangeReason.property === 'a') {
                         lPropertyChanged = true;
                     }
                 });
 
                 // Process.
-                lChangeDetection.execute(() => {
+                lInteractionZone.execute(() => {
                     delete lDetectionProxy.proxy.a;
                 });
 
@@ -291,18 +291,18 @@ describe('InteractionDetectionProxy', () => {
                 const lFunction: (pValue: number) => number = (pValue: number) => { return pValue; };
                 const lDetectionProxy: InteractionDetectionProxy<(pValue: number) => number> = new InteractionDetectionProxy(lFunction);
                 const lProxy: (pValue: number) => number = lDetectionProxy.proxy;
-                const lChangeDetection: ChangeDetection = new ChangeDetection('CD');
+                const lInteractionZone: InteractionZone = new InteractionZone('CD');
 
-                // Setup. ChangeDetection.
+                // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
+                lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
                     if (pChangeReason.source === lFunction) {
                         lPropertyChanged = true;
                     }
                 });
 
                 // Process
-                lChangeDetection.execute(() => {
+                lInteractionZone.execute(() => {
                     lProxy(22);
                 });
 
@@ -333,11 +333,11 @@ describe('InteractionDetectionProxy', () => {
                 const lFunction: () => number = () => { throw 22; };
                 const lDetectionProxy: InteractionDetectionProxy<() => number> = new InteractionDetectionProxy(lFunction);
                 const lProxy: () => number = lDetectionProxy.proxy;
-                const lChangeDetection: ChangeDetection = new ChangeDetection('CD');
+                const lInteractionZone: InteractionZone = new InteractionZone('CD');
 
-                // Setup. ChangeDetection.
+                // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
+                lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
                     if (pChangeReason.source === lFunction) {
                         lPropertyChanged = true;
                     }
@@ -345,7 +345,7 @@ describe('InteractionDetectionProxy', () => {
 
                 // Process
                 try {
-                    lChangeDetection.execute(() => {
+                    lInteractionZone.execute(() => {
                         lProxy();
                     });
                 } catch (e) {/* Empty */ }
@@ -372,18 +372,18 @@ describe('InteractionDetectionProxy', () => {
                 const lFunction: (pValue: number) => Promise<number> = async (pValue: number) => { return pValue; };
                 const lDetectionProxy: InteractionDetectionProxy<(pValue: number) => Promise<number>> = new InteractionDetectionProxy(lFunction);
                 const lProxy: (pValue: number) => Promise<number> = lDetectionProxy.proxy;
-                const lChangeDetection: ChangeDetection = new ChangeDetection('CD');
+                const lInteractionZone: InteractionZone = new InteractionZone('CD');
 
-                // Setup. ChangeDetection.
+                // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
+                lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
                     if (pChangeReason.source === lFunction) {
                         lPropertyChanged = true;
                     }
                 });
 
                 // Process
-                await lChangeDetection.execute(async () => {
+                await lInteractionZone.execute(async () => {
                     return lProxy(22);
                 });
 
@@ -410,18 +410,18 @@ describe('InteractionDetectionProxy', () => {
                 const lFunction: () => Promise<number> = async () => { throw 22; };
                 const lDetectionProxy: InteractionDetectionProxy<() => Promise<number>> = new InteractionDetectionProxy(lFunction);
                 const lProxy: () => Promise<number> = lDetectionProxy.proxy;
-                const lChangeDetection: ChangeDetection = new ChangeDetection('CD');
+                const lInteractionZone: InteractionZone = new InteractionZone('CD');
 
-                // Setup. ChangeDetection.
+                // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
-                lChangeDetection.addInteractionListener((pChangeReason: ChangeDetectionReason) => {
+                lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
                     if (pChangeReason.source === lFunction) {
                         lPropertyChanged = true;
                     }
                 });
 
                 // Process
-                await lChangeDetection.execute(async () => {
+                await lInteractionZone.execute(async () => {
                     return lProxy().catch((_pError) => { /* Empty */ });
                 });
 

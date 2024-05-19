@@ -830,28 +830,156 @@ describe('InteractionZone', () => {
         });
 
         it('-- DetectionCatchType.SyncronCall', () => {
-            // TODO:
+            // Setup.
+            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronEvent });
+            const lFunction: () => void = InteractionZone.registerObject(() => { });
+
+            // Process.
+            let lResponeType: InteractionResponseType = InteractionResponseType.None;
+            lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
+                lResponeType |= pReason.interactionType;
+            });
+            lInteractionZone.execute(() => {
+                lFunction();
+            });
+
+            // Evaluation.
+            expect(lResponeType).to.be.equal(InteractionResponseType.SyncronCall);
         });
 
         it('-- DetectionCatchType.SyncronProperty', () => {
-            // TODO:
+            // Setup.
+            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronEvent });
+            const lObject: { a: number; } = InteractionZone.registerObject({ a: 0 });
+
+            // Process.
+            let lResponeType: InteractionResponseType = InteractionResponseType.None;
+            lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
+                lResponeType |= pReason.interactionType;
+            });
+            lInteractionZone.execute(() => {
+                lObject.a = 2;
+            });
+
+            // Evaluation.
+            expect(lResponeType).to.be.equal(InteractionResponseType.SyncronProperty);
         });
 
         it('-- DetectionCatchType.Syncron', () => {
-            // TODO:
+            // Setup.
+            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronEvent });
+            const lObject: { a: number; } = InteractionZone.registerObject({ a: 0 });
+            const lFunction: () => void = InteractionZone.registerObject(() => { });
+
+            // Process.
+            let lResponeType: InteractionResponseType = InteractionResponseType.None;
+            lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
+                lResponeType |= pReason.interactionType;
+            });
+            lInteractionZone.execute(() => {
+                lObject.a = 2;
+                lFunction();
+            });
+
+            // Evaluation.
+            expect(lResponeType).to.be.equal(InteractionResponseType.Syncron);
         });
 
-        it('-- DetectionCatchType.AsnychronPromise', () => {
-            // TODO:
+        describe('-- DetectionCatchType.AsnychronPromise', async () => {
+            it('-- Promise callback', async () => {
+                // Setup.
+                const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronEvent });
+
+                // Process.
+                let lResponeType: InteractionResponseType = InteractionResponseType.None;
+                lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
+                    lResponeType |= pReason.interactionType;
+                });
+                await lInteractionZone.execute(async () => {
+                    return new Promise<void>((pResolve) => {
+                        pResolve();
+                    });
+                });
+
+                // Evaluation.
+                expect(lResponeType).to.be.equal(InteractionResponseType.AsnychronPromise);
+            });
+
+            it('-- Promise then', async () => {
+                // Setup.
+                const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronEvent });
+                const lPromise: Promise<void> = new Promise<void>((pResolve) => { pResolve(); });
+
+                // Process.
+                let lResponeType: InteractionResponseType = InteractionResponseType.None;
+                lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
+                    lResponeType |= pReason.interactionType;
+                });
+                await lInteractionZone.execute(async () => {
+                    return lPromise.then(() => { /* Empty */ });
+                });
+
+                // Evaluation.
+                expect(lResponeType).to.be.equal(InteractionResponseType.AsnychronPromise);
+            });
+
+            it('-- Promise catch', async () => {
+                // Setup.
+                const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronEvent });
+                const lPromise: Promise<void> = new Promise<void>((_pResolve, pReject) => { pReject(); });
+
+                // Process.
+                let lResponeType: InteractionResponseType = InteractionResponseType.None;
+                lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
+                    lResponeType |= pReason.interactionType;
+                });
+                await lInteractionZone.execute(async () => {
+                    return lPromise.catch(() => { /* Empty */ });
+                });
+
+                // Evaluation.
+                expect(lResponeType).to.be.equal(InteractionResponseType.AsnychronPromise);
+            });
+
+            it('-- Negative', async () => {
+                // Setup.
+                const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronEvent });
+
+                // Process.
+                let lResponeType: InteractionResponseType = InteractionResponseType.None;
+                lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
+                    lResponeType |= pReason.interactionType;
+                });
+                await lInteractionZone.execute(async () => { });
+
+                // Evaluation.
+                expect(lResponeType).to.be.equal(InteractionResponseType.None);
+            });
         });
 
-        it('-- DetectionCatchType.AsnychronCallback', () => {
-            // TODO:
+        it('-- DetectionCatchType.AsnychronCallback', async () => {
+            // Setup.
+            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronEvent });
+
+            // Process.
+            let lResponeType: InteractionResponseType = InteractionResponseType.None;
+            lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
+                lResponeType |= pReason.interactionType;
+            });
+            await lInteractionZone.execute(async () => {
+                return new Promise<void>((pResolve) => {
+                    globalThis.setTimeout(() => { pResolve(); }, 10);
+                });
+            });
+
+            // Evaluation. Filter Promise async flags.
+            expect(lResponeType & InteractionResponseType.AsnychronCallback).to.be.equal(InteractionResponseType.AsnychronCallback);
         });
 
         it('-- DetectionCatchType.AsnychronEvent', () => {
             // Setup.
             const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronEvent });
+            const lEventTarget: EventTarget = new EventTarget();
 
             // Process.
             let lResponeType: InteractionResponseType | null = null;
@@ -859,20 +987,73 @@ describe('InteractionZone', () => {
                 lResponeType = pReason.interactionType;
             });
             lInteractionZone.execute(() => {
-                const lEventTarget: EventTarget = new EventTarget();
-                lEventTarget.dispatchEvent(new Event('click'));
+                lEventTarget.addEventListener('click', () => { /* This should be called. */ });
             });
+
+            lEventTarget.dispatchEvent(new Event('click'));
 
             // Evaluation.
             expect(lResponeType).to.be.equal(InteractionResponseType.AsnychronEvent);
         });
 
-        it('-- DetectionCatchType.Asnychron', () => {
-            // TODO:
+        it('-- DetectionCatchType.Asnychron', async () => {
+            // Setup.
+            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronEvent });
+            const lEventTarget: EventTarget = new EventTarget();
+
+            // Process.
+            let lResponeType: InteractionResponseType = InteractionResponseType.None;
+            lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
+                lResponeType |= pReason.interactionType;
+            });
+            await lInteractionZone.execute(async () => {
+                // AsnychronEvent calls.
+                lEventTarget.addEventListener('click', () => { /* This should be called. */ });
+
+                // Promise and async callback
+                return new Promise<void>((pResolve) => {
+                    globalThis.setTimeout(() => { pResolve(); }, 10);
+                });
+            });
+
+            lEventTarget.dispatchEvent(new Event('click'));
+
+            // Evaluation. Filter Promise async flags.
+            expect(lResponeType).to.be.equal(InteractionResponseType.Asnychron);
         });
 
-        it('-- DetectionCatchType.Any', () => {
-            // TODO:
+        it('-- DetectionCatchType.Any', async () => {
+            // Setup.
+            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronEvent });
+            const lEventTarget: EventTarget = new EventTarget();
+            const lObject: { a: number; } = InteractionZone.registerObject({ a: 0 });
+            const lFunction: () => void = InteractionZone.registerObject(() => { });
+
+            // Process. Async
+            let lResponeType: InteractionResponseType = InteractionResponseType.None;
+            lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
+                lResponeType |= pReason.interactionType;
+            });
+            await lInteractionZone.execute(async () => {
+                // AsnychronEvent calls.
+                lEventTarget.addEventListener('click', () => { /* This should be called. */ });
+
+                // Promise and async callback
+                return new Promise<void>((pResolve) => {
+                    globalThis.setTimeout(() => { pResolve(); }, 10);
+                });
+            });
+
+            lEventTarget.dispatchEvent(new Event('click'));
+
+            // Process. Sync
+            lInteractionZone.execute(() => {
+                lObject.a = 2;
+                lFunction();
+            });
+
+            // Evaluation. Filter Promise async flags.
+            expect(lResponeType).to.be.equal(InteractionResponseType.Asnychron);
         });
 
         it('-- Negative', () => {

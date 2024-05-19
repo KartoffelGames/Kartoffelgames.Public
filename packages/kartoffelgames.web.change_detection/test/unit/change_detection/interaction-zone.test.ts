@@ -298,56 +298,6 @@ describe('InteractionZone', () => {
         });
     });
 
-    it('Method: removeChangeListener', () => {
-        // Setup.
-        const lInteractionZone: InteractionZone = new InteractionZone('Name');
-
-        // Process. Add and remove listener.
-        let lListenerCalled: boolean = false;
-        const lListener = () => {
-            lListenerCalled = true;
-        };
-        lInteractionZone.addInteractionListener(lListener);
-        lInteractionZone.removeChangeListener(lListener);
-
-        // Process. Call listener.
-        lInteractionZone.execute(() => {
-            InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronProperty, new Object()));
-        });
-
-        // Evaluation.
-        expect(lListenerCalled).to.be.false;
-    });
-
-    it('Method: removeErrorListener', () => {
-        // Setup.
-        const lInteractionZone: InteractionZone = new InteractionZone('Name');
-
-        // Process. Add and remove listener.
-        let lListenerCalled: boolean = false;
-        const lListener = () => {
-            lListenerCalled = true;
-        };
-        lInteractionZone.addErrorListener(lListener);
-        lInteractionZone.removeErrorListener(lListener);
-
-        // Process. Throw error inside change detection zone.
-        try {
-            lInteractionZone.execute(() => {
-                throw 11;
-            });
-        } catch (pError) {
-            const lError: number = <number>pError;
-            window.dispatchEvent(new ErrorEvent('error', {
-                error: lError,
-                message: lError.toString(),
-            }));
-        }
-
-        // Evaluation.
-        expect(lListenerCalled).to.be.false;
-    });
-
     it('Static Property: current', () => {
         // Process.
         const lCurrentZone: InteractionZone = InteractionZone.current;

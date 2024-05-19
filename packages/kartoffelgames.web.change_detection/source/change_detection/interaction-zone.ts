@@ -188,22 +188,6 @@ export class InteractionZone implements IDeconstructable {
     }
 
     /**
-     * Remove change event listener from change detection.
-     * @param pListener - Listener.
-     */
-    public removeChangeListener(pListener: ChangeListener): void {
-        this.mChangeListenerList.remove(pListener);
-    }
-
-    /**
-     * Remove error event listener from error detection.
-     * @param pListener - Listener.
-     */
-    public removeErrorListener(pListener: ErrorListener): void {
-        this.mErrorListenerList.remove(pListener);
-    }
-
-    /**
      * Call all error listener.
      * When any of the listener has false as result this method returns also false.
      * 

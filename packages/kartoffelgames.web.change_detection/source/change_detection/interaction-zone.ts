@@ -61,6 +61,17 @@ export class InteractionZone {
         InteractionZone.current.callInteractionListener(pInteractionReason);
     }
 
+    /**
+     * Register an object for interaction detection.
+     * Returns proxy object that should be used to track changes.
+     * 
+     * @param pObject - Object or function.
+     */
+    public static registerObject<T extends object>(pObject: T): T {
+        // Create interaction proxy.
+        return new InteractionDetectionProxy(pObject).proxy;
+    }
+
     private readonly mAllreadySendReasons: WeakSet<InteractionReason>;
     private readonly mChangeListenerList: List<ChangeListener>;
     private readonly mErrorListenerList: List<ErrorListener>;
@@ -159,22 +170,6 @@ export class InteractionZone {
         }
 
         return lResult;
-    }
-
-    /**
-     * Register an object for interaction detection.
-     * Returns proxy object that should be used to track changes.
-     * 
-     * @param pObject - Object or function.
-     */
-    public registerObject<T extends object>(pObject: T): T {
-        // Get change trigger on all events.
-        if (pObject instanceof EventTarget) {
-            Patcher.patchObject(pObject, this);
-        }
-
-        // Create interaction proxy.
-        return new InteractionDetectionProxy(pObject).proxy;
     }
 
     /**

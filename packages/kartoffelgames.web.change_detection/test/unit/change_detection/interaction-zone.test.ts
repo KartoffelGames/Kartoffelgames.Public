@@ -257,7 +257,7 @@ describe('InteractionZone', () => {
             const lEventTarget: EventTarget = new EventTarget();
 
             // Process. Track object.
-            const lTrackedEventTarget: EventTarget = lInteractionZone.registerObject(lEventTarget);
+            const lTrackedEventTarget: EventTarget = InteractionZone.registerObject(lEventTarget);
 
             // Process. Track change event.
             let lChangeEventCalled: boolean = false;
@@ -280,7 +280,7 @@ describe('InteractionZone', () => {
             const lOriginalObject: { a: number; } = { a: 1 };
 
             // Process. Track object.
-            const lTrackedEventTarget: { a: number; } = lInteractionZone.registerObject(lOriginalObject);
+            const lTrackedEventTarget: { a: number; } = InteractionZone.registerObject(lOriginalObject);
 
             // Process. Track change event.
             let lChangeEventCalled: boolean = false;
@@ -787,7 +787,7 @@ describe('InteractionZone', () => {
             const lEventTarget: EventTarget = new EventTarget();
 
             // Process. Track object.
-            const lTrackedEventTarget: EventTarget = lInteractionZone.registerObject(lEventTarget);
+            const lTrackedEventTarget: EventTarget = InteractionZone.registerObject(lEventTarget);
 
             // Process. Track change event.
             let lChangeEventCalled: boolean = false;

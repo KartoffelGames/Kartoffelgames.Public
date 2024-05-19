@@ -1,4 +1,5 @@
 import { InteractionResponseType } from './enum/interaction-response-type.enum';
+import { InteractionZone } from './interaction-zone';
 
 /**
  * Interaction reason. Information of a detected interaction.
@@ -8,6 +9,7 @@ export class InteractionReason {
     private readonly mProperty: PropertyKey | undefined;
     private readonly mSource: object;
     private readonly mStackError: Error;
+    private readonly mZone: InteractionZone;
 
     /**
      * Get what type of interaction was detected.
@@ -39,6 +41,13 @@ export class InteractionReason {
     }
 
     /**
+     * Get zone of interaction.
+     */
+    public get zone(): InteractionZone {
+        return this.mZone;
+    }
+
+    /**
      * Constructor.
      * Creates a stacktrace from the point of creation.s
      * 
@@ -51,5 +60,6 @@ export class InteractionReason {
         this.mSource = pSource;
         this.mProperty = pProperty;
         this.mStackError = new Error();
+        this.mZone = InteractionZone.current;
     }
 }

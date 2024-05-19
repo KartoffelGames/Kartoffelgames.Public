@@ -462,17 +462,17 @@ describe('InteractionZone', () => {
 
             // Process.
             let lExecutedFunction: any;
+            let lZoneNameResult: string | null = null;
             lZone.addInteractionListener((pChangeReason: InteractionReason) => {
-                // lZoneNameResult = pZoneName; TODO: Add zone or cd identifier to reason.
+                lZoneNameResult = pChangeReason.zone.name;
                 lExecutedFunction = pChangeReason.source;
             });
             lZone.execute(() => {
                 InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronCall, lFunction));
             });
 
-
             // Evaluation.
-            // expect(lZoneNameResult).to.equal(lZoneName);
+            expect(lZoneNameResult).to.equal(lZoneName);
             expect(lExecutedFunction).to.equal(lFunction);
         });
     });

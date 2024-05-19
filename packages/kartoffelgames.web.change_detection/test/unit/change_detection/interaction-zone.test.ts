@@ -65,7 +65,7 @@ describe('InteractionZone', () => {
 
         it('-- No parent', () => {
             // Setup.
-            const lChildInteractionZone: InteractionZone = new InteractionZone('Name');
+            const lChildInteractionZone: InteractionZone = new InteractionZone('Name', { isolate: true });
 
             // Process.
             const lParentInteractionZone: InteractionZone | null = lChildInteractionZone.parent;
@@ -266,7 +266,9 @@ describe('InteractionZone', () => {
             });
 
             // Process. Call input event.
-            lTrackedEventTarget.dispatchEvent(new Event('input'));
+            lInteractionZone.execute(() => {
+                lTrackedEventTarget.dispatchEvent(new Event('input'));
+            });
 
             // Evaluation.
             expect(lChangeEventCalled).to.be.true;
@@ -289,7 +291,9 @@ describe('InteractionZone', () => {
             });
 
             // Process. Change detection.
-            lTrackedEventTarget.a = 2;
+            lInteractionZone.execute(() => {
+                lTrackedEventTarget.a = 2;
+            });
 
             // Evaluation.
             expect(lChangeEventCalled).to.be.true;
@@ -886,7 +890,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lResponeType).to.be.false;
+            expect(lResponeType).to.be.null;
         });
     });
 });

@@ -1,15 +1,45 @@
-import { List, IDeconstructable } from '@kartoffelgames/core.data';
+import { List } from '@kartoffelgames/core.data';
+import { InteractionResponseType } from './enum/interaction-response-type.enum';
 import { ErrorAllocation } from './execution_zone/error-allocation';
 import { Patcher } from './execution_zone/patcher/patcher';
-import { InteractionDetectionProxy } from './synchron_tracker/interaction-detection-proxy';
 import { InteractionReason } from './interaction-reason';
-import { InteractionResponseType } from './enum/interaction-response-type.enum';
+import { InteractionDetectionProxy } from './synchron_tracker/interaction-detection-proxy';
 
 /**
  * Merges execution zone and proxy tracking.
  */
-export class InteractionZone implements IDeconstructable {
+export class InteractionZone {
     private static mCurrentZone: InteractionZone | null = null;
+
+    /**
+     * Add global error listener that can sends the error to the allocated {@link InteractionZone}
+     */
+    static {
+        // Catch global error, check if allocated zone is child of this change detection and report the error. 
+        const lErrorHandler = (pErrorEvent: Event, pError: any) => {
+            // Get allocated interaction zone.
+            const lInteractionZone: InteractionZone | null = ErrorAllocation.getInteractionZone(pError);
+            if (lInteractionZone) {
+                // Suppress console error message if error should be suppressed
+                const lExecuteDefault: boolean = lInteractionZone.callErrorListener(pError);
+                if (!lExecuteDefault) {
+                    pErrorEvent.preventDefault();
+                }
+            }
+        };
+
+        // Create and register error and rejection listener. // TODO: How to prevent recursion.
+        window.addEventListener('error', (pEvent: ErrorEvent) => {
+            lErrorHandler(pEvent, pEvent.error);
+        });
+        window.addEventListener('unhandledrejection', (pEvent: PromiseRejectionEvent) => {
+            const lPromise: Promise<any> = pEvent.promise;
+            const lPromiseZone: InteractionZone = Reflect.get(lPromise, Patcher.PATCHED_PROMISE_ZONE_KEY);
+            ErrorAllocation.allocateError(pEvent.reason, lPromiseZone);
+
+            lErrorHandler(pEvent, pEvent.reason);
+        });
+    }
 
     /**
      * Current execution zone.
@@ -31,12 +61,12 @@ export class InteractionZone implements IDeconstructable {
         InteractionZone.current.callInteractionListener(pInteractionReason);
     }
 
+    private readonly mAllreadySendReasons: WeakSet<InteractionReason>;
     private readonly mChangeListenerList: List<ChangeListener>;
     private readonly mErrorListenerList: List<ErrorListener>;
     private readonly mName: string;
     private readonly mParent: InteractionZone | null;
-    private readonly mWindowErrorListener: (pEvent: ErrorEvent) => void;
-    private readonly mWindowRejectionListener: (pEvent: PromiseRejectionEvent) => void;
+    private readonly mResponseType: InteractionResponseType;
 
     /**
      * Get change detection name.
@@ -63,9 +93,13 @@ export class InteractionZone implements IDeconstructable {
      * @param pSettings - Change detection settings.
      */
     public constructor(pName: string, pSettings?: InteractionZoneConstructorSettings) {
+        // Patch for execution zone.
+        Patcher.patch(globalThis);
+
         // Initialize lists
         this.mChangeListenerList = new List<ChangeListener>();
         this.mErrorListenerList = new List<ErrorListener>();
+        this.mAllreadySendReasons = new WeakSet<InteractionReason>();
 
         // Save parent.
         if (pSettings?.isolate === true || InteractionZone.mCurrentZone === null) {
@@ -77,43 +111,8 @@ export class InteractionZone implements IDeconstructable {
         // Create new execution zone or use old one.#
         this.mName = pName;
 
-        // TODO: Create set with cd-type and only dispatch event when reason is included in cd-type set.
-
-        // Catch global error, check if allocated zone is child of this change detection and report the error. 
-        // TODO: Globalise error handler and call callErrorListener on assigned zone.
-        const lErrorHandler = (pErrorEvent: Event, pError: any) => {
-            // Get change detection
-            const lInteractionZone: InteractionZone | null = ErrorAllocation.getInteractionZone(pError);
-            if (lInteractionZone) {
-                // Check if error change detection is child of the change detection.
-                if (lInteractionZone.isChildOf(this)) {
-                    // Suppress console error message if error should be suppressed
-                    const lExecuteDefault: boolean = this.callErrorListener(pError);
-                    if (!lExecuteDefault) {
-                        pErrorEvent.preventDefault();
-                    }
-                }
-            }
-        };
-
-        // Create error and rejection listener.
-        this.mWindowErrorListener = (pEvent: ErrorEvent) => {
-            lErrorHandler(pEvent, pEvent.error);
-        };
-        this.mWindowRejectionListener = (pEvent: PromiseRejectionEvent) => {
-            const lPromise: Promise<any> = pEvent.promise;
-            const lPromiseZone: InteractionZone = Reflect.get(lPromise, Patcher.PATCHED_PROMISE_ZONE_KEY);
-            ErrorAllocation.allocateError(pEvent.reason, lPromiseZone);
-
-            lErrorHandler(pEvent, pEvent.reason);
-        };
-
-        // Register global error listener. // TODO: How to prevent recursion.
-        // window.addEventListener('error', this.mWindowErrorListener);
-        // window.addEventListener('unhandledrejection', this.mWindowRejectionListener);
-
-        // Patch for execution zone.
-        Patcher.patch(globalThis);
+        // Create bitmap of response triggers. Zone should only dispatch events when reason matches response type.
+        this.mResponseType = pSettings?.trigger ?? InteractionResponseType.Any;
     }
 
     /**
@@ -132,15 +131,6 @@ export class InteractionZone implements IDeconstructable {
      */
     public addInteractionListener(pListener: ChangeListener): void {
         this.mChangeListenerList.push(pListener);
-    }
-
-    /**
-     * Deconstruct change detection.
-     */
-    public deconstruct(): void {
-        // Register global error listener.
-        window.removeEventListener('error', this.mWindowErrorListener);
-        window.removeEventListener('unhandledrejection', this.mWindowRejectionListener);
     }
 
     /**
@@ -198,7 +188,7 @@ export class InteractionZone implements IDeconstructable {
         const lCurrentInteractionZone: InteractionZone = InteractionZone.current;
 
         // Execute all listener in event target zone.
-        const lErrorSuppressed: boolean =  lCurrentInteractionZone.execute(() => {
+        const lErrorSuppressed: boolean = lCurrentInteractionZone.execute(() => {
             let lExecuteDefault: boolean = true;
 
             // Dispatch error event.
@@ -212,7 +202,7 @@ export class InteractionZone implements IDeconstructable {
         });
 
         // Skip execution of parent when error is suppressed or zone has no parent. 
-        if(lErrorSuppressed === false || !this.mParent) {
+        if (lErrorSuppressed === false || !this.mParent) {
             return lErrorSuppressed;
         }
 
@@ -221,9 +211,17 @@ export class InteractionZone implements IDeconstructable {
     }
 
     private callInteractionListener(pInteractionReason: InteractionReason): void {
-        // TODO: Only call listener when response-types matches reason.
+        // Restrict zone to trigger the same reason more than once.
+        if (this.mAllreadySendReasons.has(pInteractionReason)) {
+            return;
+        }
 
-        // TODO: Prevent double interaction by adding reason to weakset and check existence. 
+        // Block dispatch of reason when it does not match the response type bitmap. 
+        if ((this.mResponseType & pInteractionReason.interactionType) === 0) {
+            return;
+        }
+
+        this.mAllreadySendReasons.add(pInteractionReason);
 
         // Call all local listener.
         for (const lListener of this.mChangeListenerList) {
@@ -232,18 +230,6 @@ export class InteractionZone implements IDeconstructable {
 
         // Call listener from parent to send changes.
         this.mParent?.callInteractionListener(pInteractionReason);
-    }
-
-    /**
-     * Check if this change detection is a child of another change detection.
-     * @param pInteractionZone - Possible parent interaction zone.
-     */
-    private isChildOf(pInteractionZone: InteractionZone): boolean {
-        if (pInteractionZone === this) {
-            return true;
-        }
-
-        return !!this.parent?.isChildOf(pInteractionZone);
     }
 }
 

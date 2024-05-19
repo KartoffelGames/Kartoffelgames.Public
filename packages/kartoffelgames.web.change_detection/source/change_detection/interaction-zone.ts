@@ -25,14 +25,10 @@ export class InteractionZone implements IDeconstructable {
     /**
      * Dispatch interaction event in current zone.
      * 
-     * @param pChangeReason - Interaction reason.
+     * @param pInteractionReason - Interaction reason.
      */
-    public static dispatchInteractionEvent(pChangeReason: InteractionReason): void {
-        for (const lListener of InteractionZone.current.mChangeListenerList) {
-            lListener(pChangeReason);
-        }
-
-        // TODO. call listener from parent.
+    public static dispatchInteractionEvent(pInteractionReason: InteractionReason): void {
+        InteractionZone.current.callInteractionListener(pInteractionReason);
     }
 
     private readonly mChangeListenerList: List<ChangeListener>;
@@ -83,7 +79,8 @@ export class InteractionZone implements IDeconstructable {
 
         // TODO: Create set with cd-type and only dispatch event when reason is included in cd-type set.
 
-        // Catch global error, check if allocated zone is child of this change detection and report the error.
+        // Catch global error, check if allocated zone is child of this change detection and report the error. 
+        // TODO: Globalise error handler and call callErrorListener on assigned zone.
         const lErrorHandler = (pErrorEvent: Event, pError: any) => {
             // Get change detection
             const lInteractionZone: InteractionZone | null = ErrorAllocation.getInteractionZone(pError);
@@ -91,7 +88,7 @@ export class InteractionZone implements IDeconstructable {
                 // Check if error change detection is child of the change detection.
                 if (lInteractionZone.isChildOf(this)) {
                     // Suppress console error message if error should be suppressed
-                    const lExecuteDefault: boolean = this.dispatchErrorEvent(pError);
+                    const lExecuteDefault: boolean = this.callErrorListener(pError);
                     if (!lExecuteDefault) {
                         pErrorEvent.preventDefault();
                     }
@@ -207,33 +204,50 @@ export class InteractionZone implements IDeconstructable {
     }
 
     /**
-     * Call all registered error listener.
-     * Prevent defaults like print on console when any of the callbacks return the actual value false.
+     * Call all error listener.
+     * When any of the listener has false as result this method returns also false.
+     * 
+     * @returns false when any of the listener returns false, otherwise true.
      */
     private callErrorListener(pError: any): boolean {
-        let lExecuteDefault: boolean = true;
-
-        // Dispatch error event.
-        for (const lListener of this.mErrorListenerList) {
-            if (lListener(pError) === false) {
-                lExecuteDefault = false;
-            }
-        }
-
-        return lExecuteDefault;
-    }
-
-    /**
-     * Trigger all change event.
-     */
-    private dispatchErrorEvent(pError: any): boolean {
         // Get current interactio zone.
         const lCurrentInteractionZone: InteractionZone = InteractionZone.current;
 
         // Execute all listener in event target zone.
-        return lCurrentInteractionZone.execute(() => {
-            return this.callErrorListener(pError);
+        const lErrorSuppressed: boolean =  lCurrentInteractionZone.execute(() => {
+            let lExecuteDefault: boolean = true;
+
+            // Dispatch error event.
+            for (const lListener of this.mErrorListenerList) {
+                if (lListener(pError) === false) {
+                    lExecuteDefault = false;
+                }
+            }
+
+            return lExecuteDefault;
         });
+
+        // Skip execution of parent when error is suppressed or zone has no parent. 
+        if(lErrorSuppressed === false || !this.mParent) {
+            return lErrorSuppressed;
+        }
+
+        // Bubble error by calling parent error listener.
+        return this.mParent?.callErrorListener(pError);
+    }
+
+    private callInteractionListener(pInteractionReason: InteractionReason): void {
+        // TODO: Only call listener when response-types matches reason.
+
+        // TODO: Prevent double interaction by adding reason to weakset and check existence. 
+
+        // Call all local listener.
+        for (const lListener of this.mChangeListenerList) {
+            lListener(pInteractionReason);
+        }
+
+        // Call listener from parent to send changes.
+        this.mParent?.callInteractionListener(pInteractionReason);
     }
 
     /**
@@ -253,6 +267,6 @@ export type ChangeListener = (pReason: InteractionReason) => void;
 export type ErrorListener = (pError: any) => void | boolean;
 
 type InteractionZoneConstructorSettings = {
-    trigger: InteractionResponseType,
-    isolate: boolean;
+    trigger?: InteractionResponseType,
+    isolate?: boolean;
 };

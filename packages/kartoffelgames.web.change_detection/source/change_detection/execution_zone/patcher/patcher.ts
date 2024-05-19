@@ -1,3 +1,5 @@
+import { InteractionResponseType } from '../../enum/interaction-response-type.enum';
+import { InteractionReason } from '../../interaction-reason';
 import { InteractionZone } from '../../interaction-zone';
 import { EventNames } from './event-names';
 
@@ -41,7 +43,7 @@ export class Patcher {
     public static patchObject(pObject: EventTarget, pZone: InteractionZone): void {
         pZone.execute(() => {
             if (!(Patcher.EVENT_TARGET_PATCHED_KEY in pObject)) {
-                // Add all events without function.
+                // Add all events without function. // TODO: Is it realy necessary
                 for (const lEventName of EventNames.changeCriticalEvents) {
                     pObject.addEventListener(lEventName, () => { return; });
                 }
@@ -139,11 +141,11 @@ export class Patcher {
             const lOriginalRemoveEventListener = lProto.removeEventListener;
             lProto.removeEventListener = function (pType: string, pCallback: EventListenerOrEventListenerObject, pOptions?: EventListenerOptions | boolean): void {
                 // When event listener is not a function. Let the browser decide the error.
-                if(typeof pCallback !== 'function'){
+                if (typeof pCallback !== 'function') {
                     lOriginalRemoveEventListener.call(this, pType, pCallback, pOptions);
                     return;
                 }
-                
+
                 const lPatchedCallback: any = Reflect.get(pCallback, Patcher.PATCHED_FUNCTION_KEY);
                 lOriginalRemoveEventListener.call(this, pType, lPatchedCallback, pOptions);
             };
@@ -352,7 +354,14 @@ export class Patcher {
      */
     private wrapFunctionInZone(pFunction: (...pArgs: Array<any>) => any, pZone: InteractionZone): (...pArgs: Array<any>) => any {
         const lPatchedFunction = function (...pArgs: Array<any>) {
-            return pZone.execute(pFunction, ...pArgs);
+            return pZone.execute(() => {
+                const lResult: any = pFunction(...pArgs);
+
+                // Dispatch interaction event in current zone. // TODO: Set correct interaction response type.
+                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.Any, pFunction));
+
+                return lResult;
+            });
         };
 
         // Save original function

@@ -294,7 +294,7 @@ describe('InteractionZone', () => {
             // Evaluation.
             expect(lChangeEventCalled).to.be.true;
             expect(lReason!.property).to.equal('a');
-            expect(lReason!.catchType).to.equal(InteractionResponseType.SyncronProperty);
+            expect(lReason!.interactionType).to.equal(InteractionResponseType.SyncronProperty);
         });
     });
 
@@ -857,49 +857,86 @@ describe('InteractionZone', () => {
     });
 
     describe('Functionality: DetectionCatchType', () => {
-        describe('-- DetectionCatchType.None', () => {
-            it('-- Positive', () => { });
-            it('-- Negative', () => { });
+        it('-- DetectionCatchType.None', () => {
+            // Setup.
+            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.None });
+
+            // Process.
+            let lResponeType: InteractionResponseType | null = null;
+            lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
+                lResponeType = pReason.interactionType;
+            });
+            lInteractionZone.execute(() => {
+                const lEventTarget: EventTarget = new EventTarget();
+                lEventTarget.dispatchEvent(new Event('click'));
+            });
+
+            // Evaluation.
+            expect(lResponeType).to.be.null;
         });
 
-        describe('-- DetectionCatchType.SyncronCall', () => {
-            it('-- Positive', () => { });
-            it('-- Negative', () => { });
+        it('-- DetectionCatchType.SyncronCall', () => {
+            // TODO:
         });
 
-        describe('-- DetectionCatchType.SyncronProperty', () => {
-            it('-- Positive', () => { });
-            it('-- Negative', () => { });
+        it('-- DetectionCatchType.SyncronProperty', () => {
+            // TODO:
         });
 
-        describe('-- DetectionCatchType.Syncron', () => {
-            it('-- Positive', () => { });
-            it('-- Negative', () => { });
+        it('-- DetectionCatchType.Syncron', () => {
+            // TODO:
         });
 
-        describe('-- DetectionCatchType.AsnychronPromise', () => {
-            it('-- Positive', () => { });
-            it('-- Negative', () => { });
+        it('-- DetectionCatchType.AsnychronPromise', () => {
+            // TODO:
         });
 
-        describe('-- DetectionCatchType.AsnychronCallback', () => {
-            it('-- Positive', () => { });
-            it('-- Negative', () => { });
+        it('-- DetectionCatchType.AsnychronCallback', () => {
+            // TODO:
         });
 
-        describe('-- DetectionCatchType.AsnychronEvent', () => {
-            it('-- Positive', () => { });
-            it('-- Negative', () => { });
+        it('-- DetectionCatchType.AsnychronEvent', () => {
+            // Setup.
+            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronEvent });
+
+            // Process.
+            let lResponeType: InteractionResponseType | null = null;
+            lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
+                lResponeType = pReason.interactionType;
+            });
+            lInteractionZone.execute(() => {
+                const lEventTarget: EventTarget = new EventTarget();
+                lEventTarget.dispatchEvent(new Event('click'));
+            });
+
+            // Evaluation.
+            expect(lResponeType).to.be.equal(InteractionResponseType.AsnychronEvent);
         });
 
-        describe('-- DetectionCatchType.Asnychron', () => {
-            it('-- Positive', () => { });
-            it('-- Negative', () => { });
+        it('-- DetectionCatchType.Asnychron', () => {
+            // TODO:
         });
 
-        describe('-- DetectionCatchType.All', () => {
-            it('-- Positive', () => { });
-            it('-- Negative', () => { });
+        it('-- DetectionCatchType.Any', () => {
+            // TODO:
+        });
+
+        it('-- Negative', () => {
+            // Setup.
+            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.Syncron });
+
+            // Process.
+            let lResponeType: InteractionResponseType | null = null;
+            lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
+                lResponeType = pReason.interactionType;
+            });
+            lInteractionZone.execute(() => {
+                const lEventTarget: EventTarget = new EventTarget();
+                lEventTarget.dispatchEvent(new Event('click'));
+            });
+
+            // Evaluation.
+            expect(lResponeType).to.be.false;
         });
     });
 });

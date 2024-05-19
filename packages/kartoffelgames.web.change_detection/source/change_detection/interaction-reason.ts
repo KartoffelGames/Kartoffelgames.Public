@@ -12,7 +12,7 @@ export class InteractionReason {
     /**
      * Get what type of interaction was detected.
      */
-    public get catchType(): InteractionResponseType {
+    public get interactionType(): InteractionResponseType {
         return this.mCatchType;
     }
 

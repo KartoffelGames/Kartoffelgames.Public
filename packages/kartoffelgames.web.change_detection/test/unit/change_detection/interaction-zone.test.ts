@@ -178,14 +178,15 @@ describe('InteractionZone', () => {
             expect(lReasonResult).to.equal(lReason);
         });
 
-        it('-- Preserve execution change detection. Default execution.', () => {
+        it('-- Preserve interaction zone in interaction listener.', () => {
             // Setup.
             const lParentInteractionZone: InteractionZone = new InteractionZone('Name');
+            const lZoneName: string = 'CD-child';
 
             // Setup. Child.
             let lInteractionZone: InteractionZone;
             lParentInteractionZone.execute(() => {
-                lInteractionZone = new InteractionZone('CD-child');
+                lInteractionZone = new InteractionZone(lZoneName);
             });
 
             // Process. Add listener.
@@ -201,7 +202,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lExecutingInteractionZoneName).to.equal('Default');
+            expect(lExecutingInteractionZoneName).to.equal(lZoneName);
         });
 
         it('-- Preserve execution change detection. Zone execution.', () => {

@@ -156,9 +156,9 @@ export class InteractionZone {
 
         // Set this zone as execution zone and execute function.
         InteractionZone.mCurrentZone = this;
-        let lResult: any;
-
+        
         // Try to execute
+        let lResult: any;
         try {
             lResult = pFunction(...pArgs);
         } catch (pError) {
@@ -179,25 +179,18 @@ export class InteractionZone {
      * @returns false when any of the listener returns false, otherwise true.
      */
     private callErrorListener(pError: any): boolean {
-        // Get current interactio zone.
-        const lCurrentInteractionZone: InteractionZone = InteractionZone.current;
-
         // Execute all listener in event target zone.
-        const lErrorSuppressed: boolean = lCurrentInteractionZone.execute(() => {
-            let lExecuteDefault: boolean = true;
+        let lErrorSuppressed: boolean = false;
 
-            // Dispatch error event.
-            for (const lListener of this.mErrorListenerList) {
-                if (lListener(pError) === false) {
-                    lExecuteDefault = false;
-                }
+        // Dispatch error event.
+        for (const lListener of this.mErrorListenerList) {
+            if (lListener(pError) === false) {
+                lErrorSuppressed = true;
             }
-
-            return lExecuteDefault;
-        });
+        }
 
         // Skip execution of parent when error is suppressed or zone has no parent. 
-        if (lErrorSuppressed === false || !this.mParent) {
+        if (lErrorSuppressed || !this.mParent) {
             return lErrorSuppressed;
         }
 
@@ -205,6 +198,12 @@ export class InteractionZone {
         return this.mParent?.callErrorListener(pError);
     }
 
+    /**
+     * Call all interaction listener of this zone and bubble it to its paren zone.
+     * Prevents the zone to trigger the same reason more than once
+     * 
+     * @param pInteractionReason - Interaction reason.
+     */
     private callInteractionListener(pInteractionReason: InteractionReason): void {
         // Restrict zone to trigger the same reason more than once.
         if (this.mAllreadySendReasons.has(pInteractionReason)) {

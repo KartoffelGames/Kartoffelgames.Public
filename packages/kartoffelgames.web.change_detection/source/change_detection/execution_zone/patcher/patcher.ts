@@ -5,14 +5,9 @@ import { InteractionZone } from '../../interaction-zone';
 import { EventNames } from './event-names';
 
 export class Patcher {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    public static readonly PATCHED_PROMISE_ZONE_KEY: symbol = Symbol('_PatchedPromiseZoneKey');
-
-
     private static mIsPatched: boolean = false;
-
-    // TODO: Better structure pls.
-    private static readonly mPatchedElements: WeakSet<object> = new WeakSet<object>();
+    private static readonly mPatchedElements: WeakSet<object> = new WeakSet<object>();// TODO: Better structure pls.
+    private static readonly mPromizeZones: WeakMap<Promise<unknown>, InteractionZone> = new WeakMap<Promise<unknown>, InteractionZone>();
 
     /**
      * Listen on all event.
@@ -50,6 +45,17 @@ export class Patcher {
             const lPatcher: Patcher = new Patcher();
             lPatcher.patchGlobals(pGlobalObject);
         }
+    }
+
+    /**
+     * Get interaction zone where the {@link Promise} was created.
+     * 
+     * @param pPromise - {@link Promise}.
+     * 
+     * @returns interaction zone where the of {@link Promise} was created or undefined when the promise was constructed outside any zone.s 
+     */
+    public static promiseZone<T>(pPromise: Promise<T>): InteractionZone | undefined {
+        return Patcher.mPromizeZones.get(pPromise);
     }
 
     /**
@@ -192,7 +198,7 @@ export class Patcher {
         pGlobalObject.setTimeout = <any>this.patchFunctionCallbacks(pGlobalObject.setTimeout);
 
         // Promise
-        pGlobalObject.Promise = this.patchPromise(pGlobalObject.Promise);
+        pGlobalObject.Promise = this.patchPromise(pGlobalObject);
 
         // Observer
         pGlobalObject.ResizeObserver = this.patchClass(pGlobalObject.ResizeObserver);
@@ -328,16 +334,17 @@ export class Patcher {
      * Patch promise.
      * @param pConstructor - Promise constructor.
      */
-    private patchPromise(pConstructor: any): any {
-        const lConstructor: any = this.patchClass(pConstructor);
+    private patchPromise(pGlobalObject: typeof globalThis): any {
+        const lOriginalConstructor: typeof Promise = pGlobalObject.Promise;
+        const lPatchedConstructor: any = this.patchClass(lOriginalConstructor);
 
         // Patch only the constructor.
-        return class PatchedClass extends lConstructor {
+        return class PatchedClass extends lPatchedConstructor {
             public constructor(...pArgs: Array<any>) {
                 super(...pArgs);
 
-                // Set zone of promise. // TODO: Replace these garbage.
-                Reflect.set(this, Patcher.PATCHED_PROMISE_ZONE_KEY, InteractionZone.current);
+                // Set zone of promise.
+                Patcher.mPromizeZones.set(this as any as Promise<unknown>, InteractionZone.current);
             }
         };
     }

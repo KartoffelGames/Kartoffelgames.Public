@@ -33,8 +33,10 @@ export class InteractionZone {
             lErrorHandler(pEvent, pEvent.error);
         });
         window.addEventListener('unhandledrejection', (pEvent: PromiseRejectionEvent) => {
-            const lPromise: Promise<any> = pEvent.promise;
-            const lPromiseZone: InteractionZone = Reflect.get(lPromise, Patcher.PATCHED_PROMISE_ZONE_KEY);
+            // Get zone of the promise where the unhandled rejection occurred
+            const lPromiseZone: InteractionZone = Reflect.get(pEvent.promise, Patcher.PATCHED_PROMISE_ZONE_KEY);
+
+            // And allocate these zone to the current error.
             ErrorAllocation.allocateError(pEvent.reason, lPromiseZone);
 
             lErrorHandler(pEvent, pEvent.reason);

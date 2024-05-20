@@ -107,8 +107,7 @@ describe('InteractionDetectionProxy', () => {
                 expect(lPropertyChanged).to.be.true;
             });
 
-            it('-- Detect interaction in forwarded this context.', () => {
-                const lNewValue: number = 22;
+            it('-- Detect interaction in forwarded this context', () => {
                 const lOriginalObject = {
                     a: 0,
                     fun: function () {
@@ -120,7 +119,7 @@ describe('InteractionDetectionProxy', () => {
 
                 // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
-                lInteractionZone.addErrorListener((pChangeReason: InteractionReason) => {
+                lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
                     if (pChangeReason.property === 'a') {
                         lPropertyChanged = true;
                     }
@@ -128,7 +127,7 @@ describe('InteractionDetectionProxy', () => {
 
                 // Process.
                 lInteractionZone.execute(() => {
-                    lDetectionProxy.proxy.fun().a = lNewValue;
+                    lDetectionProxy.proxy.fun().a = 22;
                 });
 
                 // Evaluation.
@@ -287,7 +286,7 @@ describe('InteractionDetectionProxy', () => {
                 // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
                 lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
-                    if (pChangeReason.source === lFunction) {
+                    if (pChangeReason.source === lProxy) {
                         lPropertyChanged = true;
                     }
                 });
@@ -322,14 +321,13 @@ describe('InteractionDetectionProxy', () => {
             it('-- Detect interaction even on synchron errors', () => {
                 // Setup.
                 const lFunction: () => number = () => { throw 22; };
-                const lDetectionProxy: InteractionDetectionProxy<() => number> = new InteractionDetectionProxy(lFunction);
-                const lProxy: () => number = lDetectionProxy.proxy;
+                const lProxy: () => number = new InteractionDetectionProxy(lFunction).proxy;
                 const lInteractionZone: InteractionZone = new InteractionZone('CD');
 
                 // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
                 lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
-                    if (pChangeReason.source === lFunction) {
+                    if (pChangeReason.source === lProxy) {
                         lPropertyChanged = true;
                     }
                 });
@@ -361,14 +359,13 @@ describe('InteractionDetectionProxy', () => {
             it('-- Detect interaction on asyncon calls', async () => {
                 // Setup.
                 const lFunction: (pValue: number) => Promise<number> = async (pValue: number) => { return pValue; };
-                const lDetectionProxy: InteractionDetectionProxy<(pValue: number) => Promise<number>> = new InteractionDetectionProxy(lFunction);
-                const lProxy: (pValue: number) => Promise<number> = lDetectionProxy.proxy;
+                const lProxy: (pValue: number) => Promise<number> = new InteractionDetectionProxy(lFunction).proxy;
                 const lInteractionZone: InteractionZone = new InteractionZone('CD');
 
                 // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
                 lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
-                    if (pChangeReason.source === lFunction) {
+                    if (pChangeReason.source === lProxy) {
                         lPropertyChanged = true;
                     }
                 });
@@ -399,14 +396,13 @@ describe('InteractionDetectionProxy', () => {
             it('-- Detect interaction even on asynchron errors', async () => {
                 // Setup.
                 const lFunction: () => Promise<number> = async () => { throw 22; };
-                const lDetectionProxy: InteractionDetectionProxy<() => Promise<number>> = new InteractionDetectionProxy(lFunction);
-                const lProxy: () => Promise<number> = lDetectionProxy.proxy;
+                const lProxy: () => Promise<number> = new InteractionDetectionProxy(lFunction).proxy;
                 const lInteractionZone: InteractionZone = new InteractionZone('CD');
 
                 // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
                 lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
-                    if (pChangeReason.source === lFunction) {
+                    if (pChangeReason.source === lProxy) {
                         lPropertyChanged = true;
                     }
                 });
@@ -491,7 +487,7 @@ describe('InteractionDetectionProxy', () => {
             // Setup. InteractionZone.
             let lResponseType: InteractionResponseType = InteractionResponseType.None;
             lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
-                if (pChangeReason.source === lFunction) {
+                if (pChangeReason.source === lProxy) {
                     lResponseType |= pChangeReason.interactionType;
                 }
             });
@@ -503,6 +499,209 @@ describe('InteractionDetectionProxy', () => {
 
             // Evaluation.
             expect(lResponseType).to.equal(InteractionResponseType.SyncronCall);
+        });
+    });
+
+    describe('Functionality: Native JS-Objects', () => {
+        it('-- Map', () => {
+            // Setup.
+            const lProxy: Map<string, string> = new InteractionDetectionProxy(new Map()).proxy;
+            const lInteractionZone: InteractionZone = new InteractionZone('CD');
+
+            // Setup. InteractionZone.
+            let lResponseType: InteractionResponseType = InteractionResponseType.None;
+            lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                if (pChangeReason.source === lProxy.set) {
+                    lResponseType |= pChangeReason.interactionType;
+                }
+            });
+
+            // Process
+            lInteractionZone.execute(() => {
+                lProxy.set('', '');
+            });
+
+            // Evaluation.
+            expect(lResponseType).to.equal(InteractionResponseType.SyncronCall);
+        });
+
+        describe('-- Array', () => {
+            it('-- Property set', () => {
+                // Setup.
+                const lProxy: Array<string> = new InteractionDetectionProxy(new Array<string>()).proxy;
+                const lInteractionZone: InteractionZone = new InteractionZone('CD');
+
+                // Setup. InteractionZone.
+                let lResponseType: InteractionResponseType = InteractionResponseType.None;
+                lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                    if (pChangeReason.source === lProxy) {
+                        lResponseType |= pChangeReason.interactionType;
+                    }
+                });
+
+                // Process
+                lInteractionZone.execute(() => {
+                    lProxy[0] = '';
+                });
+
+                // Evaluation.
+                expect(lResponseType).to.equal(InteractionResponseType.SyncronProperty);
+            });
+
+            it('-- Push set', () => {
+                // Setup.
+                const lProxy: Array<string> = new InteractionDetectionProxy(new Array<string>()).proxy;
+                const lInteractionZone: InteractionZone = new InteractionZone('CD');
+
+                // Setup. InteractionZone.
+                let lResponseType: InteractionResponseType = InteractionResponseType.None;
+                lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                    if (pChangeReason.source === lProxy.push) {
+                        lResponseType |= pChangeReason.interactionType;
+                    }
+                });
+
+                // Process
+                lInteractionZone.execute(() => {
+                    lProxy.push('');
+                });
+
+                // Evaluation.
+                expect(lResponseType).to.equal(InteractionResponseType.SyncronCall);
+            });
+        });
+
+        it('-- Set', () => {
+            // Setup.
+            const lProxy: Set<string> = new InteractionDetectionProxy(new Set<string>()).proxy;
+            const lInteractionZone: InteractionZone = new InteractionZone('CD');
+
+            // Setup. InteractionZone.
+            let lResponseType: InteractionResponseType = InteractionResponseType.None;
+            lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                if (pChangeReason.source === lProxy.add) {
+                    lResponseType |= pChangeReason.interactionType;
+                }
+            });
+
+            // Process
+            lInteractionZone.execute(() => {
+                lProxy.add('');
+            });
+
+            // Evaluation.
+            expect(lResponseType).to.equal(InteractionResponseType.SyncronCall);
+        });
+
+        it('-- TypedArray', () => {
+            // Setup.
+            const lProxy: Int8Array = new InteractionDetectionProxy(new Int8Array(1)).proxy;
+            const lInteractionZone: InteractionZone = new InteractionZone('CD');
+
+            // Setup. InteractionZone.
+            let lResponseType: InteractionResponseType = InteractionResponseType.None;
+            lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                if (pChangeReason.source === lProxy) {
+                    lResponseType |= pChangeReason.interactionType;
+                }
+            });
+
+            // Process
+            lInteractionZone.execute(() => {
+                lProxy[0] = 200;
+            });
+
+            // Evaluation.
+            expect(lResponseType).to.equal(InteractionResponseType.SyncronProperty);
+        });
+    });
+
+    describe('Functionality: InteractionReason.source', () => {
+        it('-- Function sync calls', () => {
+            // Setup.
+            const lFunction: (pValue: number) => number = (pValue: number) => { return pValue; };
+            const lProxy: (pValue: number) => number = new InteractionDetectionProxy(lFunction).proxy;
+            const lInteractionZone: InteractionZone = new InteractionZone('CD');
+
+            // Setup. InteractionZone.
+            let lChangedSource: any = undefined;
+            lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                lChangedSource = pChangeReason.source;
+            });
+
+            // Process
+            lInteractionZone.execute(() => {
+                lProxy(22);
+            });
+
+            // Evaluation.
+            expect(lChangedSource).to.equal(lProxy);
+        });
+
+        it('-- Function async calls', async () => {
+            // Setup.
+            const lFunction: (pValue: number) => Promise<any> = async (pValue: number) => { return pValue; };
+            const lProxy: (pValue: number) => Promise<number> = new InteractionDetectionProxy(lFunction).proxy;
+            const lInteractionZone: InteractionZone = new InteractionZone('CD');
+
+            // Setup. InteractionZone.
+            let lChangedSource: any = undefined;
+            lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                // Filter async call detections of patcher
+                if (pChangeReason.source === lProxy) {
+                    lChangedSource = pChangeReason.source;
+                }
+            });
+
+            // Process
+            await lInteractionZone.execute(async () => {
+                return lProxy(22);
+            });
+
+            // Evaluation.
+            expect(lChangedSource).to.equal(lProxy);
+        });
+
+        it('-- Set property ', () => {
+            // Setup.
+            const lOriginalObject: { a: number; } = { a: 1 };
+            const lDetectionProxy: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
+            const lInteractionZone: InteractionZone = new InteractionZone('CD');
+
+            // Setup. InteractionZone.
+            let lChangedSource: any = undefined;
+            lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                lChangedSource = pChangeReason.source;
+            });
+
+            // Process.
+            lInteractionZone.execute(() => {
+                lDetectionProxy.proxy.a = 22;
+            });
+
+            // Evaluation.
+            expect(lChangedSource).to.equal(lDetectionProxy.proxy);
+        });
+
+        it('-- Delete property', () => {
+            // Setup.
+            const lOriginalObject: { a?: number; } = { a: 1 };
+            const lDetectionProxy: InteractionDetectionProxy<{ a?: number; }> = new InteractionDetectionProxy(lOriginalObject);
+            const lInteractionZone: InteractionZone = new InteractionZone('CD');
+
+            // Setup. InteractionZone.
+            let lChangedSource: any = undefined;
+            lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                lChangedSource = pChangeReason.source;
+            });
+
+            // Process.
+            lInteractionZone.execute(() => {
+                delete lDetectionProxy.proxy.a;
+            });
+
+            // Evaluation.
+            expect(lChangedSource).to.equal(lDetectionProxy.proxy);
         });
     });
 });

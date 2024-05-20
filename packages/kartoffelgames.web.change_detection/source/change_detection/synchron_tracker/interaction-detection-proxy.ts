@@ -1,7 +1,6 @@
-import { InteractionZone } from '../interaction-zone';
-import { InteractionReason } from '../interaction-reason';
 import { InteractionResponseType } from '../enum/interaction-response-type.enum';
-import { Patcher } from '../execution_zone/patcher/patcher';
+import { InteractionReason } from '../interaction-reason';
+import { InteractionZone } from '../interaction-zone';
 
 /**
  * Interaction detection proxy. Detects synchron calls and interactions on the proxy object.
@@ -14,8 +13,6 @@ export class InteractionDetectionProxy<T extends object> {
     private static readonly ORIGINAL_TO_INTERACTION_MAPPING: WeakMap<object, object> = new WeakMap<object, object>();
     // eslint-disable-next-line @typescript-eslint/naming-convention
     private static readonly PROXY_TO_ORIGINAL_MAPPING: WeakMap<object, object> = new WeakMap<object, object>();
-
-    private static mOriginalPromiseConstructor: typeof Promise | undefined;
 
     /**
      * Get original object from InteractionDetectionProxy-Proxy.
@@ -68,16 +65,6 @@ export class InteractionDetectionProxy<T extends object> {
         // Map proxy with real object and real object to current class.
         InteractionDetectionProxy.PROXY_TO_ORIGINAL_MAPPING.set(this.mProxyObject, pTarget);
         InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.set(pTarget, this);
-
-        // Get original promise constructor and cache it for later.
-        if (!InteractionDetectionProxy.mOriginalPromiseConstructor) {
-            let lPromiseConstructor: typeof Promise = Promise;
-            while (Patcher.ORIGINAL_CLASS_KEY in lPromiseConstructor) {
-                lPromiseConstructor = Reflect.get(lPromiseConstructor, Patcher.ORIGINAL_CLASS_KEY);
-            }
-
-            InteractionDetectionProxy.mOriginalPromiseConstructor = lPromiseConstructor;
-        }
     }
 
     /**
@@ -101,7 +88,7 @@ export class InteractionDetectionProxy<T extends object> {
                 const lResult: boolean = Reflect.set(pTargetObject, pPropertyName, pNewPropertyValue);
 
                 // Call interaction event with synchron property response type.
-                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronProperty, pTargetObject, pPropertyName));
+                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronProperty, this.mProxyObject, pPropertyName));
 
                 return lResult;
             },
@@ -138,7 +125,7 @@ export class InteractionDetectionProxy<T extends object> {
                 const lPropertyExisted: boolean = Reflect.deleteProperty(pTargetObject, pPropertyName);
 
                 // Call interaction event with synchron property interaction type.
-                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronProperty, pTargetObject, pPropertyName));
+                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronProperty, this.mProxyObject, pPropertyName));
 
                 // Passthrough original remove result.
                 return lPropertyExisted;
@@ -168,7 +155,7 @@ export class InteractionDetectionProxy<T extends object> {
                     lFunctionResult = (<CallableObject>pTargetObject).call(lOriginalThisObject, ...pArgumentsList);
                 } finally {
                     // Dispatch interaction event before exception passthrough.
-                    InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronCall, pTargetObject));
+                    InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronCall, this.mProxyObject));
                 }
 
                 return lFunctionResult;

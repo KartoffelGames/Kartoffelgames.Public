@@ -1,7 +1,4 @@
 export class EventNames {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    public static readonly EVENT_TARGET_PATCHED_KEY: symbol = Symbol('_Event_Target_Patched');
-
     public static readonly changeCriticalEvents = ['input', 'change'];
     public static readonly detailEventNames = ['toggle'];
     public static readonly documentEventNames = [

@@ -31,14 +31,14 @@ describe('Patcher', () => {
         });
     });
 
-    describe('Static Method: patchObject', () => {
+    describe('Static Method: attachZoneEvent', () => {
         it('-- default', () => {
             // Setup.
             const lZone: InteractionZone = new InteractionZone('Name');
-            const lObject = new EventTarget();
+            const lObject = document.createElement('div');
 
             // Process.
-            Patcher.patchObject(lObject, lZone);
+            Patcher.attachZoneEvent(lObject, lZone);
 
             // Evaluation.
             expect(lObject).to.has.key(<any>Patcher.EVENT_TARGET_PATCHED_KEY);
@@ -47,11 +47,11 @@ describe('Patcher', () => {
         it('-- double patch', () => {
             // Setup.
             const lZone: InteractionZone = new InteractionZone('Name');
-            const lObject = new EventTarget();
+            const lObject = document.createElement('div');
 
             // Process.
-            Patcher.patchObject(lObject, lZone);
-            Patcher.patchObject(lObject, lZone);
+            Patcher.attachZoneEvent(lObject, lZone);
+            Patcher.attachZoneEvent(lObject, lZone);
 
             // Evaluation.
             expect(lObject).to.have.key(<any>Patcher.EVENT_TARGET_PATCHED_KEY);
@@ -225,7 +225,7 @@ describe('Patcher', () => {
         it('-- Multi patch', () => {
             // Setup.
             const lObject = new class extends EventTarget { public onclick: any = null; }();
-            const lFunction = () => {/* Empty */ };
+            const lFunction = () => { };
             const lPatcher: Patcher = new Patcher();
 
             // Process.
@@ -273,7 +273,7 @@ describe('Patcher', () => {
         it('-- Set on property - function', () => {
             // Setup.
             const lObject = new class extends EventTarget { public onclick: any = null; }();
-            const lFunction = () => {/* Empty */ };
+            const lFunction = () => { };
             const lPatcher: Patcher = new Patcher();
 
             // Process.
@@ -315,7 +315,7 @@ describe('Patcher', () => {
         it('-- Set on property - function', () => {
             // Setup.
             const lObject = new class extends EventTarget { public onclick: any = null; }();
-            const lFunction = () => {/* Empty */ };
+            const lFunction = () => { };
             const lPatcher: Patcher = new Patcher();
 
             // Process.

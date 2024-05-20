@@ -8,7 +8,7 @@ export class ErrorAllocation {
     private static mZone: InteractionZone;
 
     /**
-     * Allocate error with execution zone.
+     * Allocate error with interaction zone.
      * 
      * @param pError - Error data.
      * @param pZone - Zone of error.

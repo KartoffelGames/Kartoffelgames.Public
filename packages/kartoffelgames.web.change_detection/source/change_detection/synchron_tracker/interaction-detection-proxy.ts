@@ -4,7 +4,7 @@ import { InteractionResponseType } from '../enum/interaction-response-type.enum'
 import { Patcher } from '../execution_zone/patcher/patcher';
 
 /**
- * Interaction detection proxy. Detects synchron calls and changes on the proxy object.
+ * Interaction detection proxy. Detects synchron calls and interactions on the proxy object.
  * Creates a nested detection chain on objects and functions.
  * 
  * @internal
@@ -40,7 +40,6 @@ export class InteractionDetectionProxy<T extends object> {
         return <InteractionDetectionProxy<TValue> | undefined>InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.get(lOriginal);
     }
 
-    private readonly mAllreadySendChangeReasons!: WeakSet<InteractionReason>;
     private readonly mProxyObject!: T;
 
     /**
@@ -62,9 +61,6 @@ export class InteractionDetectionProxy<T extends object> {
         if (lWrapper) {
             return lWrapper;
         }
-
-        // Initialize values.
-        this.mAllreadySendChangeReasons = new WeakSet<InteractionReason>();
 
         // Create new proxy object.
         this.mProxyObject = this.createProxyObject(pTarget);
@@ -94,7 +90,7 @@ export class InteractionDetectionProxy<T extends object> {
         const lProxyObject: T = new Proxy(pTarget, {
             /**
              * Add property to object.
-             * Triggers change event.
+             * Triggers interaction event.
              * 
              * @param pTargetObject - Target object.
              * @param pPropertyName - Name of property.
@@ -104,8 +100,8 @@ export class InteractionDetectionProxy<T extends object> {
                 // Set value to original target property.
                 const lResult: boolean = Reflect.set(pTargetObject, pPropertyName, pNewPropertyValue);
 
-                // Call change event with synchron property change type.
-                this.dispatchChangeEvent(new InteractionReason(InteractionResponseType.SyncronProperty, pTargetObject, pPropertyName));
+                // Call interaction event with synchron property response type.
+                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronProperty, pTargetObject, pPropertyName));
 
                 return lResult;
             },
@@ -127,8 +123,7 @@ export class InteractionDetectionProxy<T extends object> {
                     return lResult;
                 }
 
-                // But when it is a object or a function, than wrap it into another detection proxy and passthrough any change.
-                // Creates a dependency chain.
+                // But when it is a object or a function, than wrap it into another detection proxy and passthrough any interaction.
                 return new InteractionDetectionProxy(lResult).proxy;
             },
 
@@ -142,8 +137,8 @@ export class InteractionDetectionProxy<T extends object> {
                 // Remove property from original target and save result.
                 const lPropertyExisted: boolean = Reflect.deleteProperty(pTargetObject, pPropertyName);
 
-                // Call change event with synchron property change type.
-                this.dispatchChangeEvent(new InteractionReason(InteractionResponseType.SyncronProperty, pTargetObject, pPropertyName));
+                // Call interaction event with synchron property interaction type.
+                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronProperty, pTargetObject, pPropertyName));
 
                 // Passthrough original remove result.
                 return lPropertyExisted;
@@ -157,7 +152,7 @@ export class InteractionDetectionProxy<T extends object> {
              * @param pArgumentsList - All arguments of call.
              */
             apply: (pTargetObject: T, pThisArgument: any, pArgumentsList: Array<any>): void => {
-                // Execute function and dispatch change event on synchron exceptions.
+                // Execute function and dispatch interaction event on synchron exceptions.
                 let lFunctionResult: any;
                 try {
                     lFunctionResult = (<CallableObject>pTargetObject).call(pThisArgument, ...pArgumentsList);
@@ -172,58 +167,15 @@ export class InteractionDetectionProxy<T extends object> {
                     const lOriginalThisObject: object = InteractionDetectionProxy.getOriginal(pThisArgument);
                     lFunctionResult = (<CallableObject>pTargetObject).call(lOriginalThisObject, ...pArgumentsList);
                 } finally {
-                    // Dispatch change event before exception passthrough.
-                    this.dispatchChangeEvent(new InteractionReason(InteractionResponseType.SyncronCall, pTargetObject));
+                    // Dispatch interaction event before exception passthrough.
+                    InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronCall, pTargetObject));
                 }
 
-                // Result is not a promise or a patches promise. So nothing needs to be overridden.
-                if (!(lFunctionResult instanceof InteractionDetectionProxy.mOriginalPromiseConstructor!) || lFunctionResult instanceof globalThis.Promise) {
-                    return lFunctionResult;
-                }
-
-                // Override possible system promise by waiting for promise result and passthrough exceptions.
-                const lOverriddenPromise: any = new globalThis.Promise<any>(async (pResolve, pReject) => {
-                    let lPromiseResult: any;
-                    let lPromiseError: any;
-                    let lPromiseErrorTriggered: boolean = false;
-
-                    // Wait for original promise and save result or exceptions.
-                    try {
-                        lPromiseResult = await lFunctionResult;
-                    } catch (pError) {
-                        lPromiseErrorTriggered = true;
-                        lPromiseError = pError;
-                    }
-
-                    // When an exception occurred reject the promise.
-                    if (lPromiseErrorTriggered) {
-                        pReject(lPromiseError);
-                    } else {
-                        pResolve(lPromiseResult);
-                    }
-                });
-
-                return lOverriddenPromise;
+                return lFunctionResult;
             }
         });
 
         return lProxyObject;
-    }
-
-    /**
-     * Trigger change event.
-     */
-    private dispatchChangeEvent(pChangeReason: InteractionReason) {
-        // Prevents the same change reason be dispatched over and over again.
-        // Happens when a event target is triggered by a change reason.
-        if (this.mAllreadySendChangeReasons.has(pChangeReason)) {
-            return;
-        }
-
-        this.mAllreadySendChangeReasons.add(pChangeReason);
-
-        // Trigger current interaction zone.
-        InteractionZone.dispatchInteractionEvent(pChangeReason);
     }
 }
 

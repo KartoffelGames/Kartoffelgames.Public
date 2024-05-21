@@ -59,10 +59,30 @@ export class Patcher {
     }
 
     /**
+     * Patch function, so function gets always executed inside specified zone.
+     * Dispatches interaction event on function call.
+     * 
+     * @param pFunction - Function.
+     * @param pZone - Zone.
+     */
+    private interactionOnFunctionCall(pFunction: (...pArgs: Array<any>) => any, pZone: InteractionZone, pInteractionType: InteractionResponseType): (...pArgs: Array<any>) => any {
+        return function (...pArgs: Array<any>) {
+            return pZone.execute(() => {
+                const lResult: any = pFunction(...pArgs);
+
+                // Dispatch interaction event in current zone.
+                InteractionZone.dispatchInteractionEvent(new InteractionReason(pInteractionType, pFunction));
+
+                return lResult;
+            });
+        };
+    }
+
+    /**
      * Patch class and its methods.
      * @param pConstructor - Class constructor.
      */
-    private patchClass(pConstructor: any): any {
+    private patchClass(pConstructor: any, pInteractionType: InteractionResponseType): any {
         // Skip undefined or not found constructor.
         if (typeof pConstructor !== 'function') {
             return pConstructor;
@@ -83,7 +103,7 @@ export class Patcher {
 
             // Only try to patch methods.
             if (typeof lValue === 'function') {
-                lPrototype[lClassMemberName] = this.patchFunctionCallbacks(<any>lValue);
+                lPrototype[lClassMemberName] = this.patchFunctionCallbacks(<any>lValue, pInteractionType);
             }
         }
 
@@ -103,7 +123,7 @@ export class Patcher {
 
                     // Patch all arguments that are function. 
                     if (typeof lParameter === 'function') {
-                        pArgs[lParameterIndex] = lSelf.wrapFunctionInZone(lSelf.patchFunctionCallbacks(lParameter), lCurrentZone);
+                        pArgs[lParameterIndex] = lSelf.interactionOnFunctionCall(lSelf.patchFunctionCallbacks(lParameter, pInteractionType), lCurrentZone, pInteractionType);
                     }
                 }
 
@@ -135,7 +155,7 @@ export class Patcher {
             }
 
             // Get already patched event listener or patch it for the current interaction zone.
-            const lPatchedEventListener = lOriginalListener.get(pCallback) ?? lSelf.wrapFunctionInZone(pCallback, InteractionZone.current);
+            const lPatchedEventListener = lOriginalListener.get(pCallback) ?? lSelf.interactionOnFunctionCall(pCallback, InteractionZone.current, InteractionResponseType.AsnychronEvent);
 
             // Save patched function of original.
             lOriginalListener.set(pCallback, lPatchedEventListener);
@@ -166,7 +186,7 @@ export class Patcher {
      * 
      * @param pFunction - Function.
      */
-    private patchFunctionCallbacks(pFunction: (...pArgs: Array<any>) => any): (...pArgs: Array<any>) => any {
+    private patchFunctionCallbacks(pFunction: (...pArgs: Array<any>) => any, pInteractionType: InteractionResponseType): (...pArgs: Array<any>) => any {
         const lSelf: this = this;
 
         // Wrap function parameters into current interaction zone.
@@ -179,7 +199,8 @@ export class Patcher {
 
                 // Patch all arguments that are function. 
                 if (typeof lParameter === 'function') {
-                    pArgs[lParameterIndex] = lSelf.wrapFunctionInZone(lSelf.patchFunctionCallbacks(lParameter), lCurrentZone);
+                    // Recursive patch all callbacks.
+                    pArgs[lParameterIndex] = lSelf.interactionOnFunctionCall(lSelf.patchFunctionCallbacks(lParameter, pInteractionType), lCurrentZone, pInteractionType);
                 }
             }
 
@@ -193,17 +214,17 @@ export class Patcher {
      */
     private patchGlobals(pGlobalObject: typeof globalThis): void {
         // Timer
-        pGlobalObject.requestAnimationFrame = this.patchFunctionCallbacks(pGlobalObject.requestAnimationFrame);
-        pGlobalObject.setInterval = <any>this.patchFunctionCallbacks(pGlobalObject.setInterval);
-        pGlobalObject.setTimeout = <any>this.patchFunctionCallbacks(pGlobalObject.setTimeout);
+        pGlobalObject.requestAnimationFrame = this.patchFunctionCallbacks(pGlobalObject.requestAnimationFrame, InteractionResponseType.AsnychronCallback);
+        pGlobalObject.setInterval = <any>this.patchFunctionCallbacks(pGlobalObject.setInterval, InteractionResponseType.AsnychronCallback);
+        pGlobalObject.setTimeout = <any>this.patchFunctionCallbacks(pGlobalObject.setTimeout, InteractionResponseType.AsnychronCallback);
 
         // Promise
         pGlobalObject.Promise = this.patchPromise(pGlobalObject);
 
         // Observer
-        pGlobalObject.ResizeObserver = this.patchClass(pGlobalObject.ResizeObserver);
-        pGlobalObject.MutationObserver = this.patchClass(pGlobalObject.MutationObserver);
-        pGlobalObject.IntersectionObserver = this.patchClass(pGlobalObject.IntersectionObserver);
+        pGlobalObject.ResizeObserver = this.patchClass(pGlobalObject.ResizeObserver, InteractionResponseType.AsnychronCallback);
+        pGlobalObject.MutationObserver = this.patchClass(pGlobalObject.MutationObserver, InteractionResponseType.AsnychronCallback);
+        pGlobalObject.IntersectionObserver = this.patchClass(pGlobalObject.IntersectionObserver, InteractionResponseType.AsnychronCallback);
 
         // Event target !!!before patching onEvents. 
         this.patchEventTarget(pGlobalObject);
@@ -255,7 +276,7 @@ export class Patcher {
         }
 
         // HTMLCanvasElement.toBlob
-        pGlobalObject.HTMLCanvasElement.prototype.toBlob = this.patchFunctionCallbacks(pGlobalObject.HTMLCanvasElement.prototype.toBlob);
+        pGlobalObject.HTMLCanvasElement.prototype.toBlob = this.patchFunctionCallbacks(pGlobalObject.HTMLCanvasElement.prototype.toBlob, InteractionResponseType.AsnychronCallback);
     }
 
     /**
@@ -268,12 +289,8 @@ export class Patcher {
             return;
         }
 
-        // Save current context.
-        const lSelf: this = this;
-
         // Storage to save all patched events by name.
-        const lPatchedEventFunctions: Dictionary<string, (...pArgs: Array<any>) => any> = new Dictionary<string, (...pArgs: Array<any>) => any>();
-        const lOriginalEventFunctions: WeakMap<(...pArgs: Array<any>) => any, (...pArgs: Array<any>) => any> = new WeakMap<(...pArgs: Array<any>) => any, (...pArgs: Array<any>) => any>();
+        const lEventFunctions: Dictionary<string, (...pArgs: Array<any>) => any> = new Dictionary<string, (...pArgs: Array<any>) => any>();
 
         // Patch every event.
         for (const lEventName of pEventNames) {
@@ -290,39 +307,24 @@ export class Patcher {
             delete lDescriptorInformation.value;
 
             // Override set behaviour.
-            lDescriptorInformation.set = function (this: EventTarget, pOriginalEventListener: (...pArgs: Array<any>) => any): void {
+            lDescriptorInformation.set = function (this: EventTarget, pEventListener: (...pArgs: Array<any>) => any): void {
                 // Remove current added listener.
-                const lCurrentValue: unknown = lPatchedEventFunctions.get(lPropertyName);
+                const lCurrentValue: unknown = lEventFunctions.get(lPropertyName);
                 if (typeof lCurrentValue === 'function') {
-                    this.removeEventListener(lEventName, lPatchedEventFunctions.get(lPropertyName)!);
+                    this.removeEventListener(lEventName, lEventFunctions.get(lPropertyName)!);
                 }
 
-                // Replace value unknown value and exit.
-                if (typeof pOriginalEventListener !== 'function') {
-                    lPatchedEventFunctions.set(lPropertyName, pOriginalEventListener);
-                    return;
-                }
-
-                // Patch event listener.
-                const lPatchedEventListener = lSelf.wrapFunctionInZone(pOriginalEventListener, InteractionZone.current);
-
-                // Save patched listener
-                lPatchedEventFunctions.set(lPropertyName, lPatchedEventListener);
-                lOriginalEventFunctions.set(lPatchedEventListener, pOriginalEventListener);
+                // Save listener for event type. No need to patch, addEventListener should be patched anyway.
+                lEventFunctions.set(lPropertyName, pEventListener);
 
                 // Add new listener if defined.
-                this.addEventListener(lEventName, lPatchedEventListener);
+                this.addEventListener(lEventName, pEventListener);
             };
 
             // Override get gebaviour.
             lDescriptorInformation.get = function (this: EventTarget): any {
-                // Return unknown value when it is not a function. Unknown values are not patched.
-                const lCurrentValue: any | ((...pArgs: Array<any>) => any) = lPatchedEventFunctions.get(lPropertyName);
-                if (typeof lCurrentValue !== 'function') {
-                    return lCurrentValue;
-                }
-
-                return lOriginalEventFunctions.get(lCurrentValue)!;
+                // Return set listener, or what ever value was set.
+                return lEventFunctions.get(lPropertyName);
             };
 
             // Set descriptor to event target.
@@ -332,11 +334,12 @@ export class Patcher {
 
     /**
      * Patch promise.
+     * 
      * @param pConstructor - Promise constructor.
      */
     private patchPromise(pGlobalObject: typeof globalThis): any {
         const lOriginalConstructor: typeof Promise = pGlobalObject.Promise;
-        const lPatchedConstructor: any = this.patchClass(lOriginalConstructor);
+        const lPatchedConstructor: any = this.patchClass(lOriginalConstructor, InteractionResponseType.AsnychronPromise);
 
         // Patch only the constructor.
         return class PatchedClass extends lPatchedConstructor {
@@ -346,24 +349,6 @@ export class Patcher {
                 // Set zone of promise.
                 Patcher.mPromizeZones.set(this as any as Promise<unknown>, InteractionZone.current);
             }
-        };
-    }
-
-    /**
-     * Patch function, so function gets always executed inside specified zone.
-     * @param pFunction - Function.
-     * @param pZone - Zone.
-     */
-    private wrapFunctionInZone(pFunction: (...pArgs: Array<any>) => any, pZone: InteractionZone): (...pArgs: Array<any>) => any {
-        return function (...pArgs: Array<any>) {
-            return pZone.execute(() => {
-                const lResult: any = pFunction(...pArgs);
-
-                // Dispatch interaction event in current zone. // TODO: Set correct interaction response type.
-                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.Any, pFunction));
-
-                return lResult;
-            });
         };
     }
 }

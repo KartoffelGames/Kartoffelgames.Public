@@ -198,13 +198,14 @@ describe('Patcher', () => {
             const lClass = class {
                 public callback: () => void;
                 constructor(pArgOne: () => void) {
+
                     this.callback = pArgOne;
                 }
             };
 
             // Process.
             const lPatchedClass = (<any>new Patcher()).patchClass(lClass, InteractionResponseType.AsnychronCallback);
-            const lObject = new lPatchedClass(() => { });
+
 
             // Process. Interaction.
             let lInteractionCounter: number = 0;
@@ -212,7 +213,7 @@ describe('Patcher', () => {
                 lInteractionCounter++;
             });
             lZone.execute(() => {
-                lObject.callback();
+                new lPatchedClass(() => { }).callback();
             });
 
             // Evaluation.
@@ -233,7 +234,6 @@ describe('Patcher', () => {
 
             // Process.
             const lPatchedClass = (<any>new Patcher()).patchClass(lClass, InteractionResponseType.AsnychronEvent);
-            const lObject = new lPatchedClass(() => { });
 
             // Process. Interaction.
             let lInteractionType: InteractionResponseType = InteractionResponseType.None;
@@ -241,7 +241,7 @@ describe('Patcher', () => {
                 lInteractionType |= pInteraction.interactionType;
             });
             lZone.execute(() => {
-                lObject.callback();
+                new lPatchedClass(() => { }).callback();
             });
 
             // Evaluation.
@@ -341,7 +341,7 @@ describe('Patcher', () => {
 
             // Process.
             const lPatchedClass = (<any>new Patcher()).patchClass(lClass, InteractionResponseType.AsnychronCallback);
-            const lObject = new lPatchedClass(() => { });
+            const lObject = new lPatchedClass();
 
             // Process. Interaction.
             let lInteractionCounter: number = 0;
@@ -376,7 +376,7 @@ describe('Patcher', () => {
                     lInteractionCounter++;
                 }
             });
-            await lZone.execute(async () => {
+            const lEventWait = lZone.execute(async () => {
                 return new Promise<void>((pResolve) => {
                     lEventTarget.addEventListener('custom', () => {
                         pResolve();
@@ -384,6 +384,7 @@ describe('Patcher', () => {
                 });
             });
             lEventTarget.dispatchEvent(new Event('custom'));
+            await lEventWait;
 
             // Evaluation.
             expect(lInteractionCounter).to.equal(1);
@@ -420,7 +421,7 @@ describe('Patcher', () => {
                     lInteractionType |= pInteraction.interactionType;
                 }
             });
-            await lZone.execute(async () => {
+            const lEventWait = lZone.execute(async () => {
                 return new Promise<void>((pResolve) => {
                     lEventTarget.addEventListener('custom', () => {
                         pResolve();
@@ -428,6 +429,7 @@ describe('Patcher', () => {
                 });
             });
             lEventTarget.dispatchEvent(new Event('custom'));
+            await lEventWait;
 
             // Evaluation.
             expect(lInteractionType).to.equal(InteractionResponseType.AsnychronEvent);
@@ -467,7 +469,7 @@ describe('Patcher', () => {
                     lInteractionCounter++;
                 }
             });
-            await lZone.execute(async () => {
+            const lEventWait = lZone.execute(async () => {
                 return new Promise<void>((pResolve) => {
                     const lListener = () => { pResolve(); };
                     lEventTarget.addEventListener('custom', lListener);
@@ -475,6 +477,7 @@ describe('Patcher', () => {
                 });
             });
             lEventTarget.dispatchEvent(new Event('custom'));
+            await lEventWait;
 
             // Evaluation.
             expect(lInteractionCounter).to.equal(1);
@@ -550,7 +553,7 @@ describe('Patcher', () => {
                     lInteractionCounter++;
                 }
             });
-            await lZone.execute(async () => {
+            const lEventWait = lZone.execute(async () => {
                 return new Promise<void>((pResolve) => {
                     lEventTarget.oncustom = () => {
                         pResolve();
@@ -558,6 +561,7 @@ describe('Patcher', () => {
                 });
             });
             lEventTarget.dispatchEvent(new Event('custom'));
+            await lEventWait;
 
             // Evaluation.
             expect(lInteractionCounter).to.equal(1);
@@ -602,7 +606,7 @@ describe('Patcher', () => {
                     lInteractionCounter++;
                 }
             });
-            await lZone.execute(async () => {
+            const lEventWait = lZone.execute(async () => {
                 return new Promise<void>((pResolve) => {
                     const lListener = () => { pResolve(); };
                     lEventTarget.oncustom = lListener;
@@ -610,6 +614,7 @@ describe('Patcher', () => {
                 });
             });
             lEventTarget.dispatchEvent(new Event('custom'));
+            await lEventWait;
 
             // Evaluation.
             expect(lInteractionCounter).to.equal(1);

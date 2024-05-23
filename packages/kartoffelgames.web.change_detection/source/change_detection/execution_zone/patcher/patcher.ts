@@ -153,7 +153,7 @@ export class Patcher {
         lProto.addEventListener = function (pType: string, pCallback: EventListenerOrEventListenerObject | null, pOptions?: boolean | AddEventListenerOptions | undefined): void {
             // When event listener is not a function. Let the browser decide the error.
             if (typeof pCallback !== 'function') {
-                lOriginalRemoveEventListener.call(this, pType, pCallback, pOptions);
+                lOriginalAddEventListener.call(this, pType, pCallback, pOptions);
                 return;
             }
 
@@ -168,7 +168,7 @@ export class Patcher {
         };
 
         // Patch remove event listener
-        
+
         lProto.removeEventListener = function (pType: string, pCallback: EventListenerOrEventListenerObject, pOptions?: EventListenerOptions | boolean): void {
             // When event listener is not a function. Let the browser decide the error.
             if (typeof pCallback !== 'function') {
@@ -311,9 +311,9 @@ export class Patcher {
 
             // Override set behaviour.
             lDescriptorInformation.set = function (this: EventTarget, pEventListener: (...pArgs: Array<any>) => any): void {
-                // Remove current added listener.
+                // Remove current added listener can be null.
                 const lCurrentValue: unknown = lEventFunctions.get(lEventName);
-                if (typeof lCurrentValue === 'function') {
+                if (typeof lCurrentValue === 'function' || typeof lCurrentValue === 'object') {
                     this.removeEventListener(lEventName, lEventFunctions.get(lEventName)!);
                 }
 
@@ -321,7 +321,9 @@ export class Patcher {
                 lEventFunctions.set(lEventName, pEventListener);
 
                 // Add new listener if defined.
-                this.addEventListener(lEventName, pEventListener);
+                if (typeof pEventListener === 'function' || typeof pEventListener === 'object') {
+                    this.addEventListener(lEventName, pEventListener);
+                }
             };
 
             // Override get gebaviour.

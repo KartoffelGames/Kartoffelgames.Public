@@ -871,5 +871,49 @@ describe('Patcher', () => {
             // Evaluation.
             expect(lInteractionType).to.equal(InteractionResponseType.AsnychronPromise);
         });
+
+        it('-- Promise async function trigger interaction', async () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone');
+
+            // Process.
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((pInteraction: InteractionReason) => {
+                // Filter Promises.
+                if (pInteraction.interactionType === InteractionResponseType.AsnychronPromise) {
+                    lInteractionCounter++;
+                }
+            });
+            await lZone.execute(async () => {
+                return (async () => {
+                    return;
+                })();
+            });
+
+            // Evaluation.
+            expect(lInteractionCounter).to.greaterThanOrEqual(2);
+        });
+
+        it('-- Promise async function interaction correct type', async () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone');
+
+            // Process.
+            let lInteractionType: InteractionResponseType = InteractionResponseType.None;
+            lZone.addInteractionListener((pInteraction: InteractionReason) => {
+                // Filter Promises.
+                if (pInteraction.interactionType === InteractionResponseType.AsnychronPromise) {
+                    lInteractionType |= pInteraction.interactionType;
+                }
+            });
+            await lZone.execute(async () => {
+                return (async () => {
+                    return;
+                })();
+            });
+
+            // Evaluation.
+            expect(lInteractionType).to.equal(InteractionResponseType.AsnychronPromise);
+        });
     });
 });

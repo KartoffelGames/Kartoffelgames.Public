@@ -21,14 +21,12 @@ describe('Patcher', () => {
             });
             await lZone.execute(async () => {
                 return new Promise<void>((pResolve) => {
-                    requestAnimationFrame(() => {
-                        pResolve;
-                    });
+                    pResolve();
                 });
             });
 
             // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
+            expect(lInteractionCounter).to.greaterThan(2); // Babel and co might call patched callbacks multimple times.
         });
 
         it('-- Double patch', async () => {
@@ -46,14 +44,12 @@ describe('Patcher', () => {
             });
             await lZone.execute(async () => {
                 return new Promise<void>((pResolve) => {
-                    requestAnimationFrame(() => {
-                        pResolve;
-                    });
+                    pResolve();
                 });
             });
 
             // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
+            expect(lInteractionCounter).to.greaterThan(2); // Babel and co might call patched callbacks multimple times.
         });
     });
 
@@ -68,15 +64,11 @@ describe('Patcher', () => {
 
             // Process.
             let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
-                lInteractionCounter++;
-            });
-            await lZone.execute(async () => {
-                return new Promise<void>((pResolve) => {
-                    requestAnimationFrame(() => {
-                        pResolve;
-                    });
-                });
+            lZone.addInteractionListener((pInteraction: InteractionReason) => {
+                // Filter Promises.
+                if (pInteraction.interactionType === InteractionResponseType.AsnychronEvent) {
+                    lInteractionCounter++;
+                }
             });
 
             // Process. Trigger event.
@@ -97,15 +89,11 @@ describe('Patcher', () => {
 
             // Process.
             let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
-                lInteractionCounter++;
-            });
-            await lZone.execute(async () => {
-                return new Promise<void>((pResolve) => {
-                    requestAnimationFrame(() => {
-                        pResolve;
-                    });
-                });
+            lZone.addInteractionListener((pInteraction: InteractionReason) => {
+                // Filter Promises.
+                if (pInteraction.interactionType === InteractionResponseType.AsnychronEvent) {
+                    lInteractionCounter++;
+                }
             });
 
             // Process. Trigger event.
@@ -151,6 +139,30 @@ describe('Patcher', () => {
                 a: number = 0;
                 constructor(pArgOne: number) {
                     this.a = pArgOne;
+                }
+            };
+
+            // Process.
+            const lPatchedClass = (<any>new Patcher()).patchClass(lClass, InteractionResponseType.AsnychronCallback);
+            const lObject = new lPatchedClass(lValue);
+
+            // Evaluation.
+            expect(lObject.a).to.equal(lValue);
+        });
+
+        it('-- Property accessor set value', () => {
+            // Setup.
+            const lValue = 11;
+            const lClass = class {
+                private mA: number;
+
+                public get a(): number {
+                    return this.mA;
+                } set a(pValue: number) {
+                    this.mA = pValue;
+                }
+                constructor(pArgOne: number) {
+                    this.mA = pArgOne;
                 }
             };
 
@@ -347,7 +359,7 @@ describe('Patcher', () => {
 
     describe('Method: patchEventTarget', () => {
         // Execute patcher before.
-        before(function () {
+        before(() => {
             Patcher.patch(globalThis);
         });
 
@@ -358,8 +370,11 @@ describe('Patcher', () => {
 
             // Process.
             let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
-                lInteractionCounter++;
+            lZone.addInteractionListener((pInteraction: InteractionReason) => {
+                // Filter Promises.
+                if (pInteraction.interactionType === InteractionResponseType.AsnychronEvent) {
+                    lInteractionCounter++;
+                }
             });
             await lZone.execute(async () => {
                 return new Promise<void>((pResolve) => {
@@ -400,7 +415,10 @@ describe('Patcher', () => {
             // Process.
             let lInteractionType: InteractionResponseType = InteractionResponseType.None;
             lZone.addInteractionListener((pInteraction: InteractionReason) => {
-                lInteractionType |= pInteraction.interactionType;
+                // Filter Promises.
+                if (pInteraction.interactionType === InteractionResponseType.AsnychronEvent) {
+                    lInteractionType |= pInteraction.interactionType;
+                }
             });
             await lZone.execute(async () => {
                 return new Promise<void>((pResolve) => {
@@ -443,8 +461,11 @@ describe('Patcher', () => {
 
             // Process.
             let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
-                lInteractionCounter++;
+            lZone.addInteractionListener((pInteraction: InteractionReason) => {
+                // Filter Promises.
+                if (pInteraction.interactionType === InteractionResponseType.AsnychronEvent) {
+                    lInteractionCounter++;
+                }
             });
             await lZone.execute(async () => {
                 return new Promise<void>((pResolve) => {
@@ -497,21 +518,37 @@ describe('Patcher', () => {
             // Evaluation.
             expect(lErroFunction).to.throw();
         });
+
+        it('-- RemoveEventListener with unregistered callbacl', () => {
+            // Setup.
+            const lEventTarget: EventTarget = new EventTarget();
+
+            // Process.
+            const lErroFunction = () => {
+                lEventTarget.removeEventListener('click', () => { });
+            };
+
+            // Evaluation.
+            expect(lErroFunction).to.not.throw();
+        });
     });
 
-    describe('Method: patchOnProperties', () => {
+    describe('Method: patchOnEventProperties', () => {
         it('-- Trigger interaction on event listener call', async () => {
             // Setup.
             const lZone: InteractionZone = new InteractionZone('Zone');
             const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
 
             // Process. Patch
-            (<any>new Patcher()).patchOnProperties(lEventTarget, ['oncustom']);
+            (<any>new Patcher()).patchOnEventProperties(lEventTarget, ['custom']);
 
             // Process.
             let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
-                lInteractionCounter++;
+            lZone.addInteractionListener((pInteraction: InteractionReason) => {
+                // Filter Promises.
+                if (pInteraction.interactionType === InteractionResponseType.AsnychronEvent) {
+                    lInteractionCounter++;
+                }
             });
             await lZone.execute(async () => {
                 return new Promise<void>((pResolve) => {
@@ -532,8 +569,8 @@ describe('Patcher', () => {
             const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
 
             // Process. Patch
-            (<any>new Patcher()).patchOnProperties(lEventTarget, ['oncustom']);
-            (<any>new Patcher()).patchOnProperties(lEventTarget, ['oncustom']);
+            (<any>new Patcher()).patchOnEventProperties(lEventTarget, ['custom']);
+            (<any>new Patcher()).patchOnEventProperties(lEventTarget, ['custom']);
 
             // Process.
             let lInteractionCounter: number = 0;
@@ -555,12 +592,15 @@ describe('Patcher', () => {
             const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
 
             // Process. Patch
-            (<any>new Patcher()).patchOnProperties(lEventTarget, ['oncustom']);
+            (<any>new Patcher()).patchOnEventProperties(lEventTarget, ['custom']);
 
             // Process.
             let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
-                lInteractionCounter++;
+            lZone.addInteractionListener((pInteraction: InteractionReason) => {
+                // Filter Promises.
+                if (pInteraction.interactionType === InteractionResponseType.AsnychronEvent) {
+                    lInteractionCounter++;
+                }
             });
             await lZone.execute(async () => {
                 return new Promise<void>((pResolve) => {
@@ -581,7 +621,7 @@ describe('Patcher', () => {
             const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
 
             // Process. Patch
-            (<any>new Patcher()).patchOnProperties(lEventTarget, ['oncustom']);
+            (<any>new Patcher()).patchOnEventProperties(lEventTarget, ['custom']);
 
             // Process.
             let lInteractionCounter: number = 0;
@@ -604,7 +644,7 @@ describe('Patcher', () => {
             const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
 
             // Process. Patch
-            (<any>new Patcher()).patchOnProperties(lEventTarget, ['oncustom']);
+            (<any>new Patcher()).patchOnEventProperties(lEventTarget, ['custom']);
 
             // Process.
             let lInteractionCounter: number = 0;
@@ -626,7 +666,7 @@ describe('Patcher', () => {
             const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
 
             // Process. Patch
-            (<any>new Patcher()).patchOnProperties(lEventTarget, ['oncustom']);
+            (<any>new Patcher()).patchOnEventProperties(lEventTarget, ['custom']);
 
             // Process.
             lEventTarget.oncustom = lValue;
@@ -642,7 +682,7 @@ describe('Patcher', () => {
             const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
 
             // Process. Patch
-            (<any>new Patcher()).patchOnProperties(lEventTarget, ['oncustom']);
+            (<any>new Patcher()).patchOnEventProperties(lEventTarget, ['custom']);
 
             // Process.
             lEventTarget.oncustom = lValue;

@@ -145,8 +145,11 @@ export class Patcher {
 
         const lOriginalListener: WeakMap<EventListenerOrEventListenerObject, EventListenerOrEventListenerObject> = new WeakMap<EventListenerOrEventListenerObject, EventListenerOrEventListenerObject>();
 
-        // Patch add event listener.
+        // Save original functions.
         const lOriginalAddEventListener = lProto.addEventListener;
+        const lOriginalRemoveEventListener = lProto.removeEventListener;
+
+        // Patch add event listener.
         lProto.addEventListener = function (pType: string, pCallback: EventListenerOrEventListenerObject | null, pOptions?: boolean | AddEventListenerOptions | undefined): void {
             // When event listener is not a function. Let the browser decide the error.
             if (typeof pCallback !== 'function') {
@@ -165,7 +168,7 @@ export class Patcher {
         };
 
         // Patch remove event listener
-        const lOriginalRemoveEventListener = lProto.removeEventListener;
+        
         lProto.removeEventListener = function (pType: string, pCallback: EventListenerOrEventListenerObject, pOptions?: EventListenerOptions | boolean): void {
             // When event listener is not a function. Let the browser decide the error.
             if (typeof pCallback !== 'function') {
@@ -309,13 +312,13 @@ export class Patcher {
             // Override set behaviour.
             lDescriptorInformation.set = function (this: EventTarget, pEventListener: (...pArgs: Array<any>) => any): void {
                 // Remove current added listener.
-                const lCurrentValue: unknown = lEventFunctions.get(lPropertyName);
+                const lCurrentValue: unknown = lEventFunctions.get(lEventName);
                 if (typeof lCurrentValue === 'function') {
-                    this.removeEventListener(lEventName, lEventFunctions.get(lPropertyName)!);
+                    this.removeEventListener(lEventName, lEventFunctions.get(lEventName)!);
                 }
 
                 // Save listener for event type. No need to patch, addEventListener should be patched anyway.
-                lEventFunctions.set(lPropertyName, pEventListener);
+                lEventFunctions.set(lEventName, pEventListener);
 
                 // Add new listener if defined.
                 this.addEventListener(lEventName, pEventListener);
@@ -324,7 +327,7 @@ export class Patcher {
             // Override get gebaviour.
             lDescriptorInformation.get = function (this: EventTarget): any {
                 // Return set listener, or what ever value was set.
-                return lEventFunctions.get(lPropertyName);
+                return lEventFunctions.get(lEventName);
             };
 
             // Set descriptor to event target.

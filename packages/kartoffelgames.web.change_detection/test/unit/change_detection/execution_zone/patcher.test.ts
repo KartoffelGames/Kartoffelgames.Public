@@ -2,197 +2,479 @@ import '../../../mock/request-animation-frame-mock-session';
 import { expect } from 'chai';
 import { Patcher } from '../../../../source/change_detection/execution_zone/patcher/patcher';
 import { InteractionZone } from '../../../../source/change_detection/interaction-zone';
+import { InteractionReason } from '../../../../source/change_detection/interaction-reason';
+import { InteractionResponseType } from '../../../../source/change_detection/enum/interaction-response-type.enum';
 
 describe('Patcher', () => {
     describe('Static Method: patch', () => {
-        it('-- default', () => {
-            // Process.
+        it('-- Default', async () => {
+            // Setup. Zone.
+            const lZone: InteractionZone = new InteractionZone('Zone');
+
+            // Process. Its patched anyway.
             Patcher.patch(globalThis);
 
             // Process. Get patched and original function.
-            const lPatchedFunction = requestAnimationFrame;
-            const lOriginalFunction = (<any>requestAnimationFrame)[Patcher.ORIGINAL_FUNCTION_KEY];
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
+                lInteractionCounter++;
+            });
+            await lZone.execute(async () => {
+                return new Promise<void>((pResolve) => {
+                    requestAnimationFrame(() => {
+                        pResolve;
+                    });
+                });
+            });
 
             // Evaluation.
-            expect(lPatchedFunction).has.key(<any>Patcher.ORIGINAL_FUNCTION_KEY);
-            expect(lPatchedFunction).to.not.equal(lOriginalFunction);
+            expect(lInteractionCounter).to.equal(1);
         });
 
-        it('-- double patch', () => {
-            // Process.
+        it('-- Double patch', async () => {
+            // Setup. Zone.
+            const lZone: InteractionZone = new InteractionZone('Zone');
+
+            // Process. Its patched anyway.
             Patcher.patch(globalThis);
             Patcher.patch(globalThis);
 
-            // Process. Get original function.
-            const lOriginalFunction = (<any>requestAnimationFrame)[Patcher.ORIGINAL_FUNCTION_KEY];
+            // Process.
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
+                lInteractionCounter++;
+            });
+            await lZone.execute(async () => {
+                return new Promise<void>((pResolve) => {
+                    requestAnimationFrame(() => {
+                        pResolve;
+                    });
+                });
+            });
 
             // Evaluation.
-            expect(lOriginalFunction).to.not.has.key(<any>Patcher.ORIGINAL_FUNCTION_KEY);
+            expect(lInteractionCounter).to.equal(1);
         });
     });
 
     describe('Static Method: attachZoneEvent', () => {
-        it('-- default', () => {
+        it('-- Default', async () => {
             // Setup.
-            const lZone: InteractionZone = new InteractionZone('Name');
+            const lZone: InteractionZone = new InteractionZone('Zone');
             const lObject = document.createElement('div');
 
             // Process.
             Patcher.attachZoneEvent(lObject, lZone);
 
+            // Process.
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
+                lInteractionCounter++;
+            });
+            await lZone.execute(async () => {
+                return new Promise<void>((pResolve) => {
+                    requestAnimationFrame(() => {
+                        pResolve;
+                    });
+                });
+            });
+
+            // Process. Trigger event.
+            lObject.dispatchEvent(new Event('input'));
+
             // Evaluation.
-            expect(lObject).to.has.key(<any>Patcher.EVENT_TARGET_PATCHED_KEY);
+            expect(lInteractionCounter).to.equal(1);
         });
 
-        it('-- double patch', () => {
+        it('-- Double patch', async () => {
             // Setup.
-            const lZone: InteractionZone = new InteractionZone('Name');
+            const lZone: InteractionZone = new InteractionZone('Zone');
             const lObject = document.createElement('div');
 
             // Process.
             Patcher.attachZoneEvent(lObject, lZone);
             Patcher.attachZoneEvent(lObject, lZone);
 
+            // Process.
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
+                lInteractionCounter++;
+            });
+            await lZone.execute(async () => {
+                return new Promise<void>((pResolve) => {
+                    requestAnimationFrame(() => {
+                        pResolve;
+                    });
+                });
+            });
+
+            // Process. Trigger event.
+            lObject.dispatchEvent(new Event('input'));
+
             // Evaluation.
-            expect(lObject).to.have.key(<any>Patcher.EVENT_TARGET_PATCHED_KEY);
-            expect((<any>lObject)[Patcher.EVENT_TARGET_PATCHED_KEY]).to.be.true;
+            expect(lInteractionCounter).to.equal(1);
         });
     });
 
-    describe('Functionality: patch class', () => {
-        it('-- constructor - non callback', () => {
+    it('Static Method: promiseZone', () => {
+        // Setup.
+        const lZone: InteractionZone = new InteractionZone('Zone');
+        const lPromise: Promise<void> = lZone.execute(async () => {
+            return new Promise<void>(() => { });
+        });
+
+        // Process.
+        const lPromiseZone: InteractionZone | undefined = Patcher.promiseZone(lPromise);
+
+        // Evaluation.
+        expect(lPromiseZone).to.equal(lZone);
+    });
+
+    describe('Method: patchClass', () => {
+        it('-- Default', () => {
+            // Setup.
+            const lClass = class { };
+
+            // Process.
+            const lPatchedClass = (<any>new Patcher()).patchClass(lClass, InteractionResponseType.AsnychronCallback);
+            const lObject = new lPatchedClass();
+
+            // Evaluation.
+            expect(lPatchedClass).to.not.equal(lClass);
+            expect(lObject).to.be.instanceOf(lClass);
+        });
+
+        it('-- Property constructor set value', () => {
             // Setup.
             const lValue = 11;
-            const lPatcher: Patcher = new Patcher();
             const lClass = class {
                 a: number = 0;
                 constructor(pArgOne: number) {
                     this.a = pArgOne;
                 }
             };
-            (<any>lClass.prototype).b = null; // Do not patch.
 
             // Process.
-            const lPatchedClass = (<any>lPatcher).patchClass(lClass);
+            const lPatchedClass = (<any>new Patcher()).patchClass(lClass, InteractionResponseType.AsnychronCallback);
             const lObject = new lPatchedClass(lValue);
 
             // Evaluation.
-            expect(lPatchedClass).to.not.equal(lClass);
-            expect(lPatchedClass).to.have.key(<any>Patcher.ORIGINAL_CLASS_KEY);
             expect(lObject.a).to.equal(lValue);
-            expect((<any>lObject).b).to.be.null;
         });
 
-        it('-- constructor - callback', () => {
+        it('-- Property property set value', () => {
             // Setup.
             const lValue = 11;
-            const lCallback = () => { return lValue; };
-            const lPatcher: Patcher = new Patcher();
             const lClass = class {
                 a: number = 0;
-                constructor(pArgOne: () => number) {
-                    this.a = pArgOne();
-                }
             };
-            (<any>lClass.prototype).b = null; // Do not patch.
 
             // Process.
-            const lPatchedClass = (<any>lPatcher).patchClass(lClass);
-            const lObject = new lPatchedClass(lCallback);
+            const lPatchedClass = (<any>new Patcher()).patchClass(lClass, InteractionResponseType.AsnychronCallback);
+            const lObject = new lPatchedClass();
+            lObject.a = lValue;
 
             // Evaluation.
-            expect(lPatchedClass).to.not.equal(lClass);
-            expect(lPatchedClass).to.have.key(<any>Patcher.ORIGINAL_CLASS_KEY);
             expect(lObject.a).to.equal(lValue);
-            expect((<any>lObject).b).to.be.null;
         });
 
-        it('-- methods', () => {
+        it('-- Constructor callback interaction', () => {
+            // Setup. Zone.
+            const lZone: InteractionZone = new InteractionZone('Zone');
+
             // Setup.
-            const lValue = 11;
-            const lPatcher: Patcher = new Patcher();
-            const lClass = class { method(pArgOne: number) { return pArgOne; } };
-            const lOriginalFunction = lClass.prototype.method;
+            const lClass = class {
+                public callback: () => void;
+                constructor(pArgOne: () => void) {
+                    this.callback = pArgOne;
+                }
+            };
 
             // Process.
-            const lPatchedClass = (<any>lPatcher).patchClass(lClass);
-            const lPatchedFunction = lPatchedClass.prototype.method;
-            const lObject = new lPatchedClass();
+            const lPatchedClass = (<any>new Patcher()).patchClass(lClass, InteractionResponseType.AsnychronCallback);
+            const lObject = new lPatchedClass(() => { });
+
+            // Process. Interaction.
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
+                lInteractionCounter++;
+            });
+            lZone.execute(() => {
+                lObject.callback();
+            });
 
             // Evaluation.
-            expect(lPatchedFunction).to.not.equal(lOriginalFunction);
-            expect(lPatchedFunction).to.have.key(<any>Patcher.ORIGINAL_FUNCTION_KEY);
-            expect(lObject.method(lValue)).to.equal(lValue);
+            expect(lInteractionCounter).to.equal(1);
+        });
+
+        it('-- Constructor callback correct interaction type', () => {
+            // Setup. Zone.
+            const lZone: InteractionZone = new InteractionZone('Zone');
+
+            // Setup.
+            const lClass = class {
+                public callback: () => void;
+                constructor(pArgOne: () => void) {
+                    this.callback = pArgOne;
+                }
+            };
+
+            // Process.
+            const lPatchedClass = (<any>new Patcher()).patchClass(lClass, InteractionResponseType.AsnychronEvent);
+            const lObject = new lPatchedClass(() => { });
+
+            // Process. Interaction.
+            let lInteractionType: InteractionResponseType = InteractionResponseType.None;
+            lZone.addInteractionListener((pInteraction: InteractionReason) => {
+                lInteractionType |= pInteraction.interactionType;
+            });
+            lZone.execute(() => {
+                lObject.callback();
+            });
+
+            // Evaluation.
+            expect(lInteractionType).to.equal(InteractionResponseType.AsnychronEvent);
+        });
+
+        it('-- Method callback interaction', () => {
+            // Setup. Zone.
+            const lZone: InteractionZone = new InteractionZone('Zone');
+
+            // Setup.
+            const lClass = class {
+                public callback: (() => void) | null = null;
+                public setCallback(pArgOne: () => void) {
+                    this.callback = pArgOne;
+                }
+            };
+
+            // Process.
+            const lPatchedClass = (<any>new Patcher()).patchClass(lClass, InteractionResponseType.AsnychronCallback);
+            const lObject = new lPatchedClass();
+
+            // Process. Interaction.
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
+                lInteractionCounter++;
+            });
+            lZone.execute(() => {
+                lObject.setCallback(() => { });
+                lObject.callback();
+            });
+
+            // Evaluation.
+            expect(lInteractionCounter).to.equal(1);
+        });
+
+        it('-- Method callback correct interaction type', () => {
+            // Setup. Zone.
+            const lZone: InteractionZone = new InteractionZone('Zone');
+
+            // Setup.
+            const lClass = class {
+                public callback: (() => void) | null = null;
+                public setCallback(pArgOne: () => void) {
+                    this.callback = pArgOne;
+                }
+            };
+
+            // Process.
+            const lPatchedClass = (<any>new Patcher()).patchClass(lClass, InteractionResponseType.AsnychronEvent);
+            const lObject = new lPatchedClass();
+
+            // Process. Interaction.
+            let lInteractionType: InteractionResponseType = InteractionResponseType.None;
+            lZone.addInteractionListener((pInteraction: InteractionReason) => {
+                lInteractionType |= pInteraction.interactionType;
+            });
+            lZone.execute(() => {
+                lObject.setCallback(() => { });
+                lObject.callback();
+            });
+
+            // Evaluation.
+            expect(lInteractionType).to.equal(InteractionResponseType.AsnychronEvent);
+        });
+
+        it('-- Method callback correct result', () => {
+            // Setup.
+            const lValue: number = 11;
+            const lClass = class {
+                public callback: (() => number) | null = null;
+                public setCallback(pArgOne: () => number) {
+                    this.callback = pArgOne;
+                }
+            };
+
+            // Process.
+            const lPatchedClass = (<any>new Patcher()).patchClass(lClass, InteractionResponseType.AsnychronCallback);
+            const lObject = new lPatchedClass();
+            lObject.setCallback(() => { return lValue; });
+
+            // Process. Interaction.
+            const lValueResult: number = lObject.callback();
+
+            // Evaluation.
+            expect(lValueResult).to.equal(lValue);
+        });
+
+        it('-- Methods not trigger interactions', () => {
+            // Setup. Zone.
+            const lZone: InteractionZone = new InteractionZone('Zone');
+
+            // Setup.
+            const lClass = class {
+                public method() { }
+            };
+
+            // Process.
+            const lPatchedClass = (<any>new Patcher()).patchClass(lClass, InteractionResponseType.AsnychronCallback);
+            const lObject = new lPatchedClass(() => { });
+
+            // Process. Interaction.
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
+                lInteractionCounter++;
+            });
+            lZone.execute(() => {
+                lObject.method();
+            });
+
+            // Evaluation.
+            expect(lInteractionCounter).to.equal(0);
         });
     });
 
-    describe('Functionality: patch EventTarget', () => {
-        it('-- Patch addEventListener', () => {
-            // Setup.
-            const lPatcher: Patcher = new Patcher();
-
-            // Process.
-            (<any>lPatcher).patchEventTarget(globalThis);
-
-            // Evaluation.
-            expect(globalThis.EventTarget.prototype.addEventListener).to.have.key(<any>Patcher.ORIGINAL_FUNCTION_KEY);
+    describe('Method: patchEventTarget', () => {
+        // Execute patcher before.
+        before(function () {
+            Patcher.patch(globalThis);
         });
 
-        it('-- Call addEventListener', () => {
+        it('-- AddEventListener trigger interaction on event listener call', async () => {
             // Setup.
-            let lListenerCalled = false;
-            const lPatcher: Patcher = new Patcher();
+            const lZone: InteractionZone = new InteractionZone('Zone');
             const lEventTarget: EventTarget = new EventTarget();
 
             // Process.
-            const lFunction = () => { lListenerCalled = true; };
-            (<any>lPatcher).patchEventTarget(globalThis);
-            lEventTarget.addEventListener('click', lFunction);
-            lEventTarget.dispatchEvent(new Event('click'));
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
+                lInteractionCounter++;
+            });
+            await lZone.execute(async () => {
+                return new Promise<void>((pResolve) => {
+                    lEventTarget.addEventListener('custom', () => {
+                        pResolve();
+                    });
+                });
+            });
+            lEventTarget.dispatchEvent(new Event('custom'));
 
             // Evaluation.
-            expect(lFunction).to.have.key(<any>Patcher.PATCHED_FUNCTION_KEY);
-            expect(lListenerCalled).to.be.true;
+            expect(lInteractionCounter).to.equal(1);
         });
 
-        it('-- Patch removeEventListener', () => {
+        it('-- AddEventListener not trigger interaction without calling event listener', () => {
             // Setup.
-            const lPatcher: Patcher = new Patcher();
-
-            // Process.
-            (<any>lPatcher).patchEventTarget(globalThis);
-
-            // Evaluation.
-            expect(globalThis.EventTarget.prototype.removeEventListener).to.have.key(<any>Patcher.ORIGINAL_FUNCTION_KEY);
-        });
-
-        it('-- Call removeEventListener', () => {
-            // Setup.
-            let lListenerCalled = false;
-            const lPatcher: Patcher = new Patcher();
+            const lZone: InteractionZone = new InteractionZone('Zone');
             const lEventTarget: EventTarget = new EventTarget();
 
             // Process.
-            const lFunction = () => { lListenerCalled = true; };
-            (<any>lPatcher).patchEventTarget(globalThis);
-
-            // Add event, remove event and trigger event.
-            lEventTarget.addEventListener('click', lFunction);
-            lEventTarget.removeEventListener('click', lFunction);
-            lEventTarget.dispatchEvent(new Event('click'));
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
+                lInteractionCounter++;
+            });
+            lZone.execute(() => {
+                lEventTarget.addEventListener('custom', () => { });
+            });
 
             // Evaluation.
-            expect(lFunction).to.have.key(<any>Patcher.PATCHED_FUNCTION_KEY);
-            expect(lListenerCalled).to.be.false;
+            expect(lInteractionCounter).to.equal(0);
         });
 
-        it('-- Call removeEventListener with null as callback', () => {
+        it('-- AddEventListener trigger interaction correct type', async () => {
             // Setup.
-            const lPatcher: Patcher = new Patcher();
+            const lZone: InteractionZone = new InteractionZone('Zone');
             const lEventTarget: EventTarget = new EventTarget();
 
-            // Setup. Patch.
-            (<any>lPatcher).patchEventTarget(globalThis);
+            // Process.
+            let lInteractionType: InteractionResponseType = InteractionResponseType.None;
+            lZone.addInteractionListener((pInteraction: InteractionReason) => {
+                lInteractionType |= pInteraction.interactionType;
+            });
+            await lZone.execute(async () => {
+                return new Promise<void>((pResolve) => {
+                    lEventTarget.addEventListener('custom', () => {
+                        pResolve();
+                    });
+                });
+            });
+            lEventTarget.dispatchEvent(new Event('custom'));
+
+            // Evaluation.
+            expect(lInteractionType).to.equal(InteractionResponseType.AsnychronEvent);
+        });
+
+        it('-- Remove event listener', () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone');
+            const lEventTarget: EventTarget = new EventTarget();
+            const lListener = () => { };
+
+            // Process.
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
+                lInteractionCounter++;
+            });
+            lZone.execute(() => {
+                lEventTarget.addEventListener('custom', lListener);
+            });
+            lEventTarget.removeEventListener('custom', lListener);
+            lEventTarget.dispatchEvent(new Event('custom'));
+
+            // Evaluation.
+            expect(lInteractionCounter).to.equal(0);
+        });
+
+        it('-- Remove event listener wrong type', async () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone');
+            const lEventTarget: EventTarget = new EventTarget();
+
+            // Process.
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
+                lInteractionCounter++;
+            });
+            await lZone.execute(async () => {
+                return new Promise<void>((pResolve) => {
+                    const lListener = () => { pResolve(); };
+                    lEventTarget.addEventListener('custom', lListener);
+                    lEventTarget.removeEventListener('customwrong', lListener);
+                });
+            });
+            lEventTarget.dispatchEvent(new Event('custom'));
+
+            // Evaluation.
+            expect(lInteractionCounter).to.equal(1);
+        });
+
+        it('-- AddEventListener with null as callback', () => {
+            // Setup.
+            const lEventTarget: EventTarget = new EventTarget();
+
+            // Process.
+            const lErroFunction = () => {
+                lEventTarget.addEventListener('click', null);
+            };
+
+            // Evaluation.
+            expect(lErroFunction).to.not.throw();
+        });
+
+        it('-- RemoveEventListener with null as callback', () => {
+            // Setup.
+            const lEventTarget: EventTarget = new EventTarget();
 
             // Process.
             const lErroFunction = () => {
@@ -203,17 +485,13 @@ describe('Patcher', () => {
             expect(lErroFunction).to.not.throw();
         });
 
-        it('-- Call removeEventListener with string as callback', () => {
+        it('-- RemoveEventListener with string as callback', () => {
             // Setup.
-            const lPatcher: Patcher = new Patcher();
             const lEventTarget: EventTarget = new EventTarget();
-
-            // Setup. Patch.
-            (<any>lPatcher).patchEventTarget(globalThis);
 
             // Process.
             const lErroFunction = () => {
-                lEventTarget.removeEventListener('click', <any>'Not an object');
+                lEventTarget.removeEventListener('click', 'Something' as any);
             };
 
             // Evaluation.
@@ -221,109 +499,157 @@ describe('Patcher', () => {
         });
     });
 
-    describe('Functionality: patchOnProperties', () => {
-        it('-- Multi patch', () => {
+    describe('Method: patchOnProperties', () => {
+        it('-- Trigger interaction on event listener call', async () => {
             // Setup.
-            const lObject = new class extends EventTarget { public onclick: any = null; }();
-            const lFunction = () => { };
-            const lPatcher: Patcher = new Patcher();
+            const lZone: InteractionZone = new InteractionZone('Zone');
+            const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
+
+            // Process. Patch
+            (<any>new Patcher()).patchOnProperties(lEventTarget, ['oncustom']);
 
             // Process.
-            (<any>lPatcher).patchOnProperties(lObject, ['click']);
-            (<any>lPatcher).patchOnProperties(lObject, ['click']);
-            lObject.onclick = lFunction;
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
+                lInteractionCounter++;
+            });
+            await lZone.execute(async () => {
+                return new Promise<void>((pResolve) => {
+                    lEventTarget.oncustom = () => {
+                        pResolve();
+                    };
+                });
+            });
+            lEventTarget.dispatchEvent(new Event('custom'));
 
             // Evaluation.
-            expect(lFunction).to.have.key(<any>Patcher.PATCHED_FUNCTION_KEY);
+            expect(lInteractionCounter).to.equal(1);
         });
 
-        it('-- Call listener', () => {
+        it('-- Double patch', () => {
             // Setup.
-            let lListenerCalled = false;
-            const lObject = new class extends EventTarget { public onclick: any = null; }();
-            const lFunction = () => { lListenerCalled = true; };
-            const lPatcher: Patcher = new Patcher();
+            const lZone: InteractionZone = new InteractionZone('Zone');
+            const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
+
+            // Process. Patch
+            (<any>new Patcher()).patchOnProperties(lEventTarget, ['oncustom']);
+            (<any>new Patcher()).patchOnProperties(lEventTarget, ['oncustom']);
 
             // Process.
-            (<any>lPatcher).patchOnProperties(lObject, ['click']);
-            lObject.onclick = lFunction;
-            lObject.dispatchEvent(new Event('click'));
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
+                lInteractionCounter++;
+            });
+            lZone.execute(() => {
+                lEventTarget.oncustom = () => { };
+            });
+            lEventTarget.dispatchEvent(new Event('custom'));
 
             // Evaluation.
-            expect(lListenerCalled).to.be.true;
+            expect(lInteractionCounter).to.equal(1);
         });
 
-        it('-- Add listener twice', () => {
+        it('-- Override function with self', async () => {
             // Setup.
-            let lListenerCallCount = 0;
-            const lObject = new class extends EventTarget { public onclick: any = null; }();
-            const lFunction = () => { lListenerCallCount++; };
-            const lPatcher: Patcher = new Patcher();
+            const lZone: InteractionZone = new InteractionZone('Zone');
+            const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
+
+            // Process. Patch
+            (<any>new Patcher()).patchOnProperties(lEventTarget, ['oncustom']);
 
             // Process.
-            (<any>lPatcher).patchOnProperties(lObject, ['click']);
-            lObject.onclick = lFunction;
-            lObject.onclick = lFunction;
-            lObject.dispatchEvent(new Event('click'));
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
+                lInteractionCounter++;
+            });
+            await lZone.execute(async () => {
+                return new Promise<void>((pResolve) => {
+                    const lListener = () => { pResolve(); };
+                    lEventTarget.oncustom = lListener;
+                    lEventTarget.oncustom = lListener;
+                });
+            });
+            lEventTarget.dispatchEvent(new Event('custom'));
 
             // Evaluation.
-            expect(lListenerCallCount).to.equal(1);
+            expect(lInteractionCounter).to.equal(1);
         });
 
-        it('-- Set on property - function', () => {
+        it('-- Override function with null', () => {
             // Setup.
-            const lObject = new class extends EventTarget { public onclick: any = null; }();
-            const lFunction = () => { };
-            const lPatcher: Patcher = new Patcher();
+            const lZone: InteractionZone = new InteractionZone('Zone');
+            const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
+
+            // Process. Patch
+            (<any>new Patcher()).patchOnProperties(lEventTarget, ['oncustom']);
 
             // Process.
-            (<any>lPatcher).patchOnProperties(lObject, ['click']);
-            lObject.onclick = lFunction;
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
+                lInteractionCounter++;
+            });
+            lZone.execute(() => {
+                lEventTarget.oncustom = () => { };
+                lEventTarget.oncustom = null;
+            });
+            lEventTarget.dispatchEvent(new Event('custom'));
 
             // Evaluation.
-            expect(lFunction).to.have.key(<any>Patcher.PATCHED_FUNCTION_KEY);
+            expect(lInteractionCounter).to.equal(0);
         });
 
-        it('-- Set on property - none function', () => {
+        it('-- Set string value', () => {
             // Setup.
-            const lValue: number = 12;
-            const lObject = new class extends EventTarget { public onclick: any = null; }();
-            const lPatcher: Patcher = new Patcher();
+            const lZone: InteractionZone = new InteractionZone('Zone');
+            const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
+
+            // Process. Patch
+            (<any>new Patcher()).patchOnProperties(lEventTarget, ['oncustom']);
 
             // Process.
-            (<any>lPatcher).patchOnProperties(lObject, ['click']);
-            lObject.onclick = lValue;
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
+                lInteractionCounter++;
+            });
+            lZone.execute(() => {
+                lEventTarget.oncustom = 'string';
+            });
+            lEventTarget.dispatchEvent(new Event('custom'));
 
             // Evaluation.
-            expect(lObject.onclick).to.equal(lValue);
+            expect(lInteractionCounter).to.equal(0);
         });
 
-        it('-- Get on property - none function', () => {
+        it('-- Get string value', () => {
             // Setup.
-            const lValue: number = 12;
-            const lObject = new class extends EventTarget { public onclick: any = null; }();
-            const lPatcher: Patcher = new Patcher();
+            const lValue: string = 'ValueOrSo';
+            const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
+
+            // Process. Patch
+            (<any>new Patcher()).patchOnProperties(lEventTarget, ['oncustom']);
 
             // Process.
-            (<any>lPatcher).patchOnProperties(lObject, ['click']);
-            lObject.onclick = lValue;
+            lEventTarget.oncustom = lValue;
+            const lResultValue: string = lEventTarget.oncustom;
 
             // Evaluation.
-            expect(lObject.onclick).to.equal(lValue);
+            expect(lResultValue).to.equal(lValue);
         });
 
-        it('-- Set on property - function', () => {
+        it('-- Get function value', () => {
             // Setup.
-            const lObject = new class extends EventTarget { public onclick: any = null; }();
-            const lFunction = () => { };
-            const lPatcher: Patcher = new Patcher();
+            const lValue: () => void = () => { };
+            const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
+
+            // Process. Patch
+            (<any>new Patcher()).patchOnProperties(lEventTarget, ['oncustom']);
 
             // Process.
-            (<any>lPatcher).patchOnProperties(lObject, ['click']);
-            lObject.onclick = lFunction;
+            lEventTarget.oncustom = lValue;
+            const lResultValue: string = lEventTarget.oncustom;
 
             // Evaluation.
-            expect(lObject.onclick).to.equal(lFunction);
+            expect(lResultValue).to.equal(lValue);
         });
     });
 });

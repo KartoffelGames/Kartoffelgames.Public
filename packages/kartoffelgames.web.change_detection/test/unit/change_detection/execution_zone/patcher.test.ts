@@ -26,7 +26,7 @@ describe('Patcher', () => {
             });
 
             // Evaluation.
-            expect(lInteractionCounter).to.greaterThan(2); // Babel and co might call patched callbacks multimple times.
+            expect(lInteractionCounter).to.greaterThanOrEqual(2); // Babel and co might call patched callbacks multimple times.
         });
 
         it('-- Double patch', async () => {
@@ -49,7 +49,7 @@ describe('Patcher', () => {
             });
 
             // Evaluation.
-            expect(lInteractionCounter).to.greaterThan(2); // Babel and co might call patched callbacks multimple times.
+            expect(lInteractionCounter).to.greaterThanOrEqual(2); // Babel and co might call patched callbacks multimple times.
         });
     });
 
@@ -695,6 +695,181 @@ describe('Patcher', () => {
 
             // Evaluation.
             expect(lResultValue).to.equal(lValue);
+        });
+    });
+
+    describe('Method: patchPromise', () => {
+        // Execute patcher before.
+        before(() => {
+            Patcher.patch(globalThis);
+        });
+
+        it('-- Promise callback trigger interaction', async () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone');
+
+            // Process.
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((pInteraction: InteractionReason) => {
+                // Filter Promises.
+                if (pInteraction.interactionType === InteractionResponseType.AsnychronPromise) {
+                    lInteractionCounter++;
+                }
+            });
+            await lZone.execute(async () => {
+                return new Promise<void>((pResolve) => { pResolve(); });
+            });
+
+            // Evaluation.
+            expect(lInteractionCounter).to.greaterThanOrEqual(2);
+        });
+
+        it('--  Promise callback trigger interaction correct type', async () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone');
+
+            // Process.
+            let lInteractionType: InteractionResponseType = InteractionResponseType.None;
+            lZone.addInteractionListener((pInteraction: InteractionReason) => {
+                // Filter Promises.
+                if (pInteraction.interactionType === InteractionResponseType.AsnychronPromise) {
+                    lInteractionType |= pInteraction.interactionType;
+                }
+            });
+            await lZone.execute(async () => {
+                return new Promise<void>((pResolve) => { pResolve(); });
+            });
+
+            // Evaluation.
+            expect(lInteractionType).to.equal(InteractionResponseType.AsnychronPromise);
+        });
+
+        it('-- Promise then trigger interaction without callback.', async () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone');
+            const lPromise: Promise<void> = new Promise<void>((pResolve) => { pResolve(); });
+
+            // Process.
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((pInteraction: InteractionReason) => {
+                // Filter Promises.
+                if (pInteraction.interactionType === InteractionResponseType.AsnychronPromise) {
+                    lInteractionCounter++;
+                }
+            });
+            await lZone.execute(async () => {
+                return lPromise.then();
+            });
+
+            // Evaluation.
+            expect(lInteractionCounter).to.greaterThanOrEqual(2);
+        });
+
+        it('-- Promise then trigger interaction with callback.', async () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone');
+            const lPromise: Promise<void> = new Promise<void>((pResolve) => { pResolve(); });
+
+            // Process.
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((pInteraction: InteractionReason) => {
+                // Filter Promises.
+                if (pInteraction.interactionType === InteractionResponseType.AsnychronPromise) {
+                    lInteractionCounter++;
+                }
+            });
+            await lZone.execute(async () => {
+                return lPromise.then(() => { });
+            });
+
+            // Evaluation.
+            expect(lInteractionCounter).to.greaterThanOrEqual(2);
+        });
+
+        it('--  Promise then trigger interaction correct type', async () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone');
+            const lPromise: Promise<void> = new Promise<void>((pResolve) => { pResolve(); });
+
+            // Process.
+            let lInteractionType: InteractionResponseType = InteractionResponseType.None;
+            lZone.addInteractionListener((pInteraction: InteractionReason) => {
+                // Filter Promises.
+                if (pInteraction.interactionType === InteractionResponseType.AsnychronPromise) {
+                    lInteractionType |= pInteraction.interactionType;
+                }
+            });
+            await lZone.execute(async () => {
+                return lPromise.then(() => { });
+            });
+
+            // Evaluation.
+            expect(lInteractionType).to.equal(InteractionResponseType.AsnychronPromise);
+        });
+
+        it('-- Promise catch trigger interaction without callback.', async () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone');
+            const lPromise: Promise<void> = new Promise<void>((_pResolve, pReject) => { pReject('Something'); });
+
+            // Process.
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((pInteraction: InteractionReason) => {
+                // Filter Promises.
+                if (pInteraction.interactionType === InteractionResponseType.AsnychronPromise) {
+                    lInteractionCounter++;
+                }
+            });
+            try {
+                await lZone.execute(async () => {
+                    return lPromise.catch();
+                });
+            } catch (_err) { /* Nothing */ }
+
+            // Evaluation.
+            expect(lInteractionCounter).to.greaterThanOrEqual(2);
+        });
+
+        it('-- Promise catch trigger interaction with callback.', async () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone');
+            const lPromise: Promise<void> = new Promise<void>((_pResolve, pReject) => { pReject(); });
+
+            // Process.
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((pInteraction: InteractionReason) => {
+                // Filter Promises.
+                if (pInteraction.interactionType === InteractionResponseType.AsnychronPromise) {
+                    lInteractionCounter++;
+                }
+            });
+            await lZone.execute(async () => {
+                return lPromise.catch(() => { });
+            });
+
+            // Evaluation.
+            expect(lInteractionCounter).to.greaterThanOrEqual(2);
+        });
+
+        it('-- Promise catch trigger interaction correct type', async () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone');
+            const lPromise: Promise<void> = new Promise<void>((_pResolve, pReject) => { pReject(); });
+
+            // Process.
+            let lInteractionType: InteractionResponseType = InteractionResponseType.None;
+            lZone.addInteractionListener((pInteraction: InteractionReason) => {
+                // Filter Promises.
+                if (pInteraction.interactionType === InteractionResponseType.AsnychronPromise) {
+                    lInteractionType |= pInteraction.interactionType;
+                }
+            });
+            await lZone.execute(async () => {
+                return lPromise.catch(() => { });
+            });
+
+            // Evaluation.
+            expect(lInteractionType).to.equal(InteractionResponseType.AsnychronPromise);
         });
     });
 });

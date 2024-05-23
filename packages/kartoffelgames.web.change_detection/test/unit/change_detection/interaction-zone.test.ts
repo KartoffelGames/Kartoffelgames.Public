@@ -832,7 +832,7 @@ describe('InteractionZone', () => {
 
         it('-- DetectionCatchType.SyncronCall', () => {
             // Setup.
-            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronEvent });
+            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.SyncronCall });
             const lFunction: () => void = InteractionZone.registerObject(() => { });
 
             // Process.
@@ -850,7 +850,7 @@ describe('InteractionZone', () => {
 
         it('-- DetectionCatchType.SyncronProperty', () => {
             // Setup.
-            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronEvent });
+            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.SyncronProperty });
             const lObject: { a: number; } = InteractionZone.registerObject({ a: 0 });
 
             // Process.
@@ -868,7 +868,7 @@ describe('InteractionZone', () => {
 
         it('-- DetectionCatchType.Syncron', () => {
             // Setup.
-            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronEvent });
+            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.Syncron });
             const lObject: { a: number; } = InteractionZone.registerObject({ a: 0 });
             const lFunction: () => void = InteractionZone.registerObject(() => { });
 
@@ -889,7 +889,7 @@ describe('InteractionZone', () => {
         describe('-- DetectionCatchType.AsnychronPromise', async () => {
             it('-- Promise callback', async () => {
                 // Setup.
-                const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronEvent });
+                const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronPromise });
 
                 // Process.
                 let lResponeType: InteractionResponseType = InteractionResponseType.None;
@@ -908,7 +908,7 @@ describe('InteractionZone', () => {
 
             it('-- Promise then', async () => {
                 // Setup.
-                const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronEvent });
+                const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronPromise });
                 const lPromise: Promise<void> = new Promise<void>((pResolve) => { pResolve(); });
 
                 // Process.
@@ -926,7 +926,7 @@ describe('InteractionZone', () => {
 
             it('-- Promise catch', async () => {
                 // Setup.
-                const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronEvent });
+                const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronPromise });
                 const lPromise: Promise<void> = new Promise<void>((_pResolve, pReject) => { pReject(); });
 
                 // Process.
@@ -941,26 +941,11 @@ describe('InteractionZone', () => {
                 // Evaluation.
                 expect(lResponeType).to.be.equal(InteractionResponseType.AsnychronPromise);
             });
-
-            it('-- Negative', async () => {
-                // Setup.
-                const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronEvent });
-
-                // Process.
-                let lResponeType: InteractionResponseType = InteractionResponseType.None;
-                lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                    lResponeType |= pReason.interactionType;
-                });
-                await lInteractionZone.execute(async () => { });
-
-                // Evaluation.
-                expect(lResponeType).to.be.equal(InteractionResponseType.None);
-            });
         });
 
         it('-- DetectionCatchType.AsnychronCallback', async () => {
             // Setup.
-            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronEvent });
+            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronCallback });
 
             // Process.
             let lResponeType: InteractionResponseType = InteractionResponseType.None;
@@ -999,7 +984,7 @@ describe('InteractionZone', () => {
 
         it('-- DetectionCatchType.Asnychron', async () => {
             // Setup.
-            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronEvent });
+            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.Asnychron });
             const lEventTarget: EventTarget = new EventTarget();
 
             // Process.
@@ -1025,7 +1010,7 @@ describe('InteractionZone', () => {
 
         it('-- DetectionCatchType.Any', async () => {
             // Setup.
-            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronEvent });
+            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.Any });
             const lEventTarget: EventTarget = new EventTarget();
             const lObject: { a: number; } = InteractionZone.registerObject({ a: 0 });
             const lFunction: () => void = InteractionZone.registerObject(() => { });
@@ -1054,25 +1039,41 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation. Filter Promise async flags.
-            expect(lResponeType).to.be.equal(InteractionResponseType.Asnychron);
+            expect(lResponeType).to.be.equal(InteractionResponseType.Any);
         });
 
         it('-- Negative', () => {
             // Setup.
-            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.Syncron });
+            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.AsnychronPromise });
 
             // Process.
-            let lResponeType: InteractionResponseType | null = null;
+            let lResponeType: InteractionResponseType = InteractionResponseType.None;
             lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                lResponeType = pReason.interactionType;
+                lResponeType |= pReason.interactionType;
             });
             lInteractionZone.execute(() => {
                 const lEventTarget: EventTarget = new EventTarget();
-                lEventTarget.dispatchEvent(new Event('click'));
+                lEventTarget.addEventListener('custom', () => { });
+                lEventTarget.dispatchEvent(new Event('custom'));
             });
 
             // Evaluation.
-            expect(lResponeType).to.be.null;
+            expect(lResponeType).to.be.equal(InteractionResponseType.None);
+        });
+
+        it('-- Negative no zone execution', async () => {
+            // Setup.
+            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.Any });
+
+            // Process.
+            let lResponeType: InteractionResponseType = InteractionResponseType.None;
+            lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
+                lResponeType |= pReason.interactionType;
+            });
+            lInteractionZone.execute(() => { /* Empty */ });
+
+            // Evaluation.
+            expect(lResponeType).to.be.equal(InteractionResponseType.None);
         });
     });
 });

@@ -147,9 +147,7 @@ export class Patcher {
         const lProto = pGlobalObject.EventTarget.prototype;
         const lSelf: this = this;
 
-        // TODO: Callbacks can be objects with handeEvent methods. Make it work.
-
-        const lOriginalListener: WeakMap<EventListenerOrEventListenerObject, EventListenerOrEventListenerObject> = new WeakMap<EventListenerOrEventListenerObject, EventListenerOrEventListenerObject>();
+        const lOriginalListener: WeakMap<EventListenerOrEventListenerObject, EventListener> = new WeakMap<EventListenerOrEventListenerObject, EventListener>();
 
         // Save original functions.
         const lOriginalAddEventListener = lProto.addEventListener;
@@ -158,13 +156,20 @@ export class Patcher {
         // Patch add event listener.
         lProto.addEventListener = function (pType: string, pCallback: EventListenerOrEventListenerObject | null, pOptions?: boolean | AddEventListenerOptions | undefined): void {
             // When event listener is not a function. Let the browser decide the error.
-            if (typeof pCallback !== 'function') {
+            if (pCallback === null || typeof pCallback !== 'function' && !(typeof pCallback === 'object' && 'handleEvent' in pCallback)) {
                 lOriginalAddEventListener.call(this, pType, pCallback, pOptions);
                 return;
             }
 
             // Get already patched event listener or patch it for the current interaction zone.
-            const lPatchedEventListener = lOriginalListener.get(pCallback) ?? lSelf.interactionOnFunctionCall(pCallback, InteractionZone.current, InteractionResponseType.AsnychronEvent);
+            let lPatchedEventListener: EventListener | undefined = lOriginalListener.get(pCallback);
+            if (!lPatchedEventListener) {
+                if (typeof pCallback === 'function') {
+                    lPatchedEventListener = lSelf.interactionOnFunctionCall(pCallback, InteractionZone.current, InteractionResponseType.AsnychronEvent);
+                } else {
+                    lPatchedEventListener = lSelf.interactionOnFunctionCall(pCallback.handleEvent.bind(pCallback), InteractionZone.current, InteractionResponseType.AsnychronEvent);
+                }
+            }
 
             // Save patched function of original.
             lOriginalListener.set(pCallback, lPatchedEventListener);
@@ -174,10 +179,9 @@ export class Patcher {
         };
 
         // Patch remove event listener
-
         lProto.removeEventListener = function (pType: string, pCallback: EventListenerOrEventListenerObject, pOptions?: EventListenerOptions | boolean): void {
             // When event listener is not a function. Let the browser decide the error.
-            if (typeof pCallback !== 'function') {
+            if (pCallback === null || typeof pCallback !== 'function' && !(typeof pCallback === 'object' && 'handleEvent' in pCallback)) {
                 lOriginalRemoveEventListener.call(this, pType, pCallback, pOptions);
                 return;
             }

@@ -566,6 +566,84 @@ describe('Patcher', () => {
             // Evaluation.
             expect(lErroFunction).to.not.throw();
         });
+
+        it('-- AddEventListener trigger interaction on event handler object call', async () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone');
+            const lEventTarget: EventTarget = new EventTarget();
+
+            // Process.
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((pInteraction: InteractionReason) => {
+                // Filter Promises.
+                if (pInteraction.interactionType === InteractionResponseType.AsnychronEvent) {
+                    lInteractionCounter++;
+                }
+            });
+            const lEventWait = lZone.execute(async () => {
+                return new Promise<void>((pResolve) => {
+                    const lHandlerObject = {
+                        handleEvent: function () {
+                            pResolve();
+                        }
+                    };
+
+                    lEventTarget.addEventListener('custom', lHandlerObject);
+                });
+            });
+            lEventTarget.dispatchEvent(new Event('custom'));
+            await lEventWait;
+
+            // Evaluation.
+            expect(lInteractionCounter).to.equal(1);
+        });
+
+        it('-- AddEventListener correct this context on event handler object call', async () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone');
+            const lEventTarget: EventTarget = new EventTarget();
+
+            // Process.
+            const lEventWait = lZone.execute(async () => {
+                return new Promise<boolean>((pResolve) => {
+                    const lHandlerObject = {
+                        handleEvent: function () {
+                            pResolve(this === lHandlerObject);
+                        }
+                    };
+
+                    lEventTarget.addEventListener('custom', lHandlerObject);
+                });
+            });
+            lEventTarget.dispatchEvent(new Event('custom'));
+            const lCorrectThisContxt = await lEventWait;
+
+            // Evaluation.
+            expect(lCorrectThisContxt).to.be.true;
+        });
+
+        it('-- Remove event handler object', () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone');
+            const lEventTarget: EventTarget = new EventTarget();
+            const lHandlerObject = {
+                handleEvent: function () { }
+            };
+
+            // Process.
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
+                lInteractionCounter++;
+            });
+            lZone.execute(() => {
+                lEventTarget.addEventListener('custom', lHandlerObject);
+            });
+            lEventTarget.removeEventListener('custom', lHandlerObject);
+            lEventTarget.dispatchEvent(new Event('custom'));
+
+            // Evaluation.
+            expect(lInteractionCounter).to.equal(0);
+        });
     });
 
     describe('Method: patchOnEventProperties', () => {

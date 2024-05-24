@@ -78,7 +78,7 @@ describe('Patcher', () => {
             expect(lInteractionCounter).to.equal(1);
         });
 
-        it('-- Double patch', async () => {
+        it('-- Double patch same zone', async () => {
             // Setup.
             const lZone: InteractionZone = new InteractionZone('Zone');
             const lObject = document.createElement('div');
@@ -101,6 +101,38 @@ describe('Patcher', () => {
 
             // Evaluation.
             expect(lInteractionCounter).to.equal(1);
+        });
+
+        it('-- Double patch different zone', async () => {
+            // Setup.
+            const lZoneOne: InteractionZone = new InteractionZone('ZoneOne', { trigger: InteractionResponseType.AsnychronEvent });
+            const lZoneTwo: InteractionZone = new InteractionZone('ZoneTwo', { trigger: InteractionResponseType.AsnychronEvent });
+
+            const lObject = document.createElement('div');
+
+            // Process.
+            Patcher.attachZoneEvent(lObject, lZoneOne);
+            Patcher.attachZoneEvent(lObject, lZoneTwo);
+
+            // Process.
+            const lZoneOneWaiter = new Promise<boolean>((pResolve) => {
+                lZoneOne.addInteractionListener(() => {
+                    pResolve(true);
+                });
+            });
+            const lZoneTwoWaiter = new Promise<boolean>((pResolve) => {
+                lZoneTwo.addInteractionListener(() => {
+                    pResolve(true);
+                });
+            });
+
+            // Process. Trigger event.
+            lObject.dispatchEvent(new Event('input'));
+
+            const lWaiterResult = await Promise.all([lZoneOneWaiter, lZoneTwoWaiter]);
+
+            // Evaluation.
+            expect(lWaiterResult).to.deep.equal([true, true]);
         });
     });
 

@@ -6,7 +6,7 @@ import { EventNames } from './event-names';
 
 export class Patcher {
     private static mIsPatched: boolean = false;
-    private static readonly mPatchedElements: WeakSet<object> = new WeakSet<object>();// TODO: Better structure pls.
+    private static readonly mPatchedElements: WeakMap<Element, WeakSet<InteractionZone>> = new WeakMap<Element, WeakSet<InteractionZone>>();
     private static readonly mPromizeZones: WeakMap<Promise<unknown>, InteractionZone> = new WeakMap<Promise<unknown>, InteractionZone>();
 
     /**
@@ -16,8 +16,14 @@ export class Patcher {
      * @param pZone - Zone.
      */
     public static attachZoneEvent(pObject: Element, pZone: InteractionZone): void {
-        if (Patcher.mPatchedElements.has(pObject)) {
+        // Do not patch twice for the same zone.
+        if (Patcher.mPatchedElements.get(pObject)?.has(pZone)) {
             return;
+        }
+
+        // Init interaction zone storage.
+        if (!Patcher.mPatchedElements.has(pObject)) {
+            Patcher.mPatchedElements.set(pObject, new WeakSet<InteractionZone>());
         }
 
         // Add all events without function.
@@ -30,7 +36,7 @@ export class Patcher {
         }
 
         // Add element as patched entity.
-        Patcher.mPatchedElements.add(pObject);
+        Patcher.mPatchedElements.get(pObject)!.add(pZone);
     }
 
     /**

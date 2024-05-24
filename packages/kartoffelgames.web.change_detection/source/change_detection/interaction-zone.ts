@@ -21,8 +21,8 @@ export class InteractionZone {
             const lInteractionZone: InteractionZone | null = ErrorAllocation.getInteractionZone(pError);
             if (lInteractionZone) {
                 // Suppress console error message if error should be suppressed
-                const lExecuteDefault: boolean = lInteractionZone.callErrorListener(pError);
-                if (!lExecuteDefault) {
+                const lPreventDefault: boolean = lInteractionZone.callErrorListener(pError);
+                if (lPreventDefault) {
                     pErrorEvent.preventDefault();
                 }
             }
@@ -73,6 +73,11 @@ export class InteractionZone {
      * @param pObject - Object or function.
      */
     public static registerObject<T extends object>(pObject: T): T {
+        // Attach event handler for events that usually trigger direct changes on object.
+        if (pObject instanceof Element) {
+            Patcher.attachZoneEvent(pObject, InteractionZone.current);
+        }
+
         // Create interaction proxy.
         return new InteractionDetectionProxy(pObject).proxy;
     }
@@ -179,9 +184,9 @@ export class InteractionZone {
 
     /**
      * Call all error listener.
-     * When any of the listener has false as result this method returns also false.
+     * When any of the listener has false as result this method returns true.
      * 
-     * @returns false when any of the listener returns false, otherwise true.
+     * @returns true when any of the error listener returns false(prevent default), otherwise false.
      */
     private callErrorListener(pError: any): boolean {
         // Execute all listener in event target zone.

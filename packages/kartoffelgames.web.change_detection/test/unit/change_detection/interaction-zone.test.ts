@@ -258,6 +258,24 @@ describe('InteractionZone', () => {
             expect(lResultStack).to.contain('lMycoolname');
         });
 
+        it('-- Keep source', () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('ZoneName');
+            const lSource = {};
+
+            // Process.
+            let lResultSource: any;
+            lZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                lResultSource = pChangeReason.source;
+            });
+            lZone.execute(() => {
+                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronCall, lSource));
+            });
+
+            // Evaluation.
+            expect(lResultSource).to.equal(lSource);
+        });
+
         it('-- Inore other zones.', () => {
             // Setup.
             const lZone: InteractionZone = new InteractionZone('ZoneName');
@@ -326,26 +344,6 @@ describe('InteractionZone', () => {
             // Evaluation.
             expect(lErrorFunction).to.throw(Exception, 'Interactions zones without a zone needs to set trigger.');
         });
-    });
-
-    it('Method: addChangeListener', () => {
-        // Setup.
-        const lInteractionZone: InteractionZone = new InteractionZone('Name');
-
-        // Process. Add listener.
-        let lListenerCalled: boolean = false;
-        const lListener = () => {
-            lListenerCalled = true;
-        };
-        lInteractionZone.addInteractionListener(lListener);
-
-        // Process. Call listener.
-        lInteractionZone.execute(() => {
-            InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronProperty, new Object()));
-        });
-
-        // Evaluation.
-        expect(lListenerCalled).to.be.true;
     });
 
     describe('Method: addErrorListener', () => {
@@ -591,20 +589,22 @@ describe('InteractionZone', () => {
 
     it('Method: addInteractionListener', () => {
         // Setup.
-        const lZone: InteractionZone = new InteractionZone('ZoneName');
-        const lSource = {};
+        const lInteractionZone: InteractionZone = new InteractionZone('Name');
 
-        // Process.
-        let lResultSource: any;
-        lZone.addInteractionListener((pChangeReason: InteractionReason) => {
-            lResultSource = pChangeReason.source;
-        });
-        lZone.execute(() => {
-            InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronCall, lSource));
+        // Process. Add listener.
+        let lListenerCalled: boolean = false;
+        const lListener = () => {
+            lListenerCalled = true;
+        };
+        lInteractionZone.addInteractionListener(lListener);
+
+        // Process. Call listener.
+        lInteractionZone.execute(() => {
+            InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronProperty, new Object()));
         });
 
         // Evaluation.
-        expect(lResultSource).to.equal(lSource);
+        expect(lListenerCalled).to.be.true;
     });
 
     describe('Method: execute', () => {
@@ -706,6 +706,69 @@ describe('InteractionZone', () => {
             // Evaluation.
             expect(lZoneNameResult).to.equal(lZoneName);
             expect(lExecutedFunction).to.equal(lFunction);
+        });
+
+        it('-- Inherit parent trigger', () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.AsnychronEvent, isolate: true });
+            const lZoneChild: InteractionZone = lZone.execute(() => {
+                return new InteractionZone('ZoneChild');
+            });
+
+            // Process.
+            let lResponeType: InteractionResponseType = InteractionResponseType.None;
+            lZoneChild.addInteractionListener((pReason: InteractionReason) => {
+                lResponeType |= pReason.interactionType;
+            });
+            lZoneChild.execute(() => {
+                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.AsnychronEvent, {}));
+                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.AsnychronCallback, {}));
+            });
+
+            // Evaluation.
+            expect(lResponeType).to.equal(InteractionResponseType.AsnychronEvent);
+        });
+
+        it('-- Override parent trigger', () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.AsnychronEvent, isolate: true });
+            const lZoneChild: InteractionZone = lZone.execute(() => {
+                return new InteractionZone('ZoneChild', { trigger: InteractionResponseType.AsnychronEvent | InteractionResponseType.AsnychronCallback });
+            });
+
+            // Process.
+            let lResponeType: InteractionResponseType = InteractionResponseType.None;
+            lZoneChild.addInteractionListener((pReason: InteractionReason) => {
+                lResponeType |= pReason.interactionType;
+            });
+            lZoneChild.execute(() => {
+                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.AsnychronEvent, {}));
+                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.AsnychronCallback, {}));
+            });
+
+            // Evaluation.
+            expect(lResponeType).to.equal(InteractionResponseType.AsnychronEvent | InteractionResponseType.AsnychronCallback);
+        });
+
+        it('-- Passthrough child trigger', () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.AsnychronEvent, isolate: true });
+            const lZoneChild: InteractionZone = lZone.execute(() => {
+                return new InteractionZone('ZoneChild', { trigger: InteractionResponseType.AsnychronEvent | InteractionResponseType.AsnychronCallback });
+            });
+
+            // Process.
+            let lResponeType: InteractionResponseType = InteractionResponseType.None;
+            lZone.addInteractionListener((pReason: InteractionReason) => {
+                lResponeType |= pReason.interactionType;
+            });
+            lZoneChild.execute(() => {
+                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.AsnychronEvent, {}));
+                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.AsnychronCallback, {}));
+            });
+
+            // Evaluation.
+            expect(lResponeType).to.equal(InteractionResponseType.AsnychronEvent | InteractionResponseType.AsnychronCallback);
         });
     });
 

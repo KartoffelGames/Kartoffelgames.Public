@@ -228,8 +228,9 @@ export class InteractionZone {
             return;
         }
 
-        // Block dispatch of reason when it does not match the response type bitmap. 
-        if ((this.mResponseType & pInteractionReason.interactionType) === 0) {
+        // Block dispatch of reason when it does not match the response type bitmap.
+        // Send it when it was passthrough from child zones.
+        if (pInteractionReason.zone === this && (this.mResponseType & pInteractionReason.interactionType) === 0) {
             return;
         }
 

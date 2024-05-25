@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { InteractionResponseType } from './enum/interaction-response-type.enum';
-import { ErrorAllocation } from './execution_zone/error-allocation';
-import { Patcher } from './execution_zone/patcher/patcher';
+import { ErrorAllocation } from './asynchron_tracker/error-allocation';
+import { Patcher } from './asynchron_tracker/patcher/patcher';
 import { InteractionReason } from './interaction-reason';
 import { InteractionDetectionProxy } from './synchron_tracker/interaction-detection-proxy';
 
@@ -63,6 +63,10 @@ export class InteractionZone {
      * @param pInteractionReason - Interaction reason.
      */
     public static dispatchInteractionEvent(pInteractionReason: InteractionReason): void {
+        // Set zone of reason.
+        pInteractionReason.setZone(InteractionZone.current);
+
+        // Dispatch reason.
         InteractionZone.current.callInteractionListener(pInteractionReason);
     }
 
@@ -82,7 +86,6 @@ export class InteractionZone {
         return new InteractionDetectionProxy(pObject).proxy;
     }
 
-    private readonly mAllreadySendReasons: WeakSet<InteractionReason>;
     private readonly mChangeListenerList: Set<ChangeListener>;
     private readonly mErrorListenerList: Set<ErrorListener>;
     private readonly mName: string;
@@ -120,7 +123,6 @@ export class InteractionZone {
         // Initialize lists
         this.mChangeListenerList = new Set<ChangeListener>();
         this.mErrorListenerList = new Set<ErrorListener>();
-        this.mAllreadySendReasons = new WeakSet<InteractionReason>();
 
         // Create new execution zone or use old one.#
         this.mName = pName;
@@ -244,18 +246,11 @@ export class InteractionZone {
      * @param pInteractionReason - Interaction reason.
      */
     private callInteractionListener(pInteractionReason: InteractionReason): void {
-        // Restrict zone to trigger the same reason more than once.
-        if (this.mAllreadySendReasons.has(pInteractionReason)) {
-            return;
-        }
-
         // Block dispatch of reason when it does not match the response type bitmap.
         // Send it when it was passthrough from child zones.
         if (pInteractionReason.zone === this && (this.mResponseType & pInteractionReason.interactionType) === 0) {
             return;
         }
-
-        this.mAllreadySendReasons.add(pInteractionReason);
 
         // Call all local listener.
         for (const lListener of this.mChangeListenerList) {

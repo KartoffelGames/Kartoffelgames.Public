@@ -1,9 +1,9 @@
 import '../../../mock/request-animation-frame-mock-session';
 import { expect } from 'chai';
-import { Patcher } from '../../../../source/change_detection/execution_zone/patcher/patcher';
 import { InteractionZone } from '../../../../source/change_detection/interaction-zone';
 import { InteractionReason } from '../../../../source/change_detection/interaction-reason';
 import { InteractionResponseType } from '../../../../source/change_detection/enum/interaction-response-type.enum';
+import { Patcher } from '../../../../source/change_detection/asynchron_tracker/patcher/patcher';
 
 describe('Patcher', () => {
     describe('Static Method: patch', () => {

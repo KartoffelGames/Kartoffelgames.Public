@@ -1,3 +1,4 @@
+import { Exception } from '@kartoffelgames/core.data';
 import { InteractionResponseType } from './enum/interaction-response-type.enum';
 import { InteractionZone } from './interaction-zone';
 
@@ -9,7 +10,7 @@ export class InteractionReason {
     private readonly mProperty: PropertyKey | undefined;
     private readonly mSource: object;
     private readonly mStackError: Error;
-    private readonly mZone: InteractionZone;
+    private mZone: InteractionZone | null;
 
     /**
      * Get what type of interaction was detected.
@@ -42,8 +43,15 @@ export class InteractionReason {
 
     /**
      * Get zone of interaction.
+     * 
+     * @throws {@link Exception}
+     * When zone is not set, reason was not dispatched.
      */
     public get zone(): InteractionZone {
+        if (this.mZone === null) {
+            throw new Exception('Interaction reason not dispatched.', this);
+        }
+
         return this.mZone;
     }
 
@@ -60,6 +68,24 @@ export class InteractionReason {
         this.mSource = pSource;
         this.mProperty = pProperty;
         this.mStackError = new Error();
-        this.mZone = InteractionZone.current;
+        this.mZone = null;
+    }
+
+    /**
+     * Add zone where reason was triggered in.
+     * 
+     * @param pZone - Interaction zone.
+     * 
+     * @throws {@link Exception} 
+     * When a zone is already set.
+     * 
+     * @internal
+     */
+    public setZone(pZone: InteractionZone): void {
+        if (this.mZone !== null) {
+            throw new Exception(`Can't add a static zone to interaction reason.`, this);
+        }
+
+        this.mZone = pZone;
     }
 }

@@ -4,8 +4,8 @@ import { InteractionZone } from '../../../source/change_detection/interaction-zo
 import { PreventableErrorEvent, PromiseRejectionEvent } from '../../mock/error-event';
 import { InteractionReason } from '../../../source/change_detection/interaction-reason';
 import { InteractionResponseType } from '../../../source/change_detection/enum/interaction-response-type.enum';
-import { Patcher } from '../../../source/change_detection/execution_zone/patcher/patcher';
 import { Exception } from '@kartoffelgames/core.data';
+import { Patcher } from '../../../source/change_detection/asynchron_tracker/patcher/patcher';
 
 describe('InteractionZone', () => {
     it('Static Property: current', () => {
@@ -137,16 +137,20 @@ describe('InteractionZone', () => {
             expect(lExecutingInteractionZoneName).to.equal(lChildInteractionZoneName);
         });
 
-        it('-- Prevent loops', () => {
+        it('-- Prevent redispatch of event.', () => {
             // Setup.
             const lInteractionZone: InteractionZone = new InteractionZone('Name');
             const lReason: InteractionReason = new InteractionReason(InteractionResponseType.SyncronProperty, new Object(), 2);
 
             // Process. Add listener.
-            let lCounter: number = 0;
+            let lErrorMessage: string = '';
             lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                lCounter++;
-                InteractionZone.dispatchInteractionEvent(pReason);
+                try {
+                    InteractionZone.dispatchInteractionEvent(pReason);
+                } catch (pError) {
+                    lErrorMessage = (<Exception<any>>pError).message;
+                }
+
             });
 
             // Process. Call listener.
@@ -155,7 +159,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lCounter).to.equal(1);
+            expect(lErrorMessage).to.equal(`Can't add a static zone to interaction reason.`);
         });
     });
 
@@ -276,7 +280,7 @@ describe('InteractionZone', () => {
             expect(lResultSource).to.equal(lSource);
         });
 
-        it('-- Inore other zones.', () => {
+        it('-- Ignore other zones.', () => {
             // Setup.
             const lZone: InteractionZone = new InteractionZone('ZoneName');
             const lZoneDifferent: InteractionZone = new InteractionZone('ZoneName1');
@@ -1116,6 +1120,21 @@ describe('InteractionZone', () => {
 
             // Evaluation.
             expect(lResponeType).to.be.equal(InteractionResponseType.None);
+        });
+    });
+
+    describe('Functionality: InteractionReason', () => {
+        it('-- Read reason zone without dispatch', () => {
+            // Setup.
+            const lReason: InteractionReason = new InteractionReason(InteractionResponseType.None, {});
+
+            // Process
+            const lErrorFunction = () => {
+                lReason.zone;
+            };
+
+            // Evaluation.
+            expect(lErrorFunction).to.throw(Exception, 'Interaction reason not dispatched.');
         });
     });
 });

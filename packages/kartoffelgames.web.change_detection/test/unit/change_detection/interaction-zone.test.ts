@@ -347,7 +347,36 @@ describe('InteractionZone', () => {
     });
 
     describe('Method: addErrorListener', () => {
-        it('-- Get syncron error inside zone', async () => {
+        it('-- Error listener called for syncron errors', async () => {
+            // Setup.
+            const lInteractionZone: InteractionZone = new InteractionZone('Name');
+            const lError: string = 'ERROR-MESSAGE';
+
+            // Process. Set error listener.
+            let lErrorListenerCalled: boolean = false;
+            const lErrorListener = () => {
+                lErrorListenerCalled = true;
+            };
+            lInteractionZone.addErrorListener(lErrorListener);
+
+            // Process. Throw error in zone.
+            try {
+                lInteractionZone.execute(() => {
+                    throw lError;
+                });
+            } catch (pError) {
+                const lError: string = <string>pError;
+                window.dispatchEvent(new ErrorEvent('error', {
+                    error: lError,
+                    message: lError,
+                }));
+            }
+
+            // Evaluation.
+            expect(lErrorListenerCalled).to.be.true;
+        });
+
+        it('-- Get syncron error message inside zone', async () => {
             // Setup.
             const lInteractionZone: InteractionZone = new InteractionZone('Name');
             const lError: string = 'ERROR-MESSAGE';
@@ -575,6 +604,37 @@ describe('InteractionZone', () => {
         });
     });
 
+    it('Method: removeErrorListener', async () => {
+        // Setup.
+        const lInteractionZone: InteractionZone = new InteractionZone('Name');
+        const lError: string = 'ERROR-MESSAGE';
+
+        // Process. Set error listener.
+        let lErrorListenerCalled: boolean = false;
+        const lErrorListener = () => {
+            lErrorListenerCalled = true;
+        };
+        lInteractionZone.addErrorListener(lErrorListener);
+        lInteractionZone.removeErrorListener(lErrorListener);
+
+
+        // Process. Throw error in zone.
+        try {
+            lInteractionZone.execute(() => {
+                throw lError;
+            });
+        } catch (pError) {
+            const lError: string = <string>pError;
+            window.dispatchEvent(new ErrorEvent('error', {
+                error: lError,
+                message: lError,
+            }));
+        }
+
+        // Evaluation.
+        expect(lErrorListenerCalled).to.be.false;
+    });
+
     it('Property: name', () => {
         // Setup.
         const lZoneName: string = 'ZoneName';
@@ -605,6 +665,27 @@ describe('InteractionZone', () => {
 
         // Evaluation.
         expect(lListenerCalled).to.be.true;
+    });
+
+    it('Method: removeInteractionListener', () => {
+        // Setup.
+        const lInteractionZone: InteractionZone = new InteractionZone('Name');
+
+        // Process. Add listener.
+        let lListenerCalled: boolean = false;
+        const lListener = () => {
+            lListenerCalled = true;
+        };
+        lInteractionZone.addInteractionListener(lListener);
+        lInteractionZone.removeInteractionListener(lListener);
+
+        // Process. Call listener.
+        lInteractionZone.execute(() => {
+            InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronProperty, new Object()));
+        });
+
+        // Evaluation.
+        expect(lListenerCalled).to.be.false;
     });
 
     describe('Method: execute', () => {

@@ -1,4 +1,4 @@
-import { Exception, List } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core.data';
 import { InteractionResponseType } from './enum/interaction-response-type.enum';
 import { ErrorAllocation } from './execution_zone/error-allocation';
 import { Patcher } from './execution_zone/patcher/patcher';
@@ -83,8 +83,8 @@ export class InteractionZone {
     }
 
     private readonly mAllreadySendReasons: WeakSet<InteractionReason>;
-    private readonly mChangeListenerList: List<ChangeListener>;
-    private readonly mErrorListenerList: List<ErrorListener>;
+    private readonly mChangeListenerList: Set<ChangeListener>;
+    private readonly mErrorListenerList: Set<ErrorListener>;
     private readonly mName: string;
     private readonly mParent: InteractionZone | null;
     private readonly mResponseType: InteractionResponseType;
@@ -118,8 +118,8 @@ export class InteractionZone {
         Patcher.patch(globalThis);
 
         // Initialize lists
-        this.mChangeListenerList = new List<ChangeListener>();
-        this.mErrorListenerList = new List<ErrorListener>();
+        this.mChangeListenerList = new Set<ChangeListener>();
+        this.mErrorListenerList = new Set<ErrorListener>();
         this.mAllreadySendReasons = new WeakSet<InteractionReason>();
 
         // Create new execution zone or use old one.#
@@ -147,19 +147,22 @@ export class InteractionZone {
     /**
      * Add listener for error events.
      * Prevent error defaults like print on console when {@link pListener} return the actual value false.
+     * Ignores adding the same listener multiple times.
      * 
      * @param pListener - Listener.
      */
     public addErrorListener(pListener: ErrorListener): void {
-        this.mErrorListenerList.push(pListener);
+        this.mErrorListenerList.add(pListener);
     }
 
     /**
      * Add listener for change events.
+     * Ignores adding the same listener multiple times.
+     * 
      * @param pListener - Listener.
      */
     public addInteractionListener(pListener: ChangeListener): void {
-        this.mChangeListenerList.push(pListener);
+        this.mChangeListenerList.add(pListener);
     }
 
     /**
@@ -188,6 +191,24 @@ export class InteractionZone {
         }
 
         return lResult;
+    }
+
+    /**
+     * Remove listener for error events.
+     * Prevent error defaults like print on console when {@link pListener} return the actual value false.
+     * 
+     * @param pListener - Listener.
+     */
+    public removeErrorListener(pListener: ErrorListener): void {
+        this.mErrorListenerList.delete(pListener);
+    }
+
+    /**
+     * Remove listener for change events.
+     * @param pListener - Listener.
+     */
+    public removeInteractionListener(pListener: ChangeListener): void {
+        this.mChangeListenerList.delete(pListener);
     }
 
     /**

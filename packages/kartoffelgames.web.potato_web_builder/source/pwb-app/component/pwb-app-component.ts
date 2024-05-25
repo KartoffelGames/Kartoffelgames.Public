@@ -9,6 +9,7 @@ import { ComponentUpdateHandlerReference } from '../../injection/references/comp
 import { ComponentProcessorConstructor, IPwbOnConnect, IPwbOnDisconnect } from '../../interface/component.interface';
 import pwbAppStyle from './pwb-app-component.css';
 import pwbAppTemplate from './pwb-app-component.html';
+import { InteractionResponseType } from '@kartoffelgames/web.change-detection';
 
 @PwbComponent({
     selector: 'pwb-app',
@@ -167,9 +168,9 @@ export class PwbAppComponent implements IPwbOnConnect, IPwbOnDisconnect {
         this.mUpdateHandler.waitForUpdate().then(() => {
             // TODO: Temporary fix for waitForUpdate inside a Silent CD.
             // Shedule task executes callbacks in silent cd but promise cd does not take over.
-            this.updateHandler.enableChangeDetectionFor(() => {
+            this.updateHandler.enableInteractionTrigger(() => {
                 this.removeSplashScreen();
-            });
+            }, InteractionResponseType.Any);
         });
     }
 

@@ -1,38 +1,38 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { ChangeDetection } from '@kartoffelgames/web.change-detection';
-import { ErrorListener } from '@kartoffelgames/web.change-detection/library/source/change_detection/change-detection';
+import { InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
 import { PwbTemplate } from '../component/template/nodes/pwb-template';
 import { ComponentProcessorConstructor } from '../interface/component.interface';
 import { PwbAppComponent } from './component/pwb-app-component';
 import { Component } from '../component/component';
+import { ErrorListener } from '@kartoffelgames/web.change-detection/library/source/change_detection/interaction-zone';
 
 /**
  * Wrapper handles scoped global styles, components and loading splashscreen.
  */
 export class PwbApp {
-    private static readonly mChangeDetectionToApp: WeakMap<ChangeDetection, PwbApp> = new WeakMap<ChangeDetection, PwbApp>();
+    private static readonly mInteractionZoneToApp: WeakMap<InteractionZone, PwbApp> = new WeakMap<InteractionZone, PwbApp>();
 
     /**
-     * Get app of change detection.
+     * Get app of interaction zone.
      * 
-     * @param pChangeDetection - Change detection.
+     * @param pInteractionZone - Change detection.
      */
-    public static getChangeDetectionApp(pChangeDetection: ChangeDetection): PwbApp | undefined {
-        let lCurrent: ChangeDetection | null = pChangeDetection;
+    public static getAppOfZone(pInteractionZone: InteractionZone): PwbApp | undefined {
+        let lCurrent: InteractionZone | null = pInteractionZone;
 
         while (lCurrent) {
-            if (PwbApp.mChangeDetectionToApp.has(lCurrent)) {
-                return PwbApp.mChangeDetectionToApp.get(lCurrent);
+            if (PwbApp.mInteractionZoneToApp.has(lCurrent)) {
+                return PwbApp.mInteractionZoneToApp.get(lCurrent);
             }
 
-            lCurrent = lCurrent.looseParent;
+            lCurrent = lCurrent.parent;
         }
 
         return undefined;
     }
 
     private mAppComponent!: HTMLElement & PwbAppComponent;
-    private readonly mChangeDetection: ChangeDetection;
+    private readonly mInteractionZone: InteractionZone;
 
     /**
      * Get app underlying content.
@@ -46,14 +46,14 @@ export class PwbApp {
      */
     public constructor() {
         // Read change detection of app component.
-        this.mChangeDetection = new ChangeDetection('App');
-        PwbApp.mChangeDetectionToApp.set(this.mChangeDetection, this);
+        this.mInteractionZone = new InteractionZone('App', { isolate: true, trigger: InteractionResponseType.Any });
+        PwbApp.mInteractionZoneToApp.set(this.mInteractionZone, this);
 
         // Get app component constructor.
         const lAppComponentConstructor: CustomElementConstructor = Component.elementConstructorOf(PwbAppComponent);
 
         // Create app component element inside pwb app change detection.
-        this.mChangeDetection.execute(() => {
+        this.mInteractionZone.execute(() => {
             this.mAppComponent = <HTMLElement & PwbAppComponent>new lAppComponentConstructor();
         });
     }
@@ -75,7 +75,7 @@ export class PwbApp {
      * @param pListener - Error listener.
      */
     public addErrorListener(pListener: ErrorListener): void {
-        this.mChangeDetection.addErrorListener(pListener);
+        this.mInteractionZone.addErrorListener(pListener);
     }
 
     /**

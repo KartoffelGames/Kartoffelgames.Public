@@ -1,5 +1,5 @@
 import { List } from '@kartoffelgames/core.data';
-import { ChangeDetection, ChangeDetectionReason } from '@kartoffelgames/web.change-detection';
+import { InteractionReason, InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
 
 /**
  * Loop detection. Shedules asynchron tasks and reports an error when too many task where chained.
@@ -9,7 +9,7 @@ import { ChangeDetection, ChangeDetectionReason } from '@kartoffelgames/web.chan
  */
 export class LoopDetectionHandler {
     private mAnotherTaskSheduled: boolean;
-    private readonly mCurrentCallChain: List<ChangeDetectionReason>;
+    private readonly mCurrentCallChain: List<InteractionReason>;
     private readonly mMaxStackSize: number;
     private mNextSheduledTask: number;
     private mOnError: ErrorHandler | null;
@@ -32,7 +32,7 @@ export class LoopDetectionHandler {
      * Constructor.
      */
     public constructor(pMaxStackSize: number) {
-        this.mCurrentCallChain = new List<ChangeDetectionReason>();
+        this.mCurrentCallChain = new List<InteractionReason>();
         this.mMaxStackSize = pMaxStackSize;
         this.mOnError = null;
         this.mNextSheduledTask = 0;
@@ -49,7 +49,7 @@ export class LoopDetectionHandler {
      * @param pUserFunction - Function that should be called.
      * @param pReason - Stack reason.
      */
-    public sheduleTask<T>(pUserFunction: () => T, pReason: ChangeDetectionReason): void {
+    public sheduleTask<T>(pUserFunction: () => T, pReason: InteractionReason): void {
         // Skip asynchron task when currently a call is sheduled.
         if (this.mAnotherTaskSheduled) {
             return;
@@ -99,19 +99,19 @@ export class LoopDetectionHandler {
 
         // Call on next frame. 
         // Do not call change detection on requestAnimationFrame. The task function should handle the actual change detection scope.
-        this.mNextSheduledTask = ChangeDetection.current.silentExecution(globalThis.requestAnimationFrame, lAsynchronTask);
+        this.mNextSheduledTask = new InteractionZone('Sheduled-Update', { trigger: InteractionResponseType.None }).execute(globalThis.requestAnimationFrame, lAsynchronTask);
     }
 }
 
 type ErrorHandler = (pError: any) => void;
 
 export class LoopError extends Error {
-    private readonly mChain: Array<ChangeDetectionReason>;
+    private readonly mChain: Array<InteractionReason>;
 
     /**
      * Asynchron call chain.
      */
-    public get chain(): Array<ChangeDetectionReason> {
+    public get chain(): Array<InteractionReason> {
         // More of the same. Needs no testing.
         /* istanbul ignore next */
         return this.mChain;
@@ -123,7 +123,7 @@ export class LoopError extends Error {
      * @param pMessage - Error Message.
      * @param pChain - Current call chain.
      */
-    public constructor(pMessage: string, pChain: Array<ChangeDetectionReason>) {
+    public constructor(pMessage: string, pChain: Array<InteractionReason>) {
         super(pMessage);
         this.mChain = [...pChain];
     }

@@ -1,15 +1,14 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
-import { ChangeDetection } from '@kartoffelgames/web.change-detection';
 import { PwbExtension } from '../../decorator/pwb-extension.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { ExtensionType } from '../../enum/extension-type.enum';
-import { IPwbExtensionOnDeconstruct } from '../../interface/extension.interface';
-import { EventListenerComponentExtension } from './event-listener-component-extension';
+import { ComponentElementReference } from '../../injection/references/component/component-element-reference';
 import { ModuleConstructorReference } from '../../injection/references/module/module-constructor-reference';
 import { ModuleReference } from '../../injection/references/module/module-reference';
 import { ModuleTargetNodeReference } from '../../injection/references/module/module-target-node-reference';
-import { ComponentElementReference } from '../../injection/references/component/component-element-reference';
+import { IPwbExtensionOnDeconstruct } from '../../interface/extension.interface';
+import { EventListenerComponentExtension } from './event-listener-component-extension';
 
 @PwbExtension({
     type: ExtensionType.Module,
@@ -67,7 +66,7 @@ export class EventListenerModuleExtension implements IPwbExtensionOnDeconstruct 
 
             // Get target event listener function.
             let lEventListener: EventListener = Reflect.get(pModule.processor, lPropertyKey);
-            lEventListener = ChangeDetection.getUntrackedObject(lEventListener).bind(pModule.processor);
+            lEventListener = lEventListener.bind(pModule.processor);
 
             // Add listener element and save for deconstruct.
             this.mEventListenerList.push([lEventName, lEventListener]);

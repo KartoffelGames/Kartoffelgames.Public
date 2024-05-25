@@ -1,8 +1,7 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { ChangeDetection } from '@kartoffelgames/web.change-detection';
 import { expect } from 'chai';
-import { PwbExport } from '../../../../source/default/export/pwb-export.decorator';
 import { PwbComponent } from '../../../../source/decorator/pwb-component.decorator';
+import { PwbExport } from '../../../../source/default/export/pwb-export.decorator';
 import { PwbChild } from '../../../../source/default/pwb_child/pwb-child.decorator';
 import '../../../mock/request-animation-frame-mock-session';
 import '../../../utility/chai-helper';
@@ -26,7 +25,7 @@ describe('PwbChildAttributeModule', () => {
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lComponentIdChild: HTMLDivElement = ChangeDetection.getUntrackedObject(lComponent.idChild);
+        const lComponentIdChild: HTMLDivElement = lComponent.idChild; // TODO: Was GetOriginal
         const lRealIdChild: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
@@ -112,7 +111,7 @@ describe('PwbChildAttributeModule', () => {
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lComponentIdChild: HTMLDivElement = ChangeDetection.getUntrackedObject(lComponent.idChild);
+        const lComponentIdChild: HTMLDivElement = lComponent.idChild; // TODO: Was GetOriginal
         const lRealIdChild: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.

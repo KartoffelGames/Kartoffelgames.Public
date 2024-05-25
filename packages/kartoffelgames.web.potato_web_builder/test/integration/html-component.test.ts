@@ -1,4 +1,4 @@
-import { ChangeDetection, ChangeDetectionReason } from '@kartoffelgames/web.change-detection';
+import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
 import { expect } from 'chai';
 import { ComponentUpdateHandlerReference } from '../../source';
 import { LoopError } from '../../source/component/handler/loop-detection-handler';
@@ -243,13 +243,13 @@ describe('HtmlComponent', () => {
 
         // Set update listener.
         let lWasUpdated: boolean = false;
-        TestUtil.getComponentManager(lComponent)?.getProcessorAttribute<UpdateHandler>(ComponentUpdateHandlerReference)?.addUpdateListener((pReason: ChangeDetectionReason) => {
+        TestUtil.getComponentManager(lComponent)?.getProcessorAttribute<UpdateHandler>(ComponentUpdateHandlerReference)?.addUpdateListener((pReason: InteractionReason) => {
             lWasUpdated = pReason.property === 'innerValue' || lWasUpdated;
         });
 
         // Set update listener.
         let lInnerValueWasUpdated: boolean = false;
-        TestUtil.getComponentManager(lCapsuledContent)?.getProcessorAttribute<UpdateHandler>(ComponentUpdateHandlerReference)?.addUpdateListener((pReason: ChangeDetectionReason) => {
+        TestUtil.getComponentManager(lCapsuledContent)?.getProcessorAttribute<UpdateHandler>(ComponentUpdateHandlerReference)?.addUpdateListener((pReason: InteractionReason) => {
             lInnerValueWasUpdated = pReason.property === 'innerValue' || lInnerValueWasUpdated;
         });
 
@@ -349,7 +349,7 @@ describe('HtmlComponent', () => {
 
         // Process. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lComponentReference: Node = ChangeDetection.getUntrackedObject(lComponent.element());
+        const lComponentReference: Node = lComponent.element(); // TODO: Was GetOriginal
 
         // Evaluation
         // 2 => StaticAnchor, unknown-component.
@@ -470,11 +470,7 @@ describe('HtmlComponent', () => {
 
             private triggerUpdate(): void {
                 this.innerValue++;
-                this.mUpdater.requestUpdate({
-                    source: this,
-                    property: Symbol('any'),
-                    stacktrace: 'ManualUpdate'
-                });
+                this.mUpdater.requestUpdate(new InteractionReason(InteractionResponseType.Any, this));
             }
         }
 

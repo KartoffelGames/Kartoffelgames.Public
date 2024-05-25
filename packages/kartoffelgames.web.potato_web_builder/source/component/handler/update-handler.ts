@@ -1,5 +1,5 @@
 import { List } from '@kartoffelgames/core.data';
-import { ChangeDetection, ChangeDetectionReason } from '@kartoffelgames/web.change-detection';
+import { InteractionZone, InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
 import { UpdateScope } from '../../enum/update-scope.enum';
 import { LoopDetectionHandler } from './loop-detection-handler';
 
@@ -10,20 +10,13 @@ import { LoopDetectionHandler } from './loop-detection-handler';
  * @internal
  */
 export class UpdateHandler {
-    private readonly mChangeDetection: ChangeDetection;
-    private readonly mChangeDetectionListener: (pReason: ChangeDetectionReason) => void;
     private mEnabled: boolean;
+    private readonly mInteractionDetectionListener: (pReason: InteractionReason) => void;
+    private readonly mInteractionZone: InteractionZone;
     private readonly mLoopDetectionHandler: LoopDetectionHandler;
     private readonly mUpdateListener: List<UpdateListener>;
     private readonly mUpdateScope: UpdateScope;
     private readonly mUpdateWaiter: List<UpdateWaiter>;
-
-    /**
-     * Get change detection of update handler.
-     */
-    public get changeDetection(): ChangeDetection {
-        return this.mChangeDetection;
-    }
 
     /**
      * Get enabled state of update handler.
@@ -42,6 +35,13 @@ export class UpdateHandler {
     }
 
     /**
+     * Get change detection of update handler.
+     */
+    public get interactionZone(): InteractionZone {
+        return this.mInteractionZone;
+    }
+
+    /**
      * Constructor.
      * @param pUpdateScope - Update scope.
      */
@@ -56,37 +56,37 @@ export class UpdateHandler {
         switch (this.mUpdateScope) {
             case UpdateScope.Manual: {
                 // Manual zone outside every other zone.
-                this.mChangeDetection = new ChangeDetection('Manual Zone', ChangeDetection.current, true, true);
+                this.mInteractionZone = new InteractionZone('Manual Zone', { isolate: true, trigger: InteractionResponseType.None });
 
                 // Empty change listener.
-                this.mChangeDetectionListener = () => {/* Empty */ };
+                this.mInteractionDetectionListener = () => {/* Empty */ };
 
                 break;
             }
 
             case UpdateScope.Capsuled: {
                 // New zone exclusive for this component.
-                this.mChangeDetection = new ChangeDetection('DefaultComponentZone', ChangeDetection.current, true);
+                this.mInteractionZone = new InteractionZone('DefaultComponentZone', { isolate: true, trigger: InteractionResponseType.Any });
 
                 // Shedule an update on change detection.
-                this.mChangeDetectionListener = (pReason: ChangeDetectionReason) => { this.sheduleUpdateTask(pReason); };
+                this.mInteractionDetectionListener = (pReason: InteractionReason) => { this.sheduleUpdateTask(pReason); };
 
                 break;
             }
 
             case UpdateScope.Global: {
                 // Reuse current zone
-                this.mChangeDetection = ChangeDetection.currentNoneSilent;
+                this.mInteractionZone = InteractionZone.current;
 
                 // Shedule an update on change detection.
-                this.mChangeDetectionListener = (pReason: ChangeDetectionReason) => { this.sheduleUpdateTask(pReason); };
+                this.mInteractionDetectionListener = (pReason: InteractionReason) => { this.sheduleUpdateTask(pReason); };
 
                 break;
             }
         }
 
         // Add listener for changes inside change detection.
-        this.mChangeDetection.addChangeListener(this.mChangeDetectionListener);
+        this.mInteractionZone.addInteractionListener(this.mInteractionDetectionListener);
 
         // Define error handler.
         this.mLoopDetectionHandler.onError = (pError: any) => {
@@ -108,43 +108,36 @@ export class UpdateHandler {
      * Deconstruct update handler. 
      */
     public deconstruct(): void {
-        // Disconnect from change listener. Does nothing if listener is not defined.
-        this.mChangeDetection.removeChangeListener(this.mChangeDetectionListener);
-
         // Remove all update listener.
         this.mUpdateListener.clear();
-
-        // Deconstruct change detection when it was only used by this component.
-        if (this.mUpdateScope !== UpdateScope.Global) {
-            this.mChangeDetection.deconstruct();
-        }
 
         // Disable handling.
         this.enabled = false;
     }
 
     /**
-     * Execute function outside update detection scope.
+     * Execute function that does not trigger any interactions.
      * 
      * @param pFunction - Function.
      * 
      * @remarks 
-     * Nesting {@link disableChangeDetectionFor} and {@link enableChangeDetectionFor} is allowed.
+     * Nesting {@link disableInteractionTrigger} and {@link enableInteractionTrigger} is allowed.
      */
-    public disableChangeDetectionFor<T>(pFunction: () => T): T {
-        return this.mChangeDetection.silentExecution(pFunction);
+    public disableInteractionTrigger<T>(pFunction: () => T): T {
+        return new InteractionZone('Silent-' + this.mInteractionZone.name, { trigger: InteractionResponseType.None }).execute(pFunction);
     }
 
     /**
-     * Execute function inside update detection scope.
+     * Execute function with interaction trigger.
      * 
      * @param pFunction - Function.
+     * @param pTrigger - Interaction detection trigger.
      * 
      * @remarks 
-     * Nesting {@link disableChangeDetectionFor} and {@link enableChangeDetectionFor} is allowed.
+     * Nesting {@link disableInteractionTrigger} and {@link enableInteractionTrigger} is allowed.
      */
-    public enableChangeDetectionFor<T>(pFunction: () => T): T {
-        return this.mChangeDetection.execute(pFunction);
+    public enableInteractionTrigger<T>(pFunction: () => T, pTrigger: InteractionResponseType): T {
+        return new InteractionZone('Custom-' + this.mInteractionZone.name, { trigger: pTrigger }).execute(pFunction);
     }
 
     /**
@@ -153,7 +146,7 @@ export class UpdateHandler {
      * @param pObject - Object.
      */
     public registerObject<T extends object>(pObject: T): T {
-        return this.mChangeDetection.registerObject(pObject);
+        return InteractionZone.registerObject(pObject);
     }
 
     /**
@@ -162,8 +155,8 @@ export class UpdateHandler {
      * 
      * @param pReason - Update reason. Description of changed state.
      */
-    public requestUpdate(pReason: ChangeDetectionReason): void {
-        this.mChangeDetection.dispatchChangeEvent(pReason);
+    public requestUpdate(pReason: InteractionReason): void {
+        InteractionZone.dispatchInteractionEvent(pReason);
     }
 
     /**
@@ -172,11 +165,7 @@ export class UpdateHandler {
      * @public
      */
     public update(): void {
-        const lReason: ChangeDetectionReason = {
-            source: this,
-            property: Symbol('ManualUpdate'),
-            stacktrace: 'ManualUpdate'
-        };
+        const lReason: InteractionReason = new InteractionReason(InteractionResponseType.Any, this);
 
         // Request update to dispatch change events on other components.
         this.requestUpdate(lReason);
@@ -211,7 +200,7 @@ export class UpdateHandler {
     /**
      * Execute all update listener.
      */
-    private dispatchUpdateListener(pReason: ChangeDetectionReason): void {
+    private dispatchUpdateListener(pReason: InteractionReason): void {
         // Trigger all update listener.
         for (const lListener of this.mUpdateListener) {
             lListener.call(this, pReason);
@@ -243,7 +232,7 @@ export class UpdateHandler {
      * Shedule asyncron update.
      * Triggers update handler asynchron.
      */
-    private sheduleUpdateTask(pReason: ChangeDetectionReason): void {
+    private sheduleUpdateTask(pReason: InteractionReason): void {
         // Skip task shedule when update handler is disabled but release update waiter.
         if (!this.enabled) {
             this.releaseWaiter();
@@ -253,7 +242,7 @@ export class UpdateHandler {
         // Shedule new asynchron update task.
         this.mLoopDetectionHandler.sheduleTask(() => {
             // Call every update listener inside change detection scope.
-            this.mChangeDetection.execute(() => {
+            this.mInteractionZone.execute(() => {
                 this.dispatchUpdateListener(pReason);
             });
 
@@ -267,4 +256,4 @@ export class UpdateHandler {
 }
 
 type UpdateWaiter = (pError?: any) => void;
-export type UpdateListener = (pReason: ChangeDetectionReason) => void;
+export type UpdateListener = (pReason: InteractionReason) => void;

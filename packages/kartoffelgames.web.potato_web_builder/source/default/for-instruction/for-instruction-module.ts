@@ -22,6 +22,7 @@ import { ModuleValueReference } from '../../injection/references/module/module-v
 export class ForInstructionModule implements IPwbInstructionModuleOnUpdate {
     private readonly mCompareHandler: CompareHandler<any>;
     private readonly mInstruction: string;
+    private mLastValue: any;
     private readonly mLayerValues: LayerValues;
     private readonly mTemplate: PwbTemplateInstructionNode;
 
@@ -35,7 +36,8 @@ export class ForInstructionModule implements IPwbInstructionModuleOnUpdate {
         this.mTemplate = <PwbTemplateInstructionNode>pTemplate;
         this.mLayerValues = pLayerValues;
         this.mInstruction = pAttributeValue.toString();
-        this.mCompareHandler = new CompareHandler(Symbol('Uncompareable'), 4);
+        this.mCompareHandler = new CompareHandler(4);
+        this.mLastValue = Symbol('Uncomparable');
     }
 
     /**
@@ -65,9 +67,11 @@ export class ForInstructionModule implements IPwbInstructionModuleOnUpdate {
             const lListObject: { [key: string]: any; } = ComponentScopeExecutor.executeSilent(lExpression.value, this.mLayerValues);
 
             // Skip if values are the same.
-            if (this.mCompareHandler.compareAndUpdate(lListObject)) {
+            if (this.mCompareHandler.compare(lListObject, this.mLastValue)) {
                 return null;
             }
+
+            this.mLastValue = lListObject;
 
             // Only proceed if value is added to html element.
             if (typeof lListObject === 'object' && lListObject !== null || Array.isArray(lListObject)) {

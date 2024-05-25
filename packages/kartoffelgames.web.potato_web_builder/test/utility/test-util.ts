@@ -3,6 +3,7 @@ import { ComponentUpdateHandlerReference } from '../../source';
 import { Component } from '../../source/component/component';
 import { UpdateHandler } from '../../source/component/handler/update-handler';
 import { ComponentElement } from '../../source/interface/component.interface';
+import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
 
 export class TestUtil {
     /**
@@ -82,7 +83,7 @@ export class TestUtil {
      */
     public static manualUpdate(pComponent: HTMLElement): void {
         const lComponent: Component | undefined = TestUtil.getComponentManager(pComponent);
-        lComponent?.getProcessorAttribute<UpdateHandler>(ComponentUpdateHandlerReference)!.requestUpdate({ source: pComponent, property: 0, stacktrace: '' });
+        lComponent?.getProcessorAttribute<UpdateHandler>(ComponentUpdateHandlerReference)!.requestUpdate(new InteractionReason(InteractionResponseType.Any, pComponent));
     }
 
     /**

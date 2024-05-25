@@ -1,10 +1,10 @@
-import { ChangeDetection } from '@kartoffelgames/web.change-detection';
+import { InteractionZone } from '@kartoffelgames/web.change-detection';
 import { PwbExtension } from '../../decorator/pwb-extension.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { ExtensionType } from '../../enum/extension-type.enum';
-import { PwbApp } from '../../pwb-app/pwb-app';
-import { ModuleReference } from '../../injection/references/module/module-reference';
 import { ComponentReference } from '../../injection/references/component/component-reference';
+import { ModuleReference } from '../../injection/references/module/module-reference';
+import { PwbApp } from '../../pwb-app/pwb-app';
 
 @PwbExtension({
     type: ExtensionType.Module,
@@ -18,7 +18,7 @@ export class PwbAppModuleInjectionExtension {
      * @param pModule - Module.
      */
     public constructor(pModule: ModuleReference) {
-        const lPwbApp: PwbApp | undefined = PwbApp.getChangeDetectionApp(ChangeDetection.current);
+        const lPwbApp: PwbApp | undefined = PwbApp.getAppOfZone(InteractionZone.current);
         if (lPwbApp) {
             pModule.setProcessorAttributes(PwbApp, lPwbApp);
         }
@@ -37,7 +37,7 @@ export class PwbAppComponentInjectionExtension {
      * @param pModule - Module.
      */
     public constructor(pComponent: ComponentReference) {
-        const lPwbApp: PwbApp | undefined = PwbApp.getChangeDetectionApp(ChangeDetection.current);
+        const lPwbApp: PwbApp | undefined = PwbApp.getAppOfZone(InteractionZone.current);
         if (lPwbApp) {
             pComponent.setProcessorAttributes(PwbApp, lPwbApp);
         }

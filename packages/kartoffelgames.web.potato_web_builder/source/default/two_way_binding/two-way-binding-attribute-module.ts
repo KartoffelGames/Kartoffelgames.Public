@@ -3,13 +3,13 @@ import { CompareHandler } from '@kartoffelgames/web.change-detection';
 import { LayerValues } from '../../component/values/layer-values';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
+import { ComponentUpdateHandlerReference } from '../../injection/references/component/component-update-handler-reference';
+import { ModuleKeyReference } from '../../injection/references/module/module-key-reference';
+import { ModuleLayerValuesReference } from '../../injection/references/module/module-layer-values-reference';
+import { ModuleTargetNodeReference } from '../../injection/references/module/module-target-node-reference';
+import { ModuleValueReference } from '../../injection/references/module/module-value-reference';
 import { IPwbAttributeModuleOnUpdate } from '../../interface/module.interface';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
-import { ModuleTargetNodeReference } from '../../injection/references/module/module-target-node-reference';
-import { ModuleLayerValuesReference } from '../../injection/references/module/module-layer-values-reference';
-import { ModuleKeyReference } from '../../injection/references/module/module-key-reference';
-import { ModuleValueReference } from '../../injection/references/module/module-value-reference';
-import { ComponentUpdateHandlerReference } from '../../injection/references/component/component-update-handler-reference';
 
 @PwbAttributeModule({
     selector: /^\[\([[\w$]+\)\]$/,
@@ -18,11 +18,15 @@ import { ComponentUpdateHandlerReference } from '../../injection/references/comp
 export class TwoWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate {
     private readonly mAttributeKey: string;
     private readonly mAttributeValue: string;
+    private readonly mCompareHandler: CompareHandler<any>;
+    private mLastDataValue: any;
+    private mLastViewValue: any;
     private readonly mLayerValues: LayerValues;
     private readonly mTargetNode: Node;
-    private readonly mUserObjectCompareHandler: CompareHandler<any>;
-    private readonly mViewCompareHandler: CompareHandler<any>;
-    
+
+
+
+
     /**
      * Constructor.
      * @param pTargetNode - Target element.
@@ -38,8 +42,11 @@ export class TwoWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate
         this.mAttributeValue = pAttributeValue.toString();
 
         // Add comparison handler for this and for the target view value.
-        this.mUserObjectCompareHandler = new CompareHandler(Symbol('Uncompareable'), 4);
-        this.mViewCompareHandler = new CompareHandler(Symbol('Uncompareable'), 4);
+        this.mCompareHandler = new CompareHandler(4);
+
+        // Set start compare values.
+        this.mLastDataValue = Symbol('Uncomparable');
+        this.mLastViewValue = Symbol('Uncomparable');
 
         // Patch target. Do nothing with it.
         pUpdateHandler.registerObject(this.mTargetNode);
@@ -51,32 +58,32 @@ export class TwoWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate
      */
     public onUpdate(): boolean {
         // Try to update view only on module initialize.
-        const lCurrentValue: any = ComponentScopeExecutor.executeSilent(this.mAttributeValue, this.mLayerValues);
+        const lCurrentDataValue: any = ComponentScopeExecutor.executeSilent(this.mAttributeValue, this.mLayerValues);
 
         // Check for changes in this value.
-        if (!this.mUserObjectCompareHandler.compareAndUpdate(lCurrentValue)) {
+        if (!this.mCompareHandler.compare(lCurrentDataValue, this.mLastDataValue)) {
             // Update target view
-            Reflect.set(this.mTargetNode, this.mAttributeKey, lCurrentValue);
+            Reflect.set(this.mTargetNode, this.mAttributeKey, lCurrentDataValue);
 
             // Update view compare with same value. 
-            this.mViewCompareHandler.update(lCurrentValue);
+            this.mLastDataValue = lCurrentDataValue;
 
             // Set flag that value was updated.
             return true;
         }
 
-        const lViewValue: any = Reflect.get(this.mTargetNode, this.mAttributeKey);
+        const lCurrentViewValue: any = Reflect.get(this.mTargetNode, this.mAttributeKey);
 
         // Check for changes in view.
-        if (!this.mViewCompareHandler.compareAndUpdate(lViewValue)) {
+        if (!this.mCompareHandler.compare(lCurrentViewValue, this.mLastViewValue)) {
             const lExtendedValues: Dictionary<string, any> = new Dictionary<string, any>();
-            lExtendedValues.set('$DATA', lViewValue);
+            lExtendedValues.set('$DATA', lCurrentViewValue);
 
             // Update value.
             ComponentScopeExecutor.execute(`${this.mAttributeValue} = $DATA;`, this.mLayerValues, lExtendedValues);
 
             // Update compare.
-            this.mUserObjectCompareHandler.update(lViewValue);
+            this.mLastViewValue = lCurrentViewValue;
 
             // Set flag that value was updated.
             return true;

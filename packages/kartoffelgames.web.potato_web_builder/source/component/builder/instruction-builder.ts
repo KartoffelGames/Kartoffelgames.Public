@@ -1,4 +1,4 @@
-import { ChangeState, DifferenceSearch, HistoryItem } from '@kartoffelgames/web.change-detection';
+import { ChangeState, MyersDiff, HistoryItem } from '@kartoffelgames/web.change-detection';
 import { InstructionModule } from '../../module/instruction-module';
 import { InstructionResultElement } from '../../module/result/instruction-result';
 import { ComponentModules } from '../component-modules';
@@ -86,12 +86,12 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
      */
     private updateStaticBuilder(pOldContentList: Array<StaticBuilder>, pNewContentList: Array<InstructionResultElement>): void {
         // Define difference search.
-        const lDifferenceSearch: DifferenceSearch<StaticBuilder, InstructionResultElement> = new DifferenceSearch<StaticBuilder, InstructionResultElement>((pA, pB) => {
+        const lMyersDiff: MyersDiff<StaticBuilder, InstructionResultElement> = new MyersDiff<StaticBuilder, InstructionResultElement>((pA, pB) => {
             return pB.componentValues.equals(pA.values) && pB.template.equals(pA.template);
         });
 
         // Get differences of old an new content.
-        const lDifferenceList: Array<HistoryItem<StaticBuilder, InstructionResultElement>> = lDifferenceSearch.differencesOf(pOldContentList, pNewContentList);
+        const lDifferenceList: Array<HistoryItem<StaticBuilder, InstructionResultElement>> = lMyersDiff.differencesOf(pOldContentList, pNewContentList);
 
         let lLastExistingChildBuilder: StaticBuilder | null = null;
         for (const lHistoryItem of lDifferenceList) {

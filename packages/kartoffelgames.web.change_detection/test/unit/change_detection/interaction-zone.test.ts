@@ -5,6 +5,7 @@ import { PreventableErrorEvent, PromiseRejectionEvent } from '../../mock/error-e
 import { InteractionReason } from '../../../source/change_detection/interaction-reason';
 import { InteractionResponseType } from '../../../source/change_detection/enum/interaction-response-type.enum';
 import { Patcher } from '../../../source/change_detection/execution_zone/patcher/patcher';
+import { Exception } from '@kartoffelgames/core.data';
 
 describe('InteractionZone', () => {
     it('Static Property: current', () => {
@@ -307,13 +308,23 @@ describe('InteractionZone', () => {
 
         it('-- No parent', () => {
             // Setup.
-            const lChildInteractionZone: InteractionZone = new InteractionZone('Name', { isolate: true });
+            const lChildInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.None, isolate: true });
 
             // Process.
             const lParentInteractionZone: InteractionZone | null = lChildInteractionZone.parent;
 
             // Evaluation.
             expect(lParentInteractionZone).to.be.null;
+        });
+
+        it('-- No parent without trigger', () => {
+            // Process
+            const lErrorFunction = () => {
+                new InteractionZone('Name', { isolate: true });
+            };
+
+            // Evaluation.
+            expect(lErrorFunction).to.throw(Exception, 'Interactions zones without a zone needs to set trigger.');
         });
     });
 

@@ -1,4 +1,4 @@
-import { List } from '@kartoffelgames/core.data';
+import { Exception, List } from '@kartoffelgames/core.data';
 import { InteractionResponseType } from './enum/interaction-response-type.enum';
 import { ErrorAllocation } from './execution_zone/error-allocation';
 import { Patcher } from './execution_zone/patcher/patcher';
@@ -28,7 +28,7 @@ export class InteractionZone {
             }
         };
 
-        // Create and register error and rejection listener. // TODO: How to prevent recursion.
+        // Create and register error and rejection listener.
         window.addEventListener('error', (pEvent: ErrorEvent) => {
             lErrorHandler(pEvent, pEvent.error);
         });
@@ -51,7 +51,7 @@ export class InteractionZone {
      */
     public static get current(): InteractionZone {
         if (InteractionZone.mCurrentZone === null) {
-            InteractionZone.mCurrentZone = new InteractionZone('Default');
+            InteractionZone.mCurrentZone = new InteractionZone('Default', { trigger: InteractionResponseType.Any, isolate: true });
         }
 
         return InteractionZone.mCurrentZone;
@@ -122,18 +122,26 @@ export class InteractionZone {
         this.mErrorListenerList = new List<ErrorListener>();
         this.mAllreadySendReasons = new WeakSet<InteractionReason>();
 
-        // Save parent.
-        if (pSettings?.isolate === true || InteractionZone.mCurrentZone === null) {
-            this.mParent = null;
-        } else {
-            this.mParent = InteractionZone.current;
-        }
-
         // Create new execution zone or use old one.#
         this.mName = pName;
 
-        // Create bitmap of response triggers. Zone should only dispatch events when reason matches response type.
-        this.mResponseType = pSettings?.trigger ?? InteractionResponseType.Any;
+        // Save parent.
+        if (pSettings?.isolate === true) {
+            this.mParent = null;
+
+            // Any parentless zone needs own trigger.
+            if (typeof pSettings?.trigger !== 'number') {
+                throw new Exception('Interactions zones without a zone needs to set trigger.', this);
+            }
+
+            // Create bitmap of response triggers. Zone should only dispatch events when reason matches response type.
+            this.mResponseType = pSettings?.trigger;
+        } else {
+            this.mParent = InteractionZone.current;
+
+            // Create bitmap of response triggers. Zone should only dispatch events when reason matches response type.
+            this.mResponseType = pSettings?.trigger ?? this.mParent.mResponseType;
+        }
     }
 
     /**

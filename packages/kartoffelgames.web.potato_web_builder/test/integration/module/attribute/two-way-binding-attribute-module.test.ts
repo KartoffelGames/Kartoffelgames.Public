@@ -49,7 +49,7 @@ describe('TwoWayBindingAttributeModule', () => {
 
         // Process. Get input value.
         TestUtil.getComponentNode<HTMLInputElement>(lComponent, 'input').value = lNewValue;
-        TestUtil.manualUpdate(lComponent); // Manual element value set does not trigger change detection.  
+        TestUtil.manualUpdate(lComponent); // Manual element value set does not trigger interaction zone.  
         await TestUtil.waitForUpdate(lComponent);
         const lComponentValue: string = lComponent.userValue;
 

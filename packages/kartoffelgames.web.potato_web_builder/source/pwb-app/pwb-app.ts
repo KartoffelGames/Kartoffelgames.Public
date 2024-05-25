@@ -15,7 +15,7 @@ export class PwbApp {
     /**
      * Get app of interaction zone.
      * 
-     * @param pInteractionZone - Change detection.
+     * @param pInteractionZone - Interaction zone.
      */
     public static getAppOfZone(pInteractionZone: InteractionZone): PwbApp | undefined {
         let lCurrent: InteractionZone | null = pInteractionZone;
@@ -45,14 +45,14 @@ export class PwbApp {
      * Constructor.
      */
     public constructor() {
-        // Read change detection of app component.
+        // Read interaction zone of app component.
         this.mInteractionZone = new InteractionZone('App', { isolate: true, trigger: InteractionResponseType.Any });
         PwbApp.mInteractionZoneToApp.set(this.mInteractionZone, this);
 
         // Get app component constructor.
         const lAppComponentConstructor: CustomElementConstructor = Component.elementConstructorOf(PwbAppComponent);
 
-        // Create app component element inside pwb app change detection.
+        // Create app component element inside pwb app interaction zone.
         this.mInteractionZone.execute(() => {
             this.mAppComponent = <HTMLElement & PwbAppComponent>new lAppComponentConstructor();
         });

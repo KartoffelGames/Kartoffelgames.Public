@@ -44,7 +44,7 @@ export class LoopDetectionHandler {
      * Callbacks errors on the {@link onError} callback.
      * 
      * @remarks 
-     * Task will be executed outside any change detection scope. So the task itself must handle the actual scope.
+     * Task will be executed outside any interaction zone. So the task itself must handle the actual scope.
      * 
      * @param pUserFunction - Function that should be called.
      * @param pReason - Stack reason.
@@ -98,7 +98,7 @@ export class LoopDetectionHandler {
         };
 
         // Call on next frame. 
-        // Do not call change detection on requestAnimationFrame. The task function should handle the actual change detection scope.
+        // Do not trigger interaction detection on requestAnimationFrame. The task function should handle the actual interaction zone scope.
         this.mNextSheduledTask = new InteractionZone('Sheduled-Update', { trigger: InteractionResponseType.None }).execute(globalThis.requestAnimationFrame, lAsynchronTask);
     }
 }

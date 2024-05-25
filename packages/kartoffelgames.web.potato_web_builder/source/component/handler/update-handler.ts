@@ -35,7 +35,7 @@ export class UpdateHandler {
     }
 
     /**
-     * Get change detection of update handler.
+     * Get interaction zone of update handler.
      */
     public get interactionZone(): InteractionZone {
         return this.mInteractionZone;
@@ -52,7 +52,7 @@ export class UpdateHandler {
         this.mUpdateWaiter = new List<UpdateWaiter>();
         this.mLoopDetectionHandler = new LoopDetectionHandler(10);
 
-        // Create new change detection if component is not inside change detection or mode is capsuled.
+        // Create new interaction zone if component is not inside interaction zone or mode is capsuled.
         switch (this.mUpdateScope) {
             case UpdateScope.Manual: {
                 // Manual zone outside every other zone.
@@ -68,7 +68,7 @@ export class UpdateHandler {
                 // New zone exclusive for this component.
                 this.mInteractionZone = new InteractionZone('DefaultComponentZone', { isolate: true, trigger: InteractionResponseType.Any });
 
-                // Shedule an update on change detection.
+                // Shedule an update on interaction zone.
                 this.mInteractionDetectionListener = (pReason: InteractionReason) => { this.sheduleUpdateTask(pReason); };
 
                 break;
@@ -78,14 +78,14 @@ export class UpdateHandler {
                 // Reuse current zone
                 this.mInteractionZone = InteractionZone.current;
 
-                // Shedule an update on change detection.
+                // Shedule an update on interaction zone.
                 this.mInteractionDetectionListener = (pReason: InteractionReason) => { this.sheduleUpdateTask(pReason); };
 
                 break;
             }
         }
 
-        // Add listener for changes inside change detection.
+        // Add listener for interactions inside interaction zone.
         this.mInteractionZone.addInteractionListener(this.mInteractionDetectionListener);
 
         // Define error handler.
@@ -150,7 +150,7 @@ export class UpdateHandler {
     }
 
     /**
-     * Request update by sending an update request to the change detection system.
+     * Request update by sending an update request to the interaction zone.
      * Does nothing when the component is set to be {@link UpdateScope.Manual}
      * 
      * @param pReason - Update reason. Description of changed state.
@@ -241,7 +241,7 @@ export class UpdateHandler {
 
         // Shedule new asynchron update task.
         this.mLoopDetectionHandler.sheduleTask(() => {
-            // Call every update listener inside change detection scope.
+            // Call every update listener inside interaction zone.
             this.mInteractionZone.execute(() => {
                 this.dispatchUpdateListener(pReason);
             });

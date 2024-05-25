@@ -111,7 +111,7 @@ describe('InteractionZone', () => {
             expect(lExecutingInteractionZoneName).to.equal(lZoneName);
         });
 
-        it('-- Preserve execution change detection. Zone execution.', () => {
+        it('-- Preserve execution interaction zone. Zone execution.', () => {
             // Setup.
             const lParentInteractionZone: InteractionZone = new InteractionZone('Name');
 
@@ -183,7 +183,7 @@ describe('InteractionZone', () => {
             expect(lChangeEventCalled).to.be.true;
         });
 
-        it('-- Object change detection', () => {
+        it('-- Object interaction zone', () => {
             // Setup.
             const lInteractionZone: InteractionZone = new InteractionZone('Name');
             const lOriginalObject: { a: number; } = { a: 1 };
@@ -199,7 +199,7 @@ describe('InteractionZone', () => {
                 lReason = pReason;
             });
 
-            // Process. Change detection.
+            // Process. interaction zone.
             lInteractionZone.execute(() => {
                 lTrackedEventTarget.a = 2;
             });
@@ -426,7 +426,7 @@ describe('InteractionZone', () => {
             };
             window.addEventListener('error', <any>lErrorListener);
 
-            // Process. Throw error inside change detection zone.
+            // Process. Throw error inside interaction zone.
             try {
                 lInteractionZone.execute(() => {
                     throw lError;

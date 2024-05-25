@@ -15,7 +15,7 @@ export class InteractionZone {
      * Add global error listener that can sends the error to the allocated {@link InteractionZone}
      */
     static {
-        // Catch global error, check if allocated zone is child of this change detection and report the error. 
+        // Catch global error, check if allocated zone is child of this interaction zone and report the error. 
         const lErrorHandler = (pErrorEvent: Event, pError: any) => {
             // Get allocated interaction zone.
             const lInteractionZone: InteractionZone | null = ErrorAllocation.getInteractionZone(pError);
@@ -90,14 +90,14 @@ export class InteractionZone {
     private readonly mResponseType: InteractionResponseType;
 
     /**
-     * Get change detection name.
+     * Get interaction detection name.
      */
     public get name(): string {
         return this.mName;
     }
 
     /**
-     * Get change detection parent.
+     * Get interaction zone parent.
      */
     public get parent(): InteractionZone | null {
         return this.mParent;
@@ -105,13 +105,13 @@ export class InteractionZone {
 
     /**
      * Constructor.
-     * Creates new change detection. Detects all asynchron executions inside execution zone.
+     * Creates new interaction zone. Detects all asynchron executions inside execution zone.
      * Except IndexDB calls.
      * Listens on changes and function calls on registered objects.
-     * Child changes triggers parent change detection but parent doesn't trigger child.
+     * Child changes triggers parent interaction zone but parent doesn't trigger child.
      * 
-     * @param pName - Name of change detection or the change detection.
-     * @param pSettings - Change detection settings.
+     * @param pName - Name of interaction zone.
+     * @param pSettings - Interaction zone settings.
      */
     public constructor(pName: string, pSettings?: InteractionZoneConstructorSettings) {
         // Patch for execution zone.

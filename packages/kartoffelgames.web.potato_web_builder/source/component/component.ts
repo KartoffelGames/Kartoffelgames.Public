@@ -96,17 +96,6 @@ export class Component extends InjectionHierarchyParent {
     }
 
     /**
-     * Register element with its component manager.
-     * Can override existing entires.
-     * 
-     * @param pElement - Html element of component.
-     * @param pComponent - Component object.
-     */
-    public static registerElement(pElement: Element, pComponent: Component): void {
-        Component.mElementComponent.set(pElement, pComponent);
-    }
-
-    /**
      * Register constructor with its selector.
      * Can override existing entires.
      * 
@@ -115,6 +104,17 @@ export class Component extends InjectionHierarchyParent {
      */
     public static registerProcessor(pConstructor: InjectionConstructor, pSelector: string): void {
         Component.mConstructorSelector.set(pConstructor, pSelector);
+    }
+
+    /**
+     * Register element with its component manager.
+     * Can override existing entires.
+     * 
+     * @param pElement - Html element of component.
+     * @param pComponent - Component object.
+     */
+    private static registerElement(pElement: Element, pComponent: Component): void {
+        Component.mElementComponent.set(pElement, pComponent);
     }
 
     private readonly mElementHandler: ElementHandler;
@@ -168,7 +168,6 @@ export class Component extends InjectionHierarchyParent {
         this.mUpdateHandler.addUpdateListener(() => {
             // Call component processor on update function.
             this.callOnPwbUpdate();
-
 
             // Save if processor was created before update.
             const lProcessorWasCreated: boolean = !!this.mProcessor;

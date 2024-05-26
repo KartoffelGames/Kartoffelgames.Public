@@ -19,7 +19,7 @@ export class InteractionDetectionProxy<T extends object> {
      * 
      * @param pProxy - Possible InteractionDetectionProxy object.
      */
-    private static getOriginal<TValue extends object>(pProxy: TValue): TValue {
+    public static getOriginal<TValue extends object>(pProxy: TValue): TValue {
         return <TValue>InteractionDetectionProxy.PROXY_TO_ORIGINAL_MAPPING.get(pProxy) ?? pProxy;
     }
 

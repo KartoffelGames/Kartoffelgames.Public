@@ -704,4 +704,23 @@ describe('InteractionDetectionProxy', () => {
             expect(lChangedSource).to.equal(lDetectionProxy.proxy);
         });
     });
+
+    describe('-- Functionality: Ignore InteractionZones', () => {
+        it('-- Not proxy interaction zones', () => {
+            // Setup.
+            const lInteractionZone: InteractionZone = new InteractionZone('SameName');
+            const lChildObject: object = {};
+            const lObject = {
+                zone: lInteractionZone,
+                childObject: lChildObject
+            };
+
+            // Process.
+            const lProxy = new InteractionDetectionProxy(lObject).proxy;
+
+            // Evaluation.
+            expect(lProxy.zone).to.equal(lInteractionZone);
+            expect(lProxy.childObject).to.not.equal(lChildObject);
+        });
+    });
 });

@@ -1,5 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
+import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
 import { AccessMode } from '../enum/access-mode.enum';
 import { ExtensionType } from '../enum/extension-type.enum';
 import { UpdateScope } from '../enum/update-scope.enum';
@@ -23,7 +24,6 @@ import { PwbTemplate } from './template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 import { TemplateParser } from './template/template-parser';
 import { LayerValues } from './values/layer-values';
-import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
 
 /**
  * Base component handler. Handles initialisation and update of components.
@@ -167,9 +167,8 @@ export class Component extends InjectionHierarchyParent {
         this.mUpdateHandler = new UpdateHandler(pUpdateScope);
         this.mUpdateHandler.addUpdateListener(() => {
             // Call component processor on update function.
-            this.mUpdateHandler.disableInteractionTrigger(() => {
-                this.callOnPwbUpdate();
-            });
+            this.callOnPwbUpdate();
+
 
             // Save if processor was created before update.
             const lProcessorWasCreated: boolean = !!this.mProcessor;
@@ -229,7 +228,9 @@ export class Component extends InjectionHierarchyParent {
             return;
         }
 
-        this.processor.afterPwbUpdate?.();
+        this.mUpdateHandler.customInteractionTrigger(() => {
+            this.processor.afterPwbUpdate?.();
+        }, InteractionResponseType.Asnychron);
     }
 
     /**
@@ -242,7 +243,9 @@ export class Component extends InjectionHierarchyParent {
             return;
         }
 
-        this.processor.onPwbAttributeChange?.(pAttributeName);
+        this.mUpdateHandler.customInteractionTrigger(() => {
+            this.processor.onPwbAttributeChange?.(pAttributeName);
+        }, InteractionResponseType.Asnychron);
     }
 
     /**
@@ -254,7 +257,9 @@ export class Component extends InjectionHierarchyParent {
             return;
         }
 
-        this.processor.onPwbConnect?.();
+        this.mUpdateHandler.customInteractionTrigger(() => {
+            this.processor.onPwbConnect?.();
+        }, InteractionResponseType.Asnychron);
     }
 
     /**
@@ -266,7 +271,9 @@ export class Component extends InjectionHierarchyParent {
             return;
         }
 
-        this.processor.onPwbDeconstruct?.();
+        this.mUpdateHandler.customInteractionTrigger(() => {
+            this.processor.onPwbDeconstruct?.();
+        }, InteractionResponseType.Asnychron);
     }
 
     /**
@@ -278,7 +285,9 @@ export class Component extends InjectionHierarchyParent {
             return;
         }
 
-        this.processor.onPwbDisconnect?.();
+        this.mUpdateHandler.customInteractionTrigger(() => {
+            this.processor.onPwbDisconnect?.();
+        }, InteractionResponseType.Asnychron);
     }
 
     /**
@@ -290,7 +299,10 @@ export class Component extends InjectionHierarchyParent {
             return;
         }
 
-        this.processor.onPwbUpdate?.();
+        // Call component processor on update function.
+        this.mUpdateHandler.customInteractionTrigger(() => {
+            this.processor.onPwbUpdate?.();
+        }, InteractionResponseType.Asnychron);
     }
 
     /**
@@ -346,16 +358,15 @@ export class Component extends InjectionHierarchyParent {
         this.lock();
 
         // Create user object inside update zone.
-        let lUntrackedProcessor: ComponentProcessor | null = null;
-        this.mUpdateHandler.enableInteractionTrigger(() => {
-            lUntrackedProcessor = Injection.createObject<ComponentProcessor>(this.mProcessorConstructor, this.injections);
-        }, InteractionResponseType.Any);
+        const lUntrackedProcessor: ComponentProcessor = this.mUpdateHandler.enableInteractionTrigger(() => {
+            return Injection.createObject<ComponentProcessor>(this.mProcessorConstructor, this.injections);
+        });
 
         // Store processor to be able to read for all read extensions.
         this.mProcessor = this.mUpdateHandler.registerObject(lUntrackedProcessor!);
 
         // Add __component__ property to processor.
-        Object.defineProperty(this.mProcessor, '__component__', {
+        Object.defineProperty(this.mProcessor, '__component__', { // TODO: remove this bullshit.
             get: () => {
                 return this;
             }
@@ -383,11 +394,7 @@ export class Component extends InjectionHierarchyParent {
 
                 this.mExtensionList.push(lComponentExtension);
             }
-        }, InteractionResponseType.Any);
 
-        // Create execute all other read extensions.
-        // Execute all inside the zone.
-        this.mUpdateHandler.enableInteractionTrigger(() => {
             const lReadExtensions: Array<IPwbExtensionProcessorClass> = [
                 ...lExtensions.get(ExtensionType.Component, AccessMode.ReadWrite),
                 ...lExtensions.get(ExtensionType.Component, AccessMode.Read)
@@ -404,7 +411,6 @@ export class Component extends InjectionHierarchyParent {
 
                 this.mExtensionList.push(lComponentExtension);
             }
-        }, InteractionResponseType.Any);
+        });
     }
-
 }

@@ -6,6 +6,7 @@ import { PwbChild } from '../../../../source/default/pwb_child/pwb-child.decorat
 import '../../../mock/request-animation-frame-mock-session';
 import '../../../utility/chai-helper';
 import { TestUtil } from '../../../utility/test-util';
+import { InteractionDetectionProxy } from '@kartoffelgames/web.change-detection/library/source/change_detection/synchron_tracker/interaction-detection-proxy';
 
 describe('PwbChildAttributeModule', () => {
     it('-- Read id child', async () => {
@@ -25,7 +26,7 @@ describe('PwbChildAttributeModule', () => {
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lComponentIdChild: HTMLDivElement = lComponent.idChild; // TODO: Was GetOriginal
+        const lComponentIdChild: HTMLDivElement = InteractionDetectionProxy.getOriginal(lComponent.idChild);
         const lRealIdChild: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
@@ -111,7 +112,7 @@ describe('PwbChildAttributeModule', () => {
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lComponentIdChild: HTMLDivElement = lComponent.idChild; // TODO: Was GetOriginal
+        const lComponentIdChild: HTMLDivElement = InteractionDetectionProxy.getOriginal(lComponent.idChild);
         const lRealIdChild: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.

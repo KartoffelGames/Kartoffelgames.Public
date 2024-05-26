@@ -56,7 +56,7 @@ export class UpdateHandler {
         switch (this.mUpdateScope) {
             case UpdateScope.Manual: {
                 // Manual zone outside every other zone.
-                this.mInteractionZone = new InteractionZone('Manual Zone', { isolate: true, trigger: InteractionResponseType.None });
+                this.mInteractionZone = new InteractionZone('ManualCapsuledComponentZone', { isolate: true, trigger: InteractionResponseType.None });
 
                 // Empty change listener.
                 this.mInteractionDetectionListener = () => {/* Empty */ };
@@ -66,7 +66,7 @@ export class UpdateHandler {
 
             case UpdateScope.Capsuled: {
                 // New zone exclusive for this component.
-                this.mInteractionZone = new InteractionZone('DefaultComponentZone', { isolate: true, trigger: InteractionResponseType.Any });
+                this.mInteractionZone = new InteractionZone('CapsuledComponentZone', { isolate: true, trigger: InteractionResponseType.Any });
 
                 // Shedule an update on interaction zone.
                 this.mInteractionDetectionListener = (pReason: InteractionReason) => { this.sheduleUpdateTask(pReason); };
@@ -76,7 +76,7 @@ export class UpdateHandler {
 
             case UpdateScope.Global: {
                 // Reuse current zone
-                this.mInteractionZone = InteractionZone.current;
+                this.mInteractionZone = new InteractionZone('DefaultComponentZone', { trigger: InteractionResponseType.Any });
 
                 // Shedule an update on interaction zone.
                 this.mInteractionDetectionListener = (pReason: InteractionReason) => { this.sheduleUpdateTask(pReason); };
@@ -105,9 +105,27 @@ export class UpdateHandler {
     }
 
     /**
+     * Execute function with custom interaction trigger.
+     * 
+     * @param pFunction - Function.
+     * @param pTrigger - Interaction detection trigger.
+     * 
+     * @remarks 
+     * Nesting {@link disableInteractionTrigger} and {@link enableInteractionTrigger} is allowed.
+     */
+    public customInteractionTrigger<T>(pFunction: () => T, pTrigger: InteractionResponseType): T {
+        return this.mInteractionZone.execute(() => {
+            return new InteractionZone('Custom-' + this.mInteractionZone.name, { trigger: pTrigger }).execute(pFunction);
+        });
+    }
+
+    /**
      * Deconstruct update handler. 
      */
     public deconstruct(): void {
+        // Disconnect from change listener. Does nothing if listener is not defined.
+        this.mInteractionZone.removeInteractionListener(this.mInteractionDetectionListener);
+
         // Remove all update listener.
         this.mUpdateListener.clear();
 
@@ -124,7 +142,9 @@ export class UpdateHandler {
      * Nesting {@link disableInteractionTrigger} and {@link enableInteractionTrigger} is allowed.
      */
     public disableInteractionTrigger<T>(pFunction: () => T): T {
-        return new InteractionZone('Silent-' + this.mInteractionZone.name, { trigger: InteractionResponseType.None }).execute(pFunction);
+        return this.mInteractionZone.execute(() => {
+            return new InteractionZone('Silent-' + this.mInteractionZone.name, { trigger: InteractionResponseType.None }).execute(pFunction);
+        });
     }
 
     /**
@@ -136,8 +156,8 @@ export class UpdateHandler {
      * @remarks 
      * Nesting {@link disableInteractionTrigger} and {@link enableInteractionTrigger} is allowed.
      */
-    public enableInteractionTrigger<T>(pFunction: () => T, pTrigger: InteractionResponseType): T {
-        return new InteractionZone('Custom-' + this.mInteractionZone.name, { trigger: pTrigger }).execute(pFunction);
+    public enableInteractionTrigger<T>(pFunction: () => T): T {
+        return this.mInteractionZone.execute(pFunction);
     }
 
     /**
@@ -146,7 +166,9 @@ export class UpdateHandler {
      * @param pObject - Object.
      */
     public registerObject<T extends object>(pObject: T): T {
-        return InteractionZone.registerObject(pObject);
+        return this.mInteractionZone.execute(() => {
+            return InteractionZone.registerObject(pObject);
+        });
     }
 
     /**
@@ -156,7 +178,9 @@ export class UpdateHandler {
      * @param pReason - Update reason. Description of changed state.
      */
     public requestUpdate(pReason: InteractionReason): void {
-        InteractionZone.dispatchInteractionEvent(pReason);
+        this.mInteractionZone.execute(() => {
+            InteractionZone.dispatchInteractionEvent(pReason);
+        });
     }
 
     /**
@@ -165,11 +189,9 @@ export class UpdateHandler {
      * @public
      */
     public update(): void {
-        const lReason: InteractionReason = new InteractionReason(InteractionResponseType.Any, this);
-
+        const lReason: InteractionReason = new InteractionReason(InteractionResponseType.Any, this, Symbol('Manual Update'));
         // Request update to dispatch change events on other components.
         this.requestUpdate(lReason);
-
         // Shedule an update task.
         this.sheduleUpdateTask(lReason);
     }

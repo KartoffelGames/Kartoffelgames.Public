@@ -1,4 +1,5 @@
 import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
+import { InteractionDetectionProxy } from '@kartoffelgames/web.change-detection/library/source/change_detection/synchron_tracker/interaction-detection-proxy';
 import { expect } from 'chai';
 import { ComponentUpdateHandlerReference } from '../../source';
 import { LoopError } from '../../source/component/handler/loop-detection-handler';
@@ -349,7 +350,7 @@ describe('HtmlComponent', () => {
 
         // Process. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lComponentReference: Node = lComponent.element(); // TODO: Was GetOriginal
+        const lComponentReference: Node = InteractionDetectionProxy.getOriginal(lComponent.element());
 
         // Evaluation
         // 2 => StaticAnchor, unknown-component.

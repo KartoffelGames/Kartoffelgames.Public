@@ -85,56 +85,29 @@ describe('InteractionZone', () => {
             expect(lReasonResult).to.equal(lReason);
         });
 
-        it('-- Preserve interaction zone in interaction listener.', () => {
+        it('-- Preserve execution interaction zone. Zone execution.', async () => {
             // Setup.
-            const lParentInteractionZone: InteractionZone = new InteractionZone('Name');
-            const lZoneName: string = 'CD-child';
+            const lInteractionInteractionZone: InteractionZone = new InteractionZone('Name');
+            const lInteractionListenerZone: InteractionZone = new InteractionZone('Name');
 
-            // Setup. Child.
-            const lInteractionZone: InteractionZone = lParentInteractionZone.execute(() => {
-                return new InteractionZone(lZoneName);
+            // Setup. Set error lister on error zone but attach it inside listener zone.
+            const lInteractionZoneWaiter = new Promise<InteractionZone>((pResolve) => {
+                lInteractionListenerZone.execute(() => {
+                    lInteractionInteractionZone.addInteractionListener(() => {
+                        pResolve(InteractionZone.current);
+                    });
+                });
             });
 
-            // Process. Add listener.
-            let lExecutingInteractionZoneName: string | null = null;
-            const lListener = () => {
-                lExecutingInteractionZoneName = InteractionZone.current.name;
-            };
-            lParentInteractionZone.addInteractionListener(lListener);
-
-            // Process. Dispatch event on child.
-            lInteractionZone!.execute(() => {
+            // Process. Throw error in zone.
+            lInteractionInteractionZone.execute(() => {
                 InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronProperty, new Object()));
             });
 
-            // Evaluation.
-            expect(lExecutingInteractionZoneName).to.equal(lZoneName);
-        });
-
-        it('-- Preserve execution interaction zone. Zone execution.', () => {
-            // Setup.
-            const lParentInteractionZone: InteractionZone = new InteractionZone('Name');
-
-            // Setup. Child.
-            const lChildInteractionZoneName: string = 'CD-child';
-            const lInteractionZone: InteractionZone = lParentInteractionZone.execute(() => {
-                return new InteractionZone(lChildInteractionZoneName);
-            });
-
-            // Process. Add listener.
-            let lExecutingInteractionZoneName: string | null = null;
-            const lListener = () => {
-                lExecutingInteractionZoneName = InteractionZone.current.name;
-            };
-            lParentInteractionZone.addInteractionListener(lListener);
-
-            // Process. Dispatch event on child..
-            lInteractionZone!.execute(() => {
-                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronProperty, new Object()));
-            });
+            const lInteractionZone: InteractionZone = await lInteractionZoneWaiter;
 
             // Evaluation.
-            expect(lExecutingInteractionZoneName).to.equal(lChildInteractionZoneName);
+            expect(lInteractionZone).to.be.equal(lInteractionListenerZone);
         });
 
         it('-- Prevent redispatch of event.', () => {
@@ -605,6 +578,69 @@ describe('InteractionZone', () => {
 
             // Evaluation.
             expect(lChangeEventCalled).to.be.true;
+        });
+
+        it('-- Error listener called syncron in correct zone', async () => {
+            // Setup.
+            const lInteractionErrorZone: InteractionZone = new InteractionZone('Name');
+            const lInteractionListenerZone: InteractionZone = new InteractionZone('Name');
+
+            // Setup. Set error lister on error zone but attach it inside listener zone.
+            const lErrorZoneWaiter = new Promise<InteractionZone>((pResolve) => {
+                lInteractionListenerZone.execute(() => {
+                    lInteractionErrorZone.addErrorListener(() => {
+                        pResolve(InteractionZone.current);
+                    });
+                });
+            });
+
+            // Process. Throw error in zone.
+            try {
+                lInteractionErrorZone.execute(() => {
+                    throw '';
+                });
+            } catch (pError) {
+                window.dispatchEvent(new ErrorEvent('error', {
+                    error: '',
+                    message: '',
+                }));
+            }
+
+            const lErrorZone: InteractionZone = await lErrorZoneWaiter;
+
+            // Evaluation.
+            expect(lErrorZone).to.be.equal(lInteractionListenerZone);
+        });
+
+        it('-- Error listener called asyncron in correct zone', async () => {
+            // Setup.
+            const lInteractionErrorZone: InteractionZone = new InteractionZone('Name');
+            const lInteractionListenerZone: InteractionZone = new InteractionZone('Name');
+
+            // Setup. Set error lister on error zone but attach it inside listener zone.
+            const lErrorZoneWaiter = new Promise<InteractionZone>((pResolve) => {
+                lInteractionListenerZone.execute(() => {
+                    lInteractionErrorZone.addErrorListener(() => {
+                        pResolve(InteractionZone.current);
+                    });
+                });
+            });
+
+            // Process. Create promise in zone. 
+            const lPromise: Promise<void> = lInteractionErrorZone.execute(async () => {
+                return new Promise<void>(() => { });
+            });
+
+            // Process. "Throw" promise into global scope.
+            window.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
+                promise: <Promise<void>><any>lPromise,
+                reason: 'Something'
+            }));
+
+            const lErrorZone: InteractionZone = await lErrorZoneWaiter;
+
+            // Evaluation.
+            expect(lErrorZone).to.be.equal(lInteractionListenerZone);
         });
     });
 

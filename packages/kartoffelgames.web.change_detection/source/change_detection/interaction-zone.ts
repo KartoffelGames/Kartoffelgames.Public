@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { InteractionResponseType } from './enum/interaction-response-type.enum';
 import { ErrorAllocation } from './asynchron_tracker/error-allocation';
 import { Patcher } from './asynchron_tracker/patcher/patcher';
@@ -86,8 +86,8 @@ export class InteractionZone {
         return new InteractionDetectionProxy(pObject).proxy;
     }
 
-    private readonly mChangeListenerList: Set<ChangeListener>;
-    private readonly mErrorListenerList: Set<ErrorListener>;
+    private readonly mChangeListener: Dictionary<ChangeListener, InteractionZone>;
+    private readonly mErrorListener: Dictionary<ErrorListener, InteractionZone>;
     private readonly mName: string;
     private readonly mParent: InteractionZone | null;
     private readonly mResponseType: InteractionResponseType;
@@ -121,8 +121,8 @@ export class InteractionZone {
         Patcher.patch(globalThis);
 
         // Initialize lists
-        this.mChangeListenerList = new Set<ChangeListener>();
-        this.mErrorListenerList = new Set<ErrorListener>();
+        this.mChangeListener = new Dictionary<ChangeListener, InteractionZone>();
+        this.mErrorListener = new Dictionary<ErrorListener, InteractionZone>();
 
         // Create new execution zone or use old one.#
         this.mName = pName;
@@ -154,7 +154,7 @@ export class InteractionZone {
      * @param pListener - Listener.
      */
     public addErrorListener(pListener: ErrorListener): void {
-        this.mErrorListenerList.add(pListener);
+        this.mErrorListener.add(pListener, InteractionZone.current);
     }
 
     /**
@@ -164,7 +164,7 @@ export class InteractionZone {
      * @param pListener - Listener.
      */
     public addInteractionListener(pListener: ChangeListener): void {
-        this.mChangeListenerList.add(pListener);
+        this.mChangeListener.add(pListener, InteractionZone.current);
     }
 
     /**
@@ -202,7 +202,7 @@ export class InteractionZone {
      * @param pListener - Listener.
      */
     public removeErrorListener(pListener: ErrorListener): void {
-        this.mErrorListenerList.delete(pListener);
+        this.mErrorListener.delete(pListener);
     }
 
     /**
@@ -210,7 +210,7 @@ export class InteractionZone {
      * @param pListener - Listener.
      */
     public removeInteractionListener(pListener: ChangeListener): void {
-        this.mChangeListenerList.delete(pListener);
+        this.mChangeListener.delete(pListener);
     }
 
     /**
@@ -224,8 +224,9 @@ export class InteractionZone {
         let lErrorSuppressed: boolean = false;
 
         // Dispatch error event.
-        for (const lListener of this.mErrorListenerList) {
-            if (lListener(pError) === false) {
+        for (const [lListener, lZone] of this.mErrorListener.entries()) {
+            // Call listener in same zone where it was initialized.
+            if (lZone.execute(lListener, pError) === false) {
                 lErrorSuppressed = true;
             }
         }
@@ -253,8 +254,8 @@ export class InteractionZone {
         }
 
         // Call all local listener.
-        for (const lListener of this.mChangeListenerList) {
-            lListener(pInteractionReason);
+        for (const [lListener, lZone] of this.mChangeListener.entries()) {
+            lZone.execute(lListener, pInteractionReason);
         }
 
         // Call listener from parent to send changes.

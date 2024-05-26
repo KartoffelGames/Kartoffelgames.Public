@@ -19,7 +19,7 @@ export class InteractionDetectionProxy<T extends object> {
      * 
      * @param pProxy - Possible InteractionDetectionProxy object.
      */
-    public static getOriginal<TValue extends object>(pProxy: TValue): TValue {
+    private static getOriginal<TValue extends object>(pProxy: TValue): TValue {
         return <TValue>InteractionDetectionProxy.PROXY_TO_ORIGINAL_MAPPING.get(pProxy) ?? pProxy;
     }
 
@@ -59,8 +59,13 @@ export class InteractionDetectionProxy<T extends object> {
             return lWrapper;
         }
 
-        // Create new proxy object.
-        this.mProxyObject = this.createProxyObject(pTarget);
+        // Prevent interaction zones from beeing proxied.
+        if (pTarget instanceof InteractionZone) {
+            this.mProxyObject = pTarget;
+        } else {
+            // Create new proxy object.
+            this.mProxyObject = this.createProxyObject(pTarget);
+        }
 
         // Map proxy with real object and real object to current class.
         InteractionDetectionProxy.PROXY_TO_ORIGINAL_MAPPING.set(this.mProxyObject, pTarget);

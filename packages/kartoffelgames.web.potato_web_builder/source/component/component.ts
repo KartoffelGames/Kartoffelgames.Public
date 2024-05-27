@@ -187,8 +187,7 @@ export class Component extends InjectionHierarchyParent {
         this.mElementHandler = new ElementHandler(pHtmlComponent);
 
         // Create component builder.
-        const lModules: ComponentModules = new ComponentModules(this, pExpressionModule);
-        this.mRootBuilder = new StaticBuilder(lTemplate, lModules, new LayerValues(this), 'ROOT');
+        this.mRootBuilder = new StaticBuilder(lTemplate, new ComponentModules(this, pExpressionModule), new LayerValues(this), 'ROOT');
         this.mElementHandler.shadowRoot.appendChild(this.mRootBuilder.anchor);
 
         // Initialize user object injections.

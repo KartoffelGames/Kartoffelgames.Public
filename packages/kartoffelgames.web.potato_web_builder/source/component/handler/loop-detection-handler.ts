@@ -61,6 +61,9 @@ export class LoopDetectionHandler {
         // Create and expand call chain.
         this.mCurrentCallChain.push(pReason);
 
+        // Save current execution zone. To restore it for user function call.
+        const lCurrentZone: InteractionZone = InteractionZone.current;
+
         // Function for asynchron call.
         const lAsynchronTask = () => {
             // Sheduled task executed, allow another task to be executed.
@@ -71,7 +74,7 @@ export class LoopDetectionHandler {
 
             try {
                 // Call task. If no other call was sheduled during this call, the length will be the same after. 
-                pUserFunction();
+                lCurrentZone.execute(pUserFunction);
 
                 // Throw if too many calles were chained. 
                 if (this.mCurrentCallChain.length > this.mMaxStackSize) {

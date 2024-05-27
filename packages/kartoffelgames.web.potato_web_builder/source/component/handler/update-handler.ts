@@ -86,7 +86,9 @@ export class UpdateHandler {
         }
 
         // Add listener for interactions inside interaction zone.
-        this.mInteractionZone.addInteractionListener(this.mInteractionDetectionListener);
+        this.mInteractionZone.execute(() => {
+            this.mInteractionZone.addInteractionListener(this.mInteractionDetectionListener);
+        });
 
         // Define error handler.
         this.mLoopDetectionHandler.onError = (pError: any) => {
@@ -264,9 +266,7 @@ export class UpdateHandler {
         // Shedule new asynchron update task.
         this.mLoopDetectionHandler.sheduleTask(() => {
             // Call every update listener inside interaction zone.
-            this.mInteractionZone.execute(() => {
-                this.dispatchUpdateListener(pReason);
-            });
+            this.dispatchUpdateListener(pReason);
 
             // Check if all changes where made during the listener calls and release all waiter when all updates where finished. 
             // When a new changes where made, the loop detection has another sheduled update.

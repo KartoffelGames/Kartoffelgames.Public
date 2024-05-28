@@ -1025,5 +1025,46 @@ describe('Patcher', () => {
             // Evaluation.
             expect(lInteractionType).to.equal(InteractionResponseType.AsnychronPromise);
         });
+
+        it('-- Trigger syncron on execution of executor', async () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone');
+
+            // Process.
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener((pInteraction: InteractionReason) => {
+                // Filter Promises.
+                if (pInteraction.interactionType === InteractionResponseType.AsnychronPromise) {
+                    lInteractionCounter++;
+                }
+            });
+            // eslint-disable-next-line @typescript-eslint/promise-function-async
+            await lZone.execute(() => {
+                return new Promise<void>((pResolve) => { pResolve(); });
+            });
+
+            // Evaluation.
+            expect(lInteractionCounter).to.equal(1);
+        });
+
+        it('-- Dont trigger without promise resolve or reject', (pDone: Mocha.Done) => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone');
+
+            // Process.
+            lZone.addInteractionListener(() => {
+                pDone();
+            });
+
+            // eslint-disable-next-line @typescript-eslint/promise-function-async
+            lZone.execute(() => {
+                new Promise<void>(() => { });
+            });
+
+            // Race with promise.
+            setTimeout(() => {
+                pDone();
+            }, 100);
+        });
     });
 });

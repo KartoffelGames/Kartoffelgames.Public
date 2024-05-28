@@ -86,32 +86,35 @@ export class Patcher {
 
     /**
      * Patch class and its methods.
+     * 
      * @param pConstructor - Class constructor.
+     * @param pInteractionType - Interaction type for class interactions.
+     * 
+     * @returns patched {@link pConstructor}
      */
     private patchClass(pConstructor: any, pInteractionType: InteractionResponseType): any {
+        // Patch method callbacks of class.
+        this.patchMethods(pConstructor, pInteractionType);
+
+        // Patch constructor callbacks
+        return this.patchConstructor(pConstructor, pInteractionType);
+    }
+
+    /**
+     * Patch constructor callbacks.
+     * 
+     * @param pConstructor - Class constructor.
+     * @param pInteractionType - Interaction type for class interactions.
+     * 
+     * @returns patched {@link pConstructor}
+     */
+    private patchConstructor(pConstructor: any, pInteractionType: InteractionResponseType): any {
         // Skip undefined or not found constructor.
         if (typeof pConstructor !== 'function') {
             return pConstructor;
         }
 
         const lSelf: this = this;
-        const lPrototype = pConstructor.prototype;
-
-        // For each prototype property.
-        for (const lClassMemberName of Object.getOwnPropertyNames(lPrototype)) {
-            // Skip constructor.
-            if (lClassMemberName === 'constructor') {
-                continue;
-            }
-
-            const lDescriptor: PropertyDescriptor = <PropertyDescriptor>Object.getOwnPropertyDescriptor(lPrototype, lClassMemberName);
-            const lValue: any = lDescriptor.value;
-
-            // Only try to patch methods.
-            if (typeof lValue === 'function') {
-                lPrototype[lClassMemberName] = this.patchFunctionCallbacks(<any>lValue, pInteractionType);
-            }
-        }
 
         // Extend class to path constructor.
         return class PatchedClass extends pConstructor {
@@ -293,6 +296,38 @@ export class Patcher {
     }
 
     /**
+     * Patch class methods parameter.
+     * Any callback parameter triggers an interaction.
+     * 
+     * @param pConstructor - Class constructor.
+     * @param pInteractionType - Interaction type for method callback calls interactions.
+     */
+    private patchMethods(pConstructor: any, pInteractionType: InteractionResponseType): void {
+        // Skip undefined or not found constructor.
+        if (typeof pConstructor !== 'function') {
+            return pConstructor;
+        }
+
+        const lPrototype = pConstructor.prototype;
+
+        // For each prototype property.
+        for (const lClassMemberName of Object.getOwnPropertyNames(lPrototype)) {
+            // Skip constructor.
+            if (lClassMemberName === 'constructor') {
+                continue;
+            }
+
+            const lDescriptor: PropertyDescriptor = <PropertyDescriptor>Object.getOwnPropertyDescriptor(lPrototype, lClassMemberName);
+            const lValue: any = lDescriptor.value;
+
+            // Only try to patch methods.
+            if (typeof lValue === 'function') {
+                lPrototype[lClassMemberName] = this.patchFunctionCallbacks(<any>lValue, pInteractionType);
+            }
+        }
+    }
+
+    /**
      * Patch every onproperty of XHR.
      * Does not patch twice.
      */
@@ -353,17 +388,22 @@ export class Patcher {
      * @param pConstructor - Promise constructor.
      */
     private patchPromise(pGlobalObject: typeof globalThis): any {
-        const lOriginalConstructor: typeof Promise = pGlobalObject.Promise;
-        const lPatchedConstructor: any = this.patchClass(lOriginalConstructor, InteractionResponseType.AsnychronPromise);
+        const lSelf: this = this;
+        const lInteractionResponseType: InteractionResponseType = InteractionResponseType.AsnychronPromise;
+        const lOriginalConstructor: any = pGlobalObject.Promise;
 
         // Patch only the constructor.
-        return class PatchedClass extends lPatchedConstructor {
-            public constructor(...pArgs: Array<any>) {
-                super(...pArgs);
+        const lPatchedClass = class extends lOriginalConstructor {
+            public constructor(pExecutor: (...pArgs: Array<any>) => any) {
+                super(lSelf.patchFunctionCallbacks(pExecutor, lInteractionResponseType));
 
                 // Set zone of promise.
                 Patcher.mPromizeZones.set(this as any as Promise<unknown>, InteractionZone.current);
             }
         };
+
+        this.patchMethods(lPatchedClass, lInteractionResponseType);
+
+        return lPatchedClass;
     }
 }

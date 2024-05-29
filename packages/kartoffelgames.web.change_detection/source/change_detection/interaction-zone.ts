@@ -82,8 +82,11 @@ export class InteractionZone {
             Patcher.attachZoneEvent(pObject, InteractionZone.current);
         }
 
-        // Create interaction proxy.
-        return new InteractionDetectionProxy(pObject).proxy;
+        // Create interaction proxy and attach current zone.
+        const lProxy = new InteractionDetectionProxy(pObject);
+        lProxy.attachZone(InteractionZone.current);
+
+        return lProxy.proxy;
     }
 
     private readonly mChangeListener: Dictionary<ChangeListener, InteractionZone>;

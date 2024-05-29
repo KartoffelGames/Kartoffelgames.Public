@@ -448,6 +448,88 @@ describe('InteractionDetectionProxy', () => {
         });
     });
 
+    describe('Functionality: attachZone', () => {
+        it('-- Dispatch interaction to attached zone', async () => {
+            // Setup.
+            const lOriginalObject: { a: number; } = { a: 1 };
+            const lDetectionProxy: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
+            const lInteractionZone: InteractionZone = new InteractionZone('CD');
+
+            // Setup. InteractionZone.
+            const lListenerPromise: Promise<void> = new Promise<void>((pResolve) => {
+                lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                    if (pChangeReason.property === 'a') {
+                        pResolve();
+                    }
+                });
+            });
+
+            // Process.
+            lDetectionProxy.attachZone(lInteractionZone);
+            lDetectionProxy.proxy.a = 22;
+
+            // Evaluation.
+            await lListenerPromise;
+        });
+
+        it('-- Dispatch interaction to attached and current zone', async () => {
+            // Setup.
+            const lOriginalObject: { a: number; } = { a: 1 };
+            const lDetectionProxy: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
+            const lAttachedInteractionZone: InteractionZone = new InteractionZone('CDAttach');
+            const lCurrentInteractionZone: InteractionZone = new InteractionZone('CD');
+
+            // Setup. InteractionZone.
+            const lAttachedListenerPromise: Promise<void> = new Promise<void>((pResolve) => {
+                lAttachedInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                    if (pChangeReason.property === 'a') {
+                        pResolve();
+                    }
+                });
+            });
+            const lCurrentListenerPromise: Promise<void> = new Promise<void>((pResolve) => {
+                lCurrentInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                    if (pChangeReason.property === 'a') {
+                        pResolve();
+                    }
+                });
+            });
+
+            // Process.
+            lDetectionProxy.attachZone(lAttachedInteractionZone);
+            lCurrentInteractionZone.execute(() => {
+                lDetectionProxy.proxy.a = 22;
+            });
+
+            // Evaluation.
+            await lAttachedListenerPromise;
+            await lCurrentListenerPromise;
+        });
+
+        it('-- Dispatch interaction to only once to current and attached zone', async () => {
+            // Setup.
+            const lOriginalObject: { a: number; } = { a: 1 };
+            const lDetectionProxy: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
+            const lInteractionZone: InteractionZone = new InteractionZone('CD');
+
+            // Setup. InteractionZone.
+            let lInteractionCounter: number = 0;
+            lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                if (pChangeReason.property === 'a') {
+                    lInteractionCounter++;
+                }
+            });
+            // Process.
+            lDetectionProxy.attachZone(lInteractionZone);
+            lInteractionZone.execute(() => {
+                lDetectionProxy.proxy.a = 22;
+            });
+
+            // Evaluation.
+            expect(lInteractionCounter).to.equal(1);
+        });
+    });
+
     describe('Functionality: InteractionResponseType', () => {
         it('-- InteractionResponseType.SyncronProperty on property set ', () => {
             // Setup.

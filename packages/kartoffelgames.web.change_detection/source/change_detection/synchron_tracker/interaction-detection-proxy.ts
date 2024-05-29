@@ -19,7 +19,7 @@ export class InteractionDetectionProxy<T extends object> {
      * 
      * @param pProxy - Possible InteractionDetectionProxy object.
      */
-    public static getOriginal<TValue extends object>(pProxy: TValue): TValue {
+    private static getOriginal<TValue extends object>(pProxy: TValue): TValue {
         return <TValue>InteractionDetectionProxy.PROXY_TO_ORIGINAL_MAPPING.get(pProxy) ?? pProxy;
     }
 
@@ -37,6 +37,7 @@ export class InteractionDetectionProxy<T extends object> {
         return <InteractionDetectionProxy<TValue> | undefined>InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.get(lOriginal);
     }
 
+    private readonly mAttachedZones!: Set<InteractionZone>;
     private readonly mProxyObject!: T;
 
     /**
@@ -67,9 +68,20 @@ export class InteractionDetectionProxy<T extends object> {
             this.mProxyObject = this.createProxyObject(pTarget);
         }
 
+        this.mAttachedZones = new Set<InteractionZone>();
+
         // Map proxy with real object and real object to current class.
         InteractionDetectionProxy.PROXY_TO_ORIGINAL_MAPPING.set(this.mProxyObject, pTarget);
         InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.set(pTarget, this);
+    }
+
+    /**
+     * Attach zone that any interaction is dispatched beside the current zone.
+     * 
+     * @param pZone - Interaction zone.
+     */
+    public attachZone(pZone: InteractionZone): void {
+        this.mAttachedZones.add(pZone);
     }
 
     /**
@@ -99,7 +111,7 @@ export class InteractionDetectionProxy<T extends object> {
                 const lResult: boolean = Reflect.set(pTargetObject, pPropertyName, lPropertyValue);
 
                 // Call interaction event with synchron property response type.
-                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronProperty, this.mProxyObject, pPropertyName));
+                this.dispatch(InteractionResponseType.SyncronProperty, this.mProxyObject, pPropertyName);
 
                 return lResult;
             },
@@ -136,7 +148,7 @@ export class InteractionDetectionProxy<T extends object> {
                 const lPropertyExisted: boolean = Reflect.deleteProperty(pTargetObject, pPropertyName);
 
                 // Call interaction event with synchron property interaction type.
-                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronProperty, this.mProxyObject, pPropertyName));
+                this.dispatch(InteractionResponseType.SyncronProperty, this.mProxyObject, pPropertyName);
 
                 // Passthrough original remove result.
                 return lPropertyExisted;
@@ -166,7 +178,7 @@ export class InteractionDetectionProxy<T extends object> {
                     lFunctionResult = (<CallableObject>pTargetObject).call(lOriginalThisObject, ...pArgumentsList);
                 } finally {
                     // Dispatch interaction event before exception passthrough.
-                    InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronCall, this.mProxyObject));
+                    this.dispatch(InteractionResponseType.SyncronCall, this.mProxyObject);
                 }
 
                 return lFunctionResult;
@@ -174,6 +186,29 @@ export class InteractionDetectionProxy<T extends object> {
         });
 
         return lProxyObject;
+    }
+
+    /**
+     * Dispatch reason to all attached zones and current zone.
+     * 
+     * @param pInteractionType - What type of interaction.
+     * @param pSource - Object wich was interacted with.
+     * @param pProperty - Optional change reason property.
+     */
+    private dispatch(pInteractionType: InteractionResponseType, pSource: object, pProperty?: PropertyKey | undefined): void {
+        const lCurrentZone: InteractionZone = InteractionZone.current;
+
+        // Dispatch reason to all attached zones. Ignore current zone.
+        for (const lZone of this.mAttachedZones) {
+            if (lZone !== lCurrentZone) {
+                lZone.execute(() => {
+                    InteractionZone.dispatchInteractionEvent(new InteractionReason(pInteractionType, pSource, pProperty));
+                });
+            }
+        }
+
+        // Dispatch reason to current zone.
+        InteractionZone.dispatchInteractionEvent(new InteractionReason(pInteractionType, pSource, pProperty));
     }
 }
 

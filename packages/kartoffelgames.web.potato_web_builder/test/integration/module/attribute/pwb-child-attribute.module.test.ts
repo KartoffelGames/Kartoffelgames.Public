@@ -26,7 +26,7 @@ describe('PwbChildAttributeModule', () => {
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lComponentIdChild: HTMLDivElement = InteractionDetectionProxy.getOriginal(lComponent.idChild);
+        const lComponentIdChild: HTMLDivElement = (<any>InteractionDetectionProxy).getOriginal(lComponent.idChild);
         const lRealIdChild: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
@@ -112,7 +112,7 @@ describe('PwbChildAttributeModule', () => {
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lComponentIdChild: HTMLDivElement = InteractionDetectionProxy.getOriginal(lComponent.idChild);
+        const lComponentIdChild: HTMLDivElement = (<any>InteractionDetectionProxy).getOriginal(lComponent.idChild);
         const lRealIdChild: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.

@@ -1,6 +1,6 @@
 import { InjectionConstructor, Injector } from '@kartoffelgames/core.dependency-injection';
 import { Component } from '../component/component';
-import { UpdateScope } from '../enum/update-scope.enum';
+import { UpdateMode } from '../enum/update-mode.enum';
 import { ComponentProcessorConstructor } from '../interface/component.interface';
 import { IPwbAttributeModuleProcessorConstructor, IPwbExpressionModuleProcessorConstructor, IPwbInstructionModuleProcessorConstructor } from '../interface/module.interface';
 
@@ -35,7 +35,7 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
                     pParameter.template ?? null,
                     pParameter.expressionmodule,
                     this,
-                    pParameter.updateScope ?? UpdateScope.Global
+                    pParameter.updateScope ?? UpdateMode.Default
                 );
 
                 // Append style if specified. Styles are scoped on components shadow root.
@@ -78,5 +78,5 @@ type HtmlComponentParameter = {
     modules?: Array<IPwbInstructionModuleProcessorConstructor | IPwbAttributeModuleProcessorConstructor | any>;
     // Placeholder for listing components that should be imported.
     components?: Array<InjectionConstructor>;
-    updateScope?: UpdateScope;
+    updateScope?: UpdateMode;
 };

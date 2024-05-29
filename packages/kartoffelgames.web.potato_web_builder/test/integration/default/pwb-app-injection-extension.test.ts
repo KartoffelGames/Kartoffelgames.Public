@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { PwbExport } from '../../../source';
 import { PwbComponent } from '../../../source/decorator/pwb-component.decorator';
-import { UpdateScope } from '../../../source/enum/update-scope.enum';
+import { UpdateMode } from '../../../source/enum/update-mode.enum';
 import { ComponentElement } from '../../../source/interface/component.interface';
 import { PwbApp } from '../../../source/pwb-app/pwb-app';
 import '../../mock/request-animation-frame-mock-session';
@@ -52,7 +52,7 @@ describe('PwbAppInjectionExtension', () => {
         // Setup. Define component.
         @PwbComponent({
             selector: lCapsuledSelector,
-            updateScope: UpdateScope.Manual
+            updateScope: UpdateMode.Manual
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class CapsuledTestComponent {
@@ -65,7 +65,7 @@ describe('PwbAppInjectionExtension', () => {
         @PwbComponent({
             selector: lSelector,
             template: `<${lCapsuledSelector}/>`,
-            updateScope: UpdateScope.Global
+            updateScope: UpdateMode.Default
         })
         class TestComponent { }
 
@@ -100,7 +100,7 @@ describe('PwbAppInjectionExtension', () => {
         // Setup. Define component.
         @PwbComponent({
             selector: lCapsuledSelector,
-            updateScope: UpdateScope.Capsuled
+            updateScope: UpdateMode.Isolated
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class CapsuledTestComponent {
@@ -113,7 +113,7 @@ describe('PwbAppInjectionExtension', () => {
         @PwbComponent({
             selector: lSelector,
             template: `<${lCapsuledSelector}/>`,
-            updateScope: UpdateScope.Global
+            updateScope: UpdateMode.Default
         })
         class TestComponent { }
 
@@ -150,7 +150,7 @@ describe('PwbAppInjectionExtension', () => {
         // Setup. Define component.
         @PwbComponent({
             selector: lChildChildSelector,
-            updateScope: UpdateScope.Manual
+            updateScope: UpdateMode.Manual
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class ChildChildTestComponent {
@@ -163,7 +163,7 @@ describe('PwbAppInjectionExtension', () => {
         @PwbComponent({
             selector: lChildSelector,
             template: `<${lChildChildSelector}/>`,
-            updateScope: UpdateScope.Capsuled
+            updateScope: UpdateMode.Isolated
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class ChildTestComponent { }
@@ -172,7 +172,7 @@ describe('PwbAppInjectionExtension', () => {
         @PwbComponent({
             selector: lSelector,
             template: `<${lChildSelector}/>`,
-            updateScope: UpdateScope.Global
+            updateScope: UpdateMode.Default
         })
         class TestComponent { }
 

@@ -3,7 +3,7 @@ import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency
 import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
 import { AccessMode } from '../enum/access-mode.enum';
 import { ExtensionType } from '../enum/extension-type.enum';
-import { UpdateScope } from '../enum/update-scope.enum';
+import { UpdateMode } from '../enum/update-mode.enum';
 import { ComponentExtension } from '../extension/component-extension';
 import { GlobalExtensionsStorage } from '../extension/global-extensions-storage';
 import { InjectionHierarchyParent } from '../injection/injection-hierarchy-parent';
@@ -144,7 +144,7 @@ export class Component extends InjectionHierarchyParent {
      * @param pHtmlComponent - HTMLElement of component.
      * @param pUpdateScope - Update scope of component.
      */
-    public constructor(pComponentProcessorConstructor: ComponentProcessorConstructor, pTemplateString: string | null, pExpressionModule: IPwbExpressionModuleProcessorConstructor, pHtmlComponent: HTMLElement, pUpdateScope: UpdateScope) {
+    public constructor(pComponentProcessorConstructor: ComponentProcessorConstructor, pTemplateString: string | null, pExpressionModule: IPwbExpressionModuleProcessorConstructor, pHtmlComponent: HTMLElement, pUpdateScope: UpdateMode) {
         super(null);
 
         // Add register component element.

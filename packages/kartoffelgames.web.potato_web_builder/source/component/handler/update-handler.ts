@@ -1,6 +1,6 @@
 import { List } from '@kartoffelgames/core.data';
-import { InteractionZone, InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
-import { UpdateScope } from '../../enum/update-scope.enum';
+import { InteractionReason, InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
+import { UpdateMode } from '../../enum/update-mode.enum';
 import { LoopDetectionHandler } from './loop-detection-handler';
 
 /**
@@ -15,7 +15,7 @@ export class UpdateHandler {
     private readonly mInteractionZone: InteractionZone;
     private readonly mLoopDetectionHandler: LoopDetectionHandler;
     private readonly mUpdateListener: List<UpdateListener>;
-    private readonly mUpdateScope: UpdateScope;
+    private readonly mUpdateScope: UpdateMode;
     private readonly mUpdateWaiter: List<UpdateWaiter>;
 
     /**
@@ -45,50 +45,33 @@ export class UpdateHandler {
      * Constructor.
      * @param pUpdateScope - Update scope.
      */
-    public constructor(pUpdateScope: UpdateScope) {
+    public constructor(pUpdateScope: UpdateMode) {
         this.mUpdateScope = pUpdateScope;
         this.mUpdateListener = new List<UpdateListener>();
         this.mEnabled = false;
         this.mUpdateWaiter = new List<UpdateWaiter>();
         this.mLoopDetectionHandler = new LoopDetectionHandler(10);
 
-        // Create new interaction zone if component is not inside interaction zone or mode is capsuled.
-        switch (this.mUpdateScope) {
-            case UpdateScope.Manual: {
-                // Manual zone outside every other zone.
-                this.mInteractionZone = new InteractionZone('ManualCapsuledComponentZone', { isolate: true, trigger: InteractionResponseType.None });
+        // Create isolated or default zone.
+        if (this.mUpdateScope % UpdateMode.Isolated !== 0) {
+            // Isolated zone.
+            this.mInteractionZone = new InteractionZone('CapsuledComponentZone', { isolate: true, trigger: InteractionResponseType.Any });
+        } else {
+            // Global zone.
+            this.mInteractionZone = new InteractionZone('DefaultComponentZone', { trigger: InteractionResponseType.Any });
+        }
 
-                // Empty change listener.
-                this.mInteractionDetectionListener = () => {/* Empty */ };
-
-                break;
-            }
-
-            case UpdateScope.Capsuled: {
-                // New zone exclusive for this component.
-                this.mInteractionZone = new InteractionZone('CapsuledComponentZone', { isolate: true, trigger: InteractionResponseType.Any });
-
-                // Shedule an update on interaction zone.
-                this.mInteractionDetectionListener = (pReason: InteractionReason) => { this.sheduleUpdateTask(pReason); };
-
-                break;
-            }
-
-            case UpdateScope.Global: {
-                // Reuse current zone
-                this.mInteractionZone = new InteractionZone('DefaultComponentZone', { trigger: InteractionResponseType.Any });
-
-                // Shedule an update on interaction zone.
-                this.mInteractionDetectionListener = (pReason: InteractionReason) => { this.sheduleUpdateTask(pReason); };
-
-                break;
-            }
+        // Create manual or default listener. Manual listener does nothing on interaction.
+        if (this.mUpdateScope % UpdateMode.Manual !== 0) {
+            // Empty change listener.
+            this.mInteractionDetectionListener = () => {/* Empty */ };
+        } else {
+            // Shedule an update on interaction zone.
+            this.mInteractionDetectionListener = (pReason: InteractionReason) => { this.sheduleUpdateTask(pReason); };
         }
 
         // Add listener for interactions inside interaction zone.
-        this.mInteractionZone.execute(() => {
-            this.mInteractionZone.addInteractionListener(this.mInteractionDetectionListener);
-        });
+        this.mInteractionZone.addInteractionListener(this.mInteractionDetectionListener);
 
         // Define error handler.
         this.mLoopDetectionHandler.onError = (pError: any) => {
@@ -175,7 +158,7 @@ export class UpdateHandler {
 
     /**
      * Request update by sending an update request to the interaction zone.
-     * Does nothing when the component is set to be {@link UpdateScope.Manual}
+     * Does nothing when the component is set to be {@link UpdateMode.Manual}
      * 
      * @param pReason - Update reason. Description of changed state.
      */
@@ -263,17 +246,20 @@ export class UpdateHandler {
             return;
         }
 
-        // Shedule new asynchron update task.
-        this.mLoopDetectionHandler.sheduleTask(() => {
-            // Call every update listener inside interaction zone.
-            this.dispatchUpdateListener(pReason);
+        // Shedule task in component zone.
+        this.mInteractionZone.execute(() => {
+            // Shedule new asynchron update task.
+            this.mLoopDetectionHandler.sheduleTask(() => {
+                // Call every update listener inside interaction zone.
+                this.dispatchUpdateListener(pReason);
 
-            // Check if all changes where made during the listener calls and release all waiter when all updates where finished. 
-            // When a new changes where made, the loop detection has another sheduled update.
-            if (!this.mLoopDetectionHandler.hasActiveTask) {
-                this.releaseWaiter();
-            }
-        }, pReason);
+                // Check if all changes where made during the listener calls and release all waiter when all updates where finished. 
+                // When a new changes where made, the loop detection has another sheduled update.
+                if (!this.mLoopDetectionHandler.hasActiveTask) {
+                    this.releaseWaiter();
+                }
+            }, pReason);
+        });
     }
 }
 

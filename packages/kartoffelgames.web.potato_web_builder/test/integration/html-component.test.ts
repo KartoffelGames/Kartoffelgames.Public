@@ -7,7 +7,7 @@ import { UpdateHandler } from '../../source/component/handler/update-handler';
 import { PwbComponent } from '../../source/decorator/pwb-component.decorator';
 import { PwbExpressionModule } from '../../source/decorator/pwb-expression-module.decorator';
 import { PwbExport } from '../../source/default/export/pwb-export.decorator';
-import { UpdateScope } from '../../source/enum/update-scope.enum';
+import { UpdateMode } from '../../source/enum/update-mode.enum';
 import { ComponentElementReference } from '../../source/injection/references/component/component-element-reference';
 import { ComponentElement, IPwbAfterUpdate, IPwbOnAttributeChange, IPwbOnDeconstruct, IPwbOnUpdate } from '../../source/interface/component.interface';
 import { IPwbExpressionModuleOnUpdate } from '../../source/interface/module.interface';
@@ -167,7 +167,7 @@ describe('HtmlComponent', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector(),
             template: '<div />',
-            updateScope: UpdateScope.Manual
+            updateScope: UpdateMode.Manual
         })
         class TestComponent { }
 
@@ -185,7 +185,7 @@ describe('HtmlComponent', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector(),
             template: '<div />',
-            updateScope: UpdateScope.Manual
+            updateScope: UpdateMode.Manual
         })
         class TestComponent {
             private readonly mUpdater: UpdateHandler;
@@ -219,7 +219,7 @@ describe('HtmlComponent', () => {
         @PwbComponent({
             selector: lCapsuledSelector,
             template: '{{this.innerValue}}',
-            updateScope: UpdateScope.Capsuled
+            updateScope: UpdateMode.Isolated
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class CapsuledTestComponent {
@@ -231,7 +231,7 @@ describe('HtmlComponent', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector(),
             template: `<${lCapsuledSelector}/>`,
-            updateScope: UpdateScope.Global
+            updateScope: UpdateMode.Default
         })
         class TestComponent { }
 
@@ -350,7 +350,7 @@ describe('HtmlComponent', () => {
 
         // Process. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lComponentReference: Node = InteractionDetectionProxy.getOriginal(lComponent.element());
+        const lComponentReference: Node = (<any>InteractionDetectionProxy).getOriginal(lComponent.element());
 
         // Evaluation
         // 2 => StaticAnchor, unknown-component.
@@ -433,7 +433,7 @@ describe('HtmlComponent', () => {
         let lWasDeconstructed: boolean = false;
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            updateScope: UpdateScope.Manual
+            updateScope: UpdateMode.Manual
         })
         class TestComponent implements IPwbOnDeconstruct {
             public onPwbDeconstruct(): void {

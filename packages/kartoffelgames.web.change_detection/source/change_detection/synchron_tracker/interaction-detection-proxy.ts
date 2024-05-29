@@ -89,8 +89,14 @@ export class InteractionDetectionProxy<T extends object> {
              * @param pNewPropertyValue - New value of property.
              */
             set: (pTargetObject: T, pPropertyName: PropertyKey, pNewPropertyValue: any): boolean => {
+                // Prevent original pollution by getting original from value.
+                let lPropertyValue: any = pNewPropertyValue;
+                if (lPropertyValue !== null && typeof lPropertyValue === 'object' || typeof lPropertyValue === 'function') {
+                    lPropertyValue = InteractionDetectionProxy.getOriginal(lPropertyValue);
+                }
+
                 // Set value to original target property.
-                const lResult: boolean = Reflect.set(pTargetObject, pPropertyName, pNewPropertyValue);
+                const lResult: boolean = Reflect.set(pTargetObject, pPropertyName, lPropertyValue);
 
                 // Call interaction event with synchron property response type.
                 InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.SyncronProperty, this.mProxyObject, pPropertyName));

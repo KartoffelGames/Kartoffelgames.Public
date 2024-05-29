@@ -415,6 +415,23 @@ describe('InteractionDetectionProxy', () => {
                 // Evaluation.
                 expect(lPropertyChanged).to.be.true;
             });
+
+            it('-- Not proxy interaction zones', () => {
+                // Setup.
+                const lInteractionZone: InteractionZone = new InteractionZone('SameName');
+                const lChildObject: object = {};
+                const lObject = {
+                    zone: lInteractionZone,
+                    childObject: lChildObject
+                };
+
+                // Process.
+                const lProxy = new InteractionDetectionProxy(lObject).proxy;
+
+                // Evaluation.
+                expect(lProxy.zone).to.equal(lInteractionZone);
+                expect(lProxy.childObject).to.not.equal(lChildObject);
+            });
         });
 
         it('-- getOwnPropertyDescriptor', () => {
@@ -705,22 +722,20 @@ describe('InteractionDetectionProxy', () => {
         });
     });
 
-    describe('-- Functionality: Ignore InteractionZones', () => {
-        it('-- Not proxy interaction zones', () => {
+    describe('Functionality: Proxy pollution', () => {
+        it('-- Proerty set pollution', () => {
             // Setup.
-            const lInteractionZone: InteractionZone = new InteractionZone('SameName');
-            const lChildObject: object = {};
-            const lObject = {
-                zone: lInteractionZone,
-                childObject: lChildObject
-            };
+            const lOriginalObject: { a: object; } = { a: {} };
+            const lOriginalInnerObject: object = lOriginalObject.a;
+            const lDetectionProxy: { a: object; } = new InteractionDetectionProxy(lOriginalObject).proxy;
 
             // Process.
-            const lProxy = new InteractionDetectionProxy(lObject).proxy;
+            const lProxValue: object = lDetectionProxy.a;
+            lDetectionProxy.a = lProxValue;
 
             // Evaluation.
-            expect(lProxy.zone).to.equal(lInteractionZone);
-            expect(lProxy.childObject).to.not.equal(lChildObject);
+            expect(lProxValue).to.not.equal(lOriginalInnerObject);
+            expect(lOriginalObject.a).to.equal(lOriginalInnerObject);
         });
     });
 });

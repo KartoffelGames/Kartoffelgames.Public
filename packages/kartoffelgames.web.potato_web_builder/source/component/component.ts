@@ -47,7 +47,7 @@ export class Component extends InjectionHierarchyParent {
     public static componentOf(pElement: Element): Component {
         const lComponent: Component | undefined = Component.mElementComponent.get(pElement);
         if (!lComponent) {
-            throw new Exception(`Element "${pElement.tagName}" is not a PwbComponent.`, pElement);
+            throw new Exception(`Element "${pElement}" is not a PwbComponent.`, pElement);
         }
 
         return lComponent;

@@ -237,4 +237,41 @@ describe('PwbAppInjectionExtension', () => {
         // Evaluation.
         expect(lMessage).to.be.equal('Parameter "PwbApp" of TestComponent is not registered to be injectable.');
     });
+
+    it('-- Creation with isloated component', async () => {
+        // Process.
+        const lSelector: string = TestUtil.randomSelector();
+
+        // Process. Define component.    
+        @PwbComponent({
+            selector: lSelector,
+            updateScope: UpdateMode.Isolated
+        })
+        class TestComponent {
+            public constructor(_pApp: PwbApp) { }
+        }
+
+        // Process. Create app and skip wait for splash screen.
+        const lPwbApp: PwbApp = new PwbApp();
+        lPwbApp.setSplashScreen({ manual: true, animationTime: 10 });
+
+        // Process. Add component to pwb app.
+        lPwbApp.addContent(TestComponent);
+        await lPwbApp.appendTo(document.body);
+
+        // Process.
+        let lMessage: string | null = null;
+        try {
+            // Process. Create elements and wait for update.
+            const lComponent: ComponentElement = <ComponentElement>lPwbApp.component.shadowRoot!.querySelector(lSelector);
+            TestUtil.forceProcessorCreation(lComponent);
+            await TestUtil.waitForUpdate(lPwbApp.component);
+        } catch (pException) {
+            const lError: Error = <Error>pException;
+            lMessage = lError.message;
+        }
+
+        // Evaluation.
+        expect(lMessage).to.be.equal('Parameter "PwbApp" of TestComponent is not registered to be injectable.');
+    });
 });

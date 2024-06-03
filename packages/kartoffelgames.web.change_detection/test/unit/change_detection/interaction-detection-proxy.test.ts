@@ -531,17 +531,107 @@ describe('InteractionDetectionProxy', () => {
     });
 
     describe('Functionality: InteractionResponseType', () => {
-        it('-- InteractionResponseType.SyncronProperty on property set ', () => {
+        it('-- InteractionResponseType.PropertySetStart before property set ', () => {
+            // Setup. Trigger values.
+            const lTriggerValueChanged: number = 1;
+            const lTriggerValueOriginal: number = -1;
+            let lTriggerValue: number = lTriggerValueOriginal;
+
             // Setup.
-            const lOriginalObject: { a: number; } = { a: 1 };
+            const lOriginalObject: { a: number; } = new class { get a(): number { lTriggerValue = lTriggerValueChanged; return 1; } }();
             const lDetectionProxy: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
-            const lInteractionZone: InteractionZone = new InteractionZone('CD');
+            const lInteractionZone: InteractionZone = new InteractionZone('CD', { trigger: InteractionResponseType.PropertySetStart });
+
+            // Setup. InteractionZone.
+            let lResponseType: InteractionResponseType = InteractionResponseType.None;
+            let lTriggerValueOnEvent: number | null = null;
+            lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                if (pChangeReason.property === 'a') {
+                    lResponseType |= pChangeReason.interactionType;
+                    lTriggerValueOnEvent = lTriggerValue;
+                }
+            });
+
+            // Process.
+            lInteractionZone.execute(() => {
+                lDetectionProxy.proxy.a;
+            });
+
+            // Evaluation.
+            expect(lResponseType).to.equal(InteractionResponseType.PropertySetStart);
+            expect(lTriggerValueOnEvent).to.equal(lTriggerValueOriginal);
+        });
+
+        it('-- InteractionResponseType.PropertyGetEnd after property get ', () => {
+            // Setup. Trigger values.
+            const lTriggerValueChanged: number = 1;
+            const lTriggerValueOriginal: number = -1;
+            let lTriggerValue: number = lTriggerValueOriginal;
+
+            // Setup.
+            const lOriginalObject: { a: number; } = new class { get a(): number { lTriggerValue = lTriggerValueChanged; return 1; } }();
+            const lDetectionProxy: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
+            const lInteractionZone: InteractionZone = new InteractionZone('CD', { trigger: InteractionResponseType.PropertyGetEnd });
+
+            // Setup. InteractionZone.
+            let lResponseType: InteractionResponseType = InteractionResponseType.None;
+            let lTriggerValueOnEvent: number | null = null;
+            lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                if (pChangeReason.property === 'a') {
+                    lResponseType |= pChangeReason.interactionType;
+                    lTriggerValueOnEvent = lTriggerValue;
+                }
+            });
+
+            // Process.
+            lInteractionZone.execute(() => {
+                lDetectionProxy.proxy.a;
+            });
+
+            // Evaluation.
+            expect(lResponseType).to.equal(InteractionResponseType.PropertyGetEnd);
+            expect(lTriggerValueOnEvent).to.equal(lTriggerValueChanged);
+        });
+
+        it('-- InteractionResponseType.PropertyGetError on property get ', () => {
+            // Setup.
+            const lOriginalObject: { a: number; } = new class { get a(): number { throw 1; } }();
+            const lDetectionProxy: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
+            const lInteractionZone: InteractionZone = new InteractionZone('CD', { trigger: InteractionResponseType.PropertyGetError });
 
             // Setup. InteractionZone.
             let lResponseType: InteractionResponseType = InteractionResponseType.None;
             lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
                 if (pChangeReason.property === 'a') {
                     lResponseType |= pChangeReason.interactionType;
+                }
+            });
+
+            // Process.
+            lInteractionZone.execute(() => {
+                try {
+                    lDetectionProxy.proxy.a;
+                } catch (_) {/* Any */ }
+            });
+
+            // Evaluation.
+            expect(lResponseType).to.equal(InteractionResponseType.PropertyGetError);
+        });
+
+        it('-- InteractionResponseType.PropertySetStart before property set ', () => {
+            // Setup.
+            const lStartValue: number = 321;
+            const lOriginalObject: { a: number; } = { a: lStartValue };
+            const lDetectionProxy: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
+            const lInteractionZone: InteractionZone = new InteractionZone('CD', { trigger: InteractionResponseType.PropertySetStart });
+
+            // Setup. InteractionZone.
+            let lResponseType: InteractionResponseType = InteractionResponseType.None;
+            let lPropertyValueOnEvent: number | null = null;
+            lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                if (pChangeReason.property === 'a') {
+                    lResponseType |= pChangeReason.interactionType;
+                    lPropertyValueOnEvent = lOriginalObject.a;
                 }
             });
 
@@ -551,14 +641,43 @@ describe('InteractionDetectionProxy', () => {
             });
 
             // Evaluation.
-            expect(lResponseType).to.equal(InteractionResponseType.SyncronProperty);
+            expect(lResponseType).to.equal(InteractionResponseType.PropertySetStart);
+            expect(lPropertyValueOnEvent).to.equal(lStartValue);
         });
 
-        it('-- InteractionResponseType.SyncronProperty on property delete', () => {
+        it('-- InteractionResponseType.PropertySetEnd after property set ', () => {
             // Setup.
-            const lOriginalObject: { a?: number; } = { a: 1 };
-            const lDetectionProxy: InteractionDetectionProxy<{ a?: number; }> = new InteractionDetectionProxy(lOriginalObject);
-            const lInteractionZone: InteractionZone = new InteractionZone('CD');
+            const lEndValue: number = 321;
+            const lOriginalObject: { a: number; } = { a: 1 };
+            const lDetectionProxy: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
+            const lInteractionZone: InteractionZone = new InteractionZone('CD', { trigger: InteractionResponseType.PropertySetEnd });
+
+            // Setup. InteractionZone.
+            let lResponseType: InteractionResponseType = InteractionResponseType.None;
+            let lPropertyValueOnEvent: number | null = null;
+            lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                if (pChangeReason.property === 'a') {
+                    lResponseType |= pChangeReason.interactionType;
+                    lPropertyValueOnEvent = lOriginalObject.a;
+                }
+            });
+
+            // Process.
+            lInteractionZone.execute(() => {
+                lDetectionProxy.proxy.a = lEndValue;
+            });
+
+            // Evaluation.
+            expect(lResponseType).to.equal(InteractionResponseType.PropertySetEnd);
+            expect(lPropertyValueOnEvent).to.equal(lEndValue);
+        });
+
+        it('-- InteractionResponseType.PropertySetError on property set ', () => {
+            // Setup.
+            const lEndValue: number = 321;
+            const lOriginalObject: { a: number; } = new class { set a(_pAny: number) { throw 1; } }();
+            const lDetectionProxy: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
+            const lInteractionZone: InteractionZone = new InteractionZone('CD', { trigger: InteractionResponseType.PropertySetError });
 
             // Setup. InteractionZone.
             let lResponseType: InteractionResponseType = InteractionResponseType.None;
@@ -570,18 +689,160 @@ describe('InteractionDetectionProxy', () => {
 
             // Process.
             lInteractionZone.execute(() => {
+                try {
+                    lDetectionProxy.proxy.a = lEndValue;
+                } catch (_) {/* Any */ }
+            });
+
+            // Evaluation.
+            expect(lResponseType).to.equal(InteractionResponseType.PropertySetError);
+        });
+
+        it('-- InteractionResponseType.PropertyDeleteStart before property delete ', () => {
+            // Setup.
+            const lStartValue: number = 321;
+            const lOriginalObject: { a?: number; } = { a: lStartValue };
+            const lDetectionProxy: InteractionDetectionProxy<{ a?: number; }> = new InteractionDetectionProxy(lOriginalObject);
+            const lInteractionZone: InteractionZone = new InteractionZone('CD', { trigger: InteractionResponseType.PropertyDeleteStart });
+
+            // Setup. InteractionZone.
+            let lResponseType: InteractionResponseType = InteractionResponseType.None;
+            let lPropertyValueOnEvent: number | undefined | null = null;
+            lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                if (pChangeReason.property === 'a') {
+                    lResponseType |= pChangeReason.interactionType;
+                    lPropertyValueOnEvent = lOriginalObject.a;
+                }
+            });
+
+            // Process.
+            lInteractionZone.execute(() => {
                 delete lDetectionProxy.proxy.a;
             });
 
             // Evaluation.
-            expect(lResponseType).to.equal(InteractionResponseType.SyncronProperty);
+            expect(lResponseType).to.equal(InteractionResponseType.PropertyDeleteStart);
+            expect(lPropertyValueOnEvent).to.equal(lStartValue);
         });
 
-        it('-- InteractionResponseType.SyncronCall on function call', () => {
+        it('-- InteractionResponseType.PropertySetEnd after property delete ', () => {
             // Setup.
-            const lFunction: (pValue: number) => number = (pValue: number) => { return pValue; };
+            const lOriginalObject: { a?: number; } = { a: 1 };
+            const lDetectionProxy: InteractionDetectionProxy<{ a?: number; }> = new InteractionDetectionProxy(lOriginalObject);
+            const lInteractionZone: InteractionZone = new InteractionZone('CD', { trigger: InteractionResponseType.PropertySetEnd });
+
+            // Setup. InteractionZone.
+            let lResponseType: InteractionResponseType = InteractionResponseType.None;
+            let lPropertyValueOnEvent: number | undefined | null = null;
+            lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                if (pChangeReason.property === 'a') {
+                    lResponseType |= pChangeReason.interactionType;
+                    lPropertyValueOnEvent = lOriginalObject.a;
+                }
+            });
+
+            // Process.
+            lInteractionZone.execute(() => {
+                delete lDetectionProxy.proxy.a;
+            });
+
+            // Evaluation.
+            expect(lResponseType).to.equal(InteractionResponseType.PropertySetEnd);
+            expect(lPropertyValueOnEvent).to.be.undefined;
+        });
+
+        it('-- InteractionResponseType.PropertySetError on property delete ', () => {
+            // Setup.
+            const lOriginalObject: { a?: number; } = new class { set a(_pAny: number) { throw 1; } }();
+            const lDetectionProxy: InteractionDetectionProxy<{ a?: number; }> = new InteractionDetectionProxy(lOriginalObject);
+            const lInteractionZone: InteractionZone = new InteractionZone('CD', { trigger: InteractionResponseType.PropertySetError });
+
+            // Setup. InteractionZone.
+            let lResponseType: InteractionResponseType = InteractionResponseType.None;
+            lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                if (pChangeReason.property === 'a') {
+                    lResponseType |= pChangeReason.interactionType;
+                }
+            });
+
+            // Process.
+            lInteractionZone.execute(() => {
+                try {
+                    delete lDetectionProxy.proxy.a;
+                } catch (_) {/* Any */ }
+            });
+
+            // Evaluation.
+            expect(lResponseType).to.equal(InteractionResponseType.PropertySetError);
+        });
+
+        it('-- InteractionResponseType.FunctionCallStart before function call', () => {
+            // Setup. Trigger values.
+            const lTriggerValueChanged: number = 1;
+            const lTriggerValueOriginal: number = -1;
+            let lTriggerValue: number = lTriggerValueOriginal;
+
+            // Setup.
+            const lFunction: (pValue: number) => number = (pValue: number) => { lTriggerValue = lTriggerValueChanged; return pValue; };
             const lProxy: (pValue: number) => number = new InteractionDetectionProxy(lFunction).proxy;
-            const lInteractionZone: InteractionZone = new InteractionZone('CD');
+            const lInteractionZone: InteractionZone = new InteractionZone('CD', { trigger: InteractionResponseType.FunctionCallStart });
+
+            // Setup. InteractionZone.
+            let lResponseType: InteractionResponseType = InteractionResponseType.None;
+            let lTriggerValueOnEvent: number | null = null;
+            lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                if (pChangeReason.source === lProxy) {
+                    lResponseType |= pChangeReason.interactionType;
+                    lTriggerValueOnEvent = lTriggerValue;
+                }
+            });
+
+            // Process
+            lInteractionZone.execute(() => {
+                lProxy(22);
+            });
+
+            // Evaluation.
+            expect(lResponseType).to.equal(InteractionResponseType.FunctionCallStart);
+            expect(lTriggerValueOnEvent).to.equal(lTriggerValueOriginal);
+        });
+
+        it('-- InteractionResponseType.FunctionCallEnd after function call', () => {
+            // Setup. Trigger values.
+            const lTriggerValueChanged: number = 1;
+            const lTriggerValueOriginal: number = -1;
+            let lTriggerValue: number = lTriggerValueOriginal;
+
+            // Setup.
+            const lFunction: (pValue: number) => number = (pValue: number) => { lTriggerValue = lTriggerValueChanged; return pValue; };
+            const lProxy: (pValue: number) => number = new InteractionDetectionProxy(lFunction).proxy;
+            const lInteractionZone: InteractionZone = new InteractionZone('CD', { trigger: InteractionResponseType.FunctionCallEnd });
+
+            // Setup. InteractionZone.
+            let lResponseType: InteractionResponseType = InteractionResponseType.None;
+            let lTriggerValueOnEvent: number | null = null;
+            lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                if (pChangeReason.source === lProxy) {
+                    lResponseType |= pChangeReason.interactionType;
+                    lTriggerValueOnEvent = lTriggerValue;
+                }
+            });
+
+            // Process
+            lInteractionZone.execute(() => {
+                lProxy(22);
+            });
+
+            // Evaluation.
+            expect(lResponseType).to.equal(InteractionResponseType.FunctionCallEnd);
+            expect(lTriggerValueOnEvent).to.equal(lTriggerValueChanged);
+        });
+
+        it('-- InteractionResponseType.FunctionCallError after function call', () => {
+            // Setup.
+            const lFunction: () => number = () => { throw 1; };
+            const lProxy: () => number = new InteractionDetectionProxy(lFunction).proxy;
+            const lInteractionZone: InteractionZone = new InteractionZone('CD', { trigger: InteractionResponseType.FunctionCallError });
 
             // Setup. InteractionZone.
             let lResponseType: InteractionResponseType = InteractionResponseType.None;
@@ -593,11 +854,13 @@ describe('InteractionDetectionProxy', () => {
 
             // Process
             lInteractionZone.execute(() => {
-                lProxy(22);
+                try {
+                    lProxy();
+                } catch (_) {/* Any */ }
             });
 
             // Evaluation.
-            expect(lResponseType).to.equal(InteractionResponseType.SyncronCall);
+            expect(lResponseType).to.equal(InteractionResponseType.FunctionCallError);
         });
     });
 
@@ -621,7 +884,7 @@ describe('InteractionDetectionProxy', () => {
             });
 
             // Evaluation.
-            expect(lResponseType).to.equal(InteractionResponseType.SyncronCall);
+            expect(lResponseType).to.equal(InteractionResponseType.FunctionCallStart | InteractionResponseType.FunctionCallEnd);
         });
 
         describe('-- Array', () => {
@@ -644,7 +907,7 @@ describe('InteractionDetectionProxy', () => {
                 });
 
                 // Evaluation.
-                expect(lResponseType).to.equal(InteractionResponseType.SyncronProperty);
+                expect(lResponseType).to.equal(InteractionResponseType.PropertySetStart | InteractionResponseType.PropertySetEnd);
             });
 
             it('-- Push set', () => {
@@ -666,7 +929,7 @@ describe('InteractionDetectionProxy', () => {
                 });
 
                 // Evaluation.
-                expect(lResponseType).to.equal(InteractionResponseType.SyncronCall);
+                expect(lResponseType).to.equal(InteractionResponseType.FunctionCallStart | InteractionResponseType.FunctionCallEnd);
             });
         });
 
@@ -689,7 +952,7 @@ describe('InteractionDetectionProxy', () => {
             });
 
             // Evaluation.
-            expect(lResponseType).to.equal(InteractionResponseType.SyncronCall);
+            expect(lResponseType).to.equal(InteractionResponseType.FunctionCallStart | InteractionResponseType.FunctionCallEnd);
         });
 
         it('-- TypedArray', () => {
@@ -711,7 +974,7 @@ describe('InteractionDetectionProxy', () => {
             });
 
             // Evaluation.
-            expect(lResponseType).to.equal(InteractionResponseType.SyncronProperty);
+            expect(lResponseType).to.equal(InteractionResponseType.PropertySetStart | InteractionResponseType.PropertySetEnd);
         });
     });
 

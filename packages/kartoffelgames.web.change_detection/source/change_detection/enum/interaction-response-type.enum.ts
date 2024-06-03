@@ -7,43 +7,52 @@ export enum InteractionResponseType {
      */
     None = 0,
 
-    /**
-     * Synchron calls and callbacks.
+    /*
+     * Function calls.
      */
-    SyncronCall = 1,
+    FunctionCallStart = 1 << 0,
+    FunctionCallEnd = 1 << 1,
+    FunctionCallError = 1 << 2,
+
+    /*
+     * Function callbacks.
+     */
+    CallbackCallStart = 1 << 3,
+    CallbackCallEnd = 1 << 4,
+    CallbackCallError = 1 << 5,
 
     /**
-     * Synchron property changes.
+     * Property reads and writes.
      */
-    SyncronProperty = 2,
-
-    /**
-     * Any synchron interactions.
-     */
-    Syncron = 3,
+    PropertyGetStart = 1 << 6,
+    PropertyGetEnd = 1 << 7,
+    PropertyGetError = 1 << 8,
+    
+    PropertySetStart = 1 << 9,
+    PropertySetEnd = 1 << 10,
+    PropertySetError = 1 << 11,
+    
+    PropertyDeleteStart = 1 << 12,
+    PropertyDeleteEnd = 1 << 13,
+    PropertyDeleteError = 1 << 14,
 
     /**
      * Synchron {@link Promise} calls after they resolve or rejection.
      */
-    AsnychronPromise = 4,
-
-    /**
-     * Asynchron callbacks.
-     */
-    AsnychronCallback = 8,
+    PromiseStart = 1 << 15,
+    PromiseEnd = 1 << 16,
+    PromiseResolve = 1 << 17,
+    PromiseReject = 1 << 18,
 
     /**
      * Events triggered on {@link EventTarget}s
      */
-    AsnychronEvent = 16,
-
-    /**
-     * Any asynchon interactions.
-     */
-    Asnychron = 28,
+    EventlistenerStart = 1 << 19,
+    EventlistenerEnd = 1 << 20,
+    EventlistenerError = 1 << 21,
 
     /**
      * Any interaction.
      */
-    Any = 31
+    Any = (1 << 22) - 1,
 }

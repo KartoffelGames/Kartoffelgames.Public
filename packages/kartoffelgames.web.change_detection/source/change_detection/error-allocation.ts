@@ -1,4 +1,4 @@
-import { InteractionZone } from '../interaction-zone';
+import { InteractionZone } from './interaction-zone';
 
 /**
  * Allocates current error to its interaction zone.

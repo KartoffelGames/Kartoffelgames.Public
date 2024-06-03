@@ -1,6 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { InteractionResponseType } from './enum/interaction-response-type.enum';
-import { ErrorAllocation } from './asynchron_tracker/error-allocation';
+import { ErrorAllocation } from './error-allocation';
 import { Patcher } from './asynchron_tracker/patcher/patcher';
 import { InteractionReason } from './interaction-reason';
 import { InteractionDetectionProxy } from './synchron_tracker/interaction-detection-proxy';

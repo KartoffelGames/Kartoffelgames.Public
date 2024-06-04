@@ -944,7 +944,7 @@ describe('Patcher', () => {
             expect(lInteractionCounter).to.equal(1);
         });
 
-        it('-- Promise resolve trigger PromiseReject interaction', async () => {
+        it('-- Promise reject trigger PromiseReject interaction', async () => {
             // Setup.
             const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PromiseReject });
 
@@ -957,6 +957,26 @@ describe('Patcher', () => {
                 // eslint-disable-next-line @typescript-eslint/promise-function-async
                 await lZone.execute(() => {
                     return new Promise<void>((_pResolve, pReject) => { pReject(); });
+                });
+            } catch (_err) { /* Nothing */ }
+
+            // Evaluation.
+            expect(lInteractionCounter).to.equal(1);
+        });
+
+        it('-- Promise throw error trigger PromiseReject interaction', async () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PromiseReject });
+
+            // Process.
+            let lInteractionCounter: number = 0;
+            lZone.addInteractionListener(() => {
+                lInteractionCounter++;
+            });
+            try {
+                // eslint-disable-next-line @typescript-eslint/promise-function-async
+                await lZone.execute(() => {
+                    return new Promise<void>(() => { throw 1; });
                 });
             } catch (_err) { /* Nothing */ }
 

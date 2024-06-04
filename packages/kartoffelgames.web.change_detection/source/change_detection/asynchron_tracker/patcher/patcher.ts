@@ -436,7 +436,7 @@ export class Patcher {
         class PatchedPromise<T> extends lOriginalPromiseConstructor {
             public constructor(pExecutor: Executor<T>) {
                 // Patch executor function.
-                const lPatchedExecutor = function (this: any, pResolve?: ExecutorResolve<T>, pReject?: ExecutorReject) {
+                const lPatchedExecutor = function (this: any, pResolve: ExecutorResolve<T>, pReject: ExecutorReject) {
                     // Dispatch delete property start interaction. 
                     lSelf.dispatch(InteractionResponseType.PromiseStart, this);
 
@@ -444,8 +444,8 @@ export class Patcher {
                         // Get zone.
                         const lCurrentZone = InteractionZone.current;
 
-                        const lExecutorResolve: ExecutorResolve<T> | undefined = pResolve ? lSelf.interactionOnFunctionCall(pResolve, lCurrentZone, InteractionResponseType.None, InteractionResponseType.PromiseResolve, InteractionResponseType.None) : undefined;
-                        const lExecutorReject: ExecutorReject | undefined = pReject ? lSelf.interactionOnFunctionCall(pReject, lCurrentZone, InteractionResponseType.None, InteractionResponseType.PromiseReject, InteractionResponseType.None) : undefined;
+                        const lExecutorResolve: ExecutorResolve<T> | undefined = lSelf.interactionOnFunctionCall(pResolve, lCurrentZone, InteractionResponseType.None, InteractionResponseType.PromiseResolve, InteractionResponseType.None);
+                        const lExecutorReject: ExecutorReject | undefined = lSelf.interactionOnFunctionCall(pReject, lCurrentZone, InteractionResponseType.None, InteractionResponseType.PromiseReject, InteractionResponseType.None);
 
                         // Call original executor.
                         return pExecutor.call(this, lExecutorResolve, lExecutorReject);

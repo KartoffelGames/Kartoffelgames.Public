@@ -9,7 +9,7 @@ describe('Patcher', () => {
     describe('Static Method: patch', () => {
         it('-- Default', async () => {
             // Setup. Zone.
-            const lZone: InteractionZone = new InteractionZone('Zone');
+            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PromiseStart });
 
             // Process. Its patched anyway.
             Patcher.patch(globalThis);
@@ -19,19 +19,20 @@ describe('Patcher', () => {
             lZone.addInteractionListener((_pInteraction: InteractionReason) => {
                 lInteractionCounter++;
             });
-            await lZone.execute(async () => {
+            // eslint-disable-next-line @typescript-eslint/promise-function-async
+            await lZone.execute(() => {
                 return new Promise<void>((pResolve) => {
                     pResolve();
                 });
             });
 
             // Evaluation.
-            expect(lInteractionCounter).to.greaterThanOrEqual(2); // Babel and co might call patched callbacks multimple times.
+            expect(lInteractionCounter).to.equal(1);
         });
 
         it('-- Double patch', async () => {
             // Setup. Zone.
-            const lZone: InteractionZone = new InteractionZone('Zone');
+            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PromiseStart });
 
             // Process. Its patched anyway.
             Patcher.patch(globalThis);
@@ -42,14 +43,15 @@ describe('Patcher', () => {
             lZone.addInteractionListener((_pInteraction: InteractionReason) => {
                 lInteractionCounter++;
             });
-            await lZone.execute(async () => {
+            // eslint-disable-next-line @typescript-eslint/promise-function-async
+            await lZone.execute(() => {
                 return new Promise<void>((pResolve) => {
                     pResolve();
                 });
             });
 
             // Evaluation.
-            expect(lInteractionCounter).to.greaterThanOrEqual(2); // Babel and co might call patched callbacks multimple times.
+            expect(lInteractionCounter).to.equal(1);
         });
     });
 
@@ -139,7 +141,8 @@ describe('Patcher', () => {
     it('Static Method: promiseZone', () => {
         // Setup.
         const lZone: InteractionZone = new InteractionZone('Zone');
-        const lPromise: Promise<void> = lZone.execute(async () => {
+        // eslint-disable-next-line @typescript-eslint/promise-function-async
+        const lPromise: Promise<void> = lZone.execute(() => {
             return new Promise<void>(() => { });
         });
 
@@ -396,7 +399,7 @@ describe('Patcher', () => {
                 lInteractionCounter++;
             });
             lZone.execute(() => {
-                lObject.setCallback(() => { });
+                lObject.setCallback(() => { throw 1; });
 
                 try {
                     lObject.callback();
@@ -474,7 +477,8 @@ describe('Patcher', () => {
                     lInteractionCounter++;
                 }
             });
-            const lEventWait = lZone.execute(async () => {
+            // eslint-disable-next-line @typescript-eslint/promise-function-async
+            const lEventWait = lZone.execute(() => {
                 return new Promise<void>((pResolve) => {
                     lEventTarget.addEventListener('custom', () => {
                         pResolve();
@@ -519,7 +523,8 @@ describe('Patcher', () => {
                     lInteractionType |= pInteraction.interactionType;
                 }
             });
-            const lEventWait = lZone.execute(async () => {
+            // eslint-disable-next-line @typescript-eslint/promise-function-async
+            const lEventWait = lZone.execute(() => {
                 return new Promise<void>((pResolve) => {
                     lEventTarget.addEventListener('custom', () => {
                         pResolve();
@@ -567,7 +572,8 @@ describe('Patcher', () => {
                     lInteractionCounter++;
                 }
             });
-            const lEventWait = lZone.execute(async () => {
+            // eslint-disable-next-line @typescript-eslint/promise-function-async
+            const lEventWait = lZone.execute(() => {
                 return new Promise<void>((pResolve) => {
                     const lListener = () => { pResolve(); };
                     lEventTarget.addEventListener('custom', lListener);
@@ -646,7 +652,8 @@ describe('Patcher', () => {
                     lInteractionCounter++;
                 }
             });
-            const lEventWait = lZone.execute(async () => {
+            // eslint-disable-next-line @typescript-eslint/promise-function-async
+            const lEventWait = lZone.execute(() => {
                 return new Promise<void>((pResolve) => {
                     const lHandlerObject = {
                         handleEvent: function () {
@@ -669,8 +676,9 @@ describe('Patcher', () => {
             const lZone: InteractionZone = new InteractionZone('Zone');
             const lEventTarget: EventTarget = new EventTarget();
 
-            // Process.
-            const lEventWait = lZone.execute(async () => {
+            // Process. 
+            // eslint-disable-next-line @typescript-eslint/promise-function-async
+            const lEventWait = lZone.execute(() => {
                 return new Promise<boolean>((pResolve) => {
                     const lHandlerObject = {
                         handleEvent: function () {
@@ -729,7 +737,8 @@ describe('Patcher', () => {
                     lInteractionCounter++;
                 }
             });
-            const lEventWait = lZone.execute(async () => {
+            // eslint-disable-next-line @typescript-eslint/promise-function-async
+            const lEventWait = lZone.execute(() => {
                 return new Promise<void>((pResolve) => {
                     lEventTarget.oncustom = () => {
                         pResolve();
@@ -745,7 +754,7 @@ describe('Patcher', () => {
 
         it('-- Double patch', () => {
             // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone');
+            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.EventlistenerStart });
             const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
 
             // Process. Patch
@@ -782,7 +791,8 @@ describe('Patcher', () => {
                     lInteractionCounter++;
                 }
             });
-            const lEventWait = lZone.execute(async () => {
+            // eslint-disable-next-line @typescript-eslint/promise-function-async
+            const lEventWait = lZone.execute(() => {
                 return new Promise<void>((pResolve) => {
                     const lListener = () => { pResolve(); };
                     lEventTarget.oncustom = lListener;
@@ -889,12 +899,13 @@ describe('Patcher', () => {
             lZone.addInteractionListener(() => {
                 lInteractionCounter++;
             });
-            await lZone.execute(async () => {
+            // eslint-disable-next-line @typescript-eslint/promise-function-async
+            await lZone.execute(() => {
                 return new Promise<void>((pResolve) => { pResolve(); });
             });
 
             // Evaluation.
-            expect(lInteractionCounter).to.greaterThanOrEqual(2);
+            expect(lInteractionCounter).to.equal(1);
         });
 
         it('-- Promise executor trigger PromiseEnd interaction', async () => {
@@ -906,12 +917,13 @@ describe('Patcher', () => {
             lZone.addInteractionListener(() => {
                 lInteractionCounter++;
             });
-            await lZone.execute(async () => {
+            // eslint-disable-next-line @typescript-eslint/promise-function-async
+            await lZone.execute(() => {
                 return new Promise<void>((pResolve) => { pResolve(); });
             });
 
             // Evaluation.
-            expect(lInteractionCounter).to.greaterThanOrEqual(2);
+            expect(lInteractionCounter).to.equal(1);
         });
 
         it('-- Promise resolve trigger PromiseResolve interaction', async () => {
@@ -923,12 +935,13 @@ describe('Patcher', () => {
             lZone.addInteractionListener(() => {
                 lInteractionCounter++;
             });
-            await lZone.execute(async () => {
+            // eslint-disable-next-line @typescript-eslint/promise-function-async
+            await lZone.execute(() => {
                 return new Promise<void>((pResolve) => { pResolve(); });
             });
 
             // Evaluation.
-            expect(lInteractionCounter).to.greaterThanOrEqual(2);
+            expect(lInteractionCounter).to.equal(1);
         });
 
         it('-- Promise resolve trigger PromiseReject interaction', async () => {
@@ -941,13 +954,14 @@ describe('Patcher', () => {
                 lInteractionCounter++;
             });
             try {
-                await lZone.execute(async () => {
+                // eslint-disable-next-line @typescript-eslint/promise-function-async
+                await lZone.execute(() => {
                     return new Promise<void>((_pResolve, pReject) => { pReject(); });
                 });
             } catch (_err) { /* Nothing */ }
 
             // Evaluation.
-            expect(lInteractionCounter).to.greaterThanOrEqual(2);
+            expect(lInteractionCounter).to.equal(1);
         });
 
         it('-- Promise then trigger PromiseStart interaction without callback.', async () => {
@@ -960,12 +974,13 @@ describe('Patcher', () => {
             lZone.addInteractionListener(() => {
                 lInteractionCounter++;
             });
-            await lZone.execute(async () => {
+            // eslint-disable-next-line @typescript-eslint/promise-function-async
+            await lZone.execute(() => {
                 return lPromise.then();
             });
 
             // Evaluation.
-            expect(lInteractionCounter).to.greaterThanOrEqual(2);
+            expect(lInteractionCounter).to.equal(1);
         });
 
         it('-- Promise then trigger PromiseStart interaction without callback.', async () => {
@@ -978,12 +993,13 @@ describe('Patcher', () => {
             lZone.addInteractionListener(() => {
                 lInteractionCounter++;
             });
-            await lZone.execute(async () => {
+            // eslint-disable-next-line @typescript-eslint/promise-function-async
+            await lZone.execute(() => {
                 return lPromise.then(() => { });
             });
 
             // Evaluation.
-            expect(lInteractionCounter).to.greaterThanOrEqual(2);
+            expect(lInteractionCounter).to.equal(1);
         });
 
         it('-- Promise catch trigger PromiseStart interaction without callback.', async () => {
@@ -997,13 +1013,14 @@ describe('Patcher', () => {
                 lInteractionCounter++;
             });
             try {
-                await lZone.execute(async () => {
+                // eslint-disable-next-line @typescript-eslint/promise-function-async
+                await lZone.execute(() => {
                     return lPromise.catch();
                 });
             } catch (_err) { /* Nothing */ }
 
             // Evaluation.
-            expect(lInteractionCounter).to.greaterThanOrEqual(2);
+            expect(lInteractionCounter).to.equal(1);
         });
 
         it('-- Promise catch trigger PromiseStart interaction with callback.', async () => {
@@ -1017,13 +1034,14 @@ describe('Patcher', () => {
                 lInteractionCounter++;
             });
             try {
-                await lZone.execute(async () => {
+                // eslint-disable-next-line @typescript-eslint/promise-function-async
+                await lZone.execute(() => {
                     return lPromise.catch(() => { });
                 });
             } catch (_err) { /* Nothing */ }
 
             // Evaluation.
-            expect(lInteractionCounter).to.greaterThanOrEqual(2);
+            expect(lInteractionCounter).to.equal(1);
         });
 
         it('-- Promise async function trigger PromiseStart interaction', async () => {
@@ -1035,14 +1053,15 @@ describe('Patcher', () => {
             lZone.addInteractionListener(() => {
                 lInteractionCounter++;
             });
-            await lZone.execute(async () => {
-                return (async () => {
+            // eslint-disable-next-line @typescript-eslint/promise-function-async
+            await lZone.execute(() => {
+                return (async (): Promise<void> => {
                     return;
                 })();
             });
 
             // Evaluation.
-            expect(lInteractionCounter).to.greaterThanOrEqual(2);
+            expect(lInteractionCounter).to.equal(1);
         });
 
         it('-- Trigger syncron PromiseStart on execution of executor', async () => {
@@ -1154,7 +1173,7 @@ describe('Patcher', () => {
             });
 
             // Evaluation.
-            expect(lInteractionCounter).to.greaterThanOrEqual(1);
+            expect(lInteractionCounter).to.equal(1);
         });
 
         it('-- Trigger PromiseEnd without promise resolve or reject', () => {
@@ -1172,7 +1191,7 @@ describe('Patcher', () => {
             });
 
             // Evaluation.
-            expect(lInteractionCounter).to.greaterThanOrEqual(1);
+            expect(lInteractionCounter).to.equal(1);
         });
     });
 });

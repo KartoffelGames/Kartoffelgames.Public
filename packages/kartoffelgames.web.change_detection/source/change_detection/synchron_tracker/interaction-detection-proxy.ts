@@ -168,7 +168,7 @@ export class InteractionDetectionProxy<T extends object> {
 
                 try {
                     // Remove property from original target and return result.
-                    return Reflect.deleteProperty(pTargetObject, pPropertyName);
+                    return delete (<any>pTargetObject)[pPropertyName];
                 } catch (pError) {
                     // Dispatch error interaction and passthrough error.
                     this.dispatch(InteractionResponseType.PropertyDeleteError, this.mProxyObject, pPropertyName);

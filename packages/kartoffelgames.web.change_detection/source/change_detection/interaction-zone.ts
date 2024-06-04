@@ -5,6 +5,14 @@ import { Patcher } from './asynchron_tracker/patcher/patcher';
 import { InteractionReason } from './interaction-reason';
 import { InteractionDetectionProxy } from './synchron_tracker/interaction-detection-proxy';
 
+// TODO: Add save() and restore(...) method. 
+// Save a zone stack that can be saved and restored.
+// Zones dont have a fixed parent anymore.
+// Restore => restore<T>(savedStackObject, ExecutorFunction): T
+// Restore executes function with provided save and restores original after execution.
+// AsyncPatcher needs to save current stack and execute in restored stack.
+// Interactions are bubbled down the stack instead of parents. 
+
 /**
  * Merges execution zone and proxy tracking.
  */

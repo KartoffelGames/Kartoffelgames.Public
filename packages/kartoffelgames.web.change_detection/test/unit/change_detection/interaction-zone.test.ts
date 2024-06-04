@@ -6,6 +6,7 @@ import { InteractionReason } from '../../../source/change_detection/interaction-
 import { InteractionResponseType } from '../../../source/change_detection/enum/interaction-response-type.enum';
 import { Exception } from '@kartoffelgames/core.data';
 import { Patcher } from '../../../source/change_detection/asynchron_tracker/patcher/patcher';
+import { InteractionDetectionProxy } from '../../../source/change_detection/synchron_tracker/interaction-detection-proxy';
 
 describe('InteractionZone', () => {
     it('Static Property: current', () => {
@@ -889,7 +890,29 @@ describe('InteractionZone', () => {
             expect(lResponeType).to.equal(InteractionResponseType.PropertyGetStart | InteractionResponseType.PropertyGetEnd);
         });
 
-        // TODO: Add test for: Dont trigger attached zones of interaction proxy when current zone does not have trigger.
+        it('-- Dont trigger attached zones of interaction proxy when current zone does not have trigger', () => {
+            // Setup. Create proxy.
+            const lProxy = new InteractionDetectionProxy({ a: 1 });
+
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.None });
+            const lAttachedZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PropertySetStart });
+
+            // Setup. Attach zone.
+            lProxy.attachZone(lAttachedZone);
+
+            // Process.
+            let lResponeType: InteractionResponseType = InteractionResponseType.None;
+            lAttachedZone.addInteractionListener((pReason: InteractionReason) => {
+                lResponeType |= pReason.interactionType;
+            });
+            lZone.execute(() => {
+                lProxy.proxy.a = 2;
+            });
+
+            // Evaluation.
+            expect(lResponeType).to.equal(InteractionResponseType.None);
+        });
     });
 
     describe('Functionality: DetectionCatchType', () => {

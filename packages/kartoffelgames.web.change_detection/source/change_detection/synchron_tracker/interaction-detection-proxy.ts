@@ -203,8 +203,12 @@ export class InteractionDetectionProxy<T extends object> {
                         }
 
                         // Get original object of "this"-Scope. and call the function again with it.
-                        const lOriginalThisObject: object = InteractionDetectionProxy.getOriginal(pThisArgument);
-                        lFunctionResult = (<CallableObject>pTargetObject).call(lOriginalThisObject, ...pArgumentsList);
+                        try {
+                            const lOriginalThisObject: object = InteractionDetectionProxy.getOriginal(pThisArgument);
+                            lFunctionResult = (<CallableObject>pTargetObject).call(lOriginalThisObject, ...pArgumentsList);
+                        } finally {
+                            // TODO: New InteractionResponseType.NativeFunctionCall
+                        }
                     } catch (pPassthroughError) {
                         // Dispatch function error interaction and passthrough error.
                         this.dispatch(InteractionResponseType.FunctionCallError, this.mProxyObject);

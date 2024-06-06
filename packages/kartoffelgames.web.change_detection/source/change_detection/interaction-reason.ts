@@ -10,6 +10,7 @@ export class InteractionReason {
     private readonly mProperty: PropertyKey | undefined;
     private readonly mSource: object;
     private readonly mStackError: Error;
+    private readonly mTriggeredZones: WeakSet<InteractionZone>;
     private mZone: InteractionZone | null;
 
     /**
@@ -69,6 +70,7 @@ export class InteractionReason {
         this.mProperty = pProperty;
         this.mStackError = new Error();
         this.mZone = null;
+        this.mTriggeredZones = new WeakSet<InteractionZone>();
     }
 
     /**
@@ -79,13 +81,23 @@ export class InteractionReason {
      * @throws {@link Exception} 
      * When a zone is already set.
      * 
+     * @returns true when zone was not already set as triggered zone.
+     * 
      * @internal
      */
-    public setZone(pZone: InteractionZone): void {
-        if (this.mZone !== null) {
-            throw new Exception(`Can't add a static zone to interaction reason.`, this);
+    public setZone(pZone: InteractionZone): boolean {
+        // Set first triggered zone.
+        if (this.mZone === null) {
+            this.mZone = pZone;
         }
 
-        this.mZone = pZone;
+        // Skip zone set when zone was already triggered.
+        if (this.mTriggeredZones.has(pZone)) {
+            return true;
+        }
+
+        // Add zone to triggered zones and
+        this.mTriggeredZones.add(pZone);
+        return false;
     }
 }

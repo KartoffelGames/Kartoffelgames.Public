@@ -77,9 +77,6 @@ export class InteractionZone {
      * @param pInteractionReason - Interaction reason.
      */
     public static dispatchInteractionEvent(pInteractionReason: InteractionReason): void {
-        // Set zone of reason.
-        pInteractionReason.setZone(InteractionZone.current);
-
         // Dispatch reason to the complete zone stack.
         for (const lZone of InteractionZone.mZoneStack.entries()) {
             // Skip reason bubbling when the zone has no active triggers for this reason.
@@ -297,9 +294,12 @@ export class InteractionZone {
             return false;
         }
 
-        // Call all local listener.
-        for (const [lListener, lZone] of this.mChangeListener.entries()) {
-            lZone.execute(lListener, pInteractionReason);
+        // Set zone of reason.
+        if (!pInteractionReason.setZone(this)) {
+            // Call all local listener.
+            for (const [lListener, lZone] of this.mChangeListener.entries()) {
+                lZone.execute(lListener, pInteractionReason);
+            }
         }
 
         return true;

@@ -230,16 +230,17 @@ export class InteractionDetectionProxy<T extends object> {
      * @param pProperty - Optional change reason property.
      */
     private dispatch(pInteractionType: InteractionResponseType, pSource: object, pProperty?: PropertyKey | undefined): void {
+        const lReason: InteractionReason = new InteractionReason(pInteractionType, pSource, pProperty);
+
+        // Dispatch reason to current zone.
+        InteractionZone.dispatchInteractionEvent(lReason);
+
         // Dispatch reason to all attached zones. Ignore current zone.
         for (const lZoneStack of this.mAttachedZonesStack) {
             InteractionZone.restore(lZoneStack, () => {
-                InteractionZone.dispatchInteractionEvent(new InteractionReason(pInteractionType, pSource, pProperty));
+                InteractionZone.dispatchInteractionEvent(lReason);
             });
-
         }
-
-        // Dispatch reason to current zone.
-        InteractionZone.dispatchInteractionEvent(new InteractionReason(pInteractionType, pSource, pProperty));
     }
 }
 

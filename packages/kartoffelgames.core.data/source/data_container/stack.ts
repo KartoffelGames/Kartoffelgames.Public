@@ -8,7 +8,7 @@ import { ICloneable } from '../interface/i-cloneable';
 export class Stack<T> implements ICloneable<Stack<T>> {
     private mSize: number;
     private mTopItem: StackItem<T> | null;
-    
+
     /**
      * Get current stack size.
      */
@@ -51,6 +51,21 @@ export class Stack<T> implements ICloneable<Stack<T>> {
         lClonedStack.mSize = this.mSize;
 
         return lClonedStack;
+    }
+
+    /**
+     * Iterates over each stack entry in reversed (newest...oldest) order.
+     * 
+     * @returns Generator.
+     */
+    public *entries(): Generator<T> {
+        let lCurrentItem: StackItem<T> | null = this.mTopItem;
+
+        while (lCurrentItem !== null) {
+            yield lCurrentItem.value;
+
+            lCurrentItem = lCurrentItem.previous;
+        }
     }
 
     /**
@@ -163,20 +178,8 @@ export class Stack<T> implements ICloneable<Stack<T>> {
      * ``` 
      */
     public toArray(): Array<T> {
-        const lArray: Array<T> = new Array<T>();
-
-        // Convert stack into Array.
-        let lStackItem: StackItem<T> | null = this.mTopItem;
-        while (lStackItem) {
-            // Add current stack item value.
-            lArray.push(lStackItem.value);
-
-            // Move cursor.
-            lStackItem = lStackItem.previous;
-        }
-
-        // Array is in wrong order.
-        return lArray;
+        // Convert genertor into array.
+        return [...this.entries()];
     }
 }
 

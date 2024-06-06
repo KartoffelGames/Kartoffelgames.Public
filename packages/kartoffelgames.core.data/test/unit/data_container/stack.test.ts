@@ -99,6 +99,21 @@ describe('Stack', () => {
         });
     });
 
+    it('Method: enties', () => {
+        // Setup.
+        const lValues: Array<number> = [12, 14, 16];
+        const lStack: Stack<number> = new Stack<number>();
+        for (const lItem of lValues) {
+            lStack.push(lItem);
+        }
+
+        // Process.
+        const lAsArray: Array<number> = [...lStack.entries()];
+
+        // Evaluation.
+        expect(lValues.reverse()).to.deep.equals(lAsArray);
+    });
+
     describe('Property: flush', () => {
         it('-- With values', () => {
             // Setup.

@@ -232,8 +232,10 @@ export class InteractionDetectionProxy<T extends object> {
     private dispatch(pInteractionType: InteractionResponseType, pSource: object, pProperty?: PropertyKey | undefined): void {
         const lReason: InteractionReason = new InteractionReason(pInteractionType, pSource, pProperty);
 
-        // Dispatch reason to current zone.
-        InteractionZone.dispatchInteractionEvent(lReason);
+        // Dispatch reason to current zone. When current stack does not support trigger, dont trigger attached zone stacks.
+        if (!InteractionZone.dispatchInteractionEvent(lReason)) {
+            return;
+        }
 
         // Dispatch reason to all attached zones. Ignore current zone.
         for (const lZoneStack of this.mAttachedZonesStack) {

@@ -5,15 +5,6 @@ import { ErrorAllocation } from './error-allocation';
 import { InteractionReason } from './interaction-reason';
 import { InteractionDetectionProxy } from './synchron_tracker/interaction-detection-proxy';
 
-// TODO: Add save() and restore(...) method. 
-// Save a zone stack that can be saved and restored.
-// Zones dont have a fixed parent anymore.
-// Restore => restore<T>(savedStackObject, ExecutorFunction): T
-// Restore executes function with provided save and restores original after execution.
-// AsyncPatcher needs to save current stack and execute in restored stack.
-// Interactions are bubbled down the stack instead of parents. 
-// Bubbling down on stack pop.
-
 /**
  * Merges execution zone and proxy tracking.
  */
@@ -25,37 +16,30 @@ export class InteractionZone {
      */
     static {
         // Catch global error, check if allocated zone is child of this interaction zone and report the error. 
-        const lErrorHandler = (pErrorEvent: Event, pError: any) => {
-            // Get allocated interaction zone.
-            const lInteractionZoneStack: InteractionZoneStack | null = ErrorAllocation.getZoneStack(pError);
-            if (lInteractionZoneStack) {
-                // 
-                // Dispatch error to the complete zone stack.
-                for (const lZone of InteractionZone.mZoneStack.entries()) {
-                    // Suppress console error message if error should be suppressed.
-                    if (lZone.callErrorListener(pError)) {
-                        pErrorEvent.preventDefault();
-                        break;
-                    }
+        const lErrorHandler = (pErrorEvent: Event, pError: any, pInteractionZoneStack?: InteractionZoneStack | null) => {
+            // Skip any error without allocated zone stack.
+            if (!pInteractionZoneStack) {
+                return;
+            }
+
+            // Dispatch error to the complete zone stack.
+            for (const lZone of pInteractionZoneStack.entries()) {
+                // Suppress console error message if error should be suppressed.
+                if (lZone.callErrorListener(pError)) {
+                    pErrorEvent.preventDefault();
+                    break;
                 }
             }
         };
 
         // Create and register error and rejection listener.
         window.addEventListener('error', (pEvent: ErrorEvent) => {
-            lErrorHandler(pEvent, pEvent.error);
+            // Get syncron error allocation.
+            lErrorHandler(pEvent, pEvent.error, ErrorAllocation.getSyncronErrorZoneStack(pEvent.error));
         });
         window.addEventListener('unhandledrejection', (pEvent: PromiseRejectionEvent) => {
             // Get zone of the promise where the unhandled rejection occurred
-            const lPromiseZoneStack: InteractionZoneStack | undefined = Patcher.promiseZone(pEvent.promise);
-            if (!lPromiseZoneStack) {
-                return;
-            }
-
-            // And allocate these zone to the current error.
-            ErrorAllocation.allocateError(pEvent.reason, lPromiseZoneStack);
-
-            lErrorHandler(pEvent, pEvent.reason);
+            lErrorHandler(pEvent, pEvent.reason, ErrorAllocation.getAsyncronErrorZoneStack(pEvent.promise));
         });
     }
 
@@ -75,15 +59,19 @@ export class InteractionZone {
      * Dispatch interaction event in current zone.
      * 
      * @param pInteractionReason - Interaction reason.
+     * 
+     * @returns false when any zone in the current stack dont has trigger for {@link pInteractionReason}
      */
-    public static dispatchInteractionEvent(pInteractionReason: InteractionReason): void {
+    public static dispatchInteractionEvent(pInteractionReason: InteractionReason): boolean {
         // Dispatch reason to the complete zone stack.
         for (const lZone of InteractionZone.mZoneStack.entries()) {
             // Skip reason bubbling when the zone has no active triggers for this reason.
             if (!lZone.callInteractionListener(pInteractionReason)) {
-                break;
+                return false;
             }
         }
+
+        return true;
     }
 
     /**
@@ -145,8 +133,8 @@ export class InteractionZone {
         return InteractionZone.mZoneStack.clone();
     }
 
-    private readonly mChangeListener: Dictionary<ChangeListener, InteractionZone>;
-    private readonly mErrorListener: Dictionary<ErrorListener, InteractionZone>;
+    private readonly mChangeListener: Dictionary<ChangeListener, InteractionZoneStack>;
+    private readonly mErrorListener: Dictionary<ErrorListener, InteractionZoneStack>;
     private readonly mIsolated: boolean;
     private readonly mName: string;
     private readonly mResponseType: InteractionResponseType;
@@ -173,8 +161,8 @@ export class InteractionZone {
         Patcher.patch(globalThis);
 
         // Initialize lists
-        this.mChangeListener = new Dictionary<ChangeListener, InteractionZone>();
-        this.mErrorListener = new Dictionary<ErrorListener, InteractionZone>();
+        this.mChangeListener = new Dictionary<ChangeListener, InteractionZoneStack>();
+        this.mErrorListener = new Dictionary<ErrorListener, InteractionZoneStack>();
 
         // Create new execution zone or use old one.#
         this.mName = pName;
@@ -194,7 +182,7 @@ export class InteractionZone {
      * @param pListener - Listener.
      */
     public addErrorListener(pListener: ErrorListener): void {
-        this.mErrorListener.add(pListener, InteractionZone.current);
+        this.mErrorListener.add(pListener, InteractionZone.save());
     }
 
     /**
@@ -204,7 +192,7 @@ export class InteractionZone {
      * @param pListener - Listener.
      */
     public addInteractionListener(pListener: ChangeListener): void {
-        this.mChangeListener.add(pListener, InteractionZone.current);
+        this.mChangeListener.add(pListener, InteractionZone.save());
     }
 
     /**
@@ -229,7 +217,7 @@ export class InteractionZone {
         try {
             lResult = pFunction(...pArgs);
         } catch (pError) {
-            ErrorAllocation.allocateError(pError, InteractionZone.save());
+            ErrorAllocation.allocateSyncronError(pError, InteractionZone.save());
             throw pError;
         } finally {
             // Reset to last zone.
@@ -271,9 +259,9 @@ export class InteractionZone {
         let lErrorSuppressed: boolean = false;
 
         // Dispatch error event.
-        for (const [lListener, lZone] of this.mErrorListener.entries()) {
+        for (const [lListener, lZoneStack] of this.mErrorListener.entries()) {
             // Call listener in same zone where it was initialized.
-            if (lZone.execute(lListener, pError) === false) {
+            if (InteractionZone.restore(lZoneStack, lListener, pError) === false) {
                 lErrorSuppressed = true;
             }
         }
@@ -297,8 +285,8 @@ export class InteractionZone {
         // Set zone of reason.
         if (!pInteractionReason.setZone(this)) {
             // Call all local listener.
-            for (const [lListener, lZone] of this.mChangeListener.entries()) {
-                lZone.execute(lListener, pInteractionReason);
+            for (const [lListener, lZoneStack] of this.mChangeListener.entries()) {
+                InteractionZone.restore(lZoneStack, lListener, pInteractionReason);
             }
         }
 

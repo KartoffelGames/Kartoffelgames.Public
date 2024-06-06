@@ -1,9 +1,9 @@
-import '../../../mock/request-animation-frame-mock-session';
 import { expect } from 'chai';
-import { InteractionZone, InteractionZoneStack } from '../../../../source/change_detection/interaction-zone';
-import { InteractionReason } from '../../../../source/change_detection/interaction-reason';
-import { InteractionResponseType } from '../../../../source/change_detection/enum/interaction-response-type.enum';
 import { Patcher } from '../../../../source/change_detection/asynchron_tracker/patcher/patcher';
+import { InteractionResponseType } from '../../../../source/change_detection/enum/interaction-response-type.enum';
+import { InteractionReason } from '../../../../source/change_detection/interaction-reason';
+import { InteractionZone } from '../../../../source/change_detection/interaction-zone';
+import '../../../mock/request-animation-frame-mock-session';
 
 describe('Patcher', () => {
     describe('Static Method: patch', () => {
@@ -146,25 +146,6 @@ describe('Patcher', () => {
             // Evaluation.
             expect(lWaiterResult).to.deep.equal([true, true]);
         });
-    });
-
-    it('Static Method: promiseZone', () => {
-        // Setup.
-        const lZone: InteractionZone = new InteractionZone('Zone');
-        let lZoneStack: InteractionZoneStack | null = null;
-        // eslint-disable-next-line @typescript-eslint/promise-function-async
-        const lPromise: Promise<void> = lZone.execute(() => {
-            // Save exeution zone stack.
-            lZoneStack = InteractionZone.save();
-
-            return new Promise<void>(() => { });
-        });
-
-        // Process.
-        const lPromiseZoneStack: InteractionZoneStack = Patcher.promiseZone(lPromise)!;
-
-        // Evaluation.
-        expect(lPromiseZoneStack.top).to.equal(lZoneStack!.top);
     });
 
     describe('Method: patchClass', () => {

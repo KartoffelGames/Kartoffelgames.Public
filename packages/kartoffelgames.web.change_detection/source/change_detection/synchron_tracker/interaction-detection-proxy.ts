@@ -1,6 +1,6 @@
 import { InteractionResponseType } from '../enum/interaction-response-type.enum';
 import { InteractionReason } from '../interaction-reason';
-import { InteractionZone } from '../interaction-zone';
+import { InteractionZone, InteractionZoneStack } from '../interaction-zone';
 
 /**
  * Interaction detection proxy. Detects synchron calls and interactions on the proxy object.
@@ -37,7 +37,7 @@ export class InteractionDetectionProxy<T extends object> {
         return <InteractionDetectionProxy<TValue> | undefined>InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.get(lOriginal);
     }
 
-    private readonly mAttachedZones!: Set<InteractionZone>;
+    private readonly mAttachedZonesStack!: Set<InteractionZoneStack>;
     private readonly mProxyObject!: T;
 
     /**
@@ -68,7 +68,7 @@ export class InteractionDetectionProxy<T extends object> {
             this.mProxyObject = this.createProxyObject(pTarget);
         }
 
-        this.mAttachedZones = new Set<InteractionZone>();
+        this.mAttachedZonesStack = new Set<InteractionZoneStack>();
 
         // Map proxy with real object and real object to current class.
         InteractionDetectionProxy.PROXY_TO_ORIGINAL_MAPPING.set(this.mProxyObject, pTarget);
@@ -78,10 +78,10 @@ export class InteractionDetectionProxy<T extends object> {
     /**
      * Attach zone that any interaction is dispatched beside the current zone.
      * 
-     * @param pZone - Interaction zone.
+     * @param pZoneStack - Interaction zone stack.
      */
-    public attachZone(pZone: InteractionZone): void {
-        this.mAttachedZones.add(pZone);
+    public attachZoneStack(pZoneStack: InteractionZoneStack): void {
+        this.mAttachedZonesStack.add(pZoneStack);
     }
 
     /**
@@ -230,18 +230,12 @@ export class InteractionDetectionProxy<T extends object> {
      * @param pProperty - Optional change reason property.
      */
     private dispatch(pInteractionType: InteractionResponseType, pSource: object, pProperty?: PropertyKey | undefined): void {
-        // TODO: Needs biiiig rework. Silent zones dont work with this approach.
-        // Call current InteractionZone.dispatchInteractionEvent and get true/false result if any event was dispatched. Whenn False, Skip attached zones.
-
-        const lCurrentZone: InteractionZone = InteractionZone.current;
-
         // Dispatch reason to all attached zones. Ignore current zone.
-        for (const lZone of this.mAttachedZones) {
-            if (lZone !== lCurrentZone) {
-                lZone.execute(() => {
-                    InteractionZone.dispatchInteractionEvent(new InteractionReason(pInteractionType, pSource, pProperty));
-                });
-            }
+        for (const lZoneStack of this.mAttachedZonesStack) {
+            InteractionZone.restore(lZoneStack, () => {
+                InteractionZone.dispatchInteractionEvent(new InteractionReason(pInteractionType, pSource, pProperty));
+            });
+
         }
 
         // Dispatch reason to current zone.

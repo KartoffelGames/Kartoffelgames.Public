@@ -137,6 +137,8 @@ describe('InteractionZone', () => {
         });
     });
 
+    // TODO: Save and restore.
+
     describe('Static Method: registerObject', () => {
         it('-- EventTarget input event', () => {
             // Setup.
@@ -281,44 +283,6 @@ describe('InteractionZone', () => {
 
         // Evaluation.
         expect(lNameResult).to.equal(lName);
-    });
-
-    describe('Property: parent', () => {
-        it('-- Set parent', () => {
-            // Setup.
-            const lParentName: string = 'InnerCD';
-            const lParentInteractionZone: InteractionZone = new InteractionZone(lParentName);
-            const lChildInteractionZone: InteractionZone = lParentInteractionZone.execute(() => {
-                return new InteractionZone('Name');
-            });
-
-            // Process.
-            const lParentInteractionZoneName: string | undefined = lChildInteractionZone!.parent?.name;
-
-            // Evaluation.
-            expect(lParentInteractionZoneName).to.equal(lParentName);
-        });
-
-        it('-- No parent', () => {
-            // Setup.
-            const lChildInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.None, isolate: true });
-
-            // Process.
-            const lParentInteractionZone: InteractionZone | null = lChildInteractionZone.parent;
-
-            // Evaluation.
-            expect(lParentInteractionZone).to.be.null;
-        });
-
-        it('-- No parent without trigger', () => {
-            // Process
-            const lErrorFunction = () => {
-                new InteractionZone('Name', { isolate: true });
-            };
-
-            // Evaluation.
-            expect(lErrorFunction).to.throw(Exception, 'Interactions zones without a zone needs to set trigger.');
-        });
     });
 
     describe('Method: addErrorListener', () => {
@@ -899,7 +863,9 @@ describe('InteractionZone', () => {
             const lAttachedZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PropertySetStart });
 
             // Setup. Attach zone.
-            lProxy.attachZone(lAttachedZone);
+            lAttachedZone.execute(() => {
+                lProxy.attachZoneStack(InteractionZone.save());
+            });
 
             // Process.
             let lResponeType: InteractionResponseType = InteractionResponseType.None;

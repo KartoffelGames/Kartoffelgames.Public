@@ -448,7 +448,7 @@ describe('InteractionDetectionProxy', () => {
         });
     });
 
-    describe('Functionality: attachZone', () => {
+    describe('Functionality: attachZoneStack', () => {
         it('-- Dispatch interaction to attached zone', async () => {
             // Setup.
             const lOriginalObject: { a: number; } = { a: 1 };
@@ -464,8 +464,12 @@ describe('InteractionDetectionProxy', () => {
                 });
             });
 
-            // Process.
-            lDetectionProxy.attachZone(lInteractionZone);
+            // Process. Attach zone stack.
+            lInteractionZone.execute(() => {
+                lDetectionProxy.attachZoneStack(InteractionZone.save());
+            });
+
+            // Process. Trigger changes.
             lDetectionProxy.proxy.a = 22;
 
             // Evaluation.
@@ -495,8 +499,12 @@ describe('InteractionDetectionProxy', () => {
                 });
             });
 
-            // Process.
-            lDetectionProxy.attachZone(lAttachedInteractionZone);
+            // Process. Attach zone stack.
+            lAttachedInteractionZone.execute(() => {
+                lDetectionProxy.attachZoneStack(InteractionZone.save());
+            });
+
+            // Trigger changes.
             lCurrentInteractionZone.execute(() => {
                 lDetectionProxy.proxy.a = 22;
             });
@@ -520,8 +528,9 @@ describe('InteractionDetectionProxy', () => {
                 }
             });
             // Process.
-            lDetectionProxy.attachZone(lInteractionZone);
             lInteractionZone.execute(() => {
+                lDetectionProxy.attachZoneStack(InteractionZone.save());
+
                 lDetectionProxy.proxy.a = 22;
             });
 

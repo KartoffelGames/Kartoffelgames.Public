@@ -1,11 +1,11 @@
-import { InteractionZone } from './interaction-zone';
+import { InteractionZoneStack } from './interaction-zone';
 
 /**
  * Allocates current error to its interaction zone.
  */
 export class ErrorAllocation {
     private static mError: any;
-    private static mZone: InteractionZone;
+    private static mZoneStack: InteractionZoneStack;
 
     /**
      * Allocate error with interaction zone.
@@ -13,19 +13,19 @@ export class ErrorAllocation {
      * @param pError - Error data.
      * @param pZone - Zone of error.
      */
-    public static allocateError(pError: any, pZone: InteractionZone): void {
-        ErrorAllocation.mZone = pZone;
+    public static allocateError(pError: any, pZoneStack: InteractionZoneStack): void {
+        ErrorAllocation.mZoneStack = pZoneStack;
         ErrorAllocation.mError = pError;
     }
 
     /**
-     * Get interaction zone of error.
+     * Get interaction zone stack of error.
      * 
      * @param pError - Error.
      */
-    public static getInteractionZone(pError: any): InteractionZone | null {
+    public static getZoneStack(pError: any): InteractionZoneStack | null {
         if (pError === ErrorAllocation.mError) {
-            return ErrorAllocation.mZone;
+            return ErrorAllocation.mZoneStack;
         }
 
         return null;

@@ -1,6 +1,6 @@
 import '../../../mock/request-animation-frame-mock-session';
 import { expect } from 'chai';
-import { InteractionZone } from '../../../../source/change_detection/interaction-zone';
+import { InteractionZone, InteractionZoneStack } from '../../../../source/change_detection/interaction-zone';
 import { InteractionReason } from '../../../../source/change_detection/interaction-reason';
 import { InteractionResponseType } from '../../../../source/change_detection/enum/interaction-response-type.enum';
 import { Patcher } from '../../../../source/change_detection/asynchron_tracker/patcher/patcher';
@@ -55,14 +55,16 @@ describe('Patcher', () => {
         });
     });
 
-    describe('Static Method: attachZoneEvent', () => {
+    describe('Static Method: attachZoneStack', () => {
         it('-- Default', async () => {
             // Setup.
             const lZone: InteractionZone = new InteractionZone('Zone');
             const lObject = document.createElement('div');
 
             // Process.
-            Patcher.attachZoneEvent(lObject, lZone);
+            lZone.execute(() => {
+                Patcher.attachZoneStack(lObject, InteractionZone.save());
+            });
 
             // Process.
             let lInteractionCounter: number = 0;
@@ -86,8 +88,12 @@ describe('Patcher', () => {
             const lObject = document.createElement('div');
 
             // Process.
-            Patcher.attachZoneEvent(lObject, lZone);
-            Patcher.attachZoneEvent(lObject, lZone);
+            lZone.execute(() => {
+                const lStack = InteractionZone.save();
+
+                Patcher.attachZoneStack(lObject, lStack);
+                Patcher.attachZoneStack(lObject, lStack);
+            });
 
             // Process.
             let lInteractionCounter: number = 0;
@@ -113,8 +119,12 @@ describe('Patcher', () => {
             const lObject = document.createElement('div');
 
             // Process.
-            Patcher.attachZoneEvent(lObject, lZoneOne);
-            Patcher.attachZoneEvent(lObject, lZoneTwo);
+            lZoneOne.execute(() => {
+                Patcher.attachZoneStack(lObject, InteractionZone.save());
+            });
+            lZoneTwo.execute(() => {
+                Patcher.attachZoneStack(lObject, InteractionZone.save());
+            });
 
             // Process.
             const lZoneOneWaiter = new Promise<boolean>((pResolve) => {
@@ -141,16 +151,20 @@ describe('Patcher', () => {
     it('Static Method: promiseZone', () => {
         // Setup.
         const lZone: InteractionZone = new InteractionZone('Zone');
+        let lZoneStack: InteractionZoneStack | null = null;
         // eslint-disable-next-line @typescript-eslint/promise-function-async
         const lPromise: Promise<void> = lZone.execute(() => {
+            // Save exeution zone stack.
+            lZoneStack = InteractionZone.save();
+
             return new Promise<void>(() => { });
         });
 
         // Process.
-        const lPromiseZone: InteractionZone | undefined = Patcher.promiseZone(lPromise);
+        const lPromiseZoneStack: InteractionZoneStack = Patcher.promiseZone(lPromise)!;
 
         // Evaluation.
-        expect(lPromiseZone).to.equal(lZone);
+        expect(lPromiseZoneStack.top).to.equal(lZoneStack!.top);
     });
 
     describe('Method: patchClass', () => {

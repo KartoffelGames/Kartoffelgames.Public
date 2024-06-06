@@ -1,5 +1,6 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { InteractionResponseType } from '../../enum/interaction-response-type.enum';
+import { ErrorAllocation } from '../../error-allocation';
 import { InteractionReason } from '../../interaction-reason';
 import { InteractionZone, InteractionZoneStack } from '../../interaction-zone';
 import { EventNames } from './event-names';
@@ -7,7 +8,6 @@ import { EventNames } from './event-names';
 export class Patcher {
     private static mIsPatched: boolean = false;
     private static readonly mPatchedElements: WeakMap<Element, WeakSet<InteractionZoneStack>> = new WeakMap<Element, WeakSet<InteractionZoneStack>>();
-    private static readonly mPromizeZones: WeakMap<Promise<unknown>, InteractionZoneStack> = new WeakMap<Promise<unknown>, InteractionZoneStack>();
 
     /**
      * Listen on all change events and trigger interactions for the set {@link pZoneStack}.
@@ -51,17 +51,6 @@ export class Patcher {
             const lPatcher: Patcher = new Patcher();
             lPatcher.patchGlobals(pGlobalObject);
         }
-    }
-
-    /**
-     * Get interaction zone stack in which the {@link Promise} was created.
-     * 
-     * @param pPromise - {@link Promise}.
-     * 
-     * @returns interaction zone where the of {@link Promise} was created or undefined when the promise was constructed outside any zone.s 
-     */
-    public static promiseZone<T>(pPromise: Promise<T>): InteractionZoneStack | undefined {
-        return Patcher.mPromizeZones.get(pPromise);
     }
 
     /**
@@ -467,7 +456,7 @@ export class Patcher {
                 super(lPatchedExecutor);
 
                 // Set zone of promise.
-                Patcher.mPromizeZones.set(this as any as Promise<unknown>, InteractionZone.save());
+                ErrorAllocation.allocateAsyncronError(this as any as Promise<unknown>, InteractionZone.save());
             }
         }
 

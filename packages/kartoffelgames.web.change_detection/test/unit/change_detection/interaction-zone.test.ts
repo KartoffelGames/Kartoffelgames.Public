@@ -1,12 +1,12 @@
-import '../../mock/request-animation-frame-mock-session';
-import { expect } from 'chai';
-import { InteractionZone } from '../../../source/change_detection/interaction-zone';
-import { PreventableErrorEvent, PromiseRejectionEvent } from '../../mock/error-event';
-import { InteractionReason } from '../../../source/change_detection/interaction-reason';
-import { InteractionResponseType } from '../../../source/change_detection/enum/interaction-response-type.enum';
 import { Exception } from '@kartoffelgames/core.data';
-import { Patcher } from '../../../source/change_detection/asynchron_tracker/patcher/patcher';
+import { expect } from 'chai';
+import { InteractionResponseType } from '../../../source/change_detection/enum/interaction-response-type.enum';
+import { ErrorAllocation } from '../../../source/change_detection/error-allocation';
+import { InteractionReason } from '../../../source/change_detection/interaction-reason';
+import { InteractionZone, InteractionZoneStack } from '../../../source/change_detection/interaction-zone';
 import { InteractionDetectionProxy } from '../../../source/change_detection/synchron_tracker/interaction-detection-proxy';
+import { PreventableErrorEvent, PromiseRejectionEvent } from '../../mock/error-event';
+import '../../mock/request-animation-frame-mock-session';
 
 describe('InteractionZone', () => {
     it('Static Property: current', () => {
@@ -62,13 +62,8 @@ describe('InteractionZone', () => {
         it('-- Pass through', () => {
             // Setup.
             const lParentInteractionZone: InteractionZone = new InteractionZone('Name');
+            const lChildInteractionZone: InteractionZone = new InteractionZone('CD-child');
             const lReason: InteractionReason = new InteractionReason(InteractionResponseType.PropertyGetStart, new Object(), 2);
-
-            // Setup. Child.
-            const lChildInteractionZoneName: string = 'CD-child';
-            const lInteractionZone: InteractionZone = lParentInteractionZone.execute(() => {
-                return new InteractionZone(lChildInteractionZoneName);
-            });
 
             // Process. Add listener.
             let lReasonResult: InteractionReason | null = null;
@@ -78,8 +73,10 @@ describe('InteractionZone', () => {
             lParentInteractionZone.addInteractionListener(lListener);
 
             // Process. Dispatch event on child.
-            lInteractionZone!.execute(() => {
-                InteractionZone.dispatchInteractionEvent(lReason);
+            lParentInteractionZone.execute(() => {
+                lChildInteractionZone.execute(() => {
+                    InteractionZone.dispatchInteractionEvent(lReason);
+                });
             });
 
             // Evaluation.
@@ -117,14 +114,12 @@ describe('InteractionZone', () => {
             const lReason: InteractionReason = new InteractionReason(InteractionResponseType.PropertyGetStart, new Object(), 2);
 
             // Process. Add listener.
-            let lErrorMessage: string = '';
-            lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                try {
+            let lCounter: number = 0;
+            lInteractionZone.execute(() => {
+                lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
+                    lCounter++;
                     InteractionZone.dispatchInteractionEvent(pReason);
-                } catch (pError) {
-                    lErrorMessage = (<Exception<any>>pError).message;
-                }
-
+                });
             });
 
             // Process. Call listener.
@@ -133,20 +128,22 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lErrorMessage).to.equal(`Can't add a static zone to interaction reason.`);
+            expect(lCounter).to.equal(1);
         });
     });
 
     // TODO: Save and restore.
 
     describe('Static Method: registerObject', () => {
-        it('-- EventTarget input event', () => {
+        it('-- Trigger interaction on EventTarget input event outside zone', () => {
             // Setup.
             const lInteractionZone: InteractionZone = new InteractionZone('Name');
             const lEventTarget: EventTarget = new EventTarget();
 
             // Process. Track object.
-            const lTrackedEventTarget: EventTarget = InteractionZone.registerObject(lEventTarget);
+            const lTrackedEventTarget: EventTarget = lInteractionZone.execute(() => {
+                return InteractionZone.registerObject(lEventTarget);
+            });
 
             // Process. Track change event.
             let lChangeEventCalled: boolean = false;
@@ -155,9 +152,7 @@ describe('InteractionZone', () => {
             });
 
             // Process. Call input event.
-            lInteractionZone.execute(() => {
-                lTrackedEventTarget.dispatchEvent(new Event('input'));
-            });
+            lTrackedEventTarget.dispatchEvent(new Event('input'));
 
             // Evaluation.
             expect(lChangeEventCalled).to.be.true;
@@ -286,6 +281,8 @@ describe('InteractionZone', () => {
     });
 
     describe('Method: addErrorListener', () => {
+        // TODO: Test restored stack error handling.
+
         it('-- Error listener called for syncron errors', async () => {
             // Setup.
             const lInteractionZone: InteractionZone = new InteractionZone('Name');
@@ -424,7 +421,7 @@ describe('InteractionZone', () => {
                 lErrorListenerCalled = true;
             });
 
-            // Process. Throw error in zone.
+            // Process. Throw error outside zone.
             try {
                 throw 11;
             } catch (pError) {
@@ -470,7 +467,7 @@ describe('InteractionZone', () => {
             });
 
             const lPromise = new Promise<void>(() => { });
-            (<WeakMap<Promise<unknown>, InteractionZone>>(<any>Patcher).mPromizeZones).delete(lPromise);
+            (<WeakMap<Promise<unknown>, InteractionZoneStack>>(<any>ErrorAllocation).mAsyncronErrorZoneStacks).delete(lPromise);
 
             // Process. "Throw" promise into global scope.
             window.dispatchEvent(new PromiseRejectionEvent('unhandledrejection', {
@@ -485,9 +482,7 @@ describe('InteractionZone', () => {
         it('-- Get syncron errors of child zone', async () => {
             // Setup.
             const lInteractionZone: InteractionZone = new InteractionZone('Name');
-            const lChildInteractionZone: InteractionZone = lInteractionZone.execute(() => {
-                return new InteractionZone('Child');
-            });
+            const lChildInteractionZone: InteractionZone = new InteractionZone('Child');
             const lError: string = 'ERROR-MESSAGE';
 
             // Process. Set error listener.
@@ -499,8 +494,10 @@ describe('InteractionZone', () => {
 
             // Process. Throw error in zone.
             try {
-                lChildInteractionZone.execute(() => {
-                    throw lError;
+                lInteractionZone.execute(() => {
+                    lChildInteractionZone.execute(() => {
+                        throw lError;
+                    });
                 });
             } catch (pError) {
                 const lError: string = <string>pError;
@@ -791,67 +788,84 @@ describe('InteractionZone', () => {
             expect(lExecutedFunction).to.equal(lFunction);
         });
 
-        it('-- Inherit parent trigger', () => {
+        it('-- Ignore parent trigger', () => {
             // Setup.
             const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PropertyGetStart, isolate: true });
-            const lZoneChild: InteractionZone = lZone.execute(() => {
-                return new InteractionZone('ZoneChild');
-            });
+            const lZoneChild: InteractionZone = new InteractionZone('ZoneChild');
 
             // Process.
             let lResponeType: InteractionResponseType = InteractionResponseType.None;
             lZoneChild.addInteractionListener((pReason: InteractionReason) => {
                 lResponeType |= pReason.interactionType;
             });
-            lZoneChild.execute(() => {
-                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.PropertyGetStart, {}));
-                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.PropertyGetEnd, {}));
-            });
 
-            // Evaluation.
-            expect(lResponeType).to.equal(InteractionResponseType.PropertyGetStart);
-        });
-
-        it('-- Override parent trigger', () => {
-            // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PropertyGetStart, isolate: true });
-            const lZoneChild: InteractionZone = lZone.execute(() => {
-                return new InteractionZone('ZoneChild', { trigger: InteractionResponseType.PropertyGetEnd });
-            });
-
-            // Process.
-            let lResponeType: InteractionResponseType = InteractionResponseType.None;
-            lZoneChild.addInteractionListener((pReason: InteractionReason) => {
-                lResponeType |= pReason.interactionType;
-            });
-            lZoneChild.execute(() => {
-                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.PropertyGetStart, {}));
-                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.PropertyGetEnd, {}));
-            });
-
-            // Evaluation.
-            expect(lResponeType).to.equal(InteractionResponseType.PropertyGetEnd);
-        });
-
-        it('-- Passthrough child trigger', () => {
-            // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PropertyGetStart, isolate: true });
-            const lZoneChild: InteractionZone = lZone.execute(() => {
-                return new InteractionZone('ZoneChild', { trigger: InteractionResponseType.PropertyGetStart | InteractionResponseType.PropertyGetEnd });
-            });
-
-            // Process.
-            let lResponeType: InteractionResponseType = InteractionResponseType.None;
-            lZone.addInteractionListener((pReason: InteractionReason) => {
-                lResponeType |= pReason.interactionType;
-            });
-            lZoneChild.execute(() => {
-                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.PropertyGetStart, {}));
-                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.PropertyGetEnd, {}));
+            lZone.execute(() => {
+                lZoneChild.execute(() => {
+                    InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.PropertyGetStart, {}));
+                    InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.PropertyGetEnd, {}));
+                });
             });
 
             // Evaluation.
             expect(lResponeType).to.equal(InteractionResponseType.PropertyGetStart | InteractionResponseType.PropertyGetEnd);
+        });
+
+        it('-- Default any trigger.', () => {
+            // Setup.
+            const lZoneChild: InteractionZone = new InteractionZone('ZoneChild');
+
+            // Process.
+            let lResponeType: InteractionResponseType = InteractionResponseType.None;
+            lZoneChild.addInteractionListener((pReason: InteractionReason) => {
+                lResponeType |= pReason.interactionType;
+            });
+            lZoneChild.execute(() => {
+                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.PropertyGetStart, {}));
+                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.PropertyGetEnd, {}));
+            });
+
+            // Evaluation.
+            expect(lResponeType).to.equal(InteractionResponseType.PropertyGetEnd | InteractionResponseType.PropertyGetStart);
+        });
+
+        it('-- Dont passthrough child trigger', () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PropertyGetStart | InteractionResponseType.PropertySetStart, isolate: true });
+            const lZoneChild: InteractionZone = new InteractionZone('ZoneChild', { trigger: InteractionResponseType.PropertyGetStart | InteractionResponseType.PropertyGetEnd });
+            const lZoneChildChild: InteractionZone = new InteractionZone('ZoneChild', { trigger: InteractionResponseType.PropertyGetStart | InteractionResponseType.PropertyGetEnd | InteractionResponseType.PropertySetStart });
+
+            // Process. Setup listener child child.
+            let lResponeTypeChildChild: InteractionResponseType = InteractionResponseType.None;
+            lZoneChildChild.addInteractionListener((pReason: InteractionReason) => {
+                lResponeTypeChildChild |= pReason.interactionType;
+            });
+
+            // Process. Setup listener child child.
+            let lResponeTypeChild: InteractionResponseType = InteractionResponseType.None;
+            lZoneChild.addInteractionListener((pReason: InteractionReason) => {
+                lResponeTypeChild |= pReason.interactionType;
+            });
+
+            // Process. Setup listener child child.
+            let lResponeType: InteractionResponseType = InteractionResponseType.None;
+            lZone.addInteractionListener((pReason: InteractionReason) => {
+                lResponeType |= pReason.interactionType;
+            });
+
+            lZone.execute(() => {
+                lZoneChild.execute(() => {
+                    lZoneChildChild.execute(() => {
+                        InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.PropertyGetStart, {}));
+                        InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.PropertyGetEnd, {}));
+                        InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.PropertySetStart, {}));
+                    });
+                });
+            });
+
+            // Evaluation.
+            expect(lResponeTypeChildChild).to.equal(InteractionResponseType.PropertyGetStart | InteractionResponseType.PropertyGetEnd | InteractionResponseType.PropertySetStart);
+            expect(lResponeTypeChild).to.equal(InteractionResponseType.PropertyGetStart | InteractionResponseType.PropertyGetEnd);
+            expect(lResponeType).to.equal(InteractionResponseType.PropertyGetStart);
         });
 
         it('-- Dont trigger attached zones of interaction proxy when current zone does not have trigger', () => {

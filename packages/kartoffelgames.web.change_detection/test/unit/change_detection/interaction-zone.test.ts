@@ -281,8 +281,6 @@ describe('InteractionZone', () => {
     });
 
     describe('Method: addErrorListener', () => {
-        // TODO: Test restored stack error handling.
-
         it('-- Error listener called for syncron errors', async () => {
             // Setup.
             const lInteractionZone: InteractionZone = new InteractionZone('Name');
@@ -315,7 +313,7 @@ describe('InteractionZone', () => {
         it('-- Get syncron error message inside zone', async () => {
             // Setup.
             const lInteractionZone: InteractionZone = new InteractionZone('Name');
-            const lError: string = 'ERROR-MESSAGE';
+            const lError: Error = new Error('ERROR-MESSAGE');
 
             // Process. Set error listener.
             const lErrorWaiter = new Promise<string>((pResolve) => {
@@ -483,7 +481,7 @@ describe('InteractionZone', () => {
             // Setup.
             const lInteractionZone: InteractionZone = new InteractionZone('Name');
             const lChildInteractionZone: InteractionZone = new InteractionZone('Child');
-            const lError: string = 'ERROR-MESSAGE';
+            const lError: Error = new Error('ERROR-MESSAGE');
 
             // Process. Set error listener.
             const lErrorWaiter = new Promise<string>((pResolve) => {
@@ -543,6 +541,7 @@ describe('InteractionZone', () => {
             // Setup.
             const lInteractionErrorZone: InteractionZone = new InteractionZone('Name');
             const lInteractionListenerZone: InteractionZone = new InteractionZone('Name');
+            const lError: Error = new Error('Error');
 
             // Setup. Set error lister on error zone but attach it inside listener zone.
             const lErrorZoneWaiter = new Promise<InteractionZone>((pResolve) => {
@@ -556,11 +555,11 @@ describe('InteractionZone', () => {
             // Process. Throw error in zone.
             try {
                 lInteractionErrorZone.execute(() => {
-                    throw '';
+                    throw lError;
                 });
             } catch (pError) {
                 window.dispatchEvent(new ErrorEvent('error', {
-                    error: '',
+                    error: pError,
                     message: '',
                 }));
             }
@@ -600,6 +599,109 @@ describe('InteractionZone', () => {
 
             // Evaluation.
             expect(lErrorZone).to.be.equal(lInteractionListenerZone);
+        });
+
+        it('-- Send error to correct zone stack. Direct restore error.', async () => {
+            // Setup.
+            const lRootZone: InteractionZone = new InteractionZone('Name');
+            const lRestoredZone: InteractionZone = new InteractionZone('Child');
+            const lError: Error = new Error('ERROR-MESSAGE');
+
+            // Setup. Create restore point.
+            const lRestorePoint: InteractionZoneStack = lRestoredZone.execute(() => {
+                return InteractionZone.save();
+            });
+
+            // Process. Set error listener.
+            const lErrorWaiter = new Promise<string>((pResolve) => {
+                lRestoredZone.addErrorListener((pError: string) => {
+                    pResolve(pError);
+                });
+            });
+
+            // Process. Throw error in zone.
+            try {
+                lRootZone.execute(() => {
+                    InteractionZone.restore(lRestorePoint, () => {
+                        throw lError;
+                    });
+                });
+            } catch (pError) {
+                const lError: string = <string>pError;
+                window.dispatchEvent(new ErrorEvent('error', {
+                    error: lError,
+                    message: lError,
+                }));
+            }
+
+            const lErrorResult: string = await lErrorWaiter;
+
+            // Evaluation.
+            expect(lErrorResult).to.equal(lError);
+        });
+
+        it('-- Dont send error to original stack when thrown in restored stack.', async () => {
+            // Setup.
+            const lRootZone: InteractionZone = new InteractionZone('Name');
+            const lRestoredZone: InteractionZone = new InteractionZone('Child');
+            const lError: string = 'ERROR-MESSAGE';
+
+            // Setup. Create restore point.
+            const lRestorePoint: InteractionZoneStack = lRestoredZone.execute(() => {
+                return InteractionZone.save();
+            });
+
+            // Process. Set error listener.
+            let lErrorListenerCalled: boolean = false;
+            lRootZone.addErrorListener(() => {
+                lErrorListenerCalled = true;
+            });
+
+            // Process. Set error listener.
+            const lErrorWaiter = new Promise<string>((pResolve) => {
+                lRestoredZone.addErrorListener((pError: string) => {
+                    pResolve(pError);
+                });
+            });
+
+            // Process. Throw error in zone.
+            try {
+                lRootZone.execute(() => {
+                    InteractionZone.restore(lRestorePoint, () => {
+                        throw lError;
+                    });
+                });
+            } catch (pError) {
+                const lError: string = <string>pError;
+                window.dispatchEvent(new ErrorEvent('error', {
+                    error: lError,
+                    message: lError,
+                }));
+            }
+
+            await lErrorWaiter;
+
+            // Evaluation.
+            expect(lErrorListenerCalled).to.be.false;
+        });
+
+        it('-- Convert non object errors into error objects.', async () => {
+            // Setup.
+            const lInteractionZone: InteractionZone = new InteractionZone('Name');
+            const lError: string = 'ERROR-MESSAGE';
+
+            // Process. Throw error in zone.
+            let lErrorResult: Error | null = null;
+            try {
+                lInteractionZone.execute(() => {
+                    throw lError;
+                });
+            } catch (pError) {
+                lErrorResult = <Error>pError;
+            }
+
+            // Evaluation.
+            expect(lErrorResult?.message).to.equal(lError);
         });
     });
 
@@ -721,7 +823,7 @@ describe('InteractionZone', () => {
             // Setup.
             const lZoneName: string = 'ZoneName';
             const lZone: InteractionZone = new InteractionZone(lZoneName);
-            const lError: string = 'ErrorName';
+            const lError: Error = new Error('ErrorName');
 
             // Process.
             let lZoneNameResult: string | null = null;

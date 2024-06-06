@@ -34,6 +34,11 @@ export class InteractionZone {
 
         // Create and register error and rejection listener.
         window.addEventListener('error', (pEvent: ErrorEvent) => {
+            // Skip none object errors.
+            if(typeof pEvent.error !== 'object' || pEvent.error === null) {
+                return;
+            }
+
             // Get syncron error allocation.
             lErrorHandler(pEvent, pEvent.error, ErrorAllocation.getSyncronErrorZoneStack(pEvent.error));
         });
@@ -115,6 +120,8 @@ export class InteractionZone {
         let lResult: T;
         try {
             lResult = pFunction(...pArgs);
+        } catch (pError) {
+            throw ErrorAllocation.allocateSyncronError(pError, pZoneStack);
         } finally {
             // Restore originalstack.
             InteractionZone.mZoneStack = lLastZoneStack;
@@ -217,8 +224,7 @@ export class InteractionZone {
         try {
             lResult = pFunction(...pArgs);
         } catch (pError) {
-            ErrorAllocation.allocateSyncronError(pError, InteractionZone.save());
-            throw pError;
+            throw ErrorAllocation.allocateSyncronError(pError, InteractionZone.save());
         } finally {
             // Reset to last zone.
             InteractionZone.mZoneStack.pop();

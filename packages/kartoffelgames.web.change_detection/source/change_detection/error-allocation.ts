@@ -5,8 +5,8 @@ import { InteractionZoneStack } from './interaction-zone';
  */
 export class ErrorAllocation {
     private static readonly mAsyncronErrorZoneStacks: WeakMap<Promise<unknown>, InteractionZoneStack> = new WeakMap<Promise<unknown>, InteractionZoneStack>();
-    private static mSynchronError: any;
-    private static mSynchronErrorZoneStack: InteractionZoneStack;
+    private static readonly mSynchronErrorZoneStacks: WeakMap<object, InteractionZoneStack> = new WeakMap<object, InteractionZoneStack>();
+
 
     /**
      * Allocate error with interaction zone.
@@ -24,9 +24,19 @@ export class ErrorAllocation {
      * @param pError - Error data.
      * @param pZone - Zone of error.
      */
-    public static allocateSyncronError(pError: any, pZoneStack: InteractionZoneStack): void {
-        ErrorAllocation.mSynchronErrorZoneStack = pZoneStack;
-        ErrorAllocation.mSynchronError = pError;
+    public static allocateSyncronError(pError: any, pZoneStack: InteractionZoneStack): object {
+        // Create error object of error when error is not a object.
+        const lError: object = (typeof pError === 'object' && pError !== null) ? pError : new Error(pError);
+
+        // Prevent error relocation.
+        if (ErrorAllocation.mSynchronErrorZoneStacks.has(lError)) {
+            return lError;
+        }
+
+        // Allocate error to stack.
+        ErrorAllocation.mSynchronErrorZoneStacks.set(lError, pZoneStack);
+
+        return lError;
     }
 
     /**
@@ -45,11 +55,7 @@ export class ErrorAllocation {
      * 
      * @param pError - Error.
      */
-    public static getSyncronErrorZoneStack(pError: any): InteractionZoneStack | null {
-        if (pError === ErrorAllocation.mSynchronError) {
-            return ErrorAllocation.mSynchronErrorZoneStack;
-        }
-
-        return null;
+    public static getSyncronErrorZoneStack(pError: object): InteractionZoneStack | undefined {
+        return ErrorAllocation.mSynchronErrorZoneStacks.get(pError);
     }
 }

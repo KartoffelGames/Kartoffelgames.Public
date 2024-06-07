@@ -52,7 +52,12 @@ export enum InteractionResponseType {
     EventlistenerError = 1 << 21,
 
     /**
+     * Custom.
+     */
+    Custom = 1 << 22,
+
+    /**
      * Any interaction.
      */
-    Any = (1 << 22) - 1,
+    Any = (1 << 23) - 1,
 }

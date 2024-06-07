@@ -132,7 +132,80 @@ describe('InteractionZone', () => {
         });
     });
 
-    // TODO: Save and restore.
+    describe('Static Method: save', () => {
+        it('-- Save current stack', () => {
+            // Setup.
+            const lInteractionZone1: InteractionZone = new InteractionZone('Name');
+            const lInteractionZone2: InteractionZone = new InteractionZone('Name');
+            const lInteractionZone3: InteractionZone = new InteractionZone('Name');
+
+            // Process. Save stack.
+            const lStack: InteractionZoneStack = lInteractionZone1.execute(() => {
+                return lInteractionZone2.execute(() => {
+                    return lInteractionZone3.execute(() => {
+                        return InteractionZone.save();
+                    });
+                });
+            });
+
+            // Evaluation.
+            expect(lStack.toArray()).to.deep.equal([lInteractionZone1, lInteractionZone2, lInteractionZone3, InteractionZone.current]);
+        });
+
+        it('-- Save restored and continued stack', () => {
+            // Setup.
+            const lInteractionZone1: InteractionZone = new InteractionZone('Name');
+            const lInteractionZone2: InteractionZone = new InteractionZone('Name');
+            const lInteractionZone3: InteractionZone = new InteractionZone('Name');
+
+            // Setup. Save stack.
+            const lStack: InteractionZoneStack = lInteractionZone1.execute(() => {
+                return lInteractionZone2.execute(() => {
+                    return lInteractionZone3.execute(() => {
+                        return InteractionZone.save();
+                    });
+                });
+            });
+
+            // Process. Save continued stack.
+            const lContinuedStack: InteractionZoneStack = InteractionZone.restore(lStack, () => {
+                return lInteractionZone1.execute(() => {
+                    return lInteractionZone2.execute(() => {
+                        return InteractionZone.save();
+                    });
+                });
+            });
+
+            // Evaluation.
+            expect(lContinuedStack.toArray()).to.deep.equal([lInteractionZone1, lInteractionZone2, lInteractionZone1, lInteractionZone2, lInteractionZone3, InteractionZone.current]);
+        });
+    });
+
+    describe('Static Method: restore', () => {
+        it('-- Restore stack', () => {
+            // Setup.
+            const lInteractionZone1: InteractionZone = new InteractionZone('Name');
+            const lInteractionZone2: InteractionZone = new InteractionZone('Name');
+            const lInteractionZone3: InteractionZone = new InteractionZone('Name');
+
+            // Setup. Save stack.
+            const lStack: InteractionZoneStack = lInteractionZone1.execute(() => {
+                return lInteractionZone2.execute(() => {
+                    return lInteractionZone3.execute(() => {
+                        return InteractionZone.save();
+                    });
+                });
+            });
+
+            // Process. Restore stack.
+            const lCurrentStack: InteractionZoneStack = InteractionZone.restore(lStack, () => {
+                return InteractionZone.save();
+            });
+
+            // Evaluation.
+            expect(lStack.toArray()).to.deep.equal(lCurrentStack.toArray());
+        });
+    });
 
     describe('Static Method: registerObject', () => {
         it('-- Trigger interaction on EventTarget input event outside zone', () => {

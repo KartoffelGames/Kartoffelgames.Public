@@ -129,9 +129,9 @@ export class LoopError extends Error {
      */
     public constructor(pMessage: string, pChain: Array<InteractionReason>) {
         // Add first 5 reasons to message.
-        const lChainMessage = pChain.slice(0, 5).map((pItem) => { return InteractionResponseType[pItem.interactionType]; }).join(' -> ');
+        const lChainMessage = pChain.slice(-20).map((pItem) => { return pItem.toString(); }).join('\n');
 
-        super(`${pMessage}: ${lChainMessage}`);
+        super(`${pMessage}: \n${lChainMessage}`);
         this.mChain = [...pChain];
     }
 }

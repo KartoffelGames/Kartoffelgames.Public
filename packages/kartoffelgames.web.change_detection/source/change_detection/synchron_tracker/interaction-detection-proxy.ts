@@ -207,7 +207,8 @@ export class InteractionDetectionProxy<T extends object> {
                             const lOriginalThisObject: object = InteractionDetectionProxy.getOriginal(pThisArgument);
                             lFunctionResult = (<CallableObject>pTargetObject).call(lOriginalThisObject, ...pArgumentsList);
                         } finally {
-                            // TODO: New InteractionResponseType.NativeFunctionCall
+                            // Dispatch special InteractionResponseType.NativeFunctionCall.
+                            this.dispatch(InteractionResponseType.NativeFunctionCall, this.mProxyObject);
                         }
                     } catch (pPassthroughError) {
                         // Dispatch function error interaction and passthrough error.

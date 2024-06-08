@@ -55,9 +55,10 @@ export enum InteractionResponseType {
      * Custom.
      */
     Custom = 1 << 22,
-
+    NativeFunctionCall = 1 << 23,
+    
     /**
      * Any interaction.
      */
-    Any = (1 << 23) - 1,
+    Any = (1 << 24) - 1,
 }

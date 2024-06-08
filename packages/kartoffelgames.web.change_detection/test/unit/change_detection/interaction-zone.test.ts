@@ -1604,6 +1604,28 @@ describe('InteractionZone', () => {
             expect(lResponeType).to.be.equal(InteractionResponseType.EventlistenerError);
         });
 
+        it('-- DetectionCatchType.EventlistenerError', () => {
+            // Setup.
+            const lProxy: Set<string> = new InteractionDetectionProxy(new Set<string>()).proxy;
+            const lInteractionZone: InteractionZone = new InteractionZone('CD', { trigger: InteractionResponseType.NativeFunctionCall });
+
+            // Setup. InteractionZone.
+            let lResponseType: InteractionResponseType = InteractionResponseType.None;
+            lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                if (pChangeReason.source === lProxy.add) {
+                    lResponseType |= pChangeReason.interactionType;
+                }
+            });
+
+            // Process
+            lInteractionZone.execute(() => {
+                lProxy.add('');
+            });
+
+            // Evaluation.
+            expect(lResponseType).to.equal(InteractionResponseType.NativeFunctionCall);
+        });
+
         it('-- Negative', () => {
             // Setup.
             const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.PromiseStart });
@@ -1625,7 +1647,7 @@ describe('InteractionZone', () => {
 
         it('-- Negative no zone execution', async () => {
             // Setup.
-            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.Any });
+            const lInteractionZone: InteractionZone = new InteractionZone('Name', { trigger: InteractionResponseType.CallbackCallStart });
 
             // Process.
             let lResponeType: InteractionResponseType = InteractionResponseType.None;

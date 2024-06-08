@@ -894,7 +894,7 @@ describe('InteractionDetectionProxy', () => {
             });
 
             // Evaluation.
-            expect(lResponseType).to.equal(InteractionResponseType.FunctionCallStart | InteractionResponseType.FunctionCallEnd);
+            expect(lResponseType).to.equal(InteractionResponseType.FunctionCallStart | InteractionResponseType.FunctionCallEnd | InteractionResponseType.NativeFunctionCall);
         });
 
         describe('-- Array', () => {
@@ -962,7 +962,7 @@ describe('InteractionDetectionProxy', () => {
             });
 
             // Evaluation.
-            expect(lResponseType).to.equal(InteractionResponseType.FunctionCallStart | InteractionResponseType.FunctionCallEnd);
+            expect(lResponseType).to.equal(InteractionResponseType.FunctionCallStart | InteractionResponseType.FunctionCallEnd | InteractionResponseType.NativeFunctionCall);
         });
 
         it('-- TypedArray', () => {

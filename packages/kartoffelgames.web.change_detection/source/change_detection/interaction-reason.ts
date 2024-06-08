@@ -21,6 +21,17 @@ export class InteractionReason {
     }
 
     /**
+     * Get reason dispatch origin.
+     */
+    public get origin(): InteractionZoneStack {
+        if (this.mOrigin === null) {
+            throw new Exception('Interaction reason not dispatched.', this);
+        }
+
+        return this.mOrigin;
+    }
+
+    /**
      * Get interacted property of source.
      * When the property is undefined, the source was changed directly.
      */

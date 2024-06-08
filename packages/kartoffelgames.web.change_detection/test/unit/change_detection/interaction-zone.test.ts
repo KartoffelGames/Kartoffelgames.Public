@@ -1675,6 +1675,19 @@ describe('InteractionZone', () => {
             expect(lErrorFunction).to.throw(Exception, 'Interaction reason not dispatched.');
         });
 
+        it('-- Read origin zone without dispatch', () => {
+            // Setup.
+            const lReason: InteractionReason = new InteractionReason(InteractionResponseType.None, {});
+
+            // Process
+            const lErrorFunction = () => {
+                lReason.origin;
+            };
+
+            // Evaluation.
+            expect(lErrorFunction).to.throw(Exception, 'Interaction reason not dispatched.');
+        });
+
         it('-- Passthrough function name.', () => {
             // Setup. 
             const lTarget = function lFunctionName() { };
@@ -1734,6 +1747,26 @@ describe('InteractionZone', () => {
 
             // Evaluation.
             expect(lReasonAsString).to.equal(`${lZone.name}: ${typeof lTarget}:${'ClassName'}[${lPropertyName}] -> ${InteractionResponseType[InteractionResponseType.Custom]}`);
+        });
+
+        it('-- Correct origin', () => {
+            // Setup. Create reason.
+            const lZone: InteractionZone = new InteractionZone('ZoneName', { trigger: InteractionResponseType.Custom });
+            let lOrigin: InteractionZoneStack | null = null;
+            const lReason: InteractionReason = lZone.execute(() => {
+                lOrigin = InteractionZone.save();
+
+                const lReason = new InteractionReason(InteractionResponseType.Custom, {});
+                lReason.setOrigin(lOrigin);
+
+                return lReason;
+            });
+
+            // Process
+            const lReasonOrigin = lReason.origin;
+
+            // Evaluation.
+            expect(lReasonOrigin).to.equal(lOrigin);
         });
     });
 });

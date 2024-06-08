@@ -1674,5 +1674,66 @@ describe('InteractionZone', () => {
             // Evaluation.
             expect(lErrorFunction).to.throw(Exception, 'Interaction reason not dispatched.');
         });
+
+        it('-- Passthrough function name.', () => {
+            // Setup. 
+            const lTarget = function lFunctionName() { };
+
+            // Setup. Create reason.
+            const lZone: InteractionZone = new InteractionZone('ZoneName', { trigger: InteractionResponseType.Custom });
+            const lReason: InteractionReason = lZone.execute(() => {
+                const lReason = new InteractionReason(InteractionResponseType.Custom, lTarget);
+                lReason.setOrigin(InteractionZone.save());
+
+                return lReason;
+            });
+
+            // Process
+            const lReasonAsString = lReason.toString();
+
+            // Evaluation.
+            expect(lReasonAsString).to.equal(`${lZone.name}: ${typeof lTarget}:${'lFunctionName'} -> ${InteractionResponseType[InteractionResponseType.Custom]}`);
+        });
+
+        it('-- Passthrough class name.', () => {
+            // Setup. 
+            const lTarget = new class ClassName { }();
+
+            // Setup. Create reason.
+            const lZone: InteractionZone = new InteractionZone('ZoneName', { trigger: InteractionResponseType.Custom });
+            const lReason: InteractionReason = lZone.execute(() => {
+                const lReason = new InteractionReason(InteractionResponseType.Custom, lTarget);
+                lReason.setOrigin(InteractionZone.save());
+
+                return lReason;
+            });
+
+            // Process
+            const lReasonAsString = lReason.toString();
+
+            // Evaluation.
+            expect(lReasonAsString).to.equal(`${lZone.name}: ${typeof lTarget}:${'ClassName'} -> ${InteractionResponseType[InteractionResponseType.Custom]}`);
+        });
+
+        it('-- Passthrough property name.', () => {
+            // Setup. 
+            const lTarget = new class ClassName { }();
+            const lPropertyName: string = 'PropertyName';
+
+            // Setup. Create reason.
+            const lZone: InteractionZone = new InteractionZone('ZoneName', { trigger: InteractionResponseType.Custom });
+            const lReason: InteractionReason = lZone.execute(() => {
+                const lReason = new InteractionReason(InteractionResponseType.Custom, lTarget, lPropertyName);
+                lReason.setOrigin(InteractionZone.save());
+
+                return lReason;
+            });
+
+            // Process
+            const lReasonAsString = lReason.toString();
+
+            // Evaluation.
+            expect(lReasonAsString).to.equal(`${lZone.name}: ${typeof lTarget}:${'ClassName'}[${lPropertyName}] -> ${InteractionResponseType[InteractionResponseType.Custom]}`);
+        });
     });
 });

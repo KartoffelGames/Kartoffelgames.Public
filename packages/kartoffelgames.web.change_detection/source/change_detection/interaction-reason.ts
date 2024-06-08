@@ -1,17 +1,17 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { InteractionResponseType } from './enum/interaction-response-type.enum';
-import { InteractionZone } from './interaction-zone';
+import { InteractionZone, InteractionZoneStack } from './interaction-zone';
 
 /**
  * Interaction reason. Information of a detected interaction.
  */
 export class InteractionReason {
     private readonly mCatchType: InteractionResponseType;
+    private mOrigin: InteractionZoneStack | null;
     private readonly mProperty: PropertyKey | undefined;
     private readonly mSource: object;
     private readonly mStackError: Error;
     private readonly mTriggeredZones: WeakSet<InteractionZone>;
-    private mZone: InteractionZone | null;
 
     /**
      * Get what type of interaction was detected.
@@ -49,11 +49,11 @@ export class InteractionReason {
      * When zone is not set, reason was not dispatched.
      */
     public get zone(): InteractionZone {
-        if (this.mZone === null) {
+        if (this.mOrigin === null) {
             throw new Exception('Interaction reason not dispatched.', this);
         }
 
-        return this.mZone;
+        return this.mOrigin.top!;
     }
 
     /**
@@ -69,7 +69,7 @@ export class InteractionReason {
         this.mSource = pSource;
         this.mProperty = pProperty;
         this.mStackError = new Error();
-        this.mZone = null;
+        this.mOrigin = null;
         this.mTriggeredZones = new WeakSet<InteractionZone>();
     }
 
@@ -85,12 +85,7 @@ export class InteractionReason {
      * 
      * @internal
      */
-    public setZone(pZone: InteractionZone): boolean {
-        // Set first triggered zone.
-        if (this.mZone === null) {
-            this.mZone = pZone;
-        }
-
+    public addDispatchedZone(pZone: InteractionZone): boolean {
         // Skip zone set when zone was already triggered.
         if (this.mTriggeredZones.has(pZone)) {
             return true;
@@ -99,5 +94,33 @@ export class InteractionReason {
         // Add zone to triggered zones and
         this.mTriggeredZones.add(pZone);
         return false;
+    }
+
+    /**
+     * Set origin interaction stack of reason.
+     * 
+     * @param pInteractionStack - Origin stack.
+     */
+    public setOrigin(pInteractionStack: InteractionZoneStack): void {
+        this.mOrigin = pInteractionStack;
+    }
+
+    /**
+     * Reason description as string.
+     * 
+     * @returns reason as string.
+     */
+    public toString(): string {
+        // Find source name.
+        let lSourceName: string = this.mSource.constructor.name;
+        if (typeof this.mSource === 'function') {
+            lSourceName = this.mSource.name;
+        }
+
+        // Add Propery when set.
+        const lPropertyDescription: string = (this.mProperty) ? `[${this.mProperty.toString()}]` : '';
+
+
+        return `${this.zone.name}: ${typeof this.mSource}:${lSourceName}${lPropertyDescription} -> ${InteractionResponseType[this.interactionType]}`;
     }
 }

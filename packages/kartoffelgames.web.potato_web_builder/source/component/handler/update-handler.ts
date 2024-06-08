@@ -2,6 +2,7 @@ import { List } from '@kartoffelgames/core.data';
 import { InteractionReason, InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
 import { UpdateMode } from '../../enum/update-mode.enum';
 import { LoopDetectionHandler } from './loop-detection-handler';
+import { InteractionZoneStack } from '@kartoffelgames/web.change-detection/library/source/change_detection/interaction-zone';
 
 /**
  * Component update handler. Handles automatic and manual updates.
@@ -10,15 +11,15 @@ import { LoopDetectionHandler } from './loop-detection-handler';
  * @internal
  */
 export class UpdateHandler {
-    private static readonly mAllTrigger: InteractionResponseType = InteractionResponseType.CallbackCallEnd | InteractionResponseType.Custom | InteractionResponseType.EventlistenerEnd | InteractionResponseType.FunctionCallEnd | InteractionResponseType.PromiseReject | InteractionResponseType.PromiseResolve | InteractionResponseType.PropertyDeleteEnd | InteractionResponseType.PropertySetEnd;
-    private static readonly mAsyncTrigger: InteractionResponseType = InteractionResponseType.CallbackCallEnd | InteractionResponseType.Custom | InteractionResponseType.EventlistenerEnd | InteractionResponseType.PromiseReject | InteractionResponseType.PromiseResolve;
+    private static readonly mDefaultComponentTrigger: InteractionResponseType = InteractionResponseType.CallbackCallEnd | InteractionResponseType.Custom | InteractionResponseType.EventlistenerEnd | InteractionResponseType.FunctionCallEnd | InteractionResponseType.PromiseReject | InteractionResponseType.PromiseResolve | InteractionResponseType.PropertyDeleteEnd | InteractionResponseType.PropertySetEnd;
+    private static readonly mUpdateCycleTrigger: InteractionResponseType = InteractionResponseType.CallbackCallEnd | InteractionResponseType.Custom | InteractionResponseType.EventlistenerEnd | InteractionResponseType.PromiseReject | InteractionResponseType.PromiseResolve | InteractionResponseType.PropertyDeleteEnd | InteractionResponseType.PropertySetEnd;
 
+    private readonly mComponentZoneStack: InteractionZoneStack;
     private mEnabled: boolean;
     private readonly mInteractionDetectionListener: (pReason: InteractionReason) => void;
     private readonly mInteractionZone: InteractionZone;
     private readonly mLoopDetectionHandler: LoopDetectionHandler;
     private readonly mUpdateListener: List<UpdateListener>;
-    private readonly mUpdateScope: UpdateMode;
     private readonly mUpdateWaiter: List<UpdateWaiter>;
 
     /**
@@ -49,23 +50,22 @@ export class UpdateHandler {
      * @param pUpdateScope - Update scope.
      */
     public constructor(pUpdateScope: UpdateMode) {
-        this.mUpdateScope = pUpdateScope;
         this.mUpdateListener = new List<UpdateListener>();
         this.mEnabled = false;
         this.mUpdateWaiter = new List<UpdateWaiter>();
         this.mLoopDetectionHandler = new LoopDetectionHandler(10);
 
         // Create isolated or default zone.
-        if (this.mUpdateScope % UpdateMode.Isolated !== 0) {
+        if (pUpdateScope % UpdateMode.Isolated !== 0) {
             // Isolated zone.
-            this.mInteractionZone = new InteractionZone('CapsuledComponentZone', { isolate: true, trigger: UpdateHandler.mAllTrigger });
+            this.mInteractionZone = new InteractionZone('CapsuledComponentZone', { isolate: true, trigger: UpdateHandler.mDefaultComponentTrigger });
         } else {
             // Global zone.
-            this.mInteractionZone = new InteractionZone('DefaultComponentZone', { trigger: UpdateHandler.mAllTrigger });
+            this.mInteractionZone = new InteractionZone('DefaultComponentZone', { trigger: UpdateHandler.mDefaultComponentTrigger });
         }
 
         // Create manual or default listener. Manual listener does nothing on interaction.
-        if (this.mUpdateScope % UpdateMode.Manual !== 0) {
+        if (pUpdateScope % UpdateMode.Manual !== 0) {
             // Empty change listener.
             this.mInteractionDetectionListener = () => {/* Empty */ };
         } else {
@@ -73,8 +73,14 @@ export class UpdateHandler {
             this.mInteractionDetectionListener = (pReason: InteractionReason) => { this.sheduleUpdateTask(pReason); };
         }
 
-        // Add listener for interactions inside interaction zone.
-        this.mInteractionZone.addInteractionListener(this.mInteractionDetectionListener);
+        // Save current component zone stack.
+        this.mComponentZoneStack = this.mInteractionZone.execute(() => {
+            // Add listener for interactions inside interaction zone.
+            this.mInteractionZone.addInteractionListener(this.mInteractionDetectionListener);
+
+            return InteractionZone.save();
+        });
+
 
         // Define error handler.
         this.mLoopDetectionHandler.onError = (pError: any) => {
@@ -102,7 +108,12 @@ export class UpdateHandler {
      * Nesting {@link disableInteractionTrigger} and {@link enableInteractionTrigger} is allowed.
      */
     public customInteractionTrigger<T>(pFunction: () => T, pTrigger: InteractionResponseType): T {
-        return new InteractionZone('Custom-' + this.mInteractionZone.name, { trigger: pTrigger }).execute(pFunction);
+        const lCustomZone: InteractionZone = new InteractionZone('Custom-' + this.mInteractionZone.name, { trigger: pTrigger });
+
+        // Call function in custom zone in current component stack.
+        return InteractionZone.restore(this.mComponentZoneStack, () => {
+            return lCustomZone.execute(pFunction);
+        });
     }
 
     /**
@@ -128,7 +139,12 @@ export class UpdateHandler {
      * Nesting {@link disableInteractionTrigger} and {@link enableInteractionTrigger} is allowed.
      */
     public disableInteractionTrigger<T>(pFunction: () => T): T {
-        return new InteractionZone('Silent-' + this.mInteractionZone.name, { trigger: InteractionResponseType.None }).execute(pFunction);
+        const lSilentZone: InteractionZone = new InteractionZone('Silent-' + this.mInteractionZone.name, { trigger: InteractionResponseType.None });
+
+        // Call function in custom zone in current component stack.
+        return InteractionZone.restore(this.mComponentZoneStack, () => {
+            return lSilentZone.execute(pFunction);
+        });
     }
 
     /**
@@ -141,7 +157,7 @@ export class UpdateHandler {
      * Nesting {@link disableInteractionTrigger} and {@link enableInteractionTrigger} is allowed.
      */
     public enableInteractionTrigger<T>(pFunction: () => T): T {
-        return this.mInteractionZone.execute(pFunction);
+        return InteractionZone.restore(this.mComponentZoneStack, pFunction);
     }
 
     /**
@@ -150,7 +166,7 @@ export class UpdateHandler {
      * @param pObject - Object.
      */
     public registerObject<T extends object>(pObject: T): T {
-        return this.mInteractionZone.execute(() => {
+        return InteractionZone.restore(this.mComponentZoneStack, () => {
             return InteractionZone.registerObject(pObject);
         });
     }
@@ -162,7 +178,7 @@ export class UpdateHandler {
      * @param pReason - Update reason. Description of changed state.
      */
     public requestUpdate(pReason: InteractionReason): void {
-        this.mInteractionZone.execute(() => {
+        InteractionZone.restore(this.mComponentZoneStack, () => {
             InteractionZone.dispatchInteractionEvent(pReason);
         });
     }
@@ -245,8 +261,8 @@ export class UpdateHandler {
             return;
         }
 
-        // Shedule task in component zone.
-        this.mInteractionZone.execute(() => {
+        // Shedule task in component zone stack.
+        InteractionZone.restore(this.mComponentZoneStack, () => {
             // Shedule new asynchron update task.
             this.mLoopDetectionHandler.sheduleTask(() => {
                 // Call every update listener inside interaction zone.

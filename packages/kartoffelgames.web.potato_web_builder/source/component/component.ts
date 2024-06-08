@@ -226,9 +226,7 @@ export class Component extends InjectionHierarchyParent {
             return;
         }
 
-        this.mUpdateHandler.customInteractionTrigger(() => {
-            this.processor.afterPwbUpdate?.();
-        }, InteractionResponseType.Any);
+        this.processor.afterPwbUpdate?.();
     }
 
     /**
@@ -241,9 +239,7 @@ export class Component extends InjectionHierarchyParent {
             return;
         }
 
-        this.mUpdateHandler.customInteractionTrigger(() => {
-            this.processor.onPwbAttributeChange?.(pAttributeName);
-        }, InteractionResponseType.Any);
+        this.processor.onPwbAttributeChange?.(pAttributeName);
     }
 
     /**
@@ -255,9 +251,7 @@ export class Component extends InjectionHierarchyParent {
             return;
         }
 
-        this.mUpdateHandler.customInteractionTrigger(() => {
-            this.processor.onPwbConnect?.();
-        }, InteractionResponseType.Any);
+        this.processor.onPwbConnect?.();
     }
 
     /**
@@ -269,9 +263,7 @@ export class Component extends InjectionHierarchyParent {
             return;
         }
 
-        this.mUpdateHandler.customInteractionTrigger(() => {
-            this.processor.onPwbDeconstruct?.();
-        }, InteractionResponseType.Any);
+        this.processor.onPwbDeconstruct?.();
     }
 
     /**
@@ -283,9 +275,7 @@ export class Component extends InjectionHierarchyParent {
             return;
         }
 
-        this.mUpdateHandler.customInteractionTrigger(() => {
-            this.processor.onPwbDisconnect?.();
-        }, InteractionResponseType.Any);
+        this.processor.onPwbDisconnect?.();
     }
 
     /**
@@ -298,9 +288,7 @@ export class Component extends InjectionHierarchyParent {
         }
 
         // Call component processor on update function.
-        this.mUpdateHandler.customInteractionTrigger(() => {
-            this.processor.onPwbUpdate?.();
-        }, InteractionResponseType.Any);
+        this.processor.onPwbUpdate?.();
     }
 
     /**

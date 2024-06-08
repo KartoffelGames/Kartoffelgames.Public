@@ -1,5 +1,6 @@
 import { List } from '@kartoffelgames/core.data';
 import { InteractionReason, InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
+import { InteractionZoneStack } from '@kartoffelgames/web.change-detection/library/source/change_detection/interaction-zone';
 
 /**
  * Loop detection. Shedules asynchron tasks and reports an error when too many task where chained.
@@ -61,8 +62,8 @@ export class LoopDetectionHandler {
         // Create and expand call chain.
         this.mCurrentCallChain.push(pReason);
 
-        // Save current execution zone. To restore it for user function call.
-        const lCurrentZone: InteractionZone = InteractionZone.current;
+        // Save current execution zone stack. To restore it for user function call.
+        const lCurrentZoneStack: InteractionZoneStack = InteractionZone.save();
 
         // Function for asynchron call.
         const lAsynchronTask = () => {
@@ -74,7 +75,7 @@ export class LoopDetectionHandler {
 
             try {
                 // Call task. If no other call was sheduled during this call, the length will be the same after. 
-                lCurrentZone.execute(pUserFunction);
+                InteractionZone.restore(lCurrentZoneStack, pUserFunction);
 
                 // Throw if too many calles were chained. 
                 if (this.mCurrentCallChain.length > this.mMaxStackSize) {
@@ -127,7 +128,10 @@ export class LoopError extends Error {
      * @param pChain - Current call chain.
      */
     public constructor(pMessage: string, pChain: Array<InteractionReason>) {
-        super(pMessage);
+        // Add first 5 reasons to message.
+        const lChainMessage = pChain.slice(0, 5).map((pItem) => { return InteractionResponseType[pItem.interactionType]; }).join(' -> ');
+
+        super(`${pMessage}: ${lChainMessage}`);
         this.mChain = [...pChain];
     }
 }

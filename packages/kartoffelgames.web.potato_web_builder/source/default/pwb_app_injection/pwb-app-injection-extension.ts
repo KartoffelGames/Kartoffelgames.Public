@@ -18,7 +18,7 @@ export class PwbAppModuleInjectionExtension {
      * @param pModule - Module.
      */
     public constructor(pModule: ModuleReference) {
-        const lPwbApp: PwbApp | undefined = PwbApp.getAppOfZone(InteractionZone.current);
+        const lPwbApp: PwbApp | undefined = PwbApp.getAppOfZone(InteractionZone.save());
         if (lPwbApp) {
             pModule.setProcessorAttributes(PwbApp, lPwbApp);
         }
@@ -37,7 +37,7 @@ export class PwbAppComponentInjectionExtension {
      * @param pModule - Module.
      */
     public constructor(pComponent: ComponentReference) {
-        const lPwbApp: PwbApp | undefined = PwbApp.getAppOfZone(InteractionZone.current);
+        const lPwbApp: PwbApp | undefined = PwbApp.getAppOfZone(InteractionZone.save());
         if (lPwbApp) {
             pComponent.setProcessorAttributes(PwbApp, lPwbApp);
         }

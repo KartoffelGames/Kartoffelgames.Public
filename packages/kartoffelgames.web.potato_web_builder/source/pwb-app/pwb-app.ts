@@ -4,7 +4,7 @@ import { PwbTemplate } from '../component/template/nodes/pwb-template';
 import { ComponentProcessorConstructor } from '../interface/component.interface';
 import { PwbAppComponent } from './component/pwb-app-component';
 import { Component } from '../component/component';
-import { ErrorListener } from '@kartoffelgames/web.change-detection/library/source/change_detection/interaction-zone';
+import { ErrorListener, InteractionZoneStack } from '@kartoffelgames/web.change-detection/library/source/change_detection/interaction-zone';
 
 /**
  * Wrapper handles scoped global styles, components and loading splashscreen.
@@ -15,17 +15,14 @@ export class PwbApp {
     /**
      * Get app of interaction zone.
      * 
-     * @param pInteractionZone - Interaction zone.
+     * @param pInteractionZoneStack - Interaction zone stack.
      */
-    public static getAppOfZone(pInteractionZone: InteractionZone): PwbApp | undefined {
-        let lCurrent: InteractionZone | null = pInteractionZone;
-
-        while (lCurrent) {
-            if (PwbApp.mInteractionZoneToApp.has(lCurrent)) {
-                return PwbApp.mInteractionZoneToApp.get(lCurrent);
+    public static getAppOfZone(pInteractionZoneStack: InteractionZoneStack): PwbApp | undefined {
+        // Move zone stack down.
+        for (const lZone of pInteractionZoneStack.entries()) {
+            if (PwbApp.mInteractionZoneToApp.has(lZone)) {
+                return PwbApp.mInteractionZoneToApp.get(lZone);
             }
-
-            lCurrent = lCurrent.parent;
         }
 
         return undefined;
@@ -46,7 +43,7 @@ export class PwbApp {
      */
     public constructor() {
         // Read interaction zone of app component.
-        this.mInteractionZone = new InteractionZone('App', { isolate: true, trigger: InteractionResponseType.Any });
+        this.mInteractionZone = new InteractionZone('App', { isolate: true, trigger: InteractionResponseType.None });
         PwbApp.mInteractionZoneToApp.set(this.mInteractionZone, this);
 
         // Get app component constructor.

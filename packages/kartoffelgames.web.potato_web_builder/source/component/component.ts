@@ -228,7 +228,7 @@ export class Component extends InjectionHierarchyParent {
 
         this.mUpdateHandler.customInteractionTrigger(() => {
             this.processor.afterPwbUpdate?.();
-        }, InteractionResponseType.Asnychron);
+        }, InteractionResponseType.Any);
     }
 
     /**
@@ -243,7 +243,7 @@ export class Component extends InjectionHierarchyParent {
 
         this.mUpdateHandler.customInteractionTrigger(() => {
             this.processor.onPwbAttributeChange?.(pAttributeName);
-        }, InteractionResponseType.Asnychron);
+        }, InteractionResponseType.Any);
     }
 
     /**
@@ -257,7 +257,7 @@ export class Component extends InjectionHierarchyParent {
 
         this.mUpdateHandler.customInteractionTrigger(() => {
             this.processor.onPwbConnect?.();
-        }, InteractionResponseType.Asnychron);
+        }, InteractionResponseType.Any);
     }
 
     /**
@@ -271,7 +271,7 @@ export class Component extends InjectionHierarchyParent {
 
         this.mUpdateHandler.customInteractionTrigger(() => {
             this.processor.onPwbDeconstruct?.();
-        }, InteractionResponseType.Asnychron);
+        }, InteractionResponseType.Any);
     }
 
     /**
@@ -285,7 +285,7 @@ export class Component extends InjectionHierarchyParent {
 
         this.mUpdateHandler.customInteractionTrigger(() => {
             this.processor.onPwbDisconnect?.();
-        }, InteractionResponseType.Asnychron);
+        }, InteractionResponseType.Any);
     }
 
     /**
@@ -300,7 +300,7 @@ export class Component extends InjectionHierarchyParent {
         // Call component processor on update function.
         this.mUpdateHandler.customInteractionTrigger(() => {
             this.processor.onPwbUpdate?.();
-        }, InteractionResponseType.Asnychron);
+        }, InteractionResponseType.Any);
     }
 
     /**
@@ -313,7 +313,7 @@ export class Component extends InjectionHierarchyParent {
         this.callOnPwbConnect();
 
         // Trigger light update.
-        this.mUpdateHandler.requestUpdate(new InteractionReason(InteractionResponseType.AsnychronEvent, this.mProcessor ?? this));
+        this.mUpdateHandler.requestUpdate(new InteractionReason(InteractionResponseType.Custom, this.mProcessor ?? this));
     }
 
     /**

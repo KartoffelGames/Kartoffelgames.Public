@@ -448,6 +448,28 @@ describe('InteractionDetectionProxy', () => {
             // Evaluation.
             expect(lResultValue?.value).to.equal(lValue);
         });
+
+        it('-- Not dispatch interaction to proxy zone when current zone is silent.', async () => {
+            // Setup.
+            const lProxyZone: InteractionZone = new InteractionZone('CD', { trigger: InteractionResponseType.PropertySetStart });
+            const lSilentZone: InteractionZone = new InteractionZone('CD', { trigger: InteractionResponseType.None });
+
+            const lOriginalObject: { a: number; } = { a: 1 };
+            const lDetectionProxy: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject, lProxyZone);
+
+            // Process.
+            let lInteractionCounter: number = 0;
+            lProxyZone.addInteractionListener(() => {
+                lInteractionCounter++;
+            });
+
+            lSilentZone.execute(() => {
+                lDetectionProxy.proxy.a = 22;
+            });
+
+            // Evaluation.
+            expect(lInteractionCounter).to.equal(0);
+        });
     });
 
     describe('Functionality: attachZoneStack', () => {
@@ -533,6 +555,34 @@ describe('InteractionDetectionProxy', () => {
 
             // Evaluation.
             expect(lInteractionCounter).to.equal(1);
+        });
+
+        it('-- Not dispatch interaction to attached zone when changes where made in silent zone.', async () => {
+            // Setup.
+            const lProxyZone: InteractionZone = new InteractionZone('CD', { trigger: InteractionResponseType.PropertySetStart });
+            const lAttachedZone: InteractionZone = new InteractionZone('CD', { trigger: InteractionResponseType.PropertySetStart });
+            const lSilentZone: InteractionZone = new InteractionZone('CD', { trigger: InteractionResponseType.None });
+
+            const lOriginalObject: { a: number; } = { a: 1 };
+            const lDetectionProxy: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject, lProxyZone);
+
+            // Setup. InteractionZone.
+            let lInteractionCounter: number = 0;
+            lAttachedZone.addInteractionListener(() => {
+                lInteractionCounter++;
+            });
+
+            // Process.
+            lAttachedZone.execute(() => {
+                lDetectionProxy.addListenerZoneStack(InteractionZone.save());
+            });
+
+            lSilentZone.execute(() => {
+                lDetectionProxy.proxy.a = 22;
+            });
+
+            // Evaluation.
+            expect(lInteractionCounter).to.equal(0);
         });
     });
 

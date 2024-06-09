@@ -4,6 +4,7 @@ import { InteractionDetectionProxy } from '../../../source/change_detection/sync
 import { InteractionZone } from '../../../source/change_detection/interaction-zone';
 import { InteractionReason } from '../../../source/change_detection/interaction-reason';
 import { InteractionResponseType } from '../../../source/change_detection/enum/interaction-response-type.enum';
+import { IgnoreInteractionDetection } from '../../../source/change_detection/synchron_tracker/ignore-interaction-detection.decorator';
 
 describe('InteractionDetectionProxy', () => {
     it('Property: proxy', () => {
@@ -1032,8 +1033,8 @@ describe('InteractionDetectionProxy', () => {
         });
     });
 
-    describe('Functionality: Proxy pollution', () => {
-        it('-- Proerty set pollution', () => {
+    describe('Functionality: Special behaviour', () => {
+        it('-- Prevent property set pollution', () => {
             // Setup.
             const lOriginalObject: { a: object; } = { a: {} };
             const lOriginalInnerObject: object = lOriginalObject.a;
@@ -1046,6 +1047,21 @@ describe('InteractionDetectionProxy', () => {
             // Evaluation.
             expect(lProxValue).to.not.equal(lOriginalInnerObject);
             expect(lOriginalObject.a).to.equal(lOriginalInnerObject);
+        });
+
+        it('-- Ignore IgnoreInteractionDetection decorator', () => {
+            // Setup. Create Class with ignore decorator.
+            @IgnoreInteractionDetection
+            class IgnoreClass { }
+
+            // Setup. Create class.
+            const lOriginalObject: IgnoreClass = new IgnoreClass();
+
+            // Process. Create proxy.
+            const lDetectionProxy: IgnoreClass = new InteractionDetectionProxy(lOriginalObject, new InteractionZone('Zone', { trigger: InteractionResponseType.None })).proxy;
+
+            // Evaluation.
+            expect(lDetectionProxy).to.equal(lOriginalObject);
         });
     });
 });

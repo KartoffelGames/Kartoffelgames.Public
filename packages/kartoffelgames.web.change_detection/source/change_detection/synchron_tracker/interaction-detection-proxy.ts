@@ -1,6 +1,7 @@
 import { InteractionResponseType } from '../enum/interaction-response-type.enum';
 import { InteractionReason } from '../interaction-reason';
 import { InteractionZone, InteractionZoneStack } from '../interaction-zone';
+import { IgnoreInteractionDetection } from './ignore-interaction-detection.decorator';
 
 /**
  * Interaction detection proxy. Detects synchron calls and interactions on the proxy object.
@@ -8,11 +9,19 @@ import { InteractionZone, InteractionZoneStack } from '../interaction-zone';
  * 
  * @internal
  */
+@IgnoreInteractionDetection
 export class InteractionDetectionProxy<T extends object> {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    private static readonly IGNORED_CLASSES: WeakSet<InteractionDetectionConstructor> = new WeakSet<InteractionDetectionConstructor>();
     // eslint-disable-next-line @typescript-eslint/naming-convention
     private static readonly ORIGINAL_TO_INTERACTION_MAPPING: WeakMap<object, WeakMap<InteractionZone, InteractionDetectionProxy<any>>> = new WeakMap<object, WeakMap<InteractionZone, InteractionDetectionProxy<any>>>();
     // eslint-disable-next-line @typescript-eslint/naming-convention
     private static readonly PROXY_TO_ORIGINAL_MAPPING: WeakMap<object, object> = new WeakMap<object, object>();
+
+
+    public static ignoreClass(pConstructor: InteractionDetectionConstructor): void {
+        InteractionDetectionProxy.IGNORED_CLASSES.add(pConstructor);
+    }
 
     /**
      * Get original object from InteractionDetectionProxy-Proxy.
@@ -70,7 +79,7 @@ export class InteractionDetectionProxy<T extends object> {
         this.mListenerZonesStack = new Set<InteractionZoneStack>();
 
         // Prevent interaction zones from beeing proxied.
-        if (pTarget instanceof InteractionZone) {
+        if (InteractionDetectionProxy.IGNORED_CLASSES.has(Object.getPrototypeOf(pTarget)?.constructor)) {
             this.mProxyObject = pTarget;
         } else {
             // Create new proxy object.
@@ -282,3 +291,5 @@ export class InteractionDetectionProxy<T extends object> {
 }
 
 type CallableObject = (...args: Array<any>) => any;
+
+export type InteractionDetectionConstructor = new (...pParameter: Array<any>) => {};

@@ -4,10 +4,12 @@ import { InteractionResponseType } from './enum/interaction-response-type.enum';
 import { ErrorAllocation } from './error-allocation';
 import { InteractionReason } from './interaction-reason';
 import { InteractionDetectionProxy } from './synchron_tracker/interaction-detection-proxy';
+import { IgnoreInteractionDetection } from './synchron_tracker/ignore-interaction-detection.decorator';
 
 /**
  * Merges execution zone and proxy tracking.
  */
+@IgnoreInteractionDetection
 export class InteractionZone {
     private static mZoneStack: InteractionZoneStack = new Stack<InteractionZone>();
 

@@ -1,5 +1,4 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { CompareHandler } from '@kartoffelgames/web.change-detection';
 import { LayerValues } from '../../component/values/layer-values';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
@@ -18,14 +17,10 @@ import { ComponentScopeExecutor } from '../../module/execution/component-scope-e
 export class TwoWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate {
     private readonly mAttributeKey: string;
     private readonly mAttributeValue: string;
-    private readonly mCompareHandler: CompareHandler<any>;
     private mLastDataValue: any;
     private mLastViewValue: any;
     private readonly mLayerValues: LayerValues;
     private readonly mTargetNode: Node;
-
-
-
 
     /**
      * Constructor.
@@ -40,9 +35,6 @@ export class TwoWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate
         // Get property name.
         this.mAttributeKey = pAttributeKey.substring(2, pAttributeKey.length - 2);
         this.mAttributeValue = pAttributeValue.toString();
-
-        // Add comparison handler for this and for the target view value.
-        this.mCompareHandler = new CompareHandler(4);
 
         // Set start compare values.
         this.mLastDataValue = Symbol('Uncomparable');
@@ -61,7 +53,7 @@ export class TwoWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate
         const lCurrentDataValue: any = ComponentScopeExecutor.executeSilent(this.mAttributeValue, this.mLayerValues);
 
         // Check for changes in this value.
-        if (!this.mCompareHandler.compare(lCurrentDataValue, this.mLastDataValue)) {
+        if (lCurrentDataValue !== this.mLastDataValue) {
             // Update target view
             Reflect.set(this.mTargetNode, this.mAttributeKey, lCurrentDataValue);
 
@@ -75,7 +67,7 @@ export class TwoWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate
         const lCurrentViewValue: any = Reflect.get(this.mTargetNode, this.mAttributeKey);
 
         // Check for changes in view.
-        if (!this.mCompareHandler.compare(lCurrentViewValue, this.mLastViewValue)) {
+        if (lCurrentViewValue !== this.mLastViewValue) {
             const lExtendedValues: Dictionary<string, any> = new Dictionary<string, any>();
             lExtendedValues.set('$DATA', lCurrentViewValue);
 

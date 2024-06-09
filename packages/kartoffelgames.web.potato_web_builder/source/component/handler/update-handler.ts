@@ -1,5 +1,5 @@
 import { List } from '@kartoffelgames/core.data';
-import { InteractionReason, InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
+import { IgnoreInteractionDetection, InteractionReason, InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
 import { UpdateMode } from '../../enum/update-mode.enum';
 import { LoopDetectionHandler } from './loop-detection-handler';
 import { InteractionZoneStack } from '@kartoffelgames/web.change-detection/library/source/change_detection/interaction-zone';
@@ -10,9 +10,9 @@ import { InteractionZoneStack } from '@kartoffelgames/web.change-detection/libra
  * 
  * @internal
  */
+@IgnoreInteractionDetection
 export class UpdateHandler {
     private static readonly mDefaultComponentTrigger: InteractionResponseType = InteractionResponseType.CallbackCallEnd | InteractionResponseType.Custom | InteractionResponseType.EventlistenerEnd | InteractionResponseType.FunctionCallEnd | InteractionResponseType.PromiseReject | InteractionResponseType.PromiseResolve | InteractionResponseType.PropertyDeleteEnd | InteractionResponseType.PropertySetEnd;
-    private static readonly mUpdateCycleTrigger: InteractionResponseType = InteractionResponseType.CallbackCallEnd | InteractionResponseType.Custom | InteractionResponseType.EventlistenerEnd | InteractionResponseType.PromiseReject | InteractionResponseType.PromiseResolve | InteractionResponseType.PropertyDeleteEnd | InteractionResponseType.PropertySetEnd;
 
     private readonly mComponentZoneStack: InteractionZoneStack;
     private mEnabled: boolean;
@@ -167,7 +167,7 @@ export class UpdateHandler {
      */
     public registerObject<T extends object>(pObject: T): T {
         return InteractionZone.restore(this.mComponentZoneStack, () => {
-            return InteractionZone.registerObject(pObject);
+            return this.mInteractionZone.registerObject(pObject);
         });
     }
 

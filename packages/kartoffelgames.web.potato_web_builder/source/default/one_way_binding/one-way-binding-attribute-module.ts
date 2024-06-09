@@ -1,4 +1,3 @@
-import { CompareHandler } from '@kartoffelgames/web.change-detection';
 import { LayerValues } from '../../component/values/layer-values';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
@@ -22,7 +21,6 @@ export class OneWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate
     private mLastValue: any;
     private readonly mTarget: Node;
     private readonly mTargetProperty: string;
-    private readonly mValueCompare: CompareHandler<any>;
     private readonly mValueHandler: LayerValues;
 
     /**
@@ -42,7 +40,6 @@ export class OneWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate
         this.mTargetProperty = pAttributeKeyReference.substring(1, pAttributeKeyReference.length - 1);
 
         // Create empty compare handler with unique symbol.
-        this.mValueCompare = new CompareHandler(4);
         this.mLastValue = Symbol('Uncomparable');
     }
 
@@ -53,7 +50,7 @@ export class OneWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate
     public onUpdate(): boolean {
         const lExecutionResult: any = ComponentScopeExecutor.executeSilent(this.mExecutionString, this.mValueHandler);
 
-        if (!this.mValueCompare.compare(lExecutionResult, this.mLastValue)) {
+        if (lExecutionResult !== this.mLastValue) {
             // Save last value.
             this.mLastValue = lExecutionResult;
 

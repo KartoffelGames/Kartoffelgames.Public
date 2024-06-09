@@ -68,25 +68,22 @@ describe('ForInstructionModule', () => {
     });
 
     it('Custom iterator', async () => {
-        // Setup. Custom iterator.
-        function* lCustomIterator(pStart = 0, pEnd = 100) {
-            let lIterationCount = 0;
-            for (let lIndex = pStart; lIndex < pEnd; lIndex++) {
-                lIterationCount++;
-                yield lIndex;
-            }
-            return lIterationCount;
-        }
-
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: `$for(item of this.list) {
+            template: `$for(item of this.customIterator(1,4)) {
                 <div/>
             }`
         })
         class TestComponent {
-            public list: Generator<number, number> = lCustomIterator(1, 4);
+            public * customIterator(pStart = 0, pEnd = 100) {
+                let lIterationCount = 0;
+                for (let lIndex = pStart; lIndex < pEnd; lIndex++) {
+                    lIterationCount++;
+                    yield lIndex;
+                }
+                return lIterationCount;
+            }
         }
 
         // Setup. Create element.
@@ -576,7 +573,7 @@ describe('ForInstructionModule', () => {
                 <div>{{this.item}}</div>
             }`
         })
-        class TestComponent {}
+        class TestComponent { }
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);

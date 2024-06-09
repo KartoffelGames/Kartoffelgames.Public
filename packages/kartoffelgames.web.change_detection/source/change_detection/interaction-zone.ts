@@ -35,7 +35,7 @@ export class InteractionZone {
         // Create and register error and rejection listener.
         window.addEventListener('error', (pEvent: ErrorEvent) => {
             // Skip none object errors.
-            if(typeof pEvent.error !== 'object' || pEvent.error === null) {
+            if (typeof pEvent.error !== 'object' || pEvent.error === null) {
                 return;
             }
 
@@ -79,27 +79,6 @@ export class InteractionZone {
         }
 
         return true;
-    }
-
-    /**
-     * Register an object for interaction detection.
-     * Returns proxy object that should be used to track changes.
-     * 
-     * @param pObject - Object or function.
-     */
-    public static registerObject<T extends object>(pObject: T): T {
-        const lCurrentZoneStack: InteractionZoneStack = InteractionZone.save();
-
-        // Attach event handler for events that usually trigger direct changes on object.
-        if (pObject instanceof Element) {
-            Patcher.attachZoneStack(pObject, lCurrentZoneStack);
-        }
-
-        // Create interaction proxy and attach current zone.
-        const lProxy = new InteractionDetectionProxy(pObject);
-        lProxy.attachZoneStack(lCurrentZoneStack);
-
-        return lProxy.proxy;
     }
 
     /**
@@ -236,6 +215,26 @@ export class InteractionZone {
         }
 
         return lResult;
+    }
+
+    /**
+     * Register an object for interaction detection.
+     * Returns proxy object that should be used to track changes.
+     * 
+     * @param pObject - Object or function.
+     */
+    public registerObject<T extends object>(pObject: T): T {
+        // Attach event handler for events that usually trigger direct changes on object.
+        if (pObject instanceof Element) {
+            // Get current stack and push this zone.
+            const lCurrentZoneStack: InteractionZoneStack = InteractionZone.save();
+            lCurrentZoneStack.push(this);
+
+            Patcher.attachZoneStack(pObject, lCurrentZoneStack);
+        }
+
+        // Create interaction proxy and attach current zone.
+        return new InteractionDetectionProxy(pObject, this).proxy;
     }
 
     /**

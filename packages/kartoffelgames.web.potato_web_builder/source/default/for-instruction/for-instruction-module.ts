@@ -92,7 +92,7 @@ export class ForInstructionModule implements IPwbInstructionModuleOnUpdate {
             // Iterator iterator and
             for (const [lEntryKey, lEntryValue] of lListObjectEntries) {
                 // Add new template for every entry.
-                this.addTemplateForElement(lModuleResult, this.mExpression, lEntryKey, lEntryValue);
+                this.addTemplateForElement(lModuleResult, this.mExpression, lEntryValue, lEntryKey);
             }
 
             return lModuleResult;

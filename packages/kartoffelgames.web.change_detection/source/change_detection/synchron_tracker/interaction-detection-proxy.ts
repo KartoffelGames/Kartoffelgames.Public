@@ -14,7 +14,7 @@ export class InteractionDetectionProxy<T extends object> {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     private static readonly IGNORED_CLASSES: WeakSet<InteractionDetectionConstructor> = new WeakSet<InteractionDetectionConstructor>();
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    private static readonly ORIGINAL_TO_INTERACTION_MAPPING: WeakMap<object, WeakMap<InteractionZone, InteractionDetectionProxy<any>>> = new WeakMap<object, WeakMap<InteractionZone, InteractionDetectionProxy<any>>>();
+    private static readonly ORIGINAL_TO_INTERACTION_MAPPING: WeakMap<object, InteractionDetectionProxy<any>> = new WeakMap<object, InteractionDetectionProxy<any>>();
     // eslint-disable-next-line @typescript-eslint/naming-convention
     private static readonly PROXY_TO_ORIGINAL_MAPPING: WeakMap<object, object> = new WeakMap<object, object>();
 
@@ -38,22 +38,16 @@ export class InteractionDetectionProxy<T extends object> {
      * @param pProxy - Proxy object.
      * @returns InteractionDetectionProxy or null if not a InteractionDetectionProxy-proxy.
      */
-    private static getWrapper<TValue extends object>(pProxy: TValue, pZone: InteractionZone): InteractionDetectionProxy<TValue> | undefined {
+    private static getWrapper<TValue extends object>(pProxy: TValue): InteractionDetectionProxy<TValue> | undefined {
         // Get original.
         const lOriginal: TValue = InteractionDetectionProxy.getOriginal(pProxy);
 
-        const lZoneMapping: WeakMap<InteractionZone, InteractionDetectionProxy<any>> | undefined = InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.get(lOriginal);
-        if (!lZoneMapping) {
-            return undefined;
-        }
-
         // Get wrapper from original.
-        return lZoneMapping.get(pZone);
+        return InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.get(lOriginal);
     }
 
     private readonly mListenerZonesStack!: Set<InteractionZoneStack>;
     private readonly mProxyObject!: T;
-    private readonly mZone!: InteractionZone;
 
     /**
      * Get proxy object for target.
@@ -68,14 +62,13 @@ export class InteractionDetectionProxy<T extends object> {
      * 
      * @param pTarget - Target object or function.
      */
-    public constructor(pTarget: T, pZone: InteractionZone) {
+    public constructor(pTarget: T) {
         // Use already created wrapper if it exist.
-        const lWrapper: InteractionDetectionProxy<T> | undefined = InteractionDetectionProxy.getWrapper(pTarget, pZone);
+        const lWrapper: InteractionDetectionProxy<T> | undefined = InteractionDetectionProxy.getWrapper(pTarget);
         if (lWrapper) {
             return lWrapper;
         }
 
-        this.mZone = pZone;
         this.mListenerZonesStack = new Set<InteractionZoneStack>();
 
         // Prevent interaction zones from beeing proxied.
@@ -88,15 +81,7 @@ export class InteractionDetectionProxy<T extends object> {
 
         // Map proxy with real object and real object to current class.
         InteractionDetectionProxy.PROXY_TO_ORIGINAL_MAPPING.set(this.mProxyObject, pTarget);
-
-        // Init zone to proxy mapping when not already set.
-        if (!InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.has(pTarget)) {
-            InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.set(pTarget, new WeakMap<InteractionZone, InteractionDetectionProxy<any>>());
-        }
-
-        // Set zone to detection proxy mapping.
-        const lZoneMapping: WeakMap<InteractionZone, InteractionDetectionProxy<any>> = InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.get(pTarget)!;
-        lZoneMapping.set(pZone, this);
+        InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.set(pTarget, this);
     }
 
     /**
@@ -125,29 +110,26 @@ export class InteractionDetectionProxy<T extends object> {
              * @param pNewPropertyValue - New value of property.
              */
             set: (pTargetObject: T, pPropertyName: PropertyKey, pNewPropertyValue: any): boolean => {
-                // Wrap property into attached zone.
-                return this.mZone.execute(() => {
-                    // Dispatch set property start interaction. 
-                    this.dispatch(InteractionResponseType.PropertySetStart, this.mProxyObject, pPropertyName);
+                // Dispatch set property start interaction. 
+                this.dispatch(InteractionResponseType.PropertySetStart, this.mProxyObject, pPropertyName);
 
-                    try {
-                        // Prevent original pollution by getting original from value.
-                        let lPropertyValue: any = pNewPropertyValue;
-                        if (lPropertyValue !== null && typeof lPropertyValue === 'object' || typeof lPropertyValue === 'function') {
-                            lPropertyValue = InteractionDetectionProxy.getOriginal(lPropertyValue);
-                        }
-
-                        // Set value to original target property.
-                        return Reflect.set(pTargetObject, pPropertyName, lPropertyValue);
-                    } catch (pError) {
-                        // Dispatch error interaction and passthrough error.
-                        this.dispatch(InteractionResponseType.PropertySetError, this.mProxyObject, pPropertyName);
-                        throw pError;
-                    } finally {
-                        // Dispatches interaction end event before exception passthrough.
-                        this.dispatch(InteractionResponseType.PropertySetEnd, this.mProxyObject, pPropertyName);
+                try {
+                    // Prevent original pollution by getting original from value.
+                    let lPropertyValue: any = pNewPropertyValue;
+                    if (lPropertyValue !== null && typeof lPropertyValue === 'object' || typeof lPropertyValue === 'function') {
+                        lPropertyValue = InteractionDetectionProxy.getOriginal(lPropertyValue);
                     }
-                });
+
+                    // Set value to original target property.
+                    return Reflect.set(pTargetObject, pPropertyName, lPropertyValue);
+                } catch (pError) {
+                    // Dispatch error interaction and passthrough error.
+                    this.dispatch(InteractionResponseType.PropertySetError, this.mProxyObject, pPropertyName);
+                    throw pError;
+                } finally {
+                    // Dispatches interaction end event before exception passthrough.
+                    this.dispatch(InteractionResponseType.PropertySetEnd, this.mProxyObject, pPropertyName);
+                }
             },
 
             /**
@@ -159,31 +141,33 @@ export class InteractionDetectionProxy<T extends object> {
              * @param lReceiver - Either the proxy or an object that inherits from the proxy.
              */
             get: (pTarget, pPropertyName: PropertyKey, _pReceiver) => {
-                // Wrap property into attached zone.
-                return this.mZone.execute(() => {
-                    // Dispatch get property start interaction. 
-                    this.dispatch(InteractionResponseType.PropertyGetStart, this.mProxyObject, pPropertyName);
+                // Dispatch get property start interaction. 
+                this.dispatch(InteractionResponseType.PropertyGetStart, this.mProxyObject, pPropertyName);
 
-                    try {
-                        // Get original value.
-                        const lResult: any = Reflect.get(pTarget, pPropertyName);
+                try {
+                    // Get original value.
+                    const lResult: any = Reflect.get(pTarget, pPropertyName);
 
-                        // When the value is not a object or a function these values can not be observed.
-                        if (lResult === null || typeof lResult !== 'object' && typeof lResult !== 'function') {
-                            return lResult;
-                        }
-
-                        // But when it is a object or a function, than wrap it into another detection proxy and passthrough any interaction.
-                        return new InteractionDetectionProxy(lResult, this.mZone).proxy;
-                    } catch (pError) {
-                        // Dispatch error interaction and passthrough error.
-                        this.dispatch(InteractionResponseType.PropertyGetError, this.mProxyObject, pPropertyName);
-                        throw pError;
-                    } finally {
-                        // Dispatches interaction end event before exception passthrough.
-                        this.dispatch(InteractionResponseType.PropertyGetEnd, this.mProxyObject, pPropertyName);
+                    // When the value is not a object or a function these values can not be observed.
+                    if (lResult === null || typeof lResult !== 'object' && typeof lResult !== 'function') {
+                        return lResult;
                     }
-                });
+
+                    // But when it is a object or a function, than wrap it into another detection proxy and passthrough any interaction.
+                    const lNestedProxy: InteractionDetectionProxy<any> = new InteractionDetectionProxy(lResult);
+                    for(const lCallbackStack of this.mListenerZonesStack){
+                        lNestedProxy.addListenerZoneStack(lCallbackStack);
+                    }
+
+                    return lNestedProxy.proxy;
+                } catch (pError) {
+                    // Dispatch error interaction and passthrough error.
+                    this.dispatch(InteractionResponseType.PropertyGetError, this.mProxyObject, pPropertyName);
+                    throw pError;
+                } finally {
+                    // Dispatches interaction end event before exception passthrough.
+                    this.dispatch(InteractionResponseType.PropertyGetEnd, this.mProxyObject, pPropertyName);
+                }
             },
 
             /**
@@ -193,23 +177,20 @@ export class InteractionDetectionProxy<T extends object> {
              * @param pPropertyName - Name of property.
              */
             deleteProperty: (pTargetObject: T, pPropertyName: PropertyKey): boolean => {
-                // Wrap property into attached zone.
-                return this.mZone.execute(() => {
-                    // Dispatch delete property start interaction. 
-                    this.dispatch(InteractionResponseType.PropertyDeleteStart, this.mProxyObject, pPropertyName);
+                // Dispatch delete property start interaction. 
+                this.dispatch(InteractionResponseType.PropertyDeleteStart, this.mProxyObject, pPropertyName);
 
-                    try {
-                        // Remove property from original target and return result.
-                        return delete (<any>pTargetObject)[pPropertyName];
-                    } catch (pError) {
-                        // Dispatch error interaction and passthrough error.
-                        this.dispatch(InteractionResponseType.PropertyDeleteError, this.mProxyObject, pPropertyName);
-                        throw pError;
-                    } finally {
-                        // Dispatches interaction end event before exception passthrough.
-                        this.dispatch(InteractionResponseType.PropertyDeleteEnd, this.mProxyObject, pPropertyName);
-                    }
-                });
+                try {
+                    // Remove property from original target and return result.
+                    return delete (<any>pTargetObject)[pPropertyName];
+                } catch (pError) {
+                    // Dispatch error interaction and passthrough error.
+                    this.dispatch(InteractionResponseType.PropertyDeleteError, this.mProxyObject, pPropertyName);
+                    throw pError;
+                } finally {
+                    // Dispatches interaction end event before exception passthrough.
+                    this.dispatch(InteractionResponseType.PropertyDeleteEnd, this.mProxyObject, pPropertyName);
+                }
             },
 
             /**
@@ -220,43 +201,40 @@ export class InteractionDetectionProxy<T extends object> {
              * @param pArgumentsList - All arguments of call.
              */
             apply: (pTargetObject: T, pThisArgument: any, pArgumentsList: Array<any>): void => {
-                // Wrap function into attached zone.
-                return this.mZone.execute(() => {
-                    // Dispatch function call start interaction. 
-                    this.dispatch(InteractionResponseType.FunctionCallStart, this.mProxyObject);
+                // Dispatch function call start interaction. 
+                this.dispatch(InteractionResponseType.FunctionCallStart, this.mProxyObject);
 
-                    // Execute function and dispatch interaction event on synchron exceptions.
-                    let lFunctionResult: any;
+                // Execute function and dispatch interaction event on synchron exceptions.
+                let lFunctionResult: any;
+                try {
+                    lFunctionResult = (<CallableObject>pTargetObject).call(pThisArgument, ...pArgumentsList);
+                } catch (pError) {
                     try {
-                        lFunctionResult = (<CallableObject>pTargetObject).call(pThisArgument, ...pArgumentsList);
-                    } catch (pError) {
-                        try {
-                            // Rethrow error when it is not related to any type errors.
-                            // Type errors occure when js internal functions cant be called with a proxy.
-                            if (!(pError instanceof TypeError)) {
-                                throw pError;
-                            }
-
-                            // Get original object of "this"-Scope. and call the function again with it.
-                            try {
-                                const lOriginalThisObject: object = InteractionDetectionProxy.getOriginal(pThisArgument);
-                                lFunctionResult = (<CallableObject>pTargetObject).call(lOriginalThisObject, ...pArgumentsList);
-                            } finally {
-                                // Dispatch special InteractionResponseType.NativeFunctionCall.
-                                this.dispatch(InteractionResponseType.NativeFunctionCall, this.mProxyObject);
-                            }
-                        } catch (pPassthroughError) {
-                            // Dispatch function error interaction and passthrough error.
-                            this.dispatch(InteractionResponseType.FunctionCallError, this.mProxyObject);
-                            throw pPassthroughError;
+                        // Rethrow error when it is not related to any type errors.
+                        // Type errors occure when js internal functions cant be called with a proxy.
+                        if (!(pError instanceof TypeError)) {
+                            throw pError;
                         }
-                    } finally {
-                        // Dispatches interaction end event before exception passthrough.
-                        this.dispatch(InteractionResponseType.FunctionCallEnd, this.mProxyObject);
-                    }
 
-                    return lFunctionResult;
-                });
+                        // Get original object of "this"-Scope. and call the function again with it.
+                        try {
+                            const lOriginalThisObject: object = InteractionDetectionProxy.getOriginal(pThisArgument);
+                            lFunctionResult = (<CallableObject>pTargetObject).call(lOriginalThisObject, ...pArgumentsList);
+                        } finally {
+                            // Dispatch special InteractionResponseType.NativeFunctionCall.
+                            this.dispatch(InteractionResponseType.NativeFunctionCall, this.mProxyObject);
+                        }
+                    } catch (pPassthroughError) {
+                        // Dispatch function error interaction and passthrough error.
+                        this.dispatch(InteractionResponseType.FunctionCallError, this.mProxyObject);
+                        throw pPassthroughError;
+                    }
+                } finally {
+                    // Dispatches interaction end event before exception passthrough.
+                    this.dispatch(InteractionResponseType.FunctionCallEnd, this.mProxyObject);
+                }
+
+                return lFunctionResult;
             }
         });
 
@@ -281,10 +259,7 @@ export class InteractionDetectionProxy<T extends object> {
         // Dispatch reason to all attached zones. Ignore current stack but push attached zone.
         for (const lZoneStack of this.mListenerZonesStack) {
             InteractionZone.restore(lZoneStack, () => {
-                // Push attached zone to restored stack.
-                this.mZone.execute(() => {
-                    InteractionZone.dispatchInteractionEvent(lReason);
-                });
+                InteractionZone.dispatchInteractionEvent(lReason);
             });
         }
     }

@@ -84,6 +84,28 @@ export class InteractionZone {
     }
 
     /**
+     * Register an object for interaction detection.
+     * Returns proxy object that should be used to track changes.
+     * 
+     * @param pObject - Object or function.
+     */
+    public static registerObject<T extends object>(pObject: T): T {
+        // Get current stack and push this zone.
+        const lCurrentZoneStack: InteractionZoneStack = InteractionZone.save();
+
+        // Attach event handler for events that usually trigger direct changes on object.
+        if (pObject instanceof Element) {
+            Patcher.attachZoneStack(pObject, lCurrentZoneStack);
+        }
+
+        // Create interaction proxy and attach current zone stack.
+        const lInteractionDetectionProxy: InteractionDetectionProxy<T> = new InteractionDetectionProxy(pObject);
+        lInteractionDetectionProxy.addListenerZoneStack(lCurrentZoneStack);
+
+        return lInteractionDetectionProxy.proxy;
+    }
+
+    /**
      * Restores zone stack and executes function for the restored stack.
      * 
      * @param pZoneStack - Zone stack that should be restored.
@@ -217,26 +239,6 @@ export class InteractionZone {
         }
 
         return lResult;
-    }
-
-    /**
-     * Register an object for interaction detection.
-     * Returns proxy object that should be used to track changes.
-     * 
-     * @param pObject - Object or function.
-     */
-    public registerObject<T extends object>(pObject: T): T {
-        // Attach event handler for events that usually trigger direct changes on object.
-        if (pObject instanceof Element) {
-            // Get current stack and push this zone.
-            const lCurrentZoneStack: InteractionZoneStack = InteractionZone.save();
-            lCurrentZoneStack.push(this);
-
-            Patcher.attachZoneStack(pObject, lCurrentZoneStack);
-        }
-
-        // Create interaction proxy and attach current zone.
-        return new InteractionDetectionProxy(pObject, this).proxy;
     }
 
     /**

@@ -167,7 +167,7 @@ export class UpdateHandler {
      */
     public registerObject<T extends object>(pObject: T): T {
         return InteractionZone.restore(this.mComponentZoneStack, () => {
-            return this.mInteractionZone.registerObject(pObject);
+            return InteractionZone.registerObject(pObject);
         });
     }
 

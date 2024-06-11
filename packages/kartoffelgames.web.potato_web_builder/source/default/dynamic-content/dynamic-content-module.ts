@@ -52,17 +52,22 @@ export class DynamicContentInstructionModule implements IPwbInstructionModuleOnU
         }
 
         // Check for changes.
-        if (!this.mLastTemplate || this.mLastTemplate !== lTemplateResult) { // TODO: check template by equal.
-            this.mLastTemplate = lTemplateResult;
+        const lTemplateEqual: boolean = this.mUpdateHandler.disableInteractionTrigger(() => {
+            return this.mLastTemplate !== null && this.mLastTemplate.equals(lTemplateResult);
+        });
 
-            // Add custom template to output.
-            const lModuleResult: InstructionResult = new InstructionResult();
-            lModuleResult.addElement(lTemplateResult, new LayerValues(this.mLayerValues));
-
-            return lModuleResult;
-        } else {
+        if (lTemplateEqual) {
             // No update needed.
             return null;
         }
+
+        this.mLastTemplate = lTemplateResult;
+
+        // Add custom template to output.
+        const lModuleResult: InstructionResult = new InstructionResult();
+        lModuleResult.addElement(lTemplateResult, new LayerValues(this.mLayerValues));
+
+        return lModuleResult;
+
     }
 }

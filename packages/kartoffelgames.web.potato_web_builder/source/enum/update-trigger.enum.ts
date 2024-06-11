@@ -1,61 +1,62 @@
 import { InteractionResponseType } from '@kartoffelgames/web.change-detection';
 
-export enum UpdateTrigger {
+// TODO: How to use it as enum?
+export const UpdateTrigger = {
     /**
      * Anything. Pure chaos. Dont use when you dont know what it does.
      * Triggers updates even on read calls.
      */
-    Any = InteractionResponseType.Any,
+    Any: InteractionResponseType.Any as InteractionResponseType,
 
     /**
      * Nothing triggers. Endless silence.
      */
-    None = InteractionResponseType.None,
+    None: InteractionResponseType.None as InteractionResponseType,
 
     /**
      * Default update trigger.
      * Triggers updates on any call and change.
      */
-    Default = InteractionResponseType.CallbackCallEnd
-    | InteractionResponseType.Custom
-    | InteractionResponseType.EventlistenerEnd
-    | InteractionResponseType.NativeFunctionCall
-    | InteractionResponseType.FunctionCallEnd
-    | InteractionResponseType.PromiseReject
-    | InteractionResponseType.PromiseResolve
-    | InteractionResponseType.PropertyDeleteEnd
-    | InteractionResponseType.PropertySetEnd,
+    Default: (InteractionResponseType.CallbackCallEnd
+        | InteractionResponseType.Custom
+        | InteractionResponseType.EventlistenerEnd
+        | InteractionResponseType.NativeFunctionCall
+        | InteractionResponseType.FunctionCallEnd
+        | InteractionResponseType.PromiseReject
+        | InteractionResponseType.PromiseResolve
+        | InteractionResponseType.PropertyDeleteEnd
+        | InteractionResponseType.PropertySetEnd) as InteractionResponseType,
 
     /**
      * Async update trigger.
      * Only triggers on async calls.
      */
-    Async = InteractionResponseType.CallbackCallEnd
-    | InteractionResponseType.Custom
-    | InteractionResponseType.EventlistenerEnd
-    | InteractionResponseType.PromiseReject
-    | InteractionResponseType.PromiseResolve,
+    Async: (InteractionResponseType.CallbackCallEnd
+        | InteractionResponseType.Custom
+        | InteractionResponseType.EventlistenerEnd
+        | InteractionResponseType.PromiseReject
+        | InteractionResponseType.PromiseResolve) as InteractionResponseType,
 
     /**
      * Sync update trigger.
      * Triggers only on sync changes.
      */
-    Sync = InteractionResponseType.Custom
-    | InteractionResponseType.NativeFunctionCall
-    | InteractionResponseType.FunctionCallEnd
-    | InteractionResponseType.PropertyDeleteEnd
-    | InteractionResponseType.PropertySetEnd,
+    Sync: (InteractionResponseType.Custom
+        | InteractionResponseType.NativeFunctionCall
+        | InteractionResponseType.FunctionCallEnd
+        | InteractionResponseType.PropertyDeleteEnd
+        | InteractionResponseType.PropertySetEnd) as InteractionResponseType,
 
     /**
      * Update trigger without any syncron call trigger.
      * Prevents update trigger on function calls with only read actions.
      */
-    NoSyncCalls = InteractionResponseType.CallbackCallEnd
-    | InteractionResponseType.Custom
-    | InteractionResponseType.EventlistenerEnd
-    | InteractionResponseType.NativeFunctionCall
-    | InteractionResponseType.PromiseReject
-    | InteractionResponseType.PromiseResolve
-    | InteractionResponseType.PropertyDeleteEnd
-    | InteractionResponseType.PropertySetEnd,
-}
+    NoSyncCalls: (InteractionResponseType.CallbackCallEnd
+        | InteractionResponseType.Custom
+        | InteractionResponseType.EventlistenerEnd
+        | InteractionResponseType.NativeFunctionCall
+        | InteractionResponseType.PromiseReject
+        | InteractionResponseType.PromiseResolve
+        | InteractionResponseType.PropertyDeleteEnd
+        | InteractionResponseType.PropertySetEnd) as InteractionResponseType,
+} as const;

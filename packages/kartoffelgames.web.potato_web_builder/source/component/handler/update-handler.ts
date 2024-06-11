@@ -3,6 +3,7 @@ import { IgnoreInteractionDetection, InteractionReason, InteractionResponseType,
 import { UpdateMode } from '../../enum/update-mode.enum';
 import { LoopDetectionHandler } from './loop-detection-handler';
 import { InteractionZoneStack } from '@kartoffelgames/web.change-detection/library/source/change_detection/interaction-zone';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
 /**
  * Component update handler. Handles automatic and manual updates.
@@ -12,8 +13,6 @@ import { InteractionZoneStack } from '@kartoffelgames/web.change-detection/libra
  */
 @IgnoreInteractionDetection
 export class UpdateHandler {
-    private static readonly mDefaultComponentTrigger: InteractionResponseType = InteractionResponseType.CallbackCallEnd | InteractionResponseType.Custom | InteractionResponseType.EventlistenerEnd | InteractionResponseType.NativeFunctionCall | InteractionResponseType.FunctionCallEnd | InteractionResponseType.PromiseReject | InteractionResponseType.PromiseResolve | InteractionResponseType.PropertyDeleteEnd | InteractionResponseType.PropertySetEnd;
-
     private readonly mComponentZoneStack: InteractionZoneStack;
     private mEnabled: boolean;
     private readonly mInteractionDetectionListener: (pReason: InteractionReason) => void;
@@ -58,10 +57,10 @@ export class UpdateHandler {
         // Create isolated or default zone.
         if (pUpdateScope % UpdateMode.Isolated !== 0) {
             // Isolated zone.
-            this.mInteractionZone = new InteractionZone('CapsuledComponentZone', { isolate: true, trigger: UpdateHandler.mDefaultComponentTrigger });
+            this.mInteractionZone = new InteractionZone('CapsuledComponentZone', { isolate: true, trigger: UpdateTrigger.Default });
         } else {
             // Global zone.
-            this.mInteractionZone = new InteractionZone('DefaultComponentZone', { trigger: UpdateHandler.mDefaultComponentTrigger });
+            this.mInteractionZone = new InteractionZone('DefaultComponentZone', { trigger: UpdateTrigger.Default });
         }
 
         // Create manual or default listener. Manual listener does nothing on interaction.
@@ -121,7 +120,7 @@ export class UpdateHandler {
      * Nesting {@link disableInteractionTrigger} and {@link enableInteractionTrigger} is allowed.
      */
     public disableInteractionTrigger<T>(pFunction: () => T): T {
-        const lSilentZone: InteractionZone = new InteractionZone('Silent-' + this.mInteractionZone.name, { trigger: InteractionResponseType.None });
+        const lSilentZone: InteractionZone = new InteractionZone('Silent-' + this.mInteractionZone.name, { trigger: UpdateTrigger.None });
 
         // Call function in custom zone in current component stack.
         return InteractionZone.restore(this.mComponentZoneStack, () => {
@@ -148,12 +147,14 @@ export class UpdateHandler {
      * @param pFunction - Function.
      * @param pTrigger - Interaction detection trigger.
      * 
+     * // TODO: Also remove this... excludeInteractionTrigger
+     * 
      * @remarks 
      * Nesting {@link disableInteractionTrigger} and {@link enableInteractionTrigger} is allowed.
      */
     public excludeInteractionTrigger<T>(pFunction: () => T, pTrigger: InteractionResponseType): T {
         // Exclude trigger by AND a Negated pTrigger => 1010 & ~0010 => 1010 & 1101 => 1000
-        const lCustomZone: InteractionZone = new InteractionZone('Custom-' + this.mInteractionZone.name, { trigger: UpdateHandler.mDefaultComponentTrigger & ~pTrigger });
+        const lCustomZone: InteractionZone = new InteractionZone('Custom-' + this.mInteractionZone.name, { trigger: UpdateTrigger.Default & ~pTrigger });
 
         // Call function in custom zone in current component stack.
         return InteractionZone.restore(this.mComponentZoneStack, () => {

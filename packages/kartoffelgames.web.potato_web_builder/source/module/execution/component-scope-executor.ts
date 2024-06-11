@@ -1,6 +1,7 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
+import { InteractionZone } from '@kartoffelgames/web.change-detection';
 import { LayerValues } from '../../component/values/layer-values';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
 /**
  * Executes string in set component values scope.
@@ -31,7 +32,7 @@ export class ComponentScopeExecutor {
      * @param pExtenedData - Extended data that are only exist for this execution.
      */
     public static executeSilent(pExpression: string, pValues: LayerValues, pExtenedData?: Dictionary<string, any>): any {
-        return new InteractionZone('Silent-ComponentScopeExecutor', { trigger: InteractionResponseType.None }).execute(() => {
+        return new InteractionZone('Silent-ComponentScopeExecutor', { trigger: UpdateTrigger.None }).execute(() => {
             return ComponentScopeExecutor.execute(pExpression, pValues, pExtenedData);
         });
     }

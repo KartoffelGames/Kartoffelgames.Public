@@ -1041,6 +1041,82 @@ describe('InteractionDetectionProxy', () => {
             // Evaluation.
             expect(lResponseType).to.equal(InteractionResponseType.PropertySetStart | InteractionResponseType.PropertySetEnd);
         });
+
+        describe('-- EventTarget', () => {
+            it('-- Custom events', async () => {
+                // Setup.
+                const lCustomEventName: string = 'custom-event';
+                const lProxy: EventTarget = new InteractionDetectionProxy(new EventTarget()).proxy;
+
+                // Setup. InteractionZone.
+                const lListenerWaiter = new Promise<void>((pResolve) => {
+                    lProxy.addEventListener(lCustomEventName, () => {
+                        pResolve();
+                    });
+                });
+
+                // Process
+                lProxy.dispatchEvent(new Event(lCustomEventName));
+
+                // Evaluation.
+                await lListenerWaiter;
+            });
+
+            it('-- Native events', async () => {
+                // Setup.
+                const lProxy: HTMLDivElement = new InteractionDetectionProxy(document.createElement('div')).proxy;
+
+                // Setup. InteractionZone.
+                const lListenerWaiter = new Promise<void>((pResolve) => {
+                    lProxy.addEventListener('click', () => {
+                        pResolve();
+                    });
+                });
+
+                // Process
+                lProxy.click();
+
+                // Evaluation.
+                await lListenerWaiter;
+            });
+
+            it('-- Custom events - Check without proxy', async () => {
+                // Setup.
+                const lCustomEventName: string = 'custom-event';
+                const lProxy: EventTarget = new EventTarget();
+
+                // Setup. InteractionZone.
+                const lListenerWaiter = new Promise<void>((pResolve) => {
+                    lProxy.addEventListener(lCustomEventName, () => {
+                        pResolve();
+                    });
+                });
+
+                // Process
+                lProxy.dispatchEvent(new Event(lCustomEventName));
+
+                // Evaluation.
+                await lListenerWaiter;
+            });
+
+            it('-- Native events - Check without proxy', async () => {
+                // Setup.
+                const lProxy: HTMLDivElement = document.createElement('div');
+
+                // Setup. InteractionZone.
+                const lListenerWaiter = new Promise<void>((pResolve) => {
+                    lProxy.addEventListener('click', () => {
+                        pResolve();
+                    });
+                });
+
+                // Process
+                lProxy.click();
+
+                // Evaluation.
+                await lListenerWaiter;
+            });
+        });
     });
 
     describe('Functionality: InteractionReason.source', () => {

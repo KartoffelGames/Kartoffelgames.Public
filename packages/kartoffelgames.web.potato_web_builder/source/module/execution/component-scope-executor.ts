@@ -24,6 +24,8 @@ export class ComponentScopeExecutor {
      * Execute string in component processor context.
      * Does not trigger change events.
      * 
+     * // TODO: Remove silent execution, as every module should handle that itself.
+     * 
      * @param pExpression - Expression to execute.
      * @param pValues - Current component values.
      * @param pExtenedData - Extended data that are only exist for this execution.

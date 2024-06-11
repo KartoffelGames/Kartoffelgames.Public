@@ -2,6 +2,8 @@ import { Injector } from '@kartoffelgames/core.dependency-injection';
 import { GlobalModuleStorage } from '../module/global-module-storage';
 import { IPwbInstructionModuleProcessorConstructor } from '../interface/module.interface';
 
+// TODO: Special Internal trigger. Set zone trigger for complete module update and create cycle. Default to something cool.
+
 /**
  * AtScript. PWB instruction attribute module.
  * 

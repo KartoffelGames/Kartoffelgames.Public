@@ -10,6 +10,8 @@ import '../../../mock/request-animation-frame-mock-session';
 import '../../../utility/chai-helper';
 import { TestUtil } from '../../../utility/test-util';
 
+// TODO: Split component-event and event-listener tests.. really confusing. 
+
 describe('EventAttributeModule', () => {
     it('-- Basic click event', async () => {
         // Setup. Values.

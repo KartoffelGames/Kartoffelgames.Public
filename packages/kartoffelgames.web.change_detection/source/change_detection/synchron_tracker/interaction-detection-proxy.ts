@@ -155,7 +155,7 @@ export class InteractionDetectionProxy<T extends object> {
 
                     // But when it is a object or a function, than wrap it into another detection proxy and passthrough any interaction.
                     const lNestedProxy: InteractionDetectionProxy<any> = new InteractionDetectionProxy(lResult);
-                    for(const lCallbackStack of this.mListenerZonesStack){
+                    for (const lCallbackStack of this.mListenerZonesStack) {
                         lNestedProxy.addListenerZoneStack(lCallbackStack);
                     }
 
@@ -207,28 +207,25 @@ export class InteractionDetectionProxy<T extends object> {
                 // Execute function and dispatch interaction event on synchron exceptions.
                 let lFunctionResult: any;
                 try {
-                    lFunctionResult = (<CallableObject>pTargetObject).call(pThisArgument, ...pArgumentsList);
-                } catch (pError) {
-                    try {
-                        // Rethrow error when it is not related to any type errors.
-                        // Type errors occure when js internal functions cant be called with a proxy.
-                        if (!(pError instanceof TypeError)) {
-                            throw pError;
-                        }
+                    const lCallableTarget: CallableObject = <CallableObject>pTargetObject;
+                    const lIsNativeFunction: boolean = /\{\s+\[native code\]/.test(Function.prototype.toString.call(lCallableTarget));
 
-                        // Get original object of "this"-Scope. and call the function again with it.
-                        try {
-                            const lOriginalThisObject: object = InteractionDetectionProxy.getOriginal(pThisArgument);
-                            lFunctionResult = (<CallableObject>pTargetObject).call(lOriginalThisObject, ...pArgumentsList);
-                        } finally {
-                            // Dispatch special InteractionResponseType.NativeFunctionCall.
+                    // Find correct this-context. When it is native code, use the original this-argument.
+                    const lThisArgument: any = (lIsNativeFunction) ? InteractionDetectionProxy.getOriginal(pThisArgument) : pThisArgument;
+
+                    // Call function.
+                    try {
+                        lFunctionResult = (<CallableObject>pTargetObject).call(lThisArgument, ...pArgumentsList);
+                    } finally {
+                        // Dispatch special InteractionResponseType.NativeFunctionCall.
+                        if (lIsNativeFunction) {
                             this.dispatch(InteractionResponseType.NativeFunctionCall, this.mProxyObject);
                         }
-                    } catch (pPassthroughError) {
-                        // Dispatch function error interaction and passthrough error.
-                        this.dispatch(InteractionResponseType.FunctionCallError, this.mProxyObject);
-                        throw pPassthroughError;
                     }
+                } catch (pError) {
+                    // Dispatch function error interaction and passthrough error.
+                    this.dispatch(InteractionResponseType.FunctionCallError, this.mProxyObject);
+                    throw pError;
                 } finally {
                     // Dispatches interaction end event before exception passthrough.
                     this.dispatch(InteractionResponseType.FunctionCallEnd, this.mProxyObject);

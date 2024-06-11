@@ -994,7 +994,7 @@ describe('InteractionDetectionProxy', () => {
                 });
 
                 // Evaluation.
-                expect(lResponseType).to.equal(InteractionResponseType.FunctionCallStart | InteractionResponseType.FunctionCallEnd);
+                expect(lResponseType).to.equal(InteractionResponseType.FunctionCallStart | InteractionResponseType.FunctionCallEnd | InteractionResponseType.NativeFunctionCall);
             });
         });
 

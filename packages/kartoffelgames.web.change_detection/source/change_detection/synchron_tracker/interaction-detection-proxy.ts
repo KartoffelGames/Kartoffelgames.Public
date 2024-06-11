@@ -94,6 +94,28 @@ export class InteractionDetectionProxy<T extends object> {
     }
 
     /**
+     * Convert object and function targets into proxies linked to listener zone stacks.
+     * 
+     * @param pTarget - Target value.
+     *  
+     * @returns InteractionDetectionProxy object. 
+     */
+    private convertToProxy<T>(pTarget: T): T {
+        // When the value is not a object or a function these values can not be observed.
+        if (pTarget === null || typeof pTarget !== 'object' && typeof pTarget !== 'function') {
+            return pTarget;
+        }
+
+        // But when it is a object or a function, than wrap it into another detection proxy and passthrough any interaction.
+        const lNestedProxy: InteractionDetectionProxy<any> = new InteractionDetectionProxy(pTarget);
+        for (const lCallbackStack of this.mListenerZonesStack) {
+            lNestedProxy.addListenerZoneStack(lCallbackStack);
+        }
+
+        return lNestedProxy.proxy;
+    }
+
+    /**
      * Create interaction detection proxy from object.
      * 
      * @param pTarget - Target object.
@@ -148,18 +170,8 @@ export class InteractionDetectionProxy<T extends object> {
                     // Get original value.
                     const lResult: any = Reflect.get(pTarget, pPropertyName);
 
-                    // When the value is not a object or a function these values can not be observed.
-                    if (lResult === null || typeof lResult !== 'object' && typeof lResult !== 'function') {
-                        return lResult;
-                    }
-
-                    // But when it is a object or a function, than wrap it into another detection proxy and passthrough any interaction.
-                    const lNestedProxy: InteractionDetectionProxy<any> = new InteractionDetectionProxy(lResult);
-                    for (const lCallbackStack of this.mListenerZonesStack) {
-                        lNestedProxy.addListenerZoneStack(lCallbackStack);
-                    }
-
-                    return lNestedProxy.proxy;
+                    // Convert potential object to a linked proxy.
+                    return this.convertToProxy(lResult);
                 } catch (pError) {
                     // Dispatch error interaction and passthrough error.
                     this.dispatch(InteractionResponseType.PropertyGetError, this.mProxyObject, pPropertyName);
@@ -205,44 +217,30 @@ export class InteractionDetectionProxy<T extends object> {
                 this.dispatch(InteractionResponseType.FunctionCallStart, this.mProxyObject);
 
                 // Execute function and dispatch interaction event on synchron exceptions.
-                let lFunctionResult: any;
                 try {
                     const lCallableTarget: CallableObject = <CallableObject>pTargetObject;
 
-                    // Execute native functions in catch call when current callable target is a brower native function. 
-                    if (/\{\s+\[native code\]/.test(Function.prototype.toString.call(lCallableTarget))) {
-                        throw new TypeError('Cant call native functions on proxy objects.');
-                    }
-
-                    // Call function.
-                    lFunctionResult = (<CallableObject>pTargetObject).call(pThisArgument, ...pArgumentsList);
-                } catch (pError) {
+                    // Call function.. Get original object of "this"-Scope. and call the functionwith it.
                     try {
-                        // Rethrow error when it is not related to any type errors.
-                        // Type errors occure when js internal functions cant be called with a proxy.
-                        if (!(pError instanceof TypeError)) {
-                            throw pError;
-                        }
+                        const lOriginalThisObject: object = InteractionDetectionProxy.getOriginal(pThisArgument);
+                        const lResult = lCallableTarget.call(lOriginalThisObject, ...pArgumentsList);
 
-                        // Get original object of "this"-Scope. and call the function again with it.
-                        try {
-                            const lOriginalThisObject: object = InteractionDetectionProxy.getOriginal(pThisArgument);
-                            lFunctionResult = (<CallableObject>pTargetObject).call(lOriginalThisObject, ...pArgumentsList);
-                        } finally {
-                            // Dispatch special InteractionResponseType.NativeFunctionCall.
+                        // Convert potential object to a linked proxy.
+                        return this.convertToProxy(lResult);
+                    } finally {
+                        // Dispatch special InteractionResponseType.NativeFunctionCall.
+                        if (/\{\s+\[native code\]/.test(Function.prototype.toString.call(lCallableTarget))) {
                             this.dispatch(InteractionResponseType.NativeFunctionCall, this.mProxyObject);
                         }
-                    } catch (pPassthroughError) {
-                        // Dispatch function error interaction and passthrough error.
-                        this.dispatch(InteractionResponseType.FunctionCallError, this.mProxyObject);
-                        throw pPassthroughError;
                     }
+                } catch (pError) {
+                    // Dispatch function error interaction and passthrough error.
+                    this.dispatch(InteractionResponseType.FunctionCallError, this.mProxyObject);
+                    throw pError;
                 } finally {
                     // Dispatches interaction end event before exception passthrough.
                     this.dispatch(InteractionResponseType.FunctionCallEnd, this.mProxyObject);
                 }
-
-                return lFunctionResult;
             }
         });
 

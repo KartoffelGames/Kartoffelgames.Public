@@ -226,7 +226,11 @@ export class Component extends InjectionHierarchyParent {
             return;
         }
 
-        this.processor.afterPwbUpdate?.();
+        // Exclude function call trigger from zone.
+        // Prevents any "Get" call from function to trigger interaction again.
+        this.mUpdateHandler.excludeInteractionTrigger(() => {
+            this.processor.afterPwbUpdate?.();
+        }, InteractionResponseType.FunctionCallEnd);
     }
 
     /**
@@ -287,8 +291,11 @@ export class Component extends InjectionHierarchyParent {
             return;
         }
 
-        // Call component processor on update function.
-        this.processor.onPwbUpdate?.();
+        // Exclude function call trigger from zone.
+        // Prevents any "Get" call from function to trigger interaction again.
+        this.mUpdateHandler.excludeInteractionTrigger(() => {
+            this.processor.onPwbUpdate?.();
+        }, InteractionResponseType.FunctionCallEnd);
     }
 
     /**

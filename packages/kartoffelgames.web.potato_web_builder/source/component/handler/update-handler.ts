@@ -12,7 +12,7 @@ import { InteractionZoneStack } from '@kartoffelgames/web.change-detection/libra
  */
 @IgnoreInteractionDetection
 export class UpdateHandler {
-    private static readonly mDefaultComponentTrigger: InteractionResponseType = InteractionResponseType.CallbackCallEnd | InteractionResponseType.Custom | InteractionResponseType.EventlistenerEnd | InteractionResponseType.FunctionCallEnd | InteractionResponseType.PromiseReject | InteractionResponseType.PromiseResolve | InteractionResponseType.PropertyDeleteEnd | InteractionResponseType.PropertySetEnd;
+    private static readonly mDefaultComponentTrigger: InteractionResponseType = InteractionResponseType.CallbackCallEnd | InteractionResponseType.Custom | InteractionResponseType.EventlistenerEnd | InteractionResponseType.NativeFunctionCall | InteractionResponseType.FunctionCallEnd | InteractionResponseType.PromiseReject | InteractionResponseType.PromiseResolve | InteractionResponseType.PropertyDeleteEnd | InteractionResponseType.PropertySetEnd;
 
     private readonly mComponentZoneStack: InteractionZoneStack;
     private mEnabled: boolean;
@@ -99,24 +99,6 @@ export class UpdateHandler {
     }
 
     /**
-     * Execute function with custom interaction trigger.
-     * 
-     * @param pFunction - Function.
-     * @param pTrigger - Interaction detection trigger.
-     * 
-     * @remarks 
-     * Nesting {@link disableInteractionTrigger} and {@link enableInteractionTrigger} is allowed.
-     */
-    public customInteractionTrigger<T>(pFunction: () => T, pTrigger: InteractionResponseType): T {
-        const lCustomZone: InteractionZone = new InteractionZone('Custom-' + this.mInteractionZone.name, { trigger: pTrigger });
-
-        // Call function in custom zone in current component stack.
-        return InteractionZone.restore(this.mComponentZoneStack, () => {
-            return lCustomZone.execute(pFunction);
-        });
-    }
-
-    /**
      * Deconstruct update handler. 
      */
     public deconstruct(): void {
@@ -158,6 +140,25 @@ export class UpdateHandler {
      */
     public enableInteractionTrigger<T>(pFunction: () => T): T {
         return InteractionZone.restore(this.mComponentZoneStack, pFunction);
+    }
+
+    /**
+     * Execute function with custom interaction trigger.
+     * 
+     * @param pFunction - Function.
+     * @param pTrigger - Interaction detection trigger.
+     * 
+     * @remarks 
+     * Nesting {@link disableInteractionTrigger} and {@link enableInteractionTrigger} is allowed.
+     */
+    public excludeInteractionTrigger<T>(pFunction: () => T, pTrigger: InteractionResponseType): T {
+        // Exclude trigger by AND a Negated pTrigger => 1010 & ~0010 => 1010 & 1101 => 1000
+        const lCustomZone: InteractionZone = new InteractionZone('Custom-' + this.mInteractionZone.name, { trigger: UpdateHandler.mDefaultComponentTrigger & ~pTrigger });
+
+        // Call function in custom zone in current component stack.
+        return InteractionZone.restore(this.mComponentZoneStack, () => {
+            return lCustomZone.execute(pFunction);
+        });
     }
 
     /**
@@ -255,14 +256,14 @@ export class UpdateHandler {
      * Triggers update handler asynchron.
      */
     private sheduleUpdateTask(pReason: InteractionReason): void {
-        // Skip task shedule when update handler is disabled but release update waiter.
-        if (!this.enabled) {
-            this.releaseWaiter();
-            return;
-        }
-
         // Shedule task in component zone stack.
         InteractionZone.restore(this.mComponentZoneStack, () => {
+            // Skip task shedule when update handler is disabled but release update waiter.
+            if (!this.enabled) {
+                this.releaseWaiter();
+                return;
+            }
+
             // Shedule new asynchron update task.
             this.mLoopDetectionHandler.sheduleTask(() => {
                 // Call every update listener inside interaction zone.

@@ -165,11 +165,7 @@ export class PwbAppComponent implements IPwbOnConnect, IPwbOnDisconnect {
 
         // Remove splashscreen when any component was updated.
         this.mUpdateHandler.waitForUpdate().then(() => {
-            // TODO: Temporary fix for waitForUpdate inside a Silent CD.
-            // Shedule task executes callbacks in silent cd but promise cd does not take over.
-            this.updateHandler.enableInteractionTrigger(() => {
-                this.removeSplashScreen();
-            });
+            this.removeSplashScreen();
         });
     }
 

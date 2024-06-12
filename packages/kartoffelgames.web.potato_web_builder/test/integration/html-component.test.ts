@@ -211,13 +211,13 @@ describe('HtmlComponent', () => {
         ], true);
     });
 
-    it('-- Capsuled update scope', async () => {
+    it('-- Isolated update scope', async () => {
         // Setup.
-        const lCapsuledSelector: string = TestUtil.randomSelector();
+        const lIsolatedSelector: string = TestUtil.randomSelector();
 
         // Setup. Define component.
         @PwbComponent({
-            selector: lCapsuledSelector,
+            selector: lIsolatedSelector,
             template: '{{this.innerValue}}',
             updateScope: UpdateMode.Isolated
         })
@@ -230,7 +230,7 @@ describe('HtmlComponent', () => {
         // Process. Define component.   
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: `<${lCapsuledSelector}/>`,
+            template: `<${lIsolatedSelector}/>`,
             updateScope: UpdateMode.Default
         })
         class TestComponent { }
@@ -238,7 +238,9 @@ describe('HtmlComponent', () => {
         // Process. Create and initialize element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
         await TestUtil.waitForUpdate(lComponent);
-        const lCapsuledContent: HTMLElement & CapsuledTestComponent = <any>(<ShadowRoot>lComponent.shadowRoot).childNodes[1];
+        const lCapsuledContent: HTMLElement & CapsuledTestComponent = TestUtil.getComponentNode(lComponent, lIsolatedSelector);
+
+        // Process. Wait for any update to finish.
         await TestUtil.waitForUpdate(lComponent);
         await TestUtil.waitForUpdate(lCapsuledContent);
 

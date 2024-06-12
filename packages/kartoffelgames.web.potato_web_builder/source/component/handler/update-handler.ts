@@ -55,16 +55,16 @@ export class UpdateHandler {
         this.mLoopDetectionHandler = new LoopDetectionHandler(10);
 
         // Create isolated or default zone.
-        if (pUpdateScope % UpdateMode.Isolated !== 0) {
+        if ((pUpdateScope & UpdateMode.Isolated) !== 0) {
             // Isolated zone.
-            this.mInteractionZone = new InteractionZone('CapsuledComponentZone', { isolate: true, trigger: <InteractionResponseType><unknown>UpdateTrigger.Default });
+            this.mInteractionZone = new InteractionZone('CapsuledComponentZone-', { isolate: true, trigger: <InteractionResponseType><unknown>UpdateTrigger.Default });
         } else {
             // Global zone.
-            this.mInteractionZone = new InteractionZone('DefaultComponentZone', { trigger: <InteractionResponseType><unknown>UpdateTrigger.Default });
+            this.mInteractionZone = new InteractionZone('DefaultComponentZone-', { trigger: <InteractionResponseType><unknown>UpdateTrigger.Default });
         }
 
         // Create manual or default listener. Manual listener does nothing on interaction.
-        if (pUpdateScope % UpdateMode.Manual !== 0) {
+        if ((pUpdateScope & UpdateMode.Manual) !== 0) {
             // Empty change listener.
             this.mInteractionDetectionListener = () => {/* Empty */ };
         } else {
@@ -79,7 +79,6 @@ export class UpdateHandler {
 
             return InteractionZone.save();
         });
-
 
         // Define error handler.
         this.mLoopDetectionHandler.onError = (pError: any) => {

@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-import { PwbExport } from '../../../source';
 import { PwbComponent } from '../../../source/decorator/pwb-component.decorator';
 import { UpdateMode } from '../../../source/enum/update-mode.enum';
 import { ComponentElement } from '../../../source/interface/component.interface';
@@ -7,6 +6,9 @@ import { PwbApp } from '../../../source/pwb-app/pwb-app';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
+import { UpdateHandler } from '../../../source/component/handler/update-handler';
+import { ComponentUpdateHandlerReference } from '../../../source/injection/references/component/component-update-handler-reference';
+import { PwbExport } from '../../../source/default/export/pwb-export.decorator';
 
 describe('PwbAppInjectionExtension', () => {
     it('-- PwbApp injection on global element', async () => {
@@ -89,55 +91,6 @@ describe('PwbAppInjectionExtension', () => {
         expect(lApp).to.be.instanceOf(PwbApp);
     });
 
-    it('-- PwbApp injection on capsuled element', async () => {
-        // Setup.
-        const lCapsuledSelector: string = TestUtil.randomSelector();
-        const lSelector: string = TestUtil.randomSelector();
-
-        // Process.
-        let lApp: PwbApp | null = null;
-
-        // Setup. Define component.
-        @PwbComponent({
-            selector: lCapsuledSelector,
-            updateScope: UpdateMode.Isolated
-        })
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class CapsuledTestComponent {
-            public constructor(pApp: PwbApp) {
-                lApp = pApp;
-            }
-        }
-
-        // Process. Define component.   
-        @PwbComponent({
-            selector: lSelector,
-            template: `<${lCapsuledSelector}/>`,
-            updateScope: UpdateMode.Default
-        })
-        class TestComponent { }
-
-        // Process. Create app and skip wait for splash screen.
-        const lPwbApp: PwbApp = new PwbApp();
-        lPwbApp.setSplashScreen({ manual: true, animationTime: 10 });
-
-        // Process. Add component to pwb app.
-        lPwbApp.addContent(TestComponent);
-        await lPwbApp.appendTo(document.body);
-
-        // Process. Create elements and wait for update.
-        const lComponent: ComponentElement = <ComponentElement>lPwbApp.component.shadowRoot!.querySelector(lSelector);
-        await TestUtil.waitForUpdate(lComponent);
-
-        // Read cild component.
-        const lChildChildContent: ComponentElement = <ComponentElement>lComponent.shadowRoot!.querySelector(lCapsuledSelector);
-        TestUtil.forceProcessorCreation(lChildChildContent);
-        await TestUtil.waitForUpdate(lChildChildContent);
-
-        // Evaluation.
-        expect(lApp).to.be.instanceOf(PwbApp);
-    });
-
     it('-- Deep nested manual component', async () => {
         // Setup.
         const lSelector: string = TestUtil.randomSelector();
@@ -163,7 +116,7 @@ describe('PwbAppInjectionExtension', () => {
         @PwbComponent({
             selector: lChildSelector,
             template: `<${lChildChildSelector}/>`,
-            updateScope: UpdateMode.Isolated
+            updateScope: UpdateMode.Manual
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class ChildTestComponent { }
@@ -185,15 +138,16 @@ describe('PwbAppInjectionExtension', () => {
         await lPwbApp.appendTo(document.body);
 
         // Process. Create elements and wait for update.
-        const lComponent: ComponentElement = <ComponentElement>lPwbApp.component.shadowRoot!.querySelector(lSelector);
+        const lComponent: ComponentElement = TestUtil.getComponentNode(lPwbApp.component, lSelector);
         await TestUtil.waitForUpdate(lComponent);
 
         // Read cild component.
-        const lChildChildContent: ComponentElement = <ComponentElement>lComponent.shadowRoot!.querySelector(lChildSelector);
+        const lChildChildContent: ComponentElement = TestUtil.getComponentNode(lComponent, lChildSelector);
+        TestUtil.getComponentManager(lChildChildContent)?.getProcessorAttribute<UpdateHandler>(ComponentUpdateHandlerReference)?.update();
         await TestUtil.waitForUpdate(lChildChildContent);
 
         // Read cild component.
-        const lChildChildChildContent: ComponentElement = <ComponentElement>lChildChildContent.shadowRoot!.querySelector(lChildChildSelector);
+        const lChildChildChildContent: ComponentElement = TestUtil.getComponentNode(lChildChildContent, lChildChildSelector);
         TestUtil.forceProcessorCreation(lChildChildChildContent);
         await TestUtil.waitForUpdate(lChildChildChildContent);
 

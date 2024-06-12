@@ -1,7 +1,6 @@
 import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
 import { InteractionDetectionProxy } from '@kartoffelgames/web.change-detection/library/source/change_detection/synchron_tracker/interaction-detection-proxy';
 import { expect } from 'chai';
-import { ComponentUpdateHandlerReference } from '../../source';
 import { LoopError } from '../../source/component/handler/loop-detection-handler';
 import { UpdateHandler } from '../../source/component/handler/update-handler';
 import { PwbComponent } from '../../source/decorator/pwb-component.decorator';
@@ -14,6 +13,7 @@ import { IPwbExpressionModuleOnUpdate } from '../../source/interface/module.inte
 import '../mock/request-animation-frame-mock-session';
 import '../utility/chai-helper';
 import { TestUtil } from '../utility/test-util';
+import { ComponentUpdateHandlerReference } from '../../source/injection/references/component/component-update-handler-reference';
 
 describe('HtmlComponent', () => {
     it('-- Single element', async () => {

@@ -1,5 +1,5 @@
 import { List } from '@kartoffelgames/core.data';
-import { InteractionReason, InteractionZone } from '@kartoffelgames/web.change-detection';
+import { InteractionReason, InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
 import { InteractionZoneStack } from '@kartoffelgames/web.change-detection/library/source/change_detection/interaction-zone';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
@@ -104,7 +104,7 @@ export class LoopDetectionHandler {
 
         // Call on next frame. 
         // Do not trigger interaction detection on requestAnimationFrame. The task function should handle the actual interaction zone scope.
-        this.mNextSheduledTask = new InteractionZone('Sheduled-Update', { trigger: UpdateTrigger.None }).execute(globalThis.requestAnimationFrame, lAsynchronTask);
+        this.mNextSheduledTask = new InteractionZone('Sheduled-Update', { trigger: <InteractionResponseType><unknown>UpdateTrigger.None }).execute(globalThis.requestAnimationFrame, lAsynchronTask);
     }
 }
 

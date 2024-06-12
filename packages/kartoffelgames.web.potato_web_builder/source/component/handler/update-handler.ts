@@ -57,10 +57,10 @@ export class UpdateHandler {
         // Create isolated or default zone.
         if (pUpdateScope % UpdateMode.Isolated !== 0) {
             // Isolated zone.
-            this.mInteractionZone = new InteractionZone('CapsuledComponentZone', { isolate: true, trigger: UpdateTrigger.Default });
+            this.mInteractionZone = new InteractionZone('CapsuledComponentZone', { isolate: true, trigger: <InteractionResponseType><unknown>UpdateTrigger.Default });
         } else {
             // Global zone.
-            this.mInteractionZone = new InteractionZone('DefaultComponentZone', { trigger: UpdateTrigger.Default });
+            this.mInteractionZone = new InteractionZone('DefaultComponentZone', { trigger: <InteractionResponseType><unknown>UpdateTrigger.Default });
         }
 
         // Create manual or default listener. Manual listener does nothing on interaction.
@@ -120,7 +120,7 @@ export class UpdateHandler {
      * Nesting {@link disableInteractionTrigger} and {@link enableInteractionTrigger} is allowed.
      */
     public disableInteractionTrigger<T>(pFunction: () => T): T {
-        const lSilentZone: InteractionZone = new InteractionZone('Silent-' + this.mInteractionZone.name, { trigger: UpdateTrigger.None });
+        const lSilentZone: InteractionZone = new InteractionZone('Silent-' + this.mInteractionZone.name, { trigger: <InteractionResponseType><unknown>UpdateTrigger.None });
 
         // Call function in custom zone in current component stack.
         return InteractionZone.restore(this.mComponentZoneStack, () => {

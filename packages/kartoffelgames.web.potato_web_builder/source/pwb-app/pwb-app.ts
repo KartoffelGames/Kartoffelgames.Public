@@ -1,5 +1,5 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { InteractionZone } from '@kartoffelgames/web.change-detection';
+import { InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
 import { PwbTemplate } from '../component/template/nodes/pwb-template';
 import { ComponentProcessorConstructor } from '../interface/component.interface';
 import { PwbAppComponent } from './component/pwb-app-component';
@@ -44,7 +44,7 @@ export class PwbApp {
      */
     public constructor() {
         // Read interaction zone of app component.
-        this.mInteractionZone = new InteractionZone('App', { isolate: true, trigger: UpdateTrigger.None });
+        this.mInteractionZone = new InteractionZone('App', { isolate: true, trigger: <InteractionResponseType><unknown>UpdateTrigger.None });
         PwbApp.mInteractionZoneToApp.set(this.mInteractionZone, this);
 
         // Get app component constructor.

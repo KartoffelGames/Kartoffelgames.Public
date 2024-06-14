@@ -3,6 +3,7 @@ import { AccessMode } from '../enum/access-mode.enum';
 import { ExtensionType } from '../enum/extension-type.enum';
 import { GlobalExtensionsStorage } from '../extension/global-extensions-storage';
 import { IPwbExtensionProcessorClass } from '../interface/extension.interface';
+import { UpdateTrigger } from '../enum/update-trigger.enum';
 
 /**
  * AtScript. PWB component extension.
@@ -21,6 +22,7 @@ export function PwbExtension(pSettings: ExtensionSettings): any {
 }
 
 type ExtensionSettings = {
-    type: ExtensionType;
     access: AccessMode;
+    trigger: UpdateTrigger;
+    type: ExtensionType;
 };

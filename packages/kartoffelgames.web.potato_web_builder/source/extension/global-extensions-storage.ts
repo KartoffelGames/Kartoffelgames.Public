@@ -1,7 +1,8 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { AccessMode } from '../enum/access-mode.enum';
 import { ExtensionType } from '../enum/extension-type.enum';
-import { IPwbExtensionModuleProcessorClass } from '../interface/extension.interface';
+import { IPwbExtensionModuleProcessorConstructor } from '../interface/extension.interface';
+import { ExtensionModuleConfiguration } from '../module/global-module-storage';
 
 /**
  * Global extension storage.
@@ -14,7 +15,10 @@ import { IPwbExtensionModuleProcessorClass } from '../interface/extension.interf
 export class GlobalExtensionsStorage {
     private static mInstance: GlobalExtensionsStorage;
 
-    private readonly mExtensions!: Dictionary<ExtensionType, Dictionary<AccessMode, Array<IPwbExtensionModuleProcessorClass>>>;
+    private readonly mAttributeModuleClasses!: Dictionary<ExtensionModuleConfiguration, IPwbExtensionModuleProcessorConstructor>;
+    private readonly mAttributeModuleConfigurations!: Dictionary<IPwbExtensionModuleProcessorConstructor, ExtensionModuleConfiguration>;
+
+    private readonly mExtensions!: Dictionary<ExtensionType, Dictionary<AccessMode, Array<IPwbExtensionModuleProcessorConstructor>>>;
 
     /**
      * Constructor.
@@ -29,7 +33,7 @@ export class GlobalExtensionsStorage {
         GlobalExtensionsStorage.mInstance = this;
 
         // Init some big ass dictionary containing both extension type and acces mode.
-        this.mExtensions = new Dictionary<ExtensionType, Dictionary<AccessMode, Array<IPwbExtensionModuleProcessorClass>>>();
+        this.mExtensions = new Dictionary<ExtensionType, Dictionary<AccessMode, Array<IPwbExtensionModuleProcessorConstructor>>>();
     }
 
     /**
@@ -37,20 +41,20 @@ export class GlobalExtensionsStorage {
      * @param pExtension - Extension constructor.
      * @param pExtensionType - Type of extension.
      */
-    public addExtensionModule(pExtension: IPwbExtensionModuleProcessorClass, pExtensionType: ExtensionType, pAccessMode: AccessMode): void {
+    public addExtensionModule(pExtension: IPwbExtensionModuleProcessorConstructor, pExtensionType: ExtensionType, pAccessMode: AccessMode): void {
         // Add for component type.
         if ((pExtensionType & ExtensionType.Component) === ExtensionType.Component) {
             // Init component type dictionary.
             if (!this.mExtensions.has(ExtensionType.Component)) {
-                this.mExtensions.set(ExtensionType.Component, new Dictionary<AccessMode, Array<IPwbExtensionModuleProcessorClass>>());
+                this.mExtensions.set(ExtensionType.Component, new Dictionary<AccessMode, Array<IPwbExtensionModuleProcessorConstructor>>());
             }
 
             // Read access map by component type.
-            const lAccessModeMap: Dictionary<AccessMode, Array<IPwbExtensionModuleProcessorClass>> = this.mExtensions.get(ExtensionType.Component)!;
+            const lAccessModeMap: Dictionary<AccessMode, Array<IPwbExtensionModuleProcessorConstructor>> = this.mExtensions.get(ExtensionType.Component)!;
 
             // Init access mode map.
             if (!lAccessModeMap.has(pAccessMode)) {
-                lAccessModeMap.set(pAccessMode, new Array<IPwbExtensionModuleProcessorClass>());
+                lAccessModeMap.set(pAccessMode, new Array<IPwbExtensionModuleProcessorConstructor>());
             }
 
             // Read and add extension fro access mode.
@@ -58,19 +62,18 @@ export class GlobalExtensionsStorage {
         }
 
         // Add for module type.
-        // Add for Module type
         if ((pExtensionType & ExtensionType.Module) === ExtensionType.Module) {
             // Init Module type dictionary.
             if (!this.mExtensions.has(ExtensionType.Module)) {
-                this.mExtensions.set(ExtensionType.Module, new Dictionary<AccessMode, Array<IPwbExtensionModuleProcessorClass>>());
+                this.mExtensions.set(ExtensionType.Module, new Dictionary<AccessMode, Array<IPwbExtensionModuleProcessorConstructor>>());
             }
 
             // Read access map by Module type.
-            const lAccessModeMap: Dictionary<AccessMode, Array<IPwbExtensionModuleProcessorClass>> = this.mExtensions.get(ExtensionType.Module)!;
+            const lAccessModeMap: Dictionary<AccessMode, Array<IPwbExtensionModuleProcessorConstructor>> = this.mExtensions.get(ExtensionType.Module)!;
 
             // Init access mode map.
             if (!lAccessModeMap.has(pAccessMode)) {
-                lAccessModeMap.set(pAccessMode, new Array<IPwbExtensionModuleProcessorClass>());
+                lAccessModeMap.set(pAccessMode, new Array<IPwbExtensionModuleProcessorConstructor>());
             }
 
             // Read and add extension fro access mode.
@@ -87,17 +90,17 @@ export class GlobalExtensionsStorage {
      * 
      * @returns list of extension with set modifier. Return an empty list as default.
      */
-    public getExtensionModuleConfiguration(pExtensionType: ExtensionType, pAccessMode: AccessMode): Array<IPwbExtensionModuleProcessorClass> {
+    public getExtensionModuleConfiguration(pExtensionType: ExtensionType, pAccessMode: AccessMode): Array<IPwbExtensionModuleProcessorConstructor> {
         // Read possible extensions by extension type.
-        const lExtensionTypeMap: Dictionary<AccessMode, Array<IPwbExtensionModuleProcessorClass>> | undefined = this.mExtensions.get(pExtensionType);
+        const lExtensionTypeMap: Dictionary<AccessMode, Array<IPwbExtensionModuleProcessorConstructor>> | undefined = this.mExtensions.get(pExtensionType);
         if (!lExtensionTypeMap) {
-            return new Array<IPwbExtensionModuleProcessorClass>();
+            return new Array<IPwbExtensionModuleProcessorConstructor>();
         }
 
         // Read possible extensions by access mode.
-        const lExtensionList: Array<IPwbExtensionModuleProcessorClass> | undefined = lExtensionTypeMap.get(pAccessMode);
+        const lExtensionList: Array<IPwbExtensionModuleProcessorConstructor> | undefined = lExtensionTypeMap.get(pAccessMode);
         if (!lExtensionList) {
-            return new Array<IPwbExtensionModuleProcessorClass>();
+            return new Array<IPwbExtensionModuleProcessorConstructor>();
         }
 
         return lExtensionList;

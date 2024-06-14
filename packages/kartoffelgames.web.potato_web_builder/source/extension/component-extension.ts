@@ -1,5 +1,5 @@
 import { InjectionHierarchyParent } from '../injection/injection-hierarchy-parent';
-import { IPwbExtensionModuleProcessorClass } from '../interface/extension.interface';
+import { IPwbExtensionModuleProcessorConstructor } from '../interface/extension.interface';
 import { BaseExtension } from './base-extension';
 
 export class ComponentExtension extends BaseExtension {
@@ -13,6 +13,6 @@ export class ComponentExtension extends BaseExtension {
 }
 
 type ComponentExtensionConstructorParameter = {
-    constructor: IPwbExtensionModuleProcessorClass,
+    constructor: IPwbExtensionModuleProcessorConstructor,
     parent: InjectionHierarchyParent,
 };

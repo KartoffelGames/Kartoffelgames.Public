@@ -19,7 +19,8 @@ export function PwbInstructionModule(pSettings: InstructionModuleSettings): any 
         // Register module.
         new GlobalModuleStorage().addInstructionModule({
             constructor: pInstructionModuleConstructor,
-            instructionType: pSettings.instructionType
+            instructionType: pSettings.instructionType,
+            trigger: pSettings.trigger
         });
     };
 }

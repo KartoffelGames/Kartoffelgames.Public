@@ -1,10 +1,10 @@
 import { Injection } from '@kartoffelgames/core.dependency-injection';
-import { IPwbExtensionModuleProcessor, IPwbExtensionModuleProcessorClass } from '../interface/extension.interface';
+import { IPwbExtensionModuleProcessor, IPwbExtensionModuleProcessorConstructor } from '../interface/extension.interface';
 import { InjectionHierarchyParent } from '../injection/injection-hierarchy-parent';
 
 export class BaseExtension extends InjectionHierarchyParent {
     private mExtensionProcessor: IPwbExtensionModuleProcessor | null;   
-    private readonly mProcessorConstructor: IPwbExtensionModuleProcessorClass;
+    private readonly mProcessorConstructor: IPwbExtensionModuleProcessorConstructor;
 
     /**
      * Processor of extension.
@@ -61,6 +61,6 @@ export class BaseExtension extends InjectionHierarchyParent {
 }
 
 type BaseExtensionConstructorParameter = {
-    constructor: IPwbExtensionModuleProcessorClass;
+    constructor: IPwbExtensionModuleProcessorConstructor;
     parent: InjectionHierarchyParent;
 };

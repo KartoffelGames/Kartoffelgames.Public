@@ -6,14 +6,15 @@ import { UpdateTrigger } from '../enum/update-trigger.enum';
 /**
  * AtScript. PWB Expression module.
  */
-export function PwbExpressionModule(pExpressionSettings: ExpressionSettings): any {
+export function PwbExpressionModule(pSettings: ExpressionSettings): any {
     return (pExpressionModuleConstructor: IPwbExpressionModuleProcessorConstructor) => {
         // Set processor to be injectable
         Injector.Injectable(pExpressionModuleConstructor);
 
         // Register module.
         new GlobalModuleStorage().addExpressionModule({
-            constructor: pExpressionModuleConstructor
+            constructor: pExpressionModuleConstructor,
+            trigger: pSettings.trigger
         });
     };
 }

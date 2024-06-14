@@ -14,7 +14,7 @@ import { ModuleConstructorReference } from '../injection/references/module/modul
 import { ModuleReference } from '../injection/references/module/module-reference';
 import { ExtensionType } from '../enum/extension-type.enum';
 import { AccessMode } from '../enum/access-mode.enum';
-import { IPwbExtensionModuleProcessorClass } from '../interface/extension.interface';
+import { IPwbExtensionModuleProcessorConstructor } from '../interface/extension.interface';
 
 export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor extends IPwbModuleProcessor> extends InjectionHierarchyParent {
     private readonly mExtensionList: Array<ModuleExtension>;
@@ -106,7 +106,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
         this.mProcessor = Injection.createObject<TModuleProcessor>(this.mProcessorConstructor, this.injections);
 
         // Get all read extensions. Keep order to execute readWrite extensions first.
-        const lReadExtensions: Array<IPwbExtensionModuleProcessorClass> = [
+        const lReadExtensions: Array<IPwbExtensionModuleProcessorConstructor> = [
             ...lExtensions.getExtensionModuleConfiguration(ExtensionType.Module, AccessMode.ReadWrite),
             ...lExtensions.getExtensionModuleConfiguration(ExtensionType.Module, AccessMode.Read)
         ];

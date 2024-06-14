@@ -13,7 +13,7 @@ import { ComponentLayerValuesReference } from '../injection/references/component
 import { ComponentReference } from '../injection/references/component/component-reference';
 import { ComponentUpdateHandlerReference } from '../injection/references/component/component-update-handler-reference';
 import { ComponentProcessor, ComponentProcessorConstructor } from '../interface/component.interface';
-import { IPwbExtensionModuleProcessorClass } from '../interface/extension.interface';
+import { IPwbExtensionModuleProcessorConstructor } from '../interface/extension.interface';
 import { IPwbExpressionModuleProcessorConstructor } from '../interface/module.interface';
 import { StaticBuilder } from './builder/static-builder';
 import { ComponentModules } from './component-modules';
@@ -388,7 +388,7 @@ export class Component extends InjectionHierarchyParent {
                 this.mExtensionList.push(lComponentExtension);
             }
 
-            const lReadExtensions: Array<IPwbExtensionModuleProcessorClass> = [
+            const lReadExtensions: Array<IPwbExtensionModuleProcessorConstructor> = [
                 ...lExtensions.getExtensionModuleConfiguration(ExtensionType.Component, AccessMode.ReadWrite),
                 ...lExtensions.getExtensionModuleConfiguration(ExtensionType.Component, AccessMode.Read)
             ];

@@ -2,7 +2,7 @@
 
 // Extension processor base types..
 export interface IPwbExtensionModuleProcessor extends Partial<IPwbExtensionModuleOnDeconstruct>, Partial<IPwbExtensionModuleOnExecute>{ }
-export interface IPwbExtensionModuleProcessorClass {
+export interface IPwbExtensionModuleProcessorConstructor {
     new(): IPwbExtensionModuleProcessor;
 }
 

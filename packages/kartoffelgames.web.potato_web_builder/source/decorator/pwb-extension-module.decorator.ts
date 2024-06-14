@@ -6,11 +6,11 @@ import { IPwbExtensionProcessorClass } from '../interface/extension.interface';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
 
 /**
- * AtScript. PWB component extension.
+ * AtScript. PWB component extension module.
  * 
  * @param pSettings - Extension settings.
  */
-export function PwbExtension(pSettings: ExtensionSettings): any {
+export function PwbExtensionModule(pSettings: ExtensionSettings): any {
     return (pExtensionConstructor: IPwbExtensionProcessorClass) => {
 
         // Set processor to be injectable

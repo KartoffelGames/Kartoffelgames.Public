@@ -32,7 +32,7 @@ export { PwbInstructionModule } from './decorator/pwb-instruction-module.decorat
 export { PwbAttributeModule } from './decorator/pwb-attribute-module.decorator';
 
 // Extension
-export { PwbExtension } from './decorator/pwb-extension.decorator';
+export { PwbExtensionModule as PwbExtension } from './decorator/pwb-extension-module.decorator';
 export { IPwbExtensionOnDeconstruct } from './interface/extension.interface';
 
 // Default extensions.

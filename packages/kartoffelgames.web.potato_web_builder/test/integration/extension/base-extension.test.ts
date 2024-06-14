@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { AccessMode } from '../../../source';
 import { PwbComponent } from '../../../source/decorator/pwb-component.decorator';
-import { PwbExtension } from '../../../source/decorator/pwb-extension.decorator';
+import { PwbExtensionModule } from '../../../source/decorator/pwb-extension-module.decorator';
 import { ExtensionType } from '../../../source/enum/extension-type.enum';
 import { TestUtil } from '../../utility/test-util';
 
@@ -9,7 +9,7 @@ describe('BaseExtension', () => {
     it('-- Injection extension without injection', async () => {
         // Process. Create extension.
         let lExtensionCalled: boolean = false;
-        @PwbExtension({
+        @PwbExtensionModule({
             type: ExtensionType.Component,
             access: AccessMode.Read
         })
@@ -36,7 +36,7 @@ describe('BaseExtension', () => {
     it('-- Ignore wrong injections', async () => {
         // Process. Create extension.
         let lExtensionCalled: boolean = false;
-        @PwbExtension({
+        @PwbExtensionModule({
             type: ExtensionType.Component | ExtensionType.Module,
             access: AccessMode.Read
         })

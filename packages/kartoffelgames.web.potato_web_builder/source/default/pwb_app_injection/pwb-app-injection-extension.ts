@@ -1,12 +1,12 @@
 import { InteractionZone } from '@kartoffelgames/web.change-detection';
-import { PwbExtension } from '../../decorator/pwb-extension.decorator';
+import { PwbExtensionModule } from '../../decorator/pwb-extension-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { ExtensionType } from '../../enum/extension-type.enum';
 import { ComponentReference } from '../../injection/references/component/component-reference';
 import { ModuleReference } from '../../injection/references/module/module-reference';
 import { PwbApp } from '../../pwb-app/pwb-app';
 
-@PwbExtension({
+@PwbExtensionModule({
     type: ExtensionType.Module,
     access: AccessMode.Write
 })
@@ -25,7 +25,7 @@ export class PwbAppModuleInjectionExtension {
     }
 }
 
-@PwbExtension({
+@PwbExtensionModule({
     type: ExtensionType.Component,
     access: AccessMode.Write
 })

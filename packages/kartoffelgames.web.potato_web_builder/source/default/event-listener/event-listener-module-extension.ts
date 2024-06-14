@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
-import { PwbExtension } from '../../decorator/pwb-extension.decorator';
+import { PwbExtensionModule } from '../../decorator/pwb-extension-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { ExtensionType } from '../../enum/extension-type.enum';
 import { ComponentElementReference } from '../../injection/references/component/component-element-reference';
@@ -10,7 +10,7 @@ import { ModuleTargetNodeReference } from '../../injection/references/module/mod
 import { IPwbExtensionOnDeconstruct } from '../../interface/extension.interface';
 import { EventListenerComponentExtension } from './event-listener-component-extension';
 
-@PwbExtension({
+@PwbExtensionModule({
     type: ExtensionType.Module,
     access: AccessMode.Read
 })

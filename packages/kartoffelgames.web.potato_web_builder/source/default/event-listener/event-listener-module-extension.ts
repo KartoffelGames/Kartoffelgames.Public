@@ -7,14 +7,14 @@ import { ComponentElementReference } from '../../injection/references/component/
 import { ModuleConstructorReference } from '../../injection/references/module/module-constructor-reference';
 import { ModuleReference } from '../../injection/references/module/module-reference';
 import { ModuleTargetNodeReference } from '../../injection/references/module/module-target-node-reference';
-import { IPwbExtensionOnDeconstruct } from '../../interface/extension.interface';
+import { IPwbExtensionModuleOnDeconstruct } from '../../interface/extension.interface';
 import { EventListenerComponentExtension } from './event-listener-component-extension';
 
 @PwbExtensionModule({
     type: ExtensionType.Module,
     access: AccessMode.Read
 })
-export class EventListenerModuleExtension implements IPwbExtensionOnDeconstruct {
+export class EventListenerModuleExtension implements IPwbExtensionModuleOnDeconstruct {
     private readonly mEventListenerList: Array<[string, EventListener]>;
     private readonly mTargetElement: Node;
 

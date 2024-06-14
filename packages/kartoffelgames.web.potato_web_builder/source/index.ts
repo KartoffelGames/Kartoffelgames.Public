@@ -33,7 +33,7 @@ export { PwbAttributeModule } from './decorator/pwb-attribute-module.decorator';
 
 // Extension
 export { PwbExtensionModule as PwbExtension } from './decorator/pwb-extension-module.decorator';
-export { IPwbExtensionOnDeconstruct } from './interface/extension.interface';
+export { IPwbExtensionModuleOnDeconstruct as IPwbExtensionOnDeconstruct } from './interface/extension.interface';
 
 // Default extensions.
 export { ComponentEvent } from './default/component-event/component-event';

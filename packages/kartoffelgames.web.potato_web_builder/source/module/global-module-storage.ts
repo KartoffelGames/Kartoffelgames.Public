@@ -1,6 +1,7 @@
 import { Dictionary, List } from '@kartoffelgames/core.data';
 import { AccessMode } from '../enum/access-mode.enum';
 import { IPwbAttributeModuleProcessorConstructor, IPwbExpressionModuleProcessorConstructor, IPwbInstructionModuleProcessorConstructor } from '../interface/module.interface';
+import { IPwbExtensionModuleProcessorClass } from '../interface/extension.interface';
 
 /**
  * Global module storage.
@@ -131,5 +132,10 @@ export type ExpressionModuleConfiguration = {
 
 export type InstructionModuleConfiguration = {
     constructor: IPwbInstructionModuleProcessorConstructor;
+    instructionType: string;
+};
+
+export type ExtensionModuleConfiguration = {
+    constructor: IPwbExtensionModuleProcessorClass;
     instructionType: string;
 };

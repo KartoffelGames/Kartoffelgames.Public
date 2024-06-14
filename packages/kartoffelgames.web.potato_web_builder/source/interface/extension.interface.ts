@@ -1,19 +1,19 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 
 // Extension processor base types..
-export interface IPwbExtensionProcessor extends Partial<IPwbExtensionOnDeconstruct>, Partial<IPwbExtensionOnExecute>{ }
-export interface IPwbExtensionProcessorClass {
-    new(): IPwbExtensionProcessor;
+export interface IPwbExtensionModuleProcessor extends Partial<IPwbExtensionModuleOnDeconstruct>, Partial<IPwbExtensionModuleOnExecute>{ }
+export interface IPwbExtensionModuleProcessorClass {
+    new(): IPwbExtensionModuleProcessor;
 }
 
-export interface IPwbExtensionOnExecute {
+export interface IPwbExtensionModuleOnExecute {
     /**
      * Execute extension. Should be called right after construction.
      */
     onExecute(): void;
 }
 
-export interface IPwbExtensionOnDeconstruct {
+export interface IPwbExtensionModuleOnDeconstruct {
     /**
      * Cleanup events and other data that does not delete itself.
      */

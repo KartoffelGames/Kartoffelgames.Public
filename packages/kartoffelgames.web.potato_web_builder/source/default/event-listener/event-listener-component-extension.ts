@@ -6,13 +6,13 @@ import { ExtensionType } from '../../enum/extension-type.enum';
 import { ComponentConstructorReference } from '../../injection/references/component/component-constructor-reference';
 import { ComponentElementReference } from '../../injection/references/component/component-element-reference';
 import { ComponentReference } from '../../injection/references/component/component-reference';
-import { IPwbExtensionOnDeconstruct } from '../../interface/extension.interface';
+import { IPwbExtensionModuleOnDeconstruct } from '../../interface/extension.interface';
 
 @PwbExtensionModule({
     type: ExtensionType.Component,
     access: AccessMode.Read
 })
-export class EventListenerComponentExtension implements IPwbExtensionOnDeconstruct {
+export class EventListenerComponentExtension implements IPwbExtensionModuleOnDeconstruct {
     public static readonly METADATA_USER_EVENT_LISTENER_PROPERIES: string = 'pwb:user_event_listener_properties';
 
     private readonly mEventListenerList: Array<[string, EventListener]>;

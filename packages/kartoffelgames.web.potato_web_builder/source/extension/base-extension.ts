@@ -1,16 +1,16 @@
 import { Injection } from '@kartoffelgames/core.dependency-injection';
-import { IPwbExtensionProcessor, IPwbExtensionProcessorClass } from '../interface/extension.interface';
+import { IPwbExtensionModuleProcessor, IPwbExtensionModuleProcessorClass } from '../interface/extension.interface';
 import { InjectionHierarchyParent } from '../injection/injection-hierarchy-parent';
 
 export class BaseExtension extends InjectionHierarchyParent {
-    private mExtensionProcessor: IPwbExtensionProcessor | null;   
-    private readonly mProcessorConstructor: IPwbExtensionProcessorClass;
+    private mExtensionProcessor: IPwbExtensionModuleProcessor | null;   
+    private readonly mProcessorConstructor: IPwbExtensionModuleProcessorClass;
 
     /**
      * Processor of extension.
      * Initialize processor when it hasn't already.
      */
-    protected get processor(): IPwbExtensionProcessor {
+    protected get processor(): IPwbExtensionModuleProcessor {
         if (!this.mExtensionProcessor) {
             this.mExtensionProcessor = this.createExtensionProcessor();
         }
@@ -41,7 +41,7 @@ export class BaseExtension extends InjectionHierarchyParent {
      */
     public execute(): void {
         // Call needed to construct extension!!!
-        const lProcessor: IPwbExtensionProcessor = this.processor;
+        const lProcessor: IPwbExtensionModuleProcessor = this.processor;
 
         // Execute extension.
         lProcessor?.onExecute?.();
@@ -51,7 +51,7 @@ export class BaseExtension extends InjectionHierarchyParent {
       * Create extension processor.
       * @param pInjections - Local injections.
       */
-    protected createExtensionProcessor(): IPwbExtensionProcessor {
+    protected createExtensionProcessor(): IPwbExtensionModuleProcessor {
         // Lock new injections.
         this.lock();
 
@@ -61,6 +61,6 @@ export class BaseExtension extends InjectionHierarchyParent {
 }
 
 type BaseExtensionConstructorParameter = {
-    constructor: IPwbExtensionProcessorClass;
+    constructor: IPwbExtensionModuleProcessorClass;
     parent: InjectionHierarchyParent;
 };

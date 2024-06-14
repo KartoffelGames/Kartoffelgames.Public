@@ -14,7 +14,7 @@ import { ModuleConstructorReference } from '../injection/references/module/modul
 import { ModuleReference } from '../injection/references/module/module-reference';
 import { ExtensionType } from '../enum/extension-type.enum';
 import { AccessMode } from '../enum/access-mode.enum';
-import { IPwbExtensionProcessorClass } from '../interface/extension.interface';
+import { IPwbExtensionModuleProcessorClass } from '../interface/extension.interface';
 
 export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor extends IPwbModuleProcessor> extends InjectionHierarchyParent {
     private readonly mExtensionList: Array<ModuleExtension>;
@@ -87,7 +87,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
         const lExtensions: GlobalExtensionsStorage = new GlobalExtensionsStorage();
 
         // Create every write module extension.
-        for (const lExtensionProcessorConstructor of lExtensions.get(ExtensionType.Module, AccessMode.Write)) {
+        for (const lExtensionProcessorConstructor of lExtensions.getExtensionModuleConfiguration(ExtensionType.Module, AccessMode.Write)) {
             const lModuleExtension: ModuleExtension = new ModuleExtension({
                 constructor: lExtensionProcessorConstructor,
                 parent: this
@@ -106,9 +106,9 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
         this.mProcessor = Injection.createObject<TModuleProcessor>(this.mProcessorConstructor, this.injections);
 
         // Get all read extensions. Keep order to execute readWrite extensions first.
-        const lReadExtensions: Array<IPwbExtensionProcessorClass> = [
-            ...lExtensions.get(ExtensionType.Module, AccessMode.ReadWrite),
-            ...lExtensions.get(ExtensionType.Module, AccessMode.Read)
+        const lReadExtensions: Array<IPwbExtensionModuleProcessorClass> = [
+            ...lExtensions.getExtensionModuleConfiguration(ExtensionType.Module, AccessMode.ReadWrite),
+            ...lExtensions.getExtensionModuleConfiguration(ExtensionType.Module, AccessMode.Read)
         ];
 
         // Create every read module extension.

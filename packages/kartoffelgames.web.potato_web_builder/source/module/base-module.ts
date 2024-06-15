@@ -5,7 +5,6 @@ import { PwbTemplateExpression } from '../component/template/nodes/values/pwb-te
 import { LayerValues } from '../component/values/layer-values';
 import { AccessMode } from '../enum/access-mode.enum';
 import { ExtensionType } from '../enum/extension-type.enum';
-import { GlobalExtensionsStorage } from '../extension/global-extensions-storage';
 import { ModuleExtension } from '../extension/module-extension';
 import { InjectionHierarchyParent } from '../injection/injection-hierarchy-parent';
 import { ModuleConstructorReference } from '../injection/references/module/module-constructor-reference';
@@ -14,7 +13,7 @@ import { ModuleReference } from '../injection/references/module/module-reference
 import { ModuleTargetNodeReference } from '../injection/references/module/module-target-node-reference';
 import { ModuleTemplateReference } from '../injection/references/module/module-template-reference';
 import { IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../interface/module.interface';
-import { ExtensionModuleConfiguration } from './global-module-storage';
+import { ExtensionModuleConfiguration, GlobalModuleStorage } from './global-module-storage';
 
 export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor extends IPwbModuleProcessor> extends InjectionHierarchyParent {
     private readonly mExtensionList: Array<ModuleExtension>;
@@ -84,7 +83,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
      * @param pValue - Value for module object.
      */
     private createModuleProcessor(): void {
-        const lExtensions: GlobalExtensionsStorage = new GlobalExtensionsStorage();
+        const lExtensions: GlobalModuleStorage = new GlobalModuleStorage();
 
         // Create every write module extension.
         for (const lExtensionModuleConfiguration of lExtensions.getExtensionModuleConfiguration(ExtensionType.Module, AccessMode.Write)) {

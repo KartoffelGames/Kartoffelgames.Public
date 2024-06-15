@@ -1,9 +1,9 @@
 import { Injector } from '@kartoffelgames/core.dependency-injection';
 import { AccessMode } from '../enum/access-mode.enum';
 import { ExtensionType } from '../enum/extension-type.enum';
-import { GlobalExtensionsStorage } from '../extension/global-extensions-storage';
-import { IPwbExtensionModuleProcessorConstructor } from '../interface/extension.interface';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
+import { IPwbExtensionModuleProcessorConstructor } from '../interface/extension.interface';
+import { GlobalModuleStorage } from '../module/global-module-storage';
 
 /**
  * AtScript. PWB component extension module.
@@ -17,7 +17,7 @@ export function PwbExtensionModule(pSettings: ExtensionSettings): any {
         Injector.Injectable(pExtensionConstructor);
 
         // Register module.
-        new GlobalExtensionsStorage().addExtensionModule({
+        new GlobalModuleStorage().addExtensionModule({
             access: pSettings.access,
             constructor: pExtensionConstructor,
             trigger: pSettings.trigger,

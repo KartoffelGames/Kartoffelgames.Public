@@ -5,7 +5,6 @@ import { AccessMode } from '../enum/access-mode.enum';
 import { ExtensionType } from '../enum/extension-type.enum';
 import { UpdateMode } from '../enum/update-mode.enum';
 import { ComponentExtension } from '../extension/component-extension';
-import { GlobalExtensionsStorage } from '../extension/global-extensions-storage';
 import { InjectionHierarchyParent } from '../injection/injection-hierarchy-parent';
 import { ComponentConstructorReference } from '../injection/references/component/component-constructor-reference';
 import { ComponentElementReference } from '../injection/references/component/component-element-reference';
@@ -14,7 +13,7 @@ import { ComponentReference } from '../injection/references/component/component-
 import { ComponentUpdateHandlerReference } from '../injection/references/component/component-update-handler-reference';
 import { ComponentProcessor, ComponentProcessorConstructor } from '../interface/component.interface';
 import { IPwbExpressionModuleProcessorConstructor } from '../interface/module.interface';
-import { ExtensionModuleConfiguration } from '../module/global-module-storage';
+import { ExtensionModuleConfiguration, GlobalModuleStorage } from '../module/global-module-storage';
 import { StaticBuilder } from './builder/static-builder';
 import { ComponentModules } from './component-modules';
 import { ElementCreator } from './element-creator';
@@ -371,7 +370,7 @@ export class Component extends InjectionHierarchyParent {
      * At most times in a read extension the processor is created so new injections should be added in write extensions.
      */
     private executeExtensions(): void {
-        const lExtensions: GlobalExtensionsStorage = new GlobalExtensionsStorage();
+        const lExtensions: GlobalModuleStorage = new GlobalModuleStorage();
 
         // Create local injections with write extensions.
         // Execute all inside the zone.

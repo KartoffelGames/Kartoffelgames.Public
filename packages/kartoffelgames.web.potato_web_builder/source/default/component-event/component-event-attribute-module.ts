@@ -7,10 +7,12 @@ import { ModuleTargetNodeReference } from '../../injection/references/module/mod
 import { ModuleLayerValuesReference } from '../../injection/references/module/module-layer-values-reference';
 import { ModuleKeyReference } from '../../injection/references/module/module-key-reference';
 import { ModuleValueReference } from '../../injection/references/module/module-value-reference';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
 @PwbAttributeModule({
+    access: AccessMode.Write,
     selector: /^\([[\w\-$]+\)$/,
-    access: AccessMode.Write
+    trigger: UpdateTrigger.Default
 })
 export class EventAttributeModule implements IPwbModuleOnDeconstruct {
     private readonly mEventName: string;

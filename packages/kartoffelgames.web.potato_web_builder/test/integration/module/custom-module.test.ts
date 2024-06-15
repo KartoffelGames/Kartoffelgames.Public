@@ -13,12 +13,14 @@ import { TestUtil } from '../../utility/test-util';
 import { PwbTemplate } from '../../../source/component/template/nodes/pwb-template';
 import { ComponentElement } from '../../../source/interface/component.interface';
 import { ComponentLayerValuesReference } from '../../../source/injection/references/component/component-layer-values-reference';
+import { UpdateTrigger } from '../../../source/enum/update-trigger.enum';
 
 describe('Custom Module', () => {
     it('-- Same result, twice', async () => {
         // Setup. Define module.
         @PwbInstructionModule({
-            instructionType: 'multiresult'
+            instructionType: 'multiresult',
+            trigger: UpdateTrigger.Default
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class WrongModule implements IPwbInstructionModuleOnUpdate {
@@ -68,7 +70,8 @@ describe('Custom Module', () => {
     it('-- Manupulator without update method', async () => {
         // Setup. Define module.
         @PwbInstructionModule({
-            instructionType: 'noupdatemethod'
+            instructionType: 'noupdatemethod',
+            trigger: UpdateTrigger.Default
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class WrongModule { }
@@ -89,8 +92,9 @@ describe('Custom Module', () => {
     it('-- Deconstruct module without deconstructor method', async () => {
         // Setup. Define module.
         @PwbAttributeModule({
+            access: AccessMode.Read,
             selector: /^nodeconstructmethod$/,
-            access: AccessMode.Read
+            trigger: UpdateTrigger.Default
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class Module { }

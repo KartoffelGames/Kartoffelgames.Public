@@ -20,6 +20,7 @@ import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
 import { ModuleTemplateReference } from '../../../source/injection/references/module/module-template-reference';
+import { UpdateTrigger } from '../../../source/enum/update-trigger.enum';
 
 describe('PwbEventListener', () => {
     it('-- Native listener', async () => {
@@ -178,8 +179,9 @@ describe('PwbEventListener', () => {
         let lEventCalled: boolean = false;
 
         @PwbAttributeModule({
+            access: AccessMode.Read,
             selector: /^listenerTestModuleOne$/,
-            access: AccessMode.Read
+            trigger: UpdateTrigger.Default
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class MyModule {
@@ -210,8 +212,9 @@ describe('PwbEventListener', () => {
         let lEventCalled: boolean = false;
 
         @PwbAttributeModule({
+            access: AccessMode.Read,
             selector: /^listenerTestModuleTwo$/,
-            access: AccessMode.Read
+            trigger: UpdateTrigger.Default
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class MyModule {
@@ -240,8 +243,9 @@ describe('PwbEventListener', () => {
     it('-- Error on none function properties on static module', async () => {
         // Setup. Create static module.
         @PwbAttributeModule({
+            access: AccessMode.Read,
             selector: /^listenerTestModuleThree$/,
-            access: AccessMode.Read
+            trigger: UpdateTrigger.Default
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class MyModule {
@@ -274,7 +278,8 @@ describe('PwbEventListener', () => {
         let lEventCalled: boolean = false;
 
         @PwbInstructionModule({
-            instructionType: 'listenerTestModuleFour'
+            instructionType: 'listenerTestModuleFour',
+            trigger: UpdateTrigger.Default
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class MyModule implements IPwbInstructionModuleOnUpdate {

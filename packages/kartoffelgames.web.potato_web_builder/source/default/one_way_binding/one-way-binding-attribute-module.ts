@@ -1,6 +1,7 @@
 import { LayerValues } from '../../component/values/layer-values';
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { ModuleKeyReference } from '../../injection/references/module/module-key-reference';
 import { ModuleLayerValuesReference } from '../../injection/references/module/module-layer-values-reference';
 import { ModuleTargetNodeReference } from '../../injection/references/module/module-target-node-reference';
@@ -13,8 +14,9 @@ import { ComponentScopeExecutor } from '../../module/execution/component-scope-e
  * If the user class object changes, the view object value gets updated.
  */
 @PwbAttributeModule({
+    access: AccessMode.Read,
     selector: /^\[[\w$]+\]$/,
-    access: AccessMode.Read
+    trigger: UpdateTrigger.Default
 })
 export class OneWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate {
     private readonly mExecutionString: string;

@@ -9,10 +9,12 @@ import { ModuleReference } from '../../injection/references/module/module-refere
 import { ModuleTargetNodeReference } from '../../injection/references/module/module-target-node-reference';
 import { IPwbExtensionModuleOnDeconstruct } from '../../interface/extension.interface';
 import { EventListenerComponentExtension } from './event-listener-component-extension';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
 @PwbExtensionModule({
-    type: ExtensionType.Module,
-    access: AccessMode.Read
+    access: AccessMode.Read,
+    trigger: UpdateTrigger.Default,
+    type: ExtensionType.Module
 })
 export class EventListenerModuleExtension implements IPwbExtensionModuleOnDeconstruct {
     private readonly mEventListenerList: Array<[string, EventListener]>;

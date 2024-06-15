@@ -9,13 +9,15 @@ import { ModuleValueReference } from '../../injection/references/module/module-v
 import { IPwbInstructionModuleOnUpdate } from '../../interface/module.interface';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
 import { InstructionResult } from '../../module/result/instruction-result';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
 /**
  * Dynamic content instruction.
  * Add {@link PwbTemplate} returned by the provided template callback to current location.
  */
 @PwbInstructionModule({
-    instructionType: 'dynamic-content'
+    instructionType: 'dynamic-content',
+    trigger: UpdateTrigger.Default
 })
 export class DynamicContentInstructionModule implements IPwbInstructionModuleOnUpdate {
     private readonly mExpression: string;

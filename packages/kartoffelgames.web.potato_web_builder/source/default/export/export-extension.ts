@@ -7,10 +7,12 @@ import { ExtensionType } from '../../enum/extension-type.enum';
 import { ComponentConstructorReference } from '../../injection/references/component/component-constructor-reference';
 import { ComponentElementReference } from '../../injection/references/component/component-element-reference';
 import { ComponentReference } from '../../injection/references/component/component-reference';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
 @PwbExtensionModule({
-    type: ExtensionType.Component,
-    access: AccessMode.Read
+    access: AccessMode.Read,
+    trigger: UpdateTrigger.Default,
+    type: ExtensionType.Component
 })
 export class ExportExtension {
     public static readonly METADATA_EXPORTED_PROPERTIES: string = 'pwb:exported_properties';

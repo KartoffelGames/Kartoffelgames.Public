@@ -141,7 +141,8 @@ export type InstructionModuleConfiguration = {
 };
 
 export type ExtensionModuleConfiguration = {
+    access: AccessMode;
     constructor: IPwbExtensionModuleProcessorConstructor;
-    extensionType: ExtensionType;
+    type: ExtensionType;
     trigger: UpdateTrigger;
 };

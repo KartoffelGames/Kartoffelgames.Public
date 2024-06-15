@@ -1,5 +1,6 @@
 import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { ComponentLayerValuesReference } from '../../injection/references/component/component-layer-values-reference';
 import { ComponentUpdateHandlerReference } from '../../injection/references/component/component-update-handler-reference';
 import { ModuleKeyReference } from '../../injection/references/module/module-key-reference';
@@ -9,8 +10,9 @@ import { ModuleTargetNodeReference } from '../../injection/references/module/mod
  * Used with "#IdChildName" like - #PasswordInput.
  */
 @PwbAttributeModule({
+    access: AccessMode.Write,
     selector: /^#[[\w$]+$/,
-    access: AccessMode.Write
+    trigger: UpdateTrigger.Default
 })
 export class PwbChildAttributeModule {
     /**

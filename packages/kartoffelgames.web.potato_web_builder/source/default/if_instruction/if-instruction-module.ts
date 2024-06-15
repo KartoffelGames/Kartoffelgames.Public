@@ -2,6 +2,7 @@ import { PwbTemplate } from '../../component/template/nodes/pwb-template';
 import { PwbTemplateInstructionNode } from '../../component/template/nodes/pwb-template-instruction-node';
 import { LayerValues } from '../../component/values/layer-values';
 import { PwbInstructionModule } from '../../decorator/pwb-instruction-module.decorator';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { ModuleLayerValuesReference } from '../../injection/references/module/module-layer-values-reference';
 import { ModuleTemplateReference } from '../../injection/references/module/module-template-reference';
 import { ModuleValueReference } from '../../injection/references/module/module-value-reference';
@@ -14,7 +15,8 @@ import { InstructionResult } from '../../module/result/instruction-result';
  * If the executed result of the attribute value is false, the element will not be append to view.
  */
 @PwbInstructionModule({
-    instructionType: 'if'
+    instructionType: 'if',
+    trigger: UpdateTrigger.Default
 })
 export class IfInstructionModule implements IPwbInstructionModuleOnUpdate {
     private readonly mExpression: string;

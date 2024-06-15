@@ -11,6 +11,7 @@ import { ComponentScopeExecutor } from '../../module/execution/component-scope-e
 import { InstructionResult } from '../../module/result/instruction-result';
 import { ComponentUpdateHandlerReference } from '../../injection/references/component/component-update-handler-reference';
 import { UpdateHandler } from '../../component/handler/update-handler';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
 /**
  * For of.
@@ -18,7 +19,8 @@ import { UpdateHandler } from '../../component/handler/update-handler';
  * Syntax: "[CustomName] of [List] (;[CustomIndexName] = $index)?"
  */
 @PwbInstructionModule({
-    instructionType: 'for'
+    instructionType: 'for',
+    trigger: UpdateTrigger.Default
 })
 export class ForInstructionModule implements IPwbInstructionModuleOnUpdate {
     private readonly mExpression: ForOfExpression;

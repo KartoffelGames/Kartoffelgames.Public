@@ -14,6 +14,7 @@ import '../mock/request-animation-frame-mock-session';
 import '../utility/chai-helper';
 import { TestUtil } from '../utility/test-util';
 import { ComponentUpdateHandlerReference } from '../../source/injection/references/component/component-update-handler-reference';
+import { UpdateTrigger } from '../../source/enum/update-trigger.enum';
 
 describe('HtmlComponent', () => {
     it('-- Single element', async () => {
@@ -271,7 +272,9 @@ describe('HtmlComponent', () => {
         const lExpressionValue: string = 'EXPRESSION-VALUE';
 
         // Setup. Custom expression module.
-        @PwbExpressionModule()
+        @PwbExpressionModule({
+            trigger: UpdateTrigger.Default
+        })
         class TestExpressionModule implements IPwbExpressionModuleOnUpdate {
             public onUpdate(): string {
                 return lExpressionValue;

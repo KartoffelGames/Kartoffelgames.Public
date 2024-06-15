@@ -8,10 +8,12 @@ import { ComponentElementReference } from '../../injection/references/component/
 import { ComponentReference } from '../../injection/references/component/component-reference';
 import { ComponentProcessorConstructor } from '../../interface/component.interface';
 import { ComponentEventEmitter } from './component-event-emitter';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
 @PwbExtensionModule({
-    type: ExtensionType.Component,
-    access: AccessMode.Read
+    access: AccessMode.Read,
+    trigger: UpdateTrigger.Default,
+    type: ExtensionType.Component
 })
 export class ComponentEventExtension {
     public static readonly METADATA_USER_EVENT_PROPERIES: string = 'pwb:user_event_properties';

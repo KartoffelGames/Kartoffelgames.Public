@@ -4,14 +4,16 @@ import { PwbComponent } from '../../../source/decorator/pwb-component.decorator'
 import { PwbExtensionModule } from '../../../source/decorator/pwb-extension-module.decorator';
 import { ExtensionType } from '../../../source/enum/extension-type.enum';
 import { TestUtil } from '../../utility/test-util';
+import { UpdateTrigger } from '../../../source/enum/update-trigger.enum';
 
 describe('BaseExtension', () => {
     it('-- Injection extension without injection', async () => {
         // Process. Create extension.
         let lExtensionCalled: boolean = false;
         @PwbExtensionModule({
-            type: ExtensionType.Component,
-            access: AccessMode.Read
+            access: AccessMode.Read,
+            trigger: UpdateTrigger.Default,
+            type: ExtensionType.Component
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class UselessExtension {
@@ -37,8 +39,9 @@ describe('BaseExtension', () => {
         // Process. Create extension.
         let lExtensionCalled: boolean = false;
         @PwbExtensionModule({
-            type: ExtensionType.Component | ExtensionType.Module,
-            access: AccessMode.Read
+            access: AccessMode.Read,
+            trigger: UpdateTrigger.Default,
+            type: ExtensionType.Component | ExtensionType.Module
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class UselessExtension {

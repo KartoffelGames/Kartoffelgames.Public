@@ -3,18 +3,18 @@ import { PwbTemplateInstructionNode } from '../component/template/nodes/pwb-temp
 import { PwbTemplateAttribute } from '../component/template/nodes/values/pwb-template-attribute';
 import { PwbTemplateExpression } from '../component/template/nodes/values/pwb-template-expression';
 import { LayerValues } from '../component/values/layer-values';
+import { AccessMode } from '../enum/access-mode.enum';
+import { ExtensionType } from '../enum/extension-type.enum';
 import { GlobalExtensionsStorage } from '../extension/global-extensions-storage';
 import { ModuleExtension } from '../extension/module-extension';
-import { IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../interface/module.interface';
 import { InjectionHierarchyParent } from '../injection/injection-hierarchy-parent';
-import { ModuleTemplateReference } from '../injection/references/module/module-template-reference';
-import { ModuleTargetNodeReference } from '../injection/references/module/module-target-node-reference';
-import { ModuleLayerValuesReference } from '../injection/references/module/module-layer-values-reference';
 import { ModuleConstructorReference } from '../injection/references/module/module-constructor-reference';
+import { ModuleLayerValuesReference } from '../injection/references/module/module-layer-values-reference';
 import { ModuleReference } from '../injection/references/module/module-reference';
-import { ExtensionType } from '../enum/extension-type.enum';
-import { AccessMode } from '../enum/access-mode.enum';
-import { IPwbExtensionModuleProcessorConstructor } from '../interface/extension.interface';
+import { ModuleTargetNodeReference } from '../injection/references/module/module-target-node-reference';
+import { ModuleTemplateReference } from '../injection/references/module/module-template-reference';
+import { IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../interface/module.interface';
+import { ExtensionModuleConfiguration } from './global-module-storage';
 
 export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor extends IPwbModuleProcessor> extends InjectionHierarchyParent {
     private readonly mExtensionList: Array<ModuleExtension>;
@@ -87,9 +87,9 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
         const lExtensions: GlobalExtensionsStorage = new GlobalExtensionsStorage();
 
         // Create every write module extension.
-        for (const lExtensionProcessorConstructor of lExtensions.getExtensionModuleConfiguration(ExtensionType.Module, AccessMode.Write)) {
+        for (const lExtensionModuleConfiguration of lExtensions.getExtensionModuleConfiguration(ExtensionType.Module, AccessMode.Write)) {
             const lModuleExtension: ModuleExtension = new ModuleExtension({
-                constructor: lExtensionProcessorConstructor,
+                constructor: lExtensionModuleConfiguration.constructor,
                 parent: this
             });
 
@@ -106,15 +106,15 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
         this.mProcessor = Injection.createObject<TModuleProcessor>(this.mProcessorConstructor, this.injections);
 
         // Get all read extensions. Keep order to execute readWrite extensions first.
-        const lReadExtensions: Array<IPwbExtensionModuleProcessorConstructor> = [
+        const lReadExtensions: Array<ExtensionModuleConfiguration> = [
             ...lExtensions.getExtensionModuleConfiguration(ExtensionType.Module, AccessMode.ReadWrite),
             ...lExtensions.getExtensionModuleConfiguration(ExtensionType.Module, AccessMode.Read)
         ];
 
         // Create every read module extension.
-        for (const lExtensionProcessorConstructor of lReadExtensions) {
+        for (const lExtensionModuleConfiguration of lReadExtensions) {
             const lModuleExtension: ModuleExtension = new ModuleExtension({
-                constructor: lExtensionProcessorConstructor,
+                constructor: lExtensionModuleConfiguration.constructor,
                 parent: this
             });
 

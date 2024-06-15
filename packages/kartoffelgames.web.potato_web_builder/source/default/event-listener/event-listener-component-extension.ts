@@ -7,10 +7,12 @@ import { ComponentConstructorReference } from '../../injection/references/compon
 import { ComponentElementReference } from '../../injection/references/component/component-element-reference';
 import { ComponentReference } from '../../injection/references/component/component-reference';
 import { IPwbExtensionModuleOnDeconstruct } from '../../interface/extension.interface';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
 @PwbExtensionModule({
-    type: ExtensionType.Component,
-    access: AccessMode.Read
+    access: AccessMode.Read,
+    trigger: UpdateTrigger.Default,
+    type: ExtensionType.Component
 })
 export class EventListenerComponentExtension implements IPwbExtensionModuleOnDeconstruct {
     public static readonly METADATA_USER_EVENT_LISTENER_PROPERIES: string = 'pwb:user_event_listener_properties';

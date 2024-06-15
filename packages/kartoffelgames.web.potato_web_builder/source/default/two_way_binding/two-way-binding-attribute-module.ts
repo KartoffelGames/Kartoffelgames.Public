@@ -9,10 +9,12 @@ import { ModuleTargetNodeReference } from '../../injection/references/module/mod
 import { ModuleValueReference } from '../../injection/references/module/module-value-reference';
 import { IPwbAttributeModuleOnUpdate } from '../../interface/module.interface';
 import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
 @PwbAttributeModule({
+    access: AccessMode.ReadWrite,
     selector: /^\[\([[\w$]+\)\]$/,
-    access: AccessMode.ReadWrite
+    trigger: UpdateTrigger.Default
 })
 export class TwoWayBindingAttributeModule implements IPwbAttributeModuleOnUpdate {
     private readonly mAttributeKey: string;

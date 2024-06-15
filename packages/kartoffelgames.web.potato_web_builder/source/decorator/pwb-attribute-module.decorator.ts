@@ -2,6 +2,7 @@ import { Injector } from '@kartoffelgames/core.dependency-injection';
 import { AccessMode } from '../enum/access-mode.enum';
 import { GlobalModuleStorage } from '../module/global-module-storage';
 import { IPwbAttributeModuleProcessorConstructor } from '../interface/module.interface';
+import { UpdateTrigger } from '../enum/update-trigger.enum';
 
 /**
  * AtScript. PWB attribute attribute module.
@@ -18,12 +19,14 @@ export function PwbAttributeModule(pSettings: AttributeModuleSettings): any {
         new GlobalModuleStorage().addAttributeModule({
             access: pSettings.access,
             constructor: pAttributeModuleConstructor,
-            selector: pSettings.selector
+            selector: pSettings.selector,
+            trigger: pSettings.trigger
         });
     };
 }
 
 type AttributeModuleSettings = {
-    selector: RegExp,
     access: AccessMode;
+    selector: RegExp;
+    trigger: UpdateTrigger;
 };

@@ -17,7 +17,12 @@ export function PwbExtensionModule(pSettings: ExtensionSettings): any {
         Injector.Injectable(pExtensionConstructor);
 
         // Register module.
-        new GlobalExtensionsStorage().addExtensionModule(pExtensionConstructor, pSettings.type, pSettings.access);
+        new GlobalExtensionsStorage().addExtensionModule({
+            access: pSettings.access,
+            constructor: pExtensionConstructor,
+            trigger: pSettings.trigger,
+            type: pSettings.type
+        });
     };
 }
 

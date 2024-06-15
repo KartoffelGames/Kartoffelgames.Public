@@ -13,8 +13,8 @@ import { ComponentLayerValuesReference } from '../injection/references/component
 import { ComponentReference } from '../injection/references/component/component-reference';
 import { ComponentUpdateHandlerReference } from '../injection/references/component/component-update-handler-reference';
 import { ComponentProcessor, ComponentProcessorConstructor } from '../interface/component.interface';
-import { IPwbExtensionModuleProcessorConstructor } from '../interface/extension.interface';
 import { IPwbExpressionModuleProcessorConstructor } from '../interface/module.interface';
+import { ExtensionModuleConfiguration } from '../module/global-module-storage';
 import { StaticBuilder } from './builder/static-builder';
 import { ComponentModules } from './component-modules';
 import { ElementCreator } from './element-creator';
@@ -376,9 +376,9 @@ export class Component extends InjectionHierarchyParent {
         // Create local injections with write extensions.
         // Execute all inside the zone.
         this.mUpdateHandler.enableInteractionTrigger(() => {
-            for (const lExtensionConstructor of lExtensions.getExtensionModuleConfiguration(ExtensionType.Component, AccessMode.Write)) {
+            for (const lExtensionModuleConfiguration of lExtensions.getExtensionModuleConfiguration(ExtensionType.Component, AccessMode.Write)) {
                 const lComponentExtension: ComponentExtension = new ComponentExtension({
-                    constructor: lExtensionConstructor,
+                    constructor: lExtensionModuleConfiguration.constructor,
                     parent: this
                 });
 
@@ -388,14 +388,14 @@ export class Component extends InjectionHierarchyParent {
                 this.mExtensionList.push(lComponentExtension);
             }
 
-            const lReadExtensions: Array<IPwbExtensionModuleProcessorConstructor> = [
+            const lReadExtensions: Array<ExtensionModuleConfiguration> = [
                 ...lExtensions.getExtensionModuleConfiguration(ExtensionType.Component, AccessMode.ReadWrite),
                 ...lExtensions.getExtensionModuleConfiguration(ExtensionType.Component, AccessMode.Read)
             ];
 
-            for (const lExtensionConstructor of lReadExtensions) {
+            for (const lExtensionModuleConfiguration of lReadExtensions) {
                 const lComponentExtension: ComponentExtension = new ComponentExtension({
-                    constructor: lExtensionConstructor,
+                    constructor: lExtensionModuleConfiguration.constructor,
                     parent: this
                 });
 

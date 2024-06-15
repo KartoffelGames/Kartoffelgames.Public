@@ -5,10 +5,12 @@ import { ExtensionType } from '../../enum/extension-type.enum';
 import { ComponentReference } from '../../injection/references/component/component-reference';
 import { ModuleReference } from '../../injection/references/module/module-reference';
 import { PwbApp } from '../../pwb-app/pwb-app';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
 @PwbExtensionModule({
-    type: ExtensionType.Module,
-    access: AccessMode.Write
+    access: AccessMode.Write,
+    trigger: UpdateTrigger.None,
+    type: ExtensionType.Module
 })
 export class PwbAppModuleInjectionExtension {
     /**
@@ -26,8 +28,9 @@ export class PwbAppModuleInjectionExtension {
 }
 
 @PwbExtensionModule({
-    type: ExtensionType.Component,
-    access: AccessMode.Write
+    access: AccessMode.Write,
+    trigger: UpdateTrigger.None,
+    type: ExtensionType.Component
 })
 export class PwbAppComponentInjectionExtension {
     /**

@@ -3,11 +3,14 @@ import { LayerValues } from '../component/values/layer-values';
 import { AccessMode } from '../enum/access-mode.enum';
 import { InjectionHierarchyParent } from '../injection/injection-hierarchy-parent';
 import { ModuleKeyReference } from '../injection/references/module/module-key-reference';
+import { ModuleLayerValuesReference } from '../injection/references/module/module-layer-values-reference';
+import { ModuleTargetNodeReference } from '../injection/references/module/module-target-node-reference';
+import { ModuleTemplateReference } from '../injection/references/module/module-template-reference';
 import { ModuleValueReference } from '../injection/references/module/module-value-reference';
 import { IPwbAttributeModuleProcessor, IPwbAttributeModuleProcessorConstructor } from '../interface/module.interface';
 import { BaseModule } from './base-module';
 
-export class AttributeModule extends BaseModule<Element, IPwbAttributeModuleProcessor> {
+export class AttributeModule extends BaseModule<IPwbAttributeModuleProcessor> {
     private readonly mAccessMode: AccessMode;
 
     /**
@@ -24,16 +27,16 @@ export class AttributeModule extends BaseModule<Element, IPwbAttributeModuleProc
     public constructor(pParameter: StaticModuleConstructorParameter) {
         super({
             constructor: pParameter.constructor,
-            targetTemplate: pParameter.targetTemplate,
-            values: pParameter.values,
             parent: pParameter.parent,
-            targetNode: pParameter.targetNode
         });
 
         // Save module access mode.
         this.mAccessMode = pParameter.accessMode;
 
         // Set processor attribute values from injection template.
+        this.setProcessorAttributes(ModuleTemplateReference, pParameter.targetTemplate.clone());
+        this.setProcessorAttributes(ModuleTargetNodeReference, pParameter.targetNode);
+        this.setProcessorAttributes(ModuleLayerValuesReference, pParameter.values);
         this.setProcessorAttributes(ModuleKeyReference, pParameter.targetTemplate.name);
         this.setProcessorAttributes(ModuleValueReference, pParameter.targetTemplate.values.toString());
     }

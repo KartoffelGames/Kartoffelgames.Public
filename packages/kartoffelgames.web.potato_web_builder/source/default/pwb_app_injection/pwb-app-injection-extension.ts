@@ -12,7 +12,7 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
     trigger: UpdateTrigger.None,
     type: ExtensionType.Module
 })
-export class PwbAppModuleInjectionExtension {
+export class PwbAppModuleInjectionExtension { // TODO: Remove this, as the component should bubble the processor attribute.
     /**
      * Constructor.
      * Sets current {@link PwbApp} as injection target.

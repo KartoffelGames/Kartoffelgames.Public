@@ -22,4 +22,4 @@ export class ModuleReference {
     }
 }
 
-export declare interface ModuleReference extends BaseModule<Node, IPwbModuleProcessor> { }
+export declare interface ModuleReference extends BaseModule<IPwbModuleProcessor> { }

@@ -3,12 +3,15 @@ import { PwbTemplateInstructionNode } from '../component/template/nodes/pwb-temp
 import { LayerValues } from '../component/values/layer-values';
 import { InjectionHierarchyParent } from '../injection/injection-hierarchy-parent';
 import { ModuleKeyReference } from '../injection/references/module/module-key-reference';
+import { ModuleLayerValuesReference } from '../injection/references/module/module-layer-values-reference';
+import { ModuleTargetNodeReference } from '../injection/references/module/module-target-node-reference';
+import { ModuleTemplateReference } from '../injection/references/module/module-template-reference';
 import { ModuleValueReference } from '../injection/references/module/module-value-reference';
 import { IPwbInstructionModuleProcessor, IPwbInstructionModuleProcessorConstructor } from '../interface/module.interface';
 import { BaseModule } from './base-module';
 import { InstructionResult, InstructionResultElement } from './result/instruction-result';
 
-export class InstructionModule extends BaseModule<Comment, IPwbInstructionModuleProcessor> {
+export class InstructionModule extends BaseModule<IPwbInstructionModuleProcessor> {
     private mLastResult: InstructionResult;
 
     /**
@@ -25,16 +28,16 @@ export class InstructionModule extends BaseModule<Comment, IPwbInstructionModule
     public constructor(pParameter: MultiplicatorModuleConstructorParameter) {
         super({
             constructor: pParameter.constructor,
-            targetTemplate: pParameter.targetTemplate,
-            values: pParameter.values,
             parent: pParameter.parent,
-            targetNode: ElementCreator.createComment('InstructionModule-Node')
         });
 
         // Set processor attribute values from injection template.
+        this.setProcessorAttributes(ModuleTemplateReference, pParameter.targetTemplate.clone());
+        this.setProcessorAttributes(ModuleTargetNodeReference, ElementCreator.createComment('')); // TODO: Remove after restriction set.
+        this.setProcessorAttributes(ModuleLayerValuesReference, pParameter.values);
         this.setProcessorAttributes(ModuleKeyReference, pParameter.targetTemplate.instructionType);
         this.setProcessorAttributes(ModuleValueReference, pParameter.targetTemplate.instruction);
-        
+
         // Set starting value of instruction => Empty.
         this.mLastResult = new InstructionResult();
     }

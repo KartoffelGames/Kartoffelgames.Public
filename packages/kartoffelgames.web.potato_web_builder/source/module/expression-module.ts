@@ -1,12 +1,16 @@
 import { PwbTemplateExpression } from '../component/template/nodes/values/pwb-template-expression';
 import { LayerValues } from '../component/values/layer-values';
 import { InjectionHierarchyParent } from '../injection/injection-hierarchy-parent';
+import { ModuleLayerValuesReference } from '../injection/references/module/module-layer-values-reference';
+import { ModuleTargetNodeReference } from '../injection/references/module/module-target-node-reference';
+import { ModuleTemplateReference } from '../injection/references/module/module-template-reference';
 import { ModuleValueReference } from '../injection/references/module/module-value-reference';
 import { IPwbExpressionModuleProcessor, IPwbExpressionModuleProcessorConstructor } from '../interface/module.interface';
 import { BaseModule } from './base-module';
 
-export class ExpressionModule extends BaseModule<Text, IPwbExpressionModuleProcessor> {
+export class ExpressionModule extends BaseModule<IPwbExpressionModuleProcessor> {
     private mLastResult: string | null;
+    private readonly mTargetTextNode: Text;
 
     /**
      * Constructor.
@@ -15,16 +19,18 @@ export class ExpressionModule extends BaseModule<Text, IPwbExpressionModuleProce
     public constructor(pParameter: ExpressionModuleConstructorParameter) {
         super({
             constructor: pParameter.constructor,
-            targetTemplate: pParameter.targetTemplate,
-            values: pParameter.values,
-            parent: pParameter.parent,
-            targetNode: pParameter.targetNode
+            parent: pParameter.parent
         });
+
+        this.mTargetTextNode = pParameter.targetNode;
 
         // Set starting value of expression.
         this.mLastResult = null;
 
         // Set module value from template value.
+        this.setProcessorAttributes(ModuleTemplateReference, pParameter.targetTemplate.clone());
+        this.setProcessorAttributes(ModuleTargetNodeReference, pParameter.targetNode);
+        this.setProcessorAttributes(ModuleLayerValuesReference, pParameter.values);
         this.setProcessorAttributes(ModuleValueReference, pParameter.targetTemplate.value);
     }
 
@@ -50,7 +56,7 @@ export class ExpressionModule extends BaseModule<Text, IPwbExpressionModuleProce
         const lValueHasChanged: boolean = this.mLastResult === null || this.mLastResult !== lNewValue;
         if (lValueHasChanged) {
             // Update text data of node.
-            const lNode: Text = this.node;
+            const lNode: Text = this.mTargetTextNode;
             lNode.data = lNewValue;
 
             // Save last value.

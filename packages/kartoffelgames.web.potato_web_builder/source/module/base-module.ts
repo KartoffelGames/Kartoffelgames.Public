@@ -1,25 +1,17 @@
 import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { PwbTemplateInstructionNode } from '../component/template/nodes/pwb-template-instruction-node';
-import { PwbTemplateAttribute } from '../component/template/nodes/values/pwb-template-attribute';
-import { PwbTemplateExpression } from '../component/template/nodes/values/pwb-template-expression';
-import { LayerValues } from '../component/values/layer-values';
 import { AccessMode } from '../enum/access-mode.enum';
 import { ExtensionType } from '../enum/extension-type.enum';
 import { ExtensionModule } from '../extension/extension-module';
 import { InjectionHierarchyParent } from '../injection/injection-hierarchy-parent';
 import { ModuleConstructorReference } from '../injection/references/module/module-constructor-reference';
-import { ModuleLayerValuesReference } from '../injection/references/module/module-layer-values-reference';
 import { ModuleReference } from '../injection/references/module/module-reference';
-import { ModuleTargetNodeReference } from '../injection/references/module/module-target-node-reference';
-import { ModuleTemplateReference } from '../injection/references/module/module-template-reference';
 import { IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../interface/module.interface';
 import { ExtensionModuleConfiguration, GlobalModuleStorage } from './global-module-storage';
 
-export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor extends IPwbModuleProcessor> extends InjectionHierarchyParent {
+export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> extends InjectionHierarchyParent {
     private readonly mExtensionList: Array<ExtensionModule>;
     private mProcessor: TModuleProcessor | null;
     private readonly mProcessorConstructor: InjectionConstructor;
-    private readonly mTargetNode: TTargetNode;
 
     /**
      * Processor of module.
@@ -34,31 +26,20 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
     }
 
     /**
-     * Get target node.
-     */
-    protected get node(): TTargetNode {
-        return this.mTargetNode;
-    }
-
-    /**
      * Constructor.
      * @param pParameter - Parameter.
      */
-    constructor(pParameter: BaseModuleConstructorParameter<TTargetNode>) {
+    constructor(pParameter: BaseModuleConstructorParameter) {
         super(pParameter.parent);
 
         // Save parameter
         this.mProcessorConstructor = pParameter.constructor;
-        this.mTargetNode = pParameter.targetNode;
 
         // Init runtime lists.
         this.mProcessor = null;
         this.mExtensionList = new Array<ExtensionModule>();
 
         // Create module injection mapping.
-        this.setProcessorAttributes(ModuleTemplateReference, pParameter.targetTemplate.clone());
-        this.setProcessorAttributes(ModuleTargetNodeReference, pParameter.targetNode);
-        this.setProcessorAttributes(ModuleLayerValuesReference, pParameter.values);
         this.setProcessorAttributes(ModuleConstructorReference, pParameter.constructor);
         this.setProcessorAttributes(ModuleReference, this);
     }
@@ -84,6 +65,8 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
      * @returns True when any update happened, false when all values stayed the same.
      */
     public update(): boolean {
+        // TODO: Update extensions first.
+
         return this.onUpdate();
     }
 
@@ -95,7 +78,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
         const lExtensions: GlobalModuleStorage = new GlobalModuleStorage();
 
         // Create every write module extension.
-        for (const lExtensionModuleConfiguration of lExtensions.getExtensionModuleConfiguration(ExtensionType.Module, AccessMode.Write)) {
+        for (const lExtensionModuleConfiguration of lExtensions.getExtensionModuleConfiguration(ExtensionType.Module, AccessMode.Write, this.mProcessorConstructor)) {
             const lModuleExtension: ExtensionModule = new ExtensionModule({
                 constructor: lExtensionModuleConfiguration.constructor,
                 parent: this
@@ -115,8 +98,8 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
 
         // Get all read extensions. Keep order to execute readWrite extensions first.
         const lReadExtensions: Array<ExtensionModuleConfiguration> = [
-            ...lExtensions.getExtensionModuleConfiguration(ExtensionType.Module, AccessMode.ReadWrite),
-            ...lExtensions.getExtensionModuleConfiguration(ExtensionType.Module, AccessMode.Read)
+            ...lExtensions.getExtensionModuleConfiguration(ExtensionType.Module, AccessMode.ReadWrite, this.mProcessorConstructor),
+            ...lExtensions.getExtensionModuleConfiguration(ExtensionType.Module, AccessMode.Read, this.mProcessorConstructor)
         ];
 
         // Create every read module extension.
@@ -141,12 +124,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
     protected abstract onUpdate(): boolean;
 }
 
-export type BaseModuleConstructorParameter<TTargetNode extends Node> = {
+export type BaseModuleConstructorParameter = {
     parent: InjectionHierarchyParent,
     constructor: IPwbModuleProcessorConstructor<IPwbModuleProcessor>,
-    targetNode: TTargetNode;
-    targetTemplate: BaseModuleTargetTemplate,
-    values: LayerValues;
 };
-
-type BaseModuleTargetTemplate = PwbTemplateAttribute | PwbTemplateExpression | PwbTemplateInstructionNode;

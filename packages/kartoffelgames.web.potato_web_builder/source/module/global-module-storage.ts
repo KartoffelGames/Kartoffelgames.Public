@@ -4,6 +4,7 @@ import { IPwbAttributeModuleProcessorConstructor, IPwbExpressionModuleProcessorC
 import { IPwbExtensionModuleProcessorConstructor } from '../interface/extension.interface';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
 import { ExtensionType } from '../enum/extension-type.enum';
+import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 
 /**
  * Global module storage.
@@ -171,7 +172,9 @@ export class GlobalModuleStorage {
      * 
      * @returns list of extension with set modifier. Return an empty list as default.
      */
-    public getExtensionModuleConfiguration(pExtensionType: ExtensionType, pAccessMode: AccessMode): Array<ExtensionModuleConfiguration> {
+    public getExtensionModuleConfiguration(pExtensionType: ExtensionType, pAccessMode: AccessMode, _pRestriction: InjectionConstructor): Array<ExtensionModuleConfiguration> {
+        // TODO: Apply restrictions.
+
         // Read possible extensions by extension type.
         const lExtensionTypeMap: Dictionary<AccessMode, Array<ExtensionModuleConfiguration>> | undefined = this.mExtensionsModules.get(pExtensionType);
         if (!lExtensionTypeMap) {
@@ -219,4 +222,5 @@ export type ExtensionModuleConfiguration = {
     constructor: IPwbExtensionModuleProcessorConstructor;
     type: ExtensionType;
     trigger: UpdateTrigger;
+    targetRestrictions: Array<InjectionConstructor>;
 };

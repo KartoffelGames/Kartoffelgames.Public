@@ -375,7 +375,7 @@ export class Component extends InjectionHierarchyParent {
         // Create local injections with write extensions.
         // Execute all inside the zone.
         this.mUpdateHandler.enableInteractionTrigger(() => {
-            for (const lExtensionModuleConfiguration of lExtensions.getExtensionModuleConfiguration(ExtensionType.Component, AccessMode.Write)) {
+            for (const lExtensionModuleConfiguration of lExtensions.getExtensionModuleConfiguration(ExtensionType.Component, AccessMode.Write, this.mProcessorConstructor)) {
                 const lComponentExtension: ExtensionModule = new ExtensionModule({
                     constructor: lExtensionModuleConfiguration.constructor,
                     parent: this
@@ -388,8 +388,8 @@ export class Component extends InjectionHierarchyParent {
             }
 
             const lReadExtensions: Array<ExtensionModuleConfiguration> = [
-                ...lExtensions.getExtensionModuleConfiguration(ExtensionType.Component, AccessMode.ReadWrite),
-                ...lExtensions.getExtensionModuleConfiguration(ExtensionType.Component, AccessMode.Read)
+                ...lExtensions.getExtensionModuleConfiguration(ExtensionType.Component, AccessMode.ReadWrite, this.mProcessorConstructor),
+                ...lExtensions.getExtensionModuleConfiguration(ExtensionType.Component, AccessMode.Read, this.mProcessorConstructor)
             ];
 
             for (const lExtensionModuleConfiguration of lReadExtensions) {

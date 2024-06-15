@@ -4,7 +4,6 @@ import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.
 import { AccessMode } from '../enum/access-mode.enum';
 import { ExtensionType } from '../enum/extension-type.enum';
 import { UpdateMode } from '../enum/update-mode.enum';
-import { ComponentExtension } from '../extension/component-extension';
 import { InjectionHierarchyParent } from '../injection/injection-hierarchy-parent';
 import { ComponentConstructorReference } from '../injection/references/component/component-constructor-reference';
 import { ComponentElementReference } from '../injection/references/component/component-element-reference';
@@ -23,6 +22,7 @@ import { PwbTemplate } from './template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 import { TemplateParser } from './template/template-parser';
 import { LayerValues } from './values/layer-values';
+import { ExtensionModule } from '../extension/extension-module';
 
 /**
  * Base component handler. Handles initialisation and update of components.
@@ -117,7 +117,7 @@ export class Component extends InjectionHierarchyParent {
     }
 
     private readonly mElementHandler: ElementHandler;
-    private readonly mExtensionList: Array<ComponentExtension>;
+    private readonly mExtensionList: Array<ExtensionModule>;
     private mProcessor: ComponentProcessor | null;
     private readonly mProcessorConstructor: ComponentProcessorConstructor;
     private readonly mRootBuilder: StaticBuilder;
@@ -197,7 +197,7 @@ export class Component extends InjectionHierarchyParent {
         this.setProcessorAttributes(ComponentReference, this);
 
         // Create injection extensions.
-        this.mExtensionList = new Array<ComponentExtension>();
+        this.mExtensionList = new Array<ExtensionModule>();
 
         this.executeExtensions();
     }
@@ -376,7 +376,7 @@ export class Component extends InjectionHierarchyParent {
         // Execute all inside the zone.
         this.mUpdateHandler.enableInteractionTrigger(() => {
             for (const lExtensionModuleConfiguration of lExtensions.getExtensionModuleConfiguration(ExtensionType.Component, AccessMode.Write)) {
-                const lComponentExtension: ComponentExtension = new ComponentExtension({
+                const lComponentExtension: ExtensionModule = new ExtensionModule({
                     constructor: lExtensionModuleConfiguration.constructor,
                     parent: this
                 });
@@ -393,7 +393,7 @@ export class Component extends InjectionHierarchyParent {
             ];
 
             for (const lExtensionModuleConfiguration of lReadExtensions) {
-                const lComponentExtension: ComponentExtension = new ComponentExtension({
+                const lComponentExtension: ExtensionModule = new ExtensionModule({
                     constructor: lExtensionModuleConfiguration.constructor,
                     parent: this
                 });

@@ -5,7 +5,7 @@ import { PwbTemplateExpression } from '../component/template/nodes/values/pwb-te
 import { LayerValues } from '../component/values/layer-values';
 import { AccessMode } from '../enum/access-mode.enum';
 import { ExtensionType } from '../enum/extension-type.enum';
-import { ModuleExtension } from '../extension/module-extension';
+import { ExtensionModule } from '../extension/extension-module';
 import { InjectionHierarchyParent } from '../injection/injection-hierarchy-parent';
 import { ModuleConstructorReference } from '../injection/references/module/module-constructor-reference';
 import { ModuleLayerValuesReference } from '../injection/references/module/module-layer-values-reference';
@@ -16,7 +16,7 @@ import { IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../interfac
 import { ExtensionModuleConfiguration, GlobalModuleStorage } from './global-module-storage';
 
 export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor extends IPwbModuleProcessor> extends InjectionHierarchyParent {
-    private readonly mExtensionList: Array<ModuleExtension>;
+    private readonly mExtensionList: Array<ExtensionModule>;
     private mProcessor: TModuleProcessor | null;
     private readonly mProcessorConstructor: InjectionConstructor;
     private readonly mTargetNode: TTargetNode;
@@ -53,7 +53,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
 
         // Init runtime lists.
         this.mProcessor = null;
-        this.mExtensionList = new Array<ModuleExtension>();
+        this.mExtensionList = new Array<ExtensionModule>();
 
         // Create module injection mapping.
         this.setProcessorAttributes(ModuleTemplateReference, pParameter.targetTemplate.clone());
@@ -79,6 +79,15 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
     }
 
     /**
+     * Update module.
+     * 
+     * @returns True when any update happened, false when all values stayed the same.
+     */
+    public update(): boolean {
+        return this.onUpdate();
+    }
+
+    /**
      * Create module object.
      * @param pValue - Value for module object.
      */
@@ -87,7 +96,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
 
         // Create every write module extension.
         for (const lExtensionModuleConfiguration of lExtensions.getExtensionModuleConfiguration(ExtensionType.Module, AccessMode.Write)) {
-            const lModuleExtension: ModuleExtension = new ModuleExtension({
+            const lModuleExtension: ExtensionModule = new ExtensionModule({
                 constructor: lExtensionModuleConfiguration.constructor,
                 parent: this
             });
@@ -112,7 +121,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
 
         // Create every read module extension.
         for (const lExtensionModuleConfiguration of lReadExtensions) {
-            const lModuleExtension: ModuleExtension = new ModuleExtension({
+            const lModuleExtension: ExtensionModule = new ExtensionModule({
                 constructor: lExtensionModuleConfiguration.constructor,
                 parent: this
             });
@@ -129,7 +138,7 @@ export abstract class BaseModule<TTargetNode extends Node, TModuleProcessor exte
      * 
      * @returns True when any update happened, false when all values stayed the same.
      */
-    public abstract update(): boolean;
+    protected abstract onUpdate(): boolean;
 }
 
 export type BaseModuleConstructorParameter<TTargetNode extends Node> = {

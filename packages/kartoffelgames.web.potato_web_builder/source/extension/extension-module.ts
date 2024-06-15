@@ -2,17 +2,17 @@ import { InjectionHierarchyParent } from '../injection/injection-hierarchy-paren
 import { IPwbExtensionModuleProcessorConstructor } from '../interface/extension.interface';
 import { BaseExtension } from './base-extension';
 
-export class ComponentExtension extends BaseExtension {
+export class ExtensionModule extends BaseExtension {
     /**
      * Constructor.
      * @param pParameter - Construction parameter.
      */
-    public constructor(pParameter: ComponentExtensionConstructorParameter) {
+    public constructor(pParameter: ModuleExtensionConstructorParameter) {
         super(pParameter);
     }
 }
 
-type ComponentExtensionConstructorParameter = {
+type ModuleExtensionConstructorParameter = {
     constructor: IPwbExtensionModuleProcessorConstructor,
     parent: InjectionHierarchyParent,
 };

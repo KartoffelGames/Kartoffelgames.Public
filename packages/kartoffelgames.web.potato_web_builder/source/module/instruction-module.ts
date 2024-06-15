@@ -42,7 +42,7 @@ export class InstructionModule extends BaseModule<Comment, IPwbInstructionModule
     /**
      * Update module.
      */
-    public update(): boolean {
+    public onUpdate(): boolean {
         // Try to update instruction when an onUpdate method is defined.
         let lNewValue: InstructionResult | null = null;
         if ('onUpdate' in this.processor) {

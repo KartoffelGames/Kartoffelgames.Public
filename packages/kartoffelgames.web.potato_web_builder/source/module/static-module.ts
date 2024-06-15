@@ -41,7 +41,7 @@ export class AttributeModule extends BaseModule<Element, IPwbAttributeModuleProc
     /**
      * Update module.
      */
-    public update(): boolean {
+    public onUpdate(): boolean {
         if ('onUpdate' in this.processor) {
             return this.processor.onUpdate();
         }

@@ -3,7 +3,7 @@ import { ExpressionModule } from '../module/expression-module';
 import { ExpressionModuleConfiguration, GlobalModuleStorage } from '../module/global-module-storage';
 import { IPwbExpressionModuleProcessorConstructor } from '../interface/module.interface';
 import { InstructionModule } from '../module/instruction-module';
-import { AttributeModule } from '../module/static-module';
+import { AttributeModule } from '../module/attribute-module';
 import { Component } from './component';
 import { PwbTemplateInstructionNode } from './template/nodes/pwb-template-instruction-node';
 import { PwbTemplateAttribute } from './template/nodes/values/pwb-template-attribute';
@@ -18,6 +18,8 @@ import { Exception } from '@kartoffelgames/core.data';
  * @internal
  */
 export class ComponentModules {
+    // TODO: Cache attribute and instruction constructor by the name to create it faster next time.
+
     private readonly mComponent: Component;
     private readonly mExpressionModule: IPwbExpressionModuleProcessorConstructor;
     private readonly mGlobalModuleStorage: GlobalModuleStorage;

@@ -1,5 +1,5 @@
 import { ExpressionModule } from '../../module/expression-module';
-import { AttributeModule } from '../../module/static-module';
+import { AttributeModule } from '../../module/attribute-module';
 import { ComponentModules } from '../component-modules';
 import { ElementCreator } from '../element-creator';
 import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';

@@ -40,4 +40,13 @@ export interface IPwbInstructionModuleOnDeconstruct extends IPwbModuleOnDeconstr
 export interface IPwbInstructionModuleProcessor extends IPwbModuleProcessor, Partial<IPwbInstructionModuleOnUpdate>, Partial<IPwbInstructionModuleOnDeconstruct> { }
 export interface IPwbInstructionModuleProcessorConstructor extends IPwbModuleProcessorConstructor<IPwbInstructionModuleProcessor> { }
 
+// Extension.
+export interface IPwbExtensionModuleOnUpdate extends IPwbModuleOnUpdate<boolean> { }
+export interface IPwbExtensionModuleOnDeconstruct extends IPwbModuleOnDeconstruct { }
+export interface IPwbExtensionModuleProcessor extends Partial<IPwbExtensionModuleOnDeconstruct>, Partial<IPwbExtensionModuleOnUpdate>{ }
+export interface IPwbExtensionModuleProcessorConstructor {
+    new(): IPwbExtensionModuleProcessor;
+}
+
+
 

@@ -1,9 +1,8 @@
 import { InjectionConstructor, Injector } from '@kartoffelgames/core.dependency-injection';
 import { AccessMode } from '../enum/access-mode.enum';
-import { ExtensionType } from '../enum/extension-type.enum';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
-import { IPwbExtensionModuleProcessorConstructor } from '../interface/extension.interface';
 import { GlobalModuleStorage } from '../module/global-module-storage';
+import { IPwbExtensionModuleProcessorConstructor } from '../interface/module.interface';
 
 /**
  * AtScript. PWB component extension module.
@@ -21,7 +20,6 @@ export function PwbExtensionModule(pSettings: ExtensionSettings): any {
             access: pSettings.access,
             constructor: pExtensionConstructor,
             trigger: pSettings.trigger,
-            type: pSettings.type,
             targetRestrictions: pSettings.targetRestrictions ?? new Array<InjectionConstructor>()
         });
     };
@@ -30,6 +28,5 @@ export function PwbExtensionModule(pSettings: ExtensionSettings): any {
 type ExtensionSettings = {
     access: AccessMode;
     trigger: UpdateTrigger;
-    type: ExtensionType;
     targetRestrictions?: Array<InjectionConstructor>;
 };

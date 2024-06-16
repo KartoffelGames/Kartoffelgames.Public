@@ -1,9 +1,8 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
-import { AccessMode } from '../enum/access-mode.enum';
-import { ExtensionType } from '../enum/extension-type.enum';
 import { UpdateMode } from '../enum/update-mode.enum';
+import { ExtensionModule } from '../module/extension-module';
 import { InjectionHierarchyParent } from '../injection/injection-hierarchy-parent';
 import { ComponentConstructorReference } from '../injection/references/component/component-constructor-reference';
 import { ComponentElementReference } from '../injection/references/component/component-element-reference';
@@ -12,7 +11,6 @@ import { ComponentReference } from '../injection/references/component/component-
 import { ComponentUpdateHandlerReference } from '../injection/references/component/component-update-handler-reference';
 import { ComponentProcessor, ComponentProcessorConstructor } from '../interface/component.interface';
 import { IPwbExpressionModuleProcessorConstructor } from '../interface/module.interface';
-import { ExtensionModuleConfiguration, GlobalModuleStorage } from '../module/global-module-storage';
 import { StaticBuilder } from './builder/static-builder';
 import { ComponentModules } from './component-modules';
 import { ElementCreator } from './element-creator';
@@ -22,12 +20,11 @@ import { PwbTemplate } from './template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 import { TemplateParser } from './template/template-parser';
 import { LayerValues } from './values/layer-values';
-import { ExtensionModule } from '../extension/extension-module';
 
 /**
  * Base component handler. Handles initialisation and update of components.
  */
-export class Component extends InjectionHierarchyParent {
+export class Component extends InjectionHierarchyParent<ComponentProcessor> {
     private static readonly mConstructorSelector: WeakMap<object, string> = new WeakMap<object, string>();
     private static readonly mElementComponent: WeakMap<Element, Component> = new WeakMap<Element, Component>();
     private static readonly mTemplateCache: Dictionary<ComponentProcessorConstructor, PwbTemplate> = new Dictionary<ComponentProcessorConstructor, PwbTemplate>();
@@ -117,22 +114,9 @@ export class Component extends InjectionHierarchyParent {
     }
 
     private readonly mElementHandler: ElementHandler;
-    private readonly mExtensionList: Array<ExtensionModule>;
-    private mProcessor: ComponentProcessor | null;
-    private readonly mProcessorConstructor: ComponentProcessorConstructor;
     private readonly mRootBuilder: StaticBuilder;
     private readonly mUpdateHandler: UpdateHandler;
 
-    /**
-     * Component processor.
-     */
-    public get processor(): ComponentProcessor {
-        if (!this.mProcessor) {
-            this.createProcessor();
-        }
-
-        return this.mProcessor!;
-    }
 
     /**
      * Constructor.
@@ -144,14 +128,10 @@ export class Component extends InjectionHierarchyParent {
      * @param pUpdateScope - Update scope of component.
      */
     public constructor(pComponentProcessorConstructor: ComponentProcessorConstructor, pTemplateString: string | null, pExpressionModule: IPwbExpressionModuleProcessorConstructor, pHtmlComponent: HTMLElement, pUpdateScope: UpdateMode) {
-        super(null);
+        super(pComponentProcessorConstructor, null);
 
         // Add register component element.
         Component.registerElement(pHtmlComponent, this);
-
-        // Set empty component processor.
-        this.mProcessor = null;
-        this.mProcessorConstructor = pComponentProcessorConstructor;
 
         // Load cached or create new module handler and template.
         let lTemplate: PwbTemplate | undefined = Component.mTemplateCache.get(pComponentProcessorConstructor);
@@ -169,7 +149,7 @@ export class Component extends InjectionHierarchyParent {
             this.callOnPwbUpdate();
 
             // Save if processor was created before update.
-            const lProcessorWasCreated: boolean = !!this.mProcessor;
+            const lProcessorWasCreated: boolean = !!this.processorCreated;
 
             // Update and callback after update.
             if (this.mRootBuilder.update()) {
@@ -195,11 +175,6 @@ export class Component extends InjectionHierarchyParent {
         this.setProcessorAttributes(ComponentLayerValuesReference, this.mRootBuilder.values);
         this.setProcessorAttributes(ComponentUpdateHandlerReference, this.mUpdateHandler);
         this.setProcessorAttributes(ComponentReference, this);
-
-        // Create injection extensions.
-        this.mExtensionList = new Array<ExtensionModule>();
-
-        this.executeExtensions();
     }
 
     /**
@@ -221,7 +196,7 @@ export class Component extends InjectionHierarchyParent {
      */
     public callAfterPwbUpdate(): void {
         // Skip callback call when the processor was not even created.
-        if (!this.mProcessor) {
+        if (!this.processorCreated) {
             return;
         }
 
@@ -238,7 +213,7 @@ export class Component extends InjectionHierarchyParent {
      */
     public callOnPwbAttributeChange(pAttributeName: string): void {
         // Skip callback call when the processor was not even created.
-        if (!this.mProcessor) {
+        if (!this.processorCreated) {
             return;
         }
 
@@ -250,7 +225,7 @@ export class Component extends InjectionHierarchyParent {
      */
     public callOnPwbConnect(): void {
         // Skip callback call when the processor was not even created.
-        if (!this.mProcessor) {
+        if (!this.processorCreated) {
             return;
         }
 
@@ -262,7 +237,7 @@ export class Component extends InjectionHierarchyParent {
      */
     public callOnPwbDeconstruct(): void {
         // Skip callback call when the processor was not even created.
-        if (!this.mProcessor) {
+        if (!this.processorCreated) {
             return;
         }
 
@@ -274,7 +249,7 @@ export class Component extends InjectionHierarchyParent {
      */
     public callOnPwbDisconnect(): void {
         // Skip callback call when the processor was not even created.
-        if (!this.mProcessor) {
+        if (!this.processorCreated) {
             return;
         }
 
@@ -286,7 +261,7 @@ export class Component extends InjectionHierarchyParent {
      */
     public callOnPwbUpdate(): void {
         // Skip callback call when the processor was not even created.
-        if (!this.mProcessor) {
+        if (!this.processorCreated) {
             return;
         }
 
@@ -313,17 +288,15 @@ export class Component extends InjectionHierarchyParent {
     /**
      * Deconstruct element.
      */
-    public deconstruct(): void {
+    public override deconstruct(): void {
         // Disable updates.
         this.mUpdateHandler.enabled = false;
 
         // User callback.
         this.callOnPwbDeconstruct();
 
-        // Deconstruct all extensions.
-        for (const lExtension of this.mExtensionList) {
-            lExtension.deconstruct();
-        }
+        // Deconstruct history parent / extensions.
+        super.deconstruct();
 
         // Remove change listener from app.
         this.mUpdateHandler.deconstruct();
@@ -361,47 +334,6 @@ export class Component extends InjectionHierarchyParent {
         Object.defineProperty(this.mProcessor, '__component__', { // TODO: remove this bullshit.
             get: () => {
                 return this;
-            }
-        });
-    }
-
-    /**
-     * Execute component extensions ordered by priority from write to read extensions.
-     * At most times in a read extension the processor is created so new injections should be added in write extensions.
-     */
-    private executeExtensions(): void {
-        const lExtensions: GlobalModuleStorage = new GlobalModuleStorage();
-
-        // Create local injections with write extensions.
-        // Execute all inside the zone.
-        this.mUpdateHandler.enableInteractionTrigger(() => {
-            for (const lExtensionModuleConfiguration of lExtensions.getExtensionModuleConfiguration(ExtensionType.Component, AccessMode.Write, this.mProcessorConstructor)) {
-                const lComponentExtension: ExtensionModule = new ExtensionModule({
-                    constructor: lExtensionModuleConfiguration.constructor,
-                    parent: this
-                });
-
-                // Execute extension.
-                lComponentExtension.execute();
-
-                this.mExtensionList.push(lComponentExtension);
-            }
-
-            const lReadExtensions: Array<ExtensionModuleConfiguration> = [
-                ...lExtensions.getExtensionModuleConfiguration(ExtensionType.Component, AccessMode.ReadWrite, this.mProcessorConstructor),
-                ...lExtensions.getExtensionModuleConfiguration(ExtensionType.Component, AccessMode.Read, this.mProcessorConstructor)
-            ];
-
-            for (const lExtensionModuleConfiguration of lReadExtensions) {
-                const lComponentExtension: ExtensionModule = new ExtensionModule({
-                    constructor: lExtensionModuleConfiguration.constructor,
-                    parent: this
-                });
-
-                // Execute extension.
-                lComponentExtension.execute();
-
-                this.mExtensionList.push(lComponentExtension);
             }
         });
     }

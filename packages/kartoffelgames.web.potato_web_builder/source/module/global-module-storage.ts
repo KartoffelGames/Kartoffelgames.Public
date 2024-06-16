@@ -1,10 +1,8 @@
 import { Dictionary, List } from '@kartoffelgames/core.data';
-import { AccessMode } from '../enum/access-mode.enum';
-import { IPwbAttributeModuleProcessorConstructor, IPwbExpressionModuleProcessorConstructor, IPwbInstructionModuleProcessorConstructor } from '../interface/module.interface';
-import { IPwbExtensionModuleProcessorConstructor } from '../interface/extension.interface';
-import { UpdateTrigger } from '../enum/update-trigger.enum';
-import { ExtensionType } from '../enum/extension-type.enum';
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
+import { AccessMode } from '../enum/access-mode.enum';
+import { UpdateTrigger } from '../enum/update-trigger.enum';
+import { IPwbAttributeModuleProcessorConstructor, IPwbExpressionModuleProcessorConstructor, IPwbExtensionModuleProcessorConstructor, IPwbInstructionModuleProcessorConstructor } from '../interface/module.interface';
 
 /**
  * Global module storage.
@@ -21,7 +19,8 @@ export class GlobalModuleStorage {
     private readonly mAttributeModuleConfigurations!: Dictionary<IPwbAttributeModuleProcessorConstructor, AttributeModuleConfiguration>;
     private readonly mExpressionModuleClasses!: Dictionary<ExpressionModuleConfiguration, IPwbExpressionModuleProcessorConstructor>;
     private readonly mExpressionModuleConfigurations!: Dictionary<IPwbExpressionModuleProcessorConstructor, ExpressionModuleConfiguration>;
-    private readonly mExtensionsModules!: Dictionary<ExtensionType, Dictionary<AccessMode, Array<ExtensionModuleConfiguration>>>;
+    private readonly mExtensionModuleClasses!: Dictionary<ExtensionModuleConfiguration, IPwbExtensionModuleProcessorConstructor>;
+    private readonly mExtensionModuleConfigurations!: Dictionary<IPwbExtensionModuleProcessorConstructor, ExtensionModuleConfiguration>;
     private readonly mInstructionModuleClasses!: Dictionary<InstructionModuleConfiguration, IPwbInstructionModuleProcessorConstructor>;
     private readonly mInstructionModuleConfigurations!: Dictionary<IPwbInstructionModuleProcessorConstructor, InstructionModuleConfiguration>;
 
@@ -37,6 +36,13 @@ export class GlobalModuleStorage {
      */
     public get expressionModuleConfigurations(): Array<ExpressionModuleConfiguration> {
         return List.newListWith(...this.mExpressionModuleConfigurations.values());
+    }
+
+    /**
+     * Get expression module definitions of all expression modules.
+     */
+    public get extensionModuleConfigurations(): Array<ExtensionModuleConfiguration> {
+        return List.newListWith(...this.mExtensionModuleConfigurations.values());
     }
 
     /**
@@ -62,14 +68,13 @@ export class GlobalModuleStorage {
         this.mAttributeModuleClasses = new Dictionary<AttributeModuleConfiguration, IPwbAttributeModuleProcessorConstructor>();
         this.mExpressionModuleClasses = new Dictionary<ExpressionModuleConfiguration, IPwbExpressionModuleProcessorConstructor>();
         this.mInstructionModuleClasses = new Dictionary<InstructionModuleConfiguration, IPwbInstructionModuleProcessorConstructor>();
+        this.mExtensionModuleClasses = new Dictionary<ExtensionModuleConfiguration, IPwbExtensionModuleProcessorConstructor>();
 
         // Config storages.
         this.mAttributeModuleConfigurations = new Dictionary<IPwbAttributeModuleProcessorConstructor, AttributeModuleConfiguration>();
         this.mExpressionModuleConfigurations = new Dictionary<IPwbExpressionModuleProcessorConstructor, ExpressionModuleConfiguration>();
         this.mInstructionModuleConfigurations = new Dictionary<IPwbInstructionModuleProcessorConstructor, InstructionModuleConfiguration>();
-
-        // Init some big ass dictionary containing both extension type and acces mode.
-        this.mExtensionsModules = new Dictionary<ExtensionType, Dictionary<AccessMode, Array<ExtensionModuleConfiguration>>>();
+        this.mExtensionModuleConfigurations = new Dictionary<IPwbExtensionModuleProcessorConstructor, ExtensionModuleConfiguration>();
     }
 
     /**
@@ -98,43 +103,8 @@ export class GlobalModuleStorage {
      * @param pExtensionType - Type of extension.
      */
     public addExtensionModule(pModuleDefinition: ExtensionModuleConfiguration): void {
-        // Add for component type.
-        if ((pModuleDefinition.type & ExtensionType.Component) === ExtensionType.Component) {
-            // Init component type dictionary.
-            if (!this.mExtensionsModules.has(ExtensionType.Component)) {
-                this.mExtensionsModules.set(ExtensionType.Component, new Dictionary<AccessMode, Array<ExtensionModuleConfiguration>>());
-            }
-
-            // Read access map by component type.
-            const lAccessModeMap: Dictionary<AccessMode, Array<ExtensionModuleConfiguration>> = this.mExtensionsModules.get(ExtensionType.Component)!;
-
-            // Init access mode map.
-            if (!lAccessModeMap.has(pModuleDefinition.access)) {
-                lAccessModeMap.set(pModuleDefinition.access, new Array<ExtensionModuleConfiguration>());
-            }
-
-            // Read and add extension fro access mode.
-            lAccessModeMap.get(pModuleDefinition.access)!.push(pModuleDefinition);
-        }
-
-        // Add for module type.
-        if ((pModuleDefinition.type & ExtensionType.Module) === ExtensionType.Module) {
-            // Init Module type dictionary.
-            if (!this.mExtensionsModules.has(ExtensionType.Module)) {
-                this.mExtensionsModules.set(ExtensionType.Module, new Dictionary<AccessMode, Array<ExtensionModuleConfiguration>>());
-            }
-
-            // Read access map by Module type.
-            const lAccessModeMap: Dictionary<AccessMode, Array<ExtensionModuleConfiguration>> = this.mExtensionsModules.get(ExtensionType.Module)!;
-
-            // Init access mode map.
-            if (!lAccessModeMap.has(pModuleDefinition.access)) {
-                lAccessModeMap.set(pModuleDefinition.access, new Array<ExtensionModuleConfiguration>());
-            }
-
-            // Read and add extension fro access mode.
-            lAccessModeMap.get(pModuleDefinition.access)!.push(pModuleDefinition);
-        }
+        this.mExtensionModuleClasses.set(pModuleDefinition, pModuleDefinition.constructor);
+        this.mExtensionModuleConfigurations.set(pModuleDefinition.constructor, pModuleDefinition);
     }
 
     /**
@@ -164,30 +134,11 @@ export class GlobalModuleStorage {
     }
 
     /**
-     * Read a list of all extension with the set {@link pExtensionType} and {@link pAccessMode}.
-     * Returns an empty list when no extension are found.
-     * 
-     * @param pExtensionType - Extension type.
-     * @param pAccessMode - Extension access mode.
-     * 
-     * @returns list of extension with set modifier. Return an empty list as default.
+     * Get extension module definition for extension module class.
+     * @param pModuleClass - Module class.
      */
-    public getExtensionModuleConfiguration(pExtensionType: ExtensionType, pAccessMode: AccessMode, _pRestriction: InjectionConstructor): Array<ExtensionModuleConfiguration> {
-        // TODO: Apply restrictions.
-
-        // Read possible extensions by extension type.
-        const lExtensionTypeMap: Dictionary<AccessMode, Array<ExtensionModuleConfiguration>> | undefined = this.mExtensionsModules.get(pExtensionType);
-        if (!lExtensionTypeMap) {
-            return new Array<ExtensionModuleConfiguration>();
-        }
-
-        // Read possible extensions by access mode.
-        const lExtensionList: Array<ExtensionModuleConfiguration> | undefined = lExtensionTypeMap.get(pAccessMode);
-        if (!lExtensionList) {
-            return new Array<ExtensionModuleConfiguration>();
-        }
-
-        return lExtensionList;
+    public getExtensionModuleConfiguration(pModuleClass: IPwbExtensionModuleProcessorConstructor): ExtensionModuleConfiguration | undefined {
+        return this.mExtensionModuleConfigurations.get(pModuleClass);
     }
 
     /**
@@ -220,7 +171,6 @@ export type InstructionModuleConfiguration = {
 export type ExtensionModuleConfiguration = {
     access: AccessMode;
     constructor: IPwbExtensionModuleProcessorConstructor;
-    type: ExtensionType;
     trigger: UpdateTrigger;
     targetRestrictions: Array<InjectionConstructor>;
 };

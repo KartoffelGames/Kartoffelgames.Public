@@ -7,9 +7,9 @@ import { ComponentElementReference } from '../../injection/references/component/
 import { ModuleConstructorReference } from '../../injection/references/module/module-constructor-reference';
 import { ModuleReference } from '../../injection/references/module/module-reference';
 import { ModuleTargetNodeReference } from '../../injection/references/module/module-target-node-reference';
-import { IPwbExtensionModuleOnDeconstruct } from '../../interface/extension.interface';
 import { EventListenerComponentExtension } from './event-listener-component-extension';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
+import { IPwbExtensionModuleOnDeconstruct } from '../../interface/module.interface';
 
 @PwbExtensionModule({
     access: AccessMode.Read,

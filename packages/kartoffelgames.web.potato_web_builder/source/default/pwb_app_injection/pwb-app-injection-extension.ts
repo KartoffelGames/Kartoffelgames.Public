@@ -1,38 +1,18 @@
 import { InteractionZone } from '@kartoffelgames/web.change-detection';
+import { Component } from '../../component/component';
 import { PwbExtensionModule } from '../../decorator/pwb-extension-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
-import { ExtensionType } from '../../enum/extension-type.enum';
-import { ComponentReference } from '../../injection/references/component/component-reference';
-import { ModuleReference } from '../../injection/references/module/module-reference';
-import { PwbApp } from '../../pwb-app/pwb-app';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
+import { ComponentReference } from '../../injection/references/component/component-reference';
+import { PwbApp } from '../../pwb-app/pwb-app';
+
 
 @PwbExtensionModule({
     access: AccessMode.Write,
     trigger: UpdateTrigger.None,
-    type: ExtensionType.Module
+    targetRestrictions: [Component]
 })
-export class PwbAppModuleInjectionExtension { // TODO: Remove this, as the component should bubble the processor attribute.
-    /**
-     * Constructor.
-     * Sets current {@link PwbApp} as injection target.
-     * 
-     * @param pModule - Module.
-     */
-    public constructor(pModule: ModuleReference) {
-        const lPwbApp: PwbApp | undefined = PwbApp.getAppOfZone(InteractionZone.save());
-        if (lPwbApp) {
-            pModule.setProcessorAttributes(PwbApp, lPwbApp);
-        }
-    }
-}
-
-@PwbExtensionModule({
-    access: AccessMode.Write,
-    trigger: UpdateTrigger.None,
-    type: ExtensionType.Component
-})
-export class PwbAppComponentInjectionExtension {
+export class PwbAppInjectionExtension {
     /**
      * Constructor.
      * Sets current {@link PwbApp} as injection target.

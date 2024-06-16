@@ -23,17 +23,14 @@ export { ComponentLayerValuesReference } from './injection/references/component/
 
 // Modules
 export { ComponentScopeExecutor } from './module/execution/component-scope-executor';
-export { IPwbExpressionModuleOnUpdate, IPwbAttributeModuleOnUpdate, IPwbInstructionModuleOnUpdate, IPwbModuleOnDeconstruct } from './interface/module.interface';
+export { IPwbExpressionModuleOnUpdate, IPwbAttributeModuleOnUpdate, IPwbInstructionModuleOnUpdate, IPwbModuleOnDeconstruct, IPwbExtensionModuleOnDeconstruct } from './interface/module.interface';
 export { AccessMode } from './enum/access-mode.enum';
 export { LayerValues } from './component/values/layer-values';
 export { InstructionResult } from './module/result/instruction-result';
 export { PwbExpressionModule } from './decorator/pwb-expression-module.decorator';
 export { PwbInstructionModule } from './decorator/pwb-instruction-module.decorator';
 export { PwbAttributeModule } from './decorator/pwb-attribute-module.decorator';
-
-// Extension
-export { PwbExtensionModule as PwbExtension } from './decorator/pwb-extension-module.decorator';
-export { IPwbExtensionModuleOnDeconstruct as IPwbExtensionOnDeconstruct } from './interface/extension.interface';
+export { PwbExtensionModule } from './decorator/pwb-extension-module.decorator';
 
 // Default extensions.
 export { ComponentEvent } from './default/component-event/component-event';

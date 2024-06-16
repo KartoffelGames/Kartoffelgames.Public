@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { ExpressionModule } from '../../../module/expression-module';
-import { AttributeModule } from '../../../module/static-module';
+import { AttributeModule } from '../../../module/attribute-module';
 import { ComponentModules } from '../../component-modules';
 import { PwbTemplateAttribute } from '../../template/nodes/values/pwb-template-attribute';
 import { BaseBuilderData } from './base-builder-data';

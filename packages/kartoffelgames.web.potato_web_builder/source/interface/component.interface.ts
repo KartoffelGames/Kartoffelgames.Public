@@ -1,11 +1,5 @@
-import { Component } from '../component/component';
 
 export interface ComponentProcessor extends Partial<IPwbOnDeconstruct>, Partial<IPwbAfterUpdate>, Partial<IPwbOnUpdate>, Partial<IPwbOnAttributeChange>, Partial<IPwbOnConnect>,Partial<IPwbOnDisconnect> {
-    /**
-     * Exposure of component object.
-     */
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    readonly __component__: Component;
 }
 
 export type ComponentProcessorConstructor = {

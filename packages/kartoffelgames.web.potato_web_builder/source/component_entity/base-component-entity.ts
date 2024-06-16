@@ -145,6 +145,7 @@ export abstract class BaseComponentEntity<TProcessor extends ComponentProcessor 
         // TODO: Use updatehandler and execute processor in set trigger.
         // TODO: How to prevent creation recursion for extensions extending itself?
         // TODO: Not only use this.mProcessorConstructor as restriction. use this.constructor as well to cover [Component, InstructionModule and more]
+        // TODO: Caching is the key. Cache found extensions for constructor in weakmap. 
 
         const lExtensions: GlobalModuleStorage = new GlobalModuleStorage();
 

@@ -1,5 +1,5 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
-import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
+import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
 import { UpdateMode } from '../../enum/update-mode.enum';
 import { BaseComponentEntity } from '../base-component-entity';
@@ -7,14 +7,12 @@ import { ComponentConstructorReference } from '../injection-reference/component/
 import { ComponentElementReference } from '../injection-reference/component/component-element-reference';
 import { ComponentLayerValuesReference } from '../injection-reference/component/component-layer-values-reference';
 import { ComponentReference } from '../injection-reference/component/component-reference';
-import { ComponentUpdateHandlerReference } from '../injection-reference/component/component-update-handler-reference';
 import { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module';
 import { StaticBuilder } from './builder/static-builder';
 import { ComponentModules } from './component-modules';
 import { ComponentProcessor, ComponentProcessorConstructor } from './component.interface';
 import { ElementCreator } from './element-creator';
 import { ElementHandler } from './handler/element-handler';
-import { UpdateHandler } from './handler/update-handler';
 import { PwbTemplate } from './template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 import { TemplateParser } from './template/template-parser';
@@ -114,7 +112,6 @@ export class Component extends BaseComponentEntity<ComponentProcessor> {
 
     private readonly mElementHandler: ElementHandler;
     private readonly mRootBuilder: StaticBuilder;
-    private readonly mUpdateHandler: UpdateHandler;
 
     /**
      * Constructor.
@@ -126,10 +123,8 @@ export class Component extends BaseComponentEntity<ComponentProcessor> {
      * @param pUpdateScope - Update scope of component.
      */
     public constructor(pComponentProcessorConstructor: ComponentProcessorConstructor, pTemplateString: string | null, pExpressionModule: IPwbExpressionModuleProcessorConstructor, pHtmlComponent: HTMLElement, pUpdateScope: UpdateMode) {
-        const lUpdateHandler: UpdateHandler = new UpdateHandler(pUpdateScope);
-
         // Init injection history with updatehandler.
-        super(pComponentProcessorConstructor, lUpdateHandler);
+        super(pComponentProcessorConstructor, pUpdateScope % UpdateMode.Manual !== 0, pUpdateScope % UpdateMode.Isolated !== 0);
 
         // Add register component element.
         Component.registerElement(pHtmlComponent, this);
@@ -143,26 +138,6 @@ export class Component extends BaseComponentEntity<ComponentProcessor> {
             lTemplate = lTemplate.clone();
         }
 
-        // Create update handler.
-        this.mUpdateHandler = lUpdateHandler;
-        this.mUpdateHandler.addUpdateListener(() => {
-            // Call component processor on update function.
-            this.callOnPwbUpdate();
-
-            // Save if processor was created before update.
-            const lProcessorWasCreated: boolean = !!this.processorCreated;
-
-            // Update and callback after update.
-            if (this.mRootBuilder.update()) {
-                // Try to call update before "AfterUpdate" when the processor was created on builder update.
-                if (!lProcessorWasCreated) {
-                    this.callOnPwbUpdate();
-                }
-
-                this.callAfterPwbUpdate();
-            }
-        });
-
         // Create element handler.
         this.mElementHandler = new ElementHandler(pHtmlComponent);
 
@@ -174,7 +149,6 @@ export class Component extends BaseComponentEntity<ComponentProcessor> {
         this.setProcessorAttributes(ComponentConstructorReference, pComponentProcessorConstructor);
         this.setProcessorAttributes(ComponentElementReference, pHtmlComponent);
         this.setProcessorAttributes(ComponentLayerValuesReference, this.mRootBuilder.values);
-        this.setProcessorAttributes(ComponentUpdateHandlerReference, this.mUpdateHandler);
         this.setProcessorAttributes(ComponentReference, this);
     }
 
@@ -203,7 +177,7 @@ export class Component extends BaseComponentEntity<ComponentProcessor> {
 
         // Exclude function call trigger from zone.
         // Prevents any "Get" call from function to trigger interaction again.
-        this.mUpdateHandler.excludeInteractionTrigger(() => {
+        this.updateHandler.excludeInteractionTrigger(() => {
             this.processor.afterPwbUpdate?.();
         }, InteractionResponseType.FunctionCallEnd);
     }
@@ -268,7 +242,7 @@ export class Component extends BaseComponentEntity<ComponentProcessor> {
 
         // Exclude function call trigger from zone.
         // Prevents any "Get" call from function to trigger interaction again.
-        this.mUpdateHandler.excludeInteractionTrigger(() => {
+        this.updateHandler.excludeInteractionTrigger(() => {
             this.processor.onPwbUpdate?.();
         }, InteractionResponseType.FunctionCallEnd);
     }
@@ -277,13 +251,17 @@ export class Component extends BaseComponentEntity<ComponentProcessor> {
      * Called when component get attached to DOM.
      */
     public connected(): void {
-        this.mUpdateHandler.enabled = true;
+        this.updateHandler.enabled = true;
 
         // Call processor event after enabling updates.
         this.callOnPwbConnect();
 
-        // Trigger light update.
-        this.mUpdateHandler.requestUpdate(new InteractionReason(InteractionResponseType.Custom, this.mProcessor ?? this));
+        // Trigger light update use self as source to prevent early processor creation.
+        if (this.processorCreated) {
+            this.updateHandler.requestUpdate(new InteractionReason(InteractionResponseType.Custom, this.processor));
+        } else {
+            this.updateHandler.requestUpdate(new InteractionReason(InteractionResponseType.Custom, this));
+        }
     }
 
     /**
@@ -291,16 +269,13 @@ export class Component extends BaseComponentEntity<ComponentProcessor> {
      */
     public override deconstruct(): void {
         // Disable updates.
-        this.mUpdateHandler.enabled = false;
+        this.updateHandler.enabled = false;
 
         // User callback.
         this.callOnPwbDeconstruct();
 
         // Deconstruct history parent / extensions.
         super.deconstruct();
-
-        // Remove change listener from app.
-        this.mUpdateHandler.deconstruct();
 
         // Deconstruct all child element.
         this.mRootBuilder.deconstruct();
@@ -310,32 +285,37 @@ export class Component extends BaseComponentEntity<ComponentProcessor> {
      * Called when component gets detached from DOM.
      */
     public disconnected(): void {
-        this.mUpdateHandler.enabled = false;
+        this.updateHandler.enabled = false;
 
         // Call processor event after disabling update event..
         this.callOnPwbDisconnect();
     }
 
     /**
-     * Create component processor.
+     * Update component.
+     * 
+     * @returns True when any update happened, false when all values stayed the same.
      */
-    private createProcessor(): void {
-        // Lock injections.
-        this.lock();
+    protected onUpdate(): boolean {
+        // Call component processor on update function.
+        this.callOnPwbUpdate();
 
-        // Create user object inside update zone.
-        const lUntrackedProcessor: ComponentProcessor = this.mUpdateHandler.enableInteractionTrigger(() => {
-            return Injection.createObject<ComponentProcessor>(this.mProcessorConstructor, this.injections);
-        });
+        // Save if processor was created before update.
+        const lProcessorWasCreated: boolean = !!this.processorCreated;
 
-        // Store processor to be able to read for all read extensions.
-        this.mProcessor = this.mUpdateHandler.registerObject(lUntrackedProcessor!);
-
-        // Add __component__ property to processor.
-        Object.defineProperty(this.mProcessor, '__component__', { // TODO: remove this bullshit.
-            get: () => {
-                return this;
+        // Update and callback after update.
+        if (this.mRootBuilder.update()) {
+            // Try to call update before "AfterUpdate" when the processor was created on builder update.
+            if (!lProcessorWasCreated) {
+                this.callOnPwbUpdate();
             }
-        });
+
+            this.callAfterPwbUpdate();
+
+            return true;
+        }
+
+        // No update where made.
+        return false;
     }
 }

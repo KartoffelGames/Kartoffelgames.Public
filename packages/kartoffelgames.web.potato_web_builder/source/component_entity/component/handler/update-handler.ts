@@ -1,9 +1,8 @@
 import { List } from '@kartoffelgames/core.data';
 import { IgnoreInteractionDetection, InteractionReason, InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
-import { UpdateMode } from '../../../enum/update-mode.enum';
-import { LoopDetectionHandler } from './loop-detection-handler';
 import { InteractionZoneStack } from '@kartoffelgames/web.change-detection/library/source/change_detection/interaction-zone';
 import { UpdateTrigger } from '../../../enum/update-trigger.enum';
+import { LoopDetectionHandler } from './loop-detection-handler';
 
 /**
  * Component update handler. Handles automatic and manual updates.
@@ -48,37 +47,24 @@ export class UpdateHandler {
      * Constructor.
      * @param pUpdateScope - Update scope.
      */
-    public constructor(pUpdateScope: UpdateMode) {
+    public constructor(pIsolatedInteraction: boolean, pInteractionStack?: InteractionZoneStack) {
         this.mUpdateListener = new List<UpdateListener>();
         this.mEnabled = false;
         this.mUpdateWaiter = new List<UpdateWaiter>();
         this.mLoopDetectionHandler = new LoopDetectionHandler(10);
 
         // Create isolated or default zone.
-        if ((pUpdateScope & UpdateMode.Isolated) !== 0) {
-            // Isolated zone.
-            this.mInteractionZone = new InteractionZone('CapsuledComponentZone', { isolate: true, trigger: <InteractionResponseType><unknown>UpdateTrigger.Default });
-        } else {
-            // Global zone.
-            this.mInteractionZone = new InteractionZone('DefaultComponentZone', { trigger: <InteractionResponseType><unknown>UpdateTrigger.Default });
-        }
+        this.mInteractionZone = new InteractionZone('CapsuledZone', { isolate: pIsolatedInteraction, trigger: <InteractionResponseType><unknown>UpdateTrigger.Default });
 
-        // Create manual or default listener. Manual listener does nothing on interaction.
-        if ((pUpdateScope & UpdateMode.Manual) !== 0) {
-            // Empty change listener.
-            this.mInteractionDetectionListener = () => {/* Empty */ };
-        } else {
-            // Shedule an update on interaction zone.
-            this.mInteractionDetectionListener = (pReason: InteractionReason) => { this.sheduleUpdateTask(pReason); };
-        }
+        // Shedule an update on interaction zone.
+        this.mInteractionDetectionListener = (pReason: InteractionReason) => { this.sheduleUpdateTask(pReason); };
 
-        // Save current component zone stack.
-        this.mComponentZoneStack = this.mInteractionZone.execute(() => {
-            // Add listener for interactions inside interaction zone.
-            this.mInteractionZone.addInteractionListener(this.mInteractionDetectionListener);
+        // Add listener for interactions.
+        this.mInteractionZone.addInteractionListener(this.mInteractionDetectionListener);
 
-            return InteractionZone.save();
-        });
+        // Save current component zone stack and push new interaction zone to it.
+        this.mComponentZoneStack = pInteractionStack ?? InteractionZone.save();
+        this.mComponentZoneStack.push(this.mInteractionZone);
 
         // Define error handler.
         this.mLoopDetectionHandler.onError = (pError: any) => {
@@ -201,7 +187,7 @@ export class UpdateHandler {
      * Wait for the component update.
      * Returns Promise<false> if there is currently no update cycle.
      */
-    public async waitForUpdate(): Promise<boolean> {
+    public async waitForUpdate(): Promise<boolean> { // TODO: Find a good way to get rid of this.
         if (!this.mLoopDetectionHandler.hasActiveTask) {
             return false;
         }
@@ -257,7 +243,7 @@ export class UpdateHandler {
      */
     private sheduleUpdateTask(pReason: InteractionReason): void {
         // Shedule task in component zone stack.
-        InteractionZone.restore(this.mComponentZoneStack, () => {
+        InteractionZone.restore(this.mComponentZoneStack, () => { // TODO: Maybe dont call in current stack.
             // Skip task shedule when update handler is disabled but release update waiter.
             if (!this.enabled) {
                 this.releaseWaiter();

@@ -9,7 +9,7 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
      * @param pParameter - Parameter.
      */
     constructor(pParameter: BaseModuleConstructorParameter) {
-        super(pParameter.constructor, pParameter.parent);
+        super(pParameter.constructor, true, false, pParameter.parent);
 
         // Create module injection mapping.
         this.setProcessorAttributes(ModuleConstructorReference, pParameter.constructor);
@@ -28,26 +28,6 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
             this.processor.onDeconstruct();
         }
     }
-
-    /**
-     * Update module.
-     * 
-     * @returns True when any update happened, false when all values stayed the same.
-     */
-    public override update(): boolean {
-        // Update extensions first.
-        super.update();
-
-        // Then update module.
-        return this.onUpdate();
-    }
-
-    /**
-     * Update module.
-     * 
-     * @returns True when any update happened, false when all values stayed the same.
-     */
-    protected abstract onUpdate(): boolean;
 }
 
 export type BaseModuleConstructorParameter = {

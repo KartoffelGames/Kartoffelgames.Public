@@ -38,10 +38,10 @@ export class UpdateHandler {
     }
 
     /**
-     * Get interaction zone of update handler.
+     * Get interaction stack of update handler.
      */
-    public get interactionZone(): InteractionZone {
-        return this.mInteractionZone;
+    public get interactionStack(): InteractionZoneStack {
+        return this.mComponentZoneStack.clone();
     }
 
     /**
@@ -57,10 +57,10 @@ export class UpdateHandler {
         // Create isolated or default zone.
         if ((pUpdateScope & UpdateMode.Isolated) !== 0) {
             // Isolated zone.
-            this.mInteractionZone = new InteractionZone('CapsuledComponentZone-', { isolate: true, trigger: <InteractionResponseType><unknown>UpdateTrigger.Default });
+            this.mInteractionZone = new InteractionZone('CapsuledComponentZone', { isolate: true, trigger: <InteractionResponseType><unknown>UpdateTrigger.Default });
         } else {
             // Global zone.
-            this.mInteractionZone = new InteractionZone('DefaultComponentZone-', { trigger: <InteractionResponseType><unknown>UpdateTrigger.Default });
+            this.mInteractionZone = new InteractionZone('DefaultComponentZone', { trigger: <InteractionResponseType><unknown>UpdateTrigger.Default });
         }
 
         // Create manual or default listener. Manual listener does nothing on interaction.

@@ -1,5 +1,7 @@
 import { Dictionary, Exception, IDeconstructable } from '@kartoffelgames/core.data';
 import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
+import { InteractionZoneStack } from '@kartoffelgames/web.change-detection/library/source/change_detection/interaction-zone';
+import { UpdateHandler } from '../component/handler/update-handler';
 import { AccessMode } from '../enum/access-mode.enum';
 import { ExtensionModule } from '../module/extension-module';
 import { ExtensionModuleConfiguration, GlobalModuleStorage } from '../module/global-module-storage';
@@ -10,6 +12,7 @@ export class InjectionHierarchyParent<TProcessor extends object = object> implem
     private mLocked: boolean;
     private mProcessor: TProcessor | null;
     private readonly mProcessorConstructor: InjectionConstructor;
+    private readonly mExtensionInteractionStack: InteractionZoneStack;
 
     /**
      * All injections of processor.
@@ -37,7 +40,9 @@ export class InjectionHierarchyParent<TProcessor extends object = object> implem
         return !!this.mProcessor;
     }
 
-    public constructor(pProcessorConstructor: InjectionConstructor, pParent: InjectionHierarchyParent<any> | null) {
+    public constructor(pProcessorConstructor: InjectionConstructor, pParent: InjectionHierarchyParent<any>);
+    public constructor(pProcessorConstructor: InjectionConstructor, pUpdateHandler: UpdateHandler);
+    public constructor(pProcessorConstructor: InjectionConstructor, pParentOrUpdateHandler: InjectionHierarchyParent<any> | UpdateHandler) {
         this.mProcessorConstructor = pProcessorConstructor;
         this.mProcessor = null;
         this.mInjections = new Dictionary<InjectionConstructor, any>();
@@ -45,11 +50,19 @@ export class InjectionHierarchyParent<TProcessor extends object = object> implem
         this.mLocked = false;
 
         // Init injections from hierarchy parent.
-        if (pParent) {
-            for (const [lTarget, lValue] of pParent.injections.entries()) {
+        if (pParentOrUpdateHandler instanceof UpdateHandler) {
+            this.mExtensionInteractionStack = pParentOrUpdateHandler.interactionStack;
+        } else {
+            // Save interaction stack from parent.
+            this.mExtensionInteractionStack = pParentOrUpdateHandler.mExtensionInteractionStack.clone();
+
+            for (const [lTarget, lValue] of pParentOrUpdateHandler.injections.entries()) {
                 this.setProcessorAttributes(lTarget, lValue);
             }
         }
+
+        // Extend interactionstack by own zone.
+        
     }
 
     /**

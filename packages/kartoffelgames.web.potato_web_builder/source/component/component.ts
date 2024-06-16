@@ -117,7 +117,6 @@ export class Component extends InjectionHierarchyParent<ComponentProcessor> {
     private readonly mRootBuilder: StaticBuilder;
     private readonly mUpdateHandler: UpdateHandler;
 
-
     /**
      * Constructor.
      * 
@@ -128,7 +127,10 @@ export class Component extends InjectionHierarchyParent<ComponentProcessor> {
      * @param pUpdateScope - Update scope of component.
      */
     public constructor(pComponentProcessorConstructor: ComponentProcessorConstructor, pTemplateString: string | null, pExpressionModule: IPwbExpressionModuleProcessorConstructor, pHtmlComponent: HTMLElement, pUpdateScope: UpdateMode) {
-        super(pComponentProcessorConstructor, null);
+        const lUpdateHandler: UpdateHandler = new UpdateHandler(pUpdateScope);
+
+        // Init injection history with updatehandler.
+        super(pComponentProcessorConstructor, lUpdateHandler);
 
         // Add register component element.
         Component.registerElement(pHtmlComponent, this);
@@ -143,7 +145,7 @@ export class Component extends InjectionHierarchyParent<ComponentProcessor> {
         }
 
         // Create update handler.
-        this.mUpdateHandler = new UpdateHandler(pUpdateScope);
+        this.mUpdateHandler = lUpdateHandler;
         this.mUpdateHandler.addUpdateListener(() => {
             // Call component processor on update function.
             this.callOnPwbUpdate();

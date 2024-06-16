@@ -2,18 +2,23 @@ import { expect } from 'chai';
 import { AccessMode } from '../../../source';
 import { PwbComponent } from '../../../source/decorator/pwb-component.decorator';
 import { PwbExtensionModule } from '../../../source/decorator/pwb-extension-module.decorator';
-import { ExtensionType } from '../../../source/enum/extension-type.enum';
-import { TestUtil } from '../../utility/test-util';
 import { UpdateTrigger } from '../../../source/enum/update-trigger.enum';
+import { TestUtil } from '../../utility/test-util';
 
 describe('BaseExtension', () => {
     it('-- Injection extension without injection', async () => {
+        // Process. Define component.   
+        @PwbComponent({
+            selector: TestUtil.randomSelector()
+        })
+        class TestComponent { }
+
         // Process. Create extension.
         let lExtensionCalled: boolean = false;
         @PwbExtensionModule({
             access: AccessMode.Read,
             trigger: UpdateTrigger.Default,
-            type: ExtensionType.Component
+            targetRestrictions: [TestComponent]
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class UselessExtension {
@@ -21,12 +26,6 @@ describe('BaseExtension', () => {
                 lExtensionCalled = true;
             }
         }
-
-        // Process. Define component.   
-        @PwbComponent({
-            selector: TestUtil.randomSelector()
-        })
-        class TestComponent { }
 
         // Process. Create and initialize element.
         await <any>TestUtil.createComponent(TestComponent);
@@ -36,12 +35,19 @@ describe('BaseExtension', () => {
     });
 
     it('-- Ignore wrong injections', async () => {
+        // Process. Define component.   
+        @PwbComponent({
+            selector: TestUtil.randomSelector(),
+            template: '<div #child />' // Module for module injection.
+        })
+        class TestComponent { }
+
         // Process. Create extension.
         let lExtensionCalled: boolean = false;
         @PwbExtensionModule({
             access: AccessMode.Read,
             trigger: UpdateTrigger.Default,
-            type: ExtensionType.Component | ExtensionType.Module
+            targetRestrictions: [TestComponent]
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class UselessExtension {
@@ -56,13 +62,6 @@ describe('BaseExtension', () => {
                 return lInjectionList;
             }
         }
-
-        // Process. Define component.   
-        @PwbComponent({
-            selector: TestUtil.randomSelector(),
-            template: '<div #child />' // Module for module injection.
-        })
-        class TestComponent { }
 
         // Process. Create and initialize element.
         await <any>TestUtil.createComponent(TestComponent);

@@ -3,23 +3,22 @@ import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-
 import { Component } from '../../component/component';
 import { PwbExtensionModule } from '../../decorator/pwb-extension-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
-import { ExtensionType } from '../../enum/extension-type.enum';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { ComponentConstructorReference } from '../../injection/references/component/component-constructor-reference';
 import { ComponentElementReference } from '../../injection/references/component/component-element-reference';
 import { ComponentReference } from '../../injection/references/component/component-reference';
-import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
 @PwbExtensionModule({
     access: AccessMode.Read,
     trigger: UpdateTrigger.Default,
-    type: ExtensionType.Component
+    targetRestrictions: [Component]
 })
 export class ExportExtension {
     public static readonly METADATA_EXPORTED_PROPERTIES: string = 'pwb:exported_properties';
 
     private readonly mComponent: Component;
     private readonly mHtmlElement: HTMLElement;
-    
+
     /**
      * Constructor.
      * @param pTargetElementReference - Component html element reference.

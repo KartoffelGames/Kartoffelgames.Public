@@ -6,7 +6,6 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { ComponentReference } from '../../injection/references/component/component-reference';
 import { PwbApp } from '../../pwb-app/pwb-app';
 
-
 @PwbExtensionModule({
     access: AccessMode.Write,
     trigger: UpdateTrigger.None,

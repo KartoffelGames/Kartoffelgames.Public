@@ -2,19 +2,18 @@ import { Exception } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
 import { PwbExtensionModule } from '../../decorator/pwb-extension-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
-import { ExtensionType } from '../../enum/extension-type.enum';
-import { ComponentElementReference } from '../../injection/references/component/component-element-reference';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { ModuleConstructorReference } from '../../injection/references/module/module-constructor-reference';
 import { ModuleReference } from '../../injection/references/module/module-reference';
 import { ModuleTargetNodeReference } from '../../injection/references/module/module-target-node-reference';
-import { EventListenerComponentExtension } from './event-listener-component-extension';
-import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { IPwbExtensionModuleOnDeconstruct } from '../../interface/module.interface';
+import { AttributeModule } from '../../module/attribute-module';
+import { EventListenerComponentExtension } from './event-listener-component-extension';
 
 @PwbExtensionModule({
     access: AccessMode.Read,
     trigger: UpdateTrigger.Default,
-    type: ExtensionType.Module
+    targetRestrictions: [AttributeModule]
 })
 export class EventListenerModuleExtension implements IPwbExtensionModuleOnDeconstruct {
     private readonly mEventListenerList: Array<[string, EventListener]>;
@@ -28,7 +27,7 @@ export class EventListenerModuleExtension implements IPwbExtensionModuleOnDecons
      * @param pModule - Module processor.
      * @param pModuleElementReference - Component html element.
      */
-    public constructor(pModuleProcessorConstructor: ModuleConstructorReference, pModule: ModuleReference, pModuleElementReference: ModuleTargetNodeReference, pComponentElementReference: ComponentElementReference) {
+    public constructor(pModuleProcessorConstructor: ModuleConstructorReference, pModule: ModuleReference, pModuleElementReference: ModuleTargetNodeReference) {
         // Get event metadata.
         const lEventPropertyList: Array<[string, string]> = new Array<[string, string]>();
 
@@ -56,11 +55,7 @@ export class EventListenerModuleExtension implements IPwbExtensionModuleOnDecons
         this.mEventListenerList = new Array<[string, EventListener]>();
 
         // Fallback to component element, when module element reference is not a "html" element.
-        if (pModuleElementReference instanceof Element) {
-            this.mTargetElement = pModuleElementReference;
-        } else {
-            this.mTargetElement = pComponentElementReference;
-        }
+        this.mTargetElement = pModuleElementReference;
 
         // Override each property with the corresponding component event emitter.
         for (const lEventProperty of lEventPropertyList) {

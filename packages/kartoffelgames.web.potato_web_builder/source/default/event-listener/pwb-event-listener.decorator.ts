@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { Metadata } from '@kartoffelgames/core.dependency-injection';
-import { ComponentProcessorConstructor } from '../../interface/component.interface';
+import { ComponentProcessorConstructor } from '../../component_entity/component/component.interface';
 import { EventListenerComponentExtension } from './event-listener-component-extension';
 
 /**

@@ -1,26 +1,24 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { expect } from 'chai';
-import { ModuleLayerValuesReference } from '../../../source';
-import { PwbTemplate } from '../../../source/component/template/nodes/pwb-template';
-import { PwbTemplateInstructionNode } from '../../../source/component/template/nodes/pwb-template-instruction-node';
-import { LayerValues } from '../../../source/component/values/layer-values';
-import { PwbAttributeModule } from '../../../source/decorator/pwb-attribute-module.decorator';
-import { PwbComponent } from '../../../source/decorator/pwb-component.decorator';
-import { PwbInstructionModule } from '../../../source/decorator/pwb-instruction-module.decorator';
+import { IPwbInstructionModuleOnUpdate, InstructionResult, ModuleLayerValuesReference } from '../../../source';
+import { ComponentElement } from '../../../source/component_entity/component/component.interface';
+import { PwbComponent } from '../../../source/component_entity/component/pwb-component.decorator';
+import { PwbTemplate } from '../../../source/component_entity/component/template/nodes/pwb-template';
+import { PwbTemplateInstructionNode } from '../../../source/component_entity/component/template/nodes/pwb-template-instruction-node';
+import { LayerValues } from '../../../source/component_entity/component/values/layer-values';
+import { ModuleTemplateReference } from '../../../source/component_entity/injection-reference/module/module-template-reference';
+import { PwbAttributeModule } from '../../../source/component_entity/module/attribute_module/pwb-attribute-module.decorator';
+import { PwbInstructionModule } from '../../../source/component_entity/module/instruction_module/pwb-instruction-module.decorator';
 import { ComponentEvent } from '../../../source/default/component-event/component-event';
 import { ComponentEventEmitter } from '../../../source/default/component-event/component-event-emitter';
 import { PwbComponentEvent } from '../../../source/default/component-event/pwb-component-event.decorator';
 import { PwbEventListener } from '../../../source/default/event-listener/pwb-event-listener.decorator';
 import { PwbExport } from '../../../source/default/export/pwb-export.decorator';
 import { AccessMode } from '../../../source/enum/access-mode.enum';
-import { ComponentElement } from '../../../source/interface/component.interface';
-import { IPwbInstructionModuleOnUpdate } from '../../../source/interface/module.interface';
-import { InstructionResult } from '../../../source/module/result/instruction-result';
+import { UpdateTrigger } from '../../../source/enum/update-trigger.enum';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
-import { ModuleTemplateReference } from '../../../source/injection/references/module/module-template-reference';
-import { UpdateTrigger } from '../../../source/enum/update-trigger.enum';
 
 describe('PwbEventListener', () => {
     it('-- Native listener', async () => {

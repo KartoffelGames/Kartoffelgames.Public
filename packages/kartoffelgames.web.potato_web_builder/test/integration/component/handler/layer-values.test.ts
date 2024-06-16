@@ -1,9 +1,9 @@
 import { expect } from 'chai';
 import { ComponentLayerValuesReference } from '../../../../source';
-import { Component } from '../../../../source/component/component';
-import { LayerValues } from '../../../../source/component/values/layer-values';
-import { PwbComponent } from '../../../../source/decorator/pwb-component.decorator';
-import { ComponentElement } from '../../../../source/interface/component.interface';
+import { Component } from '../../../../source/component_entity/component/component';
+import { LayerValues } from '../../../../source/component_entity/component/values/layer-values';
+import { PwbComponent } from '../../../../source/component_entity/component/pwb-component.decorator';
+import { ComponentElement } from '../../../../source/component_entity/component/component.interface';
 import '../../../mock/request-animation-frame-mock-session';
 import '../../../utility/chai-helper';
 import { TestUtil } from '../../../utility/test-util';

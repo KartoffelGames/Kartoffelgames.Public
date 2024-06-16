@@ -1,8 +1,8 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { Component } from '../../component/component';
-import { ComponentProcessor } from '../../interface/component.interface';
-import { LayerValues } from '../../component/values/layer-values';
-import { ComponentLayerValuesReference } from '../../injection/references/component/component-layer-values-reference';
+import { Component } from '../../component_entity/component/component';
+import { ComponentProcessor } from '../../component_entity/component/component.interface';
+import { LayerValues } from '../../component_entity/component/values/layer-values';
+import { ComponentLayerValuesReference } from '../../component_entity/injection-reference/component/component-layer-values-reference';
 
 /**
  * AtScript. Id child 

@@ -1,14 +1,14 @@
-import { PwbTemplate } from '../../component/template/nodes/pwb-template';
-import { PwbTemplateInstructionNode } from '../../component/template/nodes/pwb-template-instruction-node';
-import { LayerValues } from '../../component/values/layer-values';
-import { PwbInstructionModule } from '../../decorator/pwb-instruction-module.decorator';
+import { PwbTemplate } from '../../component_entity/component/template/nodes/pwb-template';
+import { PwbTemplateInstructionNode } from '../../component_entity/component/template/nodes/pwb-template-instruction-node';
+import { LayerValues } from '../../component_entity/component/values/layer-values';
+import { ModuleLayerValuesReference } from '../../component_entity/injection-reference/module/module-layer-values-reference';
+import { ModuleTemplateReference } from '../../component_entity/injection-reference/module/module-template-reference';
+import { ModuleValueReference } from '../../component_entity/injection-reference/module/module-value-reference';
+import { ComponentScopeExecutor } from '../../component_entity/module/execution/component-scope-executor';
+import { IPwbInstructionModuleOnUpdate } from '../../component_entity/module/instruction_module/instruction-module';
+import { PwbInstructionModule } from '../../component_entity/module/instruction_module/pwb-instruction-module.decorator';
+import { InstructionResult } from '../../component_entity/module/instruction_module/result/instruction-result';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
-import { ModuleLayerValuesReference } from '../../injection/references/module/module-layer-values-reference';
-import { ModuleTemplateReference } from '../../injection/references/module/module-template-reference';
-import { ModuleValueReference } from '../../injection/references/module/module-value-reference';
-import { IPwbInstructionModuleOnUpdate } from '../../interface/module.interface';
-import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
-import { InstructionResult } from '../../module/result/instruction-result';
 
 /**
  * If expression.

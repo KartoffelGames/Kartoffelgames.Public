@@ -1,14 +1,14 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { LayerValues } from '../../component/values/layer-values';
-import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
+import { LayerValues } from '../../component_entity/component/values/layer-values';
+import { ComponentUpdateHandlerReference } from '../../component_entity/injection-reference/component/component-update-handler-reference';
+import { ModuleKeyReference } from '../../component_entity/injection-reference/module/module-key-reference';
+import { ModuleLayerValuesReference } from '../../component_entity/injection-reference/module/module-layer-values-reference';
+import { ModuleTargetNodeReference } from '../../component_entity/injection-reference/module/module-target-node-reference';
+import { ModuleValueReference } from '../../component_entity/injection-reference/module/module-value-reference';
+import { IPwbAttributeModuleOnUpdate } from '../../component_entity/module/attribute_module/attribute-module';
+import { PwbAttributeModule } from '../../component_entity/module/attribute_module/pwb-attribute-module.decorator';
+import { ComponentScopeExecutor } from '../../component_entity/module/execution/component-scope-executor';
 import { AccessMode } from '../../enum/access-mode.enum';
-import { ComponentUpdateHandlerReference } from '../../injection/references/component/component-update-handler-reference';
-import { ModuleKeyReference } from '../../injection/references/module/module-key-reference';
-import { ModuleLayerValuesReference } from '../../injection/references/module/module-layer-values-reference';
-import { ModuleTargetNodeReference } from '../../injection/references/module/module-target-node-reference';
-import { ModuleValueReference } from '../../injection/references/module/module-value-reference';
-import { IPwbAttributeModuleOnUpdate } from '../../interface/module.interface';
-import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
 @PwbAttributeModule({

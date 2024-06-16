@@ -1,8 +1,8 @@
 import { expect } from 'chai';
-import { PwbTemplate } from '../../source/component/template/nodes/pwb-template';
-import { PwbTemplateXmlNode } from '../../source/component/template/nodes/pwb-template-xml-node';
-import { PwbComponent } from '../../source/decorator/pwb-component.decorator';
-import { ComponentElement } from '../../source/interface/component.interface';
+import { PwbTemplate } from '../../source/component_entity/component/template/nodes/pwb-template';
+import { PwbTemplateXmlNode } from '../../source/component_entity/component/template/nodes/pwb-template-xml-node';
+import { PwbComponent } from '../../source/component_entity/component/pwb-component.decorator';
+import { ComponentElement } from '../../source/component_entity/component/component.interface';
 import { PwbApp } from '../../source/pwb-app/pwb-app';
 import '../mock/request-animation-frame-mock-session';
 import '../utility/chai-helper';

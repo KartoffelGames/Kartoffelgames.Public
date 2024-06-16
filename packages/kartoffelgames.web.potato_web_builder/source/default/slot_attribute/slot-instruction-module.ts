@@ -1,17 +1,18 @@
-import { PwbTemplate } from '../../component/template/nodes/pwb-template';
-import { PwbTemplateXmlNode } from '../../component/template/nodes/pwb-template-xml-node';
-import { LayerValues } from '../../component/values/layer-values';
-import { PwbInstructionModule } from '../../decorator/pwb-instruction-module.decorator';
+import { PwbTemplate } from '../../component_entity/component/template/nodes/pwb-template';
+import { PwbTemplateXmlNode } from '../../component_entity/component/template/nodes/pwb-template-xml-node';
+import { LayerValues } from '../../component_entity/component/values/layer-values';
+import { ModuleLayerValuesReference } from '../../component_entity/injection-reference/module/module-layer-values-reference';
+import { ModuleValueReference } from '../../component_entity/injection-reference/module/module-value-reference';
+import { IPwbInstructionModuleOnUpdate } from '../../component_entity/module/instruction_module/instruction-module';
+import { PwbInstructionModule } from '../../component_entity/module/instruction_module/pwb-instruction-module.decorator';
+import { InstructionResult } from '../../component_entity/module/instruction_module/result/instruction-result';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
-import { ModuleLayerValuesReference } from '../../injection/references/module/module-layer-values-reference';
-import { ModuleValueReference } from '../../injection/references/module/module-value-reference';
-import { InstructionResult } from '../../module/result/instruction-result';
 
 @PwbInstructionModule({
     instructionType: 'slot',
     trigger: UpdateTrigger.Default,
 })
-export class SlotInstructionModule {
+export class SlotInstructionModule implements IPwbInstructionModuleOnUpdate {
     private readonly mLayerValues: LayerValues;
     private readonly mSlotName: string;
 

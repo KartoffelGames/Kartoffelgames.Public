@@ -1,13 +1,13 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
-import { PwbExtensionModule } from '../../decorator/pwb-extension-module.decorator';
+import { ModuleConstructorReference } from '../../component_entity/injection-reference/module/module-constructor-reference';
+import { ModuleReference } from '../../component_entity/injection-reference/module/module-reference';
+import { ModuleTargetNodeReference } from '../../component_entity/injection-reference/module/module-target-node-reference';
+import { AttributeModule } from '../../component_entity/module/attribute_module/attribute-module';
+import { IPwbExtensionModuleOnDeconstruct } from '../../component_entity/module/extension_module/extension-module';
+import { PwbExtensionModule } from '../../component_entity/module/extension_module/pwb-extension-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
-import { ModuleConstructorReference } from '../../injection/references/module/module-constructor-reference';
-import { ModuleReference } from '../../injection/references/module/module-reference';
-import { ModuleTargetNodeReference } from '../../injection/references/module/module-target-node-reference';
-import { IPwbExtensionModuleOnDeconstruct } from '../../interface/module.interface';
-import { AttributeModule } from '../../module/attribute-module';
 import { EventListenerComponentExtension } from './event-listener-component-extension';
 
 @PwbExtensionModule({

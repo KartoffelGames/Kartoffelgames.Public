@@ -1,20 +1,20 @@
 import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
 import { InteractionDetectionProxy } from '@kartoffelgames/web.change-detection/library/source/change_detection/synchron_tracker/interaction-detection-proxy';
 import { expect } from 'chai';
-import { LoopError } from '../../source/component/handler/loop-detection-handler';
-import { UpdateHandler } from '../../source/component/handler/update-handler';
-import { PwbComponent } from '../../source/decorator/pwb-component.decorator';
-import { PwbExpressionModule } from '../../source/decorator/pwb-expression-module.decorator';
+import { ComponentElement, IPwbAfterUpdate, IPwbOnAttributeChange, IPwbOnDeconstruct, IPwbOnUpdate } from '../../source/component_entity/component/component.interface';
+import { LoopError } from '../../source/component_entity/component/handler/loop-detection-handler';
+import { UpdateHandler } from '../../source/component_entity/component/handler/update-handler';
+import { PwbComponent } from '../../source/component_entity/component/pwb-component.decorator';
+import { ComponentElementReference } from '../../source/component_entity/injection-reference/component/component-element-reference';
+import { ComponentUpdateHandlerReference } from '../../source/component_entity/injection-reference/component/component-update-handler-reference';
+import { IPwbExpressionModuleOnUpdate } from '../../source/component_entity/module/expression_module/expression-module';
+import { PwbExpressionModule } from '../../source/component_entity/module/expression_module/pwb-expression-module.decorator';
 import { PwbExport } from '../../source/default/export/pwb-export.decorator';
 import { UpdateMode } from '../../source/enum/update-mode.enum';
-import { ComponentElementReference } from '../../source/injection/references/component/component-element-reference';
-import { ComponentElement, IPwbAfterUpdate, IPwbOnAttributeChange, IPwbOnDeconstruct, IPwbOnUpdate } from '../../source/interface/component.interface';
-import { IPwbExpressionModuleOnUpdate } from '../../source/interface/module.interface';
+import { UpdateTrigger } from '../../source/enum/update-trigger.enum';
 import '../mock/request-animation-frame-mock-session';
 import '../utility/chai-helper';
 import { TestUtil } from '../utility/test-util';
-import { ComponentUpdateHandlerReference } from '../../source/injection/references/component/component-update-handler-reference';
-import { UpdateTrigger } from '../../source/enum/update-trigger.enum';
 
 describe('HtmlComponent', () => {
     it('-- Single element', async () => {

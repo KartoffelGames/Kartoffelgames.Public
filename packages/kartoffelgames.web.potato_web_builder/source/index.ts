@@ -1,36 +1,40 @@
 /* istanbul ignore file */
 
 // Component
-export { ComponentProcessor, ComponentProcessorConstructor } from './interface/component.interface';
+export { ComponentProcessor, ComponentProcessorConstructor } from './component_entity/component/component.interface';
 export { PwbApp } from './pwb-app/pwb-app';
-export { IPwbOnDeconstruct, IPwbAfterUpdate, IPwbOnUpdate, IPwbOnAttributeChange } from './interface/component.interface';
-export { PwbComponent } from './decorator/pwb-component.decorator';
+export { IPwbOnDeconstruct, IPwbAfterUpdate, IPwbOnUpdate, IPwbOnAttributeChange } from './component_entity/component/component.interface';
+export { PwbComponent } from './component_entity/component/pwb-component.decorator';
 
 // Module Injections
-export { ModuleConstructorReference } from './injection/references/module/module-constructor-reference';
-export { ModuleKeyReference } from './injection/references/module/module-key-reference';
-export { ModuleLayerValuesReference } from './injection/references/module/module-layer-values-reference';
-export { ModuleReference } from './injection/references/module/module-reference';
-export { ModuleTargetNodeReference } from './injection/references/module/module-target-node-reference';
-export { ModuleTemplateReference } from './injection/references/module/module-template-reference';
-export { ModuleValueReference } from './injection/references/module/module-value-reference';
+export { ModuleConstructorReference } from './component_entity/injection-reference/module/module-constructor-reference';
+export { ModuleKeyReference } from './component_entity/injection-reference/module/module-key-reference';
+export { ModuleLayerValuesReference } from './component_entity/injection-reference/module/module-layer-values-reference';
+export { ModuleReference } from './component_entity/injection-reference/module/module-reference';
+export { ModuleTargetNodeReference } from './component_entity/injection-reference/module/module-target-node-reference';
+export { ModuleTemplateReference } from './component_entity/injection-reference/module/module-template-reference';
+export { ModuleValueReference } from './component_entity/injection-reference/module/module-value-reference';
 
 // Component Injections
-export { ComponentConstructorReference } from './injection/references/component/component-constructor-reference';
-export { ComponentElementReference } from './injection/references/component/component-element-reference';
-export { ComponentUpdateHandlerReference } from './injection/references/component/component-update-handler-reference';
-export { ComponentLayerValuesReference } from './injection/references/component/component-layer-values-reference';
+export { ComponentConstructorReference } from './component_entity/injection-reference/component/component-constructor-reference';
+export { ComponentElementReference } from './component_entity/injection-reference/component/component-element-reference';
+export { ComponentUpdateHandlerReference } from './component_entity/injection-reference/component/component-update-handler-reference';
+export { ComponentLayerValuesReference } from './component_entity/injection-reference/component/component-layer-values-reference';
 
 // Modules
-export { ComponentScopeExecutor } from './module/execution/component-scope-executor';
-export { IPwbExpressionModuleOnUpdate, IPwbAttributeModuleOnUpdate, IPwbInstructionModuleOnUpdate, IPwbModuleOnDeconstruct, IPwbExtensionModuleOnDeconstruct } from './interface/module.interface';
+export { ComponentScopeExecutor } from './component_entity/module/execution/component-scope-executor';
+export { IPwbAttributeModuleOnUpdate } from './component_entity/module/attribute_module/attribute-module';
+export { IPwbModuleOnDeconstruct } from './component_entity/module/base-module';
+export { IPwbExpressionModuleOnUpdate } from './component_entity/module/expression_module/expression-module';
+export { IPwbExtensionModuleOnDeconstruct } from './component_entity/module/extension_module/extension-module';
+export { IPwbInstructionModuleOnUpdate } from './component_entity/module/instruction_module/instruction-module';
+export { InstructionResult } from './component_entity/module/instruction_module/result/instruction-result';
 export { AccessMode } from './enum/access-mode.enum';
-export { LayerValues } from './component/values/layer-values';
-export { InstructionResult } from './module/result/instruction-result';
-export { PwbExpressionModule } from './decorator/pwb-expression-module.decorator';
-export { PwbInstructionModule } from './decorator/pwb-instruction-module.decorator';
-export { PwbAttributeModule } from './decorator/pwb-attribute-module.decorator';
-export { PwbExtensionModule } from './decorator/pwb-extension-module.decorator';
+export { LayerValues } from './component_entity/component/values/layer-values';
+export { PwbExpressionModule } from './component_entity/module/expression_module/pwb-expression-module.decorator';
+export { PwbInstructionModule } from './component_entity/module/instruction_module/pwb-instruction-module.decorator';
+export { PwbAttributeModule } from './component_entity/module/attribute_module/pwb-attribute-module.decorator';
+export { PwbExtensionModule } from './component_entity/module/extension_module/pwb-extension-module.decorator';
 
 // Default extensions.
 export { ComponentEvent } from './default/component-event/component-event';
@@ -41,7 +45,7 @@ export { PwbExport } from './default/export/pwb-export.decorator';
 export { PwbEventListener } from './default/event-listener/pwb-event-listener.decorator';
 
 // Xml
-export { TemplateParser } from './component/template/template-parser';
+export { TemplateParser } from './component_entity/component/template/template-parser';
 
 // Import default modules
 import './default/component-event/component-event-attribute-module';
@@ -58,4 +62,3 @@ import './default/component-event/component-event-extension';
 import './default/event-listener/event-listener-component-extension';
 import './default/export/export-extension';
 import './default/pwb_app_injection/pwb-app-injection-extension';
-

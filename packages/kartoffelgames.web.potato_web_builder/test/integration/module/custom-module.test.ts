@@ -1,19 +1,19 @@
 import { expect } from 'chai';
-import { PwbComponent } from '../../../source/decorator/pwb-component.decorator';
-import { PwbTemplateXmlNode } from '../../../source/component/template/nodes/pwb-template-xml-node';
-import { LayerValues } from '../../../source/component/values/layer-values';
-import { PwbInstructionModule } from '../../../source/decorator/pwb-instruction-module.decorator';
-import { PwbAttributeModule } from '../../../source/decorator/pwb-attribute-module.decorator';
+import { ComponentElement } from '../../../source/component_entity/component/component.interface';
+import { PwbComponent } from '../../../source/component_entity/component/pwb-component.decorator';
+import { PwbTemplate } from '../../../source/component_entity/component/template/nodes/pwb-template';
+import { PwbTemplateXmlNode } from '../../../source/component_entity/component/template/nodes/pwb-template-xml-node';
+import { LayerValues } from '../../../source/component_entity/component/values/layer-values';
+import { ComponentLayerValuesReference } from '../../../source/component_entity/injection-reference/component/component-layer-values-reference';
+import { PwbAttributeModule } from '../../../source/component_entity/module/attribute_module/pwb-attribute-module.decorator';
+import { IPwbInstructionModuleOnUpdate } from '../../../source/component_entity/module/instruction_module/instruction-module';
+import { PwbInstructionModule } from '../../../source/component_entity/module/instruction_module/pwb-instruction-module.decorator';
+import { InstructionResult } from '../../../source/component_entity/module/instruction_module/result/instruction-result';
 import { AccessMode } from '../../../source/enum/access-mode.enum';
-import { IPwbInstructionModuleOnUpdate } from '../../../source/interface/module.interface';
-import { InstructionResult } from '../../../source/module/result/instruction-result';
+import { UpdateTrigger } from '../../../source/enum/update-trigger.enum';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
-import { PwbTemplate } from '../../../source/component/template/nodes/pwb-template';
-import { ComponentElement } from '../../../source/interface/component.interface';
-import { ComponentLayerValuesReference } from '../../../source/injection/references/component/component-layer-values-reference';
-import { UpdateTrigger } from '../../../source/enum/update-trigger.enum';
 
 describe('Custom Module', () => {
     it('-- Same result, twice', async () => {

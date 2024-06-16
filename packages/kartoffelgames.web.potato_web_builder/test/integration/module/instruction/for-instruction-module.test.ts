@@ -1,10 +1,10 @@
 import { expect } from 'chai';
-import { PwbComponent } from '../../../../source/decorator/pwb-component.decorator';
+import { PwbComponent } from '../../../../source/component_entity/component/pwb-component.decorator';
 import { PwbExport } from '../../../../source/default/export/pwb-export.decorator';
 import '../../../mock/request-animation-frame-mock-session';
 import '../../../utility/chai-helper';
 import { TestUtil } from '../../../utility/test-util';
-import { ComponentElement } from '../../../../source/interface/component.interface';
+import { ComponentElement } from '../../../../source/component_entity/component/component.interface';
 
 describe('ForInstructionModule', () => {
     it('Array items', async () => {

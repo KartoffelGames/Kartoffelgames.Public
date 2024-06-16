@@ -1,9 +1,9 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
-import { PwbTemplate } from '../component/template/nodes/pwb-template';
-import { ComponentProcessorConstructor } from '../interface/component.interface';
+import { PwbTemplate } from '../component_entity/component/template/nodes/pwb-template';
+import { ComponentProcessorConstructor } from '../component_entity/component/component.interface';
 import { PwbAppComponent } from './component/pwb-app-component';
-import { Component } from '../component/component';
+import { Component } from '../component_entity/component/component';
 import { ErrorListener, InteractionZoneStack } from '@kartoffelgames/web.change-detection/library/source/change_detection/interaction-zone';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
 

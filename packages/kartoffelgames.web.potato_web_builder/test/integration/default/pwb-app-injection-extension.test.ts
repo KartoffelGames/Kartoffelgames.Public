@@ -1,13 +1,13 @@
 import { expect } from 'chai';
-import { PwbComponent } from '../../../source/decorator/pwb-component.decorator';
+import { PwbComponent } from '../../../source/component_entity/component/pwb-component.decorator';
 import { UpdateMode } from '../../../source/enum/update-mode.enum';
-import { ComponentElement } from '../../../source/interface/component.interface';
+import { ComponentElement } from '../../../source/component_entity/component/component.interface';
 import { PwbApp } from '../../../source/pwb-app/pwb-app';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
-import { UpdateHandler } from '../../../source/component/handler/update-handler';
-import { ComponentUpdateHandlerReference } from '../../../source/injection/references/component/component-update-handler-reference';
+import { UpdateHandler } from '../../../source/component_entity/component/handler/update-handler';
+import { ComponentUpdateHandlerReference } from '../../../source/component_entity/injection-reference/component/component-update-handler-reference';
 import { PwbExport } from '../../../source/default/export/pwb-export.decorator';
 
 describe('PwbAppInjectionExtension', () => {

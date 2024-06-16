@@ -1,14 +1,14 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { UpdateHandler } from '../../component/handler/update-handler';
-import { PwbTemplate } from '../../component/template/nodes/pwb-template';
-import { LayerValues } from '../../component/values/layer-values';
-import { PwbInstructionModule } from '../../decorator/pwb-instruction-module.decorator';
-import { ComponentUpdateHandlerReference } from '../../injection/references/component/component-update-handler-reference';
-import { ModuleLayerValuesReference } from '../../injection/references/module/module-layer-values-reference';
-import { ModuleValueReference } from '../../injection/references/module/module-value-reference';
-import { IPwbInstructionModuleOnUpdate } from '../../interface/module.interface';
-import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
-import { InstructionResult } from '../../module/result/instruction-result';
+import { UpdateHandler } from '../../component_entity/component/handler/update-handler';
+import { PwbTemplate } from '../../component_entity/component/template/nodes/pwb-template';
+import { LayerValues } from '../../component_entity/component/values/layer-values';
+import { ComponentUpdateHandlerReference } from '../../component_entity/injection-reference/component/component-update-handler-reference';
+import { ModuleLayerValuesReference } from '../../component_entity/injection-reference/module/module-layer-values-reference';
+import { ModuleValueReference } from '../../component_entity/injection-reference/module/module-value-reference';
+import { ComponentScopeExecutor } from '../../component_entity/module/execution/component-scope-executor';
+import { IPwbInstructionModuleOnUpdate } from '../../component_entity/module/instruction_module/instruction-module';
+import { PwbInstructionModule } from '../../component_entity/module/instruction_module/pwb-instruction-module.decorator';
+import { InstructionResult } from '../../component_entity/module/instruction_module/result/instruction-result';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
 /**

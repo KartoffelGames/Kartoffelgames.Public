@@ -1,12 +1,12 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { PwbAttributeModule } from '../../decorator/pwb-attribute-module.decorator';
+import { ModuleKeyReference } from '../../component_entity/injection-reference/module/module-key-reference';
+import { ModuleLayerValuesReference } from '../../component_entity/injection-reference/module/module-layer-values-reference';
+import { ModuleTargetNodeReference } from '../../component_entity/injection-reference/module/module-target-node-reference';
+import { ModuleValueReference } from '../../component_entity/injection-reference/module/module-value-reference';
+import { PwbAttributeModule } from '../../component_entity/module/attribute_module/pwb-attribute-module.decorator';
+import { IPwbModuleOnDeconstruct } from '../../component_entity/module/base-module';
+import { ComponentScopeExecutor } from '../../component_entity/module/execution/component-scope-executor';
 import { AccessMode } from '../../enum/access-mode.enum';
-import { IPwbModuleOnDeconstruct } from '../../interface/module.interface';
-import { ComponentScopeExecutor } from '../../module/execution/component-scope-executor';
-import { ModuleTargetNodeReference } from '../../injection/references/module/module-target-node-reference';
-import { ModuleLayerValuesReference } from '../../injection/references/module/module-layer-values-reference';
-import { ModuleKeyReference } from '../../injection/references/module/module-key-reference';
-import { ModuleValueReference } from '../../injection/references/module/module-value-reference';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
 @PwbAttributeModule({

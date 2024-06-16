@@ -4,6 +4,7 @@ import { Component } from '../../source/component_entity/component/component';
 import { UpdateHandler } from '../../source/component_entity/component/handler/update-handler';
 import { ComponentElement } from '../../source/component_entity/component/component.interface';
 import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
+import { ComponentInformation } from '../../source/component_entity/component/component-information';
 
 export class TestUtil {
     /**
@@ -12,7 +13,7 @@ export class TestUtil {
      */
     public static async createComponent(pClass: InjectionConstructor): Promise<ComponentElement> {
         // Get component html constructor from class.
-        const lComponentConstructor: CustomElementConstructor = Component.elementConstructorOf(pClass);
+        const lComponentConstructor: CustomElementConstructor = ComponentInformation.ofConstructor(pClass).elementConstructor;
 
         // Get component.
         const lComponent: ComponentElement = new lComponentConstructor() as any;
@@ -31,7 +32,7 @@ export class TestUtil {
      * @param pComponent - Pwb component.
      */
     public static deconstructComponent(pComponent: ComponentElement): void {
-        Component.componentOf(pComponent).deconstruct();
+        ComponentInformation.ofElement(pComponent).component.deconstruct();
     }
 
     /**
@@ -40,7 +41,7 @@ export class TestUtil {
      * @param pComponent - Pwb component.
      */
     public static forceProcessorCreation(pComponent: ComponentElement): void {
-        Component.componentOf(pComponent).processor;
+        ComponentInformation.ofElement(pComponent).component.processor;
     }
 
     /**
@@ -48,7 +49,7 @@ export class TestUtil {
      * @param pComponent - Pwb component.
      */
     public static getComponentManager(pComponent: HTMLElement): Component {
-        return Component.componentOf(pComponent);
+        return ComponentInformation.ofElement(pComponent).component;
     }
 
     /**

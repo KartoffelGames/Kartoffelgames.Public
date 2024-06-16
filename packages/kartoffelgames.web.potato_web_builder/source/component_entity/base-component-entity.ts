@@ -6,8 +6,9 @@ import { UpdateHandler } from './component/handler/update-handler';
 import { ComponentUpdateHandlerReference } from './injection-reference/component/component-update-handler-reference';
 import { ExtensionModule } from './module/extension_module/extension-module';
 import { ExtensionModuleConfiguration, GlobalModuleStorage } from './module/global-module-storage';
+import { ComponentProcessor } from './component/component.interface';
 
-export abstract class BaseComponentEntity<TProcessor extends object = object> implements IDeconstructable {
+export abstract class BaseComponentEntity<TProcessor extends ComponentProcessor = object> implements IDeconstructable {
     private readonly mExtensionList: Array<ExtensionModule>;
     private readonly mInjections: Dictionary<InjectionConstructor, any>;
     private mLocked: boolean;
@@ -25,6 +26,13 @@ export abstract class BaseComponentEntity<TProcessor extends object = object> im
         }
 
         return this.mProcessor!;
+    }
+
+    /**
+     * Processor constructor of module.
+     */
+    public get processorConstructor(): InjectionConstructor {
+        return this.mProcessorConstructor;
     }
 
     /**
@@ -118,6 +126,15 @@ export abstract class BaseComponentEntity<TProcessor extends object = object> im
         }
 
         return this.onUpdate();
+    }
+
+    /**
+     * On processor creation.
+     * 
+     * @param _pProcessor -  Created processor
+     */
+    protected onCreation(_pProcessor: TProcessor): void {
+        // Nothing.
     }
 
     /**

@@ -17,9 +17,6 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
         // Set component processor constructor to be injectable.
         Injector.Injectable(pComponentProcessorConstructor);
 
-        // Register processor constructor as component.
-        Component.registerProcessor(pComponentProcessorConstructor, pParameter.selector);
-
         // Create custom html element of parent type.
         const lPwbComponentConstructor = class extends HTMLElement {
             private readonly mComponent: Component;
@@ -30,14 +27,15 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
              */
             public constructor() {
                 super();
-
                 // Create component handler.
-                this.mComponent = new Component(
-                    pComponentProcessorConstructor,
-                    pParameter.template ?? null,
-                    pParameter.expressionmodule,
-                    this,
-                    pParameter.updateScope ?? UpdateMode.Default
+                this.mComponent = new Component({
+                    processorConstructor: pComponentProcessorConstructor,
+                    templateString: pParameter.template ?? null,
+                    expressionModule: pParameter.expressionmodule,
+                    htmlElement: this,
+                    updateMode: pParameter.updateScope ?? UpdateMode.Default
+                }
+
                 );
 
                 // Append style if specified. Styles are scoped on components shadow root.

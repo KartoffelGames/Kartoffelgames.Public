@@ -1,12 +1,12 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { Component } from '../../component_entity/component/component';
+import { ComponentInformation } from '../../component_entity/component/component-information';
+import { ComponentProcessorConstructor, IPwbOnConnect, IPwbOnDisconnect } from '../../component_entity/component/component.interface';
 import { UpdateHandler } from '../../component_entity/component/handler/update-handler';
+import { PwbComponent } from '../../component_entity/component/pwb-component.decorator';
 import { PwbTemplate } from '../../component_entity/component/template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from '../../component_entity/component/template/nodes/pwb-template-xml-node';
-import { PwbComponent } from '../../component_entity/component/pwb-component.decorator';
-import { PwbExport } from '../../default/export/pwb-export.decorator';
 import { ComponentUpdateHandlerReference } from '../../component_entity/injection-reference/component/component-update-handler-reference';
-import { ComponentProcessorConstructor, IPwbOnConnect, IPwbOnDisconnect } from '../../component_entity/component/component.interface';
+import { PwbExport } from '../../default/export/pwb-export.decorator';
 import pwbAppStyle from './pwb-app-component.css';
 import pwbAppTemplate from './pwb-app-component.html';
 
@@ -107,7 +107,7 @@ export class PwbAppComponent implements IPwbOnConnect, IPwbOnDisconnect {
     @PwbExport addContent(pContentConstructor: InjectionConstructor | ComponentProcessorConstructor): void {
         // Create xml template from component class selector.
         const lContentTemplate: PwbTemplateXmlNode = new PwbTemplateXmlNode();
-        lContentTemplate.tagName = Component.elementSelectorOf(pContentConstructor);
+        lContentTemplate.tagName = ComponentInformation.ofConstructor(pContentConstructor).selector;
 
         // Add content to content template.
         this.mContent.appendChild(lContentTemplate);

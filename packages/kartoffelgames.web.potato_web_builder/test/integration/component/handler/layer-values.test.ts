@@ -1,9 +1,9 @@
 import { expect } from 'chai';
 import { ComponentLayerValuesReference } from '../../../../source';
-import { Component } from '../../../../source/component_entity/component/component';
-import { LayerValues } from '../../../../source/component_entity/component/values/layer-values';
-import { PwbComponent } from '../../../../source/component_entity/component/pwb-component.decorator';
+import { ComponentInformation } from '../../../../source/component_entity/component/component-information';
 import { ComponentElement } from '../../../../source/component_entity/component/component.interface';
+import { PwbComponent } from '../../../../source/component_entity/component/pwb-component.decorator';
+import { LayerValues } from '../../../../source/component_entity/component/values/layer-values';
 import '../../../mock/request-animation-frame-mock-session';
 import '../../../utility/chai-helper';
 import { TestUtil } from '../../../utility/test-util';
@@ -19,7 +19,7 @@ describe('LayerValues', () => {
 
             // Setup. Create element.
             const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-            const lRootValues: LayerValues = Component.componentOf(lComponent).getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
+            const lRootValues: LayerValues = ComponentInformation.ofElement(lComponent).component.getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
 
             // Process. Create child layer.
             const lIsEqual: boolean = lRootValues.equals(lRootValues);
@@ -43,9 +43,9 @@ describe('LayerValues', () => {
 
             // Setup. Create element.
             const lComponentOne: ComponentElement = await <any>TestUtil.createComponent(TestComponentOne);
-            const lRootValuesOne: LayerValues = Component.componentOf(lComponentOne).getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
+            const lRootValuesOne: LayerValues = ComponentInformation.ofElement(lComponentOne).component.getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
             const lComponentTwo: ComponentElement = await <any>TestUtil.createComponent(TestComponentTwo);
-            const lRootValuesTwo: LayerValues = Component.componentOf(lComponentTwo).getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
+            const lRootValuesTwo: LayerValues = ComponentInformation.ofElement(lComponentTwo).component.getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
 
             // Process.
             const lIsEqual: boolean = lRootValuesOne.equals(lRootValuesTwo);
@@ -63,7 +63,7 @@ describe('LayerValues', () => {
 
             // Setup. Create element.
             const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-            const lRootValues: LayerValues = Component.componentOf(lComponent).getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
+            const lRootValues: LayerValues = ComponentInformation.ofElement(lComponent).component.getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
 
             // Setup. Create child layer.
             const lChildLayerOne: LayerValues = new LayerValues(lRootValues);
@@ -86,7 +86,7 @@ describe('LayerValues', () => {
 
             // Setup. Create element.
             const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-            const lRootValues: LayerValues = Component.componentOf(lComponent).getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
+            const lRootValues: LayerValues = ComponentInformation.ofElement(lComponent).component.getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
 
             // Setup. Create child layer.
             const lChildLayerOne: LayerValues = new LayerValues(lRootValues);
@@ -116,7 +116,7 @@ describe('LayerValues', () => {
 
             // Setup. Create element and get root layer.
             const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-            const lRootValues: LayerValues = Component.componentOf(lComponent).getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
+            const lRootValues: LayerValues = ComponentInformation.ofElement(lComponent).component.getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
             lRootValues.data[lLayerKey] = lLayerValue;
 
             // Process.
@@ -139,7 +139,7 @@ describe('LayerValues', () => {
 
             // Setup. Create element and get root layer.
             const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-            const lRootValues: LayerValues = Component.componentOf(lComponent).getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
+            const lRootValues: LayerValues = ComponentInformation.ofElement(lComponent).component.getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
             lRootValues.data[lLayerKey] = lLayerValue;
 
             // Setup. Create child layer.
@@ -166,7 +166,7 @@ describe('LayerValues', () => {
 
         // Setup. Create element.
         const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lRootValues: LayerValues = Component.componentOf(lComponent).getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
+        const lRootValues: LayerValues = ComponentInformation.ofElement(lComponent).component.getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
 
         // Setup. Create child layer.
         const lChildLayer: LayerValues = new LayerValues(lRootValues);

@@ -3,6 +3,7 @@ import { Component } from '../../component_entity/component/component';
 import { ComponentProcessor } from '../../component_entity/component/component.interface';
 import { LayerValues } from '../../component_entity/component/values/layer-values';
 import { ComponentLayerValuesReference } from '../../component_entity/injection-reference/component/component-layer-values-reference';
+import { ComponentInformation } from '../../component_entity/component/component-information';
 
 /**
  * AtScript. Id child 
@@ -19,11 +20,8 @@ export function PwbChild(pIdChildName: string): any {
         Object.defineProperty(pTarget, pPropertyKey, {
             get(this: ComponentProcessor) {
                 // Get component manager and exit if target is not a component.
-                const lComponent: Component | undefined = this.__component__;
-                if (!lComponent) {
-                    throw new Exception('Target is not a Component', this);
-                }
-
+                const lComponent: Component = ComponentInformation.ofProcessor(this).component;
+                
                 // Get root value. This should be the child.
                 const lLayerValues: LayerValues = lComponent.getProcessorAttribute(ComponentLayerValuesReference)!;
                 const lIdChild: any = lLayerValues.data[pIdChildName];

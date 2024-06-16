@@ -1,5 +1,4 @@
-import { Dictionary, Exception } from '@kartoffelgames/core.data';
-import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
+import { Dictionary } from '@kartoffelgames/core.data';
 import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
 import { UpdateMode } from '../../enum/update-mode.enum';
 import { BaseComponentEntity } from '../base-component-entity';
@@ -9,6 +8,7 @@ import { ComponentLayerValuesReference } from '../injection-reference/component/
 import { ComponentReference } from '../injection-reference/component/component-reference';
 import { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module';
 import { StaticBuilder } from './builder/static-builder';
+import { ComponentInformation } from './component-information';
 import { ComponentModules } from './component-modules';
 import { ComponentProcessor, ComponentProcessorConstructor } from './component.interface';
 import { ElementCreator } from './element-creator';
@@ -22,93 +22,8 @@ import { LayerValues } from './values/layer-values';
  * Base component handler. Handles initialisation and update of components.
  */
 export class Component extends BaseComponentEntity<ComponentProcessor> {
-    private static readonly mConstructorSelector: WeakMap<object, string> = new WeakMap<object, string>();
-    private static readonly mElementComponent: WeakMap<Element, Component> = new WeakMap<Element, Component>();
     private static readonly mTemplateCache: Dictionary<ComponentProcessorConstructor, PwbTemplate> = new Dictionary<ComponentProcessorConstructor, PwbTemplate>();
     private static readonly mXmlParser: TemplateParser = new TemplateParser();
-
-    /**
-     * Get the component manager of a component element.
-     * 
-     * @param pElement - Element of a custom element.
-     * 
-     * @returns Component manager of {@link pElement}s component. 
-     * 
-     * @throws {@link Exception}
-     * When {@link pElement} is not a registered pwb component.
-     */
-    public static componentOf(pElement: Element): Component {
-        const lComponent: Component | undefined = Component.mElementComponent.get(pElement);
-        if (!lComponent) {
-            throw new Exception(`Element "${pElement}" is not a PwbComponent.`, pElement);
-        }
-
-        return lComponent;
-    }
-
-    /**
-     * Get selector of component or component 
-     *
-     * @param pConstructor - Class of component processor.
-     *
-     * @returns 
-     *  
-     * @throws {@link Exception}
-     * When {@link pConstructor} is not a registered component processor.
-     */
-    public static elementConstructorOf(pConstructor: InjectionConstructor): CustomElementConstructor {
-        const lSelector: string = Component.elementSelectorOf(pConstructor);
-
-        // Get component constructor from custom element registry.
-        const lComponentConstructor: CustomElementConstructor | undefined = window.customElements.get(lSelector);
-        if (!lComponentConstructor) {
-            throw new Exception(`Constructor "${pConstructor.name}" is not a registered custom element`, pConstructor);
-        }
-
-        return lComponentConstructor;
-    }
-
-
-    /**
-     * Get the selector of a component processor class.
-     * 
-     * @param pConstructor - Class of component processor.
-     * 
-     * @returns selector of custom element. 
-     * 
-     * @throws {@link Exception}
-     * When {@link pConstructor} is not a registered component processor.
-     */
-    public static elementSelectorOf(pConstructor: InjectionConstructor): string {
-        const lSelector: string | undefined = Component.mConstructorSelector.get(pConstructor);
-        if (!lSelector) {
-            throw new Exception(`Constructor "${pConstructor.name}" is not a PwbComponent.`, pConstructor);
-        }
-
-        return lSelector;
-    }
-
-    /**
-     * Register constructor with its selector.
-     * Can override existing entires.
-     * 
-     * @param pConstructor - Class of component processor.
-     * @param pSelector - Selector of component.
-     */
-    public static registerProcessor(pConstructor: InjectionConstructor, pSelector: string): void {
-        Component.mConstructorSelector.set(pConstructor, pSelector);
-    }
-
-    /**
-     * Register element with its component manager.
-     * Can override existing entires.
-     * 
-     * @param pElement - Html element of component.
-     * @param pComponent - Component object.
-     */
-    private static registerElement(pElement: Element, pComponent: Component): void {
-        Component.mElementComponent.set(pElement, pComponent);
-    }
 
     private readonly mElementHandler: ElementHandler;
     private readonly mRootBuilder: StaticBuilder;
@@ -116,38 +31,34 @@ export class Component extends BaseComponentEntity<ComponentProcessor> {
     /**
      * Constructor.
      * 
-     * @param pComponentProcessorConstructor - Component processor constructor.
-     * @param pTemplateString - Template as xml string.
-     * @param pExpressionModule - Expression module constructor.
-     * @param pHtmlComponent - HTMLElement of component.
-     * @param pUpdateScope - Update scope of component.
+     * @param pParameter - Construction parameter.
      */
-    public constructor(pComponentProcessorConstructor: ComponentProcessorConstructor, pTemplateString: string | null, pExpressionModule: IPwbExpressionModuleProcessorConstructor, pHtmlComponent: HTMLElement, pUpdateScope: UpdateMode) {
+    public constructor(pParameter: ComponentConstructorParameter) {
         // Init injection history with updatehandler.
-        super(pComponentProcessorConstructor, pUpdateScope % UpdateMode.Manual !== 0, pUpdateScope % UpdateMode.Isolated !== 0);
+        super(pParameter.processorConstructor, pParameter.updateMode % UpdateMode.Manual !== 0, pParameter.updateMode % UpdateMode.Isolated !== 0);
 
         // Add register component element.
-        Component.registerElement(pHtmlComponent, this);
+        ComponentInformation.register(this, pParameter.htmlElement, pParameter.processorConstructor);
 
         // Load cached or create new module handler and template.
-        let lTemplate: PwbTemplate | undefined = Component.mTemplateCache.get(pComponentProcessorConstructor);
+        let lTemplate: PwbTemplate | undefined = Component.mTemplateCache.get(pParameter.processorConstructor);
         if (!lTemplate) {
-            lTemplate = Component.mXmlParser.parse(pTemplateString ?? '');
-            Component.mTemplateCache.set(pComponentProcessorConstructor, lTemplate);
+            lTemplate = Component.mXmlParser.parse(pParameter.templateString ?? '');
+            Component.mTemplateCache.set(pParameter.processorConstructor, lTemplate);
         } else {
             lTemplate = lTemplate.clone();
         }
 
         // Create element handler.
-        this.mElementHandler = new ElementHandler(pHtmlComponent);
+        this.mElementHandler = new ElementHandler(pParameter.htmlElement);
 
         // Create component builder.
-        this.mRootBuilder = new StaticBuilder(lTemplate, new ComponentModules(this, pExpressionModule), new LayerValues(this), 'ROOT');
+        this.mRootBuilder = new StaticBuilder(lTemplate, new ComponentModules(this, pParameter.expressionModule), new LayerValues(this), 'ROOT');
         this.mElementHandler.shadowRoot.appendChild(this.mRootBuilder.anchor);
 
         // Initialize user object injections.
-        this.setProcessorAttributes(ComponentConstructorReference, pComponentProcessorConstructor);
-        this.setProcessorAttributes(ComponentElementReference, pHtmlComponent);
+        this.setProcessorAttributes(ComponentConstructorReference, pParameter.processorConstructor);
+        this.setProcessorAttributes(ComponentElementReference, pParameter.htmlElement);
         this.setProcessorAttributes(ComponentLayerValuesReference, this.mRootBuilder.values);
         this.setProcessorAttributes(ComponentReference, this);
     }
@@ -292,6 +203,15 @@ export class Component extends BaseComponentEntity<ComponentProcessor> {
     }
 
     /**
+     * Register processor on creation.
+     * 
+     * @param pProcessor - Created processor.
+     */
+    protected override onCreation(pProcessor: ComponentProcessor): void {
+        ComponentInformation.register(this, this.mElementHandler.htmlElement, this.processorConstructor, pProcessor);
+    }
+
+    /**
      * Update component.
      * 
      * @returns True when any update happened, false when all values stayed the same.
@@ -319,3 +239,30 @@ export class Component extends BaseComponentEntity<ComponentProcessor> {
         return false;
     }
 }
+
+type ComponentConstructorParameter = {
+    /**
+     * Component processor constructor.
+     */
+    processorConstructor: ComponentProcessorConstructor;
+
+    /**
+     * Template as xml string.
+     */
+    templateString: string | null;
+
+    /**
+     * Expression module constructor.
+     */
+    expressionModule: IPwbExpressionModuleProcessorConstructor;
+
+    /**
+     * HTMLElement of component.
+     */
+    htmlElement: HTMLElement;
+
+    /**
+     * Update mode of component.
+     */
+    updateMode: UpdateMode;
+};

@@ -18,7 +18,8 @@ export class ExpressionModule extends BaseModule<IPwbExpressionModuleProcessor> 
     public constructor(pParameter: ExpressionModuleConstructorParameter) {
         super({
             constructor: pParameter.constructor,
-            parent: pParameter.parent
+            parent: pParameter.parent,
+            includeExtensions: false
         });
 
         this.mTargetTextNode = pParameter.targetNode;

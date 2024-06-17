@@ -35,7 +35,13 @@ export class Component extends BaseComponentEntity<ComponentProcessor> {
      */
     public constructor(pParameter: ComponentConstructorParameter) {
         // Init injection history with updatehandler.
-        super(pParameter.processorConstructor, pParameter.updateMode % UpdateMode.Manual !== 0, pParameter.updateMode % UpdateMode.Isolated !== 0);
+        super({
+            processorConstructor: pParameter.processorConstructor,
+            manualUpdate: pParameter.updateMode % UpdateMode.Manual !== 0,
+            isolatedInteraction: pParameter.updateMode % UpdateMode.Isolated !== 0,
+            includeExtensions: true,
+            trackProcessor: true
+        });
 
         // Add register component element.
         ComponentInformation.register(this, pParameter.htmlElement, pParameter.processorConstructor);

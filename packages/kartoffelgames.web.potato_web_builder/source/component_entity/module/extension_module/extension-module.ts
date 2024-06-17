@@ -7,7 +7,11 @@ export class ExtensionModule extends BaseModule<IPwbExtensionModuleProcessor> {
      * @param pParameter - Construction parameter.
      */
     public constructor(pParameter: ModuleExtensionConstructorParameter) {
-        super(pParameter);
+        super({
+            constructor: pParameter.constructor,
+            parent: pParameter.parent,
+            includeExtensions: false
+        });
     }
 
     /**
@@ -30,7 +34,7 @@ type ModuleExtensionConstructorParameter = {
 // Interfaces.
 export interface IPwbExtensionModuleOnUpdate extends IPwbModuleOnUpdate<boolean> { }
 export interface IPwbExtensionModuleOnDeconstruct extends IPwbModuleOnDeconstruct { }
-export interface IPwbExtensionModuleProcessor extends Partial<IPwbExtensionModuleOnDeconstruct>, Partial<IPwbExtensionModuleOnUpdate>{ }
+export interface IPwbExtensionModuleProcessor extends Partial<IPwbExtensionModuleOnDeconstruct>, Partial<IPwbExtensionModuleOnUpdate> { }
 export interface IPwbExtensionModuleProcessorConstructor {
     new(): IPwbExtensionModuleProcessor;
 }

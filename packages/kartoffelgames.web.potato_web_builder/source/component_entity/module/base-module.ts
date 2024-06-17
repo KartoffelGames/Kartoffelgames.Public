@@ -9,7 +9,14 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
      * @param pParameter - Parameter.
      */
     constructor(pParameter: BaseModuleConstructorParameter) {
-        super(pParameter.constructor, true, false, pParameter.parent);
+        super({
+            processorConstructor: pParameter.constructor,
+            parent: pParameter.parent,
+            manualUpdate: true,
+            isolatedInteraction: false,
+            includeExtensions: pParameter.includeExtensions,
+            trackProcessor: false
+        });
 
         // Create module injection mapping.
         this.setProcessorAttributes(ModuleConstructorReference, pParameter.constructor);
@@ -31,8 +38,9 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
 }
 
 export type BaseModuleConstructorParameter = {
-    parent: BaseComponentEntity,
-    constructor: IPwbModuleProcessorConstructor<IPwbModuleProcessor>,
+    parent: BaseComponentEntity;
+    constructor: IPwbModuleProcessorConstructor<IPwbModuleProcessor>;
+    includeExtensions: boolean;
 };
 
 // Base.

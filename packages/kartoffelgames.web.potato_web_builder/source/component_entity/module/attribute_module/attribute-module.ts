@@ -27,6 +27,7 @@ export class AttributeModule extends BaseModule<IPwbAttributeModuleProcessor> {
         super({
             constructor: pParameter.constructor,
             parent: pParameter.parent,
+            includeExtensions: true
         });
 
         // Save module access mode.

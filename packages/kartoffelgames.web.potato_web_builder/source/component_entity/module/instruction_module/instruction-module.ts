@@ -28,6 +28,7 @@ export class InstructionModule extends BaseModule<IPwbInstructionModuleProcessor
         super({
             constructor: pParameter.constructor,
             parent: pParameter.parent,
+            includeExtensions: true
         });
 
         // Set processor attribute values from injection template.

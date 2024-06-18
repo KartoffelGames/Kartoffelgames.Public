@@ -9,7 +9,7 @@ import { ComponentElementReference } from '../../source/core/injection-reference
 import { ComponentUpdateHandlerReference } from '../../source/core/injection-reference/component/component-update-handler-reference';
 import { IPwbExpressionModuleOnUpdate } from '../../source/core/module/expression_module/expression-module';
 import { PwbExpressionModule } from '../../source/core/module/expression_module/pwb-expression-module.decorator';
-import { PwbExport } from '../../source/default/export/pwb-export.decorator';
+import { PwbExport } from '../../source/default_module/export/pwb-export.decorator';
 import { UpdateMode } from '../../source/enum/update-mode.enum';
 import { UpdateTrigger } from '../../source/enum/update-trigger.enum';
 import '../mock/request-animation-frame-mock-session';

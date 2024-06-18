@@ -1,8 +1,8 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { expect } from 'chai';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator';
-import { PwbExport } from '../../../../source/default/export/pwb-export.decorator';
-import { PwbChild } from '../../../../source/default/pwb_child/pwb-child.decorator';
+import { PwbExport } from '../../../../source/default_module/export/pwb-export.decorator';
+import { PwbChild } from '../../../../source/default_module/pwb_child/pwb-child.decorator';
 import '../../../mock/request-animation-frame-mock-session';
 import '../../../utility/chai-helper';
 import { TestUtil } from '../../../utility/test-util';

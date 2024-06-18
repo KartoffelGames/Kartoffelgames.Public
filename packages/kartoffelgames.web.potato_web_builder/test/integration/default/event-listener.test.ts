@@ -9,11 +9,11 @@ import { LayerValues } from '../../../source/core/component/values/layer-values'
 import { ModuleTemplateReference } from '../../../source/core/injection-reference/module/module-template-reference';
 import { PwbAttributeModule } from '../../../source/core/module/attribute_module/pwb-attribute-module.decorator';
 import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator';
-import { ComponentEvent } from '../../../source/default/component-event/component-event';
-import { ComponentEventEmitter } from '../../../source/default/component-event/component-event-emitter';
-import { PwbComponentEvent } from '../../../source/default/component-event/pwb-component-event.decorator';
-import { PwbEventListener } from '../../../source/default/event-listener/pwb-event-listener.decorator';
-import { PwbExport } from '../../../source/default/export/pwb-export.decorator';
+import { ComponentEvent } from '../../../source/default_module/component-event/component-event';
+import { ComponentEventEmitter } from '../../../source/default_module/component-event/component-event-emitter';
+import { PwbComponentEvent } from '../../../source/default_module/component-event/pwb-component-event.decorator';
+import { PwbEventListener } from '../../../source/default_module/event-listener/pwb-event-listener.decorator';
+import { PwbExport } from '../../../source/default_module/export/pwb-export.decorator';
 import { AccessMode } from '../../../source/enum/access-mode.enum';
 import { UpdateTrigger } from '../../../source/enum/update-trigger.enum';
 import '../../mock/request-animation-frame-mock-session';

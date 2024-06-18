@@ -37,28 +37,28 @@ export { PwbAttributeModule } from './core/module/attribute_module/pwb-attribute
 export { PwbExtensionModule } from './core/module/extension_module/pwb-extension-module.decorator';
 
 // Default extensions.
-export { ComponentEvent } from './default/component-event/component-event';
-export { ComponentEventEmitter } from './default/component-event/component-event-emitter';
-export { PwbComponentEvent } from './default/component-event/pwb-component-event.decorator';
-export { PwbChild } from './default/pwb_child/pwb-child.decorator';
-export { PwbExport } from './default/export/pwb-export.decorator';
-export { PwbEventListener } from './default/event-listener/pwb-event-listener.decorator';
+export { ComponentEvent } from './default_module/component-event/component-event';
+export { ComponentEventEmitter } from './default_module/component-event/component-event-emitter';
+export { PwbComponentEvent } from './default_module/component-event/pwb-component-event.decorator';
+export { PwbChild } from './default_module/pwb_child/pwb-child.decorator';
+export { PwbExport } from './default_module/export/pwb-export.decorator';
+export { PwbEventListener } from './default_module/event-listener/pwb-event-listener.decorator';
 
 // Xml
 export { TemplateParser } from './core/component/template/template-parser';
 
 // Import default modules
-import './default/component-event/component-event-attribute-module';
-import './default/one_way_binding/one-way-binding-attribute-module';
-import './default/pwb_child/pwb-child-attribute-module';
-import './default/for-instruction/for-instruction-module';
-import './default/if_instruction/if-instruction-module';
-import './default/slot_attribute/slot-instruction-module';
-import './default/two_way_binding/two-way-binding-attribute-module';
-import './default/dynamic-content/dynamic-content-module';
+import './default_module/component-event/component-event-attribute-module';
+import './default_module/one_way_binding/one-way-binding-attribute-module';
+import './default_module/pwb_child/pwb-child-attribute-module';
+import './default_module/for-instruction/for-instruction-module';
+import './default_module/if_instruction/if-instruction-module';
+import './default_module/slot_attribute/slot-instruction-module';
+import './default_module/two_way_binding/two-way-binding-attribute-module';
+import './default_module/dynamic-content/dynamic-content-module';
 
 // Import default extensions.
-import './default/component-event/component-event-extension';
-import './default/event-listener/event-listener-component-extension';
-import './default/export/export-extension';
-import './default/pwb_app_injection/pwb-app-injection-extension';
+import './default_module/component-event/component-event-extension';
+import './default_module/event-listener/event-listener-component-extension';
+import './default_module/export/export-extension';
+import './default_module/pwb_app_injection/pwb-app-injection-extension';

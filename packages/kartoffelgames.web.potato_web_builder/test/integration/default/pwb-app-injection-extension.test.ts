@@ -8,7 +8,7 @@ import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
 import { UpdateHandler } from '../../../source/core/component/handler/update-handler';
 import { ComponentUpdateHandlerReference } from '../../../source/core/injection-reference/component/component-update-handler-reference';
-import { PwbExport } from '../../../source/default/export/pwb-export.decorator';
+import { PwbExport } from '../../../source/default_module/export/pwb-export.decorator';
 
 describe('PwbAppInjectionExtension', () => {
     it('-- PwbApp injection on global element', async () => {

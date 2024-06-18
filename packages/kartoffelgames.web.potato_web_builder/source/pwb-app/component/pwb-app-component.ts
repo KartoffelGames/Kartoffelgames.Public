@@ -6,7 +6,7 @@ import { PwbComponent } from '../../core/component/pwb-component.decorator';
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from '../../core/component/template/nodes/pwb-template-xml-node';
 import { ComponentUpdateHandlerReference } from '../../core/injection-reference/component/component-update-handler-reference';
-import { PwbExport } from '../../default/export/pwb-export.decorator';
+import { PwbExport } from '../../default_module/export/pwb-export.decorator';
 import pwbAppStyle from './pwb-app-component.css';
 import pwbAppTemplate from './pwb-app-component.html';
 

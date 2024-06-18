@@ -1,6 +1,6 @@
 import { InteractionZone } from '@kartoffelgames/web.change-detection';
 import { Component } from '../../core/component/component';
-import { PwbExtensionModule } from '../../core/module/extension_module/pwb-extension-module.decorator';
+import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { ComponentReference } from '../../core/injection-reference/component/component-reference';

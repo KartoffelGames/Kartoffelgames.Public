@@ -1,7 +1,6 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
 import { UpdateMode } from '../../enum/update-mode.enum';
-import { BaseComponentEntity } from '../base-component-entity';
 import { ComponentConstructorReference } from '../injection-reference/component/component-constructor-reference';
 import { ComponentElementReference } from '../injection-reference/component/component-element-reference';
 import { ComponentLayerValuesReference } from '../injection-reference/component/component-layer-values-reference';
@@ -17,11 +16,12 @@ import { PwbTemplate } from './template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 import { TemplateParser } from './template/template-parser';
 import { LayerValues } from './values/layer-values';
+import { BaseTrackedUserEntity } from '../user_entity/base-tracked-user-entity';
 
 /**
  * Base component handler. Handles initialisation and update of components.
  */
-export class Component extends BaseComponentEntity<ComponentProcessor> {
+export class Component extends BaseTrackedUserEntity<ComponentProcessor> {
     private static readonly mTemplateCache: Dictionary<ComponentProcessorConstructor, PwbTemplate> = new Dictionary<ComponentProcessorConstructor, PwbTemplate>();
     private static readonly mXmlParser: TemplateParser = new TemplateParser();
 
@@ -35,13 +35,7 @@ export class Component extends BaseComponentEntity<ComponentProcessor> {
      */
     public constructor(pParameter: ComponentConstructorParameter) {
         // Init injection history with updatehandler.
-        super({
-            processorConstructor: pParameter.processorConstructor,
-            manualUpdate: pParameter.updateMode % UpdateMode.Manual !== 0,
-            isolatedInteraction: pParameter.updateMode % UpdateMode.Isolated !== 0,
-            includeExtensions: true,
-            trackProcessor: true
-        });
+        super(pParameter.processorConstructor, null, pParameter.updateMode % UpdateMode.Manual !== 0, pParameter.updateMode % UpdateMode.Isolated !== 0);
 
         // Add register component element.
         ComponentInformation.register(this, pParameter.htmlElement, pParameter.processorConstructor);
@@ -213,8 +207,11 @@ export class Component extends BaseComponentEntity<ComponentProcessor> {
      * 
      * @param pProcessor - Created processor.
      */
-    protected override onCreation(pProcessor: ComponentProcessor): void {
-        ComponentInformation.register(this, this.mElementHandler.htmlElement, this.processorConstructor, pProcessor);
+    protected override onCreation(pProcessor: ComponentProcessor): ComponentProcessor {
+        const lProcessor: ComponentProcessor = super.onCreation(pProcessor);
+        ComponentInformation.register(this, this.mElementHandler.htmlElement, this.processorConstructor, lProcessor);
+
+        return lProcessor;
     }
 
     /**

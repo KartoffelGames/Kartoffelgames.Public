@@ -4,8 +4,8 @@ import { Component } from '../../core/component/component';
 import { ComponentConstructorReference } from '../../core/injection-reference/component/component-constructor-reference';
 import { ComponentElementReference } from '../../core/injection-reference/component/component-element-reference';
 import { ComponentReference } from '../../core/injection-reference/component/component-reference';
-import { IPwbExtensionModuleOnDeconstruct } from '../../core/module/extension_module/extension-module';
-import { PwbExtensionModule } from '../../core/module/extension_module/pwb-extension-module.decorator';
+import { IPwbExtensionModuleOnDeconstruct } from '../../core/extension/extension-module';
+import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 

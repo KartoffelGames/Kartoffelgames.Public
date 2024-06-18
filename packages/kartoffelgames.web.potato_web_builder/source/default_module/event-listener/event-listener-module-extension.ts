@@ -4,8 +4,8 @@ import { ModuleConstructorReference } from '../../core/injection-reference/modul
 import { ModuleReference } from '../../core/injection-reference/module/module-reference';
 import { ModuleTargetNodeReference } from '../../core/injection-reference/module/module-target-node-reference';
 import { AttributeModule } from '../../core/module/attribute_module/attribute-module';
-import { IPwbExtensionModuleOnDeconstruct } from '../../core/module/extension_module/extension-module';
-import { PwbExtensionModule } from '../../core/module/extension_module/pwb-extension-module.decorator';
+import { IPwbExtensionModuleOnDeconstruct } from '../../core/extension/extension-module';
+import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { EventListenerComponentExtension } from './event-listener-component-extension';

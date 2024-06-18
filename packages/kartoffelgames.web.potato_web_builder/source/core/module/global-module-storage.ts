@@ -1,10 +1,8 @@
 import { Dictionary, List } from '@kartoffelgames/core.data';
-import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { IPwbAttributeModuleProcessorConstructor } from './attribute_module/attribute-module';
 import { IPwbExpressionModuleProcessorConstructor } from './expression_module/expression-module';
-import { IPwbExtensionModuleProcessorConstructor } from './extension_module/extension-module';
 import { IPwbInstructionModuleProcessorConstructor } from './instruction_module/instruction-module';
 
 /**
@@ -22,8 +20,6 @@ export class GlobalModuleStorage {
     private readonly mAttributeModuleConfigurations!: Dictionary<IPwbAttributeModuleProcessorConstructor, AttributeModuleConfiguration>;
     private readonly mExpressionModuleClasses!: Dictionary<ExpressionModuleConfiguration, IPwbExpressionModuleProcessorConstructor>;
     private readonly mExpressionModuleConfigurations!: Dictionary<IPwbExpressionModuleProcessorConstructor, ExpressionModuleConfiguration>;
-    private readonly mExtensionModuleClasses!: Dictionary<ExtensionModuleConfiguration, IPwbExtensionModuleProcessorConstructor>;
-    private readonly mExtensionModuleConfigurations!: Dictionary<IPwbExtensionModuleProcessorConstructor, ExtensionModuleConfiguration>;
     private readonly mInstructionModuleClasses!: Dictionary<InstructionModuleConfiguration, IPwbInstructionModuleProcessorConstructor>;
     private readonly mInstructionModuleConfigurations!: Dictionary<IPwbInstructionModuleProcessorConstructor, InstructionModuleConfiguration>;
 
@@ -39,13 +35,6 @@ export class GlobalModuleStorage {
      */
     public get expressionModuleConfigurations(): Array<ExpressionModuleConfiguration> {
         return List.newListWith(...this.mExpressionModuleConfigurations.values());
-    }
-
-    /**
-     * Get expression module definitions of all expression modules.
-     */
-    public get extensionModuleConfigurations(): Array<ExtensionModuleConfiguration> {
-        return List.newListWith(...this.mExtensionModuleConfigurations.values());
     }
 
     /**
@@ -71,13 +60,11 @@ export class GlobalModuleStorage {
         this.mAttributeModuleClasses = new Dictionary<AttributeModuleConfiguration, IPwbAttributeModuleProcessorConstructor>();
         this.mExpressionModuleClasses = new Dictionary<ExpressionModuleConfiguration, IPwbExpressionModuleProcessorConstructor>();
         this.mInstructionModuleClasses = new Dictionary<InstructionModuleConfiguration, IPwbInstructionModuleProcessorConstructor>();
-        this.mExtensionModuleClasses = new Dictionary<ExtensionModuleConfiguration, IPwbExtensionModuleProcessorConstructor>();
 
         // Config storages.
         this.mAttributeModuleConfigurations = new Dictionary<IPwbAttributeModuleProcessorConstructor, AttributeModuleConfiguration>();
         this.mExpressionModuleConfigurations = new Dictionary<IPwbExpressionModuleProcessorConstructor, ExpressionModuleConfiguration>();
         this.mInstructionModuleConfigurations = new Dictionary<IPwbInstructionModuleProcessorConstructor, InstructionModuleConfiguration>();
-        this.mExtensionModuleConfigurations = new Dictionary<IPwbExtensionModuleProcessorConstructor, ExtensionModuleConfiguration>();
     }
 
     /**
@@ -98,16 +85,6 @@ export class GlobalModuleStorage {
     public addExpressionModule(pModuleDefinition: ExpressionModuleConfiguration): void {
         this.mExpressionModuleClasses.set(pModuleDefinition, pModuleDefinition.constructor);
         this.mExpressionModuleConfigurations.set(pModuleDefinition.constructor, pModuleDefinition);
-    }
-
-    /**
-     * Add global component extension.
-     * @param pExtension - Extension constructor.
-     * @param pExtensionType - Type of extension.
-     */
-    public addExtensionModule(pModuleDefinition: ExtensionModuleConfiguration): void {
-        this.mExtensionModuleClasses.set(pModuleDefinition, pModuleDefinition.constructor);
-        this.mExtensionModuleConfigurations.set(pModuleDefinition.constructor, pModuleDefinition);
     }
 
     /**
@@ -137,14 +114,6 @@ export class GlobalModuleStorage {
     }
 
     /**
-     * Get extension module definition for extension module class.
-     * @param pModuleClass - Module class.
-     */
-    public getExtensionModuleConfiguration(pModuleClass: IPwbExtensionModuleProcessorConstructor): ExtensionModuleConfiguration | undefined {
-        return this.mExtensionModuleConfigurations.get(pModuleClass);
-    }
-
-    /**
      * Get instruction module definition for instruction module class.
      * @param pModuleClass - Module class.
      */
@@ -169,11 +138,4 @@ export type InstructionModuleConfiguration = {
     constructor: IPwbInstructionModuleProcessorConstructor;
     instructionType: string;
     trigger: UpdateTrigger;
-};
-
-export type ExtensionModuleConfiguration = {
-    access: AccessMode;
-    constructor: IPwbExtensionModuleProcessorConstructor;
-    trigger: UpdateTrigger;
-    targetRestrictions: Array<InjectionConstructor>;
 };

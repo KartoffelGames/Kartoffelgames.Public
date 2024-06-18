@@ -1,7 +1,7 @@
 import { List } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
 import { Component } from '../../core/component/component';
-import { PwbExtensionModule } from '../../core/module/extension_module/pwb-extension-module.decorator';
+import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { ComponentConstructorReference } from '../../core/injection-reference/component/component-constructor-reference';

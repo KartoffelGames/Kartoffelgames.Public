@@ -1,7 +1,7 @@
 import { InjectionConstructor, Injector } from '@kartoffelgames/core.dependency-injection';
-import { AccessMode } from '../../../enum/access-mode.enum';
-import { UpdateTrigger } from '../../../enum/update-trigger.enum';
-import { GlobalModuleStorage } from '../global-module-storage';
+import { AccessMode } from '../../enum/access-mode.enum';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
+import { GlobalModuleStorage } from '../module/global-module-storage';
 import { IPwbExtensionModuleProcessorConstructor } from './extension-module';
 
 /**

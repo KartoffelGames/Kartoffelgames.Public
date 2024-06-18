@@ -1,9 +1,9 @@
-import { LayerValues } from '../../component_entity/component/values/layer-values';
-import { ModuleLayerValuesReference } from '../../component_entity/injection-reference/module/module-layer-values-reference';
-import { ModuleValueReference } from '../../component_entity/injection-reference/module/module-value-reference';
-import { ComponentScopeExecutor } from '../../component_entity/module/execution/component-scope-executor';
-import { IPwbExpressionModuleOnUpdate } from '../../component_entity/module/expression_module/expression-module';
-import { PwbExpressionModule } from '../../component_entity/module/expression_module/pwb-expression-module.decorator';
+import { LayerValues } from '../../core/component/values/layer-values';
+import { ModuleLayerValuesReference } from '../../core/injection-reference/module/module-layer-values-reference';
+import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
+import { ComponentScopeExecutor } from '../../core/module/execution/component-scope-executor';
+import { IPwbExpressionModuleOnUpdate } from '../../core/module/expression_module/expression-module';
+import { PwbExpressionModule } from '../../core/module/expression_module/pwb-expression-module.decorator';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
 /**

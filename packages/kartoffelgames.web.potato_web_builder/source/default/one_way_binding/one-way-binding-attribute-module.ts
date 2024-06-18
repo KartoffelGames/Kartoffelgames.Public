@@ -1,11 +1,11 @@
-import { LayerValues } from '../../component_entity/component/values/layer-values';
-import { ModuleKeyReference } from '../../component_entity/injection-reference/module/module-key-reference';
-import { ModuleLayerValuesReference } from '../../component_entity/injection-reference/module/module-layer-values-reference';
-import { ModuleTargetNodeReference } from '../../component_entity/injection-reference/module/module-target-node-reference';
-import { ModuleValueReference } from '../../component_entity/injection-reference/module/module-value-reference';
-import { IPwbAttributeModuleOnUpdate } from '../../component_entity/module/attribute_module/attribute-module';
-import { PwbAttributeModule } from '../../component_entity/module/attribute_module/pwb-attribute-module.decorator';
-import { ComponentScopeExecutor } from '../../component_entity/module/execution/component-scope-executor';
+import { LayerValues } from '../../core/component/values/layer-values';
+import { ModuleKeyReference } from '../../core/injection-reference/module/module-key-reference';
+import { ModuleLayerValuesReference } from '../../core/injection-reference/module/module-layer-values-reference';
+import { ModuleTargetNodeReference } from '../../core/injection-reference/module/module-target-node-reference';
+import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
+import { IPwbAttributeModuleOnUpdate } from '../../core/module/attribute_module/attribute-module';
+import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
+import { ComponentScopeExecutor } from '../../core/module/execution/component-scope-executor';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 

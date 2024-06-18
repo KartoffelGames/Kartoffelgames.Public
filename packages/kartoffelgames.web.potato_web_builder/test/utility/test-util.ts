@@ -1,10 +1,10 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { ComponentUpdateHandlerReference } from '../../source';
-import { Component } from '../../source/component_entity/component/component';
-import { UpdateHandler } from '../../source/component_entity/component/handler/update-handler';
-import { ComponentElement } from '../../source/component_entity/component/component.interface';
+import { Component } from '../../source/core/component/component';
+import { UpdateHandler } from '../../source/core/component/handler/update-handler';
+import { ComponentElement } from '../../source/core/component/component.interface';
 import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
-import { ComponentInformation } from '../../source/component_entity/component/component-information';
+import { ComponentInformation } from '../../source/core/component/component-information';
 
 export class TestUtil {
     /**

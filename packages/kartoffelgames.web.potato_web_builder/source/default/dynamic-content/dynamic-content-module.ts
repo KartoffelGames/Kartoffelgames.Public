@@ -1,14 +1,14 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { UpdateHandler } from '../../component_entity/component/handler/update-handler';
-import { PwbTemplate } from '../../component_entity/component/template/nodes/pwb-template';
-import { LayerValues } from '../../component_entity/component/values/layer-values';
-import { ComponentUpdateHandlerReference } from '../../component_entity/injection-reference/component/component-update-handler-reference';
-import { ModuleLayerValuesReference } from '../../component_entity/injection-reference/module/module-layer-values-reference';
-import { ModuleValueReference } from '../../component_entity/injection-reference/module/module-value-reference';
-import { ComponentScopeExecutor } from '../../component_entity/module/execution/component-scope-executor';
-import { IPwbInstructionModuleOnUpdate } from '../../component_entity/module/instruction_module/instruction-module';
-import { PwbInstructionModule } from '../../component_entity/module/instruction_module/pwb-instruction-module.decorator';
-import { InstructionResult } from '../../component_entity/module/instruction_module/result/instruction-result';
+import { UpdateHandler } from '../../core/component/handler/update-handler';
+import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
+import { LayerValues } from '../../core/component/values/layer-values';
+import { ComponentUpdateHandlerReference } from '../../core/injection-reference/component/component-update-handler-reference';
+import { ModuleLayerValuesReference } from '../../core/injection-reference/module/module-layer-values-reference';
+import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
+import { ComponentScopeExecutor } from '../../core/module/execution/component-scope-executor';
+import { IPwbInstructionModuleOnUpdate } from '../../core/module/instruction_module/instruction-module';
+import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
+import { InstructionResult } from '../../core/module/instruction_module/result/instruction-result';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
 /**

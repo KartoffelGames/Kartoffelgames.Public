@@ -1,11 +1,11 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { ComponentInformation } from '../../component_entity/component/component-information';
-import { ComponentProcessorConstructor, IPwbOnConnect, IPwbOnDisconnect } from '../../component_entity/component/component.interface';
-import { UpdateHandler } from '../../component_entity/component/handler/update-handler';
-import { PwbComponent } from '../../component_entity/component/pwb-component.decorator';
-import { PwbTemplate } from '../../component_entity/component/template/nodes/pwb-template';
-import { PwbTemplateXmlNode } from '../../component_entity/component/template/nodes/pwb-template-xml-node';
-import { ComponentUpdateHandlerReference } from '../../component_entity/injection-reference/component/component-update-handler-reference';
+import { ComponentInformation } from '../../core/component/component-information';
+import { ComponentProcessorConstructor, IPwbOnConnect, IPwbOnDisconnect } from '../../core/component/component.interface';
+import { UpdateHandler } from '../../core/component/handler/update-handler';
+import { PwbComponent } from '../../core/component/pwb-component.decorator';
+import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
+import { PwbTemplateXmlNode } from '../../core/component/template/nodes/pwb-template-xml-node';
+import { ComponentUpdateHandlerReference } from '../../core/injection-reference/component/component-update-handler-reference';
 import { PwbExport } from '../../default/export/pwb-export.decorator';
 import pwbAppStyle from './pwb-app-component.css';
 import pwbAppTemplate from './pwb-app-component.html';

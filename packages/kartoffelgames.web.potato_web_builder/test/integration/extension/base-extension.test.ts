@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { AccessMode } from '../../../source';
-import { PwbComponent } from '../../../source/component_entity/component/pwb-component.decorator';
-import { PwbExtensionModule } from '../../../source/component_entity/module/extension_module/pwb-extension-module.decorator';
+import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
+import { PwbExtensionModule } from '../../../source/core/module/extension_module/pwb-extension-module.decorator';
 import { UpdateTrigger } from '../../../source/enum/update-trigger.enum';
 import { TestUtil } from '../../utility/test-util';
 

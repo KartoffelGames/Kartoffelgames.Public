@@ -1,6 +1,6 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { expect } from 'chai';
-import { PwbComponent } from '../../../../source/component_entity/component/pwb-component.decorator';
+import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator';
 import '../../../mock/request-animation-frame-mock-session';
 import '../../../utility/chai-helper';
 import { TestUtil } from '../../../utility/test-util';

@@ -1,11 +1,11 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
 import { Component } from '../../core/component/component';
+import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
 import { ComponentConstructorReference } from '../../core/injection-reference/component/component-constructor-reference';
 import { ComponentElementReference } from '../../core/injection-reference/component/component-element-reference';
 import { ComponentReference } from '../../core/injection-reference/component/component-reference';
-import { IPwbExtensionModuleOnDeconstruct } from '../../core/extension/extension-module';
-import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
+import { IUserProcessorOnDeconstruct } from '../../core/user_entity/base-user-entity';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
@@ -14,7 +14,7 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
     trigger: UpdateTrigger.Default,
     targetRestrictions: [Component]
 })
-export class EventListenerComponentExtension implements IPwbExtensionModuleOnDeconstruct {
+export class EventListenerComponentExtension implements IUserProcessorOnDeconstruct {
     public static readonly METADATA_USER_EVENT_LISTENER_PROPERIES: string = 'pwb:user_event_listener_properties';
 
     private readonly mEventListenerList: Array<[string, EventListener]>;

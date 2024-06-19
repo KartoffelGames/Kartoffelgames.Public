@@ -66,6 +66,7 @@ export abstract class BaseExtendableUserEntity<TProcessor extends IUserProcessor
 
         const lProcessor: TProcessor = super.createProcessor();
 
+
         // Get all read extensions. Keep order to execute readWrite extensions first.
         const lReadExtensions: Array<ExtensionModuleConfiguration> = [...lReadWriteExtensionList, ...lReadExtensionList];
 

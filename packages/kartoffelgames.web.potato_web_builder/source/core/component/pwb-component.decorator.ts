@@ -5,6 +5,7 @@ import { IPwbExpressionModuleProcessorConstructor } from '../module/expression_m
 import { IPwbInstructionModuleProcessorConstructor } from '../module/instruction_module/instruction-module';
 import { Component } from './component';
 import { ComponentProcessorConstructor } from './component.interface';
+import { ComponentInformation } from './component-information';
 
 /**
  * AtScript. PWB Component.
@@ -16,6 +17,9 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
     return (pComponentProcessorConstructor: ComponentProcessorConstructor) => {
         // Set component processor constructor to be injectable.
         Injector.Injectable(pComponentProcessorConstructor);
+
+        // Register component constructor.
+        ComponentInformation.registerConstructor(pComponentProcessorConstructor, pParameter.selector);
 
         // Create custom html element of parent type.
         const lPwbComponentConstructor = class extends HTMLElement {

@@ -1,25 +1,19 @@
 import { IDeconstructable } from '@kartoffelgames/core.data';
-import { BaseComponentEntity } from '../base-component-entity';
 import { ModuleConstructorReference } from '../injection-reference/module/module-constructor-reference';
 import { ModuleReference } from '../injection-reference/module/module-reference';
+import { BaseUpdateableUserEntity } from '../user_entity/base-updateable-user-entity';
+import { BaseUserEntity } from '../user_entity/base-user-entity';
 
-export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> extends BaseComponentEntity<TModuleProcessor> implements IDeconstructable {
+export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> extends BaseUpdateableUserEntity<TModuleProcessor> implements IDeconstructable {
     /**
      * Constructor.
      * @param pParameter - Parameter.
      */
-    constructor(pParameter: BaseModuleConstructorParameter) {
-        super({
-            processorConstructor: pParameter.constructor,
-            parent: pParameter.parent,
-            manualUpdate: true,
-            isolatedInteraction: false,
-            includeExtensions: pParameter.includeExtensions,
-            trackProcessor: false
-        });
+    constructor(pConstructor: IPwbModuleProcessorConstructor<IPwbModuleProcessor>, pParent: BaseUserEntity) {
+        super(pConstructor, pParent);
 
         // Create module injection mapping.
-        this.setProcessorAttributes(ModuleConstructorReference, pParameter.constructor);
+        this.setProcessorAttributes(ModuleConstructorReference, pConstructor);
         this.setProcessorAttributes(ModuleReference, this);
     }
 
@@ -37,11 +31,6 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
     }
 }
 
-export type BaseModuleConstructorParameter = {
-    parent: BaseComponentEntity;
-    constructor: IPwbModuleProcessorConstructor<IPwbModuleProcessor>;
-    includeExtensions: boolean;
-};
 
 // Base.
 export interface IPwbModuleProcessor { }

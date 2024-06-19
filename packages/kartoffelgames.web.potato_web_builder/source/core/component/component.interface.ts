@@ -1,5 +1,6 @@
+import { IUserProcessor } from '../user_entity/base-user-entity';
 
-export interface ComponentProcessor extends Partial<IPwbOnDeconstruct>, Partial<IPwbAfterUpdate>, Partial<IPwbOnUpdate>, Partial<IPwbOnAttributeChange>, Partial<IPwbOnConnect>,Partial<IPwbOnDisconnect> {
+export interface ComponentProcessor extends IUserProcessor, Partial<IPwbOnDeconstruct>, Partial<IPwbAfterUpdate>, Partial<IPwbOnUpdate>, Partial<IPwbOnAttributeChange>, Partial<IPwbOnConnect>,Partial<IPwbOnDisconnect> {
 }
 
 export type ComponentProcessorConstructor = {

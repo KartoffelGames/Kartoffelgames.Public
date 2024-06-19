@@ -26,7 +26,6 @@ export { ComponentScopeExecutor } from './core/module/execution/component-scope-
 export { IPwbAttributeModuleOnUpdate } from './core/module/attribute_module/attribute-module';
 export { IPwbModuleOnDeconstruct } from './core/module/base-module';
 export { IPwbExpressionModuleOnUpdate } from './core/module/expression_module/expression-module';
-export { IPwbExtensionModuleOnDeconstruct } from './core/extension/extension-module';
 export { IPwbInstructionModuleOnUpdate } from './core/module/instruction_module/instruction-module';
 export { InstructionResult } from './core/module/instruction_module/result/instruction-result';
 export { AccessMode } from './enum/access-mode.enum';

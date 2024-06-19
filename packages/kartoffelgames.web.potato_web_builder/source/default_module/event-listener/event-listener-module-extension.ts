@@ -1,11 +1,11 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
+import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
 import { ModuleConstructorReference } from '../../core/injection-reference/module/module-constructor-reference';
 import { ModuleReference } from '../../core/injection-reference/module/module-reference';
 import { ModuleTargetNodeReference } from '../../core/injection-reference/module/module-target-node-reference';
 import { AttributeModule } from '../../core/module/attribute_module/attribute-module';
-import { IPwbExtensionModuleOnDeconstruct } from '../../core/extension/extension-module';
-import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
+import { IUserProcessorOnDeconstruct } from '../../core/user_entity/base-user-entity';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { EventListenerComponentExtension } from './event-listener-component-extension';
@@ -15,7 +15,7 @@ import { EventListenerComponentExtension } from './event-listener-component-exte
     trigger: UpdateTrigger.Default,
     targetRestrictions: [AttributeModule]
 })
-export class EventListenerModuleExtension implements IPwbExtensionModuleOnDeconstruct {
+export class EventListenerModuleExtension implements IUserProcessorOnDeconstruct {
     private readonly mEventListenerList: Array<[string, EventListener]>;
     private readonly mTargetElement: Node;
 

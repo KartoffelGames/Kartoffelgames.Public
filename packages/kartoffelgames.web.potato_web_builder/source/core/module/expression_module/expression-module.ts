@@ -1,10 +1,10 @@
-import { BaseComponentEntity } from '../../base-component-entity';
 import { PwbTemplateExpression } from '../../component/template/nodes/values/pwb-template-expression';
 import { LayerValues } from '../../component/values/layer-values';
 import { ModuleLayerValuesReference } from '../../injection-reference/module/module-layer-values-reference';
 import { ModuleTargetNodeReference } from '../../injection-reference/module/module-target-node-reference';
 import { ModuleTemplateReference } from '../../injection-reference/module/module-template-reference';
 import { ModuleValueReference } from '../../injection-reference/module/module-value-reference';
+import { BaseUserEntity } from '../../user_entity/base-user-entity';
 import { BaseModule, IPwbModuleOnDeconstruct, IPwbModuleOnUpdate, IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../base-module';
 
 export class ExpressionModule extends BaseModule<IPwbExpressionModuleProcessor> {
@@ -16,11 +16,7 @@ export class ExpressionModule extends BaseModule<IPwbExpressionModuleProcessor> 
      * @param pParameter - Constructor parameter.
      */
     public constructor(pParameter: ExpressionModuleConstructorParameter) {
-        super({
-            constructor: pParameter.constructor,
-            parent: pParameter.parent,
-            includeExtensions: false
-        });
+        super(pParameter.constructor, pParameter.parent);
 
         this.mTargetTextNode = pParameter.targetNode;
 
@@ -71,7 +67,7 @@ export type ExpressionModuleConstructorParameter = {
     constructor: IPwbExpressionModuleProcessorConstructor,
     targetTemplate: PwbTemplateExpression,
     values: LayerValues,
-    parent: BaseComponentEntity,
+    parent: BaseUserEntity,
     targetNode: Text;
 };
 

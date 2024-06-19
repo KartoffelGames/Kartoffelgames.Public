@@ -119,18 +119,12 @@ export class ComponentInformation {
     /**
      * Register component information. Does not override set data.
      * 
-     * @param pConstructor - Component processor constructor.
      * @param pSelector - Selector of html element.
      * @param pElement - Element of component.
      * @param pComponent - Component.
      * @param pProcessor - Component processor.
      */
-    public static register(pComponent: Component, pElement: HTMLElement, pConstructor?: InjectionConstructor, pProcessor?: ComponentProcessor): void {
-        // Register selector.
-        if (pConstructor && !ComponentInformation.mConstructorSelector.has(pConstructor)) {
-            ComponentInformation.mConstructorSelector.set(pConstructor, pElement.tagName);
-        }
-
+    public static registerComponent(pComponent: Component, pElement: HTMLElement, pProcessor?: ComponentProcessor): void {
         // Register HTMLElement.
         if (!ComponentInformation.mComponents.has(pElement)) {
             ComponentInformation.mComponents.set(pElement, pComponent);
@@ -144,6 +138,19 @@ export class ComponentInformation {
         // Register Component
         if (!ComponentInformation.mElements.has(pComponent)) {
             ComponentInformation.mElements.set(pComponent, pElement);
+        }
+    }
+
+    /**
+     * Register component constructor information. Does not override set data.
+     * 
+     * @param pConstructor - Component processor constructor.
+     * @param pSelector - Selector of html element.
+     */
+    public static registerConstructor(pConstructor: InjectionConstructor, pSelector: string): void {
+        // Register selector.
+        if (pConstructor && !ComponentInformation.mConstructorSelector.has(pConstructor)) {
+            ComponentInformation.mConstructorSelector.set(pConstructor, pSelector);
         }
     }
 }

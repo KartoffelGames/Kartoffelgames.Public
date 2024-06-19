@@ -1,5 +1,4 @@
 import { AccessMode } from '../../../enum/access-mode.enum';
-import { BaseComponentEntity } from '../../base-component-entity';
 import { PwbTemplateAttribute } from '../../component/template/nodes/values/pwb-template-attribute';
 import { LayerValues } from '../../component/values/layer-values';
 import { ModuleKeyReference } from '../../injection-reference/module/module-key-reference';
@@ -7,6 +6,7 @@ import { ModuleLayerValuesReference } from '../../injection-reference/module/mod
 import { ModuleTargetNodeReference } from '../../injection-reference/module/module-target-node-reference';
 import { ModuleTemplateReference } from '../../injection-reference/module/module-template-reference';
 import { ModuleValueReference } from '../../injection-reference/module/module-value-reference';
+import { BaseUserEntity } from '../../user_entity/base-user-entity';
 import { BaseModule, IPwbModuleOnDeconstruct, IPwbModuleOnUpdate, IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../base-module';
 
 export class AttributeModule extends BaseModule<IPwbAttributeModuleProcessor> {
@@ -24,11 +24,7 @@ export class AttributeModule extends BaseModule<IPwbAttributeModuleProcessor> {
      * @param pParameter - Constructor parameter.
      */
     public constructor(pParameter: StaticModuleConstructorParameter) {
-        super({
-            constructor: pParameter.constructor,
-            parent: pParameter.parent,
-            includeExtensions: true
-        });
+        super(pParameter.constructor, pParameter.parent);
 
         // Save module access mode.
         this.mAccessMode = pParameter.accessMode;
@@ -58,7 +54,7 @@ export type StaticModuleConstructorParameter = {
     constructor: IPwbAttributeModuleProcessorConstructor,
     targetTemplate: PwbTemplateAttribute,
     values: LayerValues,
-    parent: BaseComponentEntity,
+    parent: BaseUserEntity,
     targetNode: Element;
 };
 

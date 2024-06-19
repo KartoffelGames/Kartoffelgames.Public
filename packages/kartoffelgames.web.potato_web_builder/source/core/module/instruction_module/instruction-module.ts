@@ -1,4 +1,3 @@
-import { BaseComponentEntity } from '../../base-component-entity';
 import { ElementCreator } from '../../component/element-creator';
 import { PwbTemplateInstructionNode } from '../../component/template/nodes/pwb-template-instruction-node';
 import { LayerValues } from '../../component/values/layer-values';
@@ -7,6 +6,7 @@ import { ModuleLayerValuesReference } from '../../injection-reference/module/mod
 import { ModuleTargetNodeReference } from '../../injection-reference/module/module-target-node-reference';
 import { ModuleTemplateReference } from '../../injection-reference/module/module-template-reference';
 import { ModuleValueReference } from '../../injection-reference/module/module-value-reference';
+import { BaseUserEntity } from '../../user_entity/base-user-entity';
 import { BaseModule, IPwbModuleOnDeconstruct, IPwbModuleOnUpdate, IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../base-module';
 import { InstructionResult, InstructionResultElement } from './result/instruction-result';
 
@@ -24,19 +24,15 @@ export class InstructionModule extends BaseModule<IPwbInstructionModuleProcessor
      * Constructor.
      * @param pParameter - Constructor parameter.
      */
-    public constructor(pParameter: MultiplicatorModuleConstructorParameter) {
-        super({
-            constructor: pParameter.constructor,
-            parent: pParameter.parent,
-            includeExtensions: true
-        });
+    public constructor(pConstructor: IPwbInstructionModuleProcessorConstructor, pParent: BaseUserEntity, pTargetTemplate: PwbTemplateInstructionNode, pValues: LayerValues) {
+        super(pConstructor, pParent);
 
         // Set processor attribute values from injection template.
-        this.setProcessorAttributes(ModuleTemplateReference, pParameter.targetTemplate.clone());
+        this.setProcessorAttributes(ModuleTemplateReference, pTargetTemplate.clone());
         this.setProcessorAttributes(ModuleTargetNodeReference, ElementCreator.createComment('')); // TODO: Remove after restriction set.
-        this.setProcessorAttributes(ModuleLayerValuesReference, pParameter.values);
-        this.setProcessorAttributes(ModuleKeyReference, pParameter.targetTemplate.instructionType);
-        this.setProcessorAttributes(ModuleValueReference, pParameter.targetTemplate.instruction);
+        this.setProcessorAttributes(ModuleLayerValuesReference, pValues);
+        this.setProcessorAttributes(ModuleKeyReference, pTargetTemplate.instructionType);
+        this.setProcessorAttributes(ModuleValueReference, pTargetTemplate.instruction);
 
         // Set starting value of instruction => Empty.
         this.mLastResult = new InstructionResult();
@@ -93,10 +89,8 @@ export class InstructionModule extends BaseModule<IPwbInstructionModuleProcessor
 }
 
 export type MultiplicatorModuleConstructorParameter = {
-    constructor: IPwbInstructionModuleProcessorConstructor,
-    targetTemplate: PwbTemplateInstructionNode,
-    values: LayerValues,
-    parent: BaseComponentEntity,
+
+
 };
 
 // Interfaces.

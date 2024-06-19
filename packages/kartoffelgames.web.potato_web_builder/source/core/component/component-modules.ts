@@ -107,12 +107,7 @@ export class ComponentModules {
             // Only manipulator modules.
             if (lModuleConfiguration.instructionType === pTemplate.instructionType) {
                 // Get constructor and create new module.
-                const lModule: InstructionModule = new InstructionModule({
-                    constructor: lModuleConfiguration.constructor,
-                    targetTemplate: pTemplate,
-                    values: pValues,
-                    parent: this.mComponent,
-                });
+                const lModule: InstructionModule = new InstructionModule(lModuleConfiguration.constructor, this.mComponent, pTemplate, pValues,);
 
                 return lModule;
             }

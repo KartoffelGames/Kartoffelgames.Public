@@ -38,7 +38,7 @@ export class Component extends BaseTrackedUserEntity<ComponentProcessor> {
         super(pParameter.processorConstructor, null, pParameter.updateMode % UpdateMode.Manual !== 0, pParameter.updateMode % UpdateMode.Isolated !== 0);
 
         // Add register component element.
-        ComponentInformation.register(this, pParameter.htmlElement, pParameter.processorConstructor);
+        ComponentInformation.registerComponent(this, pParameter.htmlElement);
 
         // Load cached or create new module handler and template.
         let lTemplate: PwbTemplate | undefined = Component.mTemplateCache.get(pParameter.processorConstructor);
@@ -209,7 +209,7 @@ export class Component extends BaseTrackedUserEntity<ComponentProcessor> {
      */
     protected override onCreation(pProcessor: ComponentProcessor): ComponentProcessor {
         const lProcessor: ComponentProcessor = super.onCreation(pProcessor);
-        ComponentInformation.register(this, this.mElementHandler.htmlElement, this.processorConstructor, lProcessor);
+        ComponentInformation.registerComponent(this, this.mElementHandler.htmlElement, lProcessor);
 
         return lProcessor;
     }

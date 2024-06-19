@@ -9,9 +9,6 @@ export class ExtensionModule extends BaseUserEntity<IPwbExtensionModuleProcessor
     public constructor(pConstructor: IPwbExtensionModuleProcessorConstructor, pParent: BaseUserEntity | null,) {
         super(pConstructor, pParent);
 
-        // Force processor creation.
-        this.processor;
-
         // Call execution hook.
         if ('onExecution' in this.processor) {
             this.processor.onExecution();

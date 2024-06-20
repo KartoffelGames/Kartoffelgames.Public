@@ -2,11 +2,11 @@ import { Exception } from '@kartoffelgames/core.data';
 import { UpdateHandler } from '../../core/component/handler/update-handler';
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
 import { LayerValues } from '../../core/component/values/layer-values';
-import { IOnUpdate } from '../../core/core_entity/core-entity.interface';
 import { ComponentUpdateHandlerReference } from '../../core/injection-reference/component/component-update-handler-reference';
 import { ModuleLayerValuesReference } from '../../core/injection-reference/module/module-layer-values-reference';
 import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
 import { ComponentScopeExecutor } from '../../core/module/execution/component-scope-executor';
+import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
 import { InstructionResult } from '../../core/module/instruction_module/result/instruction-result';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
@@ -19,7 +19,7 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
     instructionType: 'dynamic-content',
     trigger: UpdateTrigger.Default
 })
-export class DynamicContentInstructionModule implements IOnUpdate {
+export class DynamicContentInstructionModule implements IInstructionOnUpdate {
     private readonly mExpression: string;
     private mLastTemplate: PwbTemplate | null;
     private readonly mLayerValues: LayerValues;

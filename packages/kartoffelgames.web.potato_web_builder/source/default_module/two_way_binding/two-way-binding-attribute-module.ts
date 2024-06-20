@@ -5,18 +5,18 @@ import { ModuleKeyReference } from '../../core/injection-reference/module/module
 import { ModuleLayerValuesReference } from '../../core/injection-reference/module/module-layer-values-reference';
 import { ModuleTargetNodeReference } from '../../core/injection-reference/module/module-target-node-reference';
 import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
+import { IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module';
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
 import { ComponentScopeExecutor } from '../../core/module/execution/component-scope-executor';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
-import { IOnUpdate } from '../../core/core_entity/core-entity.interface';
 
 @PwbAttributeModule({
     access: AccessMode.ReadWrite,
     selector: /^\[\([[\w$]+\)\]$/,
     trigger: UpdateTrigger.Default
 })
-export class TwoWayBindingAttributeModule implements IOnUpdate {
+export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
     private readonly mAttributeKey: string;
     private readonly mAttributeValue: string;
     private mLastDataValue: any;

@@ -20,7 +20,7 @@ import { TestUtil } from '../../utility/test-util';
 import { ComponentElement } from '../../../source/core/component/component';
 import { InstructionResult } from '../../../source/core/module/instruction_module/result/instruction-result';
 import { ModuleLayerValuesReference } from '../../../source/core/injection-reference/module/module-layer-values-reference';
-import { IOnUpdate } from '../../../source/core/core_entity/core-entity.interface';
+import { IInstructionOnUpdate } from '../../../source/core/module/instruction_module/instruction-module';
 
 describe('PwbEventListener', () => {
     it('-- Native listener', async () => {
@@ -282,7 +282,7 @@ describe('PwbEventListener', () => {
             trigger: UpdateTrigger.Default
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class MyModule implements IOnUpdate {
+        class MyModule implements IInstructionOnUpdate {
             public constructor(private readonly mTemplate: ModuleTemplateReference, private readonly mValue: ModuleLayerValuesReference) { }
 
             onUpdate(): InstructionResult | null {

@@ -1,6 +1,5 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { CoreEntity, CoreEntityProcessorConstructor } from './core-entity';
-import { ICoreEntityProcessor } from './core-entity.interface';
 
 export class CoreEntityRegister {
     private static mInstance: CoreEntityRegister;
@@ -79,7 +78,7 @@ export class CoreEntityRegister {
     }
 }
 
-export type CoreEntityConstructor<TProcessor extends ICoreEntityProcessor = ICoreEntityProcessor> = new (...pParameter: Array<any>) => CoreEntity<TProcessor>;
+export type CoreEntityConstructor<TProcessor extends object = object> = new (...pParameter: Array<any>) => CoreEntity<TProcessor>;
 
 type CoreEntityProcessorConstructorConfiguration = { [key: string]: any; };
 export type CoreEntityProcessorConstructorSetup<TConfiguration extends CoreEntityProcessorConstructorConfiguration = CoreEntityProcessorConstructorConfiguration> = {

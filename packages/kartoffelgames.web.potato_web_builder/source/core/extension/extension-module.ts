@@ -3,7 +3,6 @@ import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection'
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { CoreEntity, CoreEntityProcessorConstructor } from '../core_entity/core-entity';
-import { ICoreEntityProcessor, IOnDeconstruct, IOnExecute } from '../core_entity/core-entity.interface';
 
 export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> implements IDeconstructable {
     /**
@@ -19,7 +18,7 @@ export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> im
         });
 
         // Call execution hook.
-        this.call('onExecute', false);
+        this.call<IExtensionOnExecute, 'onExecute'>('onExecute', false);
     }
 
     /**
@@ -27,15 +26,21 @@ export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> im
      */
     public deconstruct(): void {
         // Call execution hook.
-        this.call('onDeconstruct', false);
+        this.call<IExtensionOnDeconstruct, 'onDeconstruct'>('onDeconstruct', false);
     }
 }
 
 /*
- * Processor types.
+ * Interfaces.
  */
-export interface IPwbExtensionModuleProcessor extends ICoreEntityProcessor, Partial<IOnDeconstruct>, Partial<IOnExecute> { }
-export interface IPwbExtensionModuleProcessorConstructor extends CoreEntityProcessorConstructor<IPwbExtensionModuleProcessor> {}
+export interface IExtensionOnDeconstruct {
+    onDeconstruct(): void;
+}
+export interface IExtensionOnExecute {
+    onExecute(): boolean;
+}
+export interface IPwbExtensionModuleProcessor extends Partial<IExtensionOnDeconstruct>, Partial<IExtensionOnExecute> { }
+export interface IPwbExtensionModuleProcessorConstructor extends CoreEntityProcessorConstructor<IPwbExtensionModuleProcessor> { }
 
 /**
  * Register configuration.

@@ -1,8 +1,8 @@
 import { LayerValues } from '../../core/component/values/layer-values';
-import { IOnUpdate } from '../../core/core_entity/core-entity.interface';
 import { ModuleLayerValuesReference } from '../../core/injection-reference/module/module-layer-values-reference';
 import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
 import { ComponentScopeExecutor } from '../../core/module/execution/component-scope-executor';
+import { IExpressionOnUpdate } from '../../core/module/expression_module/expression-module';
 import { PwbExpressionModule } from '../../core/module/expression_module/pwb-expression-module.decorator';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
@@ -13,7 +13,7 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
 @PwbExpressionModule({
     trigger: UpdateTrigger.None
 })
-export class MustacheExpressionModule implements IOnUpdate {
+export class MustacheExpressionModule implements IExpressionOnUpdate {
     private readonly mExpressionValue: string;
     private readonly mValueHandler: LayerValues;
 

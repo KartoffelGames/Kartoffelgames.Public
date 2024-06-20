@@ -1,4 +1,5 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
+import { ComponentProcessorConstructor, IComponentOnConnect, IComponentOnDisconnect } from '../../core/component/component';
 import { ComponentInformation } from '../../core/component/component-information';
 import { UpdateHandler } from '../../core/component/handler/update-handler';
 import { PwbComponent } from '../../core/component/pwb-component.decorator';
@@ -8,15 +9,13 @@ import { ComponentUpdateHandlerReference } from '../../core/injection-reference/
 import { PwbExport } from '../../default_module/export/pwb-export.decorator';
 import pwbAppStyle from './pwb-app-component.css';
 import pwbAppTemplate from './pwb-app-component.html';
-import { IOnConnect, IOnDisconnect } from '../../core/core_entity/core-entity.interface';
-import { ComponentProcessorConstructor } from '../../core/component/component';
 
 @PwbComponent({
     selector: 'pwb-app',
     style: pwbAppStyle,
     template: pwbAppTemplate
 })
-export class PwbAppComponent implements IOnConnect, IOnDisconnect {
+export class PwbAppComponent implements IComponentOnConnect, IComponentOnDisconnect {
     // Used in view.
     public splashscreenConfig: SplashscreenConfiguration;
     public splashscreenState: SplashscreenState;

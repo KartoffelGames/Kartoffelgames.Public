@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
-import { IOnDeconstruct } from '../../core/core_entity/core-entity.interface';
+import { IExtensionOnDeconstruct } from '../../core/extension/extension-module';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
 import { ModuleConstructorReference } from '../../core/injection-reference/module/module-constructor-reference';
 import { ModuleReference } from '../../core/injection-reference/module/module-reference';
@@ -15,7 +15,7 @@ import { EventListenerComponentExtension } from './event-listener-component-exte
     trigger: UpdateTrigger.Default,
     targetRestrictions: [AttributeModule]
 })
-export class EventListenerModuleExtension implements IOnDeconstruct {
+export class EventListenerModuleExtension implements IExtensionOnDeconstruct {
     private readonly mEventListenerList: Array<[string, EventListener]>;
     private readonly mTargetElement: Node;
 

@@ -1,11 +1,11 @@
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
 import { PwbTemplateInstructionNode } from '../../core/component/template/nodes/pwb-template-instruction-node';
 import { LayerValues } from '../../core/component/values/layer-values';
-import { IOnUpdate } from '../../core/core_entity/core-entity.interface';
 import { ModuleLayerValuesReference } from '../../core/injection-reference/module/module-layer-values-reference';
 import { ModuleTemplateReference } from '../../core/injection-reference/module/module-template-reference';
 import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
 import { ComponentScopeExecutor } from '../../core/module/execution/component-scope-executor';
+import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
 import { InstructionResult } from '../../core/module/instruction_module/result/instruction-result';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
@@ -18,7 +18,7 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
     instructionType: 'if',
     trigger: UpdateTrigger.Default
 })
-export class IfInstructionModule implements IOnUpdate {
+export class IfInstructionModule implements IInstructionOnUpdate {
     private readonly mExpression: string;
     private mLastBoolean: boolean;
     private readonly mTemplateReference: PwbTemplateInstructionNode;

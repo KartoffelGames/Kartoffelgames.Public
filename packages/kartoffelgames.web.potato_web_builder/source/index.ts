@@ -1,8 +1,9 @@
 /* istanbul ignore file */
 
 // Component
-export { PwbComponent } from './core/component/pwb-component.decorator';
 export { PwbApp } from './pwb-app/pwb-app';
+export { PwbComponent } from './core/component/pwb-component.decorator';
+export { IComponentOnAttributeChange, IComponentOnConnect, IComponentOnDeconstruct, IComponentOnDisconnect, IComponentOnUpdate } from './core/component/component';
 
 // Module Injections
 export { ModuleConstructorReference } from './core/injection-reference/module/module-constructor-reference';
@@ -20,14 +21,17 @@ export { ComponentLayerValuesReference } from './core/injection-reference/compon
 export { ComponentUpdateHandlerReference } from './core/injection-reference/component/component-update-handler-reference';
 
 // Modules
-export { LayerValues } from './core/component/values/layer-values';
-export { IOnDeconstruct, IOnUpdate, IOnDisconnect, IOnAttributeChange, IOnConnect, IOnExecute } from './core/core_entity/core-entity.interface';
-export { PwbExtensionModule } from './core/extension/pwb-extension-module.decorator';
+export { PwbExtensionModule, } from './core/extension/pwb-extension-module.decorator';
+export { IExtensionOnDeconstruct, IExtensionOnExecute } from './core/extension/extension-module';
 export { PwbAttributeModule } from './core/module/attribute_module/pwb-attribute-module.decorator';
-export { ComponentScopeExecutor } from './core/module/execution/component-scope-executor';
+export { IAttributeOnDeconstruct, IAttributeOnUpdate } from './core/module/attribute_module/attribute-module';
 export { PwbExpressionModule } from './core/module/expression_module/pwb-expression-module.decorator';
+export { IExpressionOnDeconstruct, IExpressionOnUpdate } from './core/module/expression_module/expression-module';
 export { PwbInstructionModule } from './core/module/instruction_module/pwb-instruction-module.decorator';
 export { InstructionResult } from './core/module/instruction_module/result/instruction-result';
+export { IInstructionOnDeconstruct, IInstructionOnUpdate } from './core/module/instruction_module/instruction-module';
+export { LayerValues } from './core/component/values/layer-values';
+export { ComponentScopeExecutor } from './core/module/execution/component-scope-executor';
 export { AccessMode } from './enum/access-mode.enum';
 
 // Default extensions.

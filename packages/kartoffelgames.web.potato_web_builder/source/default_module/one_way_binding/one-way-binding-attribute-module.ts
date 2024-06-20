@@ -1,9 +1,9 @@
 import { LayerValues } from '../../core/component/values/layer-values';
-import { IOnUpdate } from '../../core/core_entity/core-entity.interface';
 import { ModuleKeyReference } from '../../core/injection-reference/module/module-key-reference';
 import { ModuleLayerValuesReference } from '../../core/injection-reference/module/module-layer-values-reference';
 import { ModuleTargetNodeReference } from '../../core/injection-reference/module/module-target-node-reference';
 import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
+import { IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module';
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
 import { ComponentScopeExecutor } from '../../core/module/execution/component-scope-executor';
 import { AccessMode } from '../../enum/access-mode.enum';
@@ -18,7 +18,7 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
     selector: /^\[[\w$]+\]$/,
     trigger: UpdateTrigger.Default
 })
-export class OneWayBindingAttributeModule implements IOnUpdate {
+export class OneWayBindingAttributeModule implements IAttributeOnUpdate {
     private readonly mExecutionString: string;
     private mLastValue: any;
     private readonly mTarget: Node;

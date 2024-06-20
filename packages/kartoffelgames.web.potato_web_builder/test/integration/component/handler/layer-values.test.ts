@@ -1,12 +1,12 @@
 import { expect } from 'chai';
 import { ComponentLayerValuesReference } from '../../../../source';
 import { ComponentInformation } from '../../../../source/core/component/component-information';
-import { ComponentElement } from '../../../../source/core/component/component.interface';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator';
 import { LayerValues } from '../../../../source/core/component/values/layer-values';
 import '../../../mock/request-animation-frame-mock-session';
 import '../../../utility/chai-helper';
 import { TestUtil } from '../../../utility/test-util';
+import { ComponentElement } from '../../../../source/core/component/component';
 
 describe('LayerValues', () => {
     describe('-- Equal', () => {

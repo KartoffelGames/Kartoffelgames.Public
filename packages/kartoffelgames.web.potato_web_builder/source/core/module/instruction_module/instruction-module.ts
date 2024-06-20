@@ -1,3 +1,4 @@
+import { UpdateTrigger } from '../../../enum/update-trigger.enum';
 import { ElementCreator } from '../../component/element-creator';
 import { PwbTemplateInstructionNode } from '../../component/template/nodes/pwb-template-instruction-node';
 import { LayerValues } from '../../component/values/layer-values';
@@ -6,8 +7,7 @@ import { ModuleLayerValuesReference } from '../../injection-reference/module/mod
 import { ModuleTargetNodeReference } from '../../injection-reference/module/module-target-node-reference';
 import { ModuleTemplateReference } from '../../injection-reference/module/module-template-reference';
 import { ModuleValueReference } from '../../injection-reference/module/module-value-reference';
-import { BaseUserEntity } from '../../user_entity/base-user-entity';
-import { BaseModule, IPwbModuleOnDeconstruct, IPwbModuleOnUpdate, IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../base-module';
+import { BaseModule, BaseModuleConstructorParameter, IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../base-module';
 import { InstructionResult, InstructionResultElement } from './result/instruction-result';
 
 export class InstructionModule extends BaseModule<IPwbInstructionModuleProcessor> {
@@ -24,15 +24,19 @@ export class InstructionModule extends BaseModule<IPwbInstructionModuleProcessor
      * Constructor.
      * @param pParameter - Constructor parameter.
      */
-    public constructor(pConstructor: IPwbInstructionModuleProcessorConstructor, pParent: BaseUserEntity, pTargetTemplate: PwbTemplateInstructionNode, pValues: LayerValues) {
-        super(pConstructor, pParent);
+    public constructor(pParameter: MultiplicatorModuleConstructorParameter) {
+        super({
+            processorConstructor: pParameter.processorConstructor,
+            parent: pParameter.parent,
+            interactionTrigger: pParameter.interactionTrigger
+        });
 
         // Set processor attribute values from injection template.
-        this.setProcessorAttributes(ModuleTemplateReference, pTargetTemplate.clone());
+        this.setProcessorAttributes(ModuleTemplateReference, pParameter.targetTemplate.clone());
         this.setProcessorAttributes(ModuleTargetNodeReference, ElementCreator.createComment('')); // TODO: Remove after restriction set.
-        this.setProcessorAttributes(ModuleLayerValuesReference, pValues);
-        this.setProcessorAttributes(ModuleKeyReference, pTargetTemplate.instructionType);
-        this.setProcessorAttributes(ModuleValueReference, pTargetTemplate.instruction);
+        this.setProcessorAttributes(ModuleLayerValuesReference, pParameter.values);
+        this.setProcessorAttributes(ModuleKeyReference, pParameter.targetTemplate.instructionType);
+        this.setProcessorAttributes(ModuleValueReference, pParameter.targetTemplate.instruction);
 
         // Set starting value of instruction => Empty.
         this.mLastResult = new InstructionResult();
@@ -41,12 +45,9 @@ export class InstructionModule extends BaseModule<IPwbInstructionModuleProcessor
     /**
      * Update module.
      */
-    public onUpdate(): boolean {
+    public update(): boolean {
         // Try to update instruction when an onUpdate method is defined.
-        let lNewValue: InstructionResult | null = null;
-        if ('onUpdate' in this.processor) {
-            lNewValue = this.processor.onUpdate();
-        }
+        const lNewValue: InstructionResult | null = this.call<IInstructionOnUpdate, 'onUpdate'>('onUpdate', true);
 
         // When no result is returned, no update needs to be done.
         if (!(lNewValue instanceof InstructionResult)) {
@@ -88,13 +89,28 @@ export class InstructionModule extends BaseModule<IPwbInstructionModuleProcessor
     }
 }
 
-export type MultiplicatorModuleConstructorParameter = {
-
-
+export type MultiplicatorModuleConstructorParameter = BaseModuleConstructorParameter<IPwbInstructionModuleProcessor> & {
+    targetTemplate: PwbTemplateInstructionNode,
+    values: LayerValues;
 };
 
-// Interfaces.
-export interface IPwbInstructionModuleOnUpdate extends IPwbModuleOnUpdate<InstructionResult | null> { }
-export interface IPwbInstructionModuleOnDeconstruct extends IPwbModuleOnDeconstruct { }
-export interface IPwbInstructionModuleProcessor extends IPwbModuleProcessor, Partial<IPwbInstructionModuleOnUpdate>, Partial<IPwbInstructionModuleOnDeconstruct> { }
+/**
+ * Interfaces.
+ */
+export interface IInstructionOnDeconstruct {
+    onDeconstruct(): void;
+}
+export interface IInstructionOnUpdate {
+    onUpdate(): InstructionResult | null;
+}
+export interface IPwbInstructionModuleProcessor extends IPwbModuleProcessor, Partial<IInstructionOnUpdate>, Partial<IInstructionOnUpdate> { }
 export interface IPwbInstructionModuleProcessorConstructor extends IPwbModuleProcessorConstructor<IPwbInstructionModuleProcessor> { }
+
+
+/**
+ * Register configuration.
+ */
+export type InstructionModuleConfiguration = {
+    instructionType: string;
+    trigger: UpdateTrigger;
+};

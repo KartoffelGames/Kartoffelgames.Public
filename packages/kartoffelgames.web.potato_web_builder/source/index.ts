@@ -1,10 +1,8 @@
 /* istanbul ignore file */
 
 // Component
-export { ComponentProcessor, ComponentProcessorConstructor } from './core/component/component.interface';
-export { PwbApp } from './pwb-app/pwb-app';
-export { IPwbOnDeconstruct, IPwbAfterUpdate, IPwbOnUpdate, IPwbOnAttributeChange } from './core/component/component.interface';
 export { PwbComponent } from './core/component/pwb-component.decorator';
+export { PwbApp } from './pwb-app/pwb-app';
 
 // Module Injections
 export { ModuleConstructorReference } from './core/injection-reference/module/module-constructor-reference';
@@ -18,43 +16,40 @@ export { ModuleValueReference } from './core/injection-reference/module/module-v
 // Component Injections
 export { ComponentConstructorReference } from './core/injection-reference/component/component-constructor-reference';
 export { ComponentElementReference } from './core/injection-reference/component/component-element-reference';
-export { ComponentUpdateHandlerReference } from './core/injection-reference/component/component-update-handler-reference';
 export { ComponentLayerValuesReference } from './core/injection-reference/component/component-layer-values-reference';
+export { ComponentUpdateHandlerReference } from './core/injection-reference/component/component-update-handler-reference';
 
 // Modules
-export { ComponentScopeExecutor } from './core/module/execution/component-scope-executor';
-export { IPwbAttributeModuleOnUpdate } from './core/module/attribute_module/attribute-module';
-export { IPwbModuleOnDeconstruct } from './core/module/base-module';
-export { IPwbExpressionModuleOnUpdate } from './core/module/expression_module/expression-module';
-export { IPwbInstructionModuleOnUpdate } from './core/module/instruction_module/instruction-module';
-export { InstructionResult } from './core/module/instruction_module/result/instruction-result';
-export { AccessMode } from './enum/access-mode.enum';
 export { LayerValues } from './core/component/values/layer-values';
+export { IOnDeconstruct, IOnUpdate, IOnDisconnect, IOnAttributeChange, IOnConnect, IOnExecute } from './core/core_entity/core-entity.interface';
+export { PwbExtensionModule } from './core/extension/pwb-extension-module.decorator';
+export { PwbAttributeModule } from './core/module/attribute_module/pwb-attribute-module.decorator';
+export { ComponentScopeExecutor } from './core/module/execution/component-scope-executor';
 export { PwbExpressionModule } from './core/module/expression_module/pwb-expression-module.decorator';
 export { PwbInstructionModule } from './core/module/instruction_module/pwb-instruction-module.decorator';
-export { PwbAttributeModule } from './core/module/attribute_module/pwb-attribute-module.decorator';
-export { PwbExtensionModule } from './core/extension/pwb-extension-module.decorator';
+export { InstructionResult } from './core/module/instruction_module/result/instruction-result';
+export { AccessMode } from './enum/access-mode.enum';
 
 // Default extensions.
 export { ComponentEvent } from './default_module/component-event/component-event';
 export { ComponentEventEmitter } from './default_module/component-event/component-event-emitter';
 export { PwbComponentEvent } from './default_module/component-event/pwb-component-event.decorator';
-export { PwbChild } from './default_module/pwb_child/pwb-child.decorator';
-export { PwbExport } from './default_module/export/pwb-export.decorator';
 export { PwbEventListener } from './default_module/event-listener/pwb-event-listener.decorator';
+export { PwbExport } from './default_module/export/pwb-export.decorator';
+export { PwbChild } from './default_module/pwb_child/pwb-child.decorator';
 
 // Xml
 export { TemplateParser } from './core/component/template/template-parser';
 
 // Import default modules
 import './default_module/component-event/component-event-attribute-module';
-import './default_module/one_way_binding/one-way-binding-attribute-module';
-import './default_module/pwb_child/pwb-child-attribute-module';
+import './default_module/dynamic-content/dynamic-content-module';
 import './default_module/for-instruction/for-instruction-module';
 import './default_module/if_instruction/if-instruction-module';
+import './default_module/one_way_binding/one-way-binding-attribute-module';
+import './default_module/pwb_child/pwb-child-attribute-module';
 import './default_module/slot_attribute/slot-instruction-module';
 import './default_module/two_way_binding/two-way-binding-attribute-module';
-import './default_module/dynamic-content/dynamic-content-module';
 
 // Import default extensions.
 import './default_module/component-event/component-event-extension';

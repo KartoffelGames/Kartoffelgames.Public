@@ -1,9 +1,9 @@
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from '../../core/component/template/nodes/pwb-template-xml-node';
 import { LayerValues } from '../../core/component/values/layer-values';
+import { IOnUpdate } from '../../core/core_entity/core-entity.interface';
 import { ModuleLayerValuesReference } from '../../core/injection-reference/module/module-layer-values-reference';
 import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
-import { IPwbInstructionModuleOnUpdate } from '../../core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
 import { InstructionResult } from '../../core/module/instruction_module/result/instruction-result';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
@@ -12,7 +12,7 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
     instructionType: 'slot',
     trigger: UpdateTrigger.Default,
 })
-export class SlotInstructionModule implements IPwbInstructionModuleOnUpdate {
+export class SlotInstructionModule implements IOnUpdate {
     private readonly mLayerValues: LayerValues;
     private readonly mSlotName: string;
 

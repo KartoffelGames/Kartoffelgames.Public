@@ -1,7 +1,6 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { Component } from './component';
-import { ComponentProcessor } from './component.interface';
+import { Component, ComponentProcessor } from './component';
 
 export class ComponentInformation {
     private static readonly mComponents: WeakMap<HTMLElement | ComponentProcessor, Component> = new WeakMap<HTMLElement | ComponentProcessor, Component>();

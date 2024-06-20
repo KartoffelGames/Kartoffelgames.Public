@@ -4,7 +4,7 @@ import { PwbExport } from '../../../../source/default_module/export/pwb-export.d
 import '../../../mock/request-animation-frame-mock-session';
 import '../../../utility/chai-helper';
 import { TestUtil } from '../../../utility/test-util';
-import { ComponentElement } from '../../../../source/core/component/component.interface';
+import { ComponentElement } from '../../../../source/core/component/component';
 
 describe('ForInstructionModule', () => {
     it('Array items', async () => {

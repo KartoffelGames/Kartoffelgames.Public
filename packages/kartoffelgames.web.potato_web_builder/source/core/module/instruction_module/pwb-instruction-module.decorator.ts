@@ -1,7 +1,7 @@
 import { Injector } from '@kartoffelgames/core.dependency-injection';
-import { GlobalModuleStorage } from '../global-module-storage';
 import { UpdateTrigger } from '../../../enum/update-trigger.enum';
-import { IPwbInstructionModuleProcessorConstructor } from './instruction-module';
+import { CoreEntityRegister } from '../../core_entity/core-entity-register';
+import { IPwbInstructionModuleProcessorConstructor, InstructionModule } from './instruction-module';
 
 /**
  * AtScript. PWB instruction attribute module.
@@ -15,8 +15,7 @@ export function PwbInstructionModule(pSettings: InstructionModuleSettings): any 
         Injector.Injectable(pInstructionModuleConstructor);
 
         // Register module.
-        new GlobalModuleStorage().addInstructionModule({
-            constructor: pInstructionModuleConstructor,
+        new CoreEntityRegister().register(InstructionModule, pInstructionModuleConstructor, {
             instructionType: pSettings.instructionType,
             trigger: pSettings.trigger
         });

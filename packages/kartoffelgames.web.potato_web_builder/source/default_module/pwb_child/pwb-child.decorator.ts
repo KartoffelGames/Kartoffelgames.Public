@@ -1,6 +1,5 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { Component } from '../../core/component/component';
-import { ComponentProcessor } from '../../core/component/component.interface';
+import { Component, ComponentProcessor } from '../../core/component/component';
 import { LayerValues } from '../../core/component/values/layer-values';
 import { ComponentLayerValuesReference } from '../../core/injection-reference/component/component-layer-values-reference';
 import { ComponentInformation } from '../../core/component/component-information';

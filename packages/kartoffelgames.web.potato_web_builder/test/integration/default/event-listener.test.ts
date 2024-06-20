@@ -1,7 +1,5 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { expect } from 'chai';
-import { IPwbInstructionModuleOnUpdate, InstructionResult, ModuleLayerValuesReference } from '../../../source';
-import { ComponentElement } from '../../../source/core/component/component.interface';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
 import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template';
 import { PwbTemplateInstructionNode } from '../../../source/core/component/template/nodes/pwb-template-instruction-node';
@@ -19,6 +17,10 @@ import { UpdateTrigger } from '../../../source/enum/update-trigger.enum';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
+import { ComponentElement } from '../../../source/core/component/component';
+import { InstructionResult } from '../../../source/core/module/instruction_module/result/instruction-result';
+import { ModuleLayerValuesReference } from '../../../source/core/injection-reference/module/module-layer-values-reference';
+import { IOnUpdate } from '../../../source/core/core_entity/core-entity.interface';
 
 describe('PwbEventListener', () => {
     it('-- Native listener', async () => {
@@ -280,7 +282,7 @@ describe('PwbEventListener', () => {
             trigger: UpdateTrigger.Default
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class MyModule implements IPwbInstructionModuleOnUpdate {
+        class MyModule implements IOnUpdate {
             public constructor(private readonly mTemplate: ModuleTemplateReference, private readonly mValue: ModuleLayerValuesReference) { }
 
             onUpdate(): InstructionResult | null {

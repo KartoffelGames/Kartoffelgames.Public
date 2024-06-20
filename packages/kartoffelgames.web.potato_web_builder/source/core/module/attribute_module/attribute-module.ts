@@ -1,4 +1,5 @@
 import { AccessMode } from '../../../enum/access-mode.enum';
+import { UpdateTrigger } from '../../../enum/update-trigger.enum';
 import { PwbTemplateAttribute } from '../../component/template/nodes/values/pwb-template-attribute';
 import { LayerValues } from '../../component/values/layer-values';
 import { ModuleKeyReference } from '../../injection-reference/module/module-key-reference';
@@ -6,8 +7,7 @@ import { ModuleLayerValuesReference } from '../../injection-reference/module/mod
 import { ModuleTargetNodeReference } from '../../injection-reference/module/module-target-node-reference';
 import { ModuleTemplateReference } from '../../injection-reference/module/module-template-reference';
 import { ModuleValueReference } from '../../injection-reference/module/module-value-reference';
-import { BaseUserEntity } from '../../user_entity/base-user-entity';
-import { BaseModule, IPwbModuleOnDeconstruct, IPwbModuleOnUpdate, IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../base-module';
+import { BaseModule, BaseModuleConstructorParameter, IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../base-module';
 
 export class AttributeModule extends BaseModule<IPwbAttributeModuleProcessor> {
     private readonly mAccessMode: AccessMode;
@@ -24,7 +24,11 @@ export class AttributeModule extends BaseModule<IPwbAttributeModuleProcessor> {
      * @param pParameter - Constructor parameter.
      */
     public constructor(pParameter: StaticModuleConstructorParameter) {
-        super(pParameter.constructor, pParameter.parent);
+        super({
+            processorConstructor: pParameter.processorConstructor,
+            parent: pParameter.parent,
+            interactionTrigger: pParameter.interactionTrigger
+        });
 
         // Save module access mode.
         this.mAccessMode = pParameter.accessMode;
@@ -40,26 +44,35 @@ export class AttributeModule extends BaseModule<IPwbAttributeModuleProcessor> {
     /**
      * Update module.
      */
-    public onUpdate(): boolean {
-        if ('onUpdate' in this.processor) {
-            return this.processor.onUpdate();
-        }
-
-        return false;
+    public update(): boolean {
+        return this.call<IAttributeOnUpdate, 'onUpdate'>('onUpdate', true) ?? false;
     }
 }
 
-export type StaticModuleConstructorParameter = {
+export type StaticModuleConstructorParameter = BaseModuleConstructorParameter<IPwbAttributeModuleProcessor> & {
     accessMode: AccessMode,
-    constructor: IPwbAttributeModuleProcessorConstructor,
     targetTemplate: PwbTemplateAttribute,
-    values: LayerValues,
-    parent: BaseUserEntity,
     targetNode: Element;
+    values: LayerValues;
 };
 
-// Interfaces.
-export interface IPwbAttributeModuleOnUpdate extends IPwbModuleOnUpdate<boolean> { }
-export interface IPwbAttributeModuleOnDeconstruct extends IPwbModuleOnDeconstruct { }
-export interface IPwbAttributeModuleProcessor extends IPwbModuleProcessor, Partial<IPwbAttributeModuleOnUpdate>, Partial<IPwbAttributeModuleOnDeconstruct> { }
+/**
+ * Interfaces.
+ */
+export interface IAttributeOnDeconstruct {
+    onDeconstruct(): void;
+}
+export interface IAttributeOnUpdate {
+    onUpdate(): boolean;
+}
+export interface IPwbAttributeModuleProcessor extends IPwbModuleProcessor, Partial<IAttributeOnUpdate>, Partial<IAttributeOnDeconstruct> { }
 export interface IPwbAttributeModuleProcessorConstructor extends IPwbModuleProcessorConstructor<IPwbAttributeModuleProcessor> { }
+
+/**
+ * Register configuration.
+ */
+export type AttributeModuleConfiguration = {
+    access: AccessMode;
+    selector: RegExp;
+    trigger: UpdateTrigger;
+};

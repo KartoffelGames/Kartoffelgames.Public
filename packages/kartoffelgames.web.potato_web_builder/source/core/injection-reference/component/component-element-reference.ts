@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
 
 import { Exception } from '@kartoffelgames/core.data';
-import { ComponentElement } from '../../component/component.interface';
+import { ComponentElement } from '../../component/component';
 
 /**
  * Component element reference.

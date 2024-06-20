@@ -1,8 +1,8 @@
 import { Injector } from '@kartoffelgames/core.dependency-injection';
 import { AccessMode } from '../../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../../enum/update-trigger.enum';
-import { GlobalModuleStorage } from '../global-module-storage';
-import { IPwbAttributeModuleProcessorConstructor } from './attribute-module';
+import { CoreEntityRegister } from '../../core_entity/core-entity-register';
+import { AttributeModule, IPwbAttributeModuleProcessorConstructor } from './attribute-module';
 
 /**
  * AtScript. PWB attribute attribute module.
@@ -16,9 +16,8 @@ export function PwbAttributeModule(pSettings: AttributeModuleSettings): any {
         Injector.Injectable(pAttributeModuleConstructor);
 
         // Register module.
-        new GlobalModuleStorage().addAttributeModule({
+        new CoreEntityRegister().register(AttributeModule, pAttributeModuleConstructor, {
             access: pSettings.access,
-            constructor: pAttributeModuleConstructor,
             selector: pSettings.selector,
             trigger: pSettings.trigger
         });

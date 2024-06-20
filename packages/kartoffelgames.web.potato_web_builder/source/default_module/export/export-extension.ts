@@ -1,6 +1,6 @@
 import { List } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
-import { Component } from '../../core/component/component';
+import { Component, IComponentOnAttributeChange } from '../../core/component/component';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
@@ -75,7 +75,7 @@ export class ExportExtension {
                 Reflect.set(this.mComponent.processor, lExportProperty, pValue);
 
                 // Call OnAttributeChange.
-                this.mComponent.callOnPwbAttributeChange(lExportProperty);
+                this.mComponent.call<IComponentOnAttributeChange, 'onAttributeChange'>('onAttributeChange', false, lExportProperty);
             };
             lDescriptor.get = () => {
                 let lValue: any = Reflect.get(this.mComponent.processor, lExportProperty);

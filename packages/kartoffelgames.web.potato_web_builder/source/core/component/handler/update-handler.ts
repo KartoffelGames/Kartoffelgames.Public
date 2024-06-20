@@ -47,14 +47,14 @@ export class UpdateHandler {
      * Constructor.
      * @param pUpdateScope - Update scope.
      */
-    public constructor(pIsolatedInteraction: boolean, pInteractionStack?: InteractionZoneStack) {
+    public constructor(pIsolatedInteraction: boolean, pInteractionTrigger: UpdateTrigger, pInteractionStack?: InteractionZoneStack) {
         this.mUpdateListener = new List<UpdateListener>();
         this.mEnabled = false;
         this.mUpdateWaiter = new List<UpdateWaiter>();
         this.mLoopDetectionHandler = new LoopDetectionHandler(10);
 
         // Create isolated or default zone.
-        this.mInteractionZone = new InteractionZone('CapsuledZone', { isolate: pIsolatedInteraction, trigger: <InteractionResponseType><unknown>UpdateTrigger.Default });
+        this.mInteractionZone = new InteractionZone('CapsuledZone', { isolate: pIsolatedInteraction, trigger: <InteractionResponseType><unknown>pInteractionTrigger });
 
         // Shedule an update on interaction zone.
         this.mInteractionDetectionListener = (pReason: InteractionReason) => { this.sheduleUpdateTask(pReason); };

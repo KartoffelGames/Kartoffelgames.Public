@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { Metadata } from '@kartoffelgames/core.dependency-injection';
-import { ComponentProcessorConstructor } from '../../core/component/component.interface';
+import { ComponentProcessorConstructor } from '../../core/component/component';
 import { ExportExtension } from './export-extension';
 
 /**

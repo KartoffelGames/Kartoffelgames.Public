@@ -1,8 +1,7 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { ComponentUpdateHandlerReference } from '../../source';
-import { Component } from '../../source/core/component/component';
+import { Component, ComponentElement } from '../../source/core/component/component';
 import { UpdateHandler } from '../../source/core/component/handler/update-handler';
-import { ComponentElement } from '../../source/core/component/component.interface';
 import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
 import { ComponentInformation } from '../../source/core/component/component-information';
 

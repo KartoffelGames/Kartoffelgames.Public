@@ -2,11 +2,11 @@ import { expect } from 'chai';
 import { PwbTemplate } from '../../source/core/component/template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from '../../source/core/component/template/nodes/pwb-template-xml-node';
 import { PwbComponent } from '../../source/core/component/pwb-component.decorator';
-import { ComponentElement } from '../../source/core/component/component.interface';
 import { PwbApp } from '../../source/pwb-app/pwb-app';
 import '../mock/request-animation-frame-mock-session';
 import '../utility/chai-helper';
 import { TestUtil } from '../utility/test-util';
+import { ComponentElement } from '../../source/core/component/component';
 
 describe('PwbApp', () => {
     it('Property: component', () => {

@@ -8,10 +8,10 @@ import { ModuleLayerValuesReference } from '../../core/injection-reference/modul
 import { ModuleTemplateReference } from '../../core/injection-reference/module/module-template-reference';
 import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
 import { ComponentScopeExecutor } from '../../core/module/execution/component-scope-executor';
-import { IPwbInstructionModuleOnUpdate } from '../../core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
 import { InstructionResult } from '../../core/module/instruction_module/result/instruction-result';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
+import { IOnUpdate } from '../../core/core_entity/core-entity.interface';
 
 /**
  * For of.
@@ -22,7 +22,7 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
     instructionType: 'for',
     trigger: UpdateTrigger.Default
 })
-export class ForInstructionModule implements IPwbInstructionModuleOnUpdate {
+export class ForInstructionModule implements IOnUpdate {
     private readonly mExpression: ForOfExpression;
     private mLastEntries: Array<[string, any]>;
     private readonly mLayerValues: LayerValues;

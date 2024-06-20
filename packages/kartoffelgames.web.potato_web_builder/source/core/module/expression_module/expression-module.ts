@@ -4,8 +4,8 @@ import { ModuleLayerValuesReference } from '../../injection-reference/module/mod
 import { ModuleTargetNodeReference } from '../../injection-reference/module/module-target-node-reference';
 import { ModuleTemplateReference } from '../../injection-reference/module/module-template-reference';
 import { ModuleValueReference } from '../../injection-reference/module/module-value-reference';
-import { BaseUserEntity } from '../../user_entity/base-user-entity';
-import { BaseModule, IPwbModuleOnDeconstruct, IPwbModuleOnUpdate, IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../base-module';
+import { BaseModule, BaseModuleConstructorParameter, IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../base-module';
+import { UpdateTrigger } from '../../../enum/update-trigger.enum';
 
 export class ExpressionModule extends BaseModule<IPwbExpressionModuleProcessor> {
     private mLastResult: string | null;
@@ -16,7 +16,11 @@ export class ExpressionModule extends BaseModule<IPwbExpressionModuleProcessor> 
      * @param pParameter - Constructor parameter.
      */
     public constructor(pParameter: ExpressionModuleConstructorParameter) {
-        super(pParameter.constructor, pParameter.parent);
+        super({
+            processorConstructor: pParameter.processorConstructor,
+            parent: pParameter.parent,
+            interactionTrigger: pParameter.interactionTrigger
+        });
 
         this.mTargetTextNode = pParameter.targetNode;
 
@@ -36,15 +40,12 @@ export class ExpressionModule extends BaseModule<IPwbExpressionModuleProcessor> 
      * @remarks
      * Allways invokes {@link IPwbExpressionModuleOnUpdate.onUpdate} and decides on result if any update happened.
      */
-    public onUpdate(): boolean {
+    public update(): boolean {
         // Try to update expression when an onUpdate method is defined.
-        let lNewValue: string | undefined = undefined;
-        if ('onUpdate' in this.processor) {
-            lNewValue = this.processor.onUpdate();
-        }
+        let lNewValue: string | null = this.call<IExpressionOnUpdate, 'onUpdate'>('onUpdate', true);
 
         // Reset undefined to empty string.
-        if (typeof lNewValue === 'undefined') {
+        if (lNewValue === null) {
             lNewValue = '';
         }
 
@@ -63,16 +64,27 @@ export class ExpressionModule extends BaseModule<IPwbExpressionModuleProcessor> 
     }
 }
 
-export type ExpressionModuleConstructorParameter = {
-    constructor: IPwbExpressionModuleProcessorConstructor,
+export type ExpressionModuleConstructorParameter = BaseModuleConstructorParameter<IPwbExpressionModuleProcessor> & {
     targetTemplate: PwbTemplateExpression,
-    values: LayerValues,
-    parent: BaseUserEntity,
     targetNode: Text;
+    values: LayerValues;
 };
 
-// Interfaces.
-export interface IPwbExpressionModuleOnUpdate extends IPwbModuleOnUpdate<string> { }
-export interface IPwbExpressionModuleOnDeconstruct extends IPwbModuleOnDeconstruct { }
-export interface IPwbExpressionModuleProcessor extends IPwbModuleProcessor, Partial<IPwbExpressionModuleOnUpdate>, Partial<IPwbExpressionModuleOnDeconstruct> { }
+/**
+ * Interfaces.
+ */
+export interface IExpressionOnDeconstruct {
+    onDeconstruct(): void;
+}
+export interface IExpressionOnUpdate {
+    onUpdate(): string | null;
+}
+export interface IPwbExpressionModuleProcessor extends IPwbModuleProcessor, Partial<IExpressionOnUpdate>, Partial<IExpressionOnDeconstruct> { }
 export interface IPwbExpressionModuleProcessorConstructor extends IPwbModuleProcessorConstructor<IPwbExpressionModuleProcessor> { }
+
+/**
+ * Register configuration.
+ */
+export type ExpressionModuleConfiguration = {
+    trigger: UpdateTrigger;
+};

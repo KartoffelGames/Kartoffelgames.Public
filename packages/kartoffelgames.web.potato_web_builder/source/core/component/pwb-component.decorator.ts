@@ -3,8 +3,7 @@ import { UpdateMode } from '../../enum/update-mode.enum';
 import { IPwbAttributeModuleProcessorConstructor } from '../module/attribute_module/attribute-module';
 import { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module';
 import { IPwbInstructionModuleProcessorConstructor } from '../module/instruction_module/instruction-module';
-import { Component } from './component';
-import { ComponentProcessorConstructor } from './component.interface';
+import { Component, ComponentProcessorConstructor } from './component';
 import { ComponentInformation } from './component-information';
 
 /**

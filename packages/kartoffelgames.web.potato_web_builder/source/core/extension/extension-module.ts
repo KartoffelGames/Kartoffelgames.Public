@@ -1,30 +1,47 @@
 import { IDeconstructable } from '@kartoffelgames/core.data';
-import { BaseUserEntity, IUserProcessor } from '../user_entity/base-user-entity';
+import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
+import { AccessMode } from '../../enum/access-mode.enum';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
+import { CoreEntity, CoreEntityProcessorConstructor } from '../core_entity/core-entity';
+import { ICoreEntityProcessor, IOnDeconstruct, IOnExecute } from '../core_entity/core-entity.interface';
 
-export class ExtensionModule extends BaseUserEntity<IPwbExtensionModuleProcessor> implements IDeconstructable {
+export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> implements IDeconstructable {
     /**
      * Constructor.
      * @param pParameter - Construction parameter.
      */
-    public constructor(pConstructor: IPwbExtensionModuleProcessorConstructor, pParent: BaseUserEntity | null,) {
-        super(pConstructor, pParent);
+    public constructor(pConstructor: IPwbExtensionModuleProcessorConstructor, pParent: CoreEntity | null, pInteractionTrigger: UpdateTrigger) {
+        super({
+            processorConstructor: pConstructor,
+            parent: pParent,
+            isolateInteraction: false,
+            interactionTrigger: pInteractionTrigger
+        });
 
         // Call execution hook.
-        if ('onExecution' in this.processor) {
-            this.processor.onExecution();
-        }
+        this.call('onExecute', false);
+    }
+
+    /**
+     * On module desconstruct.
+     */
+    public deconstruct(): void {
+        // Call execution hook.
+        this.call('onDeconstruct', false);
     }
 }
 
-// Interfaces.
-export interface IPwbExtensionModuleOnExecute {
-    /**
-     * Cleanup events and other data that does not delete itself.
-     */
-    onExecution(): void;
-}
+/*
+ * Processor types.
+ */
+export interface IPwbExtensionModuleProcessor extends ICoreEntityProcessor, Partial<IOnDeconstruct>, Partial<IOnExecute> { }
+export interface IPwbExtensionModuleProcessorConstructor extends CoreEntityProcessorConstructor<IPwbExtensionModuleProcessor> {}
 
-export interface IPwbExtensionModuleProcessor extends IUserProcessor, Partial<IPwbExtensionModuleOnExecute> { }
-export interface IPwbExtensionModuleProcessorConstructor {
-    new(): IPwbExtensionModuleProcessor;
-}
+/**
+ * Register configuration.
+ */
+export type ExtensionModuleConfiguration = {
+    access: AccessMode;
+    trigger: UpdateTrigger;
+    targetRestrictions: Array<InjectionConstructor>;
+};

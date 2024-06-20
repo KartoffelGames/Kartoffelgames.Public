@@ -1,9 +1,9 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { MustacheExpressionModule } from '../../default_module/mustache_expression/mustache-expression-module';
-import { AttributeModule } from '../module/attribute_module/attribute-module';
-import { ExpressionModule, IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module';
-import { ExpressionModuleConfiguration, GlobalModuleStorage } from '../module/global-module-storage';
-import { InstructionModule } from '../module/instruction_module/instruction-module';
+import { CoreEntityProcessorConstructorSetup, CoreEntityRegister } from '../core_entity/core-entity-register';
+import { AttributeModule, AttributeModuleConfiguration } from '../module/attribute_module/attribute-module';
+import { ExpressionModule, ExpressionModuleConfiguration, IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module';
+import { InstructionModule, InstructionModuleConfiguration } from '../module/instruction_module/instruction-module';
 import { Component } from './component';
 import { PwbTemplateInstructionNode } from './template/nodes/pwb-template-instruction-node';
 import { PwbTemplateAttribute } from './template/nodes/values/pwb-template-attribute';
@@ -20,8 +20,8 @@ export class ComponentModules {
     // TODO: Cache attribute and instruction constructor by the name to create it faster next time.
 
     private readonly mComponent: Component;
+    private readonly mCoreEntityRegister: CoreEntityRegister;
     private readonly mExpressionModule: IPwbExpressionModuleProcessorConstructor;
-    private readonly mGlobalModuleStorage: GlobalModuleStorage;
 
     /**
      * Constructor.
@@ -33,7 +33,7 @@ export class ComponentModules {
         // Get expression module.
         this.mExpressionModule = pExpressionModule ?? <IPwbExpressionModuleProcessorConstructor><any>MustacheExpressionModule;
         this.mComponent = pComponent;
-        this.mGlobalModuleStorage = new GlobalModuleStorage();
+        this.mCoreEntityRegister = new CoreEntityRegister();
     }
 
     /**
@@ -48,16 +48,17 @@ export class ComponentModules {
      */
     public createAttributeModule(pTemplate: PwbTemplateAttribute, pTargetNode: Element, pValues: LayerValues): AttributeModule | null {
         // Find static modules.
-        for (const lModuleConfiguration of this.mGlobalModuleStorage.attributeModuleConfigurations) {
-            if (lModuleConfiguration.selector.test(pTemplate.name)) {
+        for (const lSetup of this.mCoreEntityRegister.get<AttributeModuleConfiguration>(AttributeModule)) {
+            if (lSetup.processorConfiguration.selector.test(pTemplate.name)) {
                 // Get constructor and create new module.
                 const lModule: AttributeModule = new AttributeModule({
-                    accessMode: lModuleConfiguration.access,
-                    constructor: lModuleConfiguration.constructor,
+                    accessMode: lSetup.processorConfiguration.access,
+                    processorConstructor: lSetup.processorConstructor,
+                    parent: this.mComponent,
+                    targetNode: pTargetNode,
                     targetTemplate: pTemplate,
                     values: pValues,
-                    parent: this.mComponent,
-                    targetNode: pTargetNode
+                    interactionTrigger: lSetup.processorConfiguration.trigger
                 });
 
                 return lModule;
@@ -77,17 +78,21 @@ export class ComponentModules {
      * When no expression node could be found.
      */
     public createExpressionModule(pTemplate: PwbTemplateExpression, pTargetNode: Text, pValues: LayerValues): ExpressionModule {
-        const lModuleConfiguration: ExpressionModuleConfiguration | undefined = this.mGlobalModuleStorage.getExpressionModuleConfiguration(this.mExpressionModule);
-        if (!lModuleConfiguration) {
+        const lSetup: CoreEntityProcessorConstructorSetup<ExpressionModuleConfiguration> | undefined = this.mCoreEntityRegister.get<ExpressionModuleConfiguration>(ExpressionModule).find((pSetup: CoreEntityProcessorConstructorSetup<ExpressionModuleConfiguration>) => {
+            return pSetup.processorConstructor === this.mExpressionModule;
+        });
+
+        if (!lSetup) {
             throw new Exception(`An expression module could not be found.`, this);
         }
 
         const lModule: ExpressionModule = new ExpressionModule({
-            constructor: lModuleConfiguration.constructor,
+            processorConstructor: lSetup.processorConstructor,
+            parent: this.mComponent,
+            targetNode: pTargetNode,
             targetTemplate: pTemplate,
             values: pValues,
-            parent: this.mComponent,
-            targetNode: pTargetNode
+            interactionTrigger: lSetup.processorConfiguration.trigger
         });
 
         return lModule;
@@ -103,11 +108,17 @@ export class ComponentModules {
      */
     public createInstructionModule(pTemplate: PwbTemplateInstructionNode, pValues: LayerValues): InstructionModule {
         // Find manipulator module inside attributes.
-        for (const lModuleConfiguration of this.mGlobalModuleStorage.instructionModuleConfigurations) {
+        for (const lSetup of this.mCoreEntityRegister.get<InstructionModuleConfiguration>(InstructionModule)) {
             // Only manipulator modules.
-            if (lModuleConfiguration.instructionType === pTemplate.instructionType) {
+            if (lSetup.processorConfiguration.instructionType === pTemplate.instructionType) {
                 // Get constructor and create new module.
-                const lModule: InstructionModule = new InstructionModule(lModuleConfiguration.constructor, this.mComponent, pTemplate, pValues,);
+                const lModule: InstructionModule = new InstructionModule({
+                    processorConstructor: lSetup.processorConstructor,
+                    parent: this.mComponent,
+                    targetTemplate: pTemplate,
+                    values: pValues,
+                    interactionTrigger: lSetup.processorConfiguration.trigger
+                });
 
                 return lModule;
             }

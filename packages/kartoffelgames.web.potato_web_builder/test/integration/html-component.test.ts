@@ -1,13 +1,11 @@
 import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
 import { InteractionDetectionProxy } from '@kartoffelgames/web.change-detection/library/source/change_detection/synchron_tracker/interaction-detection-proxy';
 import { expect } from 'chai';
-import { ComponentElement, IPwbAfterUpdate, IPwbOnAttributeChange, IPwbOnDeconstruct, IPwbOnUpdate } from '../../source/core/component/component.interface';
 import { LoopError } from '../../source/core/component/handler/loop-detection-handler';
 import { UpdateHandler } from '../../source/core/component/handler/update-handler';
 import { PwbComponent } from '../../source/core/component/pwb-component.decorator';
 import { ComponentElementReference } from '../../source/core/injection-reference/component/component-element-reference';
 import { ComponentUpdateHandlerReference } from '../../source/core/injection-reference/component/component-update-handler-reference';
-import { IPwbExpressionModuleOnUpdate } from '../../source/core/module/expression_module/expression-module';
 import { PwbExpressionModule } from '../../source/core/module/expression_module/pwb-expression-module.decorator';
 import { PwbExport } from '../../source/default_module/export/pwb-export.decorator';
 import { UpdateMode } from '../../source/enum/update-mode.enum';
@@ -15,6 +13,8 @@ import { UpdateTrigger } from '../../source/enum/update-trigger.enum';
 import '../mock/request-animation-frame-mock-session';
 import '../utility/chai-helper';
 import { TestUtil } from '../utility/test-util';
+import { IOnAttributeChange, IOnDeconstruct, IOnUpdate } from '../../source/core/core_entity/core-entity.interface';
+import { ComponentElement } from '../../source/core/component/component';
 
 describe('HtmlComponent', () => {
     it('-- Single element', async () => {
@@ -275,7 +275,7 @@ describe('HtmlComponent', () => {
         @PwbExpressionModule({
             trigger: UpdateTrigger.Default
         })
-        class TestExpressionModule implements IPwbExpressionModuleOnUpdate {
+        class TestExpressionModule implements IOnUpdate {
             public onUpdate(): string {
                 return lExpressionValue;
             }
@@ -380,34 +380,25 @@ describe('HtmlComponent', () => {
             selector: TestUtil.randomSelector(),
             template: '<div>{{this.innerValue}}</div>'
         })
-        class TestComponent implements IPwbOnUpdate, IPwbAfterUpdate, IPwbOnAttributeChange, IPwbOnDeconstruct {
+        class TestComponent implements IOnUpdate, IOnAttributeChange, IOnDeconstruct {
             @PwbExport
             public innerValue: string = 'DUMMY-VALUE';
 
-            private mAfterPwbUpdateCalled: boolean = false;
             private mOnPwbUpdateCalled: boolean = false;
 
             public constructor() {
                 lExpectedCallOrder.push(lCallPosition.onPwbInitialize);
             }
 
-            public afterPwbUpdate(): void {
-                // Update can be called multiple times.
-                if (!this.mAfterPwbUpdateCalled) {
-                    this.mAfterPwbUpdateCalled = true;
-                    lExpectedCallOrder.push(lCallPosition.afterPwbUpdate);
-                }
-            }
-
-            public onPwbAttributeChange(_pAttributeName: string): void {
+            public onAttributeChange(_pAttributeName: string): void {
                 lExpectedCallOrder.push(lCallPosition.onPwbAttributeChange);
             }
 
-            public onPwbDeconstruct(): void {
+            public onDeconstruct(): void {
                 lExpectedCallOrder.push(lCallPosition.onPwbDeconstruct);
             }
 
-            public onPwbUpdate(): void {
+            public onUpdate(): void {
                 // Update can be called multiple times.
                 if (!this.mOnPwbUpdateCalled) {
                     this.mOnPwbUpdateCalled = true;
@@ -440,8 +431,8 @@ describe('HtmlComponent', () => {
             selector: TestUtil.randomSelector(),
             updateScope: UpdateMode.Manual
         })
-        class TestComponent implements IPwbOnDeconstruct {
-            public onPwbDeconstruct(): void {
+        class TestComponent implements IOnDeconstruct {
+            public onDeconstruct(): void {
                 lWasDeconstructed = true;
             }
         }
@@ -461,7 +452,7 @@ describe('HtmlComponent', () => {
             selector: TestUtil.randomSelector(),
             template: '<div>{{this.innerValue}}</div>'
         })
-        class TestComponent implements IPwbAfterUpdate {
+        class TestComponent implements IOnUpdate {
             public innerValue: number = 1;
 
             private readonly mUpdater: UpdateHandler;
@@ -469,7 +460,7 @@ describe('HtmlComponent', () => {
                 this.mUpdater = pUpdateReference;
             }
 
-            public afterPwbUpdate(): void {
+            public onUpdate(): void {
                 // Trigger update again after update.
                 this.triggerUpdate();
             }

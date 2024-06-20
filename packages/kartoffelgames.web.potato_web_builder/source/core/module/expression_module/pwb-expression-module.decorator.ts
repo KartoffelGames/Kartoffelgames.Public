@@ -1,7 +1,7 @@
 import { Injector } from '@kartoffelgames/core.dependency-injection';
-import { GlobalModuleStorage } from '../global-module-storage';
 import { UpdateTrigger } from '../../../enum/update-trigger.enum';
-import { IPwbExpressionModuleProcessorConstructor } from './expression-module';
+import { CoreEntityRegister } from '../../core_entity/core-entity-register';
+import { ExpressionModule, IPwbExpressionModuleProcessorConstructor } from './expression-module';
 
 /**
  * AtScript. PWB Expression module.
@@ -12,8 +12,7 @@ export function PwbExpressionModule(pSettings: ExpressionSettings): any {
         Injector.Injectable(pExpressionModuleConstructor);
 
         // Register module.
-        new GlobalModuleStorage().addExpressionModule({
-            constructor: pExpressionModuleConstructor,
+        new CoreEntityRegister().register(ExpressionModule, pExpressionModuleConstructor, {
             trigger: pSettings.trigger
         });
     };

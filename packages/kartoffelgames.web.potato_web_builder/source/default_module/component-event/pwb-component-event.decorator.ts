@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { Metadata } from '@kartoffelgames/core.dependency-injection';
-import { ComponentProcessorConstructor } from '../../core/component/component.interface';
 import { ComponentEventExtension } from './component-event-extension';
+import { ComponentProcessorConstructor } from '../../core/component/component';
 
 /**
  * Define event for external access.

@@ -1,6 +1,5 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { ComponentInformation } from '../../core/component/component-information';
-import { ComponentProcessorConstructor, IPwbOnConnect, IPwbOnDisconnect } from '../../core/component/component.interface';
 import { UpdateHandler } from '../../core/component/handler/update-handler';
 import { PwbComponent } from '../../core/component/pwb-component.decorator';
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
@@ -9,13 +8,15 @@ import { ComponentUpdateHandlerReference } from '../../core/injection-reference/
 import { PwbExport } from '../../default_module/export/pwb-export.decorator';
 import pwbAppStyle from './pwb-app-component.css';
 import pwbAppTemplate from './pwb-app-component.html';
+import { IOnConnect, IOnDisconnect } from '../../core/core_entity/core-entity.interface';
+import { ComponentProcessorConstructor } from '../../core/component/component';
 
 @PwbComponent({
     selector: 'pwb-app',
     style: pwbAppStyle,
     template: pwbAppTemplate
 })
-export class PwbAppComponent implements IPwbOnConnect, IPwbOnDisconnect {
+export class PwbAppComponent implements IOnConnect, IOnDisconnect {
     // Used in view.
     public splashscreenConfig: SplashscreenConfiguration;
     public splashscreenState: SplashscreenState;
@@ -157,7 +158,7 @@ export class PwbAppComponent implements IPwbOnConnect, IPwbOnDisconnect {
     /**
      * Remove splashscreen on component connect to a document when any component is updated.
      */
-    public onPwbConnect(): void {
+    public onConnect(): void {
         // Skip any automatic handling when manual is set up.
         if (this.splashscreenConfig.manual) {
             return;
@@ -172,7 +173,7 @@ export class PwbAppComponent implements IPwbOnConnect, IPwbOnDisconnect {
     /**
      * Add splashscreen to document when element was moved/reappend to document.
      */
-    public onPwbDisconnect(): void {
+    public onDisconnect(): void {
         this.splashscreenState.hide = false;
         this.splashscreenState.append = true;
     }

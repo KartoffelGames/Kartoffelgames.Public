@@ -1,13 +1,12 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
-import { Component } from '../../core/component/component';
+import { Component, ComponentProcessorConstructor } from '../../core/component/component';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
-import { AccessMode } from '../../enum/access-mode.enum';
-import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { ComponentConstructorReference } from '../../core/injection-reference/component/component-constructor-reference';
 import { ComponentElementReference } from '../../core/injection-reference/component/component-element-reference';
 import { ComponentReference } from '../../core/injection-reference/component/component-reference';
-import { ComponentProcessorConstructor } from '../../core/component/component.interface';
+import { AccessMode } from '../../enum/access-mode.enum';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { ComponentEventEmitter } from './component-event-emitter';
 
 @PwbExtensionModule({

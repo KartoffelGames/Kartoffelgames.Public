@@ -1,6 +1,8 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
 import { UpdateMode } from '../../enum/update-mode.enum';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
+import { CoreEntityExtendable } from '../core_entity/core-entity-extendable';
 import { ComponentConstructorReference } from '../injection-reference/component/component-constructor-reference';
 import { ComponentElementReference } from '../injection-reference/component/component-element-reference';
 import { ComponentLayerValuesReference } from '../injection-reference/component/component-layer-values-reference';
@@ -9,22 +11,19 @@ import { IPwbExpressionModuleProcessorConstructor } from '../module/expression_m
 import { StaticBuilder } from './builder/static-builder';
 import { ComponentInformation } from './component-information';
 import { ComponentModules } from './component-modules';
-import { ComponentProcessor, ComponentProcessorConstructor } from './component.interface';
 import { ElementCreator } from './element-creator';
 import { ElementHandler } from './handler/element-handler';
 import { PwbTemplate } from './template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 import { TemplateParser } from './template/template-parser';
 import { LayerValues } from './values/layer-values';
-import { BaseTrackedUserEntity } from '../user_entity/base-tracked-user-entity';
 
 /**
  * Base component handler. Handles initialisation and update of components.
  */
-export class Component extends BaseTrackedUserEntity<ComponentProcessor> {
+export class Component extends CoreEntityExtendable<ComponentProcessor> {
     private static readonly mTemplateCache: Dictionary<ComponentProcessorConstructor, PwbTemplate> = new Dictionary<ComponentProcessorConstructor, PwbTemplate>();
     private static readonly mXmlParser: TemplateParser = new TemplateParser();
-
     private readonly mElementHandler: ElementHandler;
     private readonly mRootBuilder: StaticBuilder;
 
@@ -35,7 +34,12 @@ export class Component extends BaseTrackedUserEntity<ComponentProcessor> {
      */
     public constructor(pParameter: ComponentConstructorParameter) {
         // Init injection history with updatehandler.
-        super(pParameter.processorConstructor, null, pParameter.updateMode % UpdateMode.Manual !== 0, pParameter.updateMode % UpdateMode.Isolated !== 0);
+        super({
+            processorConstructor: pParameter.processorConstructor,
+            parent: null,
+            interactionTrigger: UpdateTrigger.Default,
+            isolateInteraction: pParameter.updateMode % UpdateMode.Isolated !== 0
+        });
 
         // Add register component element.
         ComponentInformation.registerComponent(this, pParameter.htmlElement);
@@ -61,6 +65,13 @@ export class Component extends BaseTrackedUserEntity<ComponentProcessor> {
         this.setProcessorAttributes(ComponentElementReference, pParameter.htmlElement);
         this.setProcessorAttributes(ComponentLayerValuesReference, this.mRootBuilder.values);
         this.setProcessorAttributes(ComponentReference, this);
+
+        // Attach automatic update listener to handler when this entity is not set to be manual.
+        if (pParameter.updateMode % UpdateMode.Manual !== 0) {
+            this.updateHandler.addUpdateListener(() => {
+                this.update();
+            });
+        }
     }
 
     /**
@@ -78,94 +89,13 @@ export class Component extends BaseTrackedUserEntity<ComponentProcessor> {
     }
 
     /**
-     * Call onPwbInitialize of component processor object.
-     */
-    public callAfterPwbUpdate(): void {
-        // Skip callback call when the processor was not even created.
-        if (!this.processorCreated) {
-            return;
-        }
-
-        // Exclude function call trigger from zone.
-        // Prevents any "Get" call from function to trigger interaction again.
-        this.updateHandler.excludeInteractionTrigger(() => {
-            this.processor.afterPwbUpdate?.();
-        }, InteractionResponseType.FunctionCallEnd);
-    }
-
-    /**
-     * Call onPwbInitialize of component processor object.
-     * @param pAttributeName - Name of updated attribute.
-     */
-    public callOnPwbAttributeChange(pAttributeName: string): void {
-        // Skip callback call when the processor was not even created.
-        if (!this.processorCreated) {
-            return;
-        }
-
-        this.processor.onPwbAttributeChange?.(pAttributeName);
-    }
-
-    /**
-     * Call onPwbConnect of component processor object.
-     */
-    public callOnPwbConnect(): void {
-        // Skip callback call when the processor was not even created.
-        if (!this.processorCreated) {
-            return;
-        }
-
-        this.processor.onPwbConnect?.();
-    }
-
-    /**
-     * Call onPwbDeconstruct of component processor object.
-     */
-    public callOnPwbDeconstruct(): void {
-        // Skip callback call when the processor was not even created.
-        if (!this.processorCreated) {
-            return;
-        }
-
-        this.processor.onPwbDeconstruct?.();
-    }
-
-    /**
-     * Call onPwbDisconnect of component processor object.
-     */
-    public callOnPwbDisconnect(): void {
-        // Skip callback call when the processor was not even created.
-        if (!this.processorCreated) {
-            return;
-        }
-
-        this.processor.onPwbDisconnect?.();
-    }
-
-    /**
-     * Call onPwbInitialize of component processor object.
-     */
-    public callOnPwbUpdate(): void {
-        // Skip callback call when the processor was not even created.
-        if (!this.processorCreated) {
-            return;
-        }
-
-        // Exclude function call trigger from zone.
-        // Prevents any "Get" call from function to trigger interaction again.
-        this.updateHandler.excludeInteractionTrigger(() => {
-            this.processor.onPwbUpdate?.();
-        }, InteractionResponseType.FunctionCallEnd);
-    }
-
-    /**
      * Called when component get attached to DOM.
      */
     public connected(): void {
         this.updateHandler.enabled = true;
 
         // Call processor event after enabling updates.
-        this.callOnPwbConnect();
+        this.call<IComponentOnConnect, 'onConnect'>('onConnect', false);
 
         // Trigger light update use self as source to prevent early processor creation.
         if (this.processorCreated) {
@@ -183,7 +113,7 @@ export class Component extends BaseTrackedUserEntity<ComponentProcessor> {
         this.updateHandler.enabled = false;
 
         // User callback.
-        this.callOnPwbDeconstruct();
+        this.call<IComponentOnDeconstruct, 'onDeconstruct'>('onDeconstruct', false);
 
         // Deconstruct history parent / extensions.
         super.deconstruct();
@@ -199,7 +129,7 @@ export class Component extends BaseTrackedUserEntity<ComponentProcessor> {
         this.updateHandler.enabled = false;
 
         // Call processor event after disabling update event..
-        this.callOnPwbDisconnect();
+        this.call<IComponentOnDisconnect, 'onDisconnect'>('onDisconnect', false);
     }
 
     /**
@@ -219,21 +149,11 @@ export class Component extends BaseTrackedUserEntity<ComponentProcessor> {
      * 
      * @returns True when any update happened, false when all values stayed the same.
      */
-    protected onUpdate(): boolean {
-        // Call component processor on update function.
-        this.callOnPwbUpdate();
-
-        // Save if processor was created before update.
-        const lProcessorWasCreated: boolean = !!this.processorCreated;
-
+    private update(): boolean {
         // Update and callback after update.
         if (this.mRootBuilder.update()) {
-            // Try to call update before "AfterUpdate" when the processor was created on builder update.
-            if (!lProcessorWasCreated) {
-                this.callOnPwbUpdate();
-            }
-
-            this.callAfterPwbUpdate();
+            // Call component processor on update function.
+            this.call<IComponentOnUpdate, 'onUpdate'>('onUpdate', false);
 
             return true;
         }
@@ -269,3 +189,32 @@ type ComponentConstructorParameter = {
      */
     updateMode: UpdateMode;
 };
+
+/**
+ * Interfaces.
+ */
+export interface IComponentOnDeconstruct {
+    onDeconstruct(): void;
+}
+export interface IComponentOnUpdate {
+    onUpdate(): void;
+}
+export interface IComponentOnUpdate {
+    onUpdate(): void;
+}
+export interface IComponentOnAttributeChange {
+    onAttributeChange(pAttributeName: string): void;
+}
+export interface IComponentOnConnect {
+    onConnect(): void;
+}
+export interface IComponentOnDisconnect {
+    onDisconnect(): void;
+}
+export interface ComponentProcessor extends Partial<IComponentOnDeconstruct>, Partial<IComponentOnUpdate>, Partial<IComponentOnAttributeChange>, Partial<IComponentOnConnect>, Partial<IComponentOnDisconnect> { }
+
+export type ComponentProcessorConstructor = {
+    new(...pParameter: Array<any>): ComponentProcessor;
+};
+
+export interface ComponentElement extends HTMLElement { }

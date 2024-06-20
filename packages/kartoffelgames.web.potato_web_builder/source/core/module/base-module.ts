@@ -1,19 +1,24 @@
 import { IDeconstructable } from '@kartoffelgames/core.data';
+import { CoreEntityProcessorConstructor } from '../core_entity/core-entity';
+import { CoreEntityExtendable, CoreEntityExtendableConstructorParameter } from '../core_entity/core-entity-extendable';
 import { ModuleConstructorReference } from '../injection-reference/module/module-constructor-reference';
 import { ModuleReference } from '../injection-reference/module/module-reference';
-import { BaseUpdateableUserEntity } from '../user_entity/base-updateable-user-entity';
-import { BaseUserEntity } from '../user_entity/base-user-entity';
 
-export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> extends BaseUpdateableUserEntity<TModuleProcessor> implements IDeconstructable {
+export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> extends CoreEntityExtendable<TModuleProcessor> implements IDeconstructable {
     /**
      * Constructor.
      * @param pParameter - Parameter.
      */
-    constructor(pConstructor: IPwbModuleProcessorConstructor<IPwbModuleProcessor>, pParent: BaseUserEntity) {
-        super(pConstructor, pParent);
+    constructor(pParameter: BaseModuleConstructorParameter<TModuleProcessor>) {
+        super({
+            processorConstructor: pParameter.processorConstructor,
+            parent: pParameter.parent,
+            isolateInteraction: false,
+            interactionTrigger: pParameter.interactionTrigger
+        });
 
         // Create module injection mapping.
-        this.setProcessorAttributes(ModuleConstructorReference, pConstructor);
+        this.setProcessorAttributes(ModuleConstructorReference, pParameter.processorConstructor);
         this.setProcessorAttributes(ModuleReference, this);
     }
 
@@ -24,30 +29,17 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
         // Deconstruct extensions.
         super.deconstruct();
 
-        // Deconstruct modules.
-        if ('onDeconstruct' in this.processor && typeof this.processor.onDeconstruct === 'function') {
-            this.processor.onDeconstruct();
-        }
+        this.call<IBaseModuleOnDeconstruct, 'onDeconstruct'>('onDeconstruct', false);
     }
 }
 
+export type BaseModuleConstructorParameter<TProcessor extends IPwbModuleProcessor> = Omit<CoreEntityExtendableConstructorParameter<TProcessor>, 'isolateInteraction'>;
 
-// Base.
-export interface IPwbModuleProcessor { }
-export interface IPwbModuleProcessorConstructor<T extends IPwbModuleProcessor> {
-    new(...args: Array<any>): T;
-}
-
-export interface IPwbModuleOnUpdate<TUpdateResult> {
-    /**
-     * Called on update.
-     */
-    onUpdate(): TUpdateResult;
-}
-
-export interface IPwbModuleOnDeconstruct {
-    /**
-     * Cleanup events and other data that does not delete itself.
-     */
+/**
+ * Interfaces.
+ */
+export interface IBaseModuleOnDeconstruct {
     onDeconstruct(): void;
 }
+export interface IPwbModuleProcessor extends Partial<IBaseModuleOnDeconstruct> { }
+export interface IPwbModuleProcessorConstructor<TModuleProcessor extends IPwbModuleProcessor> extends CoreEntityProcessorConstructor<TModuleProcessor> { }

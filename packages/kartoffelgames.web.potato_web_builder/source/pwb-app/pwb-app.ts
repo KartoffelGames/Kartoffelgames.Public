@@ -2,10 +2,10 @@ import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection'
 import { InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
 import { ErrorListener, InteractionZoneStack } from '@kartoffelgames/web.change-detection/library/source/change_detection/interaction-zone';
 import { ComponentInformation } from '../core/component/component-information';
-import { ComponentProcessorConstructor } from '../core/component/component.interface';
 import { PwbTemplate } from '../core/component/template/nodes/pwb-template';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
 import { PwbAppComponent } from './component/pwb-app-component';
+import { ComponentProcessorConstructor } from '../core/component/component';
 
 /**
  * Wrapper handles scoped global styles, components and loading splashscreen.

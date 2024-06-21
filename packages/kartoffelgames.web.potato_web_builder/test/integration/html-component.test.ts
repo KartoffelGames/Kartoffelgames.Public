@@ -367,7 +367,6 @@ describe('HtmlComponent', () => {
         const lCallPosition = {
             onPwbInitialize: 1,
             onPwbUpdate: 3,
-            afterPwbUpdate: 4,
             onPwbAttributeChange: 5,
             onPwbDeconstruct: 6,
         };
@@ -417,7 +416,6 @@ describe('HtmlComponent', () => {
             [
                 lCallPosition.onPwbInitialize,
                 lCallPosition.onPwbUpdate,
-                lCallPosition.afterPwbUpdate,
                 lCallPosition.onPwbAttributeChange,
                 lCallPosition.onPwbDeconstruct,
             ]

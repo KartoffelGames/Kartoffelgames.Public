@@ -89,7 +89,7 @@ describe('PwbChildAttributeModule', () => {
         };
 
         // Evaluation.
-        expect(lErrorFunction).to.throw(Exception, 'Target is not a Component');
+        expect(lErrorFunction).to.throw(Exception, 'PwbChild target class it not a component.');
     });
 
     it('-- Read inherited id child', async () => {

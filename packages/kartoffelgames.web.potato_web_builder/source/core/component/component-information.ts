@@ -109,7 +109,7 @@ export class ComponentInformation {
     public static ofProcessor(pProcessor: ComponentProcessor): ComponentInformationData {
         const lComponent: Component | undefined = ComponentInformation.mComponents.get(pProcessor);
         if (!lComponent) {
-            throw new Exception(`Processor "${pProcessor}" is not a PwbComponent.`, pProcessor);
+            throw new Exception(`Processor is not a PwbComponent.`, pProcessor);
         }
 
         return ComponentInformation.ofComponent(lComponent);

@@ -19,8 +19,14 @@ export function PwbChild(pIdChildName: string): any {
         Object.defineProperty(pTarget, pPropertyKey, {
             get(this: ComponentProcessor) {
                 // Get component manager and exit if target is not a component.
-                const lComponent: Component = ComponentInformation.ofProcessor(this).component;
-                
+                const lComponent: Component = (() => {
+                    try {
+                        return ComponentInformation.ofProcessor(this).component;
+                    } catch (_err) {
+                        throw new Exception('PwbChild target class it not a component.', this);
+                    }
+                })();
+
                 // Get root value. This should be the child.
                 const lLayerValues: LayerValues = lComponent.getProcessorAttribute(ComponentLayerValuesReference)!;
                 const lIdChild: any = lLayerValues.data[pIdChildName];

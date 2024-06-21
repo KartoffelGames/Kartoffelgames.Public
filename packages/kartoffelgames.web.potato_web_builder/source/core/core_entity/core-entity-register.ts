@@ -63,7 +63,7 @@ export class CoreEntityRegister {
         let lKeyConstructor: CoreEntityConstructor | null = pCoreEntityTarget;
         do {
             // No need to register for constructors of none core entity type.
-            if (!(lKeyConstructor instanceof CoreEntity)) {
+            if (!(lKeyConstructor.prototype instanceof CoreEntity) && lKeyConstructor !== CoreEntity) {
                 break;
             }
 

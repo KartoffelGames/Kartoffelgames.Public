@@ -5,18 +5,33 @@ import { UpdateHandler } from '../component/handler/update-handler';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
 export class CoreEntity<TProcessor extends object = object> {
+    private readonly mCoreEntitySetupHookList: Array<CoreEntitySetupHook>;
+    private readonly mForceCreate: boolean;
     private readonly mInjections: Dictionary<InjectionConstructor, any>;
-    private mLocked: boolean;
-    private readonly mProcessor: TProcessor | null;
+    private mIsLocked: boolean;
+    private mIsSetup: boolean;
+    private mProcessor: TProcessor | null;
     private readonly mProcessorConstructor: CoreEntityProcessorConstructor<TProcessor>;
+    private readonly mProcessorCreationHookList: Array<CoreEntityProcessorCreationHook<TProcessor>>;
     private readonly mUpdateHandler: UpdateHandler;
+
+    /**
+     * If processor is created or not.
+     */
+    public get isProcessorCreated(): boolean {
+        return !!this.mProcessor;
+    }
 
     /**
      * Processor of module.
      * Initialize processor when it hasn't already.
      */
     public get processor(): TProcessor {
-        if (!this.processorCreated) {
+        if (!this.mIsSetup) {
+            throw new Exception('Processor can not be build before calling setup.', this);
+        }
+
+        if (!this.isProcessorCreated) {
             this.createProcessor();
         }
 
@@ -26,15 +41,8 @@ export class CoreEntity<TProcessor extends object = object> {
     /**
      * Processor constructor of module.
      */
-    public get processorConstructor(): CoreEntityProcessorConstructor {
+    public get processorConstructor(): CoreEntityProcessorConstructor<TProcessor> {
         return this.mProcessorConstructor;
-    }
-
-    /**
-     * If processor is created or not.
-     */
-    public get processorCreated(): boolean {
-        return !!this.mProcessor;
     }
 
     /**
@@ -53,22 +61,30 @@ export class CoreEntity<TProcessor extends object = object> {
      */
     public constructor(pParameter: CoreEntityConstructorParameter<TProcessor>) {
         this.mProcessorConstructor = pParameter.processorConstructor;
+        this.mForceCreate = !!pParameter.createOnSetup;
+
+        // Set empty defaults.
         this.mProcessor = null;
+        this.mIsLocked = false;
+        this.mIsSetup = false;
+
+        // Init lists.
         this.mInjections = new Dictionary<InjectionConstructor, any>();
-        this.mLocked = false;
+        this.mProcessorCreationHookList = new Array<CoreEntityProcessorCreationHook<TProcessor>>();
+        this.mCoreEntitySetupHookList = new Array<CoreEntitySetupHook>();
 
         // Passthrough parents entity injections.
-        if (pParameter.parent !== null) {
+        if (pParameter.parent) {
             for (const [lTarget, lValue] of pParameter.parent.mInjections.entries()) {
                 this.setProcessorAttributes(lTarget, lValue);
             }
         }
 
         // Try to read interaction stack from parent.
-        const lCurrentInteractionStack: InteractionZoneStack | undefined = (pParameter.parent !== null) ? pParameter.parent.updateHandler.interactionStack : undefined;
+        const lCurrentInteractionStack: InteractionZoneStack | undefined = pParameter.parent?.updateHandler.interactionStack;
 
         // Create new updater for every component entity.
-        this.mUpdateHandler = new UpdateHandler(pParameter.isolateInteraction, pParameter.interactionTrigger, lCurrentInteractionStack);
+        this.mUpdateHandler = new UpdateHandler(!!pParameter.isolateInteraction, pParameter.interactionTrigger, lCurrentInteractionStack);
     }
 
     /**
@@ -84,7 +100,7 @@ export class CoreEntity<TProcessor extends object = object> {
      */
     public call<TTargetInterface extends object, TProperty extends keyof TTargetInterface>(pProperyKey: TProperty, pForceCreate: boolean, ...pParameter: PropertyFunctionParameter<TTargetInterface, TProperty>): PropertyFunctionResult<TTargetInterface, TProperty> | null {
         // Do not create processor when not force created.
-        if (!this.processorCreated && !pForceCreate) {
+        if (!this.isProcessorCreated && !pForceCreate) {
             return null;
         }
 
@@ -119,7 +135,7 @@ export class CoreEntity<TProcessor extends object = object> {
      * When the processor was already initialized.
      */
     public setProcessorAttributes(pInjectionTarget: InjectionConstructor, pInjectionValue: any): void {
-        if (this.mLocked) {
+        if (this.mIsLocked) {
             throw new Exception('Cant add injections to after construction.', this);
         }
 
@@ -127,44 +143,91 @@ export class CoreEntity<TProcessor extends object = object> {
     }
 
     /**
-     * Create module object.
+     * Setup needs to be called to access the processor.
      */
-    protected createProcessor(): TProcessor {
-        // Lock injection.
-        this.mLocked = true;
+    public setup(): this {
+        // Forbid double setup.
+        if (this.mIsSetup) {
+            throw new Exception('Setup allready called.', this);
+        }
 
-        // Create processor.
-        const lProcessor: TProcessor = this.updateHandler.enableInteractionTrigger(() => {
-            return Injection.createObject<TProcessor>(this.mProcessorConstructor, this.mInjections);
-        });
+        this.mIsSetup = true;
 
-        // Call creation hook and possible replace processor.
-        return this.onCreation(lProcessor);
+        // Execute Setup hooks.
+        for (const lSetupHook of this.mCoreEntitySetupHookList) {
+            lSetupHook.apply(this);
+        }
+
+        if (this.mForceCreate) {
+            this.processor;
+        }
+
+        return this;
     }
 
     /**
-     * On processor creation.
-     * Processor can be replaced here.
+     * Add hook called on processor creation.
+     * Can replace the current processor by returning a object.
      * 
-     * @param pProcessor -  Created processor
+     * @param pHook - Hook function.
      */
-    protected onCreation(pProcessor: TProcessor): TProcessor {
-        return pProcessor;
+    protected addCreationHook(pHook: CoreEntityProcessorCreationHook<TProcessor>): void {
+        this.mProcessorCreationHookList.push(pHook);
+    }
+
+    /**
+     * Add hook called on core entity setup.
+     * 
+     * @param pHook - Hook function.
+     */
+    protected addSetupHook(pHook: CoreEntitySetupHook): void {
+        this.mCoreEntitySetupHookList.push(pHook);
+    }
+
+    /**
+     * Create module object.
+     */
+    private createProcessor(): TProcessor {
+        // Lock injection.
+        this.mIsLocked = true;
+
+        // Create processor.
+        let lProcessor: TProcessor = this.updateHandler.enableInteractionTrigger(() => {
+            return Injection.createObject<TProcessor>(this.mProcessorConstructor, this.mInjections);
+        });
+
+        // Call every creation hook.
+        for (const lCreationHook of this.mProcessorCreationHookList) {
+            const lReplacement: TProcessor | void = lCreationHook.call(this, lProcessor);
+            if (lReplacement) {
+                lProcessor = lReplacement;
+            }
+        }
+
+        // Call creation hook and possible replace processor.
+        this.mProcessor = lProcessor;
+
+        return this.mProcessor;
     }
 }
 
+// Hooks
+type CoreEntityProcessorCreationHook<TProcessor> = (pProcessor: TProcessor) => TProcessor | void;
+type CoreEntitySetupHook = () => void;
 
+// Call types.
 type PropertyFunction<TProcessor extends object, TProperty extends keyof TProcessor> = TProcessor[TProperty] extends ((...pArgs: Array<any>) => any) ? TProcessor[TProperty] : never;
-
 type PropertyFunctionResult<TProcessor extends object, TProperty extends keyof TProcessor> = ReturnType<PropertyFunction<TProcessor, TProperty>>;
-
 type PropertyFunctionParameter<TProcessor extends object, TProperty extends keyof TProcessor> = Parameters<PropertyFunction<TProcessor, TProperty>>;
 
-export type CoreEntityConstructorParameter<TProcessor extends object> = {
+/*
+ * Constructor parameter.
+ */
+export type CoreEntityConstructorParameter<TProcessor> = {
     processorConstructor: CoreEntityProcessorConstructor<TProcessor>;
-    parent: CoreEntity | null;
-    isolateInteraction: boolean;
     interactionTrigger: UpdateTrigger;
+    parent?: CoreEntity | undefined;
+    isolateInteraction?: boolean;
+    createOnSetup?: boolean;
 };
-
-export type CoreEntityProcessorConstructor<TProcessor extends object = object> = new (...pParameter: Array<any>) => TProcessor;
+export type CoreEntityProcessorConstructor<TProcessor = object> = new (...pParameter: Array<any>) => TProcessor;

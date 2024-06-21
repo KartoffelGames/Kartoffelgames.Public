@@ -17,6 +17,7 @@ import { PwbTemplate } from './template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 import { TemplateParser } from './template/template-parser';
 import { LayerValues } from './values/layer-values';
+import { ComponentUpdateHandlerReference } from '../injection-reference/component/component-update-handler-reference';
 
 /**
  * Base component handler. Handles initialisation and update of components.
@@ -36,13 +37,21 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         // Init injection history with updatehandler.
         super({
             processorConstructor: pParameter.processorConstructor,
-            parent: null,
             interactionTrigger: UpdateTrigger.Default,
-            isolateInteraction: pParameter.updateMode % UpdateMode.Isolated !== 0
+            isolateInteraction: (pParameter.updateMode & UpdateMode.Isolated) !== 0
         });
 
-        // Add register component element.
+        // Register component processor as update object on creation.
+        // MUST be called before register component so the tracked processor gets registered as component.
+        this.addCreationHook((pProcessor: ComponentProcessor) => {
+            return this.updateHandler.registerObject(pProcessor);
+        });
+
+        // Add register component element. Register processor on creation.
         ComponentInformation.registerComponent(this, pParameter.htmlElement);
+        this.addCreationHook((pProcessor: ComponentProcessor) => {
+            ComponentInformation.registerComponent(this, this.mElementHandler.htmlElement, pProcessor);
+        });
 
         // Load cached or create new module handler and template.
         let lTemplate: PwbTemplate | undefined = Component.mTemplateCache.get(pParameter.processorConstructor);
@@ -65,9 +74,10 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         this.setProcessorAttributes(ComponentElementReference, pParameter.htmlElement);
         this.setProcessorAttributes(ComponentLayerValuesReference, this.mRootBuilder.values);
         this.setProcessorAttributes(ComponentReference, this);
+        this.setProcessorAttributes(ComponentUpdateHandlerReference, this.updateHandler);
 
         // Attach automatic update listener to handler when this entity is not set to be manual.
-        if (pParameter.updateMode % UpdateMode.Manual !== 0) {
+        if ((pParameter.updateMode & UpdateMode.Manual) === 0) {
             this.updateHandler.addUpdateListener(() => {
                 this.update();
             });
@@ -98,7 +108,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         this.call<IComponentOnConnect, 'onConnect'>('onConnect', false);
 
         // Trigger light update use self as source to prevent early processor creation.
-        if (this.processorCreated) {
+        if (this.isProcessorCreated) {
             this.updateHandler.requestUpdate(new InteractionReason(InteractionResponseType.Custom, this.processor));
         } else {
             this.updateHandler.requestUpdate(new InteractionReason(InteractionResponseType.Custom, this));
@@ -130,18 +140,6 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
 
         // Call processor event after disabling update event..
         this.call<IComponentOnDisconnect, 'onDisconnect'>('onDisconnect', false);
-    }
-
-    /**
-     * Register processor on creation.
-     * 
-     * @param pProcessor - Created processor.
-     */
-    protected override onCreation(pProcessor: ComponentProcessor): ComponentProcessor {
-        const lProcessor: ComponentProcessor = super.onCreation(pProcessor);
-        ComponentInformation.registerComponent(this, this.mElementHandler.htmlElement, lProcessor);
-
-        return lProcessor;
     }
 
     /**

@@ -34,7 +34,7 @@ export class ComponentInformation {
 
         // Only read processor when it is created.
         let lProcessor: ComponentProcessor | undefined;
-        if (pComponent.processorCreated) {
+        if (pComponent.isProcessorCreated) {
             lProcessor = pComponent.processor;
         }
 

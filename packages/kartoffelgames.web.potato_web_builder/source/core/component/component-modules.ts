@@ -59,7 +59,7 @@ export class ComponentModules {
                     targetTemplate: pTemplate,
                     values: pValues,
                     interactionTrigger: lSetup.processorConfiguration.trigger
-                });
+                }).setup();
 
                 return lModule;
             }
@@ -93,7 +93,7 @@ export class ComponentModules {
             targetTemplate: pTemplate,
             values: pValues,
             interactionTrigger: lSetup.processorConfiguration.trigger
-        });
+        }).setup();
 
         return lModule;
     }
@@ -118,7 +118,7 @@ export class ComponentModules {
                     targetTemplate: pTemplate,
                     values: pValues,
                     interactionTrigger: lSetup.processorConfiguration.trigger
-                });
+                }).setup();
 
                 return lModule;
             }

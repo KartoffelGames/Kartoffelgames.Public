@@ -9,16 +9,19 @@ export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> im
      * Constructor.
      * @param pParameter - Construction parameter.
      */
-    public constructor(pConstructor: IPwbExtensionModuleProcessorConstructor, pParent: CoreEntity | null, pInteractionTrigger: UpdateTrigger) {
+    public constructor(pConstructor: IPwbExtensionModuleProcessorConstructor, pParent: CoreEntity, pInteractionTrigger: UpdateTrigger) {
         super({
             processorConstructor: pConstructor,
             parent: pParent,
             isolateInteraction: false,
-            interactionTrigger: pInteractionTrigger
+            interactionTrigger: pInteractionTrigger,
+            createOnSetup: true
         });
 
         // Call execution hook.
-        this.call<IExtensionOnExecute, 'onExecute'>('onExecute', false);
+        this.addSetupHook(() => {
+            this.call<IExtensionOnExecute, 'onExecute'>('onExecute', false);
+        });
     }
 
     /**

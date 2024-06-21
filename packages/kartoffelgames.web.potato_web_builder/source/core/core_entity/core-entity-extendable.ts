@@ -4,7 +4,7 @@ import { ExtensionModule, ExtensionModuleConfiguration } from '../extension/exte
 import { CoreEntity, CoreEntityConstructorParameter } from './core-entity';
 import { CoreEntityProcessorConstructorSetup, CoreEntityRegister } from './core-entity-register';
 
-export abstract class CoreEntityExtendable<TProcessor extends object = object> extends CoreEntity<TProcessor> implements IDeconstructable {
+export abstract class CoreEntityExtendable<TProcessor extends object> extends CoreEntity<TProcessor> implements IDeconstructable {
     private readonly mExtensionList: Array<ExtensionModule>;
 
     /**
@@ -15,14 +15,14 @@ export abstract class CoreEntityExtendable<TProcessor extends object = object> e
      * @param pParent - Parent of user entity.
      */
     public constructor(pParameter: CoreEntityExtendableConstructorParameter<TProcessor>) {
-        super({
-            processorConstructor: pParameter.processorConstructor,
-            parent: pParameter.parent,
-            isolateInteraction: pParameter.isolateInteraction,
-            interactionTrigger: pParameter.interactionTrigger
-        });
+        super(pParameter);
 
         this.mExtensionList = new Array<ExtensionModule>();
+
+        // Apply extensions on setup.
+        this.addSetupHook(() => {
+            this.executeExtensions();
+        });
     }
 
     /**
@@ -38,13 +38,13 @@ export abstract class CoreEntityExtendable<TProcessor extends object = object> e
     /**
      * Create module object.
      */
-    protected override createProcessor(): TProcessor {
+    private executeExtensions(): void {
         // TODO: Caching is the key. Cache found extensions for constructor in weakmap. 
 
         const lExtensions: CoreEntityRegister = new CoreEntityRegister();
 
         // Filter extension list.
-        const lExtensionSetupList: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>> = lExtensions.get(ExtensionModule);
+        const lExtensionSetupList: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>> = lExtensions.get<ExtensionModuleConfiguration>(ExtensionModule);
 
         // Filter extension list.
         const lTargetExtensionSetupList: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>> = lExtensionSetupList.filter((pSetup: CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>) => {
@@ -64,25 +64,22 @@ export abstract class CoreEntityExtendable<TProcessor extends object = object> e
 
         // Create every write module extension.
         for (const lSetup of lWriteExtensionSetupList) {
-            const lModuleExtension: ExtensionModule = new ExtensionModule(lSetup.processorConstructor, this, lSetup.processorConfiguration.trigger);
+            const lModuleExtension: ExtensionModule = new ExtensionModule(lSetup.processorConstructor, <CoreEntity><any>this, lSetup.processorConfiguration.trigger);
+            lModuleExtension.setup();
 
             this.mExtensionList.push(lModuleExtension);
         }
-
-        const lProcessor: TProcessor = super.createProcessor();
-
 
         // Get all read extensions. Keep order to execute readWrite extensions first.
         const lReadExtensions: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>> = [...lReadWriteExtensionSetupList, ...lReadExtensionSetupList];
 
         // Create every read module extension.
         for (const lSetup of lReadExtensions) {
-            const lModuleExtension: ExtensionModule = new ExtensionModule(lSetup.processorConstructor, this, lSetup.processorConfiguration.trigger);
+            const lModuleExtension: ExtensionModule = new ExtensionModule(lSetup.processorConstructor, <CoreEntity><any>this, lSetup.processorConfiguration.trigger);
+            lModuleExtension.setup();
 
             this.mExtensionList.push(lModuleExtension);
         }
-
-        return lProcessor;
     }
 }
 

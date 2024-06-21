@@ -10,13 +10,13 @@ import { AttributeModule, IPwbAttributeModuleProcessorConstructor } from './attr
  * @param pSettings - Module settings.
  */
 export function PwbAttributeModule(pSettings: AttributeModuleSettings): any {
-    return (pAttributeModuleConstructor: IPwbAttributeModuleProcessorConstructor) => {
+    return (pProcessorConstructor: IPwbAttributeModuleProcessorConstructor) => {
 
         // Set user class to be injectable
-        Injector.Injectable(pAttributeModuleConstructor);
+        Injector.Injectable(pProcessorConstructor);
 
         // Register module.
-        new CoreEntityRegister().register(AttributeModule, pAttributeModuleConstructor, {
+        new CoreEntityRegister().register(AttributeModule, pProcessorConstructor, {
             access: pSettings.access,
             selector: pSettings.selector,
             trigger: pSettings.trigger

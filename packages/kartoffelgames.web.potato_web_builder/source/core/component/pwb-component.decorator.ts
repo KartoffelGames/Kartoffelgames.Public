@@ -37,9 +37,7 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
                     expressionModule: pParameter.expressionmodule,
                     htmlElement: this,
                     updateMode: pParameter.updateScope ?? UpdateMode.Default
-                }
-
-                );
+                }).setup();
 
                 // Append style if specified. Styles are scoped on components shadow root.
                 if (pParameter.style) {

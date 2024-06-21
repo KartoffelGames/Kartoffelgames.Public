@@ -14,7 +14,8 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
             processorConstructor: pParameter.processorConstructor,
             parent: pParameter.parent,
             isolateInteraction: false,
-            interactionTrigger: pParameter.interactionTrigger
+            interactionTrigger: pParameter.interactionTrigger,
+            createOnSetup: true
         });
 
         // Create module injection mapping.

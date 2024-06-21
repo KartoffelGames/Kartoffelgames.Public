@@ -41,15 +41,15 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
             isolateInteraction: (pParameter.updateMode & UpdateMode.Isolated) !== 0
         });
 
-        // Register component processor as update object on creation.
-        // MUST be called before register component so the tracked processor gets registered as component.
-        this.addCreationHook((pProcessor: ComponentProcessor) => {
-            return this.updateHandler.registerObject(pProcessor);
-        });
-
-        // Add register component element. Register processor on creation.
+        // Register component and element.
         ComponentInformation.registerComponent(this, pParameter.htmlElement);
+
+        // Register untracked processor, than track and register the tracked processor.
         this.addCreationHook((pProcessor: ComponentProcessor) => {
+            ComponentInformation.registerComponent(this, this.mElementHandler.htmlElement, pProcessor);
+        }).addCreationHook((pProcessor: ComponentProcessor) => {
+            return this.updateHandler.registerObject(pProcessor);
+        }).addCreationHook((pProcessor: ComponentProcessor) => {
             ComponentInformation.registerComponent(this, this.mElementHandler.htmlElement, pProcessor);
         });
 

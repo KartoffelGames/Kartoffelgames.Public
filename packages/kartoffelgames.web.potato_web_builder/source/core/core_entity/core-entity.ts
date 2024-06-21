@@ -6,7 +6,7 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
 export class CoreEntity<TProcessor extends object = object> {
     private readonly mCoreEntitySetupHookList: Array<CoreEntitySetupHook>;
-    private readonly mForceCreate: boolean;
+    private readonly mCreateOnSetup: boolean;
     private readonly mInjections: Dictionary<InjectionConstructor, any>;
     private mIsLocked: boolean;
     private mIsSetup: boolean;
@@ -27,12 +27,14 @@ export class CoreEntity<TProcessor extends object = object> {
      * Initialize processor when it hasn't already.
      */
     public get processor(): TProcessor {
+        // Forbid creation of processor when the core entity is not set up.
         if (!this.mIsSetup) {
             throw new Exception('Processor can not be build before calling setup.', this);
         }
 
+        // Create processor when it is not created.
         if (!this.isProcessorCreated) {
-            this.createProcessor();
+            this.mProcessor = this.createProcessor();
         }
 
         return this.mProcessor!;
@@ -61,7 +63,7 @@ export class CoreEntity<TProcessor extends object = object> {
      */
     public constructor(pParameter: CoreEntityConstructorParameter<TProcessor>) {
         this.mProcessorConstructor = pParameter.processorConstructor;
-        this.mForceCreate = !!pParameter.createOnSetup;
+        this.mCreateOnSetup = !!pParameter.createOnSetup;
 
         // Set empty defaults.
         this.mProcessor = null;
@@ -158,7 +160,8 @@ export class CoreEntity<TProcessor extends object = object> {
             lSetupHook.apply(this);
         }
 
-        if (this.mForceCreate) {
+        // Force create processor after setup hooks when setting is set.
+        if (this.mCreateOnSetup) {
             this.processor;
         }
 
@@ -171,8 +174,10 @@ export class CoreEntity<TProcessor extends object = object> {
      * 
      * @param pHook - Hook function.
      */
-    protected addCreationHook(pHook: CoreEntityProcessorCreationHook<TProcessor>): void {
+    protected addCreationHook(pHook: CoreEntityProcessorCreationHook<TProcessor>): this {
         this.mProcessorCreationHookList.push(pHook);
+
+        return this;
     }
 
     /**
@@ -180,8 +185,10 @@ export class CoreEntity<TProcessor extends object = object> {
      * 
      * @param pHook - Hook function.
      */
-    protected addSetupHook(pHook: CoreEntitySetupHook): void {
+    protected addSetupHook(pHook: CoreEntitySetupHook): this {
         this.mCoreEntitySetupHookList.push(pHook);
+
+        return this;
     }
 
     /**
@@ -204,10 +211,7 @@ export class CoreEntity<TProcessor extends object = object> {
             }
         }
 
-        // Call creation hook and possible replace processor.
-        this.mProcessor = lProcessor;
-
-        return this.mProcessor;
+        return lProcessor;
     }
 }
 

@@ -81,7 +81,7 @@ describe('PwbApp', () => {
             };
 
             // Evaluation.
-            expect(lErrorFunction).to.throw(`Constructor "${String.name}" is not a PwbComponent`);
+            expect(lErrorFunction).to.throw(`Constructor "${String.name}" is not a registered custom element`);
         });
     });
 

@@ -2,18 +2,18 @@ import { Dictionary } from '@kartoffelgames/core.data';
 import { InteractionResponseType } from '../../enum/interaction-response-type.enum';
 import { ErrorAllocation } from '../../error-allocation';
 import { InteractionReason } from '../../interaction-reason';
-import { InteractionZone, InteractionZoneStack } from '../../interaction-zone';
+import { InteractionZone } from '../../interaction-zone';
 import { EventNames } from './event-names';
 
 export class Patcher {
     private static mIsPatched: boolean = false;
-    private static readonly mPatchedElements: WeakMap<Element, WeakSet<InteractionZoneStack>> = new WeakMap<Element, WeakSet<InteractionZoneStack>>();
+    private static readonly mPatchedElements: WeakMap<Element, WeakSet<InteractionZone>> = new WeakMap<Element, WeakSet<InteractionZone>>();
 
     /**
      * Listen on all change events and trigger interactions for the set {@link pInteractionZone}.
      * 
      * @param pObject - EventTarget.
-     * @param pInteractionZone - InteractionZoneStack.
+     * @param pInteractionZone - InteractionZone.
      */
     public static attachZone(pObject: Element, pInteractionZone: InteractionZone): void {
         // Do not patch twice for the same zone.
@@ -23,7 +23,7 @@ export class Patcher {
 
         // Init interaction zone storage.
         if (!Patcher.mPatchedElements.has(pObject)) {
-            Patcher.mPatchedElements.set(pObject, new WeakSet<InteractionZoneStack>());
+            Patcher.mPatchedElements.set(pObject, new WeakSet<InteractionZone>());
         }
 
         // Add all events without function.
@@ -75,16 +75,16 @@ export class Patcher {
      * Dispatches interaction event on function call.
      * 
      * @param pFunction - Function.
-     * @param pZoneStack - Zone stack in which the interaction should be triggered.
+     * @param pZone - Zone in which the interaction should be triggered.
      * @param pStartInteractionType - Interaction type for function call start interactions.
      * @param pEndInteractionType - Interaction type for function call end interactions.
      * @param pErrorInteractionType - Interaction type for function call error interactions.
      */
-    private interactionOnFunctionCall(pFunction: (...pArgs: Array<any>) => any, pZoneStack: InteractionZoneStack, pStartInteractionType: InteractionResponseType, pEndInteractionType: InteractionResponseType, pErrorInteractionType: InteractionResponseType): (...pArgs: Array<any>) => any {
+    private interactionOnFunctionCall(pFunction: (...pArgs: Array<any>) => any, pZone: InteractionZone, pStartInteractionType: InteractionResponseType, pEndInteractionType: InteractionResponseType, pErrorInteractionType: InteractionResponseType): (...pArgs: Array<any>) => any {
         const lSelf: this = this;
 
         return function (...pArgs: Array<any>) {
-            return InteractionZone.restore(pZoneStack, () => {
+            return pZone.execute(() => {
                 // Dispatch delete property start interaction. 
                 lSelf.dispatch(pStartInteractionType, pFunction);
 
@@ -147,7 +147,7 @@ export class Patcher {
              */
             public constructor(...pArgs: Array<any>) {
                 // Get zone.
-                const lCurrentZoneStack: InteractionZoneStack = InteractionZone.save();
+                const lCurrentZone: InteractionZone = InteractionZone.current;
 
                 // Replace all function parameter with a patched version.
                 for (let lParameterIndex: number = 0; lParameterIndex < pArgs.length; lParameterIndex++) {
@@ -155,7 +155,7 @@ export class Patcher {
 
                     // Patch all arguments that are function. 
                     if (typeof lParameter === 'function') {
-                        pArgs[lParameterIndex] = lSelf.interactionOnFunctionCall(lSelf.patchFunctionCallbacks(lParameter, pStartInteractionType, pEndInteractionType, pErrorInteractionType), lCurrentZoneStack, pStartInteractionType, pEndInteractionType, pErrorInteractionType);
+                        pArgs[lParameterIndex] = lSelf.interactionOnFunctionCall(lSelf.patchFunctionCallbacks(lParameter, pStartInteractionType, pEndInteractionType, pErrorInteractionType), lCurrentZone, pStartInteractionType, pEndInteractionType, pErrorInteractionType);
                     }
                 }
 
@@ -190,13 +190,13 @@ export class Patcher {
             // Get already patched event listener or patch it for the current interaction zone.
             let lPatchedEventListener: EventListener | undefined = lOriginalListener.get(pCallback);
             if (!lPatchedEventListener) {
-                // Save interaction zone stack of this execution.
-                const lCurrentZoneStack: InteractionZoneStack = InteractionZone.save();
+                // Save interaction zone of this execution.
+                const lCurrentZone: InteractionZone = InteractionZone.current;
 
                 if (typeof pCallback === 'function') {
-                    lPatchedEventListener = lSelf.interactionOnFunctionCall(pCallback, lCurrentZoneStack, InteractionResponseType.EventlistenerStart, InteractionResponseType.EventlistenerEnd, InteractionResponseType.EventlistenerError);
+                    lPatchedEventListener = lSelf.interactionOnFunctionCall(pCallback, lCurrentZone, InteractionResponseType.EventlistenerStart, InteractionResponseType.EventlistenerEnd, InteractionResponseType.EventlistenerError);
                 } else {
-                    lPatchedEventListener = lSelf.interactionOnFunctionCall(pCallback.handleEvent.bind(pCallback), lCurrentZoneStack, InteractionResponseType.EventlistenerStart, InteractionResponseType.EventlistenerEnd, InteractionResponseType.EventlistenerError);
+                    lPatchedEventListener = lSelf.interactionOnFunctionCall(pCallback.handleEvent.bind(pCallback), lCurrentZone, InteractionResponseType.EventlistenerStart, InteractionResponseType.EventlistenerEnd, InteractionResponseType.EventlistenerError);
                 }
             }
 
@@ -236,8 +236,8 @@ export class Patcher {
 
         // Wrap function parameters into current interaction zone.
         return function (this: any, ...pArgs: Array<any>) {
-            // Save current zone stack.
-            const lCurrentZoneStack: InteractionZoneStack = InteractionZone.save();
+            // Save current zone.
+            const lCurrentZone: InteractionZone = InteractionZone.current;
 
             for (let lParameterIndex: number = 0; lParameterIndex < pArgs.length; lParameterIndex++) {
                 const lParameter: any = pArgs[lParameterIndex];
@@ -245,7 +245,7 @@ export class Patcher {
                 // Patch all arguments that are function. 
                 if (typeof lParameter === 'function') {
                     // Recursive patch all callbacks.
-                    pArgs[lParameterIndex] = lSelf.interactionOnFunctionCall(lSelf.patchFunctionCallbacks(lParameter, pStartInteractionType, pEndInteractionType, pErrorInteractionType), lCurrentZoneStack, pStartInteractionType, pEndInteractionType, pErrorInteractionType);
+                    pArgs[lParameterIndex] = lSelf.interactionOnFunctionCall(lSelf.patchFunctionCallbacks(lParameter, pStartInteractionType, pEndInteractionType, pErrorInteractionType), lCurrentZone, pStartInteractionType, pEndInteractionType, pErrorInteractionType);
                 }
             }
 
@@ -433,12 +433,12 @@ export class Patcher {
                     // Dispatch delete property start interaction. 
                     lSelf.dispatch(InteractionResponseType.PromiseStart, this);
 
-                    // Get current zone stack of synchron execution.
-                    const lCurrentZoneStack: InteractionZoneStack = InteractionZone.save();
+                    // Get current zone of synchron execution.
+                    const lCurrentZone: InteractionZone = InteractionZone.current;
 
                     try {
-                        const lExecutorResolve: ExecutorResolve<T> | undefined = lSelf.interactionOnFunctionCall(pResolve, lCurrentZoneStack, InteractionResponseType.None, InteractionResponseType.PromiseResolve, InteractionResponseType.None);
-                        const lExecutorReject: ExecutorReject | undefined = lSelf.interactionOnFunctionCall(pReject, lCurrentZoneStack, InteractionResponseType.None, InteractionResponseType.PromiseReject, InteractionResponseType.None);
+                        const lExecutorResolve: ExecutorResolve<T> | undefined = lSelf.interactionOnFunctionCall(pResolve, lCurrentZone, InteractionResponseType.None, InteractionResponseType.PromiseResolve, InteractionResponseType.None);
+                        const lExecutorReject: ExecutorReject | undefined = lSelf.interactionOnFunctionCall(pReject, lCurrentZone, InteractionResponseType.None, InteractionResponseType.PromiseReject, InteractionResponseType.None);
 
                         // Call original executor.
                         return pExecutor.call(this, lExecutorResolve, lExecutorReject);
@@ -456,7 +456,7 @@ export class Patcher {
                 super(lPatchedExecutor);
 
                 // Set zone of promise.
-                ErrorAllocation.allocateAsyncronError(this as any as Promise<unknown>, InteractionZone.save());
+                ErrorAllocation.allocateAsyncronError(this as any as Promise<unknown>, InteractionZone.current);
             }
         }
 

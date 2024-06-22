@@ -76,7 +76,11 @@ export class InteractionDetectionProxy<T extends object> {
             this.mProxyObject = pTarget;
         } else {
             // Create new proxy object.
-            this.mProxyObject = this.createProxyObject(pTarget);
+            if (typeof pTarget === 'object') {
+                this.mProxyObject = this.createProxyObject(pTarget);
+            } else {
+                this.mProxyObject = this.createProxyFunction(pTarget);
+            }
         }
 
         // Map proxy with real object and real object to current class.
@@ -113,6 +117,56 @@ export class InteractionDetectionProxy<T extends object> {
         }
 
         return lNestedProxy.proxy;
+    }
+
+    /**
+     * Create interaction detection proxy from object.
+     * 
+     * @param pTarget - Target object.
+     */
+    private createProxyFunction(pTarget: T): T {
+        // Create proxy handler.
+        const lProxyObject: T = new Proxy(pTarget, {
+            /**
+             * Called on function call.
+             * 
+             * @param pTargetObject - Function that was called.
+             * @param pThisArgument - This argument of call.
+             * @param pArgumentsList - All arguments of call.
+             */
+            apply: (pTargetObject: T, pThisArgument: any, pArgumentsList: Array<any>): void => {
+                // Dispatch function call start interaction. 
+                this.dispatch(InteractionResponseType.FunctionCallStart, this.mProxyObject);
+
+                // Execute function and dispatch interaction event on synchron exceptions.
+                try {
+                    const lCallableTarget: CallableObject = <CallableObject>pTargetObject;
+
+                    // Call function.. Get original object of "this"-Scope. and call the functionwith it.
+                    try {
+                        const lOriginalThisObject: object = InteractionDetectionProxy.getOriginal(pThisArgument);
+                        const lResult = lCallableTarget.call(lOriginalThisObject, ...pArgumentsList);
+
+                        // Convert potential object to a linked proxy.
+                        return this.convertToProxy(lResult);
+                    } finally {
+                        // Dispatch special InteractionResponseType.NativeFunctionCall.
+                        if (/\{\s+\[native code\]/.test(Function.prototype.toString.call(lCallableTarget))) {
+                            this.dispatch(InteractionResponseType.NativeFunctionCall, this.mProxyObject);
+                        }
+                    }
+                } catch (pError) {
+                    // Dispatch function error interaction and passthrough error.
+                    this.dispatch(InteractionResponseType.FunctionCallError, this.mProxyObject);
+                    throw pError;
+                } finally {
+                    // Dispatches interaction end event before exception passthrough.
+                    this.dispatch(InteractionResponseType.FunctionCallEnd, this.mProxyObject);
+                }
+            }
+        });
+
+        return lProxyObject;
     }
 
     /**
@@ -202,44 +256,6 @@ export class InteractionDetectionProxy<T extends object> {
                 } finally {
                     // Dispatches interaction end event before exception passthrough.
                     this.dispatch(InteractionResponseType.PropertyDeleteEnd, this.mProxyObject, pPropertyName);
-                }
-            },
-
-            /**
-             * Called on function call.
-             * 
-             * @param pTargetObject - Function that was called.
-             * @param pThisArgument - This argument of call.
-             * @param pArgumentsList - All arguments of call.
-             */
-            apply: (pTargetObject: T, pThisArgument: any, pArgumentsList: Array<any>): void => {
-                // Dispatch function call start interaction. 
-                this.dispatch(InteractionResponseType.FunctionCallStart, this.mProxyObject);
-
-                // Execute function and dispatch interaction event on synchron exceptions.
-                try {
-                    const lCallableTarget: CallableObject = <CallableObject>pTargetObject;
-
-                    // Call function.. Get original object of "this"-Scope. and call the functionwith it.
-                    try {
-                        const lOriginalThisObject: object = InteractionDetectionProxy.getOriginal(pThisArgument);
-                        const lResult = lCallableTarget.call(lOriginalThisObject, ...pArgumentsList);
-
-                        // Convert potential object to a linked proxy.
-                        return this.convertToProxy(lResult);
-                    } finally {
-                        // Dispatch special InteractionResponseType.NativeFunctionCall.
-                        if (/\{\s+\[native code\]/.test(Function.prototype.toString.call(lCallableTarget))) {
-                            this.dispatch(InteractionResponseType.NativeFunctionCall, this.mProxyObject);
-                        }
-                    }
-                } catch (pError) {
-                    // Dispatch function error interaction and passthrough error.
-                    this.dispatch(InteractionResponseType.FunctionCallError, this.mProxyObject);
-                    throw pError;
-                } finally {
-                    // Dispatches interaction end event before exception passthrough.
-                    this.dispatch(InteractionResponseType.FunctionCallEnd, this.mProxyObject);
                 }
             }
         });

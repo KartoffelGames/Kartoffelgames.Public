@@ -301,6 +301,98 @@ describe('InteractionDetectionProxy', () => {
                 expect(lPropertyChanged).to.be.true;
             });
 
+            it('-- Detect interaction on bound function call', () => {
+                // Setup.
+                const lFunction: (pValue: number) => number = (pValue: number) => { return pValue; };
+                const lProxy: (pValue: number) => number = new InteractionDetectionProxy(lFunction).proxy;
+                const lInteractionZone: InteractionZone = new InteractionZone('CD');
+
+                // Setup. InteractionZone.
+                let lPropertyChanged: boolean = false;
+                lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                    if (pChangeReason.source === lProxy) {
+                        lPropertyChanged = true;
+                    }
+                });
+
+                // Process
+                lInteractionZone.execute(() => {
+                    lProxy.bind(null)(22);
+                });
+
+                // Evaluation.
+                expect(lPropertyChanged).to.be.true;
+            });
+
+            it('-- Detect interaction on apply function call', () => {
+                // Setup.
+                const lFunction: (pValue: number) => number = (pValue: number) => { return pValue; };
+                const lProxy: (pValue: number) => number = new InteractionDetectionProxy(lFunction).proxy;
+                const lInteractionZone: InteractionZone = new InteractionZone('CD');
+
+                // Setup. InteractionZone.
+                let lPropertyChanged: boolean = false;
+                lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                    if (pChangeReason.source === lProxy) {
+                        lPropertyChanged = true;
+                    }
+                });
+
+                // Process
+                lInteractionZone.execute(() => {
+                    lProxy.apply(null, [22]);
+                });
+
+                // Evaluation.
+                expect(lPropertyChanged).to.be.true;
+            });
+
+            it('-- Detect interaction on call function call', () => {
+                // Setup.
+                const lFunction: (pValue: number) => number = (pValue: number) => { return pValue; };
+                const lProxy: (pValue: number) => number = new InteractionDetectionProxy(lFunction).proxy;
+                const lInteractionZone: InteractionZone = new InteractionZone('CD');
+
+                // Setup. InteractionZone.
+                let lPropertyChanged: boolean = false;
+                lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                    if (pChangeReason.source === lProxy) {
+                        lPropertyChanged = true;
+                    }
+                });
+
+                // Process
+                lInteractionZone.execute(() => {
+                    lProxy.call(null, 22);
+                });
+
+                // Evaluation.
+                expect(lPropertyChanged).to.be.true;
+            });
+
+            it('-- Dont detect interaction on binding function', () => {
+                // Setup.
+                const lFunction: (pValue: number) => number = (pValue: number) => { return pValue; };
+                const lProxy: (pValue: number) => number = new InteractionDetectionProxy(lFunction).proxy;
+                const lInteractionZone: InteractionZone = new InteractionZone('CD');
+
+                // Setup. InteractionZone.
+                let lPropertyChanged: boolean = false;
+                lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
+                    if (pChangeReason.source === lProxy) {
+                        lPropertyChanged = true;
+                    }
+                });
+
+                // Process
+                lInteractionZone.execute(() => {
+                    lProxy.bind(null);
+                });
+
+                // Evaluation.
+                expect(lPropertyChanged).to.be.false;
+            });
+
             it('-- Forward syncron errors on call', () => {
                 // Setup.
                 const lValue: number = 22;

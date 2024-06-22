@@ -1,13 +1,13 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { InteractionResponseType } from './enum/interaction-response-type.enum';
-import { InteractionZone, InteractionZoneStack } from './interaction-zone';
+import { InteractionZone, } from './interaction-zone';
 
 /**
  * Interaction reason. Information of a detected interaction.
  */
 export class InteractionReason {
     private readonly mCatchType: InteractionResponseType;
-    private mOrigin: InteractionZoneStack | null;
+    private mOrigin: InteractionZone | null;
     private readonly mProperty: PropertyKey | undefined;
     private readonly mSource: object;
     private readonly mStackError: Error;
@@ -23,7 +23,7 @@ export class InteractionReason {
     /**
      * Get reason dispatch origin.
      */
-    public get origin(): InteractionZoneStack {
+    public get origin(): InteractionZone {
         if (this.mOrigin === null) {
             throw new Exception('Interaction reason not dispatched.', this);
         }
@@ -54,22 +54,8 @@ export class InteractionReason {
     }
 
     /**
-     * Get zone of interaction.
-     * 
-     * @throws {@link Exception}
-     * When zone is not set, reason was not dispatched.
-     */
-    public get zone(): InteractionZone {
-        if (this.mOrigin === null) {
-            throw new Exception('Interaction reason not dispatched.', this);
-        }
-
-        return this.mOrigin.top!;
-    }
-
-    /**
      * Constructor.
-     * Creates a stacktrace from the point of creation.s
+     * Creates a stacktrace from the point of creation.
      * 
      * @param pInteractionType - What type of interaction.
      * @param pSource - Object wich was interacted with.
@@ -108,11 +94,11 @@ export class InteractionReason {
     }
 
     /**
-     * Set origin interaction stack of reason.
+     * Set origin interaction zone of reason.
      * 
-     * @param pInteractionStack - Origin stack.
+     * @param pInteractionStack - Origin zone.
      */
-    public setOrigin(pInteractionStack: InteractionZoneStack): void {
+    public setOrigin(pInteractionStack: InteractionZone): void {
         this.mOrigin = pInteractionStack;
     }
 
@@ -132,6 +118,6 @@ export class InteractionReason {
         const lPropertyDescription: string = (this.mProperty) ? `[${this.mProperty.toString()}]` : '';
 
 
-        return `${this.zone.name}: ${typeof this.mSource}:${lSourceName}${lPropertyDescription} -> ${InteractionResponseType[this.interactionType]}`;
+        return `${this.origin.name}: ${typeof this.mSource}:${lSourceName}${lPropertyDescription} -> ${InteractionResponseType[this.interactionType]}`;
     }
 }

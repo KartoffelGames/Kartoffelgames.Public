@@ -69,28 +69,6 @@ export class InteractionZone {
         return this.mCurrentZone.callInteractionListener(pInteractionReason);
     }
 
-    /**
-     * Register an object for interaction detection.
-     * Returns proxy object that should be used to track changes.
-     * 
-     * @param pObject - Object or function.
-     */
-    public static registerObject<T extends object>(pObject: T): T {
-        // Get current zone..
-        const lCurrentZone: InteractionZone = InteractionZone.mCurrentZone;
-
-        // Attach event handler for events that usually trigger direct changes on object.
-        if (pObject instanceof Element) {
-            Patcher.attachZone(pObject, lCurrentZone);
-        }
-
-        // Create interaction proxy and attach current zone as listener zone.
-        const lInteractionDetectionProxy: InteractionDetectionProxy<T> = new InteractionDetectionProxy(pObject);
-        lInteractionDetectionProxy.addListenerZone(lCurrentZone);
-
-        return lInteractionDetectionProxy.proxy;
-    }
-
     private readonly mChangeListener: Dictionary<ChangeListener, InteractionZone>;
     private readonly mErrorListener: Dictionary<ErrorListener, InteractionZone>;
     private readonly mIsolated: boolean;
@@ -187,6 +165,25 @@ export class InteractionZone {
         }
 
         return lResult;
+    }
+
+    /**
+     * Register an object for interaction detection.
+     * Returns proxy object that should be used to track changes.
+     * 
+     * @param pObject - Object or function.
+     */
+    public registerObject<T extends object>(pObject: T): T {
+        // Attach event handler for events that usually trigger direct changes on object.
+        if (pObject instanceof Element) {
+            Patcher.attachZone(pObject, this);
+        }
+
+        // Create interaction proxy and attach current zone as listener zone.
+        const lInteractionDetectionProxy: InteractionDetectionProxy<T> = new InteractionDetectionProxy(pObject);
+        lInteractionDetectionProxy.addListenerZone(this);
+
+        return lInteractionDetectionProxy.proxy;
     }
 
     /**

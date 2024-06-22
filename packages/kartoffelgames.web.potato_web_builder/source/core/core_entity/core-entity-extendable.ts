@@ -49,7 +49,7 @@ export abstract class CoreEntityExtendable<TProcessor extends object> extends Co
         // Filter extension list.
         const lTargetExtensionSetupList: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>> = lExtensionSetupList.filter((pSetup: CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>) => {
             for (const lRestriction of pSetup.processorConfiguration.targetRestrictions) {
-                if (this instanceof lRestriction || this.processorConstructor.prototype instanceof lRestriction) {
+                if (this instanceof lRestriction || this.processorConstructor.prototype instanceof lRestriction || this.processorConstructor === lRestriction) {
                     return true;
                 }
             }

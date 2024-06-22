@@ -6,7 +6,7 @@ import { UpdateTrigger } from '../../../source/enum/update-trigger.enum';
 import { TestUtil } from '../../utility/test-util';
 
 describe('BaseExtension', () => {
-    it('-- Injection extension without injection', async () => {
+    it('-- Call extension constructor on component restriction', async () => {
         // Process. Define component.   
         @PwbComponent({
             selector: TestUtil.randomSelector()
@@ -34,11 +34,10 @@ describe('BaseExtension', () => {
         expect(lExtensionCalled).to.be.true;
     });
 
-    it('-- Ignore wrong injections', async () => {
+    it('-- Ignore extension without valid target restriction', async () => {
         // Process. Define component.   
         @PwbComponent({
-            selector: TestUtil.randomSelector(),
-            template: '<div #child />' // Module for module injection.
+            selector: TestUtil.randomSelector()
         })
         class TestComponent { }
 
@@ -47,19 +46,12 @@ describe('BaseExtension', () => {
         @PwbExtensionModule({
             access: AccessMode.Read,
             trigger: UpdateTrigger.Default,
-            targetRestrictions: [TestComponent]
+            targetRestrictions: [class NotUsed { }]
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class UselessExtension {
             public constructor() {
                 lExtensionCalled = true;
-            }
-
-            public onCollectInjections(): Array<object | null> {
-                const lInjectionList: Array<object | null> = new Array<object | null>();
-                lInjectionList.push(null);
-                lInjectionList.push(<any>1);
-                return lInjectionList;
             }
         }
 
@@ -67,6 +59,6 @@ describe('BaseExtension', () => {
         await <any>TestUtil.createComponent(TestComponent);
 
         // Evaluation.
-        expect(lExtensionCalled).to.be.true;
+        expect(lExtensionCalled).to.be.false;
     });
 });

@@ -93,7 +93,7 @@ export class InteractionDetectionProxy<T extends object> {
      * 
      * @param pZoneStack - Interaction zone stack.
      */
-    public addListenerZoneStack(pZoneStack: InteractionZoneStack): void {
+    public addListenerZone(pZoneStack: InteractionZone): void {
         this.mListenerZonesStack.add(pZoneStack);
     }
 
@@ -113,7 +113,7 @@ export class InteractionDetectionProxy<T extends object> {
         // But when it is a object or a function, than wrap it into another detection proxy and passthrough any interaction.
         const lNestedProxy: InteractionDetectionProxy<any> = new InteractionDetectionProxy(pTarget);
         for (const lCallbackStack of this.mListenerZonesStack) {
-            lNestedProxy.addListenerZoneStack(lCallbackStack);
+            lNestedProxy.addListenerZone(lCallbackStack);
         }
 
         return lNestedProxy.proxy;

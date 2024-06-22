@@ -63,7 +63,7 @@ describe('Patcher', () => {
 
             // Process.
             lZone.execute(() => {
-                Patcher.attachZoneStack(lObject, InteractionZone.save());
+                Patcher.attachZone(lObject, InteractionZone.save());
             });
 
             // Process.
@@ -91,8 +91,8 @@ describe('Patcher', () => {
             lZone.execute(() => {
                 const lStack = InteractionZone.save();
 
-                Patcher.attachZoneStack(lObject, lStack);
-                Patcher.attachZoneStack(lObject, lStack);
+                Patcher.attachZone(lObject, lStack);
+                Patcher.attachZone(lObject, lStack);
             });
 
             // Process.
@@ -120,10 +120,10 @@ describe('Patcher', () => {
 
             // Process.
             lZoneOne.execute(() => {
-                Patcher.attachZoneStack(lObject, InteractionZone.save());
+                Patcher.attachZone(lObject, InteractionZone.save());
             });
             lZoneTwo.execute(() => {
-                Patcher.attachZoneStack(lObject, InteractionZone.save());
+                Patcher.attachZone(lObject, InteractionZone.save());
             });
 
             // Process.

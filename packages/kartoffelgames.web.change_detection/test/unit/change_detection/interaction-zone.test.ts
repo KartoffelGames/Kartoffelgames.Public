@@ -1103,7 +1103,7 @@ describe('InteractionZone', () => {
 
             // Setup. Attach zone.
             lAttachedZone.execute(() => {
-                lProxy.addListenerZoneStack(InteractionZone.save());
+                lProxy.addListenerZone(InteractionZone.save());
             });
 
             // Process.

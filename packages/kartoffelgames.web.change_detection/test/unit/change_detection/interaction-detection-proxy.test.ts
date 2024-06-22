@@ -550,7 +550,7 @@ describe('InteractionDetectionProxy', () => {
 
             // Setup. Add proxy zone as listener.
             lProxyZone.execute(() => {
-                lDetectionProxy.addListenerZoneStack(InteractionZone.save());
+                lDetectionProxy.addListenerZone(InteractionZone.save());
             });
 
             // Process.
@@ -586,7 +586,7 @@ describe('InteractionDetectionProxy', () => {
 
             // Process. Attach zone stack.
             lInteractionZone.execute(() => {
-                lDetectionProxy.addListenerZoneStack(InteractionZone.save());
+                lDetectionProxy.addListenerZone(InteractionZone.save());
             });
 
             // Process. Trigger changes.
@@ -621,7 +621,7 @@ describe('InteractionDetectionProxy', () => {
 
             // Process. Attach zone stack.
             lAttachedInteractionZone.execute(() => {
-                lDetectionProxy.addListenerZoneStack(InteractionZone.save());
+                lDetectionProxy.addListenerZone(InteractionZone.save());
             });
 
             // Trigger changes.
@@ -649,7 +649,7 @@ describe('InteractionDetectionProxy', () => {
             });
             // Process.
             lInteractionZone.execute(() => {
-                lDetectionProxy.addListenerZoneStack(InteractionZone.save());
+                lDetectionProxy.addListenerZone(InteractionZone.save());
 
                 lDetectionProxy.proxy.a = 22;
             });
@@ -674,7 +674,7 @@ describe('InteractionDetectionProxy', () => {
 
             // Process.
             lAttachedZone.execute(() => {
-                lDetectionProxy.addListenerZoneStack(InteractionZone.save());
+                lDetectionProxy.addListenerZone(InteractionZone.save());
             });
 
             lSilentZone.execute(() => {

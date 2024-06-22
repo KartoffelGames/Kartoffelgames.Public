@@ -10,14 +10,14 @@ export class Patcher {
     private static readonly mPatchedElements: WeakMap<Element, WeakSet<InteractionZoneStack>> = new WeakMap<Element, WeakSet<InteractionZoneStack>>();
 
     /**
-     * Listen on all change events and trigger interactions for the set {@link pZoneStack}.
+     * Listen on all change events and trigger interactions for the set {@link pInteractionZone}.
      * 
      * @param pObject - EventTarget.
-     * @param pZoneStack - InteractionZoneStack.
+     * @param pInteractionZone - InteractionZoneStack.
      */
-    public static attachZoneStack(pObject: Element, pZoneStack: InteractionZoneStack): void {
+    public static attachZone(pObject: Element, pInteractionZone: InteractionZone): void {
         // Do not patch twice for the same zone.
-        if (Patcher.mPatchedElements.get(pObject)?.has(pZoneStack)) {
+        if (Patcher.mPatchedElements.get(pObject)?.has(pInteractionZone)) {
             return;
         }
 
@@ -29,14 +29,14 @@ export class Patcher {
         // Add all events without function.
         for (const lEventName of EventNames.changeCriticalEvents) {
             // Add empty event to element. This should trigger an interaction every time the event and therefore the listener is called.
-            InteractionZone.restore(pZoneStack, () => {
+            pInteractionZone.execute(() => {
                 pObject.addEventListener(lEventName, () => { });
             });
 
         }
 
         // Add element as patched entity.
-        Patcher.mPatchedElements.get(pObject)!.add(pZoneStack);
+        Patcher.mPatchedElements.get(pObject)!.add(pInteractionZone);
     }
 
     /**

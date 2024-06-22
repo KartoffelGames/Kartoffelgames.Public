@@ -18,7 +18,6 @@ export class UpdateHandler {
     private readonly mInteractionZone: InteractionZone;
     private readonly mLoopDetectionHandler: LoopDetectionHandler;
     private readonly mUpdateListener: List<UpdateListener>;
-    private readonly mUpdateWaiter: List<UpdateWaiter>;
 
     /**
      * Get enabled state of update handler.
@@ -50,7 +49,6 @@ export class UpdateHandler {
     public constructor(pIsolatedInteraction: boolean, pInteractionTrigger: UpdateTrigger, pInteractionStack?: InteractionZoneStack) {
         this.mUpdateListener = new List<UpdateListener>();
         this.mEnabled = false;
-        this.mUpdateWaiter = new List<UpdateWaiter>();
         this.mLoopDetectionHandler = new LoopDetectionHandler(10);
 
         // Create isolated or default zone.
@@ -69,13 +67,6 @@ export class UpdateHandler {
                 return InteractionZone.save();
             });
         });
-
-        // Define error handler.
-        this.mLoopDetectionHandler.onError = (pError: any) => {
-            // Supress error of any waiter were waiting.
-            // Error should be handled by the async waiter.
-            this.releaseWaiter(pError);
-        };
     }
 
     /**
@@ -98,23 +89,6 @@ export class UpdateHandler {
 
         // Disable handling.
         this.enabled = false;
-    }
-
-    /**
-     * Execute function that does not trigger any interactions.
-     * 
-     * @param pFunction - Function.
-     * 
-     * @remarks 
-     * Nesting {@link disableInteractionTrigger} and {@link enableInteractionTrigger} is allowed.
-     */
-    public disableInteractionTrigger<T>(pFunction: () => T): T {
-        const lSilentZone: InteractionZone = new InteractionZone('Silent-' + this.mInteractionZone.name, { trigger: <InteractionResponseType><unknown>UpdateTrigger.None });
-
-        // Call function in custom zone in current component stack.
-        return InteractionZone.restore(this.mComponentZoneStack, () => {
-            return lSilentZone.execute(pFunction);
-        });
     }
 
     /**
@@ -158,97 +132,45 @@ export class UpdateHandler {
      * 
      * @public
      */
-    public update(): void {
+    public async update(): Promise<boolean> {
         const lReason: InteractionReason = new InteractionReason(InteractionResponseType.Custom, this, Symbol('Manual Update'));
 
         // Request update to dispatch change events on other components.
         this.requestUpdate(lReason);
 
         // Shedule an update task.
-        this.sheduleUpdateTask(lReason);
-    }
-
-    /**
-     * Wait for the component update.
-     * Returns Promise<false> if there is currently no update cycle.
-     */
-    public async waitForUpdate(): Promise<boolean> { // TODO: Find a good way to get rid of this. Maybe attach promise to update()?
-        if (!this.mLoopDetectionHandler.hasActiveTask) {
-            return false;
-        }
-
-        // Add new callback to waiter line.
-        return new Promise<boolean>((pResolve: (pValue: boolean) => void, pReject: (pError: any) => void) => {
-            this.mUpdateWaiter.push((pError: any) => {
-                if (pError) {
-                    // Reject if any error exist.
-                    pReject(pError);
-                } else {
-                    // Is resolved when all data were updated.
-                    pResolve(true);
-                }
-            });
-        });
+        return this.sheduleUpdateTask(lReason);
     }
 
     /**
      * Execute all update listener.
      */
     private dispatchUpdateListener(pReason: InteractionReason): void {
-        // Trigger all update listener.
-        for (const lListener of this.mUpdateListener) {
-            lListener.call(this, pReason);
-        }
-    }
-
-    /**
-     * Release all update waiter.
-     * Pass on any thrown error to all waiter callbacks.
-     * 
-     * @param pError - Error object.
-     * @returns if any waiter were waiting.
-     */
-    private releaseWaiter(pError?: any): boolean {
-        const lWaiterExist: boolean = this.mUpdateWaiter.length > 0;
-
-        // Release all waiter.
-        for (const lUpdateWaiter of this.mUpdateWaiter) {
-            lUpdateWaiter(pError);
-        }
-
-        // Clear waiter list.
-        this.mUpdateWaiter.clear();
-
-        return lWaiterExist;
+        // Call update listener in current zone.
+        InteractionZone.restore(this.mComponentZoneStack, () => {
+            // Trigger all update listener.
+            for (const lListener of this.mUpdateListener) {
+                lListener.call(this, pReason);
+            }
+        });
     }
 
     /**
      * Shedule asyncron update.
      * Triggers update handler asynchron.
      */
-    private sheduleUpdateTask(pReason: InteractionReason): void {
-        // Shedule task in component zone stack.
-        InteractionZone.restore(this.mComponentZoneStack, () => { // TODO: Maybe dont call in current stack.
-            // Skip task shedule when update handler is disabled but release update waiter.
-            if (!this.enabled) {
-                this.releaseWaiter();
-                return;
-            }
+    private async sheduleUpdateTask(pReason: InteractionReason): Promise<boolean> {
+        // Skip task shedule when update handler is disabled but release update waiter.
+        if (!this.enabled) {
+            return false;
+        }
 
-            // Shedule new asynchron update task.
-            this.mLoopDetectionHandler.sheduleTask(() => {
-                // Call every update listener inside interaction zone.
-                this.dispatchUpdateListener(pReason);
-
-                // Check if all changes where made during the listener calls and release all waiter when all updates where finished. 
-                // When a new changes where made, the loop detection has another sheduled update.
-                if (!this.mLoopDetectionHandler.hasActiveTask) {
-                    this.releaseWaiter();
-                }
-            }, pReason);
-        });
+        // Shedule new asynchron update task.
+        return this.mLoopDetectionHandler.sheduleTask(() => {
+            // Call every update listener inside interaction zone.
+            this.dispatchUpdateListener(pReason);
+        }, pReason).then(() => true);
     }
 }
 
-type UpdateWaiter = (pError?: any) => void;
 export type UpdateListener = (pReason: InteractionReason) => void;

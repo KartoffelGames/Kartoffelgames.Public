@@ -110,17 +110,19 @@ describe('PwbApp', () => {
 
             // Process. Append and wait for splash screen remove
             await lApp.appendTo(document.body);
-            await TestUtil.waitForUpdate(lApp.component);
+            await TestUtil.waitForUpdate(lApp.component); // This Wait is triggered syncron with removeSplacescreen and this triggers another update.
+            await TestUtil.waitForUpdate(lApp.component); // Wait for splacescreen removal.
             const lBeforeRemoveChildState: boolean = !!lApp.component.shadowRoot?.querySelector('.splashscreen');
 
             // Process
             await lApp.appendTo(document.body);
-            await TestUtil.waitForUpdate(lApp.component);
+            await TestUtil.waitForUpdate(lApp.component); // This Wait is triggered syncron with removeSplacescreen and this triggers another update.
+            await TestUtil.waitForUpdate(lApp.component); // Wait for splacescreen removal.
             const lAfterRemoveChildState: boolean = !!lApp.component.shadowRoot?.querySelector('.splashscreen');
 
             // Evaluation.
-            expect(lBeforeRemoveChildState).to.be.false;
-            expect(lAfterRemoveChildState).to.be.false;
+            expect(lBeforeRemoveChildState, 'Before').to.be.false;
+            expect(lAfterRemoveChildState, 'After').to.be.false;
         });
     });
 

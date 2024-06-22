@@ -164,7 +164,7 @@ export class PwbAppComponent implements IComponentOnConnect, IComponentOnDisconn
         }
 
         // Remove splashscreen when any component was updated.
-        this.mUpdateHandler.waitForUpdate().then(() => {
+        this.mUpdateHandler.update().then(() => {
             this.removeSplashScreen();
         });
     }

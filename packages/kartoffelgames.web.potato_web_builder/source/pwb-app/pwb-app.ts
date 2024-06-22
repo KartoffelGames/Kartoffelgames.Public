@@ -1,11 +1,11 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
 import { ErrorListener, InteractionZoneStack } from '@kartoffelgames/web.change-detection/library/source/change_detection/interaction-zone';
+import { ComponentProcessorConstructor } from '../core/component/component';
 import { ComponentInformation } from '../core/component/component-information';
 import { PwbTemplate } from '../core/component/template/nodes/pwb-template';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
 import { PwbAppComponent } from './component/pwb-app-component';
-import { ComponentProcessorConstructor } from '../core/component/component';
 
 /**
  * Wrapper handles scoped global styles, components and loading splashscreen.
@@ -100,7 +100,7 @@ export class PwbApp {
         pElement.appendChild(this.mAppComponent);
 
         // Wait for any component update.
-        return this.mAppComponent.updateHandler.waitForUpdate().then();
+        return this.mAppComponent.updateHandler.update().then();
     }
 
     /**

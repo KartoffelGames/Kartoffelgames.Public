@@ -54,11 +54,7 @@ export class DynamicContentInstructionModule implements IInstructionOnUpdate {
         }
 
         // Check for changes.
-        const lTemplateEqual: boolean = this.mUpdateHandler.disableInteractionTrigger(() => {
-            return this.mLastTemplate !== null && this.mLastTemplate.equals(lTemplateResult);
-        });
-
-        if (lTemplateEqual) {
+        if (this.mLastTemplate !== null && this.mLastTemplate.equals(lTemplateResult)) {
             // No update needed.
             return null;
         }

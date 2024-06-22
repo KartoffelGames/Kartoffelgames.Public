@@ -10,17 +10,19 @@ import { UpdateTrigger } from '../../../enum/update-trigger.enum';
  * @internal
  */
 export class LoopDetectionHandler {
-    private mAnotherTaskSheduled: boolean;
-    private readonly mCurrentCallChain: List<InteractionReason>;
+    private readonly mCallChain: List<InteractionReason>;
+    private readonly mChainCompleteHookReleaseList: List<ChainCompleteHookRelease>;
+    private mHasActiveTask: boolean;
     private readonly mMaxStackSize: number;
     private mNextSheduledTask: number;
     private mOnError: ErrorHandler | null;
+
 
     /**
      * Get if loop detection has an active task.
      */
     public get hasActiveTask(): boolean {
-        return this.mAnotherTaskSheduled;
+        return this.mHasActiveTask;
     }
 
     /**
@@ -34,16 +36,19 @@ export class LoopDetectionHandler {
      * Constructor.
      */
     public constructor(pMaxStackSize: number) {
-        this.mCurrentCallChain = new List<InteractionReason>();
+        this.mCallChain = new List<InteractionReason>();
+        this.mChainCompleteHookReleaseList = new List<ChainCompleteHookRelease>();
+
         this.mMaxStackSize = pMaxStackSize;
-        this.mOnError = null;
+        this.mOnError = null; // TODO: Dont make this optional.
         this.mNextSheduledTask = 0;
-        this.mAnotherTaskSheduled = false;
+
+        this.mHasActiveTask = false;
     }
 
     /**
-     * Calls function asynchron. Checks for loops and
-     * Callbacks errors on the {@link onError} callback.
+     * Calls function asynchron. Checks for loops and callbacks errors on the {@link onError} callback.
+     * 
      * 
      * @remarks 
      * Task will be executed outside any interaction zone. So the task itself must handle the actual scope.
@@ -51,64 +56,110 @@ export class LoopDetectionHandler {
      * @param pUserFunction - Function that should be called.
      * @param pReason - Stack reason.
      */
-    public sheduleTask<T>(pUserFunction: () => T, pReason: InteractionReason): void {
-        // Skip asynchron task when currently a call is sheduled.
-        if (this.mAnotherTaskSheduled) {
-            return;
-        }
-
-        // Lock creation of a new task until current task is started.
-        this.mAnotherTaskSheduled = true;
-
-        // Create and expand call chain.
-        this.mCurrentCallChain.push(pReason);
-
+    public async sheduleTask<T>(pUserFunction: () => T, pReason: InteractionReason): Promise<void> {
         // Save current execution zone stack. To restore it for user function call.
         const lCurrentZoneStack: InteractionZoneStack = InteractionZone.save();
 
         // Function for asynchron call.
         const lAsynchronTask = () => {
             // Sheduled task executed, allow another task to be executed.
-            this.mAnotherTaskSheduled = false;
+            this.mHasActiveTask = false;
 
             // Save current call chain length. Used to detect a new chain link after execution.
-            const lLastCallChainLength: number = this.mCurrentCallChain.length;
+            const lLastCallChainLength: number = this.mCallChain.length;
 
             try {
                 // Call task. If no other call was sheduled during this call, the length will be the same after. 
                 InteractionZone.restore(lCurrentZoneStack, pUserFunction);
 
                 // Throw if too many calles were chained. 
-                if (this.mCurrentCallChain.length > this.mMaxStackSize) {
-                    throw new LoopError('Call loop detected', this.mCurrentCallChain);
+                if (this.mCallChain.length > this.mMaxStackSize) {
+                    throw new LoopError('Call loop detected', this.mCallChain);
                 }
 
                 // Clear call chain list if no other call in this cycle was made.
-                if (lLastCallChainLength === this.mCurrentCallChain.length) {
-                    this.mCurrentCallChain.clear();
+                if (lLastCallChainLength === this.mCallChain.length) {
+                    this.mCallChain.clear();
+
+                    // Release chain complete hook.
+                    this.releaseChainCompleteHooks();
                 }
             } catch (pException) {
                 // Unblock further calls and clear call chain.
-                this.mCurrentCallChain.clear();
+                this.mCallChain.clear();
 
                 // Cancel next call cycle.
                 globalThis.cancelAnimationFrame(this.mNextSheduledTask);
 
                 // Permanently block another execution for this loop detection handler. Prevents script locks.
-                this.mAnotherTaskSheduled = true;
+                this.mHasActiveTask = true;
 
                 // Execute on error.
                 this.mOnError?.(pException);
+
+                // Release chain complete hook with error.
+                this.releaseChainCompleteHooks(pException);
             }
         };
 
-        // Call on next frame. 
         // Do not trigger interaction detection on requestAnimationFrame. The task function should handle the actual interaction zone scope.
-        this.mNextSheduledTask = new InteractionZone('Sheduled-Update', { trigger: <InteractionResponseType><unknown>UpdateTrigger.None }).execute(globalThis.requestAnimationFrame, lAsynchronTask);
+        return new InteractionZone('Sheduled-Update', { trigger: <InteractionResponseType><unknown>UpdateTrigger.None, isolate: true }).execute(async () => {
+            // Skip asynchron task when currently a call is sheduled.
+            if (this.mHasActiveTask) {
+                // Add then chain to current promise task. Task is resolved on completing all updates or rejected on any error. 
+                return this.addChainCompleteHook();
+            }
+
+            // Create and expand call chain.
+            this.mCallChain.push(pReason);
+
+            // Lock creation of a new task until current task is started.
+            this.mHasActiveTask = true;
+
+            // Call on next frame. 
+            this.mNextSheduledTask = globalThis.requestAnimationFrame(lAsynchronTask);
+
+            // Add then chain to current promise task. Task is resolved on completing all updates or rejected on any error. 
+            return this.addChainCompleteHook();
+        });
+    }
+
+    /**
+     * Wait for the component update.
+     * Returns Promise<false> if there is currently no update cycle.
+     */
+    private async addChainCompleteHook(): Promise<void> {
+        // Add new callback to waiter line.
+        return new Promise<void>((pResolve, pReject) => {
+            this.mChainCompleteHookReleaseList.push((pError: any) => {
+                if (pError) {
+                    pReject(pError);
+                } else {
+                    pResolve();
+                }
+            });
+        });
+    }
+
+    /**
+     * Release all chain complete hooks.
+     * Pass on any thrown error to all hook releases.
+     * 
+     * @param pError - Error object.
+     */
+    private releaseChainCompleteHooks(pError?: any): void {
+        // Release all waiter.
+        for (const lHookRelease of this.mChainCompleteHookReleaseList) {
+            lHookRelease(pError);
+        }
+
+        // Clear hook release list.
+        this.mChainCompleteHookReleaseList.clear();
     }
 }
 
 type ErrorHandler = (pError: any) => void;
+type ChainCompleteHookRelease = (pError: any) => void;
 
 export class LoopError extends Error {
     private readonly mChain: Array<InteractionReason>;

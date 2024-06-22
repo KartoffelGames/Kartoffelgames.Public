@@ -76,13 +76,13 @@ export class ForInstructionModule implements IInstructionOnUpdate {
         // Only proceed if value is added to html element.
         if (typeof lExpressionResult === 'object' && lExpressionResult !== null || Array.isArray(lExpressionResult)) {
             // Create entries from object, generator or array. In Silent zone.
-            const lListObjectEntries: Array<[string, any]> = this.mUpdateHandler.disableInteractionTrigger(() => {
+            const lListObjectEntries: Array<[string, any]> = (() => {
                 if (Symbol.iterator in lExpressionResult) {
                     return Object.entries([...<Iterable<any>>lExpressionResult]);
                 } else {
                     return Object.entries(lExpressionResult);
                 }
-            });
+            })();
 
             // Skip if values are the same.
             if (this.compareEntires(lListObjectEntries, this.mLastEntries)) {

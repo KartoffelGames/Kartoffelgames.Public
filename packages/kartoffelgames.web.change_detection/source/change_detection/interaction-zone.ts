@@ -1,4 +1,4 @@
-import { Stack } from '@kartoffelgames/core.data';
+import { Dictionary } from '@kartoffelgames/core.data';
 import { Patcher } from './asynchron_tracker/patcher/patcher';
 import { InteractionResponseType } from './enum/interaction-response-type.enum';
 import { ErrorAllocation } from './error-allocation';
@@ -11,6 +11,7 @@ import { InteractionDetectionProxy } from './synchron_tracker/interaction-detect
  */
 @IgnoreInteractionDetection
 export class InteractionZone {
+    // Needs to be isolated to prevent parent listener execution.
     private static mCurrentZone: InteractionZone = new InteractionZone('Default', { trigger: InteractionResponseType.Any, isolate: true });
 
     /**
@@ -90,12 +91,13 @@ export class InteractionZone {
         return lInteractionDetectionProxy.proxy;
     }
 
-    private readonly mChangeListener: Set<ChangeListener>;
-    private readonly mErrorListener: Set<ErrorListener>;
+    private readonly mChangeListener: Dictionary<ChangeListener, InteractionZone>;
+    private readonly mErrorListener: Dictionary<ErrorListener, InteractionZone>;
+    private readonly mIsolated: boolean;
     private readonly mName: string;
     private readonly mParent: InteractionZone | null;
-    private readonly mParentStack: Stack<InteractionZone>;
     private readonly mResponseType: InteractionResponseType;
+
 
     /**
      * Get interaction detection name.
@@ -113,14 +115,6 @@ export class InteractionZone {
     }
 
     /**
-     * Get stack of parents.
-     * Currentzone on {@link Stack.top}
-     */
-    public get parentStack(): Stack<InteractionZone> {
-        return this.mParentStack.clone();
-    }
-
-    /**
      * Constructor.
      * Creates new interaction zone. Detects all asynchron executions inside execution zone.
      * Except IndexDB calls.
@@ -131,12 +125,9 @@ export class InteractionZone {
      * @param pSettings - Interaction zone settings.
      */
     public constructor(pName: string, pSettings?: InteractionZoneConstructorSettings) {
-        // Patch for execution zone.
-        Patcher.patch(globalThis);
-
         // Initialize listener lists
-        this.mChangeListener = new Set<ChangeListener>();
-        this.mErrorListener = new Set<ErrorListener>();
+        this.mChangeListener = new Dictionary<ChangeListener, InteractionZone>();
+        this.mErrorListener = new Dictionary<ErrorListener, InteractionZone>();
 
         // Set name of zone. Used only for debugging and labeling.
         this.mName = pName;
@@ -145,14 +136,10 @@ export class InteractionZone {
         this.mResponseType = pSettings?.trigger ?? InteractionResponseType.Any;
 
         // Save parent when not isolated.
-        this.mParent = null;
-        if (!pSettings?.isolate) {
-            this.mParent = InteractionZone.mCurrentZone;
-        }
+        this.mParent = InteractionZone.mCurrentZone ?? null;
 
-        // Clone parent stack and push itself as top.
-        this.mParentStack = this.mParent?.mParentStack.clone() ?? new Stack<InteractionZone>();
-        this.mParentStack.push(this);
+        // Save isolation state.
+        this.mIsolated = pSettings?.isolate === true;
     }
 
     /**
@@ -163,7 +150,7 @@ export class InteractionZone {
      * @param pListener - Listener.
      */
     public addErrorListener(pListener: ErrorListener): void {
-        this.mErrorListener.add(pListener);
+        this.mErrorListener.add(pListener, InteractionZone.current);
     }
 
     /**
@@ -173,7 +160,7 @@ export class InteractionZone {
      * @param pListener - Listener.
      */
     public addInteractionListener(pListener: ChangeListener): void {
-        this.mChangeListener.add(pListener);
+        this.mChangeListener.add(pListener, InteractionZone.current);
     }
 
     /**
@@ -182,7 +169,7 @@ export class InteractionZone {
      * @param pFunction - Function.
      * @param pArgs - function execution arguments.
      */
-    public execute<T>(pFunction: (...pArgs: Array<any>) => T, ...pArgs: Array<any>): T {
+    public execute<T extends (...pArgs: Array<any>) => any>(pFunction: T, ...pArgs: Parameters<T>): ReturnType<T> {
         const lLastZone: InteractionZone = InteractionZone.mCurrentZone;
 
         // Set this zone as execution zone and execute function.
@@ -228,8 +215,8 @@ export class InteractionZone {
     private callErrorListener(pError: any): boolean {
         // Dispatch error event in current zone.
         const lErrorSuppressed: boolean = this.execute(() => {
-            for (const lListener of this.mErrorListener) {
-                if (lListener.call(this, pError) === false) {
+            for (const [lListener, lZone] of this.mErrorListener.entries()) {
+                if (lZone.execute(() => lListener.call(this, pError)) === false) {
                     return true;
                 }
             }
@@ -242,8 +229,13 @@ export class InteractionZone {
             return true;
         }
 
-        // Call parent.
-        return this.parent?.callErrorListener(pError) ?? false;
+        // Skip parent execution when isolated.
+        if (this.mIsolated) {
+            return false;
+        }
+
+        // Parent is allways not null. Root (Default.Zone) is isolated and therefore this line is not executed.
+        return this.parent!.callErrorListener(pError);
     }
 
     /**
@@ -263,13 +255,21 @@ export class InteractionZone {
         if (!pInteractionReason.addDispatchedZone(this)) {
             // Call all local listener in current zone.
             this.execute(() => {
-                for (const lListener of this.mChangeListener) {
-                    lListener.call(this, pInteractionReason);
+                for (const [lListener, lZone] of this.mChangeListener.entries()) {
+                    lZone.execute(() => {
+                        lListener.call(this, pInteractionReason);
+                    });
                 }
             });
         }
 
-        return this.parent?.callInteractionListener(pInteractionReason) ?? true;
+        // Skip parent execution when isolated.
+        if (this.mIsolated) {
+            return true;
+        }
+
+        // Parent is allways not null. Root (Default.Zone) is isolated and therefore this line is not executed.
+        return this.parent!.callInteractionListener(pInteractionReason);
     }
 }
 

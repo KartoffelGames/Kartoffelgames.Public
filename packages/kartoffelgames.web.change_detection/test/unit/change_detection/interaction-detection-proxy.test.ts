@@ -1016,7 +1016,7 @@ describe('InteractionDetectionProxy', () => {
         it('-- Map', () => {
             // Setup.
             const lProxy: Map<string, string> = new InteractionDetectionProxy(new Map()).proxy;
-            const lInteractionZone: InteractionZone = new InteractionZone('CD');
+            const lInteractionZone: InteractionZone = new InteractionZone('CD', { trigger: InteractionResponseType.FunctionCallStart | InteractionResponseType.FunctionCallEnd | InteractionResponseType.NativeFunctionCall });
 
             // Setup. InteractionZone.
             let lResponseType: InteractionResponseType = InteractionResponseType.None;
@@ -1039,7 +1039,7 @@ describe('InteractionDetectionProxy', () => {
             it('-- Property set', () => {
                 // Setup.
                 const lProxy: Array<string> = new InteractionDetectionProxy(new Array<string>()).proxy;
-                const lInteractionZone: InteractionZone = new InteractionZone('CD');
+                const lInteractionZone: InteractionZone = new InteractionZone('CD', { trigger: InteractionResponseType.PropertySetStart | InteractionResponseType.PropertySetEnd });
 
                 // Setup. InteractionZone.
                 let lResponseType: InteractionResponseType = InteractionResponseType.None;
@@ -1061,7 +1061,7 @@ describe('InteractionDetectionProxy', () => {
             it('-- Push set', () => {
                 // Setup.
                 const lProxy: Array<string> = new InteractionDetectionProxy(new Array<string>()).proxy;
-                const lInteractionZone: InteractionZone = new InteractionZone('CD');
+                const lInteractionZone: InteractionZone = new InteractionZone('CD', { trigger: InteractionResponseType.FunctionCallStart | InteractionResponseType.FunctionCallEnd | InteractionResponseType.NativeFunctionCall });
 
                 // Setup. InteractionZone.
                 let lResponseType: InteractionResponseType = InteractionResponseType.None;
@@ -1084,7 +1084,7 @@ describe('InteractionDetectionProxy', () => {
         it('-- Set', () => {
             // Setup.
             const lProxy: Set<string> = new InteractionDetectionProxy(new Set<string>()).proxy;
-            const lInteractionZone: InteractionZone = new InteractionZone('CD');
+            const lInteractionZone: InteractionZone = new InteractionZone('CD', { trigger: InteractionResponseType.FunctionCallStart | InteractionResponseType.FunctionCallEnd | InteractionResponseType.NativeFunctionCall });
 
             // Setup. InteractionZone.
             let lResponseType: InteractionResponseType = InteractionResponseType.None;
@@ -1106,7 +1106,7 @@ describe('InteractionDetectionProxy', () => {
         it('-- TypedArray', () => {
             // Setup.
             const lProxy: Int8Array = new InteractionDetectionProxy(new Int8Array(1)).proxy;
-            const lInteractionZone: InteractionZone = new InteractionZone('CD');
+            const lInteractionZone: InteractionZone = new InteractionZone('CD', { trigger: InteractionResponseType.PropertySetStart | InteractionResponseType.PropertySetEnd });
 
             // Setup. InteractionZone.
             let lResponseType: InteractionResponseType = InteractionResponseType.None;

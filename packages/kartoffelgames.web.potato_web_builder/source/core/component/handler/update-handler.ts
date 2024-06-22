@@ -131,27 +131,6 @@ export class UpdateHandler {
     }
 
     /**
-     * Execute function with custom interaction trigger.
-     * 
-     * @param pFunction - Function.
-     * @param pTrigger - Interaction detection trigger.
-     * 
-     * // TODO: Also remove this... excludeInteractionTrigger
-     * 
-     * @remarks 
-     * Nesting {@link disableInteractionTrigger} and {@link enableInteractionTrigger} is allowed.
-     */
-    public excludeInteractionTrigger<T>(pFunction: () => T, pTrigger: InteractionResponseType): T {
-        // Exclude trigger by AND a Negated pTrigger => 1010 & ~0010 => 1010 & 1101 => 1000
-        const lCustomZone: InteractionZone = new InteractionZone('Custom-' + this.mInteractionZone.name, { trigger: UpdateTrigger.Default & ~pTrigger });
-
-        // Call function in custom zone in current component stack.
-        return InteractionZone.restore(this.mComponentZoneStack, () => {
-            return lCustomZone.execute(pFunction);
-        });
-    }
-
-    /**
      * Register object and pass on update events.
      * 
      * @param pObject - Object.

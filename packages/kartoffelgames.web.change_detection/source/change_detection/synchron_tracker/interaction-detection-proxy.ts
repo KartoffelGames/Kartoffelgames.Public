@@ -1,6 +1,6 @@
 import { InteractionResponseType } from '../enum/interaction-response-type.enum';
 import { InteractionReason } from '../interaction-reason';
-import { InteractionZone, InteractionZoneStack } from '../interaction-zone';
+import { InteractionZone } from '../interaction-zone';
 import { IgnoreInteractionDetection } from './ignore-interaction-detection.decorator';
 
 /**
@@ -46,7 +46,7 @@ export class InteractionDetectionProxy<T extends object> {
         return InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.get(lOriginal);
     }
 
-    private readonly mListenerZonesStack!: Set<InteractionZoneStack>;
+    private readonly mListenerZones!: Set<InteractionZone>;
     private readonly mProxyObject!: T;
 
     /**
@@ -69,7 +69,7 @@ export class InteractionDetectionProxy<T extends object> {
             return lWrapper;
         }
 
-        this.mListenerZonesStack = new Set<InteractionZoneStack>();
+        this.mListenerZones = new Set<InteractionZone>();
 
         // Prevent interaction zones from beeing proxied.
         if (InteractionDetectionProxy.IGNORED_CLASSES.has(Object.getPrototypeOf(pTarget)?.constructor)) {
@@ -89,16 +89,16 @@ export class InteractionDetectionProxy<T extends object> {
     }
 
     /**
-     * Attach zone stack that listens for every interaction dispatched.
+     * Attach zone that listens for every interaction dispatched.
      * 
-     * @param pZoneStack - Interaction zone stack.
+     * @param pZone - Interaction zone.
      */
-    public addListenerZone(pZoneStack: InteractionZone): void {
-        this.mListenerZonesStack.add(pZoneStack);
+    public addListenerZone(pZone: InteractionZone): void {
+        this.mListenerZones.add(pZone);
     }
 
     /**
-     * Convert object and function targets into proxies linked to listener zone stacks.
+     * Convert object and function targets into proxies linked to listener zones.
      * 
      * @param pTarget - Target value.
      *  
@@ -112,8 +112,8 @@ export class InteractionDetectionProxy<T extends object> {
 
         // But when it is a object or a function, than wrap it into another detection proxy and passthrough any interaction.
         const lNestedProxy: InteractionDetectionProxy<any> = new InteractionDetectionProxy(pTarget);
-        for (const lCallbackStack of this.mListenerZonesStack) {
-            lNestedProxy.addListenerZone(lCallbackStack);
+        for (const lCallbackZones of this.mListenerZones) {
+            lNestedProxy.addListenerZone(lCallbackZones);
         }
 
         return lNestedProxy.proxy;
@@ -279,8 +279,8 @@ export class InteractionDetectionProxy<T extends object> {
         }
 
         // Dispatch reason to all attached zones. Ignore current stack but push attached zone.
-        for (const lZoneStack of this.mListenerZonesStack) {
-            InteractionZone.restore(lZoneStack, () => {
+        for (const lZone of this.mListenerZones) {
+            lZone.execute(() => {
                 InteractionZone.dispatchInteractionEvent(lReason);
             });
         }

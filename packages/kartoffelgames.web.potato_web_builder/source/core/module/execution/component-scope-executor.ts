@@ -1,7 +1,5 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
 import { LayerValues } from '../../component/values/layer-values';
-import { UpdateTrigger } from '../../../enum/update-trigger.enum';
 
 /**
  * Executes string in set component values scope.
@@ -19,22 +17,6 @@ export class ComponentScopeExecutor {
 
         const lEvaluatedFunction: () => any = ComponentScopeExecutor.createEvaluationFunktion(pExpression, lExtendedData);
         return lEvaluatedFunction.call(pValues.data);
-    }
-
-    /**
-     * Execute string in component processor context.
-     * Does not trigger change events.
-     * 
-     * // TODO: Remove silent execution, as every module should handle that itself.
-     * 
-     * @param pExpression - Expression to execute.
-     * @param pValues - Current component values.
-     * @param pExtenedData - Extended data that are only exist for this execution.
-     */
-    public static executeSilent(pExpression: string, pValues: LayerValues, pExtenedData?: Dictionary<string, any>): any {
-        return new InteractionZone('Silent-ComponentScopeExecutor', { trigger: <InteractionResponseType><unknown>UpdateTrigger.None }).execute(() => {
-            return ComponentScopeExecutor.execute(pExpression, pValues, pExtenedData);
-        });
     }
 
     /**

@@ -39,7 +39,7 @@ export class MustacheExpressionModule implements IExpressionOnUpdate {
         const lExpression = this.mExpressionValue;
 
         // Execute string
-        const lExecutionResult: any = ComponentScopeExecutor.executeSilent(lExpression, this.mValueHandler);
+        const lExecutionResult: any = ComponentScopeExecutor.execute(lExpression, this.mValueHandler);
 
         return lExecutionResult?.toString();
     }

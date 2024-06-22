@@ -16,7 +16,7 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
 @PwbAttributeModule({
     access: AccessMode.Read,
     selector: /^\[[\w$]+\]$/,
-    trigger: UpdateTrigger.Default
+    trigger: UpdateTrigger.NoSyncCalls
 })
 export class OneWayBindingAttributeModule implements IAttributeOnUpdate {
     private readonly mExecutionString: string;
@@ -50,7 +50,7 @@ export class OneWayBindingAttributeModule implements IAttributeOnUpdate {
      * @returns false for 'do not update'.
      */
     public onUpdate(): boolean {
-        const lExecutionResult: any = ComponentScopeExecutor.executeSilent(this.mExecutionString, this.mValueHandler);
+        const lExecutionResult: any = ComponentScopeExecutor.execute(this.mExecutionString, this.mValueHandler);
 
         if (lExecutionResult !== this.mLastValue) {
             // Save last value.

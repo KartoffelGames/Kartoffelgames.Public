@@ -16,7 +16,7 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
  */
 @PwbInstructionModule({
     instructionType: 'if',
-    trigger: UpdateTrigger.Default
+    trigger: UpdateTrigger.None
 })
 export class IfInstructionModule implements IInstructionOnUpdate {
     private readonly mExpression: string;
@@ -42,7 +42,7 @@ export class IfInstructionModule implements IInstructionOnUpdate {
      * @returns if element of module should be updated.
      */
     public onUpdate(): InstructionResult | null {
-        const lExecutionResult: any = ComponentScopeExecutor.executeSilent(this.mExpression, this.mValueHandler);
+        const lExecutionResult: any = ComponentScopeExecutor.execute(this.mExpression, this.mValueHandler);
 
         if (!!lExecutionResult !== this.mLastBoolean) {
             this.mLastBoolean = !!lExecutionResult;

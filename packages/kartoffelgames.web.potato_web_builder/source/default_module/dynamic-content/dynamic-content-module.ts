@@ -17,7 +17,7 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
  */
 @PwbInstructionModule({
     instructionType: 'dynamic-content',
-    trigger: UpdateTrigger.Default
+    trigger: UpdateTrigger.None
 })
 export class DynamicContentInstructionModule implements IInstructionOnUpdate {
     private readonly mExpression: string;
@@ -46,7 +46,7 @@ export class DynamicContentInstructionModule implements IInstructionOnUpdate {
      */
     public onUpdate(): InstructionResult | null {
         // Execute content callback silent.
-        const lTemplateResult: PwbTemplate = ComponentScopeExecutor.executeSilent(this.mExpression, this.mLayerValues);
+        const lTemplateResult: PwbTemplate = ComponentScopeExecutor.execute(this.mExpression, this.mLayerValues);
 
         // Validate correct result.
         if (!lTemplateResult! || !(lTemplateResult instanceof PwbTemplate)) {
@@ -70,6 +70,5 @@ export class DynamicContentInstructionModule implements IInstructionOnUpdate {
         lModuleResult.addElement(lTemplateResult, new LayerValues(this.mLayerValues));
 
         return lModuleResult;
-
     }
 }

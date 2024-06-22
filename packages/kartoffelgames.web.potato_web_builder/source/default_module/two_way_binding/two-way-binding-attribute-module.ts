@@ -14,7 +14,7 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
 @PwbAttributeModule({
     access: AccessMode.ReadWrite,
     selector: /^\[\([[\w$]+\)\]$/,
-    trigger: UpdateTrigger.Default
+    trigger: UpdateTrigger.NoSyncCalls
 })
 export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
     private readonly mAttributeKey: string;
@@ -52,7 +52,7 @@ export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
      */
     public onUpdate(): boolean {
         // Try to update view only on module initialize.
-        const lCurrentDataValue: any = ComponentScopeExecutor.executeSilent(this.mAttributeValue, this.mLayerValues);
+        const lCurrentDataValue: any = ComponentScopeExecutor.execute(this.mAttributeValue, this.mLayerValues);
 
         // Check for changes in this value.
         if (lCurrentDataValue !== this.mLastDataValue) {

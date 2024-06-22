@@ -20,7 +20,7 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
  */
 @PwbInstructionModule({
     instructionType: 'for',
-    trigger: UpdateTrigger.Default
+    trigger: UpdateTrigger.None
 })
 export class ForInstructionModule implements IInstructionOnUpdate {
     private readonly mExpression: ForOfExpression;
@@ -71,7 +71,7 @@ export class ForInstructionModule implements IInstructionOnUpdate {
         const lModuleResult: InstructionResult = new InstructionResult();
 
         // Try to get list object from component values.
-        const lExpressionResult: { [key: string]: any; } = ComponentScopeExecutor.executeSilent(this.mExpression.value, this.mLayerValues);
+        const lExpressionResult: { [key: string]: any; } = ComponentScopeExecutor.execute(this.mExpression.value, this.mLayerValues);
 
         // Only proceed if value is added to html element.
         if (typeof lExpressionResult === 'object' && lExpressionResult !== null || Array.isArray(lExpressionResult)) {
@@ -122,7 +122,7 @@ export class ForInstructionModule implements IInstructionOnUpdate {
             lExternalValues.add('$index', pObjectKey);
 
             // Execute index expression. Expression is set when index name is set.
-            const lIndexExpressionResult: any = ComponentScopeExecutor.executeSilent(<string>pExpression.indexExpression, lComponentValues, lExternalValues);
+            const lIndexExpressionResult: any = ComponentScopeExecutor.execute(<string>pExpression.indexExpression, lComponentValues, lExternalValues);
 
             // Set custom index name as temporary value.
             lComponentValues.setTemporaryValue(pExpression.indexName, lIndexExpressionResult);

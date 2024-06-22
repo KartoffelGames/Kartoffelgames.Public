@@ -273,7 +273,7 @@ describe('PwbEventListener', () => {
         expect(lErrorMessage).to.equal('Event listener property must be of type Function');
     });
 
-    it('-- Use component element on instruction module', async () => {
+    it('-- Dont call event listener for instruction modules.', async () => {
         // Process.
         let lEventCalled: boolean = false;
 
@@ -314,12 +314,10 @@ describe('PwbEventListener', () => {
         const lDivElement: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
 
         // Evaluation after inner click..
-        lDivElement.dispatchEvent(new Event('click', { bubbles: false }));
-        expect(lEventCalled).to.be.false;
+        lDivElement.dispatchEvent(new Event('click', { bubbles: true }));
 
         // Evaluation after component click.
-        lComponent.dispatchEvent(new Event('click', { bubbles: false }));
-        expect(lEventCalled).to.be.true;
+        expect(lEventCalled).to.be.false;
     });
 
     it('-- Native listener inherited from parent', async () => {

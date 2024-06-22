@@ -63,8 +63,12 @@ export class UpdateHandler {
         this.mInteractionZone.addInteractionListener(this.mInteractionDetectionListener);
 
         // Save current component zone stack and push new interaction zone to it.
-        this.mComponentZoneStack = pInteractionStack ?? InteractionZone.save();
-        this.mComponentZoneStack.push(this.mInteractionZone);
+        // Truncate stack when interaction zone is isolated.
+        this.mComponentZoneStack = InteractionZone.restore(pInteractionStack ?? InteractionZone.save(), () => {
+            return this.mInteractionZone.execute(() => {
+                return InteractionZone.save();
+            });
+        });
 
         // Define error handler.
         this.mLoopDetectionHandler.onError = (pError: any) => {

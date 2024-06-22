@@ -181,7 +181,7 @@ describe('HtmlComponent', () => {
         ], true);
     });
 
-    it('-- Manual update. User triggered update.', async () => {
+    it('-- Manual update. User triggered update', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),

@@ -37,7 +37,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         // Init injection history with updatehandler.
         super({
             processorConstructor: pParameter.processorConstructor,
-            interactionTrigger: UpdateTrigger.Default,
+            interactionTrigger: ((pParameter.updateMode & UpdateMode.Manual) === 0) ? UpdateTrigger.Default : UpdateTrigger.None,
             isolateInteraction: (pParameter.updateMode & UpdateMode.Isolated) !== 0
         });
 
@@ -76,12 +76,10 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         this.setProcessorAttributes(ComponentReference, this);
         this.setProcessorAttributes(ComponentUpdateHandlerReference, this.updateHandler);
 
-        // Attach automatic update listener to handler when this entity is not set to be manual.
-        if ((pParameter.updateMode & UpdateMode.Manual) === 0) {
-            this.updateHandler.addUpdateListener(() => {
-                this.update();
-            });
-        }
+        // Attach automatic update listener to handler.
+        this.updateHandler.addUpdateListener(() => {
+            this.update();
+        });
     }
 
     /**

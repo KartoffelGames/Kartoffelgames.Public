@@ -177,8 +177,10 @@ export class UpdateHandler {
      */
     public update(): void {
         const lReason: InteractionReason = new InteractionReason(InteractionResponseType.Custom, this, Symbol('Manual Update'));
+
         // Request update to dispatch change events on other components.
         this.requestUpdate(lReason);
+
         // Shedule an update task.
         this.sheduleUpdateTask(lReason);
     }
@@ -187,7 +189,7 @@ export class UpdateHandler {
      * Wait for the component update.
      * Returns Promise<false> if there is currently no update cycle.
      */
-    public async waitForUpdate(): Promise<boolean> { // TODO: Find a good way to get rid of this.
+    public async waitForUpdate(): Promise<boolean> { // TODO: Find a good way to get rid of this. Maybe attach promise to update()?
         if (!this.mLoopDetectionHandler.hasActiveTask) {
             return false;
         }

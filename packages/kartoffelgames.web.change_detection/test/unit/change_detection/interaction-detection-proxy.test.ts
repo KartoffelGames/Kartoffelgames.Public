@@ -549,9 +549,7 @@ describe('InteractionDetectionProxy', () => {
             const lDetectionProxy: InteractionDetectionProxy<{ a: number; }> = new InteractionDetectionProxy(lOriginalObject);
 
             // Setup. Add proxy zone as listener.
-            lProxyZone.execute(() => {
-                lDetectionProxy.addListenerZone(InteractionZone.save());
-            });
+            lDetectionProxy.addListenerZone(lProxyZone);
 
             // Process.
             let lInteractionCounter: number = 0;
@@ -568,7 +566,7 @@ describe('InteractionDetectionProxy', () => {
         });
     });
 
-    describe('Functionality: attachZoneStack', () => {
+    describe('Functionality: attachZone', () => {
         it('-- Dispatch interaction to attached zone', async () => {
             // Setup.
             const lOriginalObject: { a: number; } = { a: 1 };
@@ -584,10 +582,8 @@ describe('InteractionDetectionProxy', () => {
                 });
             });
 
-            // Process. Attach zone stack.
-            lInteractionZone.execute(() => {
-                lDetectionProxy.addListenerZone(InteractionZone.save());
-            });
+            // Process. Attach zone.
+            lDetectionProxy.addListenerZone(lInteractionZone);
 
             // Process. Trigger changes.
             lDetectionProxy.proxy.a = 22;
@@ -619,10 +615,8 @@ describe('InteractionDetectionProxy', () => {
                 });
             });
 
-            // Process. Attach zone stack.
-            lAttachedInteractionZone.execute(() => {
-                lDetectionProxy.addListenerZone(InteractionZone.save());
-            });
+            // Process. Attach zone.
+            lDetectionProxy.addListenerZone(lAttachedInteractionZone);
 
             // Trigger changes.
             lCurrentInteractionZone.execute(() => {
@@ -648,9 +642,8 @@ describe('InteractionDetectionProxy', () => {
                 }
             });
             // Process.
+            lDetectionProxy.addListenerZone(lInteractionZone);
             lInteractionZone.execute(() => {
-                lDetectionProxy.addListenerZone(InteractionZone.save());
-
                 lDetectionProxy.proxy.a = 22;
             });
 
@@ -673,9 +666,7 @@ describe('InteractionDetectionProxy', () => {
             });
 
             // Process.
-            lAttachedZone.execute(() => {
-                lDetectionProxy.addListenerZone(InteractionZone.save());
-            });
+            lDetectionProxy.addListenerZone(lAttachedZone);
 
             lSilentZone.execute(() => {
                 lDetectionProxy.proxy.a = 22;

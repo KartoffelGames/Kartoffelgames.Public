@@ -55,7 +55,7 @@ describe('Patcher', () => {
         });
     });
 
-    describe('Static Method: attachZoneStack', () => {
+    describe('Static Method: attachZone', () => {
         it('-- Default', async () => {
             // Setup.
             const lZone: InteractionZone = new InteractionZone('Zone');
@@ -63,7 +63,7 @@ describe('Patcher', () => {
 
             // Process.
             lZone.execute(() => {
-                Patcher.attachZone(lObject, InteractionZone.save());
+                Patcher.attachZone(lObject, InteractionZone.current);
             });
 
             // Process.
@@ -88,12 +88,8 @@ describe('Patcher', () => {
             const lObject = document.createElement('div');
 
             // Process.
-            lZone.execute(() => {
-                const lStack = InteractionZone.save();
-
-                Patcher.attachZone(lObject, lStack);
-                Patcher.attachZone(lObject, lStack);
-            });
+            Patcher.attachZone(lObject, lZone);
+            Patcher.attachZone(lObject, lZone);
 
             // Process.
             let lInteractionCounter: number = 0;
@@ -120,10 +116,10 @@ describe('Patcher', () => {
 
             // Process.
             lZoneOne.execute(() => {
-                Patcher.attachZone(lObject, InteractionZone.save());
+                Patcher.attachZone(lObject, InteractionZone.current);
             });
             lZoneTwo.execute(() => {
-                Patcher.attachZone(lObject, InteractionZone.save());
+                Patcher.attachZone(lObject, InteractionZone.current);
             });
 
             // Process.

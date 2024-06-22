@@ -1,6 +1,6 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
-import { ErrorListener, InteractionZoneStack } from '@kartoffelgames/web.change-detection/library/source/change_detection/interaction-zone';
+import { ErrorListener } from '@kartoffelgames/web.change-detection/library/source/change_detection/interaction-zone';
 import { ComponentProcessorConstructor } from '../core/component/component';
 import { ComponentInformation } from '../core/component/component-information';
 import { PwbTemplate } from '../core/component/template/nodes/pwb-template';
@@ -16,15 +16,16 @@ export class PwbApp {
     /**
      * Get app of interaction zone.
      * 
-     * @param pInteractionZoneStack - Interaction zone stack.
+     * @param pInteractionZone - Interaction zone stack.
      */
-    public static getAppOfZone(pInteractionZoneStack: InteractionZoneStack): PwbApp | undefined {
+    public static getAppOfZone(pInteractionZone: InteractionZone): PwbApp | undefined {
         // Move zone stack down.
-        for (const lZone of pInteractionZoneStack.entries()) {
-            if (PwbApp.mInteractionZoneToApp.has(lZone)) {
-                return PwbApp.mInteractionZoneToApp.get(lZone);
+        let lZoneStackItem: InteractionZone | null = pInteractionZone;
+        do {
+            if (PwbApp.mInteractionZoneToApp.has(lZoneStackItem)) {
+                return PwbApp.mInteractionZoneToApp.get(lZoneStackItem);
             }
-        }
+        } while ((lZoneStackItem = lZoneStackItem.parent) !== null);
 
         return undefined;
     }

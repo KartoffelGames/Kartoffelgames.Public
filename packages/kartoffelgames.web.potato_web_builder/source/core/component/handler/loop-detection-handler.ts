@@ -1,6 +1,5 @@
 import { List } from '@kartoffelgames/core.data';
 import { InteractionReason, InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
-import { InteractionZoneStack } from '@kartoffelgames/web.change-detection/library/source/change_detection/interaction-zone';
 import { UpdateTrigger } from '../../../enum/update-trigger.enum';
 
 /**
@@ -58,7 +57,7 @@ export class LoopDetectionHandler {
      */
     public async sheduleTask<T>(pUserFunction: () => T, pReason: InteractionReason): Promise<void> {
         // Save current execution zone stack. To restore it for user function call.
-        const lCurrentZoneStack: InteractionZoneStack = InteractionZone.save();
+        const lCurrentZone: InteractionZone = InteractionZone.current;
 
         // Function for asynchron call.
         const lAsynchronTask = () => {
@@ -70,7 +69,7 @@ export class LoopDetectionHandler {
 
             try {
                 // Call task. If no other call was sheduled during this call, the length will be the same after. 
-                InteractionZone.restore(lCurrentZoneStack, pUserFunction);
+                lCurrentZone.execute(pUserFunction);
 
                 // Throw if too many calles were chained. 
                 if (this.mCallChain.length > this.mMaxStackSize) {

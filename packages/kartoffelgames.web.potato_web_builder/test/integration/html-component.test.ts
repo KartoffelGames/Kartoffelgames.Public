@@ -15,6 +15,7 @@ import { UpdateTrigger } from '../../source/enum/update-trigger.enum';
 import '../mock/request-animation-frame-mock-session';
 import '../utility/chai-helper';
 import { TestUtil } from '../utility/test-util';
+import { ComponentInformation } from '../../source/core/component/component-information';
 
 describe('HtmlComponent', () => {
     it('-- Single element', async () => {
@@ -163,7 +164,7 @@ describe('HtmlComponent', () => {
         expect(lStyleElement.textContent).to.equal(lStyleContent);
     });
 
-    it('-- Manual update. No initial update.', async () => {
+    it('-- Manual update. No initial update', async () => {
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
@@ -173,7 +174,9 @@ describe('HtmlComponent', () => {
         class TestComponent { }
 
         // Process. Create element.
-        const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
+        const lComponentConstructor: CustomElementConstructor = ComponentInformation.ofConstructor(TestComponent).elementConstructor;
+        const lComponent: ComponentElement = new lComponentConstructor() as any;
+        document.body.appendChild(lComponent);
 
         // Evaluation.
         expect(lComponent).to.have.componentStructure([

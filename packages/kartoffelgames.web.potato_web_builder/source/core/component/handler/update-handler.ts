@@ -1,6 +1,5 @@
 import { List } from '@kartoffelgames/core.data';
 import { IgnoreInteractionDetection, InteractionReason, InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
-import { InteractionZoneStack } from '@kartoffelgames/web.change-detection/library/source/change_detection/interaction-zone';
 import { UpdateTrigger } from '../../../enum/update-trigger.enum';
 import { LoopDetectionHandler } from './loop-detection-handler';
 
@@ -12,7 +11,6 @@ import { LoopDetectionHandler } from './loop-detection-handler';
  */
 @IgnoreInteractionDetection
 export class UpdateHandler {
-    private readonly mComponentZoneStack: InteractionZoneStack;
     private mEnabled: boolean;
     private readonly mInteractionDetectionListener: (pReason: InteractionReason) => void;
     private readonly mInteractionZone: InteractionZone;
@@ -36,37 +34,31 @@ export class UpdateHandler {
     }
 
     /**
-     * Get interaction stack of update handler.
+     * Get zone where updates are tracked.
      */
-    public get interactionStack(): InteractionZoneStack {
-        return this.mComponentZoneStack.clone();
+    public get zone(): InteractionZone {
+        return this.mInteractionZone;
     }
 
     /**
      * Constructor.
      * @param pUpdateScope - Update scope.
      */
-    public constructor(pIsolatedInteraction: boolean, pInteractionTrigger: UpdateTrigger, pInteractionStack?: InteractionZoneStack) {
+    public constructor(pIsolatedInteraction: boolean, pInteractionTrigger: UpdateTrigger, pParentZone?: InteractionZone) {
         this.mUpdateListener = new List<UpdateListener>();
         this.mEnabled = false;
         this.mLoopDetectionHandler = new LoopDetectionHandler(10);
 
-        // Create isolated or default zone.
-        this.mInteractionZone = new InteractionZone('CapsuledZone', { isolate: pIsolatedInteraction, trigger: <InteractionResponseType><unknown>pInteractionTrigger });
+        // Create isolated or default zone as parent zone or, when not specified, current zones child.
+        this.mInteractionZone = (pParentZone ?? InteractionZone.current).execute(() => {
+            return new InteractionZone('CapsuledZone', { isolate: pIsolatedInteraction, trigger: <InteractionResponseType><unknown>pInteractionTrigger });
+        });
 
         // Shedule an update on interaction zone.
         this.mInteractionDetectionListener = (pReason: InteractionReason) => { this.sheduleUpdateTask(pReason); };
 
         // Add listener for interactions.
         this.mInteractionZone.addInteractionListener(this.mInteractionDetectionListener);
-
-        // Save current component zone stack and push new interaction zone to it.
-        // Truncate stack when interaction zone is isolated.
-        this.mComponentZoneStack = InteractionZone.restore(pInteractionStack ?? InteractionZone.save(), () => {
-            return this.mInteractionZone.execute(() => {
-                return InteractionZone.save();
-            });
-        });
     }
 
     /**
@@ -101,7 +93,7 @@ export class UpdateHandler {
      * Nesting {@link disableInteractionTrigger} and {@link enableInteractionTrigger} is allowed.
      */
     public enableInteractionTrigger<T>(pFunction: () => T): T {
-        return InteractionZone.restore(this.mComponentZoneStack, pFunction);
+        return this.mInteractionZone.execute(pFunction);
     }
 
     /**
@@ -110,9 +102,7 @@ export class UpdateHandler {
      * @param pObject - Object.
      */
     public registerObject<T extends object>(pObject: T): T {
-        return InteractionZone.restore(this.mComponentZoneStack, () => {
-            return InteractionZone.registerObject(pObject);
-        });
+        return this.mInteractionZone.registerObject(pObject);
     }
 
     /**
@@ -122,7 +112,7 @@ export class UpdateHandler {
      * @param pReason - Update reason. Description of changed state.
      */
     public requestUpdate(pReason: InteractionReason): void {
-        InteractionZone.restore(this.mComponentZoneStack, () => {
+        this.mInteractionZone.execute(() => {
             InteractionZone.dispatchInteractionEvent(pReason);
         });
     }
@@ -147,7 +137,7 @@ export class UpdateHandler {
      */
     private dispatchUpdateListener(pReason: InteractionReason): void {
         // Call update listener in current zone.
-        InteractionZone.restore(this.mComponentZoneStack, () => {
+        this.mInteractionZone.execute(() => {
             // Trigger all update listener.
             for (const lListener of this.mUpdateListener) {
                 lListener.call(this, pReason);

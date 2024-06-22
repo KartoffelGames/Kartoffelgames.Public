@@ -1,8 +1,8 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { InteractionZoneStack } from '@kartoffelgames/web.change-detection/library/source/change_detection/interaction-zone';
 import { UpdateHandler } from '../component/handler/update-handler';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
+import { InteractionZone } from '@kartoffelgames/web.change-detection';
 
 export class CoreEntity<TProcessor extends object = object> {
     private readonly mCoreEntitySetupHookList: Array<CoreEntitySetupHook>;
@@ -83,10 +83,10 @@ export class CoreEntity<TProcessor extends object = object> {
         }
 
         // Try to read interaction stack from parent.
-        const lCurrentInteractionStack: InteractionZoneStack | undefined = pParameter.parent?.updateHandler.interactionStack;
+        const lInteractionZone: InteractionZone | undefined = pParameter.parent?.updateHandler.zone;
 
         // Create new updater for every component entity.
-        this.mUpdateHandler = new UpdateHandler(!!pParameter.isolateInteraction, pParameter.interactionTrigger, lCurrentInteractionStack);
+        this.mUpdateHandler = new UpdateHandler(!!pParameter.isolateInteraction, pParameter.interactionTrigger, lInteractionZone);
     }
 
     /**

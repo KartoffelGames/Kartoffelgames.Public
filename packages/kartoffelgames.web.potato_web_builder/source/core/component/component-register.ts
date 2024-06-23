@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core.data';
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { Component, ComponentProcessor } from './component';
 
-export class ComponentInformation {
+export class ComponentRegister {
     private static readonly mComponents: WeakMap<HTMLElement | ComponentProcessor, Component> = new WeakMap<HTMLElement | ComponentProcessor, Component>();
     private static readonly mConstructorSelector: WeakMap<InjectionConstructor, string> = new WeakMap<InjectionConstructor, string>();
     private static readonly mElements: WeakMap<Component, HTMLElement> = new WeakMap<Component, HTMLElement>();
@@ -21,13 +21,13 @@ export class ComponentInformation {
         const lComponentConstructor: InjectionConstructor = pComponent.processorConstructor;
 
         // Get selector of constructor.
-        const lSelector: string | undefined = ComponentInformation.mConstructorSelector.get(lComponentConstructor);
+        const lSelector: string | undefined = ComponentRegister.mConstructorSelector.get(lComponentConstructor);
         if (!lSelector) {
             throw new Exception(`Constructor "${lComponentConstructor.name}" is not a registered custom element`, lComponentConstructor);
         }
 
         // Get component element.
-        const lElement: HTMLElement | undefined = ComponentInformation.mElements.get(pComponent);
+        const lElement: HTMLElement | undefined = ComponentRegister.mElements.get(pComponent);
         if (!lElement) {
             throw new Exception(`Component "${pComponent}" is not a registered component`, pComponent);
         }
@@ -59,7 +59,7 @@ export class ComponentInformation {
      */
     public static ofConstructor(pConstructor: InjectionConstructor): ComponentConstructorInformationData {
         // Get selector of constructor.
-        const lSelector: string | undefined = ComponentInformation.mConstructorSelector.get(pConstructor);
+        const lSelector: string | undefined = ComponentRegister.mConstructorSelector.get(pConstructor);
         if (!lSelector) {
             throw new Exception(`Constructor "${pConstructor.name}" is not a registered custom element`, pConstructor);
         }
@@ -88,12 +88,12 @@ export class ComponentInformation {
      * When {@link pElement} is not a registered pwb component.
      */
     public static ofElement(pElement: HTMLElement): ComponentInformationData {
-        const lComponent: Component | undefined = ComponentInformation.mComponents.get(pElement);
+        const lComponent: Component | undefined = ComponentRegister.mComponents.get(pElement);
         if (!lComponent) {
             throw new Exception(`Element "${pElement}" is not a PwbComponent.`, pElement);
         }
 
-        return ComponentInformation.ofComponent(lComponent);
+        return ComponentRegister.ofComponent(lComponent);
     }
 
     /**
@@ -107,12 +107,12 @@ export class ComponentInformation {
      * When {@link pProcessor} is not a registered component processor.
      */
     public static ofProcessor(pProcessor: ComponentProcessor): ComponentInformationData {
-        const lComponent: Component | undefined = ComponentInformation.mComponents.get(pProcessor);
+        const lComponent: Component | undefined = ComponentRegister.mComponents.get(pProcessor);
         if (!lComponent) {
             throw new Exception(`Processor is not a PwbComponent.`, pProcessor);
         }
 
-        return ComponentInformation.ofComponent(lComponent);
+        return ComponentRegister.ofComponent(lComponent);
     }
 
     /**
@@ -125,18 +125,18 @@ export class ComponentInformation {
      */
     public static registerComponent(pComponent: Component, pElement: HTMLElement, pProcessor?: ComponentProcessor): void {
         // Register HTMLElement.
-        if (!ComponentInformation.mComponents.has(pElement)) {
-            ComponentInformation.mComponents.set(pElement, pComponent);
+        if (!ComponentRegister.mComponents.has(pElement)) {
+            ComponentRegister.mComponents.set(pElement, pComponent);
         }
 
         // Register ComponentProcessor.
-        if (pProcessor && !ComponentInformation.mComponents.has(pProcessor)) {
-            ComponentInformation.mComponents.set(pProcessor, pComponent);
+        if (pProcessor && !ComponentRegister.mComponents.has(pProcessor)) {
+            ComponentRegister.mComponents.set(pProcessor, pComponent);
         }
 
         // Register Component
-        if (!ComponentInformation.mElements.has(pComponent)) {
-            ComponentInformation.mElements.set(pComponent, pElement);
+        if (!ComponentRegister.mElements.has(pComponent)) {
+            ComponentRegister.mElements.set(pComponent, pElement);
         }
     }
 
@@ -148,8 +148,8 @@ export class ComponentInformation {
      */
     public static registerConstructor(pConstructor: InjectionConstructor, pSelector: string): void {
         // Register selector.
-        if (pConstructor && !ComponentInformation.mConstructorSelector.has(pConstructor)) {
-            ComponentInformation.mConstructorSelector.set(pConstructor, pSelector);
+        if (pConstructor && !ComponentRegister.mConstructorSelector.has(pConstructor)) {
+            ComponentRegister.mConstructorSelector.set(pConstructor, pSelector);
         }
     }
 }

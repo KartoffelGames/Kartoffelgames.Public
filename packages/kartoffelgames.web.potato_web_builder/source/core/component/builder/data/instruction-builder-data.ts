@@ -6,7 +6,7 @@ export class InstructionBuilderData extends BaseBuilderData {
     private mInstructionModule: InstructionModule | null;
 
     /**
-     * Get instruction module of layer.
+     * Get instruction module of scope.
      */
     public get instructionModule(): InstructionModule | null {
         return this.mInstructionModule;

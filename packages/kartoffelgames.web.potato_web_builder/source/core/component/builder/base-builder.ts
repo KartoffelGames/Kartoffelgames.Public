@@ -1,7 +1,7 @@
 
 import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
 import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
-import { LayerValues } from '../values/layer-values';
+import { ScopedValues } from '../values/scoped-values';
 import { BaseBuilderData, Boundary } from './data/base-builder-data';
 
 /**
@@ -10,7 +10,7 @@ import { BaseBuilderData, Boundary } from './data/base-builder-data';
  * @internal
  */
 export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BasePwbTemplateNode, TContent extends BaseBuilderData = BaseBuilderData> {
-    private readonly mComponentValues: LayerValues;
+    private readonly mComponentValues: ScopedValues;
     private readonly mContent: TContent;
     private readonly mTemplate: TTemplates;
 
@@ -38,7 +38,7 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
     /**
      * Get component values of builder.
      */
-    public get values(): LayerValues {
+    public get values(): ScopedValues {
         return this.mComponentValues;
     }
 
@@ -53,15 +53,15 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
      * Constructor.
      * 
      * @param pTemplate - Builder template.
-     * @param pParentLayerValues - New component values.
+     * @param pParentScopedValues - New component values.
      */
-    public constructor(pTemplate: TTemplates, pParentLayerValues: LayerValues, pContent: TContent) {
+    public constructor(pTemplate: TTemplates, pParentScopedValues: ScopedValues, pContent: TContent) {
         // Clone template.
         this.mTemplate = pTemplate;
         this.mTemplate.parent = null; // Nodes doesn't need a real parent. Maidenless nodes.
 
-        // Create new layer of values.
-        this.mComponentValues = new LayerValues(pParentLayerValues);
+        // Create new scoped of values with inside parent scope.
+        this.mComponentValues = new ScopedValues(pParentScopedValues);
         this.mContent = pContent;
 
         // Link this builder as content.

@@ -1,15 +1,13 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
-import { UpdateHandler } from '../../core/component/handler/update-handler';
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
 import { PwbTemplateInstructionNode } from '../../core/component/template/nodes/pwb-template-instruction-node';
-import { LayerValues } from '../../core/component/values/layer-values';
-import { ComponentUpdateHandlerReference } from '../../core/injection-reference/component/component-update-handler-reference';
+import { ScopedValues } from '../../core/component/values/scoped-values';
 import { ModuleTemplateReference } from '../../core/injection-reference/module/module-template-reference';
 import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
-import { ModuleValues } from '../../core/module/module-values';
 import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
 import { InstructionResult } from '../../core/module/instruction_module/result/instruction-result';
+import { ModuleValues } from '../../core/module/module-values';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
 /**
@@ -23,22 +21,19 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
 })
 export class ForInstructionModule implements IInstructionOnUpdate {
     private readonly mExpression: ForOfExpression;
-    private readonly mExpressionExecutor: ModuleValues;
     private mLastEntries: Array<[string, any]>;
+    private readonly mModuleValues: ModuleValues;
     private readonly mTemplate: PwbTemplateInstructionNode;
-    private readonly mUpdateHandler: UpdateHandler;
-
 
     /**
      * Constructor.
      * @param pTemplate - Target templat.
-     * @param pLayerValues - Values of component.
+     * @param pModuleValues - Scoped values of module.
      * @param pAttributeReference - Attribute of module.
      */
-    public constructor(pTemplate: ModuleTemplateReference, pExpressionExecutor: ModuleValues, pAttributeValue: ModuleValueReference, pUpdateHandler: ComponentUpdateHandlerReference) {
+    public constructor(pTemplate: ModuleTemplateReference, pModuleValues: ModuleValues, pAttributeValue: ModuleValueReference) {
         this.mTemplate = <PwbTemplateInstructionNode>pTemplate;
-        this.mExpressionExecutor = pExpressionExecutor;
-        this.mUpdateHandler = pUpdateHandler;
+        this.mModuleValues = pModuleValues;
         this.mLastEntries = new Array<[string, any]>();
 
         const lInstruction = pAttributeValue.toString();
@@ -70,7 +65,7 @@ export class ForInstructionModule implements IInstructionOnUpdate {
         const lModuleResult: InstructionResult = new InstructionResult();
 
         // Try to get list object from component values.
-        const lExpressionResult: { [key: string]: any; } = this.mExpressionExecutor.executeExpression(this.mExpression.value);
+        const lExpressionResult: { [key: string]: any; } = this.mModuleValues.executeExpression(this.mExpression.value);
 
         // Only proceed if value is added to html element.
         if (typeof lExpressionResult === 'object' && lExpressionResult !== null || Array.isArray(lExpressionResult)) {
@@ -111,7 +106,7 @@ export class ForInstructionModule implements IInstructionOnUpdate {
      * @param pObjectKey - value key.
      */
     private readonly addTemplateForElement = (pModuleResult: InstructionResult, pExpression: ForOfExpression, pObjectValue: any, pObjectKey: number | string) => {
-        const lTemplateItemValues: LayerValues = new LayerValues(this.mExpressionExecutor.layerValues);
+        const lTemplateItemValues: ScopedValues = new ScopedValues(this.mModuleValues.scopedValues);
         lTemplateItemValues.setTemporaryValue(pExpression.variable, pObjectValue);
 
         // Create new execution context from inherited values.

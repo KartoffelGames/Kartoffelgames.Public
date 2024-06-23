@@ -5,36 +5,36 @@ import { Component } from '../component';
  * Interface between persistent values directly from component and temporary values
  * that are not directly inside the component but attached to it.
  *
- * Has the {@link data} property that allways sets and gets the data to the correct location
+ * Has the {@link store} property that allways sets and gets the data to the correct location
  * or the {@link setTemporaryValue} function to only set temporary values.
  */
-export class LayerValues {
+export class ScopedValues {
     private readonly mComponent: Component;
-    private readonly mDataProxy: LayerValueData;
-    private readonly mParentLayer: LayerValues | null;
+    private readonly mDataProxy: ScopedValueData;
+    private readonly mParentScope: ScopedValues | null;
     private readonly mTemporaryValues: Dictionary<string, any>;
 
     /**
-     * Data object with all values of layer.
+     * Data object with all current scope values.
      */
-    public get data(): LayerValueData {
+    public get store(): ScopedValueData {
         return this.mDataProxy;
     }
 
     /**
      * Constructor.
-     * New component value layer.
-     * @param pParentLayer - Parent layer. Values on root layer.
+     * New component value scope.
+     * @param pParentScope - Parent scope. Values on root scope.
      */
-    public constructor(pParentLayer: LayerValues | Component) {
+    public constructor(pParentScope: ScopedValues | Component) {
         this.mTemporaryValues = new Dictionary<string, any>();
 
-        if (pParentLayer instanceof Component) {
-            this.mParentLayer = null;
-            this.mComponent = pParentLayer;
+        if (pParentScope instanceof Component) {
+            this.mParentScope = null;
+            this.mComponent = pParentScope;
         } else {
-            this.mParentLayer = pParentLayer;
-            this.mComponent = pParentLayer.mComponent;
+            this.mParentScope = pParentScope;
+            this.mComponent = pParentScope.mComponent;
         }
 
         // Create data proxy.
@@ -45,7 +45,7 @@ export class LayerValues {
      * Check for changes into two value handler.
      * @param pHandler - Handler two.
      */
-    public equals(pHandler: LayerValues): boolean {
+    public equals(pHandler: ScopedValues): boolean {
         // Compare if it has the same component processor object.
         if (this.mComponent.processor !== pHandler.mComponent.processor) {
             return false;
@@ -78,7 +78,7 @@ export class LayerValues {
      * @param pValue - Value.
      */
     public setTemporaryValue<TValue>(pKey: string, pValue: TValue): void {
-        // Set value to current layer.
+        // Set value to current scope.
         this.mTemporaryValues.set(pKey, pValue);
     }
 
@@ -87,7 +87,7 @@ export class LayerValues {
      * 
      * @returns Proxy object.
      */
-    private createAccessProxy(): LayerValueData {
+    private createAccessProxy(): ScopedValueData {
         return new Proxy(new Object(), {
             /**
              * Get value of property.
@@ -152,8 +152,8 @@ export class LayerValues {
         const lKeyList: Array<string> = this.mTemporaryValues.map<string>((pKey: string) => pKey);
 
         // Get key list from parent.
-        if (this.mParentLayer) {
-            lKeyList.push(...this.mParentLayer.getTemporaryValuesList());
+        if (this.mParentScope) {
+            lKeyList.push(...this.mParentScope.getTemporaryValuesList());
         }
 
         return lKeyList;
@@ -165,18 +165,18 @@ export class LayerValues {
      * @param pValueName - Name of value.
      */
     private getValue<TValue>(pValueName: string): TValue | undefined {
-        // Only return value when it exists in current layer.
+        // Only return value when it exists in current scope.
         if (this.mTemporaryValues.has(pValueName)) {
             return this.mTemporaryValues.get(pValueName);
         }
 
         // If value was not found and parent exists, search in parent values.
-        if (this.mParentLayer) {
-            return this.mParentLayer.getValue(pValueName);
+        if (this.mParentScope) {
+            return this.mParentScope.getValue(pValueName);
         }
 
-        // When it does not exist in current layer nor in parent, return component processor value.
-        // This in hits only on root layer values. child layers can never access the component processor.
+        // When it does not exist in current scope nor in parent, return component processor value.
+        // This in hits only on root scoped values. child scopeds can never access the component processor.
         if (pValueName in this.mComponent.processor) {
             return (<{ [key: PropertyKey]: any; }>this.mComponent.processor)[pValueName];
         }
@@ -197,13 +197,13 @@ export class LayerValues {
         }
 
         // No parent and value does not exist.
-        if (!this.mParentLayer) {
+        if (!this.mParentScope) {
             return false;
         }
 
         // If value was not found and parent exists, search in parent values.
-        return this.mParentLayer.hasTemporaryValue(pValueName);
+        return this.mParentScope.hasTemporaryValue(pValueName);
     }
 }
 
-type LayerValueData = { [key: PropertyKey]: any; };
+type ScopedValueData = { [key: PropertyKey]: any; };

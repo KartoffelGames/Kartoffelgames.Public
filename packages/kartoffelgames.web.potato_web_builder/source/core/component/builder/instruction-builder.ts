@@ -3,7 +3,7 @@ import { InstructionModule } from '../../module/instruction_module/instruction-m
 import { InstructionResultElement } from '../../module/instruction_module/result/instruction-result';
 import { ComponentModules } from '../component-modules';
 import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node';
-import { LayerValues } from '../values/layer-values';
+import { ScopedValues } from '../values/scoped-values';
 import { BaseBuilder } from './base-builder';
 import { InstructionBuilderData } from './data/instruction-builder-data';
 import { StaticBuilder } from './static-builder';
@@ -20,10 +20,10 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
      * 
      * @param pTemplate - Instruction template.
      * @param pModules - Modules of component scope.
-     * @param pParentLayerValues - Layer value of parent builder.
+     * @param pParentScopedValues - Scoped value of parent builder.
      */
-    public constructor(pTemplate: PwbTemplateInstructionNode, pModules: ComponentModules, pParentLayerValues: LayerValues,) {
-        super(pTemplate, pParentLayerValues, new InstructionBuilderData(pModules, `Instruction - {$${pTemplate.instructionType}}`));
+    public constructor(pTemplate: PwbTemplateInstructionNode, pModules: ComponentModules, pParentScopedValues: ScopedValues,) {
+        super(pTemplate, pParentScopedValues, new InstructionBuilderData(pModules, `Instruction - {$${pTemplate.instructionType}}`));
     }
 
     /**

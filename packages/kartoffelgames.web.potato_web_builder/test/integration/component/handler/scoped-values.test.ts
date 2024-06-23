@@ -1,14 +1,14 @@
 import { expect } from 'chai';
-import { ComponentLayerValuesReference } from '../../../../source';
-import { ComponentInformation } from '../../../../source/core/component/component-information';
+import { ComponentElement } from '../../../../source/core/component/component';
+import { ComponentRegister } from '../../../../source/core/component/component-register';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator';
-import { LayerValues } from '../../../../source/core/component/values/layer-values';
+import { ScopedValues } from '../../../../source/core/component/values/scoped-values';
+import { ComponentValuesReference } from '../../../../source/core/injection-reference/component/component-values-reference';
 import '../../../mock/request-animation-frame-mock-session';
 import '../../../utility/chai-helper';
 import { TestUtil } from '../../../utility/test-util';
-import { ComponentElement } from '../../../../source/core/component/component';
 
-describe('LayerValues', () => {
+describe('ScopedValues', () => {
     describe('-- Equal', () => {
         it('-- Everything equal', async () => {
             // Setup. Define component.
@@ -19,9 +19,9 @@ describe('LayerValues', () => {
 
             // Setup. Create element.
             const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-            const lRootValues: LayerValues = ComponentInformation.ofElement(lComponent).component.getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
+            const lRootValues: ScopedValues = ComponentRegister.ofElement(lComponent).component.getProcessorAttribute<ScopedValues>(ComponentValuesReference)!;
 
-            // Process. Create child layer.
+            // Process. Create child scope.
             const lIsEqual: boolean = lRootValues.equals(lRootValues);
 
             // Evaluation.
@@ -43,9 +43,9 @@ describe('LayerValues', () => {
 
             // Setup. Create element.
             const lComponentOne: ComponentElement = await <any>TestUtil.createComponent(TestComponentOne);
-            const lRootValuesOne: LayerValues = ComponentInformation.ofElement(lComponentOne).component.getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
+            const lRootValuesOne: ScopedValues = ComponentRegister.ofElement(lComponentOne).component.getProcessorAttribute<ScopedValues>(ComponentValuesReference)!;
             const lComponentTwo: ComponentElement = await <any>TestUtil.createComponent(TestComponentTwo);
-            const lRootValuesTwo: LayerValues = ComponentInformation.ofElement(lComponentTwo).component.getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
+            const lRootValuesTwo: ScopedValues = ComponentRegister.ofElement(lComponentTwo).component.getProcessorAttribute<ScopedValues>(ComponentValuesReference)!;
 
             // Process.
             const lIsEqual: boolean = lRootValuesOne.equals(lRootValuesTwo);
@@ -63,15 +63,15 @@ describe('LayerValues', () => {
 
             // Setup. Create element.
             const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-            const lRootValues: LayerValues = ComponentInformation.ofElement(lComponent).component.getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
+            const lRootValues: ScopedValues = ComponentRegister.ofElement(lComponent).component.getProcessorAttribute<ScopedValues>(ComponentValuesReference)!;
 
-            // Setup. Create child layer.
-            const lChildLayerOne: LayerValues = new LayerValues(lRootValues);
-            const lChildLayerTwo: LayerValues = new LayerValues(lRootValues);
-            lChildLayerTwo.data['Temporary-Key'] = 'Temporary-Value';
+            // Setup. Create child scope.
+            const lChildScopeOne: ScopedValues = new ScopedValues(lRootValues);
+            const lChildScopeTwo: ScopedValues = new ScopedValues(lRootValues);
+            lChildScopeTwo.store['Temporary-Key'] = 'Temporary-Value';
 
             // Process.
-            const lIsEqual: boolean = lChildLayerOne.equals(lChildLayerTwo);
+            const lIsEqual: boolean = lChildScopeOne.equals(lChildScopeTwo);
 
             // Evaluation.
             expect(lIsEqual).to.be.false;
@@ -86,16 +86,16 @@ describe('LayerValues', () => {
 
             // Setup. Create element.
             const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-            const lRootValues: LayerValues = ComponentInformation.ofElement(lComponent).component.getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
+            const lRootValues: ScopedValues = ComponentRegister.ofElement(lComponent).component.getProcessorAttribute<ScopedValues>(ComponentValuesReference)!;
 
-            // Setup. Create child layer.
-            const lChildLayerOne: LayerValues = new LayerValues(lRootValues);
-            lChildLayerOne.data['Temporary-Key'] = 'Temporary-Value-One';
-            const lChildLayerTwo: LayerValues = new LayerValues(lRootValues);
-            lChildLayerTwo.data['Temporary-Key'] = 'Temporary-Value-Two';
+            // Setup. Create child scope.
+            const lChildScopeOne: ScopedValues = new ScopedValues(lRootValues);
+            lChildScopeOne.store['Temporary-Key'] = 'Temporary-Value-One';
+            const lChildScopeTwo: ScopedValues = new ScopedValues(lRootValues);
+            lChildScopeTwo.store['Temporary-Key'] = 'Temporary-Value-Two';
 
             // Process.
-            const lIsEqual: boolean = lChildLayerOne.equals(lChildLayerTwo);
+            const lIsEqual: boolean = lChildScopeOne.equals(lChildScopeTwo);
 
             // Evaluation.
             expect(lIsEqual).to.be.false;
@@ -103,10 +103,10 @@ describe('LayerValues', () => {
     });
 
     describe('-- Get values', () => {
-        it('-- From same layer', async () => {
+        it('-- From same scope', async () => {
             // Setup.
-            const lLayerKey: string = 'LAYER-KEY';
-            const lLayerValue: string = 'LAYER-VALUE';
+            const lScopeKey: string = 'SCOPE-KEY';
+            const lScopeValue: string = 'SCOPE-VALUE';
 
             // Setup. Define component.
             @PwbComponent({
@@ -114,22 +114,22 @@ describe('LayerValues', () => {
             })
             class TestComponent { }
 
-            // Setup. Create element and get root layer.
+            // Setup. Create element and get root scope.
             const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-            const lRootValues: LayerValues = ComponentInformation.ofElement(lComponent).component.getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
-            lRootValues.data[lLayerKey] = lLayerValue;
+            const lRootValues: ScopedValues = ComponentRegister.ofElement(lComponent).component.getProcessorAttribute<ScopedValues>(ComponentValuesReference)!;
+            lRootValues.store[lScopeKey] = lScopeValue;
 
             // Process.
-            const lResultValue: string = lRootValues.data[lLayerKey];
+            const lResultValue: string = lRootValues.store[lScopeKey];
 
             // Evaluation.
-            expect(lResultValue).to.equal(lLayerValue);
+            expect(lResultValue).to.equal(lScopeValue);
         });
 
-        it('-- From parent layer', async () => {
+        it('-- From parent scope', async () => {
             // Setup.
-            const lLayerKey: string = 'LAYER-KEY';
-            const lLayerValue: string = 'LAYER-VALUE';
+            const lScopeKey: string = 'SCOPE-KEY';
+            const lScopeValue: string = 'SCOPE-VALUE';
 
             // Setup. Define component.
             @PwbComponent({
@@ -137,26 +137,26 @@ describe('LayerValues', () => {
             })
             class TestComponent { }
 
-            // Setup. Create element and get root layer.
+            // Setup. Create element and get root scope.
             const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-            const lRootValues: LayerValues = ComponentInformation.ofElement(lComponent).component.getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
-            lRootValues.data[lLayerKey] = lLayerValue;
+            const lRootValues: ScopedValues = ComponentRegister.ofElement(lComponent).component.getProcessorAttribute<ScopedValues>(ComponentValuesReference)!;
+            lRootValues.store[lScopeKey] = lScopeValue;
 
-            // Setup. Create child layer.
-            const lChildLayer: LayerValues = new LayerValues(lRootValues);
+            // Setup. Create child scope.
+            const lChildScope: ScopedValues = new ScopedValues(lRootValues);
 
             // Process.
-            const lResultValue: string = lChildLayer.data[lLayerKey];
+            const lResultValue: string = lChildScope.store[lScopeKey];
 
             // Evaluation.
-            expect(lResultValue).to.equal(lLayerValue);
+            expect(lResultValue).to.equal(lScopeValue);
         });
     });
 
     it('-- Set root values', async () => {
         // Setup.
-        const lLayerKey: string = 'LAYER-KEY';
-        const lLayerValue: string = 'LAYER-VALUE';
+        const lScopeKey: string = 'SCOPE-KEY';
+        const lScopeValue: string = 'SCOPE-VALUE';
 
         // Setup. Define component.
         @PwbComponent({
@@ -166,16 +166,16 @@ describe('LayerValues', () => {
 
         // Setup. Create element.
         const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lRootValues: LayerValues = ComponentInformation.ofElement(lComponent).component.getProcessorAttribute<LayerValues>(ComponentLayerValuesReference)!;
+        const lRootValues: ScopedValues = ComponentRegister.ofElement(lComponent).component.getProcessorAttribute<ScopedValues>(ComponentValuesReference)!;
 
-        // Setup. Create child layer.
-        const lChildLayer: LayerValues = new LayerValues(lRootValues);
+        // Setup. Create child scope.
+        const lChildScope: ScopedValues = new ScopedValues(lRootValues);
 
         // Process. Set root in child one and access in two.
-        lRootValues.data[lLayerKey] = lLayerValue;
-        const lResultValue: string = lChildLayer.data[lLayerKey];
+        lRootValues.store[lScopeKey] = lScopeValue;
+        const lResultValue: string = lChildScope.store[lScopeKey];
 
         // Evaluation.
-        expect(lResultValue).to.equal(lLayerValue);
+        expect(lResultValue).to.equal(lScopeValue);
     });
 });

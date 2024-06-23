@@ -1,8 +1,8 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { Component, ComponentProcessor } from '../../core/component/component';
-import { LayerValues } from '../../core/component/values/layer-values';
-import { ComponentLayerValuesReference } from '../../core/injection-reference/component/component-layer-values-reference';
-import { ComponentInformation } from '../../core/component/component-information';
+import { ComponentRegister } from '../../core/component/component-register';
+import { ScopedValues } from '../../core/component/values/scoped-values';
+import { ComponentValuesReference } from '../../core/injection-reference/component/component-values-reference';
 
 /**
  * AtScript. Id child 
@@ -21,15 +21,15 @@ export function PwbChild(pIdChildName: string): any {
                 // Get component manager and exit if target is not a component.
                 const lComponent: Component = (() => {
                     try {
-                        return ComponentInformation.ofProcessor(this).component;
+                        return ComponentRegister.ofProcessor(this).component;
                     } catch (_err) {
                         throw new Exception('PwbChild target class it not a component.', this);
                     }
                 })();
 
                 // Get root value. This should be the child.
-                const lLayerValues: LayerValues = lComponent.getProcessorAttribute(ComponentLayerValuesReference)!;
-                const lIdChild: any = lLayerValues.data[pIdChildName];
+                const lComponentRootValues: ScopedValues = lComponent.getProcessorAttribute(ComponentValuesReference)!;
+                const lIdChild: any = lComponentRootValues.store[pIdChildName];
 
                 if (lIdChild instanceof Element) {
                     return lIdChild;

@@ -3,8 +3,8 @@ import { ComponentElement } from '../../../source/core/component/component';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
 import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from '../../../source/core/component/template/nodes/pwb-template-xml-node';
-import { LayerValues } from '../../../source/core/component/values/layer-values';
-import { ComponentLayerValuesReference } from '../../../source/core/injection-reference/component/component-layer-values-reference';
+import { ScopedValues } from '../../../source/core/component/values/scoped-values';
+import { ComponentValuesReference } from '../../../source/core/injection-reference/component/component-values-reference';
 import { PwbAttributeModule } from '../../../source/core/module/attribute_module/pwb-attribute-module.decorator';
 import { IInstructionOnUpdate } from '../../../source/core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator';
@@ -24,9 +24,9 @@ describe('Custom Module', () => {
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class WrongModule implements IInstructionOnUpdate {
-            private readonly mValueHandler: LayerValues;
+            private readonly mValueHandler: ScopedValues;
 
-            public constructor(pValueReference: ComponentLayerValuesReference) {
+            public constructor(pValueReference: ComponentValuesReference) {
                 this.mValueHandler = pValueReference;
             }
 

@@ -21,11 +21,11 @@ export class EventAttributeModule implements IAttributeOnDeconstruct {
     /**
      * Constructor.
      * @param pTargetNode - Target element.
-     * @param pLayerValue - Values of component.
+     * @param pModuleValues - Values of module scoped.
      * @param pAttributeKey - Attribute key of module.
      * @param pAttributeValue - Attribute value of module.
      */
-    public constructor(pTargetNode: ModuleTargetNodeReference, pExpressionExecutor: ModuleValues, pAttributeKey: ModuleKeyReference, pAttributeValue: ModuleValueReference) {
+    public constructor(pTargetNode: ModuleTargetNodeReference, pModuleValues: ModuleValues, pAttributeKey: ModuleKeyReference, pAttributeValue: ModuleValueReference) {
         this.mTarget = pTargetNode;
         this.mEventName = pAttributeKey.substring(1, pAttributeKey.length - 1);
 
@@ -36,7 +36,7 @@ export class EventAttributeModule implements IAttributeOnDeconstruct {
             lExternalValues.add('$event', pEvent);
 
             // Execute string with external event value.
-            pExpressionExecutor.executeExpression(pAttributeValue.toString(), lExternalValues);
+            pModuleValues.executeExpression(pAttributeValue.toString(), lExternalValues);
         };
 
         // Add native event listener.

@@ -17,20 +17,20 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
 export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
     private readonly mAttributeKey: string;
     private readonly mAttributeValue: string;
-    private readonly mExpressionExecutor: ModuleValues;
     private mLastDataValue: any;
     private mLastViewValue: any;
+    private readonly mModuleValues: ModuleValues;
     private readonly mTargetNode: Node;
 
     /**
      * Constructor.
      * @param pTargetNode - Target element.
-     * @param pLayerValues - Values of component.
+     * @param pModuleValues - Scoped values of component.
      * @param pAttribute - Attribute of module.
      */
-    public constructor(pTargetNode: ModuleTargetNodeReference, pExpressionExecutor: ModuleValues, pAttributeKey: ModuleKeyReference, pAttributeValue: ModuleValueReference, pUpdateHandler: ComponentUpdateHandlerReference) {
+    public constructor(pTargetNode: ModuleTargetNodeReference, pModuleValues: ModuleValues, pAttributeKey: ModuleKeyReference, pAttributeValue: ModuleValueReference, pUpdateHandler: ComponentUpdateHandlerReference) {
         this.mTargetNode = pTargetNode;
-        this.mExpressionExecutor = pExpressionExecutor;
+        this.mModuleValues = pModuleValues;
 
         // Get property name.
         this.mAttributeKey = pAttributeKey.substring(2, pAttributeKey.length - 2);
@@ -50,7 +50,7 @@ export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
      */
     public onUpdate(): boolean {
         // Try to update view only on module initialize.
-        const lCurrentDataValue: any = this.mExpressionExecutor.executeExpression(this.mAttributeValue);
+        const lCurrentDataValue: any = this.mModuleValues.executeExpression(this.mAttributeValue);
 
         // Check for changes in this value.
         if (lCurrentDataValue !== this.mLastDataValue) {
@@ -72,7 +72,7 @@ export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
             lExtendedValues.set('$DATA', lCurrentViewValue);
 
             // Update value.
-            this.mExpressionExecutor.executeExpression(`${this.mAttributeValue} = $DATA;`, lExtendedValues);
+            this.mModuleValues.executeExpression(`${this.mAttributeValue} = $DATA;`, lExtendedValues);
 
             // Update compare.
             this.mLastViewValue = lCurrentViewValue;

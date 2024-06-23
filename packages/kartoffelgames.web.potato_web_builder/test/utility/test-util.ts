@@ -1,9 +1,9 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
+import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
 import { ComponentUpdateHandlerReference } from '../../source';
 import { Component, ComponentElement } from '../../source/core/component/component';
+import { ComponentRegister } from '../../source/core/component/component-register';
 import { UpdateHandler } from '../../source/core/component/handler/update-handler';
-import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
-import { ComponentInformation } from '../../source/core/component/component-information';
 
 export class TestUtil {
     /**
@@ -12,7 +12,7 @@ export class TestUtil {
      */
     public static async createComponent(pClass: InjectionConstructor): Promise<ComponentElement> {
         // Get component html constructor from class.
-        const lComponentConstructor: CustomElementConstructor = ComponentInformation.ofConstructor(pClass).elementConstructor;
+        const lComponentConstructor: CustomElementConstructor = ComponentRegister.ofConstructor(pClass).elementConstructor;
 
         // Get component.
         const lComponent: ComponentElement = new lComponentConstructor() as any;
@@ -31,7 +31,7 @@ export class TestUtil {
      * @param pComponent - Pwb component.
      */
     public static deconstructComponent(pComponent: ComponentElement): void {
-        ComponentInformation.ofElement(pComponent).component.deconstruct();
+        ComponentRegister.ofElement(pComponent).component.deconstruct();
     }
 
     /**
@@ -40,7 +40,7 @@ export class TestUtil {
      * @param pComponent - Pwb component.
      */
     public static forceProcessorCreation(pComponent: ComponentElement): void {
-        ComponentInformation.ofElement(pComponent).component.processor;
+        ComponentRegister.ofElement(pComponent).component.processor;
     }
 
     /**
@@ -48,7 +48,7 @@ export class TestUtil {
      * @param pComponent - Pwb component.
      */
     public static getComponentManager(pComponent: HTMLElement): Component {
-        return ComponentInformation.ofElement(pComponent).component;
+        return ComponentRegister.ofElement(pComponent).component;
     }
 
     /**

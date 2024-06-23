@@ -1,13 +1,11 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { UpdateHandler } from '../../core/component/handler/update-handler';
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
-import { LayerValues } from '../../core/component/values/layer-values';
-import { ComponentUpdateHandlerReference } from '../../core/injection-reference/component/component-update-handler-reference';
+import { ScopedValues } from '../../core/component/values/scoped-values';
 import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
-import { ModuleValues } from '../../core/module/module-values';
 import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
 import { InstructionResult } from '../../core/module/instruction_module/result/instruction-result';
+import { ModuleValues } from '../../core/module/module-values';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
 /**
@@ -20,19 +18,16 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
 })
 export class DynamicContentInstructionModule implements IInstructionOnUpdate {
     private readonly mExpression: string;
-    private readonly mExpressionExecutor: ModuleValues;
     private mLastTemplate: PwbTemplate | null;
-    private readonly mUpdateHandler: UpdateHandler;
+    private readonly mModuleValues: ModuleValues;
 
     /**
      * Constructor.
-     * @param pTemplate - Target templat.
-     * @param pLayerValues - Values of component.
-     * @param pAttributeReference - Attribute of module.
+     * @param pAttributeValue - Values of attribute template.
+     * @param pModuleValues - Scoped values of module.
      */
-    public constructor(pAttributeValue: ModuleValueReference, pExpressionExecutor: ModuleValues, pUpdateHandler: ComponentUpdateHandlerReference) {
-        this.mExpressionExecutor = pExpressionExecutor;
-        this.mUpdateHandler = pUpdateHandler;
+    public constructor(pAttributeValue: ModuleValueReference, pModuleValues: ModuleValues) {
+        this.mModuleValues = pModuleValues;
         this.mLastTemplate = null;
 
         // Callback expression.
@@ -45,7 +40,7 @@ export class DynamicContentInstructionModule implements IInstructionOnUpdate {
      */
     public onUpdate(): InstructionResult | null {
         // Execute content callback silent.
-        const lTemplateResult: PwbTemplate = this.mExpressionExecutor.executeExpression(this.mExpression);
+        const lTemplateResult: PwbTemplate = this.mModuleValues.executeExpression(this.mExpression);
 
         // Validate correct result.
         if (!lTemplateResult! || !(lTemplateResult instanceof PwbTemplate)) {
@@ -62,7 +57,7 @@ export class DynamicContentInstructionModule implements IInstructionOnUpdate {
 
         // Add custom template to output.
         const lModuleResult: InstructionResult = new InstructionResult();
-        lModuleResult.addElement(lTemplateResult, new LayerValues(this.mExpressionExecutor.layerValues));
+        lModuleResult.addElement(lTemplateResult, new ScopedValues(this.mModuleValues.scopedValues));
 
         return lModuleResult;
     }

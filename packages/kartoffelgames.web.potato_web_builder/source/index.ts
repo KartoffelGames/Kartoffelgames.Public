@@ -17,7 +17,7 @@ export { ModuleValues } from './core/module/module-values';
 // Component Injections
 export { ComponentConstructorReference } from './core/injection-reference/component/component-constructor-reference';
 export { ComponentElementReference } from './core/injection-reference/component/component-element-reference';
-export { ComponentLayerValuesReference } from './core/injection-reference/component/component-layer-values-reference';
+export { ComponentValuesReference } from './core/injection-reference/component/component-values-reference';
 export { ComponentUpdateHandlerReference } from './core/injection-reference/component/component-update-handler-reference';
 
 // Modules
@@ -30,7 +30,7 @@ export { IExpressionOnDeconstruct, IExpressionOnUpdate } from './core/module/exp
 export { PwbInstructionModule } from './core/module/instruction_module/pwb-instruction-module.decorator';
 export { InstructionResult } from './core/module/instruction_module/result/instruction-result';
 export { IInstructionOnDeconstruct, IInstructionOnUpdate } from './core/module/instruction_module/instruction-module';
-export { LayerValues } from './core/component/values/layer-values';
+export { ScopedValues } from './core/component/values/scoped-values';
 
 export { AccessMode } from './enum/access-mode.enum';
 

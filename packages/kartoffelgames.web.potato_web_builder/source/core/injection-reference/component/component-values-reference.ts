@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
 
 import { Exception } from '@kartoffelgames/core.data';
-import { LayerValues } from '../../component/values/layer-values';
+import { ScopedValues } from '../../component/values/scoped-values';
 
 /**
- * Component Layer value reference.
- * Acts as injection reference but the actual Layer value should be injected instead.
+ * Component scoped value reference.
+ * Acts as injection reference but the actual scoped values should be injected instead.
  * 
  * Should never be initialized.
  */
-export class ComponentLayerValuesReference {
+export class ComponentValuesReference {
     /**
      * Constructor. Allways throws exception.
      * 
@@ -21,4 +21,4 @@ export class ComponentLayerValuesReference {
     }
 }
 
-export declare interface ComponentLayerValuesReference extends LayerValues { }
+export declare interface ComponentValuesReference extends ScopedValues { }

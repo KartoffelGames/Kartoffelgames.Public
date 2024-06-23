@@ -1,27 +1,27 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { LayerValues } from '../component/values/layer-values';
+import { ScopedValues } from '../component/values/scoped-values';
 
 /**
  * Executes string in set component values scope.
  */
 export class ModuleValues {
-    private readonly mLayerValues: LayerValues;
+    private readonly mScopedValues: ScopedValues;
 
     /**
      * Get 
      */
-    public get layerValues(): LayerValues {
-        return this.mLayerValues;
+    public get scopedValues(): ScopedValues {
+        return this.mScopedValues;
     }
 
     /**
      * Constructor. 
      * Create expression executor with embedded values.
      * 
-     * @param pLayerValues - Layer values. 
+     * @param pScopedValues - Scoped values. 
      */
-    public constructor(pLayerValues: LayerValues) {
-        this.mLayerValues = pLayerValues;
+    public constructor(pScopedValues: ScopedValues) {
+        this.mScopedValues = pScopedValues;
     }
 
     /**
@@ -35,7 +35,7 @@ export class ModuleValues {
         const lExtendedData: Dictionary<string, any> = pExtenedData ?? new Dictionary<string, any>();
 
         const lEvaluatedFunction: () => any = this.createEvaluationFunktion(pExpression, lExtendedData);
-        return lEvaluatedFunction.call(this.mLayerValues.data);
+        return lEvaluatedFunction.call(this.mScopedValues.store);
     }
 
     /**

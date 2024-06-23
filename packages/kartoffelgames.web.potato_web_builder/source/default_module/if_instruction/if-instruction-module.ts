@@ -1,12 +1,12 @@
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
 import { PwbTemplateInstructionNode } from '../../core/component/template/nodes/pwb-template-instruction-node';
-import { LayerValues } from '../../core/component/values/layer-values';
+import { ScopedValues } from '../../core/component/values/scoped-values';
 import { ModuleTemplateReference } from '../../core/injection-reference/module/module-template-reference';
 import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
-import { ModuleValues } from '../../core/module/module-values';
 import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
 import { InstructionResult } from '../../core/module/instruction_module/result/instruction-result';
+import { ModuleValues } from '../../core/module/module-values';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
 /**
@@ -19,19 +19,19 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
 })
 export class IfInstructionModule implements IInstructionOnUpdate {
     private readonly mExpression: string;
-    private readonly mExpressionExecutor: ModuleValues;
     private mLastBoolean: boolean;
+    private readonly mModuleValues: ModuleValues;
     private readonly mTemplateReference: PwbTemplateInstructionNode;
 
     /**
      * Constructor.
      * @param pTemplate - Target templat.
-     * @param pLayerValues - Values of component.
-     * @param pAttributeReference - Attribute of module.
+     * @param pModuleValues - Scoped values of module.
+     * @param pAttributeValue - Values of attribute template.
      */
-    public constructor(pTemplate: ModuleTemplateReference, pExpressionExecutor: ModuleValues, pAttributeValue: ModuleValueReference) {
+    public constructor(pTemplate: ModuleTemplateReference, pModuleValues: ModuleValues, pAttributeValue: ModuleValueReference) {
         this.mTemplateReference = <PwbTemplateInstructionNode>pTemplate;
-        this.mExpressionExecutor = pExpressionExecutor;
+        this.mModuleValues = pModuleValues;
         this.mExpression = pAttributeValue.toString();
         this.mLastBoolean = false;
     }
@@ -41,7 +41,7 @@ export class IfInstructionModule implements IInstructionOnUpdate {
      * @returns if element of module should be updated.
      */
     public onUpdate(): InstructionResult | null {
-        const lExecutionResult: any = this.mExpressionExecutor.executeExpression(this.mExpression);
+        const lExecutionResult: any = this.mModuleValues.executeExpression(this.mExpression);
 
         if (!!lExecutionResult !== this.mLastBoolean) {
             this.mLastBoolean = !!lExecutionResult;
@@ -52,7 +52,7 @@ export class IfInstructionModule implements IInstructionOnUpdate {
                 const lTemplate: PwbTemplate = new PwbTemplate();
                 lTemplate.appendChild(...this.mTemplateReference.childList);
 
-                lModuleResult.addElement(lTemplate, new LayerValues(this.mExpressionExecutor.layerValues));
+                lModuleResult.addElement(lTemplate, new ScopedValues(this.mModuleValues.scopedValues));
             }
 
             return lModuleResult;

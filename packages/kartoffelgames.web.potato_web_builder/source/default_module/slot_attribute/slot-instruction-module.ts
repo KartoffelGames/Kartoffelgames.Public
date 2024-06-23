@@ -46,7 +46,7 @@ export class SlotInstructionModule implements IInstructionOnUpdate {
 
         // Create result and add slot template.
         const lModuleResult: InstructionResult = new InstructionResult();
-        lModuleResult.addElement(lTemplate, this.mModuleValues.layerValues);
+        lModuleResult.addElement(lTemplate, this.mModuleValues.scopedValues);
 
         return lModuleResult;
     }

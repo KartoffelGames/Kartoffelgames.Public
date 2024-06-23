@@ -1,5 +1,5 @@
 import { IDeconstructable } from '@kartoffelgames/core.data';
-import { LayerValues } from '../component/values/layer-values';
+import { ScopedValues } from '../component/values/scoped-values';
 import { CoreEntityProcessorConstructor } from '../core_entity/core-entity';
 import { CoreEntityExtendable, CoreEntityExtendableConstructorParameter } from '../core_entity/core-entity-extendable';
 import { ModuleConstructorReference } from '../injection-reference/module/module-constructor-reference';
@@ -38,7 +38,7 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
 }
 
 export type BaseModuleConstructorParameter<TProcessor extends IPwbModuleProcessor> = Omit<CoreEntityExtendableConstructorParameter<TProcessor>, 'isolateInteraction'> & {
-    values: LayerValues;
+    values: ScopedValues;
 };
 
 /**

@@ -8,7 +8,7 @@ import { Component } from './component';
 import { PwbTemplateInstructionNode } from './template/nodes/pwb-template-instruction-node';
 import { PwbTemplateAttribute } from './template/nodes/values/pwb-template-attribute';
 import { PwbTemplateExpression } from './template/nodes/values/pwb-template-expression';
-import { LayerValues } from './values/layer-values';
+import { ScopedValues } from './values/scoped-values';
 
 /**
  * Handles every kind of component modules. Keeps the current used expression module.
@@ -44,11 +44,11 @@ export class ComponentModules {
      * 
      * @param pTemplate - Attribute template.
      * @param pTargetNode - Target element of static module.
-     * @param pValues - Values of current layer.
+     * @param pValues - Values of current scope.
      * 
      * @returns Created static module when it was matched, otherwise null.
      */
-    public createAttributeModule(pTemplate: PwbTemplateAttribute, pTargetNode: Element, pValues: LayerValues): AttributeModule | null {
+    public createAttributeModule(pTemplate: PwbTemplateAttribute, pTargetNode: Element, pValues: ScopedValues): AttributeModule | null {
         // Read attribute setup of expression module.
         const lAttributeModuleSetup: CoreEntityProcessorConstructorSetup<AttributeModuleConfiguration> | null = (() => {
             // Try to read cached attribute module.
@@ -93,12 +93,12 @@ export class ComponentModules {
      * Check if template uses any manipulator modules.
      * @param pTemplate - Text node template.
      * @param pTargetNode - Build text node.
-     * @param pValues - Values of current layer.
+     * @param pValues - Values of current scope.
      * 
      * @throws {@link Exception}
      * When no expression node could be found.
      */
-    public createExpressionModule(pTemplate: PwbTemplateExpression, pTargetNode: Text, pValues: LayerValues): ExpressionModule {
+    public createExpressionModule(pTemplate: PwbTemplateExpression, pTargetNode: Text, pValues: ScopedValues): ExpressionModule {
         // Read expression setup of expression module.
         const lExpressionSetup: CoreEntityProcessorConstructorSetup<ExpressionModuleConfiguration> = (() => {
             // Try to read cached information.
@@ -136,12 +136,12 @@ export class ComponentModules {
     /**
      * Check if template uses any manipulator modules.
      * @param pTemplate - Template element.
-     * @param pValues - Values of current layer.
+     * @param pValues - Values of current scope.
      * 
      * @throws {@link Exception}
      * When no instruction node with type could be found.
      */
-    public createInstructionModule(pTemplate: PwbTemplateInstructionNode, pValues: LayerValues): InstructionModule {
+    public createInstructionModule(pTemplate: PwbTemplateInstructionNode, pValues: ScopedValues): InstructionModule {
         // Read instruction setup of expression module.
         const lInstructioneModuleSetup: CoreEntityProcessorConstructorSetup<InstructionModuleConfiguration> | null = (() => {
             // Try to read cached instruction module.

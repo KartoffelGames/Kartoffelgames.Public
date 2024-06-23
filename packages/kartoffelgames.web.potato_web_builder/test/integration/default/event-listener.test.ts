@@ -1,12 +1,16 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { expect } from 'chai';
+import { ModuleValues } from '../../../source';
+import { ComponentElement } from '../../../source/core/component/component';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
 import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template';
 import { PwbTemplateInstructionNode } from '../../../source/core/component/template/nodes/pwb-template-instruction-node';
-import { LayerValues } from '../../../source/core/component/values/layer-values';
+import { ScopedValues } from '../../../source/core/component/values/scoped-values';
 import { ModuleTemplateReference } from '../../../source/core/injection-reference/module/module-template-reference';
 import { PwbAttributeModule } from '../../../source/core/module/attribute_module/pwb-attribute-module.decorator';
+import { IInstructionOnUpdate } from '../../../source/core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator';
+import { InstructionResult } from '../../../source/core/module/instruction_module/result/instruction-result';
 import { ComponentEvent } from '../../../source/default_module/component-event/component-event';
 import { ComponentEventEmitter } from '../../../source/default_module/component-event/component-event-emitter';
 import { PwbComponentEvent } from '../../../source/default_module/component-event/pwb-component-event.decorator';
@@ -17,10 +21,6 @@ import { UpdateTrigger } from '../../../source/enum/update-trigger.enum';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
-import { ComponentElement } from '../../../source/core/component/component';
-import { InstructionResult } from '../../../source/core/module/instruction_module/result/instruction-result';
-import { IInstructionOnUpdate } from '../../../source/core/module/instruction_module/instruction-module';
-import { ModuleValues } from '../../../source';
 
 describe('PwbEventListener', () => {
     it('-- Native listener', async () => {
@@ -291,7 +291,7 @@ describe('PwbEventListener', () => {
                 const lTemplate: PwbTemplate = new PwbTemplate();
                 lTemplate.appendChild(...(<PwbTemplateInstructionNode>this.mTemplate).childList);
 
-                lResult.addElement(lTemplate, new LayerValues(this.mValue.layerValues));
+                lResult.addElement(lTemplate, new ScopedValues(this.mValue.scopedValues));
 
                 return lResult;
             }

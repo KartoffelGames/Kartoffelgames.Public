@@ -5,18 +5,18 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { CoreEntityExtendable } from '../core_entity/core-entity-extendable';
 import { ComponentConstructorReference } from '../injection-reference/component/component-constructor-reference';
 import { ComponentElementReference } from '../injection-reference/component/component-element-reference';
-import { ComponentLayerValuesReference } from '../injection-reference/component/component-layer-values-reference';
 import { ComponentReference } from '../injection-reference/component/component-reference';
+import { ComponentUpdateHandlerReference } from '../injection-reference/component/component-update-handler-reference';
+import { ComponentValuesReference } from '../injection-reference/component/component-values-reference';
 import { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module';
 import { StaticBuilder } from './builder/static-builder';
-import { ComponentInformation } from './component-information';
 import { ComponentModules } from './component-modules';
+import { ComponentRegister } from './component-register';
 import { ElementHandler } from './handler/element-handler';
 import { PwbTemplate } from './template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 import { TemplateParser } from './template/template-parser';
-import { LayerValues } from './values/layer-values';
-import { ComponentUpdateHandlerReference } from '../injection-reference/component/component-update-handler-reference';
+import { ScopedValues } from './values/scoped-values';
 
 /**
  * Base component handler. Handles initialisation and update of components.
@@ -41,15 +41,15 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         });
 
         // Register component and element.
-        ComponentInformation.registerComponent(this, pParameter.htmlElement);
+        ComponentRegister.registerComponent(this, pParameter.htmlElement);
 
         // Register untracked processor, than track and register the tracked processor.
         this.addCreationHook((pProcessor: ComponentProcessor) => {
-            ComponentInformation.registerComponent(this, this.mElementHandler.htmlElement, pProcessor);
+            ComponentRegister.registerComponent(this, this.mElementHandler.htmlElement, pProcessor);
         }).addCreationHook((pProcessor: ComponentProcessor) => {
             return this.updateHandler.registerObject(pProcessor);
         }).addCreationHook((pProcessor: ComponentProcessor) => {
-            ComponentInformation.registerComponent(this, this.mElementHandler.htmlElement, pProcessor);
+            ComponentRegister.registerComponent(this, this.mElementHandler.htmlElement, pProcessor);
         });
 
         // Load cached or create new module handler and template.
@@ -65,13 +65,13 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         this.mElementHandler = new ElementHandler(pParameter.htmlElement);
 
         // Create component builder.
-        this.mRootBuilder = new StaticBuilder(lTemplate, new ComponentModules(this, pParameter.expressionModule), new LayerValues(this), 'ROOT');
+        this.mRootBuilder = new StaticBuilder(lTemplate, new ComponentModules(this, pParameter.expressionModule), new ScopedValues(this), 'ROOT');
         this.mElementHandler.shadowRoot.appendChild(this.mRootBuilder.anchor);
 
         // Initialize user object injections.
         this.setProcessorAttributes(ComponentConstructorReference, pParameter.processorConstructor);
         this.setProcessorAttributes(ComponentElementReference, pParameter.htmlElement);
-        this.setProcessorAttributes(ComponentLayerValuesReference, this.mRootBuilder.values);
+        this.setProcessorAttributes(ComponentValuesReference, this.mRootBuilder.values);
         this.setProcessorAttributes(ComponentReference, this);
         this.setProcessorAttributes(ComponentUpdateHandlerReference, this.updateHandler);
 

@@ -2,6 +2,7 @@ import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.
 import { InteractionDetectionProxy } from '@kartoffelgames/web.change-detection/library/source/change_detection/synchron_tracker/interaction-detection-proxy';
 import { expect } from 'chai';
 import { ComponentElement, IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../source/core/component/component';
+import { ComponentRegister } from '../../source/core/component/component-register';
 import { LoopError } from '../../source/core/component/handler/loop-detection-handler';
 import { UpdateHandler } from '../../source/core/component/handler/update-handler';
 import { PwbComponent } from '../../source/core/component/pwb-component.decorator';
@@ -15,7 +16,6 @@ import { UpdateTrigger } from '../../source/enum/update-trigger.enum';
 import '../mock/request-animation-frame-mock-session';
 import '../utility/chai-helper';
 import { TestUtil } from '../utility/test-util';
-import { ComponentInformation } from '../../source/core/component/component-information';
 
 describe('HtmlComponent', () => {
     it('-- Single element', async () => {
@@ -174,7 +174,7 @@ describe('HtmlComponent', () => {
         class TestComponent { }
 
         // Process. Create element.
-        const lComponentConstructor: CustomElementConstructor = ComponentInformation.ofConstructor(TestComponent).elementConstructor;
+        const lComponentConstructor: CustomElementConstructor = ComponentRegister.ofConstructor(TestComponent).elementConstructor;
         const lComponent: ComponentElement = new lComponentConstructor() as any;
         document.body.appendChild(lComponent);
 

@@ -1,5 +1,5 @@
-import { ExpressionModule } from '../../module/expression_module/expression-module';
 import { AttributeModule } from '../../module/attribute_module/attribute-module';
+import { ExpressionModule } from '../../module/expression_module/expression-module';
 import { ComponentModules } from '../component-modules';
 import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
 import { PwbTemplate } from '../template/nodes/pwb-template';
@@ -8,7 +8,7 @@ import { PwbTemplateTextNode } from '../template/nodes/pwb-template-text-node';
 import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
 import { PwbTemplateAttribute } from '../template/nodes/values/pwb-template-attribute';
 import { PwbTemplateExpression } from '../template/nodes/values/pwb-template-expression';
-import { LayerValues } from '../values/layer-values';
+import { ScopedValues } from '../values/scoped-values';
 import { BaseBuilder } from './base-builder';
 import { BuilderContent } from './data/base-builder-data';
 import { StaticBuilderData, StaticBuilderLinkedAttributeData } from './data/static-builder-data';
@@ -27,11 +27,11 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
      * 
      * @param pTemplate - Template.
      * @param pModules - Attribute modules.
-     * @param pParentLayerValues - Layer value of parent builder.
+     * @param pParentScopedValues - Scoped values of parent builder.
      * @param pAnchorName - Name of builder content anchor.
      */
-    public constructor(pTemplate: StaticPwbTemplate, pModules: ComponentModules, pParentLayerValues: LayerValues, pAnchorName: string) {
-        super(pTemplate, pParentLayerValues, new StaticBuilderData(pModules, `Static - {${pAnchorName}}`));
+    public constructor(pTemplate: StaticPwbTemplate, pModules: ComponentModules, pParentScopedValues: ScopedValues, pAnchorName: string) {
+        super(pTemplate, pParentScopedValues, new StaticBuilderData(pModules, `Static - {${pAnchorName}}`));
 
         // Not initialized on start.
         this.mInitialized = false;

@@ -2,7 +2,7 @@ import { List } from '@kartoffelgames/core.data';
 import { BasePwbTemplateNode } from './base-pwb-template-node';
 
 /**
- * Pwb template document. Root layer of every template.
+ * Pwb template document. Root object of every template.
  */
 export class PwbTemplate extends BasePwbTemplateNode {
     private readonly mBodyElementList: List<BasePwbTemplateNode>;

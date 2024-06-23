@@ -1,6 +1,6 @@
 import { Exception, List } from '@kartoffelgames/core.data';
 import { PwbTemplate } from '../../../component/template/nodes/pwb-template';
-import { LayerValues } from '../../../component/values/layer-values';
+import { ScopedValues } from '../../../component/values/scoped-values';
 
 /**
  * Results for instruction module.
@@ -34,7 +34,7 @@ export class InstructionResult {
      * @throws {@link Exception}
      * When the same template reference should be added more than once.
      */
-    public addElement(pTemplateElement: PwbTemplate, pValues: LayerValues): void {
+    public addElement(pTemplateElement: PwbTemplate, pValues: ScopedValues): void {
         // Check if value or temple is used in another element.
         const lDoubledIndex: number = this.mElementList.findIndex(pElement => {
             return pElement.template === pTemplateElement || pElement.componentValues === pValues;
@@ -56,5 +56,5 @@ export class InstructionResult {
  */
 export type InstructionResultElement = {
     template: PwbTemplate;
-    componentValues: LayerValues;
+    componentValues: ScopedValues;
 };

@@ -14,21 +14,12 @@ export class LoopDetectionHandler {
     private mHasActiveTask: boolean;
     private readonly mMaxStackSize: number;
     private mNextSheduledTask: number;
-    private mOnError: ErrorHandler | null;
-
 
     /**
      * Get if loop detection has an active task.
      */
     public get hasActiveTask(): boolean {
         return this.mHasActiveTask;
-    }
-
-    /**
-     * Set callback for asynchron errors.
-     */
-    public set onError(pErrorHandler: ErrorHandler) {
-        this.mOnError = pErrorHandler;
     }
 
     /**
@@ -39,7 +30,6 @@ export class LoopDetectionHandler {
         this.mChainCompleteHookReleaseList = new List<ChainCompleteHookRelease>();
 
         this.mMaxStackSize = pMaxStackSize;
-        this.mOnError = null; // TODO: Dont make this optional.
         this.mNextSheduledTask = 0;
 
         this.mHasActiveTask = false;
@@ -71,7 +61,7 @@ export class LoopDetectionHandler {
                 // Call task. If no other call was sheduled during this call, the length will be the same after. 
                 lCurrentZone.execute(pUserFunction);
 
-                // Throw if too many calles were chained. 
+                // Throw if too many calles were chained. // TODO: Make this optional. Only throw in debug mode.
                 if (this.mCallChain.length > this.mMaxStackSize) {
                     throw new LoopError('Call loop detected', this.mCallChain);
                 }
@@ -92,9 +82,6 @@ export class LoopDetectionHandler {
 
                 // Permanently block another execution for this loop detection handler. Prevents script locks.
                 this.mHasActiveTask = true;
-
-                // Execute on error.
-                this.mOnError?.(pException);
 
                 // Release chain complete hook with error.
                 this.releaseChainCompleteHooks(pException);
@@ -157,7 +144,6 @@ export class LoopDetectionHandler {
     }
 }
 
-type ErrorHandler = (pError: any) => void;
 type ChainCompleteHookRelease = (pError: any) => void;
 
 export class LoopError extends Error {

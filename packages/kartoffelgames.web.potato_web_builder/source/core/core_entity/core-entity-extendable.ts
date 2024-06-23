@@ -30,11 +30,13 @@ export abstract class CoreEntityExtendable<TProcessor extends object> extends Co
     /**
      * Deconstruct module.
      */
-    public deconstruct(): void {
+    public override deconstruct(): void {
         // Deconstruct extensions.
         for (const lExtensions of this.mExtensionList) {
             lExtensions.deconstruct();
         }
+
+        super.deconstruct();
     }
 
     /**

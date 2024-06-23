@@ -1,10 +1,10 @@
-import { Dictionary, Exception } from '@kartoffelgames/core.data';
+import { Dictionary, Exception, IDeconstructable } from '@kartoffelgames/core.data';
 import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { CoreEntityUpdateZone } from './core-entity-update-zone';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { InteractionZone } from '@kartoffelgames/web.change-detection';
 
-export class CoreEntity<TProcessor extends object = object> {
+export class CoreEntity<TProcessor extends object = object> implements IDeconstructable {
     private readonly mCoreEntitySetupHookList: Array<CoreEntitySetupHook>;
     private readonly mCreateOnSetup: boolean;
     private readonly mInjections: Dictionary<InjectionConstructor, any>;
@@ -116,6 +116,13 @@ export class CoreEntity<TProcessor extends object = object> {
         return this.updateZone.enableInteractionTrigger(() => {
             return lPropertyFunction.call(this.processor, pParameter);
         });
+    }
+
+    /**
+     * Deconstruct update zone.
+     */
+    public deconstruct(): void {
+        this.mUpdateZone.deconstruct();
     }
 
     /**

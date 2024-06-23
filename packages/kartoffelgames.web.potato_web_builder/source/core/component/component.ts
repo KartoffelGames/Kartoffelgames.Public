@@ -126,11 +126,11 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         // User callback.
         this.call<IComponentOnDeconstruct, 'onDeconstruct'>('onDeconstruct', false);
 
-        // Deconstruct history parent / extensions.
-        super.deconstruct();
-
         // Deconstruct all child element.
         this.mRootBuilder.deconstruct();
+
+        // Deconstruct history parent / extensions.
+        super.deconstruct();
     }
 
     /**

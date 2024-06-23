@@ -27,9 +27,11 @@ export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> im
     /**
      * On module desconstruct.
      */
-    public deconstruct(): void {
+    public override deconstruct(): void {
         // Call execution hook.
         this.call<IExtensionOnDeconstruct, 'onDeconstruct'>('onDeconstruct', false);
+
+        super.deconstruct();
     }
 }
 

@@ -1,10 +1,12 @@
 import { IDeconstructable } from '@kartoffelgames/core.data';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { ExtensionModule, ExtensionModuleConfiguration } from '../extension/extension-module';
-import { CoreEntity, CoreEntityConstructorParameter } from './core-entity';
+import { CoreEntity, CoreEntityConstructorParameter, CoreEntityProcessorConstructor } from './core-entity';
 import { CoreEntityProcessorConstructorSetup, CoreEntityRegister } from './core-entity-register';
 
 export abstract class CoreEntityExtendable<TProcessor extends object> extends CoreEntity<TProcessor> implements IDeconstructable {
+    private static readonly mExtensionCache: WeakMap<CoreEntityProcessorConstructor, ExtensionCache> = new WeakMap<CoreEntityProcessorConstructor, ExtensionCache>();
+
     private readonly mExtensionList: Array<ExtensionModule>;
 
     /**
@@ -39,31 +41,46 @@ export abstract class CoreEntityExtendable<TProcessor extends object> extends Co
      * Create module object.
      */
     private executeExtensions(): void {
-        // TODO: Caching is the key. Cache found extensions for constructor in weakmap. 
-
-        const lExtensions: CoreEntityRegister = new CoreEntityRegister();
-
-        // Filter extension list.
-        const lExtensionSetupList: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>> = lExtensions.get<ExtensionModuleConfiguration>(ExtensionModule);
-
-        // Filter extension list.
-        const lTargetExtensionSetupList: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>> = lExtensionSetupList.filter((pSetup: CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>) => {
-            for (const lRestriction of pSetup.processorConfiguration.targetRestrictions) {
-                if (this instanceof lRestriction || this.processorConstructor.prototype instanceof lRestriction || this.processorConstructor === lRestriction) {
-                    return true;
-                }
+        // Read extensions from cache or build new extension information.
+        const lExtensionSetupLists: ExtensionCache = (() => {
+            // Try to read cached information.
+            const lExtensionCache: ExtensionCache | undefined = CoreEntityExtendable.mExtensionCache.get(this.processorConstructor);
+            if (lExtensionCache) {
+                return lExtensionCache;
             }
 
-            return false;
-        });
+            // On cache fail create new extension cache.
+            const lExtensions: CoreEntityRegister = new CoreEntityRegister();
 
-        // Filter setup list access types.
-        const lReadExtensionSetupList: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>> = lTargetExtensionSetupList.filter((pSetup: CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>) => { return pSetup.processorConfiguration.access === AccessMode.Read; });
-        const lWriteExtensionSetupList: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>> = lTargetExtensionSetupList.filter((pSetup: CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>) => { return pSetup.processorConfiguration.access === AccessMode.Write; });
-        const lReadWriteExtensionSetupList: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>> = lTargetExtensionSetupList.filter((pSetup: CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>) => { return pSetup.processorConfiguration.access === AccessMode.ReadWrite; });
+            // Filter extension list.
+            const lExtensionSetupList: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>> = lExtensions.get<ExtensionModuleConfiguration>(ExtensionModule);
+
+            // Filter extension list.
+            const lTargetExtensionSetupList: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>> = lExtensionSetupList.filter((pSetup: CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>) => {
+                for (const lRestriction of pSetup.processorConfiguration.targetRestrictions) {
+                    if (this instanceof lRestriction || this.processorConstructor.prototype instanceof lRestriction || this.processorConstructor === lRestriction) {
+                        return true;
+                    }
+                }
+
+                return false;
+            });
+
+            // Filter setup list access types and create extension cache object.
+            const lNewExtensionList: ExtensionCache = {
+                read: lTargetExtensionSetupList.filter((pSetup: CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>) => { return pSetup.processorConfiguration.access === AccessMode.Read; }),
+                write: lTargetExtensionSetupList.filter((pSetup: CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>) => { return pSetup.processorConfiguration.access === AccessMode.Write; }),
+                readWrite: lTargetExtensionSetupList.filter((pSetup: CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>) => { return pSetup.processorConfiguration.access === AccessMode.ReadWrite; })
+            };
+
+            // Cache new build extensionlist.
+            CoreEntityExtendable.mExtensionCache.set(this.processorConstructor, lNewExtensionList);
+
+            return lNewExtensionList;
+        })();
 
         // Create every write module extension.
-        for (const lSetup of lWriteExtensionSetupList) {
+        for (const lSetup of lExtensionSetupLists.write) {
             const lModuleExtension: ExtensionModule = new ExtensionModule(lSetup.processorConstructor, <CoreEntity><any>this, lSetup.processorConfiguration.trigger);
             lModuleExtension.setup();
 
@@ -71,7 +88,7 @@ export abstract class CoreEntityExtendable<TProcessor extends object> extends Co
         }
 
         // Get all read extensions. Keep order to execute readWrite extensions first.
-        const lReadExtensions: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>> = [...lReadWriteExtensionSetupList, ...lReadExtensionSetupList];
+        const lReadExtensions: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>> = [...lExtensionSetupLists.readWrite, ...lExtensionSetupLists.read];
 
         // Create every read module extension.
         for (const lSetup of lReadExtensions) {
@@ -82,5 +99,11 @@ export abstract class CoreEntityExtendable<TProcessor extends object> extends Co
         }
     }
 }
+
+type ExtensionCache = {
+    read: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>>;
+    write: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>>;
+    readWrite: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>>;
+};
 
 export type CoreEntityExtendableConstructorParameter<TProcessor extends object> = CoreEntityConstructorParameter<TProcessor>;

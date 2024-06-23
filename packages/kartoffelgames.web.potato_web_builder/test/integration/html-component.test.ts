@@ -3,8 +3,7 @@ import { InteractionDetectionProxy } from '@kartoffelgames/web.change-detection/
 import { expect } from 'chai';
 import { IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../source/core/component/component';
 import { ComponentRegister } from '../../source/core/component/component-register';
-import { LoopError } from '../../source/core/component/handler/loop-detection-handler';
-import { CoreEntityUpdateZone } from '../../source/core/core_entity/core-entity-update-zone';
+import { CoreEntityUpdateZone, UpdateLoopError } from '../../source/core/core_entity/core-entity-update-zone';
 import { PwbComponent } from '../../source/core/component/pwb-component.decorator';
 import { IExpressionOnUpdate } from '../../source/core/module/expression_module/expression-module';
 import { PwbExpressionModule } from '../../source/core/module/expression_module/pwb-expression-module.decorator';
@@ -480,7 +479,7 @@ describe('HtmlComponent', () => {
         }
 
         // Evaluation.
-        expect(lError).to.be.instanceOf(LoopError);
+        expect(lError).to.be.instanceOf(UpdateLoopError);
     });
 
     it('-- Creation without PwbApp', async () => {

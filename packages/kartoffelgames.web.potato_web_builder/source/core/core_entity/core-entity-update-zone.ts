@@ -1,20 +1,24 @@
 import { List } from '@kartoffelgames/core.data';
 import { IgnoreInteractionDetection, InteractionReason, InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
-import { LoopDetectionHandler } from '../component/handler/loop-detection-handler';
 
 /**
  * Update zone of any core entity. Handles automatic and manual update detection.
- * Integrates with {@link LoopDetectionHandler} to detect update loops.
+ * Integrates a loop detection to throw {@link UpdateLoopError} on to many continuous updates.
  * 
  * @internal
  */
 @IgnoreInteractionDetection
 export class CoreEntityUpdateZone {
+    private static readonly MAX_STACK_SIZE: number = 10;
+
     private mEnabled: boolean;
+    private mHasSheduledUpdate: boolean;
     private readonly mInteractionDetectionListener: (pReason: InteractionReason) => void;
     private readonly mInteractionZone: InteractionZone;
-    private readonly mLoopDetectionHandler: LoopDetectionHandler;
+    private mSheduledUpdateIdentifier: number;
+    private readonly mUpdateCallChain: List<InteractionReason>;
+    private readonly mUpdateChainCompleteHookReleaseList: List<UpdateChainCompleteHookRelease>;
     private readonly mUpdateListener: List<UpdateListener>;
 
     /**
@@ -47,7 +51,12 @@ export class CoreEntityUpdateZone {
     public constructor(pLabel: string, pIsolatedInteraction: boolean, pInteractionTrigger: UpdateTrigger, pParentZone?: InteractionZone) {
         this.mUpdateListener = new List<UpdateListener>();
         this.mEnabled = false;
-        this.mLoopDetectionHandler = new LoopDetectionHandler(10);
+
+        // Init loop detection values.
+        this.mUpdateCallChain = new List<InteractionReason>();
+        this.mUpdateChainCompleteHookReleaseList = new List<UpdateChainCompleteHookRelease>();
+        this.mSheduledUpdateIdentifier = 0;
+        this.mHasSheduledUpdate = false;
 
         // Create isolated or default zone as parent zone or, when not specified, current zones child.
         this.mInteractionZone = (pParentZone ?? InteractionZone.current).execute(() => {
@@ -133,6 +142,23 @@ export class CoreEntityUpdateZone {
     }
 
     /**
+     * Wait for the component update.
+     * Returns Promise<false> if there is currently no update cycle.
+     */
+    private async addUpdateChainCompleteHook(): Promise<true> {
+        // Add new callback to waiter line.
+        return new Promise<true>((pResolve, pReject) => {
+            this.mUpdateChainCompleteHookReleaseList.push((pError: any) => {
+                if (pError) {
+                    pReject(pError);
+                } else {
+                    pResolve(true);
+                }
+            });
+        });
+    }
+
+    /**
      * Execute all update listener.
      */
     private dispatchUpdateListener(pReason: InteractionReason): void {
@@ -146,8 +172,26 @@ export class CoreEntityUpdateZone {
     }
 
     /**
-     * Shedule asyncron update.
-     * Triggers update asynchron.
+     * Release all chain complete hooks.
+     * Pass on any thrown error to all hook releases.
+     * 
+     * @param pError - Error object.
+     */
+    private releaseUpdateChainCompleteHooks(pError?: any): void {
+        // Release all waiter.
+        for (const lHookRelease of this.mUpdateChainCompleteHookReleaseList) {
+            lHookRelease(pError);
+        }
+
+        // Clear hook release list.
+        this.mUpdateChainCompleteHookReleaseList.clear();
+    }
+
+    /**
+     * Shedule asyncron update. Checks for loops and throws {@link UpdateLoopError} on to many continuous updates.
+     * Triggers update on next frame.
+     * 
+     * @throws {@link UpdateLoopError} - When {@link MAX_STACK_SIZE} or more continuous updates where made.
      */
     private async sheduleUpdateTask(pReason: InteractionReason): Promise<boolean> {
         // Skip task shedule when update zone is disabled.
@@ -159,12 +203,100 @@ export class CoreEntityUpdateZone {
         // Like current update trigger
         // Like update performance.
 
-        // Shedule new asynchron update task.
-        return this.mLoopDetectionHandler.sheduleTask(() => {
-            // Call every update listener inside interaction zone.
-            this.dispatchUpdateListener(pReason);
-        }, pReason).then(() => true);
+        // Save current execution zone stack. To restore it for user function call.
+        const lCurrentZone: InteractionZone = InteractionZone.current;
+
+        // Function for asynchron call.
+        const lAsynchronTask = () => {
+            // Sheduled task executed, allow another task to be executed.
+            this.mHasSheduledUpdate = false;
+
+            // Save current call chain length. Used to detect a new chain link after execution.
+            const lLastCallChainLength: number = this.mUpdateCallChain.length;
+
+            try {
+                // Call task. If no other call was sheduled during this call, the length will be the same after. 
+                lCurrentZone.execute(() => {
+                    this.dispatchUpdateListener(pReason);
+                });
+
+                // Throw if too many calles were chained. // TODO: Make this optional. Only throw in debug mode.
+                if (this.mUpdateCallChain.length > CoreEntityUpdateZone.MAX_STACK_SIZE) {
+                    throw new UpdateLoopError('Call loop detected', this.mUpdateCallChain);
+                }
+
+                // Clear call chain list if no other call in this cycle was made.
+                if (lLastCallChainLength === this.mUpdateCallChain.length) {
+                    this.mUpdateCallChain.clear();
+
+                    // Release chain complete hook.
+                    this.releaseUpdateChainCompleteHooks();
+                }
+            } catch (pException) {
+                // Unblock further calls and clear call chain.
+                this.mUpdateCallChain.clear();
+
+                // Cancel next call cycle.
+                globalThis.cancelAnimationFrame(this.mSheduledUpdateIdentifier);
+
+                // Permanently block another execution for this loop detection handler. Prevents script locks.
+                this.mHasSheduledUpdate = true;
+
+                // Release chain complete hook with error.
+                this.releaseUpdateChainCompleteHooks(pException);
+            }
+        };
+
+        // Do not trigger interaction detection on requestAnimationFrame. The task function should handle the actual interaction zone scope.
+        return new InteractionZone('Sheduled-Update', { trigger: <InteractionResponseType><unknown>UpdateTrigger.None, isolate: true }).execute(async () => {
+            // Skip asynchron task when currently a call is sheduled.
+            if (this.mHasSheduledUpdate) {
+                // Add then chain to current promise task. Task is resolved on completing all updates or rejected on any error. 
+                return this.addUpdateChainCompleteHook();
+            }
+
+            // Create and expand call chain.
+            this.mUpdateCallChain.push(pReason);
+
+            // Lock creation of a new task until current task is started.
+            this.mHasSheduledUpdate = true;
+
+            // Call on next frame. 
+            this.mSheduledUpdateIdentifier = globalThis.requestAnimationFrame(lAsynchronTask);
+
+            // Add then chain to current promise task. Task is resolved on completing all updates or rejected on any error. 
+            return this.addUpdateChainCompleteHook();
+        });
     }
 }
 
+type UpdateChainCompleteHookRelease = (pError: any) => void;
+
 export type UpdateListener = (pReason: InteractionReason) => void;
+
+export class UpdateLoopError extends Error {
+    private readonly mChain: Array<InteractionReason>;
+
+    /**
+     * Asynchron call chain.
+     */
+    public get chain(): Array<InteractionReason> {
+        // More of the same. Needs no testing.
+        /* istanbul ignore next */
+        return this.mChain;
+    }
+
+    /**
+     * Constructor.
+     * Create loop error.
+     * @param pMessage - Error Message.
+     * @param pChain - Current call chain.
+     */
+    public constructor(pMessage: string, pChain: Array<InteractionReason>) {
+        // Add first 5 reasons to message.
+        const lChainMessage = pChain.slice(-20).map((pItem) => { return pItem.toString(); }).join('\n');
+
+        super(`${pMessage}: \n${lChainMessage}`);
+        this.mChain = [...pChain];
+    }
+}

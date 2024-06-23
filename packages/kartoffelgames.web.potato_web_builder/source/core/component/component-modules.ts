@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { MustacheExpressionModule } from '../../default_module/mustache_expression/mustache-expression-module';
 import { CoreEntityProcessorConstructorSetup, CoreEntityRegister } from '../core_entity/core-entity-register';
 import { AttributeModule, AttributeModuleConfiguration } from '../module/attribute_module/attribute-module';
@@ -18,6 +18,7 @@ import { LayerValues } from './values/layer-values';
  */
 export class ComponentModules {
     // TODO: Cache attribute and instruction constructor by the name to create it faster next time.
+    private static readonly mAttributeModuleCache: Dictionary<string, CoreEntityProcessorConstructorSetup<AttributeModuleConfiguration> | null> = new Dictionary<string, CoreEntityProcessorConstructorSetup<AttributeModuleConfiguration> | null>();
     private static readonly mExpressionModuleCache: WeakMap<IPwbExpressionModuleProcessorConstructor, CoreEntityProcessorConstructorSetup<ExpressionModuleConfiguration>> = new WeakMap<IPwbExpressionModuleProcessorConstructor, CoreEntityProcessorConstructorSetup<ExpressionModuleConfiguration>>();
 
     private readonly mComponent: Component;
@@ -48,25 +49,44 @@ export class ComponentModules {
      * @returns Created static module when it was matched, otherwise null.
      */
     public createAttributeModule(pTemplate: PwbTemplateAttribute, pTargetNode: Element, pValues: LayerValues): AttributeModule | null {
-        // Find static modules.
-        for (const lSetup of this.mCoreEntityRegister.get<AttributeModuleConfiguration>(AttributeModule)) {
-            if (lSetup.processorConfiguration.selector.test(pTemplate.name)) {
-                // Get constructor and create new module.
-                const lModule: AttributeModule = new AttributeModule({
-                    accessMode: lSetup.processorConfiguration.access,
-                    processorConstructor: lSetup.processorConstructor,
-                    parent: this.mComponent,
-                    targetNode: pTargetNode,
-                    targetTemplate: pTemplate,
-                    values: pValues,
-                    interactionTrigger: lSetup.processorConfiguration.trigger
-                }).setup();
-
-                return lModule;
+        // Read attribute setup of expression module.
+        const lAttributeModuleSetup: CoreEntityProcessorConstructorSetup<AttributeModuleConfiguration> | null = (() => {
+            // Try to read cached attribute module.
+            const lCachedSetup: CoreEntityProcessorConstructorSetup<AttributeModuleConfiguration> | null | undefined = ComponentModules.mAttributeModuleCache.get(pTemplate.name);
+            if (lCachedSetup || lCachedSetup === null) {
+                return lCachedSetup;
             }
+
+            // On failed cache search for module setup.
+            for (const lSetup of this.mCoreEntityRegister.get<AttributeModuleConfiguration>(AttributeModule)) {
+                if (lSetup.processorConfiguration.selector.test(pTemplate.name)) {
+                    // Cache setup and return
+                    ComponentModules.mAttributeModuleCache.set(pTemplate.name, lSetup);
+                    return lSetup;
+                }
+            }
+
+            // Cache empty result.
+            ComponentModules.mAttributeModuleCache.set(pTemplate.name, null);
+
+            return null;
+        })();
+
+        // No module found.
+        if (lAttributeModuleSetup === null) {
+            return null;
         }
 
-        return null;
+        // Create new module, setup and return.
+        return new AttributeModule({
+            accessMode: lAttributeModuleSetup.processorConfiguration.access,
+            processorConstructor: lAttributeModuleSetup.processorConstructor,
+            parent: this.mComponent,
+            targetNode: pTargetNode,
+            targetTemplate: pTemplate,
+            values: pValues,
+            interactionTrigger: lAttributeModuleSetup.processorConfiguration.trigger
+        }).setup();
     }
 
     /**

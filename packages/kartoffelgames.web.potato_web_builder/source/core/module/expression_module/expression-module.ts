@@ -1,7 +1,7 @@
 import { UpdateTrigger } from '../../../enum/update-trigger.enum';
 import { PwbTemplateExpression } from '../../component/template/nodes/values/pwb-template-expression';
 import { ModuleTargetNode } from '../injection_reference/module-target-node';
-import { ModuleTemplateReference } from '../../injection-reference/module/module-template-reference';
+import { ModuleTemplate } from '../injection_reference/module-template';
 import { BaseModule, BaseModuleConstructorParameter, IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../base-module';
 import { ModuleExpression } from '../injection_reference/module-expression';
 
@@ -28,7 +28,7 @@ export class ExpressionModule extends BaseModule<IPwbExpressionModuleProcessor> 
 
         // Set module value from template value.
         this.setProcessorAttributes(ExpressionModule, this);
-        this.setProcessorAttributes(ModuleTemplateReference, pParameter.targetTemplate.clone());
+        this.setProcessorAttributes(ModuleTemplate, pParameter.targetTemplate.clone());
         this.setProcessorAttributes(ModuleTargetNode, pParameter.targetNode);
         this.setProcessorAttributes(ModuleExpression, new ModuleExpression(pParameter.targetTemplate.value));
     }

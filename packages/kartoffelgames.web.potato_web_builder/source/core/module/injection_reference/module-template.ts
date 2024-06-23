@@ -9,7 +9,7 @@ import { BasePwbTemplateNode } from '../../component/template/nodes/base-pwb-tem
  * 
  * Should never be initialized.
  */
-export class ModuleTemplateReference {
+export class ModuleTemplate {
     /**
      * Constructor. Allways throws exception.
      * 
@@ -21,4 +21,4 @@ export class ModuleTemplateReference {
     }
 }
 
-export declare interface ModuleTemplateReference extends BasePwbTemplateNode { }
+export declare interface ModuleTemplate extends BasePwbTemplateNode { }

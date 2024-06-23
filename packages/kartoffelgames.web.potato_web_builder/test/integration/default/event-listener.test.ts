@@ -5,7 +5,7 @@ import { PwbComponent } from '../../../source/core/component/pwb-component.decor
 import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template';
 import { PwbTemplateInstructionNode } from '../../../source/core/component/template/nodes/pwb-template-instruction-node';
 import { ScopedValues } from '../../../source/core/scoped-values';
-import { ModuleTemplateReference } from '../../../source/core/injection-reference/module/module-template-reference';
+import { ModuleTemplate } from '../../../source/core/module/injection_reference/module-template';
 import { PwbAttributeModule } from '../../../source/core/module/attribute_module/pwb-attribute-module.decorator';
 import { IInstructionOnUpdate } from '../../../source/core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator';
@@ -282,7 +282,7 @@ describe('PwbEventListener', () => {
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class MyModule implements IInstructionOnUpdate {
-            public constructor(private readonly mTemplate: ModuleTemplateReference, private readonly mValue: ModuleValues) { }
+            public constructor(private readonly mTemplate: ModuleTemplate, private readonly mValue: ModuleValues) { }
 
             onUpdate(): InstructionResult | null {
                 const lResult: InstructionResult = new InstructionResult();

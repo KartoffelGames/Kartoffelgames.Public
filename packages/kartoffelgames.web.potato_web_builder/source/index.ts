@@ -11,7 +11,7 @@ export { AttributeModule } from './core/module/attribute_module/attribute-module
 export { InstructionModule } from './core/module/instruction_module/instruction-module';
 export { ExtensionModule } from './core/extension/extension-module';
 export { ModuleTargetNode } from './core/module/injection_reference/module-target-node';
-export { ModuleTemplateReference } from './core/injection-reference/module/module-template-reference';
+export { ModuleTemplate } from './core/module/injection_reference/module-template';
 export { ModuleValues } from './core/module/module-values';
 export { ModuleAttribute } from './core/module/injection_reference/module-attribute';
 

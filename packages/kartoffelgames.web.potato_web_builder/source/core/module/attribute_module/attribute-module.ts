@@ -1,7 +1,7 @@
 import { AccessMode } from '../../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../../enum/update-trigger.enum';
 import { PwbTemplateAttribute } from '../../component/template/nodes/values/pwb-template-attribute';
-import { ModuleTemplateReference } from '../../injection-reference/module/module-template-reference';
+import { ModuleTemplate } from '../injection_reference/module-template';
 import { BaseModule, BaseModuleConstructorParameter, IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../base-module';
 import { ModuleAttribute } from '../injection_reference/module-attribute';
 import { ModuleTargetNode } from '../injection_reference/module-target-node';
@@ -33,7 +33,7 @@ export class AttributeModule extends BaseModule<IPwbAttributeModuleProcessor> {
 
         // Set processor attribute values from injection template.
         this.setProcessorAttributes(AttributeModule, this);
-        this.setProcessorAttributes(ModuleTemplateReference, pParameter.targetTemplate.clone());
+        this.setProcessorAttributes(ModuleTemplate, pParameter.targetTemplate.clone());
         this.setProcessorAttributes(ModuleTargetNode, pParameter.targetNode);
         this.setProcessorAttributes(ModuleAttribute, new ModuleAttribute(pParameter.targetTemplate.name, pParameter.targetTemplate.values.toString()));
     }

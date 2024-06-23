@@ -43,27 +43,34 @@ export class ScopedValues {
 
     /**
      * Check for changes into two value handler.
-     * @param pHandler - Handler two.
+     * @param pTargetValues - Value two.
      */
-    public equals(pHandler: ScopedValues): boolean {
+    public equals(pTargetValues: ScopedValues): boolean {
+        // No need to compare same references.
+        if(this === pTargetValues){
+            return true;
+        }
+
         // Compare if it has the same component processor object.
-        if (this.mComponent.processor !== pHandler.mComponent.processor) {
+        if (this.mComponent.processor !== pTargetValues.mComponent.processor) {
             return false;
         }
 
-        // Get temporary value keys and sort. 
-        const lSortedTemporaryValueKeyListOne: Array<string> = this.getTemporaryValuesList().sort();
-        const lSortedTemporaryValueKeyListTwo: Array<string> = pHandler.getTemporaryValuesList().sort();
+        // Should have same parent scope.
+        if(this.mParentScope !== pTargetValues.mParentScope){
+            return false;
+        }
 
-        // Compare temporary value keys.
-        if (lSortedTemporaryValueKeyListOne.join() !== lSortedTemporaryValueKeyListTwo.join()) {
+        // Should have same temporary values.
+        if(this.mTemporaryValues.size !== pTargetValues.mTemporaryValues.size){
             return false;
         }
 
         // Check for temporary values differences from one to two.
-        for (const lTemporaryValueOneKey of lSortedTemporaryValueKeyListOne) {
-            // Check for difference.
-            if (this.getValue(lTemporaryValueOneKey) !== pHandler.getValue(lTemporaryValueOneKey)) {
+        for(const [lSourceTemporaryKey, lSourceTemporaryValue] of this.mTemporaryValues) {
+            const lTargetTemporaryValue: any = pTargetValues.mTemporaryValues.get(lSourceTemporaryKey);
+
+            if(lSourceTemporaryValue !== lTargetTemporaryValue){
                 return false;
             }
         }

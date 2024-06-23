@@ -1,7 +1,6 @@
 import { Dictionary, Exception, List } from '@kartoffelgames/core.data';
 import { Component } from '../../component';
 import { ComponentModules } from '../../component-modules';
-import { ElementCreator } from '../../element-creator';
 import { BaseBuilder } from '../base-builder';
 
 export abstract class BaseBuilderData {
@@ -59,7 +58,7 @@ export abstract class BaseBuilderData {
         this.mLinkedContent = new WeakSet<BuilderContent>();
 
         // Create anchor of content. Anchors marks the beginning of all content nodes.
-        this.mContentAnchor = ElementCreator.createComment(pAnchorName);
+        this.mContentAnchor = document.createComment(pAnchorName);
 
         // Set starting boundary. Existing only of anchor.
         this.mContentBoundary = {

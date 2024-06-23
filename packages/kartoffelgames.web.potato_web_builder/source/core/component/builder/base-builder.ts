@@ -1,5 +1,6 @@
 
 import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
+import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
 import { LayerValues } from '../values/layer-values';
 import { BaseBuilderData, Boundary } from './data/base-builder-data';
 
@@ -66,6 +67,47 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
         // Link this builder as content.
         pContent.setCoreBuilder(this);
     }
+
+    /**
+     * Create new html element.
+     * When the element is a custom element, it invokes the custom element constructor instead of an unknown html element.
+     * 
+     * Ignores all attribute and expression informations and only uses the tagname information.
+     * 
+     * @param pXmlElement - Xml content node.
+     */
+    public createElement(pXmlElement: PwbTemplateXmlNode): Element {
+        const lTagname: string = pXmlElement.tagName;
+
+        if (typeof lTagname !== 'string') {
+            throw lTagname;
+        }
+
+        // On custom element
+        if (lTagname.includes('-')) {
+            // Get custom element.
+            const lCustomElement: any = window.customElements.get(lTagname);
+
+            // Create custom element.
+            if (typeof lCustomElement !== 'undefined') {
+                return new lCustomElement();
+            }
+        }
+
+        return document.createElement(lTagname);
+    }
+
+    /**
+     * Create html text node.
+     * 
+     * @param pText - Text.
+     * 
+     * @returns text node with specified text.
+     */
+    public createText(pText: string): Text {
+        return document.createTextNode(pText);
+    }
+
 
     /**
      * Cleanup all modules, content and anchor.

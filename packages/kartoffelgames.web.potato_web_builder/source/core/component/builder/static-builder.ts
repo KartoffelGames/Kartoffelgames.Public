@@ -1,7 +1,6 @@
 import { ExpressionModule } from '../../module/expression_module/expression-module';
 import { AttributeModule } from '../../module/attribute_module/attribute-module';
 import { ComponentModules } from '../component-modules';
-import { ElementCreator } from '../element-creator';
 import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
 import { PwbTemplate } from '../template/nodes/pwb-template';
 import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node';
@@ -113,7 +112,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
      */
     private buildStaticTemplate(pElementTemplate: PwbTemplateXmlNode, pParentContent: BuilderContent): void {
         // Build element and append to builder.
-        const lHtmlNode: Element = ElementCreator.createElement(pElementTemplate);
+        const lHtmlNode: Element = this.createElement(pElementTemplate);
         this.content.insert(lHtmlNode, 'BottomOf', pParentContent);
 
         for (const lAttributeTemplate of pElementTemplate.attributes) {
@@ -133,7 +132,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
                 // Create text nodes for each attribute value and link expressions to those textnodes.
                 for (const lValue of lAttributeTemplate.values.values) {
                     // Create text node for attribute value.
-                    const lAttributeTextNode: Text = ElementCreator.createText('');
+                    const lAttributeTextNode: Text = this.createText('');
                     lAttributeTextNodeList.push(lAttributeTextNode);
 
                     // Add text value for non expressions.
@@ -201,12 +200,12 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
         for (const lValue of pTextTemplate.values) {
             // Create simple and static textnode for string values.
             if (typeof lValue === 'string') {
-                this.content.insert(ElementCreator.createText(lValue), 'BottomOf', pParentContent);
+                this.content.insert(this.createText(lValue), 'BottomOf', pParentContent);
                 continue;
             }
 
             // Placeholder text node for expression and append it to builder.
-            const lExpressionTextNode: Text = ElementCreator.createText('');
+            const lExpressionTextNode: Text = this.createText('');
             this.content.insert(lExpressionTextNode, 'BottomOf', pParentContent);
 
             // Create expression module and link it to builder.

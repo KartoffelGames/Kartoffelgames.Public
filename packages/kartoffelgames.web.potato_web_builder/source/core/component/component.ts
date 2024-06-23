@@ -11,7 +11,6 @@ import { IPwbExpressionModuleProcessorConstructor } from '../module/expression_m
 import { StaticBuilder } from './builder/static-builder';
 import { ComponentInformation } from './component-information';
 import { ComponentModules } from './component-modules';
-import { ElementCreator } from './element-creator';
 import { ElementHandler } from './handler/element-handler';
 import { PwbTemplate } from './template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
@@ -91,7 +90,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         const lStyleTemplate: PwbTemplateXmlNode = new PwbTemplateXmlNode();
         lStyleTemplate.tagName = 'style';
 
-        const lStyleElement: Element = ElementCreator.createElement(lStyleTemplate);
+        const lStyleElement: Element = this.mRootBuilder.createElement(lStyleTemplate);
         lStyleElement.innerHTML = pStyle;
         this.mElementHandler.shadowRoot.prepend(lStyleElement);
     }

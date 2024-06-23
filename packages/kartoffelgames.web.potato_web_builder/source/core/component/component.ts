@@ -11,7 +11,7 @@ import { IPwbExpressionModuleProcessorConstructor } from '../module/expression_m
 import { StaticBuilder } from './builder/static-builder';
 import { ComponentModules } from './component-modules';
 import { ComponentRegister } from './component-register';
-import { ComponentElement } from './handler/component-element';
+import { ComponentElement } from './component-element';
 import { PwbTemplate } from './template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 import { TemplateParser } from './template/template-parser';

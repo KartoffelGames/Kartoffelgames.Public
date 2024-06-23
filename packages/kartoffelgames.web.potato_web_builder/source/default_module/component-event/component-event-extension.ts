@@ -3,7 +3,6 @@ import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-
 import { Component, ComponentProcessorConstructor } from '../../core/component/component';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
 import { ComponentConstructorReference } from '../../core/injection-reference/component/component-constructor-reference';
-import { ComponentElementReference } from '../../core/injection-reference/component/component-element-reference';
 import { ComponentReference } from '../../core/injection-reference/component/component-reference';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
@@ -23,9 +22,8 @@ export class ComponentEventExtension {
      * 
      * @param pComponentProcessorConstructor - Component processor constructor.
      * @param pComponent - Component processor.
-     * @param pElementReference - Component html element.
      */
-    public constructor(pComponentProcessorConstructor: ComponentConstructorReference, pComponent: ComponentReference, pElementReference: ComponentElementReference) {
+    public constructor(pComponentProcessorConstructor: ComponentConstructorReference, pComponent: ComponentReference) {
         // Find all event properties of current class layer and add all to merged property list.
         const lEventPropertyMapList: Array<Array<[string, string, ComponentProcessorConstructor]>> = Metadata.get(<InjectionConstructor>pComponentProcessorConstructor).getInheritedMetadata(ComponentEventExtension.METADATA_USER_EVENT_PROPERIES);
         for (const lEventPropertyList of lEventPropertyMapList) {
@@ -36,7 +34,7 @@ export class ComponentEventExtension {
                 }
 
                 // Create component event emitter.
-                const lEventEmitter: ComponentEventEmitter<any> = new ComponentEventEmitter(lEventName, pElementReference);
+                const lEventEmitter: ComponentEventEmitter<any> = new ComponentEventEmitter(lEventName, pComponent.element);
 
                 // Override property with created component event emmiter getter.
                 Object.defineProperty(pComponent.processor, lPropertyKey, {

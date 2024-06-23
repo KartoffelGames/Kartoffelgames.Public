@@ -2,7 +2,7 @@
  * Handles the component element.
  * Creates and attaches a new shadowroot.
  */
-export class ElementHandler {
+export class ComponentElement {
     private readonly mHtmlElement: HTMLElement;
     private readonly mShadowRoot: ShadowRoot;
 

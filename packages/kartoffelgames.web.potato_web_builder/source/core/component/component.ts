@@ -3,20 +3,19 @@ import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.
 import { UpdateMode } from '../../enum/update-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { CoreEntityExtendable } from '../core_entity/core-entity-extendable';
+import { CoreEntityUpdateZone } from '../core_entity/core-entity-update-zone';
 import { ComponentConstructorReference } from '../injection-reference/component/component-constructor-reference';
-import { ComponentElementReference } from '../injection-reference/component/component-element-reference';
 import { ComponentReference } from '../injection-reference/component/component-reference';
 import { ComponentValuesReference } from '../injection-reference/component/component-values-reference';
 import { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module';
 import { StaticBuilder } from './builder/static-builder';
 import { ComponentModules } from './component-modules';
 import { ComponentRegister } from './component-register';
-import { ElementHandler } from './handler/element-handler';
+import { ComponentElement } from './handler/component-element';
 import { PwbTemplate } from './template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 import { TemplateParser } from './template/template-parser';
 import { ScopedValues } from './values/scoped-values';
-import { CoreEntityUpdateZone } from '../core_entity/core-entity-update-zone';
 
 /**
  * Base component handler. Handles initialisation and update of components.
@@ -24,8 +23,15 @@ import { CoreEntityUpdateZone } from '../core_entity/core-entity-update-zone';
 export class Component extends CoreEntityExtendable<ComponentProcessor> {
     private static readonly mTemplateCache: Dictionary<ComponentProcessorConstructor, PwbTemplate> = new Dictionary<ComponentProcessorConstructor, PwbTemplate>();
     private static readonly mXmlParser: TemplateParser = new TemplateParser();
-    private readonly mElementHandler: ElementHandler;
+    private readonly mComponentElement: ComponentElement;
     private readonly mRootBuilder: StaticBuilder;
+
+    /**
+     * Component html element.
+     */
+    public get element(): HTMLElement {
+        return this.mComponentElement.htmlElement;
+    }
 
     /**
      * Constructor.
@@ -44,11 +50,11 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
 
         // Register untracked processor, than track and register the tracked processor.
         this.addCreationHook((pProcessor: ComponentProcessor) => {
-            ComponentRegister.registerComponent(this, this.mElementHandler.htmlElement, pProcessor);
+            ComponentRegister.registerComponent(this, this.mComponentElement.htmlElement, pProcessor);
         }).addCreationHook((pProcessor: ComponentProcessor) => {
             return this.updateZone.registerObject(pProcessor);
         }).addCreationHook((pProcessor: ComponentProcessor) => {
-            ComponentRegister.registerComponent(this, this.mElementHandler.htmlElement, pProcessor);
+            ComponentRegister.registerComponent(this, this.mComponentElement.htmlElement, pProcessor);
         });
 
         // Load cached or create new module handler and template.
@@ -60,16 +66,15 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
             lTemplate = lTemplate.clone();
         }
 
-        // Create element handler.
-        this.mElementHandler = new ElementHandler(pParameter.htmlElement);
+        // Create component element.
+        this.mComponentElement = new ComponentElement(pParameter.htmlElement);
 
         // Create component builder.
         this.mRootBuilder = new StaticBuilder(lTemplate, new ComponentModules(this, pParameter.expressionModule), new ScopedValues(this), 'ROOT');
-        this.mElementHandler.shadowRoot.appendChild(this.mRootBuilder.anchor);
+        this.mComponentElement.shadowRoot.appendChild(this.mRootBuilder.anchor);
 
         // Initialize user object injections.
         this.setProcessorAttributes(ComponentConstructorReference, pParameter.processorConstructor);
-        this.setProcessorAttributes(ComponentElementReference, pParameter.htmlElement);
         this.setProcessorAttributes(ComponentValuesReference, this.mRootBuilder.values);
         this.setProcessorAttributes(ComponentReference, this);
         this.setProcessorAttributes(CoreEntityUpdateZone, this.updateZone);
@@ -91,7 +96,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
 
         const lStyleElement: Element = this.mRootBuilder.createElement(lStyleTemplate);
         lStyleElement.innerHTML = pStyle;
-        this.mElementHandler.shadowRoot.prepend(lStyleElement);
+        this.mComponentElement.shadowRoot.prepend(lStyleElement);
     }
 
     /**

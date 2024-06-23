@@ -16,7 +16,7 @@ export { ModuleValues } from './core/module/module-values';
 
 // Component Injections
 export { ComponentConstructorReference } from './core/injection-reference/component/component-constructor-reference';
-export { ComponentElementReference } from './core/injection-reference/component/component-element-reference';
+export { ComponentElement } from './core/component/handler/component-element';
 export { ComponentValuesReference } from './core/injection-reference/component/component-values-reference';
 export { CoreEntityUpdateZone } from './core/core_entity/core-entity-update-zone';
 
@@ -60,4 +60,5 @@ import './default_module/component-event/component-event-extension';
 import './default_module/event-listener/event-listener-component-extension';
 import './default_module/export/export-extension';
 import './default_module/pwb_app_injection/pwb-app-injection-extension';
+
 

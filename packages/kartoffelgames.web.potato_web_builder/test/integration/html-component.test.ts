@@ -6,7 +6,6 @@ import { ComponentRegister } from '../../source/core/component/component-registe
 import { LoopError } from '../../source/core/component/handler/loop-detection-handler';
 import { CoreEntityUpdateZone } from '../../source/core/core_entity/core-entity-update-zone';
 import { PwbComponent } from '../../source/core/component/pwb-component.decorator';
-import { ComponentElementReference } from '../../source/core/injection-reference/component/component-element-reference';
 import { IExpressionOnUpdate } from '../../source/core/module/expression_module/expression-module';
 import { PwbExpressionModule } from '../../source/core/module/expression_module/pwb-expression-module.decorator';
 import { PwbExport } from '../../source/default_module/export/pwb-export.decorator';
@@ -15,6 +14,7 @@ import { UpdateTrigger } from '../../source/enum/update-trigger.enum';
 import '../mock/request-animation-frame-mock-session';
 import '../utility/chai-helper';
 import { TestUtil } from '../utility/test-util';
+import { ComponentReference } from '../../source/core/injection-reference/component/component-reference';
 
 describe('HtmlComponent', () => {
     it('-- Single element', async () => {
@@ -345,8 +345,8 @@ describe('HtmlComponent', () => {
         })
         class TestComponent {
             private readonly mElementReference: Node;
-            public constructor(pElementReference: ComponentElementReference) {
-                this.mElementReference = pElementReference;
+            public constructor(pElementReference: ComponentReference) {
+                this.mElementReference = pElementReference.element;
             }
 
             @PwbExport

@@ -4,7 +4,6 @@ import { Component } from '../../core/component/component';
 import { IExtensionOnDeconstruct } from '../../core/extension/extension-module';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
 import { ComponentConstructorReference } from '../../core/injection-reference/component/component-constructor-reference';
-import { ComponentElementReference } from '../../core/injection-reference/component/component-element-reference';
 import { ComponentReference } from '../../core/injection-reference/component/component-reference';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
@@ -28,7 +27,7 @@ export class EventListenerComponentExtension implements IExtensionOnDeconstruct 
      * @param pComponent - Component processor.
      * @param pElementReference - Component html element.
      */
-    public constructor(pComponentProcessorConstructor: ComponentConstructorReference, pComponent: ComponentReference, pElementReference: ComponentElementReference) {
+    public constructor(pComponentProcessorConstructor: ComponentConstructorReference, pComponent: ComponentReference) {
         // Get event metadata.
         const lEventPropertyList: Array<[string, string]> = new Array<[string, string]>();
 
@@ -56,7 +55,7 @@ export class EventListenerComponentExtension implements IExtensionOnDeconstruct 
         this.mEventListenerList = new Array<[string, EventListener]>();
 
         // Easy access target objects.
-        this.mTargetElement = pElementReference;
+        this.mTargetElement = pComponent.element;
 
         // Override each property with the corresponding component event emitter.
         for (const lEventProperty of lEventPropertyList) {

@@ -2,11 +2,10 @@ import { List } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
 import { Component, IComponentOnAttributeChange } from '../../core/component/component';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
+import { ComponentConstructorReference } from '../../core/injection-reference/component/component-constructor-reference';
+import { ComponentReference } from '../../core/injection-reference/component/component-reference';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
-import { ComponentConstructorReference } from '../../core/injection-reference/component/component-constructor-reference';
-import { ComponentElementReference } from '../../core/injection-reference/component/component-element-reference';
-import { ComponentReference } from '../../core/injection-reference/component/component-reference';
 
 @PwbExtensionModule({
     access: AccessMode.Read,
@@ -17,15 +16,13 @@ export class ExportExtension {
     public static readonly METADATA_EXPORTED_PROPERTIES: string = 'pwb:exported_properties';
 
     private readonly mComponent: Component;
-    private readonly mHtmlElement: HTMLElement;
 
     /**
      * Constructor.
      * @param pTargetElementReference - Component html element reference.
      * @param pComponentManagerReference - Component manager reference.
      */
-    public constructor(pComponentProcessorConstructor: ComponentConstructorReference, pComponent: ComponentReference, pElementReference: ComponentElementReference) {
-        this.mHtmlElement = pElementReference;
+    public constructor(pComponentProcessorConstructor: ComponentConstructorReference, pComponent: ComponentReference) {
         this.mComponent = pComponent;
 
         // All exported properties of target and parent classes.
@@ -88,7 +85,7 @@ export class ExportExtension {
                 return lValue;
             };
 
-            Object.defineProperty(this.mHtmlElement, lExportProperty, lDescriptor);
+            Object.defineProperty(this.mComponent.element, lExportProperty, lDescriptor);
         }
     }
 
@@ -97,27 +94,27 @@ export class ExportExtension {
      */
     private patchHtmlAttributes(pExportedProperties: Array<string | symbol>): void {
         // Get original functions.
-        const lOriginalSetAttribute: (pQualifiedName: string, pValue: string) => void = this.mHtmlElement.setAttribute;
-        const lOriginalGetAttribute: (pQualifiedName: string) => string | null = this.mHtmlElement.getAttribute;
+        const lOriginalSetAttribute: (pQualifiedName: string, pValue: string) => void = this.mComponent.element.setAttribute;
+        const lOriginalGetAttribute: (pQualifiedName: string) => string | null = this.mComponent.element.getAttribute;
 
         // Patch set attribute
-        this.mHtmlElement.setAttribute = (pQualifiedName: string, pValue: string) => {
+        this.mComponent.element.setAttribute = (pQualifiedName: string, pValue: string) => {
             // Check if attribute is an exported value and set value to user class object.
             if (pExportedProperties.includes(pQualifiedName)) {
-                Reflect.set(this.mHtmlElement, pQualifiedName, pValue);
+                Reflect.set(this.mComponent.element, pQualifiedName, pValue);
             }
 
-            lOriginalSetAttribute.call(this.mHtmlElement, pQualifiedName, pValue);
+            lOriginalSetAttribute.call(this.mComponent.element, pQualifiedName, pValue);
         };
 
         // Patch get attribute
-        this.mHtmlElement.getAttribute = (pQualifiedName: string): string | null => {
+        this.mComponent.element.getAttribute = (pQualifiedName: string): string | null => {
             // Check if attribute is an exported value and return value of user class object.
             if (pExportedProperties.includes(pQualifiedName)) {
-                return Reflect.get(this.mHtmlElement, pQualifiedName);
+                return Reflect.get(this.mComponent.element, pQualifiedName);
             }
 
-            return lOriginalGetAttribute.call(this.mHtmlElement, pQualifiedName);
+            return lOriginalGetAttribute.call(this.mComponent.element, pQualifiedName);
         };
     }
 }

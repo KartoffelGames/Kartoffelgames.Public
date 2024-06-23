@@ -1,11 +1,10 @@
 import { AccessMode } from '../../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../../enum/update-trigger.enum';
 import { PwbTemplateAttribute } from '../../component/template/nodes/values/pwb-template-attribute';
-import { ModuleKeyReference } from '../../injection-reference/module/module-key-reference';
-import { ModuleTargetNode } from '../injection_reference/module-target-node';
 import { ModuleTemplateReference } from '../../injection-reference/module/module-template-reference';
-import { ModuleValueReference } from '../../injection-reference/module/module-value-reference';
 import { BaseModule, BaseModuleConstructorParameter, IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../base-module';
+import { ModuleAttribute } from '../injection_reference/module-attribute';
+import { ModuleTargetNode } from '../injection_reference/module-target-node';
 
 export class AttributeModule extends BaseModule<IPwbAttributeModuleProcessor> {
     private readonly mAccessMode: AccessMode;
@@ -36,8 +35,7 @@ export class AttributeModule extends BaseModule<IPwbAttributeModuleProcessor> {
         this.setProcessorAttributes(AttributeModule, this);
         this.setProcessorAttributes(ModuleTemplateReference, pParameter.targetTemplate.clone());
         this.setProcessorAttributes(ModuleTargetNode, pParameter.targetNode);
-        this.setProcessorAttributes(ModuleKeyReference, pParameter.targetTemplate.name);
-        this.setProcessorAttributes(ModuleValueReference, pParameter.targetTemplate.values.toString());
+        this.setProcessorAttributes(ModuleAttribute, new ModuleAttribute(pParameter.targetTemplate.name, pParameter.targetTemplate.values.toString()));
     }
 
     /**

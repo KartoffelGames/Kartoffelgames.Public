@@ -1,6 +1,6 @@
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from '../../core/component/template/nodes/pwb-template-xml-node';
-import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
+import { ModuleExpression } from '../../core/module/injection_reference/module-expression';
 import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
 import { InstructionResult } from '../../core/module/instruction_module/result/instruction-result';
@@ -19,11 +19,11 @@ export class SlotInstructionModule implements IInstructionOnUpdate {
      * Constructor.
      * @param pTemplate - Target templat.
      * @param pModuleValues - Values of modules.
-     * @param pAttributeReference - Attribute of module.
+     * @param pModuleExpression - Expression of module.
      */
-    public constructor(pModuleValues: ModuleValues, pAttributeValue: ModuleValueReference) {
+    public constructor(pModuleValues: ModuleValues, pModuleExpression: ModuleExpression) {
         this.mModuleValues = pModuleValues;
-        this.mSlotName = pAttributeValue.toString();
+        this.mSlotName = pModuleExpression.value;
     }
 
     /**

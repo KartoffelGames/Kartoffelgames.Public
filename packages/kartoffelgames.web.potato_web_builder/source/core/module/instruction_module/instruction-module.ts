@@ -1,9 +1,8 @@
 import { UpdateTrigger } from '../../../enum/update-trigger.enum';
 import { PwbTemplateInstructionNode } from '../../component/template/nodes/pwb-template-instruction-node';
-import { ModuleKeyReference } from '../../injection-reference/module/module-key-reference';
 import { ModuleTemplateReference } from '../../injection-reference/module/module-template-reference';
-import { ModuleValueReference } from '../../injection-reference/module/module-value-reference';
 import { BaseModule, BaseModuleConstructorParameter, IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../base-module';
+import { ModuleExpression } from '../injection_reference/module-expression';
 import { InstructionResult, InstructionResultElement } from './result/instruction-result';
 
 export class InstructionModule extends BaseModule<IPwbInstructionModuleProcessor> {
@@ -31,8 +30,7 @@ export class InstructionModule extends BaseModule<IPwbInstructionModuleProcessor
         // Set processor attribute values from injection template.
         this.setProcessorAttributes(InstructionModule, this);
         this.setProcessorAttributes(ModuleTemplateReference, pParameter.targetTemplate.clone());
-        this.setProcessorAttributes(ModuleKeyReference, pParameter.targetTemplate.instructionType);
-        this.setProcessorAttributes(ModuleValueReference, pParameter.targetTemplate.instruction);
+        this.setProcessorAttributes(ModuleExpression, new ModuleExpression(pParameter.targetTemplate.instruction));
 
         // Set starting value of instruction => Empty.
         this.mLastResult = new InstructionResult();

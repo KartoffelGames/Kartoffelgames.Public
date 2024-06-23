@@ -1,8 +1,8 @@
-import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
 import { ModuleValues } from '../../core/module/module-values';
 import { IExpressionOnUpdate } from '../../core/module/expression_module/expression-module';
 import { PwbExpressionModule } from '../../core/module/expression_module/pwb-expression-module.decorator';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
+import { ModuleExpression } from '../../core/module/injection_reference/module-expression';
 
 /**
  * Wannabe Mustache expression executor.
@@ -12,18 +12,18 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
     trigger: UpdateTrigger.None
 })
 export class MustacheExpressionModule implements IExpressionOnUpdate {
-    private readonly mExpressionExecutor: ModuleValues;
     private readonly mExpressionValue: string;
+    private readonly mModuleValues: ModuleValues;
 
     /**
      * Constructor.
      * 
-     * @param pValueReference - Values of component.
-     * @param pExpressionReference - Expression value.
+     * @param pValueReference - Values of module scope.
+     * @param pModuleExpression - Expression value.
      */
-    public constructor(pExpressionExecutor: ModuleValues, pExpressionReference: ModuleValueReference) {
-        this.mExpressionExecutor = pExpressionExecutor;
-        this.mExpressionValue = pExpressionReference.toString();
+    public constructor(pModuleValues: ModuleValues, pModuleExpression: ModuleExpression) {
+        this.mModuleValues = pModuleValues;
+        this.mExpressionValue = pModuleExpression.value;
     }
 
     /**
@@ -37,7 +37,7 @@ export class MustacheExpressionModule implements IExpressionOnUpdate {
         const lExpression = this.mExpressionValue;
 
         // Execute string
-        const lExecutionResult: any = this.mExpressionExecutor.executeExpression(lExpression);
+        const lExecutionResult: any = this.mModuleValues.executeExpression(lExpression);
 
         return lExecutionResult?.toString();
     }

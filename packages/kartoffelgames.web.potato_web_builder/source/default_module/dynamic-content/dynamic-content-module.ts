@@ -1,12 +1,12 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
 import { ScopedValues } from '../../core/scoped-values';
-import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
 import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
 import { InstructionResult } from '../../core/module/instruction_module/result/instruction-result';
 import { ModuleValues } from '../../core/module/module-values';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
+import { ModuleExpression } from '../../core/module/injection_reference/module-expression';
 
 /**
  * Dynamic content instruction.
@@ -23,15 +23,15 @@ export class DynamicContentInstructionModule implements IInstructionOnUpdate {
 
     /**
      * Constructor.
-     * @param pAttributeValue - Values of attribute template.
+     * @param pExpressionValue - Values of attribute template.
      * @param pModuleValues - Scoped values of module.
      */
-    public constructor(pAttributeValue: ModuleValueReference, pModuleValues: ModuleValues) {
+    public constructor(pExpressionValue: ModuleExpression, pModuleValues: ModuleValues) {
         this.mModuleValues = pModuleValues;
         this.mLastTemplate = null;
 
         // Callback expression.
-        this.mExpression = pAttributeValue.toString();
+        this.mExpression = pExpressionValue.value;
     }
 
     /**

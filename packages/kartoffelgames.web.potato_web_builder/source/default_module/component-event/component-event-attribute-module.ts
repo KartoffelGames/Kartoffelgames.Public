@@ -1,9 +1,8 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { ModuleKeyReference } from '../../core/injection-reference/module/module-key-reference';
-import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
-import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
 import { IAttributeOnDeconstruct } from '../../core/module/attribute_module/attribute-module';
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
+import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute';
+import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
 import { ModuleValues } from '../../core/module/module-values';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
@@ -22,12 +21,11 @@ export class EventAttributeModule implements IAttributeOnDeconstruct {
      * Constructor.
      * @param pTargetNode - Target element.
      * @param pModuleValues - Values of module scoped.
-     * @param pAttributeKey - Attribute key of module.
-     * @param pAttributeValue - Attribute value of module.
+     * @param pModuleAttribute - Attribute of module.
      */
-    public constructor(pTargetNode: ModuleTargetNode, pModuleValues: ModuleValues, pAttributeKey: ModuleKeyReference, pAttributeValue: ModuleValueReference) {
+    public constructor(pTargetNode: ModuleTargetNode, pModuleValues: ModuleValues, pModuleAttribute: ModuleAttribute) {
         this.mTarget = pTargetNode;
-        this.mEventName = pAttributeKey.substring(1, pAttributeKey.length - 1);
+        this.mEventName = pModuleAttribute.name.substring(1, pModuleAttribute.name.length - 1);
 
         // Define listener.
         this.mListener = (pEvent: any): void => {
@@ -36,7 +34,7 @@ export class EventAttributeModule implements IAttributeOnDeconstruct {
             lExternalValues.add('$event', pEvent);
 
             // Execute string with external event value.
-            pModuleValues.executeExpression(pAttributeValue.toString(), lExternalValues);
+            pModuleValues.executeExpression(pModuleAttribute.value, lExternalValues);
         };
 
         // Add native event listener.

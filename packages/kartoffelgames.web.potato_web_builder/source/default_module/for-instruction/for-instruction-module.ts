@@ -3,12 +3,12 @@ import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
 import { PwbTemplateInstructionNode } from '../../core/component/template/nodes/pwb-template-instruction-node';
 import { ScopedValues } from '../../core/scoped-values';
 import { ModuleTemplateReference } from '../../core/injection-reference/module/module-template-reference';
-import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
 import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
 import { InstructionResult } from '../../core/module/instruction_module/result/instruction-result';
 import { ModuleValues } from '../../core/module/module-values';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
+import { ModuleExpression } from '../../core/module/injection_reference/module-expression';
 
 /**
  * For of.
@@ -29,14 +29,14 @@ export class ForInstructionModule implements IInstructionOnUpdate {
      * Constructor.
      * @param pTemplate - Target templat.
      * @param pModuleValues - Scoped values of module.
-     * @param pAttributeReference - Attribute of module.
+     * @param pModuleExpression - Expression of module.
      */
-    public constructor(pTemplate: ModuleTemplateReference, pModuleValues: ModuleValues, pAttributeValue: ModuleValueReference) {
+    public constructor(pTemplate: ModuleTemplateReference, pModuleValues: ModuleValues, pModuleExpression: ModuleExpression) {
         this.mTemplate = <PwbTemplateInstructionNode>pTemplate;
         this.mModuleValues = pModuleValues;
         this.mLastEntries = new Array<[string, any]>();
 
-        const lInstruction = pAttributeValue.toString();
+        const lInstruction = pModuleExpression.value;
 
         // [CustomName:1] of [List value:2] (;[CustomIndexName:4]=[Index calculating with "index" as key:5])?
         const lRegexAttributeInformation: RegExp = new RegExp(/^\s*([a-zA-Z]+[a-zA-Z0-9]*)\s*of\s+([^;]+)\s*(;\s*([a-zA-Z]+[a-zA-Z0-9]*)\s*=\s*(.*)\s*)?$/);

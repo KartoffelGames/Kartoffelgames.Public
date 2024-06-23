@@ -1,11 +1,10 @@
-import { ModuleKeyReference } from '../../core/injection-reference/module/module-key-reference';
 import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
-import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
 import { IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module';
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
 import { ModuleValues } from '../../core/module/module-values';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
+import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute';
 
 /**
  * Bind value to view object.
@@ -18,26 +17,26 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
 })
 export class OneWayBindingAttributeModule implements IAttributeOnUpdate {
     private readonly mExecutionString: string;
-    private readonly mExpressionExecutor: ModuleValues;
     private mLastValue: any;
+    private readonly mModuleValues: ModuleValues;
     private readonly mTarget: Node;
     private readonly mTargetProperty: string;
 
     /**
      * Constructor.
      * @param pTargetNode - Target element.
-     * @param pValueReference - Values of component.
-     * @param pAttributeValueReference - Attribute of module.
+     * @param pModuleValues - Values of module.
+     * @param pModuleAttribute - Attribute of module.
      */
-    public constructor(pTargetNode: ModuleTargetNode, pExpressionExecutor: ModuleValues, pAttributeKeyReference: ModuleKeyReference, pAttributeValueReference: ModuleValueReference) {
+    public constructor(pTargetNode: ModuleTargetNode, pModuleValues: ModuleValues, pModuleAttribute: ModuleAttribute) {
         this.mTarget = pTargetNode;
-        this.mExpressionExecutor = pExpressionExecutor;
+        this.mModuleValues = pModuleValues;
 
         // Get execution string.
-        this.mExecutionString = pAttributeValueReference.toString();
+        this.mExecutionString = pModuleAttribute.value;
 
         // Get view object information. Remove starting [ and end ].
-        this.mTargetProperty = pAttributeKeyReference.substring(1, pAttributeKeyReference.length - 1);
+        this.mTargetProperty = pModuleAttribute.name.substring(1, pModuleAttribute.name.length - 1);
 
         // Create uncompareable value as initial value.
         this.mLastValue = Symbol('Uncomparable');
@@ -48,7 +47,7 @@ export class OneWayBindingAttributeModule implements IAttributeOnUpdate {
      * @returns false for 'do not update'.
      */
     public onUpdate(): boolean {
-        const lExecutionResult: any = this.mExpressionExecutor.executeExpression(this.mExecutionString);
+        const lExecutionResult: any = this.mModuleValues.executeExpression(this.mExecutionString);
 
         if (lExecutionResult !== this.mLastValue) {
             // Save last value.

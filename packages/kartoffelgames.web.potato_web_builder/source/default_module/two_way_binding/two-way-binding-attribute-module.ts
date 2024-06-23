@@ -1,13 +1,12 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { ModuleKeyReference } from '../../core/injection-reference/module/module-key-reference';
-import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
-import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
+import { CoreEntityUpdateZone } from '../../core/core_entity/core-entity-update-zone';
 import { IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module';
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
+import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute';
+import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
 import { ModuleValues } from '../../core/module/module-values';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
-import { CoreEntityUpdateZone } from '../../core/core_entity/core-entity-update-zone';
 
 @PwbAttributeModule({
     access: AccessMode.ReadWrite,
@@ -26,17 +25,16 @@ export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
      * Constructor.
      * @param pTargetNode - Target element.
      * @param pModuleValues - Scoped values of component.
-     * @param pAttributeKey - Attribute template key.
-     * @param pAttributeValue - Attribute template value.
+     * @param pModuleAttribute - Module attribute.
      * @param pUpdateZone - Component update zone.
      */
-    public constructor(pTargetNode: ModuleTargetNode, pModuleValues: ModuleValues, pAttributeKey: ModuleKeyReference, pAttributeValue: ModuleValueReference, pUpdateZone: CoreEntityUpdateZone) {
+    public constructor(pTargetNode: ModuleTargetNode, pModuleValues: ModuleValues, pModuleAttribute: ModuleAttribute, pUpdateZone: CoreEntityUpdateZone) {
         this.mTargetNode = pTargetNode;
         this.mModuleValues = pModuleValues;
 
         // Get property name.
-        this.mAttributeKey = pAttributeKey.substring(2, pAttributeKey.length - 2);
-        this.mAttributeValue = pAttributeValue.toString();
+        this.mAttributeKey = pModuleAttribute.name.substring(2, pModuleAttribute.name.length - 2);
+        this.mAttributeValue = pModuleAttribute.value;
 
         // Set start compare values.
         this.mLastDataValue = Symbol('Uncomparable');

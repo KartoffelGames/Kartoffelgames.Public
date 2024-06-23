@@ -1,7 +1,6 @@
 import { InteractionResponseType } from '../enum/interaction-response-type.enum';
 import { InteractionReason } from '../interaction-reason';
 import { InteractionZone } from '../interaction-zone';
-import { IgnoreInteractionDetection } from './ignore-interaction-detection.decorator';
 
 /**
  * Interaction detection proxy. Detects synchron calls and interactions on the proxy object.
@@ -9,10 +8,15 @@ import { IgnoreInteractionDetection } from './ignore-interaction-detection.decor
  * 
  * @internal
  */
-@IgnoreInteractionDetection
 export class InteractionDetectionProxy<T extends object> {
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    private static readonly IGNORED_CLASSES: WeakSet<InteractionDetectionConstructor> = new WeakSet<InteractionDetectionConstructor>();
+    private static readonly IGNORED_CLASSES: WeakSet<InteractionDetectionConstructor> = (() => {
+        // Create ignore list and add itself first.
+        const lIgnoreList = new WeakSet<InteractionDetectionConstructor>();
+        lIgnoreList.add(InteractionDetectionProxy);
+
+        return lIgnoreList;
+    })();
     // eslint-disable-next-line @typescript-eslint/naming-convention
     private static readonly ORIGINAL_TO_INTERACTION_MAPPING: WeakMap<object, InteractionDetectionProxy<any>> = new WeakMap<object, InteractionDetectionProxy<any>>();
     // eslint-disable-next-line @typescript-eslint/naming-convention

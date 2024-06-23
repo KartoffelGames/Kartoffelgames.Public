@@ -2,7 +2,7 @@ import { AccessMode } from '../../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../../enum/update-trigger.enum';
 import { PwbTemplateAttribute } from '../../component/template/nodes/values/pwb-template-attribute';
 import { ModuleKeyReference } from '../../injection-reference/module/module-key-reference';
-import { ModuleTargetNodeReference } from '../../injection-reference/module/module-target-node-reference';
+import { ModuleTargetNode } from '../injection_reference/module-target-node';
 import { ModuleTemplateReference } from '../../injection-reference/module/module-template-reference';
 import { ModuleValueReference } from '../../injection-reference/module/module-value-reference';
 import { BaseModule, BaseModuleConstructorParameter, IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../base-module';
@@ -35,7 +35,7 @@ export class AttributeModule extends BaseModule<IPwbAttributeModuleProcessor> {
         // Set processor attribute values from injection template.
         this.setProcessorAttributes(AttributeModule, this);
         this.setProcessorAttributes(ModuleTemplateReference, pParameter.targetTemplate.clone());
-        this.setProcessorAttributes(ModuleTargetNodeReference, pParameter.targetNode);
+        this.setProcessorAttributes(ModuleTargetNode, pParameter.targetNode);
         this.setProcessorAttributes(ModuleKeyReference, pParameter.targetTemplate.name);
         this.setProcessorAttributes(ModuleValueReference, pParameter.targetTemplate.values.toString());
     }

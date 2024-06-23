@@ -1,7 +1,7 @@
 import { CoreEntityUpdateZone } from '../../core/core_entity/core-entity-update-zone';
 import { ComponentScopedValues } from '../../core/component/injection_reference/component-scoped-values';
 import { ModuleKeyReference } from '../../core/injection-reference/module/module-key-reference';
-import { ModuleTargetNodeReference } from '../../core/injection-reference/module/module-target-node-reference';
+import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
@@ -17,13 +17,13 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
 export class PwbChildAttributeModule {
     /**
      * Constructor.
-     * @param pTargetReference - Target element.
+     * @param pTargetNode - Target element.
      * @param pUpdateZone - Component update zone.
      * @param pAttributeKey - Attribute key.
      * @param pComponentScopeValue - Root values of component.
      */
-    public constructor(pTargetReference: ModuleTargetNodeReference, pUpdateZone: CoreEntityUpdateZone, pAttributeKey: ModuleKeyReference, pComponentScopeValue: ComponentScopedValues) {
-        const lTarget: Node = pTargetReference;
+    public constructor(pTargetNode: ModuleTargetNode, pUpdateZone: CoreEntityUpdateZone, pAttributeKey: ModuleKeyReference, pComponentScopeValue: ComponentScopedValues) {
+        const lTarget: Node = pTargetNode;
         const lRegistedElement: Node = pUpdateZone.registerObject(lTarget);
 
         // Add current html element to temporary root values. Delete starting #.

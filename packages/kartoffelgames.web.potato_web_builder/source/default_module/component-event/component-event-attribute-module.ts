@@ -1,6 +1,6 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { ModuleKeyReference } from '../../core/injection-reference/module/module-key-reference';
-import { ModuleTargetNodeReference } from '../../core/injection-reference/module/module-target-node-reference';
+import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
 import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
 import { IAttributeOnDeconstruct } from '../../core/module/attribute_module/attribute-module';
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
@@ -25,7 +25,7 @@ export class EventAttributeModule implements IAttributeOnDeconstruct {
      * @param pAttributeKey - Attribute key of module.
      * @param pAttributeValue - Attribute value of module.
      */
-    public constructor(pTargetNode: ModuleTargetNodeReference, pModuleValues: ModuleValues, pAttributeKey: ModuleKeyReference, pAttributeValue: ModuleValueReference) {
+    public constructor(pTargetNode: ModuleTargetNode, pModuleValues: ModuleValues, pAttributeKey: ModuleKeyReference, pAttributeValue: ModuleValueReference) {
         this.mTarget = pTargetNode;
         this.mEventName = pAttributeKey.substring(1, pAttributeKey.length - 1);
 

@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
 import { IExtensionOnDeconstruct } from '../../core/extension/extension-module';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
-import { ModuleTargetNodeReference } from '../../core/injection-reference/module/module-target-node-reference';
+import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
 import { AttributeModule } from '../../core/module/attribute_module/attribute-module';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
@@ -25,7 +25,7 @@ export class EventListenerModuleExtension implements IExtensionOnDeconstruct {
      * @param pExtensionTargetModule - Module processor.
      * @param pModuleElementReference - Component html element.
      */
-    public constructor(pExtensionTargetModule: AttributeModule, pModuleElementReference: ModuleTargetNodeReference) {
+    public constructor(pExtensionTargetModule: AttributeModule, pModuleElementReference: ModuleTargetNode) {
         // Get event metadata.
         const lEventPropertyList: Array<[string, string]> = new Array<[string, string]>();
 

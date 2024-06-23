@@ -8,7 +8,7 @@ import { Exception } from '@kartoffelgames/core.data';
  * 
  * Should never be initialized.
  */
-export class ModuleTargetNodeReference {
+export class ModuleTargetNode {
     /**
      * Constructor. Allways throws exception.
      * 
@@ -20,4 +20,4 @@ export class ModuleTargetNodeReference {
     }
 }
 
-export declare interface ModuleTargetNodeReference extends Node { }
+export declare interface ModuleTargetNode extends Node { }

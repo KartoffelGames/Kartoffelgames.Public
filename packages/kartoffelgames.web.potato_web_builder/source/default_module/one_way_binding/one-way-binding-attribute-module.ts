@@ -1,5 +1,5 @@
 import { ModuleKeyReference } from '../../core/injection-reference/module/module-key-reference';
-import { ModuleTargetNodeReference } from '../../core/injection-reference/module/module-target-node-reference';
+import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
 import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
 import { IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module';
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
@@ -25,12 +25,12 @@ export class OneWayBindingAttributeModule implements IAttributeOnUpdate {
 
     /**
      * Constructor.
-     * @param pTargetReference - Target element.
+     * @param pTargetNode - Target element.
      * @param pValueReference - Values of component.
      * @param pAttributeValueReference - Attribute of module.
      */
-    public constructor(pTargetReference: ModuleTargetNodeReference, pExpressionExecutor: ModuleValues, pAttributeKeyReference: ModuleKeyReference, pAttributeValueReference: ModuleValueReference) {
-        this.mTarget = pTargetReference;
+    public constructor(pTargetNode: ModuleTargetNode, pExpressionExecutor: ModuleValues, pAttributeKeyReference: ModuleKeyReference, pAttributeValueReference: ModuleValueReference) {
+        this.mTarget = pTargetNode;
         this.mExpressionExecutor = pExpressionExecutor;
 
         // Get execution string.

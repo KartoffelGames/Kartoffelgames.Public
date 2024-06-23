@@ -155,6 +155,10 @@ export class UpdateHandler {
             return false;
         }
 
+        // TODO: Add debug information.
+        // Like current update trigger
+        // Like update performance.
+
         // Shedule new asynchron update task.
         return this.mLoopDetectionHandler.sheduleTask(() => {
             // Call every update listener inside interaction zone.

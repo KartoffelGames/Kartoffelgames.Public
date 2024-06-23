@@ -239,7 +239,7 @@ export class CoreEntityUpdateZone {
                 // Cancel next call cycle.
                 globalThis.cancelAnimationFrame(this.mSheduledUpdateIdentifier);
 
-                // Permanently block another execution for this loop detection handler. Prevents script locks.
+                // Permanently block another execution for this update zone. Prevents script locks.
                 this.mHasSheduledUpdate = true;
 
                 // Release chain complete hook with error.

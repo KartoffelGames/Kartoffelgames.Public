@@ -39,7 +39,7 @@ export class OneWayBindingAttributeModule implements IAttributeOnUpdate {
         // Get view object information. Remove starting [ and end ].
         this.mTargetProperty = pAttributeKeyReference.substring(1, pAttributeKeyReference.length - 1);
 
-        // Create empty compare handler with unique symbol.
+        // Create uncompareable value as initial value.
         this.mLastValue = Symbol('Uncomparable');
     }
 

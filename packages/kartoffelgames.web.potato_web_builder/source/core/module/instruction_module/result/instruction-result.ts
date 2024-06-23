@@ -29,22 +29,22 @@ export class InstructionResult {
      * Can't use same template for multiple elements.
      * 
      * @param pTemplateElement - New template element.
-     * @param pValues - New Value handler of element with current value handler as parent.
+     * @param pElementScopedValues - New Values of element with current current value as parent.
      * 
      * @throws {@link Exception}
      * When the same template reference should be added more than once.
      */
-    public addElement(pTemplateElement: PwbTemplate, pValues: ScopedValues): void {
+    public addElement(pTemplateElement: PwbTemplate, pElementScopedValues: ScopedValues): void {
         // Check if value or temple is used in another element.
         const lDoubledIndex: number = this.mElementList.findIndex(pElement => {
-            return pElement.template === pTemplateElement || pElement.componentValues === pValues;
+            return pElement.template === pTemplateElement || pElement.componentValues === pElementScopedValues;
         });
 
-        // Do not allow double use of template or value handler.
+        // Do not allow double use of template or scoped values.
         if (lDoubledIndex === -1) {
-            this.mElementList.push({ template: pTemplateElement, componentValues: pValues });
+            this.mElementList.push({ template: pTemplateElement, componentValues: pElementScopedValues });
         } else {
-            throw new Exception("Can't add same template or value handler for multiple Elements.", this);
+            throw new Exception(`Can't add same template or values for multiple Elements.`, this);
         }
     }
 }

@@ -18,7 +18,8 @@ import { TemplateParser } from './template/template-parser';
 import { ScopedValues } from '../scoped-values';
 
 /**
- * Base component handler. Handles initialisation and update of components.
+ * Component manager. 
+ * Handles initialisation of the component element and serves as a proxy between builder and the outside world.
  */
 export class Component extends CoreEntityExtendable<ComponentProcessor> {
     private static readonly mTemplateCache: Dictionary<ComponentProcessorConstructor, PwbTemplate> = new Dictionary<ComponentProcessorConstructor, PwbTemplate>();
@@ -57,7 +58,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
             ComponentRegister.registerComponent(this, this.mComponentElement.htmlElement, pProcessor);
         });
 
-        // Load cached or create new module handler and template.
+        // Load cached or parse new template.
         let lTemplate: PwbTemplate | undefined = Component.mTemplateCache.get(pParameter.processorConstructor);
         if (!lTemplate) {
             lTemplate = Component.mXmlParser.parse(pParameter.templateString ?? '');
@@ -79,7 +80,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         this.setProcessorAttributes(ComponentReference, this);
         this.setProcessorAttributes(CoreEntityUpdateZone, this.updateZone);
 
-        // Attach automatic update listener to handler.
+        // Attach automatic update listener to update zone.
         this.updateZone.addUpdateListener(() => {
             this.update();
         });

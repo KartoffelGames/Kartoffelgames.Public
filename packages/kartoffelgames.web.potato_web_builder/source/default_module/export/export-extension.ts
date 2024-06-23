@@ -67,7 +67,7 @@ export class ExportExtension {
             delete lDescriptor.value;
             delete lDescriptor.writable;
 
-            // Setter and getter of this property. Execute changes inside component handlers interaction zone.
+            // Setter and getter of this property. Execute changes inside component interaction zone.
             lDescriptor.set = (pValue: any) => {
                 Reflect.set(this.mComponent.processor, lExportProperty, pValue);
 

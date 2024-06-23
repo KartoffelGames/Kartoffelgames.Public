@@ -30,7 +30,7 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
              */
             public constructor() {
                 super();
-                // Create component handler.
+                // Create new component.
                 this.mComponent = new Component({
                     processorConstructor: pComponentProcessorConstructor,
                     templateString: pParameter.template ?? null,

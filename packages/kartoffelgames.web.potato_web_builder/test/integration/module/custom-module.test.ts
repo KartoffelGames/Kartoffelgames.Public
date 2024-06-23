@@ -23,10 +23,10 @@ describe('Custom Module', () => {
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class WrongModule implements IInstructionOnUpdate {
-            private readonly mValueHandler: ScopedValues;
+            private readonly mScopedValues: ScopedValues;
 
             public constructor(pValueReference: ComponentValuesReference) {
-                this.mValueHandler = pValueReference;
+                this.mScopedValues = pValueReference;
             }
 
             public onUpdate(): InstructionResult {
@@ -39,8 +39,8 @@ describe('Custom Module', () => {
                 const lTemplateTwo: PwbTemplate = new PwbTemplate();
                 lTemplateTwo.appendChild(new PwbTemplateXmlNode());
 
-                lModuleResult.addElement(lTemplateOne, this.mValueHandler);
-                lModuleResult.addElement(lTemplateTwo, this.mValueHandler);
+                lModuleResult.addElement(lTemplateOne, this.mScopedValues);
+                lModuleResult.addElement(lTemplateTwo, this.mScopedValues);
 
                 return lModuleResult;
             }
@@ -63,7 +63,7 @@ describe('Custom Module', () => {
         }
 
         // Evaluation.
-        expect(lErrorMessage).to.equal(`Can't add same template or value handler for multiple Elements.`);
+        expect(lErrorMessage).to.equal(`Can't add same template or values for multiple Elements.`);
     });
 
     it('-- Manupulator without update method', async () => {

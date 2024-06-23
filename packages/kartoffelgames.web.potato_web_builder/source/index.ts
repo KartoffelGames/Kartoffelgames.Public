@@ -38,7 +38,7 @@ export { AccessMode } from './enum/access-mode.enum';
 export { ComponentEvent } from './default_module/component-event/component-event';
 export { ComponentEventEmitter } from './default_module/component-event/component-event-emitter';
 export { PwbComponentEvent } from './default_module/component-event/pwb-component-event.decorator';
-export { PwbEventListener } from './default_module/event-listener/pwb-event-listener.decorator';
+export { PwbComponentEventListener } from './default_module/component-event-listener/pwb-component-event-listener.decorator';
 export { PwbExport } from './default_module/export/pwb-export.decorator';
 export { PwbChild } from './default_module/pwb_child/pwb-child.decorator';
 
@@ -46,7 +46,7 @@ export { PwbChild } from './default_module/pwb_child/pwb-child.decorator';
 export { TemplateParser } from './core/component/template/template-parser';
 
 // Import default modules
-import './default_module/component-event/component-event-attribute-module';
+import './default_module/event_attribute/event-attribute-module';
 import './default_module/dynamic-content/dynamic-content-module';
 import './default_module/for-instruction/for-instruction-module';
 import './default_module/if_instruction/if-instruction-module';
@@ -57,7 +57,7 @@ import './default_module/two_way_binding/two-way-binding-attribute-module';
 
 // Import default extensions.
 import './default_module/component-event/component-event-extension';
-import './default_module/event-listener/event-listener-component-extension';
+import './default_module/component-event-listener/component-event-listener-component-extension';
 import './default_module/export/export-extension';
 import './default_module/pwb_app_injection/pwb-app-injection-extension';
 

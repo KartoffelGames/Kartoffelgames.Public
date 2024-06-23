@@ -13,7 +13,7 @@ import { InstructionResult } from '../../../source/core/module/instruction_modul
 import { ComponentEvent } from '../../../source/default_module/component-event/component-event';
 import { ComponentEventEmitter } from '../../../source/default_module/component-event/component-event-emitter';
 import { PwbComponentEvent } from '../../../source/default_module/component-event/pwb-component-event.decorator';
-import { PwbEventListener } from '../../../source/default_module/event-listener/pwb-event-listener.decorator';
+import { PwbComponentEventListener } from '../../../source/default_module/component-event-listener/pwb-component-event-listener.decorator';
 import { PwbExport } from '../../../source/default_module/export/pwb-export.decorator';
 import { AccessMode } from '../../../source/enum/access-mode.enum';
 import { UpdateTrigger } from '../../../source/enum/update-trigger.enum';
@@ -31,7 +31,7 @@ describe('PwbEventListener', () => {
             selector: TestUtil.randomSelector()
         })
         class TestComponent {
-            @PwbEventListener('click')
+            @PwbComponentEventListener('click')
             private listener(_pEvent: MouseEvent) {
                 lEventCalled = true;
             }
@@ -65,7 +65,7 @@ describe('PwbEventListener', () => {
                 this.mCustomEvent.dispatchEvent(lEventValue);
             }
 
-            @PwbEventListener('custom-event')
+            @PwbComponentEventListener('custom-event')
             private listener(pEvent: ComponentEvent<string>) {
                 lEventValueResult = pEvent.value;
             }
@@ -87,7 +87,7 @@ describe('PwbEventListener', () => {
             })
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             class TestComponent {
-                @PwbEventListener('click')
+                @PwbComponentEventListener('click')
                 private static listener(_pEvent: MouseEvent) {/* Empty */ }
             }
         };
@@ -102,7 +102,7 @@ describe('PwbEventListener', () => {
             selector: TestUtil.randomSelector()
         })
         class TestComponent {
-            @PwbEventListener('click')
+            @PwbComponentEventListener('click')
             private readonly mListener!: string;
         }
 
@@ -129,12 +129,12 @@ describe('PwbEventListener', () => {
             selector: TestUtil.randomSelector()
         })
         class TestComponent {
-            @PwbEventListener('click')
+            @PwbComponentEventListener('click')
             private listenerOne(_pEvent: MouseEvent) {
                 lEventOneCalled = true;
             }
 
-            @PwbEventListener('click')
+            @PwbComponentEventListener('click')
             private listenerTwo(_pEvent: MouseEvent) {
                 lEventTwoCalled = true;
             }
@@ -158,7 +158,7 @@ describe('PwbEventListener', () => {
             selector: TestUtil.randomSelector()
         })
         class TestComponent {
-            @PwbEventListener('click')
+            @PwbComponentEventListener('click')
             private listener(_pEvent: MouseEvent) {
                 lEventCalled = true;
             }
@@ -184,7 +184,7 @@ describe('PwbEventListener', () => {
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class MyModule {
-            @PwbEventListener('click')
+            @PwbComponentEventListener('click')
             private listener(_pEvent: MouseEvent) {
                 lEventCalled = true;
             }
@@ -217,7 +217,7 @@ describe('PwbEventListener', () => {
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class MyModule {
-            @PwbEventListener('click')
+            @PwbComponentEventListener('click')
             private listener(_pEvent: MouseEvent) {
                 lEventCalled = true;
             }
@@ -248,7 +248,7 @@ describe('PwbEventListener', () => {
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class MyModule {
-            @PwbEventListener('click')
+            @PwbComponentEventListener('click')
             private readonly mListener!: string;
         }
 
@@ -295,7 +295,7 @@ describe('PwbEventListener', () => {
                 return lResult;
             }
 
-            @PwbEventListener('click')
+            @PwbComponentEventListener('click')
             private listener(_pEvent: MouseEvent) {
                 lEventCalled = true;
             }
@@ -325,7 +325,7 @@ describe('PwbEventListener', () => {
 
         // Process. Define parent class.
         class ParentClass {
-            @PwbEventListener('click')
+            @PwbComponentEventListener('click')
             private listener(_pEvent: MouseEvent) {
                 lEventCalled = true;
             }

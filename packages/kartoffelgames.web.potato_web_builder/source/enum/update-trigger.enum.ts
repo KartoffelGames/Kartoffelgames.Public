@@ -5,57 +5,54 @@ export enum UpdateTrigger {
      * Anything. Pure chaos. Dont use when you dont know what it does.
      * Triggers updates even on read calls.
      */
-    Any = InteractionResponseType.Any as InteractionResponseType,
+    Any = InteractionResponseType.Any,
 
     /**
      * Nothing triggers. Endless silence.
      */
-    None = InteractionResponseType.None as InteractionResponseType,
+    None = InteractionResponseType.None,
 
     /**
      * Default update trigger.
      * Triggers updates on any call and change.
      */
-    Default = InteractionResponseType.CallbackCallEnd
+    Default = InteractionResponseType.PatchedCallback
     | InteractionResponseType.Custom
-    | InteractionResponseType.EventlistenerEnd
-    | InteractionResponseType.NativeFunctionCall
-    | InteractionResponseType.FunctionCallEnd
-    | InteractionResponseType.PromiseReject
-    | InteractionResponseType.PromiseResolve
-    | InteractionResponseType.PropertyDeleteEnd
-    | InteractionResponseType.PropertySetEnd,
+    | InteractionResponseType.PatchedEventlistener
+    | InteractionResponseType.RegisteredUntrackableFunction
+    | InteractionResponseType.RegisteredFunction
+    | InteractionResponseType.PatchedPromise
+    | InteractionResponseType.RegisteredPropertyDelete
+    | InteractionResponseType.RegisteredPropertySet,
 
     /**
      * Async update trigger.
      * Only triggers on async calls.
      */
-    Async = InteractionResponseType.CallbackCallEnd
+    Async = InteractionResponseType.PatchedCallback
     | InteractionResponseType.Custom
-    | InteractionResponseType.EventlistenerEnd
-    | InteractionResponseType.PromiseReject
-    | InteractionResponseType.PromiseResolve,
+    | InteractionResponseType.PatchedEventlistener
+    | InteractionResponseType.PatchedPromise,
 
     /**
      * Sync update trigger.
      * Triggers only on sync changes.
      */
     Sync = InteractionResponseType.Custom
-    | InteractionResponseType.NativeFunctionCall
-    | InteractionResponseType.FunctionCallEnd
-    | InteractionResponseType.PropertyDeleteEnd
-    | InteractionResponseType.PropertySetEnd,
+    | InteractionResponseType.RegisteredUntrackableFunction
+    | InteractionResponseType.RegisteredFunction
+    | InteractionResponseType.RegisteredPropertyDelete
+    | InteractionResponseType.RegisteredPropertySet,
 
     /**
      * Update trigger without any syncron call trigger.
      * Prevents update trigger on function calls with only read actions.
      */
-    NoSyncCalls = InteractionResponseType.CallbackCallEnd
+    NoSyncCalls = InteractionResponseType.PatchedCallback
     | InteractionResponseType.Custom
-    | InteractionResponseType.EventlistenerEnd
-    | InteractionResponseType.NativeFunctionCall
-    | InteractionResponseType.PromiseReject
-    | InteractionResponseType.PromiseResolve
-    | InteractionResponseType.PropertyDeleteEnd
-    | InteractionResponseType.PropertySetEnd,
+    | InteractionResponseType.PatchedEventlistener
+    | InteractionResponseType.RegisteredUntrackableFunction
+    | InteractionResponseType.PatchedPromise
+    | InteractionResponseType.RegisteredPropertyDelete
+    | InteractionResponseType.RegisteredPropertySet,
 }

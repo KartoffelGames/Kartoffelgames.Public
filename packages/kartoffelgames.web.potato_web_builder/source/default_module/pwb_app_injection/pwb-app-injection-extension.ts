@@ -3,7 +3,6 @@ import { Component } from '../../core/component/component';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
-import { ComponentReference } from '../../core/injection-reference/component/component-reference';
 import { PwbApp } from '../../pwb-app/pwb-app';
 
 @PwbExtensionModule({
@@ -18,7 +17,7 @@ export class PwbAppInjectionExtension {
      * 
      * @param pModule - Module.
      */
-    public constructor(pComponent: ComponentReference) {
+    public constructor(pComponent: Component) {
         const lPwbApp: PwbApp | undefined = PwbApp.getAppOfZone(InteractionZone.current);
         if (lPwbApp) {
             pComponent.setProcessorAttributes(PwbApp, lPwbApp);

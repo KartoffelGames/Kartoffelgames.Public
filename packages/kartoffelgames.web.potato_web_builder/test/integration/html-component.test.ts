@@ -1,7 +1,7 @@
 import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
 import { InteractionDetectionProxy } from '@kartoffelgames/web.change-detection/library/source/change_detection/synchron_tracker/interaction-detection-proxy';
 import { expect } from 'chai';
-import { IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../source/core/component/component';
+import { Component, IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../source/core/component/component';
 import { ComponentRegister } from '../../source/core/component/component-register';
 import { CoreEntityUpdateZone, UpdateLoopError } from '../../source/core/core_entity/core-entity-update-zone';
 import { PwbComponent } from '../../source/core/component/pwb-component.decorator';
@@ -13,7 +13,6 @@ import { UpdateTrigger } from '../../source/enum/update-trigger.enum';
 import '../mock/request-animation-frame-mock-session';
 import '../utility/chai-helper';
 import { TestUtil } from '../utility/test-util';
-import { ComponentReference } from '../../source/core/injection-reference/component/component-reference';
 
 describe('HtmlComponent', () => {
     it('-- Single element', async () => {
@@ -344,7 +343,7 @@ describe('HtmlComponent', () => {
         })
         class TestComponent {
             private readonly mElementReference: Node;
-            public constructor(pElementReference: ComponentReference) {
+            public constructor(pElementReference: Component) {
                 this.mElementReference = pElementReference.element;
             }
 

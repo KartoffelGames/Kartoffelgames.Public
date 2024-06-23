@@ -5,7 +5,6 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { CoreEntityExtendable } from '../core_entity/core-entity-extendable';
 import { CoreEntityUpdateZone } from '../core_entity/core-entity-update-zone';
 import { ComponentConstructorReference } from '../injection-reference/component/component-constructor-reference';
-import { ComponentReference } from '../injection-reference/component/component-reference';
 import { ComponentValuesReference } from '../injection-reference/component/component-values-reference';
 import { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module';
 import { StaticBuilder } from './builder/static-builder';
@@ -77,7 +76,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         // Initialize user object injections.
         this.setProcessorAttributes(ComponentConstructorReference, pParameter.processorConstructor);
         this.setProcessorAttributes(ComponentValuesReference, this.mRootBuilder.values);
-        this.setProcessorAttributes(ComponentReference, this);
+        this.setProcessorAttributes(Component, this);
         this.setProcessorAttributes(CoreEntityUpdateZone, this.updateZone);
 
         // Attach automatic update listener to update zone.

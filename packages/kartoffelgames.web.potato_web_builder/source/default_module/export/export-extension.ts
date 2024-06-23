@@ -3,7 +3,6 @@ import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-
 import { Component, IComponentOnAttributeChange } from '../../core/component/component';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
 import { ComponentConstructorReference } from '../../core/injection-reference/component/component-constructor-reference';
-import { ComponentReference } from '../../core/injection-reference/component/component-reference';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
@@ -22,7 +21,7 @@ export class ExportExtension {
      * @param pTargetElementReference - Component html element reference.
      * @param pComponentManagerReference - Component manager reference.
      */
-    public constructor(pComponentProcessorConstructor: ComponentConstructorReference, pComponent: ComponentReference) {
+    public constructor(pComponentProcessorConstructor: ComponentConstructorReference, pComponent: Component) {
         this.mComponent = pComponent;
 
         // All exported properties of target and parent classes.

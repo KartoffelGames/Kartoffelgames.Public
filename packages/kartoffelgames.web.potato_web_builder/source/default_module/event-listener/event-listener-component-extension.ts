@@ -4,7 +4,6 @@ import { Component } from '../../core/component/component';
 import { IExtensionOnDeconstruct } from '../../core/extension/extension-module';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
 import { ComponentConstructorReference } from '../../core/injection-reference/component/component-constructor-reference';
-import { ComponentReference } from '../../core/injection-reference/component/component-reference';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
@@ -27,7 +26,7 @@ export class EventListenerComponentExtension implements IExtensionOnDeconstruct 
      * @param pComponent - Component processor.
      * @param pElementReference - Component html element.
      */
-    public constructor(pComponentProcessorConstructor: ComponentConstructorReference, pComponent: ComponentReference) {
+    public constructor(pComponentProcessorConstructor: ComponentConstructorReference, pComponent: Component) {
         // Get event metadata.
         const lEventPropertyList: Array<[string, string]> = new Array<[string, string]>();
 

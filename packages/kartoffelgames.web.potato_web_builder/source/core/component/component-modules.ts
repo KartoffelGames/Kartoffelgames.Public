@@ -18,6 +18,7 @@ import { LayerValues } from './values/layer-values';
  */
 export class ComponentModules {
     // TODO: Cache attribute and instruction constructor by the name to create it faster next time.
+    private static readonly mExpressionModuleCache: WeakMap<IPwbExpressionModuleProcessorConstructor, CoreEntityProcessorConstructorSetup<ExpressionModuleConfiguration>> = new WeakMap<IPwbExpressionModuleProcessorConstructor, CoreEntityProcessorConstructorSetup<ExpressionModuleConfiguration>>();
 
     private readonly mComponent: Component;
     private readonly mCoreEntityRegister: CoreEntityRegister;
@@ -78,24 +79,38 @@ export class ComponentModules {
      * When no expression node could be found.
      */
     public createExpressionModule(pTemplate: PwbTemplateExpression, pTargetNode: Text, pValues: LayerValues): ExpressionModule {
-        const lSetup: CoreEntityProcessorConstructorSetup<ExpressionModuleConfiguration> | undefined = this.mCoreEntityRegister.get<ExpressionModuleConfiguration>(ExpressionModule).find((pSetup: CoreEntityProcessorConstructorSetup<ExpressionModuleConfiguration>) => {
-            return pSetup.processorConstructor === this.mExpressionModule;
-        });
+        // Read expression setup of expression module.
+        const lExpressionSetup: CoreEntityProcessorConstructorSetup<ExpressionModuleConfiguration> = (() => {
+            // Try to read cached information.
+            const lCachedSetup: CoreEntityProcessorConstructorSetup<ExpressionModuleConfiguration> | undefined = ComponentModules.mExpressionModuleCache.get(this.mExpressionModule);
+            if (lCachedSetup) {
+                return lCachedSetup;
+            }
 
-        if (!lSetup) {
-            throw new Exception(`An expression module could not be found.`, this);
-        }
+            // On cache fail, filter for expression setup.
+            const lNewSetup: CoreEntityProcessorConstructorSetup<ExpressionModuleConfiguration> | undefined = this.mCoreEntityRegister.get<ExpressionModuleConfiguration>(ExpressionModule).find((pSetup: CoreEntityProcessorConstructorSetup<ExpressionModuleConfiguration>) => {
+                return pSetup.processorConstructor === this.mExpressionModule;
+            });
 
-        const lModule: ExpressionModule = new ExpressionModule({
-            processorConstructor: lSetup.processorConstructor,
+            if (!lNewSetup) {
+                throw new Exception(`An expression module could not be found.`, this);
+            }
+
+            // Cache found expression setup information.
+            ComponentModules.mExpressionModuleCache.set(this.mExpressionModule, lNewSetup);
+
+            return lNewSetup;
+        })();
+
+        // Build, setup and return new expression module.
+        return new ExpressionModule({
+            processorConstructor: lExpressionSetup.processorConstructor,
             parent: this.mComponent,
             targetNode: pTargetNode,
             targetTemplate: pTemplate,
             values: pValues,
-            interactionTrigger: lSetup.processorConfiguration.trigger
+            interactionTrigger: lExpressionSetup.processorConfiguration.trigger
         }).setup();
-
-        return lModule;
     }
 
     /**

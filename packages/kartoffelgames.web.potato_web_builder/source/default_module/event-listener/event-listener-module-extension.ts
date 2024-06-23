@@ -2,7 +2,6 @@ import { Exception } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
 import { IExtensionOnDeconstruct } from '../../core/extension/extension-module';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
-import { ModuleReference } from '../../core/injection-reference/module/module-reference';
 import { ModuleTargetNodeReference } from '../../core/injection-reference/module/module-target-node-reference';
 import { AttributeModule } from '../../core/module/attribute_module/attribute-module';
 import { AccessMode } from '../../enum/access-mode.enum';
@@ -23,14 +22,14 @@ export class EventListenerModuleExtension implements IExtensionOnDeconstruct {
      * Add each event listener to component events.
      * 
      * @param pModuleProcessorConstructor - Module processor constructor.
-     * @param pModule - Module processor.
+     * @param pExtensionTargetModule - Module processor.
      * @param pModuleElementReference - Component html element.
      */
-    public constructor(pModule: ModuleReference, pModuleElementReference: ModuleTargetNodeReference) {
+    public constructor(pExtensionTargetModule: AttributeModule, pModuleElementReference: ModuleTargetNodeReference) {
         // Get event metadata.
         const lEventPropertyList: Array<[string, string]> = new Array<[string, string]>();
 
-        let lClass: InjectionConstructor = pModule.processorConstructor;
+        let lClass: InjectionConstructor = pExtensionTargetModule.processorConstructor;
         do {
             // Find all event properties of current class layer and add all to merged property list.
             const lPropertyList: Array<[string, string]> | null = Metadata.get(lClass).getMetadata(EventListenerComponentExtension.METADATA_USER_EVENT_LISTENER_PROPERIES);
@@ -61,8 +60,8 @@ export class EventListenerModuleExtension implements IExtensionOnDeconstruct {
             const [lPropertyKey, lEventName] = lEventProperty;
 
             // Get target event listener function.
-            let lEventListener: EventListener = Reflect.get(pModule.processor, lPropertyKey);
-            lEventListener = lEventListener.bind(pModule.processor);
+            let lEventListener: EventListener = Reflect.get(pExtensionTargetModule.processor, lPropertyKey);
+            lEventListener = lEventListener.bind(pExtensionTargetModule.processor);
 
             // Add listener element and save for deconstruct.
             this.mEventListenerList.push([lEventName, lEventListener]);

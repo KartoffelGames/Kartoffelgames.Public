@@ -18,6 +18,8 @@ export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> im
             createOnSetup: true
         });
 
+        this.setProcessorAttributes(ExtensionModule, this);
+
         // Call execution hook.
         this.addSetupHook(() => {
             this.call<IExtensionOnExecute, 'onExecute'>('onExecute', false);

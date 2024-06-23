@@ -29,6 +29,7 @@ export class InstructionModule extends BaseModule<IPwbInstructionModuleProcessor
         });
 
         // Set processor attribute values from injection template.
+        this.setProcessorAttributes(InstructionModule, this);
         this.setProcessorAttributes(ModuleTemplateReference, pParameter.targetTemplate.clone());
         this.setProcessorAttributes(ModuleKeyReference, pParameter.targetTemplate.instructionType);
         this.setProcessorAttributes(ModuleValueReference, pParameter.targetTemplate.instruction);

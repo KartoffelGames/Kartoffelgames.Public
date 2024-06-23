@@ -33,6 +33,7 @@ export class AttributeModule extends BaseModule<IPwbAttributeModuleProcessor> {
         this.mAccessMode = pParameter.accessMode;
 
         // Set processor attribute values from injection template.
+        this.setProcessorAttributes(AttributeModule, this);
         this.setProcessorAttributes(ModuleTemplateReference, pParameter.targetTemplate.clone());
         this.setProcessorAttributes(ModuleTargetNodeReference, pParameter.targetNode);
         this.setProcessorAttributes(ModuleKeyReference, pParameter.targetTemplate.name);

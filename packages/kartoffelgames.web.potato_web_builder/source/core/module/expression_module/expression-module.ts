@@ -27,6 +27,7 @@ export class ExpressionModule extends BaseModule<IPwbExpressionModuleProcessor> 
         this.mLastResult = null;
 
         // Set module value from template value.
+        this.setProcessorAttributes(ExpressionModule, this);
         this.setProcessorAttributes(ModuleTemplateReference, pParameter.targetTemplate.clone());
         this.setProcessorAttributes(ModuleTargetNodeReference, pParameter.targetNode);
         this.setProcessorAttributes(ModuleValueReference, pParameter.targetTemplate.value);

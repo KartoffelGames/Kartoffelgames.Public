@@ -6,8 +6,11 @@ export { PwbComponent } from './core/component/pwb-component.decorator';
 export { IComponentOnAttributeChange, IComponentOnConnect, IComponentOnDeconstruct, IComponentOnDisconnect, IComponentOnUpdate } from './core/component/component';
 
 // Module Injections
+export { ExpressionModule } from './core/module/expression_module/expression-module';
+export { AttributeModule } from './core/module/attribute_module/attribute-module';
+export { InstructionModule } from './core/module/instruction_module/instruction-module';
+export { ExtensionModule } from './core/extension/extension-module';
 export { ModuleKeyReference } from './core/injection-reference/module/module-key-reference';
-export { ModuleReference } from './core/injection-reference/module/module-reference';
 export { ModuleTargetNodeReference } from './core/injection-reference/module/module-target-node-reference';
 export { ModuleTemplateReference } from './core/injection-reference/module/module-template-reference';
 export { ModuleValueReference } from './core/injection-reference/module/module-value-reference';
@@ -58,5 +61,3 @@ import './default_module/component-event/component-event-extension';
 import './default_module/event-listener/event-listener-component-extension';
 import './default_module/export/export-extension';
 import './default_module/pwb_app_injection/pwb-app-injection-extension';
-
-

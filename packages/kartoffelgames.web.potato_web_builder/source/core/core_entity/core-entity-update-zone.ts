@@ -1,16 +1,16 @@
 import { List } from '@kartoffelgames/core.data';
 import { IgnoreInteractionDetection, InteractionReason, InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
-import { UpdateTrigger } from '../../../enum/update-trigger.enum';
-import { LoopDetectionHandler } from './loop-detection-handler';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
+import { LoopDetectionHandler } from '../component/handler/loop-detection-handler';
 
 /**
- * Component update handler. Handles automatic and manual updates.
+ * Update zone of any core entity. Handles automatic and manual update detection.
  * Integrates with {@link LoopDetectionHandler} to detect update loops.
  * 
  * @internal
  */
 @IgnoreInteractionDetection
-export class UpdateHandler {
+export class CoreEntityUpdateZone {
     private mEnabled: boolean;
     private readonly mInteractionDetectionListener: (pReason: InteractionReason) => void;
     private readonly mInteractionZone: InteractionZone;
@@ -18,7 +18,7 @@ export class UpdateHandler {
     private readonly mUpdateListener: List<UpdateListener>;
 
     /**
-     * Get enabled state of update handler.
+     * Get enabled state of update zone.
      * Does not report any updates on disabled state.
      */
     public get enabled(): boolean {
@@ -26,7 +26,7 @@ export class UpdateHandler {
     }
 
     /**
-     * Get enabled state of update handler.
+     * Get enabled state of update zone.
      * Does not report any updates on disabled state.
      */
     public set enabled(pEnabled: boolean) {
@@ -70,7 +70,7 @@ export class UpdateHandler {
     }
 
     /**
-     * Deconstruct update handler. 
+     * Deconstruct update zone. 
      */
     public deconstruct(): void {
         // Disconnect from change listener. Does nothing if listener is not defined.
@@ -147,10 +147,10 @@ export class UpdateHandler {
 
     /**
      * Shedule asyncron update.
-     * Triggers update handler asynchron.
+     * Triggers update asynchron.
      */
     private async sheduleUpdateTask(pReason: InteractionReason): Promise<boolean> {
-        // Skip task shedule when update handler is disabled but release update waiter.
+        // Skip task shedule when update zone is disabled.
         if (!this.enabled) {
             return false;
         }

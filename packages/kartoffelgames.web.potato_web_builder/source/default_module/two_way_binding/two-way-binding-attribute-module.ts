@@ -1,5 +1,4 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { ComponentUpdateHandlerReference } from '../../core/injection-reference/component/component-update-handler-reference';
 import { ModuleKeyReference } from '../../core/injection-reference/module/module-key-reference';
 import { ModuleTargetNodeReference } from '../../core/injection-reference/module/module-target-node-reference';
 import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
@@ -8,6 +7,7 @@ import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attri
 import { ModuleValues } from '../../core/module/module-values';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
+import { CoreEntityUpdateZone } from '../../core/core_entity/core-entity-update-zone';
 
 @PwbAttributeModule({
     access: AccessMode.ReadWrite,
@@ -26,9 +26,11 @@ export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
      * Constructor.
      * @param pTargetNode - Target element.
      * @param pModuleValues - Scoped values of component.
-     * @param pAttribute - Attribute of module.
+     * @param pAttributeKey - Attribute template key.
+     * @param pAttributeValue - Attribute template value.
+     * @param pUpdateZone - Component update zone.
      */
-    public constructor(pTargetNode: ModuleTargetNodeReference, pModuleValues: ModuleValues, pAttributeKey: ModuleKeyReference, pAttributeValue: ModuleValueReference, pUpdateHandler: ComponentUpdateHandlerReference) {
+    public constructor(pTargetNode: ModuleTargetNodeReference, pModuleValues: ModuleValues, pAttributeKey: ModuleKeyReference, pAttributeValue: ModuleValueReference, pUpdateZone: CoreEntityUpdateZone) {
         this.mTargetNode = pTargetNode;
         this.mModuleValues = pModuleValues;
 
@@ -41,7 +43,7 @@ export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
         this.mLastViewValue = Symbol('Uncomparable');
 
         // Patch target. Do nothing with it.
-        pUpdateHandler.registerObject(this.mTargetNode);
+        pUpdateZone.registerObject(this.mTargetNode);
     }
 
     /**

@@ -101,7 +101,7 @@ export class PwbApp {
         pElement.appendChild(this.mAppComponent);
 
         // Wait for any component update.
-        return this.mAppComponent.updateHandler.update().then();
+        return this.mAppComponent.updateZone.update().then();
     }
 
     /**

@@ -4,10 +4,9 @@ import { expect } from 'chai';
 import { ComponentElement, IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../source/core/component/component';
 import { ComponentRegister } from '../../source/core/component/component-register';
 import { LoopError } from '../../source/core/component/handler/loop-detection-handler';
-import { UpdateHandler } from '../../source/core/component/handler/update-handler';
+import { CoreEntityUpdateZone } from '../../source/core/core_entity/core-entity-update-zone';
 import { PwbComponent } from '../../source/core/component/pwb-component.decorator';
 import { ComponentElementReference } from '../../source/core/injection-reference/component/component-element-reference';
-import { ComponentUpdateHandlerReference } from '../../source/core/injection-reference/component/component-update-handler-reference';
 import { IExpressionOnUpdate } from '../../source/core/module/expression_module/expression-module';
 import { PwbExpressionModule } from '../../source/core/module/expression_module/pwb-expression-module.decorator';
 import { PwbExport } from '../../source/default_module/export/pwb-export.decorator';
@@ -192,8 +191,8 @@ describe('HtmlComponent', () => {
             updateScope: UpdateMode.Manual
         })
         class TestComponent {
-            private readonly mUpdater: UpdateHandler;
-            public constructor(pUpdateReference: ComponentUpdateHandlerReference) {
+            private readonly mUpdater: CoreEntityUpdateZone;
+            public constructor(pUpdateReference: CoreEntityUpdateZone) {
                 this.mUpdater = pUpdateReference;
             }
 
@@ -250,13 +249,13 @@ describe('HtmlComponent', () => {
 
         // Set update listener.
         let lWasUpdated: boolean = false;
-        TestUtil.getComponentManager(lComponent)?.getProcessorAttribute<UpdateHandler>(ComponentUpdateHandlerReference)?.addUpdateListener((pReason: InteractionReason) => {
+        TestUtil.getComponentManager(lComponent)?.getProcessorAttribute<CoreEntityUpdateZone>(CoreEntityUpdateZone)?.addUpdateListener((pReason: InteractionReason) => {
             lWasUpdated = pReason.property === 'innerValue' || lWasUpdated;
         });
 
         // Set update listener.
         let lInnerValueWasUpdated: boolean = false;
-        TestUtil.getComponentManager(lCapsuledContent)?.getProcessorAttribute<UpdateHandler>(ComponentUpdateHandlerReference)?.addUpdateListener((pReason: InteractionReason) => {
+        TestUtil.getComponentManager(lCapsuledContent)?.getProcessorAttribute<CoreEntityUpdateZone>(CoreEntityUpdateZone)?.addUpdateListener((pReason: InteractionReason) => {
             lInnerValueWasUpdated = pReason.property === 'innerValue' || lInnerValueWasUpdated;
         });
 
@@ -456,8 +455,8 @@ describe('HtmlComponent', () => {
         class TestComponent implements IComponentOnUpdate {
             public innerValue: number = 1;
 
-            private readonly mUpdater: UpdateHandler;
-            public constructor(pUpdateReference: ComponentUpdateHandlerReference) {
+            private readonly mUpdater: CoreEntityUpdateZone;
+            public constructor(pUpdateReference: CoreEntityUpdateZone) {
                 this.mUpdater = pUpdateReference;
             }
 

@@ -1,9 +1,8 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
-import { ComponentUpdateHandlerReference } from '../../source';
 import { Component, ComponentElement } from '../../source/core/component/component';
 import { ComponentRegister } from '../../source/core/component/component-register';
-import { UpdateHandler } from '../../source/core/component/handler/update-handler';
+import { CoreEntityUpdateZone } from '../../source/core/core_entity/core-entity-update-zone';
 
 export class TestUtil {
     /**
@@ -83,7 +82,7 @@ export class TestUtil {
      */
     public static manualUpdate(pComponent: HTMLElement): void {
         const lComponent: Component | undefined = TestUtil.getComponentManager(pComponent);
-        lComponent?.getProcessorAttribute<UpdateHandler>(ComponentUpdateHandlerReference)!.requestUpdate(new InteractionReason(InteractionResponseType.Any, pComponent));
+        lComponent?.getProcessorAttribute<CoreEntityUpdateZone>(CoreEntityUpdateZone)!.requestUpdate(new InteractionReason(InteractionResponseType.Any, pComponent));
     }
 
     /**
@@ -105,9 +104,9 @@ export class TestUtil {
      */
     public static async waitForUpdate(pComponent: HTMLElement): Promise<void> {
         const lComponent: Component = TestUtil.getComponentManager(pComponent)!;
-        const lUpdateHandler: UpdateHandler = lComponent!.getProcessorAttribute<UpdateHandler>(ComponentUpdateHandlerReference)!;
+        const lUpdateZone: CoreEntityUpdateZone = lComponent!.getProcessorAttribute<CoreEntityUpdateZone>(CoreEntityUpdateZone)!;
 
-        await lUpdateHandler.update();
+        await lUpdateZone.update();
     }
 }
 

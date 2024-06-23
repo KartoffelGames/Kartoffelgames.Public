@@ -18,7 +18,7 @@ export { ModuleValues } from './core/module/module-values';
 export { ComponentConstructorReference } from './core/injection-reference/component/component-constructor-reference';
 export { ComponentElementReference } from './core/injection-reference/component/component-element-reference';
 export { ComponentValuesReference } from './core/injection-reference/component/component-values-reference';
-export { ComponentUpdateHandlerReference } from './core/injection-reference/component/component-update-handler-reference';
+export { CoreEntityUpdateZone } from './core/core_entity/core-entity-update-zone';
 
 // Modules
 export { PwbExtensionModule, } from './core/extension/pwb-extension-module.decorator';
@@ -60,3 +60,4 @@ import './default_module/component-event/component-event-extension';
 import './default_module/event-listener/event-listener-component-extension';
 import './default_module/export/export-extension';
 import './default_module/pwb_app_injection/pwb-app-injection-extension';
+

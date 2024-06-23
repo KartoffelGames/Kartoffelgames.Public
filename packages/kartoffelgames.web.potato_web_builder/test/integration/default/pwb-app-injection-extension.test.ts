@@ -5,8 +5,7 @@ import { PwbApp } from '../../../source/pwb-app/pwb-app';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
-import { UpdateHandler } from '../../../source/core/component/handler/update-handler';
-import { ComponentUpdateHandlerReference } from '../../../source/core/injection-reference/component/component-update-handler-reference';
+import { CoreEntityUpdateZone } from '../../../source/core/core_entity/core-entity-update-zone';
 import { PwbExport } from '../../../source/default_module/export/pwb-export.decorator';
 import { ComponentElement } from '../../../source/core/component/component';
 
@@ -143,7 +142,7 @@ describe('PwbAppInjectionExtension', () => {
 
         // Read cild component.
         const lChildChildContent: ComponentElement = TestUtil.getComponentNode(lComponent, lChildSelector);
-        TestUtil.getComponentManager(lChildChildContent)?.getProcessorAttribute<UpdateHandler>(ComponentUpdateHandlerReference)?.update();
+        TestUtil.getComponentManager(lChildChildContent)?.getProcessorAttribute<CoreEntityUpdateZone>(CoreEntityUpdateZone)?.update();
         await TestUtil.waitForUpdate(lChildChildContent);
 
         // Read cild component.

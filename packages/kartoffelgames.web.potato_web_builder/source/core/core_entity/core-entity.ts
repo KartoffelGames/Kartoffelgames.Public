@@ -1,6 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { UpdateHandler } from '../component/handler/update-handler';
+import { CoreEntityUpdateZone } from './core-entity-update-zone';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { InteractionZone } from '@kartoffelgames/web.change-detection';
 
@@ -13,7 +13,7 @@ export class CoreEntity<TProcessor extends object = object> {
     private mProcessor: TProcessor | null;
     private readonly mProcessorConstructor: CoreEntityProcessorConstructor<TProcessor>;
     private readonly mProcessorCreationHookList: Array<CoreEntityProcessorCreationHook<TProcessor>>;
-    private readonly mUpdateHandler: UpdateHandler;
+    private readonly mUpdateZone: CoreEntityUpdateZone;
 
     /**
      * If processor is created or not.
@@ -48,10 +48,10 @@ export class CoreEntity<TProcessor extends object = object> {
     }
 
     /**
-     * Update handler of component entity.
+     * Update zone of core entity.
      */
-    protected get updateHandler(): UpdateHandler {
-        return this.mUpdateHandler;
+    protected get updateZone(): CoreEntityUpdateZone {
+        return this.mUpdateZone;
     }
 
     /**
@@ -83,10 +83,10 @@ export class CoreEntity<TProcessor extends object = object> {
         }
 
         // Try to read interaction stack from parent.
-        const lInteractionZone: InteractionZone | undefined = pParameter.parent?.updateHandler.zone;
+        const lInteractionZone: InteractionZone | undefined = pParameter.parent?.updateZone.zone;
 
         // Create new updater for every component entity.
-        this.mUpdateHandler = new UpdateHandler(pParameter.processorConstructor.name, !!pParameter.isolateInteraction, pParameter.interactionTrigger, lInteractionZone);
+        this.mUpdateZone = new CoreEntityUpdateZone(pParameter.processorConstructor.name, !!pParameter.isolateInteraction, pParameter.interactionTrigger, lInteractionZone);
     }
 
     /**
@@ -113,7 +113,7 @@ export class CoreEntity<TProcessor extends object = object> {
         }
 
         // Call function in update trigger zone.
-        return this.updateHandler.enableInteractionTrigger(() => {
+        return this.updateZone.enableInteractionTrigger(() => {
             return lPropertyFunction.call(this.processor, pParameter);
         });
     }
@@ -199,7 +199,7 @@ export class CoreEntity<TProcessor extends object = object> {
         this.mIsLocked = true;
 
         // Create processor.
-        let lProcessor: TProcessor = this.updateHandler.enableInteractionTrigger(() => {
+        let lProcessor: TProcessor = this.updateZone.enableInteractionTrigger(() => {
             return Injection.createObject<TProcessor>(this.mProcessorConstructor, this.mInjections);
         });
 

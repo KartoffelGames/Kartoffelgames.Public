@@ -6,7 +6,6 @@ import { CoreEntityExtendable } from '../core_entity/core-entity-extendable';
 import { ComponentConstructorReference } from '../injection-reference/component/component-constructor-reference';
 import { ComponentElementReference } from '../injection-reference/component/component-element-reference';
 import { ComponentReference } from '../injection-reference/component/component-reference';
-import { ComponentUpdateHandlerReference } from '../injection-reference/component/component-update-handler-reference';
 import { ComponentValuesReference } from '../injection-reference/component/component-values-reference';
 import { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module';
 import { StaticBuilder } from './builder/static-builder';
@@ -17,6 +16,7 @@ import { PwbTemplate } from './template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 import { TemplateParser } from './template/template-parser';
 import { ScopedValues } from './values/scoped-values';
+import { CoreEntityUpdateZone } from '../core_entity/core-entity-update-zone';
 
 /**
  * Base component handler. Handles initialisation and update of components.
@@ -33,7 +33,6 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
      * @param pParameter - Construction parameter.
      */
     public constructor(pParameter: ComponentConstructorParameter) {
-        // Init injection history with updatehandler.
         super({
             processorConstructor: pParameter.processorConstructor,
             interactionTrigger: ((pParameter.updateMode & UpdateMode.Manual) === 0) ? UpdateTrigger.Default : UpdateTrigger.None,
@@ -47,7 +46,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         this.addCreationHook((pProcessor: ComponentProcessor) => {
             ComponentRegister.registerComponent(this, this.mElementHandler.htmlElement, pProcessor);
         }).addCreationHook((pProcessor: ComponentProcessor) => {
-            return this.updateHandler.registerObject(pProcessor);
+            return this.updateZone.registerObject(pProcessor);
         }).addCreationHook((pProcessor: ComponentProcessor) => {
             ComponentRegister.registerComponent(this, this.mElementHandler.htmlElement, pProcessor);
         });
@@ -73,10 +72,10 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         this.setProcessorAttributes(ComponentElementReference, pParameter.htmlElement);
         this.setProcessorAttributes(ComponentValuesReference, this.mRootBuilder.values);
         this.setProcessorAttributes(ComponentReference, this);
-        this.setProcessorAttributes(ComponentUpdateHandlerReference, this.updateHandler);
+        this.setProcessorAttributes(CoreEntityUpdateZone, this.updateZone);
 
         // Attach automatic update listener to handler.
-        this.updateHandler.addUpdateListener(() => {
+        this.updateZone.addUpdateListener(() => {
             this.update();
         });
     }
@@ -99,16 +98,16 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
      * Called when component get attached to DOM.
      */
     public connected(): void {
-        this.updateHandler.enabled = true;
+        this.updateZone.enabled = true;
 
         // Call processor event after enabling updates.
         this.call<IComponentOnConnect, 'onConnect'>('onConnect', false);
 
         // Trigger light update use self as source to prevent early processor creation.
         if (this.isProcessorCreated) {
-            this.updateHandler.requestUpdate(new InteractionReason(InteractionResponseType.Custom, this.processor));
+            this.updateZone.requestUpdate(new InteractionReason(InteractionResponseType.Custom, this.processor));
         } else {
-            this.updateHandler.requestUpdate(new InteractionReason(InteractionResponseType.Custom, this));
+            this.updateZone.requestUpdate(new InteractionReason(InteractionResponseType.Custom, this));
         }
     }
 
@@ -117,7 +116,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
      */
     public override deconstruct(): void {
         // Disable updates.
-        this.updateHandler.enabled = false;
+        this.updateZone.enabled = false;
 
         // User callback.
         this.call<IComponentOnDeconstruct, 'onDeconstruct'>('onDeconstruct', false);
@@ -133,7 +132,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
      * Called when component gets detached from DOM.
      */
     public disconnected(): void {
-        this.updateHandler.enabled = false;
+        this.updateZone.enabled = false;
 
         // Call processor event after disabling update event..
         this.call<IComponentOnDisconnect, 'onDisconnect'>('onDisconnect', false);

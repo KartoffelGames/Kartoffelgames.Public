@@ -2,7 +2,6 @@ import { Exception } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
 import { IExtensionOnDeconstruct } from '../../core/extension/extension-module';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
-import { ModuleConstructorReference } from '../../core/injection-reference/module/module-constructor-reference';
 import { ModuleReference } from '../../core/injection-reference/module/module-reference';
 import { ModuleTargetNodeReference } from '../../core/injection-reference/module/module-target-node-reference';
 import { AttributeModule } from '../../core/module/attribute_module/attribute-module';
@@ -27,11 +26,11 @@ export class EventListenerModuleExtension implements IExtensionOnDeconstruct {
      * @param pModule - Module processor.
      * @param pModuleElementReference - Component html element.
      */
-    public constructor(pModuleProcessorConstructor: ModuleConstructorReference, pModule: ModuleReference, pModuleElementReference: ModuleTargetNodeReference) {
+    public constructor(pModule: ModuleReference, pModuleElementReference: ModuleTargetNodeReference) {
         // Get event metadata.
         const lEventPropertyList: Array<[string, string]> = new Array<[string, string]>();
 
-        let lClass: InjectionConstructor = <InjectionConstructor>pModuleProcessorConstructor;
+        let lClass: InjectionConstructor = pModule.processorConstructor;
         do {
             // Find all event properties of current class layer and add all to merged property list.
             const lPropertyList: Array<[string, string]> | null = Metadata.get(lClass).getMetadata(EventListenerComponentExtension.METADATA_USER_EVENT_LISTENER_PROPERIES);

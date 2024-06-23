@@ -6,7 +6,6 @@ export { PwbComponent } from './core/component/pwb-component.decorator';
 export { IComponentOnAttributeChange, IComponentOnConnect, IComponentOnDeconstruct, IComponentOnDisconnect, IComponentOnUpdate } from './core/component/component';
 
 // Module Injections
-export { ModuleConstructorReference } from './core/injection-reference/module/module-constructor-reference';
 export { ModuleKeyReference } from './core/injection-reference/module/module-key-reference';
 export { ModuleReference } from './core/injection-reference/module/module-reference';
 export { ModuleTargetNodeReference } from './core/injection-reference/module/module-target-node-reference';

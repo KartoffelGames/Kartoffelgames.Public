@@ -2,7 +2,6 @@ import { IDeconstructable } from '@kartoffelgames/core.data';
 import { ScopedValues } from '../scoped-values';
 import { CoreEntityProcessorConstructor } from '../core_entity/core-entity';
 import { CoreEntityExtendable, CoreEntityExtendableConstructorParameter } from '../core_entity/core-entity-extendable';
-import { ModuleConstructorReference } from '../injection-reference/module/module-constructor-reference';
 import { ModuleReference } from '../injection-reference/module/module-reference';
 import { ModuleValues } from './module-values';
 
@@ -21,7 +20,6 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
         });
 
         // Create module injection mapping.
-        this.setProcessorAttributes(ModuleConstructorReference, pParameter.processorConstructor);
         this.setProcessorAttributes(ModuleReference, this);
         this.setProcessorAttributes(ModuleValues, new ModuleValues(pParameter.values));
     }

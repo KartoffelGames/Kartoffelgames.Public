@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
-import { ScopedValues } from '../../core/component/values/scoped-values';
+import { ScopedValues } from '../../core/scoped-values';
 import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
 import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';

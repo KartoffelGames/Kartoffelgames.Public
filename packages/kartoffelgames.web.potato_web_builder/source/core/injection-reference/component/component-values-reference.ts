@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
 
 import { Exception } from '@kartoffelgames/core.data';
-import { ScopedValues } from '../../component/values/scoped-values';
+import { ScopedValues } from '../../scoped-values';
 
 /**
  * Component scoped value reference.

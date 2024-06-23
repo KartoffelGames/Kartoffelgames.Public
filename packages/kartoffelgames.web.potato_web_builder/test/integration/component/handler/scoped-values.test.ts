@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { ComponentRegister } from '../../../../source/core/component/component-register';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator';
-import { ScopedValues } from '../../../../source/core/component/values/scoped-values';
+import { ScopedValues } from '../../../../source/core/scoped-values';
 import { ComponentValuesReference } from '../../../../source/core/injection-reference/component/component-values-reference';
 import '../../../mock/request-animation-frame-mock-session';
 import '../../../utility/chai-helper';

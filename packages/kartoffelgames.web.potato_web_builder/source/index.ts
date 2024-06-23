@@ -30,7 +30,7 @@ export { IExpressionOnDeconstruct, IExpressionOnUpdate } from './core/module/exp
 export { PwbInstructionModule } from './core/module/instruction_module/pwb-instruction-module.decorator';
 export { InstructionResult } from './core/module/instruction_module/result/instruction-result';
 export { IInstructionOnDeconstruct, IInstructionOnUpdate } from './core/module/instruction_module/instruction-module';
-export { ScopedValues } from './core/component/values/scoped-values';
+export { ScopedValues } from './core/scoped-values';
 
 export { AccessMode } from './enum/access-mode.enum';
 

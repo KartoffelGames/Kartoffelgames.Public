@@ -8,7 +8,7 @@ import { Component } from './component';
 import { PwbTemplateInstructionNode } from './template/nodes/pwb-template-instruction-node';
 import { PwbTemplateAttribute } from './template/nodes/values/pwb-template-attribute';
 import { PwbTemplateExpression } from './template/nodes/values/pwb-template-expression';
-import { ScopedValues } from './values/scoped-values';
+import { ScopedValues } from '../scoped-values';
 
 /**
  * Handles every kind of component modules. Keeps the current used expression module.

@@ -3,7 +3,7 @@ import { InstructionModule } from '../../module/instruction_module/instruction-m
 import { InstructionResultElement } from '../../module/instruction_module/result/instruction-result';
 import { ComponentModules } from '../component-modules';
 import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node';
-import { ScopedValues } from '../values/scoped-values';
+import { ScopedValues } from '../../scoped-values';
 import { BaseBuilder } from './base-builder';
 import { InstructionBuilderData } from './data/instruction-builder-data';
 import { StaticBuilder } from './static-builder';

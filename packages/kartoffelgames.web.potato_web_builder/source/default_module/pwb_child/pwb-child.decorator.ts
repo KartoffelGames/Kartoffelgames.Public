@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { Component, ComponentProcessor } from '../../core/component/component';
 import { ComponentRegister } from '../../core/component/component-register';
-import { ScopedValues } from '../../core/component/values/scoped-values';
+import { ScopedValues } from '../../core/scoped-values';
 import { ComponentValuesReference } from '../../core/injection-reference/component/component-values-reference';
 
 /**

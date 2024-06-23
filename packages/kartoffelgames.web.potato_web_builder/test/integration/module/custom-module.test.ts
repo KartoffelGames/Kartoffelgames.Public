@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
 import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from '../../../source/core/component/template/nodes/pwb-template-xml-node';
-import { ScopedValues } from '../../../source/core/component/values/scoped-values';
+import { ScopedValues } from '../../../source/core/scoped-values';
 import { ComponentValuesReference } from '../../../source/core/injection-reference/component/component-values-reference';
 import { PwbAttributeModule } from '../../../source/core/module/attribute_module/pwb-attribute-module.decorator';
 import { IInstructionOnUpdate } from '../../../source/core/module/instruction_module/instruction-module';

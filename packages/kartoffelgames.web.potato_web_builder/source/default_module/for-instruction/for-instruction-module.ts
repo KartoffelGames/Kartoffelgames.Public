@@ -1,7 +1,7 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
 import { PwbTemplateInstructionNode } from '../../core/component/template/nodes/pwb-template-instruction-node';
-import { ScopedValues } from '../../core/component/values/scoped-values';
+import { ScopedValues } from '../../core/scoped-values';
 import { ModuleTemplateReference } from '../../core/injection-reference/module/module-template-reference';
 import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
 import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';

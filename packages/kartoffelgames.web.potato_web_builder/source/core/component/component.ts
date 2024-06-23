@@ -15,7 +15,7 @@ import { ComponentElement } from './component-element';
 import { PwbTemplate } from './template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 import { TemplateParser } from './template/template-parser';
-import { ScopedValues } from './values/scoped-values';
+import { ScopedValues } from '../scoped-values';
 
 /**
  * Base component handler. Handles initialisation and update of components.

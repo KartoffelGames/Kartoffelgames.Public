@@ -1,5 +1,5 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { ScopedValues } from '../component/values/scoped-values';
+import { ScopedValues } from '../scoped-values';
 
 /**
  * Executes string in set component values scope.

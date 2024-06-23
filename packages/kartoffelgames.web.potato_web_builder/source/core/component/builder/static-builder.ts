@@ -8,7 +8,7 @@ import { PwbTemplateTextNode } from '../template/nodes/pwb-template-text-node';
 import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
 import { PwbTemplateAttribute } from '../template/nodes/values/pwb-template-attribute';
 import { PwbTemplateExpression } from '../template/nodes/values/pwb-template-expression';
-import { ScopedValues } from '../values/scoped-values';
+import { ScopedValues } from '../../scoped-values';
 import { BaseBuilder } from './base-builder';
 import { BuilderContent } from './data/base-builder-data';
 import { StaticBuilderData, StaticBuilderLinkedAttributeData } from './data/static-builder-data';

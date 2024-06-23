@@ -4,7 +4,7 @@ import { ModuleValues } from '../../../source';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
 import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template';
 import { PwbTemplateInstructionNode } from '../../../source/core/component/template/nodes/pwb-template-instruction-node';
-import { ScopedValues } from '../../../source/core/component/values/scoped-values';
+import { ScopedValues } from '../../../source/core/scoped-values';
 import { ModuleTemplateReference } from '../../../source/core/injection-reference/module/module-template-reference';
 import { PwbAttributeModule } from '../../../source/core/module/attribute_module/pwb-attribute-module.decorator';
 import { IInstructionOnUpdate } from '../../../source/core/module/instruction_module/instruction-module';

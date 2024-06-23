@@ -1,5 +1,5 @@
 import { IDeconstructable } from '@kartoffelgames/core.data';
-import { ScopedValues } from '../component/values/scoped-values';
+import { ScopedValues } from '../scoped-values';
 import { CoreEntityProcessorConstructor } from '../core_entity/core-entity';
 import { CoreEntityExtendable, CoreEntityExtendableConstructorParameter } from '../core_entity/core-entity-extendable';
 import { ModuleConstructorReference } from '../injection-reference/module/module-constructor-reference';

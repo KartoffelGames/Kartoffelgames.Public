@@ -79,19 +79,11 @@ export abstract class CoreEntityExtendable<TProcessor extends object> extends Co
             return lNewExtensionList;
         })();
 
-        // Create every write module extension.
-        for (const lSetup of lExtensionSetupLists.write) {
-            const lModuleExtension: ExtensionModule = new ExtensionModule(lSetup.processorConstructor, <CoreEntity><any>this, lSetup.processorConfiguration.trigger);
-            lModuleExtension.setup();
+        // Create extension execution order list. First write than readwrite than read.
+        const lOrderedExtensionList: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>> = [...lExtensionSetupLists.write, ...lExtensionSetupLists.readWrite, ...lExtensionSetupLists.read];
 
-            this.mExtensionList.push(lModuleExtension);
-        }
-
-        // Get all read extensions. Keep order to execute readWrite extensions first.
-        const lReadExtensions: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>> = [...lExtensionSetupLists.readWrite, ...lExtensionSetupLists.read];
-
-        // Create every read module extension.
-        for (const lSetup of lReadExtensions) {
+        // Create every module extension.
+        for (const lSetup of lOrderedExtensionList) {
             const lModuleExtension: ExtensionModule = new ExtensionModule(lSetup.processorConstructor, <CoreEntity><any>this, lSetup.processorConfiguration.trigger);
             lModuleExtension.setup();
 

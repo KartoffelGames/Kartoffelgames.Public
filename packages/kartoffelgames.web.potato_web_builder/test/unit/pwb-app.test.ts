@@ -6,7 +6,6 @@ import { PwbApp } from '../../source/pwb-app/pwb-app';
 import '../mock/request-animation-frame-mock-session';
 import '../utility/chai-helper';
 import { TestUtil } from '../utility/test-util';
-import { ComponentElement } from '../../source/core/component/component';
 
 describe('PwbApp', () => {
     it('Property: component', () => {
@@ -61,7 +60,7 @@ describe('PwbApp', () => {
             // Process.
             lApp.addContent(TestComponent);
             await lApp.appendTo(document.body);
-            const lContent: ComponentElement = <ComponentElement>lApp.component.shadowRoot!.querySelector(lSelector);
+            const lContent: HTMLElement = <HTMLElement>lApp.component.shadowRoot!.querySelector(lSelector);
             await TestUtil.waitForUpdate(lContent);
 
             // Evaluation.
@@ -160,7 +159,7 @@ describe('PwbApp', () => {
             await lApp.appendTo(document.body);
 
             // Trigger processor creation.
-            const lContent: ComponentElement = <ComponentElement>lApp.component.shadowRoot!.querySelector(lSelector);
+            const lContent: HTMLElement = <HTMLElement>lApp.component.shadowRoot!.querySelector(lSelector);
             TestUtil.forceProcessorCreation(lContent);
         } catch (pError) {
             const lError: Error = <Error>pError;

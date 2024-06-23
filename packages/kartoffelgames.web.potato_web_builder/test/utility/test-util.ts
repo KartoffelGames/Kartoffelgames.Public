@@ -1,6 +1,6 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
-import { Component, ComponentElement } from '../../source/core/component/component';
+import { Component } from '../../source/core/component/component';
 import { ComponentRegister } from '../../source/core/component/component-register';
 import { CoreEntityUpdateZone } from '../../source/core/core_entity/core-entity-update-zone';
 
@@ -9,12 +9,12 @@ export class TestUtil {
      * Create component from selector.
      * @param pSelector - component selector.
      */
-    public static async createComponent(pClass: InjectionConstructor): Promise<ComponentElement> {
+    public static async createComponent(pClass: InjectionConstructor): Promise<HTMLElement> {
         // Get component html constructor from class.
         const lComponentConstructor: CustomElementConstructor = ComponentRegister.ofConstructor(pClass).elementConstructor;
 
         // Get component.
-        const lComponent: ComponentElement = new lComponentConstructor() as any;
+        const lComponent: HTMLElement = new lComponentConstructor() as any;
 
         // Connect to a document to trigger updates.
         document.body.appendChild(lComponent);
@@ -29,7 +29,7 @@ export class TestUtil {
      * Deconstruct the component.
      * @param pComponent - Pwb component.
      */
-    public static deconstructComponent(pComponent: ComponentElement): void {
+    public static deconstructComponent(pComponent: HTMLElement): void {
         ComponentRegister.ofElement(pComponent).component.deconstruct();
     }
 
@@ -38,7 +38,7 @@ export class TestUtil {
      * 
      * @param pComponent - Pwb component.
      */
-    public static forceProcessorCreation(pComponent: ComponentElement): void {
+    public static forceProcessorCreation(pComponent: HTMLElement): void {
         ComponentRegister.ofElement(pComponent).component.processor;
     }
 

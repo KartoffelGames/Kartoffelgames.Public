@@ -210,5 +210,3 @@ export interface ComponentProcessor extends Partial<IComponentOnDeconstruct>, Pa
 export type ComponentProcessorConstructor = {
     new(...pParameter: Array<any>): ComponentProcessor;
 };
-
-export interface ComponentElement extends HTMLElement { }

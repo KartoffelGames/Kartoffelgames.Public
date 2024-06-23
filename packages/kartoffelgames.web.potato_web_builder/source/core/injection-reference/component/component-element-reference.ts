@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
 
 import { Exception } from '@kartoffelgames/core.data';
-import { ComponentElement } from '../../component/component';
 
 /**
  * Component element reference.
@@ -22,4 +21,4 @@ export class ComponentElementReference {
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-export declare interface ComponentElementReference extends HTMLElement, ComponentElement { }
+export declare interface ComponentElementReference extends HTMLElement { }

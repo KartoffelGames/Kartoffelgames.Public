@@ -1,7 +1,7 @@
 import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
 import { InteractionDetectionProxy } from '@kartoffelgames/web.change-detection/library/source/change_detection/synchron_tracker/interaction-detection-proxy';
 import { expect } from 'chai';
-import { ComponentElement, IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../source/core/component/component';
+import { IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../source/core/component/component';
 import { ComponentRegister } from '../../source/core/component/component-register';
 import { LoopError } from '../../source/core/component/handler/loop-detection-handler';
 import { CoreEntityUpdateZone } from '../../source/core/core_entity/core-entity-update-zone';
@@ -174,7 +174,7 @@ describe('HtmlComponent', () => {
 
         // Process. Create element.
         const lComponentConstructor: CustomElementConstructor = ComponentRegister.ofConstructor(TestComponent).elementConstructor;
-        const lComponent: ComponentElement = new lComponentConstructor() as any;
+        const lComponent: HTMLElement = new lComponentConstructor() as any;
         document.body.appendChild(lComponent);
 
         // Evaluation.
@@ -409,7 +409,7 @@ describe('HtmlComponent', () => {
         }
 
         // Process. Create element indirect callback.
-        const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
         lComponent.innerValue = 'New-Value';
         TestUtil.deconstructComponent(lComponent);
 
@@ -438,7 +438,7 @@ describe('HtmlComponent', () => {
         }
 
         // Process. Create element indirect callback.
-        const lComponent: ComponentElement = await <any>TestUtil.createComponent(TestComponent);
+        const lComponent: HTMLElement = await <any>TestUtil.createComponent(TestComponent);
         TestUtil.forceProcessorCreation(lComponent);
         TestUtil.deconstructComponent(lComponent);
 

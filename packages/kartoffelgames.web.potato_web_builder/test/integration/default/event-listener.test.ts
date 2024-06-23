@@ -1,7 +1,6 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { expect } from 'chai';
 import { ModuleValues } from '../../../source';
-import { ComponentElement } from '../../../source/core/component/component';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
 import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template';
 import { PwbTemplateInstructionNode } from '../../../source/core/component/template/nodes/pwb-template-instruction-node';
@@ -166,7 +165,7 @@ describe('PwbEventListener', () => {
         }
 
         // Process. Create element and click div.
-        const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
         TestUtil.deconstructComponent(lComponent);
         lComponent.click();
 
@@ -232,7 +231,7 @@ describe('PwbEventListener', () => {
         class TestComponent { }
 
         // Process. Create element and click div.
-        const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
         TestUtil.deconstructComponent(lComponent);
         lComponent.click();
 

@@ -7,7 +7,6 @@ import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
 import { CoreEntityUpdateZone } from '../../../source/core/core_entity/core-entity-update-zone';
 import { PwbExport } from '../../../source/default_module/export/pwb-export.decorator';
-import { ComponentElement } from '../../../source/core/component/component';
 
 describe('PwbAppInjectionExtension', () => {
     it('-- PwbApp injection on global element', async () => {
@@ -34,7 +33,7 @@ describe('PwbAppInjectionExtension', () => {
         await lPwbApp.appendTo(document.body);
 
         // Process. Create elements and wait for update.
-        const lComponent: ComponentElement = <ComponentElement>lPwbApp.component.shadowRoot!.querySelector(lSelector);
+        const lComponent: HTMLElement = <HTMLElement>lPwbApp.component.shadowRoot!.querySelector(lSelector);
         TestUtil.forceProcessorCreation(lComponent);
         await TestUtil.waitForUpdate(lPwbApp.component);
 
@@ -79,10 +78,10 @@ describe('PwbAppInjectionExtension', () => {
         await lPwbApp.appendTo(document.body);
 
         // Process. Create elements and wait for update.
-        const lComponent: ComponentElement = <ComponentElement>lPwbApp.component.shadowRoot!.querySelector(lSelector);
+        const lComponent: HTMLElement = <HTMLElement>lPwbApp.component.shadowRoot!.querySelector(lSelector);
         await TestUtil.waitForUpdate(lComponent);
 
-        const lChildContent: ComponentElement = <ComponentElement>lComponent.shadowRoot!.querySelector(lCapsuledSelector);
+        const lChildContent: HTMLElement = <HTMLElement>lComponent.shadowRoot!.querySelector(lCapsuledSelector);
         TestUtil.forceProcessorCreation(lChildContent);
         await TestUtil.waitForUpdate(lChildContent);
 
@@ -137,16 +136,16 @@ describe('PwbAppInjectionExtension', () => {
         await lPwbApp.appendTo(document.body);
 
         // Process. Create elements and wait for update.
-        const lComponent: ComponentElement = TestUtil.getComponentNode(lPwbApp.component, lSelector);
+        const lComponent: HTMLElement = TestUtil.getComponentNode(lPwbApp.component, lSelector);
         await TestUtil.waitForUpdate(lComponent);
 
         // Read cild component.
-        const lChildChildContent: ComponentElement = TestUtil.getComponentNode(lComponent, lChildSelector);
+        const lChildChildContent: HTMLElement = TestUtil.getComponentNode(lComponent, lChildSelector);
         TestUtil.getComponentManager(lChildChildContent)?.getProcessorAttribute<CoreEntityUpdateZone>(CoreEntityUpdateZone)?.update();
         await TestUtil.waitForUpdate(lChildChildContent);
 
         // Read cild component.
-        const lChildChildChildContent: ComponentElement = TestUtil.getComponentNode(lChildChildContent, lChildChildSelector);
+        const lChildChildChildContent: HTMLElement = TestUtil.getComponentNode(lChildChildContent, lChildChildSelector);
         TestUtil.forceProcessorCreation(lChildChildChildContent);
         await TestUtil.waitForUpdate(lChildChildChildContent);
 
@@ -218,7 +217,7 @@ describe('PwbAppInjectionExtension', () => {
         await lPwbApp.appendTo(document.body);
 
         // Process. Create elements and wait for update.
-        const lComponent: ComponentElement = <ComponentElement>lPwbApp.component.shadowRoot!.querySelector(lSelector);
+        const lComponent: HTMLElement = <HTMLElement>lPwbApp.component.shadowRoot!.querySelector(lSelector);
         TestUtil.forceProcessorCreation(lComponent);
         await TestUtil.waitForUpdate(lPwbApp.component);
 

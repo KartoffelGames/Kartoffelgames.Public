@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-import { ComponentElement } from '../../../source/core/component/component';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
 import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from '../../../source/core/component/template/nodes/pwb-template-xml-node';
@@ -107,7 +106,7 @@ describe('Custom Module', () => {
         class TestComponent { }
 
         // Process. Create element.
-        const lComponent: ComponentElement = await TestUtil.createComponent(TestComponent);
+        const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
         TestUtil.deconstructComponent(lComponent);
     });
 });

@@ -4,7 +4,6 @@ import { PwbExport } from '../../../../source/default_module/export/pwb-export.d
 import '../../../mock/request-animation-frame-mock-session';
 import '../../../utility/chai-helper';
 import { TestUtil } from '../../../utility/test-util';
-import { ComponentElement } from '../../../../source/core/component/component';
 
 describe('ForInstructionModule', () => {
     it('Array items', async () => {
@@ -496,7 +495,7 @@ describe('ForInstructionModule', () => {
         }
 
         // Setup. Create element.
-        const lComponent: ComponentElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
         TestUtil.deconstructComponent(lComponent);
 
         // Evaluation.

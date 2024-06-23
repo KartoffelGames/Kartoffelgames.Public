@@ -17,7 +17,7 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
     /**
      * Content anchor for later appending build and initilised elements on this place.
      */
-    public get anchor(): Comment {
+    public get anchor(): ChildNode {
         return this.mContent.contentAnchor;
     }
 

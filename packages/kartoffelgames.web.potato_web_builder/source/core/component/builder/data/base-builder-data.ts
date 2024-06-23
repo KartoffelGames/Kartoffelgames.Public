@@ -32,7 +32,7 @@ export abstract class BaseBuilderData {
      * Get content anchor.
      * All content of this builder data gets append after this anchor.
      */
-    public get contentAnchor(): Comment {
+    public get contentAnchor(): ChildNode {
         return this.mContentAnchor;
     }
 

@@ -3,7 +3,7 @@ import { PwbComponent } from '../../../source/core/component/pwb-component.decor
 import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from '../../../source/core/component/template/nodes/pwb-template-xml-node';
 import { ScopedValues } from '../../../source/core/scoped-values';
-import { ComponentValuesReference } from '../../../source/core/injection-reference/component/component-values-reference';
+import { ComponentScopedValues } from '../../../source/core/component/injection_reference/component-scoped-values';
 import { PwbAttributeModule } from '../../../source/core/module/attribute_module/pwb-attribute-module.decorator';
 import { IInstructionOnUpdate } from '../../../source/core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator';
@@ -25,7 +25,7 @@ describe('Custom Module', () => {
         class WrongModule implements IInstructionOnUpdate {
             private readonly mScopedValues: ScopedValues;
 
-            public constructor(pValueReference: ComponentValuesReference) {
+            public constructor(pValueReference: ComponentScopedValues) {
                 this.mScopedValues = pValueReference;
             }
 

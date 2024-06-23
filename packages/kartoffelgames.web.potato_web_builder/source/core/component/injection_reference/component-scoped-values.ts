@@ -9,7 +9,7 @@ import { ScopedValues } from '../../scoped-values';
  * 
  * Should never be initialized.
  */
-export class ComponentValuesReference {
+export class ComponentScopedValues {
     /**
      * Constructor. Allways throws exception.
      * 
@@ -21,4 +21,4 @@ export class ComponentValuesReference {
     }
 }
 
-export declare interface ComponentValuesReference extends ScopedValues { }
+export declare interface ComponentScopedValues extends ScopedValues { }

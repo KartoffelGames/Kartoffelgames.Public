@@ -16,7 +16,7 @@ export { ModuleValues } from './core/module/module-values';
 
 // Component Injections
 export { ComponentElement } from './core/component/component-element';
-export { ComponentValuesReference } from './core/injection-reference/component/component-values-reference';
+export { ComponentScopedValues } from './core/component/injection_reference/component-scoped-values';
 export { CoreEntityUpdateZone } from './core/core_entity/core-entity-update-zone';
 
 // Modules

@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { ComponentRegister } from '../../../../source/core/component/component-register';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator';
 import { ScopedValues } from '../../../../source/core/scoped-values';
-import { ComponentValuesReference } from '../../../../source/core/injection-reference/component/component-values-reference';
+import { ComponentScopedValues } from '../../../../source/core/component/injection_reference/component-scoped-values';
 import '../../../mock/request-animation-frame-mock-session';
 import '../../../utility/chai-helper';
 import { TestUtil } from '../../../utility/test-util';
@@ -18,7 +18,7 @@ describe('ScopedValues', () => {
 
             // Setup. Create element.
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-            const lRootValues: ScopedValues = ComponentRegister.ofElement(lComponent).component.getProcessorAttribute<ScopedValues>(ComponentValuesReference)!;
+            const lRootValues: ScopedValues = ComponentRegister.ofElement(lComponent).component.getProcessorAttribute<ScopedValues>(ComponentScopedValues)!;
 
             // Process. Create child scope.
             const lIsEqual: boolean = lRootValues.equals(lRootValues);
@@ -42,9 +42,9 @@ describe('ScopedValues', () => {
 
             // Setup. Create element.
             const lComponentOne: HTMLElement = await <any>TestUtil.createComponent(TestComponentOne);
-            const lRootValuesOne: ScopedValues = ComponentRegister.ofElement(lComponentOne).component.getProcessorAttribute<ScopedValues>(ComponentValuesReference)!;
+            const lRootValuesOne: ScopedValues = ComponentRegister.ofElement(lComponentOne).component.getProcessorAttribute<ScopedValues>(ComponentScopedValues)!;
             const lComponentTwo: HTMLElement = await <any>TestUtil.createComponent(TestComponentTwo);
-            const lRootValuesTwo: ScopedValues = ComponentRegister.ofElement(lComponentTwo).component.getProcessorAttribute<ScopedValues>(ComponentValuesReference)!;
+            const lRootValuesTwo: ScopedValues = ComponentRegister.ofElement(lComponentTwo).component.getProcessorAttribute<ScopedValues>(ComponentScopedValues)!;
 
             // Process.
             const lIsEqual: boolean = lRootValuesOne.equals(lRootValuesTwo);
@@ -62,7 +62,7 @@ describe('ScopedValues', () => {
 
             // Setup. Create element.
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-            const lRootValues: ScopedValues = ComponentRegister.ofElement(lComponent).component.getProcessorAttribute<ScopedValues>(ComponentValuesReference)!;
+            const lRootValues: ScopedValues = ComponentRegister.ofElement(lComponent).component.getProcessorAttribute<ScopedValues>(ComponentScopedValues)!;
 
             // Setup. Create child scope.
             const lChildScopeOne: ScopedValues = new ScopedValues(lRootValues);
@@ -85,7 +85,7 @@ describe('ScopedValues', () => {
 
             // Setup. Create element.
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-            const lRootValues: ScopedValues = ComponentRegister.ofElement(lComponent).component.getProcessorAttribute<ScopedValues>(ComponentValuesReference)!;
+            const lRootValues: ScopedValues = ComponentRegister.ofElement(lComponent).component.getProcessorAttribute<ScopedValues>(ComponentScopedValues)!;
 
             // Setup. Create child scope.
             const lChildScopeOne: ScopedValues = new ScopedValues(lRootValues);
@@ -115,7 +115,7 @@ describe('ScopedValues', () => {
 
             // Setup. Create element and get root scope.
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-            const lRootValues: ScopedValues = ComponentRegister.ofElement(lComponent).component.getProcessorAttribute<ScopedValues>(ComponentValuesReference)!;
+            const lRootValues: ScopedValues = ComponentRegister.ofElement(lComponent).component.getProcessorAttribute<ScopedValues>(ComponentScopedValues)!;
             lRootValues.store[lScopeKey] = lScopeValue;
 
             // Process.
@@ -138,7 +138,7 @@ describe('ScopedValues', () => {
 
             // Setup. Create element and get root scope.
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-            const lRootValues: ScopedValues = ComponentRegister.ofElement(lComponent).component.getProcessorAttribute<ScopedValues>(ComponentValuesReference)!;
+            const lRootValues: ScopedValues = ComponentRegister.ofElement(lComponent).component.getProcessorAttribute<ScopedValues>(ComponentScopedValues)!;
             lRootValues.store[lScopeKey] = lScopeValue;
 
             // Setup. Create child scope.
@@ -165,7 +165,7 @@ describe('ScopedValues', () => {
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lRootValues: ScopedValues = ComponentRegister.ofElement(lComponent).component.getProcessorAttribute<ScopedValues>(ComponentValuesReference)!;
+        const lRootValues: ScopedValues = ComponentRegister.ofElement(lComponent).component.getProcessorAttribute<ScopedValues>(ComponentScopedValues)!;
 
         // Setup. Create child scope.
         const lChildScope: ScopedValues = new ScopedValues(lRootValues);

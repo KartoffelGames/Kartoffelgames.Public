@@ -1,5 +1,5 @@
 import { CoreEntityUpdateZone } from '../../core/core_entity/core-entity-update-zone';
-import { ComponentValuesReference } from '../../core/injection-reference/component/component-values-reference';
+import { ComponentScopedValues } from '../../core/component/injection_reference/component-scoped-values';
 import { ModuleKeyReference } from '../../core/injection-reference/module/module-key-reference';
 import { ModuleTargetNodeReference } from '../../core/injection-reference/module/module-target-node-reference';
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
@@ -22,7 +22,7 @@ export class PwbChildAttributeModule {
      * @param pAttributeKey - Attribute key.
      * @param pComponentScopeValue - Root values of component.
      */
-    public constructor(pTargetReference: ModuleTargetNodeReference, pUpdateZone: CoreEntityUpdateZone, pAttributeKey: ModuleKeyReference, pComponentScopeValue: ComponentValuesReference) {
+    public constructor(pTargetReference: ModuleTargetNodeReference, pUpdateZone: CoreEntityUpdateZone, pAttributeKey: ModuleKeyReference, pComponentScopeValue: ComponentScopedValues) {
         const lTarget: Node = pTargetReference;
         const lRegistedElement: Node = pUpdateZone.registerObject(lTarget);
 

@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core.data';
 import { Component, ComponentProcessor } from '../../core/component/component';
 import { ComponentRegister } from '../../core/component/component-register';
 import { ScopedValues } from '../../core/scoped-values';
-import { ComponentValuesReference } from '../../core/injection-reference/component/component-values-reference';
+import { ComponentScopedValues } from '../../core/component/injection_reference/component-scoped-values';
 
 /**
  * AtScript. Id child 
@@ -28,7 +28,7 @@ export function PwbChild(pIdChildName: string): any {
                 })();
 
                 // Get root value. This should be the child.
-                const lComponentRootValues: ScopedValues = lComponent.getProcessorAttribute(ComponentValuesReference)!;
+                const lComponentRootValues: ScopedValues = lComponent.getProcessorAttribute(ComponentScopedValues)!;
                 const lIdChild: any = lComponentRootValues.store[pIdChildName];
 
                 if (lIdChild instanceof Element) {

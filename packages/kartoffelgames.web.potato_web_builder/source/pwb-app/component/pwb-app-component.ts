@@ -139,6 +139,7 @@ export class PwbAppComponent implements IComponentOnConnect, IComponentOnDisconn
             globalThis.setTimeout(() => {
                 // Remove 
                 this.splashscreenState.append = false;
+
                 // Resolve promise after remove.
                 pResolve();
             }, this.splashscreenConfig.animationTime);

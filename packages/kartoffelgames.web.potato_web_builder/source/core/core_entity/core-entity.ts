@@ -86,7 +86,7 @@ export class CoreEntity<TProcessor extends object = object> {
         const lInteractionZone: InteractionZone | undefined = pParameter.parent?.updateHandler.zone;
 
         // Create new updater for every component entity.
-        this.mUpdateHandler = new UpdateHandler(!!pParameter.isolateInteraction, pParameter.interactionTrigger, lInteractionZone);
+        this.mUpdateHandler = new UpdateHandler(pParameter.processorConstructor.name, !!pParameter.isolateInteraction, pParameter.interactionTrigger, lInteractionZone);
     }
 
     /**

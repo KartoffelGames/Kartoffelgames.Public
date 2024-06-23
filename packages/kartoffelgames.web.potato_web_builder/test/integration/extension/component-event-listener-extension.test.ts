@@ -1,9 +1,9 @@
 import { expect } from 'chai';
-import { PwbComponentEventListener } from '../../../../source';
-import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator';
-import '../../../mock/request-animation-frame-mock-session';
-import '../../../utility/chai-helper';
-import { TestUtil } from '../../../utility/test-util';
+import { PwbComponentEventListener } from '../../../source';
+import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
+import '../../mock/request-animation-frame-mock-session';
+import '../../utility/chai-helper';
+import { TestUtil } from '../../utility/test-util';
 
 describe('ComponentEventListenerExtension', () => {
     it('-- Component click event', async () => {

@@ -481,7 +481,7 @@ describe('HtmlComponent', () => {
         expect(lError).to.be.instanceOf(UpdateLoopError);
     });
 
-    it('-- Creation without PwbApp', async () => {
+    it('-- Creation without customElements register', async () => {
         // Setup.
         const lSelector: string = TestUtil.randomSelector();
 

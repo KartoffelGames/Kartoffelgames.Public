@@ -1,13 +1,13 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { expect } from 'chai';
-import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator';
-import { ComponentEvent } from '../../../../source/default_module/component-event/component-event';
-import { ComponentEventEmitter } from '../../../../source/default_module/component-event/component-event-emitter';
-import { PwbComponentEvent } from '../../../../source/default_module/component-event/pwb-component-event.decorator';
-import { PwbExport } from '../../../../source/default_module/export/pwb-export.decorator';
-import '../../../mock/request-animation-frame-mock-session';
-import '../../../utility/chai-helper';
-import { TestUtil } from '../../../utility/test-util';
+import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
+import { ComponentEvent } from '../../../source/default_module/component-event/component-event';
+import { ComponentEventEmitter } from '../../../source/default_module/component-event/component-event-emitter';
+import { PwbComponentEvent } from '../../../source/default_module/component-event/pwb-component-event.decorator';
+import { PwbExport } from '../../../source/default_module/export/pwb-export.decorator';
+import '../../mock/request-animation-frame-mock-session';
+import '../../utility/chai-helper';
+import { TestUtil } from '../../utility/test-util';
 
 describe('ComponentEventEmitterExtension', () => {
     it('-- Correct event value', async () => {

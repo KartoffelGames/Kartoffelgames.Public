@@ -1,8 +1,8 @@
 import { expect } from 'chai';
-import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator';
-import '../../../mock/request-animation-frame-mock-session';
-import '../../../utility/chai-helper';
-import { TestUtil } from '../../../utility/test-util';
+import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
+import '../../mock/request-animation-frame-mock-session';
+import '../../utility/chai-helper';
+import { TestUtil } from '../../utility/test-util';
 
 describe('EventAttributeModule', () => {
     it('-- Basic click event', async () => {

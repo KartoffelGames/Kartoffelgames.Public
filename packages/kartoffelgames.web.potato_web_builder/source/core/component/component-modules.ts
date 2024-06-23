@@ -17,9 +17,9 @@ import { LayerValues } from './values/layer-values';
  * @internal
  */
 export class ComponentModules {
-    // TODO: Cache attribute and instruction constructor by the name to create it faster next time.
     private static readonly mAttributeModuleCache: Dictionary<string, CoreEntityProcessorConstructorSetup<AttributeModuleConfiguration> | null> = new Dictionary<string, CoreEntityProcessorConstructorSetup<AttributeModuleConfiguration> | null>();
     private static readonly mExpressionModuleCache: WeakMap<IPwbExpressionModuleProcessorConstructor, CoreEntityProcessorConstructorSetup<ExpressionModuleConfiguration>> = new WeakMap<IPwbExpressionModuleProcessorConstructor, CoreEntityProcessorConstructorSetup<ExpressionModuleConfiguration>>();
+    private static readonly mInstructionModuleCache: Dictionary<string, CoreEntityProcessorConstructorSetup<InstructionModuleConfiguration>> = new Dictionary<string, CoreEntityProcessorConstructorSetup<InstructionModuleConfiguration>>();
 
     private readonly mComponent: Component;
     private readonly mCoreEntityRegister: CoreEntityRegister;
@@ -142,24 +142,35 @@ export class ComponentModules {
      * When no instruction node with type could be found.
      */
     public createInstructionModule(pTemplate: PwbTemplateInstructionNode, pValues: LayerValues): InstructionModule {
-        // Find manipulator module inside attributes.
-        for (const lSetup of this.mCoreEntityRegister.get<InstructionModuleConfiguration>(InstructionModule)) {
-            // Only manipulator modules.
-            if (lSetup.processorConfiguration.instructionType === pTemplate.instructionType) {
-                // Get constructor and create new module.
-                const lModule: InstructionModule = new InstructionModule({
-                    processorConstructor: lSetup.processorConstructor,
-                    parent: this.mComponent,
-                    targetTemplate: pTemplate,
-                    values: pValues,
-                    interactionTrigger: lSetup.processorConfiguration.trigger
-                }).setup();
-
-                return lModule;
+        // Read instruction setup of expression module.
+        const lInstructioneModuleSetup: CoreEntityProcessorConstructorSetup<InstructionModuleConfiguration> | null = (() => {
+            // Try to read cached instruction module.
+            const lCachedSetup: CoreEntityProcessorConstructorSetup<InstructionModuleConfiguration> | undefined = ComponentModules.mInstructionModuleCache.get(pTemplate.instructionType);
+            if (lCachedSetup) {
+                return lCachedSetup;
             }
-        }
 
-        // Instruction module could not be found.
-        throw new Exception(`Instruction module type "${pTemplate.instructionType}" not found.`, this);
+            // On failed cache search for module setup.
+            for (const lSetup of this.mCoreEntityRegister.get<InstructionModuleConfiguration>(InstructionModule)) {
+                // Only manipulator modules.
+                if (lSetup.processorConfiguration.instructionType === pTemplate.instructionType) {
+                    // Cache setup and return
+                    ComponentModules.mInstructionModuleCache.set(pTemplate.instructionType, lSetup);
+                    return lSetup;
+                }
+            }
+
+            // Instruction module could not be found.
+            throw new Exception(`Instruction module type "${pTemplate.instructionType}" not found.`, this);
+        })();
+
+        // Build, setup and return new instruction module.
+        return new InstructionModule({
+            processorConstructor: lInstructioneModuleSetup.processorConstructor,
+            parent: this.mComponent,
+            targetTemplate: pTemplate,
+            values: pValues,
+            interactionTrigger: lInstructioneModuleSetup.processorConfiguration.trigger
+        }).setup();
     }
 }

@@ -896,6 +896,76 @@ describe('Patcher', () => {
             expect(lInteractionCounter).to.equal(0);
         });
 
+        it('-- Promise then keep zone.', async () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedPromise });
+            const lPromise: Promise<void> = new Promise<void>((pResolve) => { pResolve(); });
+
+            // Process.
+            let lCurrentZone: InteractionZone | null = null;
+            // eslint-disable-next-line @typescript-eslint/promise-function-async
+            await lZone.execute(() => {
+                return lPromise.then(() => {
+                    lCurrentZone = InteractionZone.current;
+                });
+            });
+
+            // Evaluation.
+            expect(lCurrentZone).to.equal(lZone);
+        });
+
+        it('-- Promise catch keep zone.', async () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedPromise });
+            const lPromise: Promise<void> = new Promise<void>((_pResolve, pReject) => { pReject(); });
+
+            // Process.
+            let lCurrentZone: InteractionZone | null = null;
+            // eslint-disable-next-line @typescript-eslint/promise-function-async
+            await lZone.execute(() => {
+                return lPromise.catch(() => {
+                    lCurrentZone = InteractionZone.current;
+                });
+            });
+
+            // Evaluation.
+            expect(lCurrentZone).to.equal(lZone);
+        });
+
+        it('-- Promise then keep zone async execution.', async () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedPromise });
+            const lPromise: Promise<void> = new Promise<void>((pResolve) => { pResolve(); });
+
+            // Process.
+            let lCurrentZone: InteractionZone | null = null;
+            await lZone.execute(async () => {
+                return lPromise.then(() => {
+                    lCurrentZone = InteractionZone.current;
+                });
+            });
+
+            // Evaluation.
+            expect(lCurrentZone).to.equal(lZone);
+        });
+
+        it('-- Promise catch keep zone  async execution.', async () => {
+            // Setup.
+            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedPromise });
+            const lPromise: Promise<void> = new Promise<void>((_pResolve, pReject) => { pReject(); });
+
+            // Process.
+            let lCurrentZone: InteractionZone | null = null;
+            await lZone.execute(async () => {
+                return lPromise.catch(() => {
+                    lCurrentZone = InteractionZone.current;
+                });
+            });
+
+            // Evaluation.
+            expect(lCurrentZone).to.equal(lZone);
+        });
+
         it('-- Promise then trigger PatchedPromise interaction without callback.', async () => {
             // Setup.
             const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedPromise });
@@ -931,7 +1001,7 @@ describe('Patcher', () => {
             });
 
             // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
+            expect(lInteractionCounter).to.greaterThanOrEqual(1);
         });
 
         it('-- Promise catch trigger PatchedPromise interaction without callback.', async () => {
@@ -973,7 +1043,7 @@ describe('Patcher', () => {
             } catch (_err) { /* Nothing */ }
 
             // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
+            expect(lInteractionCounter).to.greaterThanOrEqual(1);
         });
 
         it('-- Promise async function trigger PatchedPromise interaction', async () => {

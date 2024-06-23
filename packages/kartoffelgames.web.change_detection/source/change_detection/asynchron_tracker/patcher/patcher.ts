@@ -400,6 +400,9 @@ export class Patcher {
         const lSelf: this = this;
         const lOriginalPromiseConstructor: any = pGlobalObject.Promise;
 
+        // Promise methods needs to be patched. They dont create own promises.
+        this.patchMethods(lOriginalPromiseConstructor, InteractionResponseType.PatchedPromise);
+
         // Promise executor type definitions.
         type ExecutorResolve<T> = (pResult: T) => void;
         type ExecutorReject = (pResult: any) => void;
@@ -408,11 +411,12 @@ export class Patcher {
         // Patch only the constructor.
         class PatchedPromise<T> extends lOriginalPromiseConstructor {
             public constructor(pExecutor: Executor<T>) {
+                // Get current zone of synchron execution.
+                const lCurrentZone: InteractionZone = InteractionZone.current;
+
+
                 // Patch executor function.
                 const lPatchedExecutor = function (this: any, pResolve: ExecutorResolve<T>, pReject: ExecutorReject) {
-                    // Get current zone of synchron execution.
-                    const lCurrentZone: InteractionZone = InteractionZone.current;
-
                     const lExecutorResolve: ExecutorResolve<T> | undefined = lSelf.interactionOnFunctionCall(pResolve, lCurrentZone, InteractionResponseType.PatchedPromise);
                     const lExecutorReject: ExecutorReject | undefined = lSelf.interactionOnFunctionCall(pReject, lCurrentZone, InteractionResponseType.PatchedPromise);
 
@@ -427,9 +431,6 @@ export class Patcher {
                 ErrorAllocation.allocateAsyncronError(this as any as Promise<unknown>, InteractionZone.current);
             }
         }
-
-        // Promise methods don't need to be patched because they all create new promises.
-        // this.patchMethods(PatchedPromise);
 
         return PatchedPromise;
     }

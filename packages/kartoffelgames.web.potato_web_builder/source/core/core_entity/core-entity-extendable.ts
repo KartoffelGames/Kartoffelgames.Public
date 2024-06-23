@@ -50,10 +50,10 @@ export abstract class CoreEntityExtendable<TProcessor extends object> extends Co
             }
 
             // On cache fail create new extension cache.
-            const lExtensions: CoreEntityRegister = new CoreEntityRegister();
+            const lExtensionRegister: CoreEntityRegister = new CoreEntityRegister();
 
             // Filter extension list.
-            const lExtensionSetupList: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>> = lExtensions.get<ExtensionModuleConfiguration>(ExtensionModule);
+            const lExtensionSetupList: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>> = lExtensionRegister.get<ExtensionModuleConfiguration>(ExtensionModule);
 
             // Filter extension list.
             const lTargetExtensionSetupList: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>> = lExtensionSetupList.filter((pSetup: CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>) => {

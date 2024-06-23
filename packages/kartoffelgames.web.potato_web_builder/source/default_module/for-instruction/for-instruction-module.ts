@@ -70,7 +70,7 @@ export class ForInstructionModule implements IInstructionOnUpdate {
         const lModuleResult: InstructionResult = new InstructionResult();
 
         // Try to get list object from component values.
-        const lExpressionResult: { [key: string]: any; } = this.mExpressionExecutor.execute(this.mExpression.value);
+        const lExpressionResult: { [key: string]: any; } = this.mExpressionExecutor.executeExpression(this.mExpression.value);
 
         // Only proceed if value is added to html element.
         if (typeof lExpressionResult === 'object' && lExpressionResult !== null || Array.isArray(lExpressionResult)) {
@@ -124,7 +124,7 @@ export class ForInstructionModule implements IInstructionOnUpdate {
             lExternalValues.add('$index', pObjectKey);
 
             // Execute index expression. Expression is set when index name is set.
-            const lIndexExpressionResult: any = lExecutor.execute(<string>pExpression.indexExpression, lExternalValues);
+            const lIndexExpressionResult: any = lExecutor.executeExpression(<string>pExpression.indexExpression, lExternalValues);
 
             // Set custom index name as temporary value.
             lTemplateItemValues.setTemporaryValue(pExpression.indexName, lIndexExpressionResult);

@@ -25,13 +25,13 @@ export class ModuleValues {
     }
 
     /**
-     * Execute string in component processor context.
+     * Execute string expression in component processor context.
      * 
      * @param pExpression - Expression to execute.
      * @param pValues - Current component values.
      * @param pExtenedData - Extended data that are only exist for this execution.
      */
-    public execute(pExpression: string, pExtenedData?: Dictionary<string, any>): any {
+    public executeExpression(pExpression: string, pExtenedData?: Dictionary<string, any>): any {
         const lExtendedData: Dictionary<string, any> = pExtenedData ?? new Dictionary<string, any>();
 
         const lEvaluatedFunction: () => any = this.createEvaluationFunktion(pExpression, lExtendedData);

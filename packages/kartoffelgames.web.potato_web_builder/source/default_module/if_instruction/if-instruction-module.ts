@@ -41,7 +41,7 @@ export class IfInstructionModule implements IInstructionOnUpdate {
      * @returns if element of module should be updated.
      */
     public onUpdate(): InstructionResult | null {
-        const lExecutionResult: any = this.mExpressionExecutor.execute(this.mExpression);
+        const lExecutionResult: any = this.mExpressionExecutor.executeExpression(this.mExpression);
 
         if (!!lExecutionResult !== this.mLastBoolean) {
             this.mLastBoolean = !!lExecutionResult;

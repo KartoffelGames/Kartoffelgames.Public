@@ -50,7 +50,7 @@ export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
      */
     public onUpdate(): boolean {
         // Try to update view only on module initialize.
-        const lCurrentDataValue: any = this.mExpressionExecutor.execute(this.mAttributeValue);
+        const lCurrentDataValue: any = this.mExpressionExecutor.executeExpression(this.mAttributeValue);
 
         // Check for changes in this value.
         if (lCurrentDataValue !== this.mLastDataValue) {
@@ -72,7 +72,7 @@ export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
             lExtendedValues.set('$DATA', lCurrentViewValue);
 
             // Update value.
-            this.mExpressionExecutor.execute(`${this.mAttributeValue} = $DATA;`, lExtendedValues);
+            this.mExpressionExecutor.executeExpression(`${this.mAttributeValue} = $DATA;`, lExtendedValues);
 
             // Update compare.
             this.mLastViewValue = lCurrentViewValue;

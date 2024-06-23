@@ -45,7 +45,7 @@ export class DynamicContentInstructionModule implements IInstructionOnUpdate {
      */
     public onUpdate(): InstructionResult | null {
         // Execute content callback silent.
-        const lTemplateResult: PwbTemplate = this.mExpressionExecutor.execute(this.mExpression);
+        const lTemplateResult: PwbTemplate = this.mExpressionExecutor.executeExpression(this.mExpression);
 
         // Validate correct result.
         if (!lTemplateResult! || !(lTemplateResult instanceof PwbTemplate)) {

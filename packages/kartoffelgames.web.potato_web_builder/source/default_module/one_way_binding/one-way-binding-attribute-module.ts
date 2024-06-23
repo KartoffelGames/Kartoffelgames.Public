@@ -48,7 +48,7 @@ export class OneWayBindingAttributeModule implements IAttributeOnUpdate {
      * @returns false for 'do not update'.
      */
     public onUpdate(): boolean {
-        const lExecutionResult: any = this.mExpressionExecutor.execute(this.mExecutionString);
+        const lExecutionResult: any = this.mExpressionExecutor.executeExpression(this.mExecutionString);
 
         if (lExecutionResult !== this.mLastValue) {
             // Save last value.

@@ -36,7 +36,7 @@ export class EventAttributeModule implements IAttributeOnDeconstruct {
             lExternalValues.add('$event', pEvent);
 
             // Execute string with external event value.
-            pExpressionExecutor.execute(pAttributeValue.toString(), lExternalValues);
+            pExpressionExecutor.executeExpression(pAttributeValue.toString(), lExternalValues);
         };
 
         // Add native event listener.

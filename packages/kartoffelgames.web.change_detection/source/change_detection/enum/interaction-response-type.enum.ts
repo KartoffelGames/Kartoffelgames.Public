@@ -8,57 +8,29 @@ export enum InteractionResponseType {
     None = 0,
 
     /*
-     * Function calls.
+     * Synchron Proxy 
      */
-    FunctionCallStart = 1 << 0,
-    FunctionCallEnd = 1 << 1,
-    FunctionCallError = 1 << 2,
+    RegisteredFunction = 1 << 1,
+    RegisteredPropertyGet = 1 << 2,
+    RegisteredPropertySet = 1 << 3,
+    RegisteredPropertyDelete = 1 << 4,
+    RegisteredUntrackableFunction = 1 << 5,
 
     /*
-     * Function callbacks.
+     * Patcher 
      */
-    CallbackCallStart = 1 << 3,
-    CallbackCallEnd = 1 << 4,
-    CallbackCallError = 1 << 5,
+    PatchedCallback = 1 << 6,
+    PatchedPromise = 1 << 7,
+    PatchedEventlistener = 1 << 8,
 
-    /**
-     * Property reads and writes.
-     */
-    PropertyGetStart = 1 << 6,
-    PropertyGetEnd = 1 << 7,
-    PropertyGetError = 1 << 8,
-    
-    PropertySetStart = 1 << 9,
-    PropertySetEnd = 1 << 10,
-    PropertySetError = 1 << 11,
-    
-    PropertyDeleteStart = 1 << 12,
-    PropertyDeleteEnd = 1 << 13,
-    PropertyDeleteError = 1 << 14,
-
-    /**
-     * Synchron {@link Promise} calls after they resolve or rejection.
-     */
-    PromiseStart = 1 << 15,
-    PromiseEnd = 1 << 16,
-    PromiseResolve = 1 << 17,
-    PromiseReject = 1 << 18,
-
-    /**
-     * Events triggered on {@link EventTarget}s
-     */
-    EventlistenerStart = 1 << 19,
-    EventlistenerEnd = 1 << 20,
-    EventlistenerError = 1 << 21,
 
     /**
      * Custom.
      */
-    Custom = 1 << 22,
-    NativeFunctionCall = 1 << 23,
+    Custom = 1 << 9,
     
     /**
      * Any interaction.
      */
-    Any = (1 << 24) - 1,
+    Any = (1 << 10) - 1,
 }

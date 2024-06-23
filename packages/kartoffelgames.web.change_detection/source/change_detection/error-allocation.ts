@@ -28,11 +28,6 @@ export class ErrorAllocation {
         // Create error object of error when error is not a object.
         const lError: object = (typeof pError === 'object' && pError !== null) ? pError : new Error(pError);
 
-        // Prevent error relocation.
-        if (ErrorAllocation.mSynchronErrorZones.has(lError)) {
-            return lError;
-        }
-
         // Allocate error to stack.
         ErrorAllocation.mSynchronErrorZones.set(lError, pZone);
 

@@ -135,9 +135,6 @@ export class InteractionDetectionProxy<T extends object> {
              * @param pArgumentsList - All arguments of call.
              */
             apply: (pTargetObject: T, pThisArgument: any, pArgumentsList: Array<any>): void => {
-                // Dispatch function call start interaction. 
-                this.dispatch(InteractionResponseType.FunctionCallStart, this.mProxyObject);
-
                 // Execute function and dispatch interaction event on synchron exceptions.
                 try {
                     const lCallableTarget: CallableObject = <CallableObject>pTargetObject;
@@ -152,16 +149,12 @@ export class InteractionDetectionProxy<T extends object> {
                     } finally {
                         // Dispatch special InteractionResponseType.NativeFunctionCall.
                         if (/\{\s+\[native code\]/.test(Function.prototype.toString.call(lCallableTarget))) {
-                            this.dispatch(InteractionResponseType.NativeFunctionCall, this.mProxyObject);
+                            this.dispatch(InteractionResponseType.RegisteredUntrackableFunction, this.mProxyObject);
                         }
                     }
-                } catch (pError) {
-                    // Dispatch function error interaction and passthrough error.
-                    this.dispatch(InteractionResponseType.FunctionCallError, this.mProxyObject);
-                    throw pError;
                 } finally {
                     // Dispatches interaction end event before exception passthrough.
-                    this.dispatch(InteractionResponseType.FunctionCallEnd, this.mProxyObject);
+                    this.dispatch(InteractionResponseType.RegisteredFunction, this.mProxyObject);
                 }
             }
         });
@@ -186,9 +179,6 @@ export class InteractionDetectionProxy<T extends object> {
              * @param pNewPropertyValue - New value of property.
              */
             set: (pTargetObject: T, pPropertyName: PropertyKey, pNewPropertyValue: any): boolean => {
-                // Dispatch set property start interaction. 
-                this.dispatch(InteractionResponseType.PropertySetStart, this.mProxyObject, pPropertyName);
-
                 try {
                     // Prevent original pollution by getting original from value.
                     let lPropertyValue: any = pNewPropertyValue;
@@ -198,13 +188,9 @@ export class InteractionDetectionProxy<T extends object> {
 
                     // Set value to original target property.
                     return Reflect.set(pTargetObject, pPropertyName, lPropertyValue);
-                } catch (pError) {
-                    // Dispatch error interaction and passthrough error.
-                    this.dispatch(InteractionResponseType.PropertySetError, this.mProxyObject, pPropertyName);
-                    throw pError;
                 } finally {
                     // Dispatches interaction end event before exception passthrough.
-                    this.dispatch(InteractionResponseType.PropertySetEnd, this.mProxyObject, pPropertyName);
+                    this.dispatch(InteractionResponseType.RegisteredPropertySet, this.mProxyObject, pPropertyName);
                 }
             },
 
@@ -217,22 +203,15 @@ export class InteractionDetectionProxy<T extends object> {
              * @param lReceiver - Either the proxy or an object that inherits from the proxy.
              */
             get: (pTarget, pPropertyName: PropertyKey, _pReceiver) => {
-                // Dispatch get property start interaction. 
-                this.dispatch(InteractionResponseType.PropertyGetStart, this.mProxyObject, pPropertyName);
-
                 try {
                     // Get original value.
                     const lResult: any = Reflect.get(pTarget, pPropertyName);
 
                     // Convert potential object to a linked proxy.
                     return this.convertToProxy(lResult);
-                } catch (pError) {
-                    // Dispatch error interaction and passthrough error.
-                    this.dispatch(InteractionResponseType.PropertyGetError, this.mProxyObject, pPropertyName);
-                    throw pError;
                 } finally {
                     // Dispatches interaction end event before exception passthrough.
-                    this.dispatch(InteractionResponseType.PropertyGetEnd, this.mProxyObject, pPropertyName);
+                    this.dispatch(InteractionResponseType.RegisteredPropertyGet, this.mProxyObject, pPropertyName);
                 }
             },
 
@@ -243,19 +222,12 @@ export class InteractionDetectionProxy<T extends object> {
              * @param pPropertyName - Name of property.
              */
             deleteProperty: (pTargetObject: T, pPropertyName: PropertyKey): boolean => {
-                // Dispatch delete property start interaction. 
-                this.dispatch(InteractionResponseType.PropertyDeleteStart, this.mProxyObject, pPropertyName);
-
                 try {
                     // Remove property from original target and return result.
                     return delete (<any>pTargetObject)[pPropertyName];
-                } catch (pError) {
-                    // Dispatch error interaction and passthrough error.
-                    this.dispatch(InteractionResponseType.PropertyDeleteError, this.mProxyObject, pPropertyName);
-                    throw pError;
                 } finally {
                     // Dispatches interaction end event before exception passthrough.
-                    this.dispatch(InteractionResponseType.PropertyDeleteEnd, this.mProxyObject, pPropertyName);
+                    this.dispatch(InteractionResponseType.RegisteredPropertyDelete, this.mProxyObject, pPropertyName);
                 }
             }
         });

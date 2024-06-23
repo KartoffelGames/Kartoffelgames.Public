@@ -15,7 +15,6 @@ export { ModuleValueReference } from './core/injection-reference/module/module-v
 export { ModuleValues } from './core/module/module-values';
 
 // Component Injections
-export { ComponentConstructorReference } from './core/injection-reference/component/component-constructor-reference';
 export { ComponentElement } from './core/component/component-element';
 export { ComponentValuesReference } from './core/injection-reference/component/component-values-reference';
 export { CoreEntityUpdateZone } from './core/core_entity/core-entity-update-zone';

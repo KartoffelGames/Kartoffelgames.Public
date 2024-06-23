@@ -2,7 +2,6 @@ import { List } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
 import { Component, IComponentOnAttributeChange } from '../../core/component/component';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
-import { ComponentConstructorReference } from '../../core/injection-reference/component/component-constructor-reference';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
@@ -21,13 +20,13 @@ export class ExportExtension {
      * @param pTargetElementReference - Component html element reference.
      * @param pComponentManagerReference - Component manager reference.
      */
-    public constructor(pComponentProcessorConstructor: ComponentConstructorReference, pComponent: Component) {
+    public constructor(pComponent: Component) {
         this.mComponent = pComponent;
 
         // All exported properties of target and parent classes.
         const lExportedPropertyList: List<string> = new List<string>();
 
-        let lClass: InjectionConstructor = <InjectionConstructor>pComponentProcessorConstructor;
+        let lClass: InjectionConstructor = pComponent.processorConstructor;
         do {
             // Find all exported properties of current class layer and add all to merged property list.
             const lPropertyList: Array<string> | null = Metadata.get(lClass).getMetadata(ExportExtension.METADATA_EXPORTED_PROPERTIES);

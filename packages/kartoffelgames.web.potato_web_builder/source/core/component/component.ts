@@ -4,7 +4,6 @@ import { UpdateMode } from '../../enum/update-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { CoreEntityExtendable } from '../core_entity/core-entity-extendable';
 import { CoreEntityUpdateZone } from '../core_entity/core-entity-update-zone';
-import { ComponentConstructorReference } from '../injection-reference/component/component-constructor-reference';
 import { ComponentValuesReference } from '../injection-reference/component/component-values-reference';
 import { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module';
 import { StaticBuilder } from './builder/static-builder';
@@ -74,7 +73,6 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         this.mComponentElement.shadowRoot.appendChild(this.mRootBuilder.anchor);
 
         // Initialize user object injections.
-        this.setProcessorAttributes(ComponentConstructorReference, pParameter.processorConstructor);
         this.setProcessorAttributes(ComponentValuesReference, this.mRootBuilder.values);
         this.setProcessorAttributes(Component, this);
         this.setProcessorAttributes(CoreEntityUpdateZone, this.updateZone);

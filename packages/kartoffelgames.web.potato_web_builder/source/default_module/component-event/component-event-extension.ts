@@ -1,8 +1,7 @@
 import { Exception } from '@kartoffelgames/core.data';
-import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
+import { Metadata } from '@kartoffelgames/core.dependency-injection';
 import { Component, ComponentProcessorConstructor } from '../../core/component/component';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
-import { ComponentConstructorReference } from '../../core/injection-reference/component/component-constructor-reference';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { ComponentEventEmitter } from './component-event-emitter';
@@ -22,9 +21,9 @@ export class ComponentEventExtension {
      * @param pComponentProcessorConstructor - Component processor constructor.
      * @param pComponent - Component processor.
      */
-    public constructor(pComponentProcessorConstructor: ComponentConstructorReference, pComponent: Component) {
+    public constructor(pComponent: Component) {
         // Find all event properties of current class layer and add all to merged property list.
-        const lEventPropertyMapList: Array<Array<[string, string, ComponentProcessorConstructor]>> = Metadata.get(<InjectionConstructor>pComponentProcessorConstructor).getInheritedMetadata(ComponentEventExtension.METADATA_USER_EVENT_PROPERIES);
+        const lEventPropertyMapList: Array<Array<[string, string, ComponentProcessorConstructor]>> = Metadata.get(pComponent.processorConstructor).getInheritedMetadata(ComponentEventExtension.METADATA_USER_EVENT_PROPERIES);
         for (const lEventPropertyList of lEventPropertyMapList) {
             for (const [lEventName, lPropertyKey, lConstructor] of lEventPropertyList) {
                 // Validate event emitter property type.

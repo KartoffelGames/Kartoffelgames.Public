@@ -3,7 +3,6 @@ import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-
 import { Component } from '../../core/component/component';
 import { IExtensionOnDeconstruct } from '../../core/extension/extension-module';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
-import { ComponentConstructorReference } from '../../core/injection-reference/component/component-constructor-reference';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
@@ -22,15 +21,13 @@ export class EventListenerComponentExtension implements IExtensionOnDeconstruct 
      * Constructor.
      * Add each event listener to component events.
      * 
-     * @param pComponentProcessorConstructor - Component processor constructor.
      * @param pComponent - Component processor.
-     * @param pElementReference - Component html element.
      */
-    public constructor(pComponentProcessorConstructor: ComponentConstructorReference, pComponent: Component) {
+    public constructor(pComponent: Component) {
         // Get event metadata.
         const lEventPropertyList: Array<[string, string]> = new Array<[string, string]>();
 
-        let lClass: InjectionConstructor = <InjectionConstructor>pComponentProcessorConstructor;
+        let lClass: InjectionConstructor = pComponent.processorConstructor;
         do {
             // Find all event properties of current class layer and add all to merged property list.
             const lPropertyList: Array<[string, string]> | null = Metadata.get(lClass).getMetadata(EventListenerComponentExtension.METADATA_USER_EVENT_LISTENER_PROPERIES);

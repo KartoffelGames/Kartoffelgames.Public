@@ -4,10 +4,9 @@ import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
 import { PwbTemplateInstructionNode } from '../../core/component/template/nodes/pwb-template-instruction-node';
 import { LayerValues } from '../../core/component/values/layer-values';
 import { ComponentUpdateHandlerReference } from '../../core/injection-reference/component/component-update-handler-reference';
-import { ModuleLayerValuesReference } from '../../core/injection-reference/module/module-layer-values-reference';
 import { ModuleTemplateReference } from '../../core/injection-reference/module/module-template-reference';
 import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
-import { ComponentScopeExecutor } from '../../core/module/execution/component-scope-executor';
+import { ModuleValues } from '../../core/module/module-values';
 import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
 import { InstructionResult } from '../../core/module/instruction_module/result/instruction-result';
@@ -24,8 +23,8 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
 })
 export class ForInstructionModule implements IInstructionOnUpdate {
     private readonly mExpression: ForOfExpression;
+    private readonly mExpressionExecutor: ModuleValues;
     private mLastEntries: Array<[string, any]>;
-    private readonly mLayerValues: LayerValues;
     private readonly mTemplate: PwbTemplateInstructionNode;
     private readonly mUpdateHandler: UpdateHandler;
 
@@ -36,9 +35,9 @@ export class ForInstructionModule implements IInstructionOnUpdate {
      * @param pLayerValues - Values of component.
      * @param pAttributeReference - Attribute of module.
      */
-    public constructor(pTemplate: ModuleTemplateReference, pLayerValues: ModuleLayerValuesReference, pAttributeValue: ModuleValueReference, pUpdateHandler: ComponentUpdateHandlerReference) {
+    public constructor(pTemplate: ModuleTemplateReference, pExpressionExecutor: ModuleValues, pAttributeValue: ModuleValueReference, pUpdateHandler: ComponentUpdateHandlerReference) {
         this.mTemplate = <PwbTemplateInstructionNode>pTemplate;
-        this.mLayerValues = pLayerValues;
+        this.mExpressionExecutor = pExpressionExecutor;
         this.mUpdateHandler = pUpdateHandler;
         this.mLastEntries = new Array<[string, any]>();
 
@@ -71,7 +70,7 @@ export class ForInstructionModule implements IInstructionOnUpdate {
         const lModuleResult: InstructionResult = new InstructionResult();
 
         // Try to get list object from component values.
-        const lExpressionResult: { [key: string]: any; } = ComponentScopeExecutor.execute(this.mExpression.value, this.mLayerValues);
+        const lExpressionResult: { [key: string]: any; } = this.mExpressionExecutor.execute(this.mExpression.value);
 
         // Only proceed if value is added to html element.
         if (typeof lExpressionResult === 'object' && lExpressionResult !== null || Array.isArray(lExpressionResult)) {
@@ -112,8 +111,11 @@ export class ForInstructionModule implements IInstructionOnUpdate {
      * @param pObjectKey - value key.
      */
     private readonly addTemplateForElement = (pModuleResult: InstructionResult, pExpression: ForOfExpression, pObjectValue: any, pObjectKey: number | string) => {
-        const lComponentValues: LayerValues = new LayerValues(this.mLayerValues);
-        lComponentValues.setTemporaryValue(pExpression.variable, pObjectValue);
+        const lTemplateItemValues: LayerValues = new LayerValues(this.mExpressionExecutor.layerValues);
+        lTemplateItemValues.setTemporaryValue(pExpression.variable, pObjectValue);
+
+        // Create new execution context from inherited values.
+        const lExecutor: ModuleValues = new ModuleValues(lTemplateItemValues);
 
         // If custom index is used.
         if (pExpression.indexName) {
@@ -122,10 +124,10 @@ export class ForInstructionModule implements IInstructionOnUpdate {
             lExternalValues.add('$index', pObjectKey);
 
             // Execute index expression. Expression is set when index name is set.
-            const lIndexExpressionResult: any = ComponentScopeExecutor.execute(<string>pExpression.indexExpression, lComponentValues, lExternalValues);
+            const lIndexExpressionResult: any = lExecutor.execute(<string>pExpression.indexExpression, lExternalValues);
 
             // Set custom index name as temporary value.
-            lComponentValues.setTemporaryValue(pExpression.indexName, lIndexExpressionResult);
+            lTemplateItemValues.setTemporaryValue(pExpression.indexName, lIndexExpressionResult);
         }
 
         // Create template.
@@ -133,7 +135,7 @@ export class ForInstructionModule implements IInstructionOnUpdate {
         lTemplate.appendChild(...this.mTemplate.childList);
 
         // Add element.
-        pModuleResult.addElement(lTemplate, lComponentValues);
+        pModuleResult.addElement(lTemplate, lTemplateItemValues);
     };
 
     /**

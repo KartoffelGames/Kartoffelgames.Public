@@ -3,9 +3,8 @@ import { UpdateHandler } from '../../core/component/handler/update-handler';
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
 import { LayerValues } from '../../core/component/values/layer-values';
 import { ComponentUpdateHandlerReference } from '../../core/injection-reference/component/component-update-handler-reference';
-import { ModuleLayerValuesReference } from '../../core/injection-reference/module/module-layer-values-reference';
 import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
-import { ComponentScopeExecutor } from '../../core/module/execution/component-scope-executor';
+import { ModuleValues } from '../../core/module/module-values';
 import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
 import { InstructionResult } from '../../core/module/instruction_module/result/instruction-result';
@@ -21,8 +20,8 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
 })
 export class DynamicContentInstructionModule implements IInstructionOnUpdate {
     private readonly mExpression: string;
+    private readonly mExpressionExecutor: ModuleValues;
     private mLastTemplate: PwbTemplate | null;
-    private readonly mLayerValues: LayerValues;
     private readonly mUpdateHandler: UpdateHandler;
 
     /**
@@ -31,8 +30,8 @@ export class DynamicContentInstructionModule implements IInstructionOnUpdate {
      * @param pLayerValues - Values of component.
      * @param pAttributeReference - Attribute of module.
      */
-    public constructor(pAttributeValue: ModuleValueReference, pLayerValues: ModuleLayerValuesReference, pUpdateHandler: ComponentUpdateHandlerReference) {
-        this.mLayerValues = pLayerValues;
+    public constructor(pAttributeValue: ModuleValueReference, pExpressionExecutor: ModuleValues, pUpdateHandler: ComponentUpdateHandlerReference) {
+        this.mExpressionExecutor = pExpressionExecutor;
         this.mUpdateHandler = pUpdateHandler;
         this.mLastTemplate = null;
 
@@ -46,7 +45,7 @@ export class DynamicContentInstructionModule implements IInstructionOnUpdate {
      */
     public onUpdate(): InstructionResult | null {
         // Execute content callback silent.
-        const lTemplateResult: PwbTemplate = ComponentScopeExecutor.execute(this.mExpression, this.mLayerValues);
+        const lTemplateResult: PwbTemplate = this.mExpressionExecutor.execute(this.mExpression);
 
         // Validate correct result.
         if (!lTemplateResult! || !(lTemplateResult instanceof PwbTemplate)) {
@@ -63,7 +62,7 @@ export class DynamicContentInstructionModule implements IInstructionOnUpdate {
 
         // Add custom template to output.
         const lModuleResult: InstructionResult = new InstructionResult();
-        lModuleResult.addElement(lTemplateResult, new LayerValues(this.mLayerValues));
+        lModuleResult.addElement(lTemplateResult, new LayerValues(this.mExpressionExecutor.layerValues));
 
         return lModuleResult;
     }

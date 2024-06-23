@@ -1,13 +1,11 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { LayerValues } from '../../core/component/values/layer-values';
 import { ComponentUpdateHandlerReference } from '../../core/injection-reference/component/component-update-handler-reference';
 import { ModuleKeyReference } from '../../core/injection-reference/module/module-key-reference';
-import { ModuleLayerValuesReference } from '../../core/injection-reference/module/module-layer-values-reference';
 import { ModuleTargetNodeReference } from '../../core/injection-reference/module/module-target-node-reference';
 import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
 import { IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module';
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
-import { ComponentScopeExecutor } from '../../core/module/execution/component-scope-executor';
+import { ModuleValues } from '../../core/module/module-values';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
@@ -19,9 +17,9 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
 export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
     private readonly mAttributeKey: string;
     private readonly mAttributeValue: string;
+    private readonly mExpressionExecutor: ModuleValues;
     private mLastDataValue: any;
     private mLastViewValue: any;
-    private readonly mLayerValues: LayerValues;
     private readonly mTargetNode: Node;
 
     /**
@@ -30,9 +28,9 @@ export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
      * @param pLayerValues - Values of component.
      * @param pAttribute - Attribute of module.
      */
-    public constructor(pTargetNode: ModuleTargetNodeReference, pLayerValues: ModuleLayerValuesReference, pAttributeKey: ModuleKeyReference, pAttributeValue: ModuleValueReference, pUpdateHandler: ComponentUpdateHandlerReference) {
+    public constructor(pTargetNode: ModuleTargetNodeReference, pExpressionExecutor: ModuleValues, pAttributeKey: ModuleKeyReference, pAttributeValue: ModuleValueReference, pUpdateHandler: ComponentUpdateHandlerReference) {
         this.mTargetNode = pTargetNode;
-        this.mLayerValues = pLayerValues;
+        this.mExpressionExecutor = pExpressionExecutor;
 
         // Get property name.
         this.mAttributeKey = pAttributeKey.substring(2, pAttributeKey.length - 2);
@@ -52,7 +50,7 @@ export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
      */
     public onUpdate(): boolean {
         // Try to update view only on module initialize.
-        const lCurrentDataValue: any = ComponentScopeExecutor.execute(this.mAttributeValue, this.mLayerValues);
+        const lCurrentDataValue: any = this.mExpressionExecutor.execute(this.mAttributeValue);
 
         // Check for changes in this value.
         if (lCurrentDataValue !== this.mLastDataValue) {
@@ -74,7 +72,7 @@ export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
             lExtendedValues.set('$DATA', lCurrentViewValue);
 
             // Update value.
-            ComponentScopeExecutor.execute(`${this.mAttributeValue} = $DATA;`, this.mLayerValues, lExtendedValues);
+            this.mExpressionExecutor.execute(`${this.mAttributeValue} = $DATA;`, lExtendedValues);
 
             // Update compare.
             this.mLastViewValue = lCurrentViewValue;

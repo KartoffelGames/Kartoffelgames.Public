@@ -1,10 +1,29 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { LayerValues } from '../../component/values/layer-values';
+import { LayerValues } from '../component/values/layer-values';
 
 /**
  * Executes string in set component values scope.
  */
-export class ComponentScopeExecutor {
+export class ModuleValues {
+    private readonly mLayerValues: LayerValues;
+
+    /**
+     * Get 
+     */
+    public get layerValues(): LayerValues {
+        return this.mLayerValues;
+    }
+
+    /**
+     * Constructor. 
+     * Create expression executor with embedded values.
+     * 
+     * @param pLayerValues - Layer values. 
+     */
+    public constructor(pLayerValues: LayerValues) {
+        this.mLayerValues = pLayerValues;
+    }
+
     /**
      * Execute string in component processor context.
      * 
@@ -12,11 +31,11 @@ export class ComponentScopeExecutor {
      * @param pValues - Current component values.
      * @param pExtenedData - Extended data that are only exist for this execution.
      */
-    public static execute(pExpression: string, pValues: LayerValues, pExtenedData?: Dictionary<string, any>): any {
+    public execute(pExpression: string, pExtenedData?: Dictionary<string, any>): any {
         const lExtendedData: Dictionary<string, any> = pExtenedData ?? new Dictionary<string, any>();
 
-        const lEvaluatedFunction: () => any = ComponentScopeExecutor.createEvaluationFunktion(pExpression, lExtendedData);
-        return lEvaluatedFunction.call(pValues.data);
+        const lEvaluatedFunction: () => any = this.createEvaluationFunktion(pExpression, lExtendedData);
+        return lEvaluatedFunction.call(this.mLayerValues.data);
     }
 
     /**
@@ -27,7 +46,7 @@ export class ComponentScopeExecutor {
      * @param _pExtenedValue - Extended data that are only exist for this execution.
      * @returns 
      */
-    private static createEvaluationFunktion(_pExpression: string, _pExtenedValue: Dictionary<string, any>): () => any {
+    private createEvaluationFunktion(_pExpression: string, _pExtenedValue: Dictionary<string, any>): () => any {
         let lString: string;
 
         // Starting function

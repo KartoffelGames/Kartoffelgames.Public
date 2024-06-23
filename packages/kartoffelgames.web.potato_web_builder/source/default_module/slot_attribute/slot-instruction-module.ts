@@ -1,11 +1,10 @@
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from '../../core/component/template/nodes/pwb-template-xml-node';
-import { LayerValues } from '../../core/component/values/layer-values';
-import { ModuleLayerValuesReference } from '../../core/injection-reference/module/module-layer-values-reference';
 import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
 import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
 import { InstructionResult } from '../../core/module/instruction_module/result/instruction-result';
+import { ModuleValues } from '../../core/module/module-values';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
 @PwbInstructionModule({
@@ -13,17 +12,17 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
     trigger: UpdateTrigger.Default,
 })
 export class SlotInstructionModule implements IInstructionOnUpdate {
-    private readonly mLayerValues: LayerValues;
+    private readonly mModuleValues: ModuleValues;
     private readonly mSlotName: string;
 
     /**
      * Constructor.
      * @param pTemplate - Target templat.
-     * @param pLayerValues - Values of component.
+     * @param pModuleValues - Values of modules.
      * @param pAttributeReference - Attribute of module.
      */
-    public constructor(pLayerValues: ModuleLayerValuesReference, pAttributeValue: ModuleValueReference) {
-        this.mLayerValues = pLayerValues;
+    public constructor(pModuleValues: ModuleValues, pAttributeValue: ModuleValueReference) {
+        this.mModuleValues = pModuleValues;
         this.mSlotName = pAttributeValue.toString();
     }
 
@@ -47,7 +46,7 @@ export class SlotInstructionModule implements IInstructionOnUpdate {
 
         // Create result and add slot template.
         const lModuleResult: InstructionResult = new InstructionResult();
-        lModuleResult.addElement(lTemplate, this.mLayerValues);
+        lModuleResult.addElement(lTemplate, this.mModuleValues.layerValues);
 
         return lModuleResult;
     }

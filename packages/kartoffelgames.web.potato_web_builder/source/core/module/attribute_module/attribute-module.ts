@@ -1,9 +1,7 @@
 import { AccessMode } from '../../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../../enum/update-trigger.enum';
 import { PwbTemplateAttribute } from '../../component/template/nodes/values/pwb-template-attribute';
-import { LayerValues } from '../../component/values/layer-values';
 import { ModuleKeyReference } from '../../injection-reference/module/module-key-reference';
-import { ModuleLayerValuesReference } from '../../injection-reference/module/module-layer-values-reference';
 import { ModuleTargetNodeReference } from '../../injection-reference/module/module-target-node-reference';
 import { ModuleTemplateReference } from '../../injection-reference/module/module-template-reference';
 import { ModuleValueReference } from '../../injection-reference/module/module-value-reference';
@@ -27,7 +25,8 @@ export class AttributeModule extends BaseModule<IPwbAttributeModuleProcessor> {
         super({
             processorConstructor: pParameter.processorConstructor,
             parent: pParameter.parent,
-            interactionTrigger: pParameter.interactionTrigger
+            interactionTrigger: pParameter.interactionTrigger,
+            values: pParameter.values,
         });
 
         // Save module access mode.
@@ -36,7 +35,6 @@ export class AttributeModule extends BaseModule<IPwbAttributeModuleProcessor> {
         // Set processor attribute values from injection template.
         this.setProcessorAttributes(ModuleTemplateReference, pParameter.targetTemplate.clone());
         this.setProcessorAttributes(ModuleTargetNodeReference, pParameter.targetNode);
-        this.setProcessorAttributes(ModuleLayerValuesReference, pParameter.values);
         this.setProcessorAttributes(ModuleKeyReference, pParameter.targetTemplate.name);
         this.setProcessorAttributes(ModuleValueReference, pParameter.targetTemplate.values.toString());
     }
@@ -53,7 +51,6 @@ export type StaticModuleConstructorParameter = BaseModuleConstructorParameter<IP
     accessMode: AccessMode,
     targetTemplate: PwbTemplateAttribute,
     targetNode: Element;
-    values: LayerValues;
 };
 
 /**

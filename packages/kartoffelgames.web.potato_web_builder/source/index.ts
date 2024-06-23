@@ -8,11 +8,11 @@ export { IComponentOnAttributeChange, IComponentOnConnect, IComponentOnDeconstru
 // Module Injections
 export { ModuleConstructorReference } from './core/injection-reference/module/module-constructor-reference';
 export { ModuleKeyReference } from './core/injection-reference/module/module-key-reference';
-export { ModuleLayerValuesReference } from './core/injection-reference/module/module-layer-values-reference';
 export { ModuleReference } from './core/injection-reference/module/module-reference';
 export { ModuleTargetNodeReference } from './core/injection-reference/module/module-target-node-reference';
 export { ModuleTemplateReference } from './core/injection-reference/module/module-template-reference';
 export { ModuleValueReference } from './core/injection-reference/module/module-value-reference';
+export { ModuleValues } from './core/module/module-values';
 
 // Component Injections
 export { ComponentConstructorReference } from './core/injection-reference/component/component-constructor-reference';
@@ -31,7 +31,7 @@ export { PwbInstructionModule } from './core/module/instruction_module/pwb-instr
 export { InstructionResult } from './core/module/instruction_module/result/instruction-result';
 export { IInstructionOnDeconstruct, IInstructionOnUpdate } from './core/module/instruction_module/instruction-module';
 export { LayerValues } from './core/component/values/layer-values';
-export { ComponentScopeExecutor } from './core/module/execution/component-scope-executor';
+
 export { AccessMode } from './enum/access-mode.enum';
 
 // Default extensions.

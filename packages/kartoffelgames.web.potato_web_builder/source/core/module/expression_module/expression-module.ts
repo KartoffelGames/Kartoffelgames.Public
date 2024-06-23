@@ -1,11 +1,9 @@
+import { UpdateTrigger } from '../../../enum/update-trigger.enum';
 import { PwbTemplateExpression } from '../../component/template/nodes/values/pwb-template-expression';
-import { LayerValues } from '../../component/values/layer-values';
-import { ModuleLayerValuesReference } from '../../injection-reference/module/module-layer-values-reference';
 import { ModuleTargetNodeReference } from '../../injection-reference/module/module-target-node-reference';
 import { ModuleTemplateReference } from '../../injection-reference/module/module-template-reference';
 import { ModuleValueReference } from '../../injection-reference/module/module-value-reference';
 import { BaseModule, BaseModuleConstructorParameter, IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../base-module';
-import { UpdateTrigger } from '../../../enum/update-trigger.enum';
 
 export class ExpressionModule extends BaseModule<IPwbExpressionModuleProcessor> {
     private mLastResult: string | null;
@@ -19,7 +17,8 @@ export class ExpressionModule extends BaseModule<IPwbExpressionModuleProcessor> 
         super({
             processorConstructor: pParameter.processorConstructor,
             parent: pParameter.parent,
-            interactionTrigger: pParameter.interactionTrigger
+            interactionTrigger: pParameter.interactionTrigger,
+            values: pParameter.values
         });
 
         this.mTargetTextNode = pParameter.targetNode;
@@ -30,7 +29,6 @@ export class ExpressionModule extends BaseModule<IPwbExpressionModuleProcessor> 
         // Set module value from template value.
         this.setProcessorAttributes(ModuleTemplateReference, pParameter.targetTemplate.clone());
         this.setProcessorAttributes(ModuleTargetNodeReference, pParameter.targetNode);
-        this.setProcessorAttributes(ModuleLayerValuesReference, pParameter.values);
         this.setProcessorAttributes(ModuleValueReference, pParameter.targetTemplate.value);
     }
 
@@ -67,7 +65,6 @@ export class ExpressionModule extends BaseModule<IPwbExpressionModuleProcessor> 
 export type ExpressionModuleConstructorParameter = BaseModuleConstructorParameter<IPwbExpressionModuleProcessor> & {
     targetTemplate: PwbTemplateExpression,
     targetNode: Text;
-    values: LayerValues;
 };
 
 /**

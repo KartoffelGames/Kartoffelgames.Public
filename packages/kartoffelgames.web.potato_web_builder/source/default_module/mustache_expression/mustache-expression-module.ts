@@ -1,7 +1,5 @@
-import { LayerValues } from '../../core/component/values/layer-values';
-import { ModuleLayerValuesReference } from '../../core/injection-reference/module/module-layer-values-reference';
 import { ModuleValueReference } from '../../core/injection-reference/module/module-value-reference';
-import { ComponentScopeExecutor } from '../../core/module/execution/component-scope-executor';
+import { ModuleValues } from '../../core/module/module-values';
 import { IExpressionOnUpdate } from '../../core/module/expression_module/expression-module';
 import { PwbExpressionModule } from '../../core/module/expression_module/pwb-expression-module.decorator';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
@@ -14,8 +12,8 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
     trigger: UpdateTrigger.None
 })
 export class MustacheExpressionModule implements IExpressionOnUpdate {
+    private readonly mExpressionExecutor: ModuleValues;
     private readonly mExpressionValue: string;
-    private readonly mValueHandler: LayerValues;
 
     /**
      * Constructor.
@@ -23,8 +21,8 @@ export class MustacheExpressionModule implements IExpressionOnUpdate {
      * @param pValueReference - Values of component.
      * @param pExpressionReference - Expression value.
      */
-    public constructor(pValueReference: ModuleLayerValuesReference, pExpressionReference: ModuleValueReference) {
-        this.mValueHandler = pValueReference;
+    public constructor(pExpressionExecutor: ModuleValues, pExpressionReference: ModuleValueReference) {
+        this.mExpressionExecutor = pExpressionExecutor;
         this.mExpressionValue = pExpressionReference.toString();
     }
 
@@ -39,7 +37,7 @@ export class MustacheExpressionModule implements IExpressionOnUpdate {
         const lExpression = this.mExpressionValue;
 
         // Execute string
-        const lExecutionResult: any = ComponentScopeExecutor.execute(lExpression, this.mValueHandler);
+        const lExecutionResult: any = this.mExpressionExecutor.execute(lExpression);
 
         return lExecutionResult?.toString();
     }

@@ -1,6 +1,6 @@
 import { ChangeState, HistoryItem, MyersDiff } from '@kartoffelgames/web.change-detection';
 import { InstructionModule } from '../../module/instruction_module/instruction-module';
-import { InstructionResultElement } from '../../module/instruction_module/result/instruction-result';
+import { InstructionResultElement } from '../../module/instruction_module/instruction-result';
 import { ComponentModules } from '../component-modules';
 import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node';
 import { ScopedValues } from '../../scoped-values';

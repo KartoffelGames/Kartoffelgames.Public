@@ -3,7 +3,7 @@ import { PwbTemplateXmlNode } from '../../core/component/template/nodes/pwb-temp
 import { ModuleExpression } from '../../core/module/injection_reference/module-expression';
 import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
-import { InstructionResult } from '../../core/module/instruction_module/result/instruction-result';
+import { InstructionResult } from '../../core/module/instruction_module/instruction-result';
 import { ModuleValues } from '../../core/module/module-values';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 

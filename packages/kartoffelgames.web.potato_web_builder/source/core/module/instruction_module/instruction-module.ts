@@ -3,7 +3,7 @@ import { PwbTemplateInstructionNode } from '../../component/template/nodes/pwb-t
 import { ModuleTemplate } from '../injection_reference/module-template';
 import { BaseModule, BaseModuleConstructorParameter, IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../base-module';
 import { ModuleExpression } from '../injection_reference/module-expression';
-import { InstructionResult, InstructionResultElement } from './result/instruction-result';
+import { InstructionResult, InstructionResultElement } from './instruction-result';
 
 export class InstructionModule extends BaseModule<IPwbInstructionModuleProcessor> {
     private mLastResult: InstructionResult;

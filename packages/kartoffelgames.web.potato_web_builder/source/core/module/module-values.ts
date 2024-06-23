@@ -8,7 +8,7 @@ export class ModuleValues {
     private readonly mScopedValues: ScopedValues;
 
     /**
-     * Get 
+     * Scoped values of module.
      */
     public get scopedValues(): ScopedValues {
         return this.mScopedValues;

@@ -28,7 +28,7 @@ export { IAttributeOnDeconstruct, IAttributeOnUpdate } from './core/module/attri
 export { PwbExpressionModule } from './core/module/expression_module/pwb-expression-module.decorator';
 export { IExpressionOnDeconstruct, IExpressionOnUpdate } from './core/module/expression_module/expression-module';
 export { PwbInstructionModule } from './core/module/instruction_module/pwb-instruction-module.decorator';
-export { InstructionResult } from './core/module/instruction_module/result/instruction-result';
+export { InstructionResult } from './core/module/instruction_module/instruction-result';
 export { IInstructionOnDeconstruct, IInstructionOnUpdate } from './core/module/instruction_module/instruction-module';
 export { ScopedValues } from './core/scoped-values';
 

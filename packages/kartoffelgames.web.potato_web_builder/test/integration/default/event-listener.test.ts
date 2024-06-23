@@ -9,7 +9,7 @@ import { ModuleTemplate } from '../../../source/core/module/injection_reference/
 import { PwbAttributeModule } from '../../../source/core/module/attribute_module/pwb-attribute-module.decorator';
 import { IInstructionOnUpdate } from '../../../source/core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator';
-import { InstructionResult } from '../../../source/core/module/instruction_module/result/instruction-result';
+import { InstructionResult } from '../../../source/core/module/instruction_module/instruction-result';
 import { ComponentEvent } from '../../../source/default_module/component-event/component-event';
 import { ComponentEventEmitter } from '../../../source/default_module/component-event/component-event-emitter';
 import { PwbComponentEvent } from '../../../source/default_module/component-event/pwb-component-event.decorator';

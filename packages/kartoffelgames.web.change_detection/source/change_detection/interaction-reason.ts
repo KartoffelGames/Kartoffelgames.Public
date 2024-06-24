@@ -49,8 +49,8 @@ export class InteractionReason {
     /**
      * Get stack trace of interaction.
      */
-    public get stacktrace(): string {
-        return this.mStackError.stack!;
+    public get stacktrace(): Error {
+        return this.mStackError!;
     }
 
     /**

@@ -154,7 +154,7 @@ describe('InteractionZone', () => {
             const lZone: InteractionZone = new InteractionZone('ZoneName');
 
             // Process.
-            let lResultStack: string = '';
+            let lResultStack: Error | null = null;
             lZone.addInteractionListener((pChangeReason: InteractionReason) => {
                 lResultStack = pChangeReason.stacktrace;
             });
@@ -166,7 +166,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lResultStack).to.contain('lMycoolname');
+            expect(lResultStack!.stack).to.contain('lMycoolname');
         });
 
         it('-- Keep source', () => {

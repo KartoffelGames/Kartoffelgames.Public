@@ -27,7 +27,7 @@ class RequestAnimationFrameMockSession {
                 for (const lFunction of lActiveList.values()) {
                     lFunction(lCurrentTime);
                 }
-            }, 1);
+            }, 0);
         }
 
         return lIdentifier;

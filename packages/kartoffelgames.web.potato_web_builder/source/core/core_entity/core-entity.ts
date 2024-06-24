@@ -87,6 +87,9 @@ export class CoreEntity<TProcessor extends object = object> implements IDeconstr
 
         // Create new updater for every component entity.
         this.mUpdateZone = new CoreEntityUpdateZone(pParameter.processorConstructor.name, !!pParameter.isolateInteraction, pParameter.interactionTrigger, lInteractionZone);
+
+        // TODO: Add update(): Promise<boolean> and abstract onUpdate(): Promise<boolean> to every core entity and make it all async. Lets see what we get.
+        // TODO: When everything is async and working. Check the current updatezone frame time and reshedule current update task to new frame when the current frame would take to long.
     }
 
     /**

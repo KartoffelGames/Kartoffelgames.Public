@@ -196,7 +196,7 @@ export class CoreEntityUpdateZone {
                 '\n\t', 'Trigger:', pReason.toString(),
                 '\n\t', 'Is trigger:', !this.mHasSheduledUpdate,
                 '\n\t', 'Updatechain: ', this.mUpdateCallChain.map((pReason) => { return pReason.toString(); }),
-                '\n\t', 'Stacktrace:', pReason.stacktrace,
+                '\n\t', 'Stacktrace:', { stack: pReason.stacktrace },
             );
         }
 

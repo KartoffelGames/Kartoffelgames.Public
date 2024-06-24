@@ -68,7 +68,12 @@ export class CoreEntityUpdateZone {
         this.mSilentZone = new InteractionZone(`${pLabel}-SilentZone`, { isolate: true, trigger: <InteractionResponseType><unknown>UpdateTrigger.None });
 
         // Shedule an update on interaction zone.
-        this.mInteractionDetectionListener = (pReason: InteractionReason) => { this.sheduleUpdateTask(pReason); };
+        this.mInteractionDetectionListener = (pReason: InteractionReason) => {
+            // Call the actual shedule in silent zone to prevent promise from firing.
+            this.mSilentZone.execute(() => {
+                this.sheduleUpdateTask(pReason);
+            });
+        };
 
         // Add listener for interactions.
         this.mInteractionZone.addInteractionListener(this.mInteractionDetectionListener);
@@ -119,18 +124,6 @@ export class CoreEntityUpdateZone {
     }
 
     /**
-     * Request update by sending an update request to the interaction zone.
-     * Does nothing when the component is set to be {@link UpdateMode.Manual}
-     * 
-     * @param pReason - Update reason. Description of changed state.
-     */
-    public requestUpdate(pReason: InteractionReason): void {
-        this.mInteractionZone.execute(() => {
-            InteractionZone.dispatchInteractionEvent(pReason);
-        });
-    }
-
-    /**
      * Manual update component.
      * 
      * @public
@@ -139,7 +132,9 @@ export class CoreEntityUpdateZone {
         const lReason: InteractionReason = new InteractionReason(InteractionResponseType.Custom, this, Symbol('Manual Update'));
 
         // Request update to dispatch change events on other components.
-        this.requestUpdate(lReason);
+        this.mInteractionZone.execute(() => {
+            InteractionZone.dispatchInteractionEvent(lReason);
+        });
 
         // Shedule an update task.
         return this.sheduleUpdateTask(lReason);

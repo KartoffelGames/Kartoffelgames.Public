@@ -1,15 +1,15 @@
-import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
+import { InteractionReason } from '@kartoffelgames/web.change-detection';
 import { InteractionDetectionProxy } from '@kartoffelgames/web.change-detection/library/source/change_detection/synchron_tracker/interaction-detection-proxy';
 import { expect } from 'chai';
 import { Component, IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../source/core/component/component';
 import { ComponentRegister } from '../../source/core/component/component-register';
-import { CoreEntityUpdateZone, UpdateLoopError } from '../../source/core/core_entity/core-entity-update-zone';
 import { PwbComponent } from '../../source/core/component/pwb-component.decorator';
+import { CoreEntityUpdateZone, UpdateLoopError } from '../../source/core/core_entity/core-entity-update-zone';
+import { UpdateMode } from '../../source/core/enum/update-mode.enum';
+import { UpdateTrigger } from '../../source/core/enum/update-trigger.enum';
 import { IExpressionOnUpdate } from '../../source/core/module/expression_module/expression-module';
 import { PwbExpressionModule } from '../../source/core/module/expression_module/pwb-expression-module.decorator';
 import { PwbExport } from '../../source/module/export/pwb-export.decorator';
-import { UpdateMode } from '../../source/core/enum/update-mode.enum';
-import { UpdateTrigger } from '../../source/core/enum/update-trigger.enum';
 import '../mock/request-animation-frame-mock-session';
 import '../utility/chai-helper';
 import { TestUtil } from '../utility/test-util';
@@ -465,7 +465,7 @@ describe('HtmlComponent', () => {
 
             private triggerUpdate(): void {
                 this.innerValue++;
-                this.mUpdater.requestUpdate(new InteractionReason(InteractionResponseType.Any, this));
+                this.mUpdater.update();
             }
         }
 

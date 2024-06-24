@@ -1,5 +1,4 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
 import { CoreEntityExtendable } from '../core_entity/core-entity-extendable';
 import { CoreEntityUpdateZone } from '../core_entity/core-entity-update-zone';
 import { UpdateMode } from '../enum/update-mode.enum';
@@ -103,11 +102,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         this.call<IComponentOnConnect, 'onConnect'>('onConnect', false);
 
         // Trigger light update use self as source to prevent early processor creation.
-        if (this.isProcessorCreated) {
-            this.updateZone.requestUpdate(new InteractionReason(InteractionResponseType.Custom, this.processor));
-        } else {
-            this.updateZone.requestUpdate(new InteractionReason(InteractionResponseType.Custom, this));
-        }
+        this.updateZone.update();
     }
 
     /**

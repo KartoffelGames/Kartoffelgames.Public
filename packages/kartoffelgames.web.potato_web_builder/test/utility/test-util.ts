@@ -1,5 +1,4 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
 import { Component } from '../../source/core/component/component';
 import { ComponentRegister } from '../../source/core/component/component-register';
 import { CoreEntityUpdateZone } from '../../source/core/core_entity/core-entity-update-zone';
@@ -82,7 +81,7 @@ export class TestUtil {
      */
     public static manualUpdate(pComponent: HTMLElement): void {
         const lComponent: Component | undefined = TestUtil.getComponentManager(pComponent);
-        lComponent?.getProcessorAttribute<CoreEntityUpdateZone>(CoreEntityUpdateZone)!.requestUpdate(new InteractionReason(InteractionResponseType.Any, pComponent));
+        lComponent?.getProcessorAttribute<CoreEntityUpdateZone>(CoreEntityUpdateZone)!.update();
     }
 
     /**

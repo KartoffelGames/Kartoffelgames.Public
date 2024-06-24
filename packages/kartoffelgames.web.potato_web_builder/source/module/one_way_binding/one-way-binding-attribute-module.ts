@@ -2,8 +2,8 @@ import { ModuleTargetNode } from '../../core/module/injection_reference/module-t
 import { IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module';
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
 import { ModuleValues } from '../../core/module/module-values';
-import { AccessMode } from '../../enum/access-mode.enum';
-import { UpdateTrigger } from '../../enum/update-trigger.enum';
+import { AccessMode } from '../../core/enum/access-mode.enum';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute';
 
 /**

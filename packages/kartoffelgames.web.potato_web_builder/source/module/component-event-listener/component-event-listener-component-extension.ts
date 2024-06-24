@@ -1,35 +1,33 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
+import { Component } from '../../core/component/component';
 import { IExtensionOnDeconstruct } from '../../core/extension/extension-module';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
-import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
-import { AttributeModule } from '../../core/module/attribute_module/attribute-module';
-import { AccessMode } from '../../enum/access-mode.enum';
-import { UpdateTrigger } from '../../enum/update-trigger.enum';
-import { ComponentEventListenerComponentExtension } from './component-event-listener-component-extension';
+import { AccessMode } from '../../core/enum/access-mode.enum';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 
 @PwbExtensionModule({
     access: AccessMode.Read,
     trigger: UpdateTrigger.Default,
-    targetRestrictions: [AttributeModule]
+    targetRestrictions: [Component]
 })
-export class ComponentEventListenerModuleExtension implements IExtensionOnDeconstruct {
+export class ComponentEventListenerComponentExtension implements IExtensionOnDeconstruct {
+    public static readonly METADATA_USER_EVENT_LISTENER_PROPERIES: string = 'pwb:user_event_listener_properties';
+
     private readonly mEventListenerList: Array<[string, EventListener]>;
-    private readonly mTargetElement: Node;
+    private readonly mTargetElement: HTMLElement;
 
     /**
      * Constructor.
      * Add each event listener to component events.
      * 
-     * @param pModuleProcessorConstructor - Module processor constructor.
-     * @param pExtensionTargetModule - Module processor.
-     * @param pModuleElementReference - Component html element.
+     * @param pComponent - Component processor.
      */
-    public constructor(pExtensionTargetModule: AttributeModule, pModuleElementReference: ModuleTargetNode) {
+    public constructor(pComponent: Component) {
         // Get event metadata.
         const lEventPropertyList: Array<[string, string]> = new Array<[string, string]>();
 
-        let lClass: InjectionConstructor = pExtensionTargetModule.processorConstructor;
+        let lClass: InjectionConstructor = pComponent.processorConstructor;
         do {
             // Find all event properties of current class layer and add all to merged property list.
             const lPropertyList: Array<[string, string]> | null = Metadata.get(lClass).getMetadata(ComponentEventListenerComponentExtension.METADATA_USER_EVENT_LISTENER_PROPERIES);
@@ -52,16 +50,16 @@ export class ComponentEventListenerModuleExtension implements IExtensionOnDecons
         // Initialize lists.
         this.mEventListenerList = new Array<[string, EventListener]>();
 
-        // Fallback to component element, when module element reference is not a "html" element.
-        this.mTargetElement = pModuleElementReference;
+        // Easy access target objects.
+        this.mTargetElement = pComponent.element;
 
         // Override each property with the corresponding component event emitter.
         for (const lEventProperty of lEventPropertyList) {
             const [lPropertyKey, lEventName] = lEventProperty;
 
             // Get target event listener function.
-            let lEventListener: EventListener = Reflect.get(pExtensionTargetModule.processor, lPropertyKey);
-            lEventListener = lEventListener.bind(pExtensionTargetModule.processor);
+            let lEventListener: EventListener = Reflect.get(pComponent.processor, lPropertyKey);
+            lEventListener = lEventListener.bind(pComponent.processor);
 
             // Add listener element and save for deconstruct.
             this.mEventListenerList.push([lEventName, lEventListener]);

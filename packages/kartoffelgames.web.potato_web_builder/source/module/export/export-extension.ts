@@ -2,8 +2,8 @@ import { List } from '@kartoffelgames/core.data';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
 import { Component, IComponentOnAttributeChange } from '../../core/component/component';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
-import { AccessMode } from '../../enum/access-mode.enum';
-import { UpdateTrigger } from '../../enum/update-trigger.enum';
+import { AccessMode } from '../../core/enum/access-mode.enum';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 
 @PwbExtensionModule({
     access: AccessMode.Read,

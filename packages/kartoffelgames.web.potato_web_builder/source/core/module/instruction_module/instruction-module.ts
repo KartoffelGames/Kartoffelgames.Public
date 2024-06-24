@@ -1,4 +1,4 @@
-import { UpdateTrigger } from '../../../enum/update-trigger.enum';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { PwbTemplateInstructionNode } from '../../component/template/nodes/pwb-template-instruction-node';
 import { ModuleTemplate } from '../injection_reference/module-template';
 import { BaseModule, BaseModuleConstructorParameter, IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../base-module';

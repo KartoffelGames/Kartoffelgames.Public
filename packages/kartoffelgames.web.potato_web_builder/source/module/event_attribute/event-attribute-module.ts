@@ -4,8 +4,8 @@ import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attri
 import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute';
 import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
 import { ModuleValues } from '../../core/module/module-values';
-import { AccessMode } from '../../enum/access-mode.enum';
-import { UpdateTrigger } from '../../enum/update-trigger.enum';
+import { AccessMode } from '../../core/enum/access-mode.enum';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 
 @PwbAttributeModule({
     access: AccessMode.Write,

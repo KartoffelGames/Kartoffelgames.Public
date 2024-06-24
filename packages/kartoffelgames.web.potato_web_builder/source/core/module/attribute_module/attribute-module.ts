@@ -1,5 +1,5 @@
-import { AccessMode } from '../../../enum/access-mode.enum';
-import { UpdateTrigger } from '../../../enum/update-trigger.enum';
+import { AccessMode } from '../../enum/access-mode.enum';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { PwbTemplateAttribute } from '../../component/template/nodes/values/pwb-template-attribute';
 import { ModuleTemplate } from '../injection_reference/module-template';
 import { BaseModule, BaseModuleConstructorParameter, IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../base-module';

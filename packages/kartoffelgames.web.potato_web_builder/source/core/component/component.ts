@@ -1,7 +1,7 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
-import { UpdateMode } from '../../enum/update-mode.enum';
-import { UpdateTrigger } from '../../enum/update-trigger.enum';
+import { UpdateMode } from '../enum/update-mode.enum';
+import { UpdateTrigger } from '../enum/update-trigger.enum';
 import { CoreEntityExtendable } from '../core_entity/core-entity-extendable';
 import { CoreEntityUpdateZone } from '../core_entity/core-entity-update-zone';
 import { ComponentScopedValues } from './injection_reference/component-scoped-values';

@@ -4,7 +4,7 @@ import { ComponentRegister } from '../../core/component/component-register';
 import { CoreEntityUpdateZone } from '../../core/core_entity/core-entity-update-zone';
 import { PwbComponent } from '../../core/component/pwb-component.decorator';
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
-import { PwbTemplateXmlNode } from '../../core/component/template/nodes/pwb-template-xml-node';import { PwbExport } from '../../default_module/export/pwb-export.decorator';
+import { PwbTemplateXmlNode } from '../../core/component/template/nodes/pwb-template-xml-node';import { PwbExport } from '../../module/export/pwb-export.decorator';
 import pwbAppStyle from './pwb-app-component.css';
 import pwbAppTemplate from './pwb-app-component.html';
 

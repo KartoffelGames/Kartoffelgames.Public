@@ -1,6 +1,6 @@
 import { Injector } from '@kartoffelgames/core.dependency-injection';
-import { AccessMode } from '../../../enum/access-mode.enum';
-import { UpdateTrigger } from '../../../enum/update-trigger.enum';
+import { AccessMode } from '../../enum/access-mode.enum';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { CoreEntityRegister } from '../../core_entity/core-entity-register';
 import { AttributeModule, IPwbAttributeModuleProcessorConstructor } from './attribute-module';
 

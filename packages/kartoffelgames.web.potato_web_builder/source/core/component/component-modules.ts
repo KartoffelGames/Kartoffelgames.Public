@@ -1,5 +1,5 @@
 import { Dictionary, Exception } from '@kartoffelgames/core.data';
-import { MustacheExpressionModule } from '../../default_module/mustache_expression/mustache-expression-module';
+import { MustacheExpressionModule } from '../../module/mustache_expression/mustache-expression-module';
 import { CoreEntityProcessorConstructorSetup, CoreEntityRegister } from '../core_entity/core-entity-register';
 import { AttributeModule, AttributeModuleConfiguration } from '../module/attribute_module/attribute-module';
 import { ExpressionModule, ExpressionModuleConfiguration, IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module';

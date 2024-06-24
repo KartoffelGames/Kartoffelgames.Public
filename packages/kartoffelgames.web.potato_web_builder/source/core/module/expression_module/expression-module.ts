@@ -1,4 +1,4 @@
-import { UpdateTrigger } from '../../../enum/update-trigger.enum';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { PwbTemplateExpression } from '../../component/template/nodes/values/pwb-template-expression';
 import { ModuleTargetNode } from '../injection_reference/module-target-node';
 import { ModuleTemplate } from '../injection_reference/module-template';

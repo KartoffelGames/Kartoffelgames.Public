@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { PwbExport } from '../../../source/default_module/export/pwb-export.decorator';
+import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';

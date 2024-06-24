@@ -1,7 +1,7 @@
 import { ModuleValues } from '../../core/module/module-values';
 import { IExpressionOnUpdate } from '../../core/module/expression_module/expression-module';
 import { PwbExpressionModule } from '../../core/module/expression_module/pwb-expression-module.decorator';
-import { UpdateTrigger } from '../../enum/update-trigger.enum';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { ModuleExpression } from '../../core/module/injection_reference/module-expression';
 
 /**

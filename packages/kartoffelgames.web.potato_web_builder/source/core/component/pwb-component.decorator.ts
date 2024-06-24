@@ -1,5 +1,5 @@
 import { InjectionConstructor, Injector } from '@kartoffelgames/core.dependency-injection';
-import { UpdateMode } from '../../enum/update-mode.enum';
+import { UpdateMode } from '../enum/update-mode.enum';
 import { IPwbAttributeModuleProcessorConstructor } from '../module/attribute_module/attribute-module';
 import { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module';
 import { IPwbInstructionModuleProcessorConstructor } from '../module/instruction_module/instruction-module';

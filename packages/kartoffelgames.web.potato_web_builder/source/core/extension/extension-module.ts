@@ -1,7 +1,7 @@
 import { IDeconstructable } from '@kartoffelgames/core.data';
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { AccessMode } from '../../enum/access-mode.enum';
-import { UpdateTrigger } from '../../enum/update-trigger.enum';
+import { AccessMode } from '../enum/access-mode.enum';
+import { UpdateTrigger } from '../enum/update-trigger.enum';
 import { CoreEntity, CoreEntityProcessorConstructor } from '../core_entity/core-entity';
 
 export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> implements IDeconstructable {

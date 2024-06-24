@@ -1,6 +1,6 @@
 import { List } from '@kartoffelgames/core.data';
 import { IgnoreInteractionDetection, InteractionReason, InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
-import { UpdateTrigger } from '../../enum/update-trigger.enum';
+import { UpdateTrigger } from '../enum/update-trigger.enum';
 
 /**
  * Update zone of any core entity. Handles automatic and manual update detection.

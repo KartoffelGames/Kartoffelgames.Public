@@ -5,7 +5,7 @@ import { IInstructionOnUpdate } from '../../core/module/instruction_module/instr
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
 import { InstructionResult } from '../../core/module/instruction_module/instruction-result';
 import { ModuleValues } from '../../core/module/module-values';
-import { UpdateTrigger } from '../../enum/update-trigger.enum';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { ModuleExpression } from '../../core/module/injection_reference/module-expression';
 
 /**

@@ -7,9 +7,9 @@ import { CoreEntityUpdateZone, UpdateLoopError } from '../../source/core/core_en
 import { PwbComponent } from '../../source/core/component/pwb-component.decorator';
 import { IExpressionOnUpdate } from '../../source/core/module/expression_module/expression-module';
 import { PwbExpressionModule } from '../../source/core/module/expression_module/pwb-expression-module.decorator';
-import { PwbExport } from '../../source/default_module/export/pwb-export.decorator';
-import { UpdateMode } from '../../source/enum/update-mode.enum';
-import { UpdateTrigger } from '../../source/enum/update-trigger.enum';
+import { PwbExport } from '../../source/module/export/pwb-export.decorator';
+import { UpdateMode } from '../../source/core/enum/update-mode.enum';
+import { UpdateTrigger } from '../../source/core/enum/update-trigger.enum';
 import '../mock/request-animation-frame-mock-session';
 import '../utility/chai-helper';
 import { TestUtil } from '../utility/test-util';

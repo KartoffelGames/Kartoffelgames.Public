@@ -1,5 +1,5 @@
 import { Injector } from '@kartoffelgames/core.dependency-injection';
-import { UpdateTrigger } from '../../../enum/update-trigger.enum';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { CoreEntityRegister } from '../../core_entity/core-entity-register';
 import { IPwbInstructionModuleProcessorConstructor, InstructionModule } from './instruction-module';
 

@@ -32,32 +32,32 @@ export { InstructionResult } from './core/module/instruction_module/instruction-
 export { IInstructionOnDeconstruct, IInstructionOnUpdate } from './core/module/instruction_module/instruction-module';
 export { ScopedValues } from './core/scoped-values';
 
-export { AccessMode } from './enum/access-mode.enum';
+export { AccessMode } from './core/enum/access-mode.enum';
 
 // Default extensions.
-export { ComponentEvent } from './default_module/component-event/component-event';
-export { ComponentEventEmitter } from './default_module/component-event/component-event-emitter';
-export { PwbComponentEvent } from './default_module/component-event/pwb-component-event.decorator';
-export { PwbComponentEventListener } from './default_module/component-event-listener/pwb-component-event-listener.decorator';
-export { PwbExport } from './default_module/export/pwb-export.decorator';
-export { PwbChild } from './default_module/pwb_child/pwb-child.decorator';
+export { ComponentEvent } from './module/component-event/component-event';
+export { ComponentEventEmitter } from './module/component-event/component-event-emitter';
+export { PwbComponentEvent } from './module/component-event/pwb-component-event.decorator';
+export { PwbComponentEventListener } from './module/component-event-listener/pwb-component-event-listener.decorator';
+export { PwbExport } from './module/export/pwb-export.decorator';
+export { PwbChild } from './module/pwb_child/pwb-child.decorator';
 
 // Xml
 export { TemplateParser } from './core/component/template/template-parser';
 
 // Import default modules
-import './default_module/event_attribute/event-attribute-module';
-import './default_module/dynamic-content/dynamic-content-module';
-import './default_module/for-instruction/for-instruction-module';
-import './default_module/if_instruction/if-instruction-module';
-import './default_module/one_way_binding/one-way-binding-attribute-module';
-import './default_module/pwb_child/pwb-child-attribute-module';
-import './default_module/slot_attribute/slot-instruction-module';
-import './default_module/two_way_binding/two-way-binding-attribute-module';
+import './module/event_attribute/event-attribute-module';
+import './module/dynamic-content/dynamic-content-module';
+import './module/for-instruction/for-instruction-module';
+import './module/if_instruction/if-instruction-module';
+import './module/one_way_binding/one-way-binding-attribute-module';
+import './module/pwb_child/pwb-child-attribute-module';
+import './module/slot_attribute/slot-instruction-module';
+import './module/two_way_binding/two-way-binding-attribute-module';
 
 // Import default extensions.
-import './default_module/component-event/component-event-extension';
-import './default_module/component-event-listener/component-event-listener-component-extension';
-import './default_module/export/export-extension';
-import './default_module/pwb_app_injection/pwb-app-injection-extension';
+import './module/component-event/component-event-extension';
+import './module/component-event-listener/component-event-listener-component-extension';
+import './module/export/export-extension';
+import './module/pwb_app_injection/pwb-app-injection-extension';
 

@@ -8,8 +8,8 @@ import { PwbAttributeModule } from '../../../source/core/module/attribute_module
 import { IInstructionOnUpdate } from '../../../source/core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator';
 import { InstructionResult } from '../../../source/core/module/instruction_module/instruction-result';
-import { AccessMode } from '../../../source/enum/access-mode.enum';
-import { UpdateTrigger } from '../../../source/enum/update-trigger.enum';
+import { AccessMode } from '../../../source/core/enum/access-mode.enum';
+import { UpdateTrigger } from '../../../source/core/enum/update-trigger.enum';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';

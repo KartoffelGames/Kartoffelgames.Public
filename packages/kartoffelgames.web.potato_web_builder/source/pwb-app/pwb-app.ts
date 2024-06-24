@@ -4,7 +4,7 @@ import { ErrorListener } from '@kartoffelgames/web.change-detection/library/sour
 import { ComponentProcessorConstructor } from '../core/component/component';
 import { ComponentRegister } from '../core/component/component-register';
 import { PwbTemplate } from '../core/component/template/nodes/pwb-template';
-import { UpdateTrigger } from '../enum/update-trigger.enum';
+import { UpdateTrigger } from '../core/enum/update-trigger.enum';
 import { PwbAppComponent } from './component/pwb-app-component';
 
 /**

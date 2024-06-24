@@ -1,12 +1,12 @@
 import { expect } from 'chai';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
-import { UpdateMode } from '../../../source/enum/update-mode.enum';
+import { UpdateMode } from '../../../source/core/enum/update-mode.enum';
 import { PwbApp } from '../../../source/pwb-app/pwb-app';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
 import { CoreEntityUpdateZone } from '../../../source/core/core_entity/core-entity-update-zone';
-import { PwbExport } from '../../../source/default_module/export/pwb-export.decorator';
+import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
 
 describe('PwbAppInjectionExtension', () => {
     it('-- PwbApp injection on global element', async () => {

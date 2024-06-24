@@ -130,14 +130,14 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
             // Create custom element.
             if (typeof lCustomElement !== 'undefined') {
                 // Create new custom element inside update zone to connect both update zones.
-                return this.updateZone.enableInteractionTrigger(() => {
+                return this.updateZone.switchToUpdateZone(() => {
                     return new lCustomElement();
                 });
             }
         }
 
         // Create new element inside update zone to connect both update zones.
-        return this.updateZone.enableInteractionTrigger(() => {
+        return this.updateZone.switchToUpdateZone(() => {
             return document.createElement(lTagname);
         });
     }

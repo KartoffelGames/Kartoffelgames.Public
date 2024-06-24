@@ -113,7 +113,7 @@ export class CoreEntity<TProcessor extends object = object> implements IDeconstr
         }
 
         // Call function in update trigger zone.
-        return this.updateZone.enableInteractionTrigger(() => {
+        return this.updateZone.switchToUpdateZone(() => {
             return lPropertyFunction.call(this.processor, pParameter);
         });
     }
@@ -206,7 +206,7 @@ export class CoreEntity<TProcessor extends object = object> implements IDeconstr
         this.mIsLocked = true;
 
         // Create processor.
-        let lProcessor: TProcessor = this.updateZone.enableInteractionTrigger(() => {
+        let lProcessor: TProcessor = this.updateZone.switchToUpdateZone(() => {
             return Injection.createObject<TProcessor>(this.mProcessorConstructor, this.mInjections);
         });
 

@@ -101,7 +101,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         // Call processor event after enabling updates.
         this.call<IComponentOnConnect, 'onConnect'>('onConnect', false);
 
-        // Trigger light update use self as source to prevent early processor creation.
+        // Trigger update on connect.
         this.updateZone.update();
     }
 

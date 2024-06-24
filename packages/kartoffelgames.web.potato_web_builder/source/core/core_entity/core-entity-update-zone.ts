@@ -102,25 +102,25 @@ export class CoreEntityUpdateZone {
     }
 
     /**
-     * Execute function with interaction trigger.
-     * 
-     * @param pFunction - Function.
-     * @param pTrigger - Interaction detection trigger.
-     * 
-     * @remarks 
-     * Nesting {@link disableInteractionTrigger} and {@link enableInteractionTrigger} is allowed.
-     */
-    public enableInteractionTrigger<T>(pFunction: () => T): T {
-        return this.mInteractionZone.execute(pFunction);
-    }
-
-    /**
      * Register object and pass on update events.
      * 
      * @param pObject - Object.
      */
     public registerObject<T extends object>(pObject: T): T {
         return this.mInteractionZone.registerObject(pObject);
+    }
+
+    /**
+     * Execute function with interaction trigger.
+     * 
+     * @param pFunction - Function.
+     * @param pTrigger - Interaction detection trigger.
+     * 
+     * @remarks 
+     * Nesting {@link disableInteractionTrigger} and {@link switchToUpdateZone} is allowed.
+     */
+    public switchToUpdateZone<T>(pFunction: () => T): T {
+        return this.mInteractionZone.execute(pFunction);
     }
 
     /**

@@ -19,6 +19,7 @@ export class CoreEntityUpdateZone {
     private readonly mInteractionDetectionListener: (pReason: InteractionReason) => void;
     private readonly mInteractionZone: InteractionZone;
     private mSheduledUpdateIdentifier: number;
+    private readonly mSilentZone: InteractionZone;
     private readonly mUpdateCallChain: List<InteractionReason>;
     private readonly mUpdateChainCompleteHookReleaseList: List<UpdateChainCompleteHookRelease>;
     private readonly mUpdateListener: List<UpdateListener>;
@@ -62,8 +63,9 @@ export class CoreEntityUpdateZone {
 
         // Create isolated or default zone as parent zone or, when not specified, current zones child.
         this.mInteractionZone = (pParentZone ?? InteractionZone.current).execute(() => {
-            return new InteractionZone(`${pLabel}-Zone`, { isolate: pIsolatedInteraction, trigger: <InteractionResponseType><unknown>pInteractionTrigger });
+            return new InteractionZone(`${pLabel}-ProcessorZone`, { isolate: pIsolatedInteraction, trigger: <InteractionResponseType><unknown>pInteractionTrigger });
         });
+        this.mSilentZone = new InteractionZone(`${pLabel}-SilentZone`, { isolate: true, trigger: <InteractionResponseType><unknown>UpdateTrigger.None });
 
         // Shedule an update on interaction zone.
         this.mInteractionDetectionListener = (pReason: InteractionReason) => { this.sheduleUpdateTask(pReason); };
@@ -161,19 +163,6 @@ export class CoreEntityUpdateZone {
     }
 
     /**
-     * Execute all update listener.
-     */
-    private dispatchUpdateListener(pReason: InteractionReason): void {
-        // Call update listener in current zone.
-        this.mInteractionZone.execute(() => {
-            // Trigger all update listener.
-            for (const lListener of this.mUpdateListener) {
-                lListener.call(this, pReason);
-            }
-        });
-    }
-
-    /**
      * Release all chain complete hooks.
      * Pass on any thrown error to all hook releases.
      * 
@@ -211,9 +200,6 @@ export class CoreEntityUpdateZone {
             );
         }
 
-        // Save current execution zone stack. To restore it for user function call.
-        const lCurrentZone: InteractionZone = InteractionZone.current;
-
         // Function for asynchron call.
         const lAsynchronTask = (pFrameTimeStamp: number) => {
             // Sheduled task executed, allow another task to be executed.
@@ -223,21 +209,21 @@ export class CoreEntityUpdateZone {
             const lLastCallChainLength: number = this.mUpdateCallChain.length;
 
             try {
+                // Measure performance.
+                const lStartPerformance = globalThis.performance.now();
+
                 // Call task. If no other call was sheduled during this call, the length will be the same after. 
-                lCurrentZone.execute(() => {
-                    // Measure performance.
-                    const lStartPerformance = globalThis.performance.now();
+                for (const lListener of this.mUpdateListener) {
+                    lListener.call(this, pReason);
+                }
 
-                    this.dispatchUpdateListener(pReason);
-
-                    // Log performance time.
-                    if (CoreEntityUpdateZone.mDebugger.configuration.logUpdatePerformance) {
-                        CoreEntityUpdateZone.mDebugger.print('Update performance:', this.mInteractionZone.name,
-                            '\n\t', 'Update time:', globalThis.performance.now() - lStartPerformance,
-                            '\n\t', 'Frame  time:', globalThis.performance.now() - pFrameTimeStamp,
-                        );
-                    }
-                });
+                // Log performance time.
+                if (CoreEntityUpdateZone.mDebugger.configuration.logUpdatePerformance) {
+                    CoreEntityUpdateZone.mDebugger.print('Update performance:', this.mInteractionZone.name,
+                        '\n\t', 'Update time:', globalThis.performance.now() - lStartPerformance,
+                        '\n\t', 'Frame  time:', globalThis.performance.now() - pFrameTimeStamp,
+                    );
+                }
 
                 // Throw if too many calles were chained.
                 if (this.mUpdateCallChain.length > CoreEntityUpdateZone.MAX_STACK_SIZE) {
@@ -274,7 +260,7 @@ export class CoreEntityUpdateZone {
         };
 
         // Do not trigger interaction detection on requestAnimationFrame. The task function should handle the actual interaction zone scope.
-        return new InteractionZone('Sheduled-Update', { trigger: <InteractionResponseType><unknown>UpdateTrigger.None, isolate: true }).execute(async () => {
+        return this.mSilentZone.execute(async () => {
             // Skip asynchron task when currently a call is sheduled.
             if (this.mHasSheduledUpdate) {
                 // Add then chain to current promise task. Task is resolved on completing all updates or rejected on any error. 

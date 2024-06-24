@@ -7,6 +7,7 @@ import { ScopedValues } from '../../scoped-values';
 import { BaseBuilder } from './base-builder';
 import { InstructionBuilderData } from './data/instruction-builder-data';
 import { StaticBuilder } from './static-builder';
+import { CoreEntityUpdateZone } from '../../core_entity/core-entity-update-zone';
 
 /**
  * Instruction builder. Only builds and handles instruction templates.
@@ -22,8 +23,8 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
      * @param pModules - Modules of component scope.
      * @param pParentScopedValues - Scoped value of parent builder.
      */
-    public constructor(pTemplate: PwbTemplateInstructionNode, pModules: ComponentModules, pParentScopedValues: ScopedValues,) {
-        super(pTemplate, pParentScopedValues, new InstructionBuilderData(pModules, `Instruction - {$${pTemplate.instructionType}}`));
+    public constructor(pTemplate: PwbTemplateInstructionNode, pModules: ComponentModules, pParentScopedValues: ScopedValues, pUpdateZone: CoreEntityUpdateZone) {
+        super(pTemplate, pParentScopedValues, new InstructionBuilderData(pModules, `Instruction - {$${pTemplate.instructionType}}`), pUpdateZone);
     }
 
     /**
@@ -62,7 +63,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
      */
     private insertNewContent(pNewContent: InstructionResultElement, pContentCursor: StaticBuilder | null): StaticBuilder {
         // Create new static builder.
-        const lStaticBuilder: StaticBuilder = new StaticBuilder(pNewContent.template, this.content.modules, pNewContent.componentValues, `Child - {$${this.template.instructionType}}`);
+        const lStaticBuilder: StaticBuilder = new StaticBuilder(pNewContent.template, this.content.modules, pNewContent.componentValues, `Child - {$${this.template.instructionType}}`, this.updateZone);
 
         // Prepend content if no content is before the new content. 
         if (pContentCursor === null) {

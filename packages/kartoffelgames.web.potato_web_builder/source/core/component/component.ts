@@ -1,19 +1,18 @@
 import { Dictionary } from '@kartoffelgames/core.data';
 import { InteractionReason, InteractionResponseType } from '@kartoffelgames/web.change-detection';
-import { UpdateMode } from '../enum/update-mode.enum';
-import { UpdateTrigger } from '../enum/update-trigger.enum';
 import { CoreEntityExtendable } from '../core_entity/core-entity-extendable';
 import { CoreEntityUpdateZone } from '../core_entity/core-entity-update-zone';
-import { ComponentScopedValues } from './injection_reference/component-scoped-values';
+import { UpdateMode } from '../enum/update-mode.enum';
+import { UpdateTrigger } from '../enum/update-trigger.enum';
 import { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module';
+import { ScopedValues } from '../scoped-values';
 import { StaticBuilder } from './builder/static-builder';
+import { ComponentElement } from './component-element';
 import { ComponentModules } from './component-modules';
 import { ComponentRegister } from './component-register';
-import { ComponentElement } from './component-element';
+import { ComponentScopedValues } from './injection_reference/component-scoped-values';
 import { PwbTemplate } from './template/nodes/pwb-template';
-import { PwbTemplateXmlNode } from './template/nodes/pwb-template-xml-node';
 import { TemplateParser } from './template/template-parser';
-import { ScopedValues } from '../scoped-values';
 
 /**
  * Component manager. 
@@ -69,7 +68,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         this.mComponentElement = new ComponentElement(pParameter.htmlElement);
 
         // Create component builder.
-        this.mRootBuilder = new StaticBuilder(lTemplate, new ComponentModules(this, pParameter.expressionModule), new ScopedValues(this), 'ROOT');
+        this.mRootBuilder = new StaticBuilder(lTemplate, new ComponentModules(this, pParameter.expressionModule), new ScopedValues(this), 'ROOT', this.updateZone);
         this.mComponentElement.shadowRoot.appendChild(this.mRootBuilder.anchor);
 
         // Initialize user object injections.
@@ -89,10 +88,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
      * @param pStyle - Css style as string.
      */
     public addStyle(pStyle: string): void {
-        const lStyleTemplate: PwbTemplateXmlNode = new PwbTemplateXmlNode();
-        lStyleTemplate.tagName = 'style';
-
-        const lStyleElement: Element = this.mRootBuilder.createElement(lStyleTemplate);
+        const lStyleElement: Element = document.createElement('style');
         lStyleElement.innerHTML = pStyle;
         this.mComponentElement.shadowRoot.prepend(lStyleElement);
     }

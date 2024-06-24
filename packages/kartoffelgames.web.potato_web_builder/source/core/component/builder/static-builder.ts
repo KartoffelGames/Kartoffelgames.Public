@@ -1,5 +1,7 @@
+import { CoreEntityUpdateZone } from '../../core_entity/core-entity-update-zone';
 import { AttributeModule } from '../../module/attribute_module/attribute-module';
 import { ExpressionModule } from '../../module/expression_module/expression-module';
+import { ScopedValues } from '../../scoped-values';
 import { ComponentModules } from '../component-modules';
 import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
 import { PwbTemplate } from '../template/nodes/pwb-template';
@@ -8,7 +10,6 @@ import { PwbTemplateTextNode } from '../template/nodes/pwb-template-text-node';
 import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
 import { PwbTemplateAttribute } from '../template/nodes/values/pwb-template-attribute';
 import { PwbTemplateExpression } from '../template/nodes/values/pwb-template-expression';
-import { ScopedValues } from '../../scoped-values';
 import { BaseBuilder } from './base-builder';
 import { BuilderContent } from './data/base-builder-data';
 import { StaticBuilderData, StaticBuilderLinkedAttributeData } from './data/static-builder-data';
@@ -30,8 +31,8 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
      * @param pParentScopedValues - Scoped values of parent builder.
      * @param pAnchorName - Name of builder content anchor.
      */
-    public constructor(pTemplate: StaticPwbTemplate, pModules: ComponentModules, pParentScopedValues: ScopedValues, pAnchorName: string) {
-        super(pTemplate, pParentScopedValues, new StaticBuilderData(pModules, `Static - {${pAnchorName}}`));
+    public constructor(pTemplate: StaticPwbTemplate, pModules: ComponentModules, pParentScopedValues: ScopedValues, pAnchorName: string, pUpdateZone: CoreEntityUpdateZone) {
+        super(pTemplate, pParentScopedValues, new StaticBuilderData(pModules, `Static - {${pAnchorName}}`), pUpdateZone);
 
         // Not initialized on start.
         this.mInitialized = false;
@@ -99,7 +100,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
      */
     private buildInstructionTemplate(pMultiplicatorTemplate: PwbTemplateInstructionNode, pParentContent: BuilderContent): void {
         // Create new instruction builder and add to bottom of parent content.
-        const lInstructionBuilder: InstructionBuilder = new InstructionBuilder(pMultiplicatorTemplate, this.content.modules, this.values);
+        const lInstructionBuilder: InstructionBuilder = new InstructionBuilder(pMultiplicatorTemplate, this.content.modules, this.values, this.updateZone);
         this.content.insert(lInstructionBuilder, 'BottomOf', pParentContent);
     }
 
@@ -112,7 +113,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
      */
     private buildStaticTemplate(pElementTemplate: PwbTemplateXmlNode, pParentContent: BuilderContent): void {
         // Build element and append to builder.
-        const lHtmlNode: Element = this.createElement(pElementTemplate);
+        const lHtmlNode: Element = this.createZoneEnabledElement(pElementTemplate);
         this.content.insert(lHtmlNode, 'BottomOf', pParentContent);
 
         for (const lAttributeTemplate of pElementTemplate.attributes) {
@@ -132,7 +133,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
                 // Create text nodes for each attribute value and link expressions to those textnodes.
                 for (const lValue of lAttributeTemplate.values.values) {
                     // Create text node for attribute value.
-                    const lAttributeTextNode: Text = this.createText('');
+                    const lAttributeTextNode: Text = this.createZoneEnabledText('');
                     lAttributeTextNodeList.push(lAttributeTextNode);
 
                     // Add text value for non expressions.
@@ -200,12 +201,12 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
         for (const lValue of pTextTemplate.values) {
             // Create simple and static textnode for string values.
             if (typeof lValue === 'string') {
-                this.content.insert(this.createText(lValue), 'BottomOf', pParentContent);
+                this.content.insert(this.createZoneEnabledText(lValue), 'BottomOf', pParentContent);
                 continue;
             }
 
             // Placeholder text node for expression and append it to builder.
-            const lExpressionTextNode: Text = this.createText('');
+            const lExpressionTextNode: Text = this.createZoneEnabledText('');
             this.content.insert(lExpressionTextNode, 'BottomOf', pParentContent);
 
             // Create expression module and link it to builder.

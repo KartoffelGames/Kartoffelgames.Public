@@ -1,7 +1,8 @@
 
+import { CoreEntityUpdateZone } from '../../core_entity/core-entity-update-zone';
+import { ScopedValues } from '../../scoped-values';
 import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
 import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
-import { ScopedValues } from '../../scoped-values';
 import { BaseBuilderData, Boundary } from './data/base-builder-data';
 
 /**
@@ -13,6 +14,7 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
     private readonly mComponentValues: ScopedValues;
     private readonly mContent: TContent;
     private readonly mTemplate: TTemplates;
+    private readonly mUpdateZone: CoreEntityUpdateZone;
 
     /**
      * Content anchor for later appending build and initilised elements on this place.
@@ -36,6 +38,13 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
     }
 
     /**
+     * Components update zone.
+     */
+    public get updateZone(): CoreEntityUpdateZone {
+        return this.mUpdateZone;
+    }
+
+    /**
      * Get component values of builder.
      */
     public get values(): ScopedValues {
@@ -55,7 +64,7 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
      * @param pTemplate - Builder template.
      * @param pParentScopedValues - New component values.
      */
-    public constructor(pTemplate: TTemplates, pParentScopedValues: ScopedValues, pContent: TContent) {
+    public constructor(pTemplate: TTemplates, pParentScopedValues: ScopedValues, pContent: TContent, pUpdateZone: CoreEntityUpdateZone) {
         // Clone template.
         this.mTemplate = pTemplate;
         this.mTemplate.parent = null; // Nodes doesn't need a real parent. Maidenless nodes.
@@ -63,49 +72,10 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
         // Create new scoped of values with inside parent scope.
         this.mComponentValues = new ScopedValues(pParentScopedValues);
         this.mContent = pContent;
+        this.mUpdateZone = pUpdateZone;
 
         // Link this builder as content.
         pContent.setCoreBuilder(this);
-    }
-
-    /**
-     * Create new html element.
-     * When the element is a custom element, it invokes the custom element constructor instead of an unknown html element.
-     * 
-     * Ignores all attribute and expression informations and only uses the tagname information.
-     * 
-     * @param pXmlElement - Xml content node.
-     */
-    public createElement(pXmlElement: PwbTemplateXmlNode): Element {
-        const lTagname: string = pXmlElement.tagName;
-
-        if (typeof lTagname !== 'string') {
-            throw lTagname;
-        }
-
-        // On custom element
-        if (lTagname.includes('-')) {
-            // Get custom element.
-            const lCustomElement: any = window.customElements.get(lTagname);
-
-            // Create custom element.
-            if (typeof lCustomElement !== 'undefined') {
-                return new lCustomElement();
-            }
-        }
-
-        return document.createElement(lTagname);
-    }
-
-    /**
-     * Create html text node.
-     * 
-     * @param pText - Text.
-     * 
-     * @returns text node with specified text.
-     */
-    public createText(pText: string): Text {
-        return document.createTextNode(pText);
     }
 
 
@@ -135,6 +105,52 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
         }
 
         return lUpdated;
+    }
+
+    /**
+     * Create new html element.
+     * When the element is a custom element, it invokes the custom element constructor instead of an unknown html element.
+     * 
+     * Ignores all attribute and expression informations and only uses the tagname information.
+     * 
+     * @param pXmlElement - Xml content node.
+     */
+    protected createZoneEnabledElement(pXmlElement: PwbTemplateXmlNode): Element {
+        const lTagname: string = pXmlElement.tagName;
+
+        if (typeof lTagname !== 'string') {
+            throw lTagname;
+        }
+
+        // On custom element
+        if (lTagname.includes('-')) {
+            // Get custom element.
+            const lCustomElement: any = window.customElements.get(lTagname);
+
+            // Create custom element.
+            if (typeof lCustomElement !== 'undefined') {
+                // Create new custom element inside update zone to connect both update zones.
+                return this.updateZone.enableInteractionTrigger(() => {
+                    return new lCustomElement();
+                });
+            }
+        }
+
+        // Create new element inside update zone to connect both update zones.
+        return this.updateZone.enableInteractionTrigger(() => {
+            return document.createElement(lTagname);
+        });
+    }
+
+    /**
+     * Create html text node.
+     * 
+     * @param pText - Text.
+     * 
+     * @returns text node with specified text.
+     */
+    protected createZoneEnabledText(pText: string): Text {
+        return document.createTextNode(pText);
     }
 
     /**

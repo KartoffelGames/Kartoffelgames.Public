@@ -60,4 +60,12 @@ import './module/component-event/component-event-extension';
 import './module/component-event-listener/component-event-listener-component-extension';
 import './module/export/export-extension';
 import './module/pwb_app_injection/pwb-app-injection-extension';
+import { ComponentDebug } from './core/component-debug';
 
+// Set debugger to global scope.
+globalThis['PwbDebug'] = new ComponentDebug();
+
+declare global {
+    // eslint-disable-next-line no-var, @typescript-eslint/naming-convention
+    var PwbDebug: ComponentDebug;
+}

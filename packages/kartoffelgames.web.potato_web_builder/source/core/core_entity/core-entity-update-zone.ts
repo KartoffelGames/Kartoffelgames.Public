@@ -1,6 +1,7 @@
 import { List } from '@kartoffelgames/core.data';
 import { IgnoreInteractionDetection, InteractionReason, InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
+import { ComponentDebug } from '../component-debug';
 
 /**
  * Update zone of any core entity. Handles automatic and manual update detection.
@@ -11,6 +12,7 @@ import { UpdateTrigger } from '../enum/update-trigger.enum';
 @IgnoreInteractionDetection
 export class CoreEntityUpdateZone {
     private static readonly MAX_STACK_SIZE: number = 10;
+    private static readonly mDebugger: ComponentDebug = new ComponentDebug();
 
     private mEnabled: boolean;
     private mHasSheduledUpdate: boolean;
@@ -199,15 +201,21 @@ export class CoreEntityUpdateZone {
             return false;
         }
 
-        // TODO: Add debug information.
-        // Like current update trigger
-        // Like update performance.
+        // Log update trigger time.
+        if (CoreEntityUpdateZone.mDebugger.configuration.logUpdaterTrigger) {
+            CoreEntityUpdateZone.mDebugger.print('Update trigger:', this.mInteractionZone.name,
+                '\n\t', 'Trigger:', pReason.toString(),
+                '\n\t', 'Is trigger:', !this.mHasSheduledUpdate,
+                '\n\t', 'Updatechain: ', this.mUpdateCallChain.map((pReason) => { return pReason.toString(); }),
+                '\n\t', 'Stacktrace:', pReason.stacktrace,
+            );
+        }
 
         // Save current execution zone stack. To restore it for user function call.
         const lCurrentZone: InteractionZone = InteractionZone.current;
 
         // Function for asynchron call.
-        const lAsynchronTask = () => {
+        const lAsynchronTask = (pFrameTimeStamp: number) => {
             // Sheduled task executed, allow another task to be executed.
             this.mHasSheduledUpdate = false;
 
@@ -217,10 +225,21 @@ export class CoreEntityUpdateZone {
             try {
                 // Call task. If no other call was sheduled during this call, the length will be the same after. 
                 lCurrentZone.execute(() => {
+                    // Measure performance.
+                    const lStartPerformance = globalThis.performance.now();
+
                     this.dispatchUpdateListener(pReason);
+
+                    // Log performance time.
+                    if (CoreEntityUpdateZone.mDebugger.configuration.logUpdatePerformance) {
+                        CoreEntityUpdateZone.mDebugger.print('Update performance:', this.mInteractionZone.name,
+                            '\n\t', 'Update time:', globalThis.performance.now() - lStartPerformance,
+                            '\n\t', 'Frame  time:', globalThis.performance.now() - pFrameTimeStamp,
+                        );
+                    }
                 });
 
-                // Throw if too many calles were chained. // TODO: Make this optional. Only throw in debug mode.
+                // Throw if too many calles were chained.
                 if (this.mUpdateCallChain.length > CoreEntityUpdateZone.MAX_STACK_SIZE) {
                     throw new UpdateLoopError('Call loop detected', this.mUpdateCallChain);
                 }
@@ -240,10 +259,17 @@ export class CoreEntityUpdateZone {
                 globalThis.cancelAnimationFrame(this.mSheduledUpdateIdentifier);
 
                 // Permanently block another execution for this update zone. Prevents script locks.
-                this.mHasSheduledUpdate = true;
+                if (CoreEntityUpdateZone.mDebugger.configuration.throwWhileUpdating) {
+                    this.mHasSheduledUpdate = true;
 
-                // Release chain complete hook with error.
-                this.releaseUpdateChainCompleteHooks(pException);
+                    // Release chain complete hook with error.
+                    this.releaseUpdateChainCompleteHooks(pException);
+                } else {
+                    // Release chain complete hook without error.
+                    this.releaseUpdateChainCompleteHooks();
+
+                    CoreEntityUpdateZone.mDebugger.print(pException);
+                }
             }
         };
 

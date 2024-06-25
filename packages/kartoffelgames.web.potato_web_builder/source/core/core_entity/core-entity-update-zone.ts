@@ -272,6 +272,7 @@ export class CoreEntityUpdateZone {
                     CoreEntityUpdateZone.mDebugger.print('Update performance:', this.mInteractionZone.name,
                         '\n\t', 'Update time:', globalThis.performance.now() - lStartPerformance,
                         '\n\t', 'Frame  time:', globalThis.performance.now() - pFrameTimeStamp,
+                        '\n\t', 'Frame  timestamp:', pFrameTimeStamp,
                     );
                 }
 

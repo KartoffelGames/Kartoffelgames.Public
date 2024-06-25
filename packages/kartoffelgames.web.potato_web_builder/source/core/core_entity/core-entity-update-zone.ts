@@ -1,4 +1,4 @@
-import { List } from '@kartoffelgames/core.data';
+import { Dictionary, List } from '@kartoffelgames/core.data';
 import { IgnoreInteractionDetection, InteractionReason, InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
 import { ComponentDebug } from '../component-debug';
@@ -12,7 +12,62 @@ import { ComponentDebug } from '../component-debug';
 @IgnoreInteractionDetection
 export class CoreEntityUpdateZone {
     private static readonly MAX_STACK_SIZE: number = 10;
+    private static mCallQueue: Dictionary<number, CallQueueFunction> = new Dictionary<number, CallQueueFunction>();
+    private static mCallQueueRunning: boolean = false;
     private static readonly mDebugger: ComponentDebug = new ComponentDebug();
+
+    /**
+     * Add new action to a call queue.
+     * 
+     * @param pFunction - Action to queue.
+     * 
+     * @returns Identifier of action
+     */
+    private static addActionToCallQueue(pFunction: CallQueueFunction): number {
+        const lIdentifier: number = Math.random();
+
+        CoreEntityUpdateZone.mCallQueue.set(lIdentifier, pFunction);
+
+        const lStartQueue = () => {
+            globalThis.requestAnimationFrame(async (pTimestamp: number) => {
+                // Save current call queue and create a new list for the next execution cycle.
+                const lActiveQueue = CoreEntityUpdateZone.mCallQueue;
+                CoreEntityUpdateZone.mCallQueue = new Dictionary<number, CallQueueFunction>();
+
+                for (const lFunction of lActiveQueue.values()) {
+                    // eslint-disable-next-line @typescript-eslint/await-thenable
+                    await lFunction(pTimestamp);
+                }
+
+                // Enable new runner instance.
+                CoreEntityUpdateZone.mCallQueueRunning = false;
+
+                // Start queue again, when new actions where pushed to queue while the active one was processed.
+                if (CoreEntityUpdateZone.mCallQueue.size > 0) {
+                    lStartQueue();
+                }
+            });
+        };
+
+        // Create new "frame" timer when not already set. 
+        if (!CoreEntityUpdateZone.mCallQueueRunning) {
+            CoreEntityUpdateZone.mCallQueueRunning = true;
+
+            // Start queue.
+            lStartQueue();
+        }
+
+        return lIdentifier;
+    }
+
+    /**
+     * Remove action from call queue.
+     * 
+     * @param pIdentifier - Action idenfier.
+     */
+    private static removeActionToCallQueue(pIdentifier: number): void {
+        CoreEntityUpdateZone.mCallQueue.delete(pIdentifier);
+    }
 
     private mEnabled: boolean;
     private mHasSheduledUpdate: boolean;
@@ -196,7 +251,7 @@ export class CoreEntityUpdateZone {
         }
 
         // Function for asynchron call.
-        const lAsynchronTask = (pFrameTimeStamp: number) => {
+        const lAsynchronTask = async (pFrameTimeStamp: number) => {
             // Sheduled task executed, allow another task to be executed.
             this.mHasSheduledUpdate = false;
 
@@ -237,7 +292,7 @@ export class CoreEntityUpdateZone {
                 this.mUpdateCallChain.clear();
 
                 // Cancel next call cycle.
-                globalThis.cancelAnimationFrame(this.mSheduledUpdateIdentifier);
+                CoreEntityUpdateZone.removeActionToCallQueue(this.mSheduledUpdateIdentifier);
 
                 // Permanently block another execution for this update zone. Prevents script locks.
                 if (CoreEntityUpdateZone.mDebugger.configuration.throwWhileUpdating) {
@@ -254,7 +309,7 @@ export class CoreEntityUpdateZone {
             }
         };
 
-        // Do not trigger interaction detection on requestAnimationFrame. The task function should handle the actual interaction zone scope.
+        // Do not trigger interaction. The task function should handle the actual interaction zone scope.
         return this.mSilentZone.execute(async () => {
             // Skip asynchron task when currently a call is sheduled.
             if (this.mHasSheduledUpdate) {
@@ -269,7 +324,7 @@ export class CoreEntityUpdateZone {
             this.mHasSheduledUpdate = true;
 
             // Call on next frame. 
-            this.mSheduledUpdateIdentifier = globalThis.requestAnimationFrame(lAsynchronTask);
+            this.mSheduledUpdateIdentifier = CoreEntityUpdateZone.addActionToCallQueue(lAsynchronTask);
 
             // Add then chain to current promise task. Task is resolved on completing all updates or rejected on any error. 
             return this.addUpdateChainCompleteHook();
@@ -277,6 +332,7 @@ export class CoreEntityUpdateZone {
     }
 }
 
+type CallQueueFunction = (pTimestamp: number) => Promise<void>;
 type UpdateChainCompleteHookRelease = (pError: any) => void;
 
 export type UpdateListener = (pReason: InteractionReason) => void;

@@ -4,7 +4,7 @@ import { CoreEntityUpdateZone } from './core-entity-update-zone';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
 import { InteractionZone } from '@kartoffelgames/web.change-detection';
 
-export class CoreEntity<TProcessor extends object = object> implements IDeconstructable {
+export abstract class CoreEntity<TProcessor extends object = object> implements IDeconstructable {
     private readonly mCoreEntitySetupHookList: Array<CoreEntitySetupHook>;
     private readonly mCreateOnSetup: boolean;
     private readonly mInjections: Dictionary<InjectionConstructor, any>;
@@ -179,6 +179,15 @@ export class CoreEntity<TProcessor extends object = object> implements IDeconstr
     }
 
     /**
+     * Updates core entity.
+     * 
+     * @returns true when a update happened and false when nothing was updated.
+     */
+    public async update(): Promise<boolean> {
+        return this.onUpdate();
+    }
+
+    /**
      * Add hook called on processor creation.
      * Can replace the current processor by returning a object.
      * 
@@ -223,6 +232,13 @@ export class CoreEntity<TProcessor extends object = object> implements IDeconstr
 
         return lProcessor;
     }
+
+    /**
+     * Called on update.
+     * 
+     * @returns true when a update happened and false when nothing was updated.
+     */
+    protected abstract onUpdate(): Promise<boolean>;
 }
 
 // Hooks

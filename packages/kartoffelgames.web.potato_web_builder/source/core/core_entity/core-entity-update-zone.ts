@@ -264,7 +264,7 @@ export class CoreEntityUpdateZone {
 
                 // Call task. If no other call was sheduled during this call, the length will be the same after. 
                 for (const lListener of this.mUpdateListener) {
-                    lListener.call(this, pReason);
+                    await lListener.call(this, pReason);
                 }
 
                 // Log performance time.
@@ -335,7 +335,7 @@ export class CoreEntityUpdateZone {
 type CallQueueFunction = (pTimestamp: number) => Promise<void>;
 type UpdateChainCompleteHookRelease = (pError: any) => void;
 
-export type UpdateListener = (pReason: InteractionReason) => void;
+export type UpdateListener = (pReason: InteractionReason) => Promise<void>;
 
 export class UpdateLoopError extends Error {
     private readonly mChain: Array<InteractionReason>;

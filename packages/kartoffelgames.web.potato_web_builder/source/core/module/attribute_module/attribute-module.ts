@@ -41,7 +41,7 @@ export class AttributeModule extends BaseModule<IPwbAttributeModuleProcessor> {
     /**
      * Update module.
      */
-    public update(): boolean {
+    public async onUpdate(): Promise<boolean> {
         return this.call<IAttributeOnUpdate, 'onUpdate'>('onUpdate', true) ?? false;
     }
 }

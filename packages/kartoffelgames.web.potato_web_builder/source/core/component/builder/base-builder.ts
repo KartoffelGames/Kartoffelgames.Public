@@ -95,13 +95,13 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
      * 
      * @returns If any changes where made.  
      */
-    public update(): boolean {
+    public async update(): Promise<boolean> {
         // Update this builder.
-        let lUpdated: boolean = this.onUpdate();
+        let lUpdated: boolean = await this.onUpdate();
 
         // Update all child builder and keep updated true state.
         for (const lBuilder of this.content.builders) {
-            lUpdated = lBuilder.update() || lUpdated;
+            lUpdated = await lBuilder.update() || lUpdated;
         }
 
         return lUpdated;
@@ -163,5 +163,5 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
      * 
      * @returns If any changes where made. 
      */
-    protected abstract onUpdate(): boolean;
+    protected abstract onUpdate(): Promise<boolean>;
 }

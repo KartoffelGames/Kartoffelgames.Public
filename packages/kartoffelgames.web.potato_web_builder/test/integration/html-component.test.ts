@@ -247,13 +247,13 @@ describe('HtmlComponent', () => {
 
         // Set update listener.
         let lWasUpdated: boolean = false;
-        TestUtil.getComponentManager(lComponent)?.getProcessorAttribute<CoreEntityUpdateZone>(CoreEntityUpdateZone)?.addUpdateListener((pReason: InteractionReason) => {
+        TestUtil.getComponentManager(lComponent)?.getProcessorAttribute<CoreEntityUpdateZone>(CoreEntityUpdateZone)?.addUpdateListener(async (pReason: InteractionReason) => {
             lWasUpdated = pReason.property === 'innerValue' || lWasUpdated;
         });
 
         // Set update listener.
         let lInnerValueWasUpdated: boolean = false;
-        TestUtil.getComponentManager(lCapsuledContent)?.getProcessorAttribute<CoreEntityUpdateZone>(CoreEntityUpdateZone)?.addUpdateListener((pReason: InteractionReason) => {
+        TestUtil.getComponentManager(lCapsuledContent)?.getProcessorAttribute<CoreEntityUpdateZone>(CoreEntityUpdateZone)?.addUpdateListener(async (pReason: InteractionReason) => {
             lInnerValueWasUpdated = pReason.property === 'innerValue' || lInnerValueWasUpdated;
         });
 

@@ -41,7 +41,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
     /**
      * Update static builder.
      */
-    protected onUpdate(): boolean {
+    protected async onUpdate(): Promise<boolean> {
         // One time build of template. Statics doesn't change that much...
         if (!this.mInitialized) {
             this.mInitialized = true;
@@ -53,7 +53,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
 
         // Update static modules.
         for (const lModule of this.content.linkedStaticModules) {
-            lUpdated = lModule.update() || lUpdated;
+            lUpdated = await lModule.update() || lUpdated;
         }
 
         // List with all expression that are updated and linked with any attribute.
@@ -62,7 +62,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
         // Update expressions after.
         for (const lExpressionModule of this.content.linkedExpressionModules) {
             // Update expression and save updatestate.
-            const lExpressionUpdated: boolean = lExpressionModule.update();
+            const lExpressionUpdated: boolean = await lExpressionModule.update();
 
             // Update accumulated modules update state.
             lUpdated = lExpressionUpdated || lUpdated;

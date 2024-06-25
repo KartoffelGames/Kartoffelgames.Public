@@ -76,8 +76,8 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         this.setProcessorAttributes(CoreEntityUpdateZone, this.updateZone);
 
         // Attach automatic update listener to update zone.
-        this.updateZone.addUpdateListener(() => {
-            this.update();
+        this.updateZone.addUpdateListener(async () => {
+            await this.update();
         });
     }
 
@@ -137,9 +137,9 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
      * 
      * @returns True when any update happened, false when all values stayed the same.
      */
-    private update(): boolean {
+    protected async onUpdate(): Promise<boolean> {
         // Update and callback after update.
-        if (this.mRootBuilder.update()) {
+        if (await this.mRootBuilder.update()) {
             // Call component processor on update function.
             this.call<IComponentOnUpdate, 'onUpdate'>('onUpdate', false);
 

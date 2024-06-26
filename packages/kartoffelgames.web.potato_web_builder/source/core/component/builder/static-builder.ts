@@ -48,32 +48,36 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
             this.buildTemplate([this.template], this);
         }
 
-        // Save accumulated update state for all modules.
-        let lUpdated: boolean = false;
-
         // Update static modules.
+        const lModuleUpdates: Array<Promise<boolean>> = new Array<Promise<boolean>>();
         for (const lModule of this.content.linkedStaticModules) {
-            lUpdated = await lModule.update() || lUpdated;
+            lModuleUpdates.push(lModule.update());
         }
 
         // List with all expression that are updated and linked with any attribute.
         const lAttributesWithExpressionModuleLink: Set<PwbTemplateAttribute> = new Set<PwbTemplateAttribute>();
-
-        // Update expressions after.
         for (const lExpressionModule of this.content.linkedExpressionModules) {
             // Update expression and save updatestate.
-            const lExpressionUpdated: boolean = await lExpressionModule.update();
-
-            // Update accumulated modules update state.
-            lUpdated = lExpressionUpdated || lUpdated;
-
-            // Check if expression is mapped with any attribute.
-            if (lExpressionUpdated) {
-                const lLinkedAttribute: PwbTemplateAttribute | undefined = this.content.attributeOfLinkedExpressionModule(lExpressionModule);
-                if (lLinkedAttribute) {
-                    lAttributesWithExpressionModuleLink.add(lLinkedAttribute);
+            lModuleUpdates.push(lExpressionModule.update().then((pExpressionUpdated) => {
+                // Check if expression is mapped with any attribute.
+                if (pExpressionUpdated) {
+                    const lLinkedAttribute: PwbTemplateAttribute | undefined = this.content.attributeOfLinkedExpressionModule(lExpressionModule);
+                    if (lLinkedAttribute) {
+                        lAttributesWithExpressionModuleLink.add(lLinkedAttribute);
+                    }
                 }
-            }
+
+                return pExpressionUpdated;
+            }));
+        }
+
+        // Wait for all Updates to finish
+        const lModuleUpdateResult: Array<boolean> = await Promise.all(lModuleUpdates);
+
+        // Save accumulated update state for all modules. Early return to optimize empty loop.
+        const lUpdated: boolean = lModuleUpdateResult.includes(true);
+        if (!lUpdated) {
+            return false;
         }
 
         // Update any attribute with linked expression modules that has been updated.

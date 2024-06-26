@@ -123,9 +123,9 @@ export class CoreEntityUpdateZone {
 
         // Create isolated or default zone as parent zone or, when not specified, current zones child.
         this.mInteractionZone = (pParentZone ?? InteractionZone.current).execute(() => {
-            return new InteractionZone(`${pLabel}-ProcessorZone`, { isolate: pIsolatedInteraction, trigger: <InteractionResponseType><unknown>pInteractionTrigger });
+            return InteractionZone.current.create(`${pLabel}-ProcessorZone`, { isolate: pIsolatedInteraction, trigger: <InteractionResponseType><unknown>pInteractionTrigger });
         });
-        this.mSilentZone = new InteractionZone(`${pLabel}-SilentZone`, { isolate: true, trigger: <InteractionResponseType><unknown>UpdateTrigger.None });
+        this.mSilentZone = InteractionZone.current.create(`${pLabel}-SilentZone`, { isolate: true, trigger: <InteractionResponseType><unknown>UpdateTrigger.None });
 
         // Shedule an update on interaction zone.
         this.mInteractionDetectionListener = (pReason: InteractionReason) => {

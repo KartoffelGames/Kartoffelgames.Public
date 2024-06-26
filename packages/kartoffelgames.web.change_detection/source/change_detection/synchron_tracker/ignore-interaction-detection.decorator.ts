@@ -1,11 +1,11 @@
-import { InteractionDetectionConstructor, InteractionDetectionProxy } from './interaction-detection-proxy';
+import { InteractionDetectionProxy } from './interaction-detection-proxy';
 
 /**
  * AtScript. PWB attribute attribute module.
  * 
  * @param pSettings - Module settings.
  */
-export function IgnoreInteractionDetection(pConstructor: InteractionDetectionConstructor): void {
+export function IgnoreInteractionDetection(pConstructor: any): void {
     InteractionDetectionProxy.ignoreClass(pConstructor);
 }
 

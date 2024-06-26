@@ -45,7 +45,7 @@ export class PwbApp {
      */
     public constructor() {
         // Read interaction zone of app component.
-        this.mInteractionZone = new InteractionZone('App', { isolate: true, trigger: <InteractionResponseType><unknown>UpdateTrigger.None });
+        this.mInteractionZone = InteractionZone.current.create('App', { isolate: true, trigger: <InteractionResponseType><unknown>UpdateTrigger.None });
         PwbApp.mInteractionZoneToApp.set(this.mInteractionZone, this);
 
         // Get app component constructor.

@@ -15,7 +15,7 @@ import { InteractionReason } from './interaction-reason';
  */
 export class InteractionZone {
     // Needs to be isolated to prevent parent listener execution.
-    private static mCurrentZone: InteractionZone = new InteractionZone('Default', { trigger: 0, isolate: true });
+    private static mCurrentZone: InteractionZone = new InteractionZone('Default', null, InteractionResponseType.Any, true);
 
     /**
      * Add global error listener that can sends the error to the allocated {@link InteractionZone}
@@ -110,7 +110,7 @@ export class InteractionZone {
      * @param pName - Name of interaction zone.
      * @param pSettings - Interaction zone settings.
      */
-    public constructor(pName: string, pSettings?: InteractionZoneConstructorSettings) {
+    private constructor(pName: string, pParent: InteractionZone | null, pTrigger: InteractionResponseType, pIsolate: boolean,) {
         // Initialize listener lists
         this.mChangeListener = new Dictionary<ChangeListener, InteractionZone>();
         this.mErrorListener = new Dictionary<ErrorListener, InteractionZone>();
@@ -119,13 +119,13 @@ export class InteractionZone {
         this.mName = pName;
 
         // Create bitmap of response triggers.
-        this.mTriggerMapping = pSettings?.trigger ?? ~0; // Negated 0 results in -1 wich is all bits flipped to 1.
+        this.mResponseType = pTrigger;
 
         // Save parent when not isolated.
-        this.mParent = InteractionZone.mCurrentZone ?? null;
+        this.mParent = pParent;
 
         // Save isolation state.
-        this.mIsolated = pSettings?.isolate === true;
+        this.mIsolated = pIsolate;
     }
 
     /**
@@ -147,6 +147,19 @@ export class InteractionZone {
      */
     public addInteractionListener(pListener: ChangeListener): void {
         this.mChangeListener.add(pListener, InteractionZone.current);
+    }
+
+    /**
+     * Create descendant of this zone.
+     * 
+     * @param pName - Name of new zone.
+     * @param pTrigger - Action trigger.
+     * @param pIsolate - Isolate interactions from parent zone.
+     * 
+     * @returns new {@link InteractionZone} with zone as parent.
+     */
+    public create(pName: string, pOptions?: InteractionZoneConstructorSettings): InteractionZone {
+        return new InteractionZone(pName, InteractionZone.mCurrentZone, pOptions?.trigger ?? InteractionResponseType.Any, pOptions?.isolate === true);
     }
 
     /**

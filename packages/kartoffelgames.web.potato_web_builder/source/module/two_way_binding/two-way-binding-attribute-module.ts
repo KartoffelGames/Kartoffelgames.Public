@@ -67,7 +67,7 @@ export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
         const lCurrentViewValue: any = Reflect.get(this.mTargetNode, this.mAttributeKey);
 
         // Check for changes in view.
-        if (lCurrentViewValue !== this.mLastViewValue) {
+        if (lCurrentViewValue !== lCurrentDataValue) {
             const lExtendedValues: Dictionary<string, any> = new Dictionary<string, any>();
             lExtendedValues.set('$DATA', lCurrentViewValue);
 

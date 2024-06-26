@@ -55,16 +55,25 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
         }
 
         // List with all expression that are updated and linked with any attribute.
-        const lAttributesWithExpressionModuleLink: Set<PwbTemplateAttribute> = new Set<PwbTemplateAttribute>();
         for (const lExpressionModule of this.content.linkedExpressionModules) {
             // Update expression and save updatestate.
             lModuleUpdates.push(lExpressionModule.update().then((pExpressionUpdated) => {
                 // Check if expression is mapped with any attribute.
                 if (pExpressionUpdated) {
+                    // Read linked attribute of expression. Exit when it has none.
                     const lLinkedAttribute: PwbTemplateAttribute | undefined = this.content.attributeOfLinkedExpressionModule(lExpressionModule);
-                    if (lLinkedAttribute) {
-                        lAttributesWithExpressionModuleLink.add(lLinkedAttribute);
+                    if (!lLinkedAttribute) {
+                        return pExpressionUpdated;
                     }
+
+                    // Read all attribute text nodes.
+                    const lLinkedAttributeData: StaticBuilderLinkedAttributeData = this.content.getLinkedAttributeData(lLinkedAttribute);
+
+                    // Accumulate all up to date text data.
+                    const lAccumulatedText: string = lLinkedAttributeData.values.reduce((pCurrent: string, pNext: Text) => { return pCurrent + pNext.data; }, '');
+
+                    // Update DOM attribute value with accumulated text.
+                    lLinkedAttributeData.node.setAttribute(lLinkedAttribute.name, lAccumulatedText);
                 }
 
                 return pExpressionUpdated;
@@ -74,25 +83,8 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
         // Wait for all Updates to finish
         const lModuleUpdateResult: Array<boolean> = await Promise.all(lModuleUpdates);
 
-        // Save accumulated update state for all modules. Early return to optimize empty loop.
-        const lUpdated: boolean = lModuleUpdateResult.includes(true);
-        if (!lUpdated) {
-            return false;
-        }
-
-        // Update any attribute with linked expression modules that has been updated.
-        for (const lUpdatedAttribute of lAttributesWithExpressionModuleLink) {
-            // Read all attribute text nodes.
-            const lLinkedAttributeData: StaticBuilderLinkedAttributeData = this.content.getLinkedAttributeData(lUpdatedAttribute);
-
-            // Accumulate all up to date text data.
-            const lAccumulatedText: string = lLinkedAttributeData.values.reduce((pCurrent: string, pNext: Text) => { return pCurrent + pNext.data; }, '');
-
-            // Update DOM attribute value with accumulated text.
-            lLinkedAttributeData.node.setAttribute(lUpdatedAttribute.name, lAccumulatedText);
-        }
-
-        return lUpdated;
+        // Update happened when any module has an update.
+        return lModuleUpdateResult.includes(true);
     }
 
     /**

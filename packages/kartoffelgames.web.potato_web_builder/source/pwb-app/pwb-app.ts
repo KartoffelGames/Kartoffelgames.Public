@@ -1,6 +1,6 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
-import { ErrorListener } from '@kartoffelgames/web.change-detection/library/source/change_detection/interaction-zone';
+import { InteractionResponseType, InteractionZone } from '@kartoffelgames/web.interaction-zone';
+import { ErrorListener } from '@kartoffelgames/web.interaction-zone/library/source/change_detection/interaction-zone';
 import { ComponentProcessorConstructor } from '../core/component/component';
 import { ComponentRegister } from '../core/component/component-register';
 import { PwbTemplate } from '../core/component/template/nodes/pwb-template';

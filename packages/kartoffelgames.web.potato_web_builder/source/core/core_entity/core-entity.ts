@@ -2,7 +2,7 @@ import { Dictionary, Exception, IDeconstructable } from '@kartoffelgames/core';
 import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { CoreEntityUpdateZone } from './core-entity-update-zone';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
-import { InteractionZone } from '@kartoffelgames/web.change-detection';
+import { InteractionZone } from '@kartoffelgames/web.interaction-zone';
 
 export abstract class CoreEntity<TProcessor extends object = object> implements IDeconstructable {
     private readonly mCoreEntitySetupHookList: Array<CoreEntitySetupHook>;

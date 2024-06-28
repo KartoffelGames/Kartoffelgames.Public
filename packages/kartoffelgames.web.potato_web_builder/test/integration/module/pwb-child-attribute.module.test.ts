@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { InteractionDetectionProxy } from '@kartoffelgames/web.change-detection/library/source/change_detection/synchron_tracker/interaction-detection-proxy';
+import { InteractionDetectionProxy } from '@kartoffelgames/web.interaction-zone/library/source/change_detection/synchron_tracker/interaction-detection-proxy';
 import { expect } from 'chai';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator';

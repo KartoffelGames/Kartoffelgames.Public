@@ -1,4 +1,4 @@
-import { ChangeState, HistoryItem, MyersDiff } from '@kartoffelgames/web.change-detection';
+import { ChangeState, HistoryItem, MyersDiff } from '@kartoffelgames/web.interaction-zone';
 import { InstructionModule } from '../../module/instruction_module/instruction-module';
 import { InstructionResultElement } from '../../module/instruction_module/instruction-result';
 import { ComponentModules } from '../component-modules';

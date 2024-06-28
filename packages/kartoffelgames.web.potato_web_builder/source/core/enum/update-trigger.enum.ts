@@ -1,4 +1,4 @@
-import { InteractionResponseType } from '@kartoffelgames/web.change-detection';
+import { InteractionResponseType } from '@kartoffelgames/web.interaction-zone';
 
 export enum UpdateTrigger {
     /**

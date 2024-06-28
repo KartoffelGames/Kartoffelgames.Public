@@ -1,5 +1,5 @@
-import { InteractionReason } from '@kartoffelgames/web.change-detection';
-import { InteractionDetectionProxy } from '@kartoffelgames/web.change-detection/library/source/change_detection/synchron_tracker/interaction-detection-proxy';
+import { InteractionReason } from '@kartoffelgames/web.interaction-zone';
+import { InteractionDetectionProxy } from '@kartoffelgames/web.interaction-zone/library/source/change_detection/synchron_tracker/interaction-detection-proxy';
 import { expect } from 'chai';
 import { Component, IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../source/core/component/component';
 import { ComponentRegister } from '../../source/core/component/component-register';

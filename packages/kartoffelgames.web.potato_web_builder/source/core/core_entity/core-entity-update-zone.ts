@@ -1,5 +1,5 @@
 import { Dictionary, List } from '@kartoffelgames/core';
-import { IgnoreInteractionDetection, InteractionReason, InteractionResponseType, InteractionZone } from '@kartoffelgames/web.change-detection';
+import { IgnoreInteractionDetection, InteractionReason, InteractionResponseType, InteractionZone } from '@kartoffelgames/web.interaction-zone';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
 import { ComponentDebug } from '../component-debug';
 

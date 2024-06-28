@@ -6,6 +6,6 @@
     "outDir": "./library"
   },
   "include": [
-    "./**/*.ts",
+    "./**/*.ts", "../kartoffelgames.core.data/source/algorithm/myers-diff.ts",
   ]
 }

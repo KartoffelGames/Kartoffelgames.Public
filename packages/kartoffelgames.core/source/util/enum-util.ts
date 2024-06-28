@@ -26,9 +26,9 @@ export class EnumUtil {
      * const noneExistingValue = EnumUtil.cast<MyEnum>(MyEnum, 5); // => undefined
      * ```
      */
-    public static cast<TEnum>(pEnum: object, pValue: any): TEnum | undefined {
+    public static cast<T>(pEnum: object, pValue: any): T | undefined {
         // Thats it... :)
-        if (EnumUtil.exists<TEnum>(pEnum, pValue)) {
+        if (EnumUtil.exists<T>(pEnum, pValue)) {
             return pValue;
         } else {
             return undefined;
@@ -56,8 +56,8 @@ export class EnumUtil {
      * const noneExistingValue = EnumUtil.exists(MyEnum, 5); // => False
      * ```
      */
-    public static exists<TEnum>(pEnum: object, pValue: any): pValue is TEnum {
-        return EnumUtil.valuesOf<TEnum>(pEnum as TEnum).includes(pValue);
+    public static exists<T>(pEnum: object, pValue: any): pValue is T {
+        return EnumUtil.valuesOf(pEnum).includes(pValue);
     }
 
     /**
@@ -80,9 +80,9 @@ export class EnumUtil {
      * const enumNames = EnumUtil.namesOf(MyEnum); // => ['Entry1', 'Entry2']
      * ```
      */
-    public static namesOf<TEnum>(pEnum: TEnum): Array<EnumKey<TEnum>> {
+    public static namesOf<TEnum>(pEnum: TEnum): Array<keyof TEnum> {
         // Convert enum to key array.
-        return Object.keys(pEnum as object).filter((pKey) => isNaN(Number(pKey))) as Array<EnumKey<TEnum>>;
+        return Object.keys(pEnum as object).filter((pKey) => isNaN(Number(pKey))) as Array<keyof TEnum>;
     }
 
     /**
@@ -104,17 +104,14 @@ export class EnumUtil {
      * const enumValues = EnumUtil.valuesOf(MyEnum); // => [1, 2]
      * ```
      */
-    public static valuesOf<TEnum>(pEnum: TEnum): Array<EnumValue<TEnum>> {
-        const lEnumValues: Array<EnumValue<TEnum>> = new Array<EnumValue<TEnum>>();
+    public static valuesOf<T>(pEnum: object): Array<T> {
+        const lEnumValues: Array<T> = new Array<T>();
 
         // Convert enum to vaue array by iterating over all keys.
         for (const lKey of EnumUtil.namesOf(pEnum)) {
-            lEnumValues.push(pEnum[lKey] as EnumValue<TEnum>);
+            lEnumValues.push((<{ [key: string]: T; }>pEnum)[lKey]);
         }
 
         return lEnumValues;
     }
 }
-
-type EnumKey<TEnum> = keyof TEnum
-type EnumValue<TEnum> = TEnum[EnumKey<TEnum>]

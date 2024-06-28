@@ -1,6 +1,6 @@
 import { expect } from 'chai';
-import { Patcher } from '../../../../source/change_detection/asynchron_tracker/patcher/patcher';
-import { InteractionZone } from '../../../../source/change_detection/interaction-zone';
+import { Patcher } from '../../../../source/zone/asynchron_tracker/patcher/patcher';
+import { InteractionZone } from '../../../../source/zone/interaction-zone';
 import '../../../mock/request-animation-frame-mock-session';
 
 describe('Patcher', () => {

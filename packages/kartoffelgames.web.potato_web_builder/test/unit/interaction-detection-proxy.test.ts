@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 
-import { InteractionReason } from '../../../kartoffelgames.web.interaction_zone/source/change_detection/interaction-reason';
-import { InteractionZone } from '../../../kartoffelgames.web.interaction_zone/source/change_detection/interaction-zone';
+import { InteractionReason } from '../../../kartoffelgames.web.interaction_zone/source/zone/interaction-reason';
+import { InteractionZone } from '../../../kartoffelgames.web.interaction_zone/source/zone/interaction-zone';
 import { IgnoreInteractionDetection } from '../../../source/change_detection/synchron_tracker/ignore-interaction-detection.decorator';
 import { InteractionDetectionProxy, InteractionResponseType } from '../../../source/change_detection/synchron_tracker/interaction-detection-proxy';
 import '../../../kartoffelgames.web.interaction_zone/test/mock/request-animation-frame-mock-session';

@@ -1,9 +1,9 @@
 import { Exception } from '@kartoffelgames/core';
 import { expect } from 'chai';
-import { ErrorAllocation } from '../../../source/change_detection/error-allocation';
-import { InteractionReason } from '../../../source/change_detection/interaction-reason';
-import { InteractionZone } from '../../../source/change_detection/interaction-zone';
-import { InteractionDetectionProxy } from '../../../source/change_detection/synchron_tracker/interaction-detection-proxy';
+import { ErrorAllocation } from '../../../source/zone/error-allocation';
+import { InteractionReason } from '../../../source/zone/interaction-reason';
+import { InteractionZone } from '../../../source/zone/interaction-zone';
+import { InteractionDetectionProxy } from '../../../source/zone/synchron_tracker/interaction-detection-proxy';
 import { PreventableErrorEvent, PromiseRejectionEvent } from '../../mock/error-event';
 import '../../mock/request-animation-frame-mock-session';
 

@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core';
 import { ExpressionModule } from '../../../module/expression_module/expression-module';
 import { AttributeModule } from '../../../module/attribute_module/attribute-module';
 import { ComponentModules } from '../../component-modules';

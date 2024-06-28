@@ -1,4 +1,4 @@
-import { Dictionary, Exception, List } from '@kartoffelgames/core.data';
+import { Dictionary, Exception, List } from '@kartoffelgames/core';
 import { Component } from '../../component';
 import { ComponentModules } from '../../component-modules';
 import { BaseBuilder } from '../base-builder';

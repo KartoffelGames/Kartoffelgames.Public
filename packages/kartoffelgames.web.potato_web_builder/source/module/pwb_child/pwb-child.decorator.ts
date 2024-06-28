@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core';
 import { Component, ComponentProcessor } from '../../core/component/component';
 import { ComponentRegister } from '../../core/component/component-register';
 import { ScopedValues } from '../../core/scoped-values';

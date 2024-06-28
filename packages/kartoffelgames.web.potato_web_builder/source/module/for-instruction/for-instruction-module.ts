@@ -1,4 +1,4 @@
-import { Dictionary, Exception } from '@kartoffelgames/core.data';
+import { Dictionary, Exception } from '@kartoffelgames/core';
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
 import { PwbTemplateInstructionNode } from '../../core/component/template/nodes/pwb-template-instruction-node';
 import { ScopedValues } from '../../core/scoped-values';

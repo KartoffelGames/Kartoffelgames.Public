@@ -1,4 +1,4 @@
-import { Dictionary, Exception } from '@kartoffelgames/core.data';
+import { Dictionary, Exception } from '@kartoffelgames/core';
 import { InjectMode } from '../enum/inject-mode';
 import { DecorationReplacementHistory } from '../decoration-history/decoration-history';
 import { InjectionConstructor } from '../type';

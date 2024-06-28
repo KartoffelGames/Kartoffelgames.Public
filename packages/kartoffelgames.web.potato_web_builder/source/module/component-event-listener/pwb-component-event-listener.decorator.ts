@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core';
 import { Metadata } from '@kartoffelgames/core.dependency-injection';
 import { ComponentEventListenerComponentExtension } from './component-event-listener-component-extension';
 import { ComponentProcessorConstructor } from '../../core/component/component';

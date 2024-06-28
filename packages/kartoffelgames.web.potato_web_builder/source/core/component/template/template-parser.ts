@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core';
 import { CodeParser, Lexer } from '@kartoffelgames/core.parser';
 import { PwbTemplate } from './nodes/pwb-template';
 import { BasePwbTemplateNode } from './nodes/base-pwb-template-node';

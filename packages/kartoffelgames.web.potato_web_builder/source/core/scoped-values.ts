@@ -1,4 +1,4 @@
-import { Dictionary, Exception } from '@kartoffelgames/core.data';
+import { Dictionary, Exception } from '@kartoffelgames/core';
 import { Component } from './component/component';
 
 /**

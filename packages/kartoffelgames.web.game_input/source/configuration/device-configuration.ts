@@ -1,4 +1,4 @@
-import { Dictionary, ICloneable } from '@kartoffelgames/core.data';
+import { Dictionary, ICloneable } from '@kartoffelgames/core';
 import { InputButton } from '../types';
 
 export class DeviceConfiguration implements ICloneable<DeviceConfiguration>{

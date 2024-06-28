@@ -5,7 +5,7 @@ import { CommentNode } from '../../source/node/comment-node';
 import { XmlAttribute } from '../../source/attribute/xml-attribute';
 import { TextNode } from '../../source/node/text-node';
 import { XmlDocument } from '../../source/document/xml-document';
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core';
 import { ParserException } from '@kartoffelgames/core.parser';
 
 describe('XmlParser', () => {

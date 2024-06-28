@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core';
 import { Metadata } from '@kartoffelgames/core.dependency-injection';
 import { Component, ComponentProcessorConstructor } from '../../core/component/component';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';

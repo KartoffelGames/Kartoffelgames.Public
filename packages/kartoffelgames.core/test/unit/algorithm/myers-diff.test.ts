@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { ChangeState, MyersDiff, HistoryItem } from '@kartoffelgames/core.data/source/algorithm/myers-diff';
+import { ChangeState, HistoryItem, MyersDiff } from '../../../source/algorithm/myers-diff';
 
 describe('MyersDiff', () => {
     describe('Method: differencesOf', () => {

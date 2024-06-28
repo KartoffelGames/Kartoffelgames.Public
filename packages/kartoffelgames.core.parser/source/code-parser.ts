@@ -1,4 +1,4 @@
-import { Dictionary, Exception, Stack } from '@kartoffelgames/core.data';
+import { Dictionary, Exception, Stack } from '@kartoffelgames/core';
 import { GraphParseError, GraphException } from './exception/graph-exception';
 import { ParserException } from './exception/parser-exception';
 import { AnonymoutGrammarNode } from './graph/node/anonymous-grammar-node';

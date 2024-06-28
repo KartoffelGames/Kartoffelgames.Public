@@ -1,4 +1,4 @@
-import { IVoidParameterConstructor } from '@kartoffelgames/core.data';
+import { IVoidParameterConstructor } from '@kartoffelgames/core';
 import { CommentNode } from '../node/comment-node';
 import { TextNode } from '../node/text-node';
 import { XmlElement } from '../node/xml-element';

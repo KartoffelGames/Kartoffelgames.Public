@@ -1,4 +1,4 @@
-import { IDeconstructable } from '@kartoffelgames/core.data';
+import { IDeconstructable } from '@kartoffelgames/core';
 import { AccessMode } from '../enum/access-mode.enum';
 import { ExtensionModule, ExtensionModuleConfiguration } from '../extension/extension-module';
 import { CoreEntity, CoreEntityConstructorParameter, CoreEntityProcessorConstructor } from './core-entity';

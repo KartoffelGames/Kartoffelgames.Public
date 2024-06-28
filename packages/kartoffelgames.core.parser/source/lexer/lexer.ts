@@ -1,4 +1,4 @@
-import { Dictionary, Exception } from '@kartoffelgames/core.data';
+import { Dictionary, Exception } from '@kartoffelgames/core';
 import { ParserException } from '../exception/parser-exception';
 import { LexerToken } from './lexer-token';
 

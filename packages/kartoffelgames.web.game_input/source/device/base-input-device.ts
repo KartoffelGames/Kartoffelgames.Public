@@ -1,4 +1,4 @@
-import { Dictionary } from '@kartoffelgames/core.data';
+import { Dictionary } from '@kartoffelgames/core';
 import { DeviceConfiguration } from '../configuration/device-configuration';
 import { InputDevice } from '../enum/input-device.enum';
 import { InputActionEvent, InputActionEventMap } from '../event/input-action-event';

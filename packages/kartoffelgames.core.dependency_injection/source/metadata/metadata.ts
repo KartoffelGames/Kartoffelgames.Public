@@ -1,4 +1,4 @@
-import { Dictionary } from '@kartoffelgames/core.data';
+import { Dictionary } from '@kartoffelgames/core';
 import { DecorationReplacementHistory } from '../decoration-history/decoration-history';
 import { InjectionConstructor } from '../type';
 import { ConstructorMetadata } from './constructor-metadata';

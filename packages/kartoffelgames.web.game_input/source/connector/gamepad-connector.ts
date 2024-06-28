@@ -1,4 +1,4 @@
-import { Dictionary } from '@kartoffelgames/core.data';
+import { Dictionary } from '@kartoffelgames/core';
 import { GamepadButtonMapping } from '../configuration/gamepad-button-mapping';
 import { IInputConnector } from '../interface/i-input-connector.interface';
 import { InputDevices } from '../input-devices';

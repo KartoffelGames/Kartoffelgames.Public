@@ -1,4 +1,4 @@
-import { Dictionary, Exception } from '@kartoffelgames/core.data';
+import { Dictionary, Exception } from '@kartoffelgames/core';
 import { MustacheExpressionModule } from '../../module/mustache_expression/mustache-expression-module';
 import { CoreEntityProcessorConstructorSetup, CoreEntityRegister } from '../core_entity/core-entity-register';
 import { AttributeModule, AttributeModuleConfiguration } from '../module/attribute_module/attribute-module';

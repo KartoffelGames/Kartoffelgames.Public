@@ -1,4 +1,4 @@
-import { List } from '@kartoffelgames/core.data';
+import { List } from '@kartoffelgames/core';
 import { XmlElement } from '../node/xml-element';
 
 /**

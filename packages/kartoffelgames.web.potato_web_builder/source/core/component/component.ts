@@ -1,4 +1,4 @@
-import { Dictionary } from '@kartoffelgames/core.data';
+import { Dictionary } from '@kartoffelgames/core';
 import { CoreEntityExtendable } from '../core_entity/core-entity-extendable';
 import { CoreEntityUpdateZone } from '../core_entity/core-entity-update-zone';
 import { UpdateMode } from '../enum/update-mode.enum';

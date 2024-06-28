@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core';
 import { expect } from 'chai';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
 import { TestUtil } from '../../utility/test-util';

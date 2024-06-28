@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core';
 import { BasePwbTemplateNode } from '../base-pwb-template-node';
 
 /**

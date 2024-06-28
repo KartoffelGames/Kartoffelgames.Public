@@ -1,4 +1,4 @@
-import { Dictionary, Exception } from '@kartoffelgames/core.data';
+import { Dictionary, Exception } from '@kartoffelgames/core';
 import { SerializeableConstructor, SerializeableGuid } from '../type';
 import { StatefullSerializeableClasses } from './statefull-serializeable-classes';
 import { ObjectifiedBigInt, ObjectifiedClass, ObjectifiedObject, ObjectifiedObjectType, ObjectifiedReference, ObjectifiedSymbol, ObjectifiedValue } from './types/Objectified.type';

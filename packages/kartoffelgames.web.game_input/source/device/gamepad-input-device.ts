@@ -1,4 +1,4 @@
-import { EnumUtil } from '@kartoffelgames/core.data';
+import { EnumUtil } from '@kartoffelgames/core';
 import { DeviceConfiguration } from '../configuration/device-configuration';
 import { GamepadButtonMapping } from '../configuration/gamepad-button-mapping';
 import { InputConfiguration } from '../configuration/input-configuration';

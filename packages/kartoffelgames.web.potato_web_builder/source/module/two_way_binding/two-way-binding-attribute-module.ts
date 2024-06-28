@@ -1,4 +1,4 @@
-import { Dictionary } from '@kartoffelgames/core.data';
+import { Dictionary } from '@kartoffelgames/core';
 import { CoreEntityUpdateZone } from '../../core/core_entity/core-entity-update-zone';
 import { IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module';
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';

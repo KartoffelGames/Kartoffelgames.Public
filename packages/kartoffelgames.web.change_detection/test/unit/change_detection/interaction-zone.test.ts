@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core';
 import { expect } from 'chai';
 import { ErrorAllocation } from '../../../source/change_detection/error-allocation';
 import { InteractionReason } from '../../../source/change_detection/interaction-reason';

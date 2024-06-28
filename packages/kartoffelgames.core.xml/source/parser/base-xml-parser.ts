@@ -1,4 +1,4 @@
-import { Exception, IVoidParameterConstructor } from '@kartoffelgames/core.data';
+import { Exception, IVoidParameterConstructor } from '@kartoffelgames/core';
 import { CodeParser, Lexer } from '@kartoffelgames/core.parser';
 import { XmlDocument } from '../document/xml-document';
 import { CommentNode } from '../node/comment-node';

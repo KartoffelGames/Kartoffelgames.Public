@@ -1,4 +1,4 @@
-import { Dictionary } from '@kartoffelgames/core.data';
+import { Dictionary } from '@kartoffelgames/core';
 import { SerializeableConstructor, SerializeableGuid } from '../type';
 import { StatefullSerializeableClasses, StatefullSerializerInitializationParameter } from './statefull-serializeable-classes';
 import { ObjectifiedObject, ObjectifiedSimple, ObjectifiedValue } from './types/Objectified.type';

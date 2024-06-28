@@ -1,4 +1,4 @@
-import { Dictionary } from '@kartoffelgames/core.data';
+import { Dictionary } from '@kartoffelgames/core';
 import { InjectionConstructor } from '../type';
 import { PropertyMetadata } from './property-metadata';
 import { BaseMetadata } from './base-metadata';

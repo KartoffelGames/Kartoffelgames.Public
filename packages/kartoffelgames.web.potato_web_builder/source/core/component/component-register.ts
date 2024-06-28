@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core';
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { Component, ComponentProcessor } from './component';
 

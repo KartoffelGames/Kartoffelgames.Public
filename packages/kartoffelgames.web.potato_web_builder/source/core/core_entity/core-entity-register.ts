@@ -1,4 +1,4 @@
-import { Dictionary } from '@kartoffelgames/core.data';
+import { Dictionary } from '@kartoffelgames/core';
 import { CoreEntity, CoreEntityProcessorConstructor } from './core-entity';
 
 export class CoreEntityRegister {

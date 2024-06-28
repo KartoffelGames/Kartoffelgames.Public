@@ -1,4 +1,4 @@
-import { Dictionary } from '@kartoffelgames/core.data';
+import { Dictionary } from '@kartoffelgames/core';
 import { ErrorAllocation } from './error-allocation';
 import { InteractionReason } from './interaction-reason';
 

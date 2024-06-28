@@ -1,4 +1,4 @@
-import { IDeconstructable } from '@kartoffelgames/core.data';
+import { IDeconstructable } from '@kartoffelgames/core';
 import { ScopedValues } from '../scoped-values';
 import { CoreEntityProcessorConstructor } from '../core_entity/core-entity';
 import { CoreEntityExtendable, CoreEntityExtendableConstructorParameter } from '../core_entity/core-entity-extendable';

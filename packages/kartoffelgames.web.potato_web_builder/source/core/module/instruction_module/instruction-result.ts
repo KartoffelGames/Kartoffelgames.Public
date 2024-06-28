@@ -1,4 +1,4 @@
-import { Exception, List } from '@kartoffelgames/core.data';
+import { Exception, List } from '@kartoffelgames/core';
 import { PwbTemplate } from '../../component/template/nodes/pwb-template';
 import { ScopedValues } from '../../scoped-values';
 

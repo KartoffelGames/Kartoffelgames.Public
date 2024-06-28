@@ -1,4 +1,4 @@
-import { Dictionary, Exception, IDeconstructable } from '@kartoffelgames/core.data';
+import { Dictionary, Exception, IDeconstructable } from '@kartoffelgames/core';
 import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { CoreEntityUpdateZone } from './core-entity-update-zone';
 import { UpdateTrigger } from '../enum/update-trigger.enum';

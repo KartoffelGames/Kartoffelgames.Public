@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core';
 import { expect } from 'chai';
 import { AnonymoutGrammarNode } from '../../source/graph/node/anonymous-grammar-node';
 import { BaseGrammarNode } from '../../source/graph/node/base-grammar-node';

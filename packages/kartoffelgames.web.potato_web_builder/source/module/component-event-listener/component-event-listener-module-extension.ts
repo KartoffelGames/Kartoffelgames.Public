@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
 import { IExtensionOnDeconstruct } from '../../core/extension/extension-module';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';

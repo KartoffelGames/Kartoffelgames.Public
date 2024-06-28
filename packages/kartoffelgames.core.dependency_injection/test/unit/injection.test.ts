@@ -1,4 +1,4 @@
-import { Dictionary } from '@kartoffelgames/core.data';
+import { Dictionary } from '@kartoffelgames/core';
 import { expect } from 'chai';
 import { InjectMode } from '../../source/enum/inject-mode';
 import { Injectable } from '../../source/decorator/injectable.decorator';

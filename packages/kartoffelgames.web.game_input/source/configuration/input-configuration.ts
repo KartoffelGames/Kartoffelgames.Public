@@ -1,4 +1,4 @@
-import { Dictionary } from '@kartoffelgames/core.data';
+import { Dictionary } from '@kartoffelgames/core';
 import { ButtonValueType } from '../enum/button-value-type.enum';
 import { DeviceConfiguration } from './device-configuration';
 import { GamepadButtonMapping } from './gamepad-button-mapping';

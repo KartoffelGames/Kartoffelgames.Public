@@ -1,4 +1,4 @@
-import { Dictionary } from '@kartoffelgames/core.data';
+import { Dictionary } from '@kartoffelgames/core';
 import { ErrorAllocation } from '../../error-allocation';
 import { InteractionZone } from '../../interaction-zone';
 import { EventNames } from './event-names';

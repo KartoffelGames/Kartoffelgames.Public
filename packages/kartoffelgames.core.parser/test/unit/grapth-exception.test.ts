@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core';
 import { expect } from 'chai';
 import { GraphException, GraphParseError } from '../../source/exception/graph-exception';
 import { LexerToken } from '../../source/lexer/lexer-token';

@@ -15,7 +15,7 @@
         "@types/mocha": "^10.0.1"
     },
     "dependencies": {
-        "@kartoffelgames/core.data": "^0.1.0"
+        "@kartoffelgames/core": "^0.1.0"
     },
     "scripts": {
         "build": "kg build @kartoffelgames/web.change-detection && kg page @kartoffelgames/web.change-detection --build-only",

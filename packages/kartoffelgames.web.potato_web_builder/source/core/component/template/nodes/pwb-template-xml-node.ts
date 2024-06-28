@@ -1,4 +1,4 @@
-import { Dictionary, List } from '@kartoffelgames/core.data';
+import { Dictionary, List } from '@kartoffelgames/core';
 import { BasePwbTemplateNode } from './base-pwb-template-node';
 import { PwbTemplateAttribute } from './values/pwb-template-attribute';
 import { PwbTemplateTextNode } from './pwb-template-text-node';

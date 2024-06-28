@@ -1,10 +1,10 @@
 import { expect } from 'chai';
 
-import { InteractionReason } from '../../../source/change_detection/interaction-reason';
-import { InteractionZone } from '../../../source/change_detection/interaction-zone';
+import { InteractionReason } from '../../../kartoffelgames.web.interaction_zone/source/change_detection/interaction-reason';
+import { InteractionZone } from '../../../kartoffelgames.web.interaction_zone/source/change_detection/interaction-zone';
 import { IgnoreInteractionDetection } from '../../../source/change_detection/synchron_tracker/ignore-interaction-detection.decorator';
 import { InteractionDetectionProxy, InteractionResponseType } from '../../../source/change_detection/synchron_tracker/interaction-detection-proxy';
-import '../../mock/request-animation-frame-mock-session';
+import '../../../kartoffelgames.web.interaction_zone/test/mock/request-animation-frame-mock-session';
 
 describe('InteractionDetectionProxy', () => {
     it('Property: proxy', () => {

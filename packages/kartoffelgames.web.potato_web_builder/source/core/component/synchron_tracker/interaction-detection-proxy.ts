@@ -1,4 +1,4 @@
-import { InteractionZone } from '../interaction-zone';
+import { InteractionZone } from '../../../../../kartoffelgames.web.interaction_zone/source/change_detection/interaction-zone';
 
 /**
  * Interaction detection proxy. Detects synchron calls and interactions on the proxy object.

@@ -1,7 +1,7 @@
 {
-    "name": "@kartoffelgames/core.data",
+    "name": "@kartoffelgames/core",
     "version": "0.1.0",
-    "description": "KartoffelGames.Core.Data",
+    "description": "KartoffelGames.Core",
     "author": {
         "name": "KartoffelGames"
     },
@@ -15,14 +15,14 @@
         "@types/mocha": "^10.0.1"
     },
     "scripts": {
-        "build": "kg build @kartoffelgames/core.data && kg page @kartoffelgames/core.data --build-only",
-        "test": "kg test @kartoffelgames/core.data",
-        "page": "kg page @kartoffelgames/core.data --build-only"
+        "build": "kg build @kartoffelgames/core && kg page @kartoffelgames/core --build-only",
+        "test": "kg test @kartoffelgames/core",
+        "page": "kg page @kartoffelgames/core --build-only"
     },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/KartoffelGames/KartoffelGames.Public.git",
-        "directory": "packages/kartoffelgames.core.data"
+        "directory": "packages/kartoffelgames.core"
     },
     "bugs": {
         "url": "https://github.com/KartoffelGames/KartoffelGames.Public/issues"

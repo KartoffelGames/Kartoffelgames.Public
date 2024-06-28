@@ -1,8 +1,8 @@
 {
     "folders": [
         {
-            "name": "KartoffelGames.Core.Data",
-            "path": "./packages/kartoffelgames.core.data"
+            "name": "KartoffelGames.Core",
+            "path": "./packages/kartoffelgames.core"
         },
         {
             "name": "KartoffelGames.Core.Dependency_Injection",

@@ -79,7 +79,7 @@ describe('EnumUtil', () => {
             }
 
             // Process.
-            const lValueExists: boolean = EnumUtil.exists<TestEnum>(TestEnum, 3);
+            const lValueExists: boolean = EnumUtil.exists(TestEnum, 3);
 
             // Evaluation.
             expect(lValueExists).to.be.true;
@@ -95,7 +95,7 @@ describe('EnumUtil', () => {
             }
 
             // Process.
-            const lValueExists: boolean = EnumUtil.exists<TestEnum>(TestEnum, 'three3');
+            const lValueExists: boolean = EnumUtil.exists(TestEnum, 'three3');
 
             // Evaluation.
             expect(lValueExists).to.be.true;
@@ -111,7 +111,7 @@ describe('EnumUtil', () => {
             }
 
             // Process.
-            const lValueExists: boolean = EnumUtil.exists<TestEnum>(TestEnum, 'three3');
+            const lValueExists: boolean = EnumUtil.exists(TestEnum, 'three3');
 
             // Evaluation.
             expect(lValueExists).to.be.true;
@@ -127,7 +127,7 @@ describe('EnumUtil', () => {
             }
 
             // Process.
-            const lValueExists: boolean = EnumUtil.exists<TestEnum>(TestEnum, 'NOT_THERE');
+            const lValueExists: boolean = EnumUtil.exists(TestEnum, 'NOT_THERE');
 
             // Evaluation.
             expect(lValueExists).to.be.false;
@@ -145,7 +145,7 @@ describe('EnumUtil', () => {
             }
 
             // Process.
-            const lNameArray: Array<keyof TestEnum> = EnumUtil.namesOf(TestEnum);
+            const lNameArray: Array<keyof typeof TestEnum> = EnumUtil.namesOf(TestEnum);
 
             // Evaluation.
             expect(lNameArray).to.be.deep.equal(['One', 'Two', 'Three', 'Five']);
@@ -161,7 +161,7 @@ describe('EnumUtil', () => {
             }
 
             // Process.
-            const lNameArray: Array<keyof TestEnum> = EnumUtil.namesOf(TestEnum);
+            const lNameArray: Array<keyof typeof TestEnum> = EnumUtil.namesOf(TestEnum);
 
             // Evaluation.
             expect(lNameArray).to.be.deep.equal(['One', 'Two', 'Three', 'Five']);
@@ -177,7 +177,7 @@ describe('EnumUtil', () => {
             }
 
             // Process.
-            const lNameArray: Array<keyof TestEnum> = EnumUtil.namesOf(TestEnum);
+            const lNameArray: Array<keyof typeof TestEnum> = EnumUtil.namesOf(TestEnum);
 
             // Evaluation.
             expect(lNameArray).to.be.deep.equal(['One', 'Two', 'Three', 'Five']);

@@ -26,9 +26,9 @@ export class EnumUtil {
      * const noneExistingValue = EnumUtil.cast<MyEnum>(MyEnum, 5); // => undefined
      * ```
      */
-    public static cast<T>(pEnum: EnumObject<T>, pValue: any): T | undefined {
+    public static cast<TEnum>(pEnum: object, pValue: any): TEnum | undefined {
         // Thats it... :)
-        if (EnumUtil.exists<T>(pEnum, pValue)) {
+        if (EnumUtil.exists<TEnum>(pEnum, pValue)) {
             return pValue;
         } else {
             return undefined;
@@ -56,8 +56,8 @@ export class EnumUtil {
      * const noneExistingValue = EnumUtil.exists(MyEnum, 5); // => False
      * ```
      */
-    public static exists<T>(pEnum: EnumObject<T>, pValue: any): pValue is T {
-        return EnumUtil.valuesOf(pEnum).includes(pValue);
+    public static exists<TEnum>(pEnum: object, pValue: any): pValue is TEnum {
+        return EnumUtil.valuesOf<TEnum>(pEnum as TEnum).includes(pValue);
     }
 
     /**
@@ -80,9 +80,9 @@ export class EnumUtil {
      * const enumNames = EnumUtil.namesOf(MyEnum); // => ['Entry1', 'Entry2']
      * ```
      */
-    public static namesOf<T>(pEnum: EnumObject<T>): Array<keyof T> {
+    public static namesOf<TEnum>(pEnum: TEnum): Array<EnumKey<TEnum>> {
         // Convert enum to key array.
-        return Object.keys(pEnum).filter((pKey) => isNaN(Number(pKey))) as Array<keyof T>;
+        return Object.keys(pEnum as object).filter((pKey) => isNaN(Number(pKey))) as Array<EnumKey<TEnum>>;
     }
 
     /**
@@ -104,16 +104,17 @@ export class EnumUtil {
      * const enumValues = EnumUtil.valuesOf(MyEnum); // => [1, 2]
      * ```
      */
-    public static valuesOf<T>(pEnum: EnumObject<T>): Array<T> {
-        const lEnumValues: Array<T> = new Array<T>();
+    public static valuesOf<TEnum>(pEnum: TEnum): Array<EnumValue<TEnum>> {
+        const lEnumValues: Array<EnumValue<TEnum>> = new Array<EnumValue<TEnum>>();
 
         // Convert enum to vaue array by iterating over all keys.
         for (const lKey of EnumUtil.namesOf(pEnum)) {
-            lEnumValues.push(pEnum[lKey] as T);
+            lEnumValues.push(pEnum[lKey] as EnumValue<TEnum>);
         }
 
         return lEnumValues;
     }
 }
 
-type EnumObject<TEnum> = Record<keyof TEnum, number | string> & { [k: number]: string }; // TODO: Fix types. keyof typeof TEnum or so;
+type EnumKey<TEnum> = keyof TEnum
+type EnumValue<TEnum> = TEnum[EnumKey<TEnum>]

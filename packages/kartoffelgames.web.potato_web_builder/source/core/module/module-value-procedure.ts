@@ -1,4 +1,4 @@
-import { Dictionary } from '@kartoffelgames/core';
+import { Dictionary, Exception } from '@kartoffelgames/core';
 import { ScopedValues } from '../scoped-values';
 
 export class ModuleValueProcedure<T> {
@@ -42,6 +42,10 @@ export class ModuleValueProcedure<T> {
      * @param pValue - Value.
      */
     public setTemporaryValue(pName: string, pValue: any): void {
+        if (!this.mTemporaryValues.has(pName)) {
+            throw new Exception(`Temporary value "${pName}" does not exist for this procedure.`, this);
+        }
+
         this.mTemporaryValues.set(pName, pValue);
     }
 

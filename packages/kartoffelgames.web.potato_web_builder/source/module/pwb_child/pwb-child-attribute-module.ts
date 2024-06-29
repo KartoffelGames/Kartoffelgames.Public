@@ -3,8 +3,8 @@ import { ComponentScopedValues } from '../../core/component/injection_reference/
 import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
 import { AccessMode } from '../../core/enum/access-mode.enum';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute';
+import { ComponentInteractionType } from '../../core/component/interaction-tracker/component-processor-proxy';
 
 /**
  * Used with "#IdChildName" like - #PasswordInput.
@@ -12,7 +12,7 @@ import { ModuleAttribute } from '../../core/module/injection_reference/module-at
 @PwbAttributeModule({
     access: AccessMode.Write,
     selector: /^#[[\w$]+$/,
-    trigger: UpdateTrigger.Default
+    trigger: ComponentInteractionType.Any
 })
 export class PwbChildAttributeModule {
     /**

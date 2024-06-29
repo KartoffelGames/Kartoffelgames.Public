@@ -1,7 +1,8 @@
 import { Dictionary, List } from '@kartoffelgames/core';
-import { IgnoreInteractionDetection, InteractionReason, InteractionResponseType, InteractionZone } from '@kartoffelgames/web.interaction-zone';
-import { UpdateTrigger } from '../enum/update-trigger.enum';
+import { InteractionZone } from '@kartoffelgames/web.interaction-zone';
 import { ComponentDebug } from '../component-debug';
+import { IgnoreInteractionTracking } from '../component/interaction-tracker/ignore-interaction-detection.decorator';
+import { ComponentInteractionEvent, ComponentInteractionType } from '../component/interaction-tracker/component-processor-proxy';
 
 /**
  * Update zone of any core entity. Handles automatic and manual update detection.
@@ -9,7 +10,7 @@ import { ComponentDebug } from '../component-debug';
  * 
  * @internal
  */
-@IgnoreInteractionDetection
+@IgnoreInteractionTracking
 export class CoreEntityUpdateZone {
     private static readonly MAX_STACK_SIZE: number = 10;
     private static mCallQueue: Dictionary<number, CallQueueFunction> = new Dictionary<number, CallQueueFunction>();
@@ -76,11 +77,10 @@ export class CoreEntityUpdateZone {
 
     private mEnabled: boolean;
     private mHasSheduledUpdate: boolean;
-    private readonly mInteractionDetectionListener: (pReason: InteractionReason) => void;
     private readonly mInteractionZone: InteractionZone;
     private mSheduledUpdateIdentifier: number;
     private readonly mSilentZone: InteractionZone;
-    private readonly mUpdateCallChain: List<InteractionReason>;
+    private readonly mUpdateCallChain: List<ComponentInteractionEvent>;
     private readonly mUpdateChainCompleteHookReleaseList: List<UpdateChainCompleteHookRelease>;
     private readonly mUpdateListener: List<UpdateListener>;
 
@@ -111,32 +111,29 @@ export class CoreEntityUpdateZone {
      * Constructor.
      * @param pUpdateScope - Update scope.
      */
-    public constructor(pLabel: string, pIsolatedInteraction: boolean, pInteractionTrigger: UpdateTrigger, pParentZone?: InteractionZone) {
+    public constructor(pLabel: string, pIsolatedInteraction: boolean, pInteractionTrigger: ComponentInteractionType, pParentZone?: InteractionZone) {
         this.mUpdateListener = new List<UpdateListener>();
         this.mEnabled = false;
 
         // Init loop detection values.
-        this.mUpdateCallChain = new List<InteractionReason>();
+        this.mUpdateCallChain = new List<ComponentInteractionEvent>();
         this.mUpdateChainCompleteHookReleaseList = new List<UpdateChainCompleteHookRelease>();
         this.mSheduledUpdateIdentifier = 0;
         this.mHasSheduledUpdate = false;
 
         // Create isolated or default zone as parent zone or, when not specified, current zones child.
         this.mInteractionZone = (pParentZone ?? InteractionZone.current).execute(() => {
-            return InteractionZone.current.create(`${pLabel}-ProcessorZone`, { isolate: pIsolatedInteraction, trigger: <InteractionResponseType><unknown>pInteractionTrigger });
+            return InteractionZone.current.create(`${pLabel}-ProcessorZone`, { isolate: pIsolatedInteraction}).addTriggerRestriction(ComponentInteractionType, pInteractionTrigger);
         });
-        this.mSilentZone = InteractionZone.current.create(`${pLabel}-SilentZone`, { isolate: true, trigger: <InteractionResponseType><unknown>UpdateTrigger.None });
+        this.mSilentZone = InteractionZone.current.create(`${pLabel}-SilentZone`, { isolate: true}).addTriggerRestriction(ComponentInteractionType, ComponentInteractionType.None);
 
-        // Shedule an update on interaction zone.
-        this.mInteractionDetectionListener = (pReason: InteractionReason) => {
+        // Add listener for interactions. Shedules an update on interaction zone.
+        this.mInteractionZone.addInteractionListener(ComponentInteractionType,(pReason: ComponentInteractionEvent) => {
             // Call the actual shedule in silent zone to prevent promise from firing.
             this.mSilentZone.execute(() => {
                 this.sheduleUpdateTask(pReason);
             });
-        };
-
-        // Add listener for interactions.
-        this.mInteractionZone.addInteractionListener(this.mInteractionDetectionListener);
+        });
     }
 
     /**
@@ -152,7 +149,7 @@ export class CoreEntityUpdateZone {
      */
     public deconstruct(): void {
         // Disconnect from change listener. Does nothing if listener is not defined.
-        this.mInteractionZone.removeInteractionListener(this.mInteractionDetectionListener);
+        this.mInteractionZone.removeInteractionListener(ComponentInteractionType);
 
         // Remove all update listener.
         this.mUpdateListener.clear();
@@ -167,6 +164,8 @@ export class CoreEntityUpdateZone {
      * @param pObject - Object.
      */
     public registerObject<T extends object>(pObject: T): T {
+        // TODO: Check if html. Register change and input event that triggers a update.
+
         return this.mInteractionZone.registerObject(pObject);
     }
 
@@ -189,7 +188,7 @@ export class CoreEntityUpdateZone {
      * @public
      */
     public async update(): Promise<boolean> {
-        const lReason: InteractionReason = new InteractionReason(InteractionResponseType.Custom, this, Symbol('Manual Update'));
+        const lReason: ComponentInteractionEvent = new ComponentInteractionEvent(InteractionResponseType.Custom, this, Symbol('Manual Update'));
 
         // Request update to dispatch change events on other components.
         this.mInteractionZone.execute(() => {
@@ -239,7 +238,7 @@ export class CoreEntityUpdateZone {
      * 
      * @throws {@link UpdateLoopError} - When {@link MAX_STACK_SIZE} or more continuous updates where made.
      */
-    private async sheduleUpdateTask(pReason: InteractionReason): Promise<boolean> {
+    private async sheduleUpdateTask(pReason: ComponentInteractionEvent): Promise<boolean> {
         // Skip task shedule when update zone is disabled.
         if (!this.enabled) {
             return false;
@@ -344,15 +343,15 @@ export class CoreEntityUpdateZone {
 type CallQueueFunction = (pTimestamp: number) => Promise<void>;
 type UpdateChainCompleteHookRelease = (pError: any) => void;
 
-export type UpdateListener = (pReason: InteractionReason) => Promise<void>;
+export type UpdateListener = (pReason: ComponentInteractionEvent) => Promise<void>;
 
 export class UpdateLoopError extends Error {
-    private readonly mChain: Array<InteractionReason>;
+    private readonly mChain: Array<ComponentInteractionEvent>;
 
     /**
      * Asynchron call chain.
      */
-    public get chain(): Array<InteractionReason> {
+    public get chain(): Array<ComponentInteractionEvent> {
         // More of the same. Needs no testing.
         /* istanbul ignore next */
         return this.mChain;
@@ -364,7 +363,7 @@ export class UpdateLoopError extends Error {
      * @param pMessage - Error Message.
      * @param pChain - Current call chain.
      */
-    public constructor(pMessage: string, pChain: Array<InteractionReason>) {
+    public constructor(pMessage: string, pChain: Array<ComponentInteractionEvent>) {
         // Add first 5 reasons to message.
         const lChainMessage = pChain.slice(-20).map((pItem) => { return pItem.toString(); }).join('\n');
 

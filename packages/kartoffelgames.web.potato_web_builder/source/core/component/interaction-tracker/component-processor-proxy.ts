@@ -1,4 +1,4 @@
-import { InteractionZone } from '../../../../../kartoffelgames.web.interaction_zone/source/zone/interaction-zone';
+import { InteractionEvent, InteractionZone } from '@kartoffelgames/web.interaction-zone';
 
 /**
  * Interaction detection proxy. Detects synchron calls and interactions on the proxy object.
@@ -6,23 +6,29 @@ import { InteractionZone } from '../../../../../kartoffelgames.web.interaction_z
  * 
  * @internal
  */
-export class InteractionDetectionProxy<T extends object> {
+export class ComponentProcessorProxy<T extends object> {
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    private static readonly IGNORED_CLASSES: WeakSet<InteractionDetectionConstructor> = (() => {
+    private static readonly IGNORED_CLASSES: WeakSet<IgnoreableConstructor> = (() => {
         // Create ignore list and add itself first.
-        const lIgnoreList = new WeakSet<InteractionDetectionConstructor>();
-        lIgnoreList.add(InteractionDetectionProxy);
+        const lIgnoreList = new WeakSet<IgnoreableConstructor>();
+        lIgnoreList.add(ComponentProcessorProxy);
 
         return lIgnoreList;
     })();
+
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    private static readonly ORIGINAL_TO_INTERACTION_MAPPING: WeakMap<object, InteractionDetectionProxy<any>> = new WeakMap<object, InteractionDetectionProxy<any>>();
+    private static readonly ORIGINAL_TO_INTERACTION_MAPPING: WeakMap<object, ComponentProcessorProxy<any>> = new WeakMap<object, ComponentProcessorProxy<any>>();
     // eslint-disable-next-line @typescript-eslint/naming-convention
     private static readonly PROXY_TO_ORIGINAL_MAPPING: WeakMap<object, object> = new WeakMap<object, object>();
 
-
-    public static ignoreClass(pConstructor: InteractionDetectionConstructor): void {
-        InteractionDetectionProxy.IGNORED_CLASSES.add(pConstructor);
+    /**
+     * Add constructor class to the list of ignored classes.
+     * Those classes will not be tracked or altered.
+     * 
+     * @param pConstructor - Some constructor.
+     */
+    public static ignoreClass(pConstructor: IgnoreableConstructor): void {
+        ComponentProcessorProxy.IGNORED_CLASSES.add(pConstructor);
     }
 
     /**
@@ -31,7 +37,7 @@ export class InteractionDetectionProxy<T extends object> {
      * @param pProxy - Possible InteractionDetectionProxy object.
      */
     private static getOriginal<TValue extends object>(pProxy: TValue): TValue {
-        return <TValue>InteractionDetectionProxy.PROXY_TO_ORIGINAL_MAPPING.get(pProxy) ?? pProxy;
+        return <TValue>ComponentProcessorProxy.PROXY_TO_ORIGINAL_MAPPING.get(pProxy) ?? pProxy;
     }
 
     /**
@@ -40,12 +46,12 @@ export class InteractionDetectionProxy<T extends object> {
      * @param pProxy - Proxy object.
      * @returns InteractionDetectionProxy or null if not a InteractionDetectionProxy-proxy.
      */
-    private static getWrapper<TValue extends object>(pProxy: TValue): InteractionDetectionProxy<TValue> | undefined {
+    private static getWrapper<TValue extends object>(pProxy: TValue): ComponentProcessorProxy<TValue> | undefined {
         // Get original.
-        const lOriginal: TValue = InteractionDetectionProxy.getOriginal(pProxy);
+        const lOriginal: TValue = ComponentProcessorProxy.getOriginal(pProxy);
 
         // Get wrapper from original.
-        return InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.get(lOriginal);
+        return ComponentProcessorProxy.ORIGINAL_TO_INTERACTION_MAPPING.get(lOriginal);
     }
 
     private readonly mListenerZones!: Set<InteractionZone>;
@@ -66,7 +72,7 @@ export class InteractionDetectionProxy<T extends object> {
      */
     public constructor(pTarget: T) {
         // Use already created wrapper if it exist.
-        const lWrapper: InteractionDetectionProxy<T> | undefined = InteractionDetectionProxy.getWrapper(pTarget);
+        const lWrapper: ComponentProcessorProxy<T> | undefined = ComponentProcessorProxy.getWrapper(pTarget);
         if (lWrapper) {
             return lWrapper;
         }
@@ -74,7 +80,7 @@ export class InteractionDetectionProxy<T extends object> {
         this.mListenerZones = new Set<InteractionZone>();
 
         // Prevent interaction zones from beeing proxied.
-        if (InteractionDetectionProxy.IGNORED_CLASSES.has(Object.getPrototypeOf(pTarget)?.constructor)) {
+        if (ComponentProcessorProxy.IGNORED_CLASSES.has(Object.getPrototypeOf(pTarget)?.constructor)) {
             this.mProxyObject = pTarget;
         } else {
             // Create new proxy object.
@@ -86,8 +92,8 @@ export class InteractionDetectionProxy<T extends object> {
         }
 
         // Map proxy with real object and real object to current class.
-        InteractionDetectionProxy.PROXY_TO_ORIGINAL_MAPPING.set(this.mProxyObject, pTarget);
-        InteractionDetectionProxy.ORIGINAL_TO_INTERACTION_MAPPING.set(pTarget, this);
+        ComponentProcessorProxy.PROXY_TO_ORIGINAL_MAPPING.set(this.mProxyObject, pTarget);
+        ComponentProcessorProxy.ORIGINAL_TO_INTERACTION_MAPPING.set(pTarget, this);
     }
 
     /**
@@ -113,7 +119,7 @@ export class InteractionDetectionProxy<T extends object> {
         }
 
         // But when it is a object or a function, than wrap it into another detection proxy and passthrough any interaction.
-        const lNestedProxy: InteractionDetectionProxy<any> = new InteractionDetectionProxy(pTarget);
+        const lNestedProxy: ComponentProcessorProxy<any> = new ComponentProcessorProxy(pTarget);
         for (const lCallbackZones of this.mListenerZones) {
             lNestedProxy.addListenerZone(lCallbackZones);
         }
@@ -143,7 +149,7 @@ export class InteractionDetectionProxy<T extends object> {
 
                     // Call function.. Get original object of "this"-Scope. and call the functionwith it.
                     try {
-                        const lOriginalThisObject: object = InteractionDetectionProxy.getOriginal(pThisArgument);
+                        const lOriginalThisObject: object = ComponentProcessorProxy.getOriginal(pThisArgument);
                         const lResult = lCallableTarget.call(lOriginalThisObject, ...pArgumentsList);
 
                         // Convert potential object to a linked proxy.
@@ -151,12 +157,12 @@ export class InteractionDetectionProxy<T extends object> {
                     } finally {
                         // Dispatch special InteractionResponseType.NativeFunctionCall.
                         if (/\{\s+\[native code\]/.test(Function.prototype.toString.call(lCallableTarget))) {
-                            this.dispatch(InteractionResponseType.RegisteredUntrackableFunction, this.mProxyObject);
+                            this.dispatch(ComponentInteractionType.UntrackableFunctionCall, this.mProxyObject);
                         }
                     }
                 } finally {
                     // Dispatches interaction end event before exception passthrough.
-                    this.dispatch(InteractionResponseType.RegisteredFunction, this.mProxyObject);
+                    this.dispatch(ComponentInteractionType.FunctionCall, this.mProxyObject);
                 }
             }
         });
@@ -185,14 +191,14 @@ export class InteractionDetectionProxy<T extends object> {
                     // Prevent original pollution by getting original from value.
                     let lPropertyValue: any = pNewPropertyValue;
                     if (lPropertyValue !== null && typeof lPropertyValue === 'object' || typeof lPropertyValue === 'function') {
-                        lPropertyValue = InteractionDetectionProxy.getOriginal(lPropertyValue);
+                        lPropertyValue = ComponentProcessorProxy.getOriginal(lPropertyValue);
                     }
 
                     // Set value to original target property.
                     return Reflect.set(pTargetObject, pPropertyName, lPropertyValue);
                 } finally {
                     // Dispatches interaction end event before exception passthrough.
-                    this.dispatch(InteractionResponseType.RegisteredPropertySet, this.mProxyObject, pPropertyName);
+                    this.dispatch(ComponentInteractionType.PropertySet, this.mProxyObject, pPropertyName);
                 }
             },
 
@@ -205,16 +211,11 @@ export class InteractionDetectionProxy<T extends object> {
              * @param lReceiver - Either the proxy or an object that inherits from the proxy.
              */
             get: (pTarget, pPropertyName: PropertyKey, _pReceiver) => {
-                try {
-                    // Get original value.
-                    const lResult: any = Reflect.get(pTarget, pPropertyName);
+                // Get original value.
+                const lResult: any = Reflect.get(pTarget, pPropertyName);
 
-                    // Convert potential object to a linked proxy.
-                    return this.convertToProxy(lResult);
-                } finally {
-                    // Dispatches interaction end event before exception passthrough.
-                    this.dispatch(InteractionResponseType.RegisteredPropertyGet, this.mProxyObject, pPropertyName);
-                }
+                // Convert potential object to a linked proxy.
+                return this.convertToProxy(lResult);
             },
 
             /**
@@ -229,7 +230,7 @@ export class InteractionDetectionProxy<T extends object> {
                     return delete (<any>pTargetObject)[pPropertyName];
                 } finally {
                     // Dispatches interaction end event before exception passthrough.
-                    this.dispatch(InteractionResponseType.RegisteredPropertyDelete, this.mProxyObject, pPropertyName);
+                    this.dispatch(ComponentInteractionType.PropertyDelete, this.mProxyObject, pPropertyName);
                 }
             }
         });
@@ -244,26 +245,41 @@ export class InteractionDetectionProxy<T extends object> {
      * @param pSource - Object wich was interacted with.
      * @param pProperty - Optional change reason property.
      */
-    private dispatch(pInteractionType: InteractionResponseType, pSource: object, pProperty?: PropertyKey | undefined): void {
-        // Dispatch reason to current zone. When current stack does not support trigger, dont trigger attached zone stacks.
-        if (!InteractionZone.dispatchInteractionEvent(pInteractionType, pSource, pProperty)) {
+    private dispatch(pInteractionType: ComponentInteractionType, pSource: object, pProperty?: PropertyKey | undefined): void {
+        // Push interaction to current zone.
+        const lIsZoneSilent = !InteractionZone.pushInteraction<ComponentInteractionType, ComponentInteractionData>(ComponentInteractionType, pInteractionType, {
+            source: pSource,
+            property: pProperty
+        });
+
+        //  When current stack does not support trigger, dont trigger attached zone stacks.
+        if (lIsZoneSilent) {
             return;
         }
 
-        // Dispatch reason to all attached zones. Ignore current stack but push attached zone.
+        // Dispatch reason to all attached zones.
         for (const lZone of this.mListenerZones) {
             lZone.execute(() => {
-                InteractionZone.dispatchInteractionEvent(pInteractionType, pSource, pProperty);
+                InteractionZone.pushInteraction<ComponentInteractionType, ComponentInteractionData>(ComponentInteractionType, pInteractionType, {
+                    source: pSource,
+                    property: pProperty
+                });
             });
         }
     }
 }
 
 type CallableObject = (...args: Array<any>) => any;
+type IgnoreableConstructor = new (...pParameter: Array<any>) => {};
 
-export type InteractionDetectionConstructor = new (...pParameter: Array<any>) => {};
+export type ComponentInteractionEvent = InteractionEvent<ComponentInteractionType, ComponentInteractionData>;
 
-export enum InteractionResponseType {
+export type ComponentInteractionData = {
+    source: object,
+    property?: PropertyKey | undefined;
+};
+
+export enum ComponentInteractionType {
     /**
      * Ignore all interactions.
      */
@@ -272,9 +288,13 @@ export enum InteractionResponseType {
     /*
      * Synchron Proxy 
      */
-    RegisteredFunction = 1 << 1,
-    RegisteredPropertyGet = 1 << 2,
-    RegisteredPropertySet = 1 << 3,
-    RegisteredPropertyDelete = 1 << 4,
-    RegisteredUntrackableFunction = 1 << 5,
+    FunctionCall = 1 << 1,
+    PropertySet = 1 << 3,
+    PropertyDelete = 1 << 4,
+    UntrackableFunctionCall = 1 << 5,
+
+    /**
+     * All
+     */
+    Any = (1 << 6) - 1
 }

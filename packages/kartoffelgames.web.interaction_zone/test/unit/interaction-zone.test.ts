@@ -338,7 +338,7 @@ describe('InteractionZone', () => {
                 expect(lErrorListenerCalled).to.be.false;
             });
 
-            it('-- Ignore Error listener called outside zone', async () => {
+            it('-- Ignore Error listener for errors outside zone', async () => {
                 // Setup.
                 const lCorrectInteractionZone: InteractionZone = InteractionZone.current.create('Parent');
                 const lParallelInteractionZone: InteractionZone = lCorrectInteractionZone.create('Child');
@@ -359,6 +359,26 @@ describe('InteractionZone', () => {
                         error: <Error>pError
                     }));
                 }
+
+                // Evaluation.
+                expect(lErrorListenerCalled).to.be.false;
+            });
+
+            it('-- Ignore Error listener for errors without zone', async () => {
+                // Setup.
+                const lCorrectInteractionZone: InteractionZone = InteractionZone.current.create('Parent');
+                const lParallelInteractionZone: InteractionZone = lCorrectInteractionZone.create('Child');
+
+                // Process. Set error listener.
+                let lErrorListenerCalled: boolean = false;
+                lParallelInteractionZone.addErrorListener(() => {
+                    lErrorListenerCalled = true;
+                });
+
+                // Process. Throw error outside.
+                window.dispatchEvent(new ErrorEvent('error', {
+                    error: new Error()
+                }));
 
                 // Evaluation.
                 expect(lErrorListenerCalled).to.be.false;

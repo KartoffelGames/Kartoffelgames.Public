@@ -181,7 +181,7 @@ describe('InteractionZone', () => {
             expect(lReasonResult!.origin).to.equal(lChildInteractionZone);
         });
 
-        it('-- Ignore none parent zones not in scope.', () => {
+        it('-- Ignore none parent zones not in scope', () => {
             // Setup.
             const lCorrectInteractionZone: InteractionZone = InteractionZone.current.create('Correct');
             const lParalellZone: InteractionZone = InteractionZone.current.create('No so correct');
@@ -308,7 +308,7 @@ describe('InteractionZone', () => {
                 expect(lErrorListenerCalled).to.be.true;
             });
 
-            it('-- Ignore Parent Error listener when default prevented.', async () => {
+            it('-- Ignore Parent Error listener when default prevented', async () => {
                 // Setup.
                 const lParentInteractionZone: InteractionZone = InteractionZone.current.create('Parent');
                 const lChildInteractionZone: InteractionZone = lParentInteractionZone.create('Child');
@@ -335,7 +335,7 @@ describe('InteractionZone', () => {
                 }
 
                 // Evaluation.
-                expect(lErrorListenerCalled).to.be.true;
+                expect(lErrorListenerCalled).to.be.false;
             });
 
             it('-- Ignore Error listener called outside zone', async () => {
@@ -454,7 +454,7 @@ describe('InteractionZone', () => {
                 expect(lErrorListenerCalled).to.be.true;
             });
 
-            it('-- Ignore Parent Error listener when default prevented.', async () => {
+            it('-- Ignore Parent Error listener when default prevented', async () => {
                 // Setup.
                 const lParentInteractionZone: InteractionZone = InteractionZone.current.create('Parent');
                 const lChildInteractionZone: InteractionZone = lParentInteractionZone.create('Child');
@@ -488,7 +488,7 @@ describe('InteractionZone', () => {
                 const lErrorListenerCalled = await lErrorCalledWaiter;
 
                 // Evaluation.
-                expect(lErrorListenerCalled).to.be.true;
+                expect(lErrorListenerCalled).to.be.false;
             });
 
             it('-- Ignore Error listener called outside zone', async () => {
@@ -524,7 +524,7 @@ describe('InteractionZone', () => {
             });
         });
 
-        it('-- Convert non object errors into error objects for syncron errors.', async () => {
+        it('-- Convert non object errors into error objects for syncron errors', async () => {
             // Setup.
             const lInteractionZone: InteractionZone = InteractionZone.current.create('Name');
             const lError: string = 'ERROR-MESSAGE';
@@ -572,7 +572,7 @@ describe('InteractionZone', () => {
     });
 
     describe('Method: addInteractionListener', () => {
-        it('-- Listener called.', () => {
+        it('-- Listener called', () => {
             // Setup.
             const lInteractionZone: InteractionZone = InteractionZone.current.create('Name');
 
@@ -609,7 +609,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lListenerCounter).to.be.true;
+            expect(lListenerCounter).to.equal(1);
         });
 
         it('-- Parent listener called', () => {
@@ -632,7 +632,7 @@ describe('InteractionZone', () => {
             expect(lListenerCalled).to.be.true;
         });
 
-        it('-- Listener ignored wrong trigger type.', () => {
+        it('-- Listener ignored wrong trigger type', () => {
             // Setup.
             const lInteractionZone: InteractionZone = InteractionZone.current.create('Name');
 
@@ -651,7 +651,7 @@ describe('InteractionZone', () => {
             expect(lListenerCalled).to.be.false;
         });
 
-        it('-- Listener ignored restricted trigger.', () => {
+        it('-- Listener ignored restricted trigger', () => {
             // Setup.
             const lInteractionZone: InteractionZone = InteractionZone.current.create('Name');
             lInteractionZone.addTriggerRestriction(TestTriggerEnum, TestTriggerEnum.Custom2);
@@ -671,7 +671,7 @@ describe('InteractionZone', () => {
             expect(lListenerCalled).to.be.false;
         });
 
-        it('-- Ignore listener outside zone.', () => {
+        it('-- Ignore listener outside zone', () => {
             // Setup.
             const lCorrectInteractionZone: InteractionZone = InteractionZone.current.create('Correct');
             const lParallelInteractionZone: InteractionZone = InteractionZone.current.create('Other');
@@ -714,7 +714,7 @@ describe('InteractionZone', () => {
     });
 
     describe('Method: addTriggerRestriction', () => {
-        it('-- Restrict single type.', () => {
+        it('-- Restrict single type', () => {
             // Setup.
             const lInteractionZone: InteractionZone = InteractionZone.current.create('Name');
 
@@ -736,7 +736,7 @@ describe('InteractionZone', () => {
             expect(lListenerCalled).to.be.false;
         });
 
-        it('-- Dont interfere with other type..', () => {
+        it('-- Dont interfere with other type', () => {
             // Setup.
             const lInteractionZone: InteractionZone = InteractionZone.current.create('Name');
 
@@ -755,10 +755,10 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lListenerCalled).to.be.false;
+            expect(lListenerCalled).to.be.true;
         });
 
-        it('-- Override restriction.', () => {
+        it('-- Override restriction', () => {
             // Setup.
             const lInteractionZone: InteractionZone = InteractionZone.current.create('Name');
 
@@ -931,7 +931,7 @@ describe('InteractionZone', () => {
             expect(lListenerCalled).to.be.false;
         });
 
-        it('-- Remove wrong trigger type existing', () => {
+        it('-- Remove wrong trigger type', () => {
             // Setup.
             const lInteractionZone: InteractionZone = InteractionZone.current.create('Name');
 
@@ -941,7 +941,7 @@ describe('InteractionZone', () => {
                 lListenerCalled = true;
             };
             lInteractionZone.addInteractionListener(TestTriggerEnum, lListener);
-            lInteractionZone.removeInteractionListener({}, lListener);
+            lInteractionZone.removeInteractionListener(TestTriggerEnumOther, lListener);
 
             // Process. Call listener.
             lInteractionZone.execute(() => {
@@ -969,7 +969,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lListenerCalled).to.be.true;
+            expect(lListenerCalled).to.be.false;
         });
 
         it('-- Remove all listener of type', () => {

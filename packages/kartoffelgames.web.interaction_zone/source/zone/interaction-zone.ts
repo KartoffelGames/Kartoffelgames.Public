@@ -142,7 +142,7 @@ export class InteractionZone {
      * @returns itself. 
      */
     public addErrorListener(pListener: ErrorListener): this {
-        this.mErrorListener.add(pListener, InteractionZone.current);
+        this.mErrorListener.set(pListener, InteractionZone.current);
 
         // Chainable.
         return this;

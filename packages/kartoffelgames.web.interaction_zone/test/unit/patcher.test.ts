@@ -212,7 +212,7 @@ describe('Patcher', () => {
             Patcher.patch(globalThis);
         });
 
-        it('-- AddEventListener correct listener zone.', async () => {
+        it('-- AddEventListener correct listener zone', async () => {
             // Setup.
             const lZone: InteractionZone = InteractionZone.current.create('Zone');
             const lEventTarget: EventTarget = new EventTarget();
@@ -403,7 +403,7 @@ describe('Patcher', () => {
             lEventTarget.dispatchEvent(new Event('custom'));
 
             // Evaluation.
-            expect(lListenerCalled).to.be.true;
+            expect(lListenerCalled).to.be.false;
         });
     });
 
@@ -564,7 +564,7 @@ describe('Patcher', () => {
             expect(lResultZone).to.equal(lZone);
         });
 
-        it('-- Promise then keep zone.', async () => {
+        it('-- Promise then keep zone', async () => {
             // Setup.
             const lZone: InteractionZone = InteractionZone.current.create('Zone');
             const lPromise: Promise<void> = new Promise<void>((pResolve) => { pResolve(); });
@@ -579,7 +579,7 @@ describe('Patcher', () => {
             expect(lResultZone).to.equal(lZone);
         });
 
-        it('-- Promise catch keep zone.', async () => {
+        it('-- Promise catch keep zone', async () => {
             // Setup.
             const lZone: InteractionZone = InteractionZone.current.create('Zone');
             const lPromise: Promise<InteractionZone> = new Promise<InteractionZone>((_pResolve, pReject) => { pReject(); });
@@ -594,7 +594,7 @@ describe('Patcher', () => {
             expect(lResultZone).to.equal(lZone);
         });
 
-        it('-- Promise then keep zone async execution.', async () => {
+        it('-- Promise then keep zone async execution', async () => {
             // Setup.
             const lZone: InteractionZone = InteractionZone.current.create('Zone');
             const lPromise: Promise<void> = new Promise<void>((pResolve) => { pResolve(); });
@@ -608,7 +608,7 @@ describe('Patcher', () => {
             expect(lResultZone).to.equal(lZone);
         });
 
-        it('-- Promise catch keep zone  async execution.', async () => {
+        it('-- Promise catch keep zone  async execution', async () => {
             // Setup.
             const lZone: InteractionZone = InteractionZone.current.create('Zone');
             const lPromise: Promise<InteractionZone> = new Promise<InteractionZone>((_pResolve, pReject) => { pReject(); });

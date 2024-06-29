@@ -3,12 +3,11 @@ import { InteractionZone, } from './interaction-zone';
 /**
  * Interaction event. Information of a pushed interaction.
  */
-export class InteractionEvent<TType extends number, TData extends object> {
+export class InteractionEvent<TType extends number, TData extends object = object> {
     private readonly mData: TData;
     private readonly mInteractionTrigger: TType;
     private readonly mInteractionType: Enum<TType>;
     private readonly mOrigin: InteractionZone;
-    private readonly mPushedZones: WeakSet<InteractionZone>;
     private readonly mStackError: Error;
 
     /**
@@ -64,27 +63,6 @@ export class InteractionEvent<TType extends number, TData extends object> {
         // Zone data.
         this.mStackError = new Error();
         this.mOrigin = pOrigin;
-        this.mPushedZones = new WeakSet<InteractionZone>();
-    }
-
-    /**
-     * Add zone where event was pushed to.
-     * 
-     * @param pZone - Interaction zone.
-     * 
-     * @returns true when zone was not already set as pushed zone.
-     * 
-     * @internal
-     */
-    public addPushedZone(pZone: InteractionZone): boolean {
-        // Skip zone set when zone was already triggered.
-        if (this.mPushedZones.has(pZone)) {
-            return true;
-        }
-
-        // Add zone to triggered zones and
-        this.mPushedZones.add(pZone);
-        return false;
     }
 
     /**

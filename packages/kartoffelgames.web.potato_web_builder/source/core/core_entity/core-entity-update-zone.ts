@@ -1,8 +1,8 @@
 import { Dictionary, List } from '@kartoffelgames/core';
-import { InteractionZone } from '@kartoffelgames/web.interaction-zone';
+import { InteractionEvent, InteractionZone } from '@kartoffelgames/web.interaction-zone';
 import { ComponentDebug } from '../component-debug';
+import { ComponentInteractionData, ComponentInteractionEvent, ComponentInteractionType, ComponentProcessorProxy } from '../component/interaction-tracker/component-processor-proxy';
 import { IgnoreInteractionTracking } from '../component/interaction-tracker/ignore-interaction-detection.decorator';
-import { ComponentInteractionEvent, ComponentInteractionType } from '../component/interaction-tracker/component-processor-proxy';
 
 /**
  * Update zone of any core entity. Handles automatic and manual update detection.
@@ -78,11 +78,13 @@ export class CoreEntityUpdateZone {
     private mEnabled: boolean;
     private mHasSheduledUpdate: boolean;
     private readonly mInteractionZone: InteractionZone;
+    private readonly mRegisteredObjects: WeakMap<object, ComponentProcessorProxy<object>>;
     private mSheduledUpdateIdentifier: number;
     private readonly mSilentZone: InteractionZone;
     private readonly mUpdateCallChain: List<ComponentInteractionEvent>;
     private readonly mUpdateChainCompleteHookReleaseList: List<UpdateChainCompleteHookRelease>;
     private readonly mUpdateListener: List<UpdateListener>;
+
 
     /**
      * Get enabled state of update zone.
@@ -113,6 +115,8 @@ export class CoreEntityUpdateZone {
      */
     public constructor(pLabel: string, pIsolatedInteraction: boolean, pInteractionTrigger: ComponentInteractionType, pParentZone?: InteractionZone) {
         this.mUpdateListener = new List<UpdateListener>();
+        this.mRegisteredObjects = new WeakMap<object, ComponentProcessorProxy<object>>();
+
         this.mEnabled = false;
 
         // Init loop detection values.
@@ -123,12 +127,12 @@ export class CoreEntityUpdateZone {
 
         // Create isolated or default zone as parent zone or, when not specified, current zones child.
         this.mInteractionZone = (pParentZone ?? InteractionZone.current).execute(() => {
-            return InteractionZone.current.create(`${pLabel}-ProcessorZone`, { isolate: pIsolatedInteraction}).addTriggerRestriction(ComponentInteractionType, pInteractionTrigger);
+            return InteractionZone.current.create(`${pLabel}-ProcessorZone`, { isolate: pIsolatedInteraction }).addTriggerRestriction(ComponentInteractionType, pInteractionTrigger);
         });
-        this.mSilentZone = InteractionZone.current.create(`${pLabel}-SilentZone`, { isolate: true}).addTriggerRestriction(ComponentInteractionType, ComponentInteractionType.None);
+        this.mSilentZone = InteractionZone.current.create(`${pLabel}-SilentZone`, { isolate: true }).addTriggerRestriction(ComponentInteractionType, ComponentInteractionType.None);
 
         // Add listener for interactions. Shedules an update on interaction zone.
-        this.mInteractionZone.addInteractionListener(ComponentInteractionType,(pReason: ComponentInteractionEvent) => {
+        this.mInteractionZone.addInteractionListener(ComponentInteractionType, (pReason: ComponentInteractionEvent) => {
             // Call the actual shedule in silent zone to prevent promise from firing.
             this.mSilentZone.execute(() => {
                 this.sheduleUpdateTask(pReason);
@@ -164,9 +168,30 @@ export class CoreEntityUpdateZone {
      * @param pObject - Object.
      */
     public registerObject<T extends object>(pObject: T): T {
-        // TODO: Check if html. Register change and input event that triggers a update.
+        // Do not patch twice for the same zone.
+        if (this.mRegisteredObjects.has(pObject)) {
+            return this.mRegisteredObjects.get(pObject)!.proxy as T;
+        }
 
-        return this.mInteractionZone.registerObject(pObject);
+        // Add all events without function.
+        if (pObject instanceof EventTarget) {
+            for (const lEventName of ['input', 'change']) {
+                // Add empty event to element. This should trigger an interaction every time the event and therefore the listener is called.
+                this.mInteractionZone.execute(() => {
+                    pObject.addEventListener(lEventName, () => { });
+                });
+            }
+        }
+
+        // Create proxy.
+        const lObjectProxy: ComponentProcessorProxy<T> = new ComponentProcessorProxy(pObject);
+
+        // Add element as patched entity. Both original and proxied version.
+        this.mRegisteredObjects.set(pObject, lObjectProxy);
+        this.mRegisteredObjects.set(lObjectProxy.proxy, lObjectProxy);
+
+        // Return proxied version.
+        return lObjectProxy.proxy;
     }
 
     /**
@@ -188,12 +213,20 @@ export class CoreEntityUpdateZone {
      * @public
      */
     public async update(): Promise<boolean> {
-        const lReason: ComponentInteractionEvent = new ComponentInteractionEvent(InteractionResponseType.Custom, this, Symbol('Manual Update'));
+        // Create event values.
+        const lTrigger: ComponentInteractionType = ComponentInteractionType.Manual;
+        const lData: ComponentInteractionData = {
+            source: this,
+            property: Symbol('Manual Update')
+        };
 
         // Request update to dispatch change events on other components.
         this.mInteractionZone.execute(() => {
-            InteractionZone.dispatchInteractionEvent(lReason);
+            InteractionZone.pushInteraction(ComponentInteractionType, lTrigger, lData);
         });
+
+        // Create independend interaction event for manual shedule.
+        const lReason: ComponentInteractionEvent = new InteractionEvent<ComponentInteractionType, ComponentInteractionData>(ComponentInteractionType, lTrigger, this.mInteractionZone, lData);
 
         // Shedule an update task.
         return this.sheduleUpdateTask(lReason);

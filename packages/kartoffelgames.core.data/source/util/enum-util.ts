@@ -26,7 +26,7 @@ export class EnumUtil {
      * const noneExistingValue = EnumUtil.cast<MyEnum>(MyEnum, 5); // => undefined
      * ```
      */
-    public static cast<T>(pEnum: object, pValue: any): T | undefined {
+    public static cast<T>(pEnum: EnumObject<T>, pValue: any): T | undefined {
         // Thats it... :)
         if (EnumUtil.exists<T>(pEnum, pValue)) {
             return pValue;
@@ -56,7 +56,7 @@ export class EnumUtil {
      * const noneExistingValue = EnumUtil.exists(MyEnum, 5); // => False
      * ```
      */
-    public static exists<T>(pEnum: object, pValue: any): pValue is T {
+    public static exists<T>(pEnum: EnumObject<T>, pValue: any): pValue is T {
         return EnumUtil.valuesOf(pEnum).includes(pValue);
     }
 
@@ -80,9 +80,9 @@ export class EnumUtil {
      * const enumNames = EnumUtil.namesOf(MyEnum); // => ['Entry1', 'Entry2']
      * ```
      */
-    public static namesOf(pEnum: object): Array<string> {
+    public static namesOf<T>(pEnum: EnumObject<T>): Array<keyof T> {
         // Convert enum to key array.
-        return Object.keys(pEnum).filter((pKey) => isNaN(Number(pKey)));
+        return Object.keys(pEnum).filter((pKey) => isNaN(Number(pKey))) as Array<keyof T>;
     }
 
     /**
@@ -104,14 +104,16 @@ export class EnumUtil {
      * const enumValues = EnumUtil.valuesOf(MyEnum); // => [1, 2]
      * ```
      */
-    public static valuesOf<T>(pEnum: object): Array<T> {
+    public static valuesOf<T>(pEnum: EnumObject<T>): Array<T> {
         const lEnumValues: Array<T> = new Array<T>();
 
         // Convert enum to vaue array by iterating over all keys.
         for (const lKey of EnumUtil.namesOf(pEnum)) {
-            lEnumValues.push((<{ [key: string]: T; }>pEnum)[lKey]);
+            lEnumValues.push(pEnum[lKey] as T);
         }
 
         return lEnumValues;
     }
 }
+
+type EnumObject<TEnum> = Record<keyof TEnum, number | string> & { [k: number]: string };

@@ -3,7 +3,7 @@ import { InteractionZone, } from './interaction-zone';
 /**
  * Interaction reason. Information of a detected interaction.
  */
-export class InteractionReason {
+export class InteractionReason { // TODO: Rename to InteractionEvent. Make it generic. Remove Property and source (Put it inside event data or so.)
     private readonly mOrigin: InteractionZone;
     private readonly mProperty: PropertyKey | undefined;
     private readonly mSource: object;
@@ -46,7 +46,6 @@ export class InteractionReason {
     public get triggerType(): number {
         return this.mTriggerType;
     }
-
 
     /**
      * Constructor.

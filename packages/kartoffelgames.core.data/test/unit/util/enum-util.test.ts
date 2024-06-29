@@ -145,7 +145,7 @@ describe('EnumUtil', () => {
             }
 
             // Process.
-            const lNameArray: Array<string> = EnumUtil.namesOf(TestEnum);
+            const lNameArray: Array<keyof TestEnum> = EnumUtil.namesOf(TestEnum);
 
             // Evaluation.
             expect(lNameArray).to.be.deep.equal(['One', 'Two', 'Three', 'Five']);
@@ -161,7 +161,7 @@ describe('EnumUtil', () => {
             }
 
             // Process.
-            const lNameArray: Array<string> = EnumUtil.namesOf(TestEnum);
+            const lNameArray: Array<keyof TestEnum> = EnumUtil.namesOf(TestEnum);
 
             // Evaluation.
             expect(lNameArray).to.be.deep.equal(['One', 'Two', 'Three', 'Five']);
@@ -177,7 +177,7 @@ describe('EnumUtil', () => {
             }
 
             // Process.
-            const lNameArray: Array<string> = EnumUtil.namesOf(TestEnum);
+            const lNameArray: Array<keyof TestEnum> = EnumUtil.namesOf(TestEnum);
 
             // Evaluation.
             expect(lNameArray).to.be.deep.equal(['One', 'Two', 'Three', 'Five']);
@@ -195,7 +195,7 @@ describe('EnumUtil', () => {
             }
 
             // Process.
-            const lValueArray: Array<string> = EnumUtil.valuesOf(TestEnum);
+            const lValueArray: Array<TestEnum> = EnumUtil.valuesOf(TestEnum);
 
             // Evaluation.
             expect(lValueArray).to.be.deep.equal([1, 2, 3, 5]);
@@ -211,7 +211,7 @@ describe('EnumUtil', () => {
             }
 
             // Process.
-            const lValueArray: Array<string> = EnumUtil.valuesOf(TestEnum);
+            const lValueArray: Array<TestEnum> = EnumUtil.valuesOf(TestEnum);
 
             // Evaluation.
             expect(lValueArray).to.be.deep.equal(['one1', 'two2', 'three3', 'five5']);
@@ -227,7 +227,7 @@ describe('EnumUtil', () => {
             }
 
             // Process.
-            const lValueArray: Array<string> = EnumUtil.valuesOf(TestEnum);
+            const lValueArray: Array<TestEnum> = EnumUtil.valuesOf(TestEnum);
 
             // Evaluation.
             expect(lValueArray).to.be.deep.equal([1, 2, 'three3', 'five5']);

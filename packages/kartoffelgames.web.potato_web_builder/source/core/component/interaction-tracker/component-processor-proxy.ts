@@ -294,7 +294,12 @@ export enum ComponentInteractionType {
     UntrackableFunctionCall = 1 << 5,
 
     /**
+     * Manual
+     */
+    Manual = 1 << 6,
+
+    /**
      * All
      */
-    Any = (1 << 6) - 1
+    Any = (1 << 7) - 1
 }

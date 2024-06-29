@@ -55,7 +55,7 @@ export class InteractionEvent<TType extends number, TData extends object> {
      * @param pOrigin - Zone where this event will be pushed first or is originated from.
      * @param pData - Optional user data.
      */
-    public constructor(pInteractionType: Enum<TType | string>, pInteractionTrigger: TType, pOrigin: InteractionZone, pData: TData) {
+    public constructor(pInteractionType: InteractionEventTriggerType<TType>, pInteractionTrigger: TType, pOrigin: InteractionZone, pData: TData) {
         // User data.
         this.mInteractionType = pInteractionType as Enum<TType>;
         this.mInteractionTrigger = pInteractionTrigger;
@@ -98,3 +98,5 @@ export class InteractionEvent<TType extends number, TData extends object> {
 }
 
 type Enum<T> = { [key: string]: T; };
+
+export type InteractionEventTriggerType<T> = Enum<T | string>;

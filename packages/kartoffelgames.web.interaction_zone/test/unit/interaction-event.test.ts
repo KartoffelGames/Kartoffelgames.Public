@@ -8,7 +8,7 @@ describe('InteractionEvent', () => {
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
         const lData = {};
-        const lReason: InteractionEvent<object, number> = new InteractionEvent('CustomType', 1, lZone, lData);
+        const lReason: InteractionEvent<TestTriggerType, typeof lData> = new InteractionEvent(TestTriggerType, TestTriggerType.Custom, lZone, lData);
 
         // Process
         const lResult = lReason.data;
@@ -20,8 +20,8 @@ describe('InteractionEvent', () => {
     it('Property: interactionTrigger', () => {
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
-        const lInteractionTrigger = 112244;
-        const lReason: InteractionEvent<object, number> = new InteractionEvent('CustomType', lInteractionTrigger, lZone, {});
+        const lInteractionTrigger = TestTriggerType.CustomDifferent;
+        const lReason: InteractionEvent<TestTriggerType, object> = new InteractionEvent(TestTriggerType, lInteractionTrigger, lZone, {});
 
         // Process
         const lResult = lReason.interactionTrigger;
@@ -33,20 +33,20 @@ describe('InteractionEvent', () => {
     it('Property: interactionType', () => {
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
-        const lInteractionType = 'MyOwnType';
-        const lReason: InteractionEvent<object, number> = new InteractionEvent(lInteractionType, 11, lZone, {});
+        const lInteractionType = TestTriggerType;
+        const lReason: InteractionEvent<TestTriggerType, object> = new InteractionEvent(lInteractionType, TestTriggerType.Custom, lZone, {});
 
         // Process
         const lResult = lReason.interactionType;
 
         // Evaluation.
-        expect(lResult).to.equal(lInteractionType);
+        expect(lResult).to.equal(TestTriggerType);
     });
 
     it('Property: origin', () => {
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
-        const lReason: InteractionEvent<object, number> = new InteractionEvent('CustomType', 1, lZone, {});
+        const lReason: InteractionEvent<TestTriggerType, object> = new InteractionEvent(TestTriggerType, TestTriggerType.Custom, lZone, {});
 
         // Process
         const lResult = lReason.origin;
@@ -61,7 +61,7 @@ describe('InteractionEvent', () => {
 
         // Setup. Named function.
         function lMycoolname() {
-            return new InteractionEvent('CustomType', 1, lZone, {});
+            return new InteractionEvent(TestTriggerType, TestTriggerType.Custom, lZone, {});
         }
 
         // Process
@@ -76,7 +76,7 @@ describe('InteractionEvent', () => {
         it('-- Push new zone', () => {
             // Setup.
             const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
-            const lReason: InteractionEvent<object, number> = new InteractionEvent('CustomType', 1, lZone, {});
+            const lReason: InteractionEvent<TestTriggerType, object> = new InteractionEvent(TestTriggerType, TestTriggerType.Custom, lZone, {});
 
             // Process.
             const lResult = lReason.addPushedZone(lZone);
@@ -88,7 +88,7 @@ describe('InteractionEvent', () => {
         it('-- Push existing zone', () => {
             // Setup.
             const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
-            const lReason: InteractionEvent<object, number> = new InteractionEvent('CustomType', 1, lZone, {});
+            const lReason: InteractionEvent<TestTriggerType, object> = new InteractionEvent(TestTriggerType, TestTriggerType.Custom, lZone, {});
 
             // Process.
             lReason.addPushedZone(lZone);
@@ -102,10 +102,10 @@ describe('InteractionEvent', () => {
     it('Method: toString', () => {
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
-        const lInteractionType: string = 'InterType';
-        const lInteractionTrigger: number = 112266;
+        const lInteractionType: typeof TestTriggerType = TestTriggerType;
+        const lInteractionTrigger: TestTriggerType = TestTriggerType.Custom;
         const lData = { a: 1 };
-        const lReason: InteractionEvent<object, number> = new InteractionEvent(lInteractionType, lInteractionTrigger, lZone, lData);
+        const lReason: InteractionEvent<TestTriggerType, typeof lData> = new InteractionEvent(lInteractionType, lInteractionTrigger, lZone, lData);
 
         // Process.
         const lResult = lReason.addPushedZone(lZone);
@@ -115,3 +115,8 @@ describe('InteractionEvent', () => {
 
     });
 });
+
+enum TestTriggerType {
+    Custom = 1,
+    CustomDifferent = 2
+}

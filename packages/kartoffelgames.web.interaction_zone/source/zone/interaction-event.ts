@@ -3,10 +3,10 @@ import { InteractionZone, } from './interaction-zone';
 /**
  * Interaction event. Information of a pushed interaction.
  */
-export class InteractionEvent<TData extends object, TTrigger extends number> {
+export class InteractionEvent<TType extends number, TData extends object> {
     private readonly mData: TData;
-    private readonly mInteractionTrigger: TTrigger;
-    private readonly mInteractionType: string;
+    private readonly mInteractionTrigger: TType;
+    private readonly mInteractionType: Enum<TType>;
     private readonly mOrigin: InteractionZone;
     private readonly mPushedZones: WeakSet<InteractionZone>;
     private readonly mStackError: Error;
@@ -21,14 +21,14 @@ export class InteractionEvent<TData extends object, TTrigger extends number> {
     /**
      * Get what interaction trigger was pushed.
      */
-    public get interactionTrigger(): TTrigger {
+    public get interactionTrigger(): TType {
         return this.mInteractionTrigger;
     }
 
     /**
      * Get what type of interaction was pushed.
      */
-    public get interactionType(): string {
+    public get interactionType(): Enum<TType> {
         return this.mInteractionType;
     }
 
@@ -55,9 +55,9 @@ export class InteractionEvent<TData extends object, TTrigger extends number> {
      * @param pOrigin - Zone where this event will be pushed first or is originated from.
      * @param pData - Optional user data.
      */
-    public constructor(pInteractionType: string, pInteractionTrigger: TTrigger, pOrigin: InteractionZone, pData: TData) {
+    public constructor(pInteractionType: Enum<TType | string>, pInteractionTrigger: TType, pOrigin: InteractionZone, pData: TData) {
         // User data.
-        this.mInteractionType = pInteractionType;
+        this.mInteractionType = pInteractionType as Enum<TType>;
         this.mInteractionTrigger = pInteractionTrigger;
         this.mData = pData;
 
@@ -96,3 +96,5 @@ export class InteractionEvent<TData extends object, TTrigger extends number> {
         return `${this.origin.name} -> ${this.interactionType}:${this.interactionTrigger} - ${this.data.toString()}`;
     }
 }
+
+type Enum<T> = { [key: string]: T; };

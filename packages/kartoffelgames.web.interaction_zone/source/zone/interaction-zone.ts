@@ -64,7 +64,7 @@ export class InteractionZone {
      * 
      * @returns false when any zone in the parent chain dont has trigger for {@link pInteractionReason}
      */
-    public static dispatchInteractionEvent(pType: number, pSource: object, pProperty?: PropertyKey): boolean {
+    public static pushInteraction(pType: string, pTrigger: number, pSource: object, pProperty?: PropertyKey): boolean {
         // Optimization to prevent InteractionReason creation.
         // Validate trigger type with current zones trigger mapping.
         if ((this.mCurrentZone.mTriggerMapping & pType) === 0) {
@@ -78,12 +78,12 @@ export class InteractionZone {
         return this.mCurrentZone.callInteractionListener(lReason);
     }
 
-    private readonly mChangeListener: Dictionary<ChangeListener, InteractionZone>;
     private readonly mErrorListener: Dictionary<ErrorListener, InteractionZone>;
+    private readonly mInteractionListener: Dictionary<ChangeListener, InteractionZone>;
     private readonly mIsolated: boolean;
     private readonly mName: string;
     private readonly mParent: InteractionZone | null;
-    private readonly mTriggerMapping: number;
+    private readonly mTriggerMapping: Dictionary<string, number>;
 
     /**
      * Get interaction detection name.
@@ -112,7 +112,7 @@ export class InteractionZone {
      */
     private constructor(pName: string, pParent: InteractionZone | null, pTrigger: InteractionResponseType, pIsolate: boolean,) {
         // Initialize listener lists
-        this.mChangeListener = new Dictionary<ChangeListener, InteractionZone>();
+        this.mInteractionListener = new Dictionary<ChangeListener, InteractionZone>();
         this.mErrorListener = new Dictionary<ErrorListener, InteractionZone>();
 
         // Set name of zone. Used only for debugging and labeling.
@@ -146,7 +146,7 @@ export class InteractionZone {
      * @param pListener - Listener.
      */
     public addInteractionListener(pListener: ChangeListener): void {
-        this.mChangeListener.add(pListener, InteractionZone.current);
+        this.mInteractionListener.add(pListener, InteractionZone.current);
     }
 
     /**
@@ -202,7 +202,7 @@ export class InteractionZone {
      * @param pListener - Listener.
      */
     public removeInteractionListener(pListener: ChangeListener): void {
-        this.mChangeListener.delete(pListener);
+        this.mInteractionListener.delete(pListener);
     }
 
     /**
@@ -254,7 +254,7 @@ export class InteractionZone {
         if (!pInteractionReason.addDispatchedZone(this)) {
             // Call all local listener in current zone.
             this.execute(() => {
-                for (const [lListener, lZone] of this.mChangeListener.entries()) {
+                for (const [lListener, lZone] of this.mInteractionListener.entries()) {
                     lZone.execute(() => {
                         lListener.call(this, pInteractionReason);
                     });

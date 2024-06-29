@@ -50,7 +50,7 @@ describe('InteractionZone', () => {
 
             // Process. Call listener.
             lInteractionZone.execute(() => {
-                InteractionZone.dispatchInteractionEvent(lReason);
+                InteractionZone.pushInteraction(lReason);
             });
 
             // Evaluation.
@@ -74,7 +74,7 @@ describe('InteractionZone', () => {
 
             // Process. Dispatch event on child.
             lChildInteractionZone.execute(() => {
-                InteractionZone.dispatchInteractionEvent(lReason);
+                InteractionZone.pushInteraction(lReason);
             });
 
             // Evaluation.
@@ -97,7 +97,7 @@ describe('InteractionZone', () => {
 
             // Process. Throw error in zone.
             lInteractionInteractionZone.execute(() => {
-                InteractionZone.dispatchInteractionEvent(new InteractionEvent(InteractionResponseType.Custom, new Object()));
+                InteractionZone.pushInteraction(new InteractionEvent(InteractionResponseType.Custom, new Object()));
             });
 
             const lInteractionZone: InteractionZone = await lInteractionZoneWaiter;
@@ -116,13 +116,13 @@ describe('InteractionZone', () => {
             lInteractionZone.execute(() => {
                 lInteractionZone.addInteractionListener((pReason: InteractionEvent) => {
                     lCounter++;
-                    InteractionZone.dispatchInteractionEvent(pReason);
+                    InteractionZone.pushInteraction(pReason);
                 });
             });
 
             // Process. Call listener.
             lInteractionZone.execute(() => {
-                InteractionZone.dispatchInteractionEvent(lReason);
+                InteractionZone.pushInteraction(lReason);
             });
 
             // Evaluation.
@@ -140,7 +140,7 @@ describe('InteractionZone', () => {
                 lResultReason = pChangeReason;
             });
             lZone.execute(() => {
-                InteractionZone.dispatchInteractionEvent(lReason);
+                InteractionZone.pushInteraction(lReason);
             });
 
             // Evaluation.
@@ -158,7 +158,7 @@ describe('InteractionZone', () => {
                 lResultSource = pChangeReason.source;
             });
             lZone.execute(() => {
-                InteractionZone.dispatchInteractionEvent(new InteractionEvent(InteractionResponseType.Custom, lSource));
+                InteractionZone.pushInteraction(new InteractionEvent(InteractionResponseType.Custom, lSource));
             });
 
             // Evaluation.
@@ -177,7 +177,7 @@ describe('InteractionZone', () => {
                 lResultReason = pChangeReason;
             });
             lZoneDifferent.execute(() => {
-                InteractionZone.dispatchInteractionEvent(lReason);
+                InteractionZone.pushInteraction(lReason);
             });
 
             // Evaluation.
@@ -749,7 +749,7 @@ describe('InteractionZone', () => {
 
         // Process. Call listener.
         lInteractionZone.execute(() => {
-            InteractionZone.dispatchInteractionEvent(1, new Object());
+            InteractionZone.pushInteraction(1, new Object());
         });
 
         // Evaluation.
@@ -770,7 +770,7 @@ describe('InteractionZone', () => {
 
         // Process. Call listener.
         lInteractionZone.execute(() => {
-            InteractionZone.dispatchInteractionEvent(1, new Object());
+            InteractionZone.pushInteraction(1, new Object());
         });
 
         // Evaluation.
@@ -870,7 +870,7 @@ describe('InteractionZone', () => {
                 lExecutedFunction = pChangeReason.source;
             });
             lZone.execute(() => {
-                InteractionZone.dispatchInteractionEvent(new InteractionEvent(InteractionResponseType.Custom, lFunction));
+                InteractionZone.pushInteraction(new InteractionEvent(InteractionResponseType.Custom, lFunction));
             });
 
             // Evaluation.
@@ -891,8 +891,8 @@ describe('InteractionZone', () => {
                 lResponeType |= pReason.triggerType;
             });
             lZoneChild.execute(() => {
-                InteractionZone.dispatchInteractionEvent(new InteractionEvent(InteractionResponseType.Custom, {}));
-                InteractionZone.dispatchInteractionEvent(new InteractionEvent(InteractionResponseType.RegisteredPropertyGet, {}));
+                InteractionZone.pushInteraction(new InteractionEvent(InteractionResponseType.Custom, {}));
+                InteractionZone.pushInteraction(new InteractionEvent(InteractionResponseType.RegisteredPropertyGet, {}));
             });
 
             // Evaluation.
@@ -909,8 +909,8 @@ describe('InteractionZone', () => {
                 lResponeType |= pReason.triggerType;
             });
             lZone.execute(() => {
-                InteractionZone.dispatchInteractionEvent(new InteractionEvent(InteractionResponseType.RegisteredPropertySet, {}));
-                InteractionZone.dispatchInteractionEvent(new InteractionEvent(InteractionResponseType.RegisteredPropertyGet, {}));
+                InteractionZone.pushInteraction(new InteractionEvent(InteractionResponseType.RegisteredPropertySet, {}));
+                InteractionZone.pushInteraction(new InteractionEvent(InteractionResponseType.RegisteredPropertyGet, {}));
             });
 
             // Evaluation.
@@ -945,9 +945,9 @@ describe('InteractionZone', () => {
                 lResponeType |= pReason.triggerType;
             });
             lZoneChildChild.execute(() => {
-                InteractionZone.dispatchInteractionEvent(new InteractionEvent(InteractionResponseType.RegisteredPropertyDelete, {}));
-                InteractionZone.dispatchInteractionEvent(new InteractionEvent(InteractionResponseType.RegisteredPropertyGet, {}));
-                InteractionZone.dispatchInteractionEvent(new InteractionEvent(InteractionResponseType.RegisteredPropertySet, {}));
+                InteractionZone.pushInteraction(new InteractionEvent(InteractionResponseType.RegisteredPropertyDelete, {}));
+                InteractionZone.pushInteraction(new InteractionEvent(InteractionResponseType.RegisteredPropertyGet, {}));
+                InteractionZone.pushInteraction(new InteractionEvent(InteractionResponseType.RegisteredPropertySet, {}));
             });
 
             // Evaluation.

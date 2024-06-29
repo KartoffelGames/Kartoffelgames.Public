@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 
-import { InteractionReason } from '../../../kartoffelgames.web.interaction_zone/source/zone/interaction-reason';
+import { InteractionReason } from '@kartoffelgames/web.interaction-zone';
 import { InteractionZone } from '../../../kartoffelgames.web.interaction_zone/source/zone/interaction-zone';
 import { IgnoreInteractionDetection } from '../../../source/change_detection/synchron_tracker/ignore-interaction-detection.decorator';
 import { InteractionDetectionProxy, InteractionResponseType } from '../../../source/change_detection/synchron_tracker/interaction-detection-proxy';

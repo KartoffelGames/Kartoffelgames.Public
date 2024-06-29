@@ -1,87 +1,117 @@
-import { Exception } from '@kartoffelgames/core';
 import { expect } from 'chai';
 import { InteractionEvent } from '../../source/zone/interaction-event';
 import { InteractionZone } from '../../source/zone/interaction-zone';
 import '../mock/request-animation-frame-mock-session';
 
 describe('InteractionEvent', () => {
-    describe('Functionality: InteractionReason', () => {
-        it('-- Read origin zone without dispatch', () => {
+    it('Property: data', () => {
+        // Setup.
+        const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
+        const lData = {};
+        const lReason: InteractionEvent<object, number> = new InteractionEvent('CustomType', 1, lZone, lData);
+
+        // Process
+        const lResult = lReason.data;
+
+        // Evaluation.
+        expect(lResult).to.equal(lData);
+    });
+
+    it('Property: interactionTrigger', () => {
+        // Setup.
+        const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
+        const lInteractionTrigger = 112244;
+        const lReason: InteractionEvent<object, number> = new InteractionEvent('CustomType', lInteractionTrigger, lZone, {});
+
+        // Process
+        const lResult = lReason.interactionTrigger;
+
+        // Evaluation.
+        expect(lResult).to.equal(lInteractionTrigger);
+    });
+
+    it('Property: interactionType', () => {
+        // Setup.
+        const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
+        const lInteractionType = 'MyOwnType';
+        const lReason: InteractionEvent<object, number> = new InteractionEvent(lInteractionType, 11, lZone, {});
+
+        // Process
+        const lResult = lReason.interactionType;
+
+        // Evaluation.
+        expect(lResult).to.equal(lInteractionType);
+    });
+
+    it('Property: origin', () => {
+        // Setup.
+        const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
+        const lReason: InteractionEvent<object, number> = new InteractionEvent('CustomType', 1, lZone, {});
+
+        // Process
+        const lResult = lReason.origin;
+
+        // Evaluation.
+        expect(lResult).to.equal(lZone);
+    });
+
+    it('Property: stacktrace', () => {
+        // Setup.
+        const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
+
+        // Setup. Named function.
+        function lMycoolname() {
+            return new InteractionEvent('CustomType', 1, lZone, {});
+        }
+
+        // Process
+        const lResultEvent = lMycoolname();
+        const lResultStackTrace = lResultEvent.stacktrace.stack;
+
+        // Evaluation.
+        expect(lResultStackTrace).to.contain('lMycoolname');
+    });
+
+    describe('Method: addPushedZone', () => {
+        it('-- Push new zone', () => {
             // Setup.
-            const lReason: InteractionEvent = new InteractionEvent(InteractionResponseType.None, {});
+            const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
+            const lReason: InteractionEvent<object, number> = new InteractionEvent('CustomType', 1, lZone, {});
 
-            // Process
-            const lErrorFunction = () => {
-                lReason.origin;
-            };
-
-            // Evaluation.
-            expect(lErrorFunction).to.throw(Exception, 'Interaction reason not dispatched.');
-        });
-
-        it('-- Passthrough function name.', () => {
-            // Setup. 
-            const lTarget = function lFunctionName() { };
-            const lTrigger: number = 112233;
-
-            // Setup. Create reason.
-            const lZone: InteractionZone = InteractionZone.current.create('ZoneName', { trigger: InteractionResponseType.Custom });
-            const lReason: InteractionEvent = new InteractionEvent(InteractionResponseType.Custom, lTarget);
-            lReason.setOrigin(lZone);
-
-            // Process
-            const lReasonAsString = lReason.toString();
+            // Process.
+            const lResult = lReason.addPushedZone(lZone);
 
             // Evaluation.
-            expect(lReasonAsString).to.equal(`${lZone.name}: ${typeof lTarget}:${'lFunctionName'} -> ${lTrigger}`);
+            expect(lResult).to.be.false;
         });
 
-        it('-- Passthrough class name.', () => {
-            // Setup. 
-            const lTarget = new class ClassName { }();
-            const lTrigger: number = 112233;
+        it('-- Push existing zone', () => {
+            // Setup.
+            const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
+            const lReason: InteractionEvent<object, number> = new InteractionEvent('CustomType', 1, lZone, {});
 
-            // Setup. Create reason.
-            const lZone: InteractionZone = InteractionZone.current.create('ZoneName', { trigger: InteractionResponseType.Custom });
-            const lReason: InteractionEvent = new InteractionEvent(InteractionResponseType.Custom, lTarget);
-            lReason.setOrigin(lZone);
-
-            // Process
-            const lReasonAsString = lReason.toString();
+            // Process.
+            lReason.addPushedZone(lZone);
+            const lResult = lReason.addPushedZone(lZone);
 
             // Evaluation.
-            expect(lReasonAsString).to.equal(`${lZone.name}: ${typeof lTarget}:${'ClassName'} -> ${lTrigger}`);
+            expect(lResult).to.be.true;
         });
+    });
 
-        it('-- Passthrough property name.', () => {
-            // Setup. 
-            const lTarget = new class ClassName { }();
-            const lPropertyName: string = 'PropertyName';
-            const lTrigger: number = 112233;
+    it('Method: toString', () => {
+        // Setup.
+        const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
+        const lInteractionType: string = 'InterType';
+        const lInteractionTrigger: number = 112266;
+        const lData = { a: 1 };
+        const lReason: InteractionEvent<object, number> = new InteractionEvent(lInteractionType, lInteractionTrigger, lZone, lData);
 
-            // Setup. Create reason.
-            const lZone: InteractionZone = InteractionZone.current.create('ZoneName', { trigger: InteractionResponseType.Custom });
-            const lReason: InteractionEvent = new InteractionEvent(InteractionResponseType.Custom, lTarget, lPropertyName);
-            lReason.setOrigin(lZone);
+        // Process.
+        const lResult = lReason.addPushedZone(lZone);
 
-            // Process
-            const lReasonAsString = lReason.toString();
+        // Evaluation.
+        expect(lResult).to.equal(`${lZone.name} -> ${lInteractionType}:${lInteractionTrigger} - ${lData.toString()}`);
 
-            // Evaluation.
-            expect(lReasonAsString).to.equal(`${lZone.name}: ${typeof lTarget}:${'ClassName'}[${lPropertyName}] -> ${lTrigger}`);
-        });
-
-        it('-- Correct origin', () => {
-            // Setup. Create reason.
-            const lZone: InteractionZone = InteractionZone.current.create('ZoneName', { trigger: InteractionResponseType.Custom });
-            const lReason: InteractionEvent = new InteractionEvent(InteractionResponseType.Custom, {});
-            lReason.setOrigin(lZone);
-
-            // Process
-            const lReasonOrigin = lReason.origin;
-
-            // Evaluation.
-            expect(lReasonOrigin).to.equal(lZone);
-        });
     });
 });

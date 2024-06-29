@@ -147,26 +147,6 @@ describe('InteractionZone', () => {
             expect(lResultReason).to.equal(lReason);
         });
 
-        it('-- Keep stacktrace', () => {
-            // Setup.
-            const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
-
-            // Process.
-            let lResultStack: Error | null = null;
-            lZone.addInteractionListener((pChangeReason: InteractionEvent) => {
-                lResultStack = pChangeReason.stacktrace;
-            });
-            lZone.execute(() => {
-                function lMycoolname() {
-                    InteractionZone.dispatchInteractionEvent(new InteractionEvent(InteractionResponseType.Custom, {}));
-                }
-                lMycoolname();
-            });
-
-            // Evaluation.
-            expect(lResultStack!.stack).to.contain('lMycoolname');
-        });
-
         it('-- Keep source', () => {
             // Setup.
             const lZone: InteractionZone = InteractionZone.current.create('ZoneName');

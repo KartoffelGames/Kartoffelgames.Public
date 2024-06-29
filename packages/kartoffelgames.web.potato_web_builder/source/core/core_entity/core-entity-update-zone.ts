@@ -34,10 +34,15 @@ export class CoreEntityUpdateZone {
                 const lActiveQueue = CoreEntityUpdateZone.mCallQueue;
                 CoreEntityUpdateZone.mCallQueue = new Dictionary<number, CallQueueFunction>();
 
+                // Call all requested actions parallel.
+                const lRunner: Array<Promise<void>> = new Array<Promise<void>>();
                 for (const lFunction of lActiveQueue.values()) {
                     // eslint-disable-next-line @typescript-eslint/await-thenable
-                    await lFunction(pTimestamp);
+                    lRunner.push(lFunction(pTimestamp));
                 }
+
+                // Wait for all current actions to settle.
+                await Promise.all(lRunner);
 
                 // Enable new runner instance.
                 CoreEntityUpdateZone.mCallQueueRunning = false;
@@ -259,6 +264,9 @@ export class CoreEntityUpdateZone {
             const lLastCallChainLength: number = this.mUpdateCallChain.length;
 
             try {
+                // TODO: Reshedule task when frame time exceeds a time (100ms?)
+                // But keep chain complete hooks open, dont extend chain.
+
                 // Measure performance.
                 const lStartPerformance = globalThis.performance.now();
 

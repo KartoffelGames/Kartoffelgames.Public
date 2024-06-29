@@ -6,6 +6,11 @@ import { InteractionReason } from './interaction-reason';
 import { IgnoreInteractionDetection } from './synchron_tracker/ignore-interaction-detection.decorator';
 import { InteractionDetectionProxy } from './synchron_tracker/interaction-detection-proxy';
 
+// TODO: Remove any interaction detection from patcher. Only maintain zones.
+// TODO: Zones handles universal trigger. No more fixed enum.
+// TODO: Rename project into. Interaction zone. Only Zone files remain. Proxy (and IgnoreInteractionDetection) moves out into pwb.
+// TODO: Rename KartoffelGames.Core.Data into Kartoffelgames.Core. Move comparison objects in it.
+
 /**
  * Merges execution zone and proxy tracking.
  */

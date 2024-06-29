@@ -32,6 +32,8 @@ export class ModuleValues {
      * @param pExtenedData - Extended data that are only exist for this execution.
      */
     public executeExpression(pExpression: string, pExtenedData?: Dictionary<string, any>): any {
+        // TODO: Create procedure and dont recreate it every time.
+
         const lExtendedData: Dictionary<string, any> = pExtenedData ?? new Dictionary<string, any>();
 
         const lEvaluatedFunction: () => any = this.createEvaluationFunktion(pExpression, lExtendedData);

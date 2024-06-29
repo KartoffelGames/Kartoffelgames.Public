@@ -81,11 +81,9 @@ export class CoreEntityUpdateZone {
     private readonly mInteractionZone: InteractionZone;
     private readonly mRegisteredObjects: WeakMap<object, CoreEntityProcessorProxy<object>>;
     private mSheduledUpdateIdentifier: number;
-    private readonly mSilentZone: InteractionZone;
     private readonly mUpdateCallChain: List<CoreEntityInteractionEvent>;
     private readonly mUpdateChainCompleteHookReleaseList: List<UpdateChainCompleteHookRelease>;
     private readonly mUpdateListener: List<UpdateListener>;
-
 
     /**
      * Get enabled state of update zone.
@@ -128,14 +126,10 @@ export class CoreEntityUpdateZone {
 
         // Create isolated or default zone as parent zone or, when not specified, current zones child.
         this.mInteractionZone = (pParentZone ?? InteractionZone.current).create(`${pLabel}-ProcessorZone`, { isolate: pIsolatedInteraction }).addTriggerRestriction(UpdateTrigger, pInteractionTrigger);
-        this.mSilentZone = InteractionZone.current.create(`${pLabel}-SilentZone`, { isolate: true }).addTriggerRestriction(UpdateTrigger, UpdateTrigger.None);
 
         // Add listener for interactions. Shedules an update on interaction zone.
         this.mInteractionZone.addInteractionListener(UpdateTrigger, (pReason: CoreEntityInteractionEvent) => {
-            // Call the actual shedule in silent zone to prevent promise from firing.
-            this.mSilentZone.execute(() => {
-                this.sheduleUpdateTask(pReason);
-            });
+            this.sheduleUpdateTask(pReason);
         });
     }
 
@@ -354,26 +348,23 @@ export class CoreEntityUpdateZone {
             }
         };
 
-        // Do not trigger interaction. The task function should handle the actual interaction zone scope.
-        return this.mSilentZone.execute(async () => {
-            // Skip asynchron task when currently a call is sheduled.
-            if (this.mHasSheduledUpdate) {
-                // Add then chain to current promise task. Task is resolved on completing all updates or rejected on any error. 
-                return this.addUpdateChainCompleteHook();
-            }
-
-            // Create and expand call chain.
-            this.mUpdateCallChain.push(pReason);
-
-            // Lock creation of a new task until current task is started.
-            this.mHasSheduledUpdate = true;
-
-            // Call on next frame. 
-            this.mSheduledUpdateIdentifier = CoreEntityUpdateZone.addActionToCallQueue(lAsynchronTask);
-
+        // Skip asynchron task when currently a call is sheduled.
+        if (this.mHasSheduledUpdate) {
             // Add then chain to current promise task. Task is resolved on completing all updates or rejected on any error. 
             return this.addUpdateChainCompleteHook();
-        });
+        }
+
+        // Create and expand call chain.
+        this.mUpdateCallChain.push(pReason);
+
+        // Lock creation of a new task until current task is started.
+        this.mHasSheduledUpdate = true;
+
+        // Call on next frame. 
+        this.mSheduledUpdateIdentifier = CoreEntityUpdateZone.addActionToCallQueue(lAsynchronTask);
+
+        // Add then chain to current promise task. Task is resolved on completing all updates or rejected on any error. 
+        return this.addUpdateChainCompleteHook();
     }
 }
 

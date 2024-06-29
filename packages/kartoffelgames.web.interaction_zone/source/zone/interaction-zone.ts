@@ -1,6 +1,7 @@
 import { Dictionary } from '@kartoffelgames/core';
 import { ErrorAllocation } from './error-allocation';
 import { InteractionEvent, InteractionEventTriggerType } from './interaction-event';
+import { Patcher } from '../patcher/patcher';
 
 // TODO: Remove any interaction detection from patcher. Only maintain zones.
 // TODO: Zones handles universal trigger. No more fixed enum.
@@ -115,6 +116,9 @@ export class InteractionZone {
      * @param pSettings - Interaction zone settings.
      */
     private constructor(pName: string, pParent: InteractionZone | null, pIsolate: boolean) {
+        // Init patcher when it is not allready.
+        Patcher.patch(globalThis);
+
         // Initialize error listener list
         this.mErrorListener = new Dictionary<ErrorListener, InteractionZone>();
 

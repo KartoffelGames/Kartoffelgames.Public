@@ -9,7 +9,7 @@ import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 
 @PwbInstructionModule({
     instructionType: 'slot',
-    trigger: UpdateTrigger.Default,
+    trigger: UpdateTrigger.Any,
 })
 export class SlotInstructionModule implements IInstructionOnUpdate {
     private readonly mModuleValues: ModuleValues;

@@ -11,7 +11,7 @@ import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 @PwbAttributeModule({
     access: AccessMode.ReadWrite,
     selector: /^\[\([[\w$]+\)\]$/,
-    trigger: UpdateTrigger.NoSyncCalls
+    trigger: UpdateTrigger.PropertySet | UpdateTrigger.PropertyDelete | UpdateTrigger.UntrackableFunctionCall | UpdateTrigger.Manual
 })
 export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
     private readonly mAttributeKey: string;

@@ -4,7 +4,7 @@ import { CoreEntityInteractionEvent, CoreEntityProcessorProxy } from '../../sour
 import { IgnoreInteractionTracking } from '../../source/core/core_entity/interaction-tracker/ignore-interaction-tracking.decorator';
 import { UpdateTrigger } from '../../source/core/enum/update-trigger.enum';
 
-describe('ComponentProcessorProxy', () => {
+describe('CoreEntityProcessorProxy', () => {
     it('Property: proxy', () => {
         // Setup.
         const lOriginalObject: object = { a: 1 };

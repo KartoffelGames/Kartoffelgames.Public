@@ -8,7 +8,7 @@ import { ComponentEventEmitter } from './component-event-emitter';
 
 @PwbExtensionModule({
     access: AccessMode.Read,
-    trigger: UpdateTrigger.Default,
+    trigger: UpdateTrigger.Any,
     targetRestrictions: [Component]
 })
 export class ComponentEventExtension {

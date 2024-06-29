@@ -10,7 +10,7 @@ import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 @PwbAttributeModule({
     access: AccessMode.Write,
     selector: /^\([[\w\-$]+\)$/,
-    trigger: UpdateTrigger.Default
+    trigger: UpdateTrigger.Any
 })
 export class EventAttributeModule implements IAttributeOnDeconstruct {
     private readonly mEventName: string;

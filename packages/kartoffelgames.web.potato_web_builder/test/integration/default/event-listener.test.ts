@@ -180,7 +180,7 @@ describe('PwbEventListener', () => {
         @PwbAttributeModule({
             access: AccessMode.Read,
             selector: /^listenerTestModuleOne$/,
-            trigger: UpdateTrigger.Default
+            trigger: UpdateTrigger.Any
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class MyModule {
@@ -213,7 +213,7 @@ describe('PwbEventListener', () => {
         @PwbAttributeModule({
             access: AccessMode.Read,
             selector: /^listenerTestModuleTwo$/,
-            trigger: UpdateTrigger.Default
+            trigger: UpdateTrigger.Any
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class MyModule {
@@ -244,7 +244,7 @@ describe('PwbEventListener', () => {
         @PwbAttributeModule({
             access: AccessMode.Read,
             selector: /^listenerTestModuleThree$/,
-            trigger: UpdateTrigger.Default
+            trigger: UpdateTrigger.Any
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class MyModule {
@@ -278,7 +278,7 @@ describe('PwbEventListener', () => {
 
         @PwbInstructionModule({
             instructionType: 'listenerTestModuleFour',
-            trigger: UpdateTrigger.Default
+            trigger: UpdateTrigger.Any
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class MyModule implements IInstructionOnUpdate {

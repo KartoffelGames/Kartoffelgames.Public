@@ -13,7 +13,7 @@ import { ModuleAttribute } from '../../core/module/injection_reference/module-at
 @PwbAttributeModule({
     access: AccessMode.Read,
     selector: /^\[[\w$]+\]$/,
-    trigger: UpdateTrigger.NoSyncCalls
+    trigger: UpdateTrigger.PropertySet | UpdateTrigger.PropertyDelete | UpdateTrigger.UntrackableFunctionCall | UpdateTrigger.Manual
 })
 export class OneWayBindingAttributeModule implements IAttributeOnUpdate {
     private readonly mExecutionString: string;

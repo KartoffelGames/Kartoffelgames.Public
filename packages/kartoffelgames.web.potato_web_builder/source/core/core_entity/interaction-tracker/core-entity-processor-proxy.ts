@@ -23,6 +23,15 @@ export class CoreEntityProcessorProxy<T extends object> {
     private static readonly PROXY_TO_ORIGINAL_MAPPING: WeakMap<object, object> = new WeakMap<object, object>();
 
     /**
+     * Get original object from InteractionDetectionProxy-Proxy.
+     * 
+     * @param pProxy - Possible InteractionDetectionProxy object.
+     */
+    public static getOriginal<TValue extends object>(pProxy: TValue): TValue {
+        return <TValue>CoreEntityProcessorProxy.PROXY_TO_ORIGINAL_MAPPING.get(pProxy) ?? pProxy;
+    }
+
+    /**
      * Add constructor class to the list of ignored classes.
      * Those classes will not be tracked or altered.
      * 
@@ -30,15 +39,6 @@ export class CoreEntityProcessorProxy<T extends object> {
      */
     public static ignoreClass(pConstructor: IgnoreableConstructor): void {
         CoreEntityProcessorProxy.IGNORED_CLASSES.add(pConstructor);
-    }
-
-    /**
-     * Get original object from InteractionDetectionProxy-Proxy.
-     * 
-     * @param pProxy - Possible InteractionDetectionProxy object.
-     */
-    private static getOriginal<TValue extends object>(pProxy: TValue): TValue {
-        return <TValue>CoreEntityProcessorProxy.PROXY_TO_ORIGINAL_MAPPING.get(pProxy) ?? pProxy;
     }
 
     /**

@@ -17,7 +17,7 @@ describe('BaseExtension', () => {
         let lExtensionCalled: boolean = false;
         @PwbExtensionModule({
             access: AccessMode.Read,
-            trigger: UpdateTrigger.Default,
+            trigger: UpdateTrigger.Any,
             targetRestrictions: [TestComponent]
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -45,7 +45,7 @@ describe('BaseExtension', () => {
         let lExtensionCalled: boolean = false;
         @PwbExtensionModule({
             access: AccessMode.Read,
-            trigger: UpdateTrigger.Default,
+            trigger: UpdateTrigger.Any,
             targetRestrictions: [class NotUsed { }]
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars

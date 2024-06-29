@@ -10,7 +10,7 @@ import { ComponentEventListenerComponentExtension } from './component-event-list
 
 @PwbExtensionModule({
     access: AccessMode.Read,
-    trigger: UpdateTrigger.Default,
+    trigger: UpdateTrigger.Any,
     targetRestrictions: [AttributeModule]
 })
 export class ComponentEventListenerModuleExtension implements IExtensionOnDeconstruct {

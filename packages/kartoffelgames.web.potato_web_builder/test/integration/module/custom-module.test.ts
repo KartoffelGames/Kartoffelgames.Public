@@ -9,17 +9,17 @@ import { IInstructionOnUpdate } from '../../../source/core/module/instruction_mo
 import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator';
 import { InstructionResult } from '../../../source/core/module/instruction_module/instruction-result';
 import { AccessMode } from '../../../source/core/enum/access-mode.enum';
-import { UpdateTrigger } from '../../../source/core/enum/update-trigger.enum';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
+import { UpdateTrigger } from '../../../source/core/enum/update-trigger.enum';
 
 describe('Custom Module', () => {
     it('-- Same result, twice', async () => {
         // Setup. Define module.
         @PwbInstructionModule({
             instructionType: 'multiresult',
-            trigger: UpdateTrigger.Default
+            trigger: UpdateTrigger.Any
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class WrongModule implements IInstructionOnUpdate {
@@ -70,7 +70,7 @@ describe('Custom Module', () => {
         // Setup. Define module.
         @PwbInstructionModule({
             instructionType: 'noupdatemethod',
-            trigger: UpdateTrigger.Default
+            trigger: UpdateTrigger.Any
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class WrongModule { }
@@ -93,7 +93,7 @@ describe('Custom Module', () => {
         @PwbAttributeModule({
             access: AccessMode.Read,
             selector: /^nodeconstructmethod$/,
-            trigger: UpdateTrigger.Default
+            trigger: UpdateTrigger.Any
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class Module { }

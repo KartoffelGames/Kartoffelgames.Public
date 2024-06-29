@@ -1,5 +1,3 @@
-import { InteractionReason } from '@kartoffelgames/web.interaction-zone';
-import { InteractionDetectionProxy } from '@kartoffelgames/web.interaction-zone/library/source/change_detection/synchron_tracker/interaction-detection-proxy';
 import { expect } from 'chai';
 import { Component, IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../source/core/component/component';
 import { ComponentRegister } from '../../source/core/component/component-register';
@@ -13,6 +11,7 @@ import { PwbExport } from '../../source/module/export/pwb-export.decorator';
 import '../mock/request-animation-frame-mock-session';
 import '../utility/chai-helper';
 import { TestUtil } from '../utility/test-util';
+import { CoreEntityInteractionEvent, CoreEntityProcessorProxy } from '../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy';
 
 describe('HtmlComponent', () => {
     it('-- Single element', async () => {
@@ -247,14 +246,14 @@ describe('HtmlComponent', () => {
 
         // Set update listener.
         let lWasUpdated: boolean = false;
-        TestUtil.getComponentManager(lComponent)?.getProcessorAttribute<CoreEntityUpdateZone>(CoreEntityUpdateZone)?.addUpdateListener(async (pReason: InteractionReason) => {
-            lWasUpdated = pReason.property === 'innerValue' || lWasUpdated;
+        TestUtil.getComponentManager(lComponent)?.getProcessorAttribute<CoreEntityUpdateZone>(CoreEntityUpdateZone)?.addUpdateListener(async (pReason: CoreEntityInteractionEvent) => {
+            lWasUpdated = pReason.data.property === 'innerValue' || lWasUpdated;
         });
 
         // Set update listener.
         let lInnerValueWasUpdated: boolean = false;
-        TestUtil.getComponentManager(lCapsuledContent)?.getProcessorAttribute<CoreEntityUpdateZone>(CoreEntityUpdateZone)?.addUpdateListener(async (pReason: InteractionReason) => {
-            lInnerValueWasUpdated = pReason.property === 'innerValue' || lInnerValueWasUpdated;
+        TestUtil.getComponentManager(lCapsuledContent)?.getProcessorAttribute<CoreEntityUpdateZone>(CoreEntityUpdateZone)?.addUpdateListener(async (pReason: CoreEntityInteractionEvent) => {
+            lInnerValueWasUpdated = pReason.data.property === 'innerValue' || lInnerValueWasUpdated;
         });
 
         // Proccess. Change Capsuled value.
@@ -273,7 +272,7 @@ describe('HtmlComponent', () => {
 
         // Setup. Custom expression module.
         @PwbExpressionModule({
-            trigger: UpdateTrigger.Default
+            trigger: UpdateTrigger.Any
         })
         class TestExpressionModule implements IExpressionOnUpdate {
             public onUpdate(): string {
@@ -355,7 +354,7 @@ describe('HtmlComponent', () => {
 
         // Process. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lComponentReference: Node = (<any>InteractionDetectionProxy).getOriginal(lComponent.element());
+        const lComponentReference: Node = CoreEntityProcessorProxy.getOriginal(lComponent.element());
 
         // Evaluation
         // 2 => StaticAnchor, unknown-component.

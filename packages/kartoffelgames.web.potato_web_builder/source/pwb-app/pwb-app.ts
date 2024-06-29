@@ -1,10 +1,8 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { InteractionResponseType, InteractionZone } from '@kartoffelgames/web.interaction-zone';
-import { ErrorListener } from '@kartoffelgames/web.interaction-zone/library/source/change_detection/interaction-zone';
+import { InteractionZone } from '@kartoffelgames/web.interaction-zone';
 import { ComponentProcessorConstructor } from '../core/component/component';
 import { ComponentRegister } from '../core/component/component-register';
 import { PwbTemplate } from '../core/component/template/nodes/pwb-template';
-import { UpdateTrigger } from '../core/enum/update-trigger.enum';
 import { PwbAppComponent } from './component/pwb-app-component';
 
 /**
@@ -45,7 +43,7 @@ export class PwbApp {
      */
     public constructor() {
         // Read interaction zone of app component.
-        this.mInteractionZone = InteractionZone.current.create('App', { isolate: true, trigger: <InteractionResponseType><unknown>UpdateTrigger.None });
+        this.mInteractionZone = InteractionZone.current.create('App', { isolate: true });
         PwbApp.mInteractionZoneToApp.set(this.mInteractionZone, this);
 
         // Get app component constructor.
@@ -73,7 +71,7 @@ export class PwbApp {
      * 
      * @param pListener - Error listener.
      */
-    public addErrorListener(pListener: ErrorListener): void {
+    public addErrorListener(pListener: PwbAppErrorListener): void {
         this.mInteractionZone.addErrorListener(pListener);
     }
 
@@ -165,6 +163,8 @@ export class PwbApp {
         }
     }
 }
+
+export type PwbAppErrorListener = (pError: any) => void | boolean;
 
 export type SplashScreen = {
     background?: string,

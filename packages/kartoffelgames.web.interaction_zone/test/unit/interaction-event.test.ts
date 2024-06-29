@@ -17,32 +17,6 @@ describe('InteractionEvent', () => {
         expect(lResult).to.equal(lData);
     });
 
-    it('Property: interactionTrigger', () => {
-        // Setup.
-        const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
-        const lInteractionTrigger = TestTriggerType.CustomDifferent;
-        const lReason: InteractionEvent<TestTriggerType, object> = new InteractionEvent(TestTriggerType, lInteractionTrigger, lZone, {});
-
-        // Process
-        const lResult = lReason.interactionTrigger;
-
-        // Evaluation.
-        expect(lResult).to.equal(lInteractionTrigger);
-    });
-
-    it('Property: interactionType', () => {
-        // Setup.
-        const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
-        const lInteractionType = TestTriggerType;
-        const lReason: InteractionEvent<TestTriggerType, object> = new InteractionEvent(lInteractionType, TestTriggerType.Custom, lZone, {});
-
-        // Process
-        const lResult = lReason.interactionType;
-
-        // Evaluation.
-        expect(lResult).to.equal(TestTriggerType);
-    });
-
     it('Property: origin', () => {
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
@@ -70,6 +44,32 @@ describe('InteractionEvent', () => {
 
         // Evaluation.
         expect(lResultStackTrace).to.contain('lMycoolname');
+    });
+
+    it('Property: trigger', () => {
+        // Setup.
+        const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
+        const lInteractionTrigger = TestTriggerType.CustomDifferent;
+        const lReason: InteractionEvent<TestTriggerType, object> = new InteractionEvent(TestTriggerType, lInteractionTrigger, lZone, {});
+
+        // Process
+        const lResult = lReason.trigger;
+
+        // Evaluation.
+        expect(lResult).to.equal(lInteractionTrigger);
+    });
+
+    it('Property: type', () => {
+        // Setup.
+        const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
+        const lInteractionType = TestTriggerType;
+        const lReason: InteractionEvent<TestTriggerType, object> = new InteractionEvent(lInteractionType, TestTriggerType.Custom, lZone, {});
+
+        // Process
+        const lResult = lReason.type;
+
+        // Evaluation.
+        expect(lResult).to.equal(TestTriggerType);
     });
 
     it('Method: toString', () => {

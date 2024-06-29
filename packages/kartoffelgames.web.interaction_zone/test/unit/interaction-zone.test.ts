@@ -91,7 +91,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lReasonResult!.interactionTrigger).to.equal(lInteractionTrigger);
+            expect(lReasonResult!.trigger).to.equal(lInteractionTrigger);
         });
 
         it('-- Generated event has correct type', () => {
@@ -112,7 +112,7 @@ describe('InteractionZone', () => {
             });
 
             // Evaluation.
-            expect(lReasonResult!.interactionType).to.equal(lInteractionType);
+            expect(lReasonResult!.type).to.equal(lInteractionType);
         });
 
         it('-- Generated event has correct type data', () => {

@@ -306,17 +306,17 @@ export class InteractionZone {
      */
     private callInteractionListener(pEvent: InteractionEvent<number, object>): boolean {
         // Read trigger. None set trigger are allways wildcards.
-        const lTriggerBitmap: number = this.mTriggerMapping.get(pEvent.interactionType) ?? ~0;
+        const lTriggerBitmap: number = this.mTriggerMapping.get(pEvent.type) ?? ~0;
 
         // Block dispatch of reason when it does not match the response type bitmap.
         // Send it when it was passthrough from child zones.
-        if ((lTriggerBitmap & pEvent.interactionTrigger) === 0) {
+        if ((lTriggerBitmap & pEvent.trigger) === 0) {
             return false;
         }
 
         // Skip dispatch when zone was already dispatched.  
         // Read interaction listener of interaction type.
-        const lInteractionListenerList = this.mInteractionListener.get(pEvent.interactionType);
+        const lInteractionListenerList = this.mInteractionListener.get(pEvent.type);
         if (lInteractionListenerList && lInteractionListenerList.size > 0) {
             this.execute(() => {
                 for (const [lListener, lZone] of lInteractionListenerList.entries()) {

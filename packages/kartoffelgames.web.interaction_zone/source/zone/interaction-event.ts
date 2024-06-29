@@ -18,20 +18,6 @@ export class InteractionEvent<TType extends number, TData extends object = objec
     }
 
     /**
-     * Get what interaction trigger was pushed.
-     */
-    public get interactionTrigger(): TType {
-        return this.mInteractionTrigger;
-    }
-
-    /**
-     * Get what type of interaction was pushed.
-     */
-    public get interactionType(): Enum<TType> {
-        return this.mInteractionType;
-    }
-
-    /**
      * Get event zone origin.
      */
     public get origin(): InteractionZone {
@@ -43,6 +29,20 @@ export class InteractionEvent<TType extends number, TData extends object = objec
      */
     public get stacktrace(): Error {
         return this.mStackError!;
+    }
+
+    /**
+     * For what trigger this event was pushed.
+     */
+    public get trigger(): TType {
+        return this.mInteractionTrigger;
+    }
+
+    /**
+     * For what type this event was pushed.
+     */
+    public get type(): Enum<TType> {
+        return this.mInteractionType;
     }
 
     /**
@@ -71,7 +71,7 @@ export class InteractionEvent<TType extends number, TData extends object = objec
      * @returns Event as string.
      */
     public toString(): string {
-        return `${this.origin.name} -> ${this.interactionType}:${this.interactionTrigger} - ${this.data.toString()}`;
+        return `${this.origin.name} -> ${this.type}:${this.trigger} - ${this.data.toString()}`;
     }
 }
 

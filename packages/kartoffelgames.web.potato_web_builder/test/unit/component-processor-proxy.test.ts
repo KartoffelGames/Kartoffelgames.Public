@@ -668,7 +668,7 @@ describe('ComponentProcessorProxy', () => {
             let lPropertyValueOnEvent: number | null = null;
             lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
                 if (pChangeReason.data.property === 'a') {
-                    lResponseType |= pChangeReason.interactionTrigger;
+                    lResponseType |= pChangeReason.trigger;
                     lPropertyValueOnEvent = lOriginalObject.a;
                 }
             });
@@ -694,7 +694,7 @@ describe('ComponentProcessorProxy', () => {
             let lResponseType: ComponentInteractionType = ComponentInteractionType.None;
             lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
                 if (pChangeReason.data.property === 'a') {
-                    lResponseType |= pChangeReason.interactionTrigger;
+                    lResponseType |= pChangeReason.trigger;
                 }
             });
 
@@ -720,7 +720,7 @@ describe('ComponentProcessorProxy', () => {
             let lPropertyValueOnEvent: number | undefined | null = null;
             lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
                 if (pChangeReason.data.property === 'a') {
-                    lResponseType |= pChangeReason.interactionTrigger;
+                    lResponseType |= pChangeReason.trigger;
                     lPropertyValueOnEvent = lOriginalObject.a;
                 }
             });
@@ -746,7 +746,7 @@ describe('ComponentProcessorProxy', () => {
             let lResponseType: ComponentInteractionType = ComponentInteractionType.None;
             lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
                 if (pChangeReason.data.property === 'a') {
-                    lResponseType |= pChangeReason.interactionTrigger;
+                    lResponseType |= pChangeReason.trigger;
                 }
             });
 
@@ -777,7 +777,7 @@ describe('ComponentProcessorProxy', () => {
             let lTriggerValueOnEvent: number | null = null;
             lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
                 if (pChangeReason.data.source === lProxy) {
-                    lResponseType |= pChangeReason.interactionTrigger;
+                    lResponseType |= pChangeReason.trigger;
                     lTriggerValueOnEvent = lTriggerValue;
                 }
             });
@@ -802,7 +802,7 @@ describe('ComponentProcessorProxy', () => {
             let lResponseType: ComponentInteractionType = ComponentInteractionType.None;
             lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
                 if (pChangeReason.data.source === lProxy) {
-                    lResponseType |= pChangeReason.interactionTrigger;
+                    lResponseType |= pChangeReason.trigger;
                 }
             });
 
@@ -828,7 +828,7 @@ describe('ComponentProcessorProxy', () => {
             let lResponseType: ComponentInteractionType = ComponentInteractionType.None;
             lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
                 if (pChangeReason.data.source === lProxy.set) {
-                    lResponseType |= pChangeReason.interactionTrigger;
+                    lResponseType |= pChangeReason.trigger;
                 }
             });
 
@@ -851,7 +851,7 @@ describe('ComponentProcessorProxy', () => {
                 let lResponseType: ComponentInteractionType = ComponentInteractionType.None;
                 lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
                     if (pChangeReason.data.source === lProxy) {
-                        lResponseType |= pChangeReason.interactionTrigger;
+                        lResponseType |= pChangeReason.trigger;
                     }
                 });
 
@@ -873,7 +873,7 @@ describe('ComponentProcessorProxy', () => {
                 let lResponseType: ComponentInteractionType = ComponentInteractionType.None;
                 lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
                     if (pChangeReason.data.source === lProxy.push) {
-                        lResponseType |= pChangeReason.interactionTrigger;
+                        lResponseType |= pChangeReason.trigger;
                     }
                 });
 
@@ -896,7 +896,7 @@ describe('ComponentProcessorProxy', () => {
             let lResponseType: ComponentInteractionType = ComponentInteractionType.None;
             lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
                 if (pChangeReason.data.source === lProxy.add) {
-                    lResponseType |= pChangeReason.interactionTrigger;
+                    lResponseType |= pChangeReason.trigger;
                 }
             });
 
@@ -918,7 +918,7 @@ describe('ComponentProcessorProxy', () => {
             let lResponseType: ComponentInteractionType = ComponentInteractionType.None;
             lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
                 if (pChangeReason.data.source === lProxy) {
-                    lResponseType |= pChangeReason.interactionTrigger;
+                    lResponseType |= pChangeReason.trigger;
                 }
             });
 

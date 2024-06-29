@@ -1,7 +1,7 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { ErrorAllocation } from '../../error-allocation';
-import { InteractionZone } from '../../interaction-zone';
 import { EventNames } from './event-names';
+import { InteractionZone } from '../zone/interaction-zone';
+import { ErrorAllocation } from '../zone/error-allocation';
 
 export class Patcher {
     private static mIsPatched: boolean = false;

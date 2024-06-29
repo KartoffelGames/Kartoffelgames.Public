@@ -31,6 +31,7 @@ export { PwbInstructionModule } from './core/module/instruction_module/pwb-instr
 export { InstructionResult } from './core/module/instruction_module/instruction-result';
 export { IInstructionOnDeconstruct, IInstructionOnUpdate } from './core/module/instruction_module/instruction-module';
 export { ScopedValues } from './core/scoped-values';
+export { ModuleValueProcedure } from './core/module/module-value-procedure';
 
 export { AccessMode } from './core/enum/access-mode.enum';
 
@@ -60,8 +61,8 @@ import './module/component-event/component-event-extension';
 import './module/component-event-listener/component-event-listener-component-extension';
 import './module/export/export-extension';
 import './module/pwb_app_injection/pwb-app-injection-extension';
-import { ComponentDebug } from './core/component-debug';
 
+import { ComponentDebug } from './core/component-debug';
 // Set debugger to global scope.
 globalThis['PwbDebug'] = new ComponentDebug();
 

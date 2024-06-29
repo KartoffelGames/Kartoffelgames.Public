@@ -1,12 +1,12 @@
 import { Exception } from '@kartoffelgames/core';
 import { expect } from 'chai';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
+import { CoreEntityProcessorProxy } from '../../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
 import { PwbChild } from '../../../source/module/pwb_child/pwb-child.decorator';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
-import { CoreEntityProcessorProxy } from '../../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy';
 
 describe('PwbChildAttributeModule', () => {
     it('-- Read id child', async () => {

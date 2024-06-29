@@ -7,6 +7,7 @@ import { InstructionResult } from '../../core/module/instruction_module/instruct
 import { ModuleValues } from '../../core/module/module-values';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { ModuleExpression } from '../../core/module/injection_reference/module-expression';
+import { ModuleValueProcedure } from '../../core/module/module-value-procedure';
 
 /**
  * Dynamic content instruction.
@@ -17,9 +18,9 @@ import { ModuleExpression } from '../../core/module/injection_reference/module-e
     trigger: UpdateTrigger.Any & ~UpdateTrigger.UntrackableFunctionCall
 })
 export class DynamicContentInstructionModule implements IInstructionOnUpdate {
-    private readonly mExpression: string;
     private mLastTemplate: PwbTemplate | null;
     private readonly mModuleValues: ModuleValues;
+    private readonly mProcedure: ModuleValueProcedure<PwbTemplate>;
 
     /**
      * Constructor.
@@ -31,7 +32,7 @@ export class DynamicContentInstructionModule implements IInstructionOnUpdate {
         this.mLastTemplate = null;
 
         // Callback expression.
-        this.mExpression = pExpressionValue.value;
+        this.mProcedure = this.mModuleValues.createExpressionProcedure(pExpressionValue.value);
     }
 
     /**
@@ -40,7 +41,7 @@ export class DynamicContentInstructionModule implements IInstructionOnUpdate {
      */
     public onUpdate(): InstructionResult | null {
         // Execute content callback silent.
-        const lTemplateResult: PwbTemplate = this.mModuleValues.executeExpression(this.mExpression);
+        const lTemplateResult: PwbTemplate = this.mProcedure.execute();
 
         // Validate correct result.
         if (!lTemplateResult! || !(lTemplateResult instanceof PwbTemplate)) {

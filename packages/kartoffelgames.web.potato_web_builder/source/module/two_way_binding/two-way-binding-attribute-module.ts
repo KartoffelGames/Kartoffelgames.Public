@@ -1,12 +1,12 @@
-import { Dictionary } from '@kartoffelgames/core';
 import { CoreEntityUpdateZone } from '../../core/core_entity/core-entity-update-zone';
+import { AccessMode } from '../../core/enum/access-mode.enum';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module';
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
 import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute';
 import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
+import { ModuleValueProcedure } from '../../core/module/module-value-procedure';
 import { ModuleValues } from '../../core/module/module-values';
-import { AccessMode } from '../../core/enum/access-mode.enum';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 
 @PwbAttributeModule({
     access: AccessMode.ReadWrite,
@@ -15,11 +15,13 @@ import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 })
 export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
     private readonly mAttributeKey: string;
-    private readonly mAttributeValue: string;
     private mLastDataValue: any;
     private mLastViewValue: any;
-    private readonly mModuleValues: ModuleValues;
+    private readonly mReadProcedure: ModuleValueProcedure<any>;
     private readonly mTargetNode: Node;
+    private readonly mWriteProcedure: ModuleValueProcedure<void>;
+
+
 
     /**
      * Constructor.
@@ -30,11 +32,13 @@ export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
      */
     public constructor(pTargetNode: ModuleTargetNode, pModuleValues: ModuleValues, pModuleAttribute: ModuleAttribute, pUpdateZone: CoreEntityUpdateZone) {
         this.mTargetNode = pTargetNode;
-        this.mModuleValues = pModuleValues;
 
         // Get property name.
         this.mAttributeKey = pModuleAttribute.name.substring(2, pModuleAttribute.name.length - 2);
-        this.mAttributeValue = pModuleAttribute.value;
+
+        // Create procedures.
+        this.mReadProcedure = pModuleValues.createExpressionProcedure(pModuleAttribute.value);
+        this.mWriteProcedure = pModuleValues.createExpressionProcedure(`${pModuleAttribute.value} = $DATA;`, ['$DATA']);
 
         // Set start compare values.
         this.mLastDataValue = Symbol('Uncomparable');
@@ -50,7 +54,7 @@ export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
      */
     public onUpdate(): boolean {
         // Try to update view only on module initialize.
-        const lCurrentDataValue: any = this.mModuleValues.executeExpression(this.mAttributeValue);
+        const lCurrentDataValue: any = this.mReadProcedure.execute();
 
         // Check for changes in this value.
         if (lCurrentDataValue !== this.mLastDataValue) {
@@ -68,11 +72,11 @@ export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
 
         // Check for changes in view.
         if (lCurrentViewValue !== lCurrentDataValue) {
-            const lExtendedValues: Dictionary<string, any> = new Dictionary<string, any>();
-            lExtendedValues.set('$DATA', lCurrentViewValue);
+            // Set temporary value.
+            this.mWriteProcedure.setTemporaryValue('$DATA', lCurrentViewValue);
 
             // Update value.
-            this.mModuleValues.executeExpression(`${this.mAttributeValue} = $DATA;`, lExtendedValues);
+            this.mWriteProcedure.execute();
 
             // Update compare.
             this.mLastViewValue = lCurrentViewValue;

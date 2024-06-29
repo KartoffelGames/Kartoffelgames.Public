@@ -1,13 +1,14 @@
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
 import { PwbTemplateInstructionNode } from '../../core/component/template/nodes/pwb-template-instruction-node';
-import { ScopedValues } from '../../core/scoped-values';
-import { ModuleTemplate } from '../../core/module/injection_reference/module-template';
-import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
-import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
-import { InstructionResult } from '../../core/module/instruction_module/instruction-result';
-import { ModuleValues } from '../../core/module/module-values';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { ModuleExpression } from '../../core/module/injection_reference/module-expression';
+import { ModuleTemplate } from '../../core/module/injection_reference/module-template';
+import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
+import { InstructionResult } from '../../core/module/instruction_module/instruction-result';
+import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
+import { ModuleValueProcedure } from '../../core/module/module-value-procedure';
+import { ModuleValues } from '../../core/module/module-values';
+import { ScopedValues } from '../../core/scoped-values';
 
 /**
  * If expression.
@@ -15,12 +16,12 @@ import { ModuleExpression } from '../../core/module/injection_reference/module-e
  */
 @PwbInstructionModule({
     instructionType: 'if',
-    trigger: UpdateTrigger.Any  & ~UpdateTrigger.UntrackableFunctionCall
+    trigger: UpdateTrigger.Any & ~UpdateTrigger.UntrackableFunctionCall
 })
 export class IfInstructionModule implements IInstructionOnUpdate {
-    private readonly mExpression: string;
     private mLastBoolean: boolean;
     private readonly mModuleValues: ModuleValues;
+    private readonly mProcedure: ModuleValueProcedure<any>;
     private readonly mTemplateReference: PwbTemplateInstructionNode;
 
     /**
@@ -32,7 +33,7 @@ export class IfInstructionModule implements IInstructionOnUpdate {
     public constructor(pTemplate: ModuleTemplate, pModuleValues: ModuleValues, pModuleExpression: ModuleExpression) {
         this.mTemplateReference = <PwbTemplateInstructionNode>pTemplate;
         this.mModuleValues = pModuleValues;
-        this.mExpression = pModuleExpression.value;
+        this.mProcedure = this.mModuleValues.createExpressionProcedure(pModuleExpression.value);
         this.mLastBoolean = false;
     }
 
@@ -41,7 +42,7 @@ export class IfInstructionModule implements IInstructionOnUpdate {
      * @returns if element of module should be updated.
      */
     public onUpdate(): InstructionResult | null {
-        const lExecutionResult: any = this.mModuleValues.executeExpression(this.mExpression);
+        const lExecutionResult: any = this.mProcedure.execute();
 
         if (!!lExecutionResult !== this.mLastBoolean) {
             this.mLastBoolean = !!lExecutionResult;

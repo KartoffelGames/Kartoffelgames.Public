@@ -1,14 +1,15 @@
-import { Dictionary, Exception } from '@kartoffelgames/core';
+import { Exception } from '@kartoffelgames/core';
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
 import { PwbTemplateInstructionNode } from '../../core/component/template/nodes/pwb-template-instruction-node';
-import { ScopedValues } from '../../core/scoped-values';
-import { ModuleTemplate } from '../../core/module/injection_reference/module-template';
-import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
-import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
-import { InstructionResult } from '../../core/module/instruction_module/instruction-result';
-import { ModuleValues } from '../../core/module/module-values';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { ModuleExpression } from '../../core/module/injection_reference/module-expression';
+import { ModuleTemplate } from '../../core/module/injection_reference/module-template';
+import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
+import { InstructionResult } from '../../core/module/instruction_module/instruction-result';
+import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
+import { ModuleValueProcedure } from '../../core/module/module-value-procedure';
+import { ModuleValues } from '../../core/module/module-values';
+import { ScopedValues } from '../../core/scoped-values';
 
 /**
  * For of.
@@ -17,7 +18,7 @@ import { ModuleExpression } from '../../core/module/injection_reference/module-e
  */
 @PwbInstructionModule({
     instructionType: 'for',
-    trigger: UpdateTrigger.Any  & ~UpdateTrigger.UntrackableFunctionCall
+    trigger: UpdateTrigger.Any & ~UpdateTrigger.UntrackableFunctionCall
 })
 export class ForInstructionModule implements IInstructionOnUpdate {
     private readonly mExpression: ForOfExpression;
@@ -47,12 +48,22 @@ export class ForInstructionModule implements IInstructionOnUpdate {
             throw new Exception(`For-Parameter value has wrong format: ${lInstruction}`, this);
         }
 
+        // Named variables, easier understanding.
+        const lIterateVariableName: string = lAttributeInformation[1];
+        const lIterateValueExpression: string = lAttributeInformation[2];
+        const lIndexVariableExportName: string | undefined = lAttributeInformation[4] ?? null;
+        const lIndexExpression: string | undefined = lAttributeInformation[5];
+
+        // Create expressions.
+        const lValueProcedure: ModuleValueProcedure<{ [key: string]: any; }> = this.mModuleValues.createExpressionProcedure(lIterateValueExpression);
+        const lIndexProcedure: ModuleValueProcedure<any> | null = (lIndexVariableExportName) ? this.mModuleValues.createExpressionProcedure(lIndexExpression, ['$index', lIterateVariableName]) : null;
+
         // Split match into useable parts.
         this.mExpression = {
-            variable: lAttributeInformation[1],
-            value: lAttributeInformation[2],
-            indexName: lAttributeInformation[4],
-            indexExpression: lAttributeInformation[5]
+            iterateVariableName: lIterateVariableName,
+            iterateValueProcedure: lValueProcedure,
+            indexExportVariableName: lIndexVariableExportName,
+            indexExportProcedure: lIndexProcedure,
         };
     }
 
@@ -65,7 +76,7 @@ export class ForInstructionModule implements IInstructionOnUpdate {
         const lModuleResult: InstructionResult = new InstructionResult();
 
         // Try to get list object from component values.
-        const lExpressionResult: { [key: string]: any; } = this.mModuleValues.executeExpression(this.mExpression.value);
+        const lExpressionResult: { [key: string]: any; } = this.mExpression.iterateValueProcedure.execute();
 
         // Only proceed if value is added to html element.
         if (typeof lExpressionResult === 'object' && lExpressionResult !== null || Array.isArray(lExpressionResult)) {
@@ -107,22 +118,19 @@ export class ForInstructionModule implements IInstructionOnUpdate {
      */
     private readonly addTemplateForElement = (pModuleResult: InstructionResult, pExpression: ForOfExpression, pObjectValue: any, pObjectKey: number | string) => {
         const lTemplateItemValues: ScopedValues = new ScopedValues(this.mModuleValues.scopedValues);
-        lTemplateItemValues.setTemporaryValue(pExpression.variable, pObjectValue);
-
-        // Create new execution context from inherited values.
-        const lExecutor: ModuleValues = new ModuleValues(lTemplateItemValues);
+        lTemplateItemValues.setTemporaryValue(pExpression.iterateVariableName, pObjectValue);
 
         // If custom index is used.
-        if (pExpression.indexName) {
+        if (pExpression.indexExportProcedure && pExpression.indexExportVariableName) {
             // Add index key as extenal value to execution.
-            const lExternalValues: Dictionary<string, any> = new Dictionary<string, any>();
-            lExternalValues.add('$index', pObjectKey);
+            pExpression.indexExportProcedure.setTemporaryValue('$index', pObjectKey);
+            pExpression.indexExportProcedure.setTemporaryValue(pExpression.iterateVariableName, pObjectValue);
 
             // Execute index expression. Expression is set when index name is set.
-            const lIndexExpressionResult: any = lExecutor.executeExpression(<string>pExpression.indexExpression, lExternalValues);
+            const lIndexExpressionResult: any = pExpression.indexExportProcedure.execute();
 
             // Set custom index name as temporary value.
-            lTemplateItemValues.setTemporaryValue(pExpression.indexName, lIndexExpressionResult);
+            lTemplateItemValues.setTemporaryValue(pExpression.indexExportVariableName, lIndexExpressionResult);
         }
 
         // Create template.
@@ -168,8 +176,8 @@ export class ForInstructionModule implements IInstructionOnUpdate {
 }
 
 type ForOfExpression = {
-    variable: string,
-    value: string,
-    indexName?: string,
-    indexExpression?: string;
+    iterateVariableName: string,
+    iterateValueProcedure: ModuleValueProcedure<{ [key: string]: any; }>,
+    indexExportVariableName: string | null,
+    indexExportProcedure: ModuleValueProcedure<any> | null;
 };

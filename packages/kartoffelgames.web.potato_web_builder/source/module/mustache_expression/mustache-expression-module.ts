@@ -3,6 +3,7 @@ import { IExpressionOnUpdate } from '../../core/module/expression_module/express
 import { PwbExpressionModule } from '../../core/module/expression_module/pwb-expression-module.decorator';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { ModuleExpression } from '../../core/module/injection_reference/module-expression';
+import { ModuleValueProcedure } from '../../core/module/module-value-procedure';
 
 /**
  * Wannabe Mustache expression executor.
@@ -12,32 +13,26 @@ import { ModuleExpression } from '../../core/module/injection_reference/module-e
     trigger: UpdateTrigger.Any & ~UpdateTrigger.UntrackableFunctionCall
 })
 export class MustacheExpressionModule implements IExpressionOnUpdate {
-    private readonly mExpressionValue: string;
-    private readonly mModuleValues: ModuleValues;
+    private readonly mProcedure: ModuleValueProcedure<any>;
 
     /**
      * Constructor.
      * 
-     * @param pValueReference - Values of module scope.
+     * @param pModuleValues - Values of module scope.
      * @param pModuleExpression - Expression value.
      */
     public constructor(pModuleValues: ModuleValues, pModuleExpression: ModuleExpression) {
-        this.mModuleValues = pModuleValues;
-        this.mExpressionValue = pModuleExpression.value;
+        this.mProcedure = pModuleValues.createExpressionProcedure(pModuleExpression.value);
     }
 
     /**
-     * Execute expression with ComponentScopeExecutor.
-     * @param pExpression - Expression.
-     * @param pValues - Component values.
+     * Execute expression procedure.
+     * 
      * @returns expression result.
      */
     public onUpdate(): string {
-        // Cut out mustache.
-        const lExpression = this.mExpressionValue;
-
         // Execute string
-        const lExecutionResult: any = this.mModuleValues.executeExpression(lExpression);
+        const lExecutionResult: any = this.mProcedure.execute();
 
         return lExecutionResult?.toString();
     }

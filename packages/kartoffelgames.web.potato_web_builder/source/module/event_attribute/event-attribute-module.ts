@@ -1,11 +1,11 @@
-import { Dictionary } from '@kartoffelgames/core';
+import { AccessMode } from '../../core/enum/access-mode.enum';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { IAttributeOnDeconstruct } from '../../core/module/attribute_module/attribute-module';
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
 import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute';
 import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
+import { ModuleValueProcedure } from '../../core/module/module-value-procedure';
 import { ModuleValues } from '../../core/module/module-values';
-import { AccessMode } from '../../core/enum/access-mode.enum';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 
 @PwbAttributeModule({
     access: AccessMode.Write,
@@ -27,14 +27,15 @@ export class EventAttributeModule implements IAttributeOnDeconstruct {
         this.mTarget = pTargetNode;
         this.mEventName = pModuleAttribute.name.substring(1, pModuleAttribute.name.length - 1);
 
+        const lProcedure: ModuleValueProcedure<void> = pModuleValues.createExpressionProcedure(pModuleAttribute.value, ['$event']);
+
         // Define listener.
         this.mListener = (pEvent: any): void => {
             // Add event to external values.
-            const lExternalValues: Dictionary<string, any> = new Dictionary<string, any>();
-            lExternalValues.add('$event', pEvent);
+            lProcedure.setTemporaryValue('$event', pEvent);
 
-            // Execute string with external event value.
-            pModuleValues.executeExpression(pModuleAttribute.value, lExternalValues);
+            // Execute procedure with set external event value.
+            lProcedure.execute();
         };
 
         // Add native event listener.

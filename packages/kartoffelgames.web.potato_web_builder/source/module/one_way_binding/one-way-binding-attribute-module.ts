@@ -5,6 +5,7 @@ import { ModuleValues } from '../../core/module/module-values';
 import { AccessMode } from '../../core/enum/access-mode.enum';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute';
+import { ModuleValueProcedure } from '../../core/module/module-value-procedure';
 
 /**
  * Bind value to view object.
@@ -16,9 +17,8 @@ import { ModuleAttribute } from '../../core/module/injection_reference/module-at
     trigger: UpdateTrigger.Any
 })
 export class OneWayBindingAttributeModule implements IAttributeOnUpdate {
-    private readonly mExecutionString: string;
     private mLastValue: any;
-    private readonly mModuleValues: ModuleValues;
+    private readonly mProcedure: ModuleValueProcedure<any>;
     private readonly mTarget: Node;
     private readonly mTargetProperty: string;
 
@@ -30,10 +30,9 @@ export class OneWayBindingAttributeModule implements IAttributeOnUpdate {
      */
     public constructor(pTargetNode: ModuleTargetNode, pModuleValues: ModuleValues, pModuleAttribute: ModuleAttribute) {
         this.mTarget = pTargetNode;
-        this.mModuleValues = pModuleValues;
 
-        // Get execution string.
-        this.mExecutionString = pModuleAttribute.value;
+        // Create expression procedure form attribute value.
+        this.mProcedure = pModuleValues.createExpressionProcedure(pModuleAttribute.value);
 
         // Get view object information. Remove starting [ and end ].
         this.mTargetProperty = pModuleAttribute.name.substring(1, pModuleAttribute.name.length - 1);
@@ -47,7 +46,7 @@ export class OneWayBindingAttributeModule implements IAttributeOnUpdate {
      * @returns false for 'do not update'.
      */
     public onUpdate(): boolean {
-        const lExecutionResult: any = this.mModuleValues.executeExpression(this.mExecutionString);
+        const lExecutionResult: any = this.mProcedure.execute();
 
         if (lExecutionResult !== this.mLastValue) {
             // Save last value.

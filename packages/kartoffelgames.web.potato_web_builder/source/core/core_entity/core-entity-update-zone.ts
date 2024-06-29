@@ -81,9 +81,8 @@ export class CoreEntityUpdateZone {
     private readonly mInteractionZone: InteractionZone;
     private readonly mRegisteredObjects: WeakMap<object, CoreEntityProcessorProxy<object>>;
     private mSheduledUpdateIdentifier: number;
-    private readonly mUpdateCallChain: List<CoreEntityInteractionEvent>;
-    private readonly mUpdateChainCompleteHookReleaseList: List<UpdateChainCompleteHookRelease>;
-    private readonly mUpdateListener: List<UpdateListener>;
+    private readonly mUpdateCallChain: UpdateChainInformation;
+    private readonly mUpdateListener: UpdateListener;
 
     /**
      * Get enabled state of update zone.
@@ -112,15 +111,17 @@ export class CoreEntityUpdateZone {
      * Constructor.
      * @param pUpdateScope - Update scope.
      */
-    public constructor(pLabel: string, pIsolatedInteraction: boolean, pInteractionTrigger: UpdateTrigger, pParentZone?: InteractionZone) {
-        this.mUpdateListener = new List<UpdateListener>();
+    public constructor(pLabel: string, pIsolatedInteraction: boolean, pInteractionTrigger: UpdateTrigger, pParentZone: InteractionZone | null, pListener: UpdateListener) {
         this.mRegisteredObjects = new WeakMap<object, CoreEntityProcessorProxy<object>>();
-
+        this.mUpdateListener = pListener;
         this.mEnabled = false;
 
         // Init loop detection values.
-        this.mUpdateCallChain = new List<CoreEntityInteractionEvent>();
-        this.mUpdateChainCompleteHookReleaseList = new List<UpdateChainCompleteHookRelease>();
+        this.mUpdateCallChain = {
+            wasUpdated: false,
+            hookList: new List<UpdateChainCompleteHookRelease>(),
+            chainList: new List<CoreEntityInteractionEvent>()
+        };
         this.mSheduledUpdateIdentifier = 0;
         this.mHasSheduledUpdate = false;
 
@@ -134,22 +135,11 @@ export class CoreEntityUpdateZone {
     }
 
     /**
-     * Listen for updates.
-     * @param pListener - Listener.
-     */
-    public addUpdateListener(pListener: UpdateListener): void {
-        this.mUpdateListener.push(pListener);
-    }
-
-    /**
      * Deconstruct update zone. 
      */
     public deconstruct(): void {
         // Disconnect from change listener. Does nothing if listener is not defined.
         this.mInteractionZone.removeInteractionListener(UpdateTrigger);
-
-        // Remove all update listener.
-        this.mUpdateListener.clear();
 
         // Disable handling.
         this.enabled = false;
@@ -238,7 +228,7 @@ export class CoreEntityUpdateZone {
     private async addUpdateChainCompleteHook(): Promise<true> {
         // Add new callback to waiter line.
         return new Promise<true>((pResolve, pReject) => {
-            this.mUpdateChainCompleteHookReleaseList.push((pError: any) => {
+            this.mUpdateCallChain.hookList.push((pError: any) => {
                 if (pError) {
                     pReject(pError);
                 } else {
@@ -254,14 +244,14 @@ export class CoreEntityUpdateZone {
      * 
      * @param pError - Error object.
      */
-    private releaseUpdateChainCompleteHooks(pError?: any): void {
+    private releaseUpdateChainCompleteHooks(pUpdated: boolean, pError?: any): void {
         // Release all waiter.
-        for (const lHookRelease of this.mUpdateChainCompleteHookReleaseList) {
-            lHookRelease(pError);
+        for (const lHookRelease of this.mUpdateCallChain.hookList) {
+            lHookRelease(pUpdated, pError);
         }
 
         // Clear hook release list.
-        this.mUpdateChainCompleteHookReleaseList.clear();
+        this.mUpdateCallChain.hookList.clear();
     }
 
     /**
@@ -269,6 +259,8 @@ export class CoreEntityUpdateZone {
      * Triggers update on next frame.
      * 
      * @throws {@link UpdateLoopError} - When {@link MAX_STACK_SIZE} or more continuous updates where made.
+     * 
+     * @returns if anything was updated.
      */
     private async sheduleUpdateTask(pReason: CoreEntityInteractionEvent): Promise<boolean> {
         // Skip task shedule when update zone is disabled.
@@ -281,7 +273,7 @@ export class CoreEntityUpdateZone {
             CoreEntityUpdateZone.mDebugger.print('Update trigger:', this.mInteractionZone.name,
                 '\n\t', 'Trigger:', pReason.toString(),
                 '\n\t', 'Is trigger:', !this.mHasSheduledUpdate,
-                '\n\t', 'Updatechain: ', this.mUpdateCallChain.map((pReason) => { return pReason.toString(); }),
+                '\n\t', 'Updatechain: ', this.mUpdateCallChain.chainList.map((pReason) => { return pReason.toString(); }),
                 '\n\t', 'Stacktrace:', { stack: pReason.stacktrace },
             );
         }
@@ -292,7 +284,7 @@ export class CoreEntityUpdateZone {
             this.mHasSheduledUpdate = false;
 
             // Save current call chain length. Used to detect a new chain link after execution.
-            const lLastCallChainLength: number = this.mUpdateCallChain.length;
+            const lLastCallChainLength: number = this.mUpdateCallChain.chainList.length;
 
             try {
                 // TODO: Reshedule task when frame time exceeds a time (100ms?)
@@ -302,9 +294,9 @@ export class CoreEntityUpdateZone {
                 const lStartPerformance = globalThis.performance.now();
 
                 // Call task. If no other call was sheduled during this call, the length will be the same after. 
-                for (const lListener of this.mUpdateListener) {
-                    await lListener.call(this, pReason);
-                }
+                this.mUpdateCallChain.wasUpdated ||= await this.mInteractionZone.execute(async () => {
+                    return this.mUpdateListener.call(this, pReason);
+                });
 
                 // Log performance time.
                 if (CoreEntityUpdateZone.mDebugger.configuration.logUpdatePerformance) {
@@ -316,20 +308,25 @@ export class CoreEntityUpdateZone {
                 }
 
                 // Throw if too many calles were chained.
-                if (this.mUpdateCallChain.length > CoreEntityUpdateZone.MAX_STACK_SIZE) {
-                    throw new UpdateLoopError('Call loop detected', this.mUpdateCallChain);
+                if (this.mUpdateCallChain.chainList.length > CoreEntityUpdateZone.MAX_STACK_SIZE) {
+                    throw new UpdateLoopError('Call loop detected', this.mUpdateCallChain.chainList);
                 }
 
                 // Clear call chain list if no other call in this cycle was made.
-                if (lLastCallChainLength === this.mUpdateCallChain.length) {
-                    this.mUpdateCallChain.clear();
+                if (lLastCallChainLength === this.mUpdateCallChain.hookList.length) {
+                    const lWasUpdated: boolean = this.mUpdateCallChain.wasUpdated;
+
+                    // Clear update chain list.
+                    this.mUpdateCallChain.hookList.clear();
+                    this.mUpdateCallChain.wasUpdated = false;
 
                     // Release chain complete hook.
-                    this.releaseUpdateChainCompleteHooks();
+                    this.releaseUpdateChainCompleteHooks(lWasUpdated);
                 }
             } catch (pException) {
                 // Unblock further calls and clear call chain.
-                this.mUpdateCallChain.clear();
+                this.mUpdateCallChain.chainList.clear();
+                this.mUpdateCallChain.wasUpdated = false;
 
                 // Cancel next call cycle.
                 CoreEntityUpdateZone.removeActionToCallQueue(this.mSheduledUpdateIdentifier);
@@ -339,10 +336,10 @@ export class CoreEntityUpdateZone {
                     this.mHasSheduledUpdate = true;
 
                     // Release chain complete hook with error.
-                    this.releaseUpdateChainCompleteHooks(pException);
+                    this.releaseUpdateChainCompleteHooks(false, pException);
                 } else {
                     // Release chain complete hook without error.
-                    this.releaseUpdateChainCompleteHooks();
+                    this.releaseUpdateChainCompleteHooks(false);
 
                     CoreEntityUpdateZone.mDebugger.print(pException);
                 }
@@ -356,7 +353,7 @@ export class CoreEntityUpdateZone {
         }
 
         // Create and expand call chain.
-        this.mUpdateCallChain.push(pReason);
+        this.mUpdateCallChain.chainList.push(pReason);
 
         // Lock creation of a new task until current task is started.
         this.mHasSheduledUpdate = true;
@@ -370,9 +367,14 @@ export class CoreEntityUpdateZone {
 }
 
 type CallQueueFunction = (pTimestamp: number) => Promise<void>;
-type UpdateChainCompleteHookRelease = (pError: any) => void;
+type UpdateChainCompleteHookRelease = (pUpdated: boolean, pError: any) => void;
+type UpdateChainInformation = {
+    chainList: List<CoreEntityInteractionEvent>;
+    hookList: List<UpdateChainCompleteHookRelease>;
+    wasUpdated: boolean;
+};
 
-export type UpdateListener = (pReason: CoreEntityInteractionEvent) => Promise<void>;
+export type UpdateListener = (pReason: CoreEntityInteractionEvent) => Promise<boolean>;
 
 export class UpdateLoopError extends Error {
     private readonly mChain: Array<CoreEntityInteractionEvent>;

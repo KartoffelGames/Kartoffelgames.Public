@@ -1,5 +1,4 @@
 export class EventNames {
-    public static readonly changeCriticalEvents = ['input', 'change'];
     public static readonly detailEventNames = ['toggle'];
     public static readonly documentEventNames = [
         'afterscriptexecute', 'beforescriptexecute', 'DOMContentLoaded', 'freeze', 'fullscreenchange',

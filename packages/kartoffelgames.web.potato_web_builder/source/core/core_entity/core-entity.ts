@@ -83,10 +83,10 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
         }
 
         // Try to read interaction stack from parent.
-        const lInteractionZone: InteractionZone | undefined = pParameter.parent?.updateZone.zone;
+        const lParentInteractionZone: InteractionZone | undefined = pParameter.parent?.updateZone.zone;
 
         // Create new updater for every component entity.
-        this.mUpdateZone = new CoreEntityUpdateZone(pParameter.processorConstructor.name, !!pParameter.isolateInteraction, pParameter.interactionTrigger, lInteractionZone);
+        this.mUpdateZone = new CoreEntityUpdateZone(pParameter.processorConstructor.name, !!pParameter.isolateInteraction, pParameter.interactionTrigger, lParentInteractionZone);
 
         // TODO: Add update(): Promise<boolean> and abstract onUpdate(): Promise<boolean> to every core entity and make it all async. Lets see what we get.
         // TODO: When everything is async and working. Check the current updatezone frame time and reshedule current update task to new frame when the current frame would take to long.

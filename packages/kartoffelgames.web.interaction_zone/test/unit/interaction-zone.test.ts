@@ -1,9 +1,8 @@
 import { Exception } from '@kartoffelgames/core';
 import { expect } from 'chai';
 import { ErrorAllocation } from '../../source/zone/error-allocation';
-import { InteractionReason } from '../../source/zone/interaction-reason';
+import { InteractionEvent } from '../../source/zone/interaction-event';
 import { InteractionZone } from '../../source/zone/interaction-zone';
-import { InteractionDetectionProxy } from '../../../source/zone/synchron_tracker/interaction-detection-proxy';
 import { PreventableErrorEvent, PromiseRejectionEvent } from '../mock/error-event';
 import '../mock/request-animation-frame-mock-session';
 
@@ -40,11 +39,11 @@ describe('InteractionZone', () => {
         it('-- Default', () => {
             // Setup.
             const lInteractionZone: InteractionZone = InteractionZone.current.create('Name');
-            const lReason: InteractionReason = new InteractionReason(InteractionResponseType.Custom, new Object(), 2);
+            const lReason: InteractionEvent = new InteractionEvent(InteractionResponseType.Custom, new Object(), 2);
 
             // Process. Add listener.
-            let lReasonResult: InteractionReason | null = null;
-            const lListener = (pReason: InteractionReason) => {
+            let lReasonResult: InteractionEvent | null = null;
+            const lListener = (pReason: InteractionEvent) => {
                 lReasonResult = pReason;
             };
             lInteractionZone.addInteractionListener(lListener);
@@ -64,11 +63,11 @@ describe('InteractionZone', () => {
             const lChildInteractionZone: InteractionZone = lParentInteractionZone.execute(() => {
                 return InteractionZone.current.create('CD-child');
             });
-            const lReason: InteractionReason = new InteractionReason(InteractionResponseType.Custom, new Object(), 2);
+            const lReason: InteractionEvent = new InteractionEvent(InteractionResponseType.Custom, new Object(), 2);
 
             // Process. Add listener.
-            let lReasonResult: InteractionReason | null = null;
-            const lListener = (pReason: InteractionReason) => {
+            let lReasonResult: InteractionEvent | null = null;
+            const lListener = (pReason: InteractionEvent) => {
                 lReasonResult = pReason;
             };
             lParentInteractionZone.addInteractionListener(lListener);
@@ -98,7 +97,7 @@ describe('InteractionZone', () => {
 
             // Process. Throw error in zone.
             lInteractionInteractionZone.execute(() => {
-                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.Custom, new Object()));
+                InteractionZone.dispatchInteractionEvent(new InteractionEvent(InteractionResponseType.Custom, new Object()));
             });
 
             const lInteractionZone: InteractionZone = await lInteractionZoneWaiter;
@@ -110,12 +109,12 @@ describe('InteractionZone', () => {
         it('-- Prevent redispatch of event.', () => {
             // Setup.
             const lInteractionZone: InteractionZone = InteractionZone.current.create('Name');
-            const lReason: InteractionReason = new InteractionReason(InteractionResponseType.Custom, new Object(), 2);
+            const lReason: InteractionEvent = new InteractionEvent(InteractionResponseType.Custom, new Object(), 2);
 
             // Process. Add listener.
             let lCounter: number = 0;
             lInteractionZone.execute(() => {
-                lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
+                lInteractionZone.addInteractionListener((pReason: InteractionEvent) => {
                     lCounter++;
                     InteractionZone.dispatchInteractionEvent(pReason);
                 });
@@ -133,11 +132,11 @@ describe('InteractionZone', () => {
         it('-- Passthrough change reason', () => {
             // Setup.
             const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
-            const lReason: InteractionReason = new InteractionReason(InteractionResponseType.Custom, {});
+            const lReason: InteractionEvent = new InteractionEvent(InteractionResponseType.Custom, {});
 
             // Process.
-            let lResultReason: InteractionReason | null = null;
-            lZone.addInteractionListener((pChangeReason: InteractionReason) => {
+            let lResultReason: InteractionEvent | null = null;
+            lZone.addInteractionListener((pChangeReason: InteractionEvent) => {
                 lResultReason = pChangeReason;
             });
             lZone.execute(() => {
@@ -154,12 +153,12 @@ describe('InteractionZone', () => {
 
             // Process.
             let lResultStack: Error | null = null;
-            lZone.addInteractionListener((pChangeReason: InteractionReason) => {
+            lZone.addInteractionListener((pChangeReason: InteractionEvent) => {
                 lResultStack = pChangeReason.stacktrace;
             });
             lZone.execute(() => {
                 function lMycoolname() {
-                    InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.Custom, {}));
+                    InteractionZone.dispatchInteractionEvent(new InteractionEvent(InteractionResponseType.Custom, {}));
                 }
                 lMycoolname();
             });
@@ -175,11 +174,11 @@ describe('InteractionZone', () => {
 
             // Process.
             let lResultSource: any;
-            lZone.addInteractionListener((pChangeReason: InteractionReason) => {
+            lZone.addInteractionListener((pChangeReason: InteractionEvent) => {
                 lResultSource = pChangeReason.source;
             });
             lZone.execute(() => {
-                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.Custom, lSource));
+                InteractionZone.dispatchInteractionEvent(new InteractionEvent(InteractionResponseType.Custom, lSource));
             });
 
             // Evaluation.
@@ -190,11 +189,11 @@ describe('InteractionZone', () => {
             // Setup.
             const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
             const lZoneDifferent: InteractionZone = InteractionZone.current.create('ZoneName1');
-            const lReason: InteractionReason = new InteractionReason(InteractionResponseType.Custom, {});
+            const lReason: InteractionEvent = new InteractionEvent(InteractionResponseType.Custom, {});
 
             // Process.
-            let lResultReason: InteractionReason | null = null;
-            lZone.addInteractionListener((pChangeReason: InteractionReason) => {
+            let lResultReason: InteractionEvent | null = null;
+            lZone.addInteractionListener((pChangeReason: InteractionEvent) => {
                 lResultReason = pChangeReason;
             });
             lZoneDifferent.execute(() => {
@@ -237,8 +236,8 @@ describe('InteractionZone', () => {
             const lTrackedEventTarget: { a: number; } = lInteractionZone.registerObject(lOriginalObject);
 
             // Process. Track change event.
-            let lReason: InteractionReason | null = null;
-            lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
+            let lReason: InteractionEvent | null = null;
+            lInteractionZone.addInteractionListener((pReason: InteractionEvent) => {
                 lReason = pReason;
             });
 
@@ -676,8 +675,8 @@ describe('InteractionZone', () => {
             const lTrackedEventTarget: { a: number; } = lInteractionZone.registerObject({ a: 1 });
 
             // Process. Track change event.
-            let lReason: InteractionReason | null = null;
-            lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
+            let lReason: InteractionEvent | null = null;
+            lInteractionZone.addInteractionListener((pReason: InteractionEvent) => {
                 lReason = pReason;
             });
 
@@ -698,8 +697,8 @@ describe('InteractionZone', () => {
             const lTrackedEventTarget: { a: number; } = lRegistered.registerObject({ a: 1 });
 
             // Process. Track change event.
-            let lReason: InteractionReason | null = null;
-            lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
+            let lReason: InteractionEvent | null = null;
+            lInteractionZone.addInteractionListener((pReason: InteractionEvent) => {
                 lReason = pReason;
             });
 
@@ -886,12 +885,12 @@ describe('InteractionZone', () => {
             // Process.
             let lExecutedFunction: any;
             let lZoneNameResult: string | null = null;
-            lZone.addInteractionListener((pChangeReason: InteractionReason) => {
+            lZone.addInteractionListener((pChangeReason: InteractionEvent) => {
                 lZoneNameResult = pChangeReason.origin.name;
                 lExecutedFunction = pChangeReason.source;
             });
             lZone.execute(() => {
-                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.Custom, lFunction));
+                InteractionZone.dispatchInteractionEvent(new InteractionEvent(InteractionResponseType.Custom, lFunction));
             });
 
             // Evaluation.
@@ -908,12 +907,12 @@ describe('InteractionZone', () => {
 
             // Process.
             let lResponeType: InteractionResponseType = InteractionResponseType.None;
-            lZoneChild.addInteractionListener((pReason: InteractionReason) => {
+            lZoneChild.addInteractionListener((pReason: InteractionEvent) => {
                 lResponeType |= pReason.triggerType;
             });
             lZoneChild.execute(() => {
-                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.Custom, {}));
-                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.RegisteredPropertyGet, {}));
+                InteractionZone.dispatchInteractionEvent(new InteractionEvent(InteractionResponseType.Custom, {}));
+                InteractionZone.dispatchInteractionEvent(new InteractionEvent(InteractionResponseType.RegisteredPropertyGet, {}));
             });
 
             // Evaluation.
@@ -926,12 +925,12 @@ describe('InteractionZone', () => {
 
             // Process.
             let lResponeType: InteractionResponseType = InteractionResponseType.None;
-            lZone.addInteractionListener((pReason: InteractionReason) => {
+            lZone.addInteractionListener((pReason: InteractionEvent) => {
                 lResponeType |= pReason.triggerType;
             });
             lZone.execute(() => {
-                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.RegisteredPropertySet, {}));
-                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.RegisteredPropertyGet, {}));
+                InteractionZone.dispatchInteractionEvent(new InteractionEvent(InteractionResponseType.RegisteredPropertySet, {}));
+                InteractionZone.dispatchInteractionEvent(new InteractionEvent(InteractionResponseType.RegisteredPropertyGet, {}));
             });
 
             // Evaluation.
@@ -950,25 +949,25 @@ describe('InteractionZone', () => {
 
             // Process. Setup listener child child.
             let lResponeTypeChildChild: InteractionResponseType = InteractionResponseType.None;
-            lZoneChildChild.addInteractionListener((pReason: InteractionReason) => {
+            lZoneChildChild.addInteractionListener((pReason: InteractionEvent) => {
                 lResponeTypeChildChild |= pReason.triggerType;
             });
 
             // Process. Setup listener child child.
             let lResponeTypeChild: InteractionResponseType = InteractionResponseType.None;
-            lZoneChild.addInteractionListener((pReason: InteractionReason) => {
+            lZoneChild.addInteractionListener((pReason: InteractionEvent) => {
                 lResponeTypeChild |= pReason.triggerType;
             });
 
             // Process. Setup listener child child.
             let lResponeType: InteractionResponseType = InteractionResponseType.None;
-            lZone.addInteractionListener((pReason: InteractionReason) => {
+            lZone.addInteractionListener((pReason: InteractionEvent) => {
                 lResponeType |= pReason.triggerType;
             });
             lZoneChildChild.execute(() => {
-                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.RegisteredPropertyDelete, {}));
-                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.RegisteredPropertyGet, {}));
-                InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.RegisteredPropertySet, {}));
+                InteractionZone.dispatchInteractionEvent(new InteractionEvent(InteractionResponseType.RegisteredPropertyDelete, {}));
+                InteractionZone.dispatchInteractionEvent(new InteractionEvent(InteractionResponseType.RegisteredPropertyGet, {}));
+                InteractionZone.dispatchInteractionEvent(new InteractionEvent(InteractionResponseType.RegisteredPropertySet, {}));
             });
 
             // Evaluation.
@@ -990,7 +989,7 @@ describe('InteractionZone', () => {
 
             // Process.
             let lResponeType: InteractionResponseType = InteractionResponseType.None;
-            lAttachedZone.addInteractionListener((pReason: InteractionReason) => {
+            lAttachedZone.addInteractionListener((pReason: InteractionEvent) => {
                 lResponeType |= pReason.triggerType;
             });
             lZone.execute(() => {
@@ -999,380 +998,6 @@ describe('InteractionZone', () => {
 
             // Evaluation.
             expect(lResponeType).to.equal(InteractionResponseType.None);
-        });
-    });
-
-    describe('Functionality: DetectionCatchType', () => {
-        it('-- DetectionCatchType.None', () => {
-            // Setup.
-            const lInteractionZone: InteractionZone = InteractionZone.current.create('Name', { trigger: InteractionResponseType.None });
-
-            // Process.
-            let lResponeType: InteractionResponseType | null = null;
-            lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                lResponeType = pReason.interactionType;
-            });
-            lInteractionZone.execute(() => {
-                const lEventTarget: EventTarget = new EventTarget();
-                lEventTarget.dispatchEvent(new Event('click'));
-            });
-
-            // Evaluation.
-            expect(lResponeType).to.be.null;
-        });
-
-        it('-- DetectionCatchType.RegisteredFunction', () => {
-            it('-- Default', () => {
-                // Setup.
-                const lInteractionZone: InteractionZone = InteractionZone.current.create('Name', { trigger: InteractionResponseType.RegisteredFunction });
-                const lFunction: () => void = lInteractionZone.registerObject(() => { });
-
-                // Process.
-                let lResponeType: InteractionResponseType = InteractionResponseType.None;
-                lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                    lResponeType |= pReason.interactionType;
-                });
-                lFunction();
-
-                // Evaluation.
-                expect(lResponeType).to.be.equal(InteractionResponseType.RegisteredFunction);
-            });
-
-            it('-- On error', () => {
-                // Setup.
-                const lInteractionZone: InteractionZone = InteractionZone.current.create('Name', { trigger: InteractionResponseType.RegisteredFunction });
-                const lFunction: () => void = lInteractionZone.registerObject(() => { throw 1; });
-
-                // Process.
-                let lResponeType: InteractionResponseType = InteractionResponseType.None;
-                lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                    lResponeType |= pReason.interactionType;
-                });
-                try {
-                    lFunction();
-                } catch (_pError) {/* Any */ }
-
-                // Evaluation.
-                expect(lResponeType).to.be.equal(InteractionResponseType.RegisteredFunction);
-            });
-        });
-
-        describe('-- DetectionCatchType.PatchedCallback', () => {
-            it('-- Default', (pDone: Mocha.Done) => {
-                // Setup.
-                const lInteractionZone: InteractionZone = InteractionZone.current.create('Name', { trigger: InteractionResponseType.PatchedCallback });
-
-                // Process.
-                lInteractionZone.addInteractionListener(() => {
-                    pDone();
-                });
-                lInteractionZone.execute(() => {
-                    globalThis.setTimeout(() => { }, 0);
-                });
-            });
-
-            // Unable to test error case :(
-        });
-
-        describe('-- DetectionCatchType.RegisteredPropertySet', () => {
-            it('-- Default', () => {
-                // Setup.
-                const lInteractionZone: InteractionZone = InteractionZone.current.create('Name', { trigger: InteractionResponseType.RegisteredPropertySet });
-                const lObject: { a: number; } = lInteractionZone.registerObject({ a: 0 });
-
-                // Process.
-                let lResponeType: InteractionResponseType = InteractionResponseType.None;
-                lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                    lResponeType |= pReason.interactionType;
-                });
-                lObject.a = 2;
-
-                // Evaluation.
-                expect(lResponeType).to.be.equal(InteractionResponseType.RegisteredPropertySet);
-            });
-
-            it('-- On error', () => {
-                // Setup.
-                const lInteractionZone: InteractionZone = InteractionZone.current.create('Name', { trigger: InteractionResponseType.RegisteredPropertySet });
-                const lObject: { a: number; } = lInteractionZone.registerObject(new class { set a(_pVal: number) { throw 1; } }());
-
-                // Process.
-                let lResponeType: InteractionResponseType = InteractionResponseType.None;
-                lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                    lResponeType |= pReason.interactionType;
-                });
-                try {
-                    lObject.a = 2;
-                } catch (_pError) {/* Any */ }
-
-                // Evaluation.
-                expect(lResponeType).to.be.equal(InteractionResponseType.RegisteredPropertySet);
-            });
-        });
-
-        describe('-- DetectionCatchType.RegisteredPropertyGet', () => {
-            it('-- Default', () => {
-                // Setup.
-                const lInteractionZone: InteractionZone = InteractionZone.current.create('Name', { trigger: InteractionResponseType.RegisteredPropertyGet });
-                const lObject: { a: number; } = lInteractionZone.registerObject({ a: 0 });
-
-                // Process.
-                let lResponeType: InteractionResponseType = InteractionResponseType.None;
-                lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                    lResponeType |= pReason.interactionType;
-                });
-                lObject.a;
-
-                // Evaluation.
-                expect(lResponeType).to.be.equal(InteractionResponseType.RegisteredPropertyGet);
-            });
-
-            it('-- On error', () => {
-                // Setup.
-                const lInteractionZone: InteractionZone = InteractionZone.current.create('Name', { trigger: InteractionResponseType.RegisteredPropertyGet });
-                const lObject: { a: number; } = lInteractionZone.registerObject(new class { get a(): number { throw 1; } }());
-
-                // Process.
-                let lResponeType: InteractionResponseType = InteractionResponseType.None;
-                lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                    lResponeType |= pReason.interactionType;
-                });
-                try {
-                    lObject.a;
-                } catch (_pError) {/* Any */ }
-
-                // Evaluation.
-                expect(lResponeType).to.be.equal(InteractionResponseType.RegisteredPropertyGet);
-            });
-        });
-
-        describe('-- DetectionCatchType.RegisteredPropertyDelete', () => {
-            it('-- Default', () => {
-                // Setup.
-                const lInteractionZone: InteractionZone = InteractionZone.current.create('Name', { trigger: InteractionResponseType.RegisteredPropertyDelete });
-                const lObject: { a?: number; } = lInteractionZone.registerObject({ a: 0 });
-
-                // Process.
-                let lResponeType: InteractionResponseType = InteractionResponseType.None;
-                lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                    lResponeType |= pReason.interactionType;
-                });
-                delete lObject.a;
-
-                // Evaluation.
-                expect(lResponeType).to.be.equal(InteractionResponseType.RegisteredPropertyDelete);
-            });
-
-            it('-- On error', () => {
-                // Setup.
-                const lInteractionZone: InteractionZone = InteractionZone.current.create('Name', { trigger: InteractionResponseType.RegisteredPropertyDelete });
-                const lObject: { a?: number; } = lInteractionZone.registerObject(Object.defineProperty({}, 'a', { configurable: false, value: 1 }));
-
-                // Process.
-                let lResponeType: InteractionResponseType = InteractionResponseType.None;
-                lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                    lResponeType |= pReason.interactionType;
-                });
-                try {
-                    delete lObject.a;
-                } catch (_pError) {/* Any */ }
-
-                // Evaluation.
-                expect(lResponeType).to.be.equal(InteractionResponseType.RegisteredPropertyDelete);
-            });
-        });
-
-        it('-- InteractionResponseType.PatchedPromise', async () => {
-            // Setup.
-            const lInteractionZone: InteractionZone = InteractionZone.current.create('Zone', { trigger: InteractionResponseType.PatchedPromise });
-
-            // Process.
-            let lResponeType: InteractionResponseType = InteractionResponseType.None;
-            lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                lResponeType |= pReason.interactionType;
-            });
-            await lInteractionZone.execute(async () => {
-                return new Promise<void>((pResolve) => { pResolve(); });
-            });
-
-            // Evaluation.
-            expect(lResponeType).to.be.equal(InteractionResponseType.PatchedPromise);
-        });
-
-        describe('-- DetectionCatchType.PatchedEventlistener', () => {
-            it('-- Default', () => {
-                // Setup.
-                const lInteractionZone: InteractionZone = InteractionZone.current.create('Name', { trigger: InteractionResponseType.PatchedEventlistener });
-                const lEventTarget: EventTarget = new EventTarget();
-
-                // Process.
-                let lResponeType: InteractionResponseType | null = null;
-                lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                    lResponeType = pReason.interactionType;
-                });
-                lInteractionZone.execute(() => {
-                    lEventTarget.addEventListener('click', () => { /* This should be called. */ });
-                });
-
-                lEventTarget.dispatchEvent(new Event('click'));
-
-                // Evaluation.
-                expect(lResponeType).to.be.equal(InteractionResponseType.PatchedEventlistener);
-            });
-
-            it('-- On error', () => {
-                // Setup.
-                const lInteractionZone: InteractionZone = InteractionZone.current.create('Name', { trigger: InteractionResponseType.PatchedEventlistener });
-                const lEventTarget: EventTarget = new EventTarget();
-
-                // Process.
-                let lResponeType: InteractionResponseType | null = null;
-                lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                    lResponeType = pReason.interactionType;
-                });
-                lInteractionZone.execute(() => {
-                    lEventTarget.addEventListener('click', () => { throw 1; });
-                });
-
-                lEventTarget.dispatchEvent(new Event('click'));
-
-                // Evaluation.
-                expect(lResponeType).to.be.equal(InteractionResponseType.PatchedEventlistener);
-            });
-        });
-
-        it('-- DetectionCatchType.RegisteredUntrackableFunction', () => {
-            // Setup.
-            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD-Native', { trigger: InteractionResponseType.RegisteredUntrackableFunction });
-            const lProxy: Set<string> = new InteractionDetectionProxy(new Set<string>()).proxy;
-
-            // Setup. InteractionZone.
-            let lResponseType: InteractionResponseType = InteractionResponseType.None;
-            lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
-                lResponseType |= pChangeReason.interactionType;
-            });
-
-            // Process
-            lInteractionZone.execute(() => {
-                lProxy.add('');
-            });
-
-            // Evaluation.
-            expect(lResponseType).to.equal(InteractionResponseType.RegisteredUntrackableFunction);
-        });
-
-        it('-- Negative', () => {
-            // Setup.
-            const lInteractionZone: InteractionZone = InteractionZone.current.create('Name', { trigger: InteractionResponseType.PatchedPromise });
-
-            // Process.
-            let lResponeType: InteractionResponseType = InteractionResponseType.None;
-            lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                lResponeType |= pReason.interactionType;
-            });
-            lInteractionZone.execute(() => {
-                const lEventTarget: EventTarget = new EventTarget();
-                lEventTarget.addEventListener('custom', () => { });
-                lEventTarget.dispatchEvent(new Event('custom'));
-            });
-
-            // Evaluation.
-            expect(lResponeType).to.be.equal(InteractionResponseType.None);
-        });
-
-        it('-- Negative no zone execution', async () => {
-            // Setup.
-            const lInteractionZone: InteractionZone = InteractionZone.current.create('Name', { trigger: InteractionResponseType.PatchedCallback });
-
-            // Process.
-            let lResponeType: InteractionResponseType = InteractionResponseType.None;
-            lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                lResponeType |= pReason.interactionType;
-            });
-            lInteractionZone.execute(() => { /* Empty */ });
-
-            // Evaluation.
-            expect(lResponeType).to.be.equal(InteractionResponseType.None);
-        });
-    });
-
-    describe('Functionality: InteractionReason', () => {
-        it('-- Read origin zone without dispatch', () => {
-            // Setup.
-            const lReason: InteractionReason = new InteractionReason(InteractionResponseType.None, {});
-
-            // Process
-            const lErrorFunction = () => {
-                lReason.origin;
-            };
-
-            // Evaluation.
-            expect(lErrorFunction).to.throw(Exception, 'Interaction reason not dispatched.');
-        });
-
-        it('-- Passthrough function name.', () => {
-            // Setup. 
-            const lTarget = function lFunctionName() { };
-            const lTrigger: number = 112233;
-
-            // Setup. Create reason.
-            const lZone: InteractionZone = InteractionZone.current.create('ZoneName', { trigger: InteractionResponseType.Custom });
-            const lReason: InteractionReason = new InteractionReason(InteractionResponseType.Custom, lTarget);
-            lReason.setOrigin(lZone);
-
-            // Process
-            const lReasonAsString = lReason.toString();
-
-            // Evaluation.
-            expect(lReasonAsString).to.equal(`${lZone.name}: ${typeof lTarget}:${'lFunctionName'} -> ${lTrigger}`);
-        });
-
-        it('-- Passthrough class name.', () => {
-            // Setup. 
-            const lTarget = new class ClassName { }();
-            const lTrigger: number = 112233;
-
-            // Setup. Create reason.
-            const lZone: InteractionZone = InteractionZone.current.create('ZoneName', { trigger: InteractionResponseType.Custom });
-            const lReason: InteractionReason = new InteractionReason(InteractionResponseType.Custom, lTarget);
-            lReason.setOrigin(lZone);
-
-            // Process
-            const lReasonAsString = lReason.toString();
-
-            // Evaluation.
-            expect(lReasonAsString).to.equal(`${lZone.name}: ${typeof lTarget}:${'ClassName'} -> ${lTrigger}`);
-        });
-
-        it('-- Passthrough property name.', () => {
-            // Setup. 
-            const lTarget = new class ClassName { }();
-            const lPropertyName: string = 'PropertyName';
-            const lTrigger: number = 112233;
-
-            // Setup. Create reason.
-            const lZone: InteractionZone = InteractionZone.current.create('ZoneName', { trigger: InteractionResponseType.Custom });
-            const lReason: InteractionReason = new InteractionReason(InteractionResponseType.Custom, lTarget, lPropertyName);
-            lReason.setOrigin(lZone);
-
-            // Process
-            const lReasonAsString = lReason.toString();
-
-            // Evaluation.
-            expect(lReasonAsString).to.equal(`${lZone.name}: ${typeof lTarget}:${'ClassName'}[${lPropertyName}] -> ${lTrigger}`);
-        });
-
-        it('-- Correct origin', () => {
-            // Setup. Create reason.
-            const lZone: InteractionZone = InteractionZone.current.create('ZoneName', { trigger: InteractionResponseType.Custom });
-            const lReason: InteractionReason = new InteractionReason(InteractionResponseType.Custom, {});
-            lReason.setOrigin(lZone);
-
-            // Process
-            const lReasonOrigin = lReason.origin;
-
-            // Evaluation.
-            expect(lReasonOrigin).to.equal(lZone);
         });
     });
 });

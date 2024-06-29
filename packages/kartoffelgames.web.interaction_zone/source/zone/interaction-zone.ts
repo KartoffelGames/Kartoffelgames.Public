@@ -1,6 +1,6 @@
 import { Dictionary } from '@kartoffelgames/core';
 import { ErrorAllocation } from './error-allocation';
-import { InteractionReason } from './interaction-reason';
+import { InteractionEvent } from './interaction-event';
 
 // TODO: Remove any interaction detection from patcher. Only maintain zones.
 // TODO: Zones handles universal trigger. No more fixed enum.
@@ -72,7 +72,7 @@ export class InteractionZone {
         }
 
         // Create reason and save current zone as reason origin.
-        const lReason: InteractionReason = new InteractionReason(pType, pSource, pProperty, this.mCurrentZone);
+        const lReason: InteractionEvent = new InteractionEvent(pType, pSource, pProperty, this.mCurrentZone);
 
         // Start dispatch to current zone.
         return this.mCurrentZone.callInteractionListener(lReason);
@@ -243,7 +243,7 @@ export class InteractionZone {
      * 
      * @param pInteractionReason - Interaction reason.
      */
-    private callInteractionListener(pInteractionReason: InteractionReason): boolean {
+    private callInteractionListener(pInteractionReason: InteractionEvent): boolean {
         // Block dispatch of reason when it does not match the response type bitmap.
         // Send it when it was passthrough from child zones.
         if ((this.mTriggerMapping & pInteractionReason.triggerType) === 0) {
@@ -272,7 +272,7 @@ export class InteractionZone {
     }
 }
 
-export type ChangeListener = (pReason: InteractionReason) => void;
+export type ChangeListener = (pReason: InteractionEvent) => void;
 export type ErrorListener = (pError: any) => void | boolean;
 
 type InteractionZoneConstructorSettings = {

@@ -116,4 +116,4 @@ export class EnumUtil {
     }
 }
 
-type EnumObject<TEnum> = Record<keyof TEnum, number | string> & { [k: number]: string };
+type EnumObject<TEnum> = Record<keyof TEnum, number | string> & { [k: number]: string }; // TODO: Fix types. keyof typeof TEnum or so;

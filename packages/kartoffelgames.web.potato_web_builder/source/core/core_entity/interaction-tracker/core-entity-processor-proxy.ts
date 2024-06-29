@@ -144,27 +144,45 @@ export class CoreEntityProcessorProxy<T extends object> {
              * @param pArgumentsList - All arguments of call.
              */
             apply: (pTargetObject: T, pThisArgument: any, pArgumentsList: Array<any>): void => {
-                // Execute function and dispatch interaction event on synchron exceptions.
-                try {
-                    const lCallableTarget: CallableObject = <CallableObject>pTargetObject;
+                const lCallableTarget: CallableObject = <CallableObject>pTargetObject;
 
-                    // Call function.. Get original object of "this"-Scope. and call the functionwith it.
+                // Function to call with original object.
+                const lCallWithOriginalThisContext = (): any => {
+                    const lOriginalThisObject: object = CoreEntityProcessorProxy.getOriginal(pThisArgument);
+
                     try {
-                        const lOriginalThisObject: object = CoreEntityProcessorProxy.getOriginal(pThisArgument);
+                        // Call and convert potential object to a linked proxy.
                         const lResult = lCallableTarget.call(lOriginalThisObject, ...pArgumentsList);
-
-                        // Convert potential object to a linked proxy.
                         return this.convertToProxy(lResult);
                     } finally {
                         // Dispatch special InteractionResponseType.NativeFunctionCall.
-                        if (/\{\s+\[native code\]/.test(Function.prototype.toString.call(lCallableTarget))) {
-                            this.dispatch(UpdateTrigger.UntrackableFunctionCall, this.mProxyObject);
-                        }
+                        this.dispatch(UpdateTrigger.UntrackableFunctionCall, this.mProxyObject);
                     }
+                };
+
+                // Skip proxy execute and use original this context on native code.
+                if (/\{\s+\[native code\]/.test(Function.prototype.toString.call(lCallableTarget))) {
+                    return lCallWithOriginalThisContext();
+                }
+
+                // Only on non native calls, try to use proxied this context.
+                try {
+                    // Call function and convert potential object to a linked proxy.
+                    const lResult = lCallableTarget.call(pThisArgument, ...pArgumentsList);
+                    return this.convertToProxy(lResult);
+                } catch (pError) {
+                    // Only type errors are capable to be fixed with the original object.
+                    if (!(pError instanceof TypeError)) {
+                        throw pError;
+                    }
+
+                    // Read original object.
+                    return lCallWithOriginalThisContext();
                 } finally {
                     // Dispatches interaction end event before exception passthrough.
                     this.dispatch(UpdateTrigger.FunctionCall, this.mProxyObject);
                 }
+
             }
         });
 

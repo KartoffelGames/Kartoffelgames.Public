@@ -18,7 +18,12 @@ export enum UpdateTrigger {
     Manual = 1 << 6,
 
     /**
+     * Manual
+     */
+    InputChange = 1 << 7,
+
+    /**
      * All
      */
-    Any = (1 << 7) - 1
+    Any = (1 << 8) - 1
 }

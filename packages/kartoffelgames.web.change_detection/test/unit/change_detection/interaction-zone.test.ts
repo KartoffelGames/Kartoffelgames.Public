@@ -248,7 +248,7 @@ describe('InteractionZone', () => {
 
             // Evaluation.
             expect(lReason!.property).to.equal('a');
-            expect(lReason!.interactionType).to.equal(InteractionResponseType.RegisteredPropertySet);
+            expect(lReason!.triggerType).to.equal(InteractionResponseType.RegisteredPropertySet);
         });
     });
 
@@ -687,7 +687,7 @@ describe('InteractionZone', () => {
 
             // Evaluation.
             expect(lReason!.property).to.equal('a');
-            expect(lReason!.interactionType).to.equal(InteractionResponseType.RegisteredPropertySet);
+            expect(lReason!.triggerType).to.equal(InteractionResponseType.RegisteredPropertySet);
         });
 
         it('-- Dispatch interaction in current zone.', () => {
@@ -711,7 +711,7 @@ describe('InteractionZone', () => {
 
             // Evaluation.
             expect(lReason!.property).to.equal('a');
-            expect(lReason!.interactionType).to.equal(InteractionResponseType.RegisteredPropertySet);
+            expect(lReason!.triggerType).to.equal(InteractionResponseType.RegisteredPropertySet);
         });
     });
 
@@ -910,7 +910,7 @@ describe('InteractionZone', () => {
             // Process.
             let lResponeType: InteractionResponseType = InteractionResponseType.None;
             lZoneChild.addInteractionListener((pReason: InteractionReason) => {
-                lResponeType |= pReason.interactionType;
+                lResponeType |= pReason.triggerType;
             });
             lZoneChild.execute(() => {
                 InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.Custom, {}));
@@ -928,7 +928,7 @@ describe('InteractionZone', () => {
             // Process.
             let lResponeType: InteractionResponseType = InteractionResponseType.None;
             lZone.addInteractionListener((pReason: InteractionReason) => {
-                lResponeType |= pReason.interactionType;
+                lResponeType |= pReason.triggerType;
             });
             lZone.execute(() => {
                 InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.RegisteredPropertySet, {}));
@@ -952,19 +952,19 @@ describe('InteractionZone', () => {
             // Process. Setup listener child child.
             let lResponeTypeChildChild: InteractionResponseType = InteractionResponseType.None;
             lZoneChildChild.addInteractionListener((pReason: InteractionReason) => {
-                lResponeTypeChildChild |= pReason.interactionType;
+                lResponeTypeChildChild |= pReason.triggerType;
             });
 
             // Process. Setup listener child child.
             let lResponeTypeChild: InteractionResponseType = InteractionResponseType.None;
             lZoneChild.addInteractionListener((pReason: InteractionReason) => {
-                lResponeTypeChild |= pReason.interactionType;
+                lResponeTypeChild |= pReason.triggerType;
             });
 
             // Process. Setup listener child child.
             let lResponeType: InteractionResponseType = InteractionResponseType.None;
             lZone.addInteractionListener((pReason: InteractionReason) => {
-                lResponeType |= pReason.interactionType;
+                lResponeType |= pReason.triggerType;
             });
             lZoneChildChild.execute(() => {
                 InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.RegisteredPropertyDelete, {}));
@@ -992,7 +992,7 @@ describe('InteractionZone', () => {
             // Process.
             let lResponeType: InteractionResponseType = InteractionResponseType.None;
             lAttachedZone.addInteractionListener((pReason: InteractionReason) => {
-                lResponeType |= pReason.interactionType;
+                lResponeType |= pReason.triggerType;
             });
             lZone.execute(() => {
                 lProxy.proxy.a = 2;
@@ -1011,7 +1011,7 @@ describe('InteractionZone', () => {
             // Process.
             let lResponeType: InteractionResponseType | null = null;
             lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                lResponeType = pReason.interactionType;
+                lResponeType = pReason.triggerType;
             });
             lInteractionZone.execute(() => {
                 const lEventTarget: EventTarget = new EventTarget();
@@ -1031,7 +1031,7 @@ describe('InteractionZone', () => {
                 // Process.
                 let lResponeType: InteractionResponseType = InteractionResponseType.None;
                 lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                    lResponeType |= pReason.interactionType;
+                    lResponeType |= pReason.triggerType;
                 });
                 lFunction();
 
@@ -1047,7 +1047,7 @@ describe('InteractionZone', () => {
                 // Process.
                 let lResponeType: InteractionResponseType = InteractionResponseType.None;
                 lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                    lResponeType |= pReason.interactionType;
+                    lResponeType |= pReason.triggerType;
                 });
                 try {
                     lFunction();
@@ -1084,7 +1084,7 @@ describe('InteractionZone', () => {
                 // Process.
                 let lResponeType: InteractionResponseType = InteractionResponseType.None;
                 lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                    lResponeType |= pReason.interactionType;
+                    lResponeType |= pReason.triggerType;
                 });
                 lObject.a = 2;
 
@@ -1100,7 +1100,7 @@ describe('InteractionZone', () => {
                 // Process.
                 let lResponeType: InteractionResponseType = InteractionResponseType.None;
                 lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                    lResponeType |= pReason.interactionType;
+                    lResponeType |= pReason.triggerType;
                 });
                 try {
                     lObject.a = 2;
@@ -1120,7 +1120,7 @@ describe('InteractionZone', () => {
                 // Process.
                 let lResponeType: InteractionResponseType = InteractionResponseType.None;
                 lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                    lResponeType |= pReason.interactionType;
+                    lResponeType |= pReason.triggerType;
                 });
                 lObject.a;
 
@@ -1136,7 +1136,7 @@ describe('InteractionZone', () => {
                 // Process.
                 let lResponeType: InteractionResponseType = InteractionResponseType.None;
                 lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                    lResponeType |= pReason.interactionType;
+                    lResponeType |= pReason.triggerType;
                 });
                 try {
                     lObject.a;
@@ -1156,7 +1156,7 @@ describe('InteractionZone', () => {
                 // Process.
                 let lResponeType: InteractionResponseType = InteractionResponseType.None;
                 lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                    lResponeType |= pReason.interactionType;
+                    lResponeType |= pReason.triggerType;
                 });
                 delete lObject.a;
 
@@ -1172,7 +1172,7 @@ describe('InteractionZone', () => {
                 // Process.
                 let lResponeType: InteractionResponseType = InteractionResponseType.None;
                 lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                    lResponeType |= pReason.interactionType;
+                    lResponeType |= pReason.triggerType;
                 });
                 try {
                     delete lObject.a;
@@ -1190,7 +1190,7 @@ describe('InteractionZone', () => {
             // Process.
             let lResponeType: InteractionResponseType = InteractionResponseType.None;
             lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                lResponeType |= pReason.interactionType;
+                lResponeType |= pReason.triggerType;
             });
             await lInteractionZone.execute(async () => {
                 return new Promise<void>((pResolve) => { pResolve(); });
@@ -1209,7 +1209,7 @@ describe('InteractionZone', () => {
                 // Process.
                 let lResponeType: InteractionResponseType | null = null;
                 lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                    lResponeType = pReason.interactionType;
+                    lResponeType = pReason.triggerType;
                 });
                 lInteractionZone.execute(() => {
                     lEventTarget.addEventListener('click', () => { /* This should be called. */ });
@@ -1229,7 +1229,7 @@ describe('InteractionZone', () => {
                 // Process.
                 let lResponeType: InteractionResponseType | null = null;
                 lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                    lResponeType = pReason.interactionType;
+                    lResponeType = pReason.triggerType;
                 });
                 lInteractionZone.execute(() => {
                     lEventTarget.addEventListener('click', () => { throw 1; });
@@ -1250,7 +1250,7 @@ describe('InteractionZone', () => {
             // Setup. InteractionZone.
             let lResponseType: InteractionResponseType = InteractionResponseType.None;
             lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
-                lResponseType |= pChangeReason.interactionType;
+                lResponseType |= pChangeReason.triggerType;
             });
 
             // Process
@@ -1269,7 +1269,7 @@ describe('InteractionZone', () => {
             // Process.
             let lResponeType: InteractionResponseType = InteractionResponseType.None;
             lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                lResponeType |= pReason.interactionType;
+                lResponeType |= pReason.triggerType;
             });
             lInteractionZone.execute(() => {
                 const lEventTarget: EventTarget = new EventTarget();
@@ -1288,7 +1288,7 @@ describe('InteractionZone', () => {
             // Process.
             let lResponeType: InteractionResponseType = InteractionResponseType.None;
             lInteractionZone.addInteractionListener((pReason: InteractionReason) => {
-                lResponeType |= pReason.interactionType;
+                lResponeType |= pReason.triggerType;
             });
             lInteractionZone.execute(() => { /* Empty */ });
 

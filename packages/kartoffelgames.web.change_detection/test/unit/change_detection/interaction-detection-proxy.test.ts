@@ -694,7 +694,7 @@ describe('InteractionDetectionProxy', () => {
             let lTriggerValueOnEvent: number | null = null;
             lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
                 if (pChangeReason.property === 'a') {
-                    lResponseType |= pChangeReason.interactionType;
+                    lResponseType |= pChangeReason.triggerType;
                     lTriggerValueOnEvent = lTriggerValue;
                 }
             });
@@ -719,7 +719,7 @@ describe('InteractionDetectionProxy', () => {
             let lResponseType: InteractionResponseType = InteractionResponseType.None;
             lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
                 if (pChangeReason.property === 'a') {
-                    lResponseType |= pChangeReason.interactionType;
+                    lResponseType |= pChangeReason.triggerType;
                 }
             });
 
@@ -746,7 +746,7 @@ describe('InteractionDetectionProxy', () => {
             let lPropertyValueOnEvent: number | null = null;
             lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
                 if (pChangeReason.property === 'a') {
-                    lResponseType |= pChangeReason.interactionType;
+                    lResponseType |= pChangeReason.triggerType;
                     lPropertyValueOnEvent = lOriginalObject.a;
                 }
             });
@@ -772,7 +772,7 @@ describe('InteractionDetectionProxy', () => {
             let lResponseType: InteractionResponseType = InteractionResponseType.None;
             lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
                 if (pChangeReason.property === 'a') {
-                    lResponseType |= pChangeReason.interactionType;
+                    lResponseType |= pChangeReason.triggerType;
                 }
             });
 
@@ -798,7 +798,7 @@ describe('InteractionDetectionProxy', () => {
             let lPropertyValueOnEvent: number | undefined | null = null;
             lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
                 if (pChangeReason.property === 'a') {
-                    lResponseType |= pChangeReason.interactionType;
+                    lResponseType |= pChangeReason.triggerType;
                     lPropertyValueOnEvent = lOriginalObject.a;
                 }
             });
@@ -824,7 +824,7 @@ describe('InteractionDetectionProxy', () => {
             let lResponseType: InteractionResponseType = InteractionResponseType.None;
             lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
                 if (pChangeReason.property === 'a') {
-                    lResponseType |= pChangeReason.interactionType;
+                    lResponseType |= pChangeReason.triggerType;
                 }
             });
 
@@ -855,7 +855,7 @@ describe('InteractionDetectionProxy', () => {
             let lTriggerValueOnEvent: number | null = null;
             lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
                 if (pChangeReason.source === lProxy) {
-                    lResponseType |= pChangeReason.interactionType;
+                    lResponseType |= pChangeReason.triggerType;
                     lTriggerValueOnEvent = lTriggerValue;
                 }
             });
@@ -880,7 +880,7 @@ describe('InteractionDetectionProxy', () => {
             let lResponseType: InteractionResponseType = InteractionResponseType.None;
             lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
                 if (pChangeReason.source === lProxy) {
-                    lResponseType |= pChangeReason.interactionType;
+                    lResponseType |= pChangeReason.triggerType;
                 }
             });
 
@@ -906,7 +906,7 @@ describe('InteractionDetectionProxy', () => {
             let lResponseType: InteractionResponseType = InteractionResponseType.None;
             lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
                 if (pChangeReason.source === lProxy.set) {
-                    lResponseType |= pChangeReason.interactionType;
+                    lResponseType |= pChangeReason.triggerType;
                 }
             });
 
@@ -929,7 +929,7 @@ describe('InteractionDetectionProxy', () => {
                 let lResponseType: InteractionResponseType = InteractionResponseType.None;
                 lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
                     if (pChangeReason.source === lProxy) {
-                        lResponseType |= pChangeReason.interactionType;
+                        lResponseType |= pChangeReason.triggerType;
                     }
                 });
 
@@ -951,7 +951,7 @@ describe('InteractionDetectionProxy', () => {
                 let lResponseType: InteractionResponseType = InteractionResponseType.None;
                 lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
                     if (pChangeReason.source === lProxy.push) {
-                        lResponseType |= pChangeReason.interactionType;
+                        lResponseType |= pChangeReason.triggerType;
                     }
                 });
 
@@ -974,7 +974,7 @@ describe('InteractionDetectionProxy', () => {
             let lResponseType: InteractionResponseType = InteractionResponseType.None;
             lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
                 if (pChangeReason.source === lProxy.add) {
-                    lResponseType |= pChangeReason.interactionType;
+                    lResponseType |= pChangeReason.triggerType;
                 }
             });
 
@@ -996,7 +996,7 @@ describe('InteractionDetectionProxy', () => {
             let lResponseType: InteractionResponseType = InteractionResponseType.None;
             lInteractionZone.addInteractionListener((pChangeReason: InteractionReason) => {
                 if (pChangeReason.source === lProxy) {
-                    lResponseType |= pChangeReason.interactionType;
+                    lResponseType |= pChangeReason.triggerType;
                 }
             });
 

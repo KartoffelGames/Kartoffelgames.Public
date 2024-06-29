@@ -70,7 +70,7 @@ describe('Patcher', () => {
             let lInteractionCounter: number = 0;
             lZone.addInteractionListener((pInteraction: InteractionReason) => {
                 // Filter Promises.
-                if (pInteraction.interactionType === InteractionResponseType.PatchedEventlistener) {
+                if (pInteraction.triggerType === InteractionResponseType.PatchedEventlistener) {
                     lInteractionCounter++;
                 }
             });
@@ -95,7 +95,7 @@ describe('Patcher', () => {
             let lInteractionCounter: number = 0;
             lZone.addInteractionListener((pInteraction: InteractionReason) => {
                 // Filter Promises.
-                if (pInteraction.interactionType === InteractionResponseType.PatchedEventlistener) {
+                if (pInteraction.triggerType === InteractionResponseType.PatchedEventlistener) {
                     lInteractionCounter++;
                 }
             });
@@ -403,7 +403,7 @@ describe('Patcher', () => {
             let lInteractionCounter: number = 0;
             lZone.addInteractionListener((pInteraction: InteractionReason) => {
                 // Filter Promises.
-                if (pInteraction.interactionType === InteractionResponseType.PatchedEventlistener) {
+                if (pInteraction.triggerType === InteractionResponseType.PatchedEventlistener) {
                     lInteractionCounter++;
                 }
             });
@@ -449,8 +449,8 @@ describe('Patcher', () => {
             let lInteractionType: InteractionResponseType = InteractionResponseType.None;
             lZone.addInteractionListener((pInteraction: InteractionReason) => {
                 // Filter Promises.
-                if (pInteraction.interactionType === InteractionResponseType.PatchedEventlistener) {
-                    lInteractionType |= pInteraction.interactionType;
+                if (pInteraction.triggerType === InteractionResponseType.PatchedEventlistener) {
+                    lInteractionType |= pInteraction.triggerType;
                 }
             });
             // eslint-disable-next-line @typescript-eslint/promise-function-async
@@ -498,7 +498,7 @@ describe('Patcher', () => {
             let lInteractionCounter: number = 0;
             lZone.addInteractionListener((pInteraction: InteractionReason) => {
                 // Filter Promises.
-                if (pInteraction.interactionType === InteractionResponseType.PatchedEventlistener) {
+                if (pInteraction.triggerType === InteractionResponseType.PatchedEventlistener) {
                     lInteractionCounter++;
                 }
             });
@@ -578,7 +578,7 @@ describe('Patcher', () => {
             let lInteractionCounter: number = 0;
             lZone.addInteractionListener((pInteraction: InteractionReason) => {
                 // Filter Promises.
-                if (pInteraction.interactionType === InteractionResponseType.PatchedEventlistener) {
+                if (pInteraction.triggerType === InteractionResponseType.PatchedEventlistener) {
                     lInteractionCounter++;
                 }
             });
@@ -663,7 +663,7 @@ describe('Patcher', () => {
             let lInteractionCounter: number = 0;
             lZone.addInteractionListener((pInteraction: InteractionReason) => {
                 // Filter Promises.
-                if (pInteraction.interactionType === InteractionResponseType.PatchedEventlistener) {
+                if (pInteraction.triggerType === InteractionResponseType.PatchedEventlistener) {
                     lInteractionCounter++;
                 }
             });
@@ -717,7 +717,7 @@ describe('Patcher', () => {
             let lInteractionCounter: number = 0;
             lZone.addInteractionListener((pInteraction: InteractionReason) => {
                 // Filter Promises.
-                if (pInteraction.interactionType === InteractionResponseType.PatchedEventlistener) {
+                if (pInteraction.triggerType === InteractionResponseType.PatchedEventlistener) {
                     lInteractionCounter++;
                 }
             });

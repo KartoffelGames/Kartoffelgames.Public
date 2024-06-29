@@ -1,33 +1,20 @@
-import { Exception } from '@kartoffelgames/core.data';
-import { InteractionResponseType } from './enum/interaction-response-type.enum';
 import { InteractionZone, } from './interaction-zone';
 
 /**
  * Interaction reason. Information of a detected interaction.
  */
 export class InteractionReason {
-    private readonly mCatchType: InteractionResponseType;
-    private mOrigin: InteractionZone | null;
+    private readonly mOrigin: InteractionZone;
     private readonly mProperty: PropertyKey | undefined;
     private readonly mSource: object;
     private readonly mStackError: Error;
+    private readonly mTriggerType: number;
     private readonly mTriggeredZones: WeakSet<InteractionZone>;
-
-    /**
-     * Get what type of interaction was detected.
-     */
-    public get interactionType(): InteractionResponseType {
-        return this.mCatchType;
-    }
 
     /**
      * Get reason dispatch origin.
      */
     public get origin(): InteractionZone {
-        if (this.mOrigin === null) {
-            throw new Exception('Interaction reason not dispatched.', this);
-        }
-
         return this.mOrigin;
     }
 
@@ -54,6 +41,14 @@ export class InteractionReason {
     }
 
     /**
+     * Get what type of interaction was detected.
+     */
+    public get triggerType(): number {
+        return this.mTriggerType;
+    }
+
+
+    /**
      * Constructor.
      * Creates a stacktrace from the point of creation.
      * 
@@ -61,12 +56,12 @@ export class InteractionReason {
      * @param pSource - Object wich was interacted with.
      * @param pProperty - Optional change reason property.
      */
-    public constructor(pInteractionType: InteractionResponseType, pSource: object, pProperty?: PropertyKey) {
-        this.mCatchType = pInteractionType;
+    public constructor(pInteractionType: number, pSource: object, pProperty: PropertyKey | undefined, pOrigin: InteractionZone) {
+        this.mTriggerType = pInteractionType;
         this.mSource = pSource;
         this.mProperty = pProperty;
         this.mStackError = new Error();
-        this.mOrigin = null;
+        this.mOrigin = pOrigin;
         this.mTriggeredZones = new WeakSet<InteractionZone>();
     }
 
@@ -94,15 +89,6 @@ export class InteractionReason {
     }
 
     /**
-     * Set origin interaction zone of reason.
-     * 
-     * @param pInteractionStack - Origin zone.
-     */
-    public setOrigin(pInteractionStack: InteractionZone): void {
-        this.mOrigin = pInteractionStack;
-    }
-
-    /**
      * Reason description as string.
      * 
      * @returns reason as string.
@@ -118,6 +104,6 @@ export class InteractionReason {
         const lPropertyDescription: string = (this.mProperty) ? `[${this.mProperty.toString()}]` : '';
 
 
-        return `${this.origin.name}: ${typeof this.mSource}:${lSourceName}${lPropertyDescription} -> ${InteractionResponseType[this.interactionType]}`;
+        return `${this.origin.name}: ${typeof this.mSource}:${lSourceName}${lPropertyDescription} -> ${this.triggerType}`;
     }
 }

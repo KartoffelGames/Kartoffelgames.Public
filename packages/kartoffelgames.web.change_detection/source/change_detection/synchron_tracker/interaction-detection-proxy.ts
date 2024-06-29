@@ -1,5 +1,3 @@
-import { InteractionResponseType } from '../enum/interaction-response-type.enum';
-import { InteractionReason } from '../interaction-reason';
 import { InteractionZone } from '../interaction-zone';
 
 /**
@@ -247,17 +245,15 @@ export class InteractionDetectionProxy<T extends object> {
      * @param pProperty - Optional change reason property.
      */
     private dispatch(pInteractionType: InteractionResponseType, pSource: object, pProperty?: PropertyKey | undefined): void {
-        const lReason: InteractionReason = new InteractionReason(pInteractionType, pSource, pProperty);
-
         // Dispatch reason to current zone. When current stack does not support trigger, dont trigger attached zone stacks.
-        if (!InteractionZone.dispatchInteractionEvent(lReason)) {
+        if (!InteractionZone.dispatchInteractionEvent(pInteractionType, pSource, pProperty)) {
             return;
         }
 
         // Dispatch reason to all attached zones. Ignore current stack but push attached zone.
         for (const lZone of this.mListenerZones) {
             lZone.execute(() => {
-                InteractionZone.dispatchInteractionEvent(lReason);
+                InteractionZone.dispatchInteractionEvent(pInteractionType, pSource, pProperty);
             });
         }
     }
@@ -266,3 +262,19 @@ export class InteractionDetectionProxy<T extends object> {
 type CallableObject = (...args: Array<any>) => any;
 
 export type InteractionDetectionConstructor = new (...pParameter: Array<any>) => {};
+
+export enum InteractionResponseType {
+    /**
+     * Ignore all interactions.
+     */
+    None = 0,
+
+    /*
+     * Synchron Proxy 
+     */
+    RegisteredFunction = 1 << 1,
+    RegisteredPropertyGet = 1 << 2,
+    RegisteredPropertySet = 1 << 3,
+    RegisteredPropertyDelete = 1 << 4,
+    RegisteredUntrackableFunction = 1 << 5,
+}

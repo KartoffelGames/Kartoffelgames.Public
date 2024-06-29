@@ -1,43 +1,11 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { InteractionResponseType } from '../../enum/interaction-response-type.enum';
 import { ErrorAllocation } from '../../error-allocation';
-import { InteractionReason } from '../../interaction-reason';
 import { InteractionZone } from '../../interaction-zone';
 import { EventNames } from './event-names';
 
 export class Patcher {
     private static mIsPatched: boolean = false;
     private static readonly mPatchedElements: WeakMap<Element, WeakSet<InteractionZone>> = new WeakMap<Element, WeakSet<InteractionZone>>();
-
-    /**
-     * Listen on all change events and trigger interactions for the set {@link pInteractionZone}.
-     * 
-     * @param pObject - EventTarget.
-     * @param pInteractionZone - InteractionZone.
-     */
-    public static attachZone(pObject: Element, pInteractionZone: InteractionZone): void {
-        // Do not patch twice for the same zone.
-        if (Patcher.mPatchedElements.get(pObject)?.has(pInteractionZone)) {
-            return;
-        }
-
-        // Init interaction zone storage.
-        if (!Patcher.mPatchedElements.has(pObject)) {
-            Patcher.mPatchedElements.set(pObject, new WeakSet<InteractionZone>());
-        }
-
-        // Add all events without function.
-        for (const lEventName of EventNames.changeCriticalEvents) {
-            // Add empty event to element. This should trigger an interaction every time the event and therefore the listener is called.
-            pInteractionZone.execute(() => {
-                pObject.addEventListener(lEventName, () => { });
-            });
-
-        }
-
-        // Add element as patched entity.
-        Patcher.mPatchedElements.get(pObject)!.add(pInteractionZone);
-    }
 
     /**
      * Patches functions and objects in global scope to track asynchron calls.
@@ -54,39 +22,16 @@ export class Patcher {
     }
 
     /**
-     * Dispatch reason to current zone.
-     * 
-     * @param pInteractionType - What type of interaction.
-     * @param pSource - Object wich was interacted with.
-     * @param pProperty - Optional change reason property.
-     */
-    private dispatch(pInteractionType: InteractionResponseType, pSource: object, pProperty?: PropertyKey | undefined): void {
-        // Dispatch reason to current zone.
-        InteractionZone.dispatchInteractionEvent(new InteractionReason(pInteractionType, pSource, pProperty));
-    }
-
-    /**
      * Patch function, so function gets always executed inside specified zone.
-     * Dispatches interaction event on function call.
      * 
      * @param pFunction - Function.
      * @param pZone - Zone in which the interaction should be triggered.
-     * @param pStartInteractionType - Interaction type for function call start interactions.
-     * @param pInteractionType - Interaction type for function call end interactions.
-     * @param pErrorInteractionType - Interaction type for function call error interactions.
      */
-    private interactionOnFunctionCall(pFunction: (...pArgs: Array<any>) => any, pZone: InteractionZone, pInteractionType: InteractionResponseType): (...pArgs: Array<any>) => any {
-        const lSelf: this = this;
-
+    private callInZone(pFunction: (...pArgs: Array<any>) => any, pZone: InteractionZone): (...pArgs: Array<any>) => any {
         return function (...pArgs: Array<any>) {
             return pZone.execute(() => {
-                try {
-                    // Call original function.
-                    return pFunction(...pArgs);
-                } finally {
-                    // Dispatches interaction end event before exception passthrough.
-                    lSelf.dispatch(pInteractionType, pFunction);
-                }
+                // Call original function.
+                return pFunction(...pArgs);
             });
         };
     }
@@ -95,16 +40,15 @@ export class Patcher {
      * Patch class and its methods.
      * 
      * @param pConstructor - Class constructor.
-     * @param pInteractionType - Interaction type for callback call end interactions.
      * 
      * @returns patched {@link pConstructor}
      */
-    private patchClass(pConstructor: any, pInteractionType: InteractionResponseType): any {
+    private patchClass(pConstructor: any): any {
         // Patch method callbacks of class.
-        this.patchMethods(pConstructor, pInteractionType);
+        this.patchMethods(pConstructor);
 
         // Patch constructor callbacks
-        return this.patchConstructor(pConstructor, pInteractionType);
+        return this.patchConstructor(pConstructor);
     }
 
     /**
@@ -115,7 +59,7 @@ export class Patcher {
      * 
      * @returns patched {@link pConstructor}
      */
-    private patchConstructor(pConstructor: any, pInteractionType: InteractionResponseType): any {
+    private patchConstructor(pConstructor: any): any {
         // Skip undefined or not found constructor.
         if (typeof pConstructor !== 'function') {
             return pConstructor;
@@ -139,7 +83,7 @@ export class Patcher {
 
                     // Patch all arguments that are function. 
                     if (typeof lParameter === 'function') {
-                        pArgs[lParameterIndex] = lSelf.interactionOnFunctionCall(lSelf.patchFunctionCallbacks(lParameter, pInteractionType), lCurrentZone, pInteractionType);
+                        pArgs[lParameterIndex] = lSelf.callInZone(lSelf.patchFunctionCallbacks(lParameter), lCurrentZone);
                     }
                 }
 
@@ -178,9 +122,9 @@ export class Patcher {
                 const lCurrentZone: InteractionZone = InteractionZone.current;
 
                 if (typeof pCallback === 'function') {
-                    lPatchedEventListener = lSelf.interactionOnFunctionCall(pCallback, lCurrentZone, InteractionResponseType.PatchedEventlistener);
+                    lPatchedEventListener = lSelf.callInZone(pCallback, lCurrentZone);
                 } else {
-                    lPatchedEventListener = lSelf.interactionOnFunctionCall(pCallback.handleEvent.bind(pCallback), lCurrentZone, InteractionResponseType.PatchedEventlistener);
+                    lPatchedEventListener = lSelf.callInZone(pCallback.handleEvent.bind(pCallback), lCurrentZone);
                 }
             }
 
@@ -213,7 +157,7 @@ export class Patcher {
      * @param pFunction - Function.
      * @param pInteractionType - Interaction type for function callback end interactions.
      */
-    private patchFunctionCallbacks(pFunction: (...pArgs: Array<any>) => any, pInteractionType: InteractionResponseType): (...pArgs: Array<any>) => any {
+    private patchFunctionCallbacks(pFunction: (...pArgs: Array<any>) => any): (...pArgs: Array<any>) => any {
         const lSelf: this = this;
 
         // Wrap function parameters into current interaction zone.
@@ -227,11 +171,13 @@ export class Patcher {
                 // Patch all arguments that are function. 
                 if (typeof lParameter === 'function') {
                     // Recursive patch all callbacks.
-                    pArgs[lParameterIndex] = lSelf.interactionOnFunctionCall(lSelf.patchFunctionCallbacks(lParameter, pInteractionType), lCurrentZone, pInteractionType);
+                    pArgs[lParameterIndex] = lSelf.callInZone(lSelf.patchFunctionCallbacks(lParameter), lCurrentZone);
                 }
             }
 
-            return pFunction.call(this, ...pArgs);
+            return lCurrentZone.execute(() => {
+                return pFunction.call(this, ...pArgs);
+            });
         };
     }
 
@@ -241,17 +187,17 @@ export class Patcher {
      */
     private patchGlobals(pGlobalObject: typeof globalThis): void {
         // Timer
-        pGlobalObject.requestAnimationFrame = this.patchFunctionCallbacks(pGlobalObject.requestAnimationFrame, InteractionResponseType.PatchedCallback);
-        pGlobalObject.setInterval = <any>this.patchFunctionCallbacks(pGlobalObject.setInterval, InteractionResponseType.PatchedCallback);
-        pGlobalObject.setTimeout = <any>this.patchFunctionCallbacks(pGlobalObject.setTimeout, InteractionResponseType.PatchedCallback);
+        pGlobalObject.requestAnimationFrame = this.patchFunctionCallbacks(pGlobalObject.requestAnimationFrame);
+        pGlobalObject.setInterval = <any>this.patchFunctionCallbacks(pGlobalObject.setInterval);
+        pGlobalObject.setTimeout = <any>this.patchFunctionCallbacks(pGlobalObject.setTimeout);
 
         // Promise
         pGlobalObject.Promise = this.patchPromise(pGlobalObject);
 
         // Observer
-        pGlobalObject.ResizeObserver = this.patchClass(pGlobalObject.ResizeObserver, InteractionResponseType.PatchedCallback);
-        pGlobalObject.MutationObserver = this.patchClass(pGlobalObject.MutationObserver, InteractionResponseType.PatchedCallback);
-        pGlobalObject.IntersectionObserver = this.patchClass(pGlobalObject.IntersectionObserver, InteractionResponseType.PatchedCallback);
+        pGlobalObject.ResizeObserver = this.patchClass(pGlobalObject.ResizeObserver);
+        pGlobalObject.MutationObserver = this.patchClass(pGlobalObject.MutationObserver);
+        pGlobalObject.IntersectionObserver = this.patchClass(pGlobalObject.IntersectionObserver);
 
         // Event target !!!before patching onEvents. 
         this.patchEventTarget(pGlobalObject);
@@ -301,7 +247,7 @@ export class Patcher {
         }
 
         // HTMLCanvasElement.toBlob
-        pGlobalObject.HTMLCanvasElement.prototype.toBlob = this.patchFunctionCallbacks(pGlobalObject.HTMLCanvasElement.prototype.toBlob, InteractionResponseType.PatchedCallback);
+        pGlobalObject.HTMLCanvasElement.prototype.toBlob = this.patchFunctionCallbacks(pGlobalObject.HTMLCanvasElement.prototype.toBlob);
     }
 
     /**
@@ -311,7 +257,7 @@ export class Patcher {
      * @param pConstructor - Class constructor.
      * @param pInteractionType - Interaction type for method callback call end interactions.
      */
-    private patchMethods(pConstructor: any, pInteractionType: InteractionResponseType): void {
+    private patchMethods(pConstructor: any): void {
         // Skip undefined or not found constructor.
         if (typeof pConstructor !== 'function') {
             return pConstructor;
@@ -331,7 +277,7 @@ export class Patcher {
 
             // Only try to patch methods.
             if (typeof lValue === 'function') {
-                lPrototype[lClassMemberName] = this.patchFunctionCallbacks(<any>lValue, pInteractionType);
+                lPrototype[lClassMemberName] = this.patchFunctionCallbacks(<any>lValue);
             }
         }
     }
@@ -397,11 +343,10 @@ export class Patcher {
      * @param pConstructor - Promise constructor.
      */
     private patchPromise(pGlobalObject: typeof globalThis): any {
-        const lSelf: this = this;
         const lOriginalPromiseConstructor: any = pGlobalObject.Promise;
 
         // Promise methods needs to be patched. They dont create own promises.
-        this.patchMethods(lOriginalPromiseConstructor, InteractionResponseType.PatchedPromise);
+        this.patchMethods(lOriginalPromiseConstructor);
 
         // Promise executor type definitions.
         type ExecutorResolve<T> = (pResult: T) => void;
@@ -411,21 +356,8 @@ export class Patcher {
         // Patch only the constructor.
         class PatchedPromise<T> extends lOriginalPromiseConstructor {
             public constructor(pExecutor: Executor<T>) {
-                // Get current zone of synchron execution.
-                const lCurrentZone: InteractionZone = InteractionZone.current;
-
-
-                // Patch executor function.
-                const lPatchedExecutor = function (this: any, pResolve: ExecutorResolve<T>, pReject: ExecutorReject) {
-                    const lExecutorResolve: ExecutorResolve<T> | undefined = lSelf.interactionOnFunctionCall(pResolve, lCurrentZone, InteractionResponseType.PatchedPromise);
-                    const lExecutorReject: ExecutorReject | undefined = lSelf.interactionOnFunctionCall(pReject, lCurrentZone, InteractionResponseType.PatchedPromise);
-
-                    // Call original executor.
-                    return pExecutor.call(this, lExecutorResolve, lExecutorReject);
-                };
-
                 // Wrap executor and dispatch call start and end interaction
-                super(lPatchedExecutor);
+                super(pExecutor);
 
                 // Set zone of promise.
                 ErrorAllocation.allocateAsyncronError(this as any as Promise<unknown>, InteractionZone.current);

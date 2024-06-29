@@ -1,10 +1,6 @@
 import { Dictionary } from '@kartoffelgames/core.data';
-import { Patcher } from './asynchron_tracker/patcher/patcher';
-import { InteractionResponseType } from './enum/interaction-response-type.enum';
 import { ErrorAllocation } from './error-allocation';
 import { InteractionReason } from './interaction-reason';
-import { IgnoreInteractionDetection } from './synchron_tracker/ignore-interaction-detection.decorator';
-import { InteractionDetectionProxy } from './synchron_tracker/interaction-detection-proxy';
 
 // TODO: Remove any interaction detection from patcher. Only maintain zones.
 // TODO: Zones handles universal trigger. No more fixed enum.
@@ -14,10 +10,9 @@ import { InteractionDetectionProxy } from './synchron_tracker/interaction-detect
 /**
  * Merges execution zone and proxy tracking.
  */
-@IgnoreInteractionDetection
 export class InteractionZone {
     // Needs to be isolated to prevent parent listener execution.
-    private static mCurrentZone: InteractionZone = new InteractionZone('Default', { trigger: InteractionResponseType.Any, isolate: true });
+    private static mCurrentZone: InteractionZone = new InteractionZone('Default', { trigger: 0, isolate: true });
 
     /**
      * Add global error listener that can sends the error to the allocated {@link InteractionZone}
@@ -62,16 +57,22 @@ export class InteractionZone {
     /**
      * Dispatch interaction event in current zone.
      * 
-     * @param pInteractionReason - Interaction reason.
+     * @param pType - Interaction reason.
      * 
      * @returns false when any zone in the parent chain dont has trigger for {@link pInteractionReason}
      */
-    public static dispatchInteractionEvent(pInteractionReason: InteractionReason): boolean {
-        // Save current zone as reason origin.
-        pInteractionReason.setOrigin(this.mCurrentZone);
+    public static dispatchInteractionEvent(pType: number, pSource: object, pProperty?: PropertyKey): boolean {
+        // Optimization to prevent InteractionReason creation.
+        // Validate trigger type with current zones trigger mapping.
+        if ((this.mCurrentZone.mTriggerMapping & pType) === 0) {
+            return false;
+        }
+
+        // Create reason and save current zone as reason origin.
+        const lReason: InteractionReason = new InteractionReason(pType, pSource, pProperty, this.mCurrentZone);
 
         // Start dispatch to current zone.
-        return this.mCurrentZone.callInteractionListener(pInteractionReason);
+        return this.mCurrentZone.callInteractionListener(lReason);
     }
 
     private readonly mChangeListener: Dictionary<ChangeListener, InteractionZone>;
@@ -79,7 +80,7 @@ export class InteractionZone {
     private readonly mIsolated: boolean;
     private readonly mName: string;
     private readonly mParent: InteractionZone | null;
-    private readonly mResponseType: InteractionResponseType;
+    private readonly mTriggerMapping: number;
 
 
     /**
@@ -116,7 +117,7 @@ export class InteractionZone {
         this.mName = pName;
 
         // Create bitmap of response triggers.
-        this.mResponseType = pSettings?.trigger ?? InteractionResponseType.Any;
+        this.mTriggerMapping = pSettings?.trigger ?? ~0; // Negated 0 results in -1 wich is all bits flipped to 1.
 
         // Save parent when not isolated.
         this.mParent = InteractionZone.mCurrentZone ?? null;
@@ -170,25 +171,6 @@ export class InteractionZone {
         }
 
         return lResult;
-    }
-
-    /**
-     * Register an object for interaction detection.
-     * Returns proxy object that should be used to track changes.
-     * 
-     * @param pObject - Object or function.
-     */
-    public registerObject<T extends object>(pObject: T): T {
-        // Attach event handler for events that usually trigger direct changes on object.
-        if (pObject instanceof Element) {
-            Patcher.attachZone(pObject, this);
-        }
-
-        // Create interaction proxy and attach current zone as listener zone.
-        const lInteractionDetectionProxy: InteractionDetectionProxy<T> = new InteractionDetectionProxy(pObject);
-        lInteractionDetectionProxy.addListenerZone(this);
-
-        return lInteractionDetectionProxy.proxy;
     }
 
     /**
@@ -249,7 +231,7 @@ export class InteractionZone {
     private callInteractionListener(pInteractionReason: InteractionReason): boolean {
         // Block dispatch of reason when it does not match the response type bitmap.
         // Send it when it was passthrough from child zones.
-        if ((this.mResponseType & pInteractionReason.interactionType) === 0) {
+        if ((this.mTriggerMapping & pInteractionReason.triggerType) === 0) {
             return false;
         }
 
@@ -279,6 +261,6 @@ export type ChangeListener = (pReason: InteractionReason) => void;
 export type ErrorListener = (pError: any) => void | boolean;
 
 type InteractionZoneConstructorSettings = {
-    trigger?: InteractionResponseType,
+    trigger?: number,
     isolate?: boolean;
 };

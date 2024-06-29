@@ -1,7 +1,5 @@
 import { expect } from 'chai';
 import { Patcher } from '../../../../source/change_detection/asynchron_tracker/patcher/patcher';
-import { InteractionResponseType } from '../../../../source/change_detection/enum/interaction-response-type.enum';
-import { InteractionReason } from '../../../../source/change_detection/interaction-reason';
 import { InteractionZone } from '../../../../source/change_detection/interaction-zone';
 import '../../../mock/request-animation-frame-mock-session';
 
@@ -9,148 +7,51 @@ describe('Patcher', () => {
     describe('Static Method: patch', () => {
         it('-- Default', async () => {
             // Setup. Zone.
-            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedPromise });
+            const lZone: InteractionZone = new InteractionZone('Zone');
 
             // Process. Its patched anyway.
             Patcher.patch(globalThis);
 
             // Process. Get patched and original function.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
-                lInteractionCounter++;
-            });
             // eslint-disable-next-line @typescript-eslint/promise-function-async
-            await lZone.execute(() => {
-                return new Promise<void>((pResolve) => {
-                    pResolve();
+            const lZoneResult: InteractionZone = await lZone.execute(() => {
+                return new Promise<InteractionZone>((pResolve) => {
+                    pResolve(InteractionZone.current);
                 });
             });
 
             // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
+            expect(lZoneResult).to.equal(lZone);
         });
 
         it('-- Double patch', async () => {
             // Setup. Zone.
-            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedPromise });
+            const lZone: InteractionZone = new InteractionZone('Zone');
 
             // Process. Its patched anyway.
             Patcher.patch(globalThis);
             Patcher.patch(globalThis);
 
-            // Process.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
-                lInteractionCounter++;
-            });
+            // Process. Get patched and original function.
             // eslint-disable-next-line @typescript-eslint/promise-function-async
-            await lZone.execute(() => {
-                return new Promise<void>((pResolve) => {
-                    pResolve();
+            const lZoneResult: InteractionZone = await lZone.execute(() => {
+                return new Promise<InteractionZone>((pResolve) => {
+                    pResolve(InteractionZone.current);
                 });
             });
 
             // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
-        });
-    });
-
-    describe('Static Method: attachZone', () => {
-        it('-- Default', async () => {
-            // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone');
-            const lObject = document.createElement('div');
-
-            // Process.
-            lZone.execute(() => {
-                Patcher.attachZone(lObject, InteractionZone.current);
-            });
-
-            // Process.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((pInteraction: InteractionReason) => {
-                // Filter Promises.
-                if (pInteraction.triggerType === InteractionResponseType.PatchedEventlistener) {
-                    lInteractionCounter++;
-                }
-            });
-
-            // Process. Trigger event.
-            lObject.dispatchEvent(new Event('input'));
-
-            // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
-        });
-
-        it('-- Double patch same zone', async () => {
-            // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone');
-            const lObject = document.createElement('div');
-
-            // Process.
-            Patcher.attachZone(lObject, lZone);
-            Patcher.attachZone(lObject, lZone);
-
-            // Process.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((pInteraction: InteractionReason) => {
-                // Filter Promises.
-                if (pInteraction.triggerType === InteractionResponseType.PatchedEventlistener) {
-                    lInteractionCounter++;
-                }
-            });
-
-            // Process. Trigger event.
-            lObject.dispatchEvent(new Event('input'));
-
-            // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
-        });
-
-        it('-- Double patch different zone', async () => {
-            // Setup.
-            const lZoneOne: InteractionZone = new InteractionZone('ZoneOne', { trigger: InteractionResponseType.PatchedEventlistener });
-            const lZoneTwo: InteractionZone = new InteractionZone('ZoneTwo', { trigger: InteractionResponseType.PatchedEventlistener });
-
-            const lObject = document.createElement('div');
-
-            // Process.
-            lZoneOne.execute(() => {
-                Patcher.attachZone(lObject, InteractionZone.current);
-            });
-            lZoneTwo.execute(() => {
-                Patcher.attachZone(lObject, InteractionZone.current);
-            });
-
-            // Process.
-            const lZoneOneWaiter = new Promise<boolean>((pResolve) => {
-                lZoneOne.addInteractionListener(() => {
-                    pResolve(true);
-                });
-            });
-            const lZoneTwoWaiter = new Promise<boolean>((pResolve) => {
-                lZoneTwo.addInteractionListener(() => {
-                    pResolve(true);
-                });
-            });
-
-            // Process. Trigger event.
-            lObject.dispatchEvent(new Event('input'));
-
-            const lWaiterResult = await Promise.all([lZoneOneWaiter, lZoneTwoWaiter]);
-
-            // Evaluation.
-            expect(lWaiterResult).to.deep.equal([true, true]);
+            expect(lZoneResult).to.equal(lZone);
         });
     });
 
     describe('Method: patchClass', () => {
-        it('-- Default', () => {
+        it('-- PatchedClass instance of original', () => {
             // Setup.
             const lClass = class { };
 
             // Process.
-            const lPatchedClass = (<any>new Patcher()).patchClass(lClass, InteractionResponseType.PatchedCallback);
+            const lPatchedClass = (<any>new Patcher()).patchClass(lClass);
             const lObject = new lPatchedClass();
 
             // Evaluation.
@@ -169,7 +70,7 @@ describe('Patcher', () => {
             };
 
             // Process.
-            const lPatchedClass = (<any>new Patcher()).patchClass(lClass, InteractionResponseType.PatchedCallback);
+            const lPatchedClass = (<any>new Patcher()).patchClass(lClass);
             const lObject = new lPatchedClass(lValue);
 
             // Evaluation.
@@ -193,7 +94,7 @@ describe('Patcher', () => {
             };
 
             // Process.
-            const lPatchedClass = (<any>new Patcher()).patchClass(lClass, InteractionResponseType.PatchedCallback);
+            const lPatchedClass = (<any>new Patcher()).patchClass(lClass);
             const lObject = new lPatchedClass(lValue);
 
             // Evaluation.
@@ -208,7 +109,7 @@ describe('Patcher', () => {
             };
 
             // Process.
-            const lPatchedClass = (<any>new Patcher()).patchClass(lClass, InteractionResponseType.PatchedCallback);
+            const lPatchedClass = (<any>new Patcher()).patchClass(lClass);
             const lObject = new lPatchedClass();
             lObject.a = lValue;
 
@@ -216,70 +117,38 @@ describe('Patcher', () => {
             expect(lObject.a).to.equal(lValue);
         });
 
-        it('-- Constructor callback interaction end ', () => {
+        it('-- Constructor callback correct callback zone', () => {
             // Setup. Zone.
-            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedCallback });
+            const lZone: InteractionZone = new InteractionZone('Zone');
 
             // Setup.
             const lClass = class {
                 public callback: () => void;
                 constructor(pArgOne: () => void) {
-
                     this.callback = pArgOne;
                 }
             };
 
             // Process.
-            const lPatchedClass = (<any>new Patcher()).patchClass(lClass, InteractionResponseType.PatchedCallback);
-
+            const lPatchedClass = (<any>new Patcher()).patchClass(lClass);
 
             // Process. Interaction.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
-                lInteractionCounter++;
-            });
-            lZone.execute(() => {
-                new lPatchedClass(() => { }).callback();
+            const lResultZone: InteractionZone | null = lZone.execute(() => {
+                let lCallbackZone: InteractionZone | null = null;
+                new lPatchedClass(() => {
+                    lCallbackZone = InteractionZone.current;
+                }).callback();
+
+                return lCallbackZone;
             });
 
             // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
+            expect(lResultZone).to.equal(lZone);
         });
 
-        it('-- Constructor callback interaction on error ', () => {
+        it('-- Method callback correct callback zone', () => {
             // Setup. Zone.
-            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedCallback });
-
-            // Setup.
-            const lClass = class {
-                public callback: () => void;
-                constructor(pArgOne: () => void) {
-
-                    this.callback = pArgOne;
-                }
-            };
-
-            // Process.
-            const lPatchedClass = (<any>new Patcher()).patchClass(lClass, InteractionResponseType.PatchedCallback);
-
-            // Process. Interaction.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
-                lInteractionCounter++;
-            });
-            lZone.execute(() => {
-                try {
-                    new lPatchedClass(() => { throw 1; }).callback();
-                } catch (_pAny) {/* Any */ }
-            });
-
-            // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
-        });
-
-        it('-- Method callback interaction end', () => {
-            // Setup. Zone.
-            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedCallback });
+            const lZone: InteractionZone = new InteractionZone('Zone');
 
             // Setup.
             const lClass = class {
@@ -290,54 +159,22 @@ describe('Patcher', () => {
             };
 
             // Process.
-            const lPatchedClass = (<any>new Patcher()).patchClass(lClass, InteractionResponseType.PatchedCallback);
+            const lPatchedClass = (<any>new Patcher()).patchClass(lClass,);
             const lObject = new lPatchedClass();
 
             // Process. Interaction.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
-                lInteractionCounter++;
-            });
-            lZone.execute(() => {
-                lObject.setCallback(() => { });
+            const lResultZone: InteractionZone | null = lZone.execute(() => {
+                let lCallbackZone: InteractionZone | null = null;
+                lObject.setCallback(() => {
+                    lCallbackZone = InteractionZone.current;
+                });
                 lObject.callback();
+
+                return lCallbackZone;
             });
 
             // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
-        });
-
-        it('-- Method callback interaction on error', () => {
-            // Setup. Zone.
-            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedCallback });
-
-            // Setup.
-            const lClass = class {
-                public callback: (() => void) | null = null;
-                public setCallback(pArgOne: () => void) {
-                    this.callback = pArgOne;
-                }
-            };
-
-            // Process.
-            const lPatchedClass = (<any>new Patcher()).patchClass(lClass, InteractionResponseType.PatchedCallback);
-            const lObject = new lPatchedClass();
-
-            // Process. Interaction.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
-                lInteractionCounter++;
-            });
-            lZone.execute(() => {
-                lObject.setCallback(() => { throw 1; });
-
-                try {
-                    lObject.callback();
-                } catch (_pAny) {/* Any */ }
-            });
-
-            // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
+            expect(lResultZone).to.equal(lZone);
         });
 
         it('-- Method callback correct result', () => {
@@ -351,7 +188,7 @@ describe('Patcher', () => {
             };
 
             // Process.
-            const lPatchedClass = (<any>new Patcher()).patchClass(lClass, InteractionResponseType.PatchedEventlistener);
+            const lPatchedClass = (<any>new Patcher()).patchClass(lClass);
             const lObject = new lPatchedClass();
             lObject.setCallback(() => { return lValue; });
 
@@ -361,31 +198,6 @@ describe('Patcher', () => {
             // Evaluation.
             expect(lValueResult).to.equal(lValue);
         });
-
-        it('-- Methods and construction not trigger interactions', () => {
-            // Setup. Zone.
-            const lZone: InteractionZone = new InteractionZone('Zone');
-
-            // Setup.
-            const lClass = class {
-                public method() { }
-            };
-
-            // Process.
-            const lPatchedClass = (<any>new Patcher()).patchClass(lClass, InteractionResponseType.PatchedCallback);
-
-            // Process. Interaction.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
-                lInteractionCounter++;
-            });
-            lZone.execute(() => {
-                new lPatchedClass().method();
-            });
-
-            // Evaluation.
-            expect(lInteractionCounter).to.equal(0);
-        });
     });
 
     describe('Method: patchEventTarget', () => {
@@ -394,91 +206,39 @@ describe('Patcher', () => {
             Patcher.patch(globalThis);
         });
 
-        it('-- AddEventListener trigger interaction on event listener call', async () => {
+        it('-- AddEventListener correct listener zone.', async () => {
             // Setup.
             const lZone: InteractionZone = new InteractionZone('Zone');
             const lEventTarget: EventTarget = new EventTarget();
 
             // Process.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((pInteraction: InteractionReason) => {
-                // Filter Promises.
-                if (pInteraction.triggerType === InteractionResponseType.PatchedEventlistener) {
-                    lInteractionCounter++;
-                }
-            });
             // eslint-disable-next-line @typescript-eslint/promise-function-async
-            const lEventWait = lZone.execute(() => {
-                return new Promise<void>((pResolve) => {
+            const lResultZonePromise: Promise<InteractionZone> = lZone.execute(() => {
+                return new Promise<InteractionZone>((pResolve) => {
                     lEventTarget.addEventListener('custom', () => {
-                        pResolve();
+                        pResolve(InteractionZone.current);
                     });
                 });
             });
             lEventTarget.dispatchEvent(new Event('custom'));
-            await lEventWait;
+            const lResultZone = await lResultZonePromise;
 
             // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
-        });
-
-        it('-- AddEventListener not trigger interaction without calling event listener', () => {
-            // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone');
-            const lEventTarget: EventTarget = new EventTarget();
-
-            // Process.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
-                lInteractionCounter++;
-            });
-            lZone.execute(() => {
-                lEventTarget.addEventListener('custom', () => { });
-            });
-
-            // Evaluation.
-            expect(lInteractionCounter).to.equal(0);
-        });
-
-        it('-- AddEventListener trigger interaction correct type', async () => {
-            // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone');
-            const lEventTarget: EventTarget = new EventTarget();
-
-            // Process.
-            let lInteractionType: InteractionResponseType = InteractionResponseType.None;
-            lZone.addInteractionListener((pInteraction: InteractionReason) => {
-                // Filter Promises.
-                if (pInteraction.triggerType === InteractionResponseType.PatchedEventlistener) {
-                    lInteractionType |= pInteraction.triggerType;
-                }
-            });
-            // eslint-disable-next-line @typescript-eslint/promise-function-async
-            const lEventWait = lZone.execute(() => {
-                return new Promise<void>((pResolve) => {
-                    lEventTarget.addEventListener('custom', () => {
-                        pResolve();
-                    });
-                });
-            });
-            lEventTarget.dispatchEvent(new Event('custom'));
-            await lEventWait;
-
-            // Evaluation.
-            expect(lInteractionType).to.equal(InteractionResponseType.PatchedEventlistener);
+            expect(lResultZone).to.equal(lZone);
         });
 
         it('-- Remove event listener', () => {
             // Setup.
             const lZone: InteractionZone = new InteractionZone('Zone');
             const lEventTarget: EventTarget = new EventTarget();
-            const lListener = () => { };
+
+            // Setup. Init listener.
+            let lListenerCalled: boolean = false;
+            const lListener = () => {
+                lListenerCalled = true;
+            };
 
             // Process.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
-                lInteractionCounter++;
-            });
             lZone.execute(() => {
                 lEventTarget.addEventListener('custom', lListener);
             });
@@ -486,7 +246,7 @@ describe('Patcher', () => {
             lEventTarget.dispatchEvent(new Event('custom'));
 
             // Evaluation.
-            expect(lInteractionCounter).to.equal(0);
+            expect(lListenerCalled).to.be.false;
         });
 
         it('-- Remove event listener wrong type', async () => {
@@ -494,27 +254,22 @@ describe('Patcher', () => {
             const lZone: InteractionZone = new InteractionZone('Zone');
             const lEventTarget: EventTarget = new EventTarget();
 
+            // Setup. Init listener.
+            let lListenerCalled: boolean = false;
+            const lListener = () => {
+                lListenerCalled = true;
+            };
+
             // Process.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((pInteraction: InteractionReason) => {
-                // Filter Promises.
-                if (pInteraction.triggerType === InteractionResponseType.PatchedEventlistener) {
-                    lInteractionCounter++;
-                }
-            });
             // eslint-disable-next-line @typescript-eslint/promise-function-async
-            const lEventWait = lZone.execute(() => {
-                return new Promise<void>((pResolve) => {
-                    const lListener = () => { pResolve(); };
-                    lEventTarget.addEventListener('custom', lListener);
-                    lEventTarget.removeEventListener('customwrong', lListener);
-                });
+            lZone.execute(() => {
+                lEventTarget.addEventListener('custom', lListener);
+                lEventTarget.removeEventListener('customwrong', lListener);
             });
             lEventTarget.dispatchEvent(new Event('custom'));
-            await lEventWait;
 
             // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
+            expect(lListenerCalled).to.be.true;
         });
 
         it('-- AddEventListener with null as callback', () => {
@@ -556,7 +311,7 @@ describe('Patcher', () => {
             expect(lErroFunction).to.throw();
         });
 
-        it('-- RemoveEventListener with unregistered callbacl', () => {
+        it('-- RemoveEventListener with unregistered callback', () => {
             // Setup.
             const lEventTarget: EventTarget = new EventTarget();
 
@@ -569,25 +324,19 @@ describe('Patcher', () => {
             expect(lErroFunction).to.not.throw();
         });
 
-        it('-- AddEventListener trigger interaction on event handler object call', async () => {
+        it('-- AddEventListener correct zone in event handler object', async () => {
             // Setup.
             const lZone: InteractionZone = new InteractionZone('Zone');
             const lEventTarget: EventTarget = new EventTarget();
 
             // Process.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((pInteraction: InteractionReason) => {
-                // Filter Promises.
-                if (pInteraction.triggerType === InteractionResponseType.PatchedEventlistener) {
-                    lInteractionCounter++;
-                }
-            });
+
             // eslint-disable-next-line @typescript-eslint/promise-function-async
-            const lEventWait = lZone.execute(() => {
-                return new Promise<void>((pResolve) => {
+            const lZoneResultPromise = lZone.execute(() => {
+                return new Promise<InteractionZone>((pResolve) => {
                     const lHandlerObject = {
                         handleEvent: function () {
-                            pResolve();
+                            pResolve(InteractionZone.current);
                         }
                     };
 
@@ -595,10 +344,10 @@ describe('Patcher', () => {
                 });
             });
             lEventTarget.dispatchEvent(new Event('custom'));
-            await lEventWait;
+            const lZoneResult = await lZoneResultPromise;
 
             // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
+            expect(lZoneResult).to.equal(lZone);
         });
 
         it('-- AddEventListener correct this context on event handler object call', async () => {
@@ -630,28 +379,30 @@ describe('Patcher', () => {
             // Setup.
             const lZone: InteractionZone = new InteractionZone('Zone');
             const lEventTarget: EventTarget = new EventTarget();
+
+            // Setup listener.
+            let lListenerCalled: boolean = false;
             const lHandlerObject = {
-                handleEvent: function () { }
+                handleEvent: function () {
+                    lListenerCalled = true;
+                }
             };
 
             // Process.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
-                lInteractionCounter++;
-            });
+            // eslint-disable-next-line @typescript-eslint/promise-function-async
             lZone.execute(() => {
                 lEventTarget.addEventListener('custom', lHandlerObject);
+                lEventTarget.removeEventListener('custom', lHandlerObject);
             });
-            lEventTarget.removeEventListener('custom', lHandlerObject);
             lEventTarget.dispatchEvent(new Event('custom'));
 
             // Evaluation.
-            expect(lInteractionCounter).to.equal(0);
+            expect(lListenerCalled).to.be.true;
         });
     });
 
     describe('Method: patchOnEventProperties', () => {
-        it('-- Trigger interaction on event listener call', async () => {
+        it('-- Correct zone on event listener call', async () => {
             // Setup.
             const lZone: InteractionZone = new InteractionZone('Zone');
             const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
@@ -660,31 +411,23 @@ describe('Patcher', () => {
             (<any>new Patcher()).patchOnEventProperties(lEventTarget, ['custom']);
 
             // Process.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((pInteraction: InteractionReason) => {
-                // Filter Promises.
-                if (pInteraction.triggerType === InteractionResponseType.PatchedEventlistener) {
-                    lInteractionCounter++;
-                }
-            });
             // eslint-disable-next-line @typescript-eslint/promise-function-async
-            const lEventWait = lZone.execute(() => {
-                return new Promise<void>((pResolve) => {
+            const lResultZonePromise: Promise<InteractionZone> = lZone.execute(() => {
+                return new Promise<InteractionZone>((pResolve) => {
                     lEventTarget.oncustom = () => {
-                        pResolve();
+                        pResolve(InteractionZone.current);
                     };
                 });
             });
             lEventTarget.dispatchEvent(new Event('custom'));
-            await lEventWait;
+            const lResultZone: InteractionZone = await lResultZonePromise;
 
             // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
+            expect(lResultZone).to.equal(lZone);
         });
 
         it('-- Double patch', () => {
             // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedEventlistener });
             const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
 
             // Process. Patch
@@ -692,93 +435,67 @@ describe('Patcher', () => {
             (<any>new Patcher()).patchOnEventProperties(lEventTarget, ['custom']);
 
             // Process.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
-                lInteractionCounter++;
-            });
-            lZone.execute(() => {
-                lEventTarget.oncustom = () => { };
-            });
+            let lCallCounter: number = 0;
+            lEventTarget.oncustom = () => {
+                lCallCounter++;
+            };
             lEventTarget.dispatchEvent(new Event('custom'));
 
             // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
+            expect(lCallCounter).to.equal(1);
         });
 
         it('-- Override function with self', async () => {
             // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone');
             const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
 
             // Process. Patch
             (<any>new Patcher()).patchOnEventProperties(lEventTarget, ['custom']);
 
             // Process.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((pInteraction: InteractionReason) => {
-                // Filter Promises.
-                if (pInteraction.triggerType === InteractionResponseType.PatchedEventlistener) {
-                    lInteractionCounter++;
-                }
-            });
-            // eslint-disable-next-line @typescript-eslint/promise-function-async
-            const lEventWait = lZone.execute(() => {
-                return new Promise<void>((pResolve) => {
-                    const lListener = () => { pResolve(); };
-                    lEventTarget.oncustom = lListener;
-                    lEventTarget.oncustom = lListener;
-                });
-            });
+            let lCallCounter: number = 0;
+            const lListener = () => {
+                lCallCounter++;
+            };
+            lEventTarget.oncustom = lListener;
+            lEventTarget.oncustom = lListener;
             lEventTarget.dispatchEvent(new Event('custom'));
-            await lEventWait;
 
             // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
+            expect(lCallCounter).to.equal(1);
         });
 
         it('-- Override function with null', () => {
             // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone');
             const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
 
             // Process. Patch
             (<any>new Patcher()).patchOnEventProperties(lEventTarget, ['custom']);
 
             // Process.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
-                lInteractionCounter++;
-            });
-            lZone.execute(() => {
-                lEventTarget.oncustom = () => { };
-                lEventTarget.oncustom = null;
-            });
+            let lCallCounter: number = 0;
+            // eslint-disable-next-line @typescript-eslint/promise-function-async
+            const lListener = () => {
+                lCallCounter++;
+            };
+            lEventTarget.oncustom = lListener;
+            lEventTarget.oncustom = null;
             lEventTarget.dispatchEvent(new Event('custom'));
 
             // Evaluation.
-            expect(lInteractionCounter).to.equal(0);
+            expect(lCallCounter).to.equal(0);
         });
 
         it('-- Set string value', () => {
             // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone');
             const lEventTarget = new class extends EventTarget { public oncustom: any = null; }();
 
             // Process. Patch
             (<any>new Patcher()).patchOnEventProperties(lEventTarget, ['custom']);
 
             // Process.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener((_pInteraction: InteractionReason) => {
-                lInteractionCounter++;
-            });
-            lZone.execute(() => {
-                lEventTarget.oncustom = 'string';
-            });
+            lEventTarget.oncustom = 'My string';
             lEventTarget.dispatchEvent(new Event('custom'));
-
-            // Evaluation.
-            expect(lInteractionCounter).to.equal(0);
         });
 
         it('-- Get string value', () => {
@@ -820,288 +537,89 @@ describe('Patcher', () => {
             Patcher.patch(globalThis);
         });
 
-        it('-- Promise executor trigger PatchedPromise interaction', async () => {
+        it('-- Promise executor correct zone', async () => {
             // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedPromise });
+            const lZone: InteractionZone = new InteractionZone('Zone');
 
             // Process.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener(() => {
-                lInteractionCounter++;
-            });
             // eslint-disable-next-line @typescript-eslint/promise-function-async
-            await lZone.execute(() => {
-                return new Promise<void>((pResolve) => { pResolve(); });
+            const lResultZone: InteractionZone = await lZone.execute(() => {
+                return new Promise<InteractionZone>((pResolve) => { pResolve(InteractionZone.current); });
             });
 
             // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
+            expect(lResultZone).to.equal(lZone);
         });
 
-        it('-- Promise resolve trigger PatchedPromise interaction', async () => {
-            // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedPromise });
-
-            // Process.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener(() => {
-                lInteractionCounter++;
-            });
-            // eslint-disable-next-line @typescript-eslint/promise-function-async
-            await lZone.execute(() => {
-                return new Promise<void>((pResolve) => { pResolve(); });
-            });
-
-            // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
-        });
-
-        it('-- Promise reject trigger PatchedPromise interaction', async () => {
-            // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedPromise });
-
-            // Process.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener(() => {
-                lInteractionCounter++;
-            });
-            try {
-                // eslint-disable-next-line @typescript-eslint/promise-function-async
-                await lZone.execute(() => {
-                    return new Promise<void>((_pResolve, pReject) => { pReject(); });
-                });
-            } catch (_err) { /* Nothing */ }
-
-            // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
-        });
-
-        it('-- Promise throw error does not trigger PatchedPromise interaction', async () => {
-            // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedPromise });
-
-            // Process.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener(() => {
-                lInteractionCounter++;
-            });
-            try {
-                // eslint-disable-next-line @typescript-eslint/promise-function-async
-                await lZone.execute(() => {
-                    return new Promise<void>(() => { throw 1; });
-                });
-            } catch (_err) { /* Nothing */ }
-
-            // Evaluation.
-            expect(lInteractionCounter).to.equal(0);
-        });
 
         it('-- Promise then keep zone.', async () => {
             // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedPromise });
-            const lPromise: Promise<void> = new Promise<void>((pResolve) => { pResolve(); });
+            const lZone: InteractionZone = new InteractionZone('Zone');
 
             // Process.
-            let lCurrentZone: InteractionZone | null = null;
             // eslint-disable-next-line @typescript-eslint/promise-function-async
-            await lZone.execute(() => {
-                return lPromise.then(() => {
-                    lCurrentZone = InteractionZone.current;
-                });
+            const lResultZone: InteractionZone = await lZone.execute(() => {
+                return new Promise<void>((pResolve) => { pResolve(); }).then(() => { return InteractionZone.current; });
             });
 
             // Evaluation.
-            expect(lCurrentZone).to.equal(lZone);
+            expect(lResultZone).to.equal(lZone);
         });
 
         it('-- Promise catch keep zone.', async () => {
             // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedPromise });
-            const lPromise: Promise<void> = new Promise<void>((_pResolve, pReject) => { pReject(); });
+            const lZone: InteractionZone = new InteractionZone('Zone');
 
             // Process.
-            let lCurrentZone: InteractionZone | null = null;
             // eslint-disable-next-line @typescript-eslint/promise-function-async
-            await lZone.execute(() => {
-                return lPromise.catch(() => {
-                    lCurrentZone = InteractionZone.current;
-                });
+            const lResultZone: InteractionZone = await lZone.execute(() => {
+                return new Promise<InteractionZone>((_pResolve, pReject) => { pReject(); }).catch(() => { return InteractionZone.current; });
             });
 
             // Evaluation.
-            expect(lCurrentZone).to.equal(lZone);
+            expect(lResultZone).to.equal(lZone);
         });
 
         it('-- Promise then keep zone async execution.', async () => {
             // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedPromise });
-            const lPromise: Promise<void> = new Promise<void>((pResolve) => { pResolve(); });
+            const lZone: InteractionZone = new InteractionZone('Zone');
 
             // Process.
-            let lCurrentZone: InteractionZone | null = null;
-            await lZone.execute(async () => {
-                return lPromise.then(() => {
-                    lCurrentZone = InteractionZone.current;
-                });
+            const lResultZone: InteractionZone = await lZone.execute(async () => {
+                return new Promise<void>((pResolve) => { pResolve(); }).then(() => { return InteractionZone.current; });
             });
 
             // Evaluation.
-            expect(lCurrentZone).to.equal(lZone);
+            expect(lResultZone).to.equal(lZone);
         });
 
         it('-- Promise catch keep zone  async execution.', async () => {
             // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedPromise });
-            const lPromise: Promise<void> = new Promise<void>((_pResolve, pReject) => { pReject(); });
+            const lZone: InteractionZone = new InteractionZone('Zone');
 
             // Process.
-            let lCurrentZone: InteractionZone | null = null;
-            await lZone.execute(async () => {
-                return lPromise.catch(() => {
-                    lCurrentZone = InteractionZone.current;
-                });
+            const lResultZone: InteractionZone = await lZone.execute(async () => {
+                return new Promise<InteractionZone>((_pResolve, pReject) => { pReject(); }).catch(() => { return InteractionZone.current; });
             });
 
             // Evaluation.
-            expect(lCurrentZone).to.equal(lZone);
-        });
-
-        it('-- Promise then trigger PatchedPromise interaction without callback.', async () => {
-            // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedPromise });
-            const lPromise: Promise<void> = new Promise<void>((pResolve) => { pResolve(); });
-
-            // Process.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener(() => {
-                lInteractionCounter++;
-            });
-            // eslint-disable-next-line @typescript-eslint/promise-function-async
-            await lZone.execute(() => {
-                return lPromise.then();
-            });
-
-            // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
-        });
-
-        it('-- Promise then trigger PatchedPromise interaction with callback.', async () => {
-            // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedPromise });
-            const lPromise: Promise<void> = new Promise<void>((pResolve) => { pResolve(); });
-
-            // Process.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener(() => {
-                lInteractionCounter++;
-            });
-            // eslint-disable-next-line @typescript-eslint/promise-function-async
-            await lZone.execute(() => {
-                return lPromise.then(() => { });
-            });
-
-            // Evaluation.
-            expect(lInteractionCounter).to.greaterThanOrEqual(1);
-        });
-
-        it('-- Promise catch trigger PatchedPromise interaction without callback.', async () => {
-            // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedPromise });
-            const lPromise: Promise<void> = new Promise<void>((_pResolve, pReject) => { pReject('Something'); });
-
-            // Process.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener(() => {
-                lInteractionCounter++;
-            });
-            try {
-                // eslint-disable-next-line @typescript-eslint/promise-function-async
-                await lZone.execute(() => {
-                    return lPromise.catch();
-                });
-            } catch (_err) { /* Nothing */ }
-
-            // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
-        });
-
-        it('-- Promise catch trigger PatchedPromise interaction with callback.', async () => {
-            /// Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedPromise });
-            const lPromise: Promise<void> = new Promise<void>((_pResolve, pReject) => { pReject('Something'); });
-
-            // Process.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener(() => {
-                lInteractionCounter++;
-            });
-            try {
-                // eslint-disable-next-line @typescript-eslint/promise-function-async
-                await lZone.execute(() => {
-                    return lPromise.catch(() => { });
-                });
-            } catch (_err) { /* Nothing */ }
-
-            // Evaluation.
-            expect(lInteractionCounter).to.greaterThanOrEqual(1);
+            expect(lResultZone).to.equal(lZone);
         });
 
         it('-- Promise async function trigger PatchedPromise interaction', async () => {
             // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedPromise });
+            const lZone: InteractionZone = new InteractionZone('Zone');
 
             // Process.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener(() => {
-                lInteractionCounter++;
-            });
             // eslint-disable-next-line @typescript-eslint/promise-function-async
-            await lZone.execute(() => {
-                return (async (): Promise<void> => {
-                    return;
+            const lResultZone: InteractionZone = await lZone.execute(() => {
+                return (async (): Promise<InteractionZone> => {
+                    return InteractionZone.current;
                 })();
             });
 
             // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
-        });
-
-        it('-- Trigger syncron PatchedPromise on execution of executor', async () => {
-            // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedPromise });
-
-            // Process.
-            let lInteractionCounter: number = 0;
-            lZone.addInteractionListener(() => {
-                lInteractionCounter++;
-            });
-            // eslint-disable-next-line @typescript-eslint/promise-function-async
-            await lZone.execute(() => {
-                return new Promise<void>((pResolve) => { pResolve(); });
-            });
-
-            // Evaluation.
-            expect(lInteractionCounter).to.equal(1);
-        });
-
-        it('-- Dont trigger PatchedPromise without promise resolve or reject', (pDone: Mocha.Done) => {
-            // Setup.
-            const lZone: InteractionZone = new InteractionZone('Zone', { trigger: InteractionResponseType.PatchedPromise });
-
-            // Process.
-            lZone.addInteractionListener(() => {
-                pDone();
-            });
-
-            // eslint-disable-next-line @typescript-eslint/promise-function-async
-            lZone.execute(() => {
-                new Promise<void>(() => { });
-            });
-
-            // Race with promise.
-            setTimeout(() => {
-                pDone();
-            }, 100);
+            expect(lResultZone).to.equal(lZone);
         });
     });
 });

@@ -1,9 +1,9 @@
 import { expect } from 'chai';
-import { InteractionResponseType } from '../../../source/change_detection/enum/interaction-response-type.enum';
+
 import { InteractionReason } from '../../../source/change_detection/interaction-reason';
 import { InteractionZone } from '../../../source/change_detection/interaction-zone';
 import { IgnoreInteractionDetection } from '../../../source/change_detection/synchron_tracker/ignore-interaction-detection.decorator';
-import { InteractionDetectionProxy } from '../../../source/change_detection/synchron_tracker/interaction-detection-proxy';
+import { InteractionDetectionProxy, InteractionResponseType } from '../../../source/change_detection/synchron_tracker/interaction-detection-proxy';
 import '../../mock/request-animation-frame-mock-session';
 
 describe('InteractionDetectionProxy', () => {

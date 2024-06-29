@@ -1,6 +1,5 @@
 import { Exception } from '@kartoffelgames/core.data';
 import { expect } from 'chai';
-import { InteractionResponseType } from '../../../source/change_detection/enum/interaction-response-type.enum';
 import { ErrorAllocation } from '../../../source/change_detection/error-allocation';
 import { InteractionReason } from '../../../source/change_detection/interaction-reason';
 import { InteractionZone } from '../../../source/change_detection/interaction-zone';
@@ -771,7 +770,7 @@ describe('InteractionZone', () => {
 
         // Process. Call listener.
         lInteractionZone.execute(() => {
-            InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.Custom, new Object()));
+            InteractionZone.dispatchInteractionEvent(1, new Object());
         });
 
         // Evaluation.
@@ -792,7 +791,7 @@ describe('InteractionZone', () => {
 
         // Process. Call listener.
         lInteractionZone.execute(() => {
-            InteractionZone.dispatchInteractionEvent(new InteractionReason(InteractionResponseType.Custom, new Object()));
+            InteractionZone.dispatchInteractionEvent(1, new Object());
         });
 
         // Evaluation.

@@ -1,6 +1,6 @@
 import { Dictionary } from '@kartoffelgames/core';
 import { ErrorAllocation } from './error-allocation';
-import { InteractionEvent } from './interaction-event';
+import { InteractionEvent, InteractionEventTriggerType } from './interaction-event';
 
 // TODO: Remove any interaction detection from patcher. Only maintain zones.
 // TODO: Zones handles universal trigger. No more fixed enum.
@@ -15,7 +15,7 @@ import { InteractionEvent } from './interaction-event';
  */
 export class InteractionZone {
     // Needs to be isolated to prevent parent listener execution.
-    private static mCurrentZone: InteractionZone = new InteractionZone('Default', null, InteractionResponseType.Any, true);
+    private static mCurrentZone: InteractionZone = new InteractionZone('Default', null, true);
 
     /**
      * Add global error listener that can sends the error to the allocated {@link InteractionZone}
@@ -60,30 +60,33 @@ export class InteractionZone {
     /**
      * Dispatch interaction event in current zone.
      * 
-     * @param pType - Interaction reason.
+     * @param pType - Interaction type.
+     * @param pTrigger - Interaction trigger.
+     * @param pData - Data of event.
      * 
-     * @returns false when any zone in the parent chain dont has trigger for {@link pInteractionReason}
+     * @returns false when any zone in the parent chain dont has trigger for {@link pTrigger} with {@link pType}
      */
-    public static pushInteraction(pType: string, pTrigger: number, pSource: object, pProperty?: PropertyKey): boolean {
+    public static pushInteraction<TTrigger extends number, TData extends object>(pType: InteractionEventTriggerType<TTrigger>, pTrigger: TTrigger, pData: TData): boolean {
         // Optimization to prevent InteractionReason creation.
         // Validate trigger type with current zones trigger mapping.
-        if ((this.mCurrentZone.mTriggerMapping & pType) === 0) {
+        const lTriggerMap: number | null = this.mCurrentZone.mTriggerMapping.get(pType) ?? null;
+        if (lTriggerMap !== null && (lTriggerMap & pTrigger) === 0) {
             return false;
         }
 
         // Create reason and save current zone as reason origin.
-        const lReason: InteractionEvent = new InteractionEvent(pType, pSource, pProperty, this.mCurrentZone);
+        const lReason: InteractionEvent<TTrigger, TData> = new InteractionEvent(pType, pTrigger, this.mCurrentZone, pData);
 
         // Start dispatch to current zone.
         return this.mCurrentZone.callInteractionListener(lReason);
     }
 
     private readonly mErrorListener: Dictionary<ErrorListener, InteractionZone>;
-    private readonly mInteractionListener: Dictionary<ChangeListener, InteractionZone>;
+    private readonly mInteractionListener: Dictionary<InteractionEventTriggerType<unknown>, Dictionary<InteractionListener<number, object>, InteractionZone>>;
     private readonly mIsolated: boolean;
     private readonly mName: string;
     private readonly mParent: InteractionZone | null;
-    private readonly mTriggerMapping: Dictionary<string, number>;
+    private readonly mTriggerMapping: Dictionary<InteractionEventTriggerType<unknown>, number>;
 
     /**
      * Get interaction detection name.
@@ -110,16 +113,16 @@ export class InteractionZone {
      * @param pName - Name of interaction zone.
      * @param pSettings - Interaction zone settings.
      */
-    private constructor(pName: string, pParent: InteractionZone | null, pTrigger: InteractionResponseType, pIsolate: boolean,) {
-        // Initialize listener lists
-        this.mInteractionListener = new Dictionary<ChangeListener, InteractionZone>();
+    private constructor(pName: string, pParent: InteractionZone | null, pIsolate: boolean) {
+        // Initialize error listener list
         this.mErrorListener = new Dictionary<ErrorListener, InteractionZone>();
 
         // Set name of zone. Used only for debugging and labeling.
         this.mName = pName;
 
-        // Create bitmap of response triggers.
-        this.mResponseType = pTrigger;
+        // Create Trigger and their listener list.
+        this.mTriggerMapping = new Dictionary<InteractionEventTriggerType<unknown>, number>();
+        this.mInteractionListener = new Dictionary<InteractionEventTriggerType<unknown>, Dictionary<InteractionListener<number, object>, InteractionZone>>();
 
         // Save parent when not isolated.
         this.mParent = pParent;
@@ -134,9 +137,14 @@ export class InteractionZone {
      * Ignores adding the same listener multiple times.
      * 
      * @param pListener - Listener.
+     * 
+     * @returns itself. 
      */
-    public addErrorListener(pListener: ErrorListener): void {
+    public addErrorListener(pListener: ErrorListener): this {
         this.mErrorListener.add(pListener, InteractionZone.current);
+
+        // Chainable.
+        return this;
     }
 
     /**
@@ -144,22 +152,49 @@ export class InteractionZone {
      * Ignores adding the same listener multiple times.
      * 
      * @param pListener - Listener.
+     * 
+     * @returns itself. 
      */
-    public addInteractionListener(pListener: ChangeListener): void {
-        this.mInteractionListener.add(pListener, InteractionZone.current);
+    public addInteractionListener<TTrigger extends number, TData extends object>(pType: InteractionEventTriggerType<TTrigger>, pListener: InteractionListener<TTrigger, TData>): this {
+        // Init interaction listener list when not already setup.
+        if (!this.mInteractionListener.has(pType)) {
+            this.mInteractionListener.set(pType, new Dictionary<InteractionListener<number, object>, InteractionZone>());
+        }
+
+        // Add listener to list
+        this.mInteractionListener.get(pType)!.set(pListener as InteractionListener<number, object>, InteractionZone.current);
+
+        // Chainable.
+        return this;
+    }
+
+    /**
+     * Add new or overwrite trigger of zone.
+     * Listener are not executed when no trigger is setup.
+     * 
+     * @param pType - Trigger type. Usually the typeof T.
+     * @param pTrigger - All triggers as bitmap.
+     * 
+     * @returns itself. 
+     */
+    public addTrigger<T extends number>(pType: InteractionEventTriggerType<T>, pTrigger: T): this {
+        // Add or override trigger bitmap.
+        this.mTriggerMapping.set(pType, pTrigger);
+
+        // Chainable.
+        return this;
     }
 
     /**
      * Create descendant of this zone.
      * 
      * @param pName - Name of new zone.
-     * @param pTrigger - Action trigger.
-     * @param pIsolate - Isolate interactions from parent zone.
+     * @param pOptions - Zone options..
      * 
      * @returns new {@link InteractionZone} with zone as parent.
      */
     public create(pName: string, pOptions?: InteractionZoneConstructorSettings): InteractionZone {
-        return new InteractionZone(pName, InteractionZone.mCurrentZone, pOptions?.trigger ?? InteractionResponseType.Any, pOptions?.isolate === true);
+        return new InteractionZone(pName, InteractionZone.mCurrentZone, pOptions?.isolate === true);
     }
 
     /**
@@ -167,6 +202,8 @@ export class InteractionZone {
      * 
      * @param pFunction - Function.
      * @param pArgs - function execution arguments.
+     * 
+     * @returns result of execution.
      */
     public execute<T extends (...pArgs: Array<any>) => any>(pFunction: T, ...pArgs: Parameters<T>): ReturnType<T> {
         const lLastZone: InteractionZone = InteractionZone.mCurrentZone;
@@ -192,17 +229,44 @@ export class InteractionZone {
      * Remove listener for error events.
      * 
      * @param pListener - Listener.
+     * 
+     * @returns itself.
      */
-    public removeErrorListener(pListener: ErrorListener): void {
+    public removeErrorListener(pListener: ErrorListener): this {
         this.mErrorListener.delete(pListener);
+
+        // Chainable.
+        return this;
     }
 
     /**
      * Remove listener for change events.
+     * When no listener is specified. All listener of the type are removed.
+     * 
      * @param pListener - Listener.
+     * 
+     * @returns itself.
      */
-    public removeInteractionListener(pListener: ChangeListener): void {
-        this.mInteractionListener.delete(pListener);
+    public removeInteractionListener(pType: InteractionEventTriggerType<unknown>, pListener?: InteractionListener<number, object>): this {
+        // Remove every listener of type.
+        if (!pListener) {
+            this.mInteractionListener.delete(pType);
+
+            // Chainable.
+            return this;
+        }
+
+        // Read current listener list of type. 
+        const lListenerList: Dictionary<InteractionListener<number, object>, InteractionZone> | undefined = this.mInteractionListener.get(pType);
+        if (!lListenerList) {
+            return this;
+        }
+
+        // Remove single listener from type.
+        lListenerList.delete(pListener);
+
+        // Chainable.
+        return this;
     }
 
     /**
@@ -238,28 +302,35 @@ export class InteractionZone {
     }
 
     /**
-     * Call all interaction listener of this zone and bubble it to its paren zone.
-     * Prevents the zone to trigger the same reason more than once
+     * Call all interaction listener of this zone and bubble it to its parent zone.
+     * Prevents the zone to trigger the same event more than once on the same zone.
      * 
-     * @param pInteractionReason - Interaction reason.
+     * @param pEvent - Interaction event.
      */
-    private callInteractionListener(pInteractionReason: InteractionEvent): boolean {
-        // Block dispatch of reason when it does not match the response type bitmap.
-        // Send it when it was passthrough from child zones.
-        if ((this.mTriggerMapping & pInteractionReason.triggerType) === 0) {
-            return false;
-        }
+    private callInteractionListener(pEvent: InteractionEvent<number, object>): boolean {
+        // Read trigger.
+        const lTriggerMap: number | null = this.mTriggerMapping.get(pEvent.interactionType) ?? null;
+        if (lTriggerMap !== null) {
+            // Block dispatch of reason when it does not match the response type bitmap.
+            // Send it when it was passthrough from child zones.
+            if ((lTriggerMap & pEvent.interactionTrigger) === 0) {
+                return false;
+            }
 
-        // Set zone of reason and skip dispatch when zone was already dispatched.
-        if (!pInteractionReason.addDispatchedZone(this)) {
-            // Call all local listener in current zone.
-            this.execute(() => {
-                for (const [lListener, lZone] of this.mInteractionListener.entries()) {
-                    lZone.execute(() => {
-                        lListener.call(this, pInteractionReason);
+            // Skip dispatch when zone was already dispatched.
+            if (!pEvent.addPushedZone(this)) {
+                // Read interaction listener of interaction type.
+                const lInteractionListenerList = this.mInteractionListener.get(pEvent.interactionType);
+                if (lInteractionListenerList) {
+                    this.execute(() => {
+                        for (const [lListener, lZone] of lInteractionListenerList.entries()) {
+                            lZone.execute(() => {
+                                lListener.call(this, pEvent);
+                            });
+                        }
                     });
                 }
-            });
+            }
         }
 
         // Skip parent execution when isolated.
@@ -268,14 +339,13 @@ export class InteractionZone {
         }
 
         // Parent is allways not null. Root (Default.Zone) is isolated and therefore this line is not executed.
-        return this.parent!.callInteractionListener(pInteractionReason);
+        return this.parent!.callInteractionListener(pEvent);
     }
 }
 
-export type ChangeListener = (pReason: InteractionEvent) => void;
+export type InteractionListener<TTrigger extends number, TData extends object> = (pReason: InteractionEvent<TTrigger, TData>) => void;
 export type ErrorListener = (pError: any) => void | boolean;
 
 type InteractionZoneConstructorSettings = {
-    trigger?: number,
     isolate?: boolean;
 };

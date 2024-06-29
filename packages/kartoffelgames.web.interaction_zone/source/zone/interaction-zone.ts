@@ -14,9 +14,6 @@ import { InteractionEvent, InteractionEventTriggerType } from './interaction-eve
  * Merges execution zone and proxy tracking.
  */
 export class InteractionZone {
-    // Needs to be isolated to prevent parent listener execution.
-    private static mCurrentZone: InteractionZone = new InteractionZone('Default', null, true);
-
     /**
      * Add global error listener that can sends the error to the allocated {@link InteractionZone}
      */
@@ -50,6 +47,10 @@ export class InteractionZone {
         });
     }
 
+    // Needs to be isolated to prevent parent listener execution.
+    private static mCurrentZone: InteractionZone = new InteractionZone('Default', null, true);
+
+
     /**
      * Current execution zone.
      */
@@ -69,8 +70,8 @@ export class InteractionZone {
     public static pushInteraction<TTrigger extends number, TData extends object>(pType: InteractionEventTriggerType<TTrigger>, pTrigger: TTrigger, pData: TData): boolean {
         // Optimization to prevent InteractionReason creation.
         // Validate trigger type with current zones trigger mapping.
-        const lTriggerMap: number | null = this.mCurrentZone.mTriggerMapping.get(pType) ?? null;
-        if (lTriggerMap !== null && (lTriggerMap & pTrigger) === 0) {
+        const lTriggerMap: number = this.mCurrentZone.mTriggerMapping.get(pType) ?? ~0;
+        if ((lTriggerMap & pTrigger) === 0) {
             return false;
         }
 
@@ -170,16 +171,16 @@ export class InteractionZone {
 
     /**
      * Add new or overwrite trigger of zone.
-     * Listener are not executed when no trigger is setup.
+     * Listener are not executed when bitmap is set to zero.
      * 
      * @param pType - Trigger type. Usually the typeof T.
-     * @param pTrigger - All triggers as bitmap.
+     * @param pAllowedTrigger - All allowed trigger bits as number.
      * 
      * @returns itself. 
      */
-    public addTrigger<T extends number>(pType: InteractionEventTriggerType<T>, pTrigger: T): this {
+    public addTriggerRestriction<T extends number>(pType: InteractionEventTriggerType<T>, pAllowedTrigger: T): this {
         // Add or override trigger bitmap.
-        this.mTriggerMapping.set(pType, pTrigger);
+        this.mTriggerMapping.set(pType, pAllowedTrigger);
 
         // Chainable.
         return this;
@@ -308,29 +309,26 @@ export class InteractionZone {
      * @param pEvent - Interaction event.
      */
     private callInteractionListener(pEvent: InteractionEvent<number, object>): boolean {
-        // Read trigger.
-        const lTriggerMap: number | null = this.mTriggerMapping.get(pEvent.interactionType) ?? null;
-        if (lTriggerMap !== null) {
-            // Block dispatch of reason when it does not match the response type bitmap.
-            // Send it when it was passthrough from child zones.
-            if ((lTriggerMap & pEvent.interactionTrigger) === 0) {
-                return false;
-            }
+        // Read trigger. None set trigger are allways wildcards.
+        const lTriggerBitmap: number = this.mTriggerMapping.get(pEvent.interactionType) ?? ~0;
 
-            // Skip dispatch when zone was already dispatched.
-            if (!pEvent.addPushedZone(this)) {
-                // Read interaction listener of interaction type.
-                const lInteractionListenerList = this.mInteractionListener.get(pEvent.interactionType);
-                if (lInteractionListenerList) {
-                    this.execute(() => {
-                        for (const [lListener, lZone] of lInteractionListenerList.entries()) {
-                            lZone.execute(() => {
-                                lListener.call(this, pEvent);
-                            });
-                        }
+        // Block dispatch of reason when it does not match the response type bitmap.
+        // Send it when it was passthrough from child zones.
+        if ((lTriggerBitmap & pEvent.interactionTrigger) === 0) {
+            return false;
+        }
+
+        // Skip dispatch when zone was already dispatched.  
+        // Read interaction listener of interaction type.
+        const lInteractionListenerList = this.mInteractionListener.get(pEvent.interactionType);
+        if (lInteractionListenerList && lInteractionListenerList.size > 0) {
+            this.execute(() => {
+                for (const [lListener, lZone] of lInteractionListenerList.entries()) {
+                    lZone.execute(() => {
+                        lListener.call(this, pEvent);
                     });
                 }
-            }
+            });
         }
 
         // Skip parent execution when isolated.

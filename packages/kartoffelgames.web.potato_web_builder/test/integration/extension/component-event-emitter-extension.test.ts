@@ -13,13 +13,14 @@ describe('ComponentEventEmitterExtension', () => {
     it('-- Correct event value', async () => {
         // Setup. Values.
         const lEventValue: string = 'EVENT-VALUE';
+        const lEventName = 'custom-event';
 
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
         })
         class EventComponent {
-            @PwbComponentEvent('custom-event')
+            @PwbComponentEvent(lEventName)
             private readonly mEvent!: ComponentEventEmitter<string>;
 
             @PwbExport
@@ -33,7 +34,7 @@ describe('ComponentEventEmitterExtension', () => {
 
         // Setup. Wait for "click" event
         const lEventResult: ComponentEvent<string> = await new Promise<ComponentEvent<string>>((pResolve) => {
-            lEventComponent.addEventListener('custom-event', (pEvent: any) => {
+            lEventComponent.addEventListener(lEventName, (pEvent: any) => {
                 pResolve(pEvent);
             });
 
@@ -215,7 +216,7 @@ describe('ComponentEventEmitterExtension', () => {
         expect(lNativeCalled).to.be.true;
     });
 
-    
+
     it('-- Two parallel custom events correct values', async () => {
         // Setup. Values.
         const lEventValueOne: string = 'EVENT-VALUE-ONE';

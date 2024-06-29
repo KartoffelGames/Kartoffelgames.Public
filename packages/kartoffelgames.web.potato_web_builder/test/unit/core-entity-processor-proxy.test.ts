@@ -712,7 +712,6 @@ describe('CoreEntityProcessorProxy', () => {
             expect(lResponseType).to.equal(UpdateTrigger.PropertySet);
         });
 
-        /* Event targets are blocked, Internal JSDOM  logic
         describe('-- EventTarget', () => {
             it('-- Custom events', async () => {
                 // Setup.
@@ -745,7 +744,7 @@ describe('CoreEntityProcessorProxy', () => {
                 });
 
                 // Process
-                lProxy.click();
+                lProxy.dispatchEvent(new MouseEvent('click'));
 
                 // Evaluation.
                 await lListenerWaiter;
@@ -788,7 +787,6 @@ describe('CoreEntityProcessorProxy', () => {
                 await lListenerWaiter;
             });
         });
-        */
     });
 
     describe('Functionality: ComponentInteractionEvent.source', () => {

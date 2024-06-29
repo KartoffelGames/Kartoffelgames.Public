@@ -136,6 +136,21 @@ export class CoreEntityProcessorProxy<T extends object> {
      * @param pTarget - Target object.
      */
     private createProxyFunction(pTarget: T): T {
+        const lDetectUntrackableFunction = (pCallableTarget: CallableObject): boolean => {
+            // Skip proxy execute and use original this context on native code.
+            if (/\{\s+\[native code\]/.test(Function.prototype.toString.call(pCallableTarget))) {
+                return true;
+            }
+
+            // Special case for event targets.
+            if ((<any>EventTarget.prototype)[pCallableTarget.name] === pCallableTarget) {
+                return true;
+            }
+
+            return false;
+        };
+
+
         // Create proxy handler.
         const lProxyObject: T = new Proxy(pTarget, {
             /**
@@ -163,7 +178,7 @@ export class CoreEntityProcessorProxy<T extends object> {
                 };
 
                 // Skip proxy execute and use original this context on native code.
-                if (/\{\s+\[native code\]/.test(Function.prototype.toString.call(lCallableTarget))) {
+                if (lDetectUntrackableFunction(lCallableTarget)) {
                     return lCallWithOriginalThisContext();
                 }
 

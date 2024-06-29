@@ -383,6 +383,26 @@ describe('InteractionZone', () => {
                 // Evaluation.
                 expect(lErrorListenerCalled).to.be.false;
             });
+
+            it('-- Ignore Error listener for errors for errors that are none objects', async () => {
+                // Setup.
+                const lCorrectInteractionZone: InteractionZone = InteractionZone.current.create('Parent');
+                const lParallelInteractionZone: InteractionZone = lCorrectInteractionZone.create('Child');
+
+                // Process. Set error listener.
+                let lErrorListenerCalled: boolean = false;
+                lParallelInteractionZone.addErrorListener(() => {
+                    lErrorListenerCalled = true;
+                });
+
+                // Process. Throw error outside.
+                window.dispatchEvent(new ErrorEvent('error', {
+                    error: 'None Object'
+                }));
+
+                // Evaluation.
+                expect(lErrorListenerCalled).to.be.false;
+            });
         });
 
         describe('-- Asynchron', () => {
@@ -730,6 +750,52 @@ describe('InteractionZone', () => {
 
             // Evaluation.
             expect(lListenerCalled).to.be.false;
+        });
+
+        it('-- Skip parent chain when a zone has restriction', () => {
+            // Setup.
+            const lZoneLevel1: InteractionZone = InteractionZone.current.create('Level1');
+            const lZoneLevel2: InteractionZone = lZoneLevel1.create('Level1');
+            const lZoneLevel3: InteractionZone = lZoneLevel2.create('Level1');
+            const lZoneLevel4: InteractionZone = lZoneLevel3.create('Level1');
+
+            // Setup. Add restriction to level 2.
+            lZoneLevel2.addTriggerRestriction(TestTriggerEnum, TestTriggerEnum.Custom2);
+
+            // Process. Add zone 1 listener.
+            let lListenerLevel1: boolean = false;
+            lZoneLevel1.addInteractionListener(TestTriggerEnum, () => {
+                lListenerLevel1 = true;
+            });
+
+            // Process. Add zone 2 listener.
+            let lListenerLevel2: boolean = false;
+            lZoneLevel2.addInteractionListener(TestTriggerEnum, () => {
+                lListenerLevel2 = true;
+            });
+
+            // Process. Add zone 3 listener.
+            let lListenerLevel3: boolean = false;
+            lZoneLevel3.addInteractionListener(TestTriggerEnum, () => {
+                lListenerLevel3 = true;
+            });
+
+            // Process. Add zone 4 listener.
+            let lListenerLevel4: boolean = false;
+            lZoneLevel4.addInteractionListener(TestTriggerEnum, () => {
+                lListenerLevel4 = true;
+            });
+
+            // Process. Call listener.
+            lZoneLevel4.execute(() => {
+                InteractionZone.pushInteraction(TestTriggerEnum, TestTriggerEnum.Custom, new Object());
+            });
+
+            // Evaluation.
+            expect(lListenerLevel1).to.be.false;
+            expect(lListenerLevel2).to.be.false;
+            expect(lListenerLevel3).to.be.true;
+            expect(lListenerLevel4).to.be.true;
         });
     });
 

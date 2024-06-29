@@ -338,7 +338,8 @@ export class Patcher {
     }
 
     /**
-     * Patch promise to dispatch promise interaction events on executor start, end and error.
+     * Patch promise to keep zone active during asyncron calls and errors.
+     * Allocates asyncron errors to zone.
      * 
      * @param pConstructor - Promise constructor.
      */
@@ -356,7 +357,6 @@ export class Patcher {
         // Patch only the constructor.
         class PatchedPromise<T> extends lOriginalPromiseConstructor {
             public constructor(pExecutor: Executor<T>) {
-                // Wrap executor and dispatch call start and end interaction
                 super(pExecutor);
 
                 // Set zone of promise.

@@ -82,7 +82,6 @@ export class InteractionZone {
     private readonly mParent: InteractionZone | null;
     private readonly mTriggerMapping: number;
 
-
     /**
      * Get interaction detection name.
      */

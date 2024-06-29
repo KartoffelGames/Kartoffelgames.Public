@@ -1,5 +1,7 @@
 /* istanbul ignore file */
 
+
+
 /**
  * Library for data container and easier data access.
  *
@@ -26,3 +28,6 @@ export { IDeconstructable } from './interface/i-deconstructable';
 
 // Support types.
 export { Writeable, Readonly } from './types';
+
+// Algorythms
+export { ChangeState, MyersDiff, HistoryItem } from './algorithm/myers-diff';

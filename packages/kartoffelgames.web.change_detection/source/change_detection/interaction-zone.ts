@@ -4,6 +4,9 @@ import { InteractionReason } from './interaction-reason';
 
 // TODO: Remove any interaction detection from patcher. Only maintain zones.
 // TODO: Zones handles universal trigger. No more fixed enum.
+// TODO: Not only universal triggers. Add types (EnumClass or something), so different trigger enums are not crossed. 
+
+
 // TODO: Rename project into. Interaction zone. Only Zone files remain. Proxy (and IgnoreInteractionDetection) moves out into pwb.
 // TODO: Rename KartoffelGames.Core.Data into Kartoffelgames.Core. Move comparison objects in it.
 

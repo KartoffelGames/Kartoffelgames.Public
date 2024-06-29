@@ -15,7 +15,7 @@ import { ModuleExpression } from '../../core/module/injection_reference/module-e
  */
 @PwbInstructionModule({
     instructionType: 'if',
-    trigger: UpdateTrigger.None
+    trigger: UpdateTrigger.Any  & ~UpdateTrigger.UntrackableFunctionCall
 })
 export class IfInstructionModule implements IInstructionOnUpdate {
     private readonly mExpression: string;

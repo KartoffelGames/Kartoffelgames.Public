@@ -9,7 +9,7 @@ import { ModuleExpression } from '../../core/module/injection_reference/module-e
  * Executes readonly expressions inside double brackets.
  */
 @PwbExpressionModule({
-    trigger: UpdateTrigger.None
+    trigger: UpdateTrigger.Any & ~UpdateTrigger.UntrackableFunctionCall
 })
 export class MustacheExpressionModule implements IExpressionOnUpdate {
     private readonly mExpressionValue: string;

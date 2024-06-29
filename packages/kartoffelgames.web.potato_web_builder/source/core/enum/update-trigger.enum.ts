@@ -7,23 +7,22 @@ export enum UpdateTrigger {
     /*
      * Synchron Proxy 
      */
-    FunctionCall = 1 << 1,
-    PropertySet = 1 << 3,
-    PropertyDelete = 1 << 4,
-    UntrackableFunctionCall = 1 << 5,
+    PropertySet = 1 << 2,
+    PropertyDelete = 1 << 3,
+    UntrackableFunctionCall = 1 << 4,
 
     /**
      * Manual
      */
-    Manual = 1 << 6,
+    Manual = 1 << 5,
 
     /**
      * Manual
      */
-    InputChange = 1 << 7,
+    InputChange = 1 << 6,
 
     /**
      * All
      */
-    Any = (1 << 8) - 1
+    Any = (1 << 7) - 1
 }

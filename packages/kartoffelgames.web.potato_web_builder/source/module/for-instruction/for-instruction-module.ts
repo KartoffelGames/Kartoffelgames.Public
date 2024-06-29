@@ -17,7 +17,7 @@ import { ModuleExpression } from '../../core/module/injection_reference/module-e
  */
 @PwbInstructionModule({
     instructionType: 'for',
-    trigger: UpdateTrigger.None
+    trigger: UpdateTrigger.Any  & ~UpdateTrigger.UntrackableFunctionCall
 })
 export class ForInstructionModule implements IInstructionOnUpdate {
     private readonly mExpression: ForOfExpression;

@@ -13,6 +13,8 @@ export class CoreEntityProcessorProxy<T extends object> {
         // Create ignore list and add itself first.
         const lIgnoreList = new WeakSet<IgnoreableConstructor>();
         lIgnoreList.add(CoreEntityProcessorProxy);
+        lIgnoreList.add(InteractionZone as any as IgnoreableConstructor);
+        lIgnoreList.add(InteractionEvent);
 
         return lIgnoreList;
     })();
@@ -178,11 +180,7 @@ export class CoreEntityProcessorProxy<T extends object> {
 
                     // Read original object.
                     return lCallWithOriginalThisContext();
-                } finally {
-                    // Dispatches interaction end event before exception passthrough.
-                    this.dispatch(UpdateTrigger.FunctionCall, this.mProxyObject);
                 }
-
             }
         });
 

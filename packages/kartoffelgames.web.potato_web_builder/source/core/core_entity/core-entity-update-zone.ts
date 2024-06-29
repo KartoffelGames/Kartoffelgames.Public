@@ -183,6 +183,7 @@ export class CoreEntityUpdateZone {
 
         // Create proxy.
         const lObjectProxy: CoreEntityProcessorProxy<T> = new CoreEntityProcessorProxy(pObject);
+        lObjectProxy.addListenerZone(this.mInteractionZone);
 
         // Add element as patched entity. Both original and proxied version.
         this.mRegisteredObjects.set(pObject, lObjectProxy);

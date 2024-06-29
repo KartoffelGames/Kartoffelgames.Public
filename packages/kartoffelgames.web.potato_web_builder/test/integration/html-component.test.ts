@@ -252,7 +252,7 @@ describe('HtmlComponent', () => {
 
         // Set update listener.
         let lInnerValueWasUpdated: boolean = false;
-        TestUtil.getComponentManager(lCapsuledContent)?.getProcessorAttribute<CoreEntityUpdateZone>(CoreEntityUpdateZone)?.addUpdateListener(async (pReason: CoreEntityInteractionEvent) => {
+        TestUtil.getComponentManager(lCapsuledContent)?.getProcessorAttribute<CoreEntityUpdateZone>(CoreEntityUpdateZone)?.zone.addInteractionListener(UpdateTrigger, async (pReason: CoreEntityInteractionEvent) => {
             lInnerValueWasUpdated = pReason.data.property === 'innerValue' || lInnerValueWasUpdated;
         });
 
@@ -262,8 +262,8 @@ describe('HtmlComponent', () => {
         await TestUtil.waitForUpdate(lCapsuledContent);
 
         // Evaluation.
-        expect(lWasUpdated).to.be.false;
-        expect(lInnerValueWasUpdated).to.be.true;
+        expect(lWasUpdated, 'TestComponent').to.be.false;
+        expect(lInnerValueWasUpdated, 'CapsuledTestComponent').to.be.true;
     });
 
     it('-- Custom expression module', async () => {

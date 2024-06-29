@@ -14,7 +14,7 @@ import { ModuleExpression } from '../../core/module/injection_reference/module-e
  */
 @PwbInstructionModule({
     instructionType: 'dynamic-content',
-    trigger: UpdateTrigger.None
+    trigger: UpdateTrigger.Any & ~UpdateTrigger.UntrackableFunctionCall
 })
 export class DynamicContentInstructionModule implements IInstructionOnUpdate {
     private readonly mExpression: string;

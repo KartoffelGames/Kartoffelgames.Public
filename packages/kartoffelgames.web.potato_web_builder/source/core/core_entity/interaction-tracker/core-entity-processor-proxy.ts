@@ -1,4 +1,5 @@
 import { InteractionEvent, InteractionZone } from '@kartoffelgames/web.interaction-zone';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
 
 /**
  * Interaction detection proxy. Detects synchron calls and interactions on the proxy object.
@@ -6,18 +7,18 @@ import { InteractionEvent, InteractionZone } from '@kartoffelgames/web.interacti
  * 
  * @internal
  */
-export class ComponentProcessorProxy<T extends object> {
+export class CoreEntityProcessorProxy<T extends object> {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     private static readonly IGNORED_CLASSES: WeakSet<IgnoreableConstructor> = (() => {
         // Create ignore list and add itself first.
         const lIgnoreList = new WeakSet<IgnoreableConstructor>();
-        lIgnoreList.add(ComponentProcessorProxy);
+        lIgnoreList.add(CoreEntityProcessorProxy);
 
         return lIgnoreList;
     })();
 
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    private static readonly ORIGINAL_TO_INTERACTION_MAPPING: WeakMap<object, ComponentProcessorProxy<any>> = new WeakMap<object, ComponentProcessorProxy<any>>();
+    private static readonly ORIGINAL_TO_INTERACTION_MAPPING: WeakMap<object, CoreEntityProcessorProxy<any>> = new WeakMap<object, CoreEntityProcessorProxy<any>>();
     // eslint-disable-next-line @typescript-eslint/naming-convention
     private static readonly PROXY_TO_ORIGINAL_MAPPING: WeakMap<object, object> = new WeakMap<object, object>();
 
@@ -28,7 +29,7 @@ export class ComponentProcessorProxy<T extends object> {
      * @param pConstructor - Some constructor.
      */
     public static ignoreClass(pConstructor: IgnoreableConstructor): void {
-        ComponentProcessorProxy.IGNORED_CLASSES.add(pConstructor);
+        CoreEntityProcessorProxy.IGNORED_CLASSES.add(pConstructor);
     }
 
     /**
@@ -37,7 +38,7 @@ export class ComponentProcessorProxy<T extends object> {
      * @param pProxy - Possible InteractionDetectionProxy object.
      */
     private static getOriginal<TValue extends object>(pProxy: TValue): TValue {
-        return <TValue>ComponentProcessorProxy.PROXY_TO_ORIGINAL_MAPPING.get(pProxy) ?? pProxy;
+        return <TValue>CoreEntityProcessorProxy.PROXY_TO_ORIGINAL_MAPPING.get(pProxy) ?? pProxy;
     }
 
     /**
@@ -46,12 +47,12 @@ export class ComponentProcessorProxy<T extends object> {
      * @param pProxy - Proxy object.
      * @returns InteractionDetectionProxy or null if not a InteractionDetectionProxy-proxy.
      */
-    private static getWrapper<TValue extends object>(pProxy: TValue): ComponentProcessorProxy<TValue> | undefined {
+    private static getWrapper<TValue extends object>(pProxy: TValue): CoreEntityProcessorProxy<TValue> | undefined {
         // Get original.
-        const lOriginal: TValue = ComponentProcessorProxy.getOriginal(pProxy);
+        const lOriginal: TValue = CoreEntityProcessorProxy.getOriginal(pProxy);
 
         // Get wrapper from original.
-        return ComponentProcessorProxy.ORIGINAL_TO_INTERACTION_MAPPING.get(lOriginal);
+        return CoreEntityProcessorProxy.ORIGINAL_TO_INTERACTION_MAPPING.get(lOriginal);
     }
 
     private readonly mListenerZones!: Set<InteractionZone>;
@@ -72,7 +73,7 @@ export class ComponentProcessorProxy<T extends object> {
      */
     public constructor(pTarget: T) {
         // Use already created wrapper if it exist.
-        const lWrapper: ComponentProcessorProxy<T> | undefined = ComponentProcessorProxy.getWrapper(pTarget);
+        const lWrapper: CoreEntityProcessorProxy<T> | undefined = CoreEntityProcessorProxy.getWrapper(pTarget);
         if (lWrapper) {
             return lWrapper;
         }
@@ -80,7 +81,7 @@ export class ComponentProcessorProxy<T extends object> {
         this.mListenerZones = new Set<InteractionZone>();
 
         // Prevent interaction zones from beeing proxied.
-        if (ComponentProcessorProxy.IGNORED_CLASSES.has(Object.getPrototypeOf(pTarget)?.constructor)) {
+        if (CoreEntityProcessorProxy.IGNORED_CLASSES.has(Object.getPrototypeOf(pTarget)?.constructor)) {
             this.mProxyObject = pTarget;
         } else {
             // Create new proxy object.
@@ -92,8 +93,8 @@ export class ComponentProcessorProxy<T extends object> {
         }
 
         // Map proxy with real object and real object to current class.
-        ComponentProcessorProxy.PROXY_TO_ORIGINAL_MAPPING.set(this.mProxyObject, pTarget);
-        ComponentProcessorProxy.ORIGINAL_TO_INTERACTION_MAPPING.set(pTarget, this);
+        CoreEntityProcessorProxy.PROXY_TO_ORIGINAL_MAPPING.set(this.mProxyObject, pTarget);
+        CoreEntityProcessorProxy.ORIGINAL_TO_INTERACTION_MAPPING.set(pTarget, this);
     }
 
     /**
@@ -119,7 +120,7 @@ export class ComponentProcessorProxy<T extends object> {
         }
 
         // But when it is a object or a function, than wrap it into another detection proxy and passthrough any interaction.
-        const lNestedProxy: ComponentProcessorProxy<any> = new ComponentProcessorProxy(pTarget);
+        const lNestedProxy: CoreEntityProcessorProxy<any> = new CoreEntityProcessorProxy(pTarget);
         for (const lCallbackZones of this.mListenerZones) {
             lNestedProxy.addListenerZone(lCallbackZones);
         }
@@ -149,7 +150,7 @@ export class ComponentProcessorProxy<T extends object> {
 
                     // Call function.. Get original object of "this"-Scope. and call the functionwith it.
                     try {
-                        const lOriginalThisObject: object = ComponentProcessorProxy.getOriginal(pThisArgument);
+                        const lOriginalThisObject: object = CoreEntityProcessorProxy.getOriginal(pThisArgument);
                         const lResult = lCallableTarget.call(lOriginalThisObject, ...pArgumentsList);
 
                         // Convert potential object to a linked proxy.
@@ -157,12 +158,12 @@ export class ComponentProcessorProxy<T extends object> {
                     } finally {
                         // Dispatch special InteractionResponseType.NativeFunctionCall.
                         if (/\{\s+\[native code\]/.test(Function.prototype.toString.call(lCallableTarget))) {
-                            this.dispatch(ComponentInteractionType.UntrackableFunctionCall, this.mProxyObject);
+                            this.dispatch(UpdateTrigger.UntrackableFunctionCall, this.mProxyObject);
                         }
                     }
                 } finally {
                     // Dispatches interaction end event before exception passthrough.
-                    this.dispatch(ComponentInteractionType.FunctionCall, this.mProxyObject);
+                    this.dispatch(UpdateTrigger.FunctionCall, this.mProxyObject);
                 }
             }
         });
@@ -191,14 +192,14 @@ export class ComponentProcessorProxy<T extends object> {
                     // Prevent original pollution by getting original from value.
                     let lPropertyValue: any = pNewPropertyValue;
                     if (lPropertyValue !== null && typeof lPropertyValue === 'object' || typeof lPropertyValue === 'function') {
-                        lPropertyValue = ComponentProcessorProxy.getOriginal(lPropertyValue);
+                        lPropertyValue = CoreEntityProcessorProxy.getOriginal(lPropertyValue);
                     }
 
                     // Set value to original target property.
                     return Reflect.set(pTargetObject, pPropertyName, lPropertyValue);
                 } finally {
                     // Dispatches interaction end event before exception passthrough.
-                    this.dispatch(ComponentInteractionType.PropertySet, this.mProxyObject, pPropertyName);
+                    this.dispatch(UpdateTrigger.PropertySet, this.mProxyObject, pPropertyName);
                 }
             },
 
@@ -230,7 +231,7 @@ export class ComponentProcessorProxy<T extends object> {
                     return delete (<any>pTargetObject)[pPropertyName];
                 } finally {
                     // Dispatches interaction end event before exception passthrough.
-                    this.dispatch(ComponentInteractionType.PropertyDelete, this.mProxyObject, pPropertyName);
+                    this.dispatch(UpdateTrigger.PropertyDelete, this.mProxyObject, pPropertyName);
                 }
             }
         });
@@ -245,9 +246,9 @@ export class ComponentProcessorProxy<T extends object> {
      * @param pSource - Object wich was interacted with.
      * @param pProperty - Optional change reason property.
      */
-    private dispatch(pInteractionType: ComponentInteractionType, pSource: object, pProperty?: PropertyKey | undefined): void {
+    private dispatch(pInteractionType: UpdateTrigger, pSource: object, pProperty?: PropertyKey | undefined): void {
         // Push interaction to current zone.
-        const lIsZoneSilent = !InteractionZone.pushInteraction<ComponentInteractionType, ComponentInteractionData>(ComponentInteractionType, pInteractionType, {
+        const lIsZoneSilent = !InteractionZone.pushInteraction<UpdateTrigger, CoreEntityInteractionData>(UpdateTrigger, pInteractionType, {
             source: pSource,
             property: pProperty
         });
@@ -260,7 +261,7 @@ export class ComponentProcessorProxy<T extends object> {
         // Dispatch reason to all attached zones.
         for (const lZone of this.mListenerZones) {
             lZone.execute(() => {
-                InteractionZone.pushInteraction<ComponentInteractionType, ComponentInteractionData>(ComponentInteractionType, pInteractionType, {
+                InteractionZone.pushInteraction<UpdateTrigger, CoreEntityInteractionData>(UpdateTrigger, pInteractionType, {
                     source: pSource,
                     property: pProperty
                 });
@@ -272,34 +273,10 @@ export class ComponentProcessorProxy<T extends object> {
 type CallableObject = (...args: Array<any>) => any;
 type IgnoreableConstructor = new (...pParameter: Array<any>) => {};
 
-export type ComponentInteractionEvent = InteractionEvent<ComponentInteractionType, ComponentInteractionData>;
+export type CoreEntityInteractionEvent = InteractionEvent<UpdateTrigger, CoreEntityInteractionData>;
 
-export type ComponentInteractionData = {
+export type CoreEntityInteractionData = {
     source: object,
     property?: PropertyKey | undefined;
 };
 
-export enum ComponentInteractionType {
-    /**
-     * Ignore all interactions.
-     */
-    None = 0,
-
-    /*
-     * Synchron Proxy 
-     */
-    FunctionCall = 1 << 1,
-    PropertySet = 1 << 3,
-    PropertyDelete = 1 << 4,
-    UntrackableFunctionCall = 1 << 5,
-
-    /**
-     * Manual
-     */
-    Manual = 1 << 6,
-
-    /**
-     * All
-     */
-    Any = (1 << 7) - 1
-}

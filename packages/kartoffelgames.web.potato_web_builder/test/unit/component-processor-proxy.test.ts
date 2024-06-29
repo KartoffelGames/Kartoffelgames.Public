@@ -1,13 +1,14 @@
 import { InteractionZone } from '@kartoffelgames/web.interaction-zone';
 import { expect } from 'chai';
-import { ComponentInteractionEvent, ComponentInteractionType, ComponentProcessorProxy } from '../../source/core/component/interaction-tracker/component-processor-proxy';
-import { IgnoreInteractionTracking } from '../../source/core/component/interaction-tracker/ignore-interaction-detection.decorator';
+import { CoreEntityInteractionEvent, CoreEntityProcessorProxy } from '../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy';
+import { IgnoreInteractionTracking } from '../../source/core/core_entity/interaction-tracker/ignore-interaction-tracking.decorator';
+import { UpdateTrigger } from '../../source/core/enum/update-trigger.enum';
 
 describe('ComponentProcessorProxy', () => {
     it('Property: proxy', () => {
         // Setup.
         const lOriginalObject: object = { a: 1 };
-        const lDetectionProxy: ComponentProcessorProxy<object> = new ComponentProcessorProxy(lOriginalObject);
+        const lDetectionProxy: CoreEntityProcessorProxy<object> = new CoreEntityProcessorProxy(lOriginalObject);
 
         // Process.
         const lProxy: object = lDetectionProxy.proxy;
@@ -22,11 +23,11 @@ describe('ComponentProcessorProxy', () => {
             const lOriginalObject: object = {};
 
             // Process. First Proxy
-            const lFirstInteractionZone: ComponentProcessorProxy<object> = new ComponentProcessorProxy(lOriginalObject);
+            const lFirstInteractionZone: CoreEntityProcessorProxy<object> = new CoreEntityProcessorProxy(lOriginalObject);
             const lFirstProxy: object = lFirstInteractionZone.proxy;
 
             // Process. First Proxy
-            const lSecondInteractionZone: ComponentProcessorProxy<object> = new ComponentProcessorProxy(lFirstProxy);
+            const lSecondInteractionZone: CoreEntityProcessorProxy<object> = new CoreEntityProcessorProxy(lFirstProxy);
             const lSecondProxy: object = lSecondInteractionZone.proxy;
 
             // Evaluation.
@@ -39,7 +40,7 @@ describe('ComponentProcessorProxy', () => {
                 // Setup.
                 const lNewValue: number = 22;
                 const lOriginalObject: { a: number; } = { a: 1 };
-                const lDetectionProxy: ComponentProcessorProxy<{ a: number; }> = new ComponentProcessorProxy(lOriginalObject);
+                const lDetectionProxy: CoreEntityProcessorProxy<{ a: number; }> = new CoreEntityProcessorProxy(lOriginalObject);
 
                 // Process.
                 lDetectionProxy.proxy.a = lNewValue;
@@ -52,7 +53,7 @@ describe('ComponentProcessorProxy', () => {
                 // Setup.
                 const lNewValue: number = 22;
                 const lOriginalObject: { a: { b: number; }; } = { a: { b: 1 } };
-                const lDetectionProxy: ComponentProcessorProxy<{ a: { b: number; }; }> = new ComponentProcessorProxy(lOriginalObject);
+                const lDetectionProxy: CoreEntityProcessorProxy<{ a: { b: number; }; }> = new CoreEntityProcessorProxy(lOriginalObject);
 
                 // Process.
                 lDetectionProxy.proxy.a.b = lNewValue;
@@ -64,12 +65,12 @@ describe('ComponentProcessorProxy', () => {
             it('-- Correct interacted property name in reason ', () => {
                 // Setup.
                 const lOriginalObject: { a: number; } = { a: 1 };
-                const lDetectionProxy: ComponentProcessorProxy<{ a: number; }> = new ComponentProcessorProxy(lOriginalObject);
+                const lDetectionProxy: CoreEntityProcessorProxy<{ a: number; }> = new CoreEntityProcessorProxy(lOriginalObject);
                 const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
 
                 // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
-                lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+                lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                     if (pChangeReason.data.property === 'a') {
                         lPropertyChanged = true;
                     }
@@ -91,12 +92,12 @@ describe('ComponentProcessorProxy', () => {
                         return this;
                     }
                 };
-                const lDetectionProxy: ComponentProcessorProxy<any> = new ComponentProcessorProxy(lOriginalObject);
+                const lDetectionProxy: CoreEntityProcessorProxy<any> = new CoreEntityProcessorProxy(lOriginalObject);
                 const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
 
                 // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
-                lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+                lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                     if (pChangeReason.data.property === 'a') {
                         lPropertyChanged = true;
                     }
@@ -119,7 +120,7 @@ describe('ComponentProcessorProxy', () => {
                         return this;
                     }
                 };
-                const lDetectionProxy: ComponentProcessorProxy<any> = new ComponentProcessorProxy(lOriginalObject);
+                const lDetectionProxy: CoreEntityProcessorProxy<any> = new CoreEntityProcessorProxy(lOriginalObject);
 
                 // Process.
                 lDetectionProxy.proxy.fun().a = lNewValue;
@@ -138,12 +139,12 @@ describe('ComponentProcessorProxy', () => {
                         };
                     }
                 };
-                const lDetectionProxy: ComponentProcessorProxy<any> = new ComponentProcessorProxy(lOriginalObject);
+                const lDetectionProxy: CoreEntityProcessorProxy<any> = new CoreEntityProcessorProxy(lOriginalObject);
                 const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
 
                 // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
-                lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+                lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                     if (pChangeReason.data.property === 'a') {
                         lPropertyChanged = true;
                     }
@@ -165,7 +166,7 @@ describe('ComponentProcessorProxy', () => {
                 // Setup.
                 const lValue: number = 22;
                 const lOriginalObject: { a: number; } = { a: lValue };
-                const lDetectionProxy: ComponentProcessorProxy<{ a: number; }> = new ComponentProcessorProxy(lOriginalObject);
+                const lDetectionProxy: CoreEntityProcessorProxy<{ a: number; }> = new CoreEntityProcessorProxy(lOriginalObject);
 
                 // Process.
                 const lResultValue: number = lDetectionProxy.proxy.a;
@@ -178,7 +179,7 @@ describe('ComponentProcessorProxy', () => {
                 // Setup.
                 const lValue: object = {};
                 const lOriginalObject: { a: object; } = { a: lValue };
-                const lDetectionProxy: ComponentProcessorProxy<{ a: object; }> = new ComponentProcessorProxy(lOriginalObject);
+                const lDetectionProxy: CoreEntityProcessorProxy<{ a: object; }> = new CoreEntityProcessorProxy(lOriginalObject);
 
                 // Process.
                 const lResultValue: object = lDetectionProxy.proxy.a;
@@ -192,7 +193,7 @@ describe('ComponentProcessorProxy', () => {
                 // Setup.
                 const lValue: () => void = () => { return; };
                 const lOriginalObject: { a: () => void; } = { a: lValue };
-                const lDetectionProxy: ComponentProcessorProxy<{ a: () => void; }> = new ComponentProcessorProxy(lOriginalObject);
+                const lDetectionProxy: CoreEntityProcessorProxy<{ a: () => void; }> = new CoreEntityProcessorProxy(lOriginalObject);
 
                 // Process.
                 const lResultValue: () => void = lDetectionProxy.proxy.a;
@@ -207,7 +208,7 @@ describe('ComponentProcessorProxy', () => {
             it('-- Deletes correct property in original', () => {
                 // Setup.
                 const lOriginalObject: { a?: number; } = { a: 1 };
-                const lDetectionProxy: ComponentProcessorProxy<{ a?: number; }> = new ComponentProcessorProxy(lOriginalObject);
+                const lDetectionProxy: CoreEntityProcessorProxy<{ a?: number; }> = new CoreEntityProcessorProxy(lOriginalObject);
 
                 // Process.
                 delete lDetectionProxy.proxy.a;
@@ -219,12 +220,12 @@ describe('ComponentProcessorProxy', () => {
             it('-- Detect deletion of correct property', () => {
                 // Setup.
                 const lOriginalObject: { a?: number; } = { a: 1 };
-                const lDetectionProxy: ComponentProcessorProxy<{ a?: number; }> = new ComponentProcessorProxy(lOriginalObject);
+                const lDetectionProxy: CoreEntityProcessorProxy<{ a?: number; }> = new CoreEntityProcessorProxy(lOriginalObject);
                 const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
 
                 // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
-                lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+                lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                     if (pChangeReason.data.property === 'a') {
                         lPropertyChanged = true;
                     }
@@ -244,7 +245,7 @@ describe('ComponentProcessorProxy', () => {
             it('-- Correct return type on function', () => {
                 // Setup.
                 const lValue: number = 22;
-                const lDetectionProxy: ComponentProcessorProxy<(pValue: number) => number> = new ComponentProcessorProxy((pValue: number) => { return pValue; });
+                const lDetectionProxy: CoreEntityProcessorProxy<(pValue: number) => number> = new CoreEntityProcessorProxy((pValue: number) => { return pValue; });
                 const lProxy: (pValue: number) => number = lDetectionProxy.proxy;
 
                 // Process.
@@ -257,12 +258,12 @@ describe('ComponentProcessorProxy', () => {
             it('-- Detect interaction on function call', () => {
                 // Setup.
                 const lFunction: (pValue: number) => number = (pValue: number) => { return pValue; };
-                const lProxy: (pValue: number) => number = new ComponentProcessorProxy(lFunction).proxy;
+                const lProxy: (pValue: number) => number = new CoreEntityProcessorProxy(lFunction).proxy;
                 const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
 
                 // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
-                lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+                lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                     if (pChangeReason.data.source === lProxy) {
                         lPropertyChanged = true;
                     }
@@ -280,12 +281,12 @@ describe('ComponentProcessorProxy', () => {
             it('-- Detect interaction on bound function call', () => {
                 // Setup.
                 const lFunction: (pValue: number) => number = (pValue: number) => { return pValue; };
-                const lProxy: (pValue: number) => number = new ComponentProcessorProxy(lFunction).proxy;
+                const lProxy: (pValue: number) => number = new CoreEntityProcessorProxy(lFunction).proxy;
                 const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
 
                 // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
-                lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+                lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                     if (pChangeReason.data.source === lProxy) {
                         lPropertyChanged = true;
                     }
@@ -303,12 +304,12 @@ describe('ComponentProcessorProxy', () => {
             it('-- Detect interaction on apply function call', () => {
                 // Setup.
                 const lFunction: (pValue: number) => number = (pValue: number) => { return pValue; };
-                const lProxy: (pValue: number) => number = new ComponentProcessorProxy(lFunction).proxy;
+                const lProxy: (pValue: number) => number = new CoreEntityProcessorProxy(lFunction).proxy;
                 const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
 
                 // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
-                lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+                lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                     if (pChangeReason.data.source === lProxy) {
                         lPropertyChanged = true;
                     }
@@ -326,12 +327,12 @@ describe('ComponentProcessorProxy', () => {
             it('-- Detect interaction on call function call', () => {
                 // Setup.
                 const lFunction: (pValue: number) => number = (pValue: number) => { return pValue; };
-                const lProxy: (pValue: number) => number = new ComponentProcessorProxy(lFunction).proxy;
+                const lProxy: (pValue: number) => number = new CoreEntityProcessorProxy(lFunction).proxy;
                 const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
 
                 // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
-                lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+                lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                     if (pChangeReason.data.source === lProxy) {
                         lPropertyChanged = true;
                     }
@@ -349,12 +350,12 @@ describe('ComponentProcessorProxy', () => {
             it('-- Dont detect interaction on binding function', () => {
                 // Setup.
                 const lFunction: (pValue: number) => number = (pValue: number) => { return pValue; };
-                const lProxy: (pValue: number) => number = new ComponentProcessorProxy(lFunction).proxy;
+                const lProxy: (pValue: number) => number = new CoreEntityProcessorProxy(lFunction).proxy;
                 const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
 
                 // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
-                lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+                lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                     if (pChangeReason.data.source === lProxy) {
                         lPropertyChanged = true;
                     }
@@ -372,7 +373,7 @@ describe('ComponentProcessorProxy', () => {
             it('-- Forward syncron errors on call', () => {
                 // Setup.
                 const lValue: number = 22;
-                const lDetectionProxy: ComponentProcessorProxy<() => number> = new ComponentProcessorProxy(() => { throw lValue; });
+                const lDetectionProxy: CoreEntityProcessorProxy<() => number> = new CoreEntityProcessorProxy(() => { throw lValue; });
                 const lProxy: () => number = lDetectionProxy.proxy;
 
                 // Process.
@@ -390,12 +391,12 @@ describe('ComponentProcessorProxy', () => {
             it('-- Detect interaction even on synchron errors', () => {
                 // Setup.
                 const lFunction: () => number = () => { throw 22; };
-                const lProxy: () => number = new ComponentProcessorProxy(lFunction).proxy;
+                const lProxy: () => number = new CoreEntityProcessorProxy(lFunction).proxy;
                 const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
 
                 // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
-                lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+                lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                     if (pChangeReason.data.source === lProxy) {
                         lPropertyChanged = true;
                     }
@@ -415,7 +416,7 @@ describe('ComponentProcessorProxy', () => {
             it('-- Correct return type on asyncron functions', async () => {
                 // Setup.
                 const lValue: number = 22;
-                const lDetectionProxy: ComponentProcessorProxy<(pValue: number) => Promise<number>> = new ComponentProcessorProxy(async (pValue: number) => { return pValue; });
+                const lDetectionProxy: CoreEntityProcessorProxy<(pValue: number) => Promise<number>> = new CoreEntityProcessorProxy(async (pValue: number) => { return pValue; });
                 const lProxy: (pValue: number) => Promise<number> = lDetectionProxy.proxy;
 
                 // Process.
@@ -428,12 +429,12 @@ describe('ComponentProcessorProxy', () => {
             it('-- Detect interaction on asyncon calls', async () => {
                 // Setup.
                 const lFunction: (pValue: number) => Promise<number> = async (pValue: number) => { return pValue; };
-                const lProxy: (pValue: number) => Promise<number> = new ComponentProcessorProxy(lFunction).proxy;
+                const lProxy: (pValue: number) => Promise<number> = new CoreEntityProcessorProxy(lFunction).proxy;
                 const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
 
                 // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
-                lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+                lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                     if (pChangeReason.data.source === lProxy) {
                         lPropertyChanged = true;
                     }
@@ -451,7 +452,7 @@ describe('ComponentProcessorProxy', () => {
             it('-- Forward asyncron errors on call', async () => {
                 // Setup.
                 const lValue: number = 22;
-                const lDetectionProxy: ComponentProcessorProxy<() => Promise<number>> = new ComponentProcessorProxy(async () => { throw lValue; });
+                const lDetectionProxy: CoreEntityProcessorProxy<() => Promise<number>> = new CoreEntityProcessorProxy(async () => { throw lValue; });
                 const lProxy: () => Promise<number> = lDetectionProxy.proxy;
 
                 // Process.
@@ -465,12 +466,12 @@ describe('ComponentProcessorProxy', () => {
             it('-- Detect interaction even on asynchron errors', async () => {
                 // Setup.
                 const lFunction: () => Promise<number> = async () => { throw 22; };
-                const lProxy: () => Promise<number> = new ComponentProcessorProxy(lFunction).proxy;
+                const lProxy: () => Promise<number> = new CoreEntityProcessorProxy(lFunction).proxy;
                 const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
 
                 // Setup. InteractionZone.
                 let lPropertyChanged: boolean = false;
-                lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+                lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                     if (pChangeReason.data.source === lProxy) {
                         lPropertyChanged = true;
                     }
@@ -495,7 +496,7 @@ describe('ComponentProcessorProxy', () => {
                 };
 
                 // Process.
-                const lProxy = new ComponentProcessorProxy(lObject).proxy;
+                const lProxy = new CoreEntityProcessorProxy(lObject).proxy;
 
                 // Evaluation.
                 expect(lProxy.zone).to.equal(lInteractionZone);
@@ -507,7 +508,7 @@ describe('ComponentProcessorProxy', () => {
             // Setup.
             const lValue: number = 22;
             const lOriginalObject: { a: number; } = { a: lValue };
-            const lDetectionProxy: ComponentProcessorProxy<{ a: number; }> = new ComponentProcessorProxy(lOriginalObject);
+            const lDetectionProxy: CoreEntityProcessorProxy<{ a: number; }> = new CoreEntityProcessorProxy(lOriginalObject);
 
             // Process.
             const lResultValue: PropertyDescriptor | undefined = Object.getOwnPropertyDescriptor(lDetectionProxy.proxy, 'a');
@@ -519,19 +520,19 @@ describe('ComponentProcessorProxy', () => {
         it('-- Not dispatch interaction to proxy zone when current zone is silent.', async () => {
             // Setup.
             const lProxyZone: InteractionZone = InteractionZone.current.create('CD')
-                .addTriggerRestriction(ComponentInteractionType, ComponentInteractionType.PropertySet);
+                .addTriggerRestriction(UpdateTrigger, UpdateTrigger.PropertySet);
             const lSilentZone: InteractionZone = InteractionZone.current.create('CD')
-                .addTriggerRestriction(ComponentInteractionType, ComponentInteractionType.None);
+                .addTriggerRestriction(UpdateTrigger, UpdateTrigger.None);
 
             const lOriginalObject: { a: number; } = { a: 1 };
-            const lDetectionProxy: ComponentProcessorProxy<{ a: number; }> = new ComponentProcessorProxy(lOriginalObject);
+            const lDetectionProxy: CoreEntityProcessorProxy<{ a: number; }> = new CoreEntityProcessorProxy(lOriginalObject);
 
             // Setup. Add proxy zone as listener.
             lDetectionProxy.addListenerZone(lProxyZone);
 
             // Process.
             let lInteractionCounter: number = 0;
-            lProxyZone.addInteractionListener(ComponentInteractionType, () => {
+            lProxyZone.addInteractionListener(UpdateTrigger, () => {
                 lInteractionCounter++;
             });
 
@@ -548,12 +549,12 @@ describe('ComponentProcessorProxy', () => {
         it('-- Dispatch interaction to attached zone', async () => {
             // Setup.
             const lOriginalObject: { a: number; } = { a: 1 };
-            const lDetectionProxy: ComponentProcessorProxy<{ a: number; }> = new ComponentProcessorProxy(lOriginalObject);
+            const lDetectionProxy: CoreEntityProcessorProxy<{ a: number; }> = new CoreEntityProcessorProxy(lOriginalObject);
             const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
 
             // Setup. InteractionZone.
             const lListenerPromise: Promise<void> = new Promise<void>((pResolve) => {
-                lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+                lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                     if (pChangeReason.data.property === 'a') {
                         pResolve();
                     }
@@ -573,20 +574,20 @@ describe('ComponentProcessorProxy', () => {
         it('-- Dispatch interaction to attached and current zone', async () => {
             // Setup.
             const lOriginalObject: { a: number; } = { a: 1 };
-            const lDetectionProxy: ComponentProcessorProxy<{ a: number; }> = new ComponentProcessorProxy(lOriginalObject);
+            const lDetectionProxy: CoreEntityProcessorProxy<{ a: number; }> = new CoreEntityProcessorProxy(lOriginalObject);
             const lAttachedInteractionZone: InteractionZone = InteractionZone.current.create('CDAttach');
             const lCurrentInteractionZone: InteractionZone = InteractionZone.current.create('CD');
 
             // Setup. InteractionZone.
             const lAttachedListenerPromise: Promise<void> = new Promise<void>((pResolve) => {
-                lAttachedInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+                lAttachedInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                     if (pChangeReason.data.property === 'a') {
                         pResolve();
                     }
                 });
             });
             const lCurrentListenerPromise: Promise<void> = new Promise<void>((pResolve) => {
-                lCurrentInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+                lCurrentInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                     if (pChangeReason.data.property === 'a') {
                         pResolve();
                     }
@@ -609,12 +610,12 @@ describe('ComponentProcessorProxy', () => {
         it('-- Dispatch interaction to only once to current and attached zone', async () => {
             // Setup.
             const lOriginalObject: { a: number; } = { a: 1 };
-            const lDetectionProxy: ComponentProcessorProxy<{ a: number; }> = new ComponentProcessorProxy(lOriginalObject);
-            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(ComponentInteractionType, ComponentInteractionType.PropertySet);
+            const lDetectionProxy: CoreEntityProcessorProxy<{ a: number; }> = new CoreEntityProcessorProxy(lOriginalObject);
+            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(UpdateTrigger, UpdateTrigger.PropertySet);
 
             // Setup. InteractionZone.
             let lInteractionCounter: number = 0;
-            lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+            lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                 if (pChangeReason.data.property === 'a') {
                     lInteractionCounter++;
                 }
@@ -631,15 +632,15 @@ describe('ComponentProcessorProxy', () => {
 
         it('-- Not dispatch interaction to attached zone when changes where made in silent zone.', async () => {
             // Setup.
-            const lAttachedZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(ComponentInteractionType, ComponentInteractionType.PropertySet);
-            const lSilentZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(ComponentInteractionType, ComponentInteractionType.None);
+            const lAttachedZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(UpdateTrigger, UpdateTrigger.PropertySet);
+            const lSilentZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(UpdateTrigger, UpdateTrigger.None);
 
             const lOriginalObject: { a: number; } = { a: 1 };
-            const lDetectionProxy: ComponentProcessorProxy<{ a: number; }> = new ComponentProcessorProxy(lOriginalObject);
+            const lDetectionProxy: CoreEntityProcessorProxy<{ a: number; }> = new CoreEntityProcessorProxy(lOriginalObject);
 
             // Setup. InteractionZone.
             let lInteractionCounter: number = 0;
-            lAttachedZone.addInteractionListener(ComponentInteractionType, () => {
+            lAttachedZone.addInteractionListener(UpdateTrigger, () => {
                 lInteractionCounter++;
             });
 
@@ -660,13 +661,13 @@ describe('ComponentProcessorProxy', () => {
             // Setup.
             const lEndValue: number = 321;
             const lOriginalObject: { a: number; } = { a: 1 };
-            const lDetectionProxy: ComponentProcessorProxy<{ a: number; }> = new ComponentProcessorProxy(lOriginalObject);
-            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD',).addTriggerRestriction(ComponentInteractionType, ComponentInteractionType.PropertySet);
+            const lDetectionProxy: CoreEntityProcessorProxy<{ a: number; }> = new CoreEntityProcessorProxy(lOriginalObject);
+            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD',).addTriggerRestriction(UpdateTrigger, UpdateTrigger.PropertySet);
 
             // Setup. InteractionZone.
-            let lResponseType: ComponentInteractionType = ComponentInteractionType.None;
+            let lResponseType: UpdateTrigger = UpdateTrigger.None;
             let lPropertyValueOnEvent: number | null = null;
-            lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+            lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                 if (pChangeReason.data.property === 'a') {
                     lResponseType |= pChangeReason.trigger;
                     lPropertyValueOnEvent = lOriginalObject.a;
@@ -679,7 +680,7 @@ describe('ComponentProcessorProxy', () => {
             });
 
             // Evaluation.
-            expect(lResponseType).to.equal(ComponentInteractionType.PropertySet);
+            expect(lResponseType).to.equal(UpdateTrigger.PropertySet);
             expect(lPropertyValueOnEvent).to.equal(lEndValue);
         });
 
@@ -687,12 +688,12 @@ describe('ComponentProcessorProxy', () => {
             // Setup.
             const lEndValue: number = 321;
             const lOriginalObject: { a: number; } = new class { set a(_pAny: number) { throw 1; } }();
-            const lDetectionProxy: ComponentProcessorProxy<{ a: number; }> = new ComponentProcessorProxy(lOriginalObject);
-            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(ComponentInteractionType, ComponentInteractionType.PropertySet);
+            const lDetectionProxy: CoreEntityProcessorProxy<{ a: number; }> = new CoreEntityProcessorProxy(lOriginalObject);
+            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(UpdateTrigger, UpdateTrigger.PropertySet);
 
             // Setup. InteractionZone.
-            let lResponseType: ComponentInteractionType = ComponentInteractionType.None;
-            lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+            let lResponseType: UpdateTrigger = UpdateTrigger.None;
+            lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                 if (pChangeReason.data.property === 'a') {
                     lResponseType |= pChangeReason.trigger;
                 }
@@ -706,19 +707,19 @@ describe('ComponentProcessorProxy', () => {
             });
 
             // Evaluation.
-            expect(lResponseType).to.equal(ComponentInteractionType.PropertySet);
+            expect(lResponseType).to.equal(UpdateTrigger.PropertySet);
         });
 
         it('-- ComponentInteractionType.PropertyDeleteEnd after property delete ', () => {
             // Setup.
             const lOriginalObject: { a?: number; } = { a: 1 };
-            const lDetectionProxy: ComponentProcessorProxy<{ a?: number; }> = new ComponentProcessorProxy(lOriginalObject);
-            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(ComponentInteractionType, ComponentInteractionType.PropertyDelete);
+            const lDetectionProxy: CoreEntityProcessorProxy<{ a?: number; }> = new CoreEntityProcessorProxy(lOriginalObject);
+            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(UpdateTrigger, UpdateTrigger.PropertyDelete);
 
             // Setup. InteractionZone.
-            let lResponseType: ComponentInteractionType = ComponentInteractionType.None;
+            let lResponseType: UpdateTrigger = UpdateTrigger.None;
             let lPropertyValueOnEvent: number | undefined | null = null;
-            lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+            lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                 if (pChangeReason.data.property === 'a') {
                     lResponseType |= pChangeReason.trigger;
                     lPropertyValueOnEvent = lOriginalObject.a;
@@ -731,7 +732,7 @@ describe('ComponentProcessorProxy', () => {
             });
 
             // Evaluation.
-            expect(lResponseType).to.equal(ComponentInteractionType.PropertyDelete);
+            expect(lResponseType).to.equal(UpdateTrigger.PropertyDelete);
             expect(lPropertyValueOnEvent).to.be.undefined;
         });
 
@@ -739,12 +740,12 @@ describe('ComponentProcessorProxy', () => {
             // Setup.
             const lOriginalObject: { a?: number; } = Object.defineProperty({}, 'a', { configurable: false, value: 1 });
 
-            const lDetectionProxy: ComponentProcessorProxy<{ a?: number; }> = new ComponentProcessorProxy(lOriginalObject);
-            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(ComponentInteractionType, ComponentInteractionType.PropertyDelete);
+            const lDetectionProxy: CoreEntityProcessorProxy<{ a?: number; }> = new CoreEntityProcessorProxy(lOriginalObject);
+            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(UpdateTrigger, UpdateTrigger.PropertyDelete);
 
             // Setup. InteractionZone.
-            let lResponseType: ComponentInteractionType = ComponentInteractionType.None;
-            lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+            let lResponseType: UpdateTrigger = UpdateTrigger.None;
+            lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                 if (pChangeReason.data.property === 'a') {
                     lResponseType |= pChangeReason.trigger;
                 }
@@ -758,7 +759,7 @@ describe('ComponentProcessorProxy', () => {
             });
 
             // Evaluation.
-            expect(lResponseType).to.equal(ComponentInteractionType.PropertyDelete);
+            expect(lResponseType).to.equal(UpdateTrigger.PropertyDelete);
         });
 
         it('-- ComponentInteractionType.FunctionCallEnd after function call', () => {
@@ -769,13 +770,13 @@ describe('ComponentProcessorProxy', () => {
 
             // Setup.
             const lFunction: (pValue: number) => number = (pValue: number) => { lTriggerValue = lTriggerValueChanged; return pValue; };
-            const lProxy: (pValue: number) => number = new ComponentProcessorProxy(lFunction).proxy;
-            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(ComponentInteractionType, ComponentInteractionType.FunctionCall);
+            const lProxy: (pValue: number) => number = new CoreEntityProcessorProxy(lFunction).proxy;
+            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(UpdateTrigger, UpdateTrigger.FunctionCall);
 
             // Setup. InteractionZone.
-            let lResponseType: ComponentInteractionType = ComponentInteractionType.None;
+            let lResponseType: UpdateTrigger = UpdateTrigger.None;
             let lTriggerValueOnEvent: number | null = null;
-            lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+            lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                 if (pChangeReason.data.source === lProxy) {
                     lResponseType |= pChangeReason.trigger;
                     lTriggerValueOnEvent = lTriggerValue;
@@ -788,19 +789,19 @@ describe('ComponentProcessorProxy', () => {
             });
 
             // Evaluation.
-            expect(lResponseType).to.equal(ComponentInteractionType.FunctionCall);
+            expect(lResponseType).to.equal(UpdateTrigger.FunctionCall);
             expect(lTriggerValueOnEvent).to.equal(lTriggerValueChanged);
         });
 
         it('-- ComponentInteractionType.FunctionCall after function call error', () => {
             // Setup.
             const lFunction: () => number = () => { throw 1; };
-            const lProxy: () => number = new ComponentProcessorProxy(lFunction).proxy;
-            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(ComponentInteractionType, ComponentInteractionType.FunctionCall);
+            const lProxy: () => number = new CoreEntityProcessorProxy(lFunction).proxy;
+            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(UpdateTrigger, UpdateTrigger.FunctionCall);
 
             // Setup. InteractionZone.
-            let lResponseType: ComponentInteractionType = ComponentInteractionType.None;
-            lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+            let lResponseType: UpdateTrigger = UpdateTrigger.None;
+            lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                 if (pChangeReason.data.source === lProxy) {
                     lResponseType |= pChangeReason.trigger;
                 }
@@ -814,19 +815,19 @@ describe('ComponentProcessorProxy', () => {
             });
 
             // Evaluation.
-            expect(lResponseType).to.equal(ComponentInteractionType.FunctionCall);
+            expect(lResponseType).to.equal(UpdateTrigger.FunctionCall);
         });
     });
 
     describe('Functionality: Native JS-Objects', () => {
         it('-- Map', () => {
             // Setup.
-            const lProxy: Map<string, string> = new ComponentProcessorProxy(new Map()).proxy;
-            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(ComponentInteractionType, ComponentInteractionType.FunctionCall | ComponentInteractionType.UntrackableFunctionCall);
+            const lProxy: Map<string, string> = new CoreEntityProcessorProxy(new Map()).proxy;
+            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(UpdateTrigger, UpdateTrigger.FunctionCall | UpdateTrigger.UntrackableFunctionCall);
 
             // Setup. InteractionZone.
-            let lResponseType: ComponentInteractionType = ComponentInteractionType.None;
-            lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+            let lResponseType: UpdateTrigger = UpdateTrigger.None;
+            lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                 if (pChangeReason.data.source === lProxy.set) {
                     lResponseType |= pChangeReason.trigger;
                 }
@@ -838,18 +839,18 @@ describe('ComponentProcessorProxy', () => {
             });
 
             // Evaluation.
-            expect(lResponseType).to.equal(ComponentInteractionType.FunctionCall | ComponentInteractionType.UntrackableFunctionCall);
+            expect(lResponseType).to.equal(UpdateTrigger.FunctionCall | UpdateTrigger.UntrackableFunctionCall);
         });
 
         describe('-- Array', () => {
             it('-- Property set', () => {
                 // Setup.
-                const lProxy: Array<string> = new ComponentProcessorProxy(new Array<string>()).proxy;
-                const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(ComponentInteractionType, ComponentInteractionType.PropertySet);
+                const lProxy: Array<string> = new CoreEntityProcessorProxy(new Array<string>()).proxy;
+                const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(UpdateTrigger, UpdateTrigger.PropertySet);
 
                 // Setup. InteractionZone.
-                let lResponseType: ComponentInteractionType = ComponentInteractionType.None;
-                lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+                let lResponseType: UpdateTrigger = UpdateTrigger.None;
+                lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                     if (pChangeReason.data.source === lProxy) {
                         lResponseType |= pChangeReason.trigger;
                     }
@@ -861,17 +862,17 @@ describe('ComponentProcessorProxy', () => {
                 });
 
                 // Evaluation.
-                expect(lResponseType).to.equal(ComponentInteractionType.PropertySet);
+                expect(lResponseType).to.equal(UpdateTrigger.PropertySet);
             });
 
             it('-- Push set', () => {
                 // Setup.
-                const lProxy: Array<string> = new ComponentProcessorProxy(new Array<string>()).proxy;
-                const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(ComponentInteractionType, ComponentInteractionType.FunctionCall | ComponentInteractionType.UntrackableFunctionCall);
+                const lProxy: Array<string> = new CoreEntityProcessorProxy(new Array<string>()).proxy;
+                const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(UpdateTrigger, UpdateTrigger.FunctionCall | UpdateTrigger.UntrackableFunctionCall);
 
                 // Setup. InteractionZone.
-                let lResponseType: ComponentInteractionType = ComponentInteractionType.None;
-                lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+                let lResponseType: UpdateTrigger = UpdateTrigger.None;
+                lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                     if (pChangeReason.data.source === lProxy.push) {
                         lResponseType |= pChangeReason.trigger;
                     }
@@ -883,18 +884,18 @@ describe('ComponentProcessorProxy', () => {
                 });
 
                 // Evaluation.
-                expect(lResponseType).to.equal(ComponentInteractionType.FunctionCall | ComponentInteractionType.UntrackableFunctionCall);
+                expect(lResponseType).to.equal(UpdateTrigger.FunctionCall | UpdateTrigger.UntrackableFunctionCall);
             });
         });
 
         it('-- Set', () => {
             // Setup.
-            const lProxy: Set<string> = new ComponentProcessorProxy(new Set<string>()).proxy;
-            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(ComponentInteractionType, ComponentInteractionType.FunctionCall | ComponentInteractionType.UntrackableFunctionCall);
+            const lProxy: Set<string> = new CoreEntityProcessorProxy(new Set<string>()).proxy;
+            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(UpdateTrigger, UpdateTrigger.FunctionCall | UpdateTrigger.UntrackableFunctionCall);
 
             // Setup. InteractionZone.
-            let lResponseType: ComponentInteractionType = ComponentInteractionType.None;
-            lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+            let lResponseType: UpdateTrigger = UpdateTrigger.None;
+            lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                 if (pChangeReason.data.source === lProxy.add) {
                     lResponseType |= pChangeReason.trigger;
                 }
@@ -906,17 +907,17 @@ describe('ComponentProcessorProxy', () => {
             });
 
             // Evaluation.
-            expect(lResponseType).to.equal(ComponentInteractionType.FunctionCall | ComponentInteractionType.UntrackableFunctionCall);
+            expect(lResponseType).to.equal(UpdateTrigger.FunctionCall | UpdateTrigger.UntrackableFunctionCall);
         });
 
         it('-- TypedArray', () => {
             // Setup.
-            const lProxy: Int8Array = new ComponentProcessorProxy(new Int8Array(1)).proxy;
-            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(ComponentInteractionType, ComponentInteractionType.PropertySet);
+            const lProxy: Int8Array = new CoreEntityProcessorProxy(new Int8Array(1)).proxy;
+            const lInteractionZone: InteractionZone = InteractionZone.current.create('CD').addTriggerRestriction(UpdateTrigger, UpdateTrigger.PropertySet);
 
             // Setup. InteractionZone.
-            let lResponseType: ComponentInteractionType = ComponentInteractionType.None;
-            lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+            let lResponseType: UpdateTrigger = UpdateTrigger.None;
+            lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                 if (pChangeReason.data.source === lProxy) {
                     lResponseType |= pChangeReason.trigger;
                 }
@@ -928,14 +929,14 @@ describe('ComponentProcessorProxy', () => {
             });
 
             // Evaluation.
-            expect(lResponseType).to.equal(ComponentInteractionType.PropertySet);
+            expect(lResponseType).to.equal(UpdateTrigger.PropertySet);
         });
 
         describe('-- EventTarget', () => {
             it('-- Custom events', async () => {
                 // Setup.
                 const lCustomEventName: string = 'custom-event';
-                const lProxy: EventTarget = new ComponentProcessorProxy(new EventTarget()).proxy;
+                const lProxy: EventTarget = new CoreEntityProcessorProxy(new EventTarget()).proxy;
 
                 // Setup. InteractionZone.
                 const lListenerWaiter = new Promise<void>((pResolve) => {
@@ -953,7 +954,7 @@ describe('ComponentProcessorProxy', () => {
 
             it('-- Native events', async () => {
                 // Setup.
-                const lProxy: HTMLDivElement = new ComponentProcessorProxy(document.createElement('div')).proxy;
+                const lProxy: HTMLDivElement = new CoreEntityProcessorProxy(document.createElement('div')).proxy;
 
                 // Setup. InteractionZone.
                 const lListenerWaiter = new Promise<void>((pResolve) => {
@@ -1012,12 +1013,12 @@ describe('ComponentProcessorProxy', () => {
         it('-- Function sync calls', () => {
             // Setup.
             const lFunction: (pValue: number) => number = (pValue: number) => { return pValue; };
-            const lProxy: (pValue: number) => number = new ComponentProcessorProxy(lFunction).proxy;
+            const lProxy: (pValue: number) => number = new CoreEntityProcessorProxy(lFunction).proxy;
             const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
 
             // Setup. InteractionZone.
             let lChangedSource: any = undefined;
-            lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+            lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                 lChangedSource = pChangeReason.data.source;
             });
 
@@ -1033,12 +1034,12 @@ describe('ComponentProcessorProxy', () => {
         it('-- Function async calls', async () => {
             // Setup.
             const lFunction: (pValue: number) => Promise<any> = async (pValue: number) => { return pValue; };
-            const lProxy: (pValue: number) => Promise<number> = new ComponentProcessorProxy(lFunction).proxy;
+            const lProxy: (pValue: number) => Promise<number> = new CoreEntityProcessorProxy(lFunction).proxy;
             const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
 
             // Setup. InteractionZone.
             let lChangedSource: any = undefined;
-            lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+            lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                 // Filter async call detections of patcher
                 if (pChangeReason.data.source === lProxy) {
                     lChangedSource = pChangeReason.data.source;
@@ -1057,12 +1058,12 @@ describe('ComponentProcessorProxy', () => {
         it('-- Set property ', () => {
             // Setup.
             const lOriginalObject: { a: number; } = { a: 1 };
-            const lDetectionProxy: ComponentProcessorProxy<{ a: number; }> = new ComponentProcessorProxy(lOriginalObject);
+            const lDetectionProxy: CoreEntityProcessorProxy<{ a: number; }> = new CoreEntityProcessorProxy(lOriginalObject);
             const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
 
             // Setup. InteractionZone.
             let lChangedSource: any = undefined;
-            lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+            lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                 lChangedSource = pChangeReason.data.source;
             });
 
@@ -1078,12 +1079,12 @@ describe('ComponentProcessorProxy', () => {
         it('-- Delete property', () => {
             // Setup.
             const lOriginalObject: { a?: number; } = { a: 1 };
-            const lDetectionProxy: ComponentProcessorProxy<{ a?: number; }> = new ComponentProcessorProxy(lOriginalObject);
+            const lDetectionProxy: CoreEntityProcessorProxy<{ a?: number; }> = new CoreEntityProcessorProxy(lOriginalObject);
             const lInteractionZone: InteractionZone = InteractionZone.current.create('CD');
 
             // Setup. InteractionZone.
             let lChangedSource: any = undefined;
-            lInteractionZone.addInteractionListener(ComponentInteractionType, (pChangeReason: ComponentInteractionEvent) => {
+            lInteractionZone.addInteractionListener(UpdateTrigger, (pChangeReason: CoreEntityInteractionEvent) => {
                 lChangedSource = pChangeReason.data.source;
             });
 
@@ -1102,7 +1103,7 @@ describe('ComponentProcessorProxy', () => {
             // Setup.
             const lOriginalObject: { a: object; } = { a: {} };
             const lOriginalInnerObject: object = lOriginalObject.a;
-            const lDetectionProxy: { a: object; } = new ComponentProcessorProxy(lOriginalObject).proxy;
+            const lDetectionProxy: { a: object; } = new CoreEntityProcessorProxy(lOriginalObject).proxy;
 
             // Process.
             const lProxValue: object = lDetectionProxy.a;
@@ -1122,7 +1123,7 @@ describe('ComponentProcessorProxy', () => {
             const lOriginalObject: IgnoreClass = new IgnoreClass();
 
             // Process. Create proxy.
-            const lDetectionProxy: IgnoreClass = new ComponentProcessorProxy(lOriginalObject).proxy;
+            const lDetectionProxy: IgnoreClass = new CoreEntityProcessorProxy(lOriginalObject).proxy;
 
             // Evaluation.
             expect(lDetectionProxy).to.equal(lOriginalObject);

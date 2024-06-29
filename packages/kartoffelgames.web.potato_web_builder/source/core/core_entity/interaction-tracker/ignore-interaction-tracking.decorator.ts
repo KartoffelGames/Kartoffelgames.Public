@@ -1,4 +1,4 @@
-import { ComponentProcessorProxy } from './component-processor-proxy';
+import { CoreEntityProcessorProxy } from './core-entity-processor-proxy';
 
 /**
  * AtScript. Add class to list of ignored classes of component interaction tracking.
@@ -6,6 +6,6 @@ import { ComponentProcessorProxy } from './component-processor-proxy';
  * @param pConstructor - Class.
  */
 export function IgnoreInteractionTracking(pConstructor: any): void {
-    ComponentProcessorProxy.ignoreClass(pConstructor);
+    CoreEntityProcessorProxy.ignoreClass(pConstructor);
 }
 

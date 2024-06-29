@@ -1,10 +1,10 @@
-import { CoreEntityUpdateZone } from '../../core/core_entity/core-entity-update-zone';
 import { ComponentScopedValues } from '../../core/component/injection_reference/component-scoped-values';
-import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
-import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
+import { CoreEntityUpdateZone } from '../../core/core_entity/core-entity-update-zone';
 import { AccessMode } from '../../core/enum/access-mode.enum';
+import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
+import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
 import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute';
-import { ComponentInteractionType } from '../../core/component/interaction-tracker/component-processor-proxy';
+import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
 
 /**
  * Used with "#IdChildName" like - #PasswordInput.
@@ -12,7 +12,7 @@ import { ComponentInteractionType } from '../../core/component/interaction-track
 @PwbAttributeModule({
     access: AccessMode.Write,
     selector: /^#[[\w$]+$/,
-    trigger: ComponentInteractionType.Any
+    trigger: UpdateTrigger.Any
 })
 export class PwbChildAttributeModule {
     /**

@@ -84,7 +84,7 @@ describe('InteractionEvent', () => {
         const lResult: string = lReason.toString();
 
         // Evaluation.
-        expect(lResult).to.equal(`${lZone.name} -> ${lInteractionType}:${lInteractionTrigger} - ${lData.toString()}`);
+        expect(lResult).to.equal(`${lZone.name} -> ${lInteractionType[lInteractionTrigger]} - ${lData.toString()}`);
 
     });
 });

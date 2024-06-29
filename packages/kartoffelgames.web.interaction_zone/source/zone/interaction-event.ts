@@ -71,7 +71,7 @@ export class InteractionEvent<TType extends number, TData extends object = objec
      * @returns Event as string.
      */
     public toString(): string {
-        return `${this.origin.name} -> ${this.type}:${this.trigger} - ${this.data.toString()}`;
+        return `${this.origin.name} -> ${this.type[this.trigger]} - ${this.data.toString()}`;
     }
 }
 

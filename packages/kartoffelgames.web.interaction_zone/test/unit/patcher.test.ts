@@ -1,7 +1,7 @@
 import { expect } from 'chai';
-import '../../../mock/request-animation-frame-mock-session';
 import { Patcher } from '../../source/patcher/patcher';
 import { InteractionZone } from '../../source/zone/interaction-zone';
+import '../mock/request-animation-frame-mock-session';
 
 describe('Patcher', () => {
     describe('Static Method: patch', () => {

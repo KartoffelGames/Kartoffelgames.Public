@@ -72,33 +72,6 @@ describe('InteractionEvent', () => {
         expect(lResultStackTrace).to.contain('lMycoolname');
     });
 
-    describe('Method: addPushedZone', () => {
-        it('-- Push new zone', () => {
-            // Setup.
-            const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
-            const lReason: InteractionEvent<TestTriggerType, object> = new InteractionEvent(TestTriggerType, TestTriggerType.Custom, lZone, {});
-
-            // Process.
-            const lResult = lReason.addPushedZone(lZone);
-
-            // Evaluation.
-            expect(lResult).to.be.false;
-        });
-
-        it('-- Push existing zone', () => {
-            // Setup.
-            const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
-            const lReason: InteractionEvent<TestTriggerType, object> = new InteractionEvent(TestTriggerType, TestTriggerType.Custom, lZone, {});
-
-            // Process.
-            lReason.addPushedZone(lZone);
-            const lResult = lReason.addPushedZone(lZone);
-
-            // Evaluation.
-            expect(lResult).to.be.true;
-        });
-    });
-
     it('Method: toString', () => {
         // Setup.
         const lZone: InteractionZone = InteractionZone.current.create('ZoneName');
@@ -107,8 +80,8 @@ describe('InteractionEvent', () => {
         const lData = { a: 1 };
         const lReason: InteractionEvent<TestTriggerType, typeof lData> = new InteractionEvent(lInteractionType, lInteractionTrigger, lZone, lData);
 
-        // Process.
-        const lResult = lReason.addPushedZone(lZone);
+        // Process
+        const lResult: string = lReason.toString();
 
         // Evaluation.
         expect(lResult).to.equal(`${lZone.name} -> ${lInteractionType}:${lInteractionTrigger} - ${lData.toString()}`);

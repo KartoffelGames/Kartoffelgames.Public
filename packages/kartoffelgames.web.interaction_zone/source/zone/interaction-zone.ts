@@ -100,8 +100,8 @@ export class InteractionZone {
      * Get parents of zone.
      * Return null when zone is isloated.
      */
-    public get parent(): InteractionZone | null {
-        return this.mParent;
+    public get parent(): InteractionZone {
+        return this.mParent!;
     }
 
     /**
@@ -134,7 +134,7 @@ export class InteractionZone {
 
     /**
      * Add listener for error events.
-     * Prevent error defaults like print on console when {@link pListener} return the actual value false.
+     * Prevent error bubble and defaults like print on console when {@link pListener} return the actual value false.
      * Ignores adding the same listener multiple times.
      * 
      * @param pListener - Listener.
@@ -195,7 +195,7 @@ export class InteractionZone {
      * @returns new {@link InteractionZone} with zone as parent.
      */
     public create(pName: string, pOptions?: InteractionZoneConstructorSettings): InteractionZone {
-        return new InteractionZone(pName, InteractionZone.mCurrentZone, pOptions?.isolate === true);
+        return new InteractionZone(pName, this, pOptions?.isolate === true);
     }
 
     /**

@@ -170,10 +170,11 @@ export class CoreEntityUpdateZone {
      * @param pUpdateTask - Task event, that triggered the update.
      * @param pFrameTimeStamp - Timestamp of the frame that started the update.
      * @param pStack - Current update stack.
+     * @param pUpdatedState - If current task should start with an updated state.
      * 
      * @returns task execution result of complete update chain.
      */
-    private async executeTask(pUpdateTask: CoreEntityInteractionEvent, pFrameTimeStamp: number, pStack: Stack<CoreEntityInteractionEvent>): Promise<UpdaterTaskExecutionResult> {
+    private async executeTask(pUpdateTask: CoreEntityInteractionEvent, pFrameTimeStamp: number, pStack: Stack<CoreEntityInteractionEvent>, pUpdatedState: boolean): Promise<UpdaterTaskExecutionResult> {
         // Create and expand call chain when it was not resheduled.
         if (pUpdateTask !== pStack.top) {
             pStack.push(pUpdateTask);
@@ -189,9 +190,9 @@ export class CoreEntityUpdateZone {
 
         try {
             // Call task. If no other call was sheduled during this call, the length will be the same after. 
-            const lUpdated: boolean = await this.mInteractionZone.execute(async () => {
+            const lUpdatedState: boolean = await this.mInteractionZone.execute(async () => {
                 return this.mUpdateFunction.call(this, pUpdateTask);
-            });
+            }) || pUpdatedState;
 
             // Log performance time.
             if (CoreEntityUpdateZone.mDebugger.configuration.logUpdatePerformance) {
@@ -210,19 +211,14 @@ export class CoreEntityUpdateZone {
 
             // Clear call chain list if no other call in this cycle was made.
             if (this.mUpdateInformation.shedule.nextTask === null) {
-                return { updated: lUpdated, error: null, resheduled: false };
+                return { updated: lUpdatedState, error: null, resheduled: false };
             } else {
                 // Buffer next task and allow another one to be chained.
                 const lNextTask: CoreEntityInteractionEvent = this.mUpdateInformation.shedule.nextTask;
                 this.mUpdateInformation.shedule.nextTask = null;
 
                 // Execute next task and merge current updated flag with recursion update flags.
-                const lChainedUpdateResult: UpdaterTaskExecutionResult = await this.executeTask(lNextTask, pFrameTimeStamp, pStack);
-                return {
-                    updated: lUpdated || lChainedUpdateResult.updated,
-                    error: lChainedUpdateResult.error,
-                    resheduled: false
-                };
+                return this.executeTask(lNextTask, pFrameTimeStamp, pStack, lUpdatedState);
             }
         } catch (pException) {
             // No update happened on errors.
@@ -264,14 +260,8 @@ export class CoreEntityUpdateZone {
             );
         }
 
-        // Skip asynchron task when currently a call is sheduled.
-        if (this.mUpdateInformation.shedule.sheduledIdentifier !== null) {
-            // Add then chain to current promise task. Task is resolved on completing all updates or rejected on any error. 
-            return this.addUpdateChainCompleteHook();
-        }
-
         // Save task as possible next update action when currently a task is running.
-        // The task will be executed after current action has run through.
+        // Also saves next task when the current task is currently reshedulled.
         if (this.mUpdateInformation.shedule.runningIdentifier !== null) {
             this.mUpdateInformation.shedule.nextTask = pUpdateTask;
 
@@ -279,7 +269,13 @@ export class CoreEntityUpdateZone {
             return this.addUpdateChainCompleteHook();
         }
 
-        const lShedule = (pTask: CoreEntityInteractionEvent, pStack: Stack<CoreEntityInteractionEvent>) => {
+        // Skip asynchron task when currently a call is sheduled.
+        if (this.mUpdateInformation.shedule.sheduledIdentifier !== null) {
+            // Add then chain to current promise task. Task is resolved on completing all updates or rejected on any error. 
+            return this.addUpdateChainCompleteHook();
+        }
+
+        const lShedule = (pTask: CoreEntityInteractionEvent, pStack: Stack<CoreEntityInteractionEvent>, pUpdatedState: boolean) => {
             // Call on next frame. 
             this.mUpdateInformation.shedule.sheduledIdentifier = globalThis.requestAnimationFrame(async (pFrameTimeStamp: number) => {
                 // Sheduled task executed, allow another task to be executed.
@@ -287,7 +283,14 @@ export class CoreEntityUpdateZone {
                 this.mUpdateInformation.shedule.sheduledIdentifier = null;
 
                 // Create new update chain.
-                const lExecutionTask: UpdaterTaskExecutionResult = await this.executeTask(pTask, pFrameTimeStamp, pStack);
+                const lExecutionTask: UpdaterTaskExecutionResult = await this.executeTask(pTask, pFrameTimeStamp, pStack, pUpdatedState);
+
+                // Reshedule current task. Do not cleanup current running.
+                if (lExecutionTask.resheduled) {
+                    // Skip any progression on resheduled task.
+                    lShedule(pTask, pStack, lExecutionTask.updated);
+                    return;
+                }
 
                 // When anything has updated, clear running task.
                 this.mUpdateInformation.shedule.runningIdentifier = null;
@@ -309,19 +312,13 @@ export class CoreEntityUpdateZone {
                     }
                 }
 
-                // End update chain or reshedule current task.
-                if (!lExecutionTask.resheduled) {
-                    // Release chain complete hook without error.
-                    this.releaseUpdateChainCompleteHooks(lExecutionTask.updated, lExecutionTask.error);
-                } else {
-                    // Skip any progression on resheduled task.
-                    lShedule(pTask, pStack);
-                }
+                // Release chain complete hook without error.
+                this.releaseUpdateChainCompleteHooks(lExecutionTask.updated, lExecutionTask.error);
             });
         };
 
         // Shedule task with new stack.
-        lShedule(pUpdateTask, new Stack<CoreEntityInteractionEvent>());
+        lShedule(pUpdateTask, new Stack<CoreEntityInteractionEvent>(), false);
 
         // Add then chain to current promise task. Task is resolved on completing all updates or rejected on any error. 
         return this.addUpdateChainCompleteHook();

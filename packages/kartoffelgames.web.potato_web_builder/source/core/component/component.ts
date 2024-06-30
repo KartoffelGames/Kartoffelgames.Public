@@ -102,11 +102,11 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
     public connected(): void {
         this.mUpdateEnabled = true;
 
-        // Call processor event after enabling updates.
-        this.call<IComponentOnConnect, 'onConnect'>('onConnect', false);
-
         // Trigger update on connect.
-        this.update();
+        this.update().then(() => {
+            // Call processor event after updating.
+            this.call<IComponentOnConnect, 'onConnect'>('onConnect', false);
+        });
     }
 
     /**

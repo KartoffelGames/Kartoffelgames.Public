@@ -1,16 +1,15 @@
-import { Dictionary, Exception, IDeconstructable } from '@kartoffelgames/core';
+import { Dictionary, Exception, IDeconstructable, Stack } from '@kartoffelgames/core';
 import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
 import { CoreEntityUpdateZone } from './core-entity-update-zone';
 
 export abstract class CoreEntity<TProcessor extends object = object> implements IDeconstructable {
-    private readonly mCoreEntitySetupHookList: Array<CoreEntitySetupHook>;
+    private readonly mHooks: CoreEntityHooks<TProcessor>;
     private readonly mInjections: Dictionary<InjectionConstructor, any>;
     private mIsLocked: boolean;
     private mIsSetup: boolean;
     private mProcessor: TProcessor | null;
     private readonly mProcessorConstructor: CoreEntityProcessorConstructor<TProcessor>;
-    private readonly mProcessorCreationHookList: Array<CoreEntityProcessorCreationHook<TProcessor>>;
     private readonly mUpdater: CoreEntityUpdateZone;
 
     /**
@@ -62,8 +61,10 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
 
         // Init lists.
         this.mInjections = new Dictionary<InjectionConstructor, any>();
-        this.mProcessorCreationHookList = new Array<CoreEntityProcessorCreationHook<TProcessor>>();
-        this.mCoreEntitySetupHookList = new Array<CoreEntitySetupHook>();
+        this.mHooks = {
+            create: new Stack<CoreEntityProcessorCreationHook<TProcessor>>(),
+            setup: new Stack<CoreEntitySetupHook>()
+        };
 
         // Passthrough parents entity injections.
         if (pParameter.parent) {
@@ -167,7 +168,8 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
         this.mIsSetup = true;
 
         // Execute Setup hooks.
-        for (const lSetupHook of this.mCoreEntitySetupHookList) {
+        let lSetupHook: CoreEntitySetupHook | undefined;
+        while ((lSetupHook = this.mHooks.setup.pop())) {
             lSetupHook.apply(this);
         }
 
@@ -190,7 +192,7 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
      * @param pHook - Hook function.
      */
     protected addCreationHook(pHook: CoreEntityProcessorCreationHook<TProcessor>): this {
-        this.mProcessorCreationHookList.push(pHook);
+        this.mHooks.create.push(pHook);
 
         return this;
     }
@@ -201,7 +203,7 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
      * @param pHook - Hook function.
      */
     protected addSetupHook(pHook: CoreEntitySetupHook): this {
-        this.mCoreEntitySetupHookList.push(pHook);
+        this.mHooks.setup.push(pHook);
 
         return this;
     }
@@ -219,7 +221,9 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
         });
 
         // Call every creation hook.
-        for (const lCreationHook of this.mProcessorCreationHookList) {
+        // Execute Setup hooks.
+        let lCreationHook: CoreEntityProcessorCreationHook<TProcessor> | undefined;
+        while ((lCreationHook = this.mHooks.create.pop())) {
             const lReplacement: TProcessor | void = lCreationHook.call(this, lProcessor);
             if (lReplacement) {
                 lProcessor = lReplacement;
@@ -240,6 +244,10 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
 // Hooks
 type CoreEntityProcessorCreationHook<TProcessor> = (pProcessor: TProcessor) => TProcessor | void;
 type CoreEntitySetupHook = () => void;
+type CoreEntityHooks<TProcessor> = {
+    create: Stack<CoreEntityProcessorCreationHook<TProcessor>>;
+    setup: Stack<CoreEntitySetupHook>;
+};
 
 // Call types.
 type PropertyFunction<TProcessor extends object, TProperty extends keyof TProcessor> = TProcessor[TProperty] extends ((...pArgs: Array<any>) => any) ? TProcessor[TProperty] : never;

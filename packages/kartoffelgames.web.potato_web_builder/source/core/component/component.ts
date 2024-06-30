@@ -38,7 +38,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
     public constructor(pParameter: ComponentConstructorParameter) {
         super({
             constructor: pParameter.processorConstructor,
-            trigger: ((pParameter.updateMode & UpdateMode.Manual) === 0) ? UpdateTrigger.Any : UpdateTrigger.None,
+            trigger: UpdateTrigger.Any,
             isolate: (pParameter.updateMode & UpdateMode.Isolated) !== 0
         });
 
@@ -76,6 +76,11 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         // Initialize user object injections.
         this.setProcessorAttributes(ComponentScopedValues, this.mRootBuilder.values);
         this.setProcessorAttributes(Component, this);
+
+        // Setup auto update when not in manual update mode.
+        if ((pParameter.updateMode & UpdateMode.Manual) === 0) {
+            this.setAutoUpdate(UpdateTrigger.Any);
+        }
     }
 
     /**

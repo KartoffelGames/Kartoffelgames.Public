@@ -126,7 +126,7 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
      * 
      * @param pInjectionTarget - Injection type that should be provided to processor.
      */
-    public getProcessorAttribute<T>(pInjectionTarget: InjectionConstructor): T | undefined { // TODO: WHY???
+    public getProcessorAttribute<T>(pInjectionTarget: InjectionConstructor): T | undefined {
         return this.mInjections.get(pInjectionTarget);
     }
 
@@ -206,6 +206,15 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
         this.mHooks.setup.push(pHook);
 
         return this;
+    }
+
+    /**
+     * Setup auto update for core entity.
+     * 
+     * @param pTrigger - Trigger that starts an update.
+     */
+    protected setAutoUpdate(pTrigger: UpdateTrigger): void {
+        this.mUpdater.addUpdateTrigger(pTrigger);
     }
 
     /**

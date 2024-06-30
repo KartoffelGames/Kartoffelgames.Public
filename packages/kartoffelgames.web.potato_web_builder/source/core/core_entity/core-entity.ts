@@ -228,6 +228,7 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
 
         // Create processor.
         let lProcessor: TProcessor = this.mUpdater.switchToUpdateZone(() => {
+            // TODO: Constructor has the original this context :(
             return Injection.createObject<TProcessor>(this.mProcessorConstructor, this.mInjections);
         });
 

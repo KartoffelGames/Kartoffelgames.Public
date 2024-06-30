@@ -3,6 +3,7 @@ import { ScopedValues } from '../scoped-values';
 import { CoreEntityProcessorConstructor } from '../core_entity/core-entity';
 import { CoreEntityExtendable, CoreEntityExtendableConstructorParameter } from '../core_entity/core-entity-extendable';
 import { ModuleValues } from './module-values';
+import { PwbDebugLogLevel } from '../../debug/pwb-debug';
 
 export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> extends CoreEntityExtendable<TModuleProcessor> implements IDeconstructable {
     /**
@@ -12,6 +13,7 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
     constructor(pParameter: BaseModuleConstructorParameter<TModuleProcessor>) {
         super({
             constructor: pParameter.constructor,
+            debugLevel: PwbDebugLogLevel.Module,
             parent: pParameter.parent,
             isolate: false,
             trigger: pParameter.trigger
@@ -20,7 +22,7 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
         // Create module injection mapping.
         this.setProcessorAttributes(ModuleValues, new ModuleValues(pParameter.values));
 
-        this.addSetupHook(()=>{
+        this.addSetupHook(() => {
             // Forces auto create on setup.
             this.processor;
         });
@@ -37,7 +39,7 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
     }
 }
 
-export type BaseModuleConstructorParameter<TProcessor extends IPwbModuleProcessor> = Omit<CoreEntityExtendableConstructorParameter<TProcessor>, 'isolateInteraction'> & {
+export type BaseModuleConstructorParameter<TProcessor extends IPwbModuleProcessor> = Omit<Omit<CoreEntityExtendableConstructorParameter<TProcessor>, 'debugLevel'>, 'isolateInteraction'> & {
     values: ScopedValues;
 };
 

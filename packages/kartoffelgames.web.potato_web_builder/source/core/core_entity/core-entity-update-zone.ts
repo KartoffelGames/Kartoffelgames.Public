@@ -1,6 +1,6 @@
 import { Stack } from '@kartoffelgames/core';
 import { InteractionEvent, InteractionZone } from '@kartoffelgames/web.interaction-zone';
-import { ComponentDebug } from '../component-debug';
+import { PwbDebug, PwbDebugLogLevel } from '../../debug/pwb-debug';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
 import { CoreEntityInteractionData, CoreEntityInteractionEvent, CoreEntityProcessorProxy } from './interaction-tracker/core-entity-processor-proxy';
 import { IgnoreInteractionTracking } from './interaction-tracker/ignore-interaction-tracking.decorator';
@@ -14,8 +14,9 @@ import { IgnoreInteractionTracking } from './interaction-tracker/ignore-interact
 @IgnoreInteractionTracking
 export class CoreEntityUpdateZone {
     private static readonly MAX_STACK_SIZE: number = 10;
-    private static readonly mDebugger: ComponentDebug = new ComponentDebug();
+    private static readonly mDebugger: PwbDebug = new PwbDebug();
 
+    private readonly mDebugLevel: PwbDebugLogLevel;
     private readonly mInteractionZone: InteractionZone;
     private readonly mRegisteredObjects: WeakMap<object, CoreEntityProcessorProxy<object>>;
     private readonly mUpdateFunction: UpdateListener;
@@ -28,6 +29,7 @@ export class CoreEntityUpdateZone {
     public constructor(pParameter: CoreEntityUpdateZoneConstructorParameter) {
         this.mRegisteredObjects = new WeakMap<object, CoreEntityProcessorProxy<object>>();
         this.mUpdateFunction = pParameter.onUpdate;
+        this.mDebugLevel = pParameter.debugLevel;
 
         // Init loop detection values.
         this.mUpdateInformation = {
@@ -188,7 +190,7 @@ export class CoreEntityUpdateZone {
 
             // Log performance time.
             if (CoreEntityUpdateZone.mDebugger.configuration.logUpdatePerformance) {
-                CoreEntityUpdateZone.mDebugger.print('Update performance:', this.mInteractionZone.name,
+                CoreEntityUpdateZone.mDebugger.print(this.mDebugLevel, 'Update performance:', this.mInteractionZone.name,
                     '\n\t', 'Update time:', globalThis.performance.now() - lStartPerformance,
                     '\n\t', 'Frame  time:', globalThis.performance.now() - pFrameTimeStamp,
                     '\n\t', 'Frame  timestamp:', pFrameTimeStamp,
@@ -247,9 +249,7 @@ export class CoreEntityUpdateZone {
     private async sheduleUpdateTask(pUpdateTask: CoreEntityInteractionEvent): Promise<boolean> {
         // Log update trigger time.
         if (CoreEntityUpdateZone.mDebugger.configuration.logUpdaterTrigger) {
-            // TODO: Different log levels. All queued and sheduled.
-
-            CoreEntityUpdateZone.mDebugger.print('Update trigger:', this.mInteractionZone.name,
+            CoreEntityUpdateZone.mDebugger.print(this.mDebugLevel, 'Update trigger:', this.mInteractionZone.name,
                 '\n\t', 'Trigger:', pUpdateTask.toString(),
                 '\n\t', 'Is dropped:', this.mUpdateInformation.shedule.sheduledIdentifier !== null,
                 '\n\t', 'Is queued:', this.mUpdateInformation.shedule.sheduledIdentifier === null && this.mUpdateInformation.shedule.runningIdentifier !== null,
@@ -316,6 +316,11 @@ type CoreEntityUpdateZoneConstructorParameter = {
      * Debug label.
      */
     label: string;
+
+    /**
+     * Debug level for this entity.
+     */
+    debugLevel: PwbDebugLogLevel;
 
     /**
      * Isolate trigger and dont send them to parent zones.

@@ -11,6 +11,7 @@ import { ComponentRegister } from './component-register';
 import { ComponentScopedValues } from './injection_reference/component-scoped-values';
 import { PwbTemplate } from './template/nodes/pwb-template';
 import { TemplateParser } from './template/template-parser';
+import { PwbDebugLogLevel } from '../../debug/pwb-debug';
 
 /**
  * Component manager. 
@@ -38,6 +39,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
     public constructor(pParameter: ComponentConstructorParameter) {
         super({
             constructor: pParameter.processorConstructor,
+            debugLevel: PwbDebugLogLevel.Component,
             trigger: UpdateTrigger.Any,
             isolate: (pParameter.updateMode & UpdateMode.Isolated) !== 0
         });

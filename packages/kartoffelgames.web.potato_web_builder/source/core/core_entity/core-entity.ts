@@ -2,6 +2,7 @@ import { Dictionary, Exception, IDeconstructable, Stack } from '@kartoffelgames/
 import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
 import { CoreEntityUpdateZone } from './core-entity-update-zone';
+import { PwbDebugLogLevel } from '../../debug/pwb-debug';
 
 export abstract class CoreEntity<TProcessor extends object = object> implements IDeconstructable {
     private readonly mHooks: CoreEntityHooks<TProcessor>;
@@ -76,6 +77,7 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
         // Create new updater for every component entity.
         this.mUpdater = new CoreEntityUpdateZone({
             label: pParameter.constructor.name,
+            debugLevel: pParameter.debugLevel,
             isolate: !!pParameter.isolate,
             trigger: pParameter.trigger,
             parent: pParameter.parent?.mUpdater,
@@ -271,6 +273,11 @@ export type CoreEntityConstructorParameter<TProcessor> = {
      * Processor constructor.
      */
     constructor: CoreEntityProcessorConstructor<TProcessor>;
+
+    /**
+     * Debug level for this entity.
+     */
+    debugLevel: PwbDebugLogLevel;
 
     /**
      * Trigger that can be send to this and parent zones.

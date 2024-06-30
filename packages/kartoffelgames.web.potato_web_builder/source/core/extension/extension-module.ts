@@ -3,6 +3,7 @@ import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection'
 import { AccessMode } from '../enum/access-mode.enum';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
 import { CoreEntity, CoreEntityProcessorConstructor } from '../core_entity/core-entity';
+import { PwbDebugLogLevel } from '../../debug/pwb-debug';
 
 export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> implements IDeconstructable {
     /**
@@ -12,6 +13,7 @@ export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> im
     public constructor(pConstructor: IPwbExtensionModuleProcessorConstructor, pParent: CoreEntity, pInteractionTrigger: UpdateTrigger) {
         super({
             constructor: pConstructor,
+            debugLevel: PwbDebugLogLevel.Extention,
             parent: pParent,
             isolate: false,
             trigger: pInteractionTrigger

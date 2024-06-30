@@ -63,11 +63,14 @@ import './module/component-event-listener/component-event-listener-component-ext
 import './module/export/export-extension';
 import './module/pwb_app_injection/pwb-app-injection-extension';
 
-import { ComponentDebug } from './core/component-debug';
+import { PwbDebug, PwbDebugLogLevel } from './debug/pwb-debug';
 // Set debugger to global scope.
-globalThis['PwbDebug'] = new ComponentDebug();
+globalThis['PwbDebug'] = new PwbDebug();
+globalThis['PwbLogLevel'] = PwbDebugLogLevel;
 
 declare global {
     // eslint-disable-next-line no-var, @typescript-eslint/naming-convention
-    var PwbDebug: ComponentDebug;
+    var PwbDebug: PwbDebug;
+    // eslint-disable-next-line no-var, @typescript-eslint/naming-convention
+    var PwbLogLevel: typeof PwbDebugLogLevel;
 }

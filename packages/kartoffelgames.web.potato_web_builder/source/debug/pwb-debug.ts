@@ -1,7 +1,8 @@
-export class ComponentDebug {
-    private static mInstance: ComponentDebug;
+export class PwbDebug {
+    private static mInstance: PwbDebug;
 
     private readonly mConfiguration!: ComponentDebugConfiguration;
+    private mLogLevelType!: PwbDebugLogLevel;
 
     /**
      * Debug configuration.
@@ -11,16 +12,25 @@ export class ComponentDebug {
     }
 
     /**
+     * Log level.
+     */
+    public get logLevel(): PwbDebugLogLevel {
+        return this.mLogLevelType;
+    } set logLevel(pValue: PwbDebugLogLevel) {
+        this.mLogLevelType = pValue;
+    }
+
+    /**
      * Constructor.
      * 
      * Reuses single instance.
      */
     public constructor() {
-        if (ComponentDebug.mInstance) {
-            return ComponentDebug.mInstance;
+        if (PwbDebug.mInstance) {
+            return PwbDebug.mInstance;
         }
 
-        ComponentDebug.mInstance = this;
+        PwbDebug.mInstance = this;
 
         // Set default information.
         this.mConfiguration = {
@@ -30,6 +40,7 @@ export class ComponentDebug {
             logUpdatePerformance: false,
             logUpdaterTrigger: false,
         };
+        this.mLogLevelType = PwbDebugLogLevel.None;
     }
 
     /**
@@ -37,7 +48,11 @@ export class ComponentDebug {
      * 
      * @param pArguments - Print arguments.
      */
-    public print(...pArguments: Array<any>): void {
+    public print(pLogLevel: PwbDebugLogLevel, ...pArguments: Array<any>): void {
+        if ((pLogLevel & this.logLevel) === 0) {
+            return;
+        }
+
         // eslint-disable-next-line no-console
         console.log(...pArguments);
     }
@@ -48,3 +63,16 @@ type ComponentDebugConfiguration = {
     logUpdatePerformance: boolean;
     logUpdaterTrigger: boolean;
 };
+
+export enum PwbDebugLogLevel {
+    None = 0,
+
+    Component = 1,
+    Module = 2,
+    Extention = 4,
+
+    /**
+     * All.
+     */
+    All = 7
+}

@@ -1,4 +1,4 @@
-import { List } from '@kartoffelgames/core';
+import { List, Stack } from '@kartoffelgames/core';
 import { InteractionEvent, InteractionZone } from '@kartoffelgames/web.interaction-zone';
 import { ComponentDebug } from '../component-debug';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
@@ -31,7 +31,7 @@ export class CoreEntityUpdateZone {
 
         // Init loop detection values.
         this.mUpdateInformation = {
-            hookList: new List<UpdateChainCompleteHookRelease>(),
+            completeHooks: new Stack<UpdateChainCompleteHookRelease>(),
             chain: {
                 list: new List<CoreEntityInteractionEvent>(),
                 hasUpdated: false
@@ -154,7 +154,7 @@ export class CoreEntityUpdateZone {
     private async addUpdateChainCompleteHook(): Promise<boolean> {
         // Add new callback to waiter line.
         return new Promise<boolean>((pResolve, pReject) => {
-            this.mUpdateInformation.hookList.push((pWasUpdated: boolean, pError: any) => {
+            this.mUpdateInformation.completeHooks.push((pWasUpdated: boolean, pError: any) => {
                 if (pError) {
                     pReject(pError);
                 } else {
@@ -248,12 +248,10 @@ export class CoreEntityUpdateZone {
      */
     private releaseUpdateChainCompleteHooks(pUpdated: boolean, pError?: any): void {
         // Release all waiter.
-        for (const lHookRelease of this.mUpdateInformation.hookList) {
+        let lHookRelease: UpdateChainCompleteHookRelease | undefined;
+        while ((lHookRelease = this.mUpdateInformation.completeHooks.pop())) {
             lHookRelease(pUpdated, pError);
         }
-
-        // Clear hook release list.
-        this.mUpdateInformation.hookList.clear();
     }
 
     /**
@@ -349,7 +347,7 @@ type UpdateInformation = {
         runningIdentifier: number | null;
         nextTask: CoreEntityInteractionEvent | null;
     };
-    hookList: List<UpdateChainCompleteHookRelease>; // TODO: Can be faster as a stack.
+    completeHooks: Stack<UpdateChainCompleteHookRelease>;
 };
 
 export type UpdateListener = (pReason: CoreEntityInteractionEvent) => Promise<boolean>;

@@ -47,11 +47,18 @@ export class CoreEntityUpdateZone {
         const lParentInteractionZone: InteractionZone = pParameter.parent?.mInteractionZone ?? InteractionZone.current;
 
         // Create isolated or default zone as parent zone or, when not specified, current zones child.
-        this.mInteractionZone = lParentInteractionZone.create(`${pParameter.label}-ProcessorZone`, { isolate: pParameter.isolate })
-            .addTriggerRestriction(UpdateTrigger, pParameter.trigger);
+        const lRandomLabelSuffix: string = Math.floor(Math.random() * 0xffffff).toString(16);
+        this.mInteractionZone = lParentInteractionZone.create(`${pParameter.label}-ProcessorZone (${lRandomLabelSuffix})`, { isolate: pParameter.isolate })
+            .addTriggerRestriction(UpdateTrigger, pParameter.interactionTrigger);
 
         // Add listener for interactions. Shedules an update on interaction zone.
         this.mInteractionZone.addInteractionListener(UpdateTrigger, (pReason: CoreEntityInteractionEvent) => {
+            // Force creation needed for updating.
+            if (!pParameter.autoUpdate) { // TODO: Remove this and set up a "addUpdateTrigger(trigger)" bullshit so the entity itself handles their updates.
+                return; // TODO: This  break the update cycle by updating before calling update().
+            }
+
+            // Shedule auto update.
             this.sheduleUpdateTask(pReason);
         });
     }
@@ -163,10 +170,12 @@ export class CoreEntityUpdateZone {
             // Measure performance.
             const lStartPerformance = globalThis.performance.now();
 
+            console.log(this.mInteractionZone.name, 'OPEN:', pFrameTimeStamp);
             // Call task. If no other call was sheduled during this call, the length will be the same after. 
             this.mUpdateInformation.chain.hasUpdated ||= await this.mInteractionZone.execute(async () => {
                 return this.mUpdateListener.call(this, pUpdateTask);
             });
+            console.log(this.mInteractionZone.name, 'CLOSE:', pFrameTimeStamp);
 
             // Log performance time.
             if (CoreEntityUpdateZone.mDebugger.configuration.logUpdatePerformance) {
@@ -193,7 +202,7 @@ export class CoreEntityUpdateZone {
                 // Release chain complete hook.
                 this.releaseUpdateChainCompleteHooks(lWasUpdated);
             } else {
-
+                // TODO: Why are these not correctly chaining??????
                 const lNextTask: CoreEntityInteractionEvent = this.mUpdateInformation.shedule.nextTask;
                 this.mUpdateInformation.shedule.nextTask = null;
 
@@ -263,6 +272,8 @@ export class CoreEntityUpdateZone {
 
         // Skip asynchron task when currently a call is sheduled.
         if (this.mUpdateInformation.shedule.sheduledIdentifier !== null) {
+            console.log(this.mInteractionZone.name, 'WAS OPEN ');
+
             // Add then chain to current promise task. Task is resolved on completing all updates or rejected on any error. 
             return this.addUpdateChainCompleteHook();
         }
@@ -270,11 +281,15 @@ export class CoreEntityUpdateZone {
         // Save task as possible next update action when currently a task is running.
         // The task will be executed after current action has run through.
         if (this.mUpdateInformation.shedule.runningIdentifier !== null) {
+            console.log(this.mInteractionZone.name, 'NEXT SHEDULE ');
+
             this.mUpdateInformation.shedule.nextTask = pUpdateTask;
 
             // Add then chain to current promise task. Task is resolved on completing all updates or rejected on any error. 
             return this.addUpdateChainCompleteHook();
         }
+
+        console.log(this.mInteractionZone.name, '------------- ');
 
         // Call on next frame. 
         this.mUpdateInformation.shedule.sheduledIdentifier = globalThis.requestAnimationFrame(async (pFrameTimeStamp: number) => {
@@ -293,9 +308,10 @@ export class CoreEntityUpdateZone {
 type CoreEntityUpdateZoneConstructorParameter = {
     label: string;
     isolate: boolean;
-    trigger: UpdateTrigger;
+    interactionTrigger: UpdateTrigger;
     parent: CoreEntityUpdateZone | undefined;
     listener: UpdateListener;
+    autoUpdate: boolean;
 };
 
 type UpdateChainCompleteHookRelease = (pUpdated: boolean, pError: any) => void;

@@ -78,15 +78,12 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
         this.mUpdateZone = new CoreEntityUpdateZone({
             label: pParameter.processorConstructor.name,
             isolate: !!pParameter.isolateInteraction,
-            trigger: pParameter.interactionTrigger,
+            interactionTrigger: pParameter.interactionTrigger,
             parent: pParameter.parent?.mUpdateZone,
             listener: async () => {
                 return this.onUpdate();
             }
         });
-
-        // TODO: Add update(): Promise<boolean> and abstract onUpdate(): Promise<boolean> to every core entity and make it all async. Lets see what we get.
-        // TODO: When everything is async and working. Check the current updatezone frame time and reshedule current update task to new frame when the current frame would take to long.
     }
 
     /**
@@ -261,9 +258,9 @@ type PropertyFunctionParameter<TProcessor extends object, TProperty extends keyo
  */
 export type CoreEntityConstructorParameter<TProcessor> = {
     processorConstructor: CoreEntityProcessorConstructor<TProcessor>;
-    interactionTrigger: UpdateTrigger;
+    interactionTrigger: UpdateTrigger; // TODO: Rename to better understand that this trigger does not update, but will be send to parent zones.
     parent?: CoreEntity | undefined;
     isolateInteraction?: boolean;
-    createOnSetup?: boolean;
+    createOnSetup?: boolean; // TODO: Remove it and let it handle over setup hook.
 };
 export type CoreEntityProcessorConstructor<TProcessor = object> = new (...pParameter: Array<any>) => TProcessor;

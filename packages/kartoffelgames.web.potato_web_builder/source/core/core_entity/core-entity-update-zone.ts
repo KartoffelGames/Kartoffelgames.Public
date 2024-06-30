@@ -25,9 +25,9 @@ export class CoreEntityUpdateZone {
      * Constructor.
      * @param pUpdateScope - Update scope.
      */
-    public constructor(pLabel: string, pIsolatedInteraction: boolean, pInteractionTrigger: UpdateTrigger, pParentUpdater: CoreEntityUpdateZone | null, pListener: UpdateListener) {
+    public constructor(pParameter: CoreEntityUpdateZoneConstructorParameter) {
         this.mRegisteredObjects = new WeakMap<object, CoreEntityProcessorProxy<object>>();
-        this.mUpdateListener = pListener;
+        this.mUpdateListener = pParameter.listener;
 
         // Init loop detection values.
         this.mUpdateInformation = {
@@ -42,8 +42,12 @@ export class CoreEntityUpdateZone {
             }
         };
 
+        // Read parent zone from parent updater, when not set, use current zone.
+        const lParentInteractionZone: InteractionZone = pParameter.parent?.mInteractionZone ?? InteractionZone.current;
+
         // Create isolated or default zone as parent zone or, when not specified, current zones child.
-        this.mInteractionZone = (pParentUpdater?.mInteractionZone ?? InteractionZone.current).create(`${pLabel}-ProcessorZone`, { isolate: pIsolatedInteraction }).addTriggerRestriction(UpdateTrigger, pInteractionTrigger);
+        this.mInteractionZone = lParentInteractionZone.create(`${pParameter.label}-ProcessorZone`, { isolate: pParameter.isolate })
+            .addTriggerRestriction(UpdateTrigger, pParameter.trigger);
 
         // Add listener for interactions. Shedules an update on interaction zone.
         this.mInteractionZone.addInteractionListener(UpdateTrigger, (pReason: CoreEntityInteractionEvent) => {
@@ -267,6 +271,14 @@ export class CoreEntityUpdateZone {
         return this.addUpdateChainCompleteHook();
     }
 }
+
+type CoreEntityUpdateZoneConstructorParameter = {
+    label: string;
+    isolate: boolean;
+    trigger: UpdateTrigger;
+    parent: CoreEntityUpdateZone | undefined;
+    listener: UpdateListener;
+};
 
 type UpdateChainCompleteHookRelease = (pUpdated: boolean, pError: any) => void;
 type UpdateInformation = {

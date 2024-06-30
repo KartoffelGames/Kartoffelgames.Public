@@ -74,12 +74,15 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
             }
         }
 
-        // Try to read updater from parent.
-        const lParentUpdater: CoreEntityUpdateZone  | null = pParameter.parent?.mUpdateZone ?? null;
-
         // Create new updater for every component entity.
-        this.mUpdateZone = new CoreEntityUpdateZone(pParameter.processorConstructor.name, !!pParameter.isolateInteraction, pParameter.interactionTrigger, lParentUpdater, async () => {
-            return this.onUpdate();
+        this.mUpdateZone = new CoreEntityUpdateZone({
+            label: pParameter.processorConstructor.name,
+            isolate: !!pParameter.isolateInteraction,
+            trigger: pParameter.interactionTrigger,
+            parent: pParameter.parent?.mUpdateZone,
+            listener: async () => {
+                return this.onUpdate();
+            }
         });
 
         // TODO: Add update(): Promise<boolean> and abstract onUpdate(): Promise<boolean> to every core entity and make it all async. Lets see what we get.

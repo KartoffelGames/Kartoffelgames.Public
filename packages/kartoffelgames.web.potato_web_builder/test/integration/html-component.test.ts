@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { Component, IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../source/core/component/component';
 import { ComponentRegister } from '../../source/core/component/component-register';
 import { PwbComponent } from '../../source/core/component/pwb-component.decorator';
-import { UpdateLoopError } from '../../source/core/core_entity/core-entity-update-zone';
+import { UpdateLoopError } from '../../source/core/core_entity/core-entity-updater';
 import { CoreEntityProcessorProxy } from '../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy';
 import { UpdateMode } from '../../source/core/enum/update-mode.enum';
 import { UpdateTrigger } from '../../source/core/enum/update-trigger.enum';

@@ -1,7 +1,7 @@
 import { Dictionary, Exception, IDeconstructable, Stack } from '@kartoffelgames/core';
 import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
-import { CoreEntityUpdateZone } from './core-entity-update-zone';
+import { CoreEntityUpdater } from './core-entity-updater';
 import { PwbDebugLogLevel } from '../../debug/pwb-debug';
 
 export abstract class CoreEntity<TProcessor extends object = object> implements IDeconstructable {
@@ -11,7 +11,7 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
     private mIsSetup: boolean;
     private mProcessor: TProcessor | null;
     private readonly mProcessorConstructor: CoreEntityProcessorConstructor<TProcessor>;
-    private readonly mUpdater: CoreEntityUpdateZone;
+    private readonly mUpdater: CoreEntityUpdater;
 
     /**
      * If processor is created or not.
@@ -75,7 +75,7 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
         }
 
         // Create new updater for every component entity.
-        this.mUpdater = new CoreEntityUpdateZone({
+        this.mUpdater = new CoreEntityUpdater({
             label: pParameter.constructor.name,
             debugLevel: pParameter.debugLevel,
             isolate: !!pParameter.isolate,

@@ -37,6 +37,7 @@ export class CoreEntityUpdateZone {
                 hasUpdated: false
             },
             shedule: {
+                sheduledIdentifier: null,
                 runningIdentifier: null,
                 nextTask: null
             }
@@ -152,16 +153,13 @@ export class CoreEntityUpdateZone {
     }
 
     private async executeTask(pUpdateTask: CoreEntityInteractionEvent, pFrameTimeStamp: number): Promise<void> {
-        // Sheduled task executed, allow another task to be executed.
-        this.mUpdateInformation.shedule.runningIdentifier = null;
+        // Create and expand call chain.
+        this.mUpdateInformation.chain.list.push(pUpdateTask);
 
-        // Save current call chain length. Used to detect a new chain link after execution.
-        const lLastCallChainLength: number = this.mUpdateInformation.chain.list.length;
+        // TODO: Reshedule task when frame time exceeds a time (100ms?)
+        // But keep chain complete hooks open, dont extend chain.
 
         try {
-            // TODO: Reshedule task when frame time exceeds a time (100ms?)
-            // But keep chain complete hooks open, dont extend chain.
-
             // Measure performance.
             const lStartPerformance = globalThis.performance.now();
 
@@ -185,7 +183,7 @@ export class CoreEntityUpdateZone {
             }
 
             // Clear call chain list if no other call in this cycle was made.
-            if (lLastCallChainLength === this.mUpdateInformation.chain.list.length) { // TODO: this.mUpdateInformation.shedule.nextTask === null
+            if (this.mUpdateInformation.shedule.nextTask === null) {
                 const lWasUpdated: boolean = this.mUpdateInformation.chain.hasUpdated;
 
                 // Clear update chain list.
@@ -195,8 +193,11 @@ export class CoreEntityUpdateZone {
                 // Release chain complete hook.
                 this.releaseUpdateChainCompleteHooks(lWasUpdated);
             } else {
-                // TODO: Execute next task without shedule.
-                //this.mUpdateInformation.shedule.nextTask
+
+                const lNextTask: CoreEntityInteractionEvent = this.mUpdateInformation.shedule.nextTask;
+                this.mUpdateInformation.shedule.nextTask = null;
+
+                await this.executeTask(lNextTask, pFrameTimeStamp);
             }
         } catch (pException) {
             // Unblock further calls and clear call chain.
@@ -204,12 +205,12 @@ export class CoreEntityUpdateZone {
             this.mUpdateInformation.chain.hasUpdated = false;
 
             // Cancel next call cycle.
-            globalThis.cancelAnimationFrame(this.mUpdateInformation.shedule.runningIdentifier ?? 0);
+            globalThis.cancelAnimationFrame(this.mUpdateInformation.shedule.sheduledIdentifier ?? 0);
 
             // Permanently block another execution for this update zone. Prevents script locks.
             if (CoreEntityUpdateZone.mDebugger.configuration.throwWhileUpdating) {
-                // Block anything.
-                this.mUpdateInformation.shedule.runningIdentifier = -1;
+                // Block shedulling another task.
+                this.mUpdateInformation.shedule.sheduledIdentifier = -1;
 
                 // Release chain complete hook with error.
                 this.releaseUpdateChainCompleteHooks(false, pException);
@@ -219,6 +220,9 @@ export class CoreEntityUpdateZone {
 
                 CoreEntityUpdateZone.mDebugger.print(pException);
             }
+        } finally {
+            // When anything has updated, clear running task.
+            this.mUpdateInformation.shedule.runningIdentifier = null;
         }
     }
 
@@ -251,23 +255,33 @@ export class CoreEntityUpdateZone {
         if (CoreEntityUpdateZone.mDebugger.configuration.logUpdaterTrigger) {
             CoreEntityUpdateZone.mDebugger.print('Update trigger:', this.mInteractionZone.name,
                 '\n\t', 'Trigger:', pUpdateTask.toString(),
-                '\n\t', 'Is trigger:', this.mUpdateInformation.shedule.runningIdentifier === null,
+                '\n\t', 'Is trigger:', this.mUpdateInformation.shedule.sheduledIdentifier === null,
                 '\n\t', 'Updatechain: ', this.mUpdateInformation.chain.list.map((pReason) => { return pReason.toString(); }),
                 '\n\t', 'Stacktrace:', { stack: pUpdateTask.stacktrace },
             );
         }
 
         // Skip asynchron task when currently a call is sheduled.
-        if (this.mUpdateInformation.shedule.runningIdentifier !== null) {
+        if (this.mUpdateInformation.shedule.sheduledIdentifier !== null) {
             // Add then chain to current promise task. Task is resolved on completing all updates or rejected on any error. 
             return this.addUpdateChainCompleteHook();
         }
 
-        // Create and expand call chain.
-        this.mUpdateInformation.chain.list.push(pUpdateTask);
+        // Save task as possible next update action when currently a task is running.
+        // The task will be executed after current action has run through.
+        if (this.mUpdateInformation.shedule.runningIdentifier !== null) {
+            this.mUpdateInformation.shedule.nextTask = pUpdateTask;
+
+            // Add then chain to current promise task. Task is resolved on completing all updates or rejected on any error. 
+            return this.addUpdateChainCompleteHook();
+        }
 
         // Call on next frame. 
-        this.mUpdateInformation.shedule.runningIdentifier = globalThis.requestAnimationFrame(async (pFrameTimeStamp: number) => {
+        this.mUpdateInformation.shedule.sheduledIdentifier = globalThis.requestAnimationFrame(async (pFrameTimeStamp: number) => {
+            // Sheduled task executed, allow another task to be executed.
+            this.mUpdateInformation.shedule.runningIdentifier = this.mUpdateInformation.shedule.sheduledIdentifier;
+            this.mUpdateInformation.shedule.sheduledIdentifier = null;
+
             this.executeTask(pUpdateTask, pFrameTimeStamp);
         });
 
@@ -287,14 +301,15 @@ type CoreEntityUpdateZoneConstructorParameter = {
 type UpdateChainCompleteHookRelease = (pUpdated: boolean, pError: any) => void;
 type UpdateInformation = {
     chain: {
-        list: List<CoreEntityInteractionEvent>;
+        list: List<CoreEntityInteractionEvent>; // TODO: Can be faster as a stack.
         hasUpdated: boolean;
     };
     shedule: {
+        sheduledIdentifier: number | null;
         runningIdentifier: number | null;
         nextTask: CoreEntityInteractionEvent | null;
     };
-    hookList: List<UpdateChainCompleteHookRelease>;
+    hookList: List<UpdateChainCompleteHookRelease>; // TODO: Can be faster as a stack.
 };
 
 export type UpdateListener = (pReason: CoreEntityInteractionEvent) => Promise<boolean>;

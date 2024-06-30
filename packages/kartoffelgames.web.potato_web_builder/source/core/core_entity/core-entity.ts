@@ -5,14 +5,13 @@ import { CoreEntityUpdateZone } from './core-entity-update-zone';
 
 export abstract class CoreEntity<TProcessor extends object = object> implements IDeconstructable {
     private readonly mCoreEntitySetupHookList: Array<CoreEntitySetupHook>;
-    private readonly mCreateOnSetup: boolean;
     private readonly mInjections: Dictionary<InjectionConstructor, any>;
     private mIsLocked: boolean;
     private mIsSetup: boolean;
     private mProcessor: TProcessor | null;
     private readonly mProcessorConstructor: CoreEntityProcessorConstructor<TProcessor>;
     private readonly mProcessorCreationHookList: Array<CoreEntityProcessorCreationHook<TProcessor>>;
-    private readonly mUpdateZone: CoreEntityUpdateZone;
+    private readonly mUpdater: CoreEntityUpdateZone;
 
     /**
      * If processor is created or not.
@@ -55,7 +54,6 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
      */
     public constructor(pParameter: CoreEntityConstructorParameter<TProcessor>) {
         this.mProcessorConstructor = pParameter.constructor;
-        this.mCreateOnSetup = !!pParameter.createOnSetup;
 
         // Set empty defaults.
         this.mProcessor = null;
@@ -75,11 +73,11 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
         }
 
         // Create new updater for every component entity.
-        this.mUpdateZone = new CoreEntityUpdateZone({
+        this.mUpdater = new CoreEntityUpdateZone({
             label: pParameter.constructor.name,
             isolate: !!pParameter.isolate,
             trigger: pParameter.trigger,
-            parent: pParameter.parent?.mUpdateZone,
+            parent: pParameter.parent?.mUpdater,
             onUpdate: async () => {
                 return this.onUpdate();
             }
@@ -110,7 +108,7 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
         }
 
         // Call function in update trigger zone.
-        return this.mUpdateZone.switchToUpdateZone(() => {
+        return this.mUpdater.switchToUpdateZone(() => {
             return lPropertyFunction.call(this.processor, pParameter);
         });
     }
@@ -119,7 +117,7 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
      * Deconstruct update zone.
      */
     public deconstruct(): void {
-        this.mUpdateZone.deconstruct();
+        this.mUpdater.deconstruct();
     }
 
     /**
@@ -127,7 +125,7 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
      * 
      * @param pInjectionTarget - Injection type that should be provided to processor.
      */
-    public getProcessorAttribute<T>(pInjectionTarget: InjectionConstructor): T | undefined {
+    public getProcessorAttribute<T>(pInjectionTarget: InjectionConstructor): T | undefined { // TODO: WHY???
         return this.mInjections.get(pInjectionTarget);
     }
 
@@ -137,7 +135,7 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
      * @param pObject - Object.
      */
     public registerObject<T extends object>(pObject: T): T {
-        return this.mUpdateZone.registerObject(pObject);
+        return this.mUpdater.registerObject(pObject);
     }
 
     /**
@@ -173,21 +171,16 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
             lSetupHook.apply(this);
         }
 
-        // Force create processor after setup hooks when setting is set.
-        if (this.mCreateOnSetup) {
-            this.processor;
-        }
-
         return this;
     }
 
     /**
-     * Updates core entity.
+     * Manual updates core entity.
      * 
      * @returns true when a update happened and false when nothing was updated.
      */
     public async update(): Promise<boolean> {
-        return this.mUpdateZone.update();
+        return this.mUpdater.update();
     }
 
     /**
@@ -221,7 +214,7 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
         this.mIsLocked = true;
 
         // Create processor.
-        let lProcessor: TProcessor = this.mUpdateZone.switchToUpdateZone(() => {
+        let lProcessor: TProcessor = this.mUpdater.switchToUpdateZone(() => {
             return Injection.createObject<TProcessor>(this.mProcessorConstructor, this.mInjections);
         });
 
@@ -277,7 +270,5 @@ export type CoreEntityConstructorParameter<TProcessor> = {
      * Isolate trigger and dont send them to parent zones.
      */
     isolate?: boolean;
-
-    createOnSetup?: boolean; // TODO: Remove it and let it handle over setup hook.
 };
 export type CoreEntityProcessorConstructor<TProcessor = object> = new (...pParameter: Array<any>) => TProcessor;

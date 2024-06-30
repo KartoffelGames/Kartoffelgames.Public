@@ -14,12 +14,16 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
             constructor: pParameter.constructor,
             parent: pParameter.parent,
             isolate: false,
-            trigger: pParameter.trigger,
-            createOnSetup: true
+            trigger: pParameter.trigger
         });
 
         // Create module injection mapping.
         this.setProcessorAttributes(ModuleValues, new ModuleValues(pParameter.values));
+
+        this.addSetupHook(()=>{
+            // Forces auto create on setup.
+            this.processor;
+        });
     }
 
     /**

@@ -14,8 +14,7 @@ export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> im
             constructor: pConstructor,
             parent: pParent,
             isolate: false,
-            trigger: pInteractionTrigger,
-            createOnSetup: true
+            trigger: pInteractionTrigger
         });
 
         this.setProcessorAttributes(ExtensionModule, this);
@@ -23,6 +22,9 @@ export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> im
         // Call execution hook.
         this.addSetupHook(() => {
             this.call<IExtensionOnExecute, 'onExecute'>('onExecute', false);
+        }).addSetupHook(()=>{
+            // Forces auto create on setup.
+            this.processor;
         });
     }
 

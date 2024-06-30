@@ -1,4 +1,3 @@
-import { CoreEntityUpdateZone } from '../../core_entity/core-entity-update-zone';
 import { AttributeModule } from '../../module/attribute_module/attribute-module';
 import { ExpressionModule } from '../../module/expression_module/expression-module';
 import { ScopedValues } from '../../scoped-values';
@@ -31,8 +30,8 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
      * @param pParentScopedValues - Scoped values of parent builder.
      * @param pAnchorName - Name of builder content anchor.
      */
-    public constructor(pTemplate: StaticPwbTemplate, pModules: ComponentModules, pParentScopedValues: ScopedValues, pAnchorName: string, pUpdateZone: CoreEntityUpdateZone) {
-        super(pTemplate, pParentScopedValues, new StaticBuilderData(pModules, `Static - {${pAnchorName}}`), pUpdateZone);
+    public constructor(pTemplate: StaticPwbTemplate, pModules: ComponentModules, pParentScopedValues: ScopedValues, pAnchorName: string) {
+        super(pTemplate, pParentScopedValues, new StaticBuilderData(pModules, `Static - {${pAnchorName}}`));
 
         // Not initialized on start.
         this.mInitialized = false;
@@ -96,7 +95,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
      */
     private buildInstructionTemplate(pMultiplicatorTemplate: PwbTemplateInstructionNode, pParentContent: BuilderContent): void {
         // Create new instruction builder and add to bottom of parent content.
-        const lInstructionBuilder: InstructionBuilder = new InstructionBuilder(pMultiplicatorTemplate, this.content.modules, this.values, this.updateZone);
+        const lInstructionBuilder: InstructionBuilder = new InstructionBuilder(pMultiplicatorTemplate, this.content.modules, this.values);
         this.content.insert(lInstructionBuilder, 'BottomOf', pParentContent);
     }
 

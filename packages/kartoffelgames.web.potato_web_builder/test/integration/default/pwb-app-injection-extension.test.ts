@@ -1,12 +1,12 @@
 import { expect } from 'chai';
+import { Component } from '../../../source/core/component/component';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
 import { UpdateMode } from '../../../source/core/enum/update-mode.enum';
+import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
 import { PwbApp } from '../../../source/pwb-app/pwb-app';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
-import { CoreEntityUpdateZone } from '../../../source/core/core_entity/core-entity-update-zone';
-import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
 
 describe('PwbAppInjectionExtension', () => {
     it('-- PwbApp injection on global element', async () => {
@@ -141,7 +141,7 @@ describe('PwbAppInjectionExtension', () => {
 
         // Read cild component.
         const lChildChildContent: HTMLElement = TestUtil.getComponentNode(lComponent, lChildSelector);
-        TestUtil.getComponentManager(lChildChildContent)?.getProcessorAttribute<CoreEntityUpdateZone>(CoreEntityUpdateZone)?.update();
+        TestUtil.getComponentManager(lChildChildContent)?.getProcessorAttribute<Component>(Component)?.update();
         await TestUtil.waitForUpdate(lChildChildContent);
 
         // Read cild component.

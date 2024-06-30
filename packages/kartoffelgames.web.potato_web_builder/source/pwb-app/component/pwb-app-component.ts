@@ -1,10 +1,10 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { ComponentProcessorConstructor, IComponentOnConnect, IComponentOnDisconnect } from '../../core/component/component';
+import { Component, ComponentProcessorConstructor, IComponentOnConnect, IComponentOnDisconnect } from '../../core/component/component';
 import { ComponentRegister } from '../../core/component/component-register';
-import { CoreEntityUpdateZone } from '../../core/core_entity/core-entity-update-zone';
 import { PwbComponent } from '../../core/component/pwb-component.decorator';
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
-import { PwbTemplateXmlNode } from '../../core/component/template/nodes/pwb-template-xml-node';import { PwbExport } from '../../module/export/pwb-export.decorator';
+import { PwbTemplateXmlNode } from '../../core/component/template/nodes/pwb-template-xml-node';
+import { PwbExport } from '../../module/export/pwb-export.decorator';
 import pwbAppStyle from './pwb-app-component.css';
 import pwbAppTemplate from './pwb-app-component.html';
 
@@ -20,8 +20,9 @@ export class PwbAppComponent implements IComponentOnConnect, IComponentOnDisconn
     public styleList: Array<string>;
 
     // Only internal.
+    private readonly mComponent: Component;
     private readonly mContent: PwbTemplate;
-    private readonly mUpdateZone: CoreEntityUpdateZone;
+
 
     /**
      * Get app content as pwb template.
@@ -67,19 +68,12 @@ export class PwbAppComponent implements IComponentOnConnect, IComponentOnDisconn
     }
 
     /**
-     * Update zone
-     */
-    @PwbExport get updateZone(): CoreEntityUpdateZone {
-        return this.mUpdateZone;
-    }
-
-    /**
      * Constructor.
      */
-    constructor(pUpdateZone: CoreEntityUpdateZone) {
+    constructor(pComponent: Component) {
         this.mContent = new PwbTemplate();
+        this.mComponent = pComponent;
 
-        this.mUpdateZone = pUpdateZone;
         this.styleList = new Array<string>();
 
         // Set default splashscreen state. Not hidden and append to component.
@@ -145,6 +139,15 @@ export class PwbAppComponent implements IComponentOnConnect, IComponentOnDisconn
     }
 
     /**
+     * Create style element and prepend it to this components content.
+     * 
+     * @param pStyle - Css style as string.
+     */
+    @PwbExport async update(): Promise<void> {
+        return this.mComponent.update().then();
+    }
+
+    /**
      * Get splashscreen content.
      * 
      * @returns Cached splashscreen content.
@@ -163,7 +166,7 @@ export class PwbAppComponent implements IComponentOnConnect, IComponentOnDisconn
         }
 
         // Remove splashscreen when any component was updated.
-        this.mUpdateZone.update().then(() => {
+        this.mComponent.update().then(() => {
             this.removeSplashScreen();
         });
     }

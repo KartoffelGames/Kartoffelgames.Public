@@ -16,9 +16,10 @@ export { ModuleValues } from './core/module/module-values';
 export { ModuleAttribute } from './core/module/injection_reference/module-attribute';
 
 // Component Injections
+export { Component } from './core/component/component';
 export { ComponentElement } from './core/component/component-element';
 export { ComponentScopedValues } from './core/component/injection_reference/component-scoped-values';
-export { CoreEntityUpdateZone } from './core/core_entity/core-entity-update-zone';
+
 
 // Modules
 export { PwbExtensionModule, } from './core/extension/pwb-extension-module.decorator';

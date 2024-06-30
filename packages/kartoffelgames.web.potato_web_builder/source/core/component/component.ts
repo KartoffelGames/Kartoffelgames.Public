@@ -1,6 +1,5 @@
 import { Dictionary } from '@kartoffelgames/core';
 import { CoreEntityExtendable } from '../core_entity/core-entity-extendable';
-import { CoreEntityUpdateZone } from '../core_entity/core-entity-update-zone';
 import { UpdateMode } from '../enum/update-mode.enum';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
 import { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module';
@@ -22,6 +21,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
     private static readonly mXmlParser: TemplateParser = new TemplateParser();
     private readonly mComponentElement: ComponentElement;
     private readonly mRootBuilder: StaticBuilder;
+    private mUpdateEnabled: boolean;
 
     /**
      * Component html element.
@@ -49,7 +49,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         this.addCreationHook((pProcessor: ComponentProcessor) => {
             ComponentRegister.registerComponent(this, this.mComponentElement.htmlElement, pProcessor);
         }).addCreationHook((pProcessor: ComponentProcessor) => {
-            return this.updateZone.registerObject(pProcessor);
+            return this.registerObject(pProcessor);
         }).addCreationHook((pProcessor: ComponentProcessor) => {
             ComponentRegister.registerComponent(this, this.mComponentElement.htmlElement, pProcessor);
         });
@@ -63,22 +63,19 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
             lTemplate = lTemplate.clone();
         }
 
+        // Update initial disabled.
+        this.mUpdateEnabled = false;
+
         // Create component element.
         this.mComponentElement = new ComponentElement(pParameter.htmlElement);
 
         // Create component builder.
-        this.mRootBuilder = new StaticBuilder(lTemplate, new ComponentModules(this, pParameter.expressionModule), new ScopedValues(this), 'ROOT', this.updateZone);
+        this.mRootBuilder = new StaticBuilder(lTemplate, new ComponentModules(this, pParameter.expressionModule), new ScopedValues(this), 'ROOT');
         this.mComponentElement.shadowRoot.appendChild(this.mRootBuilder.anchor);
 
         // Initialize user object injections.
         this.setProcessorAttributes(ComponentScopedValues, this.mRootBuilder.values);
         this.setProcessorAttributes(Component, this);
-        this.setProcessorAttributes(CoreEntityUpdateZone, this.updateZone);
-
-        // Attach automatic update listener to update zone.
-        this.updateZone.addUpdateListener(async () => {
-            await this.update();
-        });
     }
 
     /**
@@ -96,13 +93,13 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
      * Called when component get attached to DOM.
      */
     public connected(): void {
-        this.updateZone.enabled = true;
+        this.mUpdateEnabled = true;
 
         // Call processor event after enabling updates.
         this.call<IComponentOnConnect, 'onConnect'>('onConnect', false);
 
         // Trigger update on connect.
-        this.updateZone.update();
+        this.update();
     }
 
     /**
@@ -110,7 +107,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
      */
     public override deconstruct(): void {
         // Disable updates.
-        this.updateZone.enabled = false;
+        this.mUpdateEnabled = false;
 
         // User callback.
         this.call<IComponentOnDeconstruct, 'onDeconstruct'>('onDeconstruct', false);
@@ -126,7 +123,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
      * Called when component gets detached from DOM.
      */
     public disconnected(): void {
-        this.updateZone.enabled = false;
+        this.mUpdateEnabled = false;
 
         // Call processor event after disabling update event..
         this.call<IComponentOnDisconnect, 'onDisconnect'>('onDisconnect', false);
@@ -138,6 +135,11 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
      * @returns True when any update happened, false when all values stayed the same.
      */
     protected async onUpdate(): Promise<boolean> {
+        // On disabled update.
+        if (!this.mUpdateEnabled) {
+            return false;
+        }
+
         // Update and callback after update.
         if (await this.mRootBuilder.update()) {
             // Call component processor on update function.

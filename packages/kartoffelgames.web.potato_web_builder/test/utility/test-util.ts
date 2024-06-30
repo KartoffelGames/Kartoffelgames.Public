@@ -1,7 +1,6 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { Component } from '../../source/core/component/component';
 import { ComponentRegister } from '../../source/core/component/component-register';
-import { CoreEntityUpdateZone } from '../../source/core/core_entity/core-entity-update-zone';
 
 export class TestUtil {
     /**
@@ -81,7 +80,7 @@ export class TestUtil {
      */
     public static manualUpdate(pComponent: HTMLElement): void {
         const lComponent: Component | undefined = TestUtil.getComponentManager(pComponent);
-        lComponent?.getProcessorAttribute<CoreEntityUpdateZone>(CoreEntityUpdateZone)!.update();
+        lComponent?.getProcessorAttribute<Component>(Component)!.update();
     }
 
     /**
@@ -103,7 +102,7 @@ export class TestUtil {
      */
     public static async waitForUpdate(pComponent: HTMLElement): Promise<void> {
         const lComponent: Component = TestUtil.getComponentManager(pComponent)!;
-        const lUpdateZone: CoreEntityUpdateZone = lComponent!.getProcessorAttribute<CoreEntityUpdateZone>(CoreEntityUpdateZone)!;
+        const lUpdateZone: Component = lComponent!.getProcessorAttribute<Component>(Component)!;
 
         await lUpdateZone.update();
     }

@@ -1,13 +1,12 @@
 import { ChangeState, HistoryItem, MyersDiff } from '@kartoffelgames/core';
 import { InstructionModule } from '../../module/instruction_module/instruction-module';
 import { InstructionResultElement } from '../../module/instruction_module/instruction-result';
+import { ScopedValues } from '../../scoped-values';
 import { ComponentModules } from '../component-modules';
 import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node';
-import { ScopedValues } from '../../scoped-values';
 import { BaseBuilder } from './base-builder';
 import { InstructionBuilderData } from './data/instruction-builder-data';
 import { StaticBuilder } from './static-builder';
-import { CoreEntityUpdateZone } from '../../core_entity/core-entity-update-zone';
 
 /**
  * Instruction builder. Only builds and handles instruction templates.
@@ -23,8 +22,8 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
      * @param pModules - Modules of component scope.
      * @param pParentScopedValues - Scoped value of parent builder.
      */
-    public constructor(pTemplate: PwbTemplateInstructionNode, pModules: ComponentModules, pParentScopedValues: ScopedValues, pUpdateZone: CoreEntityUpdateZone) {
-        super(pTemplate, pParentScopedValues, new InstructionBuilderData(pModules, `Instruction - {$${pTemplate.instructionType}}`), pUpdateZone);
+    public constructor(pTemplate: PwbTemplateInstructionNode, pModules: ComponentModules, pParentScopedValues: ScopedValues) {
+        super(pTemplate, pParentScopedValues, new InstructionBuilderData(pModules, `Instruction - {$${pTemplate.instructionType}}`));
     }
 
     /**
@@ -63,7 +62,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
      */
     private insertNewContent(pNewContent: InstructionResultElement, pContentCursor: StaticBuilder | null): StaticBuilder {
         // Create new static builder.
-        const lStaticBuilder: StaticBuilder = new StaticBuilder(pNewContent.template, this.content.modules, pNewContent.componentValues, `Child - {$${this.template.instructionType}}`, this.updateZone);
+        const lStaticBuilder: StaticBuilder = new StaticBuilder(pNewContent.template, this.content.modules, pNewContent.componentValues, `Child - {$${this.template.instructionType}}`);
 
         // Prepend content if no content is before the new content. 
         if (pContentCursor === null) {

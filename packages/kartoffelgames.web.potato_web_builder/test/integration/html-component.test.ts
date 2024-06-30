@@ -2,7 +2,8 @@ import { expect } from 'chai';
 import { Component, IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../source/core/component/component';
 import { ComponentRegister } from '../../source/core/component/component-register';
 import { PwbComponent } from '../../source/core/component/pwb-component.decorator';
-import { CoreEntityUpdateZone, UpdateLoopError } from '../../source/core/core_entity/core-entity-update-zone';
+import { UpdateLoopError } from '../../source/core/core_entity/core-entity-update-zone';
+import { CoreEntityProcessorProxy } from '../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy';
 import { UpdateMode } from '../../source/core/enum/update-mode.enum';
 import { UpdateTrigger } from '../../source/core/enum/update-trigger.enum';
 import { IExpressionOnUpdate } from '../../source/core/module/expression_module/expression-module';
@@ -11,7 +12,6 @@ import { PwbExport } from '../../source/module/export/pwb-export.decorator';
 import '../mock/request-animation-frame-mock-session';
 import '../utility/chai-helper';
 import { TestUtil } from '../utility/test-util';
-import { CoreEntityInteractionEvent, CoreEntityProcessorProxy } from '../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy';
 
 describe('HtmlComponent', () => {
     it('-- Single element', async () => {
@@ -188,14 +188,14 @@ describe('HtmlComponent', () => {
             updateScope: UpdateMode.Manual
         })
         class TestComponent {
-            private readonly mUpdater: CoreEntityUpdateZone;
-            public constructor(pUpdateReference: CoreEntityUpdateZone) {
-                this.mUpdater = pUpdateReference;
+            private readonly mComponent: Component;
+            public constructor(pUpdateReference: Component) {
+                this.mComponent = pUpdateReference;
             }
 
             @PwbExport
             public update(): void {
-                this.mUpdater.update();
+                this.mComponent.update();
             }
         }
 
@@ -216,24 +216,34 @@ describe('HtmlComponent', () => {
         const lIsolatedSelector: string = TestUtil.randomSelector();
 
         // Setup. Define component.
+        let lIsolatedUpdated: boolean = false;
         @PwbComponent({
             selector: lIsolatedSelector,
             template: '{{this.innerValue}}',
             updateScope: UpdateMode.Isolated
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class CapsuledTestComponent {
+        class CapsuledTestComponent implements IComponentOnUpdate {
             @PwbExport
             public innerValue: string = '';
+
+            onUpdate(): void {
+                lIsolatedUpdated = true;
+            }
         }
 
-        // Process. Define component.   
+        // Process. Define component.
+        let lDefaultUpdated: boolean = false;
         @PwbComponent({
             selector: TestUtil.randomSelector(),
             template: `<${lIsolatedSelector}/>`,
             updateScope: UpdateMode.Default
         })
-        class TestComponent { }
+        class TestComponent implements IComponentOnUpdate {
+            onUpdate(): void {
+                lDefaultUpdated = true;
+            }
+        }
 
         // Process. Create and initialize element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
@@ -244,17 +254,9 @@ describe('HtmlComponent', () => {
         await TestUtil.waitForUpdate(lComponent);
         await TestUtil.waitForUpdate(lCapsuledContent);
 
-        // Set update listener.
-        let lWasUpdated: boolean = false;
-        TestUtil.getComponentManager(lComponent)?.getProcessorAttribute<CoreEntityUpdateZone>(CoreEntityUpdateZone)?.addUpdateListener(async (pReason: CoreEntityInteractionEvent) => {
-            lWasUpdated = pReason.data.property === 'innerValue' || lWasUpdated;
-        });
-
-        // Set update listener.
-        let lInnerValueWasUpdated: boolean = false;
-        TestUtil.getComponentManager(lCapsuledContent)?.getProcessorAttribute<CoreEntityUpdateZone>(CoreEntityUpdateZone)?.zone.addInteractionListener(UpdateTrigger, async (pReason: CoreEntityInteractionEvent) => {
-            lInnerValueWasUpdated = pReason.data.property === 'innerValue' || lInnerValueWasUpdated;
-        });
+        // Reset update 
+        lIsolatedUpdated = false;
+        lDefaultUpdated = false;
 
         // Proccess. Change Capsuled value.
         lCapsuledContent.innerValue = '12';
@@ -262,8 +264,8 @@ describe('HtmlComponent', () => {
         await TestUtil.waitForUpdate(lCapsuledContent);
 
         // Evaluation.
-        expect(lWasUpdated, 'TestComponent').to.be.false;
-        expect(lInnerValueWasUpdated, 'CapsuledTestComponent').to.be.true;
+        expect(lDefaultUpdated, 'TestComponent').to.be.false;
+        expect(lIsolatedUpdated, 'CapsuledTestComponent').to.be.true;
     });
 
     it('-- Custom expression module', async () => {
@@ -452,9 +454,9 @@ describe('HtmlComponent', () => {
         class TestComponent implements IComponentOnUpdate {
             public innerValue: number = 1;
 
-            private readonly mUpdater: CoreEntityUpdateZone;
-            public constructor(pUpdateReference: CoreEntityUpdateZone) {
-                this.mUpdater = pUpdateReference;
+            private readonly mComponent: Component;
+            public constructor(pComponent: Component) {
+                this.mComponent = pComponent;
             }
 
             public onUpdate(): void {
@@ -464,7 +466,7 @@ describe('HtmlComponent', () => {
 
             private triggerUpdate(): void {
                 this.innerValue++;
-                this.mUpdater.update();
+                this.mComponent.update();
             }
         }
 

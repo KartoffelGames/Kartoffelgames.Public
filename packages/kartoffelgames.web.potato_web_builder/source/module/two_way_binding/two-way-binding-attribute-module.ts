@@ -1,7 +1,6 @@
-import { CoreEntityUpdateZone } from '../../core/core_entity/core-entity-update-zone';
 import { AccessMode } from '../../core/enum/access-mode.enum';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
-import { IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module';
+import { AttributeModule, IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module';
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
 import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute';
 import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
@@ -21,16 +20,14 @@ export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
     private readonly mTargetNode: Node;
     private readonly mWriteProcedure: ModuleValueProcedure<void>;
 
-
-
     /**
      * Constructor.
      * @param pTargetNode - Target element.
      * @param pModuleValues - Scoped values of component.
      * @param pModuleAttribute - Module attribute.
-     * @param pUpdateZone - Component update zone.
+     * @param pAttributeModule - Attribute module.
      */
-    public constructor(pTargetNode: ModuleTargetNode, pModuleValues: ModuleValues, pModuleAttribute: ModuleAttribute, pUpdateZone: CoreEntityUpdateZone) {
+    public constructor(pTargetNode: ModuleTargetNode, pModuleValues: ModuleValues, pModuleAttribute: ModuleAttribute, pAttributeModule: AttributeModule) {
         this.mTargetNode = pTargetNode;
 
         // Get property name.
@@ -45,7 +42,7 @@ export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
         this.mLastViewValue = Symbol('Uncomparable');
 
         // Patch target. Do nothing with it.
-        pUpdateZone.registerObject(this.mTargetNode);
+        pAttributeModule.registerObject(this.mTargetNode);
     }
 
     /**

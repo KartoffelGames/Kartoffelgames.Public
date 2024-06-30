@@ -1,5 +1,4 @@
 
-import { CoreEntityUpdateZone } from '../../core_entity/core-entity-update-zone';
 import { ScopedValues } from '../../scoped-values';
 import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
 import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
@@ -14,7 +13,6 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
     private readonly mComponentValues: ScopedValues;
     private readonly mContent: TContent;
     private readonly mTemplate: TTemplates;
-    private readonly mUpdateZone: CoreEntityUpdateZone;
 
     /**
      * Content anchor for later appending build and initilised elements on this place.
@@ -38,13 +36,6 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
     }
 
     /**
-     * Components update zone.
-     */
-    public get updateZone(): CoreEntityUpdateZone {
-        return this.mUpdateZone;
-    }
-
-    /**
      * Get component values of builder.
      */
     public get values(): ScopedValues {
@@ -64,7 +55,7 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
      * @param pTemplate - Builder template.
      * @param pParentScopedValues - New component values.
      */
-    public constructor(pTemplate: TTemplates, pParentScopedValues: ScopedValues, pContent: TContent, pUpdateZone: CoreEntityUpdateZone) {
+    public constructor(pTemplate: TTemplates, pParentScopedValues: ScopedValues, pContent: TContent) {
         // Clone template.
         this.mTemplate = pTemplate;
         this.mTemplate.parent = null; // Nodes doesn't need a real parent. Maidenless nodes.
@@ -72,12 +63,10 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
         // Create new scoped of values with inside parent scope.
         this.mComponentValues = new ScopedValues(pParentScopedValues);
         this.mContent = pContent;
-        this.mUpdateZone = pUpdateZone;
 
         // Link this builder as content.
         pContent.setCoreBuilder(this);
     }
-
 
     /**
      * Cleanup all modules, content and anchor.
@@ -134,17 +123,13 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
 
             // Create custom element.
             if (typeof lCustomElement !== 'undefined') {
-                // Create new custom element inside update zone to connect both update zones.
-                return this.updateZone.switchToUpdateZone(() => {
-                    return new lCustomElement();
-                });
+                // Create new custom element.
+                return new lCustomElement();
             }
         }
 
-        // Create new element inside update zone to connect both update zones.
-        return this.updateZone.switchToUpdateZone(() => {
-            return document.createElement(lTagname);
-        });
+        // Create new element .
+        return document.createElement(lTagname);
     }
 
     /**

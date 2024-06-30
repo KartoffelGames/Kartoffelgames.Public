@@ -48,13 +48,6 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
     }
 
     /**
-     * Update zone of core entity.
-     */
-    protected get updateZone(): CoreEntityUpdateZone {
-        return this.mUpdateZone;
-    }
-
-    /**
      * Constructor.
      * Takes over parent injections.
      * 
@@ -83,10 +76,12 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
         }
 
         // Try to read interaction stack from parent.
-        const lParentInteractionZone: InteractionZone | undefined = pParameter.parent?.updateZone.zone;
+        const lParentInteractionZone: InteractionZone | null = pParameter.parent?.mUpdateZone.zone ?? null;
 
         // Create new updater for every component entity.
-        this.mUpdateZone = new CoreEntityUpdateZone(pParameter.processorConstructor.name, !!pParameter.isolateInteraction, pParameter.interactionTrigger, lParentInteractionZone);
+        this.mUpdateZone = new CoreEntityUpdateZone(pParameter.processorConstructor.name, !!pParameter.isolateInteraction, pParameter.interactionTrigger, lParentInteractionZone, async () => {
+            return this.onUpdate();
+        });
 
         // TODO: Add update(): Promise<boolean> and abstract onUpdate(): Promise<boolean> to every core entity and make it all async. Lets see what we get.
         // TODO: When everything is async and working. Check the current updatezone frame time and reshedule current update task to new frame when the current frame would take to long.
@@ -116,7 +111,7 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
         }
 
         // Call function in update trigger zone.
-        return this.updateZone.switchToUpdateZone(() => {
+        return this.mUpdateZone.switchToUpdateZone(() => {
             return lPropertyFunction.call(this.processor, pParameter);
         });
     }
@@ -135,6 +130,15 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
      */
     public getProcessorAttribute<T>(pInjectionTarget: InjectionConstructor): T | undefined {
         return this.mInjections.get(pInjectionTarget);
+    }
+
+    /**
+     * Register object and pass on update events.
+     * 
+     * @param pObject - Object.
+     */
+    public registerObject<T extends object>(pObject: T): T {
+        return this.mUpdateZone.registerObject(pObject);
     }
 
     /**
@@ -184,7 +188,7 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
      * @returns true when a update happened and false when nothing was updated.
      */
     public async update(): Promise<boolean> {
-        return this.onUpdate();
+        return this.mUpdateZone.update();
     }
 
     /**
@@ -218,7 +222,7 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
         this.mIsLocked = true;
 
         // Create processor.
-        let lProcessor: TProcessor = this.updateZone.switchToUpdateZone(() => {
+        let lProcessor: TProcessor = this.mUpdateZone.switchToUpdateZone(() => {
             return Injection.createObject<TProcessor>(this.mProcessorConstructor, this.mInjections);
         });
 

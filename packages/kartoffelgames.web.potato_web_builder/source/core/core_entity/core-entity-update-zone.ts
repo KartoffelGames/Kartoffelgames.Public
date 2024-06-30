@@ -205,7 +205,7 @@ export class CoreEntityUpdateZone {
             if (this.mUpdateInformation.shedule.nextTask === null) {
                 return { updated: lUpdated, error: null };
             } else {
-                // TODO: Why are these not correctly chaining??????
+                // Buffer next task and allow another one to be chained.
                 const lNextTask: CoreEntityInteractionEvent = this.mUpdateInformation.shedule.nextTask;
                 this.mUpdateInformation.shedule.nextTask = null;
 

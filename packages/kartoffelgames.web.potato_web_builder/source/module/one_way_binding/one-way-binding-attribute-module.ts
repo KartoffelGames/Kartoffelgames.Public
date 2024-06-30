@@ -46,18 +46,18 @@ export class OneWayBindingAttributeModule implements IAttributeOnUpdate {
      * @returns false for 'do not update'.
      */
     public onUpdate(): boolean {
+        // Read current value.
         const lExecutionResult: any = this.mProcedure.execute();
-
-        if (lExecutionResult !== this.mLastValue) {
-            // Save last value.
-            this.mLastValue = lExecutionResult;
-
-            // Set view object property.
-            Reflect.set(this.mTarget, this.mTargetProperty, lExecutionResult);
-
-            return true;
+        if (lExecutionResult === this.mLastValue) {
+            return false;
         }
 
-        return false;
+        // Save last value.
+        this.mLastValue = lExecutionResult;
+
+        // Set view object property.
+        Reflect.set(this.mTarget, this.mTargetProperty, lExecutionResult);
+
+        return true;
     }
 }

@@ -60,6 +60,7 @@ export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
 
             // Update view compare with same value. 
             this.mLastDataValue = lCurrentDataValue;
+            this.mLastViewValue = lCurrentDataValue;
 
             // Set flag that value was updated.
             return true;
@@ -77,6 +78,7 @@ export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
 
             // Update compare.
             this.mLastViewValue = lCurrentViewValue;
+            this.mLastDataValue = lCurrentViewValue;
 
             // Set flag that value was updated.
             return true;

@@ -217,23 +217,8 @@ export class CoreEntityUpdateZone {
                 };
             }
         } catch (pException) {
-            // Cancel next call cycle.
-            globalThis.cancelAnimationFrame(this.mUpdateInformation.shedule.sheduledIdentifier ?? 0);
-
-            // Permanently block another execution for this update zone. Prevents script locks.
-            if (CoreEntityUpdateZone.mDebugger.configuration.throwWhileUpdating) {
-                // Block shedulling another task.
-                this.mUpdateInformation.shedule.sheduledIdentifier = -1;
-
-                // Exit execution with error.
-                return { updated: false, error: pException };
-            } else {
-                // Print debug information.
-                CoreEntityUpdateZone.mDebugger.print(pException);
-
-                // Exit execution without error.
-                return { updated: false, error: null };
-            }
+            // No update happened on errors.
+            return { updated: false, error: pException };
         }
     }
 
@@ -300,8 +285,25 @@ export class CoreEntityUpdateZone {
             // When anything has updated, clear running task.
             this.mUpdateInformation.shedule.runningIdentifier = null;
 
-            // Release chain complete hook with error.
-            this.releaseUpdateChainCompleteHooks(lExecutionTask.updated, lExecutionTask.error);
+            // Handle errors.
+            if(lExecutionTask.error){
+                // Cancel next call cycle.
+                globalThis.cancelAnimationFrame(this.mUpdateInformation.shedule.sheduledIdentifier ?? 0);
+
+                if (CoreEntityUpdateZone.mDebugger.configuration.throwWhileUpdating) {
+                    // Block shedulling another task.
+                    this.mUpdateInformation.shedule.sheduledIdentifier = -1;
+                } else {
+                    // Print error.
+                    CoreEntityUpdateZone.mDebugger.print(lExecutionTask.error);
+
+                    // But remove it.
+                    lExecutionTask.error = null;
+                }
+            }
+
+            // Release chain complete hook without error.
+            this.releaseUpdateChainCompleteHooks(lExecutionTask.updated,lExecutionTask.error);
         });
 
         // Add then chain to current promise task. Task is resolved on completing all updates or rejected on any error. 

@@ -15,9 +15,9 @@ export class ExpressionModule extends BaseModule<IPwbExpressionModuleProcessor> 
      */
     public constructor(pParameter: ExpressionModuleConstructorParameter) {
         super({
-            processorConstructor: pParameter.processorConstructor,
+            constructor: pParameter.constructor,
             parent: pParameter.parent,
-            interactionTrigger: pParameter.interactionTrigger,
+            trigger: pParameter.trigger,
             values: pParameter.values
         });
 

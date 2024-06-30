@@ -18,8 +18,8 @@ export class CoreEntityUpdateZone {
 
     private readonly mInteractionZone: InteractionZone;
     private readonly mRegisteredObjects: WeakMap<object, CoreEntityProcessorProxy<object>>;
+    private readonly mUpdateFunction: UpdateListener;
     private readonly mUpdateInformation: UpdateInformation;
-    private readonly mUpdateListener: UpdateListener;
 
     /**
      * Constructor.
@@ -27,7 +27,7 @@ export class CoreEntityUpdateZone {
      */
     public constructor(pParameter: CoreEntityUpdateZoneConstructorParameter) {
         this.mRegisteredObjects = new WeakMap<object, CoreEntityProcessorProxy<object>>();
-        this.mUpdateListener = pParameter.listener;
+        this.mUpdateFunction = pParameter.onUpdate;
 
         // Init loop detection values.
         this.mUpdateInformation = {
@@ -49,13 +49,21 @@ export class CoreEntityUpdateZone {
         // Create isolated or default zone as parent zone or, when not specified, current zones child.
         const lRandomLabelSuffix: string = Math.floor(Math.random() * 0xffffff).toString(16);
         this.mInteractionZone = lParentInteractionZone.create(`${pParameter.label}-ProcessorZone (${lRandomLabelSuffix})`, { isolate: pParameter.isolate })
-            .addTriggerRestriction(UpdateTrigger, pParameter.interactionTrigger);
+            .addTriggerRestriction(UpdateTrigger, pParameter.trigger);
+    }
 
+    /**
+     * Add update trigger to entity.
+     * Autmatic update is triggered when a interaction with the set triggers is pushed to the zone.
+     * 
+     * @param pUpdateTrigger - Triggers that should update trigger a update.
+     */
+    public addUpdateTrigger(pUpdateTrigger: UpdateTrigger): void {
         // Add listener for interactions. Shedules an update on interaction zone.
         this.mInteractionZone.addInteractionListener(UpdateTrigger, (pReason: CoreEntityInteractionEvent) => {
-            // Force creation needed for updating.
-            if (!pParameter.autoUpdate) { // TODO: Remove this and set up a "addUpdateTrigger(trigger)" bullshit so the entity itself handles their updates.
-                return; // TODO: This  break the update cycle by updating before calling update().
+            // Only update
+            if ((pUpdateTrigger & pUpdateTrigger) === 0) {
+                return;
             }
 
             // Shedule auto update.
@@ -124,22 +132,19 @@ export class CoreEntityUpdateZone {
 
     /**
      * Manual update component.
+     * Allways triggers with {@link UpdateTrigger.Manual}.
      * 
      * @public
      */
     public async update(): Promise<boolean> {
-        // Create event values.
-        const lTrigger: UpdateTrigger = UpdateTrigger.Manual;
-        const lData: CoreEntityInteractionData = {
+        // Create independend interaction event for manual shedule.
+        const lManualUpdateEvent: CoreEntityInteractionEvent = new InteractionEvent<UpdateTrigger, CoreEntityInteractionData>(UpdateTrigger, UpdateTrigger.Manual, this.mInteractionZone, {
             source: this,
             property: Symbol('Manual Update')
-        };
-
-        // Create independend interaction event for manual shedule.
-        const lReason: CoreEntityInteractionEvent = new InteractionEvent<UpdateTrigger, CoreEntityInteractionData>(UpdateTrigger, lTrigger, this.mInteractionZone, lData);
+        });
 
         // Shedule an update task.
-        return this.sheduleUpdateTask(lReason);
+        return this.sheduleUpdateTask(lManualUpdateEvent);
     }
 
     /**
@@ -173,7 +178,7 @@ export class CoreEntityUpdateZone {
             console.log(this.mInteractionZone.name, 'OPEN:', pFrameTimeStamp);
             // Call task. If no other call was sheduled during this call, the length will be the same after. 
             this.mUpdateInformation.chain.hasUpdated ||= await this.mInteractionZone.execute(async () => {
-                return this.mUpdateListener.call(this, pUpdateTask);
+                return this.mUpdateFunction.call(this, pUpdateTask);
             });
             console.log(this.mInteractionZone.name, 'CLOSE:', pFrameTimeStamp);
 
@@ -306,12 +311,31 @@ export class CoreEntityUpdateZone {
 }
 
 type CoreEntityUpdateZoneConstructorParameter = {
+    /**
+     * Debug label.
+     */
     label: string;
+
+    /**
+     * Isolate trigger and dont send them to parent zones.
+     */
     isolate: boolean;
-    interactionTrigger: UpdateTrigger;
+
+    /**
+     * Trigger that can be send to this and parent zones.
+     * When any zone added a updateTrigger, they can auto update with them.
+     */
+    trigger: UpdateTrigger;
+
+    /**
+     * Parent updater.
+     */
     parent: CoreEntityUpdateZone | undefined;
-    listener: UpdateListener;
-    autoUpdate: boolean;
+
+    /**
+     * Function executed on sheduled update.
+     */
+    onUpdate: UpdateListener;
 };
 
 type UpdateChainCompleteHookRelease = (pUpdated: boolean, pError: any) => void;

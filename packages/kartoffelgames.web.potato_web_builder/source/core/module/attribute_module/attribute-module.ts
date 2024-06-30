@@ -22,9 +22,9 @@ export class AttributeModule extends BaseModule<IPwbAttributeModuleProcessor> {
      */
     public constructor(pParameter: StaticModuleConstructorParameter) {
         super({
-            processorConstructor: pParameter.processorConstructor,
+            constructor: pParameter.constructor,
             parent: pParameter.parent,
-            interactionTrigger: pParameter.interactionTrigger,
+            trigger: pParameter.trigger,
             values: pParameter.values,
         });
 

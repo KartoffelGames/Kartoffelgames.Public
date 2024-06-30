@@ -11,10 +11,10 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
      */
     constructor(pParameter: BaseModuleConstructorParameter<TModuleProcessor>) {
         super({
-            processorConstructor: pParameter.processorConstructor,
+            constructor: pParameter.constructor,
             parent: pParameter.parent,
-            isolateInteraction: false,
-            interactionTrigger: pParameter.interactionTrigger,
+            isolate: false,
+            trigger: pParameter.trigger,
             createOnSetup: true
         });
 

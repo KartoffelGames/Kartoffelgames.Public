@@ -37,9 +37,9 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
      */
     public constructor(pParameter: ComponentConstructorParameter) {
         super({
-            processorConstructor: pParameter.processorConstructor,
-            interactionTrigger: ((pParameter.updateMode & UpdateMode.Manual) === 0) ? UpdateTrigger.Any : UpdateTrigger.None,
-            isolateInteraction: (pParameter.updateMode & UpdateMode.Isolated) !== 0
+            constructor: pParameter.processorConstructor,
+            trigger: ((pParameter.updateMode & UpdateMode.Manual) === 0) ? UpdateTrigger.Any : UpdateTrigger.None,
+            isolate: (pParameter.updateMode & UpdateMode.Isolated) !== 0
         });
 
         // Register component and element.

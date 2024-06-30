@@ -80,12 +80,12 @@ export class ComponentModules {
         // Create new module, setup and return.
         return new AttributeModule({
             accessMode: lAttributeModuleSetup.processorConfiguration.access,
-            processorConstructor: lAttributeModuleSetup.processorConstructor,
+            constructor: lAttributeModuleSetup.processorConstructor,
             parent: this.mComponent,
             targetNode: pTargetNode,
             targetTemplate: pTemplate,
             values: pValues,
-            interactionTrigger: lAttributeModuleSetup.processorConfiguration.trigger
+            trigger: lAttributeModuleSetup.processorConfiguration.trigger
         }).setup();
     }
 
@@ -124,12 +124,12 @@ export class ComponentModules {
 
         // Build, setup and return new expression module.
         return new ExpressionModule({
-            processorConstructor: lExpressionSetup.processorConstructor,
+            constructor: lExpressionSetup.processorConstructor,
             parent: this.mComponent,
             targetNode: pTargetNode,
             targetTemplate: pTemplate,
             values: pValues,
-            interactionTrigger: lExpressionSetup.processorConfiguration.trigger
+            trigger: lExpressionSetup.processorConfiguration.trigger
         }).setup();
     }
 
@@ -166,11 +166,11 @@ export class ComponentModules {
 
         // Build, setup and return new instruction module.
         return new InstructionModule({
-            processorConstructor: lInstructioneModuleSetup.processorConstructor,
+            constructor: lInstructioneModuleSetup.processorConstructor,
             parent: this.mComponent,
             targetTemplate: pTemplate,
             values: pValues,
-            interactionTrigger: lInstructioneModuleSetup.processorConfiguration.trigger
+            trigger: lInstructioneModuleSetup.processorConfiguration.trigger
         }).setup();
     }
 }

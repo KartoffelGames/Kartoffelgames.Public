@@ -17,7 +17,7 @@ export enum UpdateTrigger {
     Manual = 1 << 5,
 
     /**
-     * Manual
+     * HTML input changes.
      */
     InputChange = 1 << 6,
 

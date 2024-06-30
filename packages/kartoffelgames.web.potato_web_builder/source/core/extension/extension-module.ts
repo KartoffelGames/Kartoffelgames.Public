@@ -11,10 +11,10 @@ export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> im
      */
     public constructor(pConstructor: IPwbExtensionModuleProcessorConstructor, pParent: CoreEntity, pInteractionTrigger: UpdateTrigger) {
         super({
-            processorConstructor: pConstructor,
+            constructor: pConstructor,
             parent: pParent,
-            isolateInteraction: false,
-            interactionTrigger: pInteractionTrigger,
+            isolate: false,
+            trigger: pInteractionTrigger,
             createOnSetup: true
         });
 

@@ -54,7 +54,7 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
      * @param pParent - Parent of user entity.
      */
     public constructor(pParameter: CoreEntityConstructorParameter<TProcessor>) {
-        this.mProcessorConstructor = pParameter.processorConstructor;
+        this.mProcessorConstructor = pParameter.constructor;
         this.mCreateOnSetup = !!pParameter.createOnSetup;
 
         // Set empty defaults.
@@ -76,11 +76,11 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
 
         // Create new updater for every component entity.
         this.mUpdateZone = new CoreEntityUpdateZone({
-            label: pParameter.processorConstructor.name,
-            isolate: !!pParameter.isolateInteraction,
-            interactionTrigger: pParameter.interactionTrigger,
+            label: pParameter.constructor.name,
+            isolate: !!pParameter.isolate,
+            trigger: pParameter.trigger,
             parent: pParameter.parent?.mUpdateZone,
-            listener: async () => {
+            onUpdate: async () => {
                 return this.onUpdate();
             }
         });
@@ -257,10 +257,27 @@ type PropertyFunctionParameter<TProcessor extends object, TProperty extends keyo
  * Constructor parameter.
  */
 export type CoreEntityConstructorParameter<TProcessor> = {
-    processorConstructor: CoreEntityProcessorConstructor<TProcessor>;
-    interactionTrigger: UpdateTrigger; // TODO: Rename to better understand that this trigger does not update, but will be send to parent zones.
+    /**
+     * Processor constructor.
+     */
+    constructor: CoreEntityProcessorConstructor<TProcessor>;
+
+    /**
+     * Trigger that can be send to this and parent zones.
+     * When any zone added a updateTrigger, they can auto update with them.
+     */
+    trigger: UpdateTrigger;
+
+    /**
+     * Parent entity..
+     */
     parent?: CoreEntity | undefined;
-    isolateInteraction?: boolean;
+
+    /**
+     * Isolate trigger and dont send them to parent zones.
+     */
+    isolate?: boolean;
+
     createOnSetup?: boolean; // TODO: Remove it and let it handle over setup hook.
 };
 export type CoreEntityProcessorConstructor<TProcessor = object> = new (...pParameter: Array<any>) => TProcessor;

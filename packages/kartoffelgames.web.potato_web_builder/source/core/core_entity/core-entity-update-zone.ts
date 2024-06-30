@@ -22,17 +22,10 @@ export class CoreEntityUpdateZone {
     private readonly mUpdateListener: UpdateListener;
 
     /**
-     * Get zone where updates are tracked.
-     */
-    public get zone(): InteractionZone {
-        return this.mInteractionZone;
-    }
-
-    /**
      * Constructor.
      * @param pUpdateScope - Update scope.
      */
-    public constructor(pLabel: string, pIsolatedInteraction: boolean, pInteractionTrigger: UpdateTrigger, pParentZone: InteractionZone | null, pListener: UpdateListener) {
+    public constructor(pLabel: string, pIsolatedInteraction: boolean, pInteractionTrigger: UpdateTrigger, pParentUpdater: CoreEntityUpdateZone | null, pListener: UpdateListener) {
         this.mRegisteredObjects = new WeakMap<object, CoreEntityProcessorProxy<object>>();
         this.mUpdateListener = pListener;
 
@@ -50,7 +43,7 @@ export class CoreEntityUpdateZone {
         };
 
         // Create isolated or default zone as parent zone or, when not specified, current zones child.
-        this.mInteractionZone = (pParentZone ?? InteractionZone.current).create(`${pLabel}-ProcessorZone`, { isolate: pIsolatedInteraction }).addTriggerRestriction(UpdateTrigger, pInteractionTrigger);
+        this.mInteractionZone = (pParentUpdater?.mInteractionZone ?? InteractionZone.current).create(`${pLabel}-ProcessorZone`, { isolate: pIsolatedInteraction }).addTriggerRestriction(UpdateTrigger, pInteractionTrigger);
 
         // Add listener for interactions. Shedules an update on interaction zone.
         this.mInteractionZone.addInteractionListener(UpdateTrigger, (pReason: CoreEntityInteractionEvent) => {

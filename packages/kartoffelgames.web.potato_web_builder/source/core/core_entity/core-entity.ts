@@ -1,8 +1,7 @@
 import { Dictionary, Exception, IDeconstructable } from '@kartoffelgames/core';
 import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { CoreEntityUpdateZone } from './core-entity-update-zone';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
-import { InteractionZone } from '@kartoffelgames/web.interaction-zone';
+import { CoreEntityUpdateZone } from './core-entity-update-zone';
 
 export abstract class CoreEntity<TProcessor extends object = object> implements IDeconstructable {
     private readonly mCoreEntitySetupHookList: Array<CoreEntitySetupHook>;
@@ -75,11 +74,11 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
             }
         }
 
-        // Try to read interaction stack from parent.
-        const lParentInteractionZone: InteractionZone | null = pParameter.parent?.mUpdateZone.zone ?? null;
+        // Try to read updater from parent.
+        const lParentUpdater: CoreEntityUpdateZone  | null = pParameter.parent?.mUpdateZone ?? null;
 
         // Create new updater for every component entity.
-        this.mUpdateZone = new CoreEntityUpdateZone(pParameter.processorConstructor.name, !!pParameter.isolateInteraction, pParameter.interactionTrigger, lParentInteractionZone, async () => {
+        this.mUpdateZone = new CoreEntityUpdateZone(pParameter.processorConstructor.name, !!pParameter.isolateInteraction, pParameter.interactionTrigger, lParentUpdater, async () => {
             return this.onUpdate();
         });
 

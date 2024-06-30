@@ -37,8 +37,8 @@ export class CoreEntityUpdateZone {
                 hasUpdated: false
             },
             shedule: {
-                currentIdentifier: null
-                // nextIsSheduled: false,
+                runningIdentifier: null,
+                nextTask: null
             }
         };
 
@@ -151,6 +151,77 @@ export class CoreEntityUpdateZone {
         });
     }
 
+    private async executeTask(pUpdateTask: CoreEntityInteractionEvent, pFrameTimeStamp: number): Promise<void> {
+        // Sheduled task executed, allow another task to be executed.
+        this.mUpdateInformation.shedule.runningIdentifier = null;
+
+        // Save current call chain length. Used to detect a new chain link after execution.
+        const lLastCallChainLength: number = this.mUpdateInformation.chain.list.length;
+
+        try {
+            // TODO: Reshedule task when frame time exceeds a time (100ms?)
+            // But keep chain complete hooks open, dont extend chain.
+
+            // Measure performance.
+            const lStartPerformance = globalThis.performance.now();
+
+            // Call task. If no other call was sheduled during this call, the length will be the same after. 
+            this.mUpdateInformation.chain.hasUpdated ||= await this.mInteractionZone.execute(async () => {
+                return this.mUpdateListener.call(this, pUpdateTask);
+            });
+
+            // Log performance time.
+            if (CoreEntityUpdateZone.mDebugger.configuration.logUpdatePerformance) {
+                CoreEntityUpdateZone.mDebugger.print('Update performance:', this.mInteractionZone.name,
+                    '\n\t', 'Update time:', globalThis.performance.now() - lStartPerformance,
+                    '\n\t', 'Frame  time:', globalThis.performance.now() - pFrameTimeStamp,
+                    '\n\t', 'Frame  timestamp:', pFrameTimeStamp,
+                );
+            }
+
+            // Throw if too many calles were chained.
+            if (this.mUpdateInformation.chain.list.length > CoreEntityUpdateZone.MAX_STACK_SIZE) {
+                throw new UpdateLoopError('Call loop detected', this.mUpdateInformation.chain.list);
+            }
+
+            // Clear call chain list if no other call in this cycle was made.
+            if (lLastCallChainLength === this.mUpdateInformation.chain.list.length) { // TODO: this.mUpdateInformation.shedule.nextTask === null
+                const lWasUpdated: boolean = this.mUpdateInformation.chain.hasUpdated;
+
+                // Clear update chain list.
+                this.mUpdateInformation.chain.list.clear();
+                this.mUpdateInformation.chain.hasUpdated = false;
+
+                // Release chain complete hook.
+                this.releaseUpdateChainCompleteHooks(lWasUpdated);
+            } else {
+                // TODO: Execute next task without shedule.
+                //this.mUpdateInformation.shedule.nextTask
+            }
+        } catch (pException) {
+            // Unblock further calls and clear call chain.
+            this.mUpdateInformation.chain.list.clear();
+            this.mUpdateInformation.chain.hasUpdated = false;
+
+            // Cancel next call cycle.
+            globalThis.cancelAnimationFrame(this.mUpdateInformation.shedule.runningIdentifier ?? 0);
+
+            // Permanently block another execution for this update zone. Prevents script locks.
+            if (CoreEntityUpdateZone.mDebugger.configuration.throwWhileUpdating) {
+                // Block anything.
+                this.mUpdateInformation.shedule.runningIdentifier = -1;
+
+                // Release chain complete hook with error.
+                this.releaseUpdateChainCompleteHooks(false, pException);
+            } else {
+                // Release chain complete hook without error.
+                this.releaseUpdateChainCompleteHooks(false);
+
+                CoreEntityUpdateZone.mDebugger.print(pException);
+            }
+        }
+    }
+
     /**
      * Release all chain complete hooks.
      * Pass on any thrown error to all hook releases.
@@ -175,97 +246,30 @@ export class CoreEntityUpdateZone {
      * 
      * @returns if anything was updated.
      */
-    private async sheduleUpdateTask(pReason: CoreEntityInteractionEvent): Promise<boolean> {
+    private async sheduleUpdateTask(pUpdateTask: CoreEntityInteractionEvent): Promise<boolean> {
         // Log update trigger time.
         if (CoreEntityUpdateZone.mDebugger.configuration.logUpdaterTrigger) {
             CoreEntityUpdateZone.mDebugger.print('Update trigger:', this.mInteractionZone.name,
-                '\n\t', 'Trigger:', pReason.toString(),
-                '\n\t', 'Is trigger:', this.mUpdateInformation.shedule.currentIdentifier === null,
+                '\n\t', 'Trigger:', pUpdateTask.toString(),
+                '\n\t', 'Is trigger:', this.mUpdateInformation.shedule.runningIdentifier === null,
                 '\n\t', 'Updatechain: ', this.mUpdateInformation.chain.list.map((pReason) => { return pReason.toString(); }),
-                '\n\t', 'Stacktrace:', { stack: pReason.stacktrace },
+                '\n\t', 'Stacktrace:', { stack: pUpdateTask.stacktrace },
             );
         }
 
-        // Function for asynchron call.
-        const lAsynchronTask = async (pFrameTimeStamp: number) => {
-            // Sheduled task executed, allow another task to be executed.
-            this.mUpdateInformation.shedule.currentIdentifier = null;
-
-            // Save current call chain length. Used to detect a new chain link after execution.
-            const lLastCallChainLength: number = this.mUpdateInformation.chain.list.length;
-
-            try {
-                // TODO: Reshedule task when frame time exceeds a time (100ms?)
-                // But keep chain complete hooks open, dont extend chain.
-
-                // Measure performance.
-                const lStartPerformance = globalThis.performance.now();
-
-                // Call task. If no other call was sheduled during this call, the length will be the same after. 
-                this.mUpdateInformation.chain.hasUpdated ||= await this.mInteractionZone.execute(async () => {
-                    return this.mUpdateListener.call(this, pReason);
-                });
-
-                // Log performance time.
-                if (CoreEntityUpdateZone.mDebugger.configuration.logUpdatePerformance) {
-                    CoreEntityUpdateZone.mDebugger.print('Update performance:', this.mInteractionZone.name,
-                        '\n\t', 'Update time:', globalThis.performance.now() - lStartPerformance,
-                        '\n\t', 'Frame  time:', globalThis.performance.now() - pFrameTimeStamp,
-                        '\n\t', 'Frame  timestamp:', pFrameTimeStamp,
-                    );
-                }
-
-                // Throw if too many calles were chained.
-                if (this.mUpdateInformation.chain.list.length > CoreEntityUpdateZone.MAX_STACK_SIZE) {
-                    throw new UpdateLoopError('Call loop detected', this.mUpdateInformation.chain.list);
-                }
-
-                // Clear call chain list if no other call in this cycle was made.
-                if (lLastCallChainLength === this.mUpdateInformation.chain.list.length) {
-                    const lWasUpdated: boolean = this.mUpdateInformation.chain.hasUpdated;
-
-                    // Clear update chain list.
-                    this.mUpdateInformation.chain.list.clear();
-                    this.mUpdateInformation.chain.hasUpdated = false;
-
-                    // Release chain complete hook.
-                    this.releaseUpdateChainCompleteHooks(lWasUpdated);
-                }
-            } catch (pException) {
-                // Unblock further calls and clear call chain.
-                this.mUpdateInformation.chain.list.clear();
-                this.mUpdateInformation.chain.hasUpdated = false;
-
-                // Cancel next call cycle.
-                globalThis.cancelAnimationFrame(this.mUpdateInformation.shedule.currentIdentifier ?? 0);
-
-                // Permanently block another execution for this update zone. Prevents script locks.
-                if (CoreEntityUpdateZone.mDebugger.configuration.throwWhileUpdating) {
-                    // Block anything.
-                    this.mUpdateInformation.shedule.currentIdentifier = -1;
-
-                    // Release chain complete hook with error.
-                    this.releaseUpdateChainCompleteHooks(false, pException);
-                } else {
-                    // Release chain complete hook without error.
-                    this.releaseUpdateChainCompleteHooks(false);
-
-                    CoreEntityUpdateZone.mDebugger.print(pException);
-                }
-            }
-        };
-
         // Skip asynchron task when currently a call is sheduled.
-        if (this.mUpdateInformation.shedule.currentIdentifier !== null) {
+        if (this.mUpdateInformation.shedule.runningIdentifier !== null) {
             // Add then chain to current promise task. Task is resolved on completing all updates or rejected on any error. 
             return this.addUpdateChainCompleteHook();
         }
 
         // Create and expand call chain.
-        this.mUpdateInformation.chain.list.push(pReason);
+        this.mUpdateInformation.chain.list.push(pUpdateTask);
 
         // Call on next frame. 
-        this.mUpdateInformation.shedule.currentIdentifier = globalThis.requestAnimationFrame(lAsynchronTask);
+        this.mUpdateInformation.shedule.runningIdentifier = globalThis.requestAnimationFrame(async (pFrameTimeStamp: number) => {
+            this.executeTask(pUpdateTask, pFrameTimeStamp);
+        });
 
         // Add then chain to current promise task. Task is resolved on completing all updates or rejected on any error. 
         return this.addUpdateChainCompleteHook();
@@ -287,8 +291,8 @@ type UpdateInformation = {
         hasUpdated: boolean;
     };
     shedule: {
-        currentIdentifier: number | null;
-        // nextIsSheduled: boolean;
+        runningIdentifier: number | null;
+        nextTask: CoreEntityInteractionEvent | null;
     };
     hookList: List<UpdateChainCompleteHookRelease>;
 };

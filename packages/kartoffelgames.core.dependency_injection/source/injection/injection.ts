@@ -58,18 +58,18 @@ export class Injection {
 
             return [!!pForceCreateOrLocalInjections, pLocalInjections ?? new Dictionary<InjectionConstructor, any>()];
         })();
-
+        
         // Find constructor in decoration replacement history that was used for registering. Only root can be registered.
         const lRegisteredConstructor: InjectionConstructor = DecorationReplacementHistory.getOriginalOf(pConstructor);
         if (!Injection.mInjectableConstructor.has(lRegisteredConstructor)) {
             throw new Exception(`Constructor "${pConstructor.name}" is not registered for injection and can not be build`, Injection);
         }
 
-        // Get injection mode.
-        const lInjecttionMode: InjectMode | undefined = Injection.mInjectMode.get(lRegisteredConstructor);
-
-        // Return cached sinleton object if not forced to create a new one.
-        if (!lForceCreate && lInjecttionMode === InjectMode.Singleton && Injection.mSingletonMapping.has(lRegisteredConstructor)) {
+        // Get injection mode. Allways defaultsa to instanced, when force created.
+        const lInjectionMode: InjectMode = !lForceCreate ? Injection.mInjectMode.get(lRegisteredConstructor)! : InjectMode.Instanced;
+        
+        // Return cached singleton object if not forced to create a new one.
+        if (!lForceCreate && lInjectionMode === InjectMode.Singleton && Injection.mSingletonMapping.has(lRegisteredConstructor)) {
             return <T>Injection.mSingletonMapping.get(lRegisteredConstructor);
         }
 
@@ -85,7 +85,7 @@ export class Injection {
             let lParameterObject: object;
 
             // Check if parameter can be replaced with an local injection
-            if (lLocalInjections.has(lParameterType)) {
+            if (lInjectionMode !== InjectMode.Singleton && lLocalInjections.has(lParameterType)) {
                 lParameterObject = lLocalInjections.get(lParameterType);
             } else {
                 // Read original parameter type used as replacement key.
@@ -121,7 +121,7 @@ export class Injection {
         const lCreatedObject: T = <T>new pConstructor(...lConstructorParameter);
 
         // Cache singleton objects but only if not forced to create.
-        if (lInjecttionMode === InjectMode.Singleton && lLocalInjections.size === 0 && !Injection.mSingletonMapping.has(lRegisteredConstructor)) {
+        if (lInjectionMode === InjectMode.Singleton && !Injection.mSingletonMapping.has(lRegisteredConstructor)) {
             Injection.mSingletonMapping.add(lRegisteredConstructor, lCreatedObject);
         }
 

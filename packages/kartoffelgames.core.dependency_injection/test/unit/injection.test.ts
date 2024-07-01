@@ -141,6 +141,26 @@ describe('Injection', () => {
             expect(lCreatedObjectOne).to.not.equal(lCreatedObjectTwo);
         });
 
+        it('-- Singleton with injection replacements', () => {
+            // Setup.
+            @InjectableSingleton
+            class TestA { 
+                constructor(_pReplacement: string) {}
+            }
+
+            // Setup.
+            const lReplacements: Dictionary<InjectionConstructor, any> = new Dictionary<InjectionConstructor, any>();
+            lReplacements.set(String, 'TestValue');
+
+            // Process.
+            const lCreatedObjectOne: TestA = Injection.createObject(TestA, lReplacements);
+            const lCreatedObjectTwo: TestA = Injection.createObject(TestA, lReplacements);
+
+            // Evaluation.
+            expect(lCreatedObjectOne).to.be.instanceOf(TestA);
+            expect(lCreatedObjectOne).to.equal(lCreatedObjectTwo);
+        });
+
         it('-- Default with layered history', () => {
             // Setup.
             @Injectable
@@ -310,6 +330,7 @@ describe('Injection', () => {
             expect(lObjectOne).to.be.instanceOf(TestA);
 
             expect(lObjectOne).to.equal(lObjectTwo);
+            expect(lObjectTwo).to.equal(lObjectLocalInjections);
 
             expect(lObjectLocalInjections.mParameter).to.equal(lLocalInjectionParameter);
             expect(lObjectLocalInjections.mParameter).to.be.instanceOf(TestParameterLocalInjection);

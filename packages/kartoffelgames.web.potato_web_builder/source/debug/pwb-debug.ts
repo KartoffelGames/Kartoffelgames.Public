@@ -2,22 +2,12 @@ export class PwbDebug {
     private static mInstance: PwbDebug;
 
     private readonly mConfiguration!: ComponentDebugConfiguration;
-    private mLogLevelType!: PwbDebugLogLevel;
 
     /**
      * Debug configuration.
      */
     public get configuration(): ComponentDebugConfiguration {
         return this.mConfiguration;
-    }
-
-    /**
-     * Log level.
-     */
-    public get logLevel(): PwbDebugLogLevel {
-        return this.mLogLevelType;
-    } set logLevel(pValue: PwbDebugLogLevel) {
-        this.mLogLevelType = pValue;
     }
 
     /**
@@ -34,13 +24,18 @@ export class PwbDebug {
 
         // Set default information.
         this.mConfiguration = {
-            throwWhileUpdating: true,
+            // Error handling.
+            error: {
+                ignore: false
+            },
 
             // Debug logging.
-            logUpdatePerformance: false,
-            logUpdaterTrigger: false,
+            log: {
+                filter: PwbDebugLogLevel.All,
+                updatePerformance: false,
+                updaterTrigger: false
+            }
         };
-        this.mLogLevelType = PwbDebugLogLevel.None;
     }
 
     /**
@@ -49,7 +44,7 @@ export class PwbDebug {
      * @param pArguments - Print arguments.
      */
     public print(pLogLevel: PwbDebugLogLevel, ...pArguments: Array<any>): void {
-        if ((pLogLevel & this.logLevel) === 0) {
+        if ((pLogLevel & this.mConfiguration.log.filter) === 0) {
             return;
         }
 
@@ -59,9 +54,17 @@ export class PwbDebug {
 }
 
 type ComponentDebugConfiguration = {
-    throwWhileUpdating: boolean;
-    logUpdatePerformance: boolean;
-    logUpdaterTrigger: boolean;
+    // Error handling.
+    error : {
+        ignore: boolean;
+    }
+
+    // Logging.
+    log: {
+        filter: PwbDebugLogLevel;
+        updatePerformance: boolean;
+        updaterTrigger: boolean;
+    }
 };
 
 export enum PwbDebugLogLevel {

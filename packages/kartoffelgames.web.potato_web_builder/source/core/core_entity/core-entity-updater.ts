@@ -195,7 +195,7 @@ export class CoreEntityUpdater {
             }) || pUpdatedState;
 
             // Log performance time.
-            if (CoreEntityUpdater.mDebugger.configuration.logUpdatePerformance) {
+            if (CoreEntityUpdater.mDebugger.configuration.log.updatePerformance) {
                 CoreEntityUpdater.mDebugger.print(this.mDebugLevel, 'Update performance:', this.mInteractionZone.name,
                     '\n\t', 'Update time:', globalThis.performance.now() - lStartPerformance,
                     '\n\t', 'Frame  time:', globalThis.performance.now() - pFrameTimeStamp,
@@ -257,7 +257,7 @@ export class CoreEntityUpdater {
      */
     private async sheduleUpdateTask(pUpdateTask: CoreEntityInteractionEvent): Promise<boolean> {
         // Log update trigger time.
-        if (CoreEntityUpdater.mDebugger.configuration.logUpdaterTrigger) {
+        if (CoreEntityUpdater.mDebugger.configuration.log.updaterTrigger) {
             CoreEntityUpdater.mDebugger.print(this.mDebugLevel, 'Update trigger:', this.mInteractionZone.name,
                 '\n\t', 'Trigger:', pUpdateTask.toString(),
                 '\n\t', 'Is dropped:', this.mUpdateInformation.shedule.sheduledIdentifier !== null,
@@ -307,7 +307,7 @@ export class CoreEntityUpdater {
                     // Cancel next call cycle.
                     globalThis.cancelAnimationFrame(this.mUpdateInformation.shedule.sheduledIdentifier ?? 0);
 
-                    if (CoreEntityUpdater.mDebugger.configuration.throwWhileUpdating) {
+                    if (!CoreEntityUpdater.mDebugger.configuration.error.ignore) {
                         // Block shedulling another task.
                         this.mUpdateInformation.shedule.sheduledIdentifier = -1;
                     } else {

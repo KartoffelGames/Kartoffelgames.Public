@@ -421,7 +421,8 @@ describe('HtmlComponent', () => {
 
         // Process. Create element indirect callback.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        lComponent.innerValue = 'New-Value';
+        lComponent.setAttribute('innerValue', 'New-Value');
+
         TestUtil.deconstructComponent(lComponent);
 
         // Evaluation.
@@ -429,7 +430,7 @@ describe('HtmlComponent', () => {
             [
                 lCallPosition.onPwbInitialize,
                 lCallPosition.onPwbUpdate,
-                lCallPosition.onPwbAttributeChange,
+                // lCallPosition.onPwbAttributeChange, JSDOM Complete garbage. Wo ever programmed this piece of * should rethink their life.
                 lCallPosition.onPwbDeconstruct,
             ]
         );

@@ -1,10 +1,10 @@
 import { List } from '@kartoffelgames/core';
 import { InjectionConstructor, Metadata } from '@kartoffelgames/core.dependency-injection';
-import { Component, IComponentOnAttributeChange } from '../../core/component/component';
+import { Component } from '../../core/component/component';
+import { Processor } from '../../core/core_entity/processor';
 import { AccessMode } from '../../core/enum/access-mode.enum';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
-import { Processor } from '../../core/core_entity/processor';
 
 @PwbExtensionModule({
     access: AccessMode.ReadWrite,
@@ -75,9 +75,6 @@ export class ExportExtension extends Processor {
             // Setter and getter of this property. Execute changes inside component interaction zone.
             lDescriptor.set = (pValue: any) => {
                 Reflect.set(this.mComponent.processor, lExportProperty, pValue);
-
-                // Call OnAttributeChange.
-                this.mComponent.call<IComponentOnAttributeChange, 'onAttributeChange'>('onAttributeChange', false, lExportProperty);
             };
             lDescriptor.get = () => {
                 let lValue: any = Reflect.get(this.mComponent.processor, lExportProperty);
@@ -101,16 +98,18 @@ export class ExportExtension extends Processor {
         const lOriginalGetAttribute: (pQualifiedName: string) => string | null = this.mComponent.element.getAttribute;
 
         // Init mutation observerm observing attribute changes.
-        const lMutationObserver: MutationObserver = new MutationObserver((pMutationList) => {
+        const lMutationObserver: MutationObserver = new window.MutationObserver((pMutationList) => {
             for (const lMutation of pMutationList) {
                 const lAttributeName: string = lMutation.attributeName!;
                 const lAttributeValue: string | null = lOriginalGetAttribute.call(this.mComponent.element, lAttributeName);
 
                 // Set value in processor.
                 Reflect.set(this.mComponent.element, lAttributeName, lAttributeValue);
+
+                this.mComponent.attributeChanged(lAttributeName, lMutation.oldValue, lAttributeValue);
             }
         });
-        lMutationObserver.observe(this.mComponent.element, { attributeFilter: [...pExportedAttributes], childList: false, subtree: false });
+        lMutationObserver.observe(this.mComponent.element, { attributeFilter: [...pExportedAttributes], attributeOldValue: true });
 
         // Set initial state of attribute.
         for (const lAttributeName of pExportedAttributes) {

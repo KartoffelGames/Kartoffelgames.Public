@@ -116,6 +116,8 @@ describe('Export', () => {
         // Process. Create element and click div.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
         lComponent.setAttribute('value', lTestValue);
+        await TestUtil.waitForUpdate(lComponent);
+
         const lResultValue: string = lComponent.value;
 
         // Evaluation.

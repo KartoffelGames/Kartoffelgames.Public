@@ -99,6 +99,18 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
     }
 
     /**
+     * Called when a html attribute changes.
+     * 
+     * @param pAttributeName - The name of the attribute which changed.
+     * @param pOldValue - The attribute's old value.
+     * @param pNewValue - The attribute's new value.
+     */
+    public attributeChanged(pAttributeName: string, pOldValue: string | null, pNewValue: string | null): void {
+        // Call OnAttributeChange.
+        this.call<IComponentOnAttributeChange, 'onAttributeChange'>('onAttributeChange', false, pAttributeName, pOldValue, pNewValue);
+    }
+
+    /**
      * Called when component get attached to DOM.
      */
     public connected(): void {
@@ -202,7 +214,7 @@ export interface IComponentOnUpdate {
     onUpdate(): void;
 }
 export interface IComponentOnAttributeChange {
-    onAttributeChange(pAttributeName: string): void;
+    onAttributeChange(pAttributeName: string, pOldValue: string | null, pNewValue: string | null): void;
 }
 export interface IComponentOnConnect {
     onConnect(): void;

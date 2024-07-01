@@ -14,7 +14,7 @@ describe('StatefullSerializer', () => {
             class TestObject { }
 
             // Process.
-            const lConstructor: SerializeableConstructor = StatefullSerializeableClasses.instance.getClass(lClassId);
+            const lConstructor: SerializeableConstructor = StatefullSerializeableClasses.getClass(lClassId);
 
             // Evaluation.
             expect(lConstructor).to.equal(TestObject);
@@ -26,7 +26,7 @@ describe('StatefullSerializer', () => {
 
             // Process.
             const lErrorFunction = () => {
-                StatefullSerializeableClasses.instance.getClass(lClassId);
+                StatefullSerializeableClasses.getClass(lClassId);
             };
 
             // Evaluation.
@@ -44,7 +44,7 @@ describe('StatefullSerializer', () => {
             class TestObject { }
 
             // Process.
-            const lResultClassId: SerializeableGuid = StatefullSerializeableClasses.instance.getClassId(TestObject);
+            const lResultClassId: SerializeableGuid = StatefullSerializeableClasses.getClassId(TestObject);
 
             // Evaluation.
             expect(lResultClassId).to.equal(lClassId);
@@ -56,7 +56,7 @@ describe('StatefullSerializer', () => {
 
             // Process.
             const lErrorFunction = () => {
-                StatefullSerializeableClasses.instance.getClassId(TestObject);
+                StatefullSerializeableClasses.getClassId(TestObject);
             };
 
             // Evaluation.
@@ -70,14 +70,14 @@ describe('StatefullSerializer', () => {
         class TestObject { }
 
         // Process.
-        StatefullSerializeableClasses.instance.registerClass(TestObject, lClassId, () => {
+        StatefullSerializeableClasses.registerClass(TestObject, lClassId, () => {
             return {};
         });
 
         // Evaluation.
-        expect(StatefullSerializeableClasses.instance.getClass(lClassId)).to.equal(TestObject);
-        expect(StatefullSerializeableClasses.instance.getClassId(TestObject)).to.equal(lClassId);
-        expect(StatefullSerializeableClasses.instance.getObjectConstructionParameter(new TestObject())).to.deep.equal({});
+        expect(StatefullSerializeableClasses.getClass(lClassId)).to.equal(TestObject);
+        expect(StatefullSerializeableClasses.getClassId(TestObject)).to.equal(lClassId);
+        expect(StatefullSerializeableClasses.getObjectConstructionParameter(new TestObject())).to.deep.equal({});
     });
 
     it('-- Method: getObjectConstructionParameter', () => {
@@ -88,12 +88,12 @@ describe('StatefullSerializer', () => {
 
         // Setup.
         class TestObject { }
-        StatefullSerializeableClasses.instance.registerClass(TestObject, '99835662-21fb-409d-a629-3d0c7db0a6e6', () => {
+        StatefullSerializeableClasses.registerClass(TestObject, '99835662-21fb-409d-a629-3d0c7db0a6e6', () => {
             return lParameter;
         });
 
         // Process.
-        const lResult = StatefullSerializeableClasses.instance.getObjectConstructionParameter(new TestObject());
+        const lResult = StatefullSerializeableClasses.getObjectConstructionParameter(new TestObject());
 
         // Evaluation.
         expect(lResult).to.equal(lParameter);

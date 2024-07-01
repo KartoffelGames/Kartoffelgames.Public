@@ -483,7 +483,7 @@ describe('StatefullSerializer', () => {
                 class TestClass { }
 
                 // Setup. Register class.
-                StatefullSerializeableClasses.instance.registerClass(TestClass, lClassId, () => {
+                StatefullSerializeableClasses.registerClass(TestClass, lClassId, () => {
                     return {
                         requiredValues: [{ propertyName: lRequiredName, value: lRequiredValue }]
                     };

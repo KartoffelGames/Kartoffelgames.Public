@@ -61,10 +61,10 @@ export class StatefullSerializer {
 
         // Objects with constructors.
         const lClassConstructor: SerializeableConstructor = <SerializeableConstructor>pObject.constructor;
-        const lClassId: SerializeableGuid = StatefullSerializeableClasses.instance.getClassId(lClassConstructor);
+        const lClassId: SerializeableGuid = StatefullSerializeableClasses.getClassId(lClassConstructor);
 
         // Read constructor parameter.
-        const lInitializationObject: StatefullSerializerInitializationParameter = StatefullSerializeableClasses.instance.getObjectConstructionParameter(pObject);
+        const lInitializationObject: StatefullSerializerInitializationParameter = StatefullSerializeableClasses.getObjectConstructionParameter(pObject);
 
         // Build initialization parameter.
         const lInitializationParameter: Array<ObjectifiedValue> | undefined = lInitializationObject.parameter?.map(pValue => {

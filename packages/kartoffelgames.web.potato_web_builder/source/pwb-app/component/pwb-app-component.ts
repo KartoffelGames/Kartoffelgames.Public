@@ -35,36 +35,28 @@ export class PwbAppComponent extends Processor implements IComponentOnConnect, I
     /**
      * Splashscreen animation time.
      */
-    @PwbExport get splashscreenAnimationTime(): number {
-        return this.splashscreenConfig.animationTime;
-    } set splashscreenAnimationTime(pMilliseconds: number) {
+    @PwbExport set splashscreenAnimationTime(pMilliseconds: number) {
         this.splashscreenConfig.animationTime = pMilliseconds;
     }
 
     /**
      * Splashscreen background.
      */
-    @PwbExport get splashscreenBackground(): string {
-        return this.splashscreenConfig.background;
-    } set splashscreenBackground(pValue: string) {
+    @PwbExport set splashscreenBackground(pValue: string) {
         this.splashscreenConfig.background = pValue;
     }
 
     /**
      * Splashscreen content
      */
-    @PwbExport get splashscreenContent(): PwbTemplate {
-        return this.splashscreenConfig.content;
-    } set splashscreenContent(pTemplate: PwbTemplate) {
+    @PwbExport set splashscreenContent(pTemplate: PwbTemplate) {
         this.splashscreenConfig.content = pTemplate;
     }
 
     /**
      * Splashscreen manual mode.
      */
-    @PwbExport get splashscreenManualMode(): boolean {
-        return this.splashscreenConfig.manual;
-    } set splashscreenManualMode(pValue: boolean) {
+    @PwbExport set splashscreenManualMode(pValue: boolean) {
         this.splashscreenConfig.manual = pValue;
     }
 
@@ -148,15 +140,6 @@ export class PwbAppComponent extends Processor implements IComponentOnConnect, I
      */
     @PwbExport async update(): Promise<void> {
         return this.mComponent.update().then();
-    }
-
-    /**
-     * Get splashscreen content.
-     * 
-     * @returns Cached splashscreen content.
-     */
-    public getSplacescreenContent(): PwbTemplate {
-        return this.splashscreenConfig.content;
     }
 
     /**

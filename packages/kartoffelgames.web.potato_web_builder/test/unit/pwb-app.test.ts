@@ -30,7 +30,7 @@ describe('PwbApp', () => {
         it('-- Correct component', async () => {
             // Setup.
             const lApp: PwbApp = new PwbApp();
-            lApp.setSplashScreen({ manual: true, animationTime: 10 });
+            lApp.setSplashScreen({ manual: true, animationTime: 0 });
             const lComponentSelector: string = TestUtil.randomSelector();
 
             // Setup. Define component.
@@ -54,7 +54,7 @@ describe('PwbApp', () => {
             // Setup.
             const lSelector: string = TestUtil.randomSelector();
             const lApp: PwbApp = new PwbApp();
-            lApp.setSplashScreen({ manual: true, animationTime: 10 });
+            lApp.setSplashScreen({ manual: true, animationTime: 0 });
 
             // Setup. Define component.
             @PwbComponent({
@@ -95,7 +95,7 @@ describe('PwbApp', () => {
             // Setup.
             const lDummyElement: HTMLDivElement = document.createElement('div');
             const lApp: PwbApp = new PwbApp();
-            lApp.setSplashScreen({ manual: true, animationTime: 10 });
+            lApp.setSplashScreen({ manual: true, animationTime: 0 });
 
             // Process.
             await lApp.appendTo(lDummyElement);
@@ -151,7 +151,7 @@ describe('PwbApp', () => {
 
         // Setup.
         const lApp: PwbApp = new PwbApp();
-        lApp.setSplashScreen({ manual: true, animationTime: 10 });
+        lApp.setSplashScreen({ manual: true, animationTime: 0 });
         lApp.addContent(TestComponent);
 
         // Process. Lof error.
@@ -201,7 +201,7 @@ describe('PwbApp', () => {
             // Setup.
             const lStyleContent: string = 'Content';
             const lApp: PwbApp = new PwbApp();
-            lApp.setSplashScreen({ animationTime: 10 });
+            lApp.setSplashScreen({ animationTime: 0 });
             await lApp.appendTo(document.body);
 
             // Process. Add style and wait.
@@ -220,7 +220,7 @@ describe('PwbApp', () => {
     it('Method: removeSplashScreen', async () => {
         // Setup.
         const lApp: PwbApp = new PwbApp();
-        lApp.setSplashScreen({ animationTime: 10 });
+        lApp.setSplashScreen({ animationTime: 0 });
 
         // Process
         await lApp.removeSplashScreen();
@@ -251,7 +251,7 @@ describe('PwbApp', () => {
             lApp.setSplashScreen({
                 background: lBackground,
                 content: lContent,
-                animationTime: 10,
+                animationTime: 0,
                 manual: true
             });
 
@@ -269,11 +269,13 @@ describe('PwbApp', () => {
         it('-- Manual splash screen', async () => {
             // Setup. Create app.
             const lApp: PwbApp = new PwbApp();
+            lApp.setSplashScreen({
+                animationTime: 0
+            });
 
             // Process. Create splash screen.
             lApp.setSplashScreen({
-                manual: true,
-                animationTime: 10
+                manual: true
             });
 
             // Process. Append and wait for splash screen remove

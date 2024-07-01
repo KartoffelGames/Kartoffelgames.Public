@@ -7,7 +7,7 @@ $for(styleText of this.styleList) {
 $if(this.splashscreenState.append) {
     <div class="splashscreen {{this.splashscreenState.hide ? 'hide' : ''}}" style="--transition-time-ms: {{this.splashscreenConfig.animationTime}}ms; --background: {{this.splashscreenConfig.background}}">
         <div class="splashscreen__content">
-            $dynamic-content(this.splashscreenContent)
+            $dynamic-content(this.splashscreenConfig.content)
         </div>
     </div>
 }

@@ -12,7 +12,7 @@ export function PwbExpressionModule(pSettings: ExpressionSettings): any {
         Injector.Injectable(pExpressionModuleConstructor);
 
         // Register module.
-        new CoreEntityRegister().register(ExpressionModule, pExpressionModuleConstructor, {
+        CoreEntityRegister.register(ExpressionModule, pExpressionModuleConstructor, {
             trigger: pSettings.trigger
         });
     };

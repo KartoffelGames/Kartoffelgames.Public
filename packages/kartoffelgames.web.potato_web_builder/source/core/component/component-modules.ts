@@ -4,11 +4,11 @@ import { CoreEntityProcessorConstructorSetup, CoreEntityRegister } from '../core
 import { AttributeModule, AttributeModuleConfiguration } from '../module/attribute_module/attribute-module';
 import { ExpressionModule, ExpressionModuleConfiguration, IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module';
 import { InstructionModule, InstructionModuleConfiguration } from '../module/instruction_module/instruction-module';
+import { ScopedValues } from '../scoped-values';
 import { Component } from './component';
 import { PwbTemplateInstructionNode } from './template/nodes/pwb-template-instruction-node';
 import { PwbTemplateAttribute } from './template/nodes/values/pwb-template-attribute';
 import { PwbTemplateExpression } from './template/nodes/values/pwb-template-expression';
-import { ScopedValues } from '../scoped-values';
 
 /**
  * Handles every kind of component modules. Keeps the current used expression module.
@@ -22,7 +22,6 @@ export class ComponentModules {
     private static readonly mInstructionModuleCache: Dictionary<string, CoreEntityProcessorConstructorSetup<InstructionModuleConfiguration>> = new Dictionary<string, CoreEntityProcessorConstructorSetup<InstructionModuleConfiguration>>();
 
     private readonly mComponent: Component;
-    private readonly mCoreEntityRegister: CoreEntityRegister;
     private readonly mExpressionModule: IPwbExpressionModuleProcessorConstructor;
 
     /**
@@ -35,7 +34,6 @@ export class ComponentModules {
         // Get expression module.
         this.mExpressionModule = pExpressionModule ?? <IPwbExpressionModuleProcessorConstructor><any>MustacheExpressionModule;
         this.mComponent = pComponent;
-        this.mCoreEntityRegister = new CoreEntityRegister();
     }
 
     /**
@@ -58,7 +56,7 @@ export class ComponentModules {
             }
 
             // On failed cache search for module setup.
-            for (const lSetup of this.mCoreEntityRegister.get<AttributeModuleConfiguration>(AttributeModule)) {
+            for (const lSetup of CoreEntityRegister.get<AttributeModuleConfiguration>(AttributeModule)) {
                 if (lSetup.processorConfiguration.selector.test(pTemplate.name)) {
                     // Cache setup and return
                     ComponentModules.mAttributeModuleCache.set(pTemplate.name, lSetup);
@@ -108,7 +106,7 @@ export class ComponentModules {
             }
 
             // On cache fail, filter for expression setup.
-            const lNewSetup: CoreEntityProcessorConstructorSetup<ExpressionModuleConfiguration> | undefined = this.mCoreEntityRegister.get<ExpressionModuleConfiguration>(ExpressionModule).find((pSetup: CoreEntityProcessorConstructorSetup<ExpressionModuleConfiguration>) => {
+            const lNewSetup: CoreEntityProcessorConstructorSetup<ExpressionModuleConfiguration> | undefined = CoreEntityRegister.get<ExpressionModuleConfiguration>(ExpressionModule).find((pSetup: CoreEntityProcessorConstructorSetup<ExpressionModuleConfiguration>) => {
                 return pSetup.processorConstructor === this.mExpressionModule;
             });
 
@@ -151,7 +149,7 @@ export class ComponentModules {
             }
 
             // On failed cache search for module setup.
-            for (const lSetup of this.mCoreEntityRegister.get<InstructionModuleConfiguration>(InstructionModule)) {
+            for (const lSetup of CoreEntityRegister.get<InstructionModuleConfiguration>(InstructionModule)) {
                 // Only manipulator modules.
                 if (lSetup.processorConfiguration.instructionType === pTemplate.instructionType) {
                     // Cache setup and return

@@ -1,7 +1,7 @@
 import { Injector } from '@kartoffelgames/core.dependency-injection';
+import { CoreEntityRegister } from '../../core_entity/core-entity-register';
 import { AccessMode } from '../../enum/access-mode.enum';
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
-import { CoreEntityRegister } from '../../core_entity/core-entity-register';
 import { AttributeModule, IPwbAttributeModuleProcessorConstructor } from './attribute-module';
 
 /**
@@ -16,7 +16,7 @@ export function PwbAttributeModule(pSettings: AttributeModuleSettings): any {
         Injector.Injectable(pProcessorConstructor);
 
         // Register module.
-        new CoreEntityRegister().register(AttributeModule, pProcessorConstructor, {
+        CoreEntityRegister.register(AttributeModule, pProcessorConstructor, {
             access: pSettings.access,
             selector: pSettings.selector,
             trigger: pSettings.trigger

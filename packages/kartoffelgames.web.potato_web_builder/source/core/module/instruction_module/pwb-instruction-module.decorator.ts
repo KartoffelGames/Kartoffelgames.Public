@@ -15,7 +15,7 @@ export function PwbInstructionModule(pSettings: InstructionModuleSettings): any 
         Injector.Injectable(pInstructionModuleConstructor);
 
         // Register module.
-        new CoreEntityRegister().register(InstructionModule, pInstructionModuleConstructor, {
+        CoreEntityRegister.register(InstructionModule, pInstructionModuleConstructor, {
             instructionType: pSettings.instructionType,
             trigger: pSettings.trigger
         });

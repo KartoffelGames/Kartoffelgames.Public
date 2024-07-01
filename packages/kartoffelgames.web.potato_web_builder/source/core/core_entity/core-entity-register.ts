@@ -2,8 +2,8 @@ import { Dictionary } from '@kartoffelgames/core';
 import { CoreEntity, CoreEntityProcessorConstructor } from './core-entity';
 import { Processor } from './processor';
 
-export class CoreEntityRegister {
-    private static mInstance: CoreEntityRegister;
+class CoreEntityRegisterSingleton {
+    private static mInstance: CoreEntityRegisterSingleton;
 
     private readonly mCoreEntityConstructor!: Dictionary<CoreEntityConstructor, Set<CoreEntityProcessorConstructor>>;
     private readonly mProcessorConstructorConfiguration!: Dictionary<CoreEntityProcessorConstructor, CoreEntityProcessorConstructorConfiguration>;
@@ -14,11 +14,11 @@ export class CoreEntityRegister {
      * Reuses single instance.
      */
     public constructor() {
-        if (CoreEntityRegister.mInstance) {
-            return CoreEntityRegister.mInstance;
+        if (CoreEntityRegisterSingleton.mInstance) {
+            return CoreEntityRegisterSingleton.mInstance;
         }
 
-        CoreEntityRegister.mInstance = this;
+        CoreEntityRegisterSingleton.mInstance = this;
 
         // Class storages.
         this.mCoreEntityConstructor = new Dictionary<CoreEntityConstructor, Set<CoreEntityProcessorConstructor>>();
@@ -86,3 +86,6 @@ export type CoreEntityProcessorConstructorSetup<TConfiguration extends CoreEntit
     processorConstructor: CoreEntityProcessorConstructor,
     processorConfiguration: TConfiguration;
 };
+
+
+export const CoreEntityRegister = new CoreEntityRegisterSingleton();

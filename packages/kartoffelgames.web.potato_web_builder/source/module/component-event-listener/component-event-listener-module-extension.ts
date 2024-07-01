@@ -7,13 +7,14 @@ import { AttributeModule } from '../../core/module/attribute_module/attribute-mo
 import { AccessMode } from '../../core/enum/access-mode.enum';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { ComponentEventListenerComponentExtension } from './component-event-listener-component-extension';
+import { Processor } from '../../core/core_entity/processor';
 
 @PwbExtensionModule({
     access: AccessMode.Read,
     trigger: UpdateTrigger.Any,
     targetRestrictions: [AttributeModule]
 })
-export class ComponentEventListenerModuleExtension implements IExtensionOnDeconstruct {
+export class ComponentEventListenerModuleExtension extends Processor implements IExtensionOnDeconstruct {
     private readonly mEventListenerList: Array<[string, EventListener]>;
     private readonly mTargetElement: Node;
 
@@ -26,6 +27,8 @@ export class ComponentEventListenerModuleExtension implements IExtensionOnDecons
      * @param pModuleElementReference - Component html element.
      */
     public constructor(pExtensionTargetModule: AttributeModule, pModuleElementReference: ModuleTargetNode) {
+        super();
+
         // Get event metadata.
         const lEventPropertyList: Array<[string, string]> = new Array<[string, string]>();
 

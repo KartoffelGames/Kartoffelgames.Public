@@ -1,3 +1,4 @@
+import { Processor } from '../../core/core_entity/processor';
 import { AccessMode } from '../../core/enum/access-mode.enum';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { IAttributeOnDeconstruct } from '../../core/module/attribute_module/attribute-module';
@@ -12,7 +13,7 @@ import { ModuleValues } from '../../core/module/module-values';
     selector: /^\([[\w\-$]+\)$/,
     trigger: UpdateTrigger.Any
 })
-export class EventAttributeModule implements IAttributeOnDeconstruct {
+export class EventAttributeModule extends Processor implements IAttributeOnDeconstruct {
     private readonly mEventName: string;
     private readonly mListener: (this: null, pEvent: any) => void;
     private readonly mTarget: Node;
@@ -24,6 +25,8 @@ export class EventAttributeModule implements IAttributeOnDeconstruct {
      * @param pModuleAttribute - Attribute of module.
      */
     public constructor(pTargetNode: ModuleTargetNode, pModuleValues: ModuleValues, pModuleAttribute: ModuleAttribute) {
+        super();
+        
         this.mTarget = pTargetNode;
         this.mEventName = pModuleAttribute.name.substring(1, pModuleAttribute.name.length - 1);
 

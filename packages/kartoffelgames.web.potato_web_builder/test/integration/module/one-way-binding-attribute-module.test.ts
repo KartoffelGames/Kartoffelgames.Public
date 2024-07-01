@@ -1,6 +1,7 @@
 import { expect } from 'chai';
-import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
+import { Processor } from '../../../source/core/core_entity/processor';
+import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
@@ -15,7 +16,7 @@ describe('OneWayBindingAttribute', () => {
             selector: TestUtil.randomSelector(),
             template: '<input [value]="this.userValue"/>'
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbExport
             public userValue: string = lInitialValue;
         }
@@ -39,7 +40,7 @@ describe('OneWayBindingAttribute', () => {
             selector: TestUtil.randomSelector(),
             template: '<input [value]="this.userValue"/>'
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbExport
             public userValue: string = 'INITIAL__VALUE';
         }

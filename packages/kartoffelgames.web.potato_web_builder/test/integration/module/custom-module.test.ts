@@ -1,18 +1,19 @@
 import { expect } from 'chai';
+import { ComponentScopedValues } from '../../../source/core/component/injection_reference/component-scoped-values';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
 import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from '../../../source/core/component/template/nodes/pwb-template-xml-node';
-import { ScopedValues } from '../../../source/core/scoped-values';
-import { ComponentScopedValues } from '../../../source/core/component/injection_reference/component-scoped-values';
+import { Processor } from '../../../source/core/core_entity/processor';
+import { AccessMode } from '../../../source/core/enum/access-mode.enum';
+import { UpdateTrigger } from '../../../source/core/enum/update-trigger.enum';
 import { PwbAttributeModule } from '../../../source/core/module/attribute_module/pwb-attribute-module.decorator';
 import { IInstructionOnUpdate } from '../../../source/core/module/instruction_module/instruction-module';
-import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator';
 import { InstructionResult } from '../../../source/core/module/instruction_module/instruction-result';
-import { AccessMode } from '../../../source/core/enum/access-mode.enum';
+import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator';
+import { ScopedValues } from '../../../source/core/scoped-values';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
-import { UpdateTrigger } from '../../../source/core/enum/update-trigger.enum';
 
 describe('Custom Module', () => {
     it('-- Same result, twice', async () => {
@@ -22,10 +23,12 @@ describe('Custom Module', () => {
             trigger: UpdateTrigger.Any
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class WrongModule implements IInstructionOnUpdate {
+        class WrongModule extends Processor implements IInstructionOnUpdate {
             private readonly mScopedValues: ScopedValues;
 
             public constructor(pValueReference: ComponentScopedValues) {
+                super();
+
                 this.mScopedValues = pValueReference;
             }
 
@@ -51,7 +54,7 @@ describe('Custom Module', () => {
             selector: TestUtil.randomSelector(),
             template: `$multiresult`
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Process. Create element.
         let lErrorMessage: string | null = null;
@@ -73,14 +76,14 @@ describe('Custom Module', () => {
             trigger: UpdateTrigger.Any
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class WrongModule { }
+        class WrongModule extends Processor { }
 
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
             template: `$noupdatemethod`
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Process. Create element.
         await <any>TestUtil.createComponent(TestComponent);
@@ -96,14 +99,14 @@ describe('Custom Module', () => {
             trigger: UpdateTrigger.Any
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class Module { }
+        class Module extends Processor { }
 
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
             template: `<div nodeconstructmethod/>`
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Process. Create element.
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);

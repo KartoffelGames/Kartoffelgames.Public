@@ -8,6 +8,7 @@ import { ModuleValues } from '../../core/module/module-values';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { ModuleExpression } from '../../core/module/injection_reference/module-expression';
 import { ModuleValueProcedure } from '../../core/module/module-value-procedure';
+import { Processor } from '../../core/core_entity/processor';
 
 /**
  * Dynamic content instruction.
@@ -17,7 +18,7 @@ import { ModuleValueProcedure } from '../../core/module/module-value-procedure';
     instructionType: 'dynamic-content',
     trigger: UpdateTrigger.Any & ~UpdateTrigger.UntrackableFunctionCall
 })
-export class DynamicContentInstructionModule implements IInstructionOnUpdate {
+export class DynamicContentInstructionModule extends Processor implements IInstructionOnUpdate {
     private mLastTemplate: PwbTemplate | null;
     private readonly mModuleValues: ModuleValues;
     private readonly mProcedure: ModuleValueProcedure<PwbTemplate>;
@@ -28,6 +29,8 @@ export class DynamicContentInstructionModule implements IInstructionOnUpdate {
      * @param pModuleValues - Scoped values of module.
      */
     public constructor(pExpressionValue: ModuleExpression, pModuleValues: ModuleValues) {
+        super();
+        
         this.mModuleValues = pModuleValues;
         this.mLastTemplate = null;
 

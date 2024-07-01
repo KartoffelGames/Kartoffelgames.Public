@@ -1,9 +1,10 @@
 import { IDeconstructable } from '@kartoffelgames/core';
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
+import { PwbDebugLogLevel } from '../../debug/pwb-debug';
+import { CoreEntity, CoreEntityProcessorConstructor } from '../core_entity/core-entity';
+import { Processor } from '../core_entity/processor';
 import { AccessMode } from '../enum/access-mode.enum';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
-import { CoreEntity, CoreEntityProcessorConstructor } from '../core_entity/core-entity';
-import { PwbDebugLogLevel } from '../../debug/pwb-debug';
 
 export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> implements IDeconstructable {
     /**
@@ -62,7 +63,7 @@ export interface IExtensionOnExecute {
 export interface IExtensionOnUpdate {
     onUpdate(): boolean;
 }
-export interface IPwbExtensionModuleProcessor extends Partial<IExtensionOnDeconstruct>, Partial<IExtensionOnExecute> { }
+export interface IPwbExtensionModuleProcessor extends Processor, Partial<IExtensionOnDeconstruct>, Partial<IExtensionOnExecute> { }
 export interface IPwbExtensionModuleProcessorConstructor extends CoreEntityProcessorConstructor<IPwbExtensionModuleProcessor> { }
 
 /**

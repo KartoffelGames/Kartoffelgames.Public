@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import { ComponentRegister } from '../../../source/core/component/component-register';
 import { ComponentScopedValues } from '../../../source/core/component/injection_reference/component-scoped-values';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
+import { Processor } from '../../../source/core/core_entity/processor';
 import { ScopedValues } from '../../../source/core/scoped-values';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
@@ -15,7 +16,7 @@ describe('ScopedValues', () => {
             @PwbComponent({
                 selector: TestUtil.randomSelector()
             })
-            class TestComponent { }
+            class TestComponent extends Processor { }
 
             // Setup. Create element.
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
@@ -33,13 +34,13 @@ describe('ScopedValues', () => {
             @PwbComponent({
                 selector: TestUtil.randomSelector()
             })
-            class TestComponentOne { }
+            class TestComponentOne extends Processor { }
 
             // Setup. Define component two.
             @PwbComponent({
                 selector: TestUtil.randomSelector()
             })
-            class TestComponentTwo { }
+            class TestComponentTwo extends Processor { }
 
             // Setup. Create element.
             const lComponentOne: HTMLElement = await <any>TestUtil.createComponent(TestComponentOne);
@@ -59,7 +60,7 @@ describe('ScopedValues', () => {
             @PwbComponent({
                 selector: TestUtil.randomSelector()
             })
-            class TestComponent { }
+            class TestComponent extends Processor { }
 
             // Setup. Create element.
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
@@ -82,7 +83,7 @@ describe('ScopedValues', () => {
             @PwbComponent({
                 selector: TestUtil.randomSelector()
             })
-            class TestComponent { }
+            class TestComponent extends Processor { }
 
             // Setup. Create element.
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
@@ -112,7 +113,7 @@ describe('ScopedValues', () => {
             @PwbComponent({
                 selector: TestUtil.randomSelector()
             })
-            class TestComponent { }
+            class TestComponent extends Processor { }
 
             // Setup. Create element and get root scope.
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
@@ -135,7 +136,7 @@ describe('ScopedValues', () => {
             @PwbComponent({
                 selector: TestUtil.randomSelector()
             })
-            class TestComponent { }
+            class TestComponent extends Processor { }
 
             // Setup. Create element and get root scope.
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
@@ -162,7 +163,7 @@ describe('ScopedValues', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);

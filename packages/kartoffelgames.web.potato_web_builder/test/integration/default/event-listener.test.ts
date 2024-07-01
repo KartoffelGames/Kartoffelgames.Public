@@ -1,22 +1,23 @@
 import { Exception } from '@kartoffelgames/core';
 import { expect } from 'chai';
-import { ModuleValues } from '../../../source';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
 import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template';
 import { PwbTemplateInstructionNode } from '../../../source/core/component/template/nodes/pwb-template-instruction-node';
-import { ScopedValues } from '../../../source/core/scoped-values';
-import { ModuleTemplate } from '../../../source/core/module/injection_reference/module-template';
+import { Processor } from '../../../source/core/core_entity/processor';
+import { AccessMode } from '../../../source/core/enum/access-mode.enum';
+import { UpdateTrigger } from '../../../source/core/enum/update-trigger.enum';
 import { PwbAttributeModule } from '../../../source/core/module/attribute_module/pwb-attribute-module.decorator';
+import { ModuleTemplate } from '../../../source/core/module/injection_reference/module-template';
 import { IInstructionOnUpdate } from '../../../source/core/module/instruction_module/instruction-module';
-import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator';
 import { InstructionResult } from '../../../source/core/module/instruction_module/instruction-result';
+import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator';
+import { ModuleValues } from '../../../source/core/module/module-values';
+import { ScopedValues } from '../../../source/core/scoped-values';
+import { PwbComponentEventListener } from '../../../source/module/component-event-listener/pwb-component-event-listener.decorator';
 import { ComponentEvent } from '../../../source/module/component-event/component-event';
 import { ComponentEventEmitter } from '../../../source/module/component-event/component-event-emitter';
 import { PwbComponentEvent } from '../../../source/module/component-event/pwb-component-event.decorator';
-import { PwbComponentEventListener } from '../../../source/module/component-event-listener/pwb-component-event-listener.decorator';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
-import { AccessMode } from '../../../source/core/enum/access-mode.enum';
-import { UpdateTrigger } from '../../../source/core/enum/update-trigger.enum';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
@@ -30,7 +31,7 @@ describe('PwbEventListener', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbComponentEventListener('click')
             private listener(_pEvent: MouseEvent) {
                 lEventCalled = true;
@@ -56,7 +57,7 @@ describe('PwbEventListener', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbComponentEvent('custom-event')
             private readonly mCustomEvent!: ComponentEventEmitter<string>;
 
@@ -86,7 +87,7 @@ describe('PwbEventListener', () => {
                 selector: TestUtil.randomSelector()
             })
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            class TestComponent {
+            class TestComponent extends Processor {
                 @PwbComponentEventListener('click')
                 private static listener(_pEvent: MouseEvent) {/* Empty */ }
             }
@@ -101,7 +102,7 @@ describe('PwbEventListener', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbComponentEventListener('click')
             private readonly mListener!: string;
         }
@@ -128,7 +129,7 @@ describe('PwbEventListener', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbComponentEventListener('click')
             private listenerOne(_pEvent: MouseEvent) {
                 lEventOneCalled = true;
@@ -157,7 +158,7 @@ describe('PwbEventListener', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbComponentEventListener('click')
             private listener(_pEvent: MouseEvent) {
                 lEventCalled = true;
@@ -183,7 +184,7 @@ describe('PwbEventListener', () => {
             trigger: UpdateTrigger.Any
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class MyModule {
+        class MyModule extends Processor {
             @PwbComponentEventListener('click')
             private listener(_pEvent: MouseEvent) {
                 lEventCalled = true;
@@ -195,7 +196,7 @@ describe('PwbEventListener', () => {
             selector: TestUtil.randomSelector(),
             template: '<div listenerTestModuleOne />'
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Process. Create element and click div.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
@@ -216,7 +217,7 @@ describe('PwbEventListener', () => {
             trigger: UpdateTrigger.Any
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class MyModule {
+        class MyModule extends Processor {
             @PwbComponentEventListener('click')
             private listener(_pEvent: MouseEvent) {
                 lEventCalled = true;
@@ -228,7 +229,7 @@ describe('PwbEventListener', () => {
             selector: TestUtil.randomSelector(),
             template: '<div listenerTestModuleTwo />'
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Process. Create element and click div.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
@@ -247,7 +248,7 @@ describe('PwbEventListener', () => {
             trigger: UpdateTrigger.Any
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class MyModule {
+        class MyModule extends Processor {
             @PwbComponentEventListener('click')
             private readonly mListener!: string;
         }
@@ -257,7 +258,7 @@ describe('PwbEventListener', () => {
             selector: TestUtil.randomSelector(),
             template: '<div listenerTestModuleThree />'
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Setup. Create element.
         let lErrorMessage: string | null = null;
@@ -272,7 +273,7 @@ describe('PwbEventListener', () => {
         expect(lErrorMessage).to.equal('Event listener property must be of type Function');
     });
 
-    it('-- Dont call event listener for instruction modules.', async () => {
+    it('-- Dont call event listener for instruction modules', async () => {
         // Process.
         let lEventCalled: boolean = false;
 
@@ -281,8 +282,10 @@ describe('PwbEventListener', () => {
             trigger: UpdateTrigger.Any
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class MyModule implements IInstructionOnUpdate {
-            public constructor(private readonly mTemplate: ModuleTemplate, private readonly mValue: ModuleValues) { }
+        class MyModule extends Processor implements IInstructionOnUpdate {
+            public constructor(private readonly mTemplate: ModuleTemplate, private readonly mValue: ModuleValues) {
+                super();
+            }
 
             onUpdate(): InstructionResult | null {
                 const lResult: InstructionResult = new InstructionResult();
@@ -306,7 +309,7 @@ describe('PwbEventListener', () => {
             selector: TestUtil.randomSelector(),
             template: '$listenerTestModuleFour{<div/>}'
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Process. Create element and click div.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
@@ -324,7 +327,7 @@ describe('PwbEventListener', () => {
         let lEventCalled: boolean = false;
 
         // Process. Define parent class.
-        class ParentClass {
+        class ParentClass extends Processor {
             @PwbComponentEventListener('click')
             private listener(_pEvent: MouseEvent) {
                 lEventCalled = true;

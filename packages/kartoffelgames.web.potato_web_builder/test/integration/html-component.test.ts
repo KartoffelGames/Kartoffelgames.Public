@@ -4,6 +4,7 @@ import { ComponentRegister } from '../../source/core/component/component-registe
 import { PwbComponent } from '../../source/core/component/pwb-component.decorator';
 import { UpdateLoopError } from '../../source/core/core_entity/core-entity-updater';
 import { CoreEntityProcessorProxy } from '../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy';
+import { Processor } from '../../source/core/core_entity/processor';
 import { UpdateMode } from '../../source/core/enum/update-mode.enum';
 import { UpdateTrigger } from '../../source/core/enum/update-trigger.enum';
 import { IExpressionOnUpdate } from '../../source/core/module/expression_module/expression-module';
@@ -20,7 +21,7 @@ describe('HtmlComponent', () => {
             selector: TestUtil.randomSelector(),
             template: `<div/>`
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Process. Create element.
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
@@ -37,7 +38,7 @@ describe('HtmlComponent', () => {
             selector: TestUtil.randomSelector(),
             template: '<div/><span/>'
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Process. Create element.
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
@@ -54,7 +55,7 @@ describe('HtmlComponent', () => {
             selector: TestUtil.randomSelector(),
             template: '<div><span/></div>'
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Process. Create element.
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
@@ -77,7 +78,7 @@ describe('HtmlComponent', () => {
             selector: TestUtil.randomSelector(),
             template: '<div><!-- Comment --></div>'
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
 
         // Process. Create element.
@@ -102,14 +103,14 @@ describe('HtmlComponent', () => {
             selector: lChildSelector
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class TestChildComponent { }
+        class TestChildComponent extends Processor { }
 
         // Setup. Define parent component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
             template: `<${lChildSelector}/><${lChildSelector}/>`
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Process. Create element.
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
@@ -127,7 +128,7 @@ describe('HtmlComponent', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Process. Create element.
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
@@ -146,7 +147,7 @@ describe('HtmlComponent', () => {
             selector: TestUtil.randomSelector(),
             style: lStyleContent
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Process. Create element.
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
@@ -167,7 +168,7 @@ describe('HtmlComponent', () => {
             template: '<div />',
             updateScope: UpdateMode.Manual
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Process. Create element.
         const lComponentConstructor: CustomElementConstructor = ComponentRegister.ofConstructor(TestComponent).elementConstructor;
@@ -187,9 +188,11 @@ describe('HtmlComponent', () => {
             template: '<div />',
             updateScope: UpdateMode.Manual
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             private readonly mComponent: Component;
             public constructor(pUpdateReference: Component) {
+                super();
+
                 this.mComponent = pUpdateReference;
             }
 
@@ -223,7 +226,7 @@ describe('HtmlComponent', () => {
             updateScope: UpdateMode.Isolated
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class CapsuledTestComponent implements IComponentOnUpdate {
+        class CapsuledTestComponent extends Processor implements IComponentOnUpdate {
             @PwbExport
             public innerValue: string = '';
 
@@ -239,7 +242,7 @@ describe('HtmlComponent', () => {
             template: `<${lIsolatedSelector}/>`,
             updateScope: UpdateMode.Default
         })
-        class TestComponent implements IComponentOnUpdate {
+        class TestComponent extends Processor implements IComponentOnUpdate {
             onUpdate(): void {
                 lDefaultUpdated = true;
             }
@@ -276,7 +279,7 @@ describe('HtmlComponent', () => {
         @PwbExpressionModule({
             trigger: UpdateTrigger.Any
         })
-        class TestExpressionModule implements IExpressionOnUpdate {
+        class TestExpressionModule extends Processor implements IExpressionOnUpdate {
             public onUpdate(): string {
                 return lExpressionValue;
             }
@@ -288,7 +291,7 @@ describe('HtmlComponent', () => {
             template: '<div>{{Anything}}</div>',
             expressionmodule: TestExpressionModule
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
@@ -309,7 +312,7 @@ describe('HtmlComponent', () => {
             selector: TestUtil.randomSelector(),
             template: '<unknowncomponent/>'
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Process. Create element.
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
@@ -326,7 +329,7 @@ describe('HtmlComponent', () => {
             selector: TestUtil.randomSelector(),
             template: '<unknown-component/>'
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Process. Create element.
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
@@ -342,9 +345,11 @@ describe('HtmlComponent', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector(),
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             private readonly mElementReference: Node;
             public constructor(pElementReference: Component) {
+                super();
+
                 this.mElementReference = pElementReference.element;
             }
 
@@ -380,13 +385,15 @@ describe('HtmlComponent', () => {
             selector: TestUtil.randomSelector(),
             template: '<div>{{this.innerValue}}</div>'
         })
-        class TestComponent implements IComponentOnUpdate, IComponentOnAttributeChange, IComponentOnDeconstruct {
+        class TestComponent extends Processor implements IComponentOnUpdate, IComponentOnAttributeChange, IComponentOnDeconstruct {
             @PwbExport
             public innerValue: string = 'DUMMY-VALUE';
 
             private mOnPwbUpdateCalled: boolean = false;
 
             public constructor() {
+                super();
+
                 lExpectedCallOrder.push(lCallPosition.onPwbInitialize);
             }
 
@@ -430,7 +437,7 @@ describe('HtmlComponent', () => {
             selector: TestUtil.randomSelector(),
             updateScope: UpdateMode.Manual
         })
-        class TestComponent implements IComponentOnDeconstruct {
+        class TestComponent extends Processor implements IComponentOnDeconstruct {
             public onDeconstruct(): void {
                 lWasDeconstructed = true;
             }
@@ -451,11 +458,13 @@ describe('HtmlComponent', () => {
             selector: TestUtil.randomSelector(),
             template: '<div>{{this.innerValue}}</div>'
         })
-        class TestComponent implements IComponentOnUpdate {
+        class TestComponent extends Processor implements IComponentOnUpdate {
             public innerValue: number = 1;
 
             private readonly mComponent: Component;
             public constructor(pComponent: Component) {
+                super();
+
                 this.mComponent = pComponent;
             }
 
@@ -491,7 +500,7 @@ describe('HtmlComponent', () => {
             selector: lSelector
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Process. Create element.
         const lComponentConstructor: CustomElementConstructor | undefined = window.customElements.get(lSelector);
@@ -513,8 +522,10 @@ describe('HtmlComponent', () => {
             selector: TestUtil.randomSelector(),
             template: `<div/>`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             public constructor() {
+                super();
+
                 lConstructionCalled = true;
             }
         }

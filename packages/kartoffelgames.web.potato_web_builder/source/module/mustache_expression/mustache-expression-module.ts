@@ -4,6 +4,7 @@ import { PwbExpressionModule } from '../../core/module/expression_module/pwb-exp
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { ModuleExpression } from '../../core/module/injection_reference/module-expression';
 import { ModuleValueProcedure } from '../../core/module/module-value-procedure';
+import { Processor } from '../../core/core_entity/processor';
 
 /**
  * Wannabe Mustache expression executor.
@@ -12,7 +13,7 @@ import { ModuleValueProcedure } from '../../core/module/module-value-procedure';
 @PwbExpressionModule({
     trigger: UpdateTrigger.Any & ~UpdateTrigger.UntrackableFunctionCall
 })
-export class MustacheExpressionModule implements IExpressionOnUpdate {
+export class MustacheExpressionModule extends Processor implements IExpressionOnUpdate {
     private readonly mProcedure: ModuleValueProcedure<any>;
 
     /**
@@ -22,6 +23,8 @@ export class MustacheExpressionModule implements IExpressionOnUpdate {
      * @param pModuleExpression - Expression value.
      */
     public constructor(pModuleValues: ModuleValues, pModuleExpression: ModuleExpression) {
+        super();
+
         this.mProcedure = pModuleValues.createExpressionProcedure(pModuleExpression.value);
     }
 

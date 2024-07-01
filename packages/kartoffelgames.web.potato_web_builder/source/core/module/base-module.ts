@@ -4,6 +4,7 @@ import { CoreEntityProcessorConstructor } from '../core_entity/core-entity';
 import { CoreEntityExtendable, CoreEntityExtendableConstructorParameter } from '../core_entity/core-entity-extendable';
 import { ModuleValues } from './module-values';
 import { PwbDebugLogLevel } from '../../debug/pwb-debug';
+import { Processor } from '../core_entity/processor';
 
 export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> extends CoreEntityExtendable<TModuleProcessor> implements IDeconstructable {
     /**
@@ -49,5 +50,5 @@ export type BaseModuleConstructorParameter<TProcessor extends IPwbModuleProcesso
 export interface IBaseModuleOnDeconstruct {
     onDeconstruct(): void;
 }
-export interface IPwbModuleProcessor extends Partial<IBaseModuleOnDeconstruct> { }
+export interface IPwbModuleProcessor extends Processor, Partial<IBaseModuleOnDeconstruct> { }
 export interface IPwbModuleProcessorConstructor<TModuleProcessor extends IPwbModuleProcessor> extends CoreEntityProcessorConstructor<TModuleProcessor> { }

@@ -5,13 +5,14 @@ import { IExtensionOnDeconstruct } from '../../core/extension/extension-module';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
 import { AccessMode } from '../../core/enum/access-mode.enum';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
+import { Processor } from '../../core/core_entity/processor';
 
 @PwbExtensionModule({
     access: AccessMode.Read,
     trigger: UpdateTrigger.Any,
     targetRestrictions: [Component]
 })
-export class ComponentEventListenerComponentExtension implements IExtensionOnDeconstruct {
+export class ComponentEventListenerComponentExtension extends Processor implements IExtensionOnDeconstruct {
     public static readonly METADATA_USER_EVENT_LISTENER_PROPERIES: string = 'pwb:user_event_listener_properties';
 
     private readonly mEventListenerList: Array<[string, EventListener]>;
@@ -24,6 +25,8 @@ export class ComponentEventListenerComponentExtension implements IExtensionOnDec
      * @param pComponent - Component processor.
      */
     public constructor(pComponent: Component) {
+        super();
+        
         // Get event metadata.
         const lEventPropertyList: Array<[string, string]> = new Array<[string, string]>();
 

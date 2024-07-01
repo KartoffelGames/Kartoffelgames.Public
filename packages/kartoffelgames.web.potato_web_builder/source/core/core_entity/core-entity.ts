@@ -3,8 +3,9 @@ import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency
 import { UpdateTrigger } from '../enum/update-trigger.enum';
 import { CoreEntityUpdater } from './core-entity-updater';
 import { PwbDebugLogLevel } from '../../debug/pwb-debug';
+import { Processor } from './processor';
 
-export abstract class CoreEntity<TProcessor extends object = object> implements IDeconstructable {
+export abstract class CoreEntity<TProcessor extends Processor = Processor> implements IDeconstructable {
     private readonly mHooks: CoreEntityHooks<TProcessor>;
     private readonly mInjections: Dictionary<InjectionConstructor, any>;
     private mIsLocked: boolean;
@@ -53,6 +54,11 @@ export abstract class CoreEntity<TProcessor extends object = object> implements 
      * @param pParent - Parent of user entity.
      */
     public constructor(pParameter: CoreEntityConstructorParameter<TProcessor>) {
+        // Validate processor constructor.
+        if(!(pParameter.constructor.prototype instanceof Processor)){
+            throw new Exception(`Constructor "${pParameter.constructor.name}" does not extend`, this);
+        }
+
         this.mProcessorConstructor = pParameter.constructor;
 
         // Set empty defaults.
@@ -269,7 +275,7 @@ type PropertyFunctionParameter<TProcessor extends object, TProperty extends keyo
 /*
  * Constructor parameter.
  */
-export type CoreEntityConstructorParameter<TProcessor> = {
+export type CoreEntityConstructorParameter<TProcessor extends Processor> = {
     /**
      * Processor constructor.
      */
@@ -296,4 +302,4 @@ export type CoreEntityConstructorParameter<TProcessor> = {
      */
     isolate?: boolean;
 };
-export type CoreEntityProcessorConstructor<TProcessor = object> = new (...pParameter: Array<any>) => TProcessor;
+export type CoreEntityProcessorConstructor<TProcessor extends Processor = Processor> = new (...pParameter: Array<any>) => TProcessor;

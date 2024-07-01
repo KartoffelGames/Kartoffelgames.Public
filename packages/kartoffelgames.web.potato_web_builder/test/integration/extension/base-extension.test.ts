@@ -1,8 +1,9 @@
 import { expect } from 'chai';
-import { AccessMode } from '../../../source';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
-import { PwbExtensionModule } from '../../../source/core/extension/pwb-extension-module.decorator';
+import { Processor } from '../../../source/core/core_entity/processor';
+import { AccessMode } from '../../../source/core/enum/access-mode.enum';
 import { UpdateTrigger } from '../../../source/core/enum/update-trigger.enum';
+import { PwbExtensionModule } from '../../../source/core/extension/pwb-extension-module.decorator';
 import { TestUtil } from '../../utility/test-util';
 
 describe('BaseExtension', () => {
@@ -11,7 +12,7 @@ describe('BaseExtension', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Process. Create extension.
         let lExtensionCalled: boolean = false;
@@ -21,8 +22,10 @@ describe('BaseExtension', () => {
             targetRestrictions: [TestComponent]
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class UselessExtension {
+        class UselessExtension extends Processor {
             public constructor() {
+                super();
+
                 lExtensionCalled = true;
             }
         }
@@ -39,7 +42,7 @@ describe('BaseExtension', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Process. Create extension.
         let lExtensionCalled: boolean = false;
@@ -49,8 +52,10 @@ describe('BaseExtension', () => {
             targetRestrictions: [class NotUsed { }]
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class UselessExtension {
+        class UselessExtension extends Processor {
             public constructor() {
+                super();
+                
                 lExtensionCalled = true;
             }
         }

@@ -1,5 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { expect } from 'chai';
+import { Processor } from '../../../source';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
 import { ComponentEvent } from '../../../source/module/component-event/component-event';
 import { ComponentEventEmitter } from '../../../source/module/component-event/component-event-emitter';
@@ -19,7 +20,7 @@ describe('ComponentEventEmitterExtension', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector(),
         })
-        class EventComponent {
+        class EventComponent extends Processor {
             @PwbComponentEvent(lEventName)
             private readonly mEvent!: ComponentEventEmitter<string>;
 
@@ -53,7 +54,7 @@ describe('ComponentEventEmitterExtension', () => {
                 selector: TestUtil.randomSelector()
             })
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            class EventComponent {
+            class EventComponent extends Processor {
                 @PwbComponentEvent('custom-event')
                 private static readonly mEvent: ComponentEventEmitter<string>;
             }
@@ -68,7 +69,7 @@ describe('ComponentEventEmitterExtension', () => {
         const lEventValue: string = 'EVENT-VALUE';
 
         // Process. Define parent class.
-        class ParentClass {
+        class ParentClass extends Processor {
             @PwbComponentEvent('custom-event')
             private readonly mEvent!: ComponentEventEmitter<string>;
         }
@@ -109,7 +110,7 @@ describe('ComponentEventEmitterExtension', () => {
         const lEventValue: string = 'EVENT-VALUE';
 
         // Process. Define parent class.
-        class ParentClass {
+        class ParentClass extends Processor {
             @PwbComponentEvent('custom-event')
             private readonly mEvent!: ComponentEventEmitter<string>;
 
@@ -148,7 +149,7 @@ describe('ComponentEventEmitterExtension', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector(),
         })
-        class EventComponent {
+        class EventComponent extends Processor {
             @PwbComponentEvent('click')
             private readonly mEvent!: ComponentEventEmitter<string>;
 
@@ -180,7 +181,7 @@ describe('ComponentEventEmitterExtension', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector(),
         })
-        class EventComponent {
+        class EventComponent extends Processor {
             @PwbComponentEvent('custom-event')
             private readonly mEvent!: ComponentEventEmitter<void>;
 
@@ -226,7 +227,7 @@ describe('ComponentEventEmitterExtension', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector(),
         })
-        class EventComponent {
+        class EventComponent extends Processor {
             @PwbComponentEvent('custom-event-one')
             private readonly mEventOne!: ComponentEventEmitter<string>;
             @PwbComponentEvent('custom-event-two')
@@ -275,7 +276,7 @@ describe('ComponentEventEmitterExtension', () => {
             selector: TestUtil.randomSelector(),
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class EventComponent {
+        class EventComponent extends Processor {
             @PwbComponentEvent('custom-event')
             public mEvent!: string; // Wrong type.
         }

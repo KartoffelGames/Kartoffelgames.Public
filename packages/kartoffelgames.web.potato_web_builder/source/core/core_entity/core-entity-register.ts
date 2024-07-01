@@ -1,5 +1,6 @@
 import { Dictionary } from '@kartoffelgames/core';
 import { CoreEntity, CoreEntityProcessorConstructor } from './core-entity';
+import { Processor } from './processor';
 
 export class CoreEntityRegister {
     private static mInstance: CoreEntityRegister;
@@ -69,7 +70,7 @@ export class CoreEntityRegister {
 
             // Init register set.
             if (!this.mCoreEntityConstructor.has(lKeyConstructor)) {
-                this.mCoreEntityConstructor.set(lKeyConstructor, new Set<CoreEntityConstructor>());
+                this.mCoreEntityConstructor.set(lKeyConstructor, new Set<CoreEntityProcessorConstructor>());
             }
 
             // Register constructor to target key constructor.
@@ -78,7 +79,7 @@ export class CoreEntityRegister {
     }
 }
 
-export type CoreEntityConstructor<TProcessor extends object = object> = new (...pParameter: Array<any>) => CoreEntity<TProcessor>;
+export type CoreEntityConstructor<TProcessor extends Processor = Processor> = new (...pParameter: Array<any>) => CoreEntity<TProcessor>;
 
 type CoreEntityProcessorConstructorConfiguration = { [key: string]: any; };
 export type CoreEntityProcessorConstructorSetup<TConfiguration extends CoreEntityProcessorConstructorConfiguration = CoreEntityProcessorConstructorConfiguration> = {

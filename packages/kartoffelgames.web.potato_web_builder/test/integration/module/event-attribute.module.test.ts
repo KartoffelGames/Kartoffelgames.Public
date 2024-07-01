@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
+import { Processor } from '../../../source/core/core_entity/processor';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
@@ -13,7 +14,7 @@ describe('EventAttributeModule', () => {
         @PwbComponent({
             selector: lEventComponentSelector,
         })
-        class EventComponent { }
+        class EventComponent extends Processor { }
 
         // Process. Define component and wait for update.
         let lEventValueResult: string | null = null;
@@ -21,7 +22,7 @@ describe('EventAttributeModule', () => {
             selector: TestUtil.randomSelector(),
             template: `<${lEventComponentSelector} (click)="this.handler($event)"/>`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             public handler(pEvent: MouseEvent): void {
                 lEventValueResult = pEvent.type;
             }
@@ -45,7 +46,7 @@ describe('EventAttributeModule', () => {
             selector: TestUtil.randomSelector(),
             template: `<div (click)="this.handler($event)"/>`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             public handler(_pEvent: MouseEvent): void {
                 lClicked = true;
             }

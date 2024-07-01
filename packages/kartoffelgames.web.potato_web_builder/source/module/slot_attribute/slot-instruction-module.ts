@@ -6,12 +6,13 @@ import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-i
 import { InstructionResult } from '../../core/module/instruction_module/instruction-result';
 import { ModuleValues } from '../../core/module/module-values';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
+import { Processor } from '../../core/core_entity/processor';
 
 @PwbInstructionModule({
     instructionType: 'slot',
     trigger: UpdateTrigger.None,
 })
-export class SlotInstructionModule implements IInstructionOnUpdate {
+export class SlotInstructionModule extends Processor implements IInstructionOnUpdate {
     private readonly mModuleValues: ModuleValues;
     private readonly mSlotName: string;
 
@@ -22,6 +23,8 @@ export class SlotInstructionModule implements IInstructionOnUpdate {
      * @param pModuleExpression - Expression of module.
      */
     public constructor(pModuleValues: ModuleValues, pModuleExpression: ModuleExpression) {
+        super();
+        
         this.mModuleValues = pModuleValues;
         this.mSlotName = pModuleExpression.value;
     }

@@ -5,13 +5,14 @@ import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.de
 import { AccessMode } from '../../core/enum/access-mode.enum';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { ComponentEventEmitter } from './component-event-emitter';
+import { Processor } from '../../core/core_entity/processor';
 
 @PwbExtensionModule({
     access: AccessMode.Read,
     trigger: UpdateTrigger.Any,
     targetRestrictions: [Component]
 })
-export class ComponentEventExtension {
+export class ComponentEventExtension extends Processor{
     public static readonly METADATA_USER_EVENT_PROPERIES: string = 'pwb:user_event_properties';
 
     /**
@@ -22,6 +23,8 @@ export class ComponentEventExtension {
      * @param pComponent - Component processor.
      */
     public constructor(pComponent: Component) {
+        super();
+        
         // Find all event properties of current class layer and add all to merged property list.
         const lEventPropertyMapList: Array<Array<[string, string, ComponentProcessorConstructor]>> = Metadata.get(pComponent.processorConstructor).getInheritedMetadata(ComponentEventExtension.METADATA_USER_EVENT_PROPERIES);
         for (const lEventPropertyList of lEventPropertyMapList) {

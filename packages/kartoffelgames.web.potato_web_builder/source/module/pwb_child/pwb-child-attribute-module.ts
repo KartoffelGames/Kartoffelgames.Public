@@ -1,4 +1,5 @@
 import { ComponentScopedValues } from '../../core/component/injection_reference/component-scoped-values';
+import { Processor } from '../../core/core_entity/processor';
 import { AccessMode } from '../../core/enum/access-mode.enum';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { AttributeModule } from '../../core/module/attribute_module/attribute-module';
@@ -14,7 +15,7 @@ import { ModuleTargetNode } from '../../core/module/injection_reference/module-t
     selector: /^#[[\w$]+$/,
     trigger: UpdateTrigger.Any
 })
-export class PwbChildAttributeModule {
+export class PwbChildAttributeModule extends Processor {
     /**
      * Constructor.
      * @param pTargetNode - Target element.
@@ -23,6 +24,8 @@ export class PwbChildAttributeModule {
      * @param pComponentScopeValue - Root values of component.
      */
     public constructor(pTargetNode: ModuleTargetNode, pAttributeModule: AttributeModule, pModuleAttribute: ModuleAttribute, pComponentScopeValue: ComponentScopedValues) {
+        super();
+
         const lTarget: Node = pTargetNode;
         const lRegistedElement: Node = pAttributeModule.registerObject(lTarget);
 

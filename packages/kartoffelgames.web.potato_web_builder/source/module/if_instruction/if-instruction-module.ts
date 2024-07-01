@@ -1,5 +1,6 @@
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
 import { PwbTemplateInstructionNode } from '../../core/component/template/nodes/pwb-template-instruction-node';
+import { Processor } from '../../core/core_entity/processor';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { ModuleExpression } from '../../core/module/injection_reference/module-expression';
 import { ModuleTemplate } from '../../core/module/injection_reference/module-template';
@@ -18,7 +19,7 @@ import { ScopedValues } from '../../core/scoped-values';
     instructionType: 'if',
     trigger: UpdateTrigger.Any & ~UpdateTrigger.UntrackableFunctionCall
 })
-export class IfInstructionModule implements IInstructionOnUpdate {
+export class IfInstructionModule extends Processor implements IInstructionOnUpdate {
     private mLastBoolean: boolean;
     private readonly mModuleValues: ModuleValues;
     private readonly mProcedure: ModuleValueProcedure<any>;
@@ -31,6 +32,8 @@ export class IfInstructionModule implements IInstructionOnUpdate {
      * @param pModuleExpression - Expression of instruction module.
      */
     public constructor(pTemplate: ModuleTemplate, pModuleValues: ModuleValues, pModuleExpression: ModuleExpression) {
+        super();
+        
         this.mTemplateReference = <PwbTemplateInstructionNode>pTemplate;
         this.mModuleValues = pModuleValues;
         this.mProcedure = this.mModuleValues.createExpressionProcedure(pModuleExpression.value);

@@ -1,5 +1,7 @@
 import { Dictionary } from '@kartoffelgames/core';
+import { PwbDebugLogLevel } from '../../debug/pwb-debug';
 import { CoreEntityExtendable } from '../core_entity/core-entity-extendable';
+import { Processor } from '../core_entity/processor';
 import { UpdateMode } from '../enum/update-mode.enum';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
 import { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module';
@@ -11,7 +13,6 @@ import { ComponentRegister } from './component-register';
 import { ComponentScopedValues } from './injection_reference/component-scoped-values';
 import { PwbTemplate } from './template/nodes/pwb-template';
 import { TemplateParser } from './template/template-parser';
-import { PwbDebugLogLevel } from '../../debug/pwb-debug';
 
 /**
  * Component manager. 
@@ -208,7 +209,7 @@ export interface IComponentOnConnect {
 export interface IComponentOnDisconnect {
     onDisconnect(): void;
 }
-export interface ComponentProcessor extends Partial<IComponentOnDeconstruct>, Partial<IComponentOnUpdate>, Partial<IComponentOnAttributeChange>, Partial<IComponentOnConnect>, Partial<IComponentOnDisconnect> { }
+export interface ComponentProcessor extends Processor, Partial<IComponentOnDeconstruct>, Partial<IComponentOnUpdate>, Partial<IComponentOnAttributeChange>, Partial<IComponentOnConnect>, Partial<IComponentOnDisconnect> { }
 
 export type ComponentProcessorConstructor = {
     new(...pParameter: Array<any>): ComponentProcessor;

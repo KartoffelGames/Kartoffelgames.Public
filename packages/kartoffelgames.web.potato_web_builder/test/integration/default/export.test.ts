@@ -1,10 +1,11 @@
 import { Exception } from '@kartoffelgames/core';
 import { expect } from 'chai';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
-import { TestUtil } from '../../utility/test-util';
+import { Processor } from '../../../source/core/core_entity/processor';
+import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
-import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
+import { TestUtil } from '../../utility/test-util';
 
 describe('Export', () => {
     it('-- Default export get', async () => {
@@ -15,7 +16,7 @@ describe('Export', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbExport
             public value: string = lTestValue;
         }
@@ -36,7 +37,7 @@ describe('Export', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbExport
             public value: string = '';
         }
@@ -59,7 +60,7 @@ describe('Export', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbExport
             public valueOne: string = lTestValueOne;
             @PwbExport
@@ -84,7 +85,7 @@ describe('Export', () => {
                 selector: TestUtil.randomSelector()
             })
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            class TestComponent {
+            class TestComponent extends Processor {
                 @PwbExport
                 public static value: string = '';
             }
@@ -102,7 +103,7 @@ describe('Export', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbExport
             public value: string = '';
         }
@@ -124,7 +125,7 @@ describe('Export', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbExport
             public value: string = '';
         }
@@ -146,7 +147,7 @@ describe('Export', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Process. Create element and click div.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
@@ -165,7 +166,7 @@ describe('Export', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbExport
             public children: string = lTestValue;
         }
@@ -183,7 +184,7 @@ describe('Export', () => {
         const lTestValue: string = 'TEST-VALUE';
 
         // Setup. Define parent class.
-        class ParentClass {
+        class ParentClass extends Processor {
             @PwbExport
             public children: string = lTestValue;
         }
@@ -192,7 +193,7 @@ describe('Export', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent extends ParentClass {}
+        class TestComponent extends ParentClass { }
 
         // Process. Create element and click div.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);

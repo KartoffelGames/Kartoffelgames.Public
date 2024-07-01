@@ -2,6 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import { expect } from 'chai';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
 import { CoreEntityProcessorProxy } from '../../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy';
+import { Processor } from '../../../source/core/core_entity/processor';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
 import { PwbChild } from '../../../source/module/pwb_child/pwb-child.decorator';
 import '../../mock/request-animation-frame-mock-session';
@@ -18,7 +19,7 @@ describe('PwbChildAttributeModule', () => {
             selector: TestUtil.randomSelector(),
             template: `<div #${lIdName}/>`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbExport
             @PwbChild(lIdName)
             public idChild!: HTMLDivElement;
@@ -40,7 +41,7 @@ describe('PwbChildAttributeModule', () => {
                 selector: TestUtil.randomSelector()
             })
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            class TestComponent {
+            class TestComponent extends Processor {
                 @PwbChild('Name')
                 public static idChild: HTMLDivElement;
             }
@@ -59,7 +60,7 @@ describe('PwbChildAttributeModule', () => {
             selector: TestUtil.randomSelector(),
             template: `<div #Name/>`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbExport
             @PwbChild(lWrongName)
             public idChild!: HTMLDivElement;
@@ -97,7 +98,7 @@ describe('PwbChildAttributeModule', () => {
         const lIdName: string = 'IdChildId';
 
         // Setup. Define parent class.
-        class ParentClass {
+        class ParentClass extends Processor {
             @PwbExport
             @PwbChild(lIdName)
             public idChild!: HTMLDivElement;

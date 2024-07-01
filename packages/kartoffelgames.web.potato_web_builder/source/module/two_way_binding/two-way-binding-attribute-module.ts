@@ -1,3 +1,4 @@
+import { Processor } from '../../core/core_entity/processor';
 import { AccessMode } from '../../core/enum/access-mode.enum';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { AttributeModule, IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module';
@@ -12,7 +13,7 @@ import { ModuleValues } from '../../core/module/module-values';
     selector: /^\[\([[\w$]+\)\]$/,
     trigger: UpdateTrigger.Any
 })
-export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
+export class TwoWayBindingAttributeModule extends Processor implements IAttributeOnUpdate {
     private readonly mAttributeKey: string;
     private mLastDataValue: any;
     private mLastViewValue: any;
@@ -28,6 +29,8 @@ export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
      * @param pAttributeModule - Attribute module.
      */
     public constructor(pTargetNode: ModuleTargetNode, pModuleValues: ModuleValues, pModuleAttribute: ModuleAttribute, pAttributeModule: AttributeModule) {
+        super();
+        
         this.mTargetNode = pTargetNode;
 
         // Get property name.

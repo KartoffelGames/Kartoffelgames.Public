@@ -10,6 +10,7 @@ import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-i
 import { ModuleValueProcedure } from '../../core/module/module-value-procedure';
 import { ModuleValues } from '../../core/module/module-values';
 import { ScopedValues } from '../../core/scoped-values';
+import { Processor } from '../../core/core_entity/processor';
 
 /**
  * For of.
@@ -20,7 +21,7 @@ import { ScopedValues } from '../../core/scoped-values';
     instructionType: 'for',
     trigger: UpdateTrigger.Any & ~UpdateTrigger.UntrackableFunctionCall
 })
-export class ForInstructionModule implements IInstructionOnUpdate {
+export class ForInstructionModule extends Processor implements IInstructionOnUpdate {
     private readonly mExpression: ForOfExpression;
     private mLastEntries: Array<[string, any]>;
     private readonly mModuleValues: ModuleValues;
@@ -33,6 +34,8 @@ export class ForInstructionModule implements IInstructionOnUpdate {
      * @param pModuleExpression - Expression of module.
      */
     public constructor(pTemplate: ModuleTemplate, pModuleValues: ModuleValues, pModuleExpression: ModuleExpression) {
+        super();
+        
         this.mTemplate = <PwbTemplateInstructionNode>pTemplate;
         this.mModuleValues = pModuleValues;
         this.mLastEntries = new Array<[string, any]>();

@@ -7,13 +7,14 @@ import { PwbTemplateXmlNode } from '../../core/component/template/nodes/pwb-temp
 import { PwbExport } from '../../module/export/pwb-export.decorator';
 import pwbAppStyle from './pwb-app-component.css';
 import pwbAppTemplate from './pwb-app-component.html';
+import { Processor } from '../../core/core_entity/processor';
 
 @PwbComponent({
     selector: 'pwb-app',
     style: pwbAppStyle,
     template: pwbAppTemplate
 })
-export class PwbAppComponent implements IComponentOnConnect, IComponentOnDisconnect {
+export class PwbAppComponent extends Processor implements IComponentOnConnect, IComponentOnDisconnect {
     // Used in view.
     public splashscreenConfig: SplashscreenConfiguration;
     public splashscreenState: SplashscreenState;
@@ -71,6 +72,8 @@ export class PwbAppComponent implements IComponentOnConnect, IComponentOnDisconn
      * Constructor.
      */
     constructor(pComponent: Component) {
+        super();
+        
         this.mContent = new PwbTemplate();
         this.mComponent = pComponent;
 

@@ -3,8 +3,9 @@ import { AccessMode } from '../enum/access-mode.enum';
 import { ExtensionModule, ExtensionModuleConfiguration } from '../extension/extension-module';
 import { CoreEntity, CoreEntityConstructorParameter, CoreEntityProcessorConstructor } from './core-entity';
 import { CoreEntityProcessorConstructorSetup, CoreEntityRegister } from './core-entity-register';
+import { Processor } from './processor';
 
-export abstract class CoreEntityExtendable<TProcessor extends object> extends CoreEntity<TProcessor> implements IDeconstructable {
+export abstract class CoreEntityExtendable<TProcessor extends Processor> extends CoreEntity<TProcessor> implements IDeconstructable {
     private static readonly mExtensionCache: WeakMap<CoreEntityProcessorConstructor, ExtensionCache> = new WeakMap<CoreEntityProcessorConstructor, ExtensionCache>();
 
     private readonly mExtensionList: Array<ExtensionModule>;
@@ -100,4 +101,4 @@ type ExtensionCache = {
     readWrite: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>>;
 };
 
-export type CoreEntityExtendableConstructorParameter<TProcessor extends object> = CoreEntityConstructorParameter<TProcessor>;
+export type CoreEntityExtendableConstructorParameter<TProcessor extends Processor> = CoreEntityConstructorParameter<TProcessor>;

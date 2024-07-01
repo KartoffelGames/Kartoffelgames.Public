@@ -4,6 +4,7 @@
 export { PwbApp } from './pwb-app/pwb-app';
 export { PwbComponent } from './core/component/pwb-component.decorator';
 export { IComponentOnAttributeChange, IComponentOnConnect, IComponentOnDeconstruct, IComponentOnDisconnect, IComponentOnUpdate } from './core/component/component';
+export { Processor } from './core/core_entity/processor';
 
 // Module Injections
 export { ExpressionModule } from './core/module/expression_module/expression-module';
@@ -19,7 +20,6 @@ export { ModuleAttribute } from './core/module/injection_reference/module-attrib
 export { Component } from './core/component/component';
 export { ComponentElement } from './core/component/component-element';
 export { ComponentScopedValues } from './core/component/injection_reference/component-scoped-values';
-
 
 // Modules
 export { PwbExtensionModule, } from './core/extension/pwb-extension-module.decorator';
@@ -63,8 +63,8 @@ import './module/component-event-listener/component-event-listener-component-ext
 import './module/export/export-extension';
 import './module/pwb_app_injection/pwb-app-injection-extension';
 
-import { PwbDebug, PwbDebugLogLevel } from './debug/pwb-debug';
 // Set debugger to global scope.
+import { PwbDebug, PwbDebugLogLevel } from './debug/pwb-debug';
 globalThis['PwbDebug'] = new PwbDebug();
 globalThis['PwbLogLevel'] = PwbDebugLogLevel;
 

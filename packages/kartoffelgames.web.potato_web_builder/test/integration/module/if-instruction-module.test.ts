@@ -1,6 +1,7 @@
 import { expect } from 'chai';
-import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
+import { Processor } from '../../../source/core/core_entity/processor';
+import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
@@ -17,7 +18,7 @@ describe('IfInstructionModule', () => {
                 <div/>
             }`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             public displayed: boolean = lDisplayed;
         }
 
@@ -42,7 +43,7 @@ describe('IfInstructionModule', () => {
                 <div/>
             }`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             public displayed: boolean = lDisplayed;
         }
 
@@ -69,7 +70,7 @@ describe('IfInstructionModule', () => {
                 <div/>
             }`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbExport
             public displayed: boolean = !lDisplayed;
         }
@@ -97,7 +98,7 @@ describe('IfInstructionModule', () => {
                 <div/>
             }`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbExport
             public displayed: boolean = !lDisplayed;
         }
@@ -127,7 +128,7 @@ describe('IfInstructionModule', () => {
                 <div/>
             }`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             public displayed: any = lDisplayed;
         }
 
@@ -152,7 +153,7 @@ describe('IfInstructionModule', () => {
                 <div/>
             }`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             public displayed: any = lDisplayed;
         }
 

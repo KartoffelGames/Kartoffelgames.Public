@@ -6,6 +6,7 @@ import { PwbApp } from '../../source/pwb-app/pwb-app';
 import '../mock/request-animation-frame-mock-session';
 import '../utility/chai-helper';
 import { TestUtil } from '../utility/test-util';
+import { Processor } from '../../source/core/core_entity/processor';
 
 describe('PwbApp', () => {
     it('Property: component', () => {
@@ -33,7 +34,7 @@ describe('PwbApp', () => {
                 template: '<div/>'
             })
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            class TestComponent { }
+            class TestComponent extends Processor { }
 
             // Process.
             lApp.addContent(TestComponent);
@@ -55,7 +56,7 @@ describe('PwbApp', () => {
                 selector: lSelector,
                 template: '<div/>'
             })
-            class TestComponent { }
+            class TestComponent extends Processor { }
 
             // Process.
             lApp.addContent(TestComponent);
@@ -135,8 +136,10 @@ describe('PwbApp', () => {
             selector: lSelector,
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class TestComponent {
+        class TestComponent extends Processor {
             public constructor() {
+                super();
+                
                 throw new Error(lErrorMessage);
             }
         }

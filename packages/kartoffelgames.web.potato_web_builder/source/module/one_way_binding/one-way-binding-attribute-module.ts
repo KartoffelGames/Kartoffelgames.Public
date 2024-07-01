@@ -6,6 +6,7 @@ import { AccessMode } from '../../core/enum/access-mode.enum';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute';
 import { ModuleValueProcedure } from '../../core/module/module-value-procedure';
+import { Processor } from '../../core/core_entity/processor';
 
 /**
  * Bind value to view object.
@@ -16,7 +17,7 @@ import { ModuleValueProcedure } from '../../core/module/module-value-procedure';
     selector: /^\[[\w$]+\]$/,
     trigger: UpdateTrigger.Any
 })
-export class OneWayBindingAttributeModule implements IAttributeOnUpdate {
+export class OneWayBindingAttributeModule extends Processor implements IAttributeOnUpdate {
     private mLastValue: any;
     private readonly mProcedure: ModuleValueProcedure<any>;
     private readonly mTarget: Node;
@@ -29,6 +30,8 @@ export class OneWayBindingAttributeModule implements IAttributeOnUpdate {
      * @param pModuleAttribute - Attribute of module.
      */
     public constructor(pTargetNode: ModuleTargetNode, pModuleValues: ModuleValues, pModuleAttribute: ModuleAttribute) {
+        super();
+        
         this.mTarget = pTargetNode;
 
         // Create expression procedure form attribute value.

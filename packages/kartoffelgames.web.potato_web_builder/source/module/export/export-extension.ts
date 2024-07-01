@@ -4,13 +4,14 @@ import { Component, IComponentOnAttributeChange } from '../../core/component/com
 import { AccessMode } from '../../core/enum/access-mode.enum';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator';
+import { Processor } from '../../core/core_entity/processor';
 
 @PwbExtensionModule({
     access: AccessMode.Read,
     trigger: UpdateTrigger.Any,
     targetRestrictions: [Component]
 })
-export class ExportExtension {
+export class ExportExtension extends Processor {
     public static readonly METADATA_EXPORTED_PROPERTIES: string = 'pwb:exported_properties';
 
     private readonly mComponent: Component;
@@ -21,6 +22,8 @@ export class ExportExtension {
      * @param pComponentManagerReference - Component manager reference.
      */
     public constructor(pComponent: Component) {
+        super();
+        
         this.mComponent = pComponent;
 
         // All exported properties of target and parent classes.

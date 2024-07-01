@@ -1,6 +1,7 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { expect } from 'chai';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
+import { Processor } from '../../../source/core/core_entity/processor';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
@@ -15,7 +16,7 @@ describe('SlotAttribute', () => {
             selector: TestUtil.randomSelector(),
             template: '$slot'
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
@@ -40,7 +41,7 @@ describe('SlotAttribute', () => {
             selector: TestUtil.randomSelector(),
             template: `$slot(${lSlotName})`
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);

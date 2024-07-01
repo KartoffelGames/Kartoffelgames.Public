@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
+import { Processor } from '../../../source/core/core_entity/processor';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
@@ -14,7 +15,7 @@ describe('ForInstructionModule', () => {
                 <div/>
             }`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             public list: Array<string> = ['One', 'Two', 'Three'];
         }
 
@@ -42,7 +43,7 @@ describe('ForInstructionModule', () => {
                 <div/>
             }`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             public list: object = {
                 one: 'One',
                 two: 'Two',
@@ -74,7 +75,7 @@ describe('ForInstructionModule', () => {
                 <div/>
             }`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             public * customIterator(pStart = 0, pEnd = 100) {
                 let lIterationCount = 0;
                 for (let lIndex = pStart; lIndex < pEnd; lIndex++) {
@@ -109,7 +110,7 @@ describe('ForInstructionModule', () => {
                 <div/>
             }`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbExport
             public list: Array<string> = ['One'];
         }
@@ -138,7 +139,7 @@ describe('ForInstructionModule', () => {
                 <div/>
             }`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbExport
             public list: Array<string> = ['One', 'Two'];
         }
@@ -165,7 +166,7 @@ describe('ForInstructionModule', () => {
                 <div/>
             }`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbExport
             public list: Array<string> = ['One', 'Three'];
         }
@@ -196,7 +197,7 @@ describe('ForInstructionModule', () => {
                 <div/>
             }`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbExport
             public list: Array<string> = ['One', 'Two', 'Three'];
         }
@@ -225,7 +226,7 @@ describe('ForInstructionModule', () => {
                 <div/>
             }`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbExport
             public list: Array<string> | null = null;
         }
@@ -251,7 +252,7 @@ describe('ForInstructionModule', () => {
                 <div>{{this.item}}</div>
             }`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             public list: Array<string> = [lTextContent];
         }
 
@@ -281,7 +282,7 @@ describe('ForInstructionModule', () => {
                 <div>{{this.item}}</div>
             }`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             public list: object = {
                 one: lTextContent
             };
@@ -310,7 +311,7 @@ describe('ForInstructionModule', () => {
                 <div>{{this.index}}</div>
             }`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             public list: Array<string> = ['One', 'Two'];
         }
 
@@ -342,7 +343,7 @@ describe('ForInstructionModule', () => {
                 <div>{{this.index}}</div>
             }`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             public list: object = {
                 one: 'SomeValue',
                 two: 'SomeSecondValue'
@@ -380,7 +381,7 @@ describe('ForInstructionModule', () => {
                 <div>{{this.index}}</div>
             }`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             public list: Array<number> = lList;
         }
 
@@ -412,7 +413,7 @@ describe('ForInstructionModule', () => {
                 <div/>
             }`
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Process. Create element.
         let lErrorMessage: string | null = null;
@@ -439,7 +440,7 @@ describe('ForInstructionModule', () => {
                 </div>
             }`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbExport
             public list: Array<number> = [1];
         }
@@ -490,7 +491,7 @@ describe('ForInstructionModule', () => {
                             </div>
                         }`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             public list: Array<number> = [1];
         }
 
@@ -513,7 +514,7 @@ describe('ForInstructionModule', () => {
             }
             <div/>`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             public list: Array<number> = [1];
         }
 
@@ -543,7 +544,7 @@ describe('ForInstructionModule', () => {
                 }
             </div>`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             public list: Array<number> = [1];
         }
 
@@ -572,7 +573,7 @@ describe('ForInstructionModule', () => {
                 <div>{{this.item}}</div>
             }`
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);

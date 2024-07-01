@@ -7,6 +7,7 @@ import { PwbApp } from '../../../source/pwb-app/pwb-app';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
+import { Processor } from '../../../source/core/core_entity/processor';
 
 describe('PwbAppInjectionExtension', () => {
     it('-- PwbApp injection on global element', async () => {
@@ -18,8 +19,10 @@ describe('PwbAppInjectionExtension', () => {
         @PwbComponent({
             selector: lSelector
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             public constructor(pApp: PwbApp) {
+                super();
+
                 lApp = pApp;
             }
         }
@@ -55,8 +58,10 @@ describe('PwbAppInjectionExtension', () => {
             updateScope: UpdateMode.Manual
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class CapsuledTestComponent {
+        class CapsuledTestComponent extends Processor {
             public constructor(pApp: PwbApp) {
+                super();
+
                 lApp = pApp;
             }
         }
@@ -67,7 +72,7 @@ describe('PwbAppInjectionExtension', () => {
             template: `<${lCapsuledSelector}/>`,
             updateScope: UpdateMode.Default
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Process. Create app and skip wait for splash screen.
         const lPwbApp: PwbApp = new PwbApp();
@@ -104,8 +109,10 @@ describe('PwbAppInjectionExtension', () => {
             updateScope: UpdateMode.Manual
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class ChildChildTestComponent {
+        class ChildChildTestComponent extends Processor {
             public constructor(pApp: PwbApp) {
+                super();
+
                 lApp = pApp;
             }
         }
@@ -117,7 +124,7 @@ describe('PwbAppInjectionExtension', () => {
             updateScope: UpdateMode.Manual
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class ChildTestComponent { }
+        class ChildTestComponent extends Processor { }
 
         // Process. Define component.   
         @PwbComponent({
@@ -125,7 +132,7 @@ describe('PwbAppInjectionExtension', () => {
             template: `<${lChildSelector}/>`,
             updateScope: UpdateMode.Default
         })
-        class TestComponent { }
+        class TestComponent extends Processor { }
 
         // Process. Create app and skip wait for splash screen.
         const lPwbApp: PwbApp = new PwbApp();
@@ -163,11 +170,13 @@ describe('PwbAppInjectionExtension', () => {
             template: '<div/>'
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbExport
             public app: PwbApp;
 
             public constructor(pApp: PwbApp) {
+                super();
+
                 this.app = pApp;
             }
         }
@@ -202,8 +211,10 @@ describe('PwbAppInjectionExtension', () => {
             selector: lSelector,
             updateScope: UpdateMode.Isolated
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             public constructor(pApp: PwbApp) {
+                super();
+                
                 lApp = pApp;
             }
         }

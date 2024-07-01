@@ -1,6 +1,7 @@
 import { expect } from 'chai';
-import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
+import { Processor } from '../../../source/core/core_entity/processor';
+import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
@@ -15,7 +16,7 @@ describe('MustacheExpressionModule', () => {
             selector: TestUtil.randomSelector(),
             template: `<div>{{this.text}}</div>`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             public readonly text: string = lTextContent;
         }
 
@@ -41,7 +42,7 @@ describe('MustacheExpressionModule', () => {
             selector: TestUtil.randomSelector(),
             template: `<div>{{this.text}}</div>`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbExport
             public text: string | undefined;
         }
@@ -70,7 +71,7 @@ describe('MustacheExpressionModule', () => {
             selector: TestUtil.randomSelector(),
             template: `<div attr="{{this.text}}"></div>`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             public readonly text: string = lTextContent;
         }
 
@@ -98,7 +99,7 @@ describe('MustacheExpressionModule', () => {
             selector: TestUtil.randomSelector(),
             template: `<div attr="{{this.text}}"></div>`
         })
-        class TestComponent {
+        class TestComponent extends Processor {
             @PwbExport
             public text: string | undefined;
         }
@@ -129,7 +130,7 @@ describe('MustacheExpressionModule', () => {
             selector: TestUtil.randomSelector(),
             template: `<div>{{ new Array(10).fill('a').join('') }}</div>`
         })
-        class TestComponent {}
+        class TestComponent extends Processor { }
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);

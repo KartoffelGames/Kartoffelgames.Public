@@ -34,6 +34,12 @@ export class PwbDebug {
                 filter: PwbDebugLogLevel.All,
                 updatePerformance: false,
                 updaterTrigger: false
+            },
+
+            // Updating.
+            updating: {
+                frameTime: 100,
+                stackCap: 10
             }
         };
     }
@@ -55,16 +61,22 @@ export class PwbDebug {
 
 type ComponentDebugConfiguration = {
     // Error handling.
-    error : {
+    error: {
         ignore: boolean;
-    }
+    };
 
     // Logging.
     log: {
         filter: PwbDebugLogLevel;
         updatePerformance: boolean;
         updaterTrigger: boolean;
-    }
+    };
+
+    // Updating.
+    updating: {
+        frameTime: number;
+        stackCap: number;
+    };
 };
 
 export enum PwbDebugLogLevel {

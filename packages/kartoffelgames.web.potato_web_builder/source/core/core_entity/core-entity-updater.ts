@@ -13,12 +13,10 @@ import { IgnoreInteractionTracking } from './interaction-tracker/ignore-interact
  */
 @IgnoreInteractionTracking
 export class CoreEntityUpdater {
-    private static readonly MAX_FRAME_TIME: number = 100;
-    private static readonly MAX_STACK_SIZE: number = 10;
     private static readonly mDebugger: PwbDebug = new PwbDebug();
 
-    private readonly mDebugLevel: PwbDebugLogLevel;
     private readonly mInteractionZone: InteractionZone;
+    private readonly mLogLevel: PwbDebugLogLevel;
     private readonly mRegisteredObjects: WeakMap<object, CoreEntityProcessorProxy<object>>;
     private readonly mUpdateFunction: UpdateListener;
     private readonly mUpdateInformation: UpdateInformation;
@@ -30,7 +28,7 @@ export class CoreEntityUpdater {
     public constructor(pParameter: CoreEntityUpdateZoneConstructorParameter) {
         this.mRegisteredObjects = new WeakMap<object, CoreEntityProcessorProxy<object>>();
         this.mUpdateFunction = pParameter.onUpdate;
-        this.mDebugLevel = pParameter.debugLevel;
+        this.mLogLevel = pParameter.debugLevel;
 
         // Init loop detection values.
         this.mUpdateInformation = {
@@ -184,7 +182,7 @@ export class CoreEntityUpdater {
         const lStartPerformance = globalThis.performance.now();
 
         // Reshedule task when frame time exceeds MAX_FRAME_TIME. Update called next frame.
-        if (lStartPerformance - pFrameTimeStamp > CoreEntityUpdater.MAX_FRAME_TIME) {
+        if (lStartPerformance - pFrameTimeStamp > CoreEntityUpdater.mDebugger.configuration.updating.frameTime) {
             return { resheduled: true, updated: false, error: null, task: pUpdateTask, stack: pStack };
         }
 
@@ -196,7 +194,7 @@ export class CoreEntityUpdater {
 
             // Log performance time.
             if (CoreEntityUpdater.mDebugger.configuration.log.updatePerformance) {
-                CoreEntityUpdater.mDebugger.print(this.mDebugLevel, 'Update performance:', this.mInteractionZone.name,
+                CoreEntityUpdater.mDebugger.print(this.mLogLevel, 'Update performance:', this.mInteractionZone.name,
                     '\n\t', 'Update time:', globalThis.performance.now() - lStartPerformance,
                     '\n\t', 'Frame  time:', globalThis.performance.now() - pFrameTimeStamp,
                     '\n\t', 'Frame  timestamp:', pFrameTimeStamp,
@@ -205,7 +203,7 @@ export class CoreEntityUpdater {
             }
 
             // Throw if too many calles were chained.
-            if (pStack.size > CoreEntityUpdater.MAX_STACK_SIZE) {
+            if (pStack.size > CoreEntityUpdater.mDebugger.configuration.updating.stackCap) {
                 throw new UpdateLoopError('Call loop detected', pStack.toArray());
             }
 
@@ -258,7 +256,7 @@ export class CoreEntityUpdater {
     private async sheduleUpdateTask(pUpdateTask: CoreEntityInteractionEvent): Promise<boolean> {
         // Log update trigger time.
         if (CoreEntityUpdater.mDebugger.configuration.log.updaterTrigger) {
-            CoreEntityUpdater.mDebugger.print(this.mDebugLevel, 'Update trigger:', this.mInteractionZone.name,
+            CoreEntityUpdater.mDebugger.print(this.mLogLevel, 'Update trigger:', this.mInteractionZone.name,
                 '\n\t', 'Trigger:', pUpdateTask.toString(),
                 '\n\t', 'Is dropped:', this.mUpdateInformation.shedule.sheduledIdentifier !== null,
                 '\n\t', 'Is queued:', this.mUpdateInformation.shedule.sheduledIdentifier === null && this.mUpdateInformation.shedule.runningIdentifier !== null,
@@ -312,7 +310,7 @@ export class CoreEntityUpdater {
                         this.mUpdateInformation.shedule.sheduledIdentifier = -1;
                     } else {
                         // Print error.
-                        CoreEntityUpdater.mDebugger.print(this.mDebugLevel, lExecutionTask.error);
+                        CoreEntityUpdater.mDebugger.print(this.mLogLevel, lExecutionTask.error);
 
                         // But remove it.
                         lExecutionTask.error = null;

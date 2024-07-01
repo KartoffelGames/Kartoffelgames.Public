@@ -206,7 +206,7 @@ export class CoreEntityUpdater {
 
             // Throw if too many calles were chained.
             if (pStack.size > CoreEntityUpdater.MAX_STACK_SIZE) {
-                throw new UpdateLoopError('Call loop detected', pStack.toArray());
+                throw new UpdateLoopError('Call loop detected', pStack.toArray()); // TODO: Ignore Event trigger. Restart chain when a event trigger happens???
             }
 
             // Clear call chain list if no other call in this cycle was made.

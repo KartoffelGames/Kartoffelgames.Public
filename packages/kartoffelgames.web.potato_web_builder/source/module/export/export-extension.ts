@@ -7,7 +7,7 @@ import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.de
 import { Processor } from '../../core/core_entity/processor';
 
 @PwbExtensionModule({
-    access: AccessMode.Read,
+    access: AccessMode.ReadWrite,
     trigger: UpdateTrigger.Any,
     targetRestrictions: [Component]
 })
@@ -23,7 +23,7 @@ export class ExportExtension extends Processor {
      */
     public constructor(pComponent: Component) {
         super();
-        
+
         this.mComponent = pComponent;
 
         // All exported properties of target and parent classes.
@@ -41,15 +41,19 @@ export class ExportExtension extends Processor {
             // eslint-disable-next-line no-cond-assign
         } while (lClass = Object.getPrototypeOf(lClass));
 
+        const lDistinctExportedPropertys: Set<string> = new Set<string>(lExportedPropertyList);
+
         // Connect exported properties with distinct list.
-        this.connectExportedProperties(lExportedPropertyList.distinct());
+        if (lDistinctExportedPropertys.size > 0) {
+            this.connectExportedProperties(lDistinctExportedPropertys);
+        }
     }
 
     /**
      * Connect exported properties to html element attributes with the same name.
      * @param pExportedProperties - Exported user object properties.
      */
-    private connectExportedProperties(pExportedProperties: Array<string>): void {
+    private connectExportedProperties(pExportedProperties: Set<string>): void {
         this.exportPropertyAsAttribute(pExportedProperties);
         this.patchHtmlAttributes(pExportedProperties);
     }
@@ -57,7 +61,7 @@ export class ExportExtension extends Processor {
     /**
      * Export exported properties so that exported user class properties can be accessed from html element.
      */
-    private exportPropertyAsAttribute(pExportedProperties: Array<string>): void {
+    private exportPropertyAsAttribute(pExportedProperties: Set<string>): void {
         // Each exported property.
         for (const lExportProperty of pExportedProperties) {
             // Get property descriptor. HTMLElement has no descriptors -,-
@@ -93,25 +97,35 @@ export class ExportExtension extends Processor {
     /**
      * Patch setAttribute and getAttribute to set and get exported values.
      */
-    private patchHtmlAttributes(pExportedProperties: Array<string | symbol>): void {
-        // Get original functions.
-        const lOriginalSetAttribute: (pQualifiedName: string, pValue: string) => void = this.mComponent.element.setAttribute;
+    private patchHtmlAttributes(pExportedAttributes: Set<string>): void {
         const lOriginalGetAttribute: (pQualifiedName: string) => string | null = this.mComponent.element.getAttribute;
 
-        // Patch set attribute
-        this.mComponent.element.setAttribute = (pQualifiedName: string, pValue: string) => {
-            // Check if attribute is an exported value and set value to user class object.
-            if (pExportedProperties.includes(pQualifiedName)) {
-                Reflect.set(this.mComponent.element, pQualifiedName, pValue);
-            }
+        // Init mutation observerm observing attribute changes.
+        const lMutationObserver: MutationObserver = new MutationObserver((pMutationList) => {
+            for (const lMutation of pMutationList) {
+                const lAttributeName: string = lMutation.attributeName!;
+                const lAttributeValue: string | null = lOriginalGetAttribute.call(this.mComponent.element, lAttributeName);
 
-            lOriginalSetAttribute.call(this.mComponent.element, pQualifiedName, pValue);
-        };
+                // Set value in processor.
+                Reflect.set(this.mComponent.element, lAttributeName, lAttributeValue);
+            }
+        });
+        lMutationObserver.observe(this.mComponent.element, { attributeFilter: [...pExportedAttributes], childList: false, subtree: false });
+
+        // Set initial state of attribute.
+        for (const lAttributeName of pExportedAttributes) {
+            if (this.mComponent.element.hasAttribute(lAttributeName)) {
+                const lCurrentAttributeValue: string = lOriginalGetAttribute.call(this.mComponent.element, lAttributeName)!;
+
+                // Set again and trigger mutation observer.
+                this.mComponent.element.setAttribute(lAttributeName, lCurrentAttributeValue);
+            }
+        }
 
         // Patch get attribute
         this.mComponent.element.getAttribute = (pQualifiedName: string): string | null => {
             // Check if attribute is an exported value and return value of user class object.
-            if (pExportedProperties.includes(pQualifiedName)) {
+            if (pExportedAttributes.has(pQualifiedName)) {
                 return Reflect.get(this.mComponent.element, pQualifiedName);
             }
 

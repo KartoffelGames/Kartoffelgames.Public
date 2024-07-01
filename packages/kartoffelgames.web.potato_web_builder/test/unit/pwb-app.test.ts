@@ -1,8 +1,8 @@
 import { expect } from 'chai';
-import { PwbDebug } from '../../source/core/configuration/pwb-debug';
 import { PwbComponent } from '../../source/core/component/pwb-component.decorator';
 import { PwbTemplate } from '../../source/core/component/template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from '../../source/core/component/template/nodes/pwb-template-xml-node';
+import { PwbConfiguration } from '../../source/core/configuration/pwb-debug';
 import { Processor } from '../../source/core/core_entity/processor';
 import { PwbApp } from '../../source/pwb-app/pwb-app';
 import '../mock/request-animation-frame-mock-session';
@@ -11,8 +11,7 @@ import { TestUtil } from '../utility/test-util';
 
 describe('PwbApp', () => {
     before(() => {
-        const lConfiguration: PwbDebug = new PwbDebug();
-        lConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
     });
 
     it('Property: component', () => {

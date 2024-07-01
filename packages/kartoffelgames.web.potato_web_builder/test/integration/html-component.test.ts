@@ -1,8 +1,8 @@
 import { expect } from 'chai';
-import { PwbDebug } from '../../source/core/configuration/pwb-debug';
 import { Component, IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../source/core/component/component';
 import { ComponentRegister } from '../../source/core/component/component-register';
 import { PwbComponent } from '../../source/core/component/pwb-component.decorator';
+import { PwbConfiguration } from '../../source/core/configuration/pwb-debug';
 import { UpdateLoopError } from '../../source/core/core_entity/core-entity-updater';
 import { CoreEntityProcessorProxy } from '../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy';
 import { Processor } from '../../source/core/core_entity/processor';
@@ -17,8 +17,7 @@ import { TestUtil } from '../utility/test-util';
 
 describe('HtmlComponent', () => {
     before(() => {
-        const lConfiguration: PwbDebug = new PwbDebug();
-        lConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
     });
 
     it('-- Single element', async () => {

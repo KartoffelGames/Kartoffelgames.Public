@@ -1,9 +1,9 @@
 import { expect } from 'chai';
 import { Component } from '../../../source/core/component/component';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
+import { PwbConfiguration } from '../../../source/core/configuration/pwb-debug';
 import { Processor } from '../../../source/core/core_entity/processor';
 import { UpdateMode } from '../../../source/core/enum/update-mode.enum';
-import { PwbDebug } from '../../../source/core/configuration/pwb-debug';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
 import { PwbApp } from '../../../source/pwb-app/pwb-app';
 import '../../mock/request-animation-frame-mock-session';
@@ -12,8 +12,7 @@ import { TestUtil } from '../../utility/test-util';
 
 describe('PwbAppInjectionExtension', () => {
     before(() => {
-        const lConfiguration: PwbDebug = new PwbDebug();
-        lConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
     });
 
     it('-- PwbApp injection on global element', async () => {

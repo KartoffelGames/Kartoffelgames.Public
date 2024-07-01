@@ -3,6 +3,7 @@ import { expect } from 'chai';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
 import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template';
 import { PwbTemplateInstructionNode } from '../../../source/core/component/template/nodes/pwb-template-instruction-node';
+import { PwbConfiguration } from '../../../source/core/configuration/pwb-debug';
 import { Processor } from '../../../source/core/core_entity/processor';
 import { AccessMode } from '../../../source/core/enum/access-mode.enum';
 import { UpdateTrigger } from '../../../source/core/enum/update-trigger.enum';
@@ -13,7 +14,6 @@ import { InstructionResult } from '../../../source/core/module/instruction_modul
 import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator';
 import { ModuleValues } from '../../../source/core/module/module-values';
 import { ScopedValues } from '../../../source/core/scoped-values';
-import { PwbDebug } from '../../../source/core/configuration/pwb-debug';
 import { PwbComponentEventListener } from '../../../source/module/component-event-listener/pwb-component-event-listener.decorator';
 import { ComponentEvent } from '../../../source/module/component-event/component-event';
 import { ComponentEventEmitter } from '../../../source/module/component-event/component-event-emitter';
@@ -25,8 +25,7 @@ import { TestUtil } from '../../utility/test-util';
 
 describe('PwbEventListener', () => {
     before(() => {
-        const lConfiguration: PwbDebug = new PwbDebug();
-        lConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
     });
 
     it('-- Native listener', async () => {

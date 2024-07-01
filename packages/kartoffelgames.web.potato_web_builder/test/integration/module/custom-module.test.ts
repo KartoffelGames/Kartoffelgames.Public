@@ -3,6 +3,7 @@ import { ComponentScopedValues } from '../../../source/core/component/injection_
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
 import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from '../../../source/core/component/template/nodes/pwb-template-xml-node';
+import { PwbConfiguration } from '../../../source/core/configuration/pwb-debug';
 import { Processor } from '../../../source/core/core_entity/processor';
 import { AccessMode } from '../../../source/core/enum/access-mode.enum';
 import { UpdateTrigger } from '../../../source/core/enum/update-trigger.enum';
@@ -11,15 +12,13 @@ import { IInstructionOnUpdate } from '../../../source/core/module/instruction_mo
 import { InstructionResult } from '../../../source/core/module/instruction_module/instruction-result';
 import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator';
 import { ScopedValues } from '../../../source/core/scoped-values';
-import { PwbDebug } from '../../../source/core/configuration/pwb-debug';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
 
 describe('Custom Module', () => {
     before(() => {
-        const lConfiguration: PwbDebug = new PwbDebug();
-        lConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
     });
 
     it('-- Same result, twice', async () => {

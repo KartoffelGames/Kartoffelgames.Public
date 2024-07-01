@@ -2,18 +2,17 @@ import { expect } from 'chai';
 import { ComponentRegister } from '../../../source/core/component/component-register';
 import { ComponentScopedValues } from '../../../source/core/component/injection_reference/component-scoped-values';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
+import { PwbConfiguration } from '../../../source/core/configuration/pwb-debug';
 import { Processor } from '../../../source/core/core_entity/processor';
 import { ScopedValues } from '../../../source/core/scoped-values';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
-import { PwbDebug } from '../../../source/core/configuration/pwb-debug';
 
 
 describe('ScopedValues', () => {
     before(() => {
-        const lConfiguration: PwbDebug = new PwbDebug();
-        lConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
     });
 
     describe('-- Equal', () => {

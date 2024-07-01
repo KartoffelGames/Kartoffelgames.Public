@@ -1,6 +1,6 @@
 import { Stack } from '@kartoffelgames/core';
 import { InteractionEvent, InteractionZone } from '@kartoffelgames/web.interaction-zone';
-import { PwbDebug, PwbDebugLogLevel } from '../configuration/pwb-debug';
+import { PwbConfiguration, PwbDebugLogLevel } from '../configuration/pwb-debug';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
 import { CoreEntityInteractionData, CoreEntityInteractionEvent, CoreEntityProcessorProxy } from './interaction-tracker/core-entity-processor-proxy';
 import { IgnoreInteractionTracking } from './interaction-tracker/ignore-interaction-tracking.decorator';
@@ -13,8 +13,6 @@ import { IgnoreInteractionTracking } from './interaction-tracker/ignore-interact
  */
 @IgnoreInteractionTracking
 export class CoreEntityUpdater {
-    private static readonly mDebugger: PwbDebug = new PwbDebug();
-
     private readonly mInteractionZone: InteractionZone;
     private readonly mLogLevel: PwbDebugLogLevel;
     private readonly mRegisteredObjects: WeakMap<object, CoreEntityProcessorProxy<object>>;
@@ -182,7 +180,7 @@ export class CoreEntityUpdater {
         const lStartPerformance = globalThis.performance.now();
 
         // Reshedule task when frame time exceeds MAX_FRAME_TIME. Update called next frame.
-        if (lStartPerformance - pFrameTimeStamp > CoreEntityUpdater.mDebugger.configuration.updating.frameTime) {
+        if (lStartPerformance - pFrameTimeStamp > PwbConfiguration.configuration.updating.frameTime) {
             return { resheduled: true, updated: false, error: null, task: pUpdateTask, stack: pStack };
         }
 
@@ -193,8 +191,8 @@ export class CoreEntityUpdater {
             }) || pUpdatedState;
 
             // Log performance time.
-            if (CoreEntityUpdater.mDebugger.configuration.log.updatePerformance) {
-                CoreEntityUpdater.mDebugger.print(this.mLogLevel, 'Update performance:', this.mInteractionZone.name,
+            if (PwbConfiguration.configuration.log.updatePerformance) {
+                PwbConfiguration.print(this.mLogLevel, 'Update performance:', this.mInteractionZone.name,
                     '\n\t', 'Update time:', globalThis.performance.now() - lStartPerformance,
                     '\n\t', 'Frame  time:', globalThis.performance.now() - pFrameTimeStamp,
                     '\n\t', 'Frame  timestamp:', pFrameTimeStamp,
@@ -203,7 +201,7 @@ export class CoreEntityUpdater {
             }
 
             // Throw if too many calles were chained.
-            if (pStack.size > CoreEntityUpdater.mDebugger.configuration.updating.stackCap) {
+            if (pStack.size > PwbConfiguration.configuration.updating.stackCap) {
                 throw new UpdateLoopError('Call loop detected', pStack.toArray());
             }
 
@@ -255,8 +253,8 @@ export class CoreEntityUpdater {
      */
     private async sheduleUpdateTask(pUpdateTask: CoreEntityInteractionEvent): Promise<boolean> {
         // Log update trigger time.
-        if (CoreEntityUpdater.mDebugger.configuration.log.updaterTrigger) {
-            CoreEntityUpdater.mDebugger.print(this.mLogLevel, 'Update trigger:', this.mInteractionZone.name,
+        if (PwbConfiguration.configuration.log.updaterTrigger) {
+            PwbConfiguration.print(this.mLogLevel, 'Update trigger:', this.mInteractionZone.name,
                 '\n\t', 'Trigger:', pUpdateTask.toString(),
                 '\n\t', 'Is dropped:', this.mUpdateInformation.shedule.sheduledIdentifier !== null,
                 '\n\t', 'Is queued:', this.mUpdateInformation.shedule.sheduledIdentifier === null && this.mUpdateInformation.shedule.runningIdentifier !== null,
@@ -305,12 +303,12 @@ export class CoreEntityUpdater {
                     // Cancel next call cycle.
                     globalThis.cancelAnimationFrame(this.mUpdateInformation.shedule.sheduledIdentifier ?? 0);
 
-                    if (!CoreEntityUpdater.mDebugger.configuration.error.ignore) {
+                    if (!PwbConfiguration.configuration.error.ignore) {
                         // Block shedulling another task.
                         this.mUpdateInformation.shedule.sheduledIdentifier = -1;
                     } else {
                         // Print error.
-                        CoreEntityUpdater.mDebugger.print(this.mLogLevel, lExecutionTask.error);
+                        PwbConfiguration.print(this.mLogLevel, lExecutionTask.error);
 
                         // But remove it.
                         lExecutionTask.error = null;

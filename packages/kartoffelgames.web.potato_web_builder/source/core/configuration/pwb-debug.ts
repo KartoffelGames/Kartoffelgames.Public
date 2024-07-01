@@ -1,4 +1,7 @@
-export class PwbDebug {
+/**
+ * Pwb configuration.
+ */
+class PwbDebug {
     private static mInstance: PwbDebug;
 
     private readonly mConfiguration!: ComponentDebugConfiguration;
@@ -91,3 +94,5 @@ export enum PwbDebugLogLevel {
      */
     All = 7
 }
+
+export const PwbConfiguration: PwbDebug = new PwbDebug();

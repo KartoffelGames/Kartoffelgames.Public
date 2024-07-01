@@ -1,9 +1,9 @@
 import { Exception } from '@kartoffelgames/core';
 import { expect } from 'chai';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
+import { PwbConfiguration } from '../../../source/core/configuration/pwb-debug';
 import { CoreEntityProcessorProxy } from '../../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy';
 import { Processor } from '../../../source/core/core_entity/processor';
-import { PwbDebug } from '../../../source/core/configuration/pwb-debug';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
 import { PwbChild } from '../../../source/module/pwb_child/pwb-child.decorator';
 import '../../mock/request-animation-frame-mock-session';
@@ -12,8 +12,7 @@ import { TestUtil } from '../../utility/test-util';
 
 describe('PwbChildAttributeModule', () => {
     before(() => {
-        const lConfiguration: PwbDebug = new PwbDebug();
-        lConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+        PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
     });
 
     it('-- Read id child', async () => {

@@ -231,10 +231,7 @@ describe('PwbApp', () => {
     });
 
     describe('Method: setSplashScreen', () => {
-        it('-- Default', async () => {
-            // Setup.
-            const lBackground: string = 'red';
-
+        it('-- Content', async () => {
             // Setup. Content.
             const lContentSpan = new PwbTemplateXmlNode();
             lContentSpan.tagName = 'span';
@@ -249,7 +246,6 @@ describe('PwbApp', () => {
 
             // Process. Create splash screen.
             lApp.setSplashScreen({
-                background: lBackground,
                 content: lContent,
                 animationTime: 0,
                 manual: true
@@ -259,11 +255,37 @@ describe('PwbApp', () => {
             await lApp.appendTo(document.body);
 
             // Process. Read splash screen data.
-            const lSplashScreen: HTMLElement = <HTMLElement>lApp.component.shadowRoot!.querySelector('.splashscreen');
             const lContentElement: HTMLElement = lApp.component.shadowRoot!.querySelector('span')!;
 
-            expect(lSplashScreen.style.getPropertyValue('--background')).to.equal(lBackground);
             expect(lContentElement.getAttribute('style')).to.equal('color: #fff;');
+        });
+
+        it('-- Background', async () => {
+            // Setup.
+            const lBackground: string = 'red';
+
+            // Setup. Content.
+            const lContentSpan = new PwbTemplateXmlNode();
+            lContentSpan.tagName = 'span';
+            lContentSpan.setAttribute('style').addValue('color: #fff;');
+
+            // Setup. Create app.
+            const lApp: PwbApp = new PwbApp();
+
+            // Process. Create splash screen.
+            lApp.setSplashScreen({
+                background: lBackground,
+                animationTime: 0,
+                manual: true
+            });
+
+            // Setup. Add app to document.
+            await lApp.appendTo(document.body);
+
+            // Process. Read splash screen data.
+            const lSplashScreen: HTMLElement = <HTMLElement>lApp.component.shadowRoot!.querySelector('.splashscreen');
+
+            expect(lSplashScreen.style.getPropertyValue('--background')).to.equal(lBackground);
         });
 
         it('-- Manual splash screen', async () => {

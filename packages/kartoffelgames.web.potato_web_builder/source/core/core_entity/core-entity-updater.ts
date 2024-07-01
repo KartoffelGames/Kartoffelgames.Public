@@ -185,7 +185,7 @@ export class CoreEntityUpdater {
 
         // Reshedule task when frame time exceeds MAX_FRAME_TIME. Update called next frame.
         if (lStartPerformance - pFrameTimeStamp > CoreEntityUpdater.MAX_FRAME_TIME) {
-            return { resheduled: true, updated: false, error: null };
+            return { resheduled: true, updated: false, error: null, task: pUpdateTask, stack: pStack };
         }
 
         try {
@@ -206,23 +206,30 @@ export class CoreEntityUpdater {
 
             // Throw if too many calles were chained.
             if (pStack.size > CoreEntityUpdater.MAX_STACK_SIZE) {
-                throw new UpdateLoopError('Call loop detected', pStack.toArray()); // TODO: Ignore Event trigger. Restart chain when a event trigger happens???
+                throw new UpdateLoopError('Call loop detected', pStack.toArray());
             }
 
             // Clear call chain list if no other call in this cycle was made.
             if (this.mUpdateInformation.shedule.nextTask === null) {
-                return { updated: lUpdatedState, error: null, resheduled: false };
+                return { updated: lUpdatedState, error: null, resheduled: false, task: pUpdateTask, stack: pStack };
             } else {
                 // Buffer next task and allow another one to be chained.
                 const lNextTask: CoreEntityInteractionEvent = this.mUpdateInformation.shedule.nextTask;
                 this.mUpdateInformation.shedule.nextTask = null;
 
+                // Restart chain when current task was triggered from event changes.
+                let lStack: Stack<CoreEntityInteractionEvent> = pStack;
+                if (pUpdateTask.trigger === UpdateTrigger.InputChange) {
+                    lStack = new Stack<CoreEntityInteractionEvent>();
+                    lStack.push(pUpdateTask);
+                }
+
                 // Execute next task and merge current updated flag with recursion update flags.
-                return this.executeTask(lNextTask, pFrameTimeStamp, pStack, lUpdatedState);
+                return this.executeTask(lNextTask, pFrameTimeStamp, lStack, lUpdatedState);
             }
         } catch (pException) {
             // No update happened on errors.
-            return { updated: false, error: pException, resheduled: false };
+            return { updated: false, error: pException, resheduled: false, task: pUpdateTask, stack: pStack };
         }
     }
 
@@ -288,7 +295,7 @@ export class CoreEntityUpdater {
                 // Reshedule current task. Do not cleanup current running.
                 if (lExecutionTask.resheduled) {
                     // Skip any progression on resheduled task.
-                    lShedule(pTask, pStack, lExecutionTask.updated);
+                    lShedule(lExecutionTask.task, lExecutionTask.stack, lExecutionTask.updated);
                     return;
                 }
 
@@ -305,7 +312,7 @@ export class CoreEntityUpdater {
                         this.mUpdateInformation.shedule.sheduledIdentifier = -1;
                     } else {
                         // Print error.
-                        CoreEntityUpdater.mDebugger.print(lExecutionTask.error);
+                        CoreEntityUpdater.mDebugger.print(this.mDebugLevel, lExecutionTask.error);
 
                         // But remove it.
                         lExecutionTask.error = null;
@@ -362,6 +369,8 @@ type UpdaterTaskExecutionResult = {
     updated: boolean;
     error: any | null;
     resheduled: boolean;
+    stack: Stack<CoreEntityInteractionEvent>;
+    task: CoreEntityInteractionEvent;
 };
 
 type UpdateChainCompleteHookRelease = (pUpdated: boolean, pError: any) => void;

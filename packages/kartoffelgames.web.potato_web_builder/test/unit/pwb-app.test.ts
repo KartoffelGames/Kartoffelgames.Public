@@ -1,14 +1,20 @@
 import { expect } from 'chai';
+import { PwbDebug } from '../../source/core/configuration/pwb-debug';
+import { PwbComponent } from '../../source/core/component/pwb-component.decorator';
 import { PwbTemplate } from '../../source/core/component/template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from '../../source/core/component/template/nodes/pwb-template-xml-node';
-import { PwbComponent } from '../../source/core/component/pwb-component.decorator';
+import { Processor } from '../../source/core/core_entity/processor';
 import { PwbApp } from '../../source/pwb-app/pwb-app';
 import '../mock/request-animation-frame-mock-session';
 import '../utility/chai-helper';
 import { TestUtil } from '../utility/test-util';
-import { Processor } from '../../source/core/core_entity/processor';
 
 describe('PwbApp', () => {
+    before(() => {
+        const lConfiguration: PwbDebug = new PwbDebug();
+        lConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+    });
+
     it('Property: component', () => {
         // Setup.
         const lApp: PwbApp = new PwbApp();
@@ -139,7 +145,7 @@ describe('PwbApp', () => {
         class TestComponent extends Processor {
             public constructor() {
                 super();
-                
+
                 throw new Error(lErrorMessage);
             }
         }

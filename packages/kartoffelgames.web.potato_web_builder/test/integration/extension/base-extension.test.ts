@@ -4,9 +4,15 @@ import { Processor } from '../../../source/core/core_entity/processor';
 import { AccessMode } from '../../../source/core/enum/access-mode.enum';
 import { UpdateTrigger } from '../../../source/core/enum/update-trigger.enum';
 import { PwbExtensionModule } from '../../../source/core/extension/pwb-extension-module.decorator';
+import { PwbDebug } from '../../../source/core/configuration/pwb-debug';
 import { TestUtil } from '../../utility/test-util';
 
 describe('BaseExtension', () => {
+    before(() => {
+        const lConfiguration: PwbDebug = new PwbDebug();
+        lConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+    });
+
     it('-- Call extension constructor on component restriction', async () => {
         // Process. Define component.   
         @PwbComponent({
@@ -55,7 +61,7 @@ describe('BaseExtension', () => {
         class UselessExtension extends Processor {
             public constructor() {
                 super();
-                
+
                 lExtensionCalled = true;
             }
         }

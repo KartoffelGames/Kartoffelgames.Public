@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { PwbDebug } from '../../source/core/configuration/pwb-debug';
 import { Component, IComponentOnAttributeChange, IComponentOnDeconstruct, IComponentOnUpdate } from '../../source/core/component/component';
 import { ComponentRegister } from '../../source/core/component/component-register';
 import { PwbComponent } from '../../source/core/component/pwb-component.decorator';
@@ -15,6 +16,11 @@ import '../utility/chai-helper';
 import { TestUtil } from '../utility/test-util';
 
 describe('HtmlComponent', () => {
+    before(() => {
+        const lConfiguration: PwbDebug = new PwbDebug();
+        lConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+    });
+
     it('-- Single element', async () => {
         // Setup. Define component.
         @PwbComponent({

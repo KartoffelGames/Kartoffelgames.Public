@@ -1,5 +1,5 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { PwbDebugLogLevel } from '../../debug/pwb-debug';
+import { PwbDebugLogLevel } from '../configuration/pwb-debug';
 import { CoreEntityExtendable } from '../core_entity/core-entity-extendable';
 import { Processor } from '../core_entity/processor';
 import { UpdateMode } from '../enum/update-mode.enum';

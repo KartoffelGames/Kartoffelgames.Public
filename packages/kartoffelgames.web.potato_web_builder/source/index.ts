@@ -64,7 +64,7 @@ import './module/export/export-extension';
 import './module/pwb_app_injection/pwb-app-injection-extension';
 
 // Set debugger to global scope.
-import { PwbDebug, PwbDebugLogLevel } from './debug/pwb-debug';
+import { PwbDebug, PwbDebugLogLevel } from './core/configuration/pwb-debug';
 globalThis['PwbDebug'] = new PwbDebug();
 globalThis['PwbLogLevel'] = PwbDebugLogLevel;
 

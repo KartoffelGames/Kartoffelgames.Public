@@ -1,12 +1,18 @@
 import { expect } from 'chai';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
 import { Processor } from '../../../source/core/core_entity/processor';
+import { PwbDebug } from '../../../source/core/configuration/pwb-debug';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
 
 describe('IfInstructionModule', () => {
+    before(() => {
+        const lConfiguration: PwbDebug = new PwbDebug();
+        lConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+    });
+
     it('Initial false', async () => {
         // Setup. Values.
         const lDisplayed: boolean = false;

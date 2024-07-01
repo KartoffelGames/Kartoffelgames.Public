@@ -11,11 +11,17 @@ import { IInstructionOnUpdate } from '../../../source/core/module/instruction_mo
 import { InstructionResult } from '../../../source/core/module/instruction_module/instruction-result';
 import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator';
 import { ScopedValues } from '../../../source/core/scoped-values';
+import { PwbDebug } from '../../../source/core/configuration/pwb-debug';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
 
 describe('Custom Module', () => {
+    before(() => {
+        const lConfiguration: PwbDebug = new PwbDebug();
+        lConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+    });
+
     it('-- Same result, twice', async () => {
         // Setup. Define module.
         @PwbInstructionModule({

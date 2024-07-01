@@ -7,9 +7,15 @@ import { ScopedValues } from '../../../source/core/scoped-values';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
+import { PwbDebug } from '../../../source/core/configuration/pwb-debug';
 
 
 describe('ScopedValues', () => {
+    before(() => {
+        const lConfiguration: PwbDebug = new PwbDebug();
+        lConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+    });
+
     describe('-- Equal', () => {
         it('-- Everything equal', async () => {
             // Setup. Define component.

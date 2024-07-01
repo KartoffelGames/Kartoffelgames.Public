@@ -1,15 +1,21 @@
 import { expect } from 'chai';
 import { Component } from '../../../source/core/component/component';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
+import { Processor } from '../../../source/core/core_entity/processor';
 import { UpdateMode } from '../../../source/core/enum/update-mode.enum';
+import { PwbDebug } from '../../../source/core/configuration/pwb-debug';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
 import { PwbApp } from '../../../source/pwb-app/pwb-app';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
-import { Processor } from '../../../source/core/core_entity/processor';
 
 describe('PwbAppInjectionExtension', () => {
+    before(() => {
+        const lConfiguration: PwbDebug = new PwbDebug();
+        lConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+    });
+
     it('-- PwbApp injection on global element', async () => {
         // Process.
         let lApp: PwbApp | null = null;
@@ -214,7 +220,7 @@ describe('PwbAppInjectionExtension', () => {
         class TestComponent extends Processor {
             public constructor(pApp: PwbApp) {
                 super();
-                
+
                 lApp = pApp;
             }
         }

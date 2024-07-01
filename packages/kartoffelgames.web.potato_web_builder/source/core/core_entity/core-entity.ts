@@ -121,7 +121,7 @@ export abstract class CoreEntity<TProcessor extends Processor = Processor> imple
 
         // Call function in update trigger zone.
         return this.mUpdater.switchToUpdateZone(() => {
-            return lPropertyFunction.call(this.processor, pParameter);
+            return lPropertyFunction.apply(this.processor, pParameter);
         });
     }
 

@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import { expect } from 'chai';
 import { Processor } from '../../../source';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
-import { PwbConfiguration } from '../../../source/core/configuration/pwb-debug';
+import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration';
 import { ComponentEvent } from '../../../source/module/component-event/component-event';
 import { ComponentEventEmitter } from '../../../source/module/component-event/component-event-emitter';
 import { PwbComponentEvent } from '../../../source/module/component-event/pwb-component-event.decorator';

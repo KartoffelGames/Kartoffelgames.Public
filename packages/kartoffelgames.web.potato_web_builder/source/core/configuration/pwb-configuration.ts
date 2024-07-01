@@ -1,8 +1,9 @@
 /**
  * Pwb configuration.
+ * Allways return the same instance.
  */
-class PwbDebug {
-    private static mInstance: PwbDebug;
+class PwbConfigurationSingleton {
+    private static mInstance: PwbConfigurationSingleton;
 
     private readonly mConfiguration!: ComponentDebugConfiguration;
 
@@ -19,11 +20,11 @@ class PwbDebug {
      * Reuses single instance.
      */
     public constructor() {
-        if (PwbDebug.mInstance) {
-            return PwbDebug.mInstance;
+        if (PwbConfigurationSingleton.mInstance) {
+            return PwbConfigurationSingleton.mInstance;
         }
 
-        PwbDebug.mInstance = this;
+        PwbConfigurationSingleton.mInstance = this;
 
         // Set default information.
         this.mConfiguration = {
@@ -95,4 +96,7 @@ export enum PwbDebugLogLevel {
     All = 7
 }
 
-export const PwbConfiguration: PwbDebug = new PwbDebug();
+/**
+ * Pwb global configuration.
+ */
+export const PwbConfiguration: PwbConfigurationSingleton = new PwbConfigurationSingleton();

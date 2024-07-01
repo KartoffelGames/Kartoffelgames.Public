@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { ComponentRegister } from '../../../source/core/component/component-register';
 import { ComponentScopedValues } from '../../../source/core/component/injection_reference/component-scoped-values';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
-import { PwbConfiguration } from '../../../source/core/configuration/pwb-debug';
+import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration';
 import { Processor } from '../../../source/core/core_entity/processor';
 import { ScopedValues } from '../../../source/core/scoped-values';
 import '../../mock/request-animation-frame-mock-session';

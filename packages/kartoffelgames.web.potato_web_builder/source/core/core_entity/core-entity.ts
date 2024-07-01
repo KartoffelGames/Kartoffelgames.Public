@@ -2,7 +2,7 @@ import { Dictionary, Exception, IDeconstructable, Stack } from '@kartoffelgames/
 import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
 import { CoreEntityUpdater } from './core-entity-updater';
-import { PwbDebugLogLevel } from '../configuration/pwb-debug';
+import { PwbDebugLogLevel } from '../configuration/pwb-configuration';
 import { Processor } from './processor';
 import { CoreEntityProcessorProxy } from './interaction-tracker/core-entity-processor-proxy';
 

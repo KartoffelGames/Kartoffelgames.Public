@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { Component } from '../../../source/core/component/component';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
-import { PwbConfiguration } from '../../../source/core/configuration/pwb-debug';
+import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration';
 import { Processor } from '../../../source/core/core_entity/processor';
 import { UpdateMode } from '../../../source/core/enum/update-mode.enum';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator';

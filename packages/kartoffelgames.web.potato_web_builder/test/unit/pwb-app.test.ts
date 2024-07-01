@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { PwbComponent } from '../../source/core/component/pwb-component.decorator';
 import { PwbTemplate } from '../../source/core/component/template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from '../../source/core/component/template/nodes/pwb-template-xml-node';
-import { PwbConfiguration } from '../../source/core/configuration/pwb-debug';
+import { PwbConfiguration } from '../../source/core/configuration/pwb-configuration';
 import { Processor } from '../../source/core/core_entity/processor';
 import { PwbApp } from '../../source/pwb-app/pwb-app';
 import '../mock/request-animation-frame-mock-session';

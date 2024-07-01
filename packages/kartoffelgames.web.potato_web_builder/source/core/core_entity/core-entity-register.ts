@@ -2,6 +2,10 @@ import { Dictionary } from '@kartoffelgames/core';
 import { CoreEntity, CoreEntityProcessorConstructor } from './core-entity';
 import { Processor } from './processor';
 
+/**
+ * Createable core entity register. 
+ * Allways returns the same instance.
+ */
 class CoreEntityRegisterSingleton {
     private static mInstance: CoreEntityRegisterSingleton;
 
@@ -87,5 +91,7 @@ export type CoreEntityProcessorConstructorSetup<TConfiguration extends CoreEntit
     processorConfiguration: TConfiguration;
 };
 
-
+/**
+ * Core entity register.
+ */
 export const CoreEntityRegister = new CoreEntityRegisterSingleton();

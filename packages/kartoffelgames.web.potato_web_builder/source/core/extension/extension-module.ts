@@ -1,6 +1,6 @@
 import { IDeconstructable } from '@kartoffelgames/core';
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { PwbDebugLogLevel } from '../configuration/pwb-debug';
+import { PwbDebugLogLevel } from '../configuration/pwb-configuration';
 import { CoreEntity, CoreEntityProcessorConstructor } from '../core_entity/core-entity';
 import { Processor } from '../core_entity/processor';
 import { AccessMode } from '../enum/access-mode.enum';

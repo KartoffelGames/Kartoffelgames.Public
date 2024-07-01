@@ -3,7 +3,7 @@
 // Component
 export { IComponentOnAttributeChange, IComponentOnConnect, IComponentOnDeconstruct, IComponentOnDisconnect, IComponentOnUpdate } from './core/component/component';
 export { PwbComponent } from './core/component/pwb-component.decorator';
-export { PwbConfiguration, PwbDebugLogLevel } from './core/configuration/pwb-debug';
+export { PwbConfiguration, PwbDebugLogLevel } from './core/configuration/pwb-configuration';
 export { Processor } from './core/core_entity/processor';
 export { PwbApp } from './pwb-app/pwb-app';
 
@@ -65,7 +65,7 @@ import './module/export/export-extension';
 import './module/pwb_app_injection/pwb-app-injection-extension';
 
 // Set debugger to global scope.
-import { PwbConfiguration, PwbDebugLogLevel } from './core/configuration/pwb-debug';
+import { PwbConfiguration, PwbDebugLogLevel } from './core/configuration/pwb-configuration';
 globalThis['PotatoWebBuilder'] = {
     configuration: PwbConfiguration,
     logLevel: PwbDebugLogLevel

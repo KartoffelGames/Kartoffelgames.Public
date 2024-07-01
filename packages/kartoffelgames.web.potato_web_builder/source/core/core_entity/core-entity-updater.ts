@@ -1,6 +1,6 @@
 import { Stack } from '@kartoffelgames/core';
 import { InteractionEvent, InteractionZone } from '@kartoffelgames/web.interaction-zone';
-import { PwbConfiguration, PwbDebugLogLevel } from '../configuration/pwb-debug';
+import { PwbConfiguration, PwbDebugLogLevel } from '../configuration/pwb-configuration';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
 import { CoreEntityInteractionData, CoreEntityInteractionEvent, CoreEntityProcessorProxy } from './interaction-tracker/core-entity-processor-proxy';
 import { IgnoreInteractionTracking } from './interaction-tracker/ignore-interaction-tracking.decorator';

@@ -42,7 +42,8 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
             constructor: pParameter.processorConstructor,
             debugLevel: PwbDebugLogLevel.Component,
             trigger: UpdateTrigger.Any,
-            isolate: (pParameter.updateMode & UpdateMode.Isolated) !== 0
+            isolate: (pParameter.updateMode & UpdateMode.Isolated) !== 0,
+            trackConstructorChanges: true
         });
 
         // Register component and element.

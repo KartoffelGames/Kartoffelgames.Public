@@ -17,7 +17,8 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
             debugLevel: PwbDebugLogLevel.Module,
             parent: pParameter.parent,
             isolate: false,
-            trigger: pParameter.trigger
+            trigger: pParameter.trigger,
+            trackConstructorChanges: false
         });
 
         // Create module injection mapping.
@@ -40,7 +41,7 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
     }
 }
 
-export type BaseModuleConstructorParameter<TProcessor extends IPwbModuleProcessor> = Omit<Omit<CoreEntityExtendableConstructorParameter<TProcessor>, 'debugLevel'>, 'isolateInteraction'> & {
+export type BaseModuleConstructorParameter<TProcessor extends IPwbModuleProcessor> = Omit<Omit<Omit<CoreEntityExtendableConstructorParameter<TProcessor>, 'trackConstructorChanges'>, 'debugLevel'>, 'isolateInteraction'> & {
     values: ScopedValues;
 };
 

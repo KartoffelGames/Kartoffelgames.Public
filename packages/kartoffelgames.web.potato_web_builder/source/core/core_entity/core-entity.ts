@@ -4,6 +4,7 @@ import { UpdateTrigger } from '../enum/update-trigger.enum';
 import { CoreEntityUpdater } from './core-entity-updater';
 import { PwbDebugLogLevel } from '../../debug/pwb-debug';
 import { Processor } from './processor';
+import { CoreEntityProcessorProxy } from './interaction-tracker/core-entity-processor-proxy';
 
 export abstract class CoreEntity<TProcessor extends Processor = Processor> implements IDeconstructable {
     private readonly mHooks: CoreEntityHooks<TProcessor>;
@@ -12,6 +13,7 @@ export abstract class CoreEntity<TProcessor extends Processor = Processor> imple
     private mIsSetup: boolean;
     private mProcessor: TProcessor | null;
     private readonly mProcessorConstructor: CoreEntityProcessorConstructor<TProcessor>;
+    private readonly mTrackChanges: boolean;
     private readonly mUpdater: CoreEntityUpdater;
 
     /**
@@ -55,7 +57,7 @@ export abstract class CoreEntity<TProcessor extends Processor = Processor> imple
      */
     public constructor(pParameter: CoreEntityConstructorParameter<TProcessor>) {
         // Validate processor constructor.
-        if(!(pParameter.constructor.prototype instanceof Processor)){
+        if (!(pParameter.constructor.prototype instanceof Processor)) {
             throw new Exception(`Constructor "${pParameter.constructor.name}" does not extend`, this);
         }
 
@@ -66,7 +68,8 @@ export abstract class CoreEntity<TProcessor extends Processor = Processor> imple
         this.mIsLocked = false;
         this.mIsSetup = false;
 
-        // Init lists.
+        // Init lists and config.
+        this.mTrackChanges = pParameter.trackConstructorChanges;
         this.mInjections = new Dictionary<InjectionConstructor, any>();
         this.mHooks = {
             create: new Stack<CoreEntityProcessorCreationHook<TProcessor>>(),
@@ -234,9 +237,18 @@ export abstract class CoreEntity<TProcessor extends Processor = Processor> imple
 
         // Create processor.
         let lProcessor: TProcessor = this.mUpdater.switchToUpdateZone(() => {
-            // TODO: Constructor has the original this context :(
+            // Create tracked processor when 
+            if (this.mTrackChanges) {
+                return Processor.enableTrackingOnConstruction(() => {
+                    return Injection.createObject<TProcessor>(this.mProcessorConstructor, this.mInjections);
+                });
+            }
+
             return Injection.createObject<TProcessor>(this.mProcessorConstructor, this.mInjections);
         });
+
+        // Event when the processor should be tracked, save the original.
+        lProcessor = CoreEntityProcessorProxy.getOriginal(lProcessor);
 
         // Call every creation hook.
         // Execute Setup hooks.
@@ -301,5 +313,10 @@ export type CoreEntityConstructorParameter<TProcessor extends Processor> = {
      * Isolate trigger and dont send them to parent zones.
      */
     isolate?: boolean;
+
+    /**
+     * Track changes in processor.
+     */
+    trackConstructorChanges: boolean;
 };
 export type CoreEntityProcessorConstructor<TProcessor extends Processor = Processor> = new (...pParameter: Array<any>) => TProcessor;

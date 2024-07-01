@@ -17,7 +17,8 @@ export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> im
             debugLevel: PwbDebugLogLevel.Extention,
             parent: pParent,
             isolate: false,
-            trigger: pInteractionTrigger
+            trigger: pInteractionTrigger,
+            trackConstructorChanges: false
         });
 
         this.setProcessorAttributes(ExtensionModule, this);
@@ -25,7 +26,7 @@ export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> im
         // Call execution hook.
         this.addSetupHook(() => {
             this.call<IExtensionOnExecute, 'onExecute'>('onExecute', false);
-        }).addSetupHook(()=>{
+        }).addSetupHook(() => {
             // Forces auto create on setup.
             this.processor;
         });

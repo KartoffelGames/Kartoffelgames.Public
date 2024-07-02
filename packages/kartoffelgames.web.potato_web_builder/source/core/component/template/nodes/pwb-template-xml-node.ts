@@ -103,6 +103,11 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
             return false;
         }
 
+        // Check same count of childs.
+        if (pBaseNode.childList.length !== this.childList.length) {
+            return false;
+        }
+
         // Check all attributes.
         for (const lAttributeOne of pBaseNode.mAttributeDictionary.values()) {
             // This checks also for wrong namespace prefix by checking for qualified attribute name.
@@ -111,11 +116,6 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
             if (!lAttributeTwo || !lAttributeTwo.equals(lAttributeOne)) {
                 return false;
             }
-        }
-
-        // Check same count of childs.
-        if (pBaseNode.childList.length !== this.childList.length) {
-            return false;
         }
 
         // Deep check all childnodes

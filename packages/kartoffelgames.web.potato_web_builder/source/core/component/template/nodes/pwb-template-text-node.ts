@@ -94,24 +94,24 @@ export class PwbTemplateTextNode extends BasePwbTemplateNode {
             const lAttributeOne: string | PwbTemplateExpression | undefined = this.values[lIndex];
             const lAttributeTwo: string | PwbTemplateExpression | undefined = pBaseNode.values[lIndex];
 
-            // Same type.
-            if (typeof lAttributeOne !== typeof lAttributeTwo) {
-                return false;
-            }
-
             // Same reference.
             if (lAttributeOne === lAttributeTwo) {
                 continue;
             }
 
+            // Same type.
+            if (typeof lAttributeOne !== typeof lAttributeTwo) {
+                return false;
+            }
+
             // Same string value.
             if (typeof lAttributeOne === 'string' && lAttributeOne !== lAttributeTwo) {
                 return false;
-            } else {
-                // Both are expression values.
-                if (!(<PwbTemplateExpression>lAttributeTwo).equals(<PwbTemplateExpression>lAttributeOne)) {
-                    return false;
-                }
+            }
+
+            // Both are expression values.
+            if (!(<PwbTemplateExpression>lAttributeTwo).equals(<PwbTemplateExpression>lAttributeOne)) {
+                return false;
             }
         }
 

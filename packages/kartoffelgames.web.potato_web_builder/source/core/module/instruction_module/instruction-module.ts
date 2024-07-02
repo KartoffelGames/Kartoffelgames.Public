@@ -1,9 +1,9 @@
-import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { PwbTemplateInstructionNode } from '../../component/template/nodes/pwb-template-instruction-node';
-import { ModuleTemplate } from '../injection_reference/module-template';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { BaseModule, BaseModuleConstructorParameter, IPwbModuleProcessor, IPwbModuleProcessorConstructor } from '../base-module';
 import { ModuleExpression } from '../injection_reference/module-expression';
-import { InstructionResult, InstructionResultElement } from './instruction-result';
+import { ModuleTemplate } from '../injection_reference/module-template';
+import { InstructionResult } from './instruction-result';
 
 export class InstructionModule extends BaseModule<IPwbInstructionModuleProcessor> {
     private mLastResult: InstructionResult;
@@ -48,38 +48,10 @@ export class InstructionModule extends BaseModule<IPwbInstructionModuleProcessor
             return false;
         }
 
-        // Check for changes in last and new result.
-        const lValueHasChanged: boolean = (() => {
-            // New and old 
-            if (lNewValue.elementList.length !== this.mLastResult.elementList.length) {
-                return true;
-            }
+        // Save  instruction result.
+        this.mLastResult = lNewValue;
 
-            // Compare each element of instruction result.
-            for (let lElementIndex: number = 0; lElementIndex < lNewValue.elementList.length; lElementIndex++) {
-                const lNewElement: InstructionResultElement = lNewValue.elementList[lElementIndex];
-                const lOldElement: InstructionResultElement = this.mLastResult.elementList[lElementIndex];
-
-                // Compare new and old template.
-                if (!lNewElement.template.equals(lOldElement.template)) {
-                    return true;
-                }
-
-                // Compare new and old values.
-                if (!lNewElement.componentValues.equals(lOldElement.componentValues)) {
-                    return true;
-                }
-            }
-
-            return false;
-        })();
-
-        // Save new value when it has changed.
-        if (lValueHasChanged) {
-            this.mLastResult = lNewValue;
-        }
-
-        return lValueHasChanged;
+        return true;
     }
 }
 

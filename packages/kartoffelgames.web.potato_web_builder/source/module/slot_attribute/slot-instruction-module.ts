@@ -13,6 +13,7 @@ import { Processor } from '../../core/core_entity/processor';
     trigger: UpdateTrigger.None,
 })
 export class SlotInstructionModule extends Processor implements IInstructionOnUpdate {
+    private mIsSetup: boolean;
     private readonly mModuleValues: ModuleValues;
     private readonly mSlotName: string;
 
@@ -24,9 +25,10 @@ export class SlotInstructionModule extends Processor implements IInstructionOnUp
      */
     public constructor(pModuleValues: ModuleValues, pModuleExpression: ModuleExpression) {
         super();
-        
+
         this.mModuleValues = pModuleValues;
         this.mSlotName = pModuleExpression.value;
+        this.mIsSetup = false;
     }
 
     /**
@@ -34,6 +36,14 @@ export class SlotInstructionModule extends Processor implements IInstructionOnUp
      * @returns if element of module should be updated.
      */
     public onUpdate(): InstructionResult | null {
+        // Nothing can change in slots after initial update.
+        if (this.mIsSetup) {
+            return null;
+        }
+
+        // Lock any "updates".
+        this.mIsSetup = true;
+
         // Create slot xml element.
         const lSlotXmlElement: PwbTemplateXmlNode = new PwbTemplateXmlNode();
         lSlotXmlElement.tagName = 'slot';

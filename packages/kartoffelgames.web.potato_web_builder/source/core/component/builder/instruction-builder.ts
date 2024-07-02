@@ -83,8 +83,6 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
      * @param pNewContentList - New content list.
      */
     private updateStaticBuilder(pOldContentList: Array<StaticBuilder>, pNewContentList: Array<InstructionResultElement>): void {
-        // TODO: Maybe just check templates and make values replaceable.
-
         // Define difference search.
         const lMyersDiff: MyersDiff<StaticBuilder, InstructionResultElement> = new MyersDiff<StaticBuilder, InstructionResultElement>((pA, pB) => {
             return pB.componentValues.equals(pA.values) && pB.template.equals(pA.template);

@@ -196,6 +196,7 @@ export class CoreEntityUpdater {
                     '\n\t', 'Update time:', globalThis.performance.now() - lStartPerformance,
                     '\n\t', 'Frame  time:', globalThis.performance.now() - pFrameTimeStamp,
                     '\n\t', 'Frame  timestamp:', pFrameTimeStamp,
+                    '\n\t', 'Updatestate:', lUpdatedState,
                     '\n\t', 'Updatechain: ', pStack.toArray().map((pReason) => { return pReason.toString(); }),
                 );
             }

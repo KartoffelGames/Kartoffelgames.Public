@@ -29,7 +29,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
     /**
      * Update content dependent on temporar value. 
      */
-    protected async onUpdate(): Promise<boolean> {
+    protected onUpdate(): boolean {
         // Create instruction module if is does not exist.
         if (!this.content.instructionModule) {
             // Create and link instruction module.
@@ -38,7 +38,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
         }
 
         // Call module update.
-        const lInstructionUpdated: boolean = await this.content.instructionModule.update();
+        const lInstructionUpdated: boolean = this.content.instructionModule.update();
         if (lInstructionUpdated) {
             // Get current StaticBuilder. Only content are static builder.
             const lOldStaticBuilderList: Array<StaticBuilder> = <Array<StaticBuilder>>this.content.body;

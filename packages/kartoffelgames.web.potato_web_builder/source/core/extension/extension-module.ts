@@ -47,7 +47,7 @@ export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> im
      * 
      * @returns false.
      */
-    public async onUpdate(): Promise<boolean> {
+    public onUpdate(): boolean {
         return this.call<IExtensionOnUpdate, 'onUpdate'>('onUpdate', false) ?? false;
     }
 }

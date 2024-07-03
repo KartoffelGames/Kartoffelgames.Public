@@ -1,18 +1,34 @@
 import { Exception } from '@kartoffelgames/core';
-import { ExpressionModule } from '../../../module/expression_module/expression-module';
 import { AttributeModule } from '../../../module/attribute_module/attribute-module';
+import { ExpressionModule } from '../../../module/expression_module/expression-module';
 import { ComponentModules } from '../../component-modules';
 import { PwbTemplateAttribute } from '../../template/nodes/values/pwb-template-attribute';
 import { BaseBuilderData } from './base-builder-data';
 
 export class StaticBuilderData extends BaseBuilderData {
+    private mAttributeModulesChangedOrder: boolean;
     private readonly mLinkedAttributeElement: WeakMap<PwbTemplateAttribute, Element>;
     private readonly mLinkedAttributeExpressionModules: WeakMap<ExpressionModule, PwbTemplateAttribute>;
+    private readonly mLinkedAttributeModuleList: Array<AttributeModule>;
     private readonly mLinkedAttributeNodes: WeakMap<PwbTemplateAttribute, Array<Text>>;
     private readonly mLinkedExpressionModuleList: Array<ExpressionModule>;
-    private readonly mLinkedStaticModuleList: Array<AttributeModule>;
+    
 
-    private mStaticModulesChangedOrder: boolean;
+    /**
+     * Get all linked attribute modules.
+     * 
+     * Attribute modules are allways ordered by read and write access.
+     */
+    public get linkedAttributeModules(): Array<AttributeModule> {
+        // Reorder module list when it has new modules.
+        if (this.mAttributeModulesChangedOrder) {
+            this.mAttributeModulesChangedOrder = false;
+
+            this.orderAttributeModules();
+        }
+
+        return this.mLinkedAttributeModuleList;
+    }
 
     /**
      * Get all linked expression modules.
@@ -21,22 +37,6 @@ export class StaticBuilderData extends BaseBuilderData {
      */
     public get linkedExpressionModules(): Array<ExpressionModule> {
         return this.mLinkedExpressionModuleList;
-    }
-
-    /**
-     * Get all linked static modules.
-     * 
-     * Static modules are allways ordered by read and write access.
-     */
-    public get linkedStaticModules(): Array<AttributeModule> {
-        // Reorder module list when it has new modules.
-        if (this.mStaticModulesChangedOrder) {
-            this.mStaticModulesChangedOrder = false;
-
-            this.orderStaticModules();
-        }
-
-        return this.mLinkedStaticModuleList;
     }
 
     /**
@@ -49,14 +49,14 @@ export class StaticBuilderData extends BaseBuilderData {
         super(pModules, pAnchorName);
 
         this.mLinkedExpressionModuleList = new Array<ExpressionModule>();
-        this.mLinkedStaticModuleList = new Array<AttributeModule>();
+        this.mLinkedAttributeModuleList = new Array<AttributeModule>();
 
         // Attribute expression maps.
         this.mLinkedAttributeExpressionModules = new WeakMap<ExpressionModule, PwbTemplateAttribute>();
         this.mLinkedAttributeNodes = new WeakMap<PwbTemplateAttribute, Array<Text>>();
         this.mLinkedAttributeElement = new WeakMap<PwbTemplateAttribute, Element>();
 
-        this.mStaticModulesChangedOrder = false;
+        this.mAttributeModulesChangedOrder = false;
     }
 
     /**
@@ -107,6 +107,20 @@ export class StaticBuilderData extends BaseBuilderData {
     }
 
     /**
+     * Link attribute module to builder.
+     * Linked modules get updated in data access order on every update.
+     * 
+     * @param pModule - Module.
+     */
+    public linkAttributeModule(pModule: AttributeModule): void {
+        // Add module as linked module to node module list.
+        this.mLinkedAttributeModuleList.push(pModule);
+
+        // Retrigger module reorder.
+        this.mAttributeModulesChangedOrder = true;
+    }
+
+    /**
      * Link attribute data with a attribute.
      * 
      * @param pAttribute - Attribute template with {@link pModule} as child value.
@@ -130,26 +144,12 @@ export class StaticBuilderData extends BaseBuilderData {
     }
 
     /**
-     * Link static module to builder.
-     * Linked modules get updated in data access order on every update.
-     * 
-     * @param pModule - Module.
-     */
-    public linkStaticModule(pModule: AttributeModule): void {
-        // Add module as linked module to node module list.
-        this.mLinkedStaticModuleList.push(pModule);
-
-        // Retrigger module reorder.
-        this.mStaticModulesChangedOrder = true;
-    }
-
-    /**
      * On deconstruction.
      * Deconstruct linked modules.
      */
     protected onDeconstruct(): void {
         // Deconstruct linked static modules.
-        for (const lModule of this.mLinkedStaticModuleList) {
+        for (const lModule of this.mLinkedAttributeModuleList) {
             lModule.deconstruct();
         }
 
@@ -160,12 +160,12 @@ export class StaticBuilderData extends BaseBuilderData {
     }
 
     /**
-     * Order static modules. Sorts {@link mLinkedStaticModuleList} reference.
+     * Order attribute modules. Sorts {@link mLinkedAttributeModuleList} reference.
      * Sort orders are: write - readwrite - read.
      */
-    private orderStaticModules(): void {
+    private orderAttributeModules(): void {
         // Sort by write->readwrite->read->expression and update.
-        this.mLinkedStaticModuleList.sort((pModuleA, pModuleB): number => {
+        this.mLinkedAttributeModuleList.sort((pModuleA, pModuleB): number => {
             return pModuleA.accessMode - pModuleB.accessMode;
         });
     }

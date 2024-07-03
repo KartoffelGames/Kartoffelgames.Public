@@ -39,7 +39,7 @@ export class InstructionModule extends BaseModule<IPwbInstructionModuleProcessor
     /**
      * Update module.
      */
-    public async onUpdate(): Promise<boolean> {
+    public onUpdate(): boolean {
         // Try to update instruction when an onUpdate method is defined.
         const lNewValue: InstructionResult | null = this.call<IInstructionOnUpdate, 'onUpdate'>('onUpdate', true);
 

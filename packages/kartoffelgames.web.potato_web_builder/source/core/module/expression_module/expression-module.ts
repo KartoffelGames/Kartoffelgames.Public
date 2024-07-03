@@ -39,7 +39,7 @@ export class ExpressionModule extends BaseModule<IPwbExpressionModuleProcessor> 
      * @remarks
      * Allways invokes {@link IPwbExpressionModuleOnUpdate.onUpdate} and decides on result if any update happened.
      */
-    public async onUpdate(): Promise<boolean> {
+    public onUpdate(): boolean {
         // Try to update expression when an onUpdate method is defined.
         let lNewValue: string | null = this.call<IExpressionOnUpdate, 'onUpdate'>('onUpdate', true);
 

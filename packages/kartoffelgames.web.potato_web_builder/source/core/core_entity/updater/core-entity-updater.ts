@@ -1,9 +1,9 @@
 import { Stack } from '@kartoffelgames/core';
 import { InteractionEvent, InteractionZone } from '@kartoffelgames/web.interaction-zone';
-import { PwbConfiguration, PwbDebugLogLevel } from '../configuration/pwb-configuration';
-import { UpdateTrigger } from '../enum/update-trigger.enum';
-import { CoreEntityInteractionData, CoreEntityInteractionEvent, CoreEntityProcessorProxy } from './interaction-tracker/core-entity-processor-proxy';
-import { IgnoreInteractionTracking } from './interaction-tracker/ignore-interaction-tracking.decorator';
+import { PwbConfiguration, PwbDebugLogLevel } from '../../configuration/pwb-configuration';
+import { UpdateTrigger } from '../../enum/update-trigger.enum';
+import { CoreEntityInteractionData, CoreEntityInteractionEvent, CoreEntityProcessorProxy } from '../interaction-tracker/core-entity-processor-proxy';
+import { IgnoreInteractionTracking } from '../interaction-tracker/ignore-interaction-tracking.decorator';
 
 /**
  * Update zone of any core entity. Handles automatic and manual update detection.
@@ -62,7 +62,7 @@ export class CoreEntityUpdater {
             }
 
             // Shedule auto update.
-            this.sheduleUpdateTask(pReason);
+            this.doTheUpdate(pReason);
         });
     }
 
@@ -131,7 +131,7 @@ export class CoreEntityUpdater {
      * 
      * @public
      */
-    public async update(): Promise<boolean> {
+    public update(): boolean {
         // Create independend interaction event for manual shedule.
         const lManualUpdateEvent: CoreEntityInteractionEvent = new InteractionEvent<UpdateTrigger, CoreEntityInteractionData>(UpdateTrigger, UpdateTrigger.Manual, this.mInteractionZone, {
             source: this,
@@ -139,7 +139,7 @@ export class CoreEntityUpdater {
         });
 
         // Shedule an update task.
-        return this.sheduleUpdateTask(lManualUpdateEvent);
+        return this.doTheUpdate(lManualUpdateEvent);
     }
 
     /**
@@ -157,6 +157,10 @@ export class CoreEntityUpdater {
                 }
             });
         });
+    }
+
+    private doTheUpdate(pUpdateTask: CoreEntityInteractionEvent): boolean {
+        return this.mUpdateFunction.call(this, pUpdateTask);
     }
 
     /**
@@ -252,7 +256,7 @@ export class CoreEntityUpdater {
      * 
      * @returns if anything was updated.
      */
-    private async sheduleUpdateTask(pUpdateTask: CoreEntityInteractionEvent): Promise<boolean> {
+    private async sheduleUpdateTaskyyyy(pUpdateTask: CoreEntityInteractionEvent): Promise<boolean> {
         // Log update trigger time.
         if (PwbConfiguration.configuration.log.updaterTrigger) {
             PwbConfiguration.print(this.mLogLevel, 'Update trigger:', this.mInteractionZone.name,
@@ -380,7 +384,7 @@ type UpdateInformation = {
     completeHooks: Stack<UpdateChainCompleteHookRelease>;
 };
 
-export type UpdateListener = (pReason: CoreEntityInteractionEvent) => Promise<boolean>;
+export type UpdateListener = (pReason: CoreEntityInteractionEvent) => boolean;
 
 export class UpdateLoopError extends Error {
     private readonly mChain: Array<CoreEntityInteractionEvent>;

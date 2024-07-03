@@ -1,7 +1,7 @@
 import { Dictionary, Exception, IDeconstructable, Stack } from '@kartoffelgames/core';
 import { Injection, InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
-import { CoreEntityUpdater } from './core-entity-updater';
+import { CoreEntityUpdater } from './updater/core-entity-updater';
 import { PwbDebugLogLevel } from '../configuration/pwb-configuration';
 import { Processor } from './processor';
 import { CoreEntityProcessorProxy } from './interaction-tracker/core-entity-processor-proxy';
@@ -90,7 +90,7 @@ export abstract class CoreEntity<TProcessor extends Processor = Processor> imple
             isolate: !!pParameter.isolate,
             trigger: pParameter.trigger,
             parent: pParameter.parent?.mUpdater,
-            onUpdate: async () => {
+            onUpdate: () => {
                 return this.onUpdate();
             }
         });
@@ -192,7 +192,7 @@ export abstract class CoreEntity<TProcessor extends Processor = Processor> imple
      * 
      * @returns true when a update happened and false when nothing was updated.
      */
-    public async update(): Promise<boolean> {
+    public update(): boolean {
         return this.mUpdater.update();
     }
 
@@ -268,7 +268,7 @@ export abstract class CoreEntity<TProcessor extends Processor = Processor> imple
      * 
      * @returns true when a update happened and false when nothing was updated.
      */
-    protected abstract onUpdate(): Promise<boolean>;
+    protected abstract onUpdate(): boolean;
 }
 
 // Hooks

@@ -20,7 +20,7 @@ export class AttributeModule extends BaseModule<IPwbAttributeModuleProcessor> {
      * Constructor.
      * @param pParameter - Constructor parameter.
      */
-    public constructor(pParameter: StaticModuleConstructorParameter) {
+    public constructor(pParameter: AttributeModuleConstructorParameter) {
         super({
             constructor: pParameter.constructor,
             parent: pParameter.parent,
@@ -41,12 +41,12 @@ export class AttributeModule extends BaseModule<IPwbAttributeModuleProcessor> {
     /**
      * Update module.
      */
-    public async onUpdate(): Promise<boolean> {
+    public onUpdate(): boolean {
         return this.call<IAttributeOnUpdate, 'onUpdate'>('onUpdate', true) ?? false;
     }
 }
 
-export type StaticModuleConstructorParameter = BaseModuleConstructorParameter<IPwbAttributeModuleProcessor> & {
+export type AttributeModuleConstructorParameter = BaseModuleConstructorParameter<IPwbAttributeModuleProcessor> & {
     accessMode: AccessMode,
     targetTemplate: PwbTemplateAttribute,
     targetNode: Element;

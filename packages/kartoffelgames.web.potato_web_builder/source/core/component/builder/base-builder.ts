@@ -84,21 +84,18 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
      * 
      * @returns If any changes where made.  
      */
-    public async update(): Promise<boolean> {
+    public update(): boolean {
         // Update this builder.
-        const lThisBuilderHasUpdated: boolean = await this.onUpdate();
+        const lThisBuilderHasUpdated: boolean = this.onUpdate();
 
         // Update all child builder and save update promise.
-        const lUpdates: Array<Promise<boolean>> = new Array<Promise<boolean>>();
+        let lUpdated: boolean = false;
         for (const lBuilder of this.content.builders) {
-            lUpdates.push(lBuilder.update());
+            lUpdated ||= lBuilder.update();
         }
 
-        // Wait for all Updates to finish
-        const lUpdateResult: Array<boolean> = await Promise.all(lUpdates);
-
         // Return active change flag when the current builder or any of the child builder has any change. 
-        return lThisBuilderHasUpdated || lUpdateResult.includes(true);
+        return lThisBuilderHasUpdated || lUpdated;
     }
 
     /**
@@ -153,5 +150,5 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
      * 
      * @returns If any changes where made. 
      */
-    protected abstract onUpdate(): Promise<boolean>;
+    protected abstract onUpdate(): boolean;
 }

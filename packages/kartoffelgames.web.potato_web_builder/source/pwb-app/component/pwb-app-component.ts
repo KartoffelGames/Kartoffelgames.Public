@@ -65,7 +65,7 @@ export class PwbAppComponent extends Processor implements IComponentOnConnect, I
      */
     constructor(pComponent: Component) {
         super();
-        
+
         this.mContent = new PwbTemplate();
         this.mComponent = pComponent;
 
@@ -138,8 +138,9 @@ export class PwbAppComponent extends Processor implements IComponentOnConnect, I
      * 
      * @param pStyle - Css style as string.
      */
-    @PwbExport async update(): Promise<void> {
-        return this.mComponent.update().then();
+    @PwbExport update(): void {
+        // TODO: Wait for update finish and make it cool again.
+        this.mComponent.update();
     }
 
     /**
@@ -152,9 +153,12 @@ export class PwbAppComponent extends Processor implements IComponentOnConnect, I
         }
 
         // Remove splashscreen when any component was updated.
-        this.mComponent.update().then(() => {
-            this.removeSplashScreen();
-        });
+        this.mComponent.update();
+
+        // TODO: Wait for update finish.
+
+        this.removeSplashScreen();
+
     }
 
     /**

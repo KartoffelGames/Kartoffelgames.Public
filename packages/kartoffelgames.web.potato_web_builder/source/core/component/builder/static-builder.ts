@@ -40,50 +40,47 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
     /**
      * Update static builder.
      */
-    protected async onUpdate(): Promise<boolean> {
+    protected onUpdate(): boolean {
         // One time build of template. Statics doesn't change that much...
         if (!this.mInitialized) {
             this.mInitialized = true;
             this.buildTemplate([this.template], this);
         }
 
-        // Update static modules.
-        const lModuleUpdates: Array<Promise<boolean>> = new Array<Promise<boolean>>();
-        for (const lModule of this.content.linkedStaticModules) {
-            lModuleUpdates.push(lModule.update());
+        // Update attribute modules.
+        let lAttributeModuleUpdated: boolean = false;
+        for (const lModule of this.content.linkedAttributeModules) {
+            lAttributeModuleUpdated ||= lModule.update();
         }
 
         // List with all expression that are updated and linked with any attribute.
+        let lExpressionModuleUpdated: boolean = false;
         for (const lExpressionModule of this.content.linkedExpressionModules) {
             // Update expression and save updatestate.
-            lModuleUpdates.push(lExpressionModule.update().then((pExpressionUpdated) => {
-                // Check if expression is mapped with any attribute.
-                if (pExpressionUpdated) {
-                    // Read linked attribute of expression. Exit when it has none.
-                    const lLinkedAttribute: PwbTemplateAttribute | undefined = this.content.attributeOfLinkedExpressionModule(lExpressionModule);
-                    if (!lLinkedAttribute) {
-                        return pExpressionUpdated;
-                    }
+            // Check if expression is mapped with any attribute.
+            if (lExpressionModule.update()) {
+                // Update update state of all expression modules.
+                lExpressionModuleUpdated = true;
 
-                    // Read all attribute text nodes.
-                    const lLinkedAttributeData: StaticBuilderLinkedAttributeData = this.content.getLinkedAttributeData(lLinkedAttribute);
-
-                    // Accumulate all up to date text data.
-                    const lAccumulatedText: string = lLinkedAttributeData.values.reduce((pCurrent: string, pNext: Text) => { return pCurrent + pNext.data; }, '');
-
-                    // Update DOM attribute value with accumulated text.
-                    lLinkedAttributeData.node.setAttribute(lLinkedAttribute.name, lAccumulatedText);
+                // Read linked attribute of expression. Exit when it has none.
+                const lLinkedAttribute: PwbTemplateAttribute | undefined = this.content.attributeOfLinkedExpressionModule(lExpressionModule);
+                if (!lLinkedAttribute) {
+                    continue;
                 }
 
-                return pExpressionUpdated;
-            }));
+                // Read all attribute text nodes.
+                const lLinkedAttributeData: StaticBuilderLinkedAttributeData = this.content.getLinkedAttributeData(lLinkedAttribute);
+
+                // Accumulate all up to date text data.
+                const lAccumulatedText: string = lLinkedAttributeData.values.reduce((pCurrent: string, pNext: Text) => { return pCurrent + pNext.data; }, '');
+
+                // Update DOM attribute value with accumulated text.
+                lLinkedAttributeData.node.setAttribute(lLinkedAttribute.name, lAccumulatedText);
+            }
         }
 
-        // Wait for all Updates to finish
-        const lModuleUpdateResult: Array<boolean> = await Promise.all(lModuleUpdates);
-
         // Update happened when any module has an update.
-        return lModuleUpdateResult.includes(true);
+        return lExpressionModuleUpdated || lExpressionModuleUpdated;
     }
 
     /**
@@ -117,7 +114,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
             const lStaticModule: AttributeModule | null = this.content.modules.createAttributeModule(lAttributeTemplate, lHtmlNode, this.values);
             if (lStaticModule) {
                 // Link modules.
-                this.content.linkStaticModule(lStaticModule);
+                this.content.linkAttributeModule(lStaticModule);
                 continue;
             }
 

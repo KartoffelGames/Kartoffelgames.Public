@@ -117,10 +117,13 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         this.mUpdateEnabled = true;
 
         // Trigger update on connect.
-        this.update().then(() => {
-            // Call processor event after updating.
-            this.call<IComponentOnConnect, 'onConnect'>('onConnect', false);
-        });
+        this.update();
+
+        // TODO: Wait for update finish.
+
+        // Call processor event after updating.
+        this.call<IComponentOnConnect, 'onConnect'>('onConnect', false);
+
     }
 
     /**
@@ -155,14 +158,14 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
      * 
      * @returns True when any update happened, false when all values stayed the same.
      */
-    protected async onUpdate(): Promise<boolean> {
+    protected onUpdate(): boolean {
         // On disabled update.
         if (!this.mUpdateEnabled) {
             return false;
         }
 
         // Update and callback after update.
-        if (await this.mRootBuilder.update()) {
+        if (this.mRootBuilder.update()) {
             // Call component processor on update function.
             this.call<IComponentOnUpdate, 'onUpdate'>('onUpdate', false);
 

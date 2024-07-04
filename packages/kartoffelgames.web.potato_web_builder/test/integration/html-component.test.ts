@@ -3,7 +3,6 @@ import { Component, IComponentOnAttributeChange, IComponentOnDeconstruct, ICompo
 import { ComponentRegister } from '../../source/core/component/component-register';
 import { PwbComponent } from '../../source/core/component/pwb-component.decorator';
 import { PwbConfiguration } from '../../source/core/configuration/pwb-configuration';
-import { UpdateLoopError } from '../../source/core/core_entity/updater/core-entity-updater';
 import { CoreEntityProcessorProxy } from '../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy';
 import { Processor } from '../../source/core/core_entity/processor';
 import { UpdateMode } from '../../source/core/enum/update-mode.enum';
@@ -14,6 +13,7 @@ import { PwbExport } from '../../source/module/export/pwb-export.decorator';
 import '../mock/request-animation-frame-mock-session';
 import '../utility/chai-helper';
 import { TestUtil } from '../utility/test-util';
+import { UpdateLoopError } from '../../source/core/core_entity/updater/update-loop-error';
 
 describe('HtmlComponent', () => {
     before(() => {

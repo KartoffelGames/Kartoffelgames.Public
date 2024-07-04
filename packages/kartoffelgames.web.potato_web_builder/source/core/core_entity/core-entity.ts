@@ -188,12 +188,12 @@ export abstract class CoreEntity<TProcessor extends Processor = Processor> imple
     }
 
     /**
-     * Manual updates core entity.
+     * Manual updates core entity synchron.
      * 
      * @returns true when a update happened and false when nothing was updated.
      */
     public update(): boolean {
-        return this.mUpdater.update();
+        return this.mUpdater.updateSync();
     }
 
     /**

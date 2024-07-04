@@ -166,39 +166,51 @@ describe('HtmlComponent', () => {
         expect(lStyleElement.textContent).to.equal(lStyleContent);
     });
 
-    it('-- Manual update. No initial update', async () => {
+    it('-- Manual update. Initial update', async () => {
+        // Setup.
+        const lInitialValue: string = 'Initial value';
+
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: '<div />',
+            template: '<div>{{ this.value }}</div>',
             updateScope: UpdateMode.Manual
         })
-        class TestComponent extends Processor { }
+        class TestComponent extends Processor {
+            public value: string = lInitialValue;
+        }
 
         // Process. Create element.
         const lComponentConstructor: CustomElementConstructor = ComponentRegister.ofConstructor(TestComponent).elementConstructor;
         const lComponent: HTMLElement = new lComponentConstructor() as any;
-        document.body.appendChild(lComponent);
 
         // Evaluation.
         expect(lComponent).to.have.componentStructure([
-            Comment
+            Comment,
+            {
+                node: HTMLDivElement,
+                textContent: lInitialValue
+            }
         ], true);
     });
 
     it('-- Manual update. User triggered update', async () => {
+        // Setup.
+        const lInitialValue: string = 'Initial value';
+        const lNewValue: string = 'New Value';
+
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: '<div />',
+            template: '<div>{{ this.value }}</div>',
             updateScope: UpdateMode.Manual
         })
         class TestComponent extends Processor {
-            private readonly mComponent: Component;
-            public constructor(pUpdateReference: Component) {
-                super();
+            @PwbExport
+            public value: string = lInitialValue;
 
-                this.mComponent = pUpdateReference;
+            public constructor(private readonly mComponent: Component) {
+                super();
             }
 
             @PwbExport
@@ -209,13 +221,28 @@ describe('HtmlComponent', () => {
 
         // Process. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        lComponent.value = lNewValue;
+
+        // Evaluation.
+        expect(lComponent).to.have.componentStructure([
+            Comment,
+            {
+                node: HTMLDivElement,
+                textContent: lInitialValue
+            }
+        ], true);
+
+        // Process. Trigger update.
         lComponent.update();
         await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
         expect(lComponent).to.have.componentStructure([
             Comment,
-            HTMLDivElement
+            {
+                node: HTMLDivElement,
+                textContent: lNewValue
+            }
         ], true);
     });
 

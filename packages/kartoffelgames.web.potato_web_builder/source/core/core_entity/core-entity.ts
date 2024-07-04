@@ -91,6 +91,11 @@ export abstract class CoreEntity<TProcessor extends Processor = Processor> imple
             trigger: pParameter.trigger,
             parent: pParameter.parent?.mUpdater,
             onUpdate: () => {
+                // Prevent updates as long as it is not setup.
+                if(!this.mIsSetup) {
+                    return false;
+                }
+
                 return this.onUpdate();
             }
         });

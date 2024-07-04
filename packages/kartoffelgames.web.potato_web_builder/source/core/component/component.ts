@@ -23,7 +23,6 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
     private static readonly mXmlParser: TemplateParser = new TemplateParser();
     private readonly mComponentElement: ComponentElement;
     private readonly mRootBuilder: StaticBuilder;
-    private mUpdateEnabled: boolean;
     private readonly mUpdateMode: UpdateMode;
 
     /**
@@ -76,7 +75,6 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         }
 
         // Update initial disabled.
-        this.mUpdateEnabled = false;
         this.mUpdateMode = pParameter.updateMode;
 
         // Create component element.
@@ -123,15 +121,6 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
      * Called when component get attached to DOM.
      */
     public connected(): void {
-        this.mUpdateEnabled = true;
-
-        // Trigger update on connect.
-        if ((this.mUpdateMode & UpdateMode.Manual) === 0) {
-            this.update(); // TODO: Async
-        }
-
-        // TODO: Wait for update finish.
-
         // Call processor event after updating.
         this.call<IComponentOnConnect, 'onConnect'>('onConnect', false);
     }
@@ -140,9 +129,6 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
      * Deconstruct element.
      */
     public override deconstruct(): void {
-        // Disable updates.
-        this.mUpdateEnabled = false;
-
         // User callback.
         this.call<IComponentOnDeconstruct, 'onDeconstruct'>('onDeconstruct', false);
 
@@ -157,8 +143,6 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
      * Called when component gets detached from DOM.
      */
     public disconnected(): void {
-        this.mUpdateEnabled = false;
-
         // Call processor event after disabling update event..
         this.call<IComponentOnDisconnect, 'onDisconnect'>('onDisconnect', false);
     }
@@ -169,11 +153,6 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
      * @returns True when any update happened, false when all values stayed the same.
      */
     protected onUpdate(): boolean {
-        // On disabled update.
-        if (!this.mUpdateEnabled) {
-            return false;
-        }
-
         // Update and callback after update.
         if (this.mRootBuilder.update()) {
             // Call component processor on update function.

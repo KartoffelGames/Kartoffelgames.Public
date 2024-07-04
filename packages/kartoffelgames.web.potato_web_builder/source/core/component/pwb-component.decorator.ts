@@ -30,6 +30,7 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
              */
             public constructor() {
                 super();
+
                 // Create new component.
                 this.mComponent = new Component({
                     processorConstructor: pComponentProcessorConstructor,
@@ -43,6 +44,9 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
                 if (pParameter.style) {
                     this.mComponent.addStyle(pParameter.style);
                 }
+
+                // Trigger sync update on construction to prevent poping when using as standalone component.
+                this.mComponent.update(); // TODO: Should be sync.
             }
 
             /**

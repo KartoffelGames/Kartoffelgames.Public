@@ -104,7 +104,7 @@ export class TestUtil {
         const lComponent: Component = TestUtil.getComponentManager(pComponent)!;
         const lUpdateZone: Component = lComponent!.getProcessorAttribute<Component>(Component)!;
 
-        await lUpdateZone.update();
+        lUpdateZone.update();
     }
 }
 

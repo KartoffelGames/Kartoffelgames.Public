@@ -42,7 +42,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
      */
     protected onUpdate(): boolean {
         // One time build of template. Statics doesn't change that much...
-        if (!this.mInitialized) {
+        if (!this.mInitialized) {   
             this.mInitialized = true;
             this.buildTemplate([this.template], this);
         }
@@ -50,7 +50,8 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
         // Update attribute modules.
         let lAttributeModuleUpdated: boolean = false;
         for (const lModule of this.content.linkedAttributeModules) {
-            lAttributeModuleUpdated ||= lModule.update();
+            // Dont use ||=, as it stops calling update once lAttributeModuleUpdated is set to true.
+            lAttributeModuleUpdated = lModule.update() || lAttributeModuleUpdated;
         }
 
         // List with all expression that are updated and linked with any attribute.

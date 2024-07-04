@@ -91,7 +91,8 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
         // Update all child builder and save update promise.
         let lUpdated: boolean = false;
         for (const lBuilder of this.content.builders) {
-            lUpdated ||= lBuilder.update();
+            // Dont use ||=, as it stops calling update once lUpdated is set to true.
+            lUpdated = lBuilder.update() || lUpdated;
         }
 
         // Return active change flag when the current builder or any of the child builder has any change. 

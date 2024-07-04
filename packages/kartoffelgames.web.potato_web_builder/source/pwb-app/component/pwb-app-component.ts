@@ -158,7 +158,6 @@ export class PwbAppComponent extends Processor implements IComponentOnConnect, I
         // TODO: Wait for update finish.
 
         this.removeSplashScreen();
-
     }
 
     /**

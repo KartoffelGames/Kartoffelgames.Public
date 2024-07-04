@@ -24,12 +24,20 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
     private readonly mComponentElement: ComponentElement;
     private readonly mRootBuilder: StaticBuilder;
     private mUpdateEnabled: boolean;
+    private readonly mUpdateMode: UpdateMode;
 
     /**
      * Component html element.
      */
     public get element(): HTMLElement {
         return this.mComponentElement.htmlElement;
+    }
+
+    /**
+     * Component update mode.
+     */
+    public get updateMode(): UpdateMode {
+        return this.mUpdateMode;
     }
 
     /**
@@ -69,6 +77,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
 
         // Update initial disabled.
         this.mUpdateEnabled = false;
+        this.mUpdateMode = pParameter.updateMode;
 
         // Create component element.
         this.mComponentElement = new ComponentElement(pParameter.htmlElement);
@@ -117,13 +126,14 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         this.mUpdateEnabled = true;
 
         // Trigger update on connect.
-        this.update();
+        if ((this.mUpdateMode & UpdateMode.Manual) === 0) {
+            this.update(); // TODO: Async
+        }
 
         // TODO: Wait for update finish.
 
         // Call processor event after updating.
         this.call<IComponentOnConnect, 'onConnect'>('onConnect', false);
-
     }
 
     /**

@@ -99,7 +99,7 @@ export class PwbApp {
         pElement.appendChild(this.mAppComponent);
 
         // Wait for any component update.
-        return this.mAppComponent.update();
+        return this.mAppComponent.update(); // TODO: Wait for update.
     }
 
     /**

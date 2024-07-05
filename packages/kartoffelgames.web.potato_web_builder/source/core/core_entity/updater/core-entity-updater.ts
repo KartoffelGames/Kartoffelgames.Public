@@ -5,6 +5,7 @@ import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { CoreEntityInteractionData, CoreEntityInteractionEvent, CoreEntityProcessorProxy } from '../interaction-tracker/core-entity-processor-proxy';
 import { IgnoreInteractionTracking } from '../interaction-tracker/ignore-interaction-tracking.decorator';
 import { CoreEntityUpdateCycle, UpdateCycle } from './core-entiy-update-cycle';
+import { UpdateLoopError } from './update-loop-error';
 
 /**
  * Base Updater of any core entity. Handles automatic and manual update detection.
@@ -84,7 +85,7 @@ export class CoreEntityUpdater {
             }
 
             // Shedule auto update. // TODO: Make this async
-            this.onSynchronUpdate(pReason);
+            this.runUpdateSynchron(pReason, true);
         });
     }
 
@@ -182,7 +183,7 @@ export class CoreEntityUpdater {
         });
 
         // Run synchron update.
-        return this.onSynchronUpdate(lManualUpdateEvent);
+        return this.runUpdateSynchron(lManualUpdateEvent, true);
     }
 
     /**
@@ -194,7 +195,12 @@ export class CoreEntityUpdater {
      * 
      * @returns Update task result.
      */
-    private executeTask(pUpdateTask: CoreEntityInteractionEvent, pUpdateCycle: UpdateCycle, pUpdateState: boolean): UpdaterTaskExecutionResult {
+    private executeTask(pUpdateTask: CoreEntityInteractionEvent, pUpdateCycle: UpdateCycle, pUpdateState: boolean, pStack: Stack<CoreEntityInteractionEvent>): UpdaterTaskExecutionResult {
+        // Throw if too many calles were chained.
+        if (pStack.size > PwbConfiguration.configuration.updating.stackCap) {
+            throw new UpdateLoopError('Call loop detected', pStack.toArray());
+        }
+
         // Measure performance.
         const lStartPerformance = globalThis.performance.now();
 
@@ -203,13 +209,25 @@ export class CoreEntityUpdater {
             return { resheduled: true, updated: false, error: null };
         }
 
-        // TODO: Update chain and loop detection.
+        // Create and expand call chain when it was not resheduled.
+        pStack.push(pUpdateTask);
 
         try {
             // Call task. If no other call was sheduled during this call, the length will be the same after. 
             const lUpdatedState: boolean = this.mInteractionZone.execute(() => {
                 return this.mUpdateFunction.call(this, pUpdateTask);
             }) || pUpdateState;
+
+            // Log performance time.
+            if (PwbConfiguration.configuration.log.updatePerformance) {
+                PwbConfiguration.print(this.mLogLevel, 'Update performance:', this.mInteractionZone.name,
+                    '\n\t', 'Update time:', globalThis.performance.now() - lStartPerformance,
+                    '\n\t', 'Frame  time:', globalThis.performance.now() - pUpdateCycle.timeStamp,
+                    '\n\t', 'Frame  timestamp:', pUpdateCycle.timeStamp,
+                    '\n\t', 'Updatestate:', lUpdatedState,
+                    '\n\t', 'Updatechain: ', pStack.toArray().map((pReason) => { return pReason.toString(); }),
+                );
+            }
 
             if (!this.mUpdateInformation.cycle.nextTask) {
                 // Return execution result.
@@ -221,77 +239,11 @@ export class CoreEntityUpdater {
             this.mUpdateInformation.cycle.nextTask = null;
 
             // Restart next task in a sub cycle.
-            return this.executeTask(lNextTask, pUpdateCycle, lUpdatedState);
+            return this.executeTask(lNextTask, pUpdateCycle, lUpdatedState, pStack);
         } catch (pException) {
             // No update happened on errors.
             return { updated: false, error: pException, resheduled: false };
         }
-    }
-
-    /**
-     * On update shedule. Takes an update task and shedules it to the next available cycle.
-     * 
-     * @param pUpdateTask - Trigger information of update task.
-     */
-    private onSynchronUpdate(pUpdateTask: CoreEntityInteractionEvent): boolean {
-        // When the current update is running, save the most current update task as next update.
-        if (this.mUpdateInformation.sync.running) {
-            this.mUpdateInformation.cycle.nextTask = pUpdateTask;
-            return false;
-        }
-
-        // Set synchron update to running state.
-        this.mUpdateInformation.sync.running = true;
-
-        // Try to request a sync update state.
-        const lUpdateResult: UpdaterTaskExecutionResult = CoreEntityUpdateCycle.openUpdateCycle({ updater: this, reason: pUpdateTask, runSync: true }, (pUpdateCycle: UpdateCycle) => {
-            // Read from cache when the update was already run in a previous cycle.
-            if (pUpdateCycle.resheduledCycle && this.mCycleUpdateResult.has(pUpdateCycle.resheduledCycle)) {
-                return this.mCycleUpdateResult.get(pUpdateCycle)!;
-            }
-
-            // Execute task.
-            const lExecutionResult: UpdaterTaskExecutionResult = this.executeTask(pUpdateTask, pUpdateCycle, false);
-
-            // Reshedule task to next frame. On sync cycles the resheduled flag is never set.
-            // Request the initiator of the current cycle to restart the update process.
-            if (lExecutionResult.resheduled) {
-                CoreEntityUpdateCycle.resheduleUpdateCycle();
-
-                // False for now, but maybe in the resheduled task it is true.
-                return { resheduled: true, updated: false, error: null };
-            }
-
-            // Handle errors.
-            if (lExecutionResult.error && PwbConfiguration.configuration.error.ignore) {
-                // Print error.
-                PwbConfiguration.print(this.mLogLevel, lExecutionResult.error);
-
-                // But remove it.
-                lExecutionResult.error = null;
-            }
-
-            // On error, throw it.
-            if (lExecutionResult.error) {
-                throw lExecutionResult.error;
-            }
-
-            // Cache update result for this cycle.
-            this.mCycleUpdateResult.set(pUpdateCycle, lExecutionResult);
-
-            return lExecutionResult;
-        });
-
-        // Set synchron update to finished running state.
-        this.mUpdateInformation.sync.running = false;
-
-        // Dont execute next when resheduled only return "no update made".
-        // The resheduled cycle should fix the "wrong" result.
-        if (lUpdateResult.resheduled) {
-            return false;
-        }
-
-        return lUpdateResult.updated;
     }
 
     /**
@@ -306,6 +258,81 @@ export class CoreEntityUpdater {
         while ((lHookRelease = this.mUpdateInformation.cycleCompleteHooks.pop())) {
             lHookRelease(pUpdated, pError);
         }
+    }
+
+    /**
+     * On update shedule. Takes an update task and shedules it to the next available cycle.
+     * 
+     * @param pUpdateTask - Trigger information of update task.
+     */
+    private runUpdateSynchron(pUpdateTask: CoreEntityInteractionEvent, pForceSyncExcecution: boolean): boolean {
+        // Log update trigger time.
+        if (PwbConfiguration.configuration.log.updaterTrigger) {
+            PwbConfiguration.print(this.mLogLevel, 'Update trigger:', this.mInteractionZone.name,
+                '\n\t', 'Trigger:', pUpdateTask.toString(),
+                '\n\t', 'Chained:', this.mUpdateInformation.sync.running,
+                '\n\t', 'Stacktrace:', { stack: pUpdateTask.stacktrace },
+            );
+        }
+
+        // When the current update is running, save the most current update task as next update.
+        if (this.mUpdateInformation.sync.running) {
+            this.mUpdateInformation.cycle.nextTask = pUpdateTask;
+            return false;
+        }
+
+        // Set synchron update to running state.
+        this.mUpdateInformation.sync.running = true;
+
+        // Try to request a sync update state.
+        const lUpdateResult: UpdaterTaskExecutionResult = CoreEntityUpdateCycle.openUpdateCycle({ updater: this, reason: pUpdateTask, runSync: pForceSyncExcecution }, (pUpdateCycle: UpdateCycle) => {
+            // Read from cache when the update was already run in a previous cycle.
+            if (pUpdateCycle.resheduledCycle && this.mCycleUpdateResult.has(pUpdateCycle.resheduledCycle)) {
+                return this.mCycleUpdateResult.get(pUpdateCycle)!;
+            }
+
+            // Execute task.
+            const lExecutionResult: UpdaterTaskExecutionResult = this.executeTask(pUpdateTask, pUpdateCycle, false, new Stack<CoreEntityInteractionEvent>());
+
+            // Reshedule task to next frame. On sync cycles the resheduled flag is never set.
+            // Request the initiator of the current cycle to restart the update process.
+            if (lExecutionResult.resheduled) {
+                CoreEntityUpdateCycle.resheduleUpdateCycle();
+
+                // False for now, but maybe in the resheduled task it is true.
+                return { resheduled: true, updated: false, error: null };
+            }
+
+            // Only when no error occoured, save the update cycle result.
+            if (!lExecutionResult.error) {
+                this.mCycleUpdateResult.set(pUpdateCycle, lExecutionResult);
+            }
+
+            // Handle errors.
+            if (lExecutionResult.error && PwbConfiguration.configuration.error.ignore) {
+                // Print error.
+                PwbConfiguration.print(this.mLogLevel, lExecutionResult.error);
+
+                // But remove it.
+                lExecutionResult.error = null;
+            }
+
+            return lExecutionResult;
+        });
+
+        // Set synchron update to finished running state.
+        this.mUpdateInformation.sync.running = false;
+
+        // Dont execute next when resheduled only return "no update made".
+        // The resheduled cycle should fix the "wrong" result.
+        if (lUpdateResult.resheduled) {
+            return false;
+        }
+
+        // Release chain complete hooks.
+        this.releaseUpdateChainCompleteHooks(lUpdateResult.updated, lUpdateResult.error);
+
+        return lUpdateResult.updated;
     }
 }
 

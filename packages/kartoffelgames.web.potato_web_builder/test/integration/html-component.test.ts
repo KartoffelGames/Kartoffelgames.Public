@@ -515,7 +515,7 @@ describe('HtmlComponent', () => {
         // Process. Create element.
         let lError: any;
         try {
-            // await <any>TestUtil.createComponent(TestComponent); // TODO: Enable again pls.
+            await <any>TestUtil.createComponent(TestComponent);
         } catch (e) {
             lError = e;
         }

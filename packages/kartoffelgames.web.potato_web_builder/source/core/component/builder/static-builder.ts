@@ -81,7 +81,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
         }
 
         // Update happened when any module has an update.
-        return lExpressionModuleUpdated || lExpressionModuleUpdated;
+        return lAttributeModuleUpdated || lExpressionModuleUpdated;
     }
 
     /**

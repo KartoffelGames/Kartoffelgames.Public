@@ -6,7 +6,7 @@ import { CoreEntityInteractionData, CoreEntityInteractionEvent, CoreEntityProces
 import { IgnoreInteractionTracking } from '../interaction-tracker/ignore-interaction-tracking.decorator';
 import { CoreEntityUpdateCycle, UpdateCycle } from './core-entiy-update-cycle';
 import { UpdateLoopError } from './update-loop-error';
-import { UpdateReseduleError } from './update-reshedule-error';
+import { UpdateResheduleError } from './update-reshedule-error';
 
 /**
  * Base Updater of any core entity. Handles automatic and manual update detection.
@@ -147,9 +147,6 @@ export class CoreEntityUpdater {
      * @returns true when anything was updated.
      */
     public async resolveAfterUpdate(): Promise<boolean> {
-        // TODO: Allways return the same promise :)
-        // When no promise is defined, define a new one.
-
         // When nothing is sheduled, nothing will be updated.
         if (!this.mUpdateStates.async.sheduledTaskId) {
             return false;
@@ -212,7 +209,7 @@ export class CoreEntityUpdater {
 
         // Reshedule task when frame time exceeds MAX_FRAME_TIME. Update called next frame.
         if (!pUpdateCycle.sync && lStartPerformance - pUpdateCycle.timeStamp > PwbConfiguration.configuration.updating.frameTime) {
-            throw new UpdateReseduleError();
+            throw new UpdateResheduleError();
         }
 
         // Create and expand call chain when it was not resheduled.
@@ -300,7 +297,7 @@ export class CoreEntityUpdater {
             try {
                 this.runUpdateSynchron(pUpdateTask);
             } catch (pError: unknown) {
-                if (pError instanceof UpdateReseduleError) {
+                if (pError instanceof UpdateResheduleError) {
                     console.log('RESHEDULE');
 
                     this.mUpdateStates.async.resheduled = true;
@@ -390,7 +387,7 @@ export class CoreEntityUpdater {
         } catch (pError: unknown) {
             // When update is resheduled, trigger cycle resheduled.
             // UpdateReseduleError only happen in async cylces, so the async update function should handle the exception.
-            if (pError instanceof UpdateReseduleError) {
+            if (pError instanceof UpdateResheduleError) {
                 throw pError;
             }
 

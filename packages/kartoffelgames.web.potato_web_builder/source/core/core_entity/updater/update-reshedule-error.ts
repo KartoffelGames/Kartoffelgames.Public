@@ -1,5 +1,5 @@
 
-export class UpdateReseduleError extends Error {
+export class UpdateResheduleError extends Error {
     /**
      * Constructor.
      */

@@ -43,7 +43,7 @@ describe('PwbApp', () => {
 
             // Process.
             lApp.addContent(TestComponent);
-            await lApp.appendTo(document.body);
+            lApp.appendTo(document.body);
             const lContent: Element = <Element>lApp.component.shadowRoot!.querySelector(lComponentSelector);
 
             // Evaluation.
@@ -65,7 +65,7 @@ describe('PwbApp', () => {
 
             // Process.
             lApp.addContent(TestComponent);
-            await lApp.appendTo(document.body);
+            lApp.appendTo(document.body);
             const lContent: HTMLElement = <HTMLElement>lApp.component.shadowRoot!.querySelector(lSelector);
             await TestUtil.waitForUpdate(lContent);
 
@@ -98,7 +98,7 @@ describe('PwbApp', () => {
             lApp.setSplashScreen({ manual: true, animationTime: 0 });
 
             // Process.
-            await lApp.appendTo(lDummyElement);
+            lApp.appendTo(lDummyElement);
 
             // Evaluation.
             expect(lDummyElement.childNodes[0]).to.equal(lApp.component);
@@ -114,13 +114,13 @@ describe('PwbApp', () => {
             });
 
             // Process. Append and wait for splash screen remove
-            await lApp.appendTo(document.body);
+            lApp.appendTo(document.body);
             await TestUtil.waitForUpdate(lApp.component); // This Wait is triggered syncron with removeSplacescreen and this triggers another update.
             await TestUtil.waitForUpdate(lApp.component); // Wait for splacescreen removal.
             const lBeforeRemoveChildState: boolean = !!lApp.component.shadowRoot?.querySelector('.splashscreen');
 
             // Process
-            await lApp.appendTo(document.body);
+            lApp.appendTo(document.body);
             await TestUtil.waitForUpdate(lApp.component); // This Wait is triggered syncron with removeSplacescreen and this triggers another update.
             await TestUtil.waitForUpdate(lApp.component); // Wait for splacescreen removal.
             const lAfterRemoveChildState: boolean = !!lApp.component.shadowRoot?.querySelector('.splashscreen');
@@ -164,7 +164,7 @@ describe('PwbApp', () => {
 
         // Throw and catch error.
         try {
-            await lApp.appendTo(document.body);
+            lApp.appendTo(document.body);
 
             // Trigger processor creation.
             const lContent: HTMLElement = <HTMLElement>lApp.component.shadowRoot!.querySelector(lSelector);
@@ -189,7 +189,7 @@ describe('PwbApp', () => {
 
             // Process.
             lApp.addStyle(lStyleContent);
-            await lApp.appendTo(document.body);
+            lApp.appendTo(document.body);
             const lContent: HTMLStyleElement = <HTMLStyleElement>lApp.component.shadowRoot!.querySelectorAll('style')[1];
 
             // Evaluation.
@@ -202,7 +202,7 @@ describe('PwbApp', () => {
             const lStyleContent: string = 'Content';
             const lApp: PwbApp = new PwbApp();
             lApp.setSplashScreen({ animationTime: 0 });
-            await lApp.appendTo(document.body);
+            lApp.appendTo(document.body);
 
             // Process. Add style and wait.
             lApp.addStyle(lStyleContent);
@@ -252,7 +252,7 @@ describe('PwbApp', () => {
             });
 
             // Setup. Add app to document.
-            await lApp.appendTo(document.body);
+            lApp.appendTo(document.body);
 
             // Process. Read splash screen data.
             const lContentElement: HTMLElement = lApp.component.shadowRoot!.querySelector('span')!;
@@ -280,7 +280,7 @@ describe('PwbApp', () => {
             });
 
             // Setup. Add app to document.
-            await lApp.appendTo(document.body);
+            lApp.appendTo(document.body);
 
             // Process. Read splash screen data.
             const lSplashScreen: HTMLElement = <HTMLElement>lApp.component.shadowRoot!.querySelector('.splashscreen');
@@ -301,7 +301,7 @@ describe('PwbApp', () => {
             });
 
             // Process. Append and wait for splash screen remove
-            await lApp.appendTo(document.body);
+            lApp.appendTo(document.body);
             const lBeforeRemoveState: boolean = !!lApp.component.shadowRoot?.querySelector('.splashscreen');
 
             // Process

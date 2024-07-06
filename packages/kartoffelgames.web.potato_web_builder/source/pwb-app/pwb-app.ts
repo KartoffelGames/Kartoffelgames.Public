@@ -94,12 +94,12 @@ export class PwbApp {
      * 
      * @param pElement - Element.
      */
-    public async appendTo(pElement: Element): Promise<void> {
+    public appendTo(pElement: Element): void {
         // Append app element to specified element.
         pElement.appendChild(this.mAppComponent);
 
         // Wait for any component update.
-        return this.mAppComponent.update(); // TODO: Wait for update.
+        this.mAppComponent.update();
     }
 
     /**

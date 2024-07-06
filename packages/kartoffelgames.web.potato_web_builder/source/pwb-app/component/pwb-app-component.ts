@@ -139,7 +139,6 @@ export class PwbAppComponent extends Processor implements IComponentOnConnect, I
      * @param pStyle - Css style as string.
      */
     @PwbExport update(): void {
-        // TODO: Wait for update finish and make it cool again.
         this.mComponent.update();
     }
 

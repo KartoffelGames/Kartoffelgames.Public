@@ -74,16 +74,7 @@ globalThis['PotatoWebBuilder'] = {
 declare global {
     // eslint-disable-next-line no-var, @typescript-eslint/naming-convention
     var PotatoWebBuilder: {
-        configuration: any,
+        configuration: typeof PwbConfiguration,
         logLevel: typeof PwbDebugLogLevel;
     };
 }
-
-
-// TODO: Make any update sync again.
-// TODO: Create a weakmap with current running update cycle id. (Symbol as id???)
-// TODO: Save for each updater the cycle id with the correct update state. When it is found on update return cached result.
-// TODO: Create a master / slave updater. Only the master shedules and retriggers updates. 
-// TODO: When frame time is reached, return update false for any update. Notify the master that the current update should be resheduled with the same frame id.
-// TODO: When resheduled task are run through, start the next update cycle with a new frame id.
-// TODO: Dont forget loggin.

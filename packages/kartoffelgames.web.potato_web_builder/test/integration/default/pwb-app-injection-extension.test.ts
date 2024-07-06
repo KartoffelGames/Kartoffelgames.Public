@@ -38,7 +38,7 @@ describe('PwbAppInjectionExtension', () => {
 
         // Process. Add component to pwb app.
         lPwbApp.addContent(TestComponent);
-        await lPwbApp.appendTo(document.body);
+        lPwbApp.appendTo(document.body);
 
         // Process. Create elements and wait for update.
         const lComponent: HTMLElement = <HTMLElement>lPwbApp.component.shadowRoot!.querySelector(lSelector);
@@ -85,7 +85,7 @@ describe('PwbAppInjectionExtension', () => {
 
         // Process. Add component to pwb app.
         lPwbApp.addContent(TestComponent);
-        await lPwbApp.appendTo(document.body);
+        lPwbApp.appendTo(document.body);
 
         // Process. Create elements and wait for update.
         const lComponent: HTMLElement = <HTMLElement>lPwbApp.component.shadowRoot!.querySelector(lSelector);
@@ -145,7 +145,7 @@ describe('PwbAppInjectionExtension', () => {
 
         // Process. Add component to pwb app.
         lPwbApp.addContent(TestComponent);
-        await lPwbApp.appendTo(document.body);
+        lPwbApp.appendTo(document.body);
 
         // Process. Create elements and wait for update.
         const lComponent: HTMLElement = TestUtil.getComponentNode(lPwbApp.component, lSelector);
@@ -230,7 +230,7 @@ describe('PwbAppInjectionExtension', () => {
 
         // Process. Add component to pwb app.
         lPwbApp.addContent(TestComponent);
-        await lPwbApp.appendTo(document.body);
+        lPwbApp.appendTo(document.body);
 
         // Process. Create elements and wait for update.
         const lComponent: HTMLElement = <HTMLElement>lPwbApp.component.shadowRoot!.querySelector(lSelector);

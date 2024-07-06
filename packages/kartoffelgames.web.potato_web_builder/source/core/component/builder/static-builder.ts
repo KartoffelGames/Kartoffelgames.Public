@@ -42,21 +42,27 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
      */
     protected onUpdate(): boolean {
         // One time build of template. Statics doesn't change that much...
-        if (!this.mInitialized) {   
+        if (!this.mInitialized) {
             this.mInitialized = true;
             this.buildTemplate([this.template], this);
         }
 
         // Update attribute modules.
         let lAttributeModuleUpdated: boolean = false;
-        for (const lModule of this.content.linkedAttributeModules) {
+        const lLinkedAttributeModules = this.content.linkedAttributeModules;
+        for (let lIndex: number = 0; lIndex < lLinkedAttributeModules.length; lIndex++) {
+            const lModule: AttributeModule = lLinkedAttributeModules[lIndex];
+
             // Dont use ||=, as it stops calling update once lAttributeModuleUpdated is set to true.
             lAttributeModuleUpdated = lModule.update() || lAttributeModuleUpdated;
         }
 
         // List with all expression that are updated and linked with any attribute.
         let lExpressionModuleUpdated: boolean = false;
-        for (const lExpressionModule of this.content.linkedExpressionModules) {
+        const lLinkedExpressionModules = this.content.linkedExpressionModules;
+        for (let lIndex: number = 0; lIndex < lLinkedExpressionModules.length; lIndex++) {
+            const lExpressionModule: ExpressionModule = lLinkedExpressionModules[lIndex];
+
             // Update expression and save updatestate.
             // Check if expression is mapped with any attribute.
             if (lExpressionModule.update()) {

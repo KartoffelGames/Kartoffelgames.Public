@@ -47,7 +47,7 @@ export function PwbComponent(pParameter: HtmlComponentParameter): any {
 
                 // Trigger sync update on construction to prevent poping when using as standalone component.
                 // Trigger even on Manual.
-                this.mComponent.update(); // TODO: Should be sync.
+                this.mComponent.update();
             }
 
             /**

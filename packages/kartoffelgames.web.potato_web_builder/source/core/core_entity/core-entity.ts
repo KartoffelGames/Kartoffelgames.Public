@@ -198,7 +198,7 @@ export abstract class CoreEntity<TProcessor extends Processor = Processor> imple
      * @returns true when a update happened and false when nothing was updated.
      */
     public update(): boolean {
-        return this.mUpdater.updateSync();
+        return this.mUpdater.update();
     }
 
     /**

@@ -1,6 +1,6 @@
-import { Exception } from '@kartoffelgames/core';
-import { CoreEntityUpdater } from './core-entity-updater';
+import { Exception, Writeable } from '@kartoffelgames/core';
 import { CoreEntityInteractionEvent } from '../interaction-tracker/core-entity-processor-proxy';
+import { CoreEntityUpdater } from './core-entity-updater';
 
 export class CoreEntityUpdateCycle {
     private static mCurrentUpdateCycle: UpdateCycle | null = null;
@@ -27,7 +27,8 @@ export class CoreEntityUpdateCycle {
                 timeStamp: lTimeStamp,
                 sync: pConfig.runSync,
                 reason: pConfig.reason,
-                resheduledCycle: null
+                resheduleOf: null,
+                resheduled: false
             };
 
             // Set created state.
@@ -52,8 +53,14 @@ export class CoreEntityUpdateCycle {
             throw new Exception(`There is no update cycle that can be resheduled.`, CoreEntityUpdateCycle);
         }
 
-        // TODO: Call async update on initiator with changed resheduledTimeStamp.
+        // Retype cycle.
+        const lWriteableCycle: Writeable<UpdateCycle> = CoreEntityUpdateCycle.mCurrentUpdateCycle;
 
+        // Set current cycle as resheduled.
+        lWriteableCycle.resheduled = true;
+
+        // TODO: Call async update on initiator with changed resheduledTimeStamp.
+        console.log('RESHEDULE');
     }
 }
 
@@ -79,9 +86,14 @@ export type UpdateCycle = {
     readonly reason: CoreEntityInteractionEvent;
 
     /**
+     * If the cycle is allready resheduled.
+     */
+    readonly resheduled: boolean;
+
+    /**
      * Resheduled cycles time stamp.
      */
-    readonly resheduledCycle: UpdateCycle | null;
+    readonly resheduleOf: UpdateCycle | null;
 };
 
 export type CoreEntityUpdateCycleConfig = {

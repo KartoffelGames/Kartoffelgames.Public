@@ -369,7 +369,13 @@ export class CoreEntityUpdater {
         const lUpdateInCycle = (pUpdateCycle: UpdateCycle): boolean => {
             // Read from cache when the update was already run in a previous cycle.
             if (pUpdateCycle.resheduleOf && this.mCycleUpdateResult.has(pUpdateCycle.resheduleOf)) {
-                return this.mCycleUpdateResult.get(pUpdateCycle.resheduleOf)!;
+                // Read cache.
+                const lCachedResult: boolean = this.mCycleUpdateResult.get(pUpdateCycle.resheduleOf)!;
+
+                // Clear cache to allow newer values to be fetched on next updates.
+                this.mCycleUpdateResult.delete(pUpdateCycle.resheduleOf);
+
+                return lCachedResult;
             }
 
             // Execute task.

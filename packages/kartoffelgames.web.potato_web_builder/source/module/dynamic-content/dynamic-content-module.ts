@@ -57,7 +57,8 @@ export class DynamicContentInstructionModule extends Processor implements IInstr
             return null;
         }
 
-        this.mLastTemplate = lTemplateResult;
+        // Dont save the same instance.
+        this.mLastTemplate = lTemplateResult.clone();
 
         // Add custom template to output.
         const lModuleResult: InstructionResult = new InstructionResult();

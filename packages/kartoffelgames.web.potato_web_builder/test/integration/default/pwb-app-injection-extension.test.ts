@@ -1,10 +1,8 @@
 import { expect } from 'chai';
-import { Component } from '../../../source/core/component/component';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
 import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration';
 import { Processor } from '../../../source/core/core_entity/processor';
 import { UpdateMode } from '../../../source/core/enum/update-mode.enum';
-import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
 import { PwbApp } from '../../../source/pwb-app/pwb-app';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
@@ -34,16 +32,15 @@ describe('PwbAppInjectionExtension', () => {
 
         // Process. Create app and skip wait for splash screen.
         const lPwbApp: PwbApp = new PwbApp();
-        lPwbApp.setSplashScreen({ manual: true, animationTime: 10 });
 
         // Process. Add component to pwb app.
         lPwbApp.addContent(TestComponent);
-        lPwbApp.appendTo(document.body);
+        await TestUtil.waitForUpdate(lPwbApp.component);
 
         // Process. Create elements and wait for update.
         const lComponent: HTMLElement = <HTMLElement>lPwbApp.component.shadowRoot!.querySelector(lSelector);
         TestUtil.forceProcessorCreation(lComponent);
-        await TestUtil.waitForUpdate(lPwbApp.component);
+        await TestUtil.waitForUpdate(lComponent);
 
         // Evaluation.
         expect(lApp).to.be.instanceOf(PwbApp);
@@ -81,11 +78,10 @@ describe('PwbAppInjectionExtension', () => {
 
         // Process. Create app and skip wait for splash screen.
         const lPwbApp: PwbApp = new PwbApp();
-        lPwbApp.setSplashScreen({ manual: true, animationTime: 10 });
 
         // Process. Add component to pwb app.
         lPwbApp.addContent(TestComponent);
-        lPwbApp.appendTo(document.body);
+        await TestUtil.waitForUpdate(lPwbApp.component);
 
         // Process. Create elements and wait for update.
         const lComponent: HTMLElement = <HTMLElement>lPwbApp.component.shadowRoot!.querySelector(lSelector);
@@ -141,11 +137,10 @@ describe('PwbAppInjectionExtension', () => {
 
         // Process. Create app and skip wait for splash screen.
         const lPwbApp: PwbApp = new PwbApp();
-        lPwbApp.setSplashScreen({ manual: true, animationTime: 10 });
 
         // Process. Add component to pwb app.
         lPwbApp.addContent(TestComponent);
-        lPwbApp.appendTo(document.body);
+        await TestUtil.waitForUpdate(lPwbApp.component);
 
         // Process. Create elements and wait for update.
         const lComponent: HTMLElement = TestUtil.getComponentNode(lPwbApp.component, lSelector);
@@ -153,8 +148,7 @@ describe('PwbAppInjectionExtension', () => {
 
         // Read cild component.
         const lChildChildContent: HTMLElement = TestUtil.getComponentNode(lComponent, lChildSelector);
-        TestUtil.getComponentManager(lChildChildContent)?.getProcessorAttribute<Component>(Component)?.update();
-        await TestUtil.waitForUpdate(lChildChildContent);
+        TestUtil.manualUpdate(lChildChildContent);
 
         // Read cild component.
         const lChildChildChildContent: HTMLElement = TestUtil.getComponentNode(lChildChildContent, lChildChildSelector);
@@ -176,13 +170,9 @@ describe('PwbAppInjectionExtension', () => {
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class TestComponent extends Processor {
-            @PwbExport
-            public app: PwbApp;
 
-            public constructor(pApp: PwbApp) {
+            public constructor(_pApp: PwbApp) {
                 super();
-
-                this.app = pApp;
             }
         }
 
@@ -193,7 +183,7 @@ describe('PwbAppInjectionExtension', () => {
         let lMessage: string | null = null;
         try {
             const lComponent: HTMLElement & TestComponent = new lComponentConstructor() as any;
-            lComponent.app; // Force creation off component processor by accessing it.
+            TestUtil.forceProcessorCreation(lComponent);
             await TestUtil.waitForUpdate(lComponent);
         } catch (pException) {
             const lError: Error = <Error>pException;
@@ -219,18 +209,16 @@ describe('PwbAppInjectionExtension', () => {
         class TestComponent extends Processor {
             public constructor(pApp: PwbApp) {
                 super();
-
                 lApp = pApp;
             }
         }
 
         // Process. Create app and skip wait for splash screen.
         const lPwbApp: PwbApp = new PwbApp();
-        lPwbApp.setSplashScreen({ manual: true, animationTime: 10 });
 
         // Process. Add component to pwb app.
         lPwbApp.addContent(TestComponent);
-        lPwbApp.appendTo(document.body);
+        await TestUtil.waitForUpdate(lPwbApp.component);
 
         // Process. Create elements and wait for update.
         const lComponent: HTMLElement = <HTMLElement>lPwbApp.component.shadowRoot!.querySelector(lSelector);

@@ -119,10 +119,7 @@ export class CoreEntityUpdater {
                 // Add empty event to element. This should trigger an interaction every time the event and therefore the listener is called.
                 this.mInteractionZone.execute(() => {
                     pObject.addEventListener(lEventName, () => {
-                        InteractionZone.pushInteraction<UpdateTrigger, CoreEntityInteractionData>(UpdateTrigger, UpdateTrigger.InputChange, {
-                            source: pObject,
-                            property: lEventName
-                        });
+                        InteractionZone.pushInteraction<UpdateTrigger, CoreEntityInteractionData>(UpdateTrigger, UpdateTrigger.InputChange, CoreEntityProcessorProxy.createCoreEntityCreationData(pObject, lEventName));
                     });
                 });
             }

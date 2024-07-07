@@ -25,6 +25,28 @@ export class CoreEntityProcessorProxy<T extends object> {
     private static readonly PROXY_TO_ORIGINAL_MAPPING: WeakMap<object, object> = new WeakMap<object, object>();
 
     /**
+     * Create CoreEntityInteractionData for interaction events.
+     * 
+     * @param pSource - Source object.
+     * @param pProperty - Property.
+     * 
+     * @returns CoreEntityInteractionData with toString method.
+     */
+    public static createCoreEntityCreationData(pSource: object, pProperty: PropertyKey | undefined): CoreEntityInteractionData {
+        return {
+            source: pSource,
+            property: pProperty,
+            toString: function (): string {
+                if (pProperty) {
+                    return `[ ${typeof this.source} => ${this.property?.toString()} ]`;
+                }
+
+                return `[ ${typeof this.source} ]`;
+            }
+        };
+    }
+
+    /**
      * Get original object from InteractionDetectionProxy-Proxy.
      * 
      * @param pProxy - Possible InteractionDetectionProxy object.
@@ -279,10 +301,7 @@ export class CoreEntityProcessorProxy<T extends object> {
      */
     private dispatch(pInteractionType: UpdateTrigger, pSource: object, pProperty?: PropertyKey | undefined): void {
         // Push interaction to current zone.
-        const lIsZoneSilent = !InteractionZone.pushInteraction<UpdateTrigger, CoreEntityInteractionData>(UpdateTrigger, pInteractionType, {
-            source: pSource,
-            property: pProperty
-        });
+        const lIsZoneSilent = !InteractionZone.pushInteraction<UpdateTrigger, CoreEntityInteractionData>(UpdateTrigger, pInteractionType, CoreEntityProcessorProxy.createCoreEntityCreationData(pSource, pProperty));
 
         //  When current stack does not support trigger, dont trigger attached zone stacks.
         if (lIsZoneSilent) {
@@ -292,10 +311,7 @@ export class CoreEntityProcessorProxy<T extends object> {
         // Dispatch reason to all attached zones.
         for (const lZone of this.mListenerZones) {
             lZone.execute(() => {
-                InteractionZone.pushInteraction<UpdateTrigger, CoreEntityInteractionData>(UpdateTrigger, pInteractionType, {
-                    source: pSource,
-                    property: pProperty
-                });
+                InteractionZone.pushInteraction<UpdateTrigger, CoreEntityInteractionData>(UpdateTrigger, pInteractionType, CoreEntityProcessorProxy.createCoreEntityCreationData(pSource, pProperty));
             });
         }
     }
@@ -304,10 +320,11 @@ export class CoreEntityProcessorProxy<T extends object> {
 type CallableObject = (...args: Array<any>) => any;
 type IgnoreableConstructor = new (...pParameter: Array<any>) => {};
 
-export type CoreEntityInteractionEvent = InteractionEvent<UpdateTrigger, CoreEntityInteractionData>;
-
 export type CoreEntityInteractionData = {
     source: object,
     property?: PropertyKey | undefined;
+    toString: () => string;
 };
+
+export type CoreEntityInteractionEvent = InteractionEvent<UpdateTrigger, CoreEntityInteractionData>;
 

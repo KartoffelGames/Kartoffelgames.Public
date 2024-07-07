@@ -102,9 +102,7 @@ export class TestUtil {
      */
     public static async waitForUpdate(pComponent: HTMLElement): Promise<void> {
         const lComponent: Component = TestUtil.getComponentManager(pComponent)!;
-        const lUpdateZone: Component = lComponent!.getProcessorAttribute<Component>(Component)!;
-
-        lUpdateZone.update();
+        return lComponent.waitForUpdate().then();
     }
 }
 

@@ -1,5 +1,5 @@
 import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
-import { Assertion } from 'chai';
+import { Assertion, AssertionError } from 'chai';
 
 Assertion.addMethod('componentStructure', function (pChilds: ComponentStructure, pUseShadowRoot: boolean) {
     const lRecreateElementStructure = <T extends InjectionConstructor | ChildNodeStructure>(pExpectedStructure: T, pActualNode: Node): T => {
@@ -89,6 +89,11 @@ Assertion.addMethod('componentStructure', function (pChilds: ComponentStructure,
 
         return lRecreatedStructureList;
     };
+
+    // Cant compare null
+    if (!this._obj) {
+        throw new AssertionError('Actual node is not a html element');
+    }
 
     let lActualStructure: ComponentStructure;
     if (pUseShadowRoot) {

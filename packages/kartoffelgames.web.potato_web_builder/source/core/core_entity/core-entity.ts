@@ -202,6 +202,29 @@ export abstract class CoreEntity<TProcessor extends Processor = Processor> imple
     }
 
     /**
+     * Manual updates core entity asynchron.
+     * 
+     * @remarks Update result can be received with {@link waitForUpdate}.
+     */
+    public updateAsync(): void {
+        this.mUpdater.updateAsync();
+    }
+
+    /**
+     * Get a promise that resolves after all updates are finished.
+     * When no update is running it returns a resolved promise.
+     * 
+     * The promise resolves with true, when the update changed any states.
+     * 
+     * Promise is rejected when the update throws any error.
+     * 
+     * @returns Promise that resolves after update.
+     */
+    public async waitForUpdate(): Promise<boolean>{
+        return this.mUpdater.resolveAfterUpdate();
+    }
+
+    /**
      * Add hook called on processor creation.
      * Can replace the current processor by returning a object.
      * 

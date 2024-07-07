@@ -97,9 +97,6 @@ export class PwbApp {
     public appendTo(pElement: Element): void {
         // Append app element to specified element.
         pElement.appendChild(this.mAppComponent);
-
-        // Wait for any component update.
-        this.mAppComponent.update();
     }
 
     /**

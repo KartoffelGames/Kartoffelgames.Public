@@ -30,31 +30,31 @@ describe('PwbApp', () => {
         it('-- Correct component', async () => {
             // Setup.
             const lApp: PwbApp = new PwbApp();
-            lApp.setSplashScreen({ manual: true, animationTime: 0 });
-            const lComponentSelector: string = TestUtil.randomSelector();
+            const lSelector: string = TestUtil.randomSelector();
 
             // Setup. Define component.
             @PwbComponent({
-                selector: lComponentSelector,
+                selector: lSelector,
                 template: '<div/>'
             })
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             class TestComponent extends Processor { }
 
-            // Process.
+            // Process. Add component and wait for update.
             lApp.addContent(TestComponent);
-            lApp.appendTo(document.body);
-            const lContent: Element = <Element>lApp.component.shadowRoot!.querySelector(lComponentSelector);
+            await TestUtil.waitForUpdate(lApp.component);
+
+            // Process. Read component.
+            const lContent: Element = <Element>lApp.component.shadowRoot!.querySelector(lSelector);
 
             // Evaluation.
-            expect(lContent.tagName.toLowerCase()).to.equal(lComponentSelector);
+            expect(lContent.tagName.toLowerCase()).to.equal(lSelector);
         });
 
         it('-- Initialize component before appendTo', async () => {
             // Setup.
             const lSelector: string = TestUtil.randomSelector();
             const lApp: PwbApp = new PwbApp();
-            lApp.setSplashScreen({ manual: true, animationTime: 0 });
 
             // Setup. Define component.
             @PwbComponent({
@@ -63,11 +63,12 @@ describe('PwbApp', () => {
             })
             class TestComponent extends Processor { }
 
-            // Process.
+            // Process. Add content and wait for rendering.
             lApp.addContent(TestComponent);
-            lApp.appendTo(document.body);
+            await TestUtil.waitForUpdate(lApp.component);
+
+            // Process. Get component.
             const lContent: HTMLElement = <HTMLElement>lApp.component.shadowRoot!.querySelector(lSelector);
-            await TestUtil.waitForUpdate(lContent);
 
             // Evaluation.
             expect(lContent).componentStructure([
@@ -139,9 +140,12 @@ describe('PwbApp', () => {
         // Setup. Define component.
         @PwbComponent({
             selector: lSelector,
+            template: '{{this.value}}'
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class TestComponent extends Processor {
+            public value: string = '';
+
             public constructor() {
                 super();
 
@@ -149,26 +153,22 @@ describe('PwbApp', () => {
             }
         }
 
-        // Setup.
+        // Setup. Init app.
         const lApp: PwbApp = new PwbApp();
         lApp.setSplashScreen({ manual: true, animationTime: 0 });
-        lApp.addContent(TestComponent);
+        lApp.appendTo(document.body);
 
         // Process. Lof error.
         let lErrorMessageResult: string | null = null;
         lApp.addErrorListener((pError: Error) => {
             lErrorMessageResult = pError.message;
-
             return false;
         });
 
         // Throw and catch error.
         try {
-            lApp.appendTo(document.body);
-
-            // Trigger processor creation.
-            const lContent: HTMLElement = <HTMLElement>lApp.component.shadowRoot!.querySelector(lSelector);
-            TestUtil.forceProcessorCreation(lContent);
+            lApp.addContent(TestComponent);
+            await TestUtil.waitForUpdate(lApp.component);
         } catch (pError) {
             const lError: Error = <Error>pError;
             window.dispatchEvent(new ErrorEvent('error', {
@@ -184,12 +184,16 @@ describe('PwbApp', () => {
     describe('Method: addStyle', () => {
         it('-- Default', async () => {
             // Setup.
-            const lApp: PwbApp = new PwbApp();
             const lStyleContent: string = 'Content';
+
+            // Setup. Init app.
+            const lApp: PwbApp = new PwbApp();
+            lApp.appendTo(document.body);
 
             // Process.
             lApp.addStyle(lStyleContent);
-            lApp.appendTo(document.body);
+            await TestUtil.waitForUpdate(lApp.component);
+
             const lContent: HTMLStyleElement = <HTMLStyleElement>lApp.component.shadowRoot!.querySelectorAll('style')[1];
 
             // Evaluation.
@@ -200,6 +204,8 @@ describe('PwbApp', () => {
         it('-- Add style after append', async () => {
             // Setup.
             const lStyleContent: string = 'Content';
+
+            // Setup. Init app.
             const lApp: PwbApp = new PwbApp();
             lApp.setSplashScreen({ animationTime: 0 });
             lApp.appendTo(document.body);
@@ -221,6 +227,7 @@ describe('PwbApp', () => {
         // Setup.
         const lApp: PwbApp = new PwbApp();
         lApp.setSplashScreen({ animationTime: 0 });
+        lApp.appendTo(document.body);
 
         // Process
         await lApp.removeSplashScreen();
@@ -252,7 +259,7 @@ describe('PwbApp', () => {
             });
 
             // Setup. Add app to document.
-            lApp.appendTo(document.body);
+            await TestUtil.waitForUpdate(lApp.component);
 
             // Process. Read splash screen data.
             const lContentElement: HTMLElement = lApp.component.shadowRoot!.querySelector('span')!;
@@ -271,6 +278,7 @@ describe('PwbApp', () => {
 
             // Setup. Create app.
             const lApp: PwbApp = new PwbApp();
+            lApp.appendTo(document.body);
 
             // Process. Create splash screen.
             lApp.setSplashScreen({
@@ -278,9 +286,7 @@ describe('PwbApp', () => {
                 animationTime: 0,
                 manual: true
             });
-
-            // Setup. Add app to document.
-            lApp.appendTo(document.body);
+            await TestUtil.waitForUpdate(lApp.component);
 
             // Process. Read splash screen data.
             const lSplashScreen: HTMLElement = <HTMLElement>lApp.component.shadowRoot!.querySelector('.splashscreen');

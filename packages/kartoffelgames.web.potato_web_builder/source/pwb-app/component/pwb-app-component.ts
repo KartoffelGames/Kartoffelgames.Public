@@ -127,8 +127,10 @@ export class PwbAppComponent extends Processor implements IComponentOnConnect, I
                 // Remove 
                 this.splashscreenState.append = false;
 
-                // Resolve promise after remove.
-                pResolve();
+                // Resolve promise after remove and update.
+                this.mComponent.waitForUpdate().then(() => {
+                    pResolve();
+                });
             }, this.splashscreenConfig.animationTime);
         });
     }
@@ -151,12 +153,13 @@ export class PwbAppComponent extends Processor implements IComponentOnConnect, I
             return;
         }
 
+        // Start asynchron update.
+        this.mComponent.updateAsync();
+
         // Remove splashscreen when any component was updated.
-        this.mComponent.update();
-
-        // TODO: Wait for update finish.
-
-        this.removeSplashScreen();
+        this.mComponent.waitForUpdate().then(() => {
+            this.removeSplashScreen();
+        });
     }
 
     /**

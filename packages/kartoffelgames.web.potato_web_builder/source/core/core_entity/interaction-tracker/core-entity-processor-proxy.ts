@@ -37,11 +37,18 @@ export class CoreEntityProcessorProxy<T extends object> {
             source: pSource,
             property: pProperty,
             toString: function (): string {
-                if (pProperty) {
-                    return `[ ${typeof this.source} => ${this.property?.toString()} ]`;
+                // Find constructor name of source or default to typeof.
+                let lSourceName: string = typeof this.source;
+                if ('constructor' in this.source) {
+                    lSourceName = this.source.constructor.name;
                 }
 
-                return `[ ${typeof this.source} ]`;
+                // When property is set, output property name.
+                if (this.property) {
+                    return `[ ${lSourceName} => ${this.property.toString()} ]`;
+                }
+
+                return `[ ${lSourceName} ]`;
             }
         };
     }

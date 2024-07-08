@@ -177,10 +177,7 @@ export class CoreEntityUpdater {
      */
     public update(): boolean {
         // Create independend interaction event for manual shedule.
-        const lManualUpdateEvent: CoreEntityInteractionEvent = new InteractionEvent<UpdateTrigger, CoreEntityInteractionData>(UpdateTrigger, UpdateTrigger.Manual, this.mInteractionZone, {
-            source: this,
-            property: Symbol('Manual Update')
-        });
+        const lManualUpdateEvent: CoreEntityInteractionEvent = new InteractionEvent<UpdateTrigger, CoreEntityInteractionData>(UpdateTrigger, UpdateTrigger.Manual, this.mInteractionZone, CoreEntityProcessorProxy.createCoreEntityCreationData(this, Symbol('Manual Update')));
 
         // Run synchron update.
         return this.runUpdateSynchron(lManualUpdateEvent);
@@ -191,10 +188,7 @@ export class CoreEntityUpdater {
      */
     public updateAsync(): void {
         // Create independend interaction event for manual shedule.
-        const lManualUpdateEvent: CoreEntityInteractionEvent = new InteractionEvent<UpdateTrigger, CoreEntityInteractionData>(UpdateTrigger, UpdateTrigger.Manual, this.mInteractionZone, {
-            source: this,
-            property: Symbol('Manual Update')
-        });
+        const lManualUpdateEvent: CoreEntityInteractionEvent = new InteractionEvent<UpdateTrigger, CoreEntityInteractionData>(UpdateTrigger, UpdateTrigger.Manual, this.mInteractionZone, CoreEntityProcessorProxy.createCoreEntityCreationData(this, Symbol('Manual Update')));
 
         // Run synchron update.
         this.runUpdateAsynchron(lManualUpdateEvent, null);
@@ -312,13 +306,13 @@ export class CoreEntityUpdater {
                 // We know that we should reshedule this task when any of the synchronos tasks throws a UpdateResheduleError error.
                 if (pError instanceof UpdateResheduleError && pRunningCycle.initiator === this) {
                     // Logable reshedules.
-                    if(PwbConfiguration.configuration.log.updateReshedule) {
+                    if (PwbConfiguration.configuration.log.updateReshedule) {
                         PwbConfiguration.print(this.mLogLevel, 'Reshedule:', this.mInteractionZone.name,
                             '\n\t', 'Cycle time', globalThis.performance.now() - pRunningCycle.timeStamp,
                             '\n\t', 'Runner:', pRunningCycle.runner.id.toString(),
                         );
                     }
-                    
+
                     lResheduleTask = true;
                 }
 

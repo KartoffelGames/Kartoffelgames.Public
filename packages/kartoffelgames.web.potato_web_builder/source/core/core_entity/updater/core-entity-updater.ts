@@ -234,9 +234,9 @@ export class CoreEntityUpdater {
         // Log performance time.
         if (PwbConfiguration.configuration.log.updatePerformance) {
             PwbConfiguration.print(this.mLogLevel, 'Update performance:', this.mInteractionZone.name,
+                '\n\t', 'Cycle time:', globalThis.performance.now() - pUpdateCycle.timeStamp,
                 '\n\t', 'Update time:', globalThis.performance.now() - lStartPerformance,
-                '\n\t', 'Frame  time:', globalThis.performance.now() - pUpdateCycle.timeStamp,
-                '\n\t', 'Frame  timestamp:', pUpdateCycle.timeStamp,
+                '\n\t', 'Runner:', pUpdateCycle.runner.id.toString(),
                 '\n\t', 'Updatestate:', lUpdatedState,
                 '\n\t', 'Updatechain: ', pStack.toArray().map((pReason) => { return pReason.toString(); }),
             );
@@ -296,7 +296,7 @@ export class CoreEntityUpdater {
             return;
         }
 
-        const lUpdateFunction = (pRunningCycle: UpdateCycle) => {
+        const lCycleUpdate = (pRunningCycle: UpdateCycle) => {
             // Switch sheduled to running task.
             this.mUpdateStates.async.runningTaskId = this.mUpdateStates.async.sheduledTaskId;
             this.mUpdateStates.async.sheduledTaskId = null;
@@ -311,7 +311,14 @@ export class CoreEntityUpdater {
             } catch (pError: unknown) {
                 // We know that we should reshedule this task when any of the synchronos tasks throws a UpdateResheduleError error.
                 if (pError instanceof UpdateResheduleError && pRunningCycle.initiator === this) {
-                    // TODO: Logable reshedules.
+                    // Logable reshedules.
+                    if(PwbConfiguration.configuration.log.updateReshedule) {
+                        PwbConfiguration.print(this.mLogLevel, 'Reshedule:', this.mInteractionZone.name,
+                            '\n\t', 'Cycle time', globalThis.performance.now() - pRunningCycle.timeStamp,
+                            '\n\t', 'Runner:', pRunningCycle.runner.id.toString(),
+                        );
+                    }
+                    
                     lResheduleTask = true;
                 }
 
@@ -334,10 +341,10 @@ export class CoreEntityUpdater {
         this.mUpdateStates.async.sheduledTaskId = globalThis.requestAnimationFrame(() => {
             if (pResheduledCycle) {
                 // Open a async cylce in wich the sync update runs. So the sync cycle reshedules long running tasks. 
-                CoreEntityUpdateCycle.openResheduledCycle(pResheduledCycle, lUpdateFunction);
+                CoreEntityUpdateCycle.openResheduledCycle(pResheduledCycle, lCycleUpdate);
             } else {
                 // Open a async cylce in wich the sync update runs. So the sync cycle reshedules long running tasks. 
-                CoreEntityUpdateCycle.openUpdateCycle({ updater: this, reason: pUpdateTask, runSync: false }, lUpdateFunction);
+                CoreEntityUpdateCycle.openUpdateCycle({ updater: this, reason: pUpdateTask, runSync: false }, lCycleUpdate);
             }
         });
     }
@@ -358,7 +365,7 @@ export class CoreEntityUpdater {
             PwbConfiguration.print(this.mLogLevel, 'Update trigger:', this.mInteractionZone.name,
                 '\n\t', 'Trigger:', pUpdateTask.toString(),
                 '\n\t', 'Chained:', this.mUpdateStates.sync.running,
-                '\n\t', 'Stacktrace:', { stack: pUpdateTask.stacktrace },
+                '\n\t', 'Omitted:', !!this.mUpdateStates.cycle.chainedTask
             );
         }
 

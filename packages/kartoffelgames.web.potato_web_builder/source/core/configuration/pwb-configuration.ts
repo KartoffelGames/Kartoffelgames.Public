@@ -37,7 +37,8 @@ class PwbConfigurationSingleton {
             log: {
                 filter: PwbDebugLogLevel.All,
                 updatePerformance: false,
-                updaterTrigger: false
+                updaterTrigger: false,
+                updateReshedule: false
             },
 
             // Updating.
@@ -74,6 +75,7 @@ type ComponentDebugConfiguration = {
         filter: PwbDebugLogLevel;
         updatePerformance: boolean;
         updaterTrigger: boolean;
+        updateReshedule: boolean
     };
 
     // Updating.

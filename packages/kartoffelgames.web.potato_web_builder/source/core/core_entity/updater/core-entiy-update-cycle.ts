@@ -5,6 +5,14 @@ import { CoreEntityUpdater } from './core-entity-updater';
 export class CoreEntityUpdateCycle {
     private static mCurrentUpdateCycle: UpdateCycle | null = null;
 
+    /**
+     * Open a new cycle with same configuration as reshedules cycle.
+     * 
+     * @param pResheduledCycle - Cycle that should be resheduled.
+     * @param pCycleScope - Callback called in cycle scope.
+     * 
+     * @returns {@link pCycleScope}s returned value.
+     */
     public static openResheduledCycle<T>(pResheduledCycle: UpdateCycle, pCycleScope: (pCycle: UpdateCycle) => T): T {
         // When the current call created the cycle.
         let lCreatorScope: boolean = false;
@@ -39,11 +47,13 @@ export class CoreEntityUpdateCycle {
 
     /**
      * Open a new or read the current update cycle. 
+     * Whenn a cycle is currently open, then this cycle is used instead of creating a new one.
+     * Only new created cycles uses the set configuration of {@link pConfig}.
      * 
+     * @param pConfig - Config of newly created cycle.
      * @param pCycleScope - Callback called in cycle scope.
-     * @param pReason - Reason of cycle creation.
-     * @param pRunSync - If, when the cycle should be created, should be executed synchron.
-     * @returns 
+     * 
+     * @returns {@link pCycleScope}s returned value.
      */
     public static openUpdateCycle<T>(pConfig: CoreEntityUpdateCycleConfig, pCycleScope: (pCycle: UpdateCycle) => T): T {
         // When the current call created the cycle.
@@ -77,7 +87,13 @@ export class CoreEntityUpdateCycle {
         }
     }
 
-    // TODO: Comment.
+    /**
+     * Update the cycle with a new runner configuration.
+     * Only updates the configuration when it is requested in the root updater context.
+     * 
+     * @param pCycle - Cycle.
+     * @param pUpdater - Updater that is currently accessing the cycle.
+     */
     public static updateCycleRunId(pCycle: UpdateCycle, pUpdater: CoreEntityUpdater): void {
         if (pCycle.initiator === pUpdater) {
             const lWriteableCycle: Writeable<UpdateCycle> = pCycle;

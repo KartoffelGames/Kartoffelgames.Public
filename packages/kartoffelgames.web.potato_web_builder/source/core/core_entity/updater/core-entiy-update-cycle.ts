@@ -1,3 +1,4 @@
+import { Writeable } from '@kartoffelgames/core';
 import { CoreEntityInteractionEvent } from '../interaction-tracker/core-entity-processor-proxy';
 import { CoreEntityUpdater } from './core-entity-updater';
 
@@ -17,9 +18,8 @@ export class CoreEntityUpdateCycle {
                 initiator: pResheduledCycle.initiator,
                 timeStamp: lTimeStamp,
                 sync: pResheduledCycle.sync,
-                reason: pResheduledCycle.reason,
-                // When the cycle is a reshedule of another one, keep the original reshedule.
-                resheduleOf: pResheduledCycle.resheduleOf || pResheduledCycle
+                // When the cycle is a reshedule of another one, keep the original runner.
+                runner: pResheduledCycle.runner
             };
 
             // Set created state.
@@ -27,15 +27,14 @@ export class CoreEntityUpdateCycle {
         }
 
         // Call callback within cycle scope.
-        const lCallResult: T = pCycleScope(CoreEntityUpdateCycle.mCurrentUpdateCycle);
-
-        // Only the call that created the cycle, can close it.
-        if (lCreatorScope) {
-            CoreEntityUpdateCycle.mCurrentUpdateCycle = null;
+        try {
+            return pCycleScope(CoreEntityUpdateCycle.mCurrentUpdateCycle);
+        } finally {
+            // Only the call that created the cycle, can close it.
+            if (lCreatorScope) {
+                CoreEntityUpdateCycle.mCurrentUpdateCycle = null;
+            }
         }
-
-        // Return scope.
-        return lCallResult;
     }
 
     /**
@@ -59,8 +58,8 @@ export class CoreEntityUpdateCycle {
                 initiator: pConfig.updater,
                 timeStamp: lTimeStamp,
                 sync: pConfig.runSync,
-                reason: pConfig.reason,
-                resheduleOf: null
+
+                runner: { id: Symbol('Runner ' + lTimeStamp) }
             };
 
             // Set created state.
@@ -68,15 +67,22 @@ export class CoreEntityUpdateCycle {
         }
 
         // Call callback within cycle scope.
-        const lCallResult: T = pCycleScope(CoreEntityUpdateCycle.mCurrentUpdateCycle);
-
-        // Only the call that created the cycle, can close it.
-        if (lCreatorScope) {
-            CoreEntityUpdateCycle.mCurrentUpdateCycle = null;
+        try {
+            return pCycleScope(CoreEntityUpdateCycle.mCurrentUpdateCycle);
+        } finally {
+            // Only the call that created the cycle, can close it.
+            if (lCreatorScope) {
+                CoreEntityUpdateCycle.mCurrentUpdateCycle = null;
+            }
         }
+    }
 
-        // Return scope.
-        return lCallResult;
+    // TODO: Comment.
+    public static updateCycleRunId(pCycle: UpdateCycle, pUpdater: CoreEntityUpdater): void {
+        if (pCycle.initiator === pUpdater) {
+            const lWriteableCycle: Writeable<UpdateCycle> = pCycle;
+            lWriteableCycle.runner = { id: Symbol('Runner ' + globalThis.performance.now()) };
+        }
     }
 }
 
@@ -97,14 +103,13 @@ export type UpdateCycle = {
     readonly sync: boolean;
 
     /**
-     * Initiator task. The reason why this cycle was started.
-     */
-    readonly reason: CoreEntityInteractionEvent;
-
-    /**
      * Resheduled cycles time stamp.
      */
-    readonly resheduleOf: UpdateCycle | null;
+    readonly runner: UpdateCycleRunner;
+};
+
+export type UpdateCycleRunner = {
+    id: symbol;
 };
 
 export type CoreEntityUpdateCycleConfig = {

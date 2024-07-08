@@ -4,7 +4,7 @@ import { PwbConfiguration, PwbDebugLogLevel } from '../../configuration/pwb-conf
 import { UpdateTrigger } from '../../enum/update-trigger.enum';
 import { CoreEntityInteractionData, CoreEntityInteractionEvent, CoreEntityProcessorProxy } from '../interaction-tracker/core-entity-processor-proxy';
 import { IgnoreInteractionTracking } from '../interaction-tracker/ignore-interaction-tracking.decorator';
-import { CoreEntityUpdateCycle, UpdateCycle } from './core-entiy-update-cycle';
+import { CoreEntityUpdateCycle, UpdateCycle, UpdateCycleRunner } from './core-entiy-update-cycle';
 import { UpdateLoopError } from './update-loop-error';
 import { UpdateResheduleError } from './update-reshedule-error';
 
@@ -16,11 +16,11 @@ import { UpdateResheduleError } from './update-reshedule-error';
  */
 @IgnoreInteractionTracking
 export class CoreEntityUpdater {
-    private readonly mCycleUpdateResult: WeakMap<UpdateCycle, boolean>;
     private readonly mInteractionZone: InteractionZone;
     private readonly mLogLevel: PwbDebugLogLevel;
     private readonly mRegisteredObjects: WeakMap<object, CoreEntityProcessorProxy<object>>;
     private readonly mUpdateFunction: UpdateListener;
+    private readonly mUpdateRunCache: WeakMap<UpdateCycleRunner, boolean>;
     private readonly mUpdateStates: UpdateInformation;
 
     /**
@@ -43,7 +43,7 @@ export class CoreEntityUpdater {
      */
     public constructor(pParameter: BaseCoreEntityUpdateZoneConstructorParameter) {
         // Init lists.
-        this.mCycleUpdateResult = new WeakMap<UpdateCycle, boolean>();
+        this.mUpdateRunCache = new WeakMap<UpdateCycleRunner, boolean>();
         this.mRegisteredObjects = new WeakMap<object, CoreEntityProcessorProxy<object>>();
 
         // Init updater settings.
@@ -242,6 +242,10 @@ export class CoreEntityUpdater {
             );
         }
 
+        // Set new runner id after run through.
+        // When the update function has resheduled, the resheduled cycle runs with the same runner id, bc of the error that skips this call.
+        CoreEntityUpdateCycle.updateCycleRunId(pUpdateCycle, this); // TODO: Yep this is not working. :(
+
         // Exit execution chain when no task is chained.
         if (!this.mUpdateStates.cycle.chainedTask) {
             return lUpdatedState;
@@ -307,6 +311,7 @@ export class CoreEntityUpdater {
             } catch (pError: unknown) {
                 // We know that we should reshedule this task when any of the synchronos tasks throws a UpdateResheduleError error.
                 if (pError instanceof UpdateResheduleError && pRunningCycle.initiator === this) {
+                    // TODO: Logable reshedules.
                     lResheduleTask = true;
                 }
 
@@ -366,30 +371,23 @@ export class CoreEntityUpdater {
         // Set synchron update to running state.
         this.mUpdateStates.sync.running = true;
 
-        const lUpdateInCycle = (pUpdateCycle: UpdateCycle): boolean => {
-            // Read from cache when the update was already run in a previous cycle.
-            if (pUpdateCycle.resheduleOf && this.mCycleUpdateResult.has(pUpdateCycle.resheduleOf)) {
-                // Read cache.
-                const lCachedResult: boolean = this.mCycleUpdateResult.get(pUpdateCycle.resheduleOf)!;
-
-                // Clear cache to allow newer values to be fetched on next updates.
-                this.mCycleUpdateResult.delete(pUpdateCycle.resheduleOf);
-
-                return lCachedResult;
-            }
-
-            // Execute task.
-            const lExecutionResult: boolean = this.executeTaskChain(pUpdateTask, pUpdateCycle, false, new Stack<CoreEntityInteractionEvent>());
-
-            // Save update result for this cycle. Only saved when no exception occurred.
-            this.mCycleUpdateResult.set(pUpdateCycle.resheduleOf || pUpdateCycle, lExecutionResult);
-
-            return lExecutionResult;
-        };
-
         // Try to request a sync update state.
         try {
-            const lUpdateResult: boolean = CoreEntityUpdateCycle.openUpdateCycle({ updater: this, reason: pUpdateTask, runSync: true }, lUpdateInCycle);
+            const lUpdateResult: boolean = CoreEntityUpdateCycle.openUpdateCycle({ updater: this, reason: pUpdateTask, runSync: true }, (pUpdateCycle: UpdateCycle): boolean => {
+                // Read from cache when the update was already run in a resheduled cycle.
+                if (this.mUpdateRunCache.has(pUpdateCycle.runner)) {
+                    // Read cache. // TODO: Test for nested updates. Maybe clear cache after use.
+                    return this.mUpdateRunCache.get(pUpdateCycle.runner)!;
+                }
+
+                // Execute task.
+                const lExecutionResult: boolean = this.executeTaskChain(pUpdateTask, pUpdateCycle, false, new Stack<CoreEntityInteractionEvent>());
+
+                // Save update result for this cycle. Only saved when no exception occurred.
+                this.mUpdateRunCache.set(pUpdateCycle.runner, lExecutionResult);
+
+                return lExecutionResult;
+            });
 
             // Release chain complete hooks.
             this.releaseUpdateChainCompleteHooks(lUpdateResult);

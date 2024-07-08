@@ -83,6 +83,9 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
      * @param pNewContentList - New content list.
      */
     private updateStaticBuilder(pOldContentList: Array<StaticBuilder>, pNewContentList: Array<InstructionResultElement>): void {
+        // TODO: Only compare template. ChangeState.Keep replace values with correct from pNewContentList.
+        //       Builder update should check for any made data-changes in static builder.
+
         // Define difference search.
         const lMyersDiff: MyersDiff<StaticBuilder, InstructionResultElement> = new MyersDiff<StaticBuilder, InstructionResultElement>((pA, pB) => {
             return pB.componentValues.equals(pA.values) && pB.template.equals(pA.template);
@@ -92,7 +95,8 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
         const lDifferenceList: Array<HistoryItem<StaticBuilder, InstructionResultElement>> = lMyersDiff.differencesOf(pOldContentList, pNewContentList);
 
         let lLastExistingChildBuilder: StaticBuilder | null = null;
-        for (const lHistoryItem of lDifferenceList) {
+        for (let lIndex: number = 0; lIndex < lDifferenceList.length; lIndex++) {
+            const lHistoryItem = lDifferenceList[lIndex];
             // Update, Remove or do nothing with static builder depended on change state.
             if (lHistoryItem.changeState === ChangeState.Remove) {
                 this.content.remove(lHistoryItem.item);

@@ -241,7 +241,7 @@ export class CoreEntityUpdater {
 
         // Set new runner id after run through.
         // When the update function has resheduled, the resheduled cycle runs with the same runner id, bc of the error that skips this call.
-        CoreEntityUpdateCycle.updateCycleRunId(pUpdateCycle, this); // TODO: Yep this is not working. :(
+        CoreEntityUpdateCycle.updateCycleRunId(pUpdateCycle, this);
 
         // Exit execution chain when no task is chained.
         if (!this.mUpdateStates.cycle.chainedTask) {

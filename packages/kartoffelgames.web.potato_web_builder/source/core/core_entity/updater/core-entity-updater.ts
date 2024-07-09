@@ -62,9 +62,9 @@ export class CoreEntityUpdater {
         this.mUpdateStates = {
             chainCompleteHooks: new Stack<UpdateChainCompleteHookRelease>(),
             async: {
-                sheduledTaskId: null,
-                runningTaskId: null,
-                resheduled: false
+                hasSheduledTask: false,
+                hasRunningTask: false,
+                sheduledTaskIsResheduled: false
             },
             sync: {
                 running: false
@@ -145,7 +145,7 @@ export class CoreEntityUpdater {
      */
     public async resolveAfterUpdate(): Promise<boolean> {
         // When nothing is sheduled, nothing will be updated.
-        if (!this.mUpdateStates.async.sheduledTaskId) {
+        if (!this.mUpdateStates.async.hasSheduledTask) {
             return false;
         }
 
@@ -213,7 +213,7 @@ export class CoreEntityUpdater {
         const lStartPerformance = globalThis.performance.now();
 
         // Reshedule task when frame time exceeds MAX_FRAME_TIME. Update called next frame.
-        if (!pUpdateCycle.sync && lStartPerformance - pUpdateCycle.timeStamp > PwbConfiguration.configuration.updating.frameTime) {
+        if (!pUpdateCycle.forcedSync && lStartPerformance - pUpdateCycle.startTime > PwbConfiguration.configuration.updating.frameTime) {
             throw new UpdateResheduleError();
         }
 
@@ -227,12 +227,15 @@ export class CoreEntityUpdater {
 
         // Log performance time.
         if (PwbConfiguration.configuration.log.updatePerformance) {
+            const lCurrentTimestamp: number = globalThis.performance.now();
+
             PwbConfiguration.print(this.mLogLevel, 'Update performance:', this.mInteractionZone.name,
-                '\n\t', 'Cycle time:', globalThis.performance.now() - pUpdateCycle.timeStamp,
-                '\n\t', 'Update time:', globalThis.performance.now() - lStartPerformance,
-                '\n\t', 'Runner:', pUpdateCycle.runner.id.toString(),
-                '\n\t', 'Updatestate:', lUpdatedState,
-                '\n\t', 'Updatechain: ', pStack.toArray().map((pReason) => { return pReason.toString(); }),
+                '\n\t', 'Cycle:', lCurrentTimestamp - pUpdateCycle.timeStamp, 'ms',
+                '\n\t', 'Runner:', lCurrentTimestamp - pUpdateCycle.runner.timestamp, 'ms',
+                '\n\t', '  ', 'Id:', pUpdateCycle.runner.id.toString(),
+                '\n\t', 'Update:', lCurrentTimestamp - lStartPerformance, 'ms',
+                '\n\t', '  ', 'State:', lUpdatedState,
+                '\n\t', '  ', 'Chain: ', pStack.toArray().map((pReason) => { return pReason.toString(); }),
             );
         }
 
@@ -279,21 +282,24 @@ export class CoreEntityUpdater {
      * @param pUpdateTask - Trigger information of update task.
      */
     private runUpdateAsynchron(pUpdateTask: CoreEntityInteractionEvent, pResheduledCycle: UpdateCycle | null): void {
-        // Throw away update task that happens while a task is already shedulled.
-        if (this.mUpdateStates.async.sheduledTaskId !== null) {
+        // Save tasks that happens while a task is allready running or the current sheduled task is a incomplete resheduled one.
+        if (this.mUpdateStates.async.hasRunningTask || this.mUpdateStates.async.sheduledTaskIsResheduled) {
+            this.mUpdateStates.cycle.chainedTask = pUpdateTask;
             return;
         }
 
-        // Save update tasks that happens while update is running to be executed in current cycle.
-        if (this.mUpdateStates.async.runningTaskId !== null) {
-            this.mUpdateStates.cycle.chainedTask = pUpdateTask;
+        // Throw away update task that happens while a task is already sheduled.
+        if (this.mUpdateStates.async.hasSheduledTask) {
             return;
         }
 
         const lCycleUpdate = (pRunningCycle: UpdateCycle) => {
             // Switch sheduled to running task.
-            this.mUpdateStates.async.runningTaskId = this.mUpdateStates.async.sheduledTaskId;
-            this.mUpdateStates.async.sheduledTaskId = null;
+            this.mUpdateStates.async.hasRunningTask = true;
+
+            // Reset sheduled task flags.
+            this.mUpdateStates.async.hasSheduledTask = false;
+            this.mUpdateStates.async.sheduledTaskIsResheduled = false;
 
             // Flag if this task should be resheduled to next frame or not.
             let lResheduleTask: boolean = false;
@@ -308,8 +314,8 @@ export class CoreEntityUpdater {
                     // Logable reshedules.
                     if (PwbConfiguration.configuration.log.updateReshedule) {
                         PwbConfiguration.print(this.mLogLevel, 'Reshedule:', this.mInteractionZone.name,
-                            '\n\t', 'Cycle time', globalThis.performance.now() - pRunningCycle.timeStamp,
-                            '\n\t', 'Runner:', pRunningCycle.runner.id.toString(),
+                            '\n\t', 'Cycle Performance', globalThis.performance.now() - pRunningCycle.timeStamp,
+                            '\n\t', 'Runner Id:', pRunningCycle.runner.id.toString(),
                         );
                     }
 
@@ -319,7 +325,7 @@ export class CoreEntityUpdater {
                 // Ignore any other error. They are returned with the resolveAfterUpdate method.
             } finally {
                 // Clear running tasks after update.
-                this.mUpdateStates.async.runningTaskId = null;
+                this.mUpdateStates.async.hasRunningTask = false;
             }
 
             // When the current cycle was resheduled, start it again in the next frame, but in a resheduled state.
@@ -332,7 +338,16 @@ export class CoreEntityUpdater {
             }
         };
 
-        this.mUpdateStates.async.sheduledTaskId = globalThis.requestAnimationFrame(() => {
+        // Set sheduled task flag.
+        this.mUpdateStates.async.hasSheduledTask = true;
+
+        // Set sheduled task as resheduled task. Flag used to chain tasks even when a task is shedulled.
+        if (pResheduledCycle) {
+            this.mUpdateStates.async.sheduledTaskIsResheduled = true;
+        }
+
+        // Shedule task on next render frame.
+        globalThis.requestAnimationFrame(() => {
             if (pResheduledCycle) {
                 // Open a async cylce in wich the sync update runs. So the sync cycle reshedules long running tasks. 
                 CoreEntityUpdateCycle.openResheduledCycle(pResheduledCycle, lCycleUpdate);
@@ -377,6 +392,11 @@ export class CoreEntityUpdater {
             const lUpdateResult: boolean = CoreEntityUpdateCycle.openUpdateCycle({ updater: this, reason: pUpdateTask, runSync: true }, (pUpdateCycle: UpdateCycle): boolean => {
                 // Read from cache when the update was already run in a resheduled cycle.
                 if (this.mUpdateRunCache.has(pUpdateCycle.runner)) {
+                    // Update cycles start time when any update is used.
+                    // Prevents very long updates from running into another reshedule without any real update called.
+                    // This does remove the frame time guarantee but prevents endless loops.
+                    CoreEntityUpdateCycle.updateCyleStartTime(pUpdateCycle);
+
                     // Read cache. // TODO: Test for nested updates. Maybe clear cache after use.
                     return this.mUpdateRunCache.get(pUpdateCycle.runner)!;
                 }
@@ -437,9 +457,9 @@ type UpdateInformation = {
         chainedTask: CoreEntityInteractionEvent | null;
     },
     async: {
-        sheduledTaskId: number | null;
-        runningTaskId: number | null;
-        resheduled: boolean;
+        hasSheduledTask: boolean;
+        hasRunningTask: boolean;
+        sheduledTaskIsResheduled: boolean;
     };
     sync: {
         running: boolean;

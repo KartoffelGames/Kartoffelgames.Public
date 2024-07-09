@@ -25,7 +25,8 @@ export class CoreEntityUpdateCycle {
             CoreEntityUpdateCycle.mCurrentUpdateCycle = {
                 initiator: pResheduledCycle.initiator,
                 timeStamp: lTimeStamp,
-                sync: pResheduledCycle.sync,
+                startTime: lTimeStamp,
+                forcedSync: pResheduledCycle.forcedSync,
                 // When the cycle is a reshedule of another one, keep the original runner.
                 runner: pResheduledCycle.runner
             };
@@ -67,9 +68,12 @@ export class CoreEntityUpdateCycle {
             CoreEntityUpdateCycle.mCurrentUpdateCycle = {
                 initiator: pConfig.updater,
                 timeStamp: lTimeStamp,
-                sync: pConfig.runSync,
-
-                runner: { id: Symbol('Runner ' + lTimeStamp) }
+                startTime: lTimeStamp,
+                forcedSync: pConfig.runSync,
+                runner: {
+                    id: Symbol('Runner ' + lTimeStamp),
+                    timestamp: lTimeStamp
+                }
             };
 
             // Set created state.
@@ -96,9 +100,25 @@ export class CoreEntityUpdateCycle {
      */
     public static updateCycleRunId(pCycle: UpdateCycle, pUpdater: CoreEntityUpdater): void {
         if (pCycle.initiator === pUpdater) {
+            // Current time.
+            const lTimeStamp: number = globalThis.performance.now();
+
+            // Retype cycle and update runner.
             const lWriteableCycle: Writeable<UpdateCycle> = pCycle;
-            lWriteableCycle.runner = { id: Symbol('Runner ' + globalThis.performance.now()) };
+            lWriteableCycle.runner = {
+                id: Symbol('Runner ' + lTimeStamp),
+                timestamp: lTimeStamp
+            };
         }
+    }
+
+    public static updateCyleStartTime(pCycle: UpdateCycle): void {
+        // Current time.
+        const lTimeStamp: number = globalThis.performance.now();
+
+        // Retype cycle and update runner.
+        const lWriteableCycle: Writeable<UpdateCycle> = pCycle;
+        lWriteableCycle.startTime = lTimeStamp;
     }
 }
 
@@ -109,14 +129,19 @@ export type UpdateCycle = {
     readonly initiator: CoreEntityUpdater;
 
     /**
-     * Starting timestamp of cycle or resheduled cycle.
+     * Creation imestamp of cycle.
      */
     readonly timeStamp: number;
 
     /**
+     * Start time of cycle.
+     */
+    readonly startTime: number;
+
+    /**
      * The current update should not be resheduled when sync is set.
      */
-    readonly sync: boolean;
+    readonly forcedSync: boolean;
 
     /**
      * Resheduled cycles time stamp.
@@ -126,6 +151,7 @@ export type UpdateCycle = {
 
 export type UpdateCycleRunner = {
     id: symbol;
+    timestamp: number;
 };
 
 export type CoreEntityUpdateCycleConfig = {

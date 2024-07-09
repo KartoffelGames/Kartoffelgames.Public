@@ -93,7 +93,7 @@ export class ForInstructionModule extends Processor implements IInstructionOnUpd
             })();
 
             // Skip if values are the same.
-            if (this.compareEntires(lListObjectEntries, this.mLastEntries)) {
+            if (this.compareEntries(lListObjectEntries, this.mLastEntries)) {
                 return null;
             }
 
@@ -147,12 +147,12 @@ export class ForInstructionModule extends Processor implements IInstructionOnUpd
     /**
      * Compare two entry arrays.
      * 
-     * @param pEntriesA - Entires A. 
-     * @param pEntriesB - Entires B.
+     * @param pEntriesA - Entries A. 
+     * @param pEntriesB - Entries B.
      * 
      * @returns true when both are equal or false otherwise. 
      */
-    private compareEntires(pEntriesA: Array<[string, any]>, pEntriesB: Array<[string, any]>): boolean {
+    private compareEntries(pEntriesA: Array<[string, any]>, pEntriesB: Array<[string, any]>): boolean {
         // Same length.
         if (pEntriesA.length !== pEntriesB.length) {
             return false;

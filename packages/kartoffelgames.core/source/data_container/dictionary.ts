@@ -79,7 +79,7 @@ export class Dictionary<TKey, TValue> extends Map<TKey, TValue> implements IClon
      * ```
      */
     public getAllKeysOfValue(pValue: TValue): Array<TKey> {
-        // Add entires iterator to list and filter for pValue = Value
+        // Add entries iterator to list and filter for pValue = Value
         const lKeyValuesWithValue: Array<[TKey, TValue]> = [...this.entries()].filter((pItem: [TKey, TValue]) => {
             return pItem[1] === pValue;
         });

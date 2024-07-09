@@ -4,7 +4,7 @@ import { ModuleExpression } from '../../core/module/injection_reference/module-e
 import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
 import { InstructionResult } from '../../core/module/instruction_module/instruction-result';
-import { ModuleValues } from '../../core/module/module-values';
+import { ModuleValues } from '../../core/data/module-values';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { Processor } from '../../core/core_entity/processor';
 

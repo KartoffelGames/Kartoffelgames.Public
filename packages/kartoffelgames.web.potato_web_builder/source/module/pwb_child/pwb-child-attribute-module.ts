@@ -1,4 +1,4 @@
-import { ComponentScopedValues } from '../../core/component/injection_reference/component-scoped-values';
+import { ComponentScopedValues } from '../../core/data/component-scoped-values';
 import { Processor } from '../../core/core_entity/processor';
 import { AccessMode } from '../../core/enum/access-mode.enum';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';

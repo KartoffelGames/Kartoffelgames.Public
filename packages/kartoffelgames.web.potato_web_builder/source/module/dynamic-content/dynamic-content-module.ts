@@ -1,13 +1,13 @@
 import { Exception } from '@kartoffelgames/core';
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
-import { ScopedValues } from '../../core/scoped-values';
+import { ScopedValues } from '../../core/data/scoped-values';
 import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
 import { InstructionResult } from '../../core/module/instruction_module/instruction-result';
-import { ModuleValues } from '../../core/module/module-values';
+import { ModuleValues } from '../../core/data/module-values';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { ModuleExpression } from '../../core/module/injection_reference/module-expression';
-import { ModuleValueProcedure } from '../../core/module/module-value-procedure';
+import { ModuleValueProcedure } from '../../core/data/module-value-procedure';
 import { Processor } from '../../core/core_entity/processor';
 
 /**

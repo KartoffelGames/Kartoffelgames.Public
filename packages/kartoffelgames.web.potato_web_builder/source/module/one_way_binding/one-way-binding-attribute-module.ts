@@ -1,11 +1,11 @@
 import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
 import { IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module';
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
-import { ModuleValues } from '../../core/module/module-values';
+import { ModuleValues } from '../../core/data/module-values';
 import { AccessMode } from '../../core/enum/access-mode.enum';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute';
-import { ModuleValueProcedure } from '../../core/module/module-value-procedure';
+import { ModuleValueProcedure } from '../../core/data/module-value-procedure';
 import { Processor } from '../../core/core_entity/processor';
 
 /**

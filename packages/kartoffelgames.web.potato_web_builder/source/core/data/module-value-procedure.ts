@@ -1,7 +1,9 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { ScopedValues } from '../scoped-values';
+import { ScopedValues } from './scoped-values';
 
-export class ModuleValueProcedure<T> {
+// TODO: Layer value more so all parents can be replaced with a new value.
+
+export class ModuleValueProcedure<T> { // TODO: Rename to somthing more generic not Module... 
     private readonly mExpression: ProcedureExpression;
     private readonly mTemporaryValues: Dictionary<string, any>;
 

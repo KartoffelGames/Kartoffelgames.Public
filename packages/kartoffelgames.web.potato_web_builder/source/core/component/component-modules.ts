@@ -4,7 +4,7 @@ import { CoreEntityProcessorConstructorSetup, CoreEntityRegister } from '../core
 import { AttributeModule, AttributeModuleConfiguration } from '../module/attribute_module/attribute-module';
 import { ExpressionModule, ExpressionModuleConfiguration, IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module';
 import { InstructionModule, InstructionModuleConfiguration } from '../module/instruction_module/instruction-module';
-import { ScopedValues } from '../scoped-values';
+import { ScopedValues } from '../data/scoped-values';
 import { Component } from './component';
 import { PwbTemplateInstructionNode } from './template/nodes/pwb-template-instruction-node';
 import { PwbTemplateAttribute } from './template/nodes/values/pwb-template-attribute';

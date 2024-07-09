@@ -1,4 +1,4 @@
-import { ScopedValues } from '../scoped-values';
+import { ScopedValues } from './scoped-values';
 import { ModuleValueProcedure } from './module-value-procedure';
 
 /**

@@ -12,8 +12,8 @@ import { ModuleTemplate } from '../../../source/core/module/injection_reference/
 import { IInstructionOnUpdate } from '../../../source/core/module/instruction_module/instruction-module';
 import { InstructionResult } from '../../../source/core/module/instruction_module/instruction-result';
 import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator';
-import { ModuleValues } from '../../../source/core/module/module-values';
-import { ScopedValues } from '../../../source/core/scoped-values';
+import { ModuleValues } from '../../../source/core/data/module-values';
+import { ScopedValues } from '../../../source/core/data/scoped-values';
 import { PwbComponentEventListener } from '../../../source/module/component-event-listener/pwb-component-event-listener.decorator';
 import { ComponentEvent } from '../../../source/module/component-event/component-event';
 import { ComponentEventEmitter } from '../../../source/module/component-event/component-event-emitter';

@@ -1,6 +1,6 @@
 import { AttributeModule } from '../../module/attribute_module/attribute-module';
 import { ExpressionModule } from '../../module/expression_module/expression-module';
-import { ScopedValues } from '../../scoped-values';
+import { ScopedValues } from '../../data/scoped-values';
 import { ComponentModules } from '../component-modules';
 import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
 import { PwbTemplate } from '../template/nodes/pwb-template';

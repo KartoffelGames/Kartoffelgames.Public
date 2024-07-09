@@ -1,8 +1,8 @@
 import { IDeconstructable } from '@kartoffelgames/core';
-import { ScopedValues } from '../scoped-values';
+import { ScopedValues } from '../data/scoped-values';
 import { CoreEntityProcessorConstructor } from '../core_entity/core-entity';
 import { CoreEntityExtendable, CoreEntityExtendableConstructorParameter } from '../core_entity/core-entity-extendable';
-import { ModuleValues } from './module-values';
+import { ModuleValues } from '../data/module-values';
 import { PwbDebugLogLevel } from '../configuration/pwb-configuration';
 import { Processor } from '../core_entity/processor';
 

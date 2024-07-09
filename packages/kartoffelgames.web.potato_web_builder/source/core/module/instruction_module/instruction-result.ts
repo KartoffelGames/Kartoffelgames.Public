@@ -1,6 +1,6 @@
 import { Exception, List } from '@kartoffelgames/core';
 import { PwbTemplate } from '../../component/template/nodes/pwb-template';
-import { ScopedValues } from '../../scoped-values';
+import { ScopedValues } from '../../data/scoped-values';
 
 /**
  * Results for instruction module.

@@ -7,9 +7,9 @@ import { ModuleTemplate } from '../../core/module/injection_reference/module-tem
 import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
 import { InstructionResult } from '../../core/module/instruction_module/instruction-result';
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
-import { ModuleValueProcedure } from '../../core/module/module-value-procedure';
-import { ModuleValues } from '../../core/module/module-values';
-import { ScopedValues } from '../../core/scoped-values';
+import { ModuleValueProcedure } from '../../core/data/module-value-procedure';
+import { ModuleValues } from '../../core/data/module-values';
+import { ScopedValues } from '../../core/data/scoped-values';
 import { Processor } from '../../core/core_entity/processor';
 
 /**

@@ -1,7 +1,7 @@
 import { ChangeState, HistoryItem, MyersDiff } from '@kartoffelgames/core';
 import { InstructionModule } from '../../module/instruction_module/instruction-module';
 import { InstructionResultElement } from '../../module/instruction_module/instruction-result';
-import { ScopedValues } from '../../scoped-values';
+import { ScopedValues } from '../../data/scoped-values';
 import { ComponentModules } from '../component-modules';
 import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node';
 import { BaseBuilder } from './base-builder';
@@ -104,6 +104,9 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
                 // Create new static builder, insert after last content.
                 lLastExistingChildBuilder = this.insertNewContent(lHistoryItem.item, lLastExistingChildBuilder);
             } else { // if (lHistoryItem.changeState === ChangeState.Keep) {
+                // TODO: Replace scoped values of scope.
+                //lHistoryItem.item.changeDataScope(pNewValue) ???
+                
                 lLastExistingChildBuilder = lHistoryItem.item;
             }
         }

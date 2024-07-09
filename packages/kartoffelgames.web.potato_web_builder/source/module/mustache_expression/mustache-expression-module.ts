@@ -1,9 +1,9 @@
-import { ModuleValues } from '../../core/module/module-values';
+import { ModuleValues } from '../../core/data/module-values';
 import { IExpressionOnUpdate } from '../../core/module/expression_module/expression-module';
 import { PwbExpressionModule } from '../../core/module/expression_module/pwb-expression-module.decorator';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { ModuleExpression } from '../../core/module/injection_reference/module-expression';
-import { ModuleValueProcedure } from '../../core/module/module-value-procedure';
+import { ModuleValueProcedure } from '../../core/data/module-value-procedure';
 import { Processor } from '../../core/core_entity/processor';
 
 /**

@@ -1,5 +1,5 @@
 
-import { ScopedValues } from '../../scoped-values';
+import { ScopedValues } from '../../data/scoped-values';
 import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
 import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
 import { BaseBuilderData, Boundary } from './data/base-builder-data';

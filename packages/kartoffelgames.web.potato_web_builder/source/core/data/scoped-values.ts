@@ -1,5 +1,5 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { Component } from './component/component';
+import { Component } from '../component/component';
 
 /**
  * Interface between persistent values directly from component and temporary values

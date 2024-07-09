@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { ComponentScopedValues } from '../../../source/core/component/injection_reference/component-scoped-values';
+import { ComponentScopedValues } from '../../../source/core/data/component-scoped-values';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
 import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from '../../../source/core/component/template/nodes/pwb-template-xml-node';
@@ -11,7 +11,7 @@ import { PwbAttributeModule } from '../../../source/core/module/attribute_module
 import { IInstructionOnUpdate } from '../../../source/core/module/instruction_module/instruction-module';
 import { InstructionResult } from '../../../source/core/module/instruction_module/instruction-result';
 import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator';
-import { ScopedValues } from '../../../source/core/scoped-values';
+import { ScopedValues } from '../../../source/core/data/scoped-values';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';

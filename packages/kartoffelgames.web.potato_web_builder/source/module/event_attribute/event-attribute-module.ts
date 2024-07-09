@@ -5,8 +5,8 @@ import { IAttributeOnDeconstruct } from '../../core/module/attribute_module/attr
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
 import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute';
 import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
-import { ModuleValueProcedure } from '../../core/module/module-value-procedure';
-import { ModuleValues } from '../../core/module/module-values';
+import { ModuleValueProcedure } from '../../core/data/module-value-procedure';
+import { ModuleValues } from '../../core/data/module-values';
 
 @PwbAttributeModule({
     access: AccessMode.Write,

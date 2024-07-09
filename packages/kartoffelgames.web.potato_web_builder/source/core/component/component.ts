@@ -5,12 +5,12 @@ import { Processor } from '../core_entity/processor';
 import { UpdateMode } from '../enum/update-mode.enum';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
 import { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module';
-import { ScopedValues } from '../scoped-values';
+import { ScopedValues } from '../data/scoped-values';
 import { StaticBuilder } from './builder/static-builder';
 import { ComponentElement } from './component-element';
 import { ComponentModules } from './component-modules';
 import { ComponentRegister } from './component-register';
-import { ComponentScopedValues } from './injection_reference/component-scoped-values';
+import { ComponentScopedValues } from '../data/component-scoped-values';
 import { PwbTemplate } from './template/nodes/pwb-template';
 import { TemplateParser } from './template/template-parser';
 

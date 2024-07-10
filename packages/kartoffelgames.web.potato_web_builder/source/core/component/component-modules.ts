@@ -4,7 +4,7 @@ import { CoreEntityProcessorConstructorSetup, CoreEntityRegister } from '../core
 import { AttributeModule, AttributeModuleConfiguration } from '../module/attribute_module/attribute-module';
 import { ExpressionModule, ExpressionModuleConfiguration, IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module';
 import { InstructionModule, InstructionModuleConfiguration } from '../module/instruction_module/instruction-module';
-import { ScopedValues } from '../data/scoped-values';
+import { DataLevel } from '../data/data-level';
 import { Component } from './component';
 import { PwbTemplateInstructionNode } from './template/nodes/pwb-template-instruction-node';
 import { PwbTemplateAttribute } from './template/nodes/values/pwb-template-attribute';
@@ -46,7 +46,7 @@ export class ComponentModules {
      * 
      * @returns Created static module when it was matched, otherwise null.
      */
-    public createAttributeModule(pTemplate: PwbTemplateAttribute, pTargetNode: Element, pValues: ScopedValues): AttributeModule | null {
+    public createAttributeModule(pTemplate: PwbTemplateAttribute, pTargetNode: Element, pValues: DataLevel): AttributeModule | null {
         // Read attribute setup of expression module.
         const lAttributeModuleSetup: CoreEntityProcessorConstructorSetup<AttributeModuleConfiguration> | null = (() => {
             // Try to read cached attribute module.
@@ -96,7 +96,7 @@ export class ComponentModules {
      * @throws {@link Exception}
      * When no expression node could be found.
      */
-    public createExpressionModule(pTemplate: PwbTemplateExpression, pTargetNode: Text, pValues: ScopedValues): ExpressionModule {
+    public createExpressionModule(pTemplate: PwbTemplateExpression, pTargetNode: Text, pValues: DataLevel): ExpressionModule {
         // Read expression setup of expression module.
         const lExpressionSetup: CoreEntityProcessorConstructorSetup<ExpressionModuleConfiguration> = (() => {
             // Try to read cached information.
@@ -139,7 +139,7 @@ export class ComponentModules {
      * @throws {@link Exception}
      * When no instruction node with type could be found.
      */
-    public createInstructionModule(pTemplate: PwbTemplateInstructionNode, pValues: ScopedValues): InstructionModule {
+    public createInstructionModule(pTemplate: PwbTemplateInstructionNode, pValues: DataLevel): InstructionModule {
         // Read instruction setup of expression module.
         const lInstructioneModuleSetup: CoreEntityProcessorConstructorSetup<InstructionModuleConfiguration> | null = (() => {
             // Try to read cached instruction module.

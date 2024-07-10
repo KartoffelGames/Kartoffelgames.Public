@@ -1,6 +1,6 @@
 import { Exception, List } from '@kartoffelgames/core';
 import { PwbTemplate } from '../../component/template/nodes/pwb-template';
-import { ScopedValues } from '../../data/scoped-values';
+import { DataLevel } from '../../data/data-level';
 
 /**
  * Results for instruction module.
@@ -29,20 +29,20 @@ export class InstructionResult {
      * Can't use same template for multiple elements.
      * 
      * @param pTemplateElement - New template element.
-     * @param pElementScopedValues - New Values of element with current current value as parent.
+     * @param pLevelData - New Values of instruction level.
      * 
      * @throws {@link Exception}
      * When the same template reference should be added more than once.
      */
-    public addElement(pTemplateElement: PwbTemplate, pElementScopedValues: ScopedValues): void {
+    public addElement(pTemplateElement: PwbTemplate, pLevelData: DataLevel): void {
         // Check if value or temple is used in another element.
         const lDoubledIndex: number = this.mElementList.findIndex(pElement => {
-            return pElement.template === pTemplateElement || pElement.componentValues === pElementScopedValues;
+            return pElement.template === pTemplateElement || pElement.dataLevel === pLevelData;
         });
 
-        // Do not allow double use of template or scoped values.
+        // Do not allow double use of template or data level.
         if (lDoubledIndex === -1) {
-            this.mElementList.push({ template: pTemplateElement, componentValues: pElementScopedValues });
+            this.mElementList.push({ template: pTemplateElement, dataLevel: pLevelData });
         } else {
             throw new Exception(`Can't add same template or values for multiple Elements.`, this);
         }
@@ -56,5 +56,5 @@ export class InstructionResult {
  */
 export type InstructionResultElement = {
     template: PwbTemplate;
-    componentValues: ScopedValues;
+    dataLevel: DataLevel;
 };

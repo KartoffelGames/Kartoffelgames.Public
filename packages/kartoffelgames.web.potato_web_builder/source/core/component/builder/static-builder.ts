@@ -1,6 +1,6 @@
 import { AttributeModule } from '../../module/attribute_module/attribute-module';
 import { ExpressionModule } from '../../module/expression_module/expression-module';
-import { ScopedValues } from '../../data/scoped-values';
+import { DataLevel } from '../../data/data-level';
 import { ComponentModules } from '../component-modules';
 import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
 import { PwbTemplate } from '../template/nodes/pwb-template';
@@ -27,11 +27,11 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
      * 
      * @param pTemplate - Template.
      * @param pModules - Attribute modules.
-     * @param pParentScopedValues - Scoped values of parent builder.
+     * @param pParentDataLevel - Data of parent builder.
      * @param pAnchorName - Name of builder content anchor.
      */
-    public constructor(pTemplate: StaticPwbTemplate, pModules: ComponentModules, pParentScopedValues: ScopedValues, pAnchorName: string) {
-        super(pTemplate, pParentScopedValues, new StaticBuilderData(pModules, `Static - {${pAnchorName}}`));
+    public constructor(pTemplate: StaticPwbTemplate, pModules: ComponentModules, pParentDataLevel: DataLevel, pAnchorName: string) {
+        super(pTemplate, pParentDataLevel, new StaticBuilderData(pModules, `Static - {${pAnchorName}}`));
 
         // Not initialized on start.
         this.mInitialized = false;

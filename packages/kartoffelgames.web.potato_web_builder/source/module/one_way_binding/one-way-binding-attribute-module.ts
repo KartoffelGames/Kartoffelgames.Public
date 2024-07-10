@@ -1,11 +1,11 @@
 import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
 import { IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module';
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
-import { ModuleValues } from '../../core/data/module-values';
+import { ModuleDataLevel } from '../../core/data/module-data-level';
 import { AccessMode } from '../../core/enum/access-mode.enum';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute';
-import { ModuleValueProcedure } from '../../core/data/module-value-procedure';
+import { LevelProcedure } from '../../core/data/level-procedure';
 import { Processor } from '../../core/core_entity/processor';
 
 /**
@@ -19,7 +19,7 @@ import { Processor } from '../../core/core_entity/processor';
 })
 export class OneWayBindingAttributeModule extends Processor implements IAttributeOnUpdate {
     private mLastValue: any;
-    private readonly mProcedure: ModuleValueProcedure<any>;
+    private readonly mProcedure: LevelProcedure<any>;
     private readonly mTarget: Node;
     private readonly mTargetProperty: string;
 
@@ -29,7 +29,7 @@ export class OneWayBindingAttributeModule extends Processor implements IAttribut
      * @param pModuleValues - Values of module.
      * @param pModuleAttribute - Attribute of module.
      */
-    public constructor(pTargetNode: ModuleTargetNode, pModuleValues: ModuleValues, pModuleAttribute: ModuleAttribute) {
+    public constructor(pTargetNode: ModuleTargetNode, pModuleValues: ModuleDataLevel, pModuleAttribute: ModuleAttribute) {
         super();
         
         this.mTarget = pTargetNode;

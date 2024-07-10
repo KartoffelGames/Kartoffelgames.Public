@@ -1,8 +1,8 @@
 import { IDeconstructable } from '@kartoffelgames/core';
-import { ScopedValues } from '../data/scoped-values';
+import { DataLevel } from '../data/data-level';
 import { CoreEntityProcessorConstructor } from '../core_entity/core-entity';
 import { CoreEntityExtendable, CoreEntityExtendableConstructorParameter } from '../core_entity/core-entity-extendable';
-import { ModuleValues } from '../data/module-values';
+import { ModuleDataLevel } from '../data/module-data-level';
 import { PwbDebugLogLevel } from '../configuration/pwb-configuration';
 import { Processor } from '../core_entity/processor';
 
@@ -22,7 +22,7 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
         });
 
         // Create module injection mapping.
-        this.setProcessorAttributes(ModuleValues, new ModuleValues(pParameter.values));
+        this.setProcessorAttributes(ModuleDataLevel, new ModuleDataLevel(pParameter.values));
 
         this.addSetupHook(() => {
             // Forces auto create on setup.
@@ -42,7 +42,7 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
 }
 
 export type BaseModuleConstructorParameter<TProcessor extends IPwbModuleProcessor> = Omit<Omit<Omit<CoreEntityExtendableConstructorParameter<TProcessor>, 'trackConstructorChanges'>, 'debugLevel'>, 'isolateInteraction'> & {
-    values: ScopedValues;
+    values: DataLevel;
 };
 
 /**

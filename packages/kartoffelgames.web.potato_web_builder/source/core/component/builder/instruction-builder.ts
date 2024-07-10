@@ -1,7 +1,7 @@
 import { ChangeState, HistoryItem, MyersDiff } from '@kartoffelgames/core';
 import { InstructionModule } from '../../module/instruction_module/instruction-module';
 import { InstructionResultElement } from '../../module/instruction_module/instruction-result';
-import { ScopedValues } from '../../data/scoped-values';
+import { DataLevel } from '../../data/data-level';
 import { ComponentModules } from '../component-modules';
 import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node';
 import { BaseBuilder } from './base-builder';
@@ -20,10 +20,10 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
      * 
      * @param pTemplate - Instruction template.
      * @param pModules - Modules of component scope.
-     * @param pParentScopedValues - Scoped value of parent builder.
+     * @param pParentDataLevel - Data level of parent builder.
      */
-    public constructor(pTemplate: PwbTemplateInstructionNode, pModules: ComponentModules, pParentScopedValues: ScopedValues) {
-        super(pTemplate, pParentScopedValues, new InstructionBuilderData(pModules, `Instruction - {$${pTemplate.instructionType}}`));
+    public constructor(pTemplate: PwbTemplateInstructionNode, pModules: ComponentModules, pParentDataLevel: DataLevel) {
+        super(pTemplate, pParentDataLevel, new InstructionBuilderData(pModules, `Instruction - {$${pTemplate.instructionType}}`));
     }
 
     /**
@@ -62,7 +62,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
      */
     private insertNewContent(pNewContent: InstructionResultElement, pContentCursor: StaticBuilder | null): StaticBuilder {
         // Create new static builder.
-        const lStaticBuilder: StaticBuilder = new StaticBuilder(pNewContent.template, this.content.modules, pNewContent.componentValues, `Child - {$${this.template.instructionType}}`);
+        const lStaticBuilder: StaticBuilder = new StaticBuilder(pNewContent.template, this.content.modules, pNewContent.dataLevel, `Child - {$${this.template.instructionType}}`);
 
         // Prepend content if no content is before the new content. 
         if (pContentCursor === null) {
@@ -88,11 +88,14 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
 
         // Define difference search.
         const lMyersDiff: MyersDiff<StaticBuilder, InstructionResultElement> = new MyersDiff<StaticBuilder, InstructionResultElement>((pA, pB) => {
-            return pB.componentValues.equals(pA.values) && pB.template.equals(pA.template);
+            return pB.template.equals(pA.template);
         });
 
         // Get differences of old an new content.
         const lDifferenceList: Array<HistoryItem<StaticBuilder, InstructionResultElement>> = lMyersDiff.differencesOf(pOldContentList, pNewContentList);
+
+        // Count index of used new item index.
+        let lCurrentNewItemIndex: number = 0;
 
         let lLastExistingChildBuilder: StaticBuilder | null = null;
         for (let lIndex: number = 0; lIndex < lDifferenceList.length; lIndex++) {
@@ -103,11 +106,21 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
             } else if (lHistoryItem.changeState === ChangeState.Insert) {
                 // Create new static builder, insert after last content.
                 lLastExistingChildBuilder = this.insertNewContent(lHistoryItem.item, lLastExistingChildBuilder);
+
+                // Iterate for used new item index.
+                lCurrentNewItemIndex++;
             } else { // if (lHistoryItem.changeState === ChangeState.Keep) {
-                // TODO: Replace scoped values of scope.
-                //lHistoryItem.item.changeDataScope(pNewValue) ???
+                // Read current data level.
+                const lCurrentNewItemLevelValue: DataLevel = pNewContentList[lCurrentNewItemIndex].dataLevel;
+
+                // Replace temporary values of level. It might have changed.
+                lHistoryItem.item.values.updateLevelData(lCurrentNewItemLevelValue);
                 
+                // Save last used builder to insert next new builder after it.
                 lLastExistingChildBuilder = lHistoryItem.item;
+
+                // Iterate for used new item index.
+                lCurrentNewItemIndex++;
             }
         }
     }

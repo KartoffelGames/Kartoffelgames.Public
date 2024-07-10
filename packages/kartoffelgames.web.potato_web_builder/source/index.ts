@@ -15,12 +15,12 @@ export { ModuleAttribute } from './core/module/injection_reference/module-attrib
 export { ModuleTargetNode } from './core/module/injection_reference/module-target-node';
 export { ModuleTemplate } from './core/module/injection_reference/module-template';
 export { InstructionModule } from './core/module/instruction_module/instruction-module';
-export { ModuleValues } from './core/data/module-values';
+export { ModuleDataLevel as ModuleValues } from './core/data/module-data-level';
 
 // Component Injections
 export { Component } from './core/component/component';
 export { ComponentElement } from './core/component/component-element';
-export { ComponentScopedValues } from './core/data/component-scoped-values';
+export { ComponentDataLevel } from './core/data/component-data-level';
 
 // Modules
 export { IExtensionOnDeconstruct, IExtensionOnExecute } from './core/extension/extension-module';
@@ -32,8 +32,8 @@ export { PwbExpressionModule } from './core/module/expression_module/pwb-express
 export { IInstructionOnDeconstruct, IInstructionOnUpdate } from './core/module/instruction_module/instruction-module';
 export { InstructionResult } from './core/module/instruction_module/instruction-result';
 export { PwbInstructionModule } from './core/module/instruction_module/pwb-instruction-module.decorator';
-export { ModuleValueProcedure } from './core/data/module-value-procedure';
-export { ScopedValues } from './core/data/scoped-values';
+export { LevelProcedure } from './core/data/level-procedure';
+export { DataLevel } from './core/data/data-level';
 
 export { AccessMode } from './core/enum/access-mode.enum';
 

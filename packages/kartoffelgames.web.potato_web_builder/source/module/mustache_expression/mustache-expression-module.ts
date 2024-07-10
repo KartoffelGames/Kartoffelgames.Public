@@ -1,9 +1,9 @@
-import { ModuleValues } from '../../core/data/module-values';
+import { ModuleDataLevel } from '../../core/data/module-data-level';
 import { IExpressionOnUpdate } from '../../core/module/expression_module/expression-module';
 import { PwbExpressionModule } from '../../core/module/expression_module/pwb-expression-module.decorator';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { ModuleExpression } from '../../core/module/injection_reference/module-expression';
-import { ModuleValueProcedure } from '../../core/data/module-value-procedure';
+import { LevelProcedure } from '../../core/data/level-procedure';
 import { Processor } from '../../core/core_entity/processor';
 
 /**
@@ -14,7 +14,7 @@ import { Processor } from '../../core/core_entity/processor';
     trigger: UpdateTrigger.Any & ~UpdateTrigger.UntrackableFunctionCall
 })
 export class MustacheExpressionModule extends Processor implements IExpressionOnUpdate {
-    private readonly mProcedure: ModuleValueProcedure<any>;
+    private readonly mProcedure: LevelProcedure<any>;
 
     /**
      * Constructor.
@@ -22,7 +22,7 @@ export class MustacheExpressionModule extends Processor implements IExpressionOn
      * @param pModuleValues - Values of module scope.
      * @param pModuleExpression - Expression value.
      */
-    public constructor(pModuleValues: ModuleValues, pModuleExpression: ModuleExpression) {
+    public constructor(pModuleValues: ModuleDataLevel, pModuleExpression: ModuleExpression) {
         super();
 
         this.mProcedure = pModuleValues.createExpressionProcedure(pModuleExpression.value);

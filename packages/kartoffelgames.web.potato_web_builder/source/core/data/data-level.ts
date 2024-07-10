@@ -8,33 +8,33 @@ import { Component } from '../component/component';
  * Has the {@link store} property that allways sets and gets the data to the correct location
  * or the {@link setTemporaryValue} function to only set temporary values.
  */
-export class ScopedValues {
+export class DataLevel {
     private readonly mComponent: Component;
-    private readonly mDataProxy: ScopedValueData;
-    private readonly mParentScope: ScopedValues | null;
-    private readonly mTemporaryValues: Dictionary<string, any>;
+    private readonly mDataProxy: LevelValues;
+    private readonly mParentLevel: DataLevel | null;
+    private mTemporaryValues: Dictionary<string, any>;
 
     /**
-     * Data object with all current scope values.
+     * Data object with all current and parents data.
      */
-    public get store(): ScopedValueData {
+    public get store(): LevelValues {
         return this.mDataProxy;
     }
 
     /**
      * Constructor.
-     * New component value scope.
-     * @param pParentScope - Parent scope. Values on root scope.
+     * New component value level.
+     * @param pParentDataLeve - Parent level. Values on root level.
      */
-    public constructor(pParentScope: ScopedValues | Component) {
+    public constructor(pParentDataLeve: DataLevel | Component) {
         this.mTemporaryValues = new Dictionary<string, any>();
 
-        if (pParentScope instanceof Component) {
-            this.mParentScope = null;
-            this.mComponent = pParentScope;
+        if (pParentDataLeve instanceof Component) {
+            this.mParentLevel = null;
+            this.mComponent = pParentDataLeve;
         } else {
-            this.mParentScope = pParentScope;
-            this.mComponent = pParentScope.mComponent;
+            this.mParentLevel = pParentDataLeve;
+            this.mComponent = pParentDataLeve.mComponent;
         }
 
         // Create data proxy.
@@ -42,51 +42,26 @@ export class ScopedValues {
     }
 
     /**
-     * Check for changes into two value handler.
-     * @param pTargetValues - Value two.
-     */
-    public equals(pTargetValues: ScopedValues): boolean {
-        // No need to compare same references.
-        if(this === pTargetValues){
-            return true;
-        }
-
-        // Compare if it has the same component processor object.
-        if (this.mComponent.processor !== pTargetValues.mComponent.processor) {
-            return false;
-        }
-
-        // Should have same parent scope.
-        if(this.mParentScope !== pTargetValues.mParentScope){
-            return false;
-        }
-
-        // Should have same temporary values.
-        if(this.mTemporaryValues.size !== pTargetValues.mTemporaryValues.size){
-            return false;
-        }
-
-        // Check for temporary values differences from one to two.
-        for(const [lSourceTemporaryKey, lSourceTemporaryValue] of this.mTemporaryValues) {
-            const lTargetTemporaryValue: any = pTargetValues.mTemporaryValues.get(lSourceTemporaryKey);
-
-            if(lSourceTemporaryValue !== lTargetTemporaryValue){
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Add or replaces temporary value in this manipulator scope.
+     * Add or replaces temporary value in this level.
      * 
      * @param pKey - Key of value.
      * @param pValue - Value.
      */
     public setTemporaryValue<TValue>(pKey: string, pValue: TValue): void {
-        // Set value to current scope.
+        // Set value to current level.
         this.mTemporaryValues.set(pKey, pValue);
+    }
+
+    /**
+     * 
+     * @param pLevelData - Level data.
+     */
+    public updateLevelData(pLevelData: DataLevel): void {
+        if(pLevelData.mParentLevel !== this.mParentLevel){
+            throw new Exception(`Can't update InstructionLevelData for a deeper level than it target data.`, this);
+        }
+
+        this.mTemporaryValues = pLevelData.mTemporaryValues;
     }
 
     /**
@@ -94,7 +69,7 @@ export class ScopedValues {
      * 
      * @returns Proxy object.
      */
-    private createAccessProxy(): ScopedValueData {
+    private createAccessProxy(): LevelValues {
         return new Proxy(new Object(), {
             /**
              * Get value of property.
@@ -159,8 +134,8 @@ export class ScopedValues {
         const lKeyList: Array<string> = this.mTemporaryValues.map<string>((pKey: string) => pKey);
 
         // Get key list from parent.
-        if (this.mParentScope) {
-            lKeyList.push(...this.mParentScope.getTemporaryValuesList());
+        if (this.mParentLevel) {
+            lKeyList.push(...this.mParentLevel.getTemporaryValuesList());
         }
 
         return lKeyList;
@@ -172,18 +147,18 @@ export class ScopedValues {
      * @param pValueName - Name of value.
      */
     private getValue<TValue>(pValueName: string): TValue | undefined {
-        // Only return value when it exists in current scope.
+        // Only return value when it exists in current level.
         if (this.mTemporaryValues.has(pValueName)) {
             return this.mTemporaryValues.get(pValueName);
         }
 
         // If value was not found and parent exists, search in parent values.
-        if (this.mParentScope) {
-            return this.mParentScope.getValue(pValueName);
+        if (this.mParentLevel) {
+            return this.mParentLevel.getValue(pValueName);
         }
 
-        // When it does not exist in current scope nor in parent, return component processor value.
-        // This in hits only on root scoped values. child scopeds can never access the component processor.
+        // When it does not exist in current level nor in parent, return component processor value.
+        // This in hits only on root data level. child level can never access the component processor.
         if (pValueName in this.mComponent.processor) {
             return (<{ [key: PropertyKey]: any; }>this.mComponent.processor)[pValueName];
         }
@@ -204,13 +179,13 @@ export class ScopedValues {
         }
 
         // No parent and value does not exist.
-        if (!this.mParentScope) {
+        if (!this.mParentLevel) {
             return false;
         }
 
         // If value was not found and parent exists, search in parent values.
-        return this.mParentScope.hasTemporaryValue(pValueName);
+        return this.mParentLevel.hasTemporaryValue(pValueName);
     }
 }
 
-type ScopedValueData = { [key: PropertyKey]: any; };
+type LevelValues = { [key: PropertyKey]: any; };

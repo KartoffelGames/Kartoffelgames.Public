@@ -12,8 +12,8 @@ import { ModuleTemplate } from '../../../source/core/module/injection_reference/
 import { IInstructionOnUpdate } from '../../../source/core/module/instruction_module/instruction-module';
 import { InstructionResult } from '../../../source/core/module/instruction_module/instruction-result';
 import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator';
-import { ModuleValues } from '../../../source/core/data/module-values';
-import { ScopedValues } from '../../../source/core/data/scoped-values';
+import { ModuleDataLevel } from '../../../source/core/data/module-data-level';
+import { DataLevel } from '../../../source/core/data/data-level';
 import { PwbComponentEventListener } from '../../../source/module/component-event-listener/pwb-component-event-listener.decorator';
 import { ComponentEvent } from '../../../source/module/component-event/component-event';
 import { ComponentEventEmitter } from '../../../source/module/component-event/component-event-emitter';
@@ -288,7 +288,7 @@ describe('PwbEventListener', () => {
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class MyModule extends Processor implements IInstructionOnUpdate {
-            public constructor(private readonly mTemplate: ModuleTemplate, private readonly mValue: ModuleValues) {
+            public constructor(private readonly mTemplate: ModuleTemplate, private readonly mValue: ModuleDataLevel) {
                 super();
             }
 
@@ -298,7 +298,7 @@ describe('PwbEventListener', () => {
                 const lTemplate: PwbTemplate = new PwbTemplate();
                 lTemplate.appendChild(...(<PwbTemplateInstructionNode>this.mTemplate).childList);
 
-                lResult.addElement(lTemplate, new ScopedValues(this.mValue.scopedValues));
+                lResult.addElement(lTemplate, new DataLevel(this.mValue.data));
 
                 return lResult;
             }

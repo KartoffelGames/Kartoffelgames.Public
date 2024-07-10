@@ -7,9 +7,9 @@ import { ModuleTemplate } from '../../core/module/injection_reference/module-tem
 import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
 import { InstructionResult } from '../../core/module/instruction_module/instruction-result';
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
-import { ModuleValueProcedure } from '../../core/data/module-value-procedure';
-import { ModuleValues } from '../../core/data/module-values';
-import { ScopedValues } from '../../core/data/scoped-values';
+import { LevelProcedure } from '../../core/data/level-procedure';
+import { ModuleDataLevel } from '../../core/data/module-data-level';
+import { DataLevel } from '../../core/data/data-level';
 
 /**
  * If expression.
@@ -21,21 +21,21 @@ import { ScopedValues } from '../../core/data/scoped-values';
 })
 export class IfInstructionModule extends Processor implements IInstructionOnUpdate {
     private mLastBoolean: boolean;
-    private readonly mModuleValues: ModuleValues;
-    private readonly mProcedure: ModuleValueProcedure<any>;
+    private readonly mModuleValues: ModuleDataLevel;
+    private readonly mProcedure: LevelProcedure<any>;
     private readonly mTemplateReference: PwbTemplateInstructionNode;
 
     /**
      * Constructor.
      * @param pTemplate - Target templat.
-     * @param pModuleValues - Scoped values of module.
+     * @param pModuleData - Data of module.
      * @param pModuleExpression - Expression of instruction module.
      */
-    public constructor(pTemplate: ModuleTemplate, pModuleValues: ModuleValues, pModuleExpression: ModuleExpression) {
+    public constructor(pTemplate: ModuleTemplate, pModuleData: ModuleDataLevel, pModuleExpression: ModuleExpression) {
         super();
         
         this.mTemplateReference = <PwbTemplateInstructionNode>pTemplate;
-        this.mModuleValues = pModuleValues;
+        this.mModuleValues = pModuleData;
         this.mProcedure = this.mModuleValues.createExpressionProcedure(pModuleExpression.value);
         this.mLastBoolean = false;
     }
@@ -56,7 +56,7 @@ export class IfInstructionModule extends Processor implements IInstructionOnUpda
                 const lTemplate: PwbTemplate = new PwbTemplate();
                 lTemplate.appendChild(...this.mTemplateReference.childList);
 
-                lModuleResult.addElement(lTemplate, new ScopedValues(this.mModuleValues.scopedValues));
+                lModuleResult.addElement(lTemplate, new DataLevel(this.mModuleValues.data));
             }
 
             return lModuleResult;

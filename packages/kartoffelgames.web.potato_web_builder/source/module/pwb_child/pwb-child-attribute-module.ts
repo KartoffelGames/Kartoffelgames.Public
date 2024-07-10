@@ -1,5 +1,5 @@
-import { ComponentScopedValues } from '../../core/data/component-scoped-values';
 import { Processor } from '../../core/core_entity/processor';
+import { ComponentDataLevel } from '../../core/data/component-data-level';
 import { AccessMode } from '../../core/enum/access-mode.enum';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { AttributeModule } from '../../core/module/attribute_module/attribute-module';
@@ -23,7 +23,7 @@ export class PwbChildAttributeModule extends Processor {
      * @param pModuleAttribute - Module attribute.
      * @param pComponentScopeValue - Root values of component.
      */
-    public constructor(pTargetNode: ModuleTargetNode, pAttributeModule: AttributeModule, pModuleAttribute: ModuleAttribute, pComponentScopeValue: ComponentScopedValues) {
+    public constructor(pTargetNode: ModuleTargetNode, pAttributeModule: AttributeModule, pModuleAttribute: ModuleAttribute, pComponentScopeValue: ComponentDataLevel) {
         super();
 
         const lTarget: Node = pTargetNode;

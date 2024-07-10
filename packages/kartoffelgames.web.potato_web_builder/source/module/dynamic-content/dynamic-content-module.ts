@@ -1,13 +1,13 @@
 import { Exception } from '@kartoffelgames/core';
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template';
-import { ScopedValues } from '../../core/data/scoped-values';
+import { DataLevel } from '../../core/data/data-level';
 import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
 import { InstructionResult } from '../../core/module/instruction_module/instruction-result';
-import { ModuleValues } from '../../core/data/module-values';
+import { ModuleDataLevel } from '../../core/data/module-data-level';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { ModuleExpression } from '../../core/module/injection_reference/module-expression';
-import { ModuleValueProcedure } from '../../core/data/module-value-procedure';
+import { LevelProcedure } from '../../core/data/level-procedure';
 import { Processor } from '../../core/core_entity/processor';
 
 /**
@@ -20,18 +20,18 @@ import { Processor } from '../../core/core_entity/processor';
 })
 export class DynamicContentInstructionModule extends Processor implements IInstructionOnUpdate {
     private mLastTemplate: PwbTemplate | null;
-    private readonly mModuleValues: ModuleValues;
-    private readonly mProcedure: ModuleValueProcedure<PwbTemplate>;
+    private readonly mModuleValues: ModuleDataLevel;
+    private readonly mProcedure: LevelProcedure<PwbTemplate>;
 
     /**
      * Constructor.
      * @param pExpressionValue - Values of attribute template.
-     * @param pModuleValues - Scoped values of module.
+     * @param pModuleData - Data of module.
      */
-    public constructor(pExpressionValue: ModuleExpression, pModuleValues: ModuleValues) {
+    public constructor(pExpressionValue: ModuleExpression, pModuleData: ModuleDataLevel) {
         super();
         
-        this.mModuleValues = pModuleValues;
+        this.mModuleValues = pModuleData;
         this.mLastTemplate = null;
 
         // Callback expression.
@@ -62,7 +62,7 @@ export class DynamicContentInstructionModule extends Processor implements IInstr
 
         // Add custom template to output.
         const lModuleResult: InstructionResult = new InstructionResult();
-        lModuleResult.addElement(lTemplateResult, new ScopedValues(this.mModuleValues.scopedValues));
+        lModuleResult.addElement(lTemplateResult, new DataLevel(this.mModuleValues.data));
 
         return lModuleResult;
     }

@@ -2,15 +2,15 @@ import { Dictionary } from '@kartoffelgames/core';
 import { PwbDebugLogLevel } from '../configuration/pwb-configuration';
 import { CoreEntityExtendable } from '../core_entity/core-entity-extendable';
 import { Processor } from '../core_entity/processor';
+import { ComponentDataLevel } from '../data/component-data-level';
+import { DataLevel } from '../data/data-level';
 import { UpdateMode } from '../enum/update-mode.enum';
 import { UpdateTrigger } from '../enum/update-trigger.enum';
 import { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module';
-import { ScopedValues } from '../data/scoped-values';
 import { StaticBuilder } from './builder/static-builder';
 import { ComponentElement } from './component-element';
 import { ComponentModules } from './component-modules';
 import { ComponentRegister } from './component-register';
-import { ComponentScopedValues } from '../data/component-scoped-values';
 import { PwbTemplate } from './template/nodes/pwb-template';
 import { TemplateParser } from './template/template-parser';
 
@@ -81,11 +81,11 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         this.mComponentElement = new ComponentElement(pParameter.htmlElement);
 
         // Create component builder.
-        this.mRootBuilder = new StaticBuilder(lTemplate, new ComponentModules(this, pParameter.expressionModule), new ScopedValues(this), 'ROOT');
+        this.mRootBuilder = new StaticBuilder(lTemplate, new ComponentModules(this, pParameter.expressionModule), new DataLevel(this), 'ROOT');
         this.mComponentElement.shadowRoot.appendChild(this.mRootBuilder.anchor);
 
         // Initialize user object injections.
-        this.setProcessorAttributes(ComponentScopedValues, this.mRootBuilder.values);
+        this.setProcessorAttributes(ComponentDataLevel, new ComponentDataLevel(this.mRootBuilder.values));
         this.setProcessorAttributes(Component, this);
 
         // Setup auto update when not in manual update mode.

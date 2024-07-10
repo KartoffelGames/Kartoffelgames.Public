@@ -1,5 +1,5 @@
 
-import { ScopedValues } from '../../data/scoped-values';
+import { DataLevel } from '../../data/data-level';
 import { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node';
 import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node';
 import { BaseBuilderData, Boundary } from './data/base-builder-data';
@@ -10,7 +10,7 @@ import { BaseBuilderData, Boundary } from './data/base-builder-data';
  * @internal
  */
 export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BasePwbTemplateNode, TContent extends BaseBuilderData = BaseBuilderData> {
-    private readonly mComponentValues: ScopedValues;
+    private readonly mComponentValues: DataLevel;
     private readonly mContent: TContent;
     private readonly mTemplate: TTemplates;
 
@@ -38,7 +38,7 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
     /**
      * Get component values of builder.
      */
-    public get values(): ScopedValues {
+    public get values(): DataLevel {
         return this.mComponentValues;
     }
 
@@ -53,15 +53,15 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
      * Constructor.
      * 
      * @param pTemplate - Builder template.
-     * @param pParentScopedValues - New component values.
+     * @param pParentDataLevel - Data level of a parent builder.
      */
-    public constructor(pTemplate: TTemplates, pParentScopedValues: ScopedValues, pContent: TContent) {
+    public constructor(pTemplate: TTemplates, pParentDataLevel: DataLevel, pContent: TContent) {
         // Clone template.
         this.mTemplate = pTemplate;
         this.mTemplate.parent = null; // Nodes doesn't need a real parent. Maidenless nodes.
 
-        // Create new scoped of values with inside parent scope.
-        this.mComponentValues = new ScopedValues(pParentScopedValues);
+        // Create new data level of values with inside parent level.
+        this.mComponentValues = new DataLevel(pParentDataLevel);
         this.mContent = pContent;
 
         // Link this builder as content.

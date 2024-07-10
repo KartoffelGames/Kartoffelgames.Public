@@ -1,9 +1,10 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { ScopedValues } from './scoped-values';
+import { DataLevel } from './data-level';
 
-// TODO: Layer value more so all parents can be replaced with a new value.
-
-export class ModuleValueProcedure<T> { // TODO: Rename to somthing more generic not Module... 
+/**
+ * Procedure/Expression that is executed on a data 
+ */
+export class LevelProcedure<T> {
     private readonly mExpression: ProcedureExpression;
     private readonly mTemporaryValues: Dictionary<string, any>;
 
@@ -14,7 +15,7 @@ export class ModuleValueProcedure<T> { // TODO: Rename to somthing more generic 
      * @param pValues - Values.
      * @param pExtendedValueNames - Names of possible extended value. Values only used for this procedure. 
      */
-    public constructor(pExpression: string, pValues: ScopedValues, pExtendedValueNames: Array<string>) {
+    public constructor(pExpression: string, pValues: DataLevel, pExtendedValueNames: Array<string>) {
         this.mTemporaryValues = new Dictionary<string, any>();
 
         // Prefill extended values to init keys.

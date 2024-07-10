@@ -1,17 +1,16 @@
 import { expect } from 'chai';
-import { ComponentScopedValues } from '../../../source/core/data/component-scoped-values';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
 import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template';
 import { PwbTemplateXmlNode } from '../../../source/core/component/template/nodes/pwb-template-xml-node';
 import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration';
 import { Processor } from '../../../source/core/core_entity/processor';
+import { ComponentDataLevel } from '../../../source/core/data/component-data-level';
 import { AccessMode } from '../../../source/core/enum/access-mode.enum';
 import { UpdateTrigger } from '../../../source/core/enum/update-trigger.enum';
 import { PwbAttributeModule } from '../../../source/core/module/attribute_module/pwb-attribute-module.decorator';
 import { IInstructionOnUpdate } from '../../../source/core/module/instruction_module/instruction-module';
 import { InstructionResult } from '../../../source/core/module/instruction_module/instruction-result';
 import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator';
-import { ScopedValues } from '../../../source/core/data/scoped-values';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
@@ -29,12 +28,12 @@ describe('Custom Module', () => {
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         class WrongModule extends Processor implements IInstructionOnUpdate {
-            private readonly mScopedValues: ScopedValues;
+            private readonly mDataLevel: ComponentDataLevel;
 
-            public constructor(pValueReference: ComponentScopedValues) {
+            public constructor(pValueReference: ComponentDataLevel) {
                 super();
 
-                this.mScopedValues = pValueReference;
+                this.mDataLevel = pValueReference;
             }
 
             public onUpdate(): InstructionResult {
@@ -47,8 +46,8 @@ describe('Custom Module', () => {
                 const lTemplateTwo: PwbTemplate = new PwbTemplate();
                 lTemplateTwo.appendChild(new PwbTemplateXmlNode());
 
-                lModuleResult.addElement(lTemplateOne, this.mScopedValues);
-                lModuleResult.addElement(lTemplateTwo, this.mScopedValues);
+                lModuleResult.addElement(lTemplateOne, this.mDataLevel.data);
+                lModuleResult.addElement(lTemplateTwo, this.mDataLevel.data);
 
                 return lModuleResult;
             }

@@ -5,8 +5,8 @@ import { AttributeModule, IAttributeOnUpdate } from '../../core/module/attribute
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
 import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute';
 import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
-import { ModuleValueProcedure } from '../../core/data/module-value-procedure';
-import { ModuleValues } from '../../core/data/module-values';
+import { LevelProcedure } from '../../core/data/level-procedure';
+import { ModuleDataLevel } from '../../core/data/module-data-level';
 
 @PwbAttributeModule({
     access: AccessMode.ReadWrite,
@@ -16,19 +16,18 @@ import { ModuleValues } from '../../core/data/module-values';
 export class TwoWayBindingAttributeModule extends Processor implements IAttributeOnUpdate {
     private readonly mAttributeKey: string;
     private mLastDataValue: any;
-    private mLastViewValue: any;
-    private readonly mReadProcedure: ModuleValueProcedure<any>;
+    private readonly mReadProcedure: LevelProcedure<any>;
     private readonly mTargetNode: Node;
-    private readonly mWriteProcedure: ModuleValueProcedure<void>;
+    private readonly mWriteProcedure: LevelProcedure<void>;
 
     /**
      * Constructor.
      * @param pTargetNode - Target element.
-     * @param pModuleValues - Scoped values of component.
+     * @param pModuleValues - Data level of module.
      * @param pModuleAttribute - Module attribute.
      * @param pAttributeModule - Attribute module.
      */
-    public constructor(pTargetNode: ModuleTargetNode, pModuleValues: ModuleValues, pModuleAttribute: ModuleAttribute, pAttributeModule: AttributeModule) {
+    public constructor(pTargetNode: ModuleTargetNode, pModuleValues: ModuleDataLevel, pModuleAttribute: ModuleAttribute, pAttributeModule: AttributeModule) {
         super();
         
         this.mTargetNode = pTargetNode;
@@ -42,7 +41,6 @@ export class TwoWayBindingAttributeModule extends Processor implements IAttribut
 
         // Set start compare values.
         this.mLastDataValue = Symbol('Uncomparable');
-        this.mLastViewValue = Symbol('Uncomparable');
 
         // Patch target. Do nothing with it.
         pAttributeModule.registerObject(this.mTargetNode);
@@ -63,7 +61,6 @@ export class TwoWayBindingAttributeModule extends Processor implements IAttribut
 
             // Update view compare with same value. 
             this.mLastDataValue = lCurrentDataValue;
-            this.mLastViewValue = lCurrentDataValue;
 
             // Set flag that value was updated.
             return true;
@@ -80,7 +77,6 @@ export class TwoWayBindingAttributeModule extends Processor implements IAttribut
             this.mWriteProcedure.execute();
 
             // Update compare.
-            this.mLastViewValue = lCurrentViewValue;
             this.mLastDataValue = lCurrentViewValue;
 
             // Set flag that value was updated.

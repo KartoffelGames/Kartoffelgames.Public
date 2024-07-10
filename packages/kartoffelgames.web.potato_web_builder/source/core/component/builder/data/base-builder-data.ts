@@ -37,7 +37,7 @@ export abstract class BaseBuilderData {
     }
 
     /**
-     * Component modules of builder scoped.
+     * Component modules of builder.
      */
     public get modules(): ComponentModules {
         return this.mModules;

@@ -5,8 +5,8 @@ import { IAttributeOnDeconstruct } from '../../core/module/attribute_module/attr
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator';
 import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute';
 import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node';
-import { ModuleValueProcedure } from '../../core/data/module-value-procedure';
-import { ModuleValues } from '../../core/data/module-values';
+import { LevelProcedure } from '../../core/data/level-procedure';
+import { ModuleDataLevel } from '../../core/data/module-data-level';
 
 @PwbAttributeModule({
     access: AccessMode.Write,
@@ -21,16 +21,16 @@ export class EventAttributeModule extends Processor implements IAttributeOnDecon
     /**
      * Constructor.
      * @param pTargetNode - Target element.
-     * @param pModuleValues - Values of module scoped.
+     * @param pModuleData - Module data.
      * @param pModuleAttribute - Attribute of module.
      */
-    public constructor(pTargetNode: ModuleTargetNode, pModuleValues: ModuleValues, pModuleAttribute: ModuleAttribute) {
+    public constructor(pTargetNode: ModuleTargetNode, pModuleData: ModuleDataLevel, pModuleAttribute: ModuleAttribute) {
         super();
         
         this.mTarget = pTargetNode;
         this.mEventName = pModuleAttribute.name.substring(1, pModuleAttribute.name.length - 1);
 
-        const lProcedure: ModuleValueProcedure<void> = pModuleValues.createExpressionProcedure(pModuleAttribute.value, ['$event']);
+        const lProcedure: LevelProcedure<void> = pModuleData.createExpressionProcedure(pModuleAttribute.value, ['$event']);
 
         // Define listener.
         this.mListener = (pEvent: any): void => {

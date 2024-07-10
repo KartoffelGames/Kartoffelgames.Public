@@ -7,9 +7,9 @@ import { ModuleTemplate } from '../../core/module/injection_reference/module-tem
 import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
 import { InstructionResult } from '../../core/module/instruction_module/instruction-result';
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
-import { ModuleValueProcedure } from '../../core/data/module-value-procedure';
-import { ModuleValues } from '../../core/data/module-values';
-import { ScopedValues } from '../../core/data/scoped-values';
+import { LevelProcedure } from '../../core/data/level-procedure';
+import { ModuleDataLevel } from '../../core/data/module-data-level';
+import { DataLevel } from '../../core/data/data-level';
 import { Processor } from '../../core/core_entity/processor';
 
 /**
@@ -24,20 +24,20 @@ import { Processor } from '../../core/core_entity/processor';
 export class ForInstructionModule extends Processor implements IInstructionOnUpdate {
     private readonly mExpression: ForOfExpression;
     private mLastEntries: Array<[string, any]>;
-    private readonly mModuleValues: ModuleValues;
+    private readonly mModuleValues: ModuleDataLevel;
     private readonly mTemplate: PwbTemplateInstructionNode;
 
     /**
      * Constructor.
      * @param pTemplate - Target templat.
-     * @param pModuleValues - Scoped values of module.
+     * @param pModuleData - Data level of module.
      * @param pModuleExpression - Expression of module.
      */
-    public constructor(pTemplate: ModuleTemplate, pModuleValues: ModuleValues, pModuleExpression: ModuleExpression) {
+    public constructor(pTemplate: ModuleTemplate, pModuleData: ModuleDataLevel, pModuleExpression: ModuleExpression) {
         super();
         
         this.mTemplate = <PwbTemplateInstructionNode>pTemplate;
-        this.mModuleValues = pModuleValues;
+        this.mModuleValues = pModuleData;
         this.mLastEntries = new Array<[string, any]>();
 
         const lInstruction = pModuleExpression.value;
@@ -58,8 +58,8 @@ export class ForInstructionModule extends Processor implements IInstructionOnUpd
         const lIndexExpression: string | undefined = lAttributeInformation[5];
 
         // Create expressions.
-        const lValueProcedure: ModuleValueProcedure<{ [key: string]: any; }> = this.mModuleValues.createExpressionProcedure(lIterateValueExpression);
-        const lIndexProcedure: ModuleValueProcedure<any> | null = (lIndexVariableExportName) ? this.mModuleValues.createExpressionProcedure(lIndexExpression, ['$index', lIterateVariableName]) : null;
+        const lValueProcedure: LevelProcedure<{ [key: string]: any; }> = this.mModuleValues.createExpressionProcedure(lIterateValueExpression);
+        const lIndexProcedure: LevelProcedure<any> | null = (lIndexVariableExportName) ? this.mModuleValues.createExpressionProcedure(lIndexExpression, ['$index', lIterateVariableName]) : null;
 
         // Split match into useable parts.
         this.mExpression = {
@@ -120,8 +120,8 @@ export class ForInstructionModule extends Processor implements IInstructionOnUpd
      * @param pObjectKey - value key.
      */
     private readonly addTemplateForElement = (pModuleResult: InstructionResult, pExpression: ForOfExpression, pObjectValue: any, pObjectKey: number | string) => {
-        const lTemplateItemValues: ScopedValues = new ScopedValues(this.mModuleValues.scopedValues);
-        lTemplateItemValues.setTemporaryValue(pExpression.iterateVariableName, pObjectValue);
+        const lTemplateItemData: DataLevel = new DataLevel(this.mModuleValues.data);
+        lTemplateItemData.setTemporaryValue(pExpression.iterateVariableName, pObjectValue);
 
         // If custom index is used.
         if (pExpression.indexExportProcedure && pExpression.indexExportVariableName) {
@@ -133,7 +133,7 @@ export class ForInstructionModule extends Processor implements IInstructionOnUpd
             const lIndexExpressionResult: any = pExpression.indexExportProcedure.execute();
 
             // Set custom index name as temporary value.
-            lTemplateItemValues.setTemporaryValue(pExpression.indexExportVariableName, lIndexExpressionResult);
+            lTemplateItemData.setTemporaryValue(pExpression.indexExportVariableName, lIndexExpressionResult);
         }
 
         // Create template.
@@ -141,7 +141,7 @@ export class ForInstructionModule extends Processor implements IInstructionOnUpd
         lTemplate.appendChild(...this.mTemplate.childList);
 
         // Add element.
-        pModuleResult.addElement(lTemplate, lTemplateItemValues);
+        pModuleResult.addElement(lTemplate, lTemplateItemData);
     };
 
     /**
@@ -180,7 +180,7 @@ export class ForInstructionModule extends Processor implements IInstructionOnUpd
 
 type ForOfExpression = {
     iterateVariableName: string,
-    iterateValueProcedure: ModuleValueProcedure<{ [key: string]: any; }>,
+    iterateValueProcedure: LevelProcedure<{ [key: string]: any; }>,
     indexExportVariableName: string | null,
-    indexExportProcedure: ModuleValueProcedure<any> | null;
+    indexExportProcedure: LevelProcedure<any> | null;
 };

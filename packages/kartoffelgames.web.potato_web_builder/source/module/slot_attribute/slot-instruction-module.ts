@@ -4,7 +4,7 @@ import { ModuleExpression } from '../../core/module/injection_reference/module-e
 import { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module';
 import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-instruction-module.decorator';
 import { InstructionResult } from '../../core/module/instruction_module/instruction-result';
-import { ModuleValues } from '../../core/data/module-values';
+import { ModuleDataLevel } from '../../core/data/module-data-level';
 import { UpdateTrigger } from '../../core/enum/update-trigger.enum';
 import { Processor } from '../../core/core_entity/processor';
 
@@ -14,7 +14,7 @@ import { Processor } from '../../core/core_entity/processor';
 })
 export class SlotInstructionModule extends Processor implements IInstructionOnUpdate {
     private mIsSetup: boolean;
-    private readonly mModuleValues: ModuleValues;
+    private readonly mModuleValues: ModuleDataLevel;
     private readonly mSlotName: string;
 
     /**
@@ -23,7 +23,7 @@ export class SlotInstructionModule extends Processor implements IInstructionOnUp
      * @param pModuleValues - Values of modules.
      * @param pModuleExpression - Expression of module.
      */
-    public constructor(pModuleValues: ModuleValues, pModuleExpression: ModuleExpression) {
+    public constructor(pModuleValues: ModuleDataLevel, pModuleExpression: ModuleExpression) {
         super();
 
         this.mModuleValues = pModuleValues;
@@ -59,7 +59,7 @@ export class SlotInstructionModule extends Processor implements IInstructionOnUp
 
         // Create result and add slot template.
         const lModuleResult: InstructionResult = new InstructionResult();
-        lModuleResult.addElement(lTemplate, this.mModuleValues.scopedValues);
+        lModuleResult.addElement(lTemplate, this.mModuleValues.data);
 
         return lModuleResult;
     }

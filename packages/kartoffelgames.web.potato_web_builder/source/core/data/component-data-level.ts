@@ -4,7 +4,8 @@ import { DataLevel } from './data-level';
 import { LevelProcedure } from './level-procedure';
 
 /**
- *
+ * Component data level.
+ * Can be used to create a expression that is executed inside the data level.
  */
 export class ComponentDataLevel {
     private readonly mDataLevel: DataLevel;

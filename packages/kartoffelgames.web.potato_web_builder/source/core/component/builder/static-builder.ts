@@ -99,7 +99,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
      */
     private buildInstructionTemplate(pMultiplicatorTemplate: PwbTemplateInstructionNode, pParentContent: BuilderContent): void {
         // Create new instruction builder and add to bottom of parent content.
-        const lInstructionBuilder: InstructionBuilder = new InstructionBuilder(pMultiplicatorTemplate, this.content.modules, this.values);
+        const lInstructionBuilder: InstructionBuilder = new InstructionBuilder(pMultiplicatorTemplate, this.content.modules, new DataLevel(this.values));
         this.content.insert(lInstructionBuilder, 'BottomOf', pParentContent);
     }
 

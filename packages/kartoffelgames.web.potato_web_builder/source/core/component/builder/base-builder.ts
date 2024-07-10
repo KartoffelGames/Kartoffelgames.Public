@@ -53,15 +53,15 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
      * Constructor.
      * 
      * @param pTemplate - Builder template.
-     * @param pParentDataLevel - Data level of a parent builder.
+     * @param pDataLevel - Data level of a this builder.
      */
-    public constructor(pTemplate: TTemplates, pParentDataLevel: DataLevel, pContent: TContent) {
+    public constructor(pTemplate: TTemplates, pDataLevel: DataLevel, pContent: TContent) {
         // Clone template.
         this.mTemplate = pTemplate;
         this.mTemplate.parent = null; // Nodes doesn't need a real parent. Maidenless nodes.
 
         // Create new data level of values with inside parent level.
-        this.mComponentValues = new DataLevel(pParentDataLevel);
+        this.mComponentValues = pDataLevel;
         this.mContent = pContent;
 
         // Link this builder as content.

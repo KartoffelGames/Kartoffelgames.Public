@@ -53,6 +53,8 @@ export class DataLevel {
     }
 
     /**
+     * Override temporary values of level with temporary values of another level.
+     * Resticted to only replace values of the same level.
      * 
      * @param pLevelData - Level data.
      */

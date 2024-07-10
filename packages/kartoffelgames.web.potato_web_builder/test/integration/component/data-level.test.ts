@@ -29,11 +29,11 @@ describe('DataLevel', () => {
 
             // Setup. Create element and get root scope.
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-            const lRootValues: DataLevel = ComponentRegister.ofElement(lComponent).component.getProcessorAttribute<DataLevel>(ComponentDataLevel)!;
-            lRootValues.store[lScopeKey] = lScopeValue;
+            const lRootValues: ComponentDataLevel = ComponentRegister.ofElement(lComponent).component.getProcessorAttribute<ComponentDataLevel>(ComponentDataLevel)!;
+            lRootValues.data.store[lScopeKey] = lScopeValue;
 
             // Process.
-            const lResultValue: string = lRootValues.store[lScopeKey];
+            const lResultValue: string = lRootValues.data.store[lScopeKey];
 
             // Evaluation.
             expect(lResultValue).to.equal(lScopeValue);
@@ -52,11 +52,11 @@ describe('DataLevel', () => {
 
             // Setup. Create element and get root scope.
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-            const lRootValues: DataLevel = ComponentRegister.ofElement(lComponent).component.getProcessorAttribute<DataLevel>(ComponentDataLevel)!;
-            lRootValues.store[lScopeKey] = lScopeValue;
+            const lRootValues: ComponentDataLevel = ComponentRegister.ofElement(lComponent).component.getProcessorAttribute<ComponentDataLevel>(ComponentDataLevel)!;
+            lRootValues.data.store[lScopeKey] = lScopeValue;
 
             // Setup. Create child scope.
-            const lChildScope: DataLevel = new DataLevel(lRootValues);
+            const lChildScope: DataLevel = new DataLevel(lRootValues.data);
 
             // Process.
             const lResultValue: string = lChildScope.store[lScopeKey];
@@ -79,13 +79,13 @@ describe('DataLevel', () => {
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lRootValues: DataLevel = ComponentRegister.ofElement(lComponent).component.getProcessorAttribute<DataLevel>(ComponentDataLevel)!;
+        const lRootValues: ComponentDataLevel = ComponentRegister.ofElement(lComponent).component.getProcessorAttribute<ComponentDataLevel>(ComponentDataLevel)!;
 
         // Setup. Create child scope.
-        const lChildScope: DataLevel = new DataLevel(lRootValues);
+        const lChildScope: DataLevel = new DataLevel(lRootValues.data);
 
         // Process. Set root in child one and access in two.
-        lRootValues.store[lScopeKey] = lScopeValue;
+        lRootValues.data.store[lScopeKey] = lScopeValue;
         const lResultValue: string = lChildScope.store[lScopeKey];
 
         // Evaluation.

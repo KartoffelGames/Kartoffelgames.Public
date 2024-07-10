@@ -13,6 +13,7 @@ const HTMLSlotElement: InjectionConstructor = <any>document.createElement('slot'
 describe('SlotAttribute', () => {
     before(() => {
         PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+        PwbConfiguration.configuration.error.print = false;
     });
 
     it('-- Default slot', async () => {

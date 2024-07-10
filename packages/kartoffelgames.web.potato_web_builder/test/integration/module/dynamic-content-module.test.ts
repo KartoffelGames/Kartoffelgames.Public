@@ -12,6 +12,7 @@ import { PwbTemplateTextNode } from '../../../source/core/component/template/nod
 describe('DynamicContentModule', () => {
     before(() => {
         PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+        PwbConfiguration.configuration.error.print = false;
     });
 
     it('-- Initial', async () => {

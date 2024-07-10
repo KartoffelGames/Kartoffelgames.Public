@@ -14,6 +14,7 @@ import { TestUtil } from '../../utility/test-util';
 describe('ComponentEventEmitterExtension', () => {
     before(() => {
         PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+        PwbConfiguration.configuration.error.print = false;
     });
 
     it('-- Correct event value', async () => {

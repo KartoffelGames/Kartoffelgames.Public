@@ -9,6 +9,7 @@ import { TestUtil } from '../../utility/test-util';
 describe('EventAttributeModule', () => {
     before(() => {
         PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+        PwbConfiguration.configuration.error.print = false;
     });
 
     it('-- Basic click event', async () => {

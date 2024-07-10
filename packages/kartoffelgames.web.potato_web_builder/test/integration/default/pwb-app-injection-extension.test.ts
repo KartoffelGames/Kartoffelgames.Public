@@ -11,6 +11,7 @@ import { TestUtil } from '../../utility/test-util';
 describe('PwbAppInjectionExtension', () => {
     before(() => {
         PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+        PwbConfiguration.configuration.error.print = false;
     });
 
     it('-- PwbApp injection on global element', async () => {

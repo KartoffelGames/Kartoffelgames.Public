@@ -424,6 +424,11 @@ export class CoreEntityUpdater {
             // Overrideable error value to potential remove the error. 
             let lError: any = pError;
 
+            // Print any error.
+            if (pError && PwbConfiguration.configuration.error.print) {
+                PwbConfiguration.print(PwbDebugLogLevel.All, pError);
+            }
+
             // Handle errors.
             if (PwbConfiguration.configuration.error.ignore) {
                 // Print error.

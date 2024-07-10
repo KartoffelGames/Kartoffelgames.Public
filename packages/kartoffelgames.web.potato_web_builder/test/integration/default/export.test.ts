@@ -11,6 +11,7 @@ import { TestUtil } from '../../utility/test-util';
 describe('Export', () => {
     before(() => {
         PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+        PwbConfiguration.configuration.error.print = false;
     });
 
     it('-- Default export get', async () => {

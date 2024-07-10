@@ -10,6 +10,7 @@ import { TestUtil } from '../../utility/test-util';
 describe('BaseExtension', () => {
     before(() => {
         PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+        PwbConfiguration.configuration.error.print = false;
     });
 
     it('-- Call extension constructor on component restriction', async () => {

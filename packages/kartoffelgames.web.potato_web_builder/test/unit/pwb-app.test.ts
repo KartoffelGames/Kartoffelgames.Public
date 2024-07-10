@@ -12,6 +12,7 @@ import { TestUtil } from '../utility/test-util';
 describe('PwbApp', () => {
     before(() => {
         PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+        PwbConfiguration.configuration.error.print = false;
     });
 
     it('Property: component', () => {

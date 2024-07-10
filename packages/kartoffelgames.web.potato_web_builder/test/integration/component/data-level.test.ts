@@ -13,6 +13,7 @@ import { TestUtil } from '../../utility/test-util';
 describe('DataLevel', () => {
     before(() => {
         PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+        PwbConfiguration.configuration.error.print = false;
     });
 
     describe('-- Get values', () => {

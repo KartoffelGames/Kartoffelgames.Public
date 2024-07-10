@@ -30,7 +30,8 @@ class PwbConfigurationSingleton {
         this.mConfiguration = {
             // Error handling.
             error: {
-                ignore: false
+                ignore: false,
+                print: true
             },
 
             // Debug logging.
@@ -68,6 +69,7 @@ type ComponentDebugConfiguration = {
     // Error handling.
     error: {
         ignore: boolean;
+        print: boolean;
     };
 
     // Logging.

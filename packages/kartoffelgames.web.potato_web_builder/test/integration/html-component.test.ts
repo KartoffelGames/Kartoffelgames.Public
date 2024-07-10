@@ -18,6 +18,7 @@ import { TestUtil } from '../utility/test-util';
 describe('HtmlComponent', () => {
     before(() => {
         PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
+        PwbConfiguration.configuration.error.print = false;
     });
 
     it('-- Single element', async () => {

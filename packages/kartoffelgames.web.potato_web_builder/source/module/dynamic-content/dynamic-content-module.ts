@@ -30,7 +30,7 @@ export class DynamicContentInstructionModule extends Processor implements IInstr
      */
     public constructor(pExpressionValue: ModuleExpression, pModuleData: ModuleDataLevel) {
         super();
-        
+
         this.mModuleValues = pModuleData;
         this.mLastTemplate = null;
 
@@ -57,12 +57,15 @@ export class DynamicContentInstructionModule extends Processor implements IInstr
             return null;
         }
 
+        // Dont save and return the same instance, as the component updates the reference and no update will befound.
+        const lTemplateClone: PwbTemplate = lTemplateResult.clone();
+
         // Dont save the same instance.
-        this.mLastTemplate = lTemplateResult.clone();
+        this.mLastTemplate = lTemplateClone;
 
         // Add custom template to output.
         const lModuleResult: InstructionResult = new InstructionResult();
-        lModuleResult.addElement(lTemplateResult, new DataLevel(this.mModuleValues.data));
+        lModuleResult.addElement(lTemplateClone, new DataLevel(this.mModuleValues.data));
 
         return lModuleResult;
     }

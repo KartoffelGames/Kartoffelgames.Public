@@ -24,7 +24,6 @@ export class PwbAppComponent extends Processor implements IComponentOnConnect, I
     private readonly mComponent: Component;
     private readonly mContent: PwbTemplate;
 
-
     /**
      * Get app content as pwb template.
      */

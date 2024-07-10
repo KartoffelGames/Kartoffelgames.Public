@@ -83,9 +83,6 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
      * @param pNewContentList - New content list.
      */
     private updateStaticBuilder(pOldContentList: Array<StaticBuilder>, pNewContentList: Array<InstructionResultElement>): void {
-        // TODO: Only compare template. ChangeState.Keep replace values with correct from pNewContentList.
-        //       Builder update should check for any made data-changes in static builder.
-
         // Define difference search.
         const lMyersDiff: MyersDiff<StaticBuilder, InstructionResultElement> = new MyersDiff<StaticBuilder, InstructionResultElement>((pA, pB) => {
             return pB.template.equals(pA.template);
@@ -115,7 +112,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
 
                 // Replace temporary values of level. It might have changed.
                 lHistoryItem.item.values.updateLevelData(lCurrentNewItemLevelValue);
-                
+
                 // Save last used builder to insert next new builder after it.
                 lLastExistingChildBuilder = lHistoryItem.item;
 

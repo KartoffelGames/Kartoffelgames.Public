@@ -37,6 +37,8 @@ describe('PwbAppInjectionExtension', () => {
         // Process. Add component to pwb app.
         lPwbApp.addContent(TestComponent);
         await TestUtil.waitForUpdate(lPwbApp.component);
+        await TestUtil.waitForUpdate(lPwbApp.component);
+        await TestUtil.waitForUpdate(lPwbApp.component);
 
         // Process. Create elements and wait for update.
         const lComponent: HTMLElement = <HTMLElement>lPwbApp.component.shadowRoot!.querySelector(lSelector);

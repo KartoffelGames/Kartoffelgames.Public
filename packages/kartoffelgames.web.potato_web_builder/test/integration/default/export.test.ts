@@ -210,4 +210,36 @@ describe('Export', () => {
         // Evaluation.
         expect(lResultValue).to.equal(lTestValue);
     });
+
+    it('-- Set attribute values on export init', async () => {
+        // Setup. Defined values.
+        const lSelector: string = TestUtil.randomSelector();
+        const lValue: string = 'UniqueValue:)';
+
+        // Setup. Define parent class.
+        @PwbComponent({
+            selector: lSelector
+        })
+        class TestComponent extends Processor {
+            @PwbExport
+            public justSomethingThatStartsUpdate: string = '';
+
+            @PwbExport
+            public value!: string;
+        }
+
+        // Process. Set component with value in DOM and try to read it.
+        document.body.innerHTML = `<${lSelector} value="${lValue}" />`;
+        const lComponent: HTMLElement & TestComponent = <any>document.body.querySelector(lSelector);
+
+        // Process. Start a async task to let the mutation observer to it thing.
+        lComponent.justSomethingThatStartsUpdate = 'RED or GREEN i dont know';
+        await TestUtil.waitForUpdate(lComponent);
+
+        // Process. Read attribute value.
+        const lExportedValue: string = lComponent.value;
+
+        // Evaluation.
+        expect(lExportedValue).to.equal(lValue);
+    });
 });

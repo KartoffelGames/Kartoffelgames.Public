@@ -135,15 +135,6 @@ export class PwbAppComponent extends Processor implements IComponentOnConnect, I
     }
 
     /**
-     * Create style element and prepend it to this components content.
-     * 
-     * @param pStyle - Css style as string.
-     */
-    @PwbExport update(): void {
-        this.mComponent.update();
-    }
-
-    /**
      * Remove splashscreen on component connect to a document when any component is updated.
      */
     public onConnect(): void {

@@ -63,4 +63,31 @@ describe('SlotAttribute', () => {
             }
         ], true);
     });
+
+    it('-- Named slot after component update', async () => {
+        // Setup. Values.
+        const lSlotName: string = 'slotname';
+
+        // Setup. Define component.
+        @PwbComponent({
+            selector: TestUtil.randomSelector(),
+            template: `$slot(${lSlotName})`
+        })
+        class TestComponent extends Processor { }
+
+        // Setup. Create element.
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        TestUtil.manualUpdate(lComponent);
+
+        // Evaluation.
+        expect(lComponent).to.have.componentStructure([
+            Comment, // Component Anchor
+            Comment, // Instruction Anchor
+            Comment, // Static Anchor
+            {
+                node: HTMLSlotElement,
+                attributes: [{ name: 'name', value: lSlotName, }]
+            }
+        ], true);
+    });
 });

@@ -113,7 +113,7 @@ export class ExportExtension extends Processor {
 
         // Set initial state of attribute.
         for (const lAttributeName of pExportedAttributes) {
-            if (this.mComponent.element.hasAttribute(lAttributeName)) {
+            if (this.mComponent.element.hasAttribute(lAttributeName)) {                
                 const lCurrentAttributeValue: string = lOriginalGetAttribute.call(this.mComponent.element, lAttributeName)!;
 
                 // Set again and trigger mutation observer.

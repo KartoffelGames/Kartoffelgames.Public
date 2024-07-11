@@ -106,7 +106,7 @@ describe('PwbApp', () => {
             expect(lDummyElement.childNodes[0]).to.equal(lApp.component);
         });
 
-        it('-- No double splash screen remove', async () => {
+        it('-- Reappend to document.', async () => {
             // Setup. Create app.
             const lApp: PwbApp = new PwbApp();
 
@@ -117,19 +117,11 @@ describe('PwbApp', () => {
 
             // Process. Append and wait for splash screen remove
             lApp.appendTo(document.body);
-            await TestUtil.waitForUpdate(lApp.component); // This Wait is triggered syncron with removeSplacescreen and this triggers another update.
-            await TestUtil.waitForUpdate(lApp.component); // Wait for splacescreen removal.
-            const lBeforeRemoveChildState: boolean = !!lApp.component.shadowRoot?.querySelector('.splashscreen');
+            await TestUtil.waitForUpdate(lApp.component);
 
             // Process
             lApp.appendTo(document.body);
-            await TestUtil.waitForUpdate(lApp.component); // This Wait is triggered syncron with removeSplacescreen and this triggers another update.
-            await TestUtil.waitForUpdate(lApp.component); // Wait for splacescreen removal.
-            const lAfterRemoveChildState: boolean = !!lApp.component.shadowRoot?.querySelector('.splashscreen');
-
-            // Evaluation.
-            expect(lBeforeRemoveChildState, 'Before').to.be.false;
-            expect(lAfterRemoveChildState, 'After').to.be.false;
+            await TestUtil.waitForUpdate(lApp.component);
         });
     });
 

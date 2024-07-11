@@ -211,6 +211,27 @@ describe('Export', () => {
         expect(lResultValue).to.equal(lTestValue);
     });
 
+    it('-- Exported value with getAttribute', async () => {
+        // Setup.
+        const lTestValue: string = 'TEST-VALUE';
+
+        // Setup. Define component.
+        @PwbComponent({
+            selector: TestUtil.randomSelector()
+        })
+        class TestComponent extends Processor {
+            @PwbExport
+            public value: string = lTestValue;
+        }
+
+        // Process. Create element and click div.
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        const lResultValue: string = lComponent.getAttribute('value')!;
+
+        // Evaluation.
+        expect(lResultValue).to.equal(lTestValue);
+    });
+
     it('-- Set attribute values on export init', async () => {
         // Setup. Defined values.
         const lSelector: string = TestUtil.randomSelector();

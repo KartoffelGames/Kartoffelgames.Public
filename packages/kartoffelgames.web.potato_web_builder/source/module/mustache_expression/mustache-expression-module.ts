@@ -33,9 +33,14 @@ export class MustacheExpressionModule extends Processor implements IExpressionOn
      * 
      * @returns expression result.
      */
-    public onUpdate(): string {
+    public onUpdate(): string | null {
         // Execute string
         const lExecutionResult: any = this.mProcedure.execute();
+
+        // Undefined is allways an empty string.
+        if (typeof lExecutionResult === 'undefined') {
+            return null;
+        }
 
         return lExecutionResult?.toString();
     }

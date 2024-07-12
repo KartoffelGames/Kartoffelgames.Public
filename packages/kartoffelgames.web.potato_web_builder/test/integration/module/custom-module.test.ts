@@ -14,6 +14,8 @@ import { PwbInstructionModule } from '../../../source/core/module/instruction_mo
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
+import { ModuleTargetNode, ModuleTemplate } from '../../../source';
+import { Exception } from '@kartoffelgames/core';
 
 describe('Custom Module', () => {
     before(() => {
@@ -116,5 +118,25 @@ describe('Custom Module', () => {
         // Process. Create element.
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
         TestUtil.deconstructComponent(lComponent);
+    });
+
+    it('-- Try to construct ModuleTargetNode', async () => {
+        // Process. Create error function.
+        const lErrorFunction = ()=>{
+            new ModuleTargetNode();
+        }
+
+        // Evaluation.
+        expect(lErrorFunction).to.throw(Exception, 'Reference should not be instanced.');
+    });
+
+    it('-- Try to construct ModuleTempate', async () => {
+        // Process. Create error function.
+        const lErrorFunction = ()=>{
+            new ModuleTemplate();
+        }
+
+        // Evaluation.
+        expect(lErrorFunction).to.throw(Exception, 'Reference should not be instanced.');
     });
 });

@@ -48,7 +48,9 @@ export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> im
      * @returns false.
      */
     public onUpdate(): boolean {
-        return this.call<IExtensionOnUpdate, 'onUpdate'>('onUpdate', false) ?? false;
+        // No update for you :(
+        /* istanbul ignore next */
+        return false;
     }
 }
 
@@ -60,9 +62,6 @@ export interface IExtensionOnDeconstruct {
 }
 export interface IExtensionOnExecute {
     onExecute(): void;
-}
-export interface IExtensionOnUpdate {
-    onUpdate(): boolean;
 }
 export interface IPwbExtensionModuleProcessor extends Processor, Partial<IExtensionOnDeconstruct>, Partial<IExtensionOnExecute> { }
 export interface IPwbExtensionModuleProcessorConstructor extends CoreEntityProcessorConstructor<IPwbExtensionModuleProcessor> { }

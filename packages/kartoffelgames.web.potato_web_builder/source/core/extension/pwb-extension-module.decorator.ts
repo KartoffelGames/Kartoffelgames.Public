@@ -19,7 +19,7 @@ export function PwbExtensionModule(pSettings: ExtensionSettings): any {
         CoreEntityRegister.register<ExtensionModuleConfiguration>(ExtensionModule, pExtensionProcessorConstructor, {
             access: pSettings.access,
             trigger: pSettings.trigger,
-            targetRestrictions: pSettings.targetRestrictions ?? new Array<InjectionConstructor>()
+            targetRestrictions: pSettings.targetRestrictions
         });
     };
 }
@@ -27,5 +27,5 @@ export function PwbExtensionModule(pSettings: ExtensionSettings): any {
 type ExtensionSettings = {
     access: AccessMode;
     trigger: UpdateTrigger;
-    targetRestrictions?: Array<InjectionConstructor>;
+    targetRestrictions: Array<InjectionConstructor>;
 };

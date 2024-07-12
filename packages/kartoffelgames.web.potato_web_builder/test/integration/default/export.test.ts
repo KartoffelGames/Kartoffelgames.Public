@@ -7,6 +7,7 @@ import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
 import '../../mock/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
+import { ExportExtension } from '../../../source/module/export/export-extension';
 
 describe('Export', () => {
     before(() => {
@@ -125,26 +126,21 @@ describe('Export', () => {
         expect(lResultValue).to.equal(lTestValue);
     });
 
-    it('-- Linked getAttribute', async () => {
-        // Setup.
-        const lTestValue: string = 'TEST-VALUE';
-
-        // Setup. Define component.
+    it('-- Get unexported value with getAttribute', async () => {
+         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
         class TestComponent extends Processor {
-            @PwbExport
-            public value: string = '';
+            public value: string = 'TEST-VALUE';
         }
 
         // Process. Create element and click div.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        lComponent.value = lTestValue;
         const lResultValue: string | null = lComponent.getAttribute('value');
 
         // Evaluation.
-        expect(lResultValue).to.equal(lTestValue);
+        expect(lResultValue).to.be.null;
     });
 
     it('-- Preserve original getAttribute and setAttribute', async () => {
@@ -155,12 +151,15 @@ describe('Export', () => {
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent extends Processor { }
+        class TestComponent extends Processor { 
+            @PwbExport
+            public value: string = ''
+        }
 
         // Process. Create element and click div.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        lComponent.setAttribute('value', lTestValue);
-        const lResultValue: string | null = lComponent.getAttribute('value');
+        lComponent.setAttribute('htmlvalue', lTestValue);
+        const lResultValue: string | null = lComponent.getAttribute('htmlvalue');
 
         // Evaluation.
         expect(lResultValue).to.equal(lTestValue);

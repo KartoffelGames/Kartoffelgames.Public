@@ -25,6 +25,7 @@ export { ComponentDataLevel } from './core/data/component-data-level';
 // Modules
 export { DataLevel } from './core/data/data-level';
 export { LevelProcedure } from './core/data/level-procedure';
+export { ModuleDataLevel } from './core/data/module-data-level';
 export { IExtensionOnDeconstruct, IExtensionOnExecute } from './core/extension/extension-module';
 export { PwbExtensionModule } from './core/extension/pwb-extension-module.decorator';
 export { IAttributeOnDeconstruct, IAttributeOnUpdate } from './core/module/attribute_module/attribute-module';
@@ -71,15 +72,16 @@ import './module/pwb_app_injection/pwb-app-injection-extension';
 
 // Set debugger to global scope.
 import { PwbConfiguration, PwbDebugLogLevel } from './core/configuration/pwb-configuration';
+
 globalThis['PotatoWebBuilder'] = {
-    configuration: PwbConfiguration,
+    global: PwbConfiguration,
     logLevel: PwbDebugLogLevel
 };
 
 declare global {
     // eslint-disable-next-line no-var, @typescript-eslint/naming-convention
     var PotatoWebBuilder: {
-        configuration: typeof PwbConfiguration,
+        global: typeof PwbConfiguration,
         logLevel: typeof PwbDebugLogLevel;
     };
 }

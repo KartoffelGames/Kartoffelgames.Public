@@ -451,6 +451,9 @@ describe('HtmlComponent', () => {
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
         lComponent.setAttribute('innerValue', 'New-Value');
 
+        // Process. Wait for update and register onAttributeChange changes.
+        await TestUtil.waitForUpdate(lComponent);
+
         TestUtil.deconstructComponent(lComponent);
 
         // Evaluation.

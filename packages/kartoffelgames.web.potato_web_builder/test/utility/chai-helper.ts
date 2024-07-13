@@ -102,7 +102,7 @@ Assertion.addMethod('componentStructure', function (pChilds: ComponentStructure,
         lActualStructure = lRecreateComponentChildStructure(pChilds, <Element>this._obj);
     }
 
-    new Assertion(pChilds).to.be.deep.equal(lActualStructure);
+    new Assertion(lActualStructure).to.be.deep.equal(pChilds);
 });
 
 export type ComponentStructure = Array<InjectionConstructor | ChildNodeStructure | null>;

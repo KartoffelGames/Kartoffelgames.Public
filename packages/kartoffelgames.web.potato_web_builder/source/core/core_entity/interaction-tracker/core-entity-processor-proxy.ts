@@ -116,11 +116,7 @@ export class CoreEntityProcessorProxy<T extends object> {
             this.mProxyObject = pTarget;
         } else {
             // Create new proxy object.
-            if (typeof pTarget === 'object') {
-                this.mProxyObject = this.createProxyObject(pTarget);
-            } else {
-                this.mProxyObject = this.createProxyFunction(pTarget);
-            }
+            this.mProxyObject = this.createProxyObject(pTarget);
         }
 
         // Map proxy with real object and real object to current class.
@@ -166,7 +162,7 @@ export class CoreEntityProcessorProxy<T extends object> {
      * 
      * @param pTarget - Target object.
      */
-    private createProxyFunction(pTarget: T): T {
+    private createProxyObject(pTarget: T): T {
         const lDetectUntrackableFunction = (pCallableTarget: CallableObject): boolean => {
             // Skip proxy execute and use original this context on native code.
             if (/\{\s+\[native code\]/.test(Function.prototype.toString.call(pCallableTarget))) {
@@ -180,7 +176,6 @@ export class CoreEntityProcessorProxy<T extends object> {
 
             return false;
         };
-
 
         // Create proxy handler.
         const lProxyObject: T = new Proxy(pTarget, {
@@ -230,20 +225,8 @@ export class CoreEntityProcessorProxy<T extends object> {
                     // Read original object.
                     return lCallWithOriginalThisContext();
                 }
-            }
-        });
+            },
 
-        return lProxyObject;
-    }
-
-    /**
-     * Create interaction detection proxy from object.
-     * 
-     * @param pTarget - Target object.
-     */
-    private createProxyObject(pTarget: T): T {
-        // Create proxy handler.
-        const lProxyObject: T = new Proxy(pTarget, {
             /**
              * Add property to object.
              * Triggers interaction event.
@@ -324,7 +307,7 @@ export class CoreEntityProcessorProxy<T extends object> {
         // Push interaction to current zone.
         const lIsZoneSilent = !InteractionZone.pushInteraction<UpdateTrigger, CoreEntityInteractionData>(UpdateTrigger, pInteractionType, CoreEntityProcessorProxy.createCoreEntityCreationData(pSource, pProperty));
 
-        //  When current stack does not support trigger, dont trigger attached zone stacks.
+        // When current stack does not support trigger, dont trigger attached zone stacks.
         if (lIsZoneSilent) {
             return;
         }

@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core';
 import { GraphPartReference } from '../part/graph-part-reference';
 import { GrammarNodeValueType } from './grammer-node-value-type.enum';
 

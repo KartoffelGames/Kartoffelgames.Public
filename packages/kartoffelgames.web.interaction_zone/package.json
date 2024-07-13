@@ -1,0 +1,49 @@
+{
+    "name": "@kartoffelgames/web.interaction-zone",
+    "version": "0.1.0",
+    "description": "KartoffelGames.Web.Interaction_Zone",
+    "author": {
+        "name": "KartoffelGames"
+    },
+    "files": [
+        "library/source/**/*"
+    ],
+    "main": "library/source/index.js",
+    "types": "library/source/index.d.ts",
+    "devDependencies": {
+        "@types/chai": "^4.3.5",
+        "@types/mocha": "^10.0.1"
+    },
+    "dependencies": {
+        "@kartoffelgames/core": "^0.1.0"
+    },
+    "scripts": {
+        "build": "kg build @kartoffelgames/web.interaction-zone && kg page @kartoffelgames/web.interaction-zone --build-only",
+        "test": "kg test @kartoffelgames/web.interaction-zone",
+        "page": "kg page @kartoffelgames/web.interaction-zone --build-only"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/KartoffelGames/KartoffelGames.Public.git",
+        "directory": "packages/kartoffelgames.web.interaction_zone"
+    },
+    "bugs": {
+        "url": "https://github.com/KartoffelGames/KartoffelGames.Public/issues"
+    },
+    "homepage": "https://github.com/KartoffelGames/KartoffelGames.Public#readme",
+    "kg": {
+        "name": "Kartoffelgames.Web.Interaction_Zone",
+        "root": false,
+        "config": {
+            "build-configuration": {
+                "pack": false,
+                "target": "web",
+                "scope": "main"
+            },
+            "tests": [
+                "unit"
+            ],
+            "page": false
+        }
+    }
+}

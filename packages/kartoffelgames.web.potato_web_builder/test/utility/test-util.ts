@@ -1,31 +1,24 @@
-import { ComponentConnection } from '../../source/component/component-connection';
-import { ComponentManager } from '../../source/component/component-manager';
-import { PwbApp } from '../../source/pwb-app';
+import { InjectionConstructor } from '@kartoffelgames/core.dependency-injection';
+import { Component } from '../../source/core/component/component';
+import { ComponentRegister } from '../../source/core/component/component-register';
 
 export class TestUtil {
     /**
      * Create component from selector.
      * @param pSelector - component selector.
      */
-    public static async createComponent(pClass: any, pSilenceErrors: boolean = false): Promise<HTMLElement> {
-        // Setup. Create app and silence errors.
-        const lPwbApp: PwbApp = new PwbApp('Name');
-        lPwbApp.addErrorListener(() => {
-            return !pSilenceErrors;
-        });
-
-        // Skip wait for splash screen.
-        lPwbApp.setSplashScreen({ content: '', background: '', manual: true, animationTime: 10 });
-
-        // Add component and append app to dom.
-        lPwbApp.addContent(pClass);
-        await lPwbApp.appendTo(document.body);
+    public static async createComponent(pClass: InjectionConstructor): Promise<HTMLElement> {
+        // Get component html constructor from class.
+        const lComponentConstructor: CustomElementConstructor = ComponentRegister.ofConstructor(pClass).elementConstructor;
 
         // Get component.
-        const lComponent: HTMLElement = <HTMLElement>(<ShadowRoot>lPwbApp.content.shadowRoot).childNodes[1];
+        const lComponent: HTMLElement = new lComponentConstructor() as any;
+
+        // Connect to a document to trigger updates.
+        document.body.appendChild(lComponent);
 
         // Wait for any update to happen.
-        await ComponentConnection.componentManagerOf(lComponent)?.updateHandler.waitForUpdate();
+        await TestUtil.waitForUpdate(lComponent);
 
         return lComponent;
     }
@@ -35,15 +28,24 @@ export class TestUtil {
      * @param pComponent - Pwb component.
      */
     public static deconstructComponent(pComponent: HTMLElement): void {
-        ComponentConnection.componentManagerOf(pComponent)?.deconstruct();
+        ComponentRegister.ofElement(pComponent).component.deconstruct();
+    }
+
+    /**
+     * Force creation of component processor.
+     * 
+     * @param pComponent - Pwb component.
+     */
+    public static forceProcessorCreation(pComponent: HTMLElement): void {
+        ComponentRegister.ofElement(pComponent).component.processor;
     }
 
     /**
      * Get component manager of component.
      * @param pComponent - Pwb component.
      */
-    public static getComponentManager(pComponent: HTMLElement): ComponentManager | undefined {
-        return ComponentConnection.componentManagerOf(pComponent);
+    public static getComponentManager(pComponent: HTMLElement): Component {
+        return ComponentRegister.ofElement(pComponent).component;
     }
 
     /**
@@ -77,8 +79,8 @@ export class TestUtil {
      * @param pComponent - Component.
      */
     public static manualUpdate(pComponent: HTMLElement): void {
-        const lComponentManager: ComponentManager | undefined = ComponentConnection.componentManagerOf(pComponent);
-        lComponentManager?.updateHandler.requestUpdate({ source: pComponent, property: 0, stacktrace: '' });
+        const lComponent: Component | undefined = TestUtil.getComponentManager(pComponent);
+        lComponent?.getProcessorAttribute<Component>(Component)!.update();
     }
 
     /**
@@ -99,8 +101,8 @@ export class TestUtil {
      * @param pComponent - Component.
      */
     public static async waitForUpdate(pComponent: HTMLElement): Promise<void> {
-        const lComponentManager: ComponentManager | undefined = ComponentConnection.componentManagerOf(pComponent);
-        await lComponentManager?.updateHandler.waitForUpdate();
+        const lComponent: Component = TestUtil.getComponentManager(pComponent)!;
+        return lComponent.waitForUpdate().then();
     }
 }
 

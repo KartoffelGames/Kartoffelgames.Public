@@ -1,4 +1,4 @@
-import { Dictionary } from '@kartoffelgames/core.data';
+import { Dictionary } from '@kartoffelgames/core';
 import { BaseInputDevice } from './device/base-input-device';
 import { InputConfiguration } from './configuration/input-configuration';
 import { IInputConnector } from './interface/i-input-connector.interface';

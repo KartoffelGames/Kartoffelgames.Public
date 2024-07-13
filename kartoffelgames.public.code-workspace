@@ -1,8 +1,8 @@
 {
     "folders": [
         {
-            "name": "KartoffelGames.Core.Data",
-            "path": "./packages/kartoffelgames.core.data"
+            "name": "KartoffelGames.Core",
+            "path": "./packages/kartoffelgames.core"
         },
         {
             "name": "KartoffelGames.Core.Dependency_Injection",
@@ -17,8 +17,8 @@
             "path": "./packages/kartoffelgames.core.xml"
         },
         {
-            "name": "KartoffelGames.Web.Change_Detection",
-            "path": "./packages/kartoffelgames.web.change_detection"
+            "name": "KartoffelGames.Web.Interaction_Zone",
+            "path": "./packages/kartoffelgames.web.interaction_zone"
         },
         {
             "name": "KartoffelGames.Web.Potato_Web_Builder",

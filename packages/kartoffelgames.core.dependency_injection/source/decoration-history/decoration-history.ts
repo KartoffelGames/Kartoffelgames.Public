@@ -1,29 +1,37 @@
-import { Dictionary } from '@kartoffelgames/core.data';
+import { Dictionary } from '@kartoffelgames/core';
 import { InjectionConstructor } from '../type';
 
-export class DecorationHistory {
+/**
+ * Decoration history keeps track of any class that was replaces through a decorator.
+ * 
+ * @internal
+ */
+export class DecorationReplacementHistory {
     private static readonly mBackwardHistory: Dictionary<InjectionConstructor, InjectionConstructor> = new Dictionary<InjectionConstructor, InjectionConstructor>();
 
     /**
-     * Add an decoration history.
+     * Add an decoration parent.
+     * 
      * @param pFromConstructor - Previous constructor.
      * @param pToConstructor - Changed / next construtor.
      */
-    public static addHistory(pFromConstructor: InjectionConstructor, pToConstructor: InjectionConstructor): void {
-        DecorationHistory.mBackwardHistory.add(pToConstructor, pFromConstructor);
+    public static add(pFromConstructor: InjectionConstructor, pToConstructor: InjectionConstructor): void {
+        DecorationReplacementHistory.mBackwardHistory.add(pToConstructor, pFromConstructor);
     }
 
     /**
-     * Get the root constructor of decoration history.
+     * Get the original constructor from a decorator replaced constructor.
+     * Iterates through decoration history until it cant find any parent. 
+     * 
      * @param pConstructor - Constructor with decorations.
      */
-    public static getRootOf(pConstructor: InjectionConstructor): InjectionConstructor {
+    public static getOriginalOf(pConstructor: InjectionConstructor): InjectionConstructor {
+        let lCurrentConstructor: InjectionConstructor;
         // Iterate over history as long as history can't go back.
-        let lNextEntry: InjectionConstructor = pConstructor;
-        while (DecorationHistory.mBackwardHistory.has(lNextEntry)) {
-            lNextEntry = <InjectionConstructor>DecorationHistory.mBackwardHistory.get(lNextEntry);
+        for (let lNextEntry: InjectionConstructor | undefined = pConstructor; lNextEntry; lNextEntry = DecorationReplacementHistory.mBackwardHistory.get(lNextEntry)) {
+            lCurrentConstructor = lNextEntry;
         }
 
-        return lNextEntry;
+        return lCurrentConstructor!;
     }
 }

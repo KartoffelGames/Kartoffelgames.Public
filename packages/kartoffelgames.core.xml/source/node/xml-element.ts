@@ -1,7 +1,7 @@
 import { XmlAttribute } from '../attribute/xml-attribute';
 import { BaseXmlNode } from './base-xml-node';
-import { Dictionary } from '@kartoffelgames/core.data';
-import { List } from '@kartoffelgames/core.data';
+import { Dictionary } from '@kartoffelgames/core';
+import { List } from '@kartoffelgames/core';
 
 /**
  * Xml node.
@@ -159,7 +159,7 @@ export class XmlElement extends BaseXmlNode {
         // Check all attributes.
         for (const lAttribute of pBaseNode.mAttributeDictionary.values()) {
             // This checks also for wrong namespace prefix by checking for qualified attribute name.
-            const lAttributeTwo: XmlAttribute = <XmlAttribute>this.mAttributeDictionary.get(lAttribute.qualifiedName);
+            const lAttributeTwo: XmlAttribute | undefined = this.mAttributeDictionary.get(lAttribute.qualifiedName);
 
             if (!lAttributeTwo || lAttributeTwo.value !== lAttribute.value) {
                 return false;
@@ -257,7 +257,7 @@ export class XmlElement extends BaseXmlNode {
             lRemovedChild = this.mChildList.splice(lIndex, 1)[0];
 
             // If xml node remove parent connection.
-            (<BaseXmlNode>lRemovedChild).parent = null;
+            lRemovedChild.parent = null;
         }
 
         return lRemovedChild;
@@ -288,18 +288,18 @@ export class XmlElement extends BaseXmlNode {
         let lAttribute: XmlAttribute;
 
         // Create qualifed attribute name.
-        let lQualifiedTagName: string;
+        let lQualifiedAttributeName: string;
         if (pNamespacePrefix) {
-            lQualifiedTagName = `${pNamespacePrefix}:${pKey}`;
+            lQualifiedAttributeName = `${pNamespacePrefix}:${pKey}`;
         } else {
-            lQualifiedTagName = pKey;
+            lQualifiedAttributeName = pKey;
         }
 
-        if (this.mAttributeDictionary.has(lQualifiedTagName)) {
-            lAttribute = <XmlAttribute>this.mAttributeDictionary.get(lQualifiedTagName);
+        if (this.mAttributeDictionary.has(lQualifiedAttributeName)) {
+            lAttribute = <XmlAttribute>this.mAttributeDictionary.get(lQualifiedAttributeName);
         } else {
             lAttribute = new XmlAttribute(pKey, pNamespacePrefix);
-            this.mAttributeDictionary.add(lQualifiedTagName, lAttribute);
+            this.mAttributeDictionary.add(lQualifiedAttributeName, lAttribute);
         }
 
         // Set this as attributes parent xml element.

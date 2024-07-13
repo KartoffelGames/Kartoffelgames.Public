@@ -1,33 +1,28 @@
-import { Dictionary, Exception } from '@kartoffelgames/core.data';
+import { Dictionary, Exception } from '@kartoffelgames/core';
 import { SerializeableConstructor, SerializeableGuid } from '../type';
 
 /**
  * Map for all registered serializable classes.
  * Singleton pattern.
  */
-export class StatefullSerializeableClasses {
-    private static mInstance: StatefullSerializeableClasses;
+export class StatefullSerializeableClassesSingleton {
+    private static mInstance: StatefullSerializeableClassesSingleton;
 
-    /**
-     * Singleton instance.
-     */
-    public static get instance(): StatefullSerializeableClasses {
-        if (!StatefullSerializeableClasses.mInstance) {
-            this.mInstance = new StatefullSerializeableClasses();
-        }
-
-        return this.mInstance;
-    }
-
-    private readonly mConstructionParameterRetriever: Dictionary<SerializeableGuid, ParameterRetrieveCallback>;
-    private readonly mConstructorToGuidMap: Dictionary<SerializeableConstructor, SerializeableGuid>;
-    private readonly mGuidToConstructorMap: Dictionary<SerializeableGuid, SerializeableConstructor>;
+    private readonly mConstructionParameterRetriever!: Dictionary<SerializeableGuid, ParameterRetrieveCallback>;
+    private readonly mConstructorToGuidMap!: Dictionary<SerializeableConstructor, SerializeableGuid>;
+    private readonly mGuidToConstructorMap!: Dictionary<SerializeableGuid, SerializeableConstructor>;
 
     /**
      * Private constructor.
      * Initialize lists.
      */
-    private constructor() {
+    public constructor() {
+        if (StatefullSerializeableClassesSingleton.mInstance) {
+            return StatefullSerializeableClassesSingleton.mInstance;
+        }
+
+        StatefullSerializeableClassesSingleton.mInstance = this;
+
         this.mGuidToConstructorMap = new Dictionary<SerializeableGuid, SerializeableConstructor>();
         this.mConstructorToGuidMap = new Dictionary<SerializeableConstructor, SerializeableGuid>();
         this.mConstructionParameterRetriever = new Dictionary<SerializeableGuid, ParameterRetrieveCallback>();
@@ -138,3 +133,6 @@ export type StatefullSerializerInitializationParameter = {
     requiredValues?: Array<StatefullSerializerRequiredValue>;
 };
 export type ParameterRetrieveCallback = (pObject: any) => StatefullSerializerInitializationParameter;
+
+
+export const StatefullSerializeableClasses: StatefullSerializeableClassesSingleton = new StatefullSerializeableClassesSingleton();

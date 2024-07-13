@@ -1,5 +1,5 @@
-import { Dictionary, Exception } from '@kartoffelgames/core.data';
-import { ParserException } from '../parser-exception';
+import { Dictionary, Exception } from '@kartoffelgames/core';
+import { ParserException } from '../exception/parser-exception';
 import { LexerToken } from './lexer-token';
 
 /**
@@ -11,12 +11,11 @@ import { LexerToken } from './lexer-token';
  * @public
  */
 export class Lexer<TTokenType extends string> {
-    private mCurrentPatternScope: Array<LexerPatternDefinition<TTokenType>>;
+    private mCurrentPatternScope: Array<LexerPatternScopeDefinition<TTokenType>>;
     private readonly mSettings: LexerSettings<TTokenType>;
-
-    // Token pattern data.
     private readonly mTokenPatternTemplates: Dictionary<string, LexerPatternDefinition<TTokenType>>;
-    private readonly mTokenPatterns: Array<LexerPatternDefinition<TTokenType>>;
+    private readonly mTokenPatterns: Array<LexerPatternScopeDefinition<TTokenType>>;
+    private readonly mUnresolvedScopes: WeakMap<SplitLexerPatternDefinition<TTokenType>, LexerPatternInnerFetch<TTokenType>>;
 
     /**
      * Set token type of faulty token.
@@ -31,7 +30,7 @@ export class Lexer<TTokenType extends string> {
     /**
      * Enable or disable whitespace trimming.
      * 
-     * @remark
+     * @remarks
      * {@link Lexer.tokenise} skips all whitespaces before and after found token.
      * Recognised whitespaces of this lexer can be set by setting a string of all valid whitespace characters to {@link Lexer.validWhitespaces}.
      */
@@ -64,8 +63,9 @@ export class Lexer<TTokenType extends string> {
      * Constructor.
      */
     public constructor() {
-        this.mTokenPatterns = new Array<LexerPatternDefinition<TTokenType>>();
+        this.mTokenPatterns = new Array<LexerPatternScopeDefinition<TTokenType>>();
         this.mTokenPatternTemplates = new Dictionary<string, LexerPatternDefinition<TTokenType>>();
+        this.mUnresolvedScopes = new WeakMap<SplitLexerPatternDefinition<TTokenType>, LexerPatternInnerFetch<TTokenType>>();
 
         // Set defaults.
         this.mCurrentPatternScope = this.mTokenPatterns;
@@ -125,7 +125,7 @@ export class Lexer<TTokenType extends string> {
      * });
      * ```
      */
-    public addTokenPattern(pPattern: LexerPattern<TTokenType>, pInnerFetch?: (pLexer: Lexer<TTokenType>) => void): void {
+    public addTokenPattern(pPattern: LexerPattern<TTokenType>, pInnerFetch?: LexerPatternInnerFetch<TTokenType>): void {
         // Generate random name.
         const lRandomTokenName: string = (Math.random() * Math.pow(10, 16)).toString(16);
 
@@ -133,7 +133,7 @@ export class Lexer<TTokenType extends string> {
         this.addTokenTemplate(lRandomTokenName, pPattern, pInnerFetch);
 
         // Apply token template to current scope.
-        this.useTokenTemplate(lRandomTokenName);
+        this.useTokenTemplate(lRandomTokenName, pPattern.specificity);
     }
 
     /**
@@ -149,8 +149,8 @@ export class Lexer<TTokenType extends string> {
      * Only token with and `start`, `inner` and `end` group can have a fetch function.
      * 
      * @throws {@link Exception}
-     * When the token pattern should be scoped to another token without and `inner` group.\
-     * When a template with the same name was already been added.\
+     * When the token pattern should be scoped to another token without and `inner` group.
+     * When a template with the same name was already been added.
      * When a template is added inside a scoped call.
      * 
      * @example Add a pattern template and use it in a scoped call.
@@ -175,7 +175,7 @@ export class Lexer<TTokenType extends string> {
      * lexer.useTokenTemplate('quotedString');
      * ``` 
      */
-    public addTokenTemplate(pName: string, pPattern: LexerPattern<TTokenType>, pInnerFetch?: (pLexer: Lexer<TTokenType>) => void): void {
+    public addTokenTemplate(pName: string, pPattern: LexerPatternTemplate<TTokenType>, pInnerFetch?: LexerPatternInnerFetch<TTokenType>): void {
         // Restrict dublicate template names.
         if (this.mTokenPatternTemplates.has(pName)) {
             throw new Exception(`Can't add dublicate token template "${pName}"`, this);
@@ -199,15 +199,8 @@ export class Lexer<TTokenType extends string> {
 
         // Execute scoped pattern.
         if (pInnerFetch && lConvertedPattern.patternType === 'split') {
-            // Buffer last scope and set created pattern as current scope.
-            const lLastPatternScope: Array<LexerPatternDefinition<TTokenType>> | null = this.mCurrentPatternScope;
-            this.mCurrentPatternScope = lConvertedPattern.innerPattern;
-
-            // Execute inner pattern fetches.
-            pInnerFetch(this);
-
-            // Reset scope to last used scope.
-            this.mCurrentPatternScope = lLastPatternScope;
+            // Add pattern to unresolved scopes.
+            this.mUnresolvedScopes.set(lConvertedPattern, pInnerFetch);
         }
     }
 
@@ -232,7 +225,7 @@ export class Lexer<TTokenType extends string> {
             error: null
         };
 
-        yield* this.tokenizePart(lCursor, this.mTokenPatterns, new Array<string>(), null);
+        yield* this.tokenizeRecursionLayer(lCursor, this.mTokenPatterns, new Array<string>(), null, null);
     }
 
     /**
@@ -260,20 +253,17 @@ export class Lexer<TTokenType extends string> {
      * lexerParam.useTokenTemplate('myName');
      * ```
      */
-    public useTokenTemplate(pTemplateName: string, pSpecificity?: number): void {
+    public useTokenTemplate(pTemplateName: string, pSpecificity: number): void {
         // Validate pattern.
         if (!this.mTokenPatternTemplates.has(pTemplateName)) {
             throw new Exception(`Lexer template "${pTemplateName}" does not exist.`, this);
         }
 
         // Read pattern template. Clone template and alter specificity when is differs from parameter.
-        let lTemplate: LexerPatternDefinition<TTokenType> = this.mTokenPatternTemplates.get(pTemplateName)!;
-        if (typeof pSpecificity !== 'undefined' && lTemplate.specificity !== pSpecificity) {
-            lTemplate = { ...lTemplate, specificity: pSpecificity };
-        }
+        const lTemplate: LexerPatternDefinition<TTokenType> = this.mTokenPatternTemplates.get(pTemplateName)!;
 
         // Set template pattern to current pattern scope.
-        this.mCurrentPatternScope.push(lTemplate);
+        this.mCurrentPatternScope.push({ definition: lTemplate, specificity: pSpecificity });
     }
 
     /**
@@ -283,7 +273,7 @@ export class Lexer<TTokenType extends string> {
      *  
      * @returns easy to read token pattern.
      */
-    private convertTokenPattern(pPattern: LexerPattern<TTokenType>): LexerPatternDefinition<TTokenType> {
+    private convertTokenPattern(pPattern: LexerPattern<TTokenType> | LexerPatternTemplate<TTokenType>): LexerPatternDefinition<TTokenType> {
         // Convert regex into a line start regex with global and single flag.
         const lConvertRegex = (pRegex: RegExp): RegExp => {
             // Create flag set and add sticky. Set removes all dublicate flags.
@@ -319,7 +309,6 @@ export class Lexer<TTokenType extends string> {
             // Single pattern
             return {
                 patternType: 'single',
-                specificity: pPattern.specificity,
                 pattern: {
                     single: {
                         regex: lConvertRegex(pPattern.pattern.regex),
@@ -332,7 +321,6 @@ export class Lexer<TTokenType extends string> {
             // Start end pattern.
             return {
                 patternType: 'split',
-                specificity: pPattern.specificity,
                 pattern: {
                     start: {
                         regex: lConvertRegex(pPattern.pattern.start.regex),
@@ -346,9 +334,53 @@ export class Lexer<TTokenType extends string> {
                     innerType: pPattern.pattern.innerType ?? null
                 },
                 meta: lMetaList,
-                innerPattern: new Array<LexerPatternDefinition<TTokenType>>()
+                innerPattern: new Array<LexerPatternScopeDefinition<TTokenType>>()
             };
         }
+    }
+
+    /**
+     * Try to find valid token based on the provided token patter.
+     * When it find the token, it clears the cursor error and prepend those token into the result when it is not empty,
+     * moves the cursor and returns.
+     * 
+     * The result is always empty then the current token and provided tokenpatten does not match.
+     * 
+     * @param pTokenPattern - Current token pattern to seach next match.
+     * @param pRegex - Regex of current pattern. Can be single, end or start regex of token.
+     * @param pTokenTypes - Types of pattern. Can be single, end or start types of token.
+     * @param pCursor - Current lexer token.
+     * @param pCurrentMetas - Current metas valid in recursion scope.
+     * @param pForcedType - Forced token type. Overrides all types specified in {@link pTokenTypes}.
+     * 
+     * @returns The found token based on {@link pTokenPattern} and additionally the an error token when the cursor has errors stored. 
+     */
+    private findNextTokenAndMove(pTokenPattern: LexerPatternDefinition<TTokenType>, pRegex: RegExp, pTokenTypes: LexerPatternDefinitionType<TTokenType>, pCursor: LexerCursor, pCurrentMetas: Array<string>, pForcedType: TTokenType | null): Array<LexerToken<TTokenType>> {
+        const lTokenList: Array<LexerToken<TTokenType>> = new Array<LexerToken<TTokenType>>();
+
+        const lTokenRegex: RegExp = pRegex;
+        lTokenRegex.lastIndex = pCursor.cursorPosition;
+
+        // Try to match pattern. Pattern is valid when matched from first character.
+        const lTokenStartMatch: RegExpExecArray | null = lTokenRegex.exec(pCursor.data);
+        if (!lTokenStartMatch || lTokenStartMatch.index !== pCursor.cursorPosition) {
+            return lTokenList; // Empty list.
+        }
+
+        // Yield error token when a next valid token was found.
+        const lErrorToken: LexerToken<TTokenType> | null = this.generateErrorToken(pCursor, pCurrentMetas);
+        if (lErrorToken) {
+            lTokenList.push(lErrorToken);
+        }
+
+        // Generate single token, move cursor and yield..
+        const lSingleToken: LexerToken<TTokenType> = this.generateToken(pCursor, [...pCurrentMetas, ...pTokenPattern.meta], lTokenStartMatch, pTokenTypes, pForcedType, lTokenRegex);
+        this.moveCursor(pCursor, lSingleToken.value);
+
+        // Add found token to token list.
+        lTokenList.push(lSingleToken);
+
+        return lTokenList;
     }
 
     /**
@@ -360,7 +392,7 @@ export class Lexer<TTokenType extends string> {
      * 
      * @returns The found token type of a matched regex match group.  
      */
-    private findTokenTypeOfMatch(pTokenMatch: RegExpExecArray, pTypes: LexerPatternDefinitionType<TTokenType>): TTokenType {
+    private findTokenTypeOfMatch(pTokenMatch: RegExpExecArray, pTypes: LexerPatternDefinitionType<TTokenType>, pTargetRegex: RegExp): TTokenType {
         // Find correct group for match.
         for (const lGroupName in pTokenMatch.groups!) {
             // Get regex group value
@@ -380,8 +412,16 @@ export class Lexer<TTokenType extends string> {
             return lGroupType;
         }
 
+        // Collect valid matches groups.
+        const lMatchGroupList: Array<string> = new Array<string>();
+        for (const lGroupName in pTokenMatch.groups!) {
+            if (pTokenMatch.groups[lGroupName]) {
+                lMatchGroupList.push(lGroupName);
+            }
+        }
+
         // No group that matched a token type was found.
-        throw new Exception('No token type for any defined pattern regex group was found.', this);
+        throw new Exception(`No token type found for any defined pattern regex group. Full: "${pTokenMatch[0]}", Matches: "${lMatchGroupList.join(', ')}", Regex: "${pTargetRegex.source}"`, this);
     }
 
     /**
@@ -419,10 +459,10 @@ export class Lexer<TTokenType extends string> {
      * 
      * @returns A new generated token with the current cursor data.  
      */
-    private generateToken(pCursor: LexerCursor, pTokenMetas: Array<string>, pTokenMatch: RegExpExecArray, pAvailableTokenTypes: LexerPatternDefinitionType<TTokenType>, pForcedType: TTokenType | null): LexerToken<TTokenType> {
+    private generateToken(pCursor: LexerCursor, pTokenMetas: Array<string>, pTokenMatch: RegExpExecArray, pAvailableTokenTypes: LexerPatternDefinitionType<TTokenType>, pForcedType: TTokenType | null, pTargetRegex: RegExp): LexerToken<TTokenType> {
         // Read token type of
         const lTokenValue: string = pTokenMatch[0];
-        const lTokenType: TTokenType = this.findTokenTypeOfMatch(pTokenMatch, pAvailableTokenTypes);
+        const lTokenType: TTokenType = this.findTokenTypeOfMatch(pTokenMatch, pAvailableTokenTypes, pTargetRegex);
 
         // Create single value token and append metas. Force token type when forced type is set.
         const lToken: LexerToken<TTokenType> = new LexerToken<TTokenType>(pForcedType ?? lTokenType, lTokenValue, pCursor.currentColumn, pCursor.currentLine);
@@ -482,9 +522,23 @@ export class Lexer<TTokenType extends string> {
         return true;
     }
 
-    private * tokenizePart(pCursor: LexerCursor, pAvailablePatterns: Array<LexerPatternDefinition<TTokenType>>, pParentMetas: Array<string>, pForcedType: TTokenType | null): Generator<LexerToken<TTokenType>> {
+    /**
+     * Tokenize data present in {@link pCursor}.
+     * Generation ends when all data is tokenized or the {@link pEndToken} has matched.
+     * 
+     * When an error token type is specified it skips all data that is not tokenizable and yield an error token instead.
+     * 
+     * @param pCursor - Current lexer token.
+     * @param pAvailablePatterns - All available token pattern for this recursion scope. It does not contains merged patter lists from previous recursions.
+     * @param pParentMetas  - Metas from current recursion scope.
+     * @param pForcedType - Forced token type. Overrides all types specified in all token pattern.
+     * @param pEndToken - Token that ends current recursion. When it is null, no token can end this recursion.
+     * 
+     * @returns Generator, generating all token till it reaches end of data.
+     */
+    private * tokenizeRecursionLayer(pCursor: LexerCursor, pAvailablePatterns: Array<LexerPatternScopeDefinition<TTokenType>>, pParentMetas: Array<string>, pForcedType: TTokenType | null, pEndToken: LexerPatternDefinition<TTokenType> | null): Generator<LexerToken<TTokenType>> {
         // Create ordered token type list by specification.
-        const lTokenPatternList: Array<LexerPatternDefinition<TTokenType>> = pAvailablePatterns.sort((pA: LexerPatternDefinition<TTokenType>, pB: LexerPatternDefinition<TTokenType>) => {
+        const lPatternScopeDefinitionList: Array<LexerPatternScopeDefinition<TTokenType>> = pAvailablePatterns.sort((pA: LexerPatternScopeDefinition<TTokenType>, pB: LexerPatternScopeDefinition<TTokenType>) => {
             // Sort lower specification at a lower index than higher specifications.
             return pA.specificity - pB.specificity;
         });
@@ -496,69 +550,78 @@ export class Lexer<TTokenType extends string> {
                 continue;
             }
 
+            // Check endtoken first.
+            if (pEndToken && pEndToken.patternType === 'split') {
+                // Get token start regex and set cursor position.
+                const lTokenEndRegex: RegExp = pEndToken.pattern.end.regex;
+                lTokenEndRegex.lastIndex = pCursor.cursorPosition;
+
+                // Use single token types or start token types for different pattern types.
+                const lTokenTypes: LexerPatternDefinitionType<TTokenType> = pEndToken.pattern.end.types;
+
+                // Try to find end token.
+                const lFoundTokenList: Array<LexerToken<TTokenType>> = this.findNextTokenAndMove(pEndToken, lTokenEndRegex, lTokenTypes, pCursor, pParentMetas, pForcedType);
+                if (lFoundTokenList.length !== 0) {
+                    // Yield all token.
+                    for (const lToken of lFoundTokenList) {
+                        yield lToken;
+                    }
+
+                    // Exit inner recursion when the end was found.
+                    return;
+                }
+            }
+
             // Iterate available token pattern.
-            for (const lTokenPattern of lTokenPatternList) {
+            for (const lPatternScopeDefinition of lPatternScopeDefinitionList) {
+                const lTokenPattern = lPatternScopeDefinition.definition;
+
                 // Get token start regex and set cursor position.
                 const lTokenStartRegex: RegExp = (lTokenPattern.patternType === 'single') ? lTokenPattern.pattern.single.regex : lTokenPattern.pattern.start.regex;
                 lTokenStartRegex.lastIndex = pCursor.cursorPosition;
 
-                // Try to match pattern. Pattern is valid when matched from first character.
-                const lTokenStartMatch: RegExpExecArray | null = lTokenStartRegex.exec(pCursor.data);
-                if (!lTokenStartMatch || lTokenStartMatch.index !== pCursor.cursorPosition) {
-                    continue;
-                }
-
-                // Yield error token when a next valid token was found.
-                const lErrorToken: LexerToken<TTokenType> | null = this.generateErrorToken(pCursor, pParentMetas);
-                if (lErrorToken) {
-                    yield lErrorToken;
-                }
-
                 // Use single token types or start token types for different pattern types.
                 const lTokenTypes: LexerPatternDefinitionType<TTokenType> = (lTokenPattern.patternType === 'single') ? lTokenPattern.pattern.single.types : lTokenPattern.pattern.start.types;
 
-                // Generate single token, move cursor and yield..
-                const lSingleToken: LexerToken<TTokenType> = this.generateToken(pCursor, [...pParentMetas, ...lTokenPattern.meta], lTokenStartMatch, lTokenTypes, pForcedType);
-                this.moveCursor(pCursor, lSingleToken.value);
-                yield lSingleToken;
+                // Try to find next token.
+                const lFoundTokenList: Array<LexerToken<TTokenType>> = this.findNextTokenAndMove(lTokenPattern, lTokenStartRegex, lTokenTypes, pCursor, pParentMetas, pForcedType);
+                if (lFoundTokenList.length === 0) {
+                    continue;
+                }
+
+                // Yield all token.
+                for (const lToken of lFoundTokenList) {
+                    yield lToken;
+                }
 
                 // Continue with next token when the current pattern is a single value pattern.
                 if (lTokenPattern.patternType === 'single') {
                     continue remainingDataLoop;
                 }
 
-                // Get end token pattern and set cursor position.
-                const lTokenEndRegex: RegExp = lTokenPattern.pattern.end.regex;
-                lTokenEndRegex.lastIndex = pCursor.cursorPosition;
+                // Resolve dependency before using it.
+                if (this.mUnresolvedScopes.has(lTokenPattern)) {
+                    // Buffer last scope and set created pattern as current scope.
+                    const lLastPatternScope: Array<LexerPatternScopeDefinition<TTokenType>> | null = this.mCurrentPatternScope;
+                    this.mCurrentPatternScope = lTokenPattern.innerPattern;
 
-                // Find data between start and end token. When no end token was found, the complete remaining data is used.
-                const lTokenEndMatch: RegExpExecArray | null = lTokenEndRegex.exec(pCursor.data);
+                    // Get inner function to fetch scoped lexer.
+                    const lInnerFetchFunction: LexerPatternInnerFetch<TTokenType> = this.mUnresolvedScopes.get(lTokenPattern)!;
 
-                // Cut token inner value. When no end match was found, the rest of the string is used.
-                const lTokenInnerValue: string = pCursor.data.substring(pCursor.cursorPosition, lTokenEndMatch?.index);
+                    // Execute inner pattern fetches.
+                    lInnerFetchFunction(this);
 
-                // Create subcursor for inner values.
-                const lInnerCursor: LexerCursor = {
-                    data: lTokenInnerValue,
-                    cursorPosition: 0,
-                    currentColumn: pCursor.currentColumn,
-                    currentLine: pCursor.currentLine,
-                    error: null
-                };
+                    // Reset scope to last used scope.
+                    this.mCurrentPatternScope = lLastPatternScope;
 
-                // Yield every inner pattern token.
-                yield* this.tokenizePart(lInnerCursor, lTokenPattern.innerPattern, [...pParentMetas, ...lTokenPattern.meta], pForcedType ?? lTokenPattern.pattern.innerType);
-
-                // Move cursor by inner token value.
-                this.moveCursor(pCursor, lTokenInnerValue);
-
-                // When a end token was found, yield generate and yield the end token.
-                if (lTokenEndMatch) {
-                    const lEndToken: LexerToken<TTokenType> = this.generateToken(pCursor, [...pParentMetas, ...lTokenPattern.meta], lTokenEndMatch, lTokenPattern.pattern.end.types, pForcedType);
-                    this.moveCursor(pCursor, lEndToken.value);
-                    yield lEndToken;
+                    // Remove unresolved scope as it is resolved.
+                    this.mUnresolvedScopes.delete(lTokenPattern);
                 }
 
+                // Yield every inner pattern token.
+                yield* this.tokenizeRecursionLayer(pCursor, lTokenPattern.innerPattern, [...pParentMetas, ...lTokenPattern.meta], pForcedType ?? lTokenPattern.pattern.innerType, lTokenPattern);
+
+                // Continue next token.
                 continue remainingDataLoop;
             }
 
@@ -612,23 +675,31 @@ type LexerSettings<TTokenType> = {
 };
 
 type LexerPatternDefinitionType<TTokenType> = { [SubGroup: string]: TTokenType; };
-type LexerPatternDefinition<TTokenType> = {
+
+type SplitLexerPatternDefinition<TTokenType> = {
     patternType: 'split';
     pattern: {
         start: { regex: RegExp; types: LexerPatternDefinitionType<TTokenType>; };
         end: { regex: RegExp; types: LexerPatternDefinitionType<TTokenType>; };
         innerType: TTokenType | null;
     };
-    specificity: number;
     meta: Array<string>;
-    innerPattern: Array<LexerPatternDefinition<TTokenType>>;
-} | {
+    innerPattern: Array<LexerPatternScopeDefinition<TTokenType>>;
+};
+
+type SingleLexerPatternDefinition<TTokenType> = {
     patternType: 'single';
     pattern: {
         single: { regex: RegExp; types: LexerPatternDefinitionType<TTokenType>; };
     };
-    specificity: number;
     meta: Array<string>;
+};
+
+type LexerPatternDefinition<TTokenType> = SplitLexerPatternDefinition<TTokenType> | SingleLexerPatternDefinition<TTokenType>;
+
+type LexerPatternScopeDefinition<TTokenType> = {
+    definition: LexerPatternDefinition<TTokenType>;
+    specificity: number;
 };
 
 /* 
@@ -653,3 +724,6 @@ type LexerPattern<TTokenType> = {
     specificity: number;
     meta?: string | Array<string>;
 };
+
+type LexerPatternTemplate<TTokenType> = Omit<LexerPattern<TTokenType>, 'specificity'>;
+type LexerPatternInnerFetch<TTokenType extends string> = (pLexer: Lexer<TTokenType>) => void;

@@ -1,68 +1,45 @@
-import { Dictionary } from '@kartoffelgames/core.data';
+import { Dictionary } from '@kartoffelgames/core';
 import { InjectionConstructor } from '../type';
 import { PropertyMetadata } from './property-metadata';
+import { BaseMetadata } from './base-metadata';
 
 /**
  * Constructor metadata.
  */
-export class ConstructorMetadata {
-    private readonly mCustomMetadata: Dictionary<string, any>;
-    private mParameterTypes: Array<InjectionConstructor> | null;
+export class ConstructorMetadata extends BaseMetadata {
     private readonly mPropertyMetadata: Dictionary<string | symbol, PropertyMetadata>;
 
     /**
      * Get parameter type information.
      */
-    public get parameterTypeList(): Array<InjectionConstructor> | null {
-        return this.mParameterTypes;
-    }
-
-    /**
-     * Set parameter type information.
-     */
-    public set parameterTypeList(pParameterTypes: Array<InjectionConstructor> | null) {
-        // Copy array.
-        this.mParameterTypes = pParameterTypes;
+    public get parameterTypes(): Array<InjectionConstructor> | null {
+        return this.getMetadata<Array<InjectionConstructor>>('design:paramtypes');
     }
 
     /**
      * Constructor.
      * Initialize lists.
+     * 
+     * @param pConstructor - Constructor where all metadata should be attached.
      */
-    public constructor() {
-        this.mCustomMetadata = new Dictionary<string, any>();
-        this.mPropertyMetadata = new Dictionary<string | symbol, PropertyMetadata>();
-        this.mParameterTypes = null;
-    }
+    public constructor(pConstructor: InjectionConstructor) {
+        super(pConstructor, null);
 
-    /**
-     * Get metadata of constructor.
-     * @param pMetadataKey - Metadata key.
-     */
-    public getMetadata<T>(pMetadataKey: string): T | null {
-        return this.mCustomMetadata.get(pMetadataKey) ?? null;
+        this.mPropertyMetadata = new Dictionary<string | symbol, PropertyMetadata>();
     }
 
     /**
      * Get property by key.
      * Creates new property metadata if it not already exists.
+     * 
      * @param pPropertyKey - Key of property.
      */
     public getProperty(pPropertyKey: string | symbol): PropertyMetadata {
-        // Create if missing.
+        // Create new property mapping when no mapping is found.
         if (!this.mPropertyMetadata.has(pPropertyKey)) {
-            this.mPropertyMetadata.add(pPropertyKey, new PropertyMetadata());
+            this.mPropertyMetadata.add(pPropertyKey, new PropertyMetadata(this.injectionConstructor, pPropertyKey));
         }
 
         return <PropertyMetadata>this.mPropertyMetadata.get(pPropertyKey);
-    }
-
-    /**
-     * Set metadata of constructor.
-     * @param pMetadataKey - Metadata key.
-     * @param pMetadataValue - Metadata value.
-     */
-    public setMetadata<T>(pMetadataKey: string, pMetadataValue: T): void {
-        this.mCustomMetadata.set(pMetadataKey, pMetadataValue);
     }
 }

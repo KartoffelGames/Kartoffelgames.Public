@@ -8,6 +8,7 @@ export { Processor } from './core/core_entity/processor';
 export { PwbApp } from './pwb-app/pwb-app';
 
 // Module Injections
+export { ModuleDataLevel as ModuleValues } from './core/data/module-data-level';
 export { ExtensionModule } from './core/extension/extension-module';
 export { AttributeModule } from './core/module/attribute_module/attribute-module';
 export { ExpressionModule } from './core/module/expression_module/expression-module';
@@ -15,7 +16,6 @@ export { ModuleAttribute } from './core/module/injection_reference/module-attrib
 export { ModuleTargetNode } from './core/module/injection_reference/module-target-node';
 export { ModuleTemplate } from './core/module/injection_reference/module-template';
 export { InstructionModule } from './core/module/instruction_module/instruction-module';
-export { ModuleDataLevel as ModuleValues } from './core/data/module-data-level';
 
 // Component Injections
 export { Component } from './core/component/component';
@@ -23,6 +23,8 @@ export { ComponentElement } from './core/component/component-element';
 export { ComponentDataLevel } from './core/data/component-data-level';
 
 // Modules
+export { DataLevel } from './core/data/data-level';
+export { LevelProcedure } from './core/data/level-procedure';
 export { IExtensionOnDeconstruct, IExtensionOnExecute } from './core/extension/extension-module';
 export { PwbExtensionModule } from './core/extension/pwb-extension-module.decorator';
 export { IAttributeOnDeconstruct, IAttributeOnUpdate } from './core/module/attribute_module/attribute-module';
@@ -32,8 +34,6 @@ export { PwbExpressionModule } from './core/module/expression_module/pwb-express
 export { IInstructionOnDeconstruct, IInstructionOnUpdate } from './core/module/instruction_module/instruction-module';
 export { InstructionResult } from './core/module/instruction_module/instruction-result';
 export { PwbInstructionModule } from './core/module/instruction_module/pwb-instruction-module.decorator';
-export { LevelProcedure } from './core/data/level-procedure';
-export { DataLevel } from './core/data/data-level';
 
 export { AccessMode } from './core/enum/access-mode.enum';
 
@@ -46,6 +46,11 @@ export { PwbExport } from './module/export/pwb-export.decorator';
 export { PwbChild } from './module/pwb_child/pwb-child.decorator';
 
 // Xml
+export { PwbTemplateInstructionNode } from './core/component/template/nodes/pwb-template-instruction-node';
+export { PwbTemplateTextNode } from './core/component/template/nodes/pwb-template-text-node';
+export { PwbTemplateXmlNode } from './core/component/template/nodes/pwb-template-xml-node';
+export { PwbTemplateAttribute } from './core/component/template/nodes/values/pwb-template-attribute';
+export { PwbTemplateExpression } from './core/component/template/nodes/values/pwb-template-expression';
 export { TemplateParser } from './core/component/template/template-parser';
 
 // Import default modules

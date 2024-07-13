@@ -16,6 +16,7 @@ import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
 import { ModuleTargetNode, ModuleTemplate } from '../../../source';
 import { Exception } from '@kartoffelgames/core';
+import { ModuleDataLevel } from '../../../source/core/data/module-data-level';
 
 describe('Custom Module', () => {
     before(() => {
@@ -122,9 +123,9 @@ describe('Custom Module', () => {
 
     it('-- Try to construct ModuleTargetNode', async () => {
         // Process. Create error function.
-        const lErrorFunction = ()=>{
+        const lErrorFunction = () => {
             new ModuleTargetNode();
-        }
+        };
 
         // Evaluation.
         expect(lErrorFunction).to.throw(Exception, 'Reference should not be instanced.');
@@ -132,11 +133,51 @@ describe('Custom Module', () => {
 
     it('-- Try to construct ModuleTempate', async () => {
         // Process. Create error function.
-        const lErrorFunction = ()=>{
+        const lErrorFunction = () => {
             new ModuleTemplate();
-        }
+        };
 
         // Evaluation.
         expect(lErrorFunction).to.throw(Exception, 'Reference should not be instanced.');
+    });
+
+    it('-- Set non existing temporary value of level procedure', async () => {
+        // Setup.
+        const lTemporaryValueName: string = 'notthere';
+
+        // Setup. Define module.
+        @PwbAttributeModule({
+            access: AccessMode.Read,
+            selector: /^setnonexistingtemporaryvalue$/,
+            trigger: UpdateTrigger.Any
+        })
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        class Module extends Processor {
+            public constructor(pData: ModuleDataLevel) {
+                super();
+
+                const lExpression = pData.createExpressionProcedure('');
+                lExpression.setTemporaryValue(lTemporaryValueName, 0);
+            }
+        }
+
+        // Setup. Define component.
+        @PwbComponent({
+            selector: TestUtil.randomSelector(),
+            template: `<div setnonexistingtemporaryvalue/>`
+        })
+        class TestComponent extends Processor { }
+
+        // Process. Create element.
+        let lErrorMessage: string | null = null;
+        try {
+            await <any>TestUtil.createComponent(TestComponent);
+        } catch (pError) {
+            const lError: Error = <Error>pError;
+            lErrorMessage = lError.message;
+        }
+
+        // Evaluation.
+        expect(lErrorMessage).to.equal(`Temporary value "${lTemporaryValueName}" does not exist for this procedure.`);
     });
 });

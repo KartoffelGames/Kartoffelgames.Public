@@ -1,13 +1,13 @@
 import { expect } from 'chai';
-import { PwbComponent } from '../../source/core/component/pwb-component.decorator';
-import { PwbTemplate } from '../../source/core/component/template/nodes/pwb-template';
-import { PwbTemplateXmlNode } from '../../source/core/component/template/nodes/pwb-template-xml-node';
-import { PwbConfiguration } from '../../source/core/configuration/pwb-configuration';
-import { Processor } from '../../source/core/core_entity/processor';
-import { PwbApp } from '../../source/pwb-app/pwb-app';
-import '../mock/request-animation-frame-mock-session';
-import '../utility/chai-helper';
-import { TestUtil } from '../utility/test-util';
+import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
+import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template';
+import { PwbTemplateXmlNode } from '../../../source/core/component/template/nodes/pwb-template-xml-node';
+import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration';
+import { Processor } from '../../../source/core/core_entity/processor';
+import { PwbApp } from '../../../source/pwb-app/pwb-app';
+import '../../utility/request-animation-frame-mock-session';
+import '../../utility/chai-helper';
+import { TestUtil } from '../../utility/test-util';
 
 describe('PwbApp', () => {
     before(() => {

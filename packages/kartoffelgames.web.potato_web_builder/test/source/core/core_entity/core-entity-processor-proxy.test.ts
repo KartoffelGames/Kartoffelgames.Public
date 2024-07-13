@@ -1,8 +1,8 @@
 import { InteractionZone } from '@kartoffelgames/web.interaction-zone';
 import { expect } from 'chai';
-import { CoreEntityInteractionEvent, CoreEntityProcessorProxy } from '../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy';
-import { IgnoreInteractionTracking } from '../../source/core/core_entity/interaction-tracker/ignore-interaction-tracking.decorator';
-import { UpdateTrigger } from '../../source/core/enum/update-trigger.enum';
+import { CoreEntityInteractionEvent, CoreEntityProcessorProxy } from '../../../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy';
+import { IgnoreInteractionTracking } from '../../../../source/core/core_entity/interaction-tracker/ignore-interaction-tracking.decorator';
+import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum';
 
 describe('CoreEntityProcessorProxy', () => {
     it('Property: proxy', () => {

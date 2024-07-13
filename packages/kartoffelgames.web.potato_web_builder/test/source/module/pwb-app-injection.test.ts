@@ -4,11 +4,11 @@ import { PwbConfiguration } from '../../../source/core/configuration/pwb-configu
 import { Processor } from '../../../source/core/core_entity/processor';
 import { UpdateMode } from '../../../source/core/enum/update-mode.enum';
 import { PwbApp } from '../../../source/pwb-app/pwb-app';
-import '../../mock/request-animation-frame-mock-session';
+import '../../utility/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
 
-describe('PwbAppInjectionExtension', () => {
+describe('PwbAppInjection', () => {
     before(() => {
         PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
         PwbConfiguration.configuration.error.print = false;

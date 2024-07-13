@@ -6,11 +6,11 @@ import { CoreEntityProcessorProxy } from '../../../source/core/core_entity/inter
 import { Processor } from '../../../source/core/core_entity/processor';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
 import { PwbChild } from '../../../source/module/pwb_child/pwb-child.decorator';
-import '../../mock/request-animation-frame-mock-session';
+import '../../utility/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
 
-describe('PwbChildAttributeModule', () => {
+describe('PwbChild', () => {
     before(() => {
         PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
         PwbConfiguration.configuration.error.print = false;

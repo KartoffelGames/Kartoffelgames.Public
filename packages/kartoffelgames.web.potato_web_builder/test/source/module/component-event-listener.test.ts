@@ -5,6 +5,8 @@ import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-t
 import { PwbTemplateInstructionNode } from '../../../source/core/component/template/nodes/pwb-template-instruction-node';
 import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration';
 import { Processor } from '../../../source/core/core_entity/processor';
+import { DataLevel } from '../../../source/core/data/data-level';
+import { ModuleDataLevel } from '../../../source/core/data/module-data-level';
 import { AccessMode } from '../../../source/core/enum/access-mode.enum';
 import { UpdateTrigger } from '../../../source/core/enum/update-trigger.enum';
 import { PwbAttributeModule } from '../../../source/core/module/attribute_module/pwb-attribute-module.decorator';
@@ -12,21 +14,42 @@ import { ModuleTemplate } from '../../../source/core/module/injection_reference/
 import { IInstructionOnUpdate } from '../../../source/core/module/instruction_module/instruction-module';
 import { InstructionResult } from '../../../source/core/module/instruction_module/instruction-result';
 import { PwbInstructionModule } from '../../../source/core/module/instruction_module/pwb-instruction-module.decorator';
-import { ModuleDataLevel } from '../../../source/core/data/module-data-level';
-import { DataLevel } from '../../../source/core/data/data-level';
 import { PwbComponentEventListener } from '../../../source/module/component-event-listener/pwb-component-event-listener.decorator';
 import { ComponentEvent } from '../../../source/module/component-event/component-event';
 import { ComponentEventEmitter } from '../../../source/module/component-event/component-event-emitter';
 import { PwbComponentEvent } from '../../../source/module/component-event/pwb-component-event.decorator';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
-import '../../mock/request-animation-frame-mock-session';
-import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
+import '../../utility/chai-helper';
+import '../../utility/request-animation-frame-mock-session';
 
-describe('PwbEventListener', () => {
+describe('ComponentEventListener', () => {
     before(() => {
         PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
         PwbConfiguration.configuration.error.print = false;
+    });
+
+    it('-- Component click event', async () => {
+        // Setup. Define component and wait for update.
+        const lEventResult = await new Promise<MouseEvent>((pResolve) => {
+            @PwbComponent({
+                selector: TestUtil.randomSelector(),
+            })
+            class TestComponent extends Processor {
+                @PwbComponentEventListener('click')
+                public handler(pEvent: MouseEvent): void {
+                    pResolve(pEvent);
+                }
+            }
+
+            // Process. Create element and click div.
+            TestUtil.createComponent(TestComponent).then((pComponent) => {
+                pComponent.click();
+            });
+        });
+
+        // Evaluation.
+        expect(lEventResult).to.instanceOf(MouseEvent);
     });
 
     it('-- Native listener', async () => {

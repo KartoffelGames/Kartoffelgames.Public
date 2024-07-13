@@ -3,14 +3,14 @@ import { expect } from 'chai';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
 import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration';
 import { Processor } from '../../../source/core/core_entity/processor';
-import '../../mock/request-animation-frame-mock-session';
+import '../../utility/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const HTMLSlotElement: InjectionConstructor = <any>document.createElement('slot').constructor;
 
-describe('SlotAttribute', () => {
+describe('SlotInstruction', () => {
     before(() => {
         PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
         PwbConfiguration.configuration.error.print = false;

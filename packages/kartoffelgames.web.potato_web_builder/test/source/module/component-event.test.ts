@@ -1,17 +1,17 @@
 import { Exception } from '@kartoffelgames/core';
 import { expect } from 'chai';
-import { Processor } from '../../../source';
-import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
 import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration';
-import { ComponentEvent } from '../../../source/module/component-event/component-event';
+import { TestUtil } from '../../utility/test-util';
+import '../../utility/chai-helper';
+import '../../utility/request-animation-frame-mock-session';
 import { ComponentEventEmitter } from '../../../source/module/component-event/component-event-emitter';
 import { PwbComponentEvent } from '../../../source/module/component-event/pwb-component-event.decorator';
+import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
+import { Processor } from '../../../source/core/core_entity/processor';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
-import '../../mock/request-animation-frame-mock-session';
-import '../../utility/chai-helper';
-import { TestUtil } from '../../utility/test-util';
+import { ComponentEvent } from '../../../source/module/component-event/component-event';
 
-describe('ComponentEventEmitterExtension', () => {
+describe('ComponentEvent', () => {
     before(() => {
         PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
         PwbConfiguration.configuration.error.print = false;

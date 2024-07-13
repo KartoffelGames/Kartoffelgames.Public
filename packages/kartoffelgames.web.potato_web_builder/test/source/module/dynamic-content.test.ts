@@ -4,12 +4,12 @@ import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-t
 import { PwbTemplateXmlNode } from '../../../source/core/component/template/nodes/pwb-template-xml-node';
 import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration';
 import { Processor } from '../../../source/core/core_entity/processor';
-import '../../mock/request-animation-frame-mock-session';
+import '../../utility/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
 import { PwbTemplateTextNode } from '../../../source/core/component/template/nodes/pwb-template-text-node';
 
-describe('DynamicContentModule', () => {
+describe('DynamicContent', () => {
     before(() => {
         PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
         PwbConfiguration.configuration.error.print = false;

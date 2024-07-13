@@ -1,13 +1,13 @@
 import { expect } from 'chai';
-import { ComponentRegister } from '../../../source/core/component/component-register';
-import { ComponentDataLevel } from '../../../source/core/data/component-data-level';
-import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
-import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration';
-import { Processor } from '../../../source/core/core_entity/processor';
-import { DataLevel } from '../../../source/core/data/data-level';
-import '../../mock/request-animation-frame-mock-session';
-import '../../utility/chai-helper';
-import { TestUtil } from '../../utility/test-util';
+import { ComponentRegister } from '../../../../source/core/component/component-register';
+import { ComponentDataLevel } from '../../../../source/core/data/component-data-level';
+import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator';
+import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration';
+import { Processor } from '../../../../source/core/core_entity/processor';
+import { DataLevel } from '../../../../source/core/data/data-level';
+import '../../../utility/request-animation-frame-mock-session';
+import '../../../utility/chai-helper';
+import { TestUtil } from '../../../utility/test-util';
 
 
 describe('DataLevel', () => {

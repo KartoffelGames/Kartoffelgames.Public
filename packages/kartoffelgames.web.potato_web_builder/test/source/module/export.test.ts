@@ -4,7 +4,7 @@ import { PwbComponent } from '../../../source/core/component/pwb-component.decor
 import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration';
 import { Processor } from '../../../source/core/core_entity/processor';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator';
-import '../../mock/request-animation-frame-mock-session';
+import '../../utility/request-animation-frame-mock-session';
 import '../../utility/chai-helper';
 import { TestUtil } from '../../utility/test-util';
 import { ExportExtension } from '../../../source/module/export/export-extension';

@@ -1,13 +1,13 @@
 import { expect } from 'chai';
-import { PwbComponent } from '../../../source/core/component/pwb-component.decorator';
-import { PwbConfiguration } from '../../../source/core/configuration/pwb-configuration';
-import { Processor } from '../../../source/core/core_entity/processor';
-import { AccessMode } from '../../../source/core/enum/access-mode.enum';
-import { UpdateTrigger } from '../../../source/core/enum/update-trigger.enum';
-import { PwbExtensionModule } from '../../../source/core/extension/pwb-extension-module.decorator';
-import { TestUtil } from '../../utility/test-util';
+import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator';
+import { PwbConfiguration } from '../../../../source/core/configuration/pwb-configuration';
+import { Processor } from '../../../../source/core/core_entity/processor';
+import { AccessMode } from '../../../../source/core/enum/access-mode.enum';
+import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum';
+import { PwbExtensionModule } from '../../../../source/core/extension/pwb-extension-module.decorator';
+import { TestUtil } from '../../../utility/test-util';
 
-describe('BaseExtension', () => {
+describe('ExtensionModule', () => {
     before(() => {
         PwbConfiguration.configuration.updating.frameTime = Number.MAX_SAFE_INTEGER;
         PwbConfiguration.configuration.error.print = false;

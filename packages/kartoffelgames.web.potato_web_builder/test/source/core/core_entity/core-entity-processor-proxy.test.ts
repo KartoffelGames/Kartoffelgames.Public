@@ -363,8 +363,10 @@ describe('CoreEntityProcessorProxy', () => {
             const lOriginalObject: { a: number; } = { a: 1 };
             const lDetectionProxy: CoreEntityProcessorProxy<{ a: number; }> = new CoreEntityProcessorProxy(lOriginalObject);
 
-            // Setup. Add proxy zone as listener.
-            lDetectionProxy.addListenerZone(lProxyZone);
+            // Setup. Add proxy zone as attached by touching the object.
+            lProxyZone.execute(() => {
+                lDetectionProxy.proxy.a;
+            });
 
             // Process.
             let lInteractionCounter: number = 0;
@@ -397,8 +399,10 @@ describe('CoreEntityProcessorProxy', () => {
                 });
             });
 
-            // Process. Attach zone.
-            lDetectionProxy.addListenerZone(lInteractionZone);
+            // Setup. Add proxy zone as attached by touching the object.
+            lInteractionZone.execute(() => {
+                lDetectionProxy.proxy.a;
+            });
 
             // Process. Trigger changes.
             lDetectionProxy.proxy.a = 22;
@@ -430,8 +434,10 @@ describe('CoreEntityProcessorProxy', () => {
                 });
             });
 
-            // Process. Attach zone.
-            lDetectionProxy.addListenerZone(lAttachedInteractionZone);
+            // Process. Add proxy zone as attached by touching the object.
+            lAttachedInteractionZone.execute(() => {
+                lDetectionProxy.proxy.a;
+            });
 
             // Trigger changes.
             lCurrentInteractionZone.execute(() => {
@@ -457,7 +463,6 @@ describe('CoreEntityProcessorProxy', () => {
                 }
             });
             // Process.
-            lDetectionProxy.addListenerZone(lInteractionZone);
             lInteractionZone.execute(() => {
                 lDetectionProxy.proxy.a = 22;
             });
@@ -480,8 +485,10 @@ describe('CoreEntityProcessorProxy', () => {
                 lInteractionCounter++;
             });
 
-            // Process.
-            lDetectionProxy.addListenerZone(lAttachedZone);
+            // Process. Add proxy zone as attached by touching the object.
+            lAttachedZone.execute(() => {
+                lDetectionProxy.proxy.a;
+            });
 
             lSilentZone.execute(() => {
                 lDetectionProxy.proxy.a = 22;

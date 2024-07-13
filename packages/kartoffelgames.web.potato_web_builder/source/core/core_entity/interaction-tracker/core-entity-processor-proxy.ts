@@ -133,8 +133,10 @@ export class CoreEntityProcessorProxy<T extends object> {
      * 
      * @param pZone - Interaction zone.
      */
-    public addListenerZone(pZone: InteractionZone): void {
-        this.mListenerZones.add(pZone);
+    private addListenerZone(pZone: InteractionZone): void {
+        if (!this.mListenerZones.has(pZone)) {
+            this.mListenerZones.add(pZone);
+        }
     }
 
     /**
@@ -190,6 +192,9 @@ export class CoreEntityProcessorProxy<T extends object> {
              * @param pArgumentsList - All arguments of call.
              */
             apply: (pTargetObject: T, pThisArgument: any, pArgumentsList: Array<any>): void => {
+                // On object touch. Add current zone to attached zone.
+                this.addListenerZone(InteractionZone.current);
+
                 const lCallableTarget: CallableObject = <CallableObject>pTargetObject;
 
                 // Function to call with original object.
@@ -248,6 +253,9 @@ export class CoreEntityProcessorProxy<T extends object> {
              * @param pNewPropertyValue - New value of property.
              */
             set: (pTargetObject: T, pPropertyName: PropertyKey, pNewPropertyValue: any): boolean => {
+                // On object touch. Add current zone to attached zone.
+                this.addListenerZone(InteractionZone.current);
+
                 try {
                     // Prevent original pollution by getting original from value.
                     let lPropertyValue: any = pNewPropertyValue;
@@ -272,6 +280,9 @@ export class CoreEntityProcessorProxy<T extends object> {
              * @param lReceiver - Either the proxy or an object that inherits from the proxy.
              */
             get: (pTarget, pPropertyName: PropertyKey, _pReceiver) => {
+                // On object touch. Add current zone to attached zone.
+                this.addListenerZone(InteractionZone.current);
+
                 // Get original value.
                 const lResult: any = Reflect.get(pTarget, pPropertyName);
 
@@ -286,6 +297,9 @@ export class CoreEntityProcessorProxy<T extends object> {
              * @param pPropertyName - Name of property.
              */
             deleteProperty: (pTargetObject: T, pPropertyName: PropertyKey): boolean => {
+                // On object touch. Add current zone to attached zone.
+                this.addListenerZone(InteractionZone.current);
+
                 try {
                     // Remove property from original target and return result.
                     return delete (<any>pTargetObject)[pPropertyName];

@@ -1,4 +1,4 @@
-import { Exception, TypedArray } from '@kartoffelgames/core.data';
+import { Exception, TypedArray } from '@kartoffelgames/core';
 import { BufferBindType } from '../../../constant/buffer-bind-type.enum';
 import { GpuBuffer } from '../../buffer/gpu-buffer';
 import { GpuDevice } from '../../gpu/gpu-device';

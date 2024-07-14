@@ -1,4 +1,4 @@
-import { Dictionary, TypedArray } from '@kartoffelgames/core.data';
+import { Dictionary, TypedArray } from '@kartoffelgames/core';
 import { BindDataGroup } from '../../base/binding/bind-data-group';
 import { GpuBuffer } from '../../base/buffer/gpu-buffer';
 import { NativeObjectLifeTime } from '../../base/native_generator/base-native-generator';

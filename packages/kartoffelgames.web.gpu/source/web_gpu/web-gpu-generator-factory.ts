@@ -1,4 +1,4 @@
-import { Dictionary, Exception } from '@kartoffelgames/core.data';
+import { Dictionary, Exception } from '@kartoffelgames/core';
 import { WebGpuBindDataGroupGenerator } from './native-generator/web-gpu-bind-data-group-generator';
 import { WebGpuBindDataGroupLayoutGenerator } from './native-generator/web-gpu-bind-data-group-layout-generator';
 import { WebGpuCanvasTextureGenerator } from './native-generator/web-gpu-canvas-texture-generator';

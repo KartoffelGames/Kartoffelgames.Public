@@ -1,4 +1,4 @@
-import { Dictionary, TypedArray } from '@kartoffelgames/core.data';
+import { Dictionary, TypedArray } from '@kartoffelgames/core';
 import { DeviceConfiguration, InputConfiguration, InputDevices, KeyboardButton, MouseButton, MouseKeyboardConnector } from '@kartoffelgames/web.game-input';
 import { GpuBuffer } from '../../source/base/buffer/gpu-buffer';
 import { CameraMatrix, ViewProjection } from './something_better/view_projection/view-projection';

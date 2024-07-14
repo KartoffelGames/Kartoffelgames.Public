@@ -1,4 +1,4 @@
-import { Dictionary } from '@kartoffelgames/core.data';
+import { Dictionary } from '@kartoffelgames/core';
 import { PgslFunction } from './pgsl-function';
 import { PgslVariable } from './pgsl-variable';
 import { PgslStruct } from './struct/pgsl-struct';

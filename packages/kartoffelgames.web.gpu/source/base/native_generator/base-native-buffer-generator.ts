@@ -1,4 +1,4 @@
-import { TypedArray } from '@kartoffelgames/core.data';
+import { TypedArray } from '@kartoffelgames/core';
 import { GeneratorFactoryMap, GeneratorNativeMap } from './base-generator-factory';
 import { BaseNativeGenerator } from './base-native-generator';
 

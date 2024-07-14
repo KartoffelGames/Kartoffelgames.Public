@@ -18,7 +18,7 @@
         "@kartoffelgames/web.game-input": "^0.1.0"
     },
     "dependencies": {
-        "@kartoffelgames/core.data": "^0.1.0",
+        "@kartoffelgames/core": "^0.1.0",
         "@kartoffelgames/core.parser": "^0.1.0"
     },
     "scripts": {

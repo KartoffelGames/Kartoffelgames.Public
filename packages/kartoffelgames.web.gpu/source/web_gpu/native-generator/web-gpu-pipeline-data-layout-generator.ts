@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core';
 import { BaseNativeGenerator, NativeObjectLifeTime } from '../../base/native_generator/base-native-generator';
 import { NativeWebGpuMap } from '../web-gpu-generator-factory';
 

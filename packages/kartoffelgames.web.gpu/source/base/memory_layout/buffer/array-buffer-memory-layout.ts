@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { BufferLayoutLocation, BaseBufferMemoryLayout, BufferMemoryLayoutParameter } from './base-buffer-memory-layout';
 

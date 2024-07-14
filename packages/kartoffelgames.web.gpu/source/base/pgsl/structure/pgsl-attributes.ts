@@ -1,4 +1,4 @@
-import { Dictionary, Exception } from '@kartoffelgames/core.data';
+import { Dictionary, Exception } from '@kartoffelgames/core';
 
 export class PgslAttributes {
     private readonly mAttributes: Dictionary<string, Array<number | string>>;

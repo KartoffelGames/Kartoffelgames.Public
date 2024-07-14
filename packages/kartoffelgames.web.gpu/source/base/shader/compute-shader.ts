@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core';
 import { ComputeStage } from '../../constant/compute-stage.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { BaseShader } from './base-shader';

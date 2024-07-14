@@ -1,4 +1,4 @@
-import { TypedArray } from '@kartoffelgames/core.data';
+import { TypedArray } from '@kartoffelgames/core';
 import { GpuBuffer } from '../../base/buffer/gpu-buffer';
 import { BaseNativeBufferGenerator } from '../../base/native_generator/base-native-buffer-generator';
 import { NativeObjectLifeTime } from '../../base/native_generator/base-native-generator';

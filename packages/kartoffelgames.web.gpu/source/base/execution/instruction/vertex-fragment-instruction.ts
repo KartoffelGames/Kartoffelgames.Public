@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core';
 import { BindDataGroup } from '../../binding/bind-data-group';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObject } from '../../gpu/gpu-object';

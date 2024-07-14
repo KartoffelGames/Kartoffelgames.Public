@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core';
 import { GpuBuffer } from '../../base/buffer/gpu-buffer';
 import { BaseNativeGenerator, NativeObjectLifeTime } from '../../base/native_generator/base-native-generator';
 import { CanvasTexture } from '../../base/texture/canvas-texture';

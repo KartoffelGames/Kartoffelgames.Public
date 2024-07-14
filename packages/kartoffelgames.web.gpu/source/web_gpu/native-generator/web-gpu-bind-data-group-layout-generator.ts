@@ -1,5 +1,5 @@
 
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core';
 import { BaseNativeGenerator, NativeObjectLifeTime } from '../../base/native_generator/base-native-generator';
 import { BaseBufferMemoryLayout } from '../../base/memory_layout/buffer/base-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../../base/memory_layout/sampler-memory-layout';

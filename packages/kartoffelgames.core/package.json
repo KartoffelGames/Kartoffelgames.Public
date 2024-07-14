@@ -29,7 +29,7 @@
     },
     "homepage": "https://github.com/KartoffelGames/KartoffelGames.Public#readme",
     "kg": {
-        "name": "Kartoffelgames.Core.Data",
+        "name": "Kartoffelgames.Core",
         "root": false,
         "config": {
             "build-configuration": {

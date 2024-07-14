@@ -1,4 +1,4 @@
-import { Dictionary } from '@kartoffelgames/core.data';
+import { Dictionary } from '@kartoffelgames/core';
 
 export class DebugWindow {
     private readonly mControls: Dictionary<string, Element>;

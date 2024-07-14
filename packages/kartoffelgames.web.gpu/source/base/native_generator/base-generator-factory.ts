@@ -1,4 +1,4 @@
-import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core.data';
+import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core';
 import { BindDataGroup } from '../binding/bind-data-group';
 import { BindDataGroupLayout } from '../binding/bind-data-group-layout';
 import { PipelineDataLayout } from '../binding/pipeline-data-layout';

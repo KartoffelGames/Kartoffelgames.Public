@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core';
 import { BaseMemoryLayout } from '../base/memory_layout/base-memory-layout';
 import { ArrayBufferMemoryLayout } from '../base/memory_layout/buffer/array-buffer-memory-layout';
 import { BaseBufferMemoryLayout } from '../base/memory_layout/buffer/base-buffer-memory-layout';

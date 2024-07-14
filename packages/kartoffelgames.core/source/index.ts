@@ -27,7 +27,7 @@ export { ICloneable } from './interface/i-cloneable';
 export { IDeconstructable } from './interface/i-deconstructable';
 
 // Support types.
-export { Writeable, Readonly } from './types';
+export { Writeable, Readonly, TypedArray, NoOptional } from './types';
 
 // Algorythms
 export { ChangeState, MyersDiff, HistoryItem } from './algorithm/myers-diff';

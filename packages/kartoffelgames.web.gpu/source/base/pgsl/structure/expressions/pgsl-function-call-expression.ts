@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core';
 import { PgslFunction } from '../pgsl-function';
 import { PgslVariable } from '../pgsl-variable';
 import { PgslType } from '../type/pgsl-type';

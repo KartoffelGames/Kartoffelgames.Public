@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core';
 import { TextureGroup } from './texture-group';
 import { GpuObject } from '../../gpu/gpu-object';
 import { GpuDevice } from '../../gpu/gpu-device';

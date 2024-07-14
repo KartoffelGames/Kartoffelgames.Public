@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core.data';
+import { Exception } from '@kartoffelgames/core';
 import { InstructionExecuter } from '../../base/execution/instruction-executor';
 import { NativeObjectLifeTime } from '../../base/native_generator/base-native-generator';
 import { BaseNativeInstructionExecutorGenerator } from '../../base/native_generator/base-native-instruction-executor-generator';

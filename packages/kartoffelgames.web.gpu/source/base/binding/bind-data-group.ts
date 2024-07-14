@@ -1,4 +1,4 @@
-import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core.data';
+import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core';
 import { GpuBuffer } from '../buffer/gpu-buffer';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';

@@ -1,4 +1,4 @@
-import { TypedArray } from '@kartoffelgames/core.data';
+import { TypedArray } from '@kartoffelgames/core';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';

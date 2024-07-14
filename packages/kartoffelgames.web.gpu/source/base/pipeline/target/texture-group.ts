@@ -1,4 +1,4 @@
-import { Dictionary, Exception } from '@kartoffelgames/core.data';
+import { Dictionary, Exception } from '@kartoffelgames/core';
 import { AccessMode } from '../../../constant/access-mode.enum';
 import { ComputeStage } from '../../../constant/compute-stage.enum';
 import { TextureBindType } from '../../../constant/texture-bind-type.enum';

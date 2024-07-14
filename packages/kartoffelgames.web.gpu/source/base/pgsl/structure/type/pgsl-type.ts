@@ -1,4 +1,4 @@
-import { Dictionary, Exception } from '@kartoffelgames/core.data';
+import { Dictionary, Exception } from '@kartoffelgames/core';
 import { PgslTypeName } from './pgsl-type-name.enum';
 import { PgslStructMap } from '../struct/pgsl-struct-map';
 

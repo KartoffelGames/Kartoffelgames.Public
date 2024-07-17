@@ -4,6 +4,10 @@ export enum PgslToken {
     Comment = 'Comment',
     Comma = 'Comma',
     Dot = 'Dot',
+    TypeDelimiter = 'TypeDelimiter',
+    Assignment = 'Assignment',
+    Type = 'Type',
+    Semicolon = 'Semicolon',
 
     // Operators
     OperatorPlus = 'OperatorPlus',

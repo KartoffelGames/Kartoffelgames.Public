@@ -1,4 +1,4 @@
-import { Lexer } from '@kartoffelgames/core.parser';
+import { Lexer, LexerToken } from '@kartoffelgames/core.parser';
 import { PgslToken } from './pgsl-token.enum';
 
 export class PgslLexer extends Lexer<PgslToken> {
@@ -46,9 +46,28 @@ export class PgslLexer extends Lexer<PgslToken> {
             },
         });
 
-        // TODO: Templatelist Negative lookahead for "<" or "=".
-        // used greater or lower than needs to be nested in parentheses.
-        // I want to skip it, but we need this :(
+        // Template list.
+        this.addTokenTemplate('TemplateList', {
+            pattern: {
+                start: {
+                    regex: /<(?![<=])(?=[^;:{}]*>)/, // TODO: a<b || b>c will be detected.
+                    type: PgslToken.TemplateListEnd
+                },
+                end: {
+                    regex: />/,
+                    type: PgslToken.TemplateListEnd
+                }
+            }
+        }, () => {
+            // TODO: Add comma, value, type and enums abd templatelists.
+            // Calulcations need to be inside parentheses
+        });
     }
 
+
+    public override tokenize(pText: string): Generator<LexerToken<PgslToken>> {
+        // TODO: Maybe Add custom templat string implementation to tokenize override that replaces start and end with customs like $<$ and $>$
+
+        return super.tokenize(pText);
+    }
 }

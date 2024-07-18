@@ -671,6 +671,36 @@ describe('Lexer', () => {
             expect(lTokenList).to.has.lengthOf(4);
             expect(lTokenList[3]).property('metas').to.deep.equal([TestTokenMetas.Braket, TestTokenMetas.List, TestTokenMetas.Word]);
         });
+
+        it('-- Token regex with lookbehinds', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+            const lTestString: string = 'aaabbb';
+
+            // Setup. Add starting token template.
+            lLexer.addTokenPattern({
+                pattern: {
+                    regex: /aaa/,
+                    type: TestTokenType.Custom
+                },
+                specificity: 1
+            });
+
+            // Process. Add starting token template.
+            lLexer.addTokenPattern({
+                pattern: {
+                    regex: /(?<=aaa)bbb/,
+                    type: TestTokenType.Custom
+                },
+                specificity: 1
+            });
+
+            // Process.
+            const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lTestString)];
+
+            // Evaluation.
+            expect(lTokenList).to.has.lengthOf(2);
+        });
     });
 
     describe('Method: useTokenTemplate', () => {

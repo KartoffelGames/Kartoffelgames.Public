@@ -739,6 +739,58 @@ describe('Lexer', () => {
             expect(lTokenList).to.has.lengthOf(2);
             expect(lTokenList[1]).property('type').to.equal(TestTokenType.Custom);
         });
+
+        it('-- Token regex with validator function', () => {
+            // Setup.
+            const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+            const lTestString: string = 'aaabaaac';
+
+            // Setup. Add starting token template.
+            lLexer.addTokenPattern({
+                pattern: {
+                    regex: /aaa/,
+                    type: TestTokenType.Custom
+                },
+                specificity: 2
+            });
+            lLexer.addTokenPattern({
+                pattern: {
+                    regex: /b/,
+                    type: TestTokenType.Custom
+                },
+                specificity: 2
+            });
+            lLexer.addTokenPattern({
+                pattern: {
+                    regex: /c/,
+                    type: TestTokenType.Custom
+                },
+                specificity: 2
+            });
+
+            // Process. Add starting token template.
+            lLexer.addTokenPattern({
+                pattern: {
+                    regex: /aaa/,
+                    type: TestTokenType.Number,
+                    validator: (pToken: LexerToken<TestTokenType>, pText: string, pIndex: number): boolean => {
+                        const lNextCharIndex: number = pIndex + pToken.value.length;
+                        const lNextChar: string = pText.substring(lNextCharIndex, lNextCharIndex + 1);
+
+                        return lNextChar === 'c';
+                    }
+                },
+                specificity: 1
+            });
+
+            // Process.
+            const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lTestString)];
+
+            // Evaluation.
+            expect(lTokenList).to.has.lengthOf(4);
+            expect(lTokenList[0]).property('type').to.equal(TestTokenType.Custom);
+            expect(lTokenList[2]).property('type').to.equal(TestTokenType.Number);
+        });
     });
 
     describe('Method: useTokenTemplate', () => {

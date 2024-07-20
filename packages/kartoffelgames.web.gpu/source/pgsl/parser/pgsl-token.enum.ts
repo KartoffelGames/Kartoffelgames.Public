@@ -49,7 +49,7 @@ export enum PgslToken {
     // Enums // TODO: Maybe better to be a ident.
     ContextDependentName = 'ContextDependentName',
 
-    // Keywors
+    // Keywords
     KeywordAlias = 'KeywordAlias',
     KeywordBreak = 'KeywordBreak',
     KeywordCase = 'KeywordCase',

@@ -155,7 +155,7 @@ export class PgslLexer extends Lexer<PgslToken> {
 
                                     // Pop current nesting when it closes a nested template list.
                                     const lCurrentNesting: string = lNestingStack.top!;
-                                    if(lCurrentNesting  === '<') {
+                                    if (lCurrentNesting === '<') {
                                         lNestingStack.pop();
                                     }
 
@@ -197,5 +197,150 @@ export class PgslLexer extends Lexer<PgslToken> {
             // TODO: Add comma, value, type and enums abd templatelists.
         });
 
+        // TODO: Keywords
+        this.addTokenTemplate('KeywordAlias', {
+            pattern: {
+                regex: /alias(?![\w])/,
+                type: PgslToken.KeywordAlias
+            },
+        });
+        this.addTokenTemplate('KeywordBreak', {
+            pattern: {
+                regex: /break(?![\w])/,
+                type: PgslToken.KeywordBreak
+            },
+        });
+        this.addTokenTemplate('KeywordCase', {
+            pattern: {
+                regex: /case(?![\w])/,
+                type: PgslToken.KeywordCase
+            },
+        });
+        this.addTokenTemplate('KeywordConst', {
+            pattern: {
+                regex: /const(?![\w])/,
+                type: PgslToken.KeywordConst
+            },
+        });
+        this.addTokenTemplate('KeywordConstAssert', {
+            pattern: {
+                regex: /const_assert(?![\w])/,
+                type: PgslToken.KeywordConstAssert
+            },
+        });
+        this.addTokenTemplate('KeywordContinue', {
+            pattern: {
+                regex: /continue(?![\w])/,
+                type: PgslToken.KeywordContinue
+            },
+        });
+        this.addTokenTemplate('KeywordContinuing', {
+            pattern: {
+                regex: /continuing(?![\w])/,
+                type: PgslToken.KeywordContinuing
+            },
+        });
+        this.addTokenTemplate('KeywordDefault', {
+            pattern: {
+                regex: /default(?![\w])/,
+                type: PgslToken.KeywordDefault
+            },
+        });
+        this.addTokenTemplate('KeywordDiagnostic', {
+            pattern: {
+                regex: /diagnostic(?![\w])/,
+                type: PgslToken.KeywordDiagnostic
+            },
+        });
+        this.addTokenTemplate('KeywordDiscard', {
+            pattern: {
+                regex: /discard(?![\w])/,
+                type: PgslToken.KeywordDiscard
+            },
+        });
+        this.addTokenTemplate('KeywordElse', {
+            pattern: {
+                regex: /else(?![\w])/,
+                type: PgslToken.KeywordElse
+            },
+        });
+        this.addTokenTemplate('KeywordEnable', {
+            pattern: {
+                regex: /enable(?![\w])/,
+                type: PgslToken.KeywordEnable
+            },
+        });
+        this.addTokenTemplate('KeywordFunction', {
+            pattern: {
+                regex: /function(?![\w])/,
+                type: PgslToken.KeywordFunction
+            },
+        });
+        this.addTokenTemplate('KeywordFor', {
+            pattern: {
+                regex: /for(?![\w])/,
+                type: PgslToken.KeywordFor
+            },
+        });
+        this.addTokenTemplate('KeywordIf', {
+            pattern: {
+                regex: /if(?![\w])/,
+                type: PgslToken.KeywordIf
+            },
+        });
+        this.addTokenTemplate('KeywordLet', {
+            pattern: {
+                regex: /let(?![\w])/,
+                type: PgslToken.KeywordLet
+            },
+        });
+        this.addTokenTemplate('KeywordLoop', {
+            pattern: {
+                regex: /loop(?![\w])/,
+                type: PgslToken.KeywordLoop
+            },
+        });
+        this.addTokenTemplate('KeywordOverride', {
+            pattern: {
+                regex: /override(?![\w])/,
+                type: PgslToken.KeywordOverride
+            },
+        });
+        this.addTokenTemplate('KeywordRequires', {
+            pattern: {
+                regex: /requires(?![\w])/,
+                type: PgslToken.KeywordRequires
+            },
+        });
+        this.addTokenTemplate('KeywordReturn', {
+            pattern: {
+                regex: /return(?![\w])/,
+                type: PgslToken.KeywordReturn
+            },
+        });
+        this.addTokenTemplate('KeywordStruct', {
+            pattern: {
+                regex: /struct(?![\w])/,
+                type: PgslToken.KeywordStruct
+            },
+        });
+        this.addTokenTemplate('KeywordSwitch', {
+            pattern: {
+                regex: /switch(?![\w])/,
+                type: PgslToken.KeywordSwitch
+            },
+        });
+        this.addTokenTemplate('KeywordVar', {
+            pattern: {
+                regex: /var(?![\w])/,
+                type: PgslToken.KeywordVar
+            },
+        });
+        this.addTokenTemplate('KeywordWhile', {
+            pattern: {
+                regex: /while(?![\w])/,
+                type: PgslToken.KeywordWhile
+            },
+        });
     }
 }

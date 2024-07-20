@@ -124,6 +124,156 @@ describe('PsglLexer', () => {
         });
     });
 
+    describe('-- Template lists', () => {
+        it('-- Identifier in list', () => {
+            // Setup.
+            const lCodeString = `
+                const my_var_name: tem<val>;
+            `;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[3]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[4]).property('type').to.equal(PgslToken.TemplateListStart);
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.TemplateListEnd);
+        });
+
+        it('-- Literal in list', () => {
+            // Setup.
+            const lCodeString = `
+                const my_var_name: tem<120>;
+            `;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[3]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[4]).property('type').to.equal(PgslToken.TemplateListStart);
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.TemplateListEnd);
+        });
+
+        it('-- Literal with prefix in list', () => {
+            // Setup.
+            const lCodeString = `
+                const my_var_name: tem<120f>;
+            `;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[3]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[4]).property('type').to.equal(PgslToken.TemplateListStart);
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.TemplateListEnd);
+        });
+
+        it('-- Template list in list', () => {
+            // Setup.
+            const lCodeString = `
+                const my_var_name: tem<tem<120>>;
+            `;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[3]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[4]).property('type').to.equal(PgslToken.TemplateListStart);
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.TemplateListStart);
+            expect(lTokenList[7]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[8]).property('type').to.equal(PgslToken.TemplateListEnd);
+            expect(lTokenList[9]).property('type').to.equal(PgslToken.TemplateListEnd);
+        });
+
+        it('-- Expression in list', () => {
+            // Setup.
+            const lCodeString = `
+                const my_var_name: tem<exp()>;
+            `;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[3]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[4]).property('type').to.equal(PgslToken.TemplateListStart);
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.ParenthesesStart);
+            expect(lTokenList[7]).property('type').to.equal(PgslToken.ParenthesesEnd);
+            expect(lTokenList[9]).property('type').to.equal(PgslToken.TemplateListEnd);
+        });
+
+        it('-- Expression with greather than in list', () => {
+            // Setup.
+            const lCodeString = `
+                const my_var_name: tem<exp(a > b)>;
+            `;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[3]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[4]).property('type').to.equal(PgslToken.TemplateListStart);
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.ParenthesesStart);
+            expect(lTokenList[7]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[8]).property('type').to.equal(PgslToken.OperatorGreaterThan);
+            expect(lTokenList[9]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[10]).property('type').to.equal(PgslToken.ParenthesesEnd);
+            expect(lTokenList[11]).property('type').to.equal(PgslToken.TemplateListEnd);
+        });
+
+        it('-- Expression with lower than in list', () => {
+            // Setup.
+            const lCodeString = `
+                const my_var_name: tem<exp(a < b)>;
+            `;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[3]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[4]).property('type').to.equal(PgslToken.TemplateListStart);
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.ParenthesesStart);
+            expect(lTokenList[7]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[8]).property('type').to.equal(PgslToken.OperatorGreaterThan);
+            expect(lTokenList[9]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[10]).property('type').to.equal(PgslToken.ParenthesesEnd);
+            expect(lTokenList[11]).property('type').to.equal(PgslToken.TemplateListEnd);
+        });
+
+        it('-- Expression with comparison in list', () => {
+            // Setup.
+            const lCodeString = `
+                const my_var_name: tem<exp(a == b)>;
+            `;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[3]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[4]).property('type').to.equal(PgslToken.TemplateListStart);
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.ParenthesesStart);
+            expect(lTokenList[7]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[8]).property('type').to.equal(PgslToken.OperatorEqual);
+            expect(lTokenList[9]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[10]).property('type').to.equal(PgslToken.ParenthesesEnd);
+            expect(lTokenList[11]).property('type').to.equal(PgslToken.TemplateListEnd);
+        });
+    });
+
     describe('-- Declarations', () => {
         it('-- Global const declaration with literal assignment.', () => {
             // Setup.

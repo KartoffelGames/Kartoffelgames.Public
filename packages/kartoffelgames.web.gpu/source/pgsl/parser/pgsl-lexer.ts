@@ -55,13 +55,9 @@ export class PgslLexer extends Lexer<PgslToken> {
                     type: PgslToken.TemplateListEnd,
                     validator: (pToken: LexerToken<PgslToken>, pText: string, pIndex: number): boolean => {
                         // Init nexting stack.
-                        const lNestingStack: Stack<string> = new Stack<string>();
+                        const lNestingStack: Stack<'(' | '[' | '<'> = new Stack<'(' | '[' | '<'>();
 
                         const lPermittedCodePoints: Set<string> = new Set<string>([';', ':', '{', '}']);
-                        const lPermittedClosingCodePoint: Set<string> = new Set<string>(['>', '=']);
-                        const lNestingOpenCodePoints: Set<string> = new Set<string>(['[', '(']);
-                        const lNestingCloseCodePoints: Set<string> = new Set<string>([']', ')']);
-                        const lShortCircuits: Set<string> = new Set<string>(['&', '|']);
                         const lTemplateListOpeningRegex: RegExp = /(?<=([_\p{XID_Start}][\p{XID_Continue}]+)|([\p{XID_Start}]))<(?![<=])/u;
 
                         // Iterate each code point.
@@ -77,13 +73,13 @@ export class PgslLexer extends Lexer<PgslToken> {
                                 }
 
                                 // Push nestings [, ( 
-                                case (lNestingOpenCodePoints.has(lCurrentCodePoint)): {
+                                case (lCurrentCodePoint === '[' || lCurrentCodePoint === '('): {
                                     lNestingStack.push(lCurrentCodePoint);
                                     break;
                                 }
 
                                 // Pop nested [, ( 
-                                case (lNestingCloseCodePoints.has(lCurrentCodePoint)): {
+                                case (lCurrentCodePoint === ']' || lCurrentCodePoint === ')'): {
                                     const lClosedNesting: string | undefined = lNestingStack.pop();
                                     if (!lClosedNesting) {
                                         return false;
@@ -98,39 +94,8 @@ export class PgslLexer extends Lexer<PgslToken> {
                                     break;
                                 }
 
-                                // Potential nested template list.
-                                case (lCurrentCodePoint === '<'): {
-                                    // TODO: We need nesting :( vec<array<i32>> Triggers early closing.
-
-                                    lTemplateListOpeningRegex.lastIndex = lCurrentTextIndex;
-                                    if(lTemplateListOpeningRegex.exec(pText)) {
-                                        // TODO: Test for something ??
-                                    }
-
-                                    break;
-                                }
-
-                                // Potential template list closing.
-                                case (lCurrentCodePoint === '>'): {
-
-                                    // Ignore it when it is not on the root nesting level.
-                                    if (lNestingStack.size > 0) {
-                                        break;
-                                    }
-
-                                    // When current  code point interferes with the next, advance this code point and continue searching. 
-                                    const lNextCodePoint: string = pText[lCurrentTextIndex + 1];
-                                    if (lPermittedClosingCodePoint.has(lNextCodePoint)) {
-                                        lCurrentTextIndex++;
-                                        break;
-                                    }
-
-                                    // Closing of current template list is found.
-                                    return true;
-                                }
-
-                                // Token can be a comparison.
-                                case (lShortCircuits.has(lCurrentCodePoint)): {
+                                // Token can be a short circuit.
+                                case (lCurrentCodePoint === '|' || lCurrentCodePoint === '&'): {
                                     // Ignore when next code point is not the same char, as it is not a short circuit.
                                     const lNextCodePoint: string = pText[lCurrentTextIndex + 1];
                                     if (lNextCodePoint !== lCurrentCodePoint) {
@@ -150,13 +115,77 @@ export class PgslLexer extends Lexer<PgslToken> {
                                     // The found template list start token is a comparison.
                                     return false;
                                 }
+
+                                // Potential negated comparison.
+                                case (lCurrentCodePoint === '!'): {
+                                    // When a comparisson. Skip = to not trigger a assignment.
+                                    const lNextCodePoint: string = pText[lCurrentTextIndex + 1];
+                                    if (lNextCodePoint === '=') {
+                                        lCurrentTextIndex++;
+                                    }
+
+                                    break;
+                                }
+
+                                // Potential forbidden assignment.
+                                case (lCurrentCodePoint === '='): {
+                                    // When assignment is actually a comparison.
+                                    const lNextCodePoint: string = pText[lCurrentTextIndex + 1];
+                                    if (lNextCodePoint === '=') {
+                                        lCurrentTextIndex++;
+                                        break;
+                                    }
+
+                                    // When assignment is actually a comparison.
+                                    const lPrevCodePoint: string = pText[lCurrentTextIndex - 1];
+                                    if (lPrevCodePoint === '!' || lPrevCodePoint === '<' || lPrevCodePoint === '>') {
+                                        break;
+                                    }
+
+                                    // Forbidden assignment found, current token can not be a template start.
+                                    return true;
+                                }
+
+                                // Potential template list closing.
+                                case (lCurrentCodePoint === '>'): {
+                                    // Currently nothing is nested, if so this closes the template list.
+                                    if (lNestingStack.size === 0) {
+                                        return true;
+                                    }
+
+                                    // Pop current nesting when it closes a nested template list.
+                                    const lCurrentNesting: string = lNestingStack.top!;
+                                    if(lCurrentNesting  === '<') {
+                                        lNestingStack.pop();
+                                    }
+
+                                    break;
+                                }
+
+                                // Potential nested template list.
+                                case (lCurrentCodePoint === '<'): {
+                                    // When template list is actually a comparison or bit shift.
+                                    const lNextCodePoint: string = pText[lCurrentTextIndex + 1];
+                                    if (lNextCodePoint === '=' || lNextCodePoint === '<') {
+                                        lCurrentTextIndex++;
+                                        break;
+                                    }
+
+                                    // Push nested 
+                                    lTemplateListOpeningRegex.lastIndex = lCurrentTextIndex;
+                                    if (lTemplateListOpeningRegex.exec(pText)) {
+                                        lNestingStack.push(lCurrentCodePoint);
+                                    }
+
+                                    break;
+                                }
                             }
 
                             // When nothing special happened, check next code point.
                             lCurrentTextIndex++;
                         }
 
-                        return true;
+                        return false;
                     }
                 },
                 end: {
@@ -166,14 +195,7 @@ export class PgslLexer extends Lexer<PgslToken> {
             }
         }, () => {
             // TODO: Add comma, value, type and enums abd templatelists.
-            // Calulcations need to be inside parentheses
         });
-    }
 
-
-    public override tokenize(pText: string): Generator<LexerToken<PgslToken>> {
-        // TODO: Maybe Add custom templat string implementation to tokenize override that replaces start and end with customs like $<$ and $>$
-
-        return super.tokenize(pText);
     }
 }

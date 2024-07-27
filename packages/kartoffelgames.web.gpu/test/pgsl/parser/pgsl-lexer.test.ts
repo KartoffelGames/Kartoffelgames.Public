@@ -287,8 +287,8 @@ describe('PsglLexer', () => {
             // Evaluation.
             expect(lTokenList[0]).property('type').to.equal(PgslToken.KeywordConst);
             expect(lTokenList[1]).property('type').to.equal(PgslToken.Identifier);
-            expect(lTokenList[2]).property('type').to.equal(PgslToken.TypeDelimiter);
-            expect(lTokenList[3]).property('type').to.equal(PgslToken.Type);
+            expect(lTokenList[2]).property('type').to.equal(PgslToken.Colon);
+            expect(lTokenList[3]).property('type').to.equal(PgslToken.Identifier);
             expect(lTokenList[4]).property('type').to.equal(PgslToken.Assignment);
             expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralFloat);
             expect(lTokenList[6]).property('type').to.equal(PgslToken.Semicolon);

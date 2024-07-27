@@ -1,8 +1,98 @@
+import { Dictionary, Stack } from '@kartoffelgames/core';
 import { Lexer, LexerToken } from '@kartoffelgames/core.parser';
 import { PgslToken } from './pgsl-token.enum';
-import { Stack } from '@kartoffelgames/core';
 
 export class PgslLexer extends Lexer<PgslToken> {
+    /**
+     * Hardcoded system reserved keywords.
+     */
+    private static readonly mKeywords: Dictionary<PgslToken, string> = (() => {
+        const lKeywords: Dictionary<PgslToken, string> = new Dictionary<PgslToken, string>();
+        lKeywords.set(PgslToken.KeywordAlias, 'alias');
+        lKeywords.set(PgslToken.KeywordBreak, 'break');
+        lKeywords.set(PgslToken.KeywordCase, 'case');
+        lKeywords.set(PgslToken.KeywordConst, 'const');
+        lKeywords.set(PgslToken.KeywordConstAssert, 'const_assert');
+        lKeywords.set(PgslToken.KeywordContinue, 'continue');
+        lKeywords.set(PgslToken.KeywordContinuing, 'continuing');
+        lKeywords.set(PgslToken.KeywordDefault, 'default');
+        lKeywords.set(PgslToken.KeywordDiagnostic, 'diagnostic');
+        lKeywords.set(PgslToken.KeywordDiscard, 'discard');
+        lKeywords.set(PgslToken.KeywordElse, 'else');
+        lKeywords.set(PgslToken.KeywordEnable, 'enable');
+        lKeywords.set(PgslToken.KeywordFunction, 'function');
+        lKeywords.set(PgslToken.KeywordFor, 'for');
+        lKeywords.set(PgslToken.KeywordIf, 'if');
+        lKeywords.set(PgslToken.KeywordLet, 'let');
+        lKeywords.set(PgslToken.KeywordLoop, 'loop');
+        lKeywords.set(PgslToken.KeywordOverride, 'override');
+        lKeywords.set(PgslToken.KeywordRequires, 'requires');
+        lKeywords.set(PgslToken.KeywordReturn, 'return');
+        lKeywords.set(PgslToken.KeywordStruct, 'struct');
+        lKeywords.set(PgslToken.KeywordSwitch, 'switch');
+        lKeywords.set(PgslToken.KeywordVar, 'var');
+        lKeywords.set(PgslToken.KeywordWhile, 'while');
+
+        return lKeywords;
+    })();
+
+    /**
+     * Type Value pairs of token used for value operations.
+     */
+    private static readonly mOperations: Dictionary<PgslToken, string> = (() => {
+        const lKeywords: Dictionary<PgslToken, string> = new Dictionary<PgslToken, string>();
+
+        // Math
+        lKeywords.set(PgslToken.OperatorPlus, '-');
+        lKeywords.set(PgslToken.OperatorMinus, '+');
+        lKeywords.set(PgslToken.OperatorMultiply, '*');
+        lKeywords.set(PgslToken.OperatorDivide, '/');
+        lKeywords.set(PgslToken.OperatorModulo, '%');
+
+        // Some other stuff
+        lKeywords.set(PgslToken.OperatorNot, '!');
+        lKeywords.set(PgslToken.OperatorAddress, '&');
+
+        // Compare stuff
+        lKeywords.set(PgslToken.OperatorEqual, '==');
+        lKeywords.set(PgslToken.OperatorGreaterThan, '>');
+        lKeywords.set(PgslToken.OperatorLowerThan, '<');
+        lKeywords.set(PgslToken.ShortCircuitAnd, '&&');
+        lKeywords.set(PgslToken.ShortCircuitOr, '||');
+        lKeywords.set(PgslToken.OperatorGreaterThanEqual, '>=');
+        lKeywords.set(PgslToken.OperatorLowerThanEqual, '<=');
+        lKeywords.set(PgslToken.OperatorNotEqual, '!=');
+
+        // Binary operations
+        lKeywords.set(PgslToken.OperatorBinaryAnd, '&');
+        lKeywords.set(PgslToken.OperatorBinaryOr, '|');
+        lKeywords.set(PgslToken.OperatorBinaryXor, '^');
+        lKeywords.set(PgslToken.OperatorBinaryNegate, '~');
+        lKeywords.set(PgslToken.OperatorShiftLeft, '<<');
+        lKeywords.set(PgslToken.OperatorShiftRight, '>>');
+
+
+        return lKeywords;
+    })();
+
+    /**
+     * List of reserved token values that might be used later.
+     */
+    private static readonly mReservedKeywords: Array<string> = (() => {
+        return ['NULL', 'Self', 'abstract', 'active', 'alignas', 'alignof', 'as', 'asm', 'asm_fragment', 'async', 'attribute', 'auto', 'await',
+            'binding_array', 'cast', 'catch', 'class', 'co_await', 'co_return', 'co_yield', 'coherent', 'column_major', 'common', 'compile',
+            'compile_fragment', 'concept', 'const_cast', 'consteval', 'constexpr', 'constinit', 'crate', 'debugger', 'decltype', 'delete',
+            'demote', 'demote_to_helper', 'do', 'dynamic_cast', 'enum', 'explicit', 'export', 'extends', 'extern', 'external', 'fallthrough',
+            'filter', 'final', 'finally', 'friend', 'from', 'fxgroup', 'get', 'goto', 'groupshared', 'highp', 'impl', 'implements', 'import',
+            'inline', 'instanceof', 'interface', 'layout', 'lowp', 'macro', 'macro_rules', 'match', 'mediump', 'meta', 'mod', 'module', 'move',
+            'mut', 'mutable', 'namespace', 'new', 'nil', 'noexcept', 'noinline', 'nointerpolation', 'noperspective', 'null', 'nullptr', 'of',
+            'operator', 'package', 'packoffset', 'partition', 'pass', 'patch', 'pixelfragment', 'precise', 'precision', 'premerge', 'priv',
+            'protected', 'pub', 'public', 'readonly', 'ref', 'regardless', 'register', 'reinterpret_cast', 'require', 'resource', 'restrict',
+            'self', 'set', 'shared', 'sizeof', 'smooth', 'snorm', 'static', 'static_assert', 'static_cast', 'std', 'subroutine', 'super', 'target',
+            'template', 'this', 'thread_local', 'throw', 'trait', 'try', 'type', 'typedef', 'typeid', 'typename', 'typeof', 'union', 'unless',
+            'unorm', 'unsafe', 'unsized', 'use', 'using', 'varying', 'virtual', 'volatile', 'wgsl', 'where', 'with', 'writeonly', 'yield', 'become'
+        ];
+    })();
 
     public constructor() {
         super();
@@ -27,20 +117,89 @@ export class PgslLexer extends Lexer<PgslToken> {
             },
         });
 
+        // Comma.
+        this.addTokenTemplate('Comma', {
+            pattern: {
+                regex: /,/,
+                type: PgslToken.Comma
+            },
+        });
+
+        // MemberDelimiter.
+        this.addTokenTemplate('MemberDelimiter', {
+            pattern: {
+                regex: /\./,
+                type: PgslToken.MemberDelimiter
+            },
+        });
+
+        // Colon.
+        this.addTokenTemplate('Colon', {
+            pattern: {
+                regex: /:/,
+                type: PgslToken.Colon
+            },
+        });
+
+        // Assignment.
+        this.addTokenTemplate('Assignment', {
+            pattern: {
+                regex: /=/,
+                type: PgslToken.Assignment
+            },
+        });
+
+        // Semicolon.
+        this.addTokenTemplate('Semicolon', {
+            pattern: {
+                regex: /;/,
+                type: PgslToken.Semicolon
+            },
+        });
+
+        // Parentheses.
+        this.addTokenTemplate('ParenthesesStart', {
+            pattern: {
+                regex: /\(/,
+                type: PgslToken.ParenthesesStart
+            },
+        });
+        this.addTokenTemplate('ParenthesesEnd', {
+            pattern: {
+                regex: /\)/,
+                type: PgslToken.ParenthesesEnd
+            },
+        });
+
+        // Block
+        this.addTokenTemplate('BlockStart', {
+            pattern: {
+                regex: /\{/,
+                type: PgslToken.BlockStart
+            },
+        });
+        this.addTokenTemplate('BlockEnd', {
+            pattern: {
+                regex: /\}/,
+                type: PgslToken.BlockEnd
+            },
+        });
+
         // Literal values.
-        this.addTokenTemplate('LiteralIntegerValue', {
+        const lLiteralTemplateList = ['LiteralIntegerValue', 'LiteralFloatValue', 'LiteralIntegerValue'] as const;
+        this.addTokenTemplate(lLiteralTemplateList[0], {
             pattern: {
                 regex: /(0[xX][0-9a-fA-F]+[iu]?)|(0[iu]?)|([1-9][0-9]*[iu]?)/,
                 type: PgslToken.LiteralInteger
             },
         });
-        this.addTokenTemplate('LiteralFloatValue', {
+        this.addTokenTemplate(lLiteralTemplateList[1], {
             pattern: {
                 regex: /(0[xX][0-9a-fA-F]*\.[0-9a-fA-F]+([pP][+-]?[0-9]+[fh]?)?)|(0[xX][0-9a-fA-F]+\.[0-9a-fA-F]*([pP][+-]?[0-9]+[fh]?)?)|(0[xX][0-9a-fA-F]+[pP][+-]?[0-9]+[fh]?)|(0[fh])|([1-9][0-9]*[fh])|([0-9]*\.[0-9]+([eE][+-]?[0-9]+)?[fh]?)|([0-9]+\.[0-9]*([eE][+-]?[0-9]+)?[fh]?)|([0-9]+[eE][+-]?[0-9]+[fh]?)/,
                 type: PgslToken.LiteralFloat
             },
         });
-        this.addTokenTemplate('LiteralIntegerValue', {
+        this.addTokenTemplate(lLiteralTemplateList[2], {
             pattern: {
                 regex: /true|false/,
                 type: PgslToken.LiteralBoolean
@@ -194,153 +353,55 @@ export class PgslLexer extends Lexer<PgslToken> {
                 }
             }
         }, () => {
-            // TODO: Add comma, value, type and enums abd templatelists.
+            lApplyTemplates();
         });
 
-        // TODO: Keywords
-        this.addTokenTemplate('KeywordAlias', {
-            pattern: {
-                regex: /alias(?![\w])/,
-                type: PgslToken.KeywordAlias
-            },
-        });
-        this.addTokenTemplate('KeywordBreak', {
-            pattern: {
-                regex: /break(?![\w])/,
-                type: PgslToken.KeywordBreak
-            },
-        });
-        this.addTokenTemplate('KeywordCase', {
-            pattern: {
-                regex: /case(?![\w])/,
-                type: PgslToken.KeywordCase
-            },
-        });
-        this.addTokenTemplate('KeywordConst', {
-            pattern: {
-                regex: /const(?![\w])/,
-                type: PgslToken.KeywordConst
-            },
-        });
-        this.addTokenTemplate('KeywordConstAssert', {
-            pattern: {
-                regex: /const_assert(?![\w])/,
-                type: PgslToken.KeywordConstAssert
-            },
-        });
-        this.addTokenTemplate('KeywordContinue', {
-            pattern: {
-                regex: /continue(?![\w])/,
-                type: PgslToken.KeywordContinue
-            },
-        });
-        this.addTokenTemplate('KeywordContinuing', {
-            pattern: {
-                regex: /continuing(?![\w])/,
-                type: PgslToken.KeywordContinuing
-            },
-        });
-        this.addTokenTemplate('KeywordDefault', {
-            pattern: {
-                regex: /default(?![\w])/,
-                type: PgslToken.KeywordDefault
-            },
-        });
-        this.addTokenTemplate('KeywordDiagnostic', {
-            pattern: {
-                regex: /diagnostic(?![\w])/,
-                type: PgslToken.KeywordDiagnostic
-            },
-        });
-        this.addTokenTemplate('KeywordDiscard', {
-            pattern: {
-                regex: /discard(?![\w])/,
-                type: PgslToken.KeywordDiscard
-            },
-        });
-        this.addTokenTemplate('KeywordElse', {
-            pattern: {
-                regex: /else(?![\w])/,
-                type: PgslToken.KeywordElse
-            },
-        });
-        this.addTokenTemplate('KeywordEnable', {
-            pattern: {
-                regex: /enable(?![\w])/,
-                type: PgslToken.KeywordEnable
-            },
-        });
-        this.addTokenTemplate('KeywordFunction', {
-            pattern: {
-                regex: /function(?![\w])/,
-                type: PgslToken.KeywordFunction
-            },
-        });
-        this.addTokenTemplate('KeywordFor', {
-            pattern: {
-                regex: /for(?![\w])/,
-                type: PgslToken.KeywordFor
-            },
-        });
-        this.addTokenTemplate('KeywordIf', {
-            pattern: {
-                regex: /if(?![\w])/,
-                type: PgslToken.KeywordIf
-            },
-        });
-        this.addTokenTemplate('KeywordLet', {
-            pattern: {
-                regex: /let(?![\w])/,
-                type: PgslToken.KeywordLet
-            },
-        });
-        this.addTokenTemplate('KeywordLoop', {
-            pattern: {
-                regex: /loop(?![\w])/,
-                type: PgslToken.KeywordLoop
-            },
-        });
-        this.addTokenTemplate('KeywordOverride', {
-            pattern: {
-                regex: /override(?![\w])/,
-                type: PgslToken.KeywordOverride
-            },
-        });
-        this.addTokenTemplate('KeywordRequires', {
-            pattern: {
-                regex: /requires(?![\w])/,
-                type: PgslToken.KeywordRequires
-            },
-        });
-        this.addTokenTemplate('KeywordReturn', {
-            pattern: {
-                regex: /return(?![\w])/,
-                type: PgslToken.KeywordReturn
-            },
-        });
-        this.addTokenTemplate('KeywordStruct', {
-            pattern: {
-                regex: /struct(?![\w])/,
-                type: PgslToken.KeywordStruct
-            },
-        });
-        this.addTokenTemplate('KeywordSwitch', {
-            pattern: {
-                regex: /switch(?![\w])/,
-                type: PgslToken.KeywordSwitch
-            },
-        });
-        this.addTokenTemplate('KeywordVar', {
-            pattern: {
-                regex: /var(?![\w])/,
-                type: PgslToken.KeywordVar
-            },
-        });
-        this.addTokenTemplate('KeywordWhile', {
-            pattern: {
-                regex: /while(?![\w])/,
-                type: PgslToken.KeywordWhile
-            },
-        });
+        // Keywords
+        const lKeywordTemplateList: Array<string> = new Array<string>();
+        for (const [lTokenType, lTokenValue] of PgslLexer.mKeywords) {
+            const lTemplateName: string = 'Keyword' + lTokenType;
+            lKeywordTemplateList.push(lTemplateName);
+
+            this.addTokenTemplate(lTemplateName, {
+                pattern: {
+                    regex: new RegExp(`${lTokenValue}(?![\\w])`),
+                    type: lTokenType
+                },
+            });
+        }
+
+        // ReservedKeywords.
+        const lReservedKeywordTemplateList: Array<string> = new Array<string>();
+        for (const lTokenValue of PgslLexer.mReservedKeywords) {
+            const lTemplateName: string = 'ReservedKeyword' + lTokenValue;
+            lReservedKeywordTemplateList.push(lTemplateName);
+
+            this.addTokenTemplate(lTemplateName, {
+                pattern: {
+                    regex: new RegExp(`${lTokenValue}(?![\\w])`),
+                    type: PgslToken.ReservedKeyword
+                },
+            });
+        }
+
+        // Operations
+        const lOperationTemplateList: Array<string> = new Array<string>();
+        for (const [lTokenType, lTokenValue] of PgslLexer.mOperations) {
+            const lTemplateName: string = 'Operation' + lTokenType;
+            lOperationTemplateList.push(lTemplateName);
+
+            this.addTokenTemplate(lTemplateName, {
+                pattern: {
+                    regex: new RegExp(lTokenValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+                    type: lTokenType
+                },
+            });
+        }
+
+
+        // TODO: Apply templates with specificity.
+        const lApplyTemplates = () => {
+
+        };
     }
 }

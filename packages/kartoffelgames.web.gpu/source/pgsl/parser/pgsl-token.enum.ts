@@ -3,11 +3,11 @@ export enum PgslToken {
     Identifier = 'Identifier',
     Comment = 'Comment',
     Comma = 'Comma',
-    Dot = 'Dot',
-    TypeDelimiter = 'TypeDelimiter',
+    MemberDelimiter = 'MemberDelimiter',
+    Colon = 'colon',
     Assignment = 'Assignment',
-    Type = 'Type',
     Semicolon = 'Semicolon',
+    ReservedKeyword = 'ReservedKeyword',
 
     // Operators
     OperatorPlus = 'OperatorPlus',
@@ -27,7 +27,10 @@ export enum PgslToken {
     OperatorBinaryAnd = 'OperatorBinaryAnd',
     OperatorBinaryOr = 'OperatorBinaryOr',
     OperatorBinaryXor = 'OperatorBinaryXor',
-    OperatorBinaryNot = 'OperatorBinaryNot',
+    OperatorBinaryNegate = 'OperatorBinaryNot',
+    ShortCircuitAnd = 'ShortCircuitAnd',
+    ShortCircuitOr = 'ShortCircuitOr',
+    OperatorNotEqual = 'OperatorNotEqual',
 
     // Template lists
     TemplateListStart = 'TemplateListStart',
@@ -45,9 +48,6 @@ export enum PgslToken {
     LiteralBoolean = 'LiteralBoolean',
     LiteralInteger = 'LiteralInteger',
     LiteralFloat = 'LiteralFloat',
-
-    // Enums // TODO: Maybe better to be a ident.
-    ContextDependentName = 'ContextDependentName',
 
     // Keywords
     KeywordAlias = 'KeywordAlias',

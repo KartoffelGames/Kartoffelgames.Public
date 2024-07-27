@@ -2,10 +2,10 @@ import { PgslAttributes } from './pgsl-attributes';
 import { PgslType } from './type/pgsl-type';
 
 export class PgslVariable {
-    private readonly mName: string;
-    private readonly mType: PgslType;
-    private readonly mModifier: PxslVariableModifier;
-    private readonly mAttributes: Array<PgslAttributes>;
+    private readonly mName!: string;
+    private readonly mType!: PgslType;
+    private readonly mModifier!: PxslVariableModifier;
+    private readonly mAttributes!: Array<PgslAttributes>;
 
     /**
      * Get variable name.

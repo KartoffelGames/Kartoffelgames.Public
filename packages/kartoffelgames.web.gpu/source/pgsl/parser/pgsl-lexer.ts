@@ -186,7 +186,7 @@ export class PgslLexer extends Lexer<PgslToken> {
         });
 
         // Literal values.
-        const lLiteralTemplateList = ['LiteralIntegerValue', 'LiteralFloatValue', 'LiteralIntegerValue'] as const;
+        const lLiteralTemplateList = ['LiteralIntegerValue', 'LiteralFloatValue', 'LiteralBooleanValue'] as const;
         this.addTokenTemplate(lLiteralTemplateList[0], {
             pattern: {
                 regex: /(0[xX][0-9a-fA-F]+[iu]?)|(0[iu]?)|([1-9][0-9]*[iu]?)/,

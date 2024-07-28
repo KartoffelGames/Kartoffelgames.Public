@@ -166,7 +166,44 @@ describe('PsglLexer', () => {
                 expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
             });
 
-            // TODO: Hex
+            it('-- Hex value without suffix.', () => {
+                // Setup.
+                const lCodeString = `
+                    const my_var_name: i32 = 0x123;
+                `;
+
+                // Process.
+                const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+                // Evaluation.
+                expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
+            });
+
+            it('-- Hex value with u suffix.', () => {
+                // Setup.
+                const lCodeString = `
+                    const my_var_name: u32 = 0x123u;
+                `;
+
+                // Process.
+                const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+                // Evaluation.
+                expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
+            });
+
+            it('-- Hex value with ending f value.', () => {
+                // Setup.
+                const lCodeString = `
+                    const my_var_name: i32 = 0x3f;
+                `;
+
+                // Process.
+                const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+                // Evaluation.
+                expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
+            });
         });
 
         describe('-- Boolean', () => {

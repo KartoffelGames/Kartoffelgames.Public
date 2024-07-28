@@ -99,7 +99,7 @@ describe('PsglLexer', () => {
                 expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralFloat);
             });
 
-            it('-- Positive hex value with f suffix.', () => {
+            it('-- Hex value with ending f value.', () => {
                 // Setup.
                 const lCodeString = `
                     const my_var_name: f32 = 0.e+4f;
@@ -112,7 +112,7 @@ describe('PsglLexer', () => {
                 expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralFloat);
             });
 
-            it('-- Negative hex value with f suffix.', () => {
+            it('-- Hex value with zero integer.', () => {
                 // Setup.
                 const lCodeString = `
                     const my_var_name: f32 = 1e-3;

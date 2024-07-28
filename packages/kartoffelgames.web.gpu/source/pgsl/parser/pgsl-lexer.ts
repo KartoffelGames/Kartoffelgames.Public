@@ -158,31 +158,35 @@ export class PgslLexer extends Lexer<PgslToken> {
         });
 
         // Parentheses.
-        this.addTokenTemplate('ParenthesesStart', {
+        this.addTokenTemplate('Parentheses', {
             pattern: {
-                regex: /\(/,
-                type: PgslToken.ParenthesesStart
-            },
-        });
-        this.addTokenTemplate('ParenthesesEnd', {
-            pattern: {
-                regex: /\)/,
+                start: {
+                    regex: /\(/,
+                    type: PgslToken.ParenthesesStart
+                },
+                end: {
+                    regex: /\)/,
                 type: PgslToken.ParenthesesEnd
-            },
+                }
+            }
+        }, () => {
+            lApplyTemplates();
         });
 
         // Block
-        this.addTokenTemplate('BlockStart', {
+        this.addTokenTemplate('Block', {
             pattern: {
-                regex: /\{/,
-                type: PgslToken.BlockStart
-            },
-        });
-        this.addTokenTemplate('BlockEnd', {
-            pattern: {
-                regex: /\}/,
-                type: PgslToken.BlockEnd
-            },
+                start: {
+                    regex: /\{/,
+                    type: PgslToken.BlockStart
+                },
+                end: {
+                    regex: /\}/,
+                    type: PgslToken.BlockEnd
+                }
+            }
+        }, () => {
+            lApplyTemplates();
         });
 
         // Literal values.
@@ -408,10 +412,8 @@ export class PgslLexer extends Lexer<PgslToken> {
             this.useTokenTemplate('MemberDelimiter', 1);
             this.useTokenTemplate('Colon', 1);
             this.useTokenTemplate('Semicolon', 1);
-            this.useTokenTemplate('BlockStart', 1);
-            this.useTokenTemplate('BlockEnd', 1);
-            this.useTokenTemplate('ParenthesesStart', 1);
-            this.useTokenTemplate('ParenthesesEnd', 1);
+            this.useTokenTemplate('Block', 1);
+            this.useTokenTemplate('Parentheses', 1);
 
             // Tokens with ambiguity. 
             this.useTokenTemplate('Assignment', 1);

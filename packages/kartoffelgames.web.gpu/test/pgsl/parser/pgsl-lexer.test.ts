@@ -207,7 +207,7 @@ describe('PsglLexer', () => {
             expect(lTokenList[5]).property('type').to.equal(PgslToken.Identifier);
             expect(lTokenList[6]).property('type').to.equal(PgslToken.ParenthesesStart);
             expect(lTokenList[7]).property('type').to.equal(PgslToken.ParenthesesEnd);
-            expect(lTokenList[9]).property('type').to.equal(PgslToken.TemplateListEnd);
+            expect(lTokenList[8]).property('type').to.equal(PgslToken.TemplateListEnd);
         });
 
         it('-- Expression with greather than in list', () => {

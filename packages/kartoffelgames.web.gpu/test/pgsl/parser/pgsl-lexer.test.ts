@@ -292,6 +292,163 @@ describe('PsglLexer', () => {
         });
     });
 
+    describe('-- Assignments', ()=>{
+        it('-- Assignment', () => {
+            // Setup.
+            const lCodeString = `my_var_name = 1.0;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[1]).property('type').to.equal(PgslToken.Assignment);
+            expect(lTokenList[2]).property('type').to.equal(PgslToken.LiteralFloat);
+            expect(lTokenList[3]).property('type').to.equal(PgslToken.Semicolon);
+        });
+
+        it('-- Assignment with plus', () => {
+            // Setup.
+            const lCodeString = `my_var_name += 1.0;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[1]).property('type').to.equal(PgslToken.AssignmentPlus);
+            expect(lTokenList[2]).property('type').to.equal(PgslToken.LiteralFloat);
+            expect(lTokenList[3]).property('type').to.equal(PgslToken.Semicolon);
+        });
+
+        it('-- Assignment with minus', () => {
+            // Setup.
+            const lCodeString = `my_var_name -= 1.0;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[1]).property('type').to.equal(PgslToken.AssignmentMinus);
+            expect(lTokenList[2]).property('type').to.equal(PgslToken.LiteralFloat);
+            expect(lTokenList[3]).property('type').to.equal(PgslToken.Semicolon);
+        });
+
+        it('-- Assignment with multiply', () => {
+            // Setup.
+            const lCodeString = `my_var_name *= 1.0;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[1]).property('type').to.equal(PgslToken.AssignmentMultiply);
+            expect(lTokenList[2]).property('type').to.equal(PgslToken.LiteralFloat);
+            expect(lTokenList[3]).property('type').to.equal(PgslToken.Semicolon);
+        });
+
+        it('-- Assignment with divide', () => {
+            // Setup.
+            const lCodeString = `my_var_name /= 1.0;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[1]).property('type').to.equal(PgslToken.AssignmentDivide);
+            expect(lTokenList[2]).property('type').to.equal(PgslToken.LiteralFloat);
+            expect(lTokenList[3]).property('type').to.equal(PgslToken.Semicolon);
+        });
+
+        it('-- Assignment with modulo', () => {
+            // Setup.
+            const lCodeString = `my_var_name %= 1.0;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[1]).property('type').to.equal(PgslToken.AssignmentModulo);
+            expect(lTokenList[2]).property('type').to.equal(PgslToken.LiteralFloat);
+            expect(lTokenList[3]).property('type').to.equal(PgslToken.Semicolon);
+        });
+
+        it('-- Assignment with binary and', () => {
+            // Setup.
+            const lCodeString = `my_var_name &= 1.0;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[1]).property('type').to.equal(PgslToken.AssignmentBinaryAnd);
+            expect(lTokenList[2]).property('type').to.equal(PgslToken.LiteralFloat);
+            expect(lTokenList[3]).property('type').to.equal(PgslToken.Semicolon);
+        });
+
+        it('-- Assignment with binary or', () => {
+            // Setup.
+            const lCodeString = `my_var_name |= 1.0;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[1]).property('type').to.equal(PgslToken.AssignmentBinaryOr);
+            expect(lTokenList[2]).property('type').to.equal(PgslToken.LiteralFloat);
+            expect(lTokenList[3]).property('type').to.equal(PgslToken.Semicolon);
+        });
+
+        it('-- Assignment with binary xor', () => {
+            // Setup.
+            const lCodeString = `my_var_name ^= 1.0;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[1]).property('type').to.equal(PgslToken.AssignmentBinaryXor);
+            expect(lTokenList[2]).property('type').to.equal(PgslToken.LiteralFloat);
+            expect(lTokenList[3]).property('type').to.equal(PgslToken.Semicolon);
+        });
+
+        it('-- Assignment with shift right', () => {
+            // Setup.
+            const lCodeString = `my_var_name >>= 1.0;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[1]).property('type').to.equal(PgslToken.AssignmentShiftRight);
+            expect(lTokenList[2]).property('type').to.equal(PgslToken.LiteralFloat);
+            expect(lTokenList[3]).property('type').to.equal(PgslToken.Semicolon);
+        });
+
+        it('-- Assignment with shift left', () => {
+            // Setup.
+            const lCodeString = `my_var_name <<= 1.0;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[1]).property('type').to.equal(PgslToken.AssignmentShiftLeft);
+            expect(lTokenList[2]).property('type').to.equal(PgslToken.LiteralFloat);
+            expect(lTokenList[3]).property('type').to.equal(PgslToken.Semicolon);
+        });
+
+    });
+
     describe('-- Declarations', () => {
         it('-- Global const declaration with literal assignment.', () => {
             // Setup.

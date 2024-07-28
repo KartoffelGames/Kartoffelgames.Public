@@ -5,10 +5,22 @@ export enum PgslToken {
     Comma = 'Comma',
     MemberDelimiter = 'MemberDelimiter',
     Colon = 'colon',
-    Assignment = 'Assignment',
     Semicolon = 'Semicolon',
     ReservedKeyword = 'ReservedKeyword',
     AttributeIndicator = 'AttributeIndicator',
+
+    // Assignments
+    Assignment = 'Assignment',
+    AssignmentPlus = 'AssignmentPlus',
+    AssignmentMinus = 'AssignmentMinus',
+    AssignmentMultiply = 'AssignmentMultiply',
+    AssignmentDivide = 'AssignmentDivide',
+    AssignmentModulo = 'AssignmentModulo',
+    AssignmentBinaryAnd = 'AssignmentBinaryAnd',
+    AssignmentBinaryOr = 'AssignmentBinaryOr',
+    AssignmentBinaryXor = 'AssignmentBinaryXor',
+    AssignmentShiftRight = 'AssignmentShiftRight',
+    AssignmentShiftLeft = 'AssignmentShiftLeft',
 
     // Operators
     OperatorPlus = 'OperatorPlus',

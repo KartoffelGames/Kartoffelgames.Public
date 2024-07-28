@@ -4,6 +4,26 @@ import { PgslToken } from './pgsl-token.enum';
 
 export class PgslLexer extends Lexer<PgslToken> {
     /**
+     * Type Value pairs of token used for value assignments.
+     */
+    private static readonly mAssignments: Dictionary<PgslToken, string> = (() => {
+        const lKeywords: Dictionary<PgslToken, string> = new Dictionary<PgslToken, string>();
+        lKeywords.set(PgslToken.Assignment, '=');
+        lKeywords.set(PgslToken.AssignmentPlus, '+=');
+        lKeywords.set(PgslToken.AssignmentMinus, '-=');
+        lKeywords.set(PgslToken.AssignmentMultiply, '*=');
+        lKeywords.set(PgslToken.AssignmentDivide, '/=');
+        lKeywords.set(PgslToken.AssignmentModulo, '%=');
+        lKeywords.set(PgslToken.AssignmentBinaryAnd, '&=');
+        lKeywords.set(PgslToken.AssignmentBinaryOr, '|=');
+        lKeywords.set(PgslToken.AssignmentBinaryXor, '^=');
+        lKeywords.set(PgslToken.AssignmentShiftRight, '>>=');
+        lKeywords.set(PgslToken.AssignmentShiftLeft, '<<=');
+
+        return lKeywords;
+    })();
+
+    /**
      * Hardcoded system reserved keywords.
      */
     private static readonly mKeywords: Dictionary<PgslToken, string> = (() => {
@@ -141,14 +161,6 @@ export class PgslLexer extends Lexer<PgslToken> {
             },
         });
 
-        // Assignment.
-        this.addTokenTemplate('Assignment', {
-            pattern: {
-                regex: /=/,
-                type: PgslToken.Assignment
-            },
-        });
-
         // Semicolon.
         this.addTokenTemplate('Semicolon', {
             pattern: {
@@ -196,6 +208,20 @@ export class PgslLexer extends Lexer<PgslToken> {
         }, () => {
             lApplyTemplates();
         });
+
+        // Assignments.
+        const lAssignmentTemplateList: Array<string> = new Array<string>();
+        for (const [lTokenType, lTokenValue] of PgslLexer.mAssignments) {
+            const lTemplateName: string = 'Assignment' + lTokenType;
+            lAssignmentTemplateList.push(lTemplateName);
+
+            this.addTokenTemplate(lTemplateName, {
+                pattern: {
+                    regex: new RegExp(lTokenValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+                    type: lTokenType
+                },
+            });
+        }
 
         // Literal values.
         const lLiteralTemplateList = ['LiteralIntegerValue', 'LiteralFloatValue', 'LiteralBooleanValue'] as const;
@@ -431,8 +457,12 @@ export class PgslLexer extends Lexer<PgslToken> {
             this.useTokenTemplate('Parentheses', 1);
 
             // Tokens with ambiguity. 
-            this.useTokenTemplate('Assignment', 1);
             this.useTokenTemplate('TemplateList', 1);
+
+            // Assignments.
+            for (const lTemplateName of lAssignmentTemplateList) {
+                this.useTokenTemplate(lTemplateName, 1);
+            }
 
             // Literals.
             for (const lTemplateName of lLiteralTemplateList) {

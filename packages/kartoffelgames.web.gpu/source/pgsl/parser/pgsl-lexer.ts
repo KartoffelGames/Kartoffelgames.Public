@@ -157,6 +157,14 @@ export class PgslLexer extends Lexer<PgslToken> {
             },
         });
 
+        // AttributeIndicator.
+        this.addTokenTemplate('AttributeIndicator', {
+            pattern: {
+                regex: /@/,
+                type: PgslToken.AttributeIndicator
+            },
+        });
+
         // Parentheses.
         this.addTokenTemplate('Parentheses', {
             pattern: {
@@ -166,7 +174,7 @@ export class PgslLexer extends Lexer<PgslToken> {
                 },
                 end: {
                     regex: /\)/,
-                type: PgslToken.ParenthesesEnd
+                    type: PgslToken.ParenthesesEnd
                 }
             }
         }, () => {
@@ -214,7 +222,7 @@ export class PgslLexer extends Lexer<PgslToken> {
         this.addTokenTemplate('TemplateList', {
             pattern: {
                 start: {
-                    regex: /(?<=([_\p{XID_Start}][\p{XID_Continue}]+)|([\p{XID_Start}]))<(?![<=])/u, // TODO: a<b || b>c will be detected.
+                    regex: /(?<=([_\p{XID_Start}][\p{XID_Continue}]+)|([\p{XID_Start}]))<(?![<=])/u,
                     type: PgslToken.TemplateListStart,
                     validator: (pToken: LexerToken<PgslToken>, pText: string, pIndex: number): boolean => {
                         // Init nexting stack.
@@ -243,7 +251,14 @@ export class PgslLexer extends Lexer<PgslToken> {
 
                                 // Pop nested [, ( 
                                 case (lCurrentCodePoint === ']' || lCurrentCodePoint === ')'): {
-                                    const lClosedNesting: string | undefined = lNestingStack.pop();
+                                    let lClosedNesting: string | undefined = lNestingStack.pop();
+
+                                    // Nested template list was a comparison. Pop the next nesting.
+                                    if (lClosedNesting === '<') {
+                                        lClosedNesting = lNestingStack.pop();
+                                    }
+
+                                    // When something that should be nested, was not nested, then something is very off.
                                     if (!lClosedNesting) {
                                         return false;
                                     }
@@ -306,7 +321,7 @@ export class PgslLexer extends Lexer<PgslToken> {
                                     }
 
                                     // Forbidden assignment found, current token can not be a template start.
-                                    return true;
+                                    return false;
                                 }
 
                                 // Potential template list closing.

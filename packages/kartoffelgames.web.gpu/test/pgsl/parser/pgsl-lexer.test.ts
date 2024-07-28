@@ -246,7 +246,7 @@ describe('PsglLexer', () => {
             expect(lTokenList[5]).property('type').to.equal(PgslToken.Identifier);
             expect(lTokenList[6]).property('type').to.equal(PgslToken.ParenthesesStart);
             expect(lTokenList[7]).property('type').to.equal(PgslToken.Identifier);
-            expect(lTokenList[8]).property('type').to.equal(PgslToken.OperatorGreaterThan);
+            expect(lTokenList[8]).property('type').to.equal(PgslToken.OperatorLowerThan);
             expect(lTokenList[9]).property('type').to.equal(PgslToken.Identifier);
             expect(lTokenList[10]).property('type').to.equal(PgslToken.ParenthesesEnd);
             expect(lTokenList[11]).property('type').to.equal(PgslToken.TemplateListEnd);
@@ -271,6 +271,24 @@ describe('PsglLexer', () => {
             expect(lTokenList[9]).property('type').to.equal(PgslToken.Identifier);
             expect(lTokenList[10]).property('type').to.equal(PgslToken.ParenthesesEnd);
             expect(lTokenList[11]).property('type').to.equal(PgslToken.TemplateListEnd);
+        });
+
+        it('-- Ignore short circuit lower and greater comparisons', () => {
+            // Setup.
+            const lCodeString = `a<b || b>c;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[1]).property('type').to.equal(PgslToken.OperatorLowerThan);
+            expect(lTokenList[2]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[3]).property('type').to.equal(PgslToken.ShortCircuitOr);
+            expect(lTokenList[4]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.OperatorGreaterThan);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[7]).property('type').to.equal(PgslToken.Semicolon);
         });
     });
 

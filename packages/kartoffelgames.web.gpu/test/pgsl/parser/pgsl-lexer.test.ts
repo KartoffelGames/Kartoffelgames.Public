@@ -91,7 +91,7 @@ describe('PsglLexer', () => {
                 const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
 
                 // Evaluation.
-                expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralFloat);
+                expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
             });
 
             it('-- Signed Integer value with i suffix.', () => {
@@ -104,7 +104,7 @@ describe('PsglLexer', () => {
                 const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
 
                 // Evaluation.
-                expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralFloat);
+                expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
             });
 
             it('-- Unsigned Integer value with u suffix.', () => {
@@ -117,7 +117,7 @@ describe('PsglLexer', () => {
                 const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
 
                 // Evaluation.
-                expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralFloat);
+                expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
             });
 
             // TODO: Hex
@@ -169,7 +169,7 @@ describe('PsglLexer', () => {
             // Evaluation.
             expect(lTokenList[3]).property('type').to.equal(PgslToken.Identifier);
             expect(lTokenList[4]).property('type').to.equal(PgslToken.TemplateListStart);
-            expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralFloat);
             expect(lTokenList[6]).property('type').to.equal(PgslToken.TemplateListEnd);
         });
 

@@ -211,7 +211,7 @@ export class PgslLexer extends Lexer<PgslToken> {
             pattern: {
                 start: {
                     regex: /(?<=([_\p{XID_Start}][\p{XID_Continue}]+)|([\p{XID_Start}]))<(?![<=])/u, // TODO: a<b || b>c will be detected.
-                    type: PgslToken.TemplateListEnd,
+                    type: PgslToken.TemplateListStart,
                     validator: (pToken: LexerToken<PgslToken>, pText: string, pIndex: number): boolean => {
                         // Init nexting stack.
                         const lNestingStack: Stack<'(' | '[' | '<'> = new Stack<'(' | '[' | '<'>();
@@ -398,10 +398,48 @@ export class PgslLexer extends Lexer<PgslToken> {
             });
         }
 
-
-        // TODO: Apply templates with specificity.
+        // Apply templates with specificity.
         const lApplyTemplates = () => {
+            // Comments.
+            this.useTokenTemplate('Comment', 0);
 
+            // Structoring tokens.
+            this.useTokenTemplate('Comma', 1);
+            this.useTokenTemplate('MemberDelimiter', 1);
+            this.useTokenTemplate('Colon', 1);
+            this.useTokenTemplate('Semicolon', 1);
+            this.useTokenTemplate('BlockStart', 1);
+            this.useTokenTemplate('BlockEnd', 1);
+            this.useTokenTemplate('ParenthesesStart', 1);
+            this.useTokenTemplate('ParenthesesEnd', 1);
+
+            // Tokens with ambiguity. 
+            this.useTokenTemplate('Assignment', 1);
+            this.useTokenTemplate('TemplateList', 1);
+
+            // Literals.
+            for (const lTemplateName of lLiteralTemplateList) {
+                this.useTokenTemplate(lTemplateName, 1);
+            }
+
+            // Keywords.
+            for (const lTemplateName of lKeywordTemplateList) {
+                this.useTokenTemplate(lTemplateName, 1);
+            }
+
+            // Reserved keywords.
+            for (const lTemplateName of lReservedKeywordTemplateList) {
+                this.useTokenTemplate(lTemplateName, 1);
+            }
+
+            // Operations.
+            for (const lTemplateName of lOperationTemplateList) {
+                this.useTokenTemplate(lTemplateName, 1);
+            }
+
+            this.useTokenTemplate('Identifier', 99);
         };
+
+        lApplyTemplates();
     }
 }

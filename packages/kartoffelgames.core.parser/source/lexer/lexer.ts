@@ -358,9 +358,7 @@ export class Lexer<TTokenType extends string> {
      * 
      * @returns The found token based on {@link pPattern} and additionally the an error token when the cursor has errors stored. 
      */
-    private findNextTokenAndMove(pPattern: LexerPatternDefinition<TTokenType>, pTokenMatchDefinition: LexerPatternDefinitionMatcher<TTokenType>, pTokenTypes: LexerPatternDefinitionType<TTokenType>, pCursor: LexerCursor, pCurrentMetas: Array<string>, pForcedType: TTokenType | null): Array<LexerToken<TTokenType>> {
-        const lTokenList: Array<LexerToken<TTokenType>> = new Array<LexerToken<TTokenType>>();
-
+    private findNextToken(pPattern: LexerPatternDefinition<TTokenType>, pTokenMatchDefinition: LexerPatternDefinitionMatcher<TTokenType>, pTokenTypes: LexerPatternDefinitionType<TTokenType>, pCursor: LexerCursor, pCurrentMetas: Array<string>, pForcedType: TTokenType | null): LexerToken<TTokenType> | null {
         // Set token regex and start matching at current cursor position.
         const lTokenRegex: RegExp = pTokenMatchDefinition.regex;
         lTokenRegex.lastIndex = pCursor.cursorPosition;
@@ -368,7 +366,7 @@ export class Lexer<TTokenType extends string> {
         // Try to match pattern. Pattern is valid when matched from first character.
         const lTokenStartMatch: RegExpExecArray | null = lTokenRegex.exec(pCursor.data);
         if (!lTokenStartMatch || lTokenStartMatch.index !== pCursor.cursorPosition) {
-            return lTokenList; // Empty list.
+            return null;
         }
 
         // Generate single token, move cursor and yield.
@@ -376,22 +374,10 @@ export class Lexer<TTokenType extends string> {
 
         // Validate token with optional validator.
         if (pTokenMatchDefinition.validator && !pTokenMatchDefinition.validator(lSingleToken, pCursor.data, pCursor.cursorPosition)) {
-            return lTokenList; // Empty list.
+            return null;
         }
 
-        // Move cursor when any validation has passed.
-        this.moveCursor(pCursor, lSingleToken.value);
-
-        // Yield error token when a next valid token was found.
-        const lErrorToken: LexerToken<TTokenType> | null = this.generateErrorToken(pCursor, pCurrentMetas);
-        if (lErrorToken) {
-            lTokenList.push(lErrorToken);
-        }
-
-        // Add found token to token list.
-        lTokenList.push(lSingleToken);
-
-        return lTokenList;
+        return lSingleToken;
     }
 
     /**
@@ -570,12 +556,19 @@ export class Lexer<TTokenType extends string> {
                 const lTokenTypes: LexerPatternDefinitionType<TTokenType> = pEndToken.pattern.end.types;
 
                 // Try to find end token.
-                const lFoundTokenList: Array<LexerToken<TTokenType>> = this.findNextTokenAndMove(pEndToken, lEndTokenMatcher, lTokenTypes, pCursor, pParentMetas, pForcedType);
-                if (lFoundTokenList.length !== 0) {
-                    // Yield all token.
-                    for (const lToken of lFoundTokenList) {
-                        yield lToken;
+                const lFoundToken: LexerToken<TTokenType> | null = this.findNextToken(pEndToken, lEndTokenMatcher, lTokenTypes, pCursor, pParentMetas, pForcedType);
+                if (lFoundToken !== null) {
+                    // Move cursor when any validation has passed.
+                    this.moveCursor(pCursor, lFoundToken.value);
+
+                    // Yield error token when a next valid token was found.
+                    const lErrorToken: LexerToken<TTokenType> | null = this.generateErrorToken(pCursor, pParentMetas);
+                    if (lErrorToken) {
+                        yield lErrorToken;
                     }
+
+                    // Yield found token.
+                    yield lFoundToken;
 
                     // Exit inner recursion when the end was found.
                     return;
@@ -583,6 +576,7 @@ export class Lexer<TTokenType extends string> {
             }
 
             // Iterate available token pattern.
+            let lBestFoundToken: { pattern: LexerPatternDefinition<TTokenType>, token: LexerToken<TTokenType>; definition: LexerPatternScopeDefinition<TTokenType>; } | null = null;
             for (const lPatternScopeDefinition of lPatternScopeDefinitionList) {
                 const lTokenPattern = lPatternScopeDefinition.definition;
 
@@ -593,15 +587,45 @@ export class Lexer<TTokenType extends string> {
                 const lTokenTypes: LexerPatternDefinitionType<TTokenType> = (lTokenPattern.patternType === 'single') ? lTokenPattern.pattern.single.types : lTokenPattern.pattern.start.types;
 
                 // Try to find next token.
-                const lFoundTokenList: Array<LexerToken<TTokenType>> = this.findNextTokenAndMove(lTokenPattern, lStartTokenMatcher, lTokenTypes, pCursor, pParentMetas, pForcedType);
-                if (lFoundTokenList.length === 0) {
+                const lFoundToken: LexerToken<TTokenType> | null = this.findNextToken(lTokenPattern, lStartTokenMatcher, lTokenTypes, pCursor, pParentMetas, pForcedType);
+                if (lFoundToken === null) {
                     continue;
                 }
 
-                // Yield all token.
-                for (const lToken of lFoundTokenList) {
-                    yield lToken;
+                // When a good token with a better specificity was found, keep it.
+                if (lBestFoundToken && lBestFoundToken.definition.specificity !== lPatternScopeDefinition.specificity) {
+                    break;
                 }
+
+                // Prefer longer token over shorter, but keep when current when they have the same length.
+                if(lBestFoundToken && lBestFoundToken.token.value.length >= lFoundToken.value.length){
+                    continue;
+                }
+
+                // Save best token.
+                lBestFoundToken = {
+                    definition: lPatternScopeDefinition,
+                    pattern: lTokenPattern,
+                    token: lFoundToken
+                };
+            }
+
+            // Iterate available token pattern.
+            if (lBestFoundToken) {
+                const lFoundToken: LexerToken<TTokenType> = lBestFoundToken.token;
+                const lTokenPattern: LexerPatternDefinition<TTokenType> = lBestFoundToken.pattern;
+
+                // Move cursor when any validation has passed.
+                this.moveCursor(pCursor, lFoundToken.value);
+
+                // Yield error token when a next valid token was found.
+                const lErrorToken: LexerToken<TTokenType> | null = this.generateErrorToken(pCursor, pParentMetas);
+                if (lErrorToken) {
+                    yield lErrorToken;
+                }
+
+                // Yield found token.
+                yield lFoundToken;
 
                 // Continue with next token when the current pattern is a single value pattern.
                 if (lTokenPattern.patternType === 'single') {

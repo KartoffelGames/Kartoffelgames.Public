@@ -21,6 +21,32 @@ describe('PsglLexer', () => {
                 expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralFloat);
             });
 
+            it('-- Decimal value with missing decimal value.', () => {
+                // Setup.
+                const lCodeString = `
+                    const my_var_name: f32 = 01.;
+                `;
+
+                // Process.
+                const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+                // Evaluation.
+                expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralFloat);
+            });
+
+            it('-- Decimal value with missing integer value.', () => {
+                // Setup.
+                const lCodeString = `
+                    const my_var_name: f32 = .01;
+                `;
+
+                // Process.
+                const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+                // Evaluation.
+                expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralFloat);
+            });
+
             it('-- Decimal value with f suffix.', () => {
                 // Setup.
                 const lCodeString = `
@@ -60,7 +86,7 @@ describe('PsglLexer', () => {
                 expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralFloat);
             });
 
-            it('-- Integer value with f suffix.', () => {
+            it('-- Integer value with h suffix.', () => {
                 // Setup.
                 const lCodeString = `
                     const my_var_name: f32 = 1h;
@@ -73,11 +99,31 @@ describe('PsglLexer', () => {
                 expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralFloat);
             });
 
-            // TODO: const a = 0.e+4f;
-            // TODO: const h = 1e-3;
-            // TODO: const h = 1e-3;
-            // TODO: const b = 01.;
-            // TODO: const c = .01;
+            it('-- Positive hex value with f suffix.', () => {
+                // Setup.
+                const lCodeString = `
+                    const my_var_name: f32 = 0.e+4f;
+                `;
+
+                // Process.
+                const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+                // Evaluation.
+                expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralFloat);
+            });
+
+            it('-- Negative hex value with f suffix.', () => {
+                // Setup.
+                const lCodeString = `
+                    const my_var_name: f32 = 1e-3;
+                `;
+
+                // Process.
+                const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+                // Evaluation.
+                expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralFloat);
+            });
         });
 
         describe('-- Integer', () => {
@@ -121,6 +167,34 @@ describe('PsglLexer', () => {
             });
 
             // TODO: Hex
+        });
+
+        describe('-- Boolean', () => {
+            it('-- true', () => {
+                // Setup.
+                const lCodeString = `
+                    const my_var_name: bool = true;
+                `;
+
+                // Process.
+                const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+                // Evaluation.
+                expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralBoolean);
+            });
+
+            it('-- false', () => {
+                // Setup.
+                const lCodeString = `
+                    const my_var_name: bool = false;
+                `;
+
+                // Process.
+                const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+                // Evaluation.
+                expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralBoolean);
+            });
         });
     });
 
@@ -292,7 +366,7 @@ describe('PsglLexer', () => {
         });
     });
 
-    describe('-- Assignments', ()=>{
+    describe('-- Assignments', () => {
         it('-- Assignment', () => {
             // Setup.
             const lCodeString = `my_var_name = 1.0;`;

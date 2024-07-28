@@ -29,7 +29,6 @@ export enum PgslToken {
     OperatorDivide = 'OperatorDivide',
     OperatorModulo = 'OperatorModulo',
     OperatorNot = 'OperatorNot',
-    OperatorAddress = 'OperatorAddress',
     OperatorShiftLeft = 'OperatorShiftLeft',
     OperatorShiftRight = 'OperatorShiftRight',
     OperatorGreaterThan = 'OperatorGreaterThan',

@@ -63,15 +63,14 @@ export class PgslLexer extends Lexer<PgslToken> {
         const lKeywords: Dictionary<PgslToken, string> = new Dictionary<PgslToken, string>();
 
         // Math
-        lKeywords.set(PgslToken.OperatorPlus, '-');
-        lKeywords.set(PgslToken.OperatorMinus, '+');
+        lKeywords.set(PgslToken.OperatorPlus, '+');
+        lKeywords.set(PgslToken.OperatorMinus, '-');
         lKeywords.set(PgslToken.OperatorMultiply, '*');
         lKeywords.set(PgslToken.OperatorDivide, '/');
         lKeywords.set(PgslToken.OperatorModulo, '%');
 
         // Some other stuff
         lKeywords.set(PgslToken.OperatorNot, '!');
-        lKeywords.set(PgslToken.OperatorAddress, '&');
 
         // Compare stuff
         lKeywords.set(PgslToken.OperatorEqual, '==');

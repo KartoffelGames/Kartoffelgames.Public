@@ -560,24 +560,271 @@ describe('PsglLexer', () => {
 
     });
 
-    describe('-- Declarations', () => {
-        it('-- Global const declaration with literal assignment.', () => {
+    describe('-- Operations', () => {
+        it('-- OperatorPlus', () => {
             // Setup.
-            const lCodeString = `
-                const my_var_name: f32 = 1.0;
-            `;
+            const lCodeString = `const a: i32 = 1 + 2;`;
 
             // Process.
             const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
 
             // Evaluation.
-            expect(lTokenList[0]).property('type').to.equal(PgslToken.KeywordConst);
-            expect(lTokenList[1]).property('type').to.equal(PgslToken.Identifier);
-            expect(lTokenList[2]).property('type').to.equal(PgslToken.Colon);
-            expect(lTokenList[3]).property('type').to.equal(PgslToken.Identifier);
-            expect(lTokenList[4]).property('type').to.equal(PgslToken.Assignment);
-            expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralFloat);
-            expect(lTokenList[6]).property('type').to.equal(PgslToken.Semicolon);
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.OperatorPlus);
+            expect(lTokenList[7]).property('type').to.equal(PgslToken.LiteralInteger);
+        });
+
+        it('-- OperatorMinus', () => {
+            // Setup.
+            const lCodeString = `const a: i32 = 1 - 2;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.OperatorMinus);
+            expect(lTokenList[7]).property('type').to.equal(PgslToken.LiteralInteger);
+        });
+
+        it('-- OperatorMultiply', () => {
+            // Setup.
+            const lCodeString = `const a: i32 = 1 * 2;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.OperatorMultiply);
+            expect(lTokenList[7]).property('type').to.equal(PgslToken.LiteralInteger);
+        });
+
+        it('-- OperatorDivide', () => {
+            // Setup.
+            const lCodeString = `const a: i32 = 1 / 2;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.OperatorDivide);
+            expect(lTokenList[7]).property('type').to.equal(PgslToken.LiteralInteger);
+        });
+
+        it('-- OperatorModulo', () => {
+            // Setup.
+            const lCodeString = `const a: i32 = 1 % 2;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.OperatorModulo);
+            expect(lTokenList[7]).property('type').to.equal(PgslToken.LiteralInteger);
+        });
+
+        it('-- OperatorNot', () => {
+            // Setup.
+            const lCodeString = `const a: bool = !true;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.OperatorNot);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.LiteralBoolean);
+        });
+
+        it('-- OperatorShiftLeft', () => {
+            // Setup.
+            const lCodeString = `const a: i32 = 1 << 2;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.OperatorShiftLeft);
+            expect(lTokenList[7]).property('type').to.equal(PgslToken.LiteralInteger);
+        });
+
+        it('-- OperatorShiftRight', () => {
+            // Setup.
+            const lCodeString = `const a: i32 = 1 >> 2;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.OperatorShiftRight);
+            expect(lTokenList[7]).property('type').to.equal(PgslToken.LiteralInteger);
+        });
+
+        it('-- OperatorGreaterThan', () => {
+            // Setup.
+            const lCodeString = `const a: bool = 1 > 2;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.OperatorGreaterThan);
+            expect(lTokenList[7]).property('type').to.equal(PgslToken.LiteralInteger);
+        });
+
+        it('-- OperatorLowerThan', () => {
+            // Setup.
+            const lCodeString = `const a: bool = 1 < 2;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.OperatorLowerThan);
+            expect(lTokenList[7]).property('type').to.equal(PgslToken.LiteralInteger);
+        });
+
+        it('-- OperatorGreaterThanEqual', () => {
+            // Setup.
+            const lCodeString = `const a: bool = 1 >= 2;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.OperatorGreaterThanEqual);
+            expect(lTokenList[7]).property('type').to.equal(PgslToken.LiteralInteger);
+        });
+
+        it('-- OperatorLowerThanEqual', () => {
+            // Setup.
+            const lCodeString = `const a: bool = 1 <= 2;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.OperatorLowerThanEqual);
+            expect(lTokenList[7]).property('type').to.equal(PgslToken.LiteralInteger);
+        });
+
+        it('-- OperatorEqual', () => {
+            // Setup.
+            const lCodeString = `const a: bool = 1 == 2;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.OperatorEqual);
+            expect(lTokenList[7]).property('type').to.equal(PgslToken.LiteralInteger);
+        });
+
+        it('-- OperatorBinaryAnd', () => {
+            // Setup.
+            const lCodeString = `const a: bool = 1 & 2;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.OperatorBinaryAnd);
+            expect(lTokenList[7]).property('type').to.equal(PgslToken.LiteralInteger);
+        });
+
+        it('-- OperatorBinaryOr', () => {
+            // Setup.
+            const lCodeString = `const a: bool = 1 | 2;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.OperatorBinaryOr);
+            expect(lTokenList[7]).property('type').to.equal(PgslToken.LiteralInteger);
+        });
+
+        it('-- OperatorBinaryXor', () => {
+            // Setup.
+            const lCodeString = `const a: bool = 1 ^ 2;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.OperatorBinaryXor);
+            expect(lTokenList[7]).property('type').to.equal(PgslToken.LiteralInteger);
+        });
+
+        it('-- OperatorBinaryNegate', () => {
+            // Setup.
+            const lCodeString = `const a: bool = ~1`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.OperatorBinaryNegate);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.LiteralInteger);
+        });
+
+        it('-- OperatorNotEqual', () => {
+            // Setup.
+            const lCodeString = `const a: bool = 1 != 2;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.OperatorNotEqual);
+            expect(lTokenList[7]).property('type').to.equal(PgslToken.LiteralInteger);
+        });
+
+        it('-- ShortCircuitAnd', () => {
+            // Setup.
+            const lCodeString = `const a: bool = 1 < 2 && 1 > 2;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.OperatorLowerThan);
+            expect(lTokenList[7]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[8]).property('type').to.equal(PgslToken.ShortCircuitAnd);
+            expect(lTokenList[9]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[10]).property('type').to.equal(PgslToken.OperatorGreaterThan);
+            expect(lTokenList[11]).property('type').to.equal(PgslToken.LiteralInteger);
+        });
+
+        it('-- ShortCircuitOr', () => {
+            // Setup.
+            const lCodeString = `const a: bool = 1 < 2 || 1 > 2;`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[5]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[6]).property('type').to.equal(PgslToken.OperatorLowerThan);
+            expect(lTokenList[7]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[8]).property('type').to.equal(PgslToken.ShortCircuitOr);
+            expect(lTokenList[9]).property('type').to.equal(PgslToken.LiteralInteger);
+            expect(lTokenList[10]).property('type').to.equal(PgslToken.OperatorGreaterThan);
+            expect(lTokenList[11]).property('type').to.equal(PgslToken.LiteralInteger);
         });
     });
 });

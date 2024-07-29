@@ -52,6 +52,7 @@ export class PgslLexer extends Lexer<PgslToken> {
         lKeywords.set(PgslToken.KeywordSwitch, 'switch');
         lKeywords.set(PgslToken.KeywordVar, 'var');
         lKeywords.set(PgslToken.KeywordWhile, 'while');
+        lKeywords.set(PgslToken.KeywordInclude, 'include');
 
         return lKeywords;
     })();
@@ -76,8 +77,8 @@ export class PgslLexer extends Lexer<PgslToken> {
         lKeywords.set(PgslToken.OperatorEqual, '==');
         lKeywords.set(PgslToken.OperatorGreaterThan, '>');
         lKeywords.set(PgslToken.OperatorLowerThan, '<');
-        lKeywords.set(PgslToken.ShortCircuitAnd, '&&');
-        lKeywords.set(PgslToken.ShortCircuitOr, '||');
+        lKeywords.set(PgslToken.OperatorShortCircuitAnd, '&&');
+        lKeywords.set(PgslToken.OperatorShortCircuitOr, '||');
         lKeywords.set(PgslToken.OperatorGreaterThanEqual, '>=');
         lKeywords.set(PgslToken.OperatorLowerThanEqual, '<=');
         lKeywords.set(PgslToken.OperatorNotEqual, '!=');
@@ -454,6 +455,7 @@ export class PgslLexer extends Lexer<PgslToken> {
             this.useTokenTemplate('Semicolon', 1);
             this.useTokenTemplate('Block', 1);
             this.useTokenTemplate('Parentheses', 1);
+            this.useTokenTemplate('AttributeIndicator', 1);
 
             // Tokens with ambiguity. 
             this.useTokenTemplate('TemplateList', 1);

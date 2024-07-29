@@ -40,8 +40,8 @@ export enum PgslToken {
     OperatorBinaryOr = 'OperatorBinaryOr',
     OperatorBinaryXor = 'OperatorBinaryXor',
     OperatorBinaryNegate = 'OperatorBinaryNot',
-    ShortCircuitAnd = 'ShortCircuitAnd',
-    ShortCircuitOr = 'ShortCircuitOr',
+    OperatorShortCircuitAnd = 'ShortCircuitAnd',
+    OperatorShortCircuitOr = 'ShortCircuitOr',
     OperatorNotEqual = 'OperatorNotEqual',
 
     // Template lists
@@ -86,4 +86,5 @@ export enum PgslToken {
     KeywordSwitch = 'KeywordSwitch',
     KeywordVar = 'KeywordVar',
     KeywordWhile = 'KeywordWhile',
+    KeywordInclude = 'KeywordInclude'
 }

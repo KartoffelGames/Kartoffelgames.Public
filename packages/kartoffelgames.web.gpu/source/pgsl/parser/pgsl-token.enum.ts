@@ -52,6 +52,10 @@ export enum PgslToken {
     BlockStart = 'BlockStart',
     BlockEnd = 'BlockEnd',
 
+    // List
+    ListStart = 'ListStart',
+    ListEnd = 'ListEnd',
+
     // Parentheses
     ParenthesesStart = 'ParenthesesStart',
     ParenthesesEnd = 'ParenthesesEnd',

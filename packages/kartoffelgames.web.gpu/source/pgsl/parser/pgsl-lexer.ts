@@ -193,6 +193,22 @@ export class PgslLexer extends Lexer<PgslToken> {
             lApplyTemplates();
         });
 
+        // Lists.
+        this.addTokenTemplate('List', {
+            pattern: {
+                start: {
+                    regex: /\[/,
+                    type: PgslToken.ListStart
+                },
+                end: {
+                    regex: /\]/,
+                    type: PgslToken.ListEnd
+                }
+            }
+        }, () => {
+            lApplyTemplates();
+        });
+
         // Block
         this.addTokenTemplate('Block', {
             pattern: {
@@ -248,14 +264,14 @@ export class PgslLexer extends Lexer<PgslToken> {
         this.addTokenTemplate('TemplateList', {
             pattern: {
                 start: {
-                    regex: /(?<=([_\p{XID_Start}][\p{XID_Continue}]+)|([\p{XID_Start}]))<(?![<=])/u,
+                    regex: /(?<=(?:([_\p{XID_Start}][\p{XID_Continue}]+)|([\p{XID_Start}]))(?:\s*))<(?![<=])/u,
                     type: PgslToken.TemplateListStart,
                     validator: (pToken: LexerToken<PgslToken>, pText: string, pIndex: number): boolean => {
                         // Init nexting stack.
                         const lNestingStack: Stack<'(' | '[' | '<'> = new Stack<'(' | '[' | '<'>();
 
                         const lPermittedCodePoints: Set<string> = new Set<string>([';', ':', '{', '}']);
-                        const lTemplateListOpeningRegex: RegExp = /(?<=([_\p{XID_Start}][\p{XID_Continue}]+)|([\p{XID_Start}]))<(?![<=])/u;
+                        const lTemplateListOpeningRegex: RegExp = /(?<=(?:([_\p{XID_Start}][\p{XID_Continue}]+)|([\p{XID_Start}]))(?:\s*))<(?![<=])/ug;
 
                         // Iterate each code point.
                         let lCurrentTextIndex: number = pIndex + pToken.value.length;
@@ -318,17 +334,6 @@ export class PgslLexer extends Lexer<PgslToken> {
 
                                     // The found template list start token is a comparison.
                                     return false;
-                                }
-
-                                // Potential negated comparison.
-                                case (lCurrentCodePoint === '!'): {
-                                    // When a comparisson. Skip = to not trigger a assignment.
-                                    const lNextCodePoint: string = pText[lCurrentTextIndex + 1];
-                                    if (lNextCodePoint === '=') {
-                                        lCurrentTextIndex++;
-                                    }
-
-                                    break;
                                 }
 
                                 // Potential forbidden assignment.
@@ -455,6 +460,7 @@ export class PgslLexer extends Lexer<PgslToken> {
             this.useTokenTemplate('Semicolon', 1);
             this.useTokenTemplate('Block', 1);
             this.useTokenTemplate('Parentheses', 1);
+            this.useTokenTemplate('List', 1);
             this.useTokenTemplate('AttributeIndicator', 1);
 
             // Tokens with ambiguity. 

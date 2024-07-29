@@ -439,9 +439,9 @@ describe('PsglLexer', () => {
             expect(lTokenList[9]).property('type').to.equal(PgslToken.Semicolon);
         });
 
-        it('-- Nested template list with greater and lower than compare', () => {
+        it('-- Nested template list with lower than compare combined with short circuit or', () => {
             // Setup.
-            const lCodeString = `a<b, a<b || c>d >;`;
+            const lCodeString = `a<b, a<b || true>;`;
 
             // Process.
             const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
@@ -455,11 +455,9 @@ describe('PsglLexer', () => {
             expect(lTokenList[5]).property('type').to.equal(PgslToken.OperatorLowerThan);
             expect(lTokenList[6]).property('type').to.equal(PgslToken.Identifier);
             expect(lTokenList[7]).property('type').to.equal(PgslToken.OperatorShortCircuitOr);
-            expect(lTokenList[8]).property('type').to.equal(PgslToken.Identifier);
-            expect(lTokenList[9]).property('type').to.equal(PgslToken.OperatorGreaterThan);
-            expect(lTokenList[10]).property('type').to.equal(PgslToken.Identifier);
-            expect(lTokenList[11]).property('type').to.equal(PgslToken.TemplateListEnd);
-            expect(lTokenList[12]).property('type').to.equal(PgslToken.Semicolon);
+            expect(lTokenList[8]).property('type').to.equal(PgslToken.LiteralBoolean);
+            expect(lTokenList[9]).property('type').to.equal(PgslToken.TemplateListEnd);
+            expect(lTokenList[10]).property('type').to.equal(PgslToken.Semicolon);
         });
 
         it('-- Negated boolean value', () => {
@@ -600,6 +598,18 @@ describe('PsglLexer', () => {
                 // Process.
                 const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
 
+                // Evaluation.
+                expect(lTokenList[0]).property('type').to.equal(PgslToken.Identifier);
+                expect(lTokenList[0]).property('type').to.not.equal(PgslToken.TemplateListStart);
+            });
+
+            it('-- Greater than operator in value', () => {
+                // Setup.
+                const lCodeString = `a<2 > 1>;`;
+    
+                // Process.
+                const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+    
                 // Evaluation.
                 expect(lTokenList[0]).property('type').to.equal(PgslToken.Identifier);
                 expect(lTokenList[0]).property('type').to.not.equal(PgslToken.TemplateListStart);

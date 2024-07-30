@@ -1,7 +1,7 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { PgslFunction } from './structure/pgsl-function';
-import { PgslVariable } from './structure/pgsl-variable';
-import { PgslStruct } from './structure/struct/pgsl-struct';
+import { PgslFunction } from './very_old_structure/pgsl-function';
+import { PgslVariable } from './very_old_structure/pgsl-variable';
+import { PgslStruct } from './very_old_structure/struct/pgsl-struct';
 
 export class PgslDocument {
     // Values
@@ -12,6 +12,9 @@ export class PgslDocument {
     // TODO: There was something with const. (Setable on Pipline creation).
     // TODO: Fast access bindings.
     
+
+    // TODO: Predefine type aliases.
+    // TODO: Predefine enums.
 
     public constructor() {
         this.mGlobals = new Dictionary<string, PgslVariable>();

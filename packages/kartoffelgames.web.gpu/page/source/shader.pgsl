@@ -1,6 +1,6 @@
 // ------------------------- Object Values ---------------------- //
 @group_binding(object, transformation_matrix) uniform transformationMatrix: mat4x4;
-@group_binding(object, instance_positions) storage<read> instancePositions: array<vec4>;
+@group_binding(object, instance_positions) @accessMode(AccessMode.Read) storage instancePositions: array<vec4>;
 // -------------------------------------------------------------- //
 
 
@@ -10,8 +10,8 @@
 
 
 // ------------------------- User Inputs ------------------------ //
-@group_binding(user, cube_texture_sampler) handle cubeTextureSampler: sampler;
-@group_binding(user, cube_texture) handle cubeTexture: texture_2d<float>;
+@group_binding(user, cube_texture_sampler) uniform cubeTextureSampler: sampler;
+@group_binding(user, cube_texture) uniform cubeTexture: texture_2d<float>;
 // -------------------------------------------------------------- //
 
 const lightStrength: int = 23;
@@ -27,19 +27,19 @@ struct PointLight {
     color: vec4,
     range: float
 }
-@group_binding(world, point_lights) storage<read> pointLights: array<PointLight>;
+@group_binding(world, point_lights) @accessMode(AccessMode.Read) storage pointLights: array<PointLight>;
 
 /**
  * Calculate point light output.
  */
 function calculatePointLights(fragmentPosition: vec4, normal: vec4): vec4 {
     // Count of point lights.
-    let pointLightCount: u32 = arrayLength(&pointLights);
+    const pointLightCount: u32 = arrayLength(&pointLights);
 
-    var lightResult: vec4 = vec4(0, 0, 0, 1);
+    let lightResult: vec4 = vec4(0, 0, 0, 1);
 
-    for (var index: u32 = 0; index < pointLightCount; index++) {
-        var pointLight: PointLight = pointLights[index];
+    for (let index: u32 = 0; index < pointLightCount; index++) {
+        const pointLight: PointLight = pointLights[index];
 
         // Calculate light strength based on angle of incidence.
         let lightDirection: vec4 = normalize(pointLight.position - fragmentPosition);
@@ -55,7 +55,7 @@ function calculatePointLights(fragmentPosition: vec4, normal: vec4): vec4 {
  * Apply lights to fragment color.
  */
 fn applyLight(colorIn: vec4, fragmentPosition: vec4, normal: vec4): vec4 {
-    var lightColor: vec4 = vec4(0, 0, 0, 1);
+    let lightColor: vec4 = vec4(0, 0, 0, 1);
 
     lightColor += ambientLight.color;
     lightColor += calculatePointLights(fragmentPosition, normal);
@@ -79,10 +79,14 @@ struct VertexIn {
 }
 
 @vertex function vertex_main(vertex: VertexIn): VertexOut {
-    var instancePosition: vec4 = instancePositions[vertex.instanceId];
-    var instancePositionMatrix: mat4x4 = mat4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, instancePosition.x * 5, instancePosition.y * 5, instancePosition.z * 5, 1);
+    const instancePosition: vec4 = instancePositions[vertex.instanceId];
+    const instancePositionMatrix: mat4x4 = mat4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, instancePosition.x * 5, instancePosition.y * 5, instancePosition.z * 5, 1);
 
-    var out: VertexOut;
+    // Overrideable variable.
+    let rewriteable: int = 1;
+    rewriteable = 2;
+
+    const out: VertexOut;
     out.position = viewProjectionMatrix * transformationMatrix * instancePositionMatrix * vertex.position;
     out.uv = vertex.uv;
     out.normal = vertex.normal;
@@ -102,7 +106,7 @@ struct FragmentOut {
 }
 
 @fragment function fragment_main(fragment: FragmentIn): FragmentOut {
-    var out: FragmentOut
+    const out: FragmentOut
     out.color = applyLight(textureSample(cubeTexture, cubeTextureSampler, fragment.uv), fragment.fragmentPosition, fragment.normal);
     
     return out

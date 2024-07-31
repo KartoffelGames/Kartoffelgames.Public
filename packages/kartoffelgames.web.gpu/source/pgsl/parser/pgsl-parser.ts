@@ -178,7 +178,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         };
         this.defineGraphPart('document',
             this.graph(),
-            (pData: PgslDocumentGraphData) => {
+            (_pData: PgslDocumentGraphData) => {
 
             }
         );

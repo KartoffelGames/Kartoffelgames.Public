@@ -1,7 +1,7 @@
 import { ParserException } from '@kartoffelgames/core.parser';
 import { expect } from 'chai';
-import { PgslParser } from 'packages/kartoffelgames.web.gpu/source/pgsl/parser/pgsl-parser';
-import { PgslDocument } from 'packages/kartoffelgames.web.gpu/source/pgsl/pgsl-document';
+import { PgslParser } from '../../../source/pgsl/parser/pgsl-parser';
+import { PgslDocument } from '../../../source/pgsl/pgsl-document';
 
 describe('PsglLexer', () => {
     const lPgslParser: PgslParser = new PgslParser();
@@ -269,7 +269,7 @@ describe('PsglLexer', () => {
                 expect(lErrorFunction).to.throw(ParserException);
             });
 
-            it('-- Reject storage declaration with assignment', () => {
+            it('-- Reject uniform declaration with assignment', () => {
                 // Setup.
                 const lSourceCode: string = `
                     @groupBind(x, y) uniform myInt: int = 10;

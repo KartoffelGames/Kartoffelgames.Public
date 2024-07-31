@@ -65,6 +65,15 @@ export enum PgslToken {
     LiteralInteger = 'LiteralInteger',
     LiteralFloat = 'LiteralFloat',
 
+    // Declaration keywords
+    KeywordDeclarationLet = 'KeywordDeclarationLet',
+    KeywordDeclarationVar = 'KeywordDeclarationVar',
+    KeywordDeclarationStorage = 'KeywordDeclarationStorage',
+    KeywordDeclarationUniform = 'KeywordDeclarationUniform',
+    KeywordDeclarationWorkgroup = 'KeywordDeclarationWorkgroup',
+    KeywordDeclarationPrivate = 'KeywordDeclarationPrivate',
+    KeywordDeclarationParam = 'KeywordDeclarationParam',
+
     // Keywords
     KeywordAlias = 'KeywordAlias',
     KeywordBreak = 'KeywordBreak',
@@ -81,14 +90,11 @@ export enum PgslToken {
     KeywordFunction = 'KeywordFunction',
     KeywordFor = 'KeywordFor',
     KeywordIf = 'KeywordIf',
-    KeywordLet = 'KeywordLet',
     KeywordLoop = 'KeywordLoop',
-    KeywordOverride = 'KeywordOverride',
     KeywordRequires = 'KeywordRequires',
     KeywordReturn = 'KeywordReturn',
     KeywordStruct = 'KeywordStruct',
     KeywordSwitch = 'KeywordSwitch',
-    KeywordVar = 'KeywordVar',
     KeywordWhile = 'KeywordWhile',
     KeywordInclude = 'KeywordInclude'
 }

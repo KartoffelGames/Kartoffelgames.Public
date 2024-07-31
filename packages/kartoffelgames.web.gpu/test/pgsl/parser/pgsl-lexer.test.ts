@@ -606,10 +606,10 @@ describe('PsglLexer', () => {
             it('-- Greater than operator in value', () => {
                 // Setup.
                 const lCodeString = `a<2 > 1>;`;
-    
+
                 // Process.
                 const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
-    
+
                 // Evaluation.
                 expect(lTokenList[0]).property('type').to.equal(PgslToken.Identifier);
                 expect(lTokenList[0]).property('type').to.not.equal(PgslToken.TemplateListStart);
@@ -1291,19 +1291,6 @@ describe('PsglLexer', () => {
             expect(lTokenList[2]).property('type').to.equal(PgslToken.Semicolon);
         });
 
-        it('-- KeywordLet', () => {
-            // Setup.
-            const lCodeString = `let identifier;`;
-
-            // Process.
-            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
-
-            // Evaluation.
-            expect(lTokenList[0]).property('type').to.equal(PgslToken.KeywordLet);
-            expect(lTokenList[1]).property('type').to.equal(PgslToken.Identifier);
-            expect(lTokenList[2]).property('type').to.equal(PgslToken.Semicolon);
-        });
-
         it('-- KeywordLoop', () => {
             // Setup.
             const lCodeString = `loop identifier;`;
@@ -1317,18 +1304,6 @@ describe('PsglLexer', () => {
             expect(lTokenList[2]).property('type').to.equal(PgslToken.Semicolon);
         });
 
-        it('-- KeywordOverride', () => {
-            // Setup.
-            const lCodeString = `override identifier;`;
-
-            // Process.
-            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
-
-            // Evaluation.
-            expect(lTokenList[0]).property('type').to.equal(PgslToken.KeywordOverride);
-            expect(lTokenList[1]).property('type').to.equal(PgslToken.Identifier);
-            expect(lTokenList[2]).property('type').to.equal(PgslToken.Semicolon);
-        });
 
         it('-- KeywordRequires', () => {
             // Setup.
@@ -1382,19 +1357,6 @@ describe('PsglLexer', () => {
             expect(lTokenList[2]).property('type').to.equal(PgslToken.Semicolon);
         });
 
-        it('-- KeywordVar', () => {
-            // Setup.
-            const lCodeString = `var identifier;`;
-
-            // Process.
-            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
-
-            // Evaluation.
-            expect(lTokenList[0]).property('type').to.equal(PgslToken.KeywordVar);
-            expect(lTokenList[1]).property('type').to.equal(PgslToken.Identifier);
-            expect(lTokenList[2]).property('type').to.equal(PgslToken.Semicolon);
-        });
-
         it('-- KeywordWhile', () => {
             // Setup.
             const lCodeString = `while identifier;`;
@@ -1419,6 +1381,99 @@ describe('PsglLexer', () => {
             expect(lTokenList[0]).property('type').to.equal(PgslToken.KeywordInclude);
             expect(lTokenList[1]).property('type').to.equal(PgslToken.Identifier);
             expect(lTokenList[2]).property('type').to.equal(PgslToken.Semicolon);
+        });
+
+        describe('-- Declaration keywords', () => {
+            it('-- KeywordDeclarationLet', () => {
+                // Setup.
+                const lCodeString = `let identifier;`;
+
+                // Process.
+                const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+                // Evaluation.
+                expect(lTokenList[0]).property('type').to.equal(PgslToken.KeywordDeclarationLet);
+                expect(lTokenList[1]).property('type').to.equal(PgslToken.Identifier);
+                expect(lTokenList[2]).property('type').to.equal(PgslToken.Semicolon);
+            });
+
+            it('-- KeywordDeclarationVar', () => {
+                // Setup.
+                const lCodeString = `var identifier;`;
+
+                // Process.
+                const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+                // Evaluation.
+                expect(lTokenList[0]).property('type').to.equal(PgslToken.KeywordDeclarationVar);
+                expect(lTokenList[1]).property('type').to.equal(PgslToken.Identifier);
+                expect(lTokenList[2]).property('type').to.equal(PgslToken.Semicolon);
+            });
+
+            it('-- KeywordDeclarationStorage', () => {
+                // Setup.
+                const lCodeString = `storage identifier;`;
+
+                // Process.
+                const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+                // Evaluation.
+                expect(lTokenList[0]).property('type').to.equal(PgslToken.KeywordDeclarationStorage);
+                expect(lTokenList[1]).property('type').to.equal(PgslToken.Identifier);
+                expect(lTokenList[2]).property('type').to.equal(PgslToken.Semicolon);
+            });
+
+            it('-- KeywordDeclarationUniform', () => {
+                // Setup.
+                const lCodeString = `uniform identifier;`;
+
+                // Process.
+                const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+                // Evaluation.
+                expect(lTokenList[0]).property('type').to.equal(PgslToken.KeywordDeclarationUniform);
+                expect(lTokenList[1]).property('type').to.equal(PgslToken.Identifier);
+                expect(lTokenList[2]).property('type').to.equal(PgslToken.Semicolon);
+            });
+
+            it('-- KeywordDeclarationWorkgroup', () => {
+                // Setup.
+                const lCodeString = `workgroup identifier;`;
+
+                // Process.
+                const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+                // Evaluation.
+                expect(lTokenList[0]).property('type').to.equal(PgslToken.KeywordDeclarationWorkgroup);
+                expect(lTokenList[1]).property('type').to.equal(PgslToken.Identifier);
+                expect(lTokenList[2]).property('type').to.equal(PgslToken.Semicolon);
+            });
+
+            it('-- KeywordDeclarationPrivate', () => {
+                // Setup.
+                const lCodeString = `private identifier;`;
+
+                // Process.
+                const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+                // Evaluation.
+                expect(lTokenList[0]).property('type').to.equal(PgslToken.KeywordDeclarationPrivate);
+                expect(lTokenList[1]).property('type').to.equal(PgslToken.Identifier);
+                expect(lTokenList[2]).property('type').to.equal(PgslToken.Semicolon);
+            });
+
+            it('-- KeywordDeclarationParam', () => {
+                // Setup.
+                const lCodeString = `param identifier;`;
+
+                // Process.
+                const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+                // Evaluation.
+                expect(lTokenList[0]).property('type').to.equal(PgslToken.KeywordDeclarationParam);
+                expect(lTokenList[1]).property('type').to.equal(PgslToken.Identifier);
+                expect(lTokenList[2]).property('type').to.equal(PgslToken.Semicolon);
+            });
         });
     });
 

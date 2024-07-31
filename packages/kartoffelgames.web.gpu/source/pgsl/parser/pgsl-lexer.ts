@@ -43,16 +43,22 @@ export class PgslLexer extends Lexer<PgslToken> {
         lKeywords.set(PgslToken.KeywordFunction, 'function');
         lKeywords.set(PgslToken.KeywordFor, 'for');
         lKeywords.set(PgslToken.KeywordIf, 'if');
-        lKeywords.set(PgslToken.KeywordLet, 'let');
         lKeywords.set(PgslToken.KeywordLoop, 'loop');
-        lKeywords.set(PgslToken.KeywordOverride, 'override');
         lKeywords.set(PgslToken.KeywordRequires, 'requires');
         lKeywords.set(PgslToken.KeywordReturn, 'return');
         lKeywords.set(PgslToken.KeywordStruct, 'struct');
         lKeywords.set(PgslToken.KeywordSwitch, 'switch');
-        lKeywords.set(PgslToken.KeywordVar, 'var');
         lKeywords.set(PgslToken.KeywordWhile, 'while');
         lKeywords.set(PgslToken.KeywordInclude, 'include');
+
+        // Declarations
+        lKeywords.set(PgslToken.KeywordDeclarationLet, 'let');
+        lKeywords.set(PgslToken.KeywordDeclarationVar, 'var');
+        lKeywords.set(PgslToken.KeywordDeclarationStorage, 'storage');
+        lKeywords.set(PgslToken.KeywordDeclarationUniform, 'uniform');
+        lKeywords.set(PgslToken.KeywordDeclarationWorkgroup, 'workgroup');
+        lKeywords.set(PgslToken.KeywordDeclarationPrivate, 'private');
+        lKeywords.set(PgslToken.KeywordDeclarationParam, 'param');
 
         return lKeywords;
     })();

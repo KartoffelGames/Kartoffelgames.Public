@@ -2,6 +2,9 @@ import { CodeParser } from '@kartoffelgames/core.parser';
 import { PgslToken } from './pgsl-token.enum';
 import { PgslDocument } from '../pgsl-document';
 import { PgslLexer } from './pgsl-lexer';
+import { PgslAttributeList } from '../structure/general/pgsl-attribute-list';
+import { PgslExpression } from '../structure/expression/pgsl-expression';
+import { PgslTypeDefinition } from '../structure/type/pgsl-type-definition';
 
 export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
     /**
@@ -10,26 +13,51 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
     public constructor() {
         super(new PgslLexer());
 
-        /* TODO:
-            Split var declarations into seperate 
-                var<private> => private 
-                var<workgroup> => workgroupvalue???
-                var<storage> => storage (how to read write?)
-                var<uniform> => uniform
-                var<function> => var
-        */
+        // Define helper graphs.
+        this.defineCore();
+        this.defineExpression();
+        this.defineModuleScope();
+        this.defineFlow();
+        this.defineFunctionScope();
 
-        /* TODO:
-           @group(x) @binging(y) => @groupBinding(x, y)
-        */
+        // Set root.
+        this.defineRoot();
     }
 
     private defineCore(): void {
+        type AttributeListGraphData = {
+            list: Array<{
+                name: string;
+                parameter?: {
+                    first: PgslExpression;
+                    additional: Array<{
+                        expression: PgslExpression;
+                    }>;
+                };
+            }>;
+        };
+        this.defineGraphPart('AttributeList',
+            this.graph().loop('list',
+                this.graph().single(PgslToken.AttributeIndicator)
+                    .single('name', PgslToken.Identifier)
+                    .single(PgslToken.ParenthesesStart)
+                    .optional('parameter',
+                        this.graph()
+                            .single('first', this.partReference('Expression'))
+                            .loop('additional', this.graph().single(PgslToken.Comma).single('expression', this.partReference('Expression')))
+                    )
+                    .single(PgslToken.ParenthesesEnd)
+            ),
+            (_pData: AttributeListGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
+
+        // TypeDefinition
+        //      ident<value|typedefinition>
+
         // Block. Can be a standalone inside function scope.
         //      { <statement>;* }
-
-        // Attribute statement.
-        //      @<ident>(<expression>,*)
     }
 
     private defineExpression(): void {
@@ -125,8 +153,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
 
     private defineFunctionScope(): void {
         // declaration expression.
-        //      var <ident>: <ident>;
-        //      var <ident>: <ident> = <expression>;
+        //      let <ident>: <ident>;
+        //      const <ident>: <ident> = <expression>;
 
         // Assignment Statement
         //      <ident> = <expression>;
@@ -154,27 +182,55 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
 
         // Function call statement. Same as function call expression but without value.
         //       <ident><templateList>(<expression>,*)
+
+        // Block. Can be a standalone inside function scope.
+        //      { <statement>;* }
     }
 
     private defineModuleScope(): void {
-        type PgslModuleScopeDeclarationGraphData = {
-            attributes: Array<1>
+        type ModuleScopeVariableDeclarationGraphData = {
+            attributes: PgslAttributeList;
+            declarationType: string;
+            type: PgslTypeDefinition;
+            expression?: PgslExpression;
         };
-        this.defineGraphPart('ModuleScopeDeclaration',
-            this.graph().loop('attributes', this.partReference('Attribute')),
-            // TODO:
-            (_pData: PgslModuleScopeDeclarationGraphData) => {
+        this.defineGraphPart('ModuleScopeVariableDeclaration',
+            this.graph()
+                .loop('attributes', this.partReference('AttributeList')).branch('declarationType', [
+                    PgslToken.KeywordDeclarationStorage,
+                    PgslToken.KeywordDeclarationUniform,
+                    PgslToken.KeywordDeclarationWorkgroup,
+                    PgslToken.KeywordDeclarationPrivate,
+                    PgslToken.KeywordDeclarationParam
+                ]).single(PgslToken.Identifier).single(PgslToken.Colon).single('type', this.partReference('TypeDefinition'))
+                .branch([
+                    PgslToken.Semicolon,
+                    this.graph().single(PgslToken.Assignment).single('expression', this.partReference('Expression')).single(PgslToken.Semicolon)
+                ]),
+            (_pData: ModuleScopeVariableDeclarationGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
 
+        type AliasDeclarationGraphData = {
+            aliasName: string;
+        };
+        this.defineGraphPart('AliasDeclaration',
+            this.graph()
+                .single(PgslToken.KeywordAlias)
+                .single('aliasName', PgslToken.Identifier).single(PgslToken.Assignment)
+                .single('type', this.partReference('TypeDefinition')).single(PgslToken.Semicolon),
+            (_pData: AliasDeclarationGraphData) => {
+                // TODO: Yes this needs to be parsed.
             }
         );
 
         // Enums => TODO: all of it
+
         // Structs . Dont forgett <paramlist>
 
         // Function flow
         //      <paramlist> function <ident>(<paramlist> ident:type,*): <paramlist> type? <block>
-
-        // alias => type xxx = array<i32>
 
         // const expression.
         //      const <ident>: type = <expression>;
@@ -185,10 +241,14 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
 
     private defineRoot(): void {
         type PgslDocumentGraphData = {
-            // TODO: Something.
+            list: Array<{
+                content: any;
+            }>;
         };
         this.defineGraphPart('document',
-            this.graph(),
+            this.graph().loop('list', this.graph().branch('content', [
+                this.partReference('ModuleScopeVariableDeclaration')
+            ])),
             (_pData: PgslDocumentGraphData) => {
 
             }

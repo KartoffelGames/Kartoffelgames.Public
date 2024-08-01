@@ -20,12 +20,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         */
 
         /* TODO:
-           @group(x) @binging(y) => @group_binding(x, y)
+           @group(x) @binging(y) => @groupBinding(x, y)
         */
     }
 
     private defineCore(): void {
-        // Block. Only part of a flow or function statement.
+        // Block. Can be a standalone inside function scope.
         //      { <statement>;* }
 
         // Attribute statement.
@@ -157,9 +157,20 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
     }
 
     private defineModuleScope(): void {
+        type PgslModuleScopeDeclarationGraphData = {
+            attributes: Array<1>
+        };
+        this.defineGraphPart('ModuleScopeDeclaration',
+            this.graph().loop('attributes', this.partReference('Attribute')),
+            // TODO:
+            (_pData: PgslModuleScopeDeclarationGraphData) => {
+
+            }
+        );
+
         // Enums => TODO: all of it
         // Structs . Dont forgett <paramlist>
-        
+
         // Function flow
         //      <paramlist> function <ident>(<paramlist> ident:type,*): <paramlist> type? <block>
 

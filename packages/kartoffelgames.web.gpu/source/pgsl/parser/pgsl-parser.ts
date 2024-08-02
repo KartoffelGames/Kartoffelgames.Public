@@ -14,6 +14,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
     public constructor() {
         super(new PgslLexer());
 
+        // TODO: Preparse steps.
+
         // Define helper graphs.
         this.defineCore();
         this.defineExpression();
@@ -26,6 +28,13 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
     }
 
     private defineCore(): void {
+        this.defineGraphPart('Comment', this.graph()
+            .single(PgslToken.Comment),
+            () => {
+                return null;
+            }
+        );
+
         type AttributeListGraphData = {
             list: Array<{
                 name: string;
@@ -311,11 +320,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         this.defineGraphPart('document', this.graph()
             .loop('list', this.graph()
                 .branch('content', [
-                    this.partReference('ModuleScopeVariableDeclaration')
+                    this.partReference('ModuleScopeVariableDeclaration'),
+                    this.partReference('Comment')
                 ])
             ),
             (_pData: PgslDocumentGraphData) => {
-
+                // TODO: Yes this needs to be parsed.
             }
         );
 

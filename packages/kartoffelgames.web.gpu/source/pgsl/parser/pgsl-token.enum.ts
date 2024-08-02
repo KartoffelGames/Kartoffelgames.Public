@@ -78,7 +78,7 @@ export enum PgslToken {
     KeywordAlias = 'KeywordAlias',
     KeywordBreak = 'KeywordBreak',
     KeywordCase = 'KeywordCase',
-    KeywordConst = 'KeywordConst',
+    KeywordDeclarationConst = 'KeywordConst',
     KeywordConstAssert = 'KeywordConst_assert',
     KeywordContinue = 'KeywordContinue',
     KeywordContinuing = 'KeywordContinuing',

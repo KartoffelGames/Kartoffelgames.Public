@@ -1143,7 +1143,7 @@ describe('PsglLexer', () => {
             const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
 
             // Evaluation.
-            expect(lTokenList[0]).property('type').to.equal(PgslToken.KeywordConst);
+            expect(lTokenList[0]).property('type').to.equal(PgslToken.KeywordDeclarationConst);
             expect(lTokenList[1]).property('type').to.equal(PgslToken.Identifier);
             expect(lTokenList[2]).property('type').to.equal(PgslToken.Semicolon);
         });
@@ -1544,7 +1544,7 @@ describe('PsglLexer', () => {
 
             // Evaluation.
             expect(lTokenList[0]).property('type').to.equal(PgslToken.Comment);
-            expect(lTokenList[1]).property('type').to.equal(PgslToken.KeywordConst);
+            expect(lTokenList[1]).property('type').to.equal(PgslToken.KeywordDeclarationConst);
             expect(lTokenList[2]).property('type').to.equal(PgslToken.Identifier);
             expect(lTokenList[3]).property('type').to.equal(PgslToken.Semicolon);
         });
@@ -1562,7 +1562,7 @@ describe('PsglLexer', () => {
 
             // Evaluation.
             expect(lTokenList[0]).property('type').to.equal(PgslToken.Comment);
-            expect(lTokenList[1]).property('type').to.equal(PgslToken.KeywordConst);
+            expect(lTokenList[1]).property('type').to.equal(PgslToken.KeywordDeclarationConst);
             expect(lTokenList[2]).property('type').to.equal(PgslToken.Identifier);
             expect(lTokenList[3]).property('type').to.equal(PgslToken.Semicolon);
         });

@@ -5,6 +5,7 @@ import { PgslAttributeList } from '../structure/general/pgsl-attribute-list';
 import { PgslTypeDefinition } from '../structure/type/pgsl-type-definition';
 import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
+import { PgslLiteralValue } from '../structure/expression/pgsl-literal-value';
 
 export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
     /**
@@ -145,13 +146,44 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
 
         // Pointer expression
         //      *<ident>
+
+        // LiteralValue
+        type LiteralValueGraphData = {
+            value: {
+                float: string,
+                integer: string,
+                boolean: string;
+            };
+        };
+        this.defineGraphPart('LiteralValue', this.graph()
+            .branch('value', [
+                this.graph().single('float', PgslToken.LiteralFloat),
+                this.graph().single('integer', PgslToken.LiteralInteger),
+                this.graph().single('boolean', PgslToken.LiteralBoolean),
+            ]),
+            (_pData: LiteralValueGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
+
+        type ExpressionGraphData = {
+            expression: PgslLiteralValue;
+        };
+        this.defineGraphPart('Expression', this.graph()
+            .branch('declarationType', [
+                this.partReference('LiteralValue')
+            ]),
+            (_pData: ExpressionGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
     }
 
     private defineFlow(): void {
         // If Statement
         //      if(<expression>)<block> 
         //      else if(<expression>)<block> *
-        //      else <block> *
+        //      else <block> ?
 
         // Switch Statement
         //      switch(<expression>){<case>|<default>}
@@ -218,20 +250,23 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
 
     private defineModuleScope(): void {
         type ModuleScopeVariableDeclarationGraphData = {
-            attributes: PgslAttributeList;
+            attributes?: PgslAttributeList;
+            variableName: string,
             declarationType: string;
             type: PgslTypeDefinition;
             expression?: PgslExpression;
         };
         this.defineGraphPart('ModuleScopeVariableDeclaration', this.graph()
-            .loop('attributes', this.partReference('AttributeList'))
+            .optional('attributes', this.partReference('AttributeList'))
             .branch('declarationType', [
                 PgslToken.KeywordDeclarationStorage,
                 PgslToken.KeywordDeclarationUniform,
                 PgslToken.KeywordDeclarationWorkgroup,
                 PgslToken.KeywordDeclarationPrivate,
+                PgslToken.KeywordDeclarationConst,
                 PgslToken.KeywordDeclarationParam
-            ]).single(PgslToken.Identifier).single(PgslToken.Colon)
+            ])
+            .single('variableName', PgslToken.Identifier).single(PgslToken.Colon)
             .single('type', this.partReference('TypeDefinition'))
             .branch([
                 PgslToken.Semicolon,

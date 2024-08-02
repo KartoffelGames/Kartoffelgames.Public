@@ -31,7 +31,7 @@ export class PgslLexer extends Lexer<PgslToken> {
         lKeywords.set(PgslToken.KeywordAlias, 'alias');
         lKeywords.set(PgslToken.KeywordBreak, 'break');
         lKeywords.set(PgslToken.KeywordCase, 'case');
-        lKeywords.set(PgslToken.KeywordConst, 'const');
+        lKeywords.set(PgslToken.KeywordDeclarationConst, 'const');
         lKeywords.set(PgslToken.KeywordConstAssert, 'const_assert');
         lKeywords.set(PgslToken.KeywordContinue, 'continue');
         lKeywords.set(PgslToken.KeywordContinuing, 'continuing');

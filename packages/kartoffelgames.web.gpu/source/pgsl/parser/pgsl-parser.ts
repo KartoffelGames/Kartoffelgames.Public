@@ -14,7 +14,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
     public constructor() {
         super(new PgslLexer());
 
-        // TODO: Preparse steps.
+        // TODO: Preparse steps. Setup with #import or something.
 
         // Define helper graphs.
         this.defineCore();
@@ -100,14 +100,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
     }
 
     private defineExpression(): void {
-        // Compound statement
-        //      <block>
-
         // Variable expression
         //      <ident>
-
-        // Parenthesized Expressions
-        //      (<expression>)
 
         // Composite Value Decomposition Expressions
         //      value[1]
@@ -117,14 +111,13 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         //      enum.value ?? How to distinct
 
         // Logical Expressions
-        //      !<expression>
         //      <expression> || <expression>
         //      <expression> && <expression>
         //      <expression> | <expression>
         //      <expression> & <expression>
 
         // Arithmetic Expressions
-        //      -<expression>
+        
         //      <expression> + <expression>
         //      <expression> - <expression>
         //      <expression> * <expression>
@@ -140,21 +133,95 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         //      <expression> >= <expression>
 
         // Bit Expressions
-        //      ~<expression>
         //      <expression> | <expression>
         //      <expression> & <expression>
         //      <expression> ^ <expression>
         //      <expression> << <expression>
         //      <expression> >> <expression>
 
-        // Function call => Value used
-        //      <ident><templateList>(<expression>,*)
+        // Unary expressions
+        //      ~<expression>
+        //      -<expression>
+        //      !<expression>
 
-        // AddressOf expression
-        //      &<ident>
+        type ParenthesizedExpressionGraphData = {
+            expression: PgslExpression;
+        };
+        this.defineGraphPart('ParenthesizedExpression', this.graph()
+            .single(PgslToken.ParenthesesStart)
+            .single('expression', this.partReference('Expression'))
+            .single(PgslToken.ParenthesesEnd),
+            (_pData: ParenthesizedExpressionGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
 
-        // Pointer expression
-        //      *<ident>
+        type FunctionGraphData = {
+            name: string;
+            parameter?: {
+                first: PgslExpression;
+                additional: Array<{
+                    expression: PgslExpression;
+                }>;
+            };
+            template?: {
+                first: PgslExpression | PgslTypeDefinition;
+                additional: Array<{
+                    value: PgslExpression | PgslTypeDefinition;
+                }>;
+            };
+        };
+        this.defineGraphPart('FunctionExpression', this.graph()
+            .single('name', PgslToken.Identifier)
+            .optional('template', this.graph()
+                .single(PgslToken.TemplateListStart)
+                .branch('first', [
+                    this.partReference('Expression'),
+                    this.partReference('TypeDefinition')
+                ])
+                .loop('additional', this.graph()
+                    .single(PgslToken.Comma)
+                    .branch('value', [
+                        this.partReference('Expression'),
+                        this.partReference('TypeDefinition')
+                    ])
+                )
+                .single(PgslToken.TemplateListEnd)
+            )
+            .single(PgslToken.ParenthesesStart)
+            .optional('parameter', this.graph()
+                .single('first', this.partReference('Expression'))
+                .loop('additional', this.graph()
+                    .single(PgslToken.Comma).single('expression', this.partReference('Expression'))
+                )
+            )
+            .single(PgslToken.ParenthesesEnd),
+            (_pData: FunctionGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
+
+        type AddressOfGraphData = {
+            name: string;
+        };
+        this.defineGraphPart('AddressOfExpression', this.graph()
+            .single(PgslToken.OperatorBinaryAnd)
+            .single('name', PgslToken.Identifier),
+            (_pData: AddressOfGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
+
+        type PointerGraphData = {
+            name: string;
+        };
+        this.defineGraphPart('PointerExpression', this.graph()
+            .single(PgslToken.OperatorMultiply)
+            .single('name', PgslToken.Identifier),
+            (_pData: PointerGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
 
         type LiteralValueGraphData = {
             value: {
@@ -163,7 +230,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 boolean: string;
             };
         };
-        this.defineGraphPart('LiteralValue', this.graph()
+        this.defineGraphPart('LiteralValueExpression', this.graph()
             .branch('value', [
                 this.graph().single('float', PgslToken.LiteralFloat),
                 this.graph().single('integer', PgslToken.LiteralInteger),
@@ -179,7 +246,10 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         };
         this.defineGraphPart('Expression', this.graph()
             .branch('expression', [
-                this.partReference('LiteralValue')
+                this.partReference('LiteralValueExpression'),
+                this.partReference('PointerExpression'),
+                this.partReference('AddressOfExpression'),
+                this.partReference('FunctionExpression')
             ]),
             (_pData: ExpressionGraphData) => {
                 // TODO: Yes this needs to be parsed.
@@ -303,12 +373,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
 
         // Function flow
         //      <paramlist> function <ident>(<paramlist> ident:type,*): <paramlist> type? <block>
-
-        // const expression.
-        //      const <ident>: type = <expression>;
-
-        // override expression.
-        //      <paramlist> override <ident>: type = <expression>;
     }
 
     private defineRoot(): void {

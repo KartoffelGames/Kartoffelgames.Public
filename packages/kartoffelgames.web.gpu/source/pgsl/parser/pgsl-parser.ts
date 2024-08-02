@@ -147,7 +147,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         // Pointer expression
         //      *<ident>
 
-        // LiteralValue
         type LiteralValueGraphData = {
             value: {
                 float: string,
@@ -159,7 +158,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             .branch('value', [
                 this.graph().single('float', PgslToken.LiteralFloat),
                 this.graph().single('integer', PgslToken.LiteralInteger),
-                this.graph().single('boolean', PgslToken.LiteralBoolean),
+                this.graph().single('boolean', PgslToken.LiteralBoolean)
             ]),
             (_pData: LiteralValueGraphData) => {
                 // TODO: Yes this needs to be parsed.
@@ -170,7 +169,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             expression: PgslLiteralValue;
         };
         this.defineGraphPart('Expression', this.graph()
-            .branch('declarationType', [
+            .branch('expression', [
                 this.partReference('LiteralValue')
             ]),
             (_pData: ExpressionGraphData) => {

@@ -946,6 +946,44 @@ describe('CodeParser', () => {
                 // Evaluation. Loop chain twice as long as actual loop.
                 expect(lErrorFunction).to.throws(Exception, `Circular dependency detected between: Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Branch()[<NODE>, <NODE>] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Branch()[<NODE>, <NODE>]`);
             });
+
+            it('-- Prevent duplicate paths on optional partReference with a loop', () => {
+                // Setup. Init lexer.
+                const lLexer = new Lexer<string>();
+                lLexer.trimWhitespace = true;
+                lLexer.validWhitespaces = ' ';
+                lLexer.addTokenPattern({ pattern: { regex: /@/, type: '@' }, specificity: 0 });
+                lLexer.addTokenPattern({ pattern: { regex: /a/, type: 'a' }, specificity: 0 });
+                lLexer.addTokenPattern({ pattern: { regex: /;/, type: ';' }, specificity: 0 });
+                lLexer.addTokenPattern({ pattern: { regex: /1/, type: '1' }, specificity: 0 });
+
+                // Setup. Init grapth.
+                const lParser: CodeParser<string, any> = new CodeParser(lLexer);
+                lParser.defineGraphPart('List', lParser.graph()
+                    .loop('list', lParser.graph().single('@')),
+                    (pData) => {
+                        return pData;
+                    }
+                );
+                lParser.defineGraphPart('Graph', lParser.graph()
+                    .optional('list', lParser.partReference('List'))
+                    .single('type', 'a')
+                    .branch([
+                        ';',
+                        lParser.graph().single('1').single(';')
+                    ]),
+                    (pData) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('Graph');
+
+                // Process
+                const lResult: any = lParser.parse('a1;');
+
+                // Evaluation.
+                expect(lResult).to.deep.equal({ type: 'a' });
+            });
         });
 
         describe('-- Identifier errors.', () => {

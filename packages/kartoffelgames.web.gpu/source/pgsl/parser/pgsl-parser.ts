@@ -1,10 +1,10 @@
 import { CodeParser } from '@kartoffelgames/core.parser';
-import { PgslToken } from './pgsl-token.enum';
 import { PgslDocument } from '../pgsl-document';
-import { PgslLexer } from './pgsl-lexer';
-import { PgslAttributeList } from '../structure/general/pgsl-attribute-list';
 import { PgslExpression } from '../structure/expression/pgsl-expression';
+import { PgslAttributeList } from '../structure/general/pgsl-attribute-list';
 import { PgslTypeDefinition } from '../structure/type/pgsl-type-definition';
+import { PgslLexer } from './pgsl-lexer';
+import { PgslToken } from './pgsl-token.enum';
 
 export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
     /**
@@ -36,25 +36,54 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 };
             }>;
         };
-        this.defineGraphPart('AttributeList',
-            this.graph().loop('list',
-                this.graph().single(PgslToken.AttributeIndicator)
-                    .single('name', PgslToken.Identifier)
-                    .single(PgslToken.ParenthesesStart)
-                    .optional('parameter',
-                        this.graph()
-                            .single('first', this.partReference('Expression'))
-                            .loop('additional', this.graph().single(PgslToken.Comma).single('expression', this.partReference('Expression')))
+        this.defineGraphPart('AttributeList', this.graph()
+            .loop('list', this.graph()
+                .single(PgslToken.AttributeIndicator)
+                .single('name', PgslToken.Identifier)
+                .single(PgslToken.ParenthesesStart)
+                .optional('parameter', this.graph()
+                    .single('first', this.partReference('Expression'))
+                    .loop('additional', this.graph()
+                        .single(PgslToken.Comma).single('expression', this.partReference('Expression'))
                     )
-                    .single(PgslToken.ParenthesesEnd)
+                )
+                .single(PgslToken.ParenthesesEnd)
             ),
             (_pData: AttributeListGraphData) => {
                 // TODO: Yes this needs to be parsed.
             }
         );
 
-        // TypeDefinition
-        //      ident<value|typedefinition>
+        type TypeDefinitionGraphData = {
+            name: string;
+            template?: {
+                first: PgslExpression | PgslTypeDefinition;
+                additional: Array<{
+                    value: PgslExpression | PgslTypeDefinition;
+                }>;
+            };
+        };
+        this.defineGraphPart('TypeDefinition', this.graph()
+            .single('name', PgslToken.Identifier)
+            .optional('template', this.graph()
+                .single(PgslToken.TemplateListStart)
+                .branch('first', [
+                    this.partReference('Expression'),
+                    this.partReference('TypeDefinition')
+                ])
+                .loop('additional', this.graph()
+                    .single(PgslToken.Comma)
+                    .branch('value', [
+                        this.partReference('Expression'),
+                        this.partReference('TypeDefinition')
+                    ])
+                )
+                .single(PgslToken.TemplateListEnd)
+            ),
+            (_pData: TypeDefinitionGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
 
         // Block. Can be a standalone inside function scope.
         //      { <statement>;* }
@@ -194,19 +223,20 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             type: PgslTypeDefinition;
             expression?: PgslExpression;
         };
-        this.defineGraphPart('ModuleScopeVariableDeclaration',
-            this.graph()
-                .loop('attributes', this.partReference('AttributeList')).branch('declarationType', [
-                    PgslToken.KeywordDeclarationStorage,
-                    PgslToken.KeywordDeclarationUniform,
-                    PgslToken.KeywordDeclarationWorkgroup,
-                    PgslToken.KeywordDeclarationPrivate,
-                    PgslToken.KeywordDeclarationParam
-                ]).single(PgslToken.Identifier).single(PgslToken.Colon).single('type', this.partReference('TypeDefinition'))
-                .branch([
-                    PgslToken.Semicolon,
-                    this.graph().single(PgslToken.Assignment).single('expression', this.partReference('Expression')).single(PgslToken.Semicolon)
-                ]),
+        this.defineGraphPart('ModuleScopeVariableDeclaration', this.graph()
+            .loop('attributes', this.partReference('AttributeList'))
+            .branch('declarationType', [
+                PgslToken.KeywordDeclarationStorage,
+                PgslToken.KeywordDeclarationUniform,
+                PgslToken.KeywordDeclarationWorkgroup,
+                PgslToken.KeywordDeclarationPrivate,
+                PgslToken.KeywordDeclarationParam
+            ]).single(PgslToken.Identifier).single(PgslToken.Colon)
+            .single('type', this.partReference('TypeDefinition'))
+            .branch([
+                PgslToken.Semicolon,
+                this.graph().single(PgslToken.Assignment).single('expression', this.partReference('Expression')).single(PgslToken.Semicolon)
+            ]),
             (_pData: ModuleScopeVariableDeclarationGraphData) => {
                 // TODO: Yes this needs to be parsed.
             }
@@ -215,11 +245,10 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         type AliasDeclarationGraphData = {
             aliasName: string;
         };
-        this.defineGraphPart('AliasDeclaration',
-            this.graph()
-                .single(PgslToken.KeywordAlias)
-                .single('aliasName', PgslToken.Identifier).single(PgslToken.Assignment)
-                .single('type', this.partReference('TypeDefinition')).single(PgslToken.Semicolon),
+        this.defineGraphPart('AliasDeclaration', this.graph()
+            .single(PgslToken.KeywordAlias)
+            .single('aliasName', PgslToken.Identifier).single(PgslToken.Assignment)
+            .single('type', this.partReference('TypeDefinition')).single(PgslToken.Semicolon),
             (_pData: AliasDeclarationGraphData) => {
                 // TODO: Yes this needs to be parsed.
             }
@@ -245,10 +274,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 content: any;
             }>;
         };
-        this.defineGraphPart('document',
-            this.graph().loop('list', this.graph().branch('content', [
-                this.partReference('ModuleScopeVariableDeclaration')
-            ])),
+        this.defineGraphPart('document', this.graph()
+            .loop('list', this.graph()
+                .branch('content', [
+                    this.partReference('ModuleScopeVariableDeclaration')
+                ])
+            ),
             (_pData: PgslDocumentGraphData) => {
 
             }

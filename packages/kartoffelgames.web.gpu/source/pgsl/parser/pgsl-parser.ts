@@ -117,7 +117,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         //      <expression> & <expression>
 
         // Arithmetic Expressions
-        
+
         //      <expression> + <expression>
         //      <expression> - <expression>
         //      <expression> * <expression>
@@ -367,9 +367,86 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             }
         );
 
-        // Enums => TODO: all of it
+        type EnumDeclarationGraphData = {
+            name: string;
+            values?: {
+                first: {
+                    name: string,
+                    value: PgslLiteralValue;
+                },
+                additional: Array<{
+                    name: string,
+                    value: PgslLiteralValue;
+                }>;
+            };
+        };
+        this.defineGraphPart('EnumDeclaration', this.graph()
+            .single(PgslToken.KeywordEnum)
+            .single('name', PgslToken.Identifier)
+            .single(PgslToken.BlockStart)
+            .optional('values', this.graph()
+                .single('name', PgslToken.Identifier)
+                .single(PgslToken.Assignment)
+                .branch('value', [
+                    this.partReference('TypeDefinition')
+                ])
+                .loop('additional', this.graph()
+                    .single(PgslToken.Comma)
+                    .single('name', PgslToken.Identifier)
+                    .single(PgslToken.Assignment)
+                    .branch('value', [
+                        this.partReference('TypeDefinition')
+                    ])
+                )
+            )
+            .single(PgslToken.BlockEnd),
+            (_pData: EnumDeclarationGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
 
         // Structs . Dont forgett <paramlist>
+        type StructDeclarationGraphData = {
+            name: string;
+            values?: {
+                first: {
+                    attributes: PgslAttributeList,
+                    name: string;
+                    value: PgslLiteralValue;
+                },
+                additional: Array<{
+                    attributes: PgslAttributeList;
+                    name: string;
+                    value: PgslLiteralValue;
+                }>;
+            };
+        };
+        this.defineGraphPart('StructDeclaration', this.graph()
+            .single(PgslToken.KeywordStruct)
+            .single('name', PgslToken.Identifier)
+            .single(PgslToken.BlockStart)
+            .optional('values', this.graph()
+                .optional('attributes', this.partReference('AttributeList'))
+                .single('name', PgslToken.Identifier)
+                .single(PgslToken.Assignment)
+                .branch('value', [
+                    this.partReference('TypeDefinition')
+                ])
+                .loop('additional', this.graph()
+                    .single(PgslToken.Comma)
+                    .optional('attributes', this.partReference('AttributeList'))
+                    .single('name', PgslToken.Identifier)
+                    .single(PgslToken.Assignment)
+                    .branch('value', [
+                        this.partReference('TypeDefinition')
+                    ])
+                )
+            )
+            .single(PgslToken.BlockEnd),
+            (_pData: StructDeclarationGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
 
         // Function flow
         //      <paramlist> function <ident>(<paramlist> ident:type,*): <paramlist> type? <block>
@@ -384,8 +461,9 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         this.defineGraphPart('document', this.graph()
             .loop('list', this.graph()
                 .branch('content', [
+                    this.partReference('Comment'),
                     this.partReference('ModuleScopeVariableDeclaration'),
-                    this.partReference('Comment')
+                    this.partReference('EnumDeclaration'),
                 ])
             ),
             (_pData: PgslDocumentGraphData) => {

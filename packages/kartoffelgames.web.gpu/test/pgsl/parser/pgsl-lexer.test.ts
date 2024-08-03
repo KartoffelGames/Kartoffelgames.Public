@@ -1372,13 +1372,13 @@ describe('PsglLexer', () => {
 
         it('-- KeywordInclude', () => {
             // Setup.
-            const lCodeString = `include identifier;`;
+            const lCodeString = `enum identifier;`;
 
             // Process.
             const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
 
             // Evaluation.
-            expect(lTokenList[0]).property('type').to.equal(PgslToken.KeywordInclude);
+            expect(lTokenList[0]).property('type').to.equal(PgslToken.KeywordEnum);
             expect(lTokenList[1]).property('type').to.equal(PgslToken.Identifier);
             expect(lTokenList[2]).property('type').to.equal(PgslToken.Semicolon);
         });

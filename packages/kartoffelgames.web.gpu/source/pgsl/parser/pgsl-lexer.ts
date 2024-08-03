@@ -49,7 +49,7 @@ export class PgslLexer extends Lexer<PgslToken> {
         lKeywords.set(PgslToken.KeywordStruct, 'struct');
         lKeywords.set(PgslToken.KeywordSwitch, 'switch');
         lKeywords.set(PgslToken.KeywordWhile, 'while');
-        lKeywords.set(PgslToken.KeywordInclude, 'include');
+        lKeywords.set(PgslToken.KeywordEnum, 'enum');
 
         // Declarations
         lKeywords.set(PgslToken.KeywordDeclarationLet, 'let');

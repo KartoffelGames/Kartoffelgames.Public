@@ -984,6 +984,64 @@ describe('CodeParser', () => {
                 // Evaluation.
                 expect(lResult).to.deep.equal({ type: 'a' });
             });
+
+            it('-- Prevent circular detection on infinit depths', () => {
+                // Setup. Init lexer.
+                const lLexer = new Lexer<string>();
+                lLexer.trimWhitespace = true;
+                lLexer.validWhitespaces = ' ';
+                lLexer.addTokenPattern({ pattern: { regex: /a/, type: 'a' }, specificity: 0 });
+                lLexer.addTokenPattern({ pattern: { regex: /\+/, type: '+' }, specificity: 0 });
+
+                // Setup. Init grapth.
+                const lParser: CodeParser<string, any> = new CodeParser(lLexer);
+                lParser.defineGraphPart('Variable', lParser.graph()
+                    .single('variable', 'a'),
+                    (pData) => {
+                        return pData;
+                    }
+                );
+                lParser.defineGraphPart('Addition', lParser.graph()
+                    .single('left', lParser.partReference('Expression'))
+                    .single('+')
+                    .single('right', lParser.partReference('Expression')),
+                    (pData) => {
+                        return pData;
+                    }
+                );
+                lParser.defineGraphPart('Expression', lParser.graph()
+                    .branch('expression', [
+                        lParser.partReference('Addition'),
+                        lParser.partReference('Variable')
+                    ]),
+                    (pData) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('Expression');
+
+                // Process
+                const lResult: any = lParser.parse('a + a + a');
+
+                // Evaluation.
+                expect(lResult).to.deep.equal({
+                    expression: {
+                        left: {
+                            expression: {
+                                left: {
+                                    variable: 'a'
+                                },
+                                right: {
+                                    variable: 'a'
+                                },
+                            }
+                        },
+                        right: {
+                            variable: 'a'
+                        },
+                    }
+                });
+            });
         });
 
         describe('-- Identifier errors.', () => {

@@ -110,18 +110,45 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         //          => Maybe <expression>[x] and <expression>.prop
         //      enum.value ?? How to distinct
 
-        // Logical Expressions
-        //      <expression> || <expression>
-        //      <expression> && <expression>
-        //      <expression> | <expression>
-        //      <expression> & <expression>
+        type LogicalExpressionGraphData = {
+            leftExpression: PgslExpression;
+            operation: string;
+            rightExpression: PgslExpression;
+        };
+        this.defineGraphPart('LogicalExpression', this.graph()
+            .single('leftExpression', this.partReference('Expression'))
+            .branch('prefix', [
+                PgslToken.OperatorShortCircuitOr,
+                PgslToken.OperatorShortCircuitAnd,
+                PgslToken.OperatorMultiply,
+                PgslToken.OperatorBinaryOr,
+                PgslToken.OperatorBinaryAnd
+            ])
+            .single('rightExpression', this.partReference('Expression')),
+            (_pData: LogicalExpressionGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
 
-        // Arithmetic Expressions
-        //      <expression> + <expression>
-        //      <expression> - <expression>
-        //      <expression> * <expression>
-        //      <expression> / <expression>
-        //      <expression> % <expression>
+        type ArithmeticExpressionGraphData = {
+            leftExpression: PgslExpression;
+            operation: string;
+            rightExpression: PgslExpression;
+        };
+        this.defineGraphPart('ArithmeticExpression', this.graph()
+            .single('leftExpression', this.partReference('Expression'))
+            .branch('prefix', [
+                PgslToken.OperatorPlus,
+                PgslToken.OperatorMinus,
+                PgslToken.OperatorMultiply,
+                PgslToken.OperatorDivide,
+                PgslToken.OperatorModulo
+            ])
+            .single('rightExpression', this.partReference('Expression')),
+            (_pData: ArithmeticExpressionGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
 
         type ComparisonExpressionGraphData = {
             leftExpression: PgslExpression;
@@ -288,7 +315,9 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 this.partReference('FunctionExpression'),
                 this.partReference('UnaryExpression'),
                 this.partReference('BitOperationExpression'),
-                this.partReference('ComparisonExpression')
+                this.partReference('ComparisonExpression'),
+                this.partReference('ArithmeticExpression'),
+                this.partReference('LogicalExpression')
             ]),
             (_pData: ExpressionGraphData) => {
                 // TODO: Yes this needs to be parsed.

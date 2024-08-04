@@ -587,6 +587,11 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             throw lGraphErrors;
         }
 
+        // Nothing to filter. Better performance than iterating each time.
+        if(lResultList.length === 1){
+            return lResultList;
+        }
+
         // Filter only one result with a tokenProcessed true.
         // Prevents optional nodes with optional graph references to keep ambiguity paths till the next branch. 
         let lHadUnprocessedTokenNode: boolean = true;

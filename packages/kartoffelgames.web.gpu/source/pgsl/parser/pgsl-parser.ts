@@ -410,12 +410,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             name: string;
             values?: {
                 first: {
-                    attributes: PgslAttributeList,
+                    attributes?: PgslAttributeList,
                     name: string;
                     value: PgslLiteralValue;
                 },
                 additional: Array<{
-                    attributes: PgslAttributeList;
+                    attributes?: PgslAttributeList;
                     name: string;
                     value: PgslLiteralValue;
                 }>;
@@ -448,8 +448,42 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             }
         );
 
-        // Function flow
-        //      <paramlist> function <ident>(<paramlist> ident:type,*): <paramlist> type? <block>
+        type FunctionDeclarationGraphData = {
+            attributes: PgslAttributeList;
+            name: string;
+            parameter: {
+                first: {
+                    name: string;
+                    type: PgslTypeDefinition;
+                };
+                additional: Array<{
+                    name: string;
+                    type: PgslTypeDefinition;
+                }>;
+            };
+        };
+        this.defineGraphPart('FunctionDeclaration', this.graph()
+            .optional('attributes', this.partReference('AttributeList'))
+            .single(PgslToken.KeywordFunction)
+            .single('name', PgslToken.Identifier)
+            .single(PgslToken.ParenthesesStart)
+            .optional('parameter', this.graph()
+                .single('first', this.graph()
+                    .single('name', PgslToken.Identifier)
+                    .single('type', this.partReference('TypeDefinition'))
+                )
+                .loop('additional', this.graph()
+                    .single(PgslToken.Comma)
+                    .single('name', PgslToken.Identifier)
+                    .single('type', this.partReference('TypeDefinition'))
+                )
+            )
+            .single(PgslToken.ParenthesesEnd)
+            .single('name', this.partReference('Block')),
+            (_pData: FunctionDeclarationGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
     }
 
     private defineRoot(): void {
@@ -462,8 +496,11 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             .loop('list', this.graph()
                 .branch('content', [
                     this.partReference('Comment'),
+                    this.partReference('AliasDeclaration'),
                     this.partReference('ModuleScopeVariableDeclaration'),
                     this.partReference('EnumDeclaration'),
+                    this.partReference('StructDeclaration'),
+                    this.partReference('FunctionDeclaration')
                 ])
             ),
             (_pData: PgslDocumentGraphData) => {

@@ -403,6 +403,9 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     continue;
                 }
 
+                // TODO: When lChainedNode was already parsed in the current chain and between this node and the last parse of this node the cursor was not moved.
+                // This should prevent any recursion, so the recursion error should not be needed any more.
+
                 // Try to parse next graph node saves all errors on exception.
                 lGraphErrors.onErrorMergeAndContinue(() => {
                     // Parse chained node.

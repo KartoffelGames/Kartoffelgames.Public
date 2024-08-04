@@ -117,32 +117,68 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         //      <expression> & <expression>
 
         // Arithmetic Expressions
-
         //      <expression> + <expression>
         //      <expression> - <expression>
         //      <expression> * <expression>
         //      <expression> / <expression>
         //      <expression> % <expression>
 
-        // Comparison Expressions
-        //      <expression> == <expression>
-        //      <expression> != <expression>
-        //      <expression> < <expression>
-        //      <expression> <= <expression>
-        //      <expression> > <expression>
-        //      <expression> >= <expression>
+        type ComparisonExpressionGraphData = {
+            leftExpression: PgslExpression;
+            comparison: string;
+            rightExpression: PgslExpression;
+        };
+        this.defineGraphPart('ComparisonExpression', this.graph()
+            .single('leftExpression', this.partReference('Expression'))
+            .branch('prefix', [
+                PgslToken.OperatorEqual,
+                PgslToken.OperatorNotEqual,
+                PgslToken.OperatorLowerThan,
+                PgslToken.OperatorLowerThanEqual,
+                PgslToken.OperatorGreaterThan,
+                PgslToken.OperatorGreaterThanEqual
+            ])
+            .single('rightExpression', this.partReference('Expression')),
+            (_pData: ComparisonExpressionGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
 
-        // Bit Expressions
-        //      <expression> | <expression>
-        //      <expression> & <expression>
-        //      <expression> ^ <expression>
-        //      <expression> << <expression>
-        //      <expression> >> <expression>
+        type BitExpressionGraphData = {
+            leftExpression: PgslExpression;
+            operation: string;
+            rightExpression: PgslExpression;
+        };
+        this.defineGraphPart('BitOperationExpression', this.graph()
+            .single('leftExpression', this.partReference('Expression'))
+            .branch('prefix', [
+                PgslToken.OperatorBinaryOr,
+                PgslToken.OperatorBinaryAnd,
+                PgslToken.OperatorBinaryXor,
+                PgslToken.OperatorShiftLeft,
+                PgslToken.OperatorShiftRight
+            ])
+            .single('rightExpression', this.partReference('Expression')),
+            (_pData: BitExpressionGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
 
-        // Unary expressions
-        //      ~<expression>
-        //      -<expression>
-        //      !<expression>
+        type UnaryExpressionGraphData = {
+            prefix: string;
+            expression: PgslExpression;
+        };
+        this.defineGraphPart('UnaryExpression', this.graph()
+            .branch('prefix', [
+                PgslToken.OperatorBinaryNegate,
+                PgslToken.OperatorMinus,
+                PgslToken.OperatorNot
+            ])
+            .single('expression', this.partReference('Expression')),
+            (_pData: UnaryExpressionGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
 
         type ParenthesizedExpressionGraphData = {
             expression: PgslExpression;
@@ -249,7 +285,10 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 this.partReference('LiteralValueExpression'),
                 this.partReference('PointerExpression'),
                 this.partReference('AddressOfExpression'),
-                this.partReference('FunctionExpression')
+                this.partReference('FunctionExpression'),
+                this.partReference('UnaryExpression'),
+                this.partReference('BitOperationExpression'),
+                this.partReference('ComparisonExpression')
             ]),
             (_pData: ExpressionGraphData) => {
                 // TODO: Yes this needs to be parsed.
@@ -405,7 +444,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             }
         );
 
-        // Structs . Dont forgett <paramlist>
         type StructDeclarationGraphData = {
             name: string;
             values?: {

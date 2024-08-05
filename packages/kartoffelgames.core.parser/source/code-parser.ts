@@ -284,7 +284,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * When the parsing fails for this node or a brother node, a complete list with all potential errors are returned instead of the token data.
      */
     private parseGraphNode(pNode: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionNodeChain: Set<GraphPartReference<TTokenType>>): GraphNodeParseResult {
-
         // Parse and read current node values. Throws when no value was found and required.
         const lNodeValueParseResult: Array<GraphParseResult> = this.retrieveNodeValues(pNode, pTokenList, pCurrentTokenIndex, pRecursionNodeChain);
 
@@ -324,15 +323,14 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Only graph references can have a infinite recursion, so we focus on these.
         // Copy the current recursion chain and append graph reference.
         const lRecursionNodeChain: Set<GraphPartReference<TTokenType>> = new Set<GraphPartReference<TTokenType>>(pRecursionNodeChain);
-        lRecursionNodeChain.add(pPartReference);
+        pRecursionNodeChain.add(pPartReference);
 
         // Read referenced root node and optional data collector.
         const lGraphPart: GraphPart<TTokenType> = pPartReference.resolveReference();
-        const lRootNode: BaseGrammarNode<TTokenType> = lGraphPart.graph;
         const lCollector: GraphPartDataCollector | null = lGraphPart.dataCollector;
 
         // Parse graph node, returns empty when graph has no value and was optional
-        const lNodeParseResult: GraphNodeParseResult = this.parseGraphNode(lRootNode, pTokenList, pCurrentTokenIndex, lRecursionNodeChain);
+        const lNodeParseResult: GraphNodeParseResult = this.parseGraph(lGraphPart.graph, pTokenList, pCurrentTokenIndex, lRecursionNodeChain);
 
         // Execute optional collector.
         let lResultData: unknown = lNodeParseResult.data;
@@ -571,6 +569,17 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     if (lNodeValue instanceof GraphPartReference) {
                         const lReferenceResult: GraphParseResult | null = this.parseGraphReference(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionNodeChain);
                         if (!lReferenceResult) {
+                            // Build error list.
+                            const lReferenceRecursionList: Array<string> = new Array<string>();
+                            for (const lRecursionReference of pRecursionNodeChain) {
+                                lReferenceRecursionList.push(`Ref<${lRecursionReference.partName}>`);
+                            }
+
+                            // Add current reference to recursion error list.
+                            lReferenceRecursionList.push(`Ref<${lNodeValue.partName}>`);
+
+                            // Add potential error that prevents parsing.
+                            lGraphErrors.appendError(`Infinite part reference recursion prevented for "${lReferenceRecursionList.join(' -> ')}".`, lCurrentToken);
                             return;
                         }
 

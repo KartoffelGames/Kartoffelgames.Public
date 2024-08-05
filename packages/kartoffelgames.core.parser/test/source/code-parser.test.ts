@@ -497,12 +497,12 @@ describe('CodeParser', () => {
                 lParser.setRootGraphPart('LoopCode');
 
                 // Process. Convert code.
-                const lErrorFunction = () => {
-                    lParser.parse(lCodeText);
-                };
+                const lParsedData: any = lParser.parse(lCodeText);
 
-                // Evaluation. Loop chain twice as long as actual loop.
-                expect(lErrorFunction).to.throws(Exception, `Circular dependency detected between: Optional-Single()[<REF:LoopCode>] -> Optional-Single(optional)[Modifier] -> Optional-Single()[<REF:LoopCode>] -> Optional-Single(optional)[Modifier]`);
+                // Evaluation.
+                expect(lParsedData).to.deep.equal({
+                    optional: lCodeText
+                });
             });
 
             it('-- Empty data for loops', () => {
@@ -878,7 +878,7 @@ describe('CodeParser', () => {
                 expect(lErrorFunction).to.throws(Exception, `Graph has ambiguity paths. Values: [\n\t{ const(Modifier) identifier(Identifier) ;(Semicolon) },\n\t{ const(Modifier) identifier(Identifier) ;(Semicolon) }\n]`);
             });
 
-            it('-- Detect endless circular dependency over multiple references.', () => {
+            it('-- Detect endless circular dependency over multiple references', () => {
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
 
                 lParser.defineGraphPart('Level1',
@@ -901,10 +901,10 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation. Loop chain twice as long as actual loop.
-                expect(lErrorFunction).to.throws(Exception, `Circular dependency detected between: Single()[<REF:Level2>] -> Optional-Single()[Modifier] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Single()[<REF:Level2>] -> Optional-Single()[Modifier] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier]`);
+                expect(lErrorFunction).to.throws(Exception, `Infinite part reference recursion prevented for "Ref<Level1> -> Ref<Level2> -> Ref<Level1> -> Ref<Level2>`);
             });
 
-            it('-- Detect endless circular dependency with loop.', () => {
+            it('-- Detect endless circular dependency with loop', () => {
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
 
                 lParser.defineGraphPart('Level1',
@@ -921,10 +921,10 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation. Loop chain twice as long as actual loop.
-                expect(lErrorFunction).to.throws(Exception, `Circular dependency detected between: Optional-Loop()[Identifier] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Optional-Loop()[Identifier] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier]`);
+                expect(lErrorFunction).to.throws(Exception, `Infinite part reference recursion prevented for "Ref<Level1> -> Ref<Level1> -> Ref<Level1>`);
             });
 
-            it('-- Detect endless circular dependency with branch.', () => {
+            it('-- Detect endless circular dependency with branch', () => {
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
 
                 lParser.defineGraphPart('Level1',
@@ -944,7 +944,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation. Loop chain twice as long as actual loop.
-                expect(lErrorFunction).to.throws(Exception, `Circular dependency detected between: Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Branch()[<NODE>, <NODE>] -> Single()[<REF:Level1>] -> Optional-Single()[Modifier] -> Branch()[<NODE>, <NODE>]`);
+                expect(lErrorFunction).to.throws(Exception, `Infinite part reference recursion prevented for "Ref<Level1> -> Ref<Level1> -> Ref<Level1>`);
             });
 
             it('-- Prevent duplicate paths on optional partReference with a loop', () => {
@@ -1028,16 +1028,22 @@ describe('CodeParser', () => {
                     expression: {
                         left: {
                             expression: {
-                                left: {
-                                    variable: 'a'
-                                },
-                                right: {
-                                    variable: 'a'
-                                },
+                                variable: 'a'
                             }
                         },
                         right: {
-                            variable: 'a'
+                            expression: {
+                                left: {
+                                    expression: {
+                                        variable: 'a'
+                                    }
+                                },
+                                right: {
+                                    expression: {
+                                        variable: 'a'
+                                    }
+                                },
+                            }
                         },
                     }
                 });

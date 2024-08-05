@@ -1,12 +1,9 @@
-import { Dictionary, Exception, Stack } from '@kartoffelgames/core';
-import { GraphParseError, GraphException } from './exception/graph-exception';
+import { Dictionary, Exception } from '@kartoffelgames/core';
+import { GraphException, GraphParseError } from './exception/graph-exception';
 import { ParserException } from './exception/parser-exception';
 import { AnonymoutGrammarNode } from './graph/node/anonymous-grammar-node';
 import { BaseGrammarNode } from './graph/node/base-grammar-node';
-import { GrammarBranchNode } from './graph/node/grammer-branch-node';
-import { GrammarLoopNode } from './graph/node/grammer-loop-node';
 import { GrammarNodeValueType } from './graph/node/grammer-node-value-type.enum';
-import { GrammarSingleNode } from './graph/node/grammer-single-node';
 import { GraphPart, GraphPartDataCollector } from './graph/part/graph-part';
 import { GraphPartReference } from './graph/part/graph-part-reference';
 import { Lexer } from './lexer/lexer';
@@ -133,8 +130,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
         let lRootParseData: GraphParseResult;
         try {
-            // Parse root part. Start at 0 recursion level.
-            lRootParseData = this.parseGraphReference(lRootPartReference, lTokenList, 0, new Stack<BaseGrammarNode<TTokenType>>());
+            // Parse root part. Start at 0 recursion level. Technicaly impossible to exit reference path because of recursion chain.
+            lRootParseData = this.parseGraphReference(lRootPartReference, lTokenList, 0, new Set<GraphPartReference<TTokenType>>())!;
         } catch (pException) {
             // Only handle exclusive graph errors.
             if (!(pException instanceof GraphException)) {
@@ -262,15 +259,15 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @param pGraph - Node of graph. Used to get the root node.
      * @param pTokenList - Current parsed list of all token in appearing order.
      * @param pCurrentTokenIndex - Current token index that should be parsed with the node.
-     * @param pRecursionItem - Recursion tracker item. Tracks depth and potential loops of recursion.
+     * @param pRecursionNodeChain - List of nodes that are called in recursion without any node with value between them.
      * 
      * @returns The Token data object with all parsed brother node token data merged. Additionally the last used token index is returned.
      * When the parsing fails for this node or a brother node, a complete list with all potential errors are returned instead of the token data.
      */
-    private parseGraph(pGraph: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionItem: GraphRecursionStack<TTokenType>): GraphNodeParseResult {
+    private parseGraph(pGraph: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionNodeChain: Set<GraphPartReference<TTokenType>>): GraphNodeParseResult {
         const lRootNode: BaseGrammarNode<TTokenType> = pGraph.branchRoot;
 
-        return this.parseGraphNode(lRootNode, pTokenList, pCurrentTokenIndex, pRecursionItem);
+        return this.parseGraphNode(lRootNode, pTokenList, pCurrentTokenIndex, pRecursionNodeChain);
     }
 
     /**
@@ -281,20 +278,18 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @param pNode - Current node that should handle the set token.
      * @param pTokenList - Current parsed list of all token in appearing order.
      * @param pCurrentTokenIndex - Current token index that should be parsed with the node.
-     * @param pRecursionItem - Recursion tracker item. Tracks depth and potential loops of recursion.
+     * @param pRecursionNodeChain - List of nodes that are called in recursion without any node with value between them.
      * 
      * @returns The Token data object with all parsed brother node token data merged. Additionally the last used token index is returned.
      * When the parsing fails for this node or a brother node, a complete list with all potential errors are returned instead of the token data.
      */
-    private parseGraphNode(pNode: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionItem: GraphRecursionStack<TTokenType>): GraphNodeParseResult {
-        // Increase recursion level.
-        const lRecursionItem: GraphRecursionStack<TTokenType> = this.stackRecursion(pRecursionItem, pNode);
+    private parseGraphNode(pNode: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionNodeChain: Set<GraphPartReference<TTokenType>>): GraphNodeParseResult {
 
         // Parse and read current node values. Throws when no value was found and required.
-        const lNodeValueParseResult: Array<GraphParseResult> = this.retrieveNodeValues(pNode, pTokenList, pCurrentTokenIndex, lRecursionItem);
+        const lNodeValueParseResult: Array<GraphParseResult> = this.retrieveNodeValues(pNode, pTokenList, pCurrentTokenIndex, pRecursionNodeChain);
 
         // Parse and read data of chanined nodes. Add each error to the complete error list.
-        const lChainParseResult: GraphChainResult = this.retrieveChainedValues(pNode, lNodeValueParseResult, pTokenList, lRecursionItem);
+        const lChainParseResult: GraphChainResult = this.retrieveChainedValues(pNode, lNodeValueParseResult, pTokenList, pRecursionNodeChain);
 
         return {
             data: this.mergeNodeData(pNode, lChainParseResult),
@@ -310,7 +305,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @param pPartReference - Graph part or a reference to a part.
      * @param pTokenList - Current parsed list of all token in appearing order..
      * @param pCurrentTokenIndex - Current token index that should be parsed with the graph part.
-     * @param pRecursionItem - Recursion tracker item. Tracks depth and potential loops of recursion.
+     * @param pRecursionNodeChain - List of nodes that are called in recursion without any node with value between them.
      *  
      * @returns The Token data object, or when the graph part has a data collector, the collected and altered data object is returned.
      * Additionally the last used token index is returned.
@@ -319,14 +314,25 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @throws {@link ParserException}
      * When an error is thrown while paring collected data.
      */
-    private parseGraphReference(pPartReference: GraphPartReference<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionItem: GraphRecursionStack<TTokenType>): GraphParseResult {
+    private parseGraphReference(pPartReference: GraphPartReference<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionNodeChain: Set<GraphPartReference<TTokenType>>): GraphParseResult | null {
+        // When the reference was already used in the current recursion chain and since the last time the cursor was not moved, continue.
+        // This breaks an endless recursion loop where eighter a reference is calling itself directly or between this and the last invoke only optional nodes without any found value were used.
+        if (pRecursionNodeChain.has(pPartReference)) {
+            return null;
+        }
+
+        // Only graph references can have a infinite recursion, so we focus on these.
+        // Copy the current recursion chain and append graph reference.
+        const lRecursionNodeChain: Set<GraphPartReference<TTokenType>> = new Set<GraphPartReference<TTokenType>>(pRecursionNodeChain);
+        lRecursionNodeChain.add(pPartReference);
+
         // Read referenced root node and optional data collector.
         const lGraphPart: GraphPart<TTokenType> = pPartReference.resolveReference();
         const lRootNode: BaseGrammarNode<TTokenType> = lGraphPart.graph;
         const lCollector: GraphPartDataCollector | null = lGraphPart.dataCollector;
 
         // Parse graph node, returns empty when graph has no value and was optional
-        const lNodeParseResult: GraphNodeParseResult = this.parseGraphNode(lRootNode, pTokenList, pCurrentTokenIndex, pRecursionItem);
+        const lNodeParseResult: GraphNodeParseResult = this.parseGraphNode(lRootNode, pTokenList, pCurrentTokenIndex, lRecursionNodeChain);
 
         // Execute optional collector.
         let lResultData: unknown = lNodeParseResult.data;
@@ -366,7 +372,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @param pNodeTokenIndex - Current token index of {@link pNode}.
      * @param pNodeValues - Every sucessfull value of the node.
      * @param pTokenList - Current parsed list of all token in appearing order.
-     * @param pRecursionItem - Recursion tracker item. Tracks depth and potential loops of recursion.
+     * @param pRecursionNodeChain - List of nodes that are called in recursion without any node with value between them.
      * 
      * @returns The data of the successfull graph value chain or null when no token was processed.
      * 
@@ -376,7 +382,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @throws {@link GraphException}
      * When no valid token for the next chaining node was found.
      */
-    private retrieveChainedValues(pNode: BaseGrammarNode<TTokenType>, pNodeValues: Array<GraphParseResult>, pTokenList: Array<LexerToken<TTokenType>>, pRecursionItem: GraphRecursionStack<TTokenType>): GraphChainResult {
+    private retrieveChainedValues(pNode: BaseGrammarNode<TTokenType>, pNodeValues: Array<GraphParseResult>, pTokenList: Array<LexerToken<TTokenType>>, pRecursionNodeChain: Set<GraphPartReference<TTokenType>>): GraphChainResult {
         const lGraphErrors: GraphException<TTokenType> = new GraphException<TTokenType>();
 
         // Run chained node parse for each node value.
@@ -403,13 +409,21 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     continue;
                 }
 
-                // TODO: When lChainedNode was already parsed in the current chain and between this node and the last parse of this node the cursor was not moved.
-                // This should prevent any recursion, so the recursion error should not be needed any more.
-
                 // Try to parse next graph node saves all errors on exception.
                 lGraphErrors.onErrorMergeAndContinue(() => {
+                    // Every graph branch should have their own recursion chain.
+                    let lRecursionNodeChainCopy: Set<GraphPartReference<TTokenType>>;
+                    if (lNodeValue.tokenProcessed) {
+                        // Reset recursion node chain when the current node had a parsed value.
+                        // This prevents only infinit recursions when every node was optional.
+                        lRecursionNodeChainCopy = new Set<GraphPartReference<TTokenType>>();
+                    } else {
+                        // Copy recursion node chain to prevent stacking from other graph branches.
+                        lRecursionNodeChainCopy = new Set<GraphPartReference<TTokenType>>(pRecursionNodeChain);
+                    }
+
                     // Parse chained node.
-                    const lChainedNodeParseResult: GraphNodeParseResult = this.parseGraphNode(lChainedNode, pTokenList, lNodeValue.nextTokenIndex, pRecursionItem);
+                    const lChainedNodeParseResult: GraphNodeParseResult = this.parseGraphNode(lChainedNode, pTokenList, lNodeValue.nextTokenIndex, lRecursionNodeChainCopy);
 
                     // Process graph with chained node values.
                     lChainList.push({
@@ -504,14 +518,14 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @param pNode - Current node.
      * @param pTokenList - Current parsed list of all token in appearing order.
      * @param pCurrentTokenIndex - Current token index that should be parsed with the graph part.
-     * @param pRecursionItem - Recursion tracker item. Tracks depth and potential loops of recursion.
+     * @param pRecursionNodeChain - List of nodes that are called in recursion without any node with value between them.
      * 
      * @throws {@link GraphException}
      * When no value was found but the node is required.
      * 
      * @returns all valid node values or null when no valid token was found but {@link pNode} is optional.
      */
-    private retrieveNodeValues(pNode: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionItem: GraphRecursionStack<TTokenType>): Array<GraphParseResult> {
+    private retrieveNodeValues(pNode: BaseGrammarNode<TTokenType>, pTokenList: Array<LexerToken<TTokenType>>, pCurrentTokenIndex: number, pRecursionNodeChain: Set<GraphPartReference<TTokenType>>): Array<GraphParseResult> {
         // Read next token.
         const lCurrentToken: LexerToken<TTokenType> | undefined = pTokenList.at(pCurrentTokenIndex);
 
@@ -547,7 +561,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                 lResultList.push({
                     data: lCurrentToken.value,
                     nextTokenIndex: pCurrentTokenIndex + 1,
-                    tokenProcessed: true
+                    tokenProcessed: true,
                 });
             } else {
                 // Try to retrieve values from graphs.
@@ -555,9 +569,14 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     // Process inner value.
                     let lValueGraphResult: GraphParseResult;
                     if (lNodeValue instanceof GraphPartReference) {
-                        lValueGraphResult = this.parseGraphReference(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionItem);
+                        const lReferenceResult: GraphParseResult | null = this.parseGraphReference(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionNodeChain);
+                        if (!lReferenceResult) {
+                            return;
+                        }
+
+                        lValueGraphResult = lReferenceResult;
                     } else {
-                        const lGraphParseResult: GraphNodeParseResult = this.parseGraph(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionItem);
+                        const lGraphParseResult: GraphNodeParseResult = this.parseGraph(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionNodeChain);
 
                         // Save if result list has an empty result.
                         lHasEmptyResult = lHasEmptyResult || !lGraphParseResult.tokenProcessed;
@@ -581,7 +600,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             lResultList.push({
                 data: undefined,
                 nextTokenIndex: pCurrentTokenIndex,
-                tokenProcessed: false
+                tokenProcessed: false,
             });
         }
 
@@ -591,7 +610,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         }
 
         // Nothing to filter. Better performance than iterating each time.
-        if(lResultList.length === 1){
+        if (lResultList.length === 1) {
             return lResultList;
         }
 
@@ -610,98 +629,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
             return true;
         });
-    }
-
-    /**
-     * Stack up recursion level.
-     * Validates current resursion level and throws an error when it has exceeded the set max recursion level.
-     * 
-     * @param pRecursionStack - Current recursion stack.
-     * @param pPart - Current resolved graph part.
-     * 
-     * @throws {@link Exception} 
-     * When recursion level exceeded set max recursion count. 
-     * 
-     * @returns Incremented resursion level. 
-     */
-    private stackRecursion(pRecursionStack: GraphRecursionStack<TTokenType>, pPart: BaseGrammarNode<TTokenType>): GraphRecursionStack<TTokenType> {
-        const lRecursionStack: Stack<BaseGrammarNode<TTokenType>> = pRecursionStack.clone();
-
-        // Increase recursion level and add part reference to recursion stack.
-        lRecursionStack.push(pPart);
-
-        // Throw exception when stack exceeds recursion count.
-        if (lRecursionStack.size > this.mMaxRecursion) {
-            const lRecursionChain: Array<BaseGrammarNode<TTokenType>> = new Array<BaseGrammarNode<TTokenType>>();
-
-            /* Set recursion chain twice as long as found loop length.
-             *
-             * Save any referenced nodes in a set, so i can only hold a node only once.
-             * The recursion chain, is set to  be twice as long as the count of any unique node in the loop or no stack is left.
-             * So the actual loop is displayed at least once but optionaly exactly two times.
-             * 
-             * When the loop starts, at lease one reference should be added (size === 0).
-             */
-            const lRecursionReferences: Set<BaseGrammarNode<TTokenType>> = new Set<BaseGrammarNode<TTokenType>>();
-            while ((lRecursionReferences.size === 0 || (lRecursionReferences.size * 2) > lRecursionChain.length) && !!lRecursionStack.top) {
-                // Set current chain item as processed reference.
-                lRecursionReferences.add(lRecursionStack.top);
-
-                // Set current recursion item to chain.
-                lRecursionChain.push(lRecursionStack.top);
-
-                // Read next chain item.
-                lRecursionStack.pop();
-            }
-
-            // Construct recursion loop name data. Reverse list to set actual call order.
-            const lPartNameList: Array<string> = [...lRecursionChain].map((pPart: BaseGrammarNode<TTokenType>) => {
-                // Get graph name based on type.
-                let lNodeName!: string;
-                switch (true) {
-                    case pPart instanceof GrammarBranchNode: {
-                        lNodeName = `Branch`;
-                        break;
-                    }
-                    case pPart instanceof GrammarLoopNode: {
-                        lNodeName = `Loop`;
-                        break;
-                    }
-                    case pPart instanceof GrammarSingleNode: {
-                        lNodeName = `Single`;
-                        break;
-                    }
-                }
-
-                // Resolve part value names.
-                const lValueNames: Array<string> = pPart.nodeValues.map((pValue) => {
-                    switch (true) {
-                        case pValue instanceof GraphPartReference: {
-                            return `<REF:${pValue.partName}>`;
-                        }
-                        case pValue instanceof BaseGrammarNode: {
-                            return '<NODE>';
-                        }
-                        default: {
-                            return pValue.toString();
-                        }
-                    }
-                });
-
-                // Append optional status to name.
-                if (!pPart.required) {
-                    lNodeName = 'Optional-' + lNodeName;
-                }
-
-                return `${lNodeName}(${pPart.identifier ?? ''})[${lValueNames.join(', ')}]`;
-            });
-            lPartNameList.reverse();
-
-            // Throw recursion error.
-            throw new Exception(`Circular dependency detected between: ${lPartNameList.join(' -> ')}`, this);
-        }
-
-        return lRecursionStack;
     }
 }
 
@@ -727,5 +654,3 @@ type GraphChainResult = {
     nodeData: GraphParseResult;
     chainData: GraphNodeParseResult;
 };
-
-type GraphRecursionStack<TTokenType extends string> = Stack<BaseGrammarNode<TTokenType>>;

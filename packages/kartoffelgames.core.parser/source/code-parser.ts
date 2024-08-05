@@ -321,8 +321,6 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         }
 
         // Only graph references can have a infinite recursion, so we focus on these.
-        // Copy the current recursion chain and append graph reference.
-        const lRecursionNodeChain: Set<GraphPartReference<TTokenType>> = new Set<GraphPartReference<TTokenType>>(pRecursionNodeChain);
         pRecursionNodeChain.add(pPartReference);
 
         // Read referenced root node and optional data collector.
@@ -330,7 +328,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         const lCollector: GraphPartDataCollector | null = lGraphPart.dataCollector;
 
         // Parse graph node, returns empty when graph has no value and was optional
-        const lNodeParseResult: GraphNodeParseResult = this.parseGraph(lGraphPart.graph, pTokenList, pCurrentTokenIndex, lRecursionNodeChain);
+        const lNodeParseResult: GraphNodeParseResult = this.parseGraph(lGraphPart.graph, pTokenList, pCurrentTokenIndex, pRecursionNodeChain);
 
         // Execute optional collector.
         let lResultData: unknown = lNodeParseResult.data;
@@ -564,14 +562,17 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             } else {
                 // Try to retrieve values from graphs.
                 lGraphErrors.onErrorMergeAndContinue(() => {
+                    // Copy recursion chain for every sub graph.
+                    const lRecursionNodeChain: Set<GraphPartReference<TTokenType>> = new Set<GraphPartReference<TTokenType>>(pRecursionNodeChain);
+
                     // Process inner value.
                     let lValueGraphResult: GraphParseResult;
                     if (lNodeValue instanceof GraphPartReference) {
-                        const lReferenceResult: GraphParseResult | null = this.parseGraphReference(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionNodeChain);
+                        const lReferenceResult: GraphParseResult | null = this.parseGraphReference(lNodeValue, pTokenList, pCurrentTokenIndex, lRecursionNodeChain);
                         if (!lReferenceResult) {
                             // Build error list.
                             const lReferenceRecursionList: Array<string> = new Array<string>();
-                            for (const lRecursionReference of pRecursionNodeChain) {
+                            for (const lRecursionReference of lRecursionNodeChain) {
                                 lReferenceRecursionList.push(`Ref<${lRecursionReference.partName}>`);
                             }
 
@@ -585,7 +586,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
                         lValueGraphResult = lReferenceResult;
                     } else {
-                        const lGraphParseResult: GraphNodeParseResult = this.parseGraph(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionNodeChain);
+                        const lGraphParseResult: GraphNodeParseResult = this.parseGraph(lNodeValue, pTokenList, pCurrentTokenIndex, lRecursionNodeChain);
 
                         // Save if result list has an empty result.
                         lHasEmptyResult = lHasEmptyResult || !lGraphParseResult.tokenProcessed;

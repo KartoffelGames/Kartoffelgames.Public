@@ -985,25 +985,89 @@ describe('CodeParser', () => {
                 expect(lResult).to.deep.equal({ type: 'a' });
             });
 
-            it('-- Prevent circular detection on infinit depths', () => {
+            it('-- Prevent circular detection on infinit depths with exit token first', () => {
                 // Setup. Init lexer.
                 const lLexer = new Lexer<string>();
                 lLexer.trimWhitespace = true;
                 lLexer.validWhitespaces = ' ';
-                lLexer.addTokenPattern({ pattern: { regex: /a/, type: 'a' }, specificity: 0 });
-                lLexer.addTokenPattern({ pattern: { regex: /\+/, type: '+' }, specificity: 0 });
+                lLexer.addTokenPattern({ pattern: { regex: /[abc]/, type: 'ident' }, specificity: 0 });
+                lLexer.addTokenPattern({ pattern: { regex: /[+-]/, type: 'operator' }, specificity: 0 });
 
                 // Setup. Init grapth.
                 const lParser: CodeParser<string, any> = new CodeParser(lLexer);
                 lParser.defineGraphPart('Variable', lParser.graph()
-                    .single('variable', 'a'),
+                    .single('variable', 'ident'),
                     (pData) => {
                         return pData;
                     }
                 );
                 lParser.defineGraphPart('Addition', lParser.graph()
                     .single('left', lParser.partReference('Expression'))
-                    .single('+')
+                    .single('operator')
+                    .single('right', lParser.partReference('Expression')),
+                    (pData) => {
+                        return pData;
+                    }
+                );
+                lParser.defineGraphPart('Expression', lParser.graph()
+                    .branch('expression', [
+                        lParser.partReference('Variable'),
+                        lParser.partReference('Addition')
+                    ]),
+                    (pData) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('Expression');
+
+                // Process
+                const lResult: any = lParser.parse('a + b - c');
+
+                // Evaluation.
+                expect(lResult).to.deep.equal({
+                    expression: {
+                        left: {
+                            expression: {
+                                variable: 'a'
+                            }
+                        },
+                        right: {
+                            expression: {
+                                left: {
+                                    expression: {
+                                        variable: 'b'
+                                    }
+                                },
+                                right: {
+                                    expression: {
+                                        variable: 'c'
+                                    }
+                                },
+                            }
+                        },
+                    }
+                });
+            });
+
+            it('-- Prevent circular detection on infinit depths with exit token last', () => {
+                // Setup. Init lexer.
+                const lLexer = new Lexer<string>();
+                lLexer.trimWhitespace = true;
+                lLexer.validWhitespaces = ' ';
+                lLexer.addTokenPattern({ pattern: { regex: /[abc]/, type: 'ident' }, specificity: 0 });
+                lLexer.addTokenPattern({ pattern: { regex: /[+-]/, type: 'operator' }, specificity: 0 });
+
+                // Setup. Init grapth.
+                const lParser: CodeParser<string, any> = new CodeParser(lLexer);
+                lParser.defineGraphPart('Variable', lParser.graph()
+                    .single('variable', 'ident'),
+                    (pData) => {
+                        return pData;
+                    }
+                );
+                lParser.defineGraphPart('Addition', lParser.graph()
+                    .single('left', lParser.partReference('Expression'))
+                    .single('operator')
                     .single('right', lParser.partReference('Expression')),
                     (pData) => {
                         return pData;
@@ -1021,7 +1085,7 @@ describe('CodeParser', () => {
                 lParser.setRootGraphPart('Expression');
 
                 // Process
-                const lResult: any = lParser.parse('a + a + a');
+                const lResult: any = lParser.parse('a + b - c');
 
                 // Evaluation.
                 expect(lResult).to.deep.equal({
@@ -1035,12 +1099,84 @@ describe('CodeParser', () => {
                             expression: {
                                 left: {
                                     expression: {
-                                        variable: 'a'
+                                        variable: 'b'
                                     }
                                 },
                                 right: {
                                     expression: {
-                                        variable: 'a'
+                                        variable: 'c'
+                                    }
+                                },
+                            }
+                        },
+                    }
+                });
+            });
+
+            it('-- Prevent circular detection on infinit depths with optional branching', () => {
+                // Setup. Init lexer.
+                const lLexer = new Lexer<string>();
+                lLexer.trimWhitespace = true;
+                lLexer.validWhitespaces = ' ';
+                lLexer.addTokenPattern({ pattern: { regex: /[abc]/, type: 'ident' }, specificity: 0 });
+                lLexer.addTokenPattern({ pattern: { regex: /[+-]/, type: 'operator' }, specificity: 0 });
+
+                // Setup. Init grapth.
+                const lParser: CodeParser<string, any> = new CodeParser(lLexer);
+                lParser.defineGraphPart('Variable', lParser.graph()
+                    .single('variable', 'ident'),
+                    (pData) => {
+                        return pData;
+                    }
+                );
+                lParser.defineGraphPart('Optional', lParser.graph()
+                    .optional('optional')
+                    .single('expression', lParser.partReference('Expression')),
+                    (pData) => {
+                        return pData.expression;
+                    }
+                );
+                lParser.defineGraphPart('Addition', lParser.graph()
+                    .single('left', lParser.partReference('Expression'))
+                    .single('operator')
+                    .single('right', lParser.partReference('Expression')),
+                    (pData) => {
+                        return pData;
+                    }
+                );
+                lParser.defineGraphPart('Expression', lParser.graph()
+                    .branch('expression', [
+                        lParser.partReference('Optional'),
+                        lParser.partReference('Addition'),
+                        lParser.partReference('Variable')
+                    ]),
+                    (pData) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('Expression');
+
+                // Process
+                const lResult: any = lParser.parse('a + b - c');
+
+                // Evaluation.
+                expect(lResult).to.deep.equal({
+                    expression: {
+                        left: {
+                            expression: {
+                                variable: 'a'
+                            }
+                        },
+                        right: {
+                            expression: {
+                                left: {
+                                    expression: {
+                                        variable: 'b'
+                                    }
+                                },
+                                right: {
+                                    expression: {
+                                        variable: 'c'
                                     }
                                 },
                             }

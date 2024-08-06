@@ -901,7 +901,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation. Loop chain twice as long as actual loop.
-                expect(lErrorFunction).to.throws(Exception, `Infinite part reference recursion prevented for "Ref<Level1> -> Ref<Level2> -> Ref<Level1> -> Ref<Level2>`);
+                expect(lErrorFunction).to.throws(Exception, `Infinite part reference recursion prevented for "Ref<Level1> -> Ref<Level2> -> Ref<Level1>`);
             });
 
             it('-- Detect endless circular dependency with loop', () => {
@@ -921,7 +921,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation. Loop chain twice as long as actual loop.
-                expect(lErrorFunction).to.throws(Exception, `Infinite part reference recursion prevented for "Ref<Level1> -> Ref<Level1> -> Ref<Level1>`);
+                expect(lErrorFunction).to.throws(Exception, `Infinite part reference recursion prevented for "Ref<Level1> -> Ref<Level1>`);
             });
 
             it('-- Detect endless circular dependency with branch', () => {
@@ -944,7 +944,7 @@ describe('CodeParser', () => {
                 };
 
                 // Evaluation. Loop chain twice as long as actual loop.
-                expect(lErrorFunction).to.throws(Exception, `Infinite part reference recursion prevented for "Ref<Level1> -> Ref<Level1> -> Ref<Level1>`);
+                expect(lErrorFunction).to.throws(Exception, `Infinite part reference recursion prevented for "Ref<Level1> -> Ref<Level1>`);
             });
 
             it('-- Prevent duplicate paths on optional partReference with a loop', () => {

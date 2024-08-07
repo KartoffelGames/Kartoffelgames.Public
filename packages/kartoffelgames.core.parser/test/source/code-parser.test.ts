@@ -1576,4 +1576,9 @@ describe('CodeParser', () => {
             expect(lErrorFunction).to.throws(`A root graph part needs a defined data collector.`);
         });
     });
+
+    it('-- FAIL', ()=>{
+        // Endless CI execution fix.
+        expect(true).to.be.false;
+    })
 });

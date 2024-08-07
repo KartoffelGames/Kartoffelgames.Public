@@ -505,6 +505,31 @@ describe('CodeParser', () => {
                 });
             });
 
+            it('-- Optional recursion loops with required node in optional graph', () => {
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                const lCodeText: string = 'const';
+
+                // Setup. Define graph part and set as root.
+                lParser.defineGraphPart('LoopCode',
+                    lParser.graph().optional('optional', lParser.graph().single('mod', TokenType.Modifier)).optional(lParser.partReference('LoopCode')),
+                    (pData: any) => {
+                        return pData;
+                    }
+                );
+                lParser.setRootGraphPart('LoopCode');
+
+                // Process. Convert code.
+                const lParsedData: any = lParser.parse(lCodeText);
+
+                // Evaluation.
+                expect(lParsedData).to.deep.equal({
+                    optional: {
+                        mod: lCodeText
+                    }
+                });
+            });
+
             it('-- Empty data for loops', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());

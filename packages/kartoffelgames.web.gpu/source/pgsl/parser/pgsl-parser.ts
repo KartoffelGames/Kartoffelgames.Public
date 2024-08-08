@@ -150,7 +150,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         };
         this.defineGraphPart('LogicalExpression', this.graph()
             .single('leftExpression', this.partReference('Expression'))
-            .branch('prefix', [
+            .branch('operation', [
                 PgslToken.OperatorShortCircuitOr,
                 PgslToken.OperatorShortCircuitAnd,
                 PgslToken.OperatorMultiply,
@@ -170,7 +170,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         };
         this.defineGraphPart('ArithmeticExpression', this.graph()
             .single('leftExpression', this.partReference('Expression'))
-            .branch('prefix', [
+            .branch('operation', [
                 PgslToken.OperatorPlus,
                 PgslToken.OperatorMinus,
                 PgslToken.OperatorMultiply,
@@ -190,7 +190,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         };
         this.defineGraphPart('ComparisonExpression', this.graph()
             .single('leftExpression', this.partReference('Expression'))
-            .branch('prefix', [
+            .branch('comparison', [
                 PgslToken.OperatorEqual,
                 PgslToken.OperatorNotEqual,
                 PgslToken.OperatorLowerThan,
@@ -211,7 +211,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         };
         this.defineGraphPart('BitOperationExpression', this.graph()
             .single('leftExpression', this.partReference('Expression'))
-            .branch('prefix', [
+            .branch('operation', [
                 PgslToken.OperatorBinaryOr,
                 PgslToken.OperatorBinaryAnd,
                 PgslToken.OperatorBinaryXor,

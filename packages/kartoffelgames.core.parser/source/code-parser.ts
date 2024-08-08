@@ -321,18 +321,18 @@ export class CodeParser<TTokenType extends string, TParseResult> {
             return null;
         }
 
-        // Copy recursion chain on every 
-        const lRecursionNodeChainCopy: Set<GraphPartReference<TTokenType>> = new Set<GraphPartReference<TTokenType>>(pRecursionNodeChain);
-
-        // Only graph references can have a infinite recursion, so we focus on these.
-        lRecursionNodeChainCopy.add(pPartReference);
-
         // Read referenced root node and optional data collector.
         const lGraphPart: GraphPart<TTokenType> = pPartReference.resolveReference();
         const lCollector: GraphPartDataCollector | null = lGraphPart.dataCollector;
 
+        // Only graph references can have a infinite recursion, so we focus on these.
+        pRecursionNodeChain.add(pPartReference);
+
         // Parse graph node, returns empty when graph has no value and was optional
-        const lNodeParseResult: GraphNodeParseResult = this.parseGraph(lGraphPart.graph, pTokenList, pCurrentTokenIndex, lRecursionNodeChainCopy, pGraphHops);
+        const lNodeParseResult: GraphNodeParseResult = this.parseGraph(lGraphPart.graph, pTokenList, pCurrentTokenIndex, pRecursionNodeChain, pGraphHops);
+
+        // Remove graph recursion entry after using graph.
+        pRecursionNodeChain.delete(pPartReference);
 
         // Execute optional collector.
         let lResultData: unknown = lNodeParseResult.data;

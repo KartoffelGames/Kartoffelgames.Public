@@ -1138,7 +1138,7 @@ describe('CodeParser', () => {
                 });
             });
 
-            it('-- Prevent circular detection on infinit depths with optional branching', () => {
+            it('-- Prevent circular detection on infinit depths with none hitting optional branching', () => {
                 // Setup. Init lexer.
                 const lLexer = new Lexer<string>();
                 lLexer.trimWhitespace = true;
@@ -1577,8 +1577,8 @@ describe('CodeParser', () => {
         });
     });
 
-    it('-- FAIL', ()=>{
+    it('-- FAIL', () => {
         // Endless CI execution fix.
         expect(true).to.be.false;
-    })
+    });
 });

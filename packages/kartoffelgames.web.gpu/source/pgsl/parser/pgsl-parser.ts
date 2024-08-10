@@ -19,6 +19,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
 
         // Define helper graphs.
         this.defineCore();
+        this.defineVariableExpression();
         this.defineExpression();
         this.defineModuleScope();
 
@@ -104,44 +105,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
      * Define graphs only for resolving expressions.
      */
     private defineExpression(): void {
-        type VariableExpressionGraphData = {
-            name: string;
-        };
-        this.defineGraphPart('VariableExpression', this.graph()
-            .single('name', PgslToken.Identifier),
-            (pData: VariableExpressionGraphData) => {
-                return new PgslVariableExpression(pData.name);
-            }
-        );
-
-        type IndexValueExpressionGraphData = {
-            valueExpression: PgslExpression;
-            indexExpression: string;
-        };
-        this.defineGraphPart('IndexValueExpression', this.graph()
-            .single('valueExpression', this.partReference('Expression'))
-            .single(PgslToken.ListStart)
-            .single('indexExpression', this.partReference('Expression'))
-            .single(PgslToken.ListEnd),
-            (_pData: IndexValueExpressionGraphData) => {
-                // TODO: Yes this needs to be parsed.
-            }
-        );
-
-        type CompositeValueDecompositionExpressionGraphData = {
-            leftExpression: PgslExpression;
-            propertyName: string;
-        };
-        this.defineGraphPart('CompositeValueDecompositionExpression', this.graph()
-            .single('leftExpression', this.partReference('Expression'))
-            .single(PgslToken.MemberDelimiter)
-            .single('propertyName', PgslToken.Identifier),
-            (_pData: CompositeValueDecompositionExpressionGraphData) => {
-                // enum.value ?? How to distinct
-
-                // TODO: Yes this needs to be parsed.
-            }
-        );
 
         type LogicalExpressionGraphData = {
             leftExpression: PgslExpression;
@@ -342,8 +305,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         };
         this.defineGraphPart('Expression', this.graph()
             .branch('expression', [
+                this.partReference('VariableExpression'), // => defineVariableExpression
                 this.partReference('LiteralValueExpression'),
-                this.partReference('VariableExpression'),
                 this.partReference('PointerExpression'),
                 this.partReference('AddressOfExpression'),
                 this.partReference('FunctionExpression'),
@@ -352,8 +315,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 this.partReference('ComparisonExpression'),
                 this.partReference('ArithmeticExpression'),
                 this.partReference('LogicalExpression'),
-                this.partReference('CompositeValueDecompositionExpression'),
-                this.partReference('IndexValueExpression'),
             ]),
             (_pData: ExpressionGraphData) => {
                 // TODO: Yes this needs to be parsed.
@@ -635,5 +596,63 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
 
         // Define root part.
         this.setRootGraphPart('document');
+    }
+
+    /**
+     * Define variable expressions used for assigning or reading values.
+     */
+    private defineVariableExpression(): void {
+        type VariableNameExpressionGraphData = {
+            name: string;
+        };
+        this.defineGraphPart('VariableNameExpression', this.graph()
+            .single('name', PgslToken.Identifier),
+            (pData: VariableNameExpressionGraphData) => {
+                return new PgslVariableExpression(pData.name);
+            }
+        );
+
+        type IndexValueExpressionGraphData = {
+            valueExpression: PgslExpression;
+            indexExpression: string;
+        };
+        this.defineGraphPart('IndexValueExpression', this.graph()
+            .single('valueExpression', this.partReference('Expression'))
+            .single(PgslToken.ListStart)
+            .single('indexExpression', this.partReference('Expression'))
+            .single(PgslToken.ListEnd),
+            (_pData: IndexValueExpressionGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
+
+        type CompositeValueDecompositionExpressionGraphData = {
+            leftExpression: PgslExpression;
+            propertyName: string;
+        };
+        this.defineGraphPart('CompositeValueDecompositionExpression', this.graph()
+            .single('leftExpression', this.partReference('Expression'))
+            .single(PgslToken.MemberDelimiter)
+            .single('propertyName', PgslToken.Identifier),
+            (_pData: CompositeValueDecompositionExpressionGraphData) => {
+                // TODO: enum.value ?? How to distinct
+
+                // TODO: Yes this needs to be parsed.
+            }
+        );
+
+        type VariableExpressionGraphData = {
+            expression: PgslExpression;
+        };
+        this.defineGraphPart('VariableExpression', this.graph()
+            .branch('content', [
+                this.partReference('VariableNameExpression'),
+                this.partReference('IndexValueExpression'),
+                this.partReference('CompositeValueDecompositionExpression')
+            ]),
+            (_pData: VariableExpressionGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
     }
 }

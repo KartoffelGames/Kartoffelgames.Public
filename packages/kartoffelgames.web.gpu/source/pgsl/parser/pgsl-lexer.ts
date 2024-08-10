@@ -69,6 +69,10 @@ export class PgslLexer extends Lexer<PgslToken> {
     private static readonly mOperations: Dictionary<PgslToken, string> = (() => {
         const lKeywords: Dictionary<PgslToken, string> = new Dictionary<PgslToken, string>();
 
+        // Increment and decrement operator
+        lKeywords.set(PgslToken.OperatorIncrement, '++');
+        lKeywords.set(PgslToken.OperatorDecrement, '--');
+
         // Math
         lKeywords.set(PgslToken.OperatorPlus, '+');
         lKeywords.set(PgslToken.OperatorMinus, '-');

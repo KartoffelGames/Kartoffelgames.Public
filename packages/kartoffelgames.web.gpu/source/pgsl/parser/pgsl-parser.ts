@@ -7,6 +7,8 @@ import { PgslAttributeList } from '../structure/general/pgsl-attribute-list';
 import { PgslTypeDefinition } from '../structure/type/pgsl-type-definition';
 import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
+import { PgslStatement } from '../structure/statement/pgsl-statement';
+import { PgslBlockStatement } from '../structure/statement/pgsl-block-statement';
 
 export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
     /**
@@ -345,17 +347,44 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         // Do-While
         //      do <block> while(<expression>);
 
-        // Break
-        //      break;
+        type BreakStatementGraphData = {};
+        this.defineGraphPart('BreakStatement', this.graph()
+            .single(PgslToken.KeywordBreak)
+            .single(PgslToken.Semicolon),
+            (_pData: BreakStatementGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
 
-        // Continue 
-        //      continue;
+        type ContinueStatementGraphData = {};
+        this.defineGraphPart('ContinueStatement', this.graph()
+            .single(PgslToken.KeywordContinue)
+            .single(PgslToken.Semicolon),
+            (_pData: ContinueStatementGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
 
-        // Return 
-        //      return <expression>?;
+        type ReturnStatementGraphData = {
+            expression: PgslExpression;
+        };
+        this.defineGraphPart('ReturnStatement', this.graph()
+            .single(PgslToken.KeywordContinue)
+            .optional('expression', this.partReference('Expression'))
+            .single(PgslToken.Semicolon),
+            (_pData: ReturnStatementGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
 
-        // Discard 
-        //      discard;
+        type DiscardStatementGraphData = {};
+        this.defineGraphPart('DiscardStatement', this.graph()
+            .single(PgslToken.KeywordDiscard)
+            .single(PgslToken.Semicolon),
+            (_pData: DiscardStatementGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
 
         type FunctionScopeVariableDeclarationGraphData = {
             variableName: string,
@@ -379,32 +408,121 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             }
         );
 
-        // Assignment Statement
-        //      <compositeValue> = <expression>;
-        //      _ = <expression>; //  phony assignment  ??? Eval or drop.
-        //      <compositeValue> += <expression>;
-        //      <compositeValue> -= <expression>;
-        //      <compositeValue> *= <expression>;
-        //      <compositeValue> |= <expression>;
-        //      <compositeValue> %= <expression>;
-        //      <compositeValue> &= <expression>;
-        //      <compositeValue> |= <expression>;
-        //      <compositeValue> ^= <expression>;
-        //      <compositeValue> >>= <expression>;
-        //      <compositeValue> <<= <expression>;
+        type AssignmentStatementGraphData = {
+            variable: PgslVariableExpression;
+            assignment: string;
+            expression: PgslExpression;
+        };
+        this.defineGraphPart('AssignmentStatement', this.graph()
+            .single('variable', this.partReference('VariableExpression'))
+            .branch('assignment', [
+                PgslToken.Assignment,
+                PgslToken.AssignmentPlus,
+                PgslToken.AssignmentMinus,
+                PgslToken.AssignmentMultiply,
+                PgslToken.AssignmentDivide,
+                PgslToken.AssignmentModulo,
+                PgslToken.AssignmentBinaryAnd,
+                PgslToken.AssignmentBinaryOr,
+                PgslToken.AssignmentBinaryXor,
+                PgslToken.AssignmentShiftRight,
+                PgslToken.AssignmentShiftLeft,
+            ])
+            .single('expression', this.partReference('Expression'))
+            .single(PgslToken.Semicolon),
+            (_pData: AssignmentStatementGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
 
-        // Increment and Decrement Statements
-        //      <compositeValue>++;
-        //      <compositeValue>--;
-        //      Composite Value Decomposition Expressions 
-        //          val.prop++
-        //          val[x]++
+        type IncrementDecrementStatementGraphData = {
+            variable: PgslVariableExpression;
+            operation: string;
+        };
+        this.defineGraphPart('IncrementDecrementStatement', this.graph()
+            .single('variable', this.partReference('VariableExpression'))
+            .branch('', [
+                PgslToken.OperatorIncrement,
+                PgslToken.OperatorDecrement
+            ]),
+            (_pData: IncrementDecrementStatementGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
 
-        // Function call statement. Same as function call expression but without value.
-        //       <ident><templateList>(<expression>,*)
+        type FunctionCallStatementGraphData = {
+            name: string;
+            parameter?: {
+                first: PgslExpression;
+                additional: Array<{
+                    expression: PgslExpression;
+                }>;
+            };
+            template?: {
+                first: PgslExpression | PgslTypeDefinition;
+                additional: Array<{
+                    value: PgslExpression | PgslTypeDefinition;
+                }>;
+            };
+        };
+        this.defineGraphPart('FunctionCallStatement', this.graph()
+            .single('name', PgslToken.Identifier)
+            .optional('template', this.graph()
+                .single(PgslToken.TemplateListStart)
+                .branch('first', [
+                    this.partReference('Expression'),
+                    this.partReference('TypeDefinition')
+                ])
+                .loop('additional', this.graph()
+                    .single(PgslToken.Comma)
+                    .branch('value', [
+                        this.partReference('Expression'),
+                        this.partReference('TypeDefinition')
+                    ])
+                )
+                .single(PgslToken.TemplateListEnd)
+            )
+            .single(PgslToken.ParenthesesStart)
+            .optional('parameter', this.graph()
+                .single('first', this.partReference('Expression'))
+                .loop('additional', this.graph()
+                    .single(PgslToken.Comma).single('expression', this.partReference('Expression'))
+                )
+            )
+            .single(PgslToken.ParenthesesEnd)
+            .single(PgslToken.Semicolon),
+            (_pData: FunctionCallStatementGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
 
-        // Block. Can be a standalone inside function scope.
-        //      { <statement>;* }
+        type FunctionBlockGraphData = {
+            statements: Array<PgslStatement>;
+        };
+        this.defineGraphPart('FunctionBlock', this.graph()
+            .single(PgslToken.BlockStart)
+            .loop('statements', this.partReference('Statement'))
+            .single(PgslToken.BlockEnd),
+            (_pData: FunctionBlockGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
+
+        type StatementGraphData = {
+            statement: PgslStatement;
+        };
+        this.defineGraphPart('Statement', this.graph()
+            .branch('statement', [
+                this.partReference('FunctionScopeVariableDeclaration'),
+                this.partReference('FunctionBlock'),
+                this.partReference('IncrementDecrementStatement'),
+                this.partReference('FunctionCallStatement'),
+                this.partReference('AssignmentStatement'),
+            ]),
+            (_pData: StatementGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
     }
 
     /**
@@ -544,6 +662,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                     type: PgslTypeDefinition;
                 }>;
             };
+            returnType: PgslTypeDefinition;
+            block: PgslBlockStatement;
         };
         this.defineGraphPart('FunctionDeclaration', this.graph()
             .optional('attributes', this.partReference('AttributeList'))
@@ -562,7 +682,9 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 )
             )
             .single(PgslToken.ParenthesesEnd)
-            .single('name', this.partReference('Block')),
+            .single(PgslToken.Colon)
+            .single('returnType', this.partReference('TypeDefinition'))
+            .single('block', this.partReference('FunctionBlock')),
             (_pData: FunctionDeclarationGraphData) => {
                 // TODO: Yes this needs to be parsed.
             }
@@ -617,7 +739,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             indexExpression: string;
         };
         this.defineGraphPart('IndexValueExpression', this.graph()
-            .single('valueExpression', this.partReference('Expression'))
+            .single('valueExpression', this.partReference('VariableExpression'))
             .single(PgslToken.ListStart)
             .single('indexExpression', this.partReference('Expression'))
             .single(PgslToken.ListEnd),
@@ -631,7 +753,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             propertyName: string;
         };
         this.defineGraphPart('CompositeValueDecompositionExpression', this.graph()
-            .single('leftExpression', this.partReference('Expression'))
+            .single('leftExpression', this.partReference('VariableExpression'))
             .single(PgslToken.MemberDelimiter)
             .single('propertyName', PgslToken.Identifier),
             (_pData: CompositeValueDecompositionExpressionGraphData) => {

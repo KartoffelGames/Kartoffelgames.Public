@@ -43,6 +43,8 @@ export enum PgslToken {
     OperatorShortCircuitAnd = 'ShortCircuitAnd',
     OperatorShortCircuitOr = 'ShortCircuitOr',
     OperatorNotEqual = 'OperatorNotEqual',
+    OperatorIncrement = 'OperatorIncrement',
+    OperatorDecrement = 'OperatorDecrement',
 
     // Template lists
     TemplateListStart = 'TemplateListStart',

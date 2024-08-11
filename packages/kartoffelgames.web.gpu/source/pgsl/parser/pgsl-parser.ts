@@ -743,7 +743,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             .optional('values', this.graph()
                 .optional('attributes', this.partReference('AttributeList'))
                 .single('name', PgslToken.Identifier)
-                .single(PgslToken.Assignment)
+                .single(PgslToken.Colon)
                 .branch('value', [
                     this.partReference('TypeDefinition')
                 ])

@@ -397,7 +397,7 @@ describe('PsglLexer', () => {
                 // Setup.
                 const lSourceCode: string = `
                     function test(): void {
-                        let valName: Array<Integer, 3>; = Array<Integer, 3>(1, 2, 3);
+                        let valName: Array<Integer, 3> = Array<Integer, 3>(1, 2, 3);
 
                         let value: Integer = valName[10];
                     }

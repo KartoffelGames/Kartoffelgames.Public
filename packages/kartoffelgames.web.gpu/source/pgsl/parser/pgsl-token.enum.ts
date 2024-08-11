@@ -98,5 +98,6 @@ export enum PgslToken {
     KeywordStruct = 'KeywordStruct',
     KeywordSwitch = 'KeywordSwitch',
     KeywordWhile = 'KeywordWhile',
-    KeywordEnum = 'KeywordEnum'
+    KeywordEnum = 'KeywordEnum',
+    KeywordDo = 'KeywordDo'
 }

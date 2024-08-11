@@ -11,6 +11,7 @@ import { PgslStatement } from '../structure/statement/pgsl-statement';
 import { PgslBlockStatement } from '../structure/statement/pgsl-block-statement';
 import { PgslIfStatement } from '../structure/statement/pgsl-if-statement';
 import { PgslTemplateList } from '../structure/general/pgsl-template-list';
+import { PgslTypeName } from '../structure/type/pgsl-type-name.enum';
 
 export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
     /**
@@ -287,9 +288,9 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
 
         type LiteralValueGraphData = {
             value: {
-                float: string,
-                integer: string,
-                boolean: string;
+                float?: string,
+                integer?: string,
+                boolean?: string;
             };
         };
         this.defineGraphPart('LiteralValueExpression', this.graph()
@@ -298,8 +299,18 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 this.graph().single('integer', PgslToken.LiteralInteger),
                 this.graph().single('boolean', PgslToken.LiteralBoolean)
             ]),
-            (_pData: LiteralValueGraphData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData: LiteralValueGraphData) => {
+                const lPgslLiteralValue: PgslLiteralValue = new PgslLiteralValue();
+
+                if ('float' in pData.value) {
+                    lPgslLiteralValue.setFromText(pData.value.float, PgslTypeName.Float);
+                } else if ('integer' in pData.value) {
+                    lPgslLiteralValue.setFromText(pData.value.integer, PgslTypeName.Integer);
+                } else if ('boolean' in pData.value) {
+                    lPgslLiteralValue.setFromText(pData.value.boolean, PgslTypeName.Boolean);
+                }
+
+                return lPgslLiteralValue;
             }
         );
 

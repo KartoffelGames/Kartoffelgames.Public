@@ -1,6 +1,6 @@
-import { BasePgslStructure } from '../base-pgsl-structure';
+import { PgslExpression } from './pgsl-expression';
 
-export class PgslVariableExpression extends BasePgslStructure {
+export class PgslVariableExpression extends PgslExpression {
     private readonly mName: string;
 
     public get name(): string {
@@ -9,7 +9,7 @@ export class PgslVariableExpression extends BasePgslStructure {
 
     public constructor(pName: string) {
         super();
-        
+
         this.mName = pName;
     }
 }

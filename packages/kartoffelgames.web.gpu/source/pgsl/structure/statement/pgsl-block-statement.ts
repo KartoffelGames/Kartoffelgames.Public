@@ -1,5 +1,5 @@
-import { BasePgslStructure } from '../base-pgsl-structure';
+import { PgslStatement } from './pgsl-statement';
 
-export class PgslBlockStatement extends BasePgslStructure {
-    
+export class PgslBlockStatement extends PgslStatement {
+
 }

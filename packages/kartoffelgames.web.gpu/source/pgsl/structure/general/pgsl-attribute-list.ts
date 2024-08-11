@@ -1,10 +1,18 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { BasePgslStructure } from '../base-pgsl-structure';
+import { BasePgslStructure } from '../../base-pgsl-structure';
+import { PgslDocument } from '../../pgsl-document';
 
 /**
  * Generic attributre list.
  */
 export class PgslAttributeList extends BasePgslStructure {
+    /**
+     * Get document from parent.
+     */
+    public get document(): PgslDocument {
+        return this.parent.document;
+    }
+
     static {
         // TODO: Init available attributes.
     }

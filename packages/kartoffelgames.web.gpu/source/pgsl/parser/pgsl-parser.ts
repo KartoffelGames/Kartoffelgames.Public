@@ -9,6 +9,7 @@ import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
 import { PgslStatement } from '../structure/statement/pgsl-statement';
 import { PgslBlockStatement } from '../structure/statement/pgsl-block-statement';
+import { PgslIfStatement } from '../structure/statement/pgsl-if-statement';
 
 export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
     /**
@@ -107,7 +108,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
      * Define graphs only for resolving expressions.
      */
     private defineExpression(): void {
-
         type LogicalExpressionGraphData = {
             leftExpression: PgslExpression;
             operation: string;
@@ -328,24 +328,129 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
      * Define all statements and flows used inside function scope.
      */
     private defineFunctionScope(): void {
-        // If Statement
-        //      if(<expression>)<block> 
-        //      else if(<expression>)<block> *
-        //      else <block> ?
+        type IfStatementGraphData = {
+            block: PgslBlockStatement;
+            expression: PgslExpression;
+            ifElse?: {
+                if: PgslIfStatement;
+            };
+            else?: {
+                block: PgslBlockStatement;
+            };
+        };
+        this.defineGraphPart('IfStatement', this.graph()
+            .single(PgslToken.KeywordIf)
+            .single(PgslToken.ParenthesesStart)
+            .single('expression', this.partReference('Expression'))
+            .single(PgslToken.ParenthesesEnd)
+            .single('block', this.partReference('FunctionBlock'))
+            .optional('ifElse', this.graph()
+                .single(PgslToken.KeywordElse)
+                .single('if', this.partReference('IfStatement'))
+            )
+            .optional('else', this.graph()
+                .single(PgslToken.KeywordElse)
+                .single('block', this.partReference('FunctionBlock'))
+            ),
+            (_pData: IfStatementGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
 
-        // Switch Statement
-        //      switch(<expression>){<case>|<default>}
-        //      case <expression>,+: <block> *
-        //      default <expression>: <block> ?
+        type SwitchStatementGraphData = {
+            expression: PgslExpression,
+            cases: Array<{
+                expression: PgslExpression,
+                additionals: Array<{
+                    expression: PgslExpression;
+                }>;
+                block: PgslBlockStatement;
+            }>,
+            default?: {
+                block: PgslBlockStatement;
+            };
+        };
+        this.defineGraphPart('SwitchStatement', this.graph()
+            .single(PgslToken.KeywordSwitch)
+            .single(PgslToken.ParenthesesStart)
+            .single('expression', this.partReference('Expression'))
+            .single(PgslToken.ParenthesesEnd)
+            .single(PgslToken.BlockStart)
+            .loop('cases', this.graph()
+                .single(PgslToken.KeywordCase)
+                .single('expression', this.partReference('Expression'))
+                .loop('additionals', this.graph()
+                    .single(PgslToken.Comma)
+                    .single('expression', this.partReference('Expression'))
+                )
+                .single('block', this.partReference('FunctionBlock'))
+            )
+            .optional('default', this.graph()
+                .single(PgslToken.KeywordDefault)
+                .single('block', this.partReference('FunctionBlock'))
+            )
+            .single(PgslToken.BlockEnd),
+            (_pData: SwitchStatementGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
 
-        // For-Loop
-        //      for(<declaration>?;<expression>;<expression>)<block>
+        type ForStatementGraphData = {
+            declaration: PgslStatement | string;
+            expression?: PgslExpression;
+            statement?: PgslStatement;
+            block: PgslBlockStatement;
+        };
+        this.defineGraphPart('ForStatement', this.graph()
+            .single(PgslToken.KeywordFor)
+            .single(PgslToken.ParenthesesStart)
+            .branch('declaration', [
+                this.partReference('FunctionScopeVariableDeclaration'), // Includes semicolon
+                PgslToken.Semicolon
+            ])
+            .optional('expression', this.partReference('Expression'))
+            .single(PgslToken.Semicolon)
+            .single('statement', this.partReference('Statement')) // TODO: Remove semicolon somehow.
+            .single(PgslToken.ParenthesesEnd)
+            .single('block', this.partReference('FunctionBlock')),
+            (_pData: ForStatementGraphData) => {
+                // TODO: Yes this needs to be parsed.
 
-        // While-Loop
-        //      while(<expression>)<block>
+                // TODO: Statement must eighter be a functionCall | Assignment | IncrementDecrement
+            }
+        );
 
-        // Do-While
-        //      do <block> while(<expression>);
+        type WhileStatementGraphData = {
+            block: PgslBlockStatement;
+            expression: PgslExpression;
+        };
+        this.defineGraphPart('WhileStatement', this.graph()
+            .single(PgslToken.KeywordWhile)
+            .single(PgslToken.ParenthesesStart)
+            .single('expression', this.partReference('Expression'))
+            .single(PgslToken.ParenthesesEnd)
+            .single('block', this.partReference('FunctionBlock')),
+            (_pData: WhileStatementGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
+
+        type DoWhileStatementGraphData = {
+            block: PgslBlockStatement;
+            expression: PgslExpression;
+        };
+        this.defineGraphPart('DoWhileStatement', this.graph()
+            .single(PgslToken.KeywordDo)
+            .single('block', this.partReference('FunctionBlock'))
+            .single(PgslToken.KeywordWhile)
+            .single(PgslToken.ParenthesesStart)
+            .single('expression', this.partReference('Expression'))
+            .single(PgslToken.ParenthesesEnd)
+            .single(PgslToken.Semicolon),
+            (_pData: DoWhileStatementGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
 
         type BreakStatementGraphData = {};
         this.defineGraphPart('BreakStatement', this.graph()
@@ -513,11 +618,20 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         };
         this.defineGraphPart('Statement', this.graph()
             .branch('statement', [
+                this.partReference('IfStatement'),
+                this.partReference('SwitchStatement'),
+                this.partReference('ForStatement'),
+                this.partReference('WhileStatement'),
+                this.partReference('DoWhileStatement'),
+                this.partReference('BreakStatement'),
+                this.partReference('ContinueStatement'),
+                this.partReference('ReturnStatement'),
+                this.partReference('DiscardStatement'),
                 this.partReference('FunctionScopeVariableDeclaration'),
-                this.partReference('FunctionBlock'),
+                this.partReference('AssignmentStatement'),
                 this.partReference('IncrementDecrementStatement'),
                 this.partReference('FunctionCallStatement'),
-                this.partReference('AssignmentStatement'),
+                this.partReference('FunctionBlock')
             ]),
             (_pData: StatementGraphData) => {
                 // TODO: Yes this needs to be parsed.

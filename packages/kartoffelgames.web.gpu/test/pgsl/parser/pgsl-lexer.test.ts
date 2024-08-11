@@ -1093,6 +1093,30 @@ describe('PsglLexer', () => {
             expect(lTokenList[10]).property('type').to.equal(PgslToken.OperatorGreaterThan);
             expect(lTokenList[11]).property('type').to.equal(PgslToken.LiteralInteger);
         });
+
+        it('-- OperatorIncrement', () => {
+            // Setup.
+            const lCodeString = `name++`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[1]).property('type').to.equal(PgslToken.OperatorIncrement);
+        });
+        
+        it('-- OperatorDecrement', () => {
+            // Setup.
+            const lCodeString = `name--`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0]).property('type').to.equal(PgslToken.Identifier);
+            expect(lTokenList[1]).property('type').to.equal(PgslToken.OperatorDecrement);
+        });
     });
 
     describe('-- Keywords', () => {
@@ -1381,6 +1405,17 @@ describe('PsglLexer', () => {
             expect(lTokenList[0]).property('type').to.equal(PgslToken.KeywordEnum);
             expect(lTokenList[1]).property('type').to.equal(PgslToken.Identifier);
             expect(lTokenList[2]).property('type').to.equal(PgslToken.Semicolon);
+        });
+
+        it('-- KeywordDo', () => {
+            // Setup.
+            const lCodeString = `do {} ident`;
+
+            // Process.
+            const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
+
+            // Evaluation.
+            expect(lTokenList[0]).property('type').to.equal(PgslToken.KeywordDo);
         });
 
         describe('-- Declaration keywords', () => {

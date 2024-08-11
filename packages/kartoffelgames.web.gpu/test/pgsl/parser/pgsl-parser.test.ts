@@ -374,6 +374,47 @@ describe('PsglLexer', () => {
         });
     });
 
+    describe('-- Templatelist', () => {
+        it('-- Single', () => {
+            // Setup.
+            const lSourceCode: string = `
+                const valName: Array<Integer>;
+            `;
+
+            // Process.
+            const lResult: PgslDocument = lPgslParser.parse(lSourceCode);
+
+            // Evaluation. // TODO:
+            expect(lResult).to.be.true;
+        });
+
+        it('-- List', () => {
+            // Setup.
+            const lSourceCode: string = `
+                const valName: Array<Integer, 3>;
+            `;
+
+            // Process.
+            const lResult: PgslDocument = lPgslParser.parse(lSourceCode);
+
+            // Evaluation. // TODO:
+            expect(lResult).to.be.true;
+        });
+
+        it('-- Nested', () => {
+            // Setup.
+            const lSourceCode: string = `
+                const valName: Array<Vector<Integer>>;
+            `;
+
+            // Process.
+            const lResult: PgslDocument = lPgslParser.parse(lSourceCode);
+
+            // Evaluation. // TODO:
+            expect(lResult).to.be.true;
+        });
+    });
+
     describe('-- Expression', () => {
         describe('-- Variable expression', () => {
             it('-- Variable name', () => {

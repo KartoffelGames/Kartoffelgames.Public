@@ -10,6 +10,7 @@ import { PgslToken } from './pgsl-token.enum';
 import { PgslStatement } from '../structure/statement/pgsl-statement';
 import { PgslBlockStatement } from '../structure/statement/pgsl-block-statement';
 import { PgslIfStatement } from '../structure/statement/pgsl-if-statement';
+import { PgslTemplateList } from '../structure/general/pgsl-template-list';
 
 export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
     /**
@@ -72,32 +73,38 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             }
         );
 
-        type TypeDefinitionGraphData = {
-            name: string;
-            template?: {
-                first: PgslExpression | PgslTypeDefinition;
-                additional: Array<{
-                    value: PgslExpression | PgslTypeDefinition;
-                }>;
-            };
+        type TemplateListGraphData = {
+            first: PgslExpression | PgslTypeDefinition;
+            additional: Array<{
+                value: PgslExpression | PgslTypeDefinition;
+            }>;
         };
-        this.defineGraphPart('TypeDefinition', this.graph()
-            .single('name', PgslToken.Identifier)
-            .optional('template', this.graph()
-                .single(PgslToken.TemplateListStart)
-                .branch('first', [
+        this.defineGraphPart('TemplateList', this.graph()
+            .single(PgslToken.TemplateListStart)
+            .branch('first', [
+                this.partReference('Expression'),
+                this.partReference('TypeDefinition')
+            ])
+            .loop('additional', this.graph()
+                .single(PgslToken.Comma)
+                .branch('value', [
                     this.partReference('Expression'),
                     this.partReference('TypeDefinition')
                 ])
-                .loop('additional', this.graph()
-                    .single(PgslToken.Comma)
-                    .branch('value', [
-                        this.partReference('Expression'),
-                        this.partReference('TypeDefinition')
-                    ])
-                )
-                .single(PgslToken.TemplateListEnd)
-            ),
+            )
+            .single(PgslToken.TemplateListEnd),
+            (_pData: TemplateListGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
+
+        type TypeDefinitionGraphData = {
+            name: string;
+            templateList?: PgslTemplateList;
+        };
+        this.defineGraphPart('TypeDefinition', this.graph()
+            .single('name', PgslToken.Identifier)
+            .optional('templateList', this.partReference('TemplateList')),
             (_pData: TypeDefinitionGraphData) => {
                 // TODO: Yes this needs to be parsed.
             }
@@ -219,36 +226,17 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
 
         type FunctionGraphData = {
             name: string;
+            templateList?: PgslTemplateList;
             parameter?: {
                 first: PgslExpression;
                 additional: Array<{
                     expression: PgslExpression;
                 }>;
             };
-            template?: {
-                first: PgslExpression | PgslTypeDefinition;
-                additional: Array<{
-                    value: PgslExpression | PgslTypeDefinition;
-                }>;
-            };
         };
         this.defineGraphPart('FunctionExpression', this.graph()
             .single('name', PgslToken.Identifier)
-            .optional('template', this.graph()
-                .single(PgslToken.TemplateListStart)
-                .branch('first', [
-                    this.partReference('Expression'),
-                    this.partReference('TypeDefinition')
-                ])
-                .loop('additional', this.graph()
-                    .single(PgslToken.Comma)
-                    .branch('value', [
-                        this.partReference('Expression'),
-                        this.partReference('TypeDefinition')
-                    ])
-                )
-                .single(PgslToken.TemplateListEnd)
-            )
+            .optional('templateList', this.partReference('TemplateList'))
             .single(PgslToken.ParenthesesStart)
             .optional('parameter', this.graph()
                 .single('first', this.partReference('Expression'))
@@ -557,36 +545,17 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
 
         type FunctionCallStatementGraphData = {
             name: string;
+            templateList?: PgslTemplateList;
             parameter?: {
                 first: PgslExpression;
                 additional: Array<{
                     expression: PgslExpression;
                 }>;
             };
-            template?: {
-                first: PgslExpression | PgslTypeDefinition;
-                additional: Array<{
-                    value: PgslExpression | PgslTypeDefinition;
-                }>;
-            };
         };
         this.defineGraphPart('FunctionCallStatement', this.graph()
             .single('name', PgslToken.Identifier)
-            .optional('template', this.graph()
-                .single(PgslToken.TemplateListStart)
-                .branch('first', [
-                    this.partReference('Expression'),
-                    this.partReference('TypeDefinition')
-                ])
-                .loop('additional', this.graph()
-                    .single(PgslToken.Comma)
-                    .branch('value', [
-                        this.partReference('Expression'),
-                        this.partReference('TypeDefinition')
-                    ])
-                )
-                .single(PgslToken.TemplateListEnd)
-            )
+            .optional('templateList', this.partReference('TemplateList'))
             .single(PgslToken.ParenthesesStart)
             .optional('parameter', this.graph()
                 .single('first', this.partReference('Expression'))

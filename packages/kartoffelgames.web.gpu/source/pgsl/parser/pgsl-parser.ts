@@ -73,6 +73,18 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             }
         );
 
+        type ForcedTemplateTypeDefinitionGraphData = {
+            name: string;
+            templateList: PgslTemplateList;
+        };
+        this.defineGraphPart('TypeDefinition-ForcedTemplate', this.graph()
+            .single('name', PgslToken.Identifier)
+            .single('templateList', this.partReference('TemplateList')),
+            (_pData: ForcedTemplateTypeDefinitionGraphData) => {
+                // TODO: Yes this needs to be parsed.
+            }
+        );
+
         type TemplateListGraphData = {
             first: PgslExpression | PgslTypeDefinition;
             additional: Array<{
@@ -83,17 +95,18 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             .single(PgslToken.TemplateListStart)
             .branch('first', [
                 this.partReference('Expression'),
-                this.partReference('TypeDefinition')
+                this.partReference('TypeDefinition-ForcedTemplate')
             ])
             .loop('additional', this.graph()
                 .single(PgslToken.Comma)
                 .branch('value', [
                     this.partReference('Expression'),
-                    this.partReference('TypeDefinition')
+                    this.partReference('TypeDefinition-ForcedTemplate')
                 ])
             )
             .single(PgslToken.TemplateListEnd),
             (_pData: TemplateListGraphData) => {
+                // TODO: VariableName result can be a type. Need to check.
                 // TODO: Yes this needs to be parsed.
             }
         );

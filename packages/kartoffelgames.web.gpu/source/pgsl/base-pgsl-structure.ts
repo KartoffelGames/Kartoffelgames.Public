@@ -1,6 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslDocument } from './pgsl-document';
-import { PgslBlockStatement } from './structure/statement/pgsl-block-statement';
 
 /**
  * Base pgsl syntax tree object.
@@ -21,21 +20,6 @@ export abstract class BasePgslStructure {
      */
     public get parent(): BasePgslStructure | null {
         return this.mParent;
-    }
-
-    /**
-     * Next valid scope.
-     * The only valid scope of null is the document.
-     */
-    public get scope(): PgslBlockStatement | null {
-        let lStructure: BasePgslStructure | null = this;
-        while ((lStructure = lStructure.parent) !== null) {
-            if (lStructure instanceof PgslBlockStatement) {
-                return lStructure;
-            }
-        }
-
-        return null;
     }
 
     /**

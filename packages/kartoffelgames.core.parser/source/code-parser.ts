@@ -63,7 +63,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @throws {@link Exception}
      * When the part name is already defined.
      */
-    public defineGraphPart(pPartName: string, pGraph: BaseGrammarNode<TTokenType>, pDataCollector?: GraphPartDataCollector): void {
+    public defineGraphPart(pPartName: string, pGraph: BaseGrammarNode<TTokenType>, pDataCollector?: GraphPartDataCollector<TTokenType>): void {
         if (this.mGraphParts.has(pPartName)) {
             throw new Exception(`Graph part "${pPartName}" already defined.`, this);
         }
@@ -323,7 +323,7 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
         // Read referenced root node and optional data collector.
         const lGraphPart: GraphPart<TTokenType> = pPartReference.resolveReference();
-        const lCollector: GraphPartDataCollector | null = lGraphPart.dataCollector;
+        const lCollector: GraphPartDataCollector<TTokenType> | null = lGraphPart.dataCollector;
 
         // Only graph references can have a infinite recursion, so we focus on these.
         pRecursionNodeChain.add(pPartReference);
@@ -334,11 +334,15 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Remove graph recursion entry after using graph.
         pRecursionNodeChain.delete(pPartReference);
 
+        // Read start end end token.
+        const lStartToken: LexerToken<TTokenType> = pTokenList.at(pCurrentTokenIndex)!;
+        const lEndToken: LexerToken<TTokenType> = pTokenList.at(lNodeParseResult.nextTokenIndex - 1)!;
+
         // Execute optional collector.
         let lResultData: unknown = lNodeParseResult.data;
         if (lCollector) {
             try {
-                lResultData = lCollector(lNodeParseResult.data);
+                lResultData = lCollector(lNodeParseResult.data, lStartToken, lEndToken);
             } catch (pError: any) {
                 // Rethrow parser exception.
                 if (pError instanceof ParserException) {
@@ -347,12 +351,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
                 const lMessage: string = typeof pError === 'object' && pError !== null && 'message' in pError ? pError.message : pError.toString();
 
-                // Read start end end token.
-                const lErrorStartToken: LexerToken<TTokenType> | undefined = pTokenList.at(pCurrentTokenIndex);
-                const lErrorEndToken: LexerToken<TTokenType> | undefined = pTokenList.at(lNodeParseResult.nextTokenIndex - 1);
-
                 // When no token was processed, throw default error on first token.
-                throw ParserException.fromToken(lMessage, this, lErrorStartToken, lErrorEndToken);
+                throw ParserException.fromToken(lMessage, this, lStartToken, lEndToken);
             }
         }
 

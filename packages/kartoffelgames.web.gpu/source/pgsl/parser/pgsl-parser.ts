@@ -17,6 +17,9 @@ import { PgslPointerExpression } from '../structure/expression/pgsl-pointer-expr
 import { PgslAddressOfExpression } from '../structure/expression/pgsl-address-of-expression';
 import { PgslVariableIndexNameExpression } from '../structure/expression/variable/pgsl-variable-index-expression';
 import { PgslParenthesizedExpression } from '../structure/expression/pgsl-parenthesized-expression';
+import { PgslUnaryExpression } from '../structure/expression/pgsl-unary-expression';
+import { EnumUtil } from '@kartoffelgames/core';
+import { PgslOperator } from '../enum/pgsl-operator.enum';
 
 export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
     /**
@@ -226,8 +229,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 PgslToken.OperatorNot
             ])
             .single('expression', this.partReference('Expression')),
-            (_pData: UnaryExpressionGraphData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData: UnaryExpressionGraphData) => {
+                const lUnaryExpression: PgslUnaryExpression = new PgslUnaryExpression();
+                lUnaryExpression.expression = pData.expression;
+                lUnaryExpression.operator = EnumUtil.cast(PgslOperator, pData.expression)!;
+
+                return lUnaryExpression;
             }
         );
 

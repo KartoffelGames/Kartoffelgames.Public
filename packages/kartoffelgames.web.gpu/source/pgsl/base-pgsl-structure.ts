@@ -45,6 +45,9 @@ export abstract class BasePgslStructure {
         this.mParent = pParent;
     }
 
+    // TODO: Add validation steps for all structures. Is there a way to add on the fly validation without parsing everything first?
+    // TODO: Add token start and endline for correct parser exceptions in structures. 
+
     // TODO: Add something that can transpile into wgsl.
 
     // TODO: Add something to convert into serializeable object.

@@ -82,16 +82,16 @@ export class PgslLiteralValue extends PgslExpression {
                     const [lFloatPart, lExponential] = lNumber.split(/pP/g) as [string, string | undefined];
 
                     // Integer part can be empty, decimal part can be undefined.
-                    const [lInteger, lDecimal] = lFloatPart.split('.') as [string, string | undefined];
+                    const [lInteger, lFracture] = lFloatPart.split('.') as [string, string | undefined];
 
                     // Parse text values to seperate parts as number.
-                    const lIntegerNumber = parseInt(`0x${lInteger || '0'}`);
-                    const lDecimalNumber = parseInt(`0x${lDecimal || '0'}`);
-                    const lExponentialNumber = parseInt(lExponential || '0');
+                    const lIntegerNumber = lInteger ? parseInt(lInteger, 16) : 0;
+                    const lFractureNumber = lFracture ? parseInt(lFracture, 16) * Math.pow(16, -lFracture.length) : 0;
+                    const lExponentialNumber = lExponential ? parseInt(lExponential, 10) : 0;
 
                     // Construct and set float value.
                     this.mScalarType = PgslTypeName.Float;
-                    this.mValue = parseFloat(`${lIntegerNumber}.${lDecimalNumber}`) * Math.pow(10, lExponentialNumber);
+                    this.mValue = (lIntegerNumber + lFractureNumber) * Math.pow(2, lExponentialNumber);
 
                     break;
                 }

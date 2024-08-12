@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { PgslTypeName } from '../type/pgsl-type-name.enum';
+import { PgslTypeName } from '../../enum/pgsl-type-name.enum';
 import { PgslExpression } from './pgsl-expression';
 
 export class PgslLiteralValue extends PgslExpression {

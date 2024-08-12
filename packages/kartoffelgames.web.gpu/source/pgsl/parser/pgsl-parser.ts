@@ -11,11 +11,12 @@ import { PgslStatement } from '../structure/statement/pgsl-statement';
 import { PgslBlockStatement } from '../structure/statement/pgsl-block-statement';
 import { PgslIfStatement } from '../structure/statement/pgsl-if-statement';
 import { PgslTemplateList } from '../structure/general/pgsl-template-list';
-import { PgslTypeName } from '../structure/type/pgsl-type-name.enum';
+import { PgslTypeName } from '../enum/pgsl-type-name.enum';
 import { PgslVariableNameExpression } from '../structure/expression/variable/pgsl-variable-name-expression';
 import { PgslPointerExpression } from '../structure/expression/pgsl-pointer-expression';
 import { PgslAddressOfExpression } from '../structure/expression/pgsl-address-of-expression';
 import { PgslVariableIndexNameExpression } from '../structure/expression/variable/pgsl-variable-index-expression';
+import { PgslParenthesizedExpression } from '../structure/expression/pgsl-parenthesized-expression';
 
 export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
     /**
@@ -237,8 +238,11 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             .single(PgslToken.ParenthesesStart)
             .single('expression', this.partReference('Expression'))
             .single(PgslToken.ParenthesesEnd),
-            (_pData: ParenthesizedExpressionGraphData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData: ParenthesizedExpressionGraphData) => {
+                const lParenthesizedExpression: PgslParenthesizedExpression = new PgslParenthesizedExpression();
+                lParenthesizedExpression.expression = pData.expression;
+
+                return lParenthesizedExpression;
             }
         );
 

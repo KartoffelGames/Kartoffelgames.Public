@@ -1,25 +1,29 @@
+import { EnumUtil } from '@kartoffelgames/core';
 import { CodeParser } from '@kartoffelgames/core.parser';
+import { PgslOperator } from '../enum/pgsl-operator.enum';
+import { PgslTypeName } from '../enum/pgsl-type-name.enum';
 import { PgslDocument } from '../pgsl-document';
+import { PgslAddressOfExpression } from '../structure/expression/pgsl-address-of-expression';
+import { PgslArithmeticExpression } from '../structure/expression/pgsl-arithmetic-expression';
+import { PgslBinaryExpression as PgslBitExpression } from '../structure/expression/pgsl-bit-expression';
+import { PgslComparisonExpression } from '../structure/expression/pgsl-comparison-expression';
 import { PgslExpression } from '../structure/expression/pgsl-expression';
 import { PgslLiteralValue } from '../structure/expression/pgsl-literal-value';
+import { PgslParenthesizedExpression } from '../structure/expression/pgsl-parenthesized-expression';
+import { PgslPointerExpression } from '../structure/expression/pgsl-pointer-expression';
+import { PgslUnaryExpression } from '../structure/expression/pgsl-unary-expression';
 import { PgslVariableExpression } from '../structure/expression/variable/pgsl-variable-expression';
+import { PgslVariableIndexNameExpression } from '../structure/expression/variable/pgsl-variable-index-expression';
+import { PgslVariableNameExpression } from '../structure/expression/variable/pgsl-variable-name-expression';
 import { PgslAttributeList } from '../structure/general/pgsl-attribute-list';
+import { PgslTemplateList } from '../structure/general/pgsl-template-list';
+import { PgslBlockStatement } from '../structure/statement/pgsl-block-statement';
+import { PgslIfStatement } from '../structure/statement/pgsl-if-statement';
+import { PgslStatement } from '../structure/statement/pgsl-statement';
 import { PgslTypeDefinition } from '../structure/type/pgsl-type-definition';
 import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
-import { PgslStatement } from '../structure/statement/pgsl-statement';
-import { PgslBlockStatement } from '../structure/statement/pgsl-block-statement';
-import { PgslIfStatement } from '../structure/statement/pgsl-if-statement';
-import { PgslTemplateList } from '../structure/general/pgsl-template-list';
-import { PgslTypeName } from '../enum/pgsl-type-name.enum';
-import { PgslVariableNameExpression } from '../structure/expression/variable/pgsl-variable-name-expression';
-import { PgslPointerExpression } from '../structure/expression/pgsl-pointer-expression';
-import { PgslAddressOfExpression } from '../structure/expression/pgsl-address-of-expression';
-import { PgslVariableIndexNameExpression } from '../structure/expression/variable/pgsl-variable-index-expression';
-import { PgslParenthesizedExpression } from '../structure/expression/pgsl-parenthesized-expression';
-import { PgslUnaryExpression } from '../structure/expression/pgsl-unary-expression';
-import { EnumUtil } from '@kartoffelgames/core';
-import { PgslOperator } from '../enum/pgsl-operator.enum';
+import { PgslLogicalExpression } from '../structure/expression/pgsl-logical-expression';
 
 export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
     /**
@@ -152,8 +156,13 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 PgslToken.OperatorBinaryAnd
             ])
             .single('rightExpression', this.partReference('Expression')),
-            (_pData: LogicalExpressionGraphData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData: LogicalExpressionGraphData) => {
+                const lLogicalExpression: PgslLogicalExpression = new PgslLogicalExpression();
+                lLogicalExpression.leftExpression = pData.leftExpression;
+                lLogicalExpression.operator = EnumUtil.cast(PgslOperator, pData.operation)!;
+                lLogicalExpression.rightExpression = pData.rightExpression;
+
+                return lLogicalExpression;
             }
         );
 
@@ -172,8 +181,13 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 PgslToken.OperatorModulo
             ])
             .single('rightExpression', this.partReference('Expression')),
-            (_pData: ArithmeticExpressionGraphData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData: ArithmeticExpressionGraphData) => {
+                const lArithmeticExpression: PgslArithmeticExpression = new PgslArithmeticExpression();
+                lArithmeticExpression.leftExpression = pData.leftExpression;
+                lArithmeticExpression.operator = EnumUtil.cast(PgslOperator, pData.operation)!;
+                lArithmeticExpression.rightExpression = pData.rightExpression;
+
+                return lArithmeticExpression;
             }
         );
 
@@ -193,8 +207,13 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 PgslToken.OperatorGreaterThanEqual
             ])
             .single('rightExpression', this.partReference('Expression')),
-            (_pData: ComparisonExpressionGraphData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData: ComparisonExpressionGraphData) => {
+                const lComparisonExpression: PgslComparisonExpression = new PgslComparisonExpression();
+                lComparisonExpression.leftExpression = pData.leftExpression;
+                lComparisonExpression.comparison = EnumUtil.cast(PgslOperator, pData.comparison)!;
+                lComparisonExpression.rightExpression = pData.rightExpression;
+
+                return lComparisonExpression;
             }
         );
 
@@ -213,8 +232,13 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 PgslToken.OperatorShiftRight
             ])
             .single('rightExpression', this.partReference('Expression')),
-            (_pData: BitExpressionGraphData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData: BitExpressionGraphData) => {
+                const lUnaryExpression: PgslBitExpression = new PgslBitExpression();
+                lUnaryExpression.leftExpression = pData.leftExpression;
+                lUnaryExpression.operator = EnumUtil.cast(PgslOperator, pData.operation)!;
+                lUnaryExpression.rightExpression = pData.rightExpression;
+
+                return lUnaryExpression;
             }
         );
 
@@ -232,7 +256,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             (pData: UnaryExpressionGraphData) => {
                 const lUnaryExpression: PgslUnaryExpression = new PgslUnaryExpression();
                 lUnaryExpression.expression = pData.expression;
-                lUnaryExpression.operator = EnumUtil.cast(PgslOperator, pData.expression)!;
+                lUnaryExpression.operator = EnumUtil.cast(PgslOperator, pData.prefix)!;
 
                 return lUnaryExpression;
             }

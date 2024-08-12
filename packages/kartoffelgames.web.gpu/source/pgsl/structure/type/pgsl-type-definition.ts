@@ -1,4 +1,4 @@
-import { Exception } from 'packages/kartoffelgames.core/library/source';
+import { Exception } from '@kartoffelgames/core';
 import { BasePgslStructure } from '../../base-pgsl-structure';
 import { PgslDocument } from '../../pgsl-document';
 

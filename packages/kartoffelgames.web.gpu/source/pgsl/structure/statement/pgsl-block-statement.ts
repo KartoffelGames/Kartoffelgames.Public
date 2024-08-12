@@ -1,4 +1,4 @@
-import { Dictionary } from 'packages/kartoffelgames.core/library/source';
+import { Dictionary } from '@kartoffelgames/core';
 import { PgslStatement } from './pgsl-statement';
 import { PgslVariableDeclarationStatement } from './pgsl-variable-declaration-statement';
 

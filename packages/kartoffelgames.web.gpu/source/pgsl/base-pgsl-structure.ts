@@ -1,5 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslDocument } from './pgsl-document';
+import { PgslBlockStatement } from './structure/statement/pgsl-block-statement';
 
 /**
  * Base pgsl syntax tree object.
@@ -18,12 +19,23 @@ export abstract class BasePgslStructure {
      * @throws {@link Exception}
      * When structure was not assigned to a parent.
      */
-    public get parent(): BasePgslStructure {
-        if (!this.mParent) {
-            throw new Exception('PGSL-Structure has no assigned parent.', this);
+    public get parent(): BasePgslStructure | null {
+        return this.mParent;
+    }
+
+    /**
+     * Next valid scope.
+     * The only valid scope of null is the document.
+     */
+    public get scope(): PgslBlockStatement | null {
+        let lStructure: BasePgslStructure | null = this;
+        while ((lStructure = lStructure.parent) !== null) {
+            if (lStructure instanceof PgslBlockStatement) {
+                return lStructure;
+            }
         }
 
-        return this.mParent;
+        return null;
     }
 
     /**

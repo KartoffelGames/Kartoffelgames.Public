@@ -10,6 +10,10 @@ export class PgslAttributeList extends BasePgslStructure {
      * Get document from parent.
      */
     public get document(): PgslDocument {
+        if (!this.parent) {
+            throw new Exception('PGSL-Structure not attached to any document', this);
+        }
+
         return this.parent.document;
     }
 

@@ -609,7 +609,10 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     // Process inner value.
                     let lValueGraphResult: GraphParseResult;
                     if (lNodeValue instanceof GraphPartReference) {
-
+                        // Call can fail:
+                        // When it fails the graph reference set into pRecursionNodeChain persists for next node values until a node in another node value graph resolves into a value.
+                        // This prevents other branches without or only optional nodes between the same reference to try to resolve the same graph reference.
+                        // This includes looping nodes.
                         const lReferenceResult: GraphParseResult | null = this.parseGraphReference(lNodeValue, pTokenList, pCurrentTokenIndex, pRecursionNodeChain, pGraphHops + 1);
                         if (!lReferenceResult) {
                             // Build error list.

@@ -45,16 +45,12 @@ export class PgslTemplateList extends BasePgslStructure {
     }
 
     /**
-     * Set new items if template list.
-     * Clears all previous items.
+     * Set new item of template list.
      * 
-     * @param pItems - Items.
+     * @param pItem - Item.
      */
-    public setItems(...pItems: Array<PgslTypeDefinition | PgslExpression>): void {
-        // Clear items.
-        this.mItems.clear();
-
+    public setItem(pItems: PgslTypeDefinition | PgslExpression): void {
         // Set items.
-        this.mItems.push(...pItems);
+        this.mItems.push(pItems);
     }
 }

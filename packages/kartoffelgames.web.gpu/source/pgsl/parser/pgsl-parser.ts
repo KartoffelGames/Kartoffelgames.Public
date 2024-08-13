@@ -49,6 +49,22 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
     }
 
     /**
+     * Parse a text with the set syntax from CodeParser.setRootGraphPart into a sytnax tree or custom data structure.
+     * 
+     * @param pCodeText - Code as text.
+     *
+     * @returns The code as TTokenType data structure.
+     *
+     * @throws {@link ParserException} 
+     * When the graph could not be resolved with the set code text. Or Exception when no tokenizeable text should be parsed.
+     */
+    public override parse(pCodeText: string): PgslDocument {
+        // TODO: Build PgslDocument and let it fill.
+
+        return super.parse(pCodeText);
+    }
+
+    /**
      * Define core graphs used by different scopes.
      */
     private defineCore(): void {
@@ -83,8 +99,27 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 )
                 .single(PgslToken.ParenthesesEnd)
             ),
-            (_pData: AttributeListGraphData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData: AttributeListGraphData) => {
+                // Create attribute list.
+                const lAttributeList: PgslAttributeList = new PgslAttributeList();
+                for (const lAttribute of pData.list) {
+                    // Build parameter list of attribute.
+                    const lParameterList: Array<PgslExpression> = new Array<PgslExpression>();
+                    if (lAttribute.parameter) {
+                        // Add first expression.
+                        lParameterList.push(lAttribute.parameter?.first);
+
+                        // Add additional items.
+                        for (const lItem of lAttribute.parameter.additional) {
+                            lParameterList.push(lItem.expression);
+                        }
+                    }
+
+                    // Add each attribute with parameters.
+                    lAttributeList.addAttribute(lAttribute.name, lParameterList);
+                }
+
+                return lAttributeList;
             }
         );
 
@@ -120,9 +155,18 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 ])
             )
             .single(PgslToken.TemplateListEnd),
-            (_pData: TemplateListGraphData) => {
-                // TODO: VariableName result can be a type. Need to check.
-                // TODO: Yes this needs to be parsed.
+            (pData: TemplateListGraphData) => {
+                const lTemplateList: PgslTemplateList = new PgslTemplateList();
+
+                // Add first expression.
+                lTemplateList.setItem(pData.first);
+
+                // Add additional items.
+                for (const lItem of pData.additional) {
+                    lTemplateList.setItem(lItem.value);
+                }
+
+                return lTemplateList;
             }
         );
 

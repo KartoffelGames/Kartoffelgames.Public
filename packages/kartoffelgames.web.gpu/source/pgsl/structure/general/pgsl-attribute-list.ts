@@ -1,6 +1,7 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { BasePgslStructure } from '../../base-pgsl-structure';
 import { PgslDocument } from '../../pgsl-document';
+import { PgslExpression } from '../expression/pgsl-expression';
 
 /**
  * Generic attributre list.
@@ -22,12 +23,12 @@ export class PgslAttributeList extends BasePgslStructure {
     }
 
     // TODO: Types-
-    private readonly mAttributes: Dictionary<string, Array<any>>;
+    private readonly mAttributes: Dictionary<string, Array<PgslExpression>>;
 
     public constructor() {
         super();
 
-        this.mAttributes = new Dictionary<string, Array<any>>();
+        this.mAttributes = new Dictionary<string, Array<PgslExpression>>();
     }
 
     /**
@@ -35,7 +36,7 @@ export class PgslAttributeList extends BasePgslStructure {
      * @param pAttributeName - Attribute name.
      * @param pParameter - Parameter of attribute.
      */
-    public addAttribute(pAttributeName: string, pParameter: Array<never>): void {
+    public addAttribute(pAttributeName: string, pParameter: Array<PgslExpression>): void {
         // TODO: Validate if attribute exists.
         
         // TODO: Maybe validate parameter and the types of it.

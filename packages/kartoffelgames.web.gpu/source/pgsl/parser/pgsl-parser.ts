@@ -24,6 +24,8 @@ import { PgslTypeDefinition } from '../structure/type/pgsl-type-definition';
 import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
 import { PgslLogicalExpression } from '../structure/expression/pgsl-logical-expression';
+import { PgslCompositeValueDecompositionVariableExpression } from '../structure/expression/variable/pgsl-composite-value-decomposition-variable-expression';
+import { PgslEnumDeclaration } from '../structure/declarations/pgsl-enum-declaration';
 
 export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
     /**
@@ -646,8 +648,15 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             .single(PgslToken.BlockStart)
             .loop('statements', this.partReference('Statement'))
             .single(PgslToken.BlockEnd),
-            (_pData: FunctionBlockGraphData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData: FunctionBlockGraphData) => {
+                const lBlockStatement: PgslBlockStatement = new PgslBlockStatement();
+
+                // Add all statements.
+                for (const lStatement of pData.statements) {
+                    lBlockStatement.addStatement(lStatement);
+                }
+
+                return lBlockStatement;
             }
         );
 
@@ -754,8 +763,21 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 )
             )
             .single(PgslToken.BlockEnd),
-            (_pData: EnumDeclarationGraphData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData: EnumDeclarationGraphData) => {
+                const lEnumDeclaration: PgslEnumDeclaration = new PgslEnumDeclaration();
+                lEnumDeclaration.name = pData.name;
+
+                if (pData.values) {
+                    // Add first value.
+                    lEnumDeclaration.addValue(pData.values.first.name, pData.values.first.value.value);
+
+                    // Add additional values.
+                    for (const lValues of pData.values.additional) {
+                        lEnumDeclaration.addValue(lValues.name, lValues.value.value);
+                    }
+                }
+
+                return lEnumDeclaration;
             }
         );
 
@@ -915,10 +937,14 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             .single('leftExpression', this.partReference('VariableExpression'))
             .single(PgslToken.MemberDelimiter)
             .single('propertyName', PgslToken.Identifier),
-            (_pData: CompositeValueDecompositionExpressionGraphData) => {
+            (pData: CompositeValueDecompositionExpressionGraphData) => {
                 // TODO: enum.value ?? How to distinct
 
-                // TODO: Yes this needs to be parsed.
+                const lVariableExpression: PgslCompositeValueDecompositionVariableExpression = new PgslCompositeValueDecompositionVariableExpression();
+                lVariableExpression.property = pData.propertyName;
+                lVariableExpression.variable = pData.leftExpression;
+
+                return lVariableExpression;
             }
         );
 

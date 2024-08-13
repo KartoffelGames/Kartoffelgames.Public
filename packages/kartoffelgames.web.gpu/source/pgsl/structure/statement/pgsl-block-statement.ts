@@ -7,6 +7,7 @@ import { PgslVariableDeclarationStatement } from './pgsl-variable-declaration-st
  * Block statement. Handles scoped values.
  */
 export class PgslBlockStatement extends PgslStatement {
+    private readonly mStatementList: Array<PgslStatement>;
     private readonly mVariables: Dictionary<string, PgslVariableDeclarationStatement>;
 
     /**
@@ -30,7 +31,17 @@ export class PgslBlockStatement extends PgslStatement {
     public constructor() {
         super();
 
+        this.mStatementList = new Array<PgslStatement>();
         this.mVariables = new Dictionary<string, PgslVariableDeclarationStatement>();
+    }
+
+    /**
+     * Add statement to block in order. 
+     * 
+     * @param pStatement - Statement.
+     */
+    public addStatement(pStatement: PgslStatement): void {
+        this.mStatementList.push(pStatement);
     }
 
     /**

@@ -97,7 +97,7 @@ export abstract class BaseGrammarNode<TTokenType extends string, TResult extends
      * 
      * @returns The new branch node. 
      */
-    public branch<TKey extends string, const TValue extends Array<GrammarGraphValue<TTokenType>>>(pIdentifier: string, pBranches: TValue): GrammarBranchNode<TTokenType, NodeValueExtendBranch<TTokenType, TKey, TValue, TResult>>;
+    public branch<TKey extends string, const TValue extends Array<GrammarGraphValue<TTokenType>>>(pIdentifier: TKey, pBranches: TValue): GrammarBranchNode<TTokenType, NodeValueExtendBranch<TTokenType, TKey, TValue, TResult>>;
     public branch(pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType, TResult>;
     public branch(pIdentifierOrBranches: string | null | Array<GrammarGraphValue<TTokenType>>, pBranches?: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType, TResult> {
         // Read mixed parameter with correct value. 
@@ -190,7 +190,7 @@ export abstract class BaseGrammarNode<TTokenType extends string, TResult extends
      * 
      * @returns The new optional branch node. 
      */
-    public optionalBranch<TKey extends string, const TValue extends Array<GrammarGraphValue<TTokenType>>>(pIdentifier: string, pBranches: TValue): GrammarBranchNode<TTokenType, NodeValueExtendBranchOptional<TTokenType, TKey, TValue, TResult>>;
+    public optionalBranch<TKey extends string, const TValue extends Array<GrammarGraphValue<TTokenType>>>(pIdentifier: TKey, pBranches: TValue): GrammarBranchNode<TTokenType, NodeValueExtendBranchOptional<TTokenType, TKey, TValue, TResult>>;
     public optionalBranch(pBranches: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType>;
     public optionalBranch(pIdentifierOrBranches: string | null | Array<GrammarGraphValue<TTokenType>>, pBranches?: Array<GrammarGraphValue<TTokenType>>): GrammarBranchNode<TTokenType> {
         // Read mixed parameter with correct value. 

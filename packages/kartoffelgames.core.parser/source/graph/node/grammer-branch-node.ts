@@ -8,7 +8,7 @@ import { GrammarNodeValueType } from './grammer-node-value-type.enum';
  * 
  * @typeparam TTokenType - Type of all tokens the graph can handle.
  */
-export class GrammarBranchNode<TTokenType extends string> extends BaseGrammarNode<TTokenType> {
+export class GrammarBranchNode<TTokenType extends string, TResult extends object = object> extends BaseGrammarNode<TTokenType, TResult> {
     private readonly mNodeBranches: Array<GrammarGraphValue<TTokenType>>;
 
     /**

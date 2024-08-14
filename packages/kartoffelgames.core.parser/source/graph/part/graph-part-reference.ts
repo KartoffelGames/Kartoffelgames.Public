@@ -7,7 +7,8 @@ import { GraphPart } from './graph-part';
  * 
  * @typeparam TTokenType - Type of all tokens the referenced graph can handle.
  */
-export class GraphPartReference<TTokenType extends string> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/naming-convention
+export class GraphPartReference<TTokenType extends string, _TResult> {
     private readonly mParser: CodeParser<TTokenType, any>;
     private readonly mPartName: string;
 

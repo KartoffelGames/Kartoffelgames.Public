@@ -26,6 +26,8 @@ import { PgslStatement } from '../structure/statement/pgsl-statement';
 import { PgslTypeDefinition } from '../structure/type/pgsl-type-definition';
 import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
+import { PgslFunctionCallExpression } from '../structure/expression/pgsl-function-call-expression';
+import { PgslFunctionCallStatement } from '../structure/statement/pgsl-function-call-statement';
 
 export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
     /**
@@ -68,7 +70,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
      * Define core graphs used by different scopes.
      */
     private defineCore(): void {
-        
+
         this.defineGraphPart('Comment', this.graph()
             .single(PgslToken.Comment),
             (): null => {
@@ -284,8 +286,26 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 )
             )
             .single(PgslToken.ParenthesesEnd),
-            (_pData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData): PgslFunctionCallExpression => {
+                // Build parameter list of function.
+                const lParameterList: Array<PgslExpression> = new Array<PgslExpression>();
+                if (pData.parameter) {
+                    // Add first expression.
+                    lParameterList.push(pData.parameter.first);
+
+                    // Add additional items.
+                    for (const lItem of pData.parameter.additional) {
+                        lParameterList.push(lItem.expression);
+                    }
+                }
+
+                // Build function structure.
+                const lFunctionExpression: PgslFunctionCallExpression = new PgslFunctionCallExpression();
+                lFunctionExpression.name = pData.name;
+                lFunctionExpression.parameter = lParameterList;
+                lFunctionExpression.templateList = pData.templateList ?? null;
+
+                return lFunctionExpression;
             }
         );
 
@@ -338,7 +358,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 this.partReference<PgslLiteralValue>('LiteralValueExpression'),
                 this.partReference<PgslPointerExpression>('PointerExpression'),
                 this.partReference<PgslAddressOfExpression>('AddressOfExpression'),
-                this.partReference('FunctionExpression'),
+                this.partReference<PgslFunctionCallExpression>('FunctionExpression'),
                 this.partReference<PgslUnaryExpression>('UnaryExpression'),
                 this.partReference<PgslBitExpression>('BitOperationExpression'),
                 this.partReference<PgslComparisonExpression>('ComparisonExpression'),
@@ -538,8 +558,26 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             )
             .single(PgslToken.ParenthesesEnd)
             .single(PgslToken.Semicolon),
-            (_pData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData): PgslFunctionCallStatement => {
+                // Build parameter list of function.
+                const lParameterList: Array<PgslExpression> = new Array<PgslExpression>();
+                if (pData.parameter) {
+                    // Add first expression.
+                    lParameterList.push(pData.parameter.first);
+
+                    // Add additional items.
+                    for (const lItem of pData.parameter.additional) {
+                        lParameterList.push(lItem.expression);
+                    }
+                }
+
+                // Build function structure.
+                const lFunctionStatement: PgslFunctionCallStatement = new PgslFunctionCallStatement();
+                lFunctionStatement.name = pData.name;
+                lFunctionStatement.parameter = lParameterList;
+                lFunctionStatement.templateList = pData.templateList ?? null;
+
+                return lFunctionStatement;
             }
         );
 
@@ -573,7 +611,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 this.partReference<any /* TODO: */>('FunctionScopeVariableDeclaration'),
                 this.partReference<any /* TODO: */>('AssignmentStatement'),
                 this.partReference<any /* TODO: */>('IncrementDecrementStatement'),
-                this.partReference<any /* TODO: */>('FunctionCallStatement'),
+                this.partReference<PgslFunctionCallStatement>('FunctionCallStatement'),
                 this.partReference<PgslBlockStatement>('FunctionBlock')
             ]),
             (pData): PgslStatement => {

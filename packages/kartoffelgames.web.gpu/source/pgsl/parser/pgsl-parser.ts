@@ -28,6 +28,7 @@ import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
 import { PgslFunctionCallExpression } from '../structure/expression/pgsl-function-call-expression';
 import { PgslFunctionCallStatement } from '../structure/statement/pgsl-function-call-statement';
+import { PgslAliasDeclaration } from '../structure/declarations/pgsl-alias-declaration';
 
 export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
     /**
@@ -35,8 +36,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
      */
     public constructor() {
         super(new PgslLexer());
-
-        // TODO: Preparse steps. Setup with #import or something.
 
         // Define helper graphs.
         this.defineCore();
@@ -62,6 +61,10 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
      */
     public override parse(pCodeText: string): PgslDocument {
         // TODO: Build PgslDocument and let it fill.
+
+        // TODO: Preparse steps. Setup with #import or something.
+
+        // TODO: Replace comments with same amount of spaces.
 
         return super.parse(pCodeText);
     }
@@ -650,8 +653,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             .single(PgslToken.KeywordAlias)
             .single('aliasName', PgslToken.Identifier).single(PgslToken.Assignment)
             .single('type', this.partReference<PgslTypeDefinition>('TypeDefinition')).single(PgslToken.Semicolon),
-            (_pData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData): PgslAliasDeclaration => {
+                const lAliasDeclaration: PgslAliasDeclaration = new PgslAliasDeclaration();
+                lAliasDeclaration.name = pData.aliasName;
+                lAliasDeclaration.type = pData.type;
+
+                return lAliasDeclaration;
             }
         );
 
@@ -755,7 +762,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             .loop('list', this.graph()
                 .branch('content', [
                     this.partReference<null>('Comment'),
-                    this.partReference('AliasDeclaration'),
+                    this.partReference<PgslAliasDeclaration>('AliasDeclaration'),
                     this.partReference('ModuleScopeVariableDeclaration'),
                     this.partReference<PgslEnumDeclaration>('EnumDeclaration'),
                     this.partReference('StructDeclaration'),

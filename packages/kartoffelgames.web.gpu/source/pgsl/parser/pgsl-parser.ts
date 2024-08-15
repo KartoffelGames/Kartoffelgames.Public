@@ -60,26 +60,30 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
      * When the graph could not be resolved with the set code text. Or Exception when no tokenizeable text should be parsed.
      */
     public override parse(pCodeText: string): PgslDocument {
-        // TODO: Build PgslDocument and let it fill.
 
-        // TODO: Preparse steps. Setup with #import or something.
 
-        // TODO: Replace comments with same amount of spaces.
+        // TODO: Build PgslDocument.
+        // TODO: Insert imports. #IMPORT
 
-        return super.parse(pCodeText);
+        // TODO: Replace comments with same amount of spaces ans newlines.
+        // TODO: Setup #IFDEF. Fill Replaced '#IFDEFs, #ENDIFDEF with same amount of spaces and newlines.
+
+        // TODO: Remove any other # statements as they do nothing. Replace with same amount of spaces and newlines.
+
+        // Parse document.
+        const lDocument: PgslDocument = super.parse(pCodeText);
+
+        // TODO: Validate document.
+        
+        // TODO: Clear old parsing buffers. 
+
+        return lDocument;
     }
 
     /**
      * Define core graphs used by different scopes.
      */
     private defineCore(): void {
-
-        this.defineGraphPart('Comment', this.graph()
-            .single(PgslToken.Comment),
-            (): null => {
-                return null;
-            }
-        );
 
         this.defineGraphPart('AttributeList', this.graph()
             .loop('list', this.graph()
@@ -761,7 +765,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
         this.defineGraphPart('document', this.graph()
             .loop('list', this.graph()
                 .branch('content', [
-                    this.partReference<null>('Comment'),
                     this.partReference<PgslAliasDeclaration>('AliasDeclaration'),
                     this.partReference('ModuleScopeVariableDeclaration'),
                     this.partReference<PgslEnumDeclaration>('EnumDeclaration'),

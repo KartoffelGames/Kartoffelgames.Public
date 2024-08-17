@@ -1,10 +1,15 @@
-import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../base-pgsl-syntax-tree';
+import { PgslLiteralValueExpressionSyntaxTree } from './pgsl-literal-value-expression-syntax-tree';
 
-export abstract class PgslExpressionSyntaxTree<TType extends AvailableExpressionTypes, TData extends object> extends BasePgslSyntaxTree<TType, TData> {
+export class PgslExpressionSyntaxTreeFactory {
 
+    public static createFrom(pData: PgslExpressionSyntaxTreeStructureData): PgslExpressionSyntaxTree {
+        // Create new syntax tree object for all expression types.
+        switch (pData.meta.type) {
+            case 'Expression-LiteralValue': return new PgslLiteralValueExpressionSyntaxTree().applyDataStructure(pData);
+        }
+    }
 
 }
 
-type AvailableExpressionTypes = 'Expression-LiteralValue';
-
-export type PgslExpressionyntaxTreeStructureData<TDataType extends AvailableExpressionTypes, TData extends object> = PgslSyntaxTreeDataStructure<TDataType, TData>;
+export type PgslExpressionSyntaxTreeStructureData = ReturnType<PgslExpressionSyntaxTree['retrieveDataStructure']>;
+export type PgslExpressionSyntaxTree = PgslLiteralValueExpressionSyntaxTree;

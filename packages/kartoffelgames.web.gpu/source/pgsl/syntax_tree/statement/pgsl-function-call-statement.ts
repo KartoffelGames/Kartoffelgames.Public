@@ -1,5 +1,5 @@
 import { PgslExpression } from '../expression/pgsl-expression-syntax-tree';
-import { PgslTemplateList } from '../general/pgsl-template-list';
+import { PgslTemplateList } from '../general/pgsl-template-list-syntax-tree';
 import { PgslStatement } from './pgsl-statement';
 
 export class PgslFunctionCallStatement extends PgslStatement {

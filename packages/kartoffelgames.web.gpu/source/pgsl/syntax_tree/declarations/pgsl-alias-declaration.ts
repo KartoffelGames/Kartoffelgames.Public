@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTree } from '../base-pgsl-syntax-tree';
 import { PgslModuleSyntaxTree } from '../pgsl-module-syntax-tree';
-import { PgslTypeDefinition } from '../type/pgsl-type-definition';
+import { PgslTypeDefinition } from '../general/pgsl-type-definition-syntax-tree';
 
 export class PgslAliasDeclaration extends BasePgslSyntaxTree {
     private mName: string;

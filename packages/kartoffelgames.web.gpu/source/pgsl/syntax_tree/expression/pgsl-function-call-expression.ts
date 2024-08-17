@@ -1,4 +1,4 @@
-import { PgslTemplateList } from '../general/pgsl-template-list';
+import { PgslTemplateList } from '../general/pgsl-template-list-syntax-tree';
 import { PgslExpression } from './pgsl-expression-syntax-tree';
 
 export class PgslFunctionCallExpression extends PgslExpression {

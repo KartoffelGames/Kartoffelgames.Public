@@ -3,9 +3,11 @@ import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from './base-pgsl-syn
 import { PgslVariableDeclarationStatement } from './statement/pgsl-variable-declaration-statement';
 import { PgslFunction } from '../very_old_structure/pgsl-function';
 import { PgslStruct } from '../very_old_structure/struct/pgsl-struct';
+import { PgslAliasDeclaration } from './declarations/pgsl-alias-declaration';
 
 export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTreeStructureData['meta']['type'], PgslModuleSyntaxTreeStructureData['data']> {
     // Values
+    private readonly mAlias: Dictionary<string, PgslAliasDeclaration>;
     private readonly mFunctions: Dictionary<string, PgslFunction>;
     private readonly mGlobals: Dictionary<string, PgslVariableDeclarationStatement>;
     private readonly mStructs: Dictionary<string, PgslStruct>;
@@ -33,6 +35,17 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
         this.mGlobals = new Dictionary<string, PgslVariableDeclarationStatement>();
         this.mStructs = new Dictionary<string, PgslStruct>();
         this.mFunctions = new Dictionary<string, PgslFunction>();
+    }
+
+    /**
+     * Resolve alias name to its declaration.
+     * 
+     * @param pName - Alias name.
+     * 
+     * @returns alias declaration  
+     */
+    public resolveAlias(pName: string): PgslAliasDeclaration | null {
+        return this.mAlias.get(pName) ?? null;
     }
 
     /**

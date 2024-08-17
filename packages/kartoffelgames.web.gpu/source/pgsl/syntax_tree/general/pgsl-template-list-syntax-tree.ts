@@ -1,18 +1,18 @@
 import { List } from '@kartoffelgames/core';
 import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../base-pgsl-syntax-tree';
-import { PgslExpression } from '../expression/pgsl-expression-syntax-tree';
-import { PgslTypeDefinition } from '../type/pgsl-type-definition';
+import { PgslExpressionSyntaxTree, PgslExpressionSyntaxTreeStructureData } from '../expression/pgsl-expression-syntax-tree';
+import { PgslTypeDefinition, PgslTypeDefinitionSyntaxTreeStructureData } from './pgsl-type-definition-syntax-tree';
 
 /**
  * Template list parameter.
  */
-export class PgslTemplateListSyntaxTree extends BasePgslSyntaxTree<'TemplateList', {}> {
-    private readonly mItems: List<PgslTypeDefinition | PgslExpression>;
+export class PgslTemplateListSyntaxTree extends BasePgslSyntaxTree<PgslTemplateListSyntaxTreeStructureData['meta']['type'], PgslTemplateListSyntaxTreeStructureData['data']> {
+    private readonly mItems: List<PgslTypeDefinition | PgslExpressionSyntaxTree>;
 
     /**
      * Parameter list.
      */
-    public get items(): Array<PgslTypeDefinition | PgslExpression> {
+    public get items(): Array<PgslTypeDefinition | PgslExpressionSyntaxTree> {
         return [...this.mItems];
     }
 
@@ -27,9 +27,9 @@ export class PgslTemplateListSyntaxTree extends BasePgslSyntaxTree<'TemplateList
      * Constructor.
      */
     public constructor() {
-        super('TemplateList');
+        super('General-TemplateList');
 
-        this.mItems = new List<PgslTypeDefinition | PgslExpression>();
+        this.mItems = new List<PgslTypeDefinition | PgslExpressionSyntaxTree>();
     }
 
     /**
@@ -50,8 +50,8 @@ export class PgslTemplateListSyntaxTree extends BasePgslSyntaxTree<'TemplateList
     }
 }
 
-export type PgslTemplateListSyntaxTreeStructureData = PgslSyntaxTreeDataStructure<'TemplateList', {
-    parameter: Array<PgslTypeDefinitionSyntaxTreeStructureData | PgslExpressionSyntaxTreeStructureData>
+export type PgslTemplateListSyntaxTreeStructureData = PgslSyntaxTreeDataStructure<'General-TemplateList', {
+    parameter: Array<PgslTypeDefinitionSyntaxTreeStructureData | PgslExpressionSyntaxTreeStructureData>;
 }>;
 
 export type PgslTemplateListSyntaxTreeData = PgslTemplateListSyntaxTreeStructureData['meta'];

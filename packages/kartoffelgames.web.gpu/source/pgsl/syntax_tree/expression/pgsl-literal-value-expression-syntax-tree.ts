@@ -1,9 +1,11 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslTypeName } from '../../enum/pgsl-type-name.enum';
-import { PgslSyntaxTreeDataStructure } from '../base-pgsl-syntax-tree';
-import { PgslExpressionSyntaxTree } from './pgsl-expression-syntax-tree';
+import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../base-pgsl-syntax-tree';
 
-export class PgslLiteralValueExpressionSyntaxTree extends PgslExpressionSyntaxTree<PgslLiteralValueExpressionSyntaxTreeStructureData['meta']['type'], PgslLiteralValueExpressionSyntaxTreeStructureData['data']> {
+/**
+ * PGSL syntax tree for a single literal value of boolean, float, integer or uinteger.
+ */
+export class PgslLiteralValueExpressionSyntaxTree extends BasePgslSyntaxTree<PgslLiteralValueExpressionSyntaxTreeStructureData['meta']['type'], PgslLiteralValueExpressionSyntaxTreeStructureData['data']> {
     private mScalarType: PgslTypeName;
     private mValue: number;
 

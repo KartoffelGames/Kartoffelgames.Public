@@ -9,7 +9,7 @@ import { PgslAddressOfExpression } from '../syntax_tree/expression/pgsl-address-
 import { PgslArithmeticExpression } from '../syntax_tree/expression/pgsl-arithmetic-expression';
 import { PgslBinaryExpression as PgslBitExpression } from '../syntax_tree/expression/pgsl-bit-expression';
 import { PgslComparisonExpression } from '../syntax_tree/expression/pgsl-comparison-expression';
-import { PgslExpression } from '../syntax_tree/expression/pgsl-expression-syntax-tree';
+import { PgslExpression, PgslExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/pgsl-expression-syntax-tree';
 import { PgslFunctionCallExpression } from '../syntax_tree/expression/pgsl-function-call-expression';
 import { PgslLiteralValueExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/pgsl-literal-value-expression-syntax-tree';
 import { PgslLogicalExpression } from '../syntax_tree/expression/pgsl-logical-expression';
@@ -21,13 +21,13 @@ import { PgslVariableExpression } from '../syntax_tree/expression/variable/pgsl-
 import { PgslVariableIndexNameExpression } from '../syntax_tree/expression/variable/pgsl-variable-index-expression';
 import { PgslVariableNameExpression } from '../syntax_tree/expression/variable/pgsl-variable-name-expression';
 import { PgslAttributeList } from '../syntax_tree/general/pgsl-attribute-list';
-import { PgslTemplateList } from '../syntax_tree/general/pgsl-template-list';
+import { PgslTemplateList, PgslTemplateListSyntaxTreeStructureData } from '../syntax_tree/general/pgsl-template-list-syntax-tree';
+import { PgslTypeDefinitionSyntaxTreeStructureData } from '../syntax_tree/general/pgsl-type-definition-syntax-tree';
 import { PgslModuleSyntaxTree, PgslModuleSyntaxTreeStructureData } from '../syntax_tree/pgsl-module-syntax-tree';
 import { PgslBlockStatement } from '../syntax_tree/statement/pgsl-block-statement';
 import { PgslFunctionCallStatement } from '../syntax_tree/statement/pgsl-function-call-statement';
 import { PgslIfStatement } from '../syntax_tree/statement/pgsl-if-statement';
 import { PgslStatement } from '../syntax_tree/statement/pgsl-statement';
-import { PgslTypeDefinition } from '../syntax_tree/type/pgsl-type-definition';
 import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
 
@@ -149,29 +149,23 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('TypeDefinition-ForcedTemplate', this.graph()
-            .single('name', PgslToken.Identifier)
-            .single('templateList', this.partReference<PgslTemplateList>('TemplateList')),
-            (_pData) => {
-                // TODO: Yes this needs to be parsed.
-            }
-        );
-
-        this.defineGraphPart('TemplateList', this.graph()
+        this.defineGraphPart('General-TemplateList', this.graph()
             .single(PgslToken.TemplateListStart)
             .branch('first', [
                 this.partReference<PgslExpression>('Expression'),
-                this.partReference<PgslTypeDefinition>('TypeDefinition-ForcedTemplate')
+                this.partReference<PgslTypeDefinitionSyntaxTreeStructureData>('General-TypeDefinition-ForcedTemplate')
             ])
             .loop('additional', this.graph()
                 .single(PgslToken.Comma)
                 .branch('value', [
                     this.partReference<PgslExpression>('Expression'),
-                    this.partReference<PgslTypeDefinition>('TypeDefinition-ForcedTemplate')
+                    this.partReference<PgslTypeDefinitionSyntaxTreeStructureData>('General-TypeDefinition-ForcedTemplate')
                 ])
             )
             .single(PgslToken.TemplateListEnd),
-            (pData) => {
+            (pData): PgslTemplateListSyntaxTreeStructureData => {
+                // TODO: Sometime  the expression is a type definition :(
+
                 const lTemplateList: PgslTemplateList = new PgslTemplateList();
 
                 // Add first expression.
@@ -186,11 +180,45 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('TypeDefinition', this.graph()
+        this.defineGraphPart('General-TypeDefinition', this.graph()
             .single('name', PgslToken.Identifier)
-            .optional('templateList', this.partReference<PgslTemplateList>('TemplateList')),
-            (_pData) => {
-                // TODO: Yes this needs to be parsed.
+            .optional('templateList', this.partReference<PgslTemplateListSyntaxTreeStructureData>('General-TemplateList')),
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslTypeDefinitionSyntaxTreeStructureData => {
+                // Define root structure of type definition syntax tree structure data and apply type name.
+                const lData: PgslTypeDefinitionSyntaxTreeStructureData = {
+                    meta: this.createMeta('General-TypeDefinition', pStartToken, pEndToken),
+                    data: {
+                        name: pData.name
+                    }
+                };
+
+                // Append optional template list.
+                if (pData.templateList) {
+                    lData.data.templateList = pData.templateList;
+                }
+
+                return lData;
+            }
+        );
+
+        this.defineGraphPart('General-TypeDefinition-ForcedTemplate', this.graph()
+            .single('name', PgslToken.Identifier)
+            .single('templateList', this.partReference<PgslTemplateListSyntaxTreeStructureData>('General-TemplateList')),
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslTypeDefinitionSyntaxTreeStructureData => {
+                // Define root structure of type definition syntax tree structure data and apply type name.
+                const lData: PgslTypeDefinitionSyntaxTreeStructureData = {
+                    meta: this.createMeta('General-TypeDefinition', pStartToken, pEndToken),
+                    data: {
+                        name: pData.name
+                    }
+                };
+
+                // Append optional template list.
+                if (pData.templateList) {
+                    lData.data.templateList = pData.templateList;
+                }
+
+                return lData;
             }
         );
     }
@@ -311,7 +339,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
 
         this.defineGraphPart('FunctionExpression', this.graph()
             .single('name', PgslToken.Identifier)
-            .optional('templateList', this.partReference<PgslTemplateList>('TemplateList'))
+            .optional('templateList', this.partReference<PgslTemplateListSyntaxTreeStructureData>('General-TemplateList'))
             .single(PgslToken.ParenthesesStart)
             .optional('parameter', this.graph()
                 .single('first', this.partReference<PgslExpression>('Expression'))
@@ -412,7 +440,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 this.partReference<PgslLogicalExpression>('LogicalExpression'),
                 this.partReference<PgslParenthesizedExpression>('ParenthesizedExpression')
             ]),
-            (pData): PgslExpression => {
+            (pData): PgslExpressionSyntaxTreeStructureData => {
                 return pData.expression;
             }
         );
@@ -549,7 +577,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 PgslToken.KeywordDeclarationLet
             ])
             .single('variableName', PgslToken.Identifier).single(PgslToken.Colon)
-            .single('type', this.partReference<PgslTypeDefinition>('TypeDefinition'))
+            .single('type', this.partReference<PgslTypeDefinitionSyntaxTreeStructureData>('General-TypeDefinition'))
             .branch([
                 PgslToken.Semicolon,
                 this.graph().single(PgslToken.Assignment).single('expression', this.partReference<PgslExpression>('Expression')).single(PgslToken.Semicolon)
@@ -594,7 +622,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
 
         this.defineGraphPart('FunctionCallStatement', this.graph()
             .single('name', PgslToken.Identifier)
-            .optional('templateList', this.partReference<PgslTemplateList>('TemplateList'))
+            .optional('templateList', this.partReference<PgslTemplateListSyntaxTreeStructureData>('General-TemplateList'))
             .single(PgslToken.ParenthesesStart)
             .optional('parameter', this.graph()
                 .single('first', this.partReference<PgslExpression>('Expression'))
@@ -682,7 +710,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 PgslToken.KeywordDeclarationParam
             ])
             .single('variableName', PgslToken.Identifier).single(PgslToken.Colon)
-            .single('type', this.partReference<PgslTypeDefinition>('TypeDefinition'))
+            .single('type', this.partReference<PgslTypeDefinitionSyntaxTreeStructureData>('General-TypeDefinition'))
             .branch([
                 PgslToken.Semicolon,
                 this.graph().single(PgslToken.Assignment).single('expression', this.partReference<PgslExpression>('Expression')).single(PgslToken.Semicolon)
@@ -695,7 +723,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         this.defineGraphPart('AliasDeclaration', this.graph()
             .single(PgslToken.KeywordAlias)
             .single('aliasName', PgslToken.Identifier).single(PgslToken.Assignment)
-            .single('type', this.partReference<PgslTypeDefinition>('TypeDefinition')).single(PgslToken.Semicolon),
+            .single('type', this.partReference<PgslTypeDefinitionSyntaxTreeStructureData>('General-TypeDefinition')).single(PgslToken.Semicolon),
             (pData): PgslAliasDeclaration => {
                 const lAliasDeclaration: PgslAliasDeclaration = new PgslAliasDeclaration();
                 lAliasDeclaration.name = pData.aliasName;
@@ -752,7 +780,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 .single('name', PgslToken.Identifier)
                 .single(PgslToken.Colon)
                 .branch('value', [
-                    this.partReference<PgslTypeDefinition>('TypeDefinition')
+                    this.partReference<PgslTypeDefinitionSyntaxTreeStructureData>('General-TypeDefinition')
                 ])
                 .loop('additional', this.graph()
                     .single(PgslToken.Comma)
@@ -760,7 +788,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                     .single('name', PgslToken.Identifier)
                     .single(PgslToken.Assignment)
                     .branch('value', [
-                        this.partReference<PgslTypeDefinition>('TypeDefinition')
+                        this.partReference<PgslTypeDefinitionSyntaxTreeStructureData>('General-TypeDefinition')
                     ])
                 )
             )
@@ -778,17 +806,17 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .optional('parameter', this.graph()
                 .single('first', this.graph()
                     .single('name', PgslToken.Identifier)
-                    .single('type', this.partReference<PgslTypeDefinition>('TypeDefinition'))
+                    .single('type', this.partReference<PgslTypeDefinitionSyntaxTreeStructureData>('General-TypeDefinition'))
                 )
                 .loop('additional', this.graph()
                     .single(PgslToken.Comma)
                     .single('name', PgslToken.Identifier)
-                    .single('type', this.partReference<PgslTypeDefinition>('TypeDefinition'))
+                    .single('type', this.partReference<PgslTypeDefinitionSyntaxTreeStructureData>('General-TypeDefinition'))
                 )
             )
             .single(PgslToken.ParenthesesEnd)
             .single(PgslToken.Colon)
-            .single('returnType', this.partReference<PgslTypeDefinition>('TypeDefinition'))
+            .single('returnType', this.partReference<PgslTypeDefinitionSyntaxTreeStructureData>('General-TypeDefinition'))
             .single('block', this.partReference<PgslBlockStatement>('FunctionBlock')),
             (_pData) => {
                 // TODO: Yes this needs to be parsed.

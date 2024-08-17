@@ -1,7 +1,7 @@
 import { ParserException } from '@kartoffelgames/core.parser';
 import { expect } from 'chai';
 import { PgslParser } from '../../../source/pgsl/parser/pgsl-parser';
-import { PgslDocument } from '../../../source/pgsl/pgsl-document';
+import { PgslModuleSyntaxTree } from '../../../source/pgsl/syntax_tree/pgsl-module-syntax-tree';
 
 describe('PsglLexer', () => {
     const lPgslParser: PgslParser = new PgslParser();
@@ -15,7 +15,7 @@ describe('PsglLexer', () => {
                 `;
 
                 // Process.
-                const lResult: PgslDocument = lPgslParser.parse(lSourceCode);
+                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
 
                 // Evaluation. // TODO:
                 expect(lResult).to.be.true;
@@ -29,7 +29,7 @@ describe('PsglLexer', () => {
                 `;
 
                 // Process.
-                const lResult: PgslDocument = lPgslParser.parse(lSourceCode);
+                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
 
                 // Evaluation. // TODO:
                 expect(lResult).to.be.true;
@@ -74,7 +74,7 @@ describe('PsglLexer', () => {
                 `;
 
                 // Process.
-                const lResult: PgslDocument = lPgslParser.parse(lSourceCode);
+                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
 
                 // Evaluation. // TODO:
                 expect(lResult).to.be.true;
@@ -88,7 +88,7 @@ describe('PsglLexer', () => {
                 `;
 
                 // Process.
-                const lResult: PgslDocument = lPgslParser.parse(lSourceCode);
+                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
 
                 // Evaluation. // TODO:
                 expect(lResult).to.be.true;
@@ -102,7 +102,7 @@ describe('PsglLexer', () => {
                 `;
 
                 // Process.
-                const lResult: PgslDocument = lPgslParser.parse(lSourceCode);
+                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
 
                 // Evaluation. // TODO:
                 expect(lResult).to.be.true;
@@ -147,7 +147,7 @@ describe('PsglLexer', () => {
                 `;
 
                 // Process.
-                const lResult: PgslDocument = lPgslParser.parse(lSourceCode);
+                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
 
                 // Evaluation. // TODO:
                 expect(lResult).to.be.true;
@@ -160,7 +160,7 @@ describe('PsglLexer', () => {
                 `;
 
                 // Process.
-                const lResult: PgslDocument = lPgslParser.parse(lSourceCode);
+                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
 
                 // Evaluation. // TODO:
                 expect(lResult).to.be.true;
@@ -173,7 +173,7 @@ describe('PsglLexer', () => {
                 `;
 
                 // Process.
-                const lResult: PgslDocument = lPgslParser.parse(lSourceCode);
+                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
 
                 // Evaluation. // TODO:
                 expect(lResult).to.be.true;
@@ -203,7 +203,7 @@ describe('PsglLexer', () => {
                 `;
 
                 // Process.
-                const lResult: PgslDocument = lPgslParser.parse(lSourceCode);
+                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
 
                 // Evaluation. // TODO:
                 expect(lResult).to.be.true;
@@ -248,7 +248,7 @@ describe('PsglLexer', () => {
                 `;
 
                 // Process.
-                const lResult: PgslDocument = lPgslParser.parse(lSourceCode);
+                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
 
                 // Evaluation. // TODO:
                 expect(lResult).to.be.true;
@@ -295,7 +295,7 @@ describe('PsglLexer', () => {
                 `;
 
                 // Process.
-                const lResult: PgslDocument = lPgslParser.parse(lSourceCode);
+                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
 
                 // Evaluation. // TODO:
                 expect(lResult).to.be.true;
@@ -308,7 +308,7 @@ describe('PsglLexer', () => {
                 `;
 
                 // Process.
-                const lResult: PgslDocument = lPgslParser.parse(lSourceCode);
+                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
 
                 // Evaluation. // TODO:
                 expect(lResult).to.be.true;
@@ -321,7 +321,7 @@ describe('PsglLexer', () => {
                 `;
 
                 // Process.
-                const lResult: PgslDocument = lPgslParser.parse(lSourceCode);
+                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
 
                 // Evaluation. // TODO:
                 expect(lResult).to.be.true;
@@ -382,7 +382,7 @@ describe('PsglLexer', () => {
             `;
 
             // Process.
-            const lResult: PgslDocument = lPgslParser.parse(lSourceCode);
+            const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
 
             // Evaluation. // TODO:
             expect(lResult).to.be.true;
@@ -395,7 +395,7 @@ describe('PsglLexer', () => {
             `;
 
             // Process.
-            const lResult: PgslDocument = lPgslParser.parse(lSourceCode);
+            const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
 
             // Evaluation. // TODO:
             expect(lResult).to.be.true;
@@ -408,7 +408,7 @@ describe('PsglLexer', () => {
             `;
 
             // Process.
-            const lResult: PgslDocument = lPgslParser.parse(lSourceCode);
+            const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
 
             // Evaluation. // TODO:
             expect(lResult).to.be.true;
@@ -428,7 +428,7 @@ describe('PsglLexer', () => {
                 `;
 
                 // Process.
-                const lResult: PgslDocument = lPgslParser.parse(lSourceCode);
+                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
 
                 // Evaluation. // TODO:
                 expect(lResult).to.be.true;
@@ -445,7 +445,7 @@ describe('PsglLexer', () => {
                 `;
 
                 // Process.
-                const lResult: PgslDocument = lPgslParser.parse(lSourceCode);
+                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
 
                 // Evaluation. // TODO:
                 expect(lResult).to.be.true;
@@ -466,7 +466,7 @@ describe('PsglLexer', () => {
                 `;
 
                 // Process.
-                const lResult: PgslDocument = lPgslParser.parse(lSourceCode);
+                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
 
                 // Evaluation. // TODO:
                 expect(lResult).to.be.true;

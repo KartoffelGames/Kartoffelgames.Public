@@ -1,8 +1,8 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../enum/pgsl-operator.enum';
-import { PgslExpression } from './pgsl-expression';
+import { PgslExpression } from './pgsl-expression-syntax-tree';
 
-export class PgslLogicalExpression extends PgslExpression {
+export class PgslArithmeticExpression extends PgslExpression {
     private mLeftExpression: PgslExpression | null;
     private mOperator: PgslOperator | null;
     private mRightExpression: PgslExpression | null;
@@ -29,13 +29,13 @@ export class PgslLogicalExpression extends PgslExpression {
      */
     public get operator(): PgslOperator {
         if (this.mOperator === null) {
-            throw new Exception('Logical operator not set.', this);
+            throw new Exception('Arithmetic operator not set.', this);
         }
 
         return this.mOperator;
     } set operator(pOperator: PgslOperator) {
         if (this.mOperator !== null) {
-            throw new Exception('Logical operator can not be changed.', this);
+            throw new Exception('Arithmetic operator can not be changed.', this);
         }
 
         this.mOperator = pOperator;

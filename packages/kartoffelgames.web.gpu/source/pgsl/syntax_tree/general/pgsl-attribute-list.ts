@@ -1,16 +1,16 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { BasePgslStructure } from '../../base-pgsl-structure';
-import { PgslDocument } from '../../pgsl-document';
-import { PgslExpression } from '../expression/pgsl-expression';
+import { BasePgslSyntaxTree } from '../base-pgsl-syntax-tree';
+import { PgslModuleSyntaxTree } from '../pgsl-module-syntax-tree';
+import { PgslExpression } from '../expression/pgsl-expression-syntax-tree';
 
 /**
  * Generic attributre list.
  */
-export class PgslAttributeList extends BasePgslStructure {
+export class PgslAttributeList extends BasePgslSyntaxTree {
     /**
      * Get document from parent.
      */
-    public get document(): PgslDocument {
+    public get document(): PgslModuleSyntaxTree {
         if (!this.parent) {
             throw new Exception('PGSL-Structure not attached to any document', this);
         }

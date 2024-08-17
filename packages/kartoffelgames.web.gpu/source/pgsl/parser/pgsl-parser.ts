@@ -1,36 +1,37 @@
 import { EnumUtil } from '@kartoffelgames/core';
-import { CodeParser } from '@kartoffelgames/core.parser';
+import { CodeParser, LexerToken } from '@kartoffelgames/core.parser';
 import { PgslOperator } from '../enum/pgsl-operator.enum';
 import { PgslTypeName } from '../enum/pgsl-type-name.enum';
-import { PgslDocument } from '../pgsl-document';
-import { PgslEnumDeclaration } from '../structure/declarations/pgsl-enum-declaration';
-import { PgslAddressOfExpression } from '../structure/expression/pgsl-address-of-expression';
-import { PgslArithmeticExpression } from '../structure/expression/pgsl-arithmetic-expression';
-import { PgslBinaryExpression as PgslBitExpression } from '../structure/expression/pgsl-bit-expression';
-import { PgslComparisonExpression } from '../structure/expression/pgsl-comparison-expression';
-import { PgslExpression } from '../structure/expression/pgsl-expression';
-import { PgslLiteralValue } from '../structure/expression/pgsl-literal-value';
-import { PgslLogicalExpression } from '../structure/expression/pgsl-logical-expression';
-import { PgslParenthesizedExpression } from '../structure/expression/pgsl-parenthesized-expression';
-import { PgslPointerExpression } from '../structure/expression/pgsl-pointer-expression';
-import { PgslUnaryExpression } from '../structure/expression/pgsl-unary-expression';
-import { PgslCompositeValueDecompositionVariableExpression } from '../structure/expression/variable/pgsl-composite-value-decomposition-variable-expression';
-import { PgslVariableExpression } from '../structure/expression/variable/pgsl-variable-expression';
-import { PgslVariableIndexNameExpression } from '../structure/expression/variable/pgsl-variable-index-expression';
-import { PgslVariableNameExpression } from '../structure/expression/variable/pgsl-variable-name-expression';
-import { PgslAttributeList } from '../structure/general/pgsl-attribute-list';
-import { PgslTemplateList } from '../structure/general/pgsl-template-list';
-import { PgslBlockStatement } from '../structure/statement/pgsl-block-statement';
-import { PgslIfStatement } from '../structure/statement/pgsl-if-statement';
-import { PgslStatement } from '../structure/statement/pgsl-statement';
-import { PgslTypeDefinition } from '../structure/type/pgsl-type-definition';
+import { PgslSyntaxTreeDataStructure } from '../syntax_tree/base-pgsl-syntax-tree';
+import { PgslAliasDeclaration } from '../syntax_tree/declarations/pgsl-alias-declaration';
+import { PgslEnumDeclaration } from '../syntax_tree/declarations/pgsl-enum-declaration';
+import { PgslAddressOfExpression } from '../syntax_tree/expression/pgsl-address-of-expression';
+import { PgslArithmeticExpression } from '../syntax_tree/expression/pgsl-arithmetic-expression';
+import { PgslBinaryExpression as PgslBitExpression } from '../syntax_tree/expression/pgsl-bit-expression';
+import { PgslComparisonExpression } from '../syntax_tree/expression/pgsl-comparison-expression';
+import { PgslExpression } from '../syntax_tree/expression/pgsl-expression-syntax-tree';
+import { PgslFunctionCallExpression } from '../syntax_tree/expression/pgsl-function-call-expression';
+import { PgslLiteralValueExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/pgsl-literal-value-expression-syntax-tree';
+import { PgslLogicalExpression } from '../syntax_tree/expression/pgsl-logical-expression';
+import { PgslParenthesizedExpression } from '../syntax_tree/expression/pgsl-parenthesized-expression';
+import { PgslPointerExpression } from '../syntax_tree/expression/pgsl-pointer-expression';
+import { PgslUnaryExpression } from '../syntax_tree/expression/pgsl-unary-expression';
+import { PgslCompositeValueDecompositionVariableExpression } from '../syntax_tree/expression/variable/pgsl-composite-value-decomposition-variable-expression';
+import { PgslVariableExpression } from '../syntax_tree/expression/variable/pgsl-variable-expression';
+import { PgslVariableIndexNameExpression } from '../syntax_tree/expression/variable/pgsl-variable-index-expression';
+import { PgslVariableNameExpression } from '../syntax_tree/expression/variable/pgsl-variable-name-expression';
+import { PgslAttributeList } from '../syntax_tree/general/pgsl-attribute-list';
+import { PgslTemplateList } from '../syntax_tree/general/pgsl-template-list';
+import { PgslModuleSyntaxTree, PgslModuleSyntaxTreeStructureData } from '../syntax_tree/pgsl-module-syntax-tree';
+import { PgslBlockStatement } from '../syntax_tree/statement/pgsl-block-statement';
+import { PgslFunctionCallStatement } from '../syntax_tree/statement/pgsl-function-call-statement';
+import { PgslIfStatement } from '../syntax_tree/statement/pgsl-if-statement';
+import { PgslStatement } from '../syntax_tree/statement/pgsl-statement';
+import { PgslTypeDefinition } from '../syntax_tree/type/pgsl-type-definition';
 import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
-import { PgslFunctionCallExpression } from '../structure/expression/pgsl-function-call-expression';
-import { PgslFunctionCallStatement } from '../structure/statement/pgsl-function-call-statement';
-import { PgslAliasDeclaration } from '../structure/declarations/pgsl-alias-declaration';
 
-export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
+export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
     /**
      * Constructor.
      */
@@ -59,7 +60,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
      * @throws {@link ParserException} 
      * When the graph could not be resolved with the set code text. Or Exception when no tokenizeable text should be parsed.
      */
-    public override parse(pCodeText: string): PgslDocument {
+    public override parse(pCodeText: string): PgslModuleSyntaxTree {
 
 
         // TODO: Build PgslDocument.
@@ -70,14 +71,40 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
 
         // TODO: Remove any other # statements as they do nothing. Replace with same amount of spaces and newlines.
 
-        // Parse document.
-        const lDocument: PgslDocument = super.parse(pCodeText);
+        // Parse document structure.
+        const lDocumentStructure: PgslModuleSyntaxTreeStructureData = super.parse(pCodeText) as unknown as PgslModuleSyntaxTreeStructureData;
 
         // TODO: Validate document.
-        
+
         // TODO: Clear old parsing buffers. 
 
-        return lDocument;
+        return new PgslModuleSyntaxTree().applyDataStructure(lDocumentStructure);
+    }
+
+    /**
+     * Create meta data structure for a syntax tree.
+     * 
+     * @param pType - Structure type.
+     * @param pStartToken - Parsed structure start token.
+     * @param pEndToken - Parsed structure end token.
+     * 
+     * @returns meta data structure of syntax tree. 
+     */
+    private createMeta<TType extends string>(pType: TType, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslSyntaxTreeDataStructure<TType, object>['meta'] {
+        return {
+            file: '<NO-FILE>', // TODO: Current file name?
+            type: pType,
+            position: {
+                start: {
+                    column: pStartToken.columnNumber,
+                    line: pStartToken.lineNumber
+                },
+                end: {
+                    column: pEndToken.columnNumber,
+                    line: pEndToken.lineNumber
+                }
+            }
+        };
     }
 
     /**
@@ -338,31 +365,43 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
             }
         );
 
-        this.defineGraphPart('LiteralValueExpression', this.graph()
+        this.defineGraphPart('Expression-LiteralValue', this.graph()
             .branch('value', [
                 this.graph().single('float', PgslToken.LiteralFloat),
                 this.graph().single('integer', PgslToken.LiteralInteger),
                 this.graph().single('boolean', PgslToken.LiteralBoolean)
             ]),
-            (pData): PgslLiteralValue => {
-                const lPgslLiteralValue: PgslLiteralValue = new PgslLiteralValue();
-
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslLiteralValueExpressionSyntaxTreeStructureData => {
+                // Define different types of data for the different literals.
+                let lData: PgslLiteralValueExpressionSyntaxTreeStructureData['data'];
                 if ('float' in pData.value) {
-                    lPgslLiteralValue.setFromText(pData.value.float, PgslTypeName.Float);
+                    lData = {
+                        textValue: pData.value.float,
+                        literalType: PgslTypeName.Float
+                    };
                 } else if ('integer' in pData.value) {
-                    lPgslLiteralValue.setFromText(pData.value.integer, PgslTypeName.Integer);
+                    lData = {
+                        textValue: pData.value.integer,
+                        literalType: PgslTypeName.Integer
+                    };
                 } else if ('boolean' in pData.value) {
-                    lPgslLiteralValue.setFromText(pData.value.boolean, PgslTypeName.Boolean);
+                    lData = {
+                        textValue: pData.value.boolean,
+                        literalType: PgslTypeName.Boolean
+                    };
                 }
 
-                return lPgslLiteralValue;
+                return {
+                    meta: this.createMeta('Expression-LiteralValue', pStartToken, pEndToken),
+                    data: lData!
+                };
             }
         );
 
         this.defineGraphPart('Expression', this.graph()
             .branch('expression', [
                 this.partReference<PgslVariableExpression>('VariableExpression'), // => defineVariableExpression
-                this.partReference<PgslLiteralValue>('LiteralValueExpression'),
+                this.partReference<PgslLiteralValueExpressionSyntaxTreeStructureData>('Expression-LiteralValue'),
                 this.partReference<PgslPointerExpression>('PointerExpression'),
                 this.partReference<PgslAddressOfExpression>('AddressOfExpression'),
                 this.partReference<PgslFunctionCallExpression>('FunctionExpression'),
@@ -674,14 +713,14 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                 .single('name', PgslToken.Identifier)
                 .single(PgslToken.Assignment)
                 .branch('value', [
-                    this.partReference<PgslLiteralValue>('LiteralValueExpression')
+                    this.partReference<PgslLiteralValueExpressionSyntaxTreeStructureData>('Expression-LiteralValue')
                 ])
                 .loop('additional', this.graph()
                     .single(PgslToken.Comma)
                     .single('name', PgslToken.Identifier)
                     .single(PgslToken.Assignment)
                     .branch('value', [
-                        this.partReference<PgslLiteralValue>('LiteralValueExpression')
+                        this.partReference<PgslLiteralValueExpressionSyntaxTreeStructureData>('Expression-LiteralValue')
                     ])
                 )
             )
@@ -772,8 +811,18 @@ export class PgslParser extends CodeParser<PgslToken, PgslDocument> {
                     this.partReference('FunctionDeclaration')
                 ])
             ),
-            (_pData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslModuleSyntaxTreeStructureData => {
+                const lData: PgslModuleSyntaxTreeStructureData['data'] = {};
+
+                // Loop data.
+                for (const lContent of pData.list) {
+                    // TODO: switch case with all things.
+                }
+
+                return {
+                    meta: this.createMeta('Module', pStartToken, pEndToken),
+                    data: {}
+                };
             }
         );
 

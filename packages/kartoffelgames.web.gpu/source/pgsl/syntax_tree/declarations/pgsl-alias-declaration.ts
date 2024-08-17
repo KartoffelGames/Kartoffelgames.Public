@@ -1,9 +1,9 @@
 import { Exception } from '@kartoffelgames/core';
-import { BasePgslStructure } from '../../base-pgsl-structure';
-import { PgslDocument } from '../../pgsl-document';
+import { BasePgslSyntaxTree } from '../base-pgsl-syntax-tree';
+import { PgslModuleSyntaxTree } from '../pgsl-module-syntax-tree';
 import { PgslTypeDefinition } from '../type/pgsl-type-definition';
 
-export class PgslAliasDeclaration extends BasePgslStructure {
+export class PgslAliasDeclaration extends BasePgslSyntaxTree {
     private mName: string;
     private mType: PgslTypeDefinition | null;
 
@@ -11,7 +11,7 @@ export class PgslAliasDeclaration extends BasePgslStructure {
     /**
      * Get document from parent.
      */
-    public get document(): PgslDocument {
+    public get document(): PgslModuleSyntaxTree {
         if (!this.parent) {
             throw new Exception('PGSL-Structure not attached to any document', this);
         }

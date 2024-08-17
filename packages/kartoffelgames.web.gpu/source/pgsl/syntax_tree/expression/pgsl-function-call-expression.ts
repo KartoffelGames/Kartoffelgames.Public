@@ -1,8 +1,7 @@
-import { PgslExpression } from '../expression/pgsl-expression';
 import { PgslTemplateList } from '../general/pgsl-template-list';
-import { PgslStatement } from './pgsl-statement';
+import { PgslExpression } from './pgsl-expression-syntax-tree';
 
-export class PgslFunctionCallStatement extends PgslStatement {
+export class PgslFunctionCallExpression extends PgslExpression {
     private mName: string;
     private mParameterList: Array<PgslExpression>;
     private mTemplateList: PgslTemplateList | null;

@@ -1,5 +1,5 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { BasePgslStructure } from '../../base-pgsl-structure';
+import { BasePgslSyntaxTree } from '../base-pgsl-syntax-tree';
 import { PgslStatement } from './pgsl-statement';
 import { PgslVariableDeclarationStatement } from './pgsl-variable-declaration-statement';
 
@@ -15,7 +15,7 @@ export class PgslBlockStatement extends PgslStatement {
      * The only valid scope of null is the document.
      */
     public get scope(): PgslBlockStatement | null {
-        let lStructure: BasePgslStructure | null = this;
+        let lStructure: BasePgslSyntaxTree | null = this;
         while ((lStructure = lStructure.parent) !== null) {
             if (lStructure instanceof PgslBlockStatement) {
                 return lStructure;

@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { PgslExpression } from './pgsl-expression';
+import { PgslExpression } from './pgsl-expression-syntax-tree';
 import { PgslVariableExpression } from './variable/pgsl-variable-expression';
 
 export class PgslAddressOfExpression extends PgslExpression {

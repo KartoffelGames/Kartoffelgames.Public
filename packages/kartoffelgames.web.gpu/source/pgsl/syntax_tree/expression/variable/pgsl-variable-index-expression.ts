@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslVariableExpression } from './pgsl-variable-expression';
-import { PgslExpression } from '../pgsl-expression';
+import { PgslExpression } from '../pgsl-expression-syntax-tree';
 
 /**
  * PGSL structure holding a variable with index expression.

@@ -1,15 +1,15 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { BasePgslStructure } from '../../base-pgsl-structure';
-import { PgslDocument } from '../../pgsl-document';
+import { BasePgslSyntaxTree } from '../base-pgsl-syntax-tree';
+import { PgslModuleSyntaxTree } from '../pgsl-module-syntax-tree';
 
-export class PgslEnumDeclaration extends BasePgslStructure {
+export class PgslEnumDeclaration extends BasePgslSyntaxTree {
     private mName: string;
     private readonly mValues: Dictionary<string, string | number>;
 
     /**
      * Get document from parent.
      */
-    public get document(): PgslDocument {
+    public get document(): PgslModuleSyntaxTree {
         if (!this.parent) {
             throw new Exception('PGSL-Structure not attached to any document', this);
         }

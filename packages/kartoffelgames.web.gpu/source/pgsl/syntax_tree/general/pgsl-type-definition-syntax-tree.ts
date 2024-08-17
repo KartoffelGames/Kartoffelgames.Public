@@ -1,11 +1,105 @@
-import { Exception } from '@kartoffelgames/core';
+import { Dictionary, Exception } from '@kartoffelgames/core';
+import { PgslBuildInTypeName } from '../../enum/pgsl-type-name.enum';
 import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../base-pgsl-syntax-tree';
+import { PgslExpressionSyntaxTreeStructureData } from '../expression/pgsl-expression-syntax-tree';
 import { PgslTemplateListSyntaxTree, PgslTemplateListSyntaxTreeStructureData } from './pgsl-template-list-syntax-tree';
 
 /**
  * General PGSL syntax tree of a type definition.
  */
 export class PgslTypeDefinitionSyntaxTree extends BasePgslSyntaxTree<PgslTypeDefinitionSyntaxTreeStructureData['meta']['type'], PgslTypeDefinitionSyntaxTreeStructureData['data']> {
+    /**
+     * Define types.
+     */
+    private static readonly mBuildInTypes: Dictionary<PgslBuildInTypeName, TypeDefinitionInformation> = (() => {
+        const lTypes: Dictionary<PgslBuildInTypeName, TypeDefinitionInformation> = new Dictionary<PgslBuildInTypeName, TypeDefinitionInformation>();
+
+        // Add type to Type storage.
+        const lAddType = (pType: PgslBuildInTypeName, pTemplate?: TypeDefinitionInformation['template']): void => {
+            lTypes.set(pType, { template: pTemplate ?? [] });
+        };
+
+        // Add simple types.
+        lAddType(PgslBuildInTypeName.Boolean);
+        lAddType(PgslBuildInTypeName.Integer);
+        lAddType(PgslBuildInTypeName.UnsignedInteger);
+        lAddType(PgslBuildInTypeName.Float);
+
+        // Vector types.
+        lAddType(PgslBuildInTypeName.Vector2);
+        lAddType(PgslBuildInTypeName.Vector3);
+        lAddType(PgslBuildInTypeName.Vector4);
+
+        // Matrix types.
+        lAddType(PgslBuildInTypeName.Matrix22);
+        lAddType(PgslBuildInTypeName.Matrix23);
+        lAddType(PgslBuildInTypeName.Matrix24);
+        lAddType(PgslBuildInTypeName.Matrix32);
+        lAddType(PgslBuildInTypeName.Matrix33);
+        lAddType(PgslBuildInTypeName.Matrix34);
+        lAddType(PgslBuildInTypeName.Matrix42);
+        lAddType(PgslBuildInTypeName.Matrix43);
+        lAddType(PgslBuildInTypeName.Matrix44);
+
+        // Bundled types.
+        lAddType(PgslBuildInTypeName.Array, [
+            ['Type'], ['Type', 'Expression']
+        ]);
+
+        // Image textures.
+        lAddType(PgslBuildInTypeName.Texture1d, [
+            ['Type']
+        ]);
+        lAddType(PgslBuildInTypeName.Texture2d, [
+            ['Type']
+        ]);
+        lAddType(PgslBuildInTypeName.Texture2dArray, [
+            ['Type']
+        ]);
+        lAddType(PgslBuildInTypeName.Texture3d, [
+            ['Type']
+        ]);
+        lAddType(PgslBuildInTypeName.TextureCube, [
+            ['Type']
+        ]);
+        lAddType(PgslBuildInTypeName.TextureCubeArray, [
+            ['Type']
+        ]);
+        lAddType(PgslBuildInTypeName.TextureMultisampled2d, [
+            ['Type']
+        ]);
+
+        // External tetures.
+        lAddType(PgslBuildInTypeName.TextureExternal);
+
+        // Storage textures.
+        lAddType(PgslBuildInTypeName.TextureStorage1d, [
+            ['Type']
+        ]);
+        lAddType(PgslBuildInTypeName.TextureStorage2d, [
+            ['Type']
+        ]);
+        lAddType(PgslBuildInTypeName.TextureStorage2dArray, [
+            ['Type']
+        ]);
+        lAddType(PgslBuildInTypeName.TextureStorage3d, [
+            ['Type']
+        ]);
+
+        // Depth Textures.
+        lAddType(PgslBuildInTypeName.TextureDepth2d);
+        lAddType(PgslBuildInTypeName.TextureDepth2dArray);
+        lAddType(PgslBuildInTypeName.TextureDepthCube);
+        lAddType(PgslBuildInTypeName.TextureDepthCubeArray);
+        lAddType(PgslBuildInTypeName.TextureDepthMultisampled2d);
+
+        // Sampler
+        lAddType(PgslBuildInTypeName.Sampler);
+        lAddType(PgslBuildInTypeName.SamplerComparison);
+
+        return lTypes;
+    })();
+
     private mName: string;
     private mTemplateList: PgslTemplateListSyntaxTree | null;
 
@@ -47,7 +141,49 @@ export class PgslTypeDefinitionSyntaxTree extends BasePgslSyntaxTree<PgslTypeDef
                 return;
             }
 
-            // TODO: Read all type aliases and defined type definition names.
+            // Struct has no template.
+            if (!pData.templateList && this.document.resolveStruct(pData.name)) {
+                return;
+            }
+
+            // Validate as build in type.
+            const lTypeDefinitionInformation: TypeDefinitionInformation | undefined = PgslTypeDefinitionSyntaxTree.mBuildInTypes.get(pData.name as PgslBuildInTypeName);
+            if (lTypeDefinitionInformation) {
+                // Type exists and doesn't need a template.
+                if (!pData.templateList && lTypeDefinitionInformation.template.length === 0) {
+                    return;
+                }
+
+                // Validate all templates.
+                if (pData.templateList) {
+                    for (const lTemplate of lTypeDefinitionInformation.template) {
+                        // Parameter length not matched.
+                        if (lTemplate.length !== pData.templateList.data.parameterList.length) {
+                            continue;
+                        }
+
+                        // Match every single template parameter.
+                        let lTemplateMatches: boolean = true;
+                        for (let lIndex = 0; lIndex < lTemplate.length; lIndex++) {
+                            const lExpectedTemplateType: 'Expression' | 'Type' = lTemplate[lIndex];
+                            const lActualTemplateParameter: PgslTypeDefinitionSyntaxTreeStructureData | PgslExpressionSyntaxTreeStructureData | undefined = pData.templateList.data.parameterList[lIndex];
+                            const lActualTemplateType: 'Expression' | 'Type' | undefined = !lActualTemplateParameter ? undefined : (lActualTemplateParameter.meta.type === 'General-TypeDefinition') ? 'Type' : 'Expression';
+
+                            // Need to have same parameter type.
+                            if (lExpectedTemplateType !== lActualTemplateType) {
+                                lTemplateMatches = false;
+                            }
+                        }
+
+                        // All templates matches.
+                        if (lTemplateMatches) {
+                            return;
+                        }
+                    }
+                }
+
+                throw new Exception(`Type "${pData.name}" has invalid template parameter.`, this);
+            }
 
             throw new Exception(`Typename "${pData.name}" not defined`, this);
         })();
@@ -87,3 +223,6 @@ export type PgslTypeDefinitionSyntaxTreeStructureData = PgslSyntaxTreeDataStruct
 
 export type PgslTemplateListSyntaxTreeData = PgslTypeDefinitionSyntaxTreeStructureData['meta'];
 
+type TypeDefinitionInformation = {
+    template: Array<Array<'Expression' | 'Type'>>;
+};

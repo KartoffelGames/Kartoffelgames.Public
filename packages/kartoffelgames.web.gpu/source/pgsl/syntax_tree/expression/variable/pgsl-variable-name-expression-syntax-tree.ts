@@ -1,3 +1,4 @@
+import { Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../../base-pgsl-syntax-tree';
 
 /**
@@ -29,7 +30,10 @@ export class PgslVariableNameExpressionSyntaxTree extends BasePgslSyntaxTree<Pgs
      * @param pData - Structure data.
      */
     protected override applyData(pData: PgslVariableNameExpressionSyntaxTreeStructureData['data']): void {
-        // TODO: Validate existance of variable name in current scope.
+        // Catch undefined variables.
+        if (!this.scopedVariables.has(pData.name)) {
+            throw new Exception(`Variable "${pData.name}" not defined.`, this);
+        }
 
         this.mName = pData.name;
     }

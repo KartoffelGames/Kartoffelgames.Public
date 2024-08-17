@@ -2,6 +2,9 @@ import { Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../base-pgsl-syntax-tree';
 import { PgslTypeDefinitionSyntaxTree, PgslTypeDefinitionSyntaxTreeStructureData } from '../general/pgsl-type-definition-syntax-tree';
 
+/**
+ * PGSL syntax tree for a alias declaration.
+ */
 export class PgslAliasDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslAliasDeclarationSyntaxTreeStructureData['meta']['type'], PgslAliasDeclarationSyntaxTreeStructureData['data']> {
     private mName: string;
     private mTypeDefinition: PgslTypeDefinitionSyntaxTree | null;

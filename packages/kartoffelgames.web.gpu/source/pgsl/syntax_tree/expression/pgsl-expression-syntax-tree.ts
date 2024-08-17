@@ -22,5 +22,8 @@ export class PgslExpressionSyntaxTreeFactory {
     }
 }
 
+export type PgslVariableExpressionSyntaxTree =  PgslVariableNameExpressionSyntaxTree;
+export type PgslExpressionSyntaxTree = PgslVariableExpressionSyntaxTree | PgslLiteralValueExpressionSyntaxTree;
+
 export type PgslExpressionSyntaxTreeStructureData = ReturnType<PgslExpressionSyntaxTree['retrieveDataStructure']>;
-export type PgslExpressionSyntaxTree = PgslLiteralValueExpressionSyntaxTree | PgslVariableNameExpressionSyntaxTree;
+export type PgslVariableExpressionSyntaxTreeStructureData = ReturnType<PgslVariableExpressionSyntaxTree['retrieveDataStructure']>;

@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core';
+import { Dictionary, Exception } from '@kartoffelgames/core';
 import { PgslModuleSyntaxTree } from './pgsl-module-syntax-tree';
 import { ParserException } from '@kartoffelgames/core.parser';
 
@@ -37,6 +37,18 @@ export abstract class BasePgslSyntaxTree<TType extends string, TData extends obj
      */
     public get parent(): UnknownPgslSyntaxTree | null {
         return this.mParent;
+    }
+
+    /**
+     * Get all scoped variables of scope.
+     */
+    protected get scopedVariables(): Dictionary<string, boolean> {
+        // Empty scoped variables.
+        if(!this.mParent){
+            return new Dictionary<string, boolean> ();
+        }
+
+        return this.mParent.scopedVariables;
     }
 
     /**

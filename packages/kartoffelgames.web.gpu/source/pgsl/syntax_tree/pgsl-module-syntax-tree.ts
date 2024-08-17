@@ -4,17 +4,8 @@ import { PgslStruct } from '../very_old_structure/struct/pgsl-struct';
 import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from './base-pgsl-syntax-tree';
 import { PgslAliasDeclarationSyntaxTree, PgslAliasDeclarationSyntaxTreeStructureData } from './declarations/pgsl-alias-declaration-syntax-tree';
 import { PgslVariableDeclarationStatement } from './statement/pgsl-variable-declaration-statement';
-import { PgslBuildInTypeName } from '../enum/pgsl-type-name.enum';
 
 export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTreeStructureData['meta']['type'], PgslModuleSyntaxTreeStructureData['data']> {
-    /**
-     * Define types.
-     */
-    private static readonly mBuildInTypes: Dictionary<PgslBuildInTypeName, any> = (() => {
-        // TODO: Define build in types.
-        return new Dictionary<PgslBuildInTypeName, any>();
-    })();
-
     // Values
     private readonly mAlias: Dictionary<string, PgslAliasDeclarationSyntaxTree>;
 
@@ -58,6 +49,17 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
      */
     public resolveAlias(pName: string): PgslAliasDeclarationSyntaxTree | null {
         return this.mAlias.get(pName) ?? null;
+    }
+
+    /**
+     * Resolve struct name to its declaration.
+     * 
+     * @param pName - Struct name.
+     * 
+     * @returns struct declaration  
+     */
+    public resolveStruct(pName: string): PgslStruct | null {
+        return this.mStructs.get(pName) ?? null;
     }
 
     /**

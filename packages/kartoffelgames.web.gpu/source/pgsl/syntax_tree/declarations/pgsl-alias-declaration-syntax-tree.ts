@@ -31,7 +31,7 @@ export class PgslAliasDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslAlias
      * Constructor.
      */
     public constructor(pBuildIn: boolean = false) {
-        super('Declaration-AliasDeclaration', pBuildIn);
+        super('Declaration-Alias', pBuildIn);
 
         this.mName = '';
         this.mTypeDefinition = null;
@@ -63,9 +63,7 @@ export class PgslAliasDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslAlias
     }
 }
 
-export type PgslAliasDeclarationSyntaxTreeStructureData = PgslSyntaxTreeDataStructure<'Declaration-AliasDeclaration', {
+export type PgslAliasDeclarationSyntaxTreeStructureData = PgslSyntaxTreeDataStructure<'Declaration-Alias', {
     name: string;
     type: PgslTypeDefinitionSyntaxTreeStructureData;
 }>;
-
-export type PgslAliasDeclarationSyntaxTreeData = PgslAliasDeclarationSyntaxTreeStructureData['meta'];

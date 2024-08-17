@@ -139,5 +139,3 @@ export type PgslLiteralValueExpressionSyntaxTreeStructureData = PgslSyntaxTreeDa
     textValue: string,
     literalType: PgslBuildInTypeName;
 }>;
-
-export type PgslLiteralValueExpressionSyntaxTreeData = PgslLiteralValueExpressionSyntaxTreeStructureData['meta'];

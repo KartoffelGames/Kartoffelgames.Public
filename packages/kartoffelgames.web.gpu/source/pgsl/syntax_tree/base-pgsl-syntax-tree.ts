@@ -1,6 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { PgslModuleSyntaxTree } from './pgsl-module-syntax-tree';
 import { ParserException } from '@kartoffelgames/core.parser';
+import { PgslModuleSyntaxTree } from './pgsl-module-syntax-tree';
 
 /**
  * Base pgsl syntax tree object.
@@ -130,7 +130,6 @@ export abstract class BasePgslSyntaxTree<TType extends string, TData extends obj
         const lMeta: PgslSyntaxTreeDataStructure<TType, TData>['meta'] = {
             type: this.mType as TType,
             file: '<Untraceable-serialize>',
-            buildIn: this.mBuildIn,
             position: {
                 start: {
                     column: 0, line: 0
@@ -169,7 +168,6 @@ export type PgslSyntaxTreeDataStructure<TDataType extends string, TData extends 
     meta: {
         type: TDataType;
         file: string;
-        buildIn: boolean;
         position: {
             start: {
                 column: number;

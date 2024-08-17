@@ -18,12 +18,6 @@ export class PgslVariableIndexNameExpression extends PgslVariableExpression {
         }
 
         return this.mIndex;
-    } set index(pIndex: PgslExpression) {
-        if (this.mIndex !== null) {
-            throw new Exception('Variable can not be changed.', this);
-        }
-
-        this.mIndex = pIndex;
     }
 
     /**
@@ -35,12 +29,6 @@ export class PgslVariableIndexNameExpression extends PgslVariableExpression {
         }
 
         return this.mVariable;
-    } set variable(pVariable: PgslVariableExpression) {
-        if (this.mVariable !== null) {
-            throw new Exception('Variable can not be changed.', this);
-        }
-
-        this.mVariable = pVariable;
     }
 
     /**

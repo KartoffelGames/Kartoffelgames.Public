@@ -1,13 +1,23 @@
-import { Dictionary } from '@kartoffelgames/core';
-import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from './base-pgsl-syntax-tree';
-import { PgslVariableDeclarationStatement } from './statement/pgsl-variable-declaration-statement';
+import { Dictionary, Exception } from '@kartoffelgames/core';
 import { PgslFunction } from '../very_old_structure/pgsl-function';
 import { PgslStruct } from '../very_old_structure/struct/pgsl-struct';
-import { PgslAliasDeclaration } from './declarations/pgsl-alias-declaration';
+import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from './base-pgsl-syntax-tree';
+import { PgslAliasDeclarationSyntaxTree, PgslAliasDeclarationSyntaxTreeStructureData } from './declarations/pgsl-alias-declaration-syntax-tree';
+import { PgslVariableDeclarationStatement } from './statement/pgsl-variable-declaration-statement';
+import { PgslBuildInTypeName } from '../enum/pgsl-type-name.enum';
 
 export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTreeStructureData['meta']['type'], PgslModuleSyntaxTreeStructureData['data']> {
+    /**
+     * Define types.
+     */
+    private static readonly mBuildInTypes: Dictionary<PgslBuildInTypeName, any> = (() => {
+        // TODO: Define build in types.
+        return new Dictionary<PgslBuildInTypeName, any>();
+    })();
+
     // Values
-    private readonly mAlias: Dictionary<string, PgslAliasDeclaration>;
+    private readonly mAlias: Dictionary<string, PgslAliasDeclarationSyntaxTree>;
+
     private readonly mFunctions: Dictionary<string, PgslFunction>;
     private readonly mGlobals: Dictionary<string, PgslVariableDeclarationStatement>;
     private readonly mStructs: Dictionary<string, PgslStruct>;
@@ -32,6 +42,8 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
     public constructor() {
         super('Module');
 
+        this.mAlias = new Dictionary<string, PgslAliasDeclarationSyntaxTree>();
+
         this.mGlobals = new Dictionary<string, PgslVariableDeclarationStatement>();
         this.mStructs = new Dictionary<string, PgslStruct>();
         this.mFunctions = new Dictionary<string, PgslFunction>();
@@ -44,7 +56,7 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
      * 
      * @returns alias declaration  
      */
-    public resolveAlias(pName: string): PgslAliasDeclaration | null {
+    public resolveAlias(pName: string): PgslAliasDeclarationSyntaxTree | null {
         return this.mAlias.get(pName) ?? null;
     }
 
@@ -54,20 +66,35 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
      * 
      * @param pData - Structure data.
      */
-    protected override applyData(_pData: PgslModuleSyntaxTreeStructureData['data']): void {
-        // TODO:
+    protected override applyData(pData: PgslModuleSyntaxTreeStructureData['data']): void {
+        // Apply alias data.
+        for (const lAlias of pData.alias) {
+            if (this.mAlias.has(lAlias.data.name)) {
+                throw new Exception(`Alias "${lAlias.data.name}" is already defined.`, this);
+            }
+
+            // Apply alias.
+            this.mAlias.set(lAlias.data.name, new PgslAliasDeclarationSyntaxTree().applyDataStructure(lAlias, this));
+        }
+
+        // TODO: Other globals
     }
 
     /**
      * Retrieve data of current structure.
      */
     protected override retrieveData(): PgslModuleSyntaxTreeStructureData['data'] {
-        // TODO:
+        return {
+            // Add all none buildin alias to structure data.
+            alias: [...this.mAlias.values()]
+                .filter((pAlias: PgslAliasDeclarationSyntaxTree) => { return !pAlias.buildIn; })
+                .map((pAlias: PgslAliasDeclarationSyntaxTree) => { return pAlias.retrieveDataStructure(); })
+        };
     }
 }
 
 export type PgslModuleSyntaxTreeStructureData = PgslSyntaxTreeDataStructure<'Module', {
-
+    alias: Array<PgslAliasDeclarationSyntaxTreeStructureData>;
 }>;
 
 export type PgslModuleSyntaxTreeData = PgslModuleSyntaxTreeStructureData['meta'];

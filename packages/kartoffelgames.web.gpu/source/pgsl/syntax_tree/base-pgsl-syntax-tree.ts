@@ -6,9 +6,18 @@ import { ParserException } from '@kartoffelgames/core.parser';
  * Base pgsl syntax tree object.
  */
 export abstract class BasePgslSyntaxTree<TType extends string, TData extends object> {
+    private readonly mBuildIn: boolean;
     private mParent: UnknownPgslSyntaxTree | null;
     private readonly mType: TType;
-    
+
+    /**
+     * Structure is build in and does not be included in the final output.
+     * Can still be used for validation.
+     */
+    public get buildIn(): boolean {
+        return this.mBuildIn;
+    }
+
     /**
      * Assoziated document of pgsl structure.
      */
@@ -33,7 +42,8 @@ export abstract class BasePgslSyntaxTree<TType extends string, TData extends obj
     /**
      * Constructor.
      */
-    public constructor(pType: TType) {
+    public constructor(pType: TType, pBuildIn: boolean = false) {
+        this.mBuildIn = pBuildIn;
         this.mType = pType;
         this.mParent = null;
     }
@@ -47,7 +57,18 @@ export abstract class BasePgslSyntaxTree<TType extends string, TData extends obj
      * 
      * @param pData - Data structure of syntax tree.
      */
-    public applyDataStructure(pData: PgslSyntaxTreeDataStructure<TType, TData>): this {
+    public applyDataStructure(pData: PgslSyntaxTreeDataStructure<TType, TData>, pParent: UnknownPgslSyntaxTree | null): this {
+        // Only set parent when parent should be set.
+        if (pParent) {
+            // Cant set parent twice.
+            if (this.mParent) {
+                throw new Exception('PGSL-Structure has a parent can not be moved.', this);
+            }
+
+            // Set parent.
+            this.mParent = pParent;
+        }
+
         try {
             // Call structure apply function.
             this.applyData(pData.data);
@@ -85,6 +106,11 @@ export abstract class BasePgslSyntaxTree<TType extends string, TData extends obj
      * @param pData - Data structure of syntax tree.
      */
     public retrieveDataStructure(): PgslSyntaxTreeDataStructure<TType, TData> {
+        // Restrict output of buildin structures.
+        if (this.mBuildIn) {
+            throw new Exception(`Can't retrieve data from build in structures.`, this);
+        }
+
         // Call structure apply function.
         const lData = this.retrieveData();
 
@@ -92,6 +118,7 @@ export abstract class BasePgslSyntaxTree<TType extends string, TData extends obj
         const lMeta: PgslSyntaxTreeDataStructure<TType, TData>['meta'] = {
             type: this.mType as TType,
             file: '<Untraceable-serialize>',
+            buildIn: this.mBuildIn,
             position: {
                 start: {
                     column: 0, line: 0
@@ -109,22 +136,6 @@ export abstract class BasePgslSyntaxTree<TType extends string, TData extends obj
     }
 
     /**
-     * Set parent of PGSL-Structure.
-     * 
-     * @throws {@link Exception}
-     * When structure was already assigned to a parent.
-     * 
-     * @param pParent - Structure parent.
-     */
-    public setParent(pParent: UnknownPgslSyntaxTree): void {
-        if (this.mParent) {
-            throw new Exception('PGSL-Structure has a parent can not be moved.', this);
-        }
-
-        this.mParent = pParent;
-    }
-
-    /**
      * Apply data to current structure.
      * Any thrown error is converted into a parser error.
      * 
@@ -137,16 +148,16 @@ export abstract class BasePgslSyntaxTree<TType extends string, TData extends obj
      */
     protected abstract retrieveData(): TData;
 
-
     // TODO: Add something that can transpile into wgsl.
 }
 
-type UnknownPgslSyntaxTree = BasePgslSyntaxTree<string, object>;
+export type UnknownPgslSyntaxTree = BasePgslSyntaxTree<string, object>;
 
 export type PgslSyntaxTreeDataStructure<TDataType extends string, TData extends object> = {
     meta: {
         type: TDataType;
         file: string;
+        buildIn: boolean;
         position: {
             start: {
                 column: number;

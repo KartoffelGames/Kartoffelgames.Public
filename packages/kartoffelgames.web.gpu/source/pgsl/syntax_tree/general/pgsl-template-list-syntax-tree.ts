@@ -1,18 +1,18 @@
 import { List } from '@kartoffelgames/core';
 import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../base-pgsl-syntax-tree';
-import { PgslExpressionSyntaxTree, PgslExpressionSyntaxTreeStructureData } from '../expression/pgsl-expression-syntax-tree';
-import { PgslTypeDefinition, PgslTypeDefinitionSyntaxTreeStructureData } from './pgsl-type-definition-syntax-tree';
+import { PgslExpressionSyntaxTree, PgslExpressionSyntaxTreeFactory, PgslExpressionSyntaxTreeStructureData } from '../expression/pgsl-expression-syntax-tree';
+import { PgslTypeDefinitionSyntaxTree, PgslTypeDefinitionSyntaxTreeStructureData } from './pgsl-type-definition-syntax-tree';
 
 /**
  * Template list parameter.
  */
 export class PgslTemplateListSyntaxTree extends BasePgslSyntaxTree<PgslTemplateListSyntaxTreeStructureData['meta']['type'], PgslTemplateListSyntaxTreeStructureData['data']> {
-    private readonly mItems: List<PgslTypeDefinition | PgslExpressionSyntaxTree>;
+    private readonly mItems: List<PgslTypeDefinitionSyntaxTree | PgslExpressionSyntaxTree>;
 
     /**
      * Parameter list.
      */
-    public get items(): Array<PgslTypeDefinition | PgslExpressionSyntaxTree> {
+    public get items(): Array<PgslTypeDefinitionSyntaxTree | PgslExpressionSyntaxTree> {
         return [...this.mItems];
     }
 
@@ -29,7 +29,7 @@ export class PgslTemplateListSyntaxTree extends BasePgslSyntaxTree<PgslTemplateL
     public constructor() {
         super('General-TemplateList');
 
-        this.mItems = new List<PgslTypeDefinition | PgslExpressionSyntaxTree>();
+        this.mItems = new List<PgslTypeDefinitionSyntaxTree | PgslExpressionSyntaxTree>();
     }
 
     /**
@@ -38,20 +38,29 @@ export class PgslTemplateListSyntaxTree extends BasePgslSyntaxTree<PgslTemplateL
      * 
      * @param pData - Structure data.
      */
-    protected override applyData(_pData: PgslTemplateListSyntaxTreeStructureData['data']): void {
-        throw new Error('Method not implemented.'); // TODO:
+    protected override applyData(pData: PgslTemplateListSyntaxTreeStructureData['data']): void {
+        for (const lParameter of pData.parameterList) {
+            // Set type definition parameter.
+            if (lParameter.meta.type === 'General-TypeDefinition') {
+                this.mItems.push(new PgslTypeDefinitionSyntaxTree().applyDataStructure(lParameter as PgslTypeDefinitionSyntaxTreeStructureData, this));
+                continue;
+            }
+
+            // Otherwise it is a expression.
+            this.mItems.push(PgslExpressionSyntaxTreeFactory.createFrom(lParameter as PgslExpressionSyntaxTreeStructureData, this));
+        }
     }
 
     /**
      * Retrieve data of current structure.
      */
     protected override retrieveData(): PgslTemplateListSyntaxTreeStructureData['data'] {
-        throw new Error('Method not implemented.'); // TODO:
+        return {
+            parameterList: this.mItems.map((pParameter) => { return pParameter.retrieveDataStructure(); })
+        };
     }
 }
 
 export type PgslTemplateListSyntaxTreeStructureData = PgslSyntaxTreeDataStructure<'General-TemplateList', {
-    parameter: Array<PgslTypeDefinitionSyntaxTreeStructureData | PgslExpressionSyntaxTreeStructureData>;
+    parameterList: Array<PgslTypeDefinitionSyntaxTreeStructureData | PgslExpressionSyntaxTreeStructureData>;
 }>;
-
-export type PgslTemplateListSyntaxTreeData = PgslTemplateListSyntaxTreeStructureData['meta'];

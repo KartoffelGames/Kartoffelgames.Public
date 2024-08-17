@@ -58,7 +58,7 @@ export class PgslTypeDefinitionSyntaxTree extends BasePgslSyntaxTree<PgslTypeDef
         // Apply template list when available.
         this.mTemplateList = null;
         if (pData.templateList) {
-            this.mTemplateList = new PgslTemplateListSyntaxTree().applyDataStructure(pData.templateList);
+            this.mTemplateList = new PgslTemplateListSyntaxTree().applyDataStructure(pData.templateList, this);
         }
     }
 

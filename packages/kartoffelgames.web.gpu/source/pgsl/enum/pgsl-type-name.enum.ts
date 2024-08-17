@@ -1,4 +1,4 @@
-export enum PgslTypeName {
+export enum PgslBuildInTypeName {
     // Scalar types.
     Boolean = 'bool',
     Integer = 'int',
@@ -12,30 +12,17 @@ export enum PgslTypeName {
 
     // Matrix types.
     Matrix22 = 'mat2x2',
-
     Matrix23 = 'mat2x3',
-
     Matrix24 = 'mat2x4',
-
     Matrix32 = 'mat3x2',
-
     Matrix33 = 'mat3x3',
-
     Matrix34 = 'mat3x4',
-
     Matrix42 = 'mat4x2',
-
     Matrix43 = 'mat4x3',
-
     Matrix44 = 'mat4x4',
 
     // Container.
     Array = 'array',
-
-    //Special.
-    Atomic = 'atomic',
-    Pointer = 'ptr',
-    Reference = 'ref',
 
     // Textures.
     Texture1d = 'texture_1d',
@@ -63,7 +50,4 @@ export enum PgslTypeName {
     // Sampler.
     Sampler = 'sampler',
     SamplerComparison = 'sampler_comparison',
-
-    // Struct
-    Struct = '*struct'
 }

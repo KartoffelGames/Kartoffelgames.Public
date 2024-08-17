@@ -1,9 +1,9 @@
 import { EnumUtil } from '@kartoffelgames/core';
 import { CodeParser, LexerToken } from '@kartoffelgames/core.parser';
 import { PgslOperator } from '../enum/pgsl-operator.enum';
-import { PgslTypeName } from '../enum/pgsl-type-name.enum';
+import { PgslBuildInTypeName } from '../enum/pgsl-type-name.enum';
 import { PgslSyntaxTreeDataStructure } from '../syntax_tree/base-pgsl-syntax-tree';
-import { PgslAliasDeclaration } from '../syntax_tree/declarations/pgsl-alias-declaration';
+import { PgslAliasDeclarationSyntaxTreeStructureData } from '../syntax_tree/declarations/pgsl-alias-declaration-syntax-tree';
 import { PgslEnumDeclaration } from '../syntax_tree/declarations/pgsl-enum-declaration';
 import { PgslAddressOfExpression } from '../syntax_tree/expression/pgsl-address-of-expression';
 import { PgslArithmeticExpression } from '../syntax_tree/expression/pgsl-arithmetic-expression';
@@ -19,9 +19,9 @@ import { PgslUnaryExpression } from '../syntax_tree/expression/pgsl-unary-expres
 import { PgslCompositeValueDecompositionVariableExpression } from '../syntax_tree/expression/variable/pgsl-composite-value-decomposition-variable-expression';
 import { PgslVariableExpression } from '../syntax_tree/expression/variable/pgsl-variable-expression';
 import { PgslVariableIndexNameExpression } from '../syntax_tree/expression/variable/pgsl-variable-index-expression';
-import { PgslVariableNameExpression } from '../syntax_tree/expression/variable/pgsl-variable-name-expression';
+import { PgslVariableNameExpression } from '../syntax_tree/expression/variable/pgsl-variable-name-expression-syntax-tree';
 import { PgslAttributeList } from '../syntax_tree/general/pgsl-attribute-list';
-import { PgslTemplateList, PgslTemplateListSyntaxTreeStructureData } from '../syntax_tree/general/pgsl-template-list-syntax-tree';
+import { PgslTemplateListSyntaxTreeStructureData } from '../syntax_tree/general/pgsl-template-list-syntax-tree';
 import { PgslTypeDefinitionSyntaxTreeStructureData } from '../syntax_tree/general/pgsl-type-definition-syntax-tree';
 import { PgslModuleSyntaxTree, PgslModuleSyntaxTreeStructureData } from '../syntax_tree/pgsl-module-syntax-tree';
 import { PgslBlockStatement } from '../syntax_tree/statement/pgsl-block-statement';
@@ -32,11 +32,18 @@ import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
 
 export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
+    private mParserBuffer: ParserBuffer;
+
     /**
      * Constructor.
      */
     public constructor() {
         super(new PgslLexer());
+
+        // Setup buffer.
+        this.mParserBuffer = {
+            aliasDeclarations: new Set<string>()
+        };
 
         // Define helper graphs.
         this.defineCore();
@@ -76,7 +83,10 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
 
         // TODO: Validate document.
 
-        // TODO: Clear old parsing buffers. 
+        // Clear old parsing buffers.
+        this.mParserBuffer = {
+            aliasDeclarations: new Set<string>()
+        };
 
         return new PgslModuleSyntaxTree().applyDataStructure(lDocumentStructure);
     }
@@ -163,20 +173,24 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 ])
             )
             .single(PgslToken.TemplateListEnd),
-            (pData): PgslTemplateListSyntaxTreeStructureData => {
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslTemplateListSyntaxTreeStructureData => {
                 // TODO: Sometime  the expression is a type definition :(
 
-                const lTemplateList: PgslTemplateList = new PgslTemplateList();
+                // Build Parameter list
+                const lParameterList: Array<PgslTypeDefinitionSyntaxTreeStructureData | PgslExpressionSyntaxTreeStructureData> = new Array<PgslTypeDefinitionSyntaxTreeStructureData | PgslExpressionSyntaxTreeStructureData>();
 
-                // Add first expression.
-                lTemplateList.setItem(pData.first);
-
-                // Add additional items.
+                // All parameter to parameter list.
+                lParameterList.push(pData.first);
                 for (const lItem of pData.additional) {
-                    lTemplateList.setItem(lItem.value);
+                    lParameterList.push(lItem.value);
                 }
 
-                return lTemplateList;
+                return {
+                    meta: this.createMeta('General-TemplateList', pStartToken, pEndToken),
+                    data: {
+                        parameterList: lParameterList
+                    }
+                };
             }
         );
 
@@ -405,17 +419,17 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 if ('float' in pData.value) {
                     lData = {
                         textValue: pData.value.float,
-                        literalType: PgslTypeName.Float
+                        literalType: PgslBuildInTypeName.Float
                     };
                 } else if ('integer' in pData.value) {
                     lData = {
                         textValue: pData.value.integer,
-                        literalType: PgslTypeName.Integer
+                        literalType: PgslBuildInTypeName.Integer
                     };
                 } else if ('boolean' in pData.value) {
                     lData = {
                         textValue: pData.value.boolean,
-                        literalType: PgslTypeName.Boolean
+                        literalType: PgslBuildInTypeName.Boolean
                     };
                 }
 
@@ -720,16 +734,22 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('AliasDeclaration', this.graph()
+        this.defineGraphPart('Declaration-AliasDeclaration', this.graph()
             .single(PgslToken.KeywordAlias)
-            .single('aliasName', PgslToken.Identifier).single(PgslToken.Assignment)
+            .single('name', PgslToken.Identifier).single(PgslToken.Assignment)
             .single('type', this.partReference<PgslTypeDefinitionSyntaxTreeStructureData>('General-TypeDefinition')).single(PgslToken.Semicolon),
-            (pData): PgslAliasDeclaration => {
-                const lAliasDeclaration: PgslAliasDeclaration = new PgslAliasDeclaration();
-                lAliasDeclaration.name = pData.aliasName;
-                lAliasDeclaration.type = pData.type;
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslAliasDeclarationSyntaxTreeStructureData => {
+                // Add alias name to parser buffer. Used for identifying type definitions over alias declarations.
+                this.mParserBuffer.aliasDeclarations.add(pData.name);
 
-                return lAliasDeclaration;
+                // Create structure.
+                return {
+                    meta: this.createMeta('Declaration-AliasDeclaration', pStartToken, pEndToken),
+                    data: {
+                        name: pData.name,
+                        type: pData.type
+                    }
+                };
             }
         );
 
@@ -832,7 +852,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         this.defineGraphPart('document', this.graph()
             .loop('list', this.graph()
                 .branch('content', [
-                    this.partReference<PgslAliasDeclaration>('AliasDeclaration'),
+                    this.partReference<PgslAliasDeclarationSyntaxTreeStructureData>('Declaration-AliasDeclaration'),
                     this.partReference('ModuleScopeVariableDeclaration'),
                     this.partReference<PgslEnumDeclaration>('EnumDeclaration'),
                     this.partReference('StructDeclaration'),
@@ -840,16 +860,26 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 ])
             ),
             (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslModuleSyntaxTreeStructureData => {
-                const lData: PgslModuleSyntaxTreeStructureData['data'] = {};
+                const lData: PgslModuleSyntaxTreeStructureData['data'] = {
+                    alias: new Array<PgslAliasDeclarationSyntaxTreeStructureData>()
+                };
 
                 // Loop data.
                 for (const lContent of pData.list) {
+                    // Set data to correct buckets.
+                    switch (lContent.content.meta.type) {
+                        case 'Declaration-AliasDeclaration': {
+                            lData.alias.push(lContent);
+                            break;
+                        }
+                    }
+
                     // TODO: switch case with all things.
                 }
 
                 return {
                     meta: this.createMeta('Module', pStartToken, pEndToken),
-                    data: {}
+                    data: lData
                 };
             }
         );
@@ -914,3 +944,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         );
     }
 }
+
+type ParserBuffer = {
+    aliasDeclarations: Set<string>;
+};

@@ -54,7 +54,7 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslSyntaxTr
         }
         
         return {
-            value: this.mValue?.retrieveDataStructure(),
+            value: this.mValue.retrieveDataStructure(),
             property: this.mProperty
         };
     }

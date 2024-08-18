@@ -17,7 +17,7 @@ import { PgslParenthesizedExpression } from '../syntax_tree/expression/pgsl-pare
 import { PgslPointerExpression } from '../syntax_tree/expression/pgsl-pointer-expression';
 import { PgslUnaryExpression } from '../syntax_tree/expression/pgsl-unary-expression';
 import { PgslValueDecompositionExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/variable/pgsl-value-decomposition-expression-syntax-tree';
-import { PgslVariableIndexNameExpression } from '../syntax_tree/expression/variable/pgsl-variable-index-expression';
+import { PgslIndexedValueExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/variable/pgsl-indexed-value-expression-syntax-tree';
 import { PgslVariableNameExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/variable/pgsl-variable-name-expression-syntax-tree';
 import { PgslTemplateListSyntaxTreeStructureData } from '../syntax_tree/general/pgsl-template-list-syntax-tree';
 import { PgslTypeDefinitionSyntaxTreeStructureData } from '../syntax_tree/general/pgsl-type-definition-syntax-tree';
@@ -952,17 +952,19 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('IndexValueExpression', this.graph()
-            .single('variableExpression', this.partReference<PgslVariableExpressionSyntaxTreeStructureData>('VariableExpression'))
+        this.defineGraphPart('Expression-IndexedValue', this.graph()
+            .single('value', this.partReference<PgslVariableExpressionSyntaxTreeStructureData>('VariableExpression'))
             .single(PgslToken.ListStart)
             .single('indexExpression', this.partReference<PgslExpressionSyntaxTreeStructureData>('Expression'))
             .single(PgslToken.ListEnd),
-            (pData): PgslVariableIndexNameExpression => {
-                const lIndexValueExpression: PgslVariableIndexNameExpression = new PgslVariableIndexNameExpression();
-                lIndexValueExpression.variable = pData.variableExpression;
-                lIndexValueExpression.index = pData.indexExpression;
-
-                return lIndexValueExpression;
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslIndexedValueExpressionSyntaxTreeStructureData => {
+                return {
+                    meta: this.createMeta('Expression-IndexedValue', pStartToken, pEndToken),
+                    data: {
+                        value: pData.value,
+                        index: pData.indexExpression
+                    }
+                };
             }
         );
 
@@ -1001,7 +1003,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         this.defineGraphPart('VariableExpression', this.graph()
             .branch('expression', [
                 this.partReference<PgslVariableNameExpressionSyntaxTreeStructureData>('Expression-VariableName'),
-                this.partReference<PgslVariableExpression>('IndexValueExpression'),
+                this.partReference<PgslIndexedValueExpressionSyntaxTreeStructureData>('Expression-IndexedValue'),
                 this.partReference<PgslValueDecompositionExpressionSyntaxTreeStructureData | PgslEnumValueExpressionSyntaxTreeStructureData>('Expression-ValueDecomposition')
             ]),
             (pData): PgslVariableExpressionSyntaxTreeStructureData => {

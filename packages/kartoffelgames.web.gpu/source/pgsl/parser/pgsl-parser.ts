@@ -413,7 +413,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
 
         this.defineGraphPart('AddressOfExpression', this.graph()
             .single(PgslToken.OperatorBinaryAnd)
-            .single('variable', this.partReference<PgslVariableExpressionSyntaxTreeStructureData>('VariableExpression')),
+            .single('variable', this.partReference<PgslVariableExpressionSyntaxTreeStructureData>('Expression-Variable')),
             (pData): PgslAddressOfExpression => {
                 const lAddressOfExpression: PgslAddressOfExpression = new PgslAddressOfExpression();
                 lAddressOfExpression.variable = pData.variable;
@@ -424,7 +424,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
 
         this.defineGraphPart('PointerExpression', this.graph()
             .single(PgslToken.OperatorMultiply)
-            .single('variable', this.partReference<PgslVariableExpressionSyntaxTreeStructureData>('VariableExpression')),
+            .single('variable', this.partReference<PgslVariableExpressionSyntaxTreeStructureData>('Expression-Variable')),
             (pData): PgslPointerExpression => {
                 const lPointerExpression: PgslPointerExpression = new PgslPointerExpression();
                 lPointerExpression.variable = pData.variable;
@@ -468,7 +468,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
 
         this.defineGraphPart('Expression', this.graph()
             .branch('expression', [
-                this.partReference<PgslVariableExpressionSyntaxTreeStructureData>('VariableExpression'), // => defineVariableExpression
+                this.partReference<PgslVariableExpressionSyntaxTreeStructureData>('Expression-Variable'), // => defineVariableExpression
                 this.partReference<PgslLiteralValueExpressionSyntaxTreeStructureData>('Expression-LiteralValue'),
                 this.partReference<PgslPointerExpression>('PointerExpression'),
                 this.partReference<PgslAddressOfExpression>('AddressOfExpression'),
@@ -628,7 +628,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         );
 
         this.defineGraphPart('AssignmentStatement', this.graph()
-            .single('variable', this.partReference<PgslVariableExpressionSyntaxTreeStructureData>('VariableExpression'))
+            .single('variable', this.partReference<PgslVariableExpressionSyntaxTreeStructureData>('Expression-Variable'))
             .branch('assignment', [
                 PgslToken.Assignment,
                 PgslToken.AssignmentPlus,
@@ -650,7 +650,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         );
 
         this.defineGraphPart('IncrementDecrementStatement', this.graph()
-            .single('variable', this.partReference<PgslVariableExpressionSyntaxTreeStructureData>('VariableExpression'))
+            .single('variable', this.partReference<PgslVariableExpressionSyntaxTreeStructureData>('Expression-Variable'))
             .branch('', [
                 PgslToken.OperatorIncrement,
                 PgslToken.OperatorDecrement
@@ -953,7 +953,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         );
 
         this.defineGraphPart('Expression-IndexedValue', this.graph()
-            .single('value', this.partReference<PgslVariableExpressionSyntaxTreeStructureData>('VariableExpression'))
+            .single('value', this.partReference<PgslVariableExpressionSyntaxTreeStructureData>('Expression-Variable'))
             .single(PgslToken.ListStart)
             .single('indexExpression', this.partReference<PgslExpressionSyntaxTreeStructureData>('Expression'))
             .single(PgslToken.ListEnd),
@@ -969,7 +969,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         );
 
         this.defineGraphPart('Expression-ValueDecomposition', this.graph()
-            .single('leftExpression', this.partReference<PgslVariableExpressionSyntaxTreeStructureData>('VariableExpression'))
+            .single('leftExpression', this.partReference<PgslVariableExpressionSyntaxTreeStructureData>('Expression-Variable'))
             .single(PgslToken.MemberDelimiter)
             .single('propertyName', PgslToken.Identifier),
             (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslEnumValueExpressionSyntaxTreeStructureData | PgslValueDecompositionExpressionSyntaxTreeStructureData => {
@@ -1000,7 +1000,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('VariableExpression', this.graph()
+        this.defineGraphPart('Expression-Variable', this.graph()
             .branch('expression', [
                 this.partReference<PgslVariableNameExpressionSyntaxTreeStructureData>('Expression-VariableName'),
                 this.partReference<PgslIndexedValueExpressionSyntaxTreeStructureData>('Expression-IndexedValue'),

@@ -92,6 +92,71 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
                 ]
             }
         }, this));
+
+        this.mEnums.set('BuildIn', new PgslEnumDeclarationSyntaxTree(true).applyDataStructure({
+            meta: {
+                type: 'Declaration-Enum', file: 'BUILD-IN',
+                position: {
+                    start: { column: 0, line: 0 },
+                    end: { column: 0, line: 0 }
+                }
+            },
+            data: {
+                name: 'BuildIn',
+                items: [
+                    { name: 'VertexIndex', value: 'vertex_index' },
+                    { name: 'InstanceIndex', value: 'instance_index' },
+                    { name: 'Position', value: 'position' },
+                    { name: 'FrontFacing', value: 'front_facing' },
+                    { name: 'FragDepth', value: 'frag_depth' },
+                    { name: 'SampleIndex', value: 'sample_index' },
+                    { name: 'SampleMask', value: 'sample_mask' },
+                    { name: 'LocalInvocationId', value: 'local_invocation_id' },
+                    { name: 'LocalInvocationIndex', value: 'local_invocation_index' },
+                    { name: 'GlobalInvocationId', value: 'global_invocation_id' },
+                    { name: 'WorkgroupId', value: 'workgroup_id' },
+                    { name: 'NumWorkgroups', value: 'num_workgroups' }
+                ]
+            }
+        }, this));
+
+        this.mEnums.set('InterpolationSampling', new PgslEnumDeclarationSyntaxTree(true).applyDataStructure({
+            meta: {
+                type: 'Declaration-Enum', file: 'BUILD-IN',
+                position: {
+                    start: { column: 0, line: 0 },
+                    end: { column: 0, line: 0 }
+                }
+            },
+            data: {
+                name: 'InterpolationSampling',
+                items: [
+                    { name: 'Center', value: 'center'},
+                    { name: 'Centroid', value: 'centroid'},
+                    { name: 'Sample', value: 'sample'},
+                    { name: 'First', value: 'first'},
+                    { name: 'Either', value: 'either'}
+                ]
+            }
+        }, this));
+
+        this.mEnums.set('InterpolationType', new PgslEnumDeclarationSyntaxTree(true).applyDataStructure({
+            meta: {
+                type: 'Declaration-Enum', file: 'BUILD-IN',
+                position: {
+                    start: { column: 0, line: 0 },
+                    end: { column: 0, line: 0 }
+                }
+            },
+            data: {
+                name: 'InterpolationType',
+                items: [
+                    { name: 'Perspective', value: 'perspective'},
+                    { name: 'Linear', value: 'linear'},
+                    { name: 'Flat', value: 'flat'},
+                ]
+            }
+        }, this));
     }
 
     /**
@@ -103,6 +168,17 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
      */
     public resolveAlias(pName: string): PgslAliasDeclarationSyntaxTree | null {
         return this.mAlias.get(pName) ?? null;
+    }
+
+    /**
+     * Resolve enum name to its declaration.
+     * 
+     * @param pName - Enum name.
+     * 
+     * @returns enum declaration  
+     */
+    public resolveEnum(pName: string): PgslEnumDeclarationSyntaxTree | null {
+        return this.mEnums.get(pName) ?? null;
     }
 
     /**

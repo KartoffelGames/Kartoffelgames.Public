@@ -28,6 +28,17 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslEnumDe
     }
 
     /**
+     * Get value of property. Return null when the property is not defined.
+     * 
+     * @param pName - Property name.
+     * 
+     * @returns Value of property or null when the property is not defined.
+     */
+    public property(pName: string): string | number | null{
+        return this.mValues.get(pName) ?? null;
+    }
+
+    /**
      * Apply data to current structure.
      * Any thrown error is converted into a parser error.
      * 

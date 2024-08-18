@@ -166,12 +166,13 @@ export class PgslTypeDefinitionSyntaxTree extends BasePgslSyntaxTree<PgslTypeDef
                         let lTemplateMatches: boolean = true;
                         for (let lIndex = 0; lIndex < lTemplate.length; lIndex++) {
                             const lExpectedTemplateType: 'Expression' | 'Type' = lTemplate[lIndex];
-                            const lActualTemplateParameter: PgslTypeDefinitionSyntaxTreeStructureData | PgslExpressionSyntaxTreeStructureData | undefined = pData.templateList.data.parameterList[lIndex];
-                            const lActualTemplateType: 'Expression' | 'Type' | undefined = !lActualTemplateParameter ? undefined : (lActualTemplateParameter.meta.type === 'General-TypeDefinition') ? 'Type' : 'Expression';
+                            const lActualTemplateParameter: PgslTypeDefinitionSyntaxTreeStructureData | PgslExpressionSyntaxTreeStructureData = pData.templateList.data.parameterList[lIndex];
+                            const lActualTemplateType: 'Expression' | 'Type' = (lActualTemplateParameter.meta.type === 'General-TypeDefinition') ? 'Type' : 'Expression';
 
                             // Need to have same parameter type.
                             if (lExpectedTemplateType !== lActualTemplateType) {
                                 lTemplateMatches = false;
+                                break;
                             }
                         }
 
@@ -220,8 +221,6 @@ export type PgslTypeDefinitionSyntaxTreeStructureData = PgslSyntaxTreeDataStruct
     name: string,
     templateList?: PgslTemplateListSyntaxTreeStructureData;
 }>;
-
-export type PgslTemplateListSyntaxTreeData = PgslTypeDefinitionSyntaxTreeStructureData['meta'];
 
 type TypeDefinitionInformation = {
     template: Array<Array<'Expression' | 'Type'>>;

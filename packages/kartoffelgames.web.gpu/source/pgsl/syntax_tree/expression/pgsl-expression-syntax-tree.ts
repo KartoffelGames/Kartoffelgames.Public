@@ -1,5 +1,6 @@
 import { UnknownPgslSyntaxTree } from '../base-pgsl-syntax-tree';
 import { PgslLiteralValueExpressionSyntaxTree, PgslLiteralValueExpressionSyntaxTreeStructureData } from './pgsl-literal-value-expression-syntax-tree';
+import { PgslEnumValueExpressionSyntaxTree, PgslEnumValueExpressionSyntaxTreeStructureData } from './variable/pgsl-enum-value-expression-syntax-tree';
 import { PgslVariableNameExpressionSyntaxTree, PgslVariableNameExpressionSyntaxTreeStructureData } from './variable/pgsl-variable-name-expression-syntax-tree';
 
 /**
@@ -18,11 +19,12 @@ export class PgslExpressionSyntaxTreeFactory {
         switch (pData.meta.type) {
             case 'Expression-LiteralValue': return new PgslLiteralValueExpressionSyntaxTree().applyDataStructure(pData as PgslLiteralValueExpressionSyntaxTreeStructureData, pParent);
             case 'Expression-VariableName': return new PgslVariableNameExpressionSyntaxTree().applyDataStructure(pData as PgslVariableNameExpressionSyntaxTreeStructureData, pParent);
+            case 'Expression-EnumValue': return new PgslEnumValueExpressionSyntaxTree().applyDataStructure(pData as PgslEnumValueExpressionSyntaxTreeStructureData, pParent);
         }
     }
 }
 
-export type PgslVariableExpressionSyntaxTree =  PgslVariableNameExpressionSyntaxTree;
+export type PgslVariableExpressionSyntaxTree = PgslVariableNameExpressionSyntaxTree | PgslEnumValueExpressionSyntaxTree;
 export type PgslExpressionSyntaxTree = PgslVariableExpressionSyntaxTree | PgslLiteralValueExpressionSyntaxTree;
 
 export type PgslExpressionSyntaxTreeStructureData = ReturnType<PgslExpressionSyntaxTree['retrieveDataStructure']>;

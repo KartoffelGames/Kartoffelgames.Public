@@ -1,5 +1,8 @@
 import { UnknownPgslSyntaxTree } from '../base-pgsl-syntax-tree';
+import { PgslAddressOfExpressionSyntaxTree, PgslAddressOfExpressionSyntaxTreeStructureData } from './pgsl-address-of-expression-syntax-tree';
 import { PgslLiteralValueExpressionSyntaxTree, PgslLiteralValueExpressionSyntaxTreeStructureData } from './pgsl-literal-value-expression-syntax-tree';
+import { PgslPointerExpressionSyntaxTree, PgslPointerExpressionSyntaxTreeStructureData } from './pgsl-pointer-expression-syntax-tree';
+import { PgslUnaryExpressionSyntaxTree, PgslUnaryExpressionSyntaxTreeStructureData } from './pgsl-unary-expression-syntax-tree';
 import { PgslEnumValueExpressionSyntaxTree, PgslEnumValueExpressionSyntaxTreeStructureData } from './variable/pgsl-enum-value-expression-syntax-tree';
 import { PgslIndexedValueExpressionSyntaxTree, PgslIndexedValueExpressionSyntaxTreeStructureData } from './variable/pgsl-indexed-value-expression-syntax-tree';
 import { PgslValueDecompositionExpressionSyntaxTree, PgslValueDecompositionExpressionSyntaxTreeStructureData } from './variable/pgsl-value-decomposition-expression-syntax-tree';
@@ -29,14 +32,18 @@ export class PgslExpressionSyntaxTreeFactory {
             case 'Expression-IndexedValue': return new PgslIndexedValueExpressionSyntaxTree().applyDataStructure(pData as PgslIndexedValueExpressionSyntaxTreeStructureData, pParent);
 
             // Unary Operations
+            case 'Expression-Pointer': return new PgslPointerExpressionSyntaxTree().applyDataStructure(pData as PgslPointerExpressionSyntaxTreeStructureData, pParent);
+            case 'Expression-AddressOf': return new PgslAddressOfExpressionSyntaxTree().applyDataStructure(pData as PgslAddressOfExpressionSyntaxTreeStructureData, pParent);
+            case 'Expression-Unary': return new PgslUnaryExpressionSyntaxTree().applyDataStructure(pData as PgslUnaryExpressionSyntaxTreeStructureData, pParent);
 
-            // Binaty operations
+            // Binary operations
         }
     }
 }
 
 export type PgslVariableExpressionSyntaxTree = PgslVariableNameExpressionSyntaxTree | PgslEnumValueExpressionSyntaxTree | PgslValueDecompositionExpressionSyntaxTree | PgslIndexedValueExpressionSyntaxTree;
-export type PgslExpressionSyntaxTree = PgslVariableExpressionSyntaxTree | PgslLiteralValueExpressionSyntaxTree;
+export type PgslUnaryOperationExpressionSyntaxTree = PgslPointerExpressionSyntaxTree | PgslAddressOfExpressionSyntaxTree | PgslUnaryExpressionSyntaxTree;
+export type PgslExpressionSyntaxTree = PgslLiteralValueExpressionSyntaxTree | PgslVariableExpressionSyntaxTree | PgslUnaryOperationExpressionSyntaxTree;
 
 export type PgslExpressionSyntaxTreeStructureData = ReturnType<PgslExpressionSyntaxTree['retrieveDataStructure']>;
 export type PgslVariableExpressionSyntaxTreeStructureData = ReturnType<PgslVariableExpressionSyntaxTree['retrieveDataStructure']>;

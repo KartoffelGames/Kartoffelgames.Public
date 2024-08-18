@@ -5,7 +5,7 @@ import { PgslBuildInTypeName } from '../enum/pgsl-type-name.enum';
 import { PgslSyntaxTreeDataStructure } from '../syntax_tree/base-pgsl-syntax-tree';
 import { PgslAliasDeclarationSyntaxTreeStructureData } from '../syntax_tree/declarations/pgsl-alias-declaration-syntax-tree';
 import { PgslEnumDeclarationSyntaxTreeStructureData } from '../syntax_tree/declarations/pgsl-enum-declaration-syntax-tree';
-import { PgslAddressOfExpression } from '../syntax_tree/expression/pgsl-address-of-expression';
+import { PgslAddressOfExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/pgsl-address-of-expression-syntax-tree';
 import { PgslArithmeticExpression } from '../syntax_tree/expression/pgsl-arithmetic-expression';
 import { PgslBinaryExpression as PgslBitExpression } from '../syntax_tree/expression/pgsl-bit-expression';
 import { PgslComparisonExpression } from '../syntax_tree/expression/pgsl-comparison-expression';
@@ -14,11 +14,13 @@ import { PgslFunctionCallExpression } from '../syntax_tree/expression/pgsl-funct
 import { PgslLiteralValueExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/pgsl-literal-value-expression-syntax-tree';
 import { PgslLogicalExpression } from '../syntax_tree/expression/pgsl-logical-expression';
 import { PgslParenthesizedExpression } from '../syntax_tree/expression/pgsl-parenthesized-expression';
-import { PgslPointerExpression } from '../syntax_tree/expression/pgsl-pointer-expression';
-import { PgslUnaryExpression } from '../syntax_tree/expression/pgsl-unary-expression';
-import { PgslValueDecompositionExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/variable/pgsl-value-decomposition-expression-syntax-tree';
+import { PgslPointerExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/pgsl-pointer-expression-syntax-tree';
+import { PgslUnaryExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/pgsl-unary-expression-syntax-tree';
+import { PgslEnumValueExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/variable/pgsl-enum-value-expression-syntax-tree';
 import { PgslIndexedValueExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/variable/pgsl-indexed-value-expression-syntax-tree';
+import { PgslValueDecompositionExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/variable/pgsl-value-decomposition-expression-syntax-tree';
 import { PgslVariableNameExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/variable/pgsl-variable-name-expression-syntax-tree';
+import { PgslAttributeListSyntaxTreeStructureData } from '../syntax_tree/general/pgsl-attribute-list-syntax-tree';
 import { PgslTemplateListSyntaxTreeStructureData } from '../syntax_tree/general/pgsl-template-list-syntax-tree';
 import { PgslTypeDefinitionSyntaxTreeStructureData } from '../syntax_tree/general/pgsl-type-definition-syntax-tree';
 import { PgslModuleSyntaxTree, PgslModuleSyntaxTreeStructureData } from '../syntax_tree/pgsl-module-syntax-tree';
@@ -28,8 +30,6 @@ import { PgslIfStatement } from '../syntax_tree/statement/pgsl-if-statement';
 import { PgslStatement } from '../syntax_tree/statement/pgsl-statement';
 import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
-import { PgslAttributeListSyntaxTreeStructureData } from '../syntax_tree/general/pgsl-attribute-list-syntax-tree';
-import { PgslEnumValueExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/variable/pgsl-enum-value-expression-syntax-tree';
 
 export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
     private mParserBuffer: ParserBuffer;
@@ -349,19 +349,21 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('UnaryExpression', this.graph()
+        this.defineGraphPart('Expression-Unary', this.graph()
             .branch('prefix', [
                 PgslToken.OperatorBinaryNegate,
                 PgslToken.OperatorMinus,
                 PgslToken.OperatorNot
             ])
             .single('expression', this.partReference<PgslExpressionSyntaxTreeStructureData>('Expression')),
-            (pData): PgslUnaryExpression => {
-                const lUnaryExpression: PgslUnaryExpression = new PgslUnaryExpression();
-                lUnaryExpression.expression = pData.expression;
-                lUnaryExpression.operator = EnumUtil.cast(PgslOperator, pData.prefix)!;
-
-                return lUnaryExpression;
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslUnaryExpressionSyntaxTreeStructureData => {
+                return {
+                    meta: this.createMeta('Expression-Unary', pStartToken, pEndToken),
+                    data: {
+                        expression: pData.expression,
+                        operator: pData.prefix
+                    }
+                };
             }
         );
 
@@ -411,25 +413,29 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('AddressOfExpression', this.graph()
+        this.defineGraphPart('Expression-AddressOf', this.graph()
             .single(PgslToken.OperatorBinaryAnd)
             .single('variable', this.partReference<PgslVariableExpressionSyntaxTreeStructureData>('Expression-Variable')),
-            (pData): PgslAddressOfExpression => {
-                const lAddressOfExpression: PgslAddressOfExpression = new PgslAddressOfExpression();
-                lAddressOfExpression.variable = pData.variable;
-
-                return lAddressOfExpression;
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslAddressOfExpressionSyntaxTreeStructureData => {
+                return {
+                    meta: this.createMeta('Expression-AddressOf', pStartToken, pEndToken),
+                    data: {
+                        variable: pData.variable
+                    }
+                };
             }
         );
 
-        this.defineGraphPart('PointerExpression', this.graph()
+        this.defineGraphPart('Expression-Pointer', this.graph()
             .single(PgslToken.OperatorMultiply)
             .single('variable', this.partReference<PgslVariableExpressionSyntaxTreeStructureData>('Expression-Variable')),
-            (pData): PgslPointerExpression => {
-                const lPointerExpression: PgslPointerExpression = new PgslPointerExpression();
-                lPointerExpression.variable = pData.variable;
-
-                return lPointerExpression;
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslPointerExpressionSyntaxTreeStructureData => {
+                return {
+                    meta: this.createMeta('Expression-Pointer', pStartToken, pEndToken),
+                    data: {
+                        variable: pData.variable
+                    }
+                };
             }
         );
 
@@ -470,10 +476,10 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .branch('expression', [
                 this.partReference<PgslVariableExpressionSyntaxTreeStructureData>('Expression-Variable'), // => defineVariableExpression
                 this.partReference<PgslLiteralValueExpressionSyntaxTreeStructureData>('Expression-LiteralValue'),
-                this.partReference<PgslPointerExpression>('PointerExpression'),
-                this.partReference<PgslAddressOfExpression>('AddressOfExpression'),
+                this.partReference<PgslUnaryExpressionSyntaxTreeStructureData>('Expression-Unary'),
+                this.partReference<PgslPointerExpressionSyntaxTreeStructureData>('Expression-Pointer'),
+                this.partReference<PgslAddressOfExpressionSyntaxTreeStructureData>('Expression-AddressOf'),
                 this.partReference<PgslFunctionCallExpression>('FunctionExpression'),
-                this.partReference<PgslUnaryExpression>('UnaryExpression'),
                 this.partReference<PgslBitExpression>('BitOperationExpression'),
                 this.partReference<PgslComparisonExpression>('ComparisonExpression'),
                 this.partReference<PgslArithmeticExpression>('ArithmeticExpression'),

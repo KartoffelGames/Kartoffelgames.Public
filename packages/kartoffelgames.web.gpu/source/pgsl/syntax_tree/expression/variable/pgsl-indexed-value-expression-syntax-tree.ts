@@ -40,6 +40,7 @@ export class PgslIndexedValueExpressionSyntaxTree extends BasePgslSyntaxTree<Pgs
         this.mIndex = null;
         this.mValue = null;
     }
+    
     /**
      * Apply data to current structure.
      * Any thrown error is converted into a parser error.

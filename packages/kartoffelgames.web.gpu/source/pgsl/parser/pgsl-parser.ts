@@ -10,7 +10,7 @@ import { PgslArithmeticExpression } from '../syntax_tree/expression/pgsl-arithme
 import { PgslBinaryExpression as PgslBitExpression } from '../syntax_tree/expression/pgsl-bit-expression';
 import { PgslComparisonExpression } from '../syntax_tree/expression/pgsl-comparison-expression';
 import { PgslExpressionSyntaxTreeStructureData, PgslVariableExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/pgsl-expression-syntax-tree-factory';
-import { PgslFunctionCallExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/pgsl-function-call-expression';
+import { PgslFunctionCallExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/parenthesized/pgsl-function-call-expression-syntax-tree';
 import { PgslLiteralValueExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/pgsl-literal-value-expression-syntax-tree';
 import { PgslLogicalExpression } from '../syntax_tree/expression/pgsl-logical-expression';
 import { PgslAddressOfExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/unary/pgsl-address-of-expression-syntax-tree';

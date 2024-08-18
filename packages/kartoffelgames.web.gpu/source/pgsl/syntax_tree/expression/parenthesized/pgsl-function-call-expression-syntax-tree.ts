@@ -1,6 +1,6 @@
-import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../base-pgsl-syntax-tree';
-import { PgslTemplateListSyntaxTree, PgslTemplateListSyntaxTreeStructureData } from '../general/pgsl-template-list-syntax-tree';
-import { PgslExpressionSyntaxTree, PgslExpressionSyntaxTreeFactory, PgslExpressionSyntaxTreeStructureData } from './pgsl-expression-syntax-tree-factory';
+import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../../base-pgsl-syntax-tree';
+import { PgslTemplateListSyntaxTree, PgslTemplateListSyntaxTreeStructureData } from '../../general/pgsl-template-list-syntax-tree';
+import { PgslExpressionSyntaxTree, PgslExpressionSyntaxTreeFactory, PgslExpressionSyntaxTreeStructureData } from '../pgsl-expression-syntax-tree-factory';
 
 export class PgslFunctionCallExpressionSyntaxTree extends BasePgslSyntaxTree<PgslFunctionCallExpressionSyntaxTreeStructureData['meta']['type'], PgslFunctionCallExpressionSyntaxTreeStructureData['data']> {
     private mName: string;

@@ -1,6 +1,6 @@
 import { UnknownPgslSyntaxTree } from '../base-pgsl-syntax-tree';
 import { PgslParenthesizedExpressionSyntaxTree, PgslParenthesizedExpressionSyntaxTreeStructureData } from './parenthesized/pgsl-parenthesized-expression';
-import { PgslFunctionCallExpressionSyntaxTree, PgslFunctionCallExpressionSyntaxTreeStructureData } from './pgsl-function-call-expression';
+import { PgslFunctionCallExpressionSyntaxTree, PgslFunctionCallExpressionSyntaxTreeStructureData } from './parenthesized/pgsl-function-call-expression-syntax-tree';
 import { PgslLiteralValueExpressionSyntaxTree, PgslLiteralValueExpressionSyntaxTreeStructureData } from './pgsl-literal-value-expression-syntax-tree';
 import { PgslAddressOfExpressionSyntaxTree, PgslAddressOfExpressionSyntaxTreeStructureData } from './unary/pgsl-address-of-expression-syntax-tree';
 import { PgslPointerExpressionSyntaxTree, PgslPointerExpressionSyntaxTreeStructureData } from './unary/pgsl-pointer-expression-syntax-tree';

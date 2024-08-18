@@ -209,6 +209,19 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
             this.mAlias.set(lAlias.data.name, new PgslAliasDeclarationSyntaxTree().applyDataStructure(lAlias, this));
         }
 
+        // Apply enum data.
+        for (const lEnum of pData.enum) {
+            // Enum data does merge.
+            if (this.mEnums.has(lEnum.data.name)) {
+                // This throws on dublicate properties.
+                this.mEnums.get(lEnum.data.name)!.applyDataStructure(lEnum, this);
+                continue;
+            }
+
+            // Apply new enum.
+            this.mEnums.set(lEnum.data.name, new PgslEnumDeclarationSyntaxTree().applyDataStructure(lEnum, this));
+        }
+
         // TODO: Other globals
     }
 

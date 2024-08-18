@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
-import { PgslOperator } from '../../enum/pgsl-operator.enum';
-import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../base-pgsl-syntax-tree';
-import { PgslExpressionSyntaxTree, PgslExpressionSyntaxTreeFactory, PgslExpressionSyntaxTreeStructureData } from './pgsl-expression-syntax-tree';
+import { PgslOperator } from '../../../enum/pgsl-operator.enum';
+import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../../base-pgsl-syntax-tree';
+import { PgslExpressionSyntaxTree, PgslExpressionSyntaxTreeFactory, PgslExpressionSyntaxTreeStructureData } from '../pgsl-expression-syntax-tree';
 
 export class PgslUnaryExpressionSyntaxTree extends BasePgslSyntaxTree<PgslUnaryExpressionSyntaxTreeStructureData['meta']['type'], PgslUnaryExpressionSyntaxTreeStructureData['data']> {
     private mExpression: PgslExpressionSyntaxTree | null;

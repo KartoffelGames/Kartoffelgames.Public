@@ -1,8 +1,8 @@
 import { UnknownPgslSyntaxTree } from '../base-pgsl-syntax-tree';
-import { PgslAddressOfExpressionSyntaxTree, PgslAddressOfExpressionSyntaxTreeStructureData } from './pgsl-address-of-expression-syntax-tree';
+import { PgslAddressOfExpressionSyntaxTree, PgslAddressOfExpressionSyntaxTreeStructureData } from './unary/pgsl-address-of-expression-syntax-tree';
 import { PgslLiteralValueExpressionSyntaxTree, PgslLiteralValueExpressionSyntaxTreeStructureData } from './pgsl-literal-value-expression-syntax-tree';
-import { PgslPointerExpressionSyntaxTree, PgslPointerExpressionSyntaxTreeStructureData } from './pgsl-pointer-expression-syntax-tree';
-import { PgslUnaryExpressionSyntaxTree, PgslUnaryExpressionSyntaxTreeStructureData } from './pgsl-unary-expression-syntax-tree';
+import { PgslPointerExpressionSyntaxTree, PgslPointerExpressionSyntaxTreeStructureData } from './unary/pgsl-pointer-expression-syntax-tree';
+import { PgslUnaryExpressionSyntaxTree, PgslUnaryExpressionSyntaxTreeStructureData } from './unary/pgsl-unary-expression-syntax-tree';
 import { PgslEnumValueExpressionSyntaxTree, PgslEnumValueExpressionSyntaxTreeStructureData } from './variable/pgsl-enum-value-expression-syntax-tree';
 import { PgslIndexedValueExpressionSyntaxTree, PgslIndexedValueExpressionSyntaxTreeStructureData } from './variable/pgsl-indexed-value-expression-syntax-tree';
 import { PgslValueDecompositionExpressionSyntaxTree, PgslValueDecompositionExpressionSyntaxTreeStructureData } from './variable/pgsl-value-decomposition-expression-syntax-tree';

@@ -16,7 +16,7 @@ import { PgslLogicalExpression } from '../syntax_tree/expression/pgsl-logical-ex
 import { PgslParenthesizedExpression } from '../syntax_tree/expression/pgsl-parenthesized-expression';
 import { PgslPointerExpression } from '../syntax_tree/expression/pgsl-pointer-expression';
 import { PgslUnaryExpression } from '../syntax_tree/expression/pgsl-unary-expression';
-import { PgslCompositeValueDecompositionVariableExpression } from '../syntax_tree/expression/variable/pgsl-composite-value-decomposition-variable-expression';
+import { PgslCompositeValueDecompositionVariableExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/variable/pgsl-composite-value-decomposition-variable-expression';
 import { PgslVariableIndexNameExpression } from '../syntax_tree/expression/variable/pgsl-variable-index-expression';
 import { PgslVariableNameExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/variable/pgsl-variable-name-expression-syntax-tree';
 import { PgslTemplateListSyntaxTreeStructureData } from '../syntax_tree/general/pgsl-template-list-syntax-tree';
@@ -966,15 +966,15 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('CompositeValueDecompositionExpression', this.graph()
-            .single('leftExpression', this.partReference<PgslExpressionSyntaxTreeStructureData>('VariableExpression'))
+        this.defineGraphPart('Expression-CompositeValueDecomposition', this.graph()
+            .single('leftExpression', this.partReference<PgslVariableExpressionSyntaxTreeStructureData>('VariableExpression'))
             .single(PgslToken.MemberDelimiter)
             .single('propertyName', PgslToken.Identifier),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslEnumValueExpressionSyntaxTreeStructureData => {
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslEnumValueExpressionSyntaxTreeStructureData | PgslCompositeValueDecompositionVariableExpressionSyntaxTreeStructureData => {
                 // When left expression is a single name, it can be a enum value.
                 if (pData.leftExpression.meta.type === 'Expression-VariableName') {
                     // Check variable name with the currently existing declared enums. 
-                    const lVariableName: string = (<PgslVariableExpressionSyntaxTreeStructureData>pData.leftExpression).data.name;
+                    const lVariableName: string = (<PgslVariableNameExpressionSyntaxTreeStructureData>pData.leftExpression).data.name;
                     if (this.mParserBuffer.enumDeclaration.has(lVariableName)) {
                         // Return enum value structure data instead.
                         return {
@@ -987,11 +987,14 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                     }
                 }
 
-                const lVariableExpression: PgslCompositeValueDecompositionVariableExpression = new PgslCompositeValueDecompositionVariableExpression();
-                lVariableExpression.property = pData.propertyName;
-                lVariableExpression.variable = pData.leftExpression;
-
-                return lVariableExpression;
+                // When not a enum than it can only be a decomposition.
+                return {
+                    meta: this.createMeta('Expression-CompositeValueDecomposition', pStartToken, pEndToken),
+                    data: {
+                        value: pData.leftExpression,
+                        property: pData.propertyName
+                    }
+                };
             }
         );
 
@@ -999,7 +1002,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .branch('expression', [
                 this.partReference<PgslVariableNameExpressionSyntaxTreeStructureData>('Expression-VariableName'),
                 this.partReference<PgslVariableExpression>('IndexValueExpression'),
-                this.partReference<PgslVariableExpression | PgslEnumValueExpressionSyntaxTreeStructureData>('CompositeValueDecompositionExpression')
+                this.partReference<PgslCompositeValueDecompositionVariableExpressionSyntaxTreeStructureData | PgslEnumValueExpressionSyntaxTreeStructureData>('Expression-CompositeValueDecomposition')
             ]),
             (pData): PgslVariableExpressionSyntaxTreeStructureData => {
                 return pData.expression;

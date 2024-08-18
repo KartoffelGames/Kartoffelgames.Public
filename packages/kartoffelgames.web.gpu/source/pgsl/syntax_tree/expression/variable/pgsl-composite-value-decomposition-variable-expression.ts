@@ -1,51 +1,66 @@
 import { Exception } from '@kartoffelgames/core';
-import { PgslVariableExpression } from './pgsl-variable-expression';
+import { PgslExpressionSyntaxTreeFactory, PgslVariableExpressionSyntaxTree, PgslVariableExpressionSyntaxTreeStructureData } from '../pgsl-expression-syntax-tree';
+import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../../base-pgsl-syntax-tree';
 
-export class PgslCompositeValueDecompositionVariableExpression extends PgslVariableExpression {
-    private mProperty: string | null;
-    private mVariable: PgslVariableExpression | null;
-    
+export class PgslCompositeValueDecompositionVariableExpressionSyntaxTree extends BasePgslSyntaxTree<PgslCompositeValueDecompositionVariableExpressionSyntaxTreeStructureData['meta']['type'], PgslCompositeValueDecompositionVariableExpressionSyntaxTreeStructureData['data']> {
+    private mProperty: string;
+    private mValue: PgslVariableExpressionSyntaxTree | null;
+
     /**
      * Index expression of variable index expression.
      */
     public get property(): string {
-        if (this.mProperty === null) {
-            throw new Exception('Decomposition property not set.', this);
-        }
-
         return this.mProperty;
-    } set property(pProperty: string) {
-        if (this.mProperty !== null) {
-            throw new Exception('Decomposition property can not be changed.', this);
-        }
-
-        this.mProperty = pProperty;
     }
 
     /**
-     * Variable name reference.
+     * Value reference.
      */
-    public get variable(): PgslVariableExpression {
-        if (this.mVariable === null) {
+    public get value(): PgslVariableExpressionSyntaxTree {
+        if (this.mValue === null) {
             throw new Exception('Variable not set.', this);
         }
 
-        return this.mVariable;
-    } set variable(pVariable: PgslVariableExpression) {
-        if (this.mVariable !== null) {
-            throw new Exception('Variable can not be changed.', this);
-        }
-
-        this.mVariable = pVariable;
+        return this.mValue;
     }
 
     /**
      * Constructor.
      */
     public constructor() {
-        super();
+        super('Expression-CompositeValueDecomposition');
 
-        this.mProperty = null;
-        this.mVariable = null;
+        this.mProperty = '';
+        this.mValue = null;
+    }
+
+    /**
+     * Apply data to current structure.
+     * Any thrown error is converted into a parser error.
+     * 
+     * @param pData - Structure data.
+     */
+    protected override applyData(pData: PgslCompositeValueDecompositionVariableExpressionSyntaxTreeStructureData['data']): void {
+        this.mValue = PgslExpressionSyntaxTreeFactory.createFrom(pData.value, this) as PgslVariableExpressionSyntaxTree;
+        this.mProperty = pData.property;
+    }
+
+    /**
+     * Retrieve data of current structure.
+     */
+    protected override retrieveData(): PgslCompositeValueDecompositionVariableExpressionSyntaxTreeStructureData['data'] {
+        if (this.mValue === null) {
+            throw new Exception('Variable not set.', this);
+        }
+        
+        return {
+            value: this.mValue?.retrieveDataStructure(),
+            property: this.mProperty
+        };
     }
 }
+
+export type PgslCompositeValueDecompositionVariableExpressionSyntaxTreeStructureData = PgslSyntaxTreeDataStructure<'Expression-CompositeValueDecomposition', {
+    value: PgslVariableExpressionSyntaxTreeStructureData;
+    property: string;
+}>;

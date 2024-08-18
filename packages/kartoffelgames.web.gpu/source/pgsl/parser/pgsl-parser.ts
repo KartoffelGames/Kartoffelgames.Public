@@ -5,15 +5,15 @@ import { PgslBuildInTypeName } from '../enum/pgsl-type-name.enum';
 import { PgslSyntaxTreeDataStructure } from '../syntax_tree/base-pgsl-syntax-tree';
 import { PgslAliasDeclarationSyntaxTreeStructureData } from '../syntax_tree/declarations/pgsl-alias-declaration-syntax-tree';
 import { PgslEnumDeclarationSyntaxTreeStructureData } from '../syntax_tree/declarations/pgsl-enum-declaration-syntax-tree';
-import { PgslAddressOfExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/unary/pgsl-address-of-expression-syntax-tree';
+import { PgslParenthesizedExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/parenthesized/pgsl-parenthesized-expression';
 import { PgslArithmeticExpression } from '../syntax_tree/expression/pgsl-arithmetic-expression';
 import { PgslBinaryExpression as PgslBitExpression } from '../syntax_tree/expression/pgsl-bit-expression';
 import { PgslComparisonExpression } from '../syntax_tree/expression/pgsl-comparison-expression';
 import { PgslExpressionSyntaxTreeStructureData, PgslVariableExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/pgsl-expression-syntax-tree-factory';
-import { PgslFunctionCallExpression } from '../syntax_tree/expression/pgsl-function-call-expression';
+import { PgslFunctionCallExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/pgsl-function-call-expression';
 import { PgslLiteralValueExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/pgsl-literal-value-expression-syntax-tree';
 import { PgslLogicalExpression } from '../syntax_tree/expression/pgsl-logical-expression';
-import { PgslParenthesizedExpression } from '../syntax_tree/expression/pgsl-parenthesized-expression';
+import { PgslAddressOfExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/unary/pgsl-address-of-expression-syntax-tree';
 import { PgslPointerExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/unary/pgsl-pointer-expression-syntax-tree';
 import { PgslUnaryExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/unary/pgsl-unary-expression-syntax-tree';
 import { PgslEnumValueExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/variable/pgsl-enum-value-expression-syntax-tree';
@@ -367,19 +367,21 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('ParenthesizedExpression', this.graph()
+        this.defineGraphPart('Expression-Parenthesized', this.graph()
             .single(PgslToken.ParenthesesStart)
             .single('expression', this.partReference<PgslExpressionSyntaxTreeStructureData>('Expression'))
             .single(PgslToken.ParenthesesEnd),
-            (pData): PgslParenthesizedExpression => {
-                const lParenthesizedExpression: PgslParenthesizedExpression = new PgslParenthesizedExpression();
-                lParenthesizedExpression.expression = pData.expression;
-
-                return lParenthesizedExpression;
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslParenthesizedExpressionSyntaxTreeStructureData => {
+                return {
+                    meta: this.createMeta('Expression-Parenthesized', pStartToken, pEndToken),
+                    data: {
+                        expression: pData.expression
+                    }
+                };
             }
         );
 
-        this.defineGraphPart('FunctionExpression', this.graph()
+        this.defineGraphPart('Expression-FunctionCall', this.graph()
             .single('name', PgslToken.Identifier)
             .optional('templateList', this.partReference<PgslTemplateListSyntaxTreeStructureData>('General-TemplateList'))
             .single(PgslToken.ParenthesesStart)
@@ -390,7 +392,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 )
             )
             .single(PgslToken.ParenthesesEnd),
-            (pData): PgslFunctionCallExpression => {
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslFunctionCallExpressionSyntaxTreeStructureData => {
                 // Build parameter list of function.
                 const lParameterList: Array<PgslExpressionSyntaxTreeStructureData> = new Array<PgslExpressionSyntaxTreeStructureData>();
                 if (pData.parameter) {
@@ -404,12 +406,20 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 }
 
                 // Build function structure.
-                const lFunctionExpression: PgslFunctionCallExpression = new PgslFunctionCallExpression();
-                lFunctionExpression.name = pData.name;
-                lFunctionExpression.parameter = lParameterList;
-                lFunctionExpression.templateList = pData.templateList ?? null;
+                const lData: PgslFunctionCallExpressionSyntaxTreeStructureData = {
+                    meta: this.createMeta('Expression-FunctionCall', pStartToken, pEndToken),
+                    data: {
+                        name: pData.name,
+                        parameterList: lParameterList
+                    }
+                };
 
-                return lFunctionExpression;
+                // Optional template.
+                if (pData.templateList) {
+                    lData.data.template = pData.templateList;
+                }
+
+                return lData;
             }
         );
 
@@ -479,12 +489,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 this.partReference<PgslUnaryExpressionSyntaxTreeStructureData>('Expression-Unary'),
                 this.partReference<PgslPointerExpressionSyntaxTreeStructureData>('Expression-Pointer'),
                 this.partReference<PgslAddressOfExpressionSyntaxTreeStructureData>('Expression-AddressOf'),
-                this.partReference<PgslFunctionCallExpression>('FunctionExpression'),
+                this.partReference<PgslFunctionCallExpressionSyntaxTreeStructureData>('Expression-FunctionCall'),
+                this.partReference<PgslParenthesizedExpressionSyntaxTreeStructureData>('Expression-Parenthesized'),
                 this.partReference<PgslBitExpression>('BitOperationExpression'),
                 this.partReference<PgslComparisonExpression>('ComparisonExpression'),
                 this.partReference<PgslArithmeticExpression>('ArithmeticExpression'),
-                this.partReference<PgslLogicalExpression>('LogicalExpression'),
-                this.partReference<PgslParenthesizedExpression>('ParenthesizedExpression')
+                this.partReference<PgslLogicalExpression>('LogicalExpression')
             ]),
             (pData): PgslExpressionSyntaxTreeStructureData => {
                 return pData.expression;

@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import { PgslExpressionSyntaxTreeFactory, PgslVariableExpressionSyntaxTree, PgslVariableExpressionSyntaxTreeStructureData } from '../pgsl-expression-syntax-tree';
 import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../../base-pgsl-syntax-tree';
 
-export class PgslCompositeValueDecompositionVariableExpressionSyntaxTree extends BasePgslSyntaxTree<PgslCompositeValueDecompositionVariableExpressionSyntaxTreeStructureData['meta']['type'], PgslCompositeValueDecompositionVariableExpressionSyntaxTreeStructureData['data']> {
+export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslSyntaxTree<PgslValueDecompositionExpressionSyntaxTreeStructureData['meta']['type'], PgslValueDecompositionExpressionSyntaxTreeStructureData['data']> {
     private mProperty: string;
     private mValue: PgslVariableExpressionSyntaxTree | null;
 
@@ -28,7 +28,7 @@ export class PgslCompositeValueDecompositionVariableExpressionSyntaxTree extends
      * Constructor.
      */
     public constructor() {
-        super('Expression-CompositeValueDecomposition');
+        super('Expression-ValueDecomposition');
 
         this.mProperty = '';
         this.mValue = null;
@@ -40,7 +40,7 @@ export class PgslCompositeValueDecompositionVariableExpressionSyntaxTree extends
      * 
      * @param pData - Structure data.
      */
-    protected override applyData(pData: PgslCompositeValueDecompositionVariableExpressionSyntaxTreeStructureData['data']): void {
+    protected override applyData(pData: PgslValueDecompositionExpressionSyntaxTreeStructureData['data']): void {
         this.mValue = PgslExpressionSyntaxTreeFactory.createFrom(pData.value, this) as PgslVariableExpressionSyntaxTree;
         this.mProperty = pData.property;
     }
@@ -48,7 +48,7 @@ export class PgslCompositeValueDecompositionVariableExpressionSyntaxTree extends
     /**
      * Retrieve data of current structure.
      */
-    protected override retrieveData(): PgslCompositeValueDecompositionVariableExpressionSyntaxTreeStructureData['data'] {
+    protected override retrieveData(): PgslValueDecompositionExpressionSyntaxTreeStructureData['data'] {
         if (this.mValue === null) {
             throw new Exception('Variable not set.', this);
         }
@@ -60,7 +60,7 @@ export class PgslCompositeValueDecompositionVariableExpressionSyntaxTree extends
     }
 }
 
-export type PgslCompositeValueDecompositionVariableExpressionSyntaxTreeStructureData = PgslSyntaxTreeDataStructure<'Expression-CompositeValueDecomposition', {
+export type PgslValueDecompositionExpressionSyntaxTreeStructureData = PgslSyntaxTreeDataStructure<'Expression-ValueDecomposition', {
     value: PgslVariableExpressionSyntaxTreeStructureData;
     property: string;
 }>;

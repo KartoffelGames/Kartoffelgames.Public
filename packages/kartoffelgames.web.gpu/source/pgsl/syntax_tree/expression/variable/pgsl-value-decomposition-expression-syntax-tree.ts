@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { PgslExpressionSyntaxTreeFactory, PgslVariableExpressionSyntaxTree, PgslVariableExpressionSyntaxTreeStructureData } from '../pgsl-expression-syntax-tree';
+import { PgslExpressionSyntaxTreeFactory, PgslVariableExpressionSyntaxTree, PgslVariableExpressionSyntaxTreeStructureData } from '../pgsl-expression-syntax-tree-factory';
 import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../../base-pgsl-syntax-tree';
 
 export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslSyntaxTree<PgslValueDecompositionExpressionSyntaxTreeStructureData['meta']['type'], PgslValueDecompositionExpressionSyntaxTreeStructureData['data']> {

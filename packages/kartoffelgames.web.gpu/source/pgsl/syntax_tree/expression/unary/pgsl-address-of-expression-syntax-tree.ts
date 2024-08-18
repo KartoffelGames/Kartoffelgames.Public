@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../../base-pgsl-syntax-tree';
-import { PgslExpressionSyntaxTreeFactory, PgslVariableExpressionSyntaxTree, PgslVariableExpressionSyntaxTreeStructureData } from '../pgsl-expression-syntax-tree';
+import { PgslExpressionSyntaxTreeFactory, PgslVariableExpressionSyntaxTree, PgslVariableExpressionSyntaxTreeStructureData } from '../pgsl-expression-syntax-tree-factory';
 
 export class PgslAddressOfExpressionSyntaxTree extends BasePgslSyntaxTree<PgslAddressOfExpressionSyntaxTreeStructureData['meta']['type'], PgslAddressOfExpressionSyntaxTreeStructureData['data']> {
     private mVariable: PgslVariableExpressionSyntaxTree | null;

@@ -1,6 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../base-pgsl-syntax-tree';
-import { PgslExpressionSyntaxTree, PgslExpressionSyntaxTreeFactory, PgslExpressionSyntaxTreeStructureData } from '../expression/pgsl-expression-syntax-tree';
+import { PgslExpressionSyntaxTree, PgslExpressionSyntaxTreeFactory, PgslExpressionSyntaxTreeStructureData } from '../expression/pgsl-expression-syntax-tree-factory';
 import { PgslVariableNameExpressionSyntaxTreeStructureData } from '../expression/variable/pgsl-variable-name-expression-syntax-tree';
 import { PgslEnumValueExpressionSyntaxTree, PgslEnumValueExpressionSyntaxTreeStructureData } from '../expression/variable/pgsl-enum-value-expression-syntax-tree';
 

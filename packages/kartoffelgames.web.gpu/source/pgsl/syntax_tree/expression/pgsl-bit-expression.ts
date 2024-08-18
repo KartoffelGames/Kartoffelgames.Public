@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../enum/pgsl-operator.enum';
-import { PgslExpression } from './pgsl-expression-syntax-tree';
+import { PgslExpression } from './pgsl-expression-syntax-tree-factory';
 
 export class PgslBinaryExpression extends PgslExpression {
     private mLeftExpression: PgslExpression | null;

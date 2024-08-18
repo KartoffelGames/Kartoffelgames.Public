@@ -1,7 +1,7 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { PgslBuildInTypeName } from '../../enum/pgsl-type-name.enum';
 import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../base-pgsl-syntax-tree';
-import { PgslExpressionSyntaxTreeStructureData } from '../expression/pgsl-expression-syntax-tree';
+import { PgslExpressionSyntaxTreeStructureData } from '../expression/pgsl-expression-syntax-tree-factory';
 import { PgslTemplateListSyntaxTree, PgslTemplateListSyntaxTreeStructureData } from './pgsl-template-list-syntax-tree';
 
 /**

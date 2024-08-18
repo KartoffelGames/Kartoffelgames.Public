@@ -1,4 +1,4 @@
-import { PgslExpression } from '../expression/pgsl-expression-syntax-tree';
+import { PgslExpression } from '../expression/pgsl-expression-syntax-tree-factory';
 import { PgslTemplateList } from '../general/pgsl-template-list-syntax-tree';
 import { PgslStatement } from './pgsl-statement';
 

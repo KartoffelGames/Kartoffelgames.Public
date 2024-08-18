@@ -1,6 +1,6 @@
 import { List } from '@kartoffelgames/core';
 import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../base-pgsl-syntax-tree';
-import { PgslExpressionSyntaxTree, PgslExpressionSyntaxTreeFactory, PgslExpressionSyntaxTreeStructureData } from '../expression/pgsl-expression-syntax-tree';
+import { PgslExpressionSyntaxTree, PgslExpressionSyntaxTreeFactory, PgslExpressionSyntaxTreeStructureData } from '../expression/pgsl-expression-syntax-tree-factory';
 import { PgslTypeDefinitionSyntaxTree, PgslTypeDefinitionSyntaxTreeStructureData } from './pgsl-type-definition-syntax-tree';
 
 /**

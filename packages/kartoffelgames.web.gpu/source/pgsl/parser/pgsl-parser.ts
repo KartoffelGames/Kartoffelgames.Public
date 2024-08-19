@@ -5,12 +5,12 @@ import { PgslBuildInTypeName } from '../enum/pgsl-type-name.enum';
 import { PgslSyntaxTreeDataStructure } from '../syntax_tree/base-pgsl-syntax-tree';
 import { PgslAliasDeclarationSyntaxTreeStructureData } from '../syntax_tree/declarations/pgsl-alias-declaration-syntax-tree';
 import { PgslEnumDeclarationSyntaxTreeStructureData } from '../syntax_tree/declarations/pgsl-enum-declaration-syntax-tree';
+import { PgslFunctionCallExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/parenthesized/pgsl-function-call-expression-syntax-tree';
 import { PgslParenthesizedExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/parenthesized/pgsl-parenthesized-expression';
 import { PgslArithmeticExpression } from '../syntax_tree/expression/pgsl-arithmetic-expression';
 import { PgslBinaryExpression as PgslBitExpression } from '../syntax_tree/expression/pgsl-bit-expression';
 import { PgslComparisonExpression } from '../syntax_tree/expression/pgsl-comparison-expression';
 import { PgslExpressionSyntaxTreeStructureData, PgslVariableExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/pgsl-expression-syntax-tree-factory';
-import { PgslFunctionCallExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/parenthesized/pgsl-function-call-expression-syntax-tree';
 import { PgslLiteralValueExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/pgsl-literal-value-expression-syntax-tree';
 import { PgslLogicalExpression } from '../syntax_tree/expression/pgsl-logical-expression';
 import { PgslAddressOfExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/unary/pgsl-address-of-expression-syntax-tree';
@@ -24,12 +24,12 @@ import { PgslAttributeListSyntaxTreeStructureData } from '../syntax_tree/general
 import { PgslTemplateListSyntaxTreeStructureData } from '../syntax_tree/general/pgsl-template-list-syntax-tree';
 import { PgslTypeDefinitionSyntaxTreeStructureData } from '../syntax_tree/general/pgsl-type-definition-syntax-tree';
 import { PgslModuleSyntaxTree, PgslModuleSyntaxTreeStructureData } from '../syntax_tree/pgsl-module-syntax-tree';
-import { PgslBlockStatement } from '../syntax_tree/statement/pgsl-block-statement';
+import { PgslBlockStatementSyntaxTreeStructureData } from '../syntax_tree/statement/pgsl-block-statement-syntax-tree';
 import { PgslFunctionCallStatement } from '../syntax_tree/statement/pgsl-function-call-statement';
 import { PgslIfStatement } from '../syntax_tree/statement/pgsl-if-statement';
-import { PgslStatement } from '../syntax_tree/statement/pgsl-statement';
 import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
+import { PgslStatementSyntaxTreeStructureData } from '../syntax_tree/statement/pgsl-statement-factory';
 
 export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
     private mParserBuffer: ParserBuffer;
@@ -512,14 +512,14 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single(PgslToken.ParenthesesStart)
             .single('expression', this.partReference<PgslExpressionSyntaxTreeStructureData>('Expression'))
             .single(PgslToken.ParenthesesEnd)
-            .single('block', this.partReference<PgslBlockStatement>('FunctionBlock'))
+            .single('block', this.partReference<PgslBlockStatementSyntaxTreeStructureData>('Statement-Block'))
             .optional('ifElse', this.graph()
                 .single(PgslToken.KeywordElse)
                 .single('if', this.partReference<PgslIfStatement>('IfStatement'))
             )
             .optional('else', this.graph()
                 .single(PgslToken.KeywordElse)
-                .single('block', this.partReference<PgslBlockStatement>('FunctionBlock'))
+                .single('block', this.partReference<PgslBlockStatementSyntaxTreeStructureData>('Statement-Block'))
             ),
             (_pData) => {
                 // TODO: Yes this needs to be parsed.
@@ -539,11 +539,11 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                     .single(PgslToken.Comma)
                     .single('expression', this.partReference<PgslExpressionSyntaxTreeStructureData>('Expression'))
                 )
-                .single('block', this.partReference<PgslBlockStatement>('FunctionBlock'))
+                .single('block', this.partReference<PgslBlockStatementSyntaxTreeStructureData>('Statement-Block'))
             )
             .optional('default', this.graph()
                 .single(PgslToken.KeywordDefault)
-                .single('block', this.partReference<PgslBlockStatement>('FunctionBlock'))
+                .single('block', this.partReference<PgslBlockStatementSyntaxTreeStructureData>('Statement-Block'))
             )
             .single(PgslToken.BlockEnd),
             (_pData) => {
@@ -558,11 +558,11 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 this.partReference<unknown>('FunctionScopeVariableDeclaration'), // Includes semicolon
                 PgslToken.Semicolon
             ])
-            .optional('expression', this.partReference<PgslBlockStatement>('Expression'))
+            .optional('expression', this.partReference<PgslBlockStatementSyntaxTreeStructureData>('Expression'))
             .single(PgslToken.Semicolon)
             .single('statement', this.partReference<PgslExpressionSyntaxTreeStructureData>('Statement')) // TODO: Remove semicolon somehow.
             .single(PgslToken.ParenthesesEnd)
-            .single('block', this.partReference<PgslBlockStatement>('FunctionBlock')),
+            .single('block', this.partReference<PgslBlockStatementSyntaxTreeStructureData>('Statement-Block')),
             (_pData) => {
                 // TODO: Yes this needs to be parsed.
 
@@ -573,9 +573,9 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         this.defineGraphPart('WhileStatement', this.graph()
             .single(PgslToken.KeywordWhile)
             .single(PgslToken.ParenthesesStart)
-            .single('expression', this.partReference<PgslBlockStatement>('Expression'))
+            .single('expression', this.partReference<PgslBlockStatementSyntaxTreeStructureData>('Expression'))
             .single(PgslToken.ParenthesesEnd)
-            .single('block', this.partReference<PgslBlockStatement>('FunctionBlock')),
+            .single('block', this.partReference<PgslBlockStatementSyntaxTreeStructureData>('Statement-Block')),
             (_pData) => {
                 // TODO: Yes this needs to be parsed.
             }
@@ -583,7 +583,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
 
         this.defineGraphPart('DoWhileStatement', this.graph()
             .single(PgslToken.KeywordDo)
-            .single('block', this.partReference<PgslBlockStatement>('FunctionBlock'))
+            .single('block', this.partReference<PgslBlockStatementSyntaxTreeStructureData>('Statement-Block'))
             .single(PgslToken.KeywordWhile)
             .single(PgslToken.ParenthesesStart)
             .single('expression', this.partReference<PgslExpressionSyntaxTreeStructureData>('Expression'))
@@ -711,19 +711,17 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('FunctionBlock', this.graph()
+        this.defineGraphPart('Statement-Block', this.graph()
             .single(PgslToken.BlockStart)
-            .loop('statements', this.partReference<PgslStatement>('Statement'))
+            .loop('statements', this.partReference<PgslStatementSyntaxTreeStructureData>('Statement'))
             .single(PgslToken.BlockEnd),
-            (pData): PgslBlockStatement => {
-                const lBlockStatement: PgslBlockStatement = new PgslBlockStatement();
-
-                // Add all statements.
-                for (const lStatement of pData.statements) {
-                    lBlockStatement.addStatement(lStatement);
-                }
-
-                return lBlockStatement;
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslBlockStatementSyntaxTreeStructureData => {
+                return {
+                    meta: this.createMeta('Statement-Block', pStartToken, pEndToken),
+                    data: {
+                        statements: pData.statements
+                    }
+                };
             }
         );
 
@@ -742,9 +740,9 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 this.partReference<any /* TODO: */>('AssignmentStatement'),
                 this.partReference<any /* TODO: */>('IncrementDecrementStatement'),
                 this.partReference<PgslFunctionCallStatement>('FunctionCallStatement'),
-                this.partReference<PgslBlockStatement>('FunctionBlock')
+                this.partReference<PgslBlockStatementSyntaxTreeStructureData>('Statement-Block')
             ]),
-            (pData): PgslStatement => {
+            (pData): PgslStatementSyntaxTreeStructureData => {
                 return pData.statement;
             }
         );
@@ -896,7 +894,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single(PgslToken.ParenthesesEnd)
             .single(PgslToken.Colon)
             .single('returnType', this.partReference<PgslTypeDefinitionSyntaxTreeStructureData>('General-TypeDefinition'))
-            .single('block', this.partReference<PgslBlockStatement>('FunctionBlock')),
+            .single('block', this.partReference<PgslBlockStatementSyntaxTreeStructureData>('Statement-Block')),
             (_pData) => {
                 // TODO: Yes this needs to be parsed.
             }

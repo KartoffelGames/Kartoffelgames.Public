@@ -4,7 +4,7 @@ import { PgslStruct } from '../very_old_structure/struct/pgsl-struct';
 import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from './base-pgsl-syntax-tree';
 import { PgslAliasDeclarationSyntaxTree, PgslAliasDeclarationSyntaxTreeStructureData } from './declarations/pgsl-alias-declaration-syntax-tree';
 import { PgslEnumDeclarationSyntaxTree, PgslEnumDeclarationSyntaxTreeStructureData } from './declarations/pgsl-enum-declaration-syntax-tree';
-import { PgslVariableDeclarationStatement } from './statement/pgsl-variable-declaration-statement';
+import { PgslVariableDeclarationStatementSyntaxTree } from './statement/pgsl-variable-declaration-statement-syntax-tree';
 
 export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTreeStructureData['meta']['type'], PgslModuleSyntaxTreeStructureData['data']> {
     // Values
@@ -12,7 +12,7 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
     private readonly mEnums: Dictionary<string, PgslEnumDeclarationSyntaxTree>;
 
     private readonly mFunctions: Dictionary<string, PgslFunction>;
-    private readonly mGlobals: Dictionary<string, PgslVariableDeclarationStatement>;
+    private readonly mGlobals: Dictionary<string, PgslVariableDeclarationStatementSyntaxTree>;
     private readonly mStructs: Dictionary<string, PgslStruct>;
 
     /**
@@ -24,7 +24,6 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
 
     // TODO: There was something with const. (Setable on Pipline creation).
     // TODO: Fast access bindings.
-
 
     // TODO: Predefine type aliases.
     // TODO: Predefine enums.
@@ -38,7 +37,7 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
         this.mAlias = new Dictionary<string, PgslAliasDeclarationSyntaxTree>();
         this.mEnums = new Dictionary<string, PgslEnumDeclarationSyntaxTree>();
 
-        this.mGlobals = new Dictionary<string, PgslVariableDeclarationStatement>();
+        this.mGlobals = new Dictionary<string, PgslVariableDeclarationStatementSyntaxTree>();
         this.mStructs = new Dictionary<string, PgslStruct>();
         this.mFunctions = new Dictionary<string, PgslFunction>();
 

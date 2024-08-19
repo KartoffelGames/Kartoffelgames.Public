@@ -1,13 +1,13 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { PgslBuildInTypeName } from '../../enum/pgsl-type-name.enum';
-import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../base-pgsl-syntax-tree';
-import { PgslExpressionSyntaxTreeStructureData } from '../expression/pgsl-expression-syntax-tree-factory';
-import { PgslTemplateListSyntaxTree, PgslTemplateListSyntaxTreeStructureData } from './pgsl-template-list-syntax-tree';
+import { BasePgslSyntaxTree, PgslSyntaxTreeInitData } from '../base-pgsl-syntax-tree';
+import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
+import { PgslTemplateListSyntaxTree } from './pgsl-template-list-syntax-tree';
 
 /**
  * General PGSL syntax tree of a type definition.
  */
-export class PgslTypeDefinitionSyntaxTree extends BasePgslSyntaxTree<PgslTypeDefinitionSyntaxTreeStructureData['meta']['type'], PgslTypeDefinitionSyntaxTreeStructureData['data']> {
+export class PgslTypeDefinitionSyntaxTree extends BasePgslSyntaxTree<PgslTypeDefinitionSyntaxTreeStructureData> {
     /**
      * Define types.
      */
@@ -100,8 +100,8 @@ export class PgslTypeDefinitionSyntaxTree extends BasePgslSyntaxTree<PgslTypeDef
         return lTypes;
     })();
 
-    private mName: string;
-    private mTemplateList: PgslTemplateListSyntaxTree | null;
+    private readonly mName: string;
+    private readonly mTemplateList: PgslTemplateListSyntaxTree | null;
 
     /**
      * Name of type.
@@ -119,108 +119,86 @@ export class PgslTypeDefinitionSyntaxTree extends BasePgslSyntaxTree<PgslTypeDef
 
     /**
      * Constructor.
+     * 
+     * @param pData - Initial data.
+     * @param pStartColumn - Parsing start column.
+     * @param pStartLine - Parsing start line.
+     * @param pEndColumn - Parsing end column.
+     * @param pEndLine - Parsing end line.
+     * @param pBuildIn - Buildin value.
      */
-    public constructor() {
-        super('General-TypeDefinition');
+    public constructor(pData: PgslTypeDefinitionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
+        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
 
-        this.mName = 'float';
-        this.mTemplateList = null;
+        // Set data.
+        this.mName = pData.name;
+        this.mTemplateList = pData.templateList ?? null;
     }
 
     /**
-     * Apply data to current structure.
-     * Any thrown error is converted into a parser error.
-     * 
-     * @param pData - Structure data.
+     * Validate data of current structure.
      */
-    protected override applyData(pData: PgslTypeDefinitionSyntaxTreeStructureData['data']): void {
-        // Validate type existance.
-        (() => {
-            // Alias has no template.
-            if (!pData.templateList && this.document.resolveAlias(pData.name)) {
+    protected override onValidate(): void {
+        // Alias has no template.
+        if (!this.mTemplateList && this.document.resolveAlias(this.mName)) {
+            return;
+        }
+
+        // Struct has no template.
+        if (!this.mTemplateList && this.document.resolveStruct(this.mName)) {
+            return;
+        }
+
+        // Validate as build in type.
+        const lTypeDefinitionInformation: TypeDefinitionInformation | undefined = PgslTypeDefinitionSyntaxTree.mBuildInTypes.get(this.mName as PgslBuildInTypeName);
+        if (lTypeDefinitionInformation) {
+            // Type exists and doesn't need a template.
+            if (!this.mTemplateList && lTypeDefinitionInformation.template.length === 0) {
                 return;
             }
 
-            // Struct has no template.
-            if (!pData.templateList && this.document.resolveStruct(pData.name)) {
-                return;
-            }
+            // Validate all templates.
+            if (this.mTemplateList) {
+                for (const lTemplate of lTypeDefinitionInformation.template) {
+                    // Parameter length not matched.
+                    if (lTemplate.length !== this.mTemplateList.items.length) {
+                        continue;
+                    }
 
-            // Validate as build in type.
-            const lTypeDefinitionInformation: TypeDefinitionInformation | undefined = PgslTypeDefinitionSyntaxTree.mBuildInTypes.get(pData.name as PgslBuildInTypeName);
-            if (lTypeDefinitionInformation) {
-                // Type exists and doesn't need a template.
-                if (!pData.templateList && lTypeDefinitionInformation.template.length === 0) {
-                    return;
-                }
+                    // Match every single template parameter.
+                    let lTemplateMatches: boolean = true;
+                    for (let lIndex = 0; lIndex < lTemplate.length; lIndex++) {
+                        const lExpectedTemplateType: 'Expression' | 'Type' = lTemplate[lIndex];
 
-                // Validate all templates.
-                if (pData.templateList) {
-                    for (const lTemplate of lTypeDefinitionInformation.template) {
-                        // Parameter length not matched.
-                        if (lTemplate.length !== pData.templateList.data.parameterList.length) {
-                            continue;
-                        }
+                        const lActualTemplateParameter: PgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData> = this.mTemplateList.items[lIndex];
+                        const lActualTemplateType: 'Expression' | 'Type' = (lActualTemplateParameter instanceof PgslTypeDefinitionSyntaxTree) ? 'Type' : 'Expression';
 
-                        // Match every single template parameter.
-                        let lTemplateMatches: boolean = true;
-                        for (let lIndex = 0; lIndex < lTemplate.length; lIndex++) {
-                            const lExpectedTemplateType: 'Expression' | 'Type' = lTemplate[lIndex];
-                            const lActualTemplateParameter: PgslTypeDefinitionSyntaxTreeStructureData | PgslExpressionSyntaxTreeStructureData = pData.templateList.data.parameterList[lIndex];
-                            const lActualTemplateType: 'Expression' | 'Type' = (lActualTemplateParameter.meta.type === 'General-TypeDefinition') ? 'Type' : 'Expression';
-
-                            // Need to have same parameter type.
-                            if (lExpectedTemplateType !== lActualTemplateType) {
-                                lTemplateMatches = false;
-                                break;
-                            }
-                        }
-
-                        // All templates matches.
-                        if (lTemplateMatches) {
-                            return;
+                        // Need to have same parameter type.
+                        if (lExpectedTemplateType !== lActualTemplateType) {
+                            lTemplateMatches = false;
+                            break;
                         }
                     }
-                }
 
-                throw new Exception(`Type "${pData.name}" has invalid template parameter.`, this);
+                    // All templates matches.
+                    if (lTemplateMatches) {
+                        return;
+                    }
+                }
             }
 
-            throw new Exception(`Typename "${pData.name}" not defined`, this);
-        })();
-
-        // Set type name.
-        this.mName = pData.name;
-
-        // Apply template list when available.
-        this.mTemplateList = null;
-        if (pData.templateList) {
-            this.mTemplateList = new PgslTemplateListSyntaxTree().applyDataStructure(pData.templateList, this);
-        }
-    }
-
-    /**
-     * Retrieve data of current structure.
-     */
-    protected override retrieveData(): PgslTypeDefinitionSyntaxTreeStructureData['data'] {
-        // Build data structure with required name.
-        const lData: PgslTypeDefinitionSyntaxTreeStructureData['data'] = {
-            name: this.mName
-        };
-
-        // Retrieve optional template list.
-        if (this.mTemplateList) {
-            lData.templateList = this.mTemplateList.retrieveDataStructure();
+            throw new Exception(`Type "${this.mName}" has invalid template parameter.`, this);
         }
 
-        return lData;
+        throw new Exception(`Typename "${this.mName}" not defined`, this);
     }
+
 }
 
-export type PgslTypeDefinitionSyntaxTreeStructureData = PgslSyntaxTreeDataStructure<'General-TypeDefinition', {
+type PgslTypeDefinitionSyntaxTreeStructureData = {
     name: string,
-    templateList?: PgslTemplateListSyntaxTreeStructureData;
-}>;
+    templateList?: PgslTemplateListSyntaxTree;
+};
 
 type TypeDefinitionInformation = {
     template: Array<Array<'Expression' | 'Type'>>;

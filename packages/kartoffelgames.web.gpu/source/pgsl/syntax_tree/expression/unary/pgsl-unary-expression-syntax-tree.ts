@@ -1,75 +1,62 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum';
-import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../../base-pgsl-syntax-tree';
-import { PgslExpressionSyntaxTree, PgslExpressionSyntaxTreeFactory, PgslExpressionSyntaxTreeStructureData } from '../pgsl-expression-syntax-tree-factory';
+import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
+import { BasePgslSingleValueExpressionSyntaxTree } from '../single_value/base-pgsl-single-value-expression-syntax-tree';
+import { PgslSyntaxTreeInitData } from '../../base-pgsl-syntax-tree';
 
-export class PgslUnaryExpressionSyntaxTree extends BasePgslSyntaxTree<PgslUnaryExpressionSyntaxTreeStructureData['meta']['type'], PgslUnaryExpressionSyntaxTreeStructureData['data']> {
-    private mExpression: PgslExpressionSyntaxTree | null;
-    private mOperator: PgslOperator;
+/**
+ * PGSL structure holding a expression with a single value and a single unary operation.
+ */
+export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslUnaryExpressionSyntaxTreeStructureData> {
+    private readonly mExpression: BasePgslSingleValueExpressionSyntaxTree<PgslSyntaxTreeInitData>;
+    private readonly mOperator: PgslOperator;
 
     /**
      * Expression reference.
      */
-    public get expression(): PgslExpressionSyntaxTree {
-        if (this.mExpression === null) {
-            throw new Exception('Expression not set.', this);
-        }
-
+    public get expression(): BasePgslSingleValueExpressionSyntaxTree<PgslSyntaxTreeInitData> {
         return this.mExpression;
     }
 
     /**
-     * Expression operator.
+     * Unary operator.
      */
     public get operator(): PgslOperator {
-        if (this.mOperator === null) {
-            throw new Exception('Unary operator not set.', this);
-        }
-
         return this.mOperator;
     }
 
     /**
      * Constructor.
-     */
-    public constructor() {
-        super('Expression-Unary');
-
-        this.mExpression = null;
-        this.mOperator = PgslOperator.Minus;
-    }
-    /**
-     * Apply data to current structure.
-     * Any thrown error is converted into a parser error.
      * 
-     * @param pData - Structure data.
+     * @param pData - Initial data.
+     * @param pStartColumn - Parsing start column.
+     * @param pStartLine - Parsing start line.
+     * @param pEndColumn - Parsing end column.
+     * @param pEndLine - Parsing end line.
+     * @param pBuildIn - Buildin value.
      */
-    protected override applyData(pData: PgslUnaryExpressionSyntaxTreeStructureData['data']): void {
+    public constructor(pData: PgslUnaryExpressionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
+        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+
+        // Validate operator.
         if (![PgslOperator.BinaryNegate, PgslOperator.Minus, PgslOperator.Not].includes(pData.operator as (PgslOperator | any))) {
             throw new Exception(`Unary operator "${pData.operator}" not supported`, this);
         }
 
-        this.mExpression = PgslExpressionSyntaxTreeFactory.createFrom(pData.expression, this);
+        // Set data.
+        this.mExpression = pData.expression;
         this.mOperator = pData.operator as PgslOperator;
     }
 
     /**
-     * Retrieve data of current structure.
+     * Validate data of current structure.
      */
-    protected override retrieveData(): PgslUnaryExpressionSyntaxTreeStructureData['data'] {
-        // Value validation.
-        if (this.mExpression === null) {
-            throw new Exception('Expression not set.', this);
-        }
-
-        return {
-            expression: this.mExpression.retrieveDataStructure(),
-            operator: this.mOperator
-        };
+    protected override onValidate(): void {
+        // Nothing to validate eighter.
     }
 }
 
-export type PgslUnaryExpressionSyntaxTreeStructureData = PgslSyntaxTreeDataStructure<'Expression-Unary', {
-    expression: PgslExpressionSyntaxTreeStructureData;
+export type PgslUnaryExpressionSyntaxTreeStructureData = {
+    expression: BasePgslSingleValueExpressionSyntaxTree<PgslSyntaxTreeInitData>;
     operator: string;
-}>;
+};

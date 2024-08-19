@@ -1,12 +1,16 @@
-import { Exception } from '@kartoffelgames/core';
-import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../base-pgsl-syntax-tree';
-import { PgslExpressionSyntaxTree, PgslExpressionSyntaxTreeStructureData } from '../expression/pgsl-expression-syntax-tree-factory';
-import { PgslTypeDefinitionSyntaxTreeStructureData } from '../general/pgsl-type-definition-syntax-tree';
+import { PgslSyntaxTreeInitData } from '../base-pgsl-syntax-tree';
+import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
+import { PgslTypeDefinitionSyntaxTree } from '../general/pgsl-type-definition-syntax-tree';
+import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
 
-export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslSyntaxTree<PgslVariableDeclarationStatementSyntaxTreeStructureData['meta']['type'], PgslVariableDeclarationStatementSyntaxTreeStructureData['data']> {
-    private mConstant: boolean;
-    private mExpression: PgslExpressionSyntaxTree | null;
-    private mName: string;
+/**
+ * PGSL structure holding a variable declaration for a function scope variable.
+ */
+export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslVariableDeclarationStatementSyntaxTreeStructureData> {
+    private readonly mConstant: boolean;
+    private readonly mExpression: BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData> | null;
+    private readonly mName: string;
+    private readonly mType: PgslTypeDefinitionSyntaxTree;
 
     /**
      * Variable declaration is a constant value and can not be changed.
@@ -18,11 +22,7 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslSyntaxTr
     /**
      * Expression reference.
      */
-    public get expression(): PgslExpressionSyntaxTree {
-        if (this.mExpression === null) {
-            throw new Exception('Expression not set.', this);
-        }
-
+    public get expression(): BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData> | null {
         return this.mExpression;
     }
 
@@ -34,42 +34,42 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslSyntaxTr
     }
 
     /**
+     * Variable type.
+     */
+    public get type(): PgslTypeDefinitionSyntaxTree {
+        return this.mType;
+    }
+
+    /**
      * Constructor.
-     */
-    public constructor() {
-        super('Statement-VariableDeclaration');
-
-        this.mName = '';
-        this.mExpression = null;
-        this.mConstant = false;
-    }
-
-    /**
-     * Apply data to current structure.
-     * Any thrown error is converted into a parser error.
      * 
-     * @param pData - Structure data.
+     * @param pData - Initial data.
+     * @param pStartColumn - Parsing start column.
+     * @param pStartLine - Parsing start line.
+     * @param pEndColumn - Parsing end column.
+     * @param pEndLine - Parsing end line.
+     * @param pBuildIn - Buildin value.
      */
-    protected override applyData(pData: PgslVariableDeclarationStatementSyntaxTreeStructureData['data']): void {
+    public constructor(pData: PgslVariableDeclarationStatementSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
+        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
 
+        // Set data.
+        this.mName = pData.name;
+        this.mType = pData.type;
+        this.mExpression = pData.expression ?? null;
+        this.mConstant = false; // TODO: Read from expression.
     }
 
     /**
-     * Retrieve data of current structure.
+     * Validate data of current structure.
      */
-    protected override retrieveData(): PgslVariableDeclarationStatementSyntaxTreeStructureData['data'] {
-        // Basic structure data.
-        const lData:  PgslVariableDeclarationStatementSyntaxTreeStructureData['data'] =  {
-            name: this.mName,
-            statements: this.mStatementList.map((pParameter) => { return pParameter.retrieveDataStructure(); })
-        };
-
-        return lData;
+    protected override onValidate(): void {
+        // Nothing to validate eighter.
     }
 }
 
-export type PgslVariableDeclarationStatementSyntaxTreeStructureData = PgslSyntaxTreeDataStructure<'Statement-VariableDeclaration', {
+export type PgslVariableDeclarationStatementSyntaxTreeStructureData = {
     name: string;
-    type: PgslTypeDefinitionSyntaxTreeStructureData;
-    expression?: PgslExpressionSyntaxTreeStructureData;
-}>;
+    type: PgslTypeDefinitionSyntaxTree;
+    expression?: BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>;
+};

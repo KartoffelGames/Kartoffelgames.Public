@@ -1,14 +1,14 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../base-pgsl-syntax-tree';
-import { PgslStatementSyntaxTree, PgslStatementSyntaxTreeFactory, PgslStatementSyntaxTreeStructureData } from './pgsl-statement-factory';
-import { PgslVariableDeclarationStatementSyntaxTree, PgslVariableDeclarationStatementSyntaxTreeStructureData } from './pgsl-variable-declaration-statement-syntax-tree';
+import { PgslSyntaxTreeInitData } from '../base-pgsl-syntax-tree';
+import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
+import { PgslVariableDeclarationStatementSyntaxTree } from './pgsl-variable-declaration-statement-syntax-tree';
 
 /**
- * Block statement. Handles scoped values.
+ * PGSL structure holding a list of statements. Handles scoped values.
  */
-export class PgslBlockStatementSyntaxTree extends BasePgslSyntaxTree<PgslBlockStatementSyntaxTreeStructureData['meta']['type'], PgslBlockStatementSyntaxTreeStructureData['data']> {
-    private readonly mDeclaredVariables: Dictionary<string, boolean>;
-    private readonly mStatementList: Array<PgslStatementSyntaxTree>;
+export class PgslBlockStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslBlockStatementSyntaxTreeStructureData> {
+    private readonly mDeclaredVariables: Set<PgslVariableDeclarationStatementSyntaxTree>;
+    private readonly mStatementList: Array<BasePgslStatementSyntaxTree<PgslSyntaxTreeInitData>>;
 
     /**
      * Get all scoped variables of scope.
@@ -19,7 +19,7 @@ export class PgslBlockStatementSyntaxTree extends BasePgslSyntaxTree<PgslBlockSt
 
         // Append current scoped.
         for (const lVariable of this.mDeclaredVariables) {
-            lParentVariables.set(...lVariable);
+            lParentVariables.set(lVariable.name, lVariable.constant);
         }
 
         return lParentVariables;
@@ -27,52 +27,41 @@ export class PgslBlockStatementSyntaxTree extends BasePgslSyntaxTree<PgslBlockSt
 
     /**
      * Constructor.
-     */
-    public constructor() {
-        super('Statement-Block');
-
-        this.mStatementList = new Array<PgslStatementSyntaxTree>();
-        this.mDeclaredVariables = new Dictionary<string, boolean>();
-    }
-
-    /**
-     * Apply data to current structure.
-     * Any thrown error is converted into a parser error.
      * 
-     * @param pData - Structure data.
+     * @param pData - Initial data.
+     * @param pStartColumn - Parsing start column.
+     * @param pStartLine - Parsing start line.
+     * @param pEndColumn - Parsing end column.
+     * @param pEndLine - Parsing end line.
+     * @param pBuildIn - Buildin value.
      */
-    protected override applyData(pData: PgslBlockStatementSyntaxTreeStructureData['data']): void {
-        // Save statement list.
+    public constructor(pData: PgslBlockStatementSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
+        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+
+        // Set data.
+        this.mStatementList = pData.statements;
+
+        // Save declared variables.
+        this.mDeclaredVariables = new Set<PgslVariableDeclarationStatementSyntaxTree>();
         for (const lStatement of pData.statements) {
-            // Save any scoped variable as declared variable.
-            if (lStatement.meta.type === 'Statement-VariableDeclaration') {
-                // Build variable declaration.
-                const lVariableDeclaration: PgslVariableDeclarationStatementSyntaxTree = new PgslVariableDeclarationStatementSyntaxTree().applyDataStructure(lStatement as PgslVariableDeclarationStatementSyntaxTreeStructureData, this);
-
-                // Save declaration to current scope.
-                this.mDeclaredVariables.set(lVariableDeclaration.name, lVariableDeclaration.constant);
-
-                // Save statement in statement list.
-                this.mStatementList.push(lVariableDeclaration);
+            // Only save variable declarations.
+            if (!(lStatement instanceof PgslVariableDeclarationStatementSyntaxTree)) {
                 continue;
             }
 
-            // Save statement.
-            this.mStatementList.push(PgslStatementSyntaxTreeFactory.createFrom(lStatement, this));
+            // Save declaration to current scope.
+            this.mDeclaredVariables.add(lStatement);
         }
     }
 
     /**
-     * Retrieve data of current structure.
+     * Validate data of current structure.
      */
-    protected override retrieveData(): PgslBlockStatementSyntaxTreeStructureData['data'] {
-        // Basic structure data.
-        return {
-            statements: this.mStatementList.map((pParameter) => { return pParameter.retrieveDataStructure(); })
-        };
+    protected override onValidate(): void {
+        // Nothing to validate eighter.
     }
 }
 
-export type PgslBlockStatementSyntaxTreeStructureData = PgslSyntaxTreeDataStructure<'Statement-Block', {
-    statements: Array<PgslStatementSyntaxTreeStructureData>;
-}>;
+type PgslBlockStatementSyntaxTreeStructureData = {
+    statements: Array<BasePgslStatementSyntaxTree<PgslSyntaxTreeInitData>>;
+};

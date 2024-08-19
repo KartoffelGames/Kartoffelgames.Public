@@ -1,18 +1,17 @@
-import { List } from '@kartoffelgames/core';
-import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../base-pgsl-syntax-tree';
-import { PgslExpressionSyntaxTree, PgslExpressionSyntaxTreeFactory, PgslExpressionSyntaxTreeStructureData } from '../expression/pgsl-expression-syntax-tree-factory';
-import { PgslTypeDefinitionSyntaxTree, PgslTypeDefinitionSyntaxTreeStructureData } from './pgsl-type-definition-syntax-tree';
+import { BasePgslSyntaxTree, PgslSyntaxTreeInitData } from '../base-pgsl-syntax-tree';
+import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
+import { PgslTypeDefinitionSyntaxTree } from './pgsl-type-definition-syntax-tree';
 
 /**
  * Template list parameter.
  */
-export class PgslTemplateListSyntaxTree extends BasePgslSyntaxTree<PgslTemplateListSyntaxTreeStructureData['meta']['type'], PgslTemplateListSyntaxTreeStructureData['data']> {
-    private readonly mItems: List<PgslTypeDefinitionSyntaxTree | PgslExpressionSyntaxTree>;
+export class PgslTemplateListSyntaxTree extends BasePgslSyntaxTree<PgslTemplateListSyntaxTreeStructureData> {
+    private readonly mItems: Array<PgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>>;
 
     /**
      * Parameter list.
      */
-    public get items(): Array<PgslTypeDefinitionSyntaxTree | PgslExpressionSyntaxTree> {
+    public get items(): Array<PgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>> {
         return [...this.mItems];
     }
 
@@ -25,42 +24,29 @@ export class PgslTemplateListSyntaxTree extends BasePgslSyntaxTree<PgslTemplateL
 
     /**
      * Constructor.
-     */
-    public constructor() {
-        super('General-TemplateList');
-
-        this.mItems = new List<PgslTypeDefinitionSyntaxTree | PgslExpressionSyntaxTree>();
-    }
-
-    /**
-     * Apply data to current structure.
-     * Any thrown error is converted into a parser error.
      * 
-     * @param pData - Structure data.
+     * @param pData - Initial data.
+     * @param pStartColumn - Parsing start column.
+     * @param pStartLine - Parsing start line.
+     * @param pEndColumn - Parsing end column.
+     * @param pEndLine - Parsing end line.
+     * @param pBuildIn - Buildin value.
      */
-    protected override applyData(pData: PgslTemplateListSyntaxTreeStructureData['data']): void {
-        for (const lParameter of pData.parameterList) {
-            // Set type definition parameter.
-            if (lParameter.meta.type === 'General-TypeDefinition') {
-                this.mItems.push(new PgslTypeDefinitionSyntaxTree().applyDataStructure(lParameter as PgslTypeDefinitionSyntaxTreeStructureData, this));
-                continue;
-            }
+    public constructor(pData: PgslTemplateListSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
+        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
 
-            // Otherwise it is a expression.
-            this.mItems.push(PgslExpressionSyntaxTreeFactory.createFrom(lParameter as PgslExpressionSyntaxTreeStructureData, this));
-        }
+        // Set data.
+        this.mItems = pData.parameterList;
     }
 
     /**
-     * Retrieve data of current structure.
+     * Validate data of current structure.
      */
-    protected override retrieveData(): PgslTemplateListSyntaxTreeStructureData['data'] {
-        return {
-            parameterList: this.mItems.map((pParameter) => { return pParameter.retrieveDataStructure(); })
-        };
+    protected override onValidate(): void {
+        // Nothing really to validate.
     }
 }
 
-export type PgslTemplateListSyntaxTreeStructureData = PgslSyntaxTreeDataStructure<'General-TemplateList', {
-    parameterList: Array<PgslTypeDefinitionSyntaxTreeStructureData | PgslExpressionSyntaxTreeStructureData>;
-}>;
+type PgslTemplateListSyntaxTreeStructureData = {
+    parameterList: Array<PgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>>;
+};

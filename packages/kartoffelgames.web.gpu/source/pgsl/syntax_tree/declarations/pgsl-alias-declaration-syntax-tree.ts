@@ -1,13 +1,12 @@
-import { Exception } from '@kartoffelgames/core';
-import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../base-pgsl-syntax-tree';
-import { PgslTypeDefinitionSyntaxTree, PgslTypeDefinitionSyntaxTreeStructureData } from '../general/pgsl-type-definition-syntax-tree';
+import { BasePgslSyntaxTree } from '../base-pgsl-syntax-tree';
+import { PgslTypeDefinitionSyntaxTree } from '../general/pgsl-type-definition-syntax-tree';
 
 /**
  * PGSL syntax tree for a alias declaration.
  */
-export class PgslAliasDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslAliasDeclarationSyntaxTreeStructureData['meta']['type'], PgslAliasDeclarationSyntaxTreeStructureData['data']> {
-    private mName: string;
-    private mTypeDefinition: PgslTypeDefinitionSyntaxTree | null;
+export class PgslAliasDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslAliasDeclarationSyntaxTreeStructureData> {
+    private readonly mName: string;
+    private readonly mTypeDefinition: PgslTypeDefinitionSyntaxTree;
 
     /**
      * Variable name.
@@ -20,50 +19,36 @@ export class PgslAliasDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslAlias
      * Variable name.
      */
     public get type(): PgslTypeDefinitionSyntaxTree {
-        if (!this.mTypeDefinition) {
-            throw new Exception('Alias declaration not initialized', this);
-        }
-
         return this.mTypeDefinition;
     }
 
     /**
      * Constructor.
-     */
-    public constructor(pBuildIn: boolean = false) {
-        super('Declaration-Alias', pBuildIn);
-
-        this.mName = '';
-        this.mTypeDefinition = null;
-    }
-
-    /**
-     * Apply data to current structure.
-     * Any thrown error is converted into a parser error.
      * 
-     * @param pData - Structure data.
+     * @param pData - Initial data.
+     * @param pStartColumn - Parsing start column.
+     * @param pStartLine - Parsing start line.
+     * @param pEndColumn - Parsing end column.
+     * @param pEndLine - Parsing end line.
+     * @param pBuildIn - Buildin value.
      */
-    protected override applyData(pData: PgslAliasDeclarationSyntaxTreeStructureData['data']): void {
+    public constructor(pData: PgslAliasDeclarationSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
+        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+
+        // Set data.
         this.mName = pData.name;
-        this.mTypeDefinition = new PgslTypeDefinitionSyntaxTree().applyDataStructure(pData.type, this);
+        this.mTypeDefinition = pData.type;
     }
 
     /**
-     * Retrieve data of current structure.
+     * Validate data of current structure.
      */
-    protected override retrieveData(): PgslAliasDeclarationSyntaxTreeStructureData['data'] {
-        if (!this.mTypeDefinition) {
-            throw new Exception('Alias declaration not initialized', this);
-        }
-
-        return {
-            name: this.mName,
-            type: this.mTypeDefinition?.retrieveDataStructure()
-        };
+    protected override onValidate(): void {
+        // Not really something to validate.
     }
 }
 
-export type PgslAliasDeclarationSyntaxTreeStructureData = PgslSyntaxTreeDataStructure<'Declaration-Alias', {
+export type PgslAliasDeclarationSyntaxTreeStructureData = {
     name: string;
-    type: PgslTypeDefinitionSyntaxTreeStructureData;
-}>;
+    type: PgslTypeDefinitionSyntaxTree;
+};

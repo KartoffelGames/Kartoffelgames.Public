@@ -5,10 +5,11 @@ import { PgslModuleSyntaxTree } from './pgsl-module-syntax-tree';
 /**
  * Base pgsl syntax tree object.
  */
-export abstract class BasePgslSyntaxTree<TType extends string, TData extends object> {
+export abstract class BasePgslSyntaxTree<TData extends PgslSyntaxTreeInitData> {
     private readonly mBuildIn: boolean;
+    private readonly mChilds: Array<UnknownPgslSyntaxTree>;
+    private readonly mMeta: SyntaxTreeMeta;
     private mParent: UnknownPgslSyntaxTree | null;
-    private readonly mType: TType;
 
     /**
      * Structure is build in and does not be included in the final output.
@@ -44,8 +45,8 @@ export abstract class BasePgslSyntaxTree<TType extends string, TData extends obj
      */
     protected get scopedVariables(): Dictionary<string, boolean> {
         // Empty scoped variables.
-        if(!this.mParent){
-            return new Dictionary<string, boolean> ();
+        if (!this.mParent) {
+            return new Dictionary<string, boolean>();
         }
 
         return this.mParent.scopedVariables;
@@ -53,37 +54,77 @@ export abstract class BasePgslSyntaxTree<TType extends string, TData extends obj
 
     /**
      * Constructor.
+     * 
+     * @param pData - Initial data.
+     * @param pStartColumn - Parsing start column.
+     * @param pStartLine - Parsing start line.
+     * @param pEndColumn - Parsing end column.
+     * @param pEndLine - Parsing end line.
+     * @param pBuildIn - Buildin value.
      */
-    public constructor(pType: TType, pBuildIn: boolean = false) {
+    public constructor(pData: TData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number, pBuildIn: boolean = false) {
         this.mBuildIn = pBuildIn;
-        this.mType = pType;
         this.mParent = null;
+
+        // Save meta information.
+        this.mMeta = {
+            position: {
+                start: {
+                    column: pStartColumn,
+                    line: pStartLine,
+                },
+                end: {
+                    column: pEndColumn,
+                    line: pEndLine,
+                },
+            }
+        };
+
+        // Recursive find all PgslSyntaxTrees
+        const lFindChildTreeList = (pData: PgslSyntaxTreeInitData | Array<PgslSyntaxTreeInitDataValue>): Array<UnknownPgslSyntaxTree> => {
+            const lChildList: Array<UnknownPgslSyntaxTree> = new Array<UnknownPgslSyntaxTree>();
+
+            for (const lValue of Object.values(pData)) {
+                // Single tree structure.
+                if (lValue instanceof BasePgslSyntaxTree) {
+                    lChildList.push(lValue);
+                    continue;
+                }
+
+                // String is defnitly not a child.
+                if (typeof lValue === 'string') {
+                    continue;
+                }
+
+                // Recursive find in inner objects.
+                lChildList.push(...lFindChildTreeList(lValue));
+            }
+
+            return lChildList;
+        };
+
+        // Save all childs.
+        this.mChilds = lFindChildTreeList(pData);
+
+        // Set this instance to childs parent.
+        for (const lChild of this.mChilds) {
+            lChild.setParent(this);
+        }
     }
 
     /**
-     * Append syntax tree data structure to this tree.
-     * Replaces and extends current data but does not reset current set data.
-     * 
-     * @remarks
-     * Validates data and throws parser errors.
-     * 
-     * @param pData - Data structure of syntax tree.
+     * validate tree structure. 
      */
-    public applyDataStructure(pData: PgslSyntaxTreeDataStructure<TType, TData>, pParent: UnknownPgslSyntaxTree | null): this {
-        // Only set parent when parent should be set.
-        if (pParent) {
-            // Cant set parent twice.
-            if (this.mParent) {
-                throw new Exception('PGSL-Structure has a parent can not be moved.', this);
-            }
-
-            // Set parent.
-            this.mParent = pParent;
+    public validate(): void {
+        // Validate all child structures.
+        for (const lChild of this.mChilds) {
+            lChild.validate();
         }
 
+        // Apply data.
         try {
-            // Call structure apply function.
-            this.applyData(pData.data);
+            // Call structure validate function.
+            this.onValidate();
         } catch (pError) {
             // Get message of exception.
             let lMessage: string = '';
@@ -94,90 +135,55 @@ export abstract class BasePgslSyntaxTree<TType extends string, TData extends obj
             }
 
             // Extend message by file name.
-            lMessage = `File<${pData.meta.file}>: ${lMessage}`;
+            lMessage = `Transpile file: ${lMessage}`;
 
             // Build and throw parser exception.
             throw new ParserException(lMessage, this,
-                pData.meta.position.start.column,
-                pData.meta.position.start.line,
-                pData.meta.position.end.column,
-                pData.meta.position.end.line
+                this.mMeta.position.start.column,
+                this.mMeta.position.start.line,
+                this.mMeta.position.end.column,
+                this.mMeta.position.end.line
             );
         }
-
-        return this;
     }
 
     /**
-     * Append syntax tree data structure to this tree.
-     * Replaces and extends current data but does not reset current set data.
+     * Set parent tree of syntax tree.
      * 
-     * @remarks
-     * Validates data and throws parser errors.
-     * 
-     * @param pData - Data structure of syntax tree.
+     * @param pParent - Parent of structure.
      */
-    public retrieveDataStructure(): PgslSyntaxTreeDataStructure<TType, TData> {
-        // Restrict output of buildin structures.
-        if (this.mBuildIn) {
-            throw new Exception(`Can't retrieve data from build in structures.`, this);
+    private setParent(pParent: UnknownPgslSyntaxTree): void {
+        // Cant set parent twice.
+        if (this.mParent) {
+            throw new Exception('PGSL-Structure has a parent can not be moved.', this);
         }
 
-        // Call structure apply function.
-        const lData = this.retrieveData();
-
-        // Build placeholder meta data.
-        const lMeta: PgslSyntaxTreeDataStructure<TType, TData>['meta'] = {
-            type: this.mType as TType,
-            file: '<Untraceable-serialize>',
-            position: {
-                start: {
-                    column: 0, line: 0
-                },
-                end: {
-                    column: 0, line: 0
-                }
-            }
-        };
-
-        return {
-            meta: lMeta,
-            data: lData
-        };
+        // Set parent.
+        this.mParent = pParent;
     }
-
-    /**
-     * Apply data to current structure.
-     * Any thrown error is converted into a parser error.
-     * 
-     * @param pData - Structure data.
-     */
-    protected abstract applyData(pData: TData): void;
 
     /**
      * Retrieve data of current structure.
      */
-    protected abstract retrieveData(): TData;
+    protected abstract onValidate(): void;
 
     // TODO: Add something that can transpile into wgsl.
 }
 
-export type UnknownPgslSyntaxTree = BasePgslSyntaxTree<string, object>;
-
-export type PgslSyntaxTreeDataStructure<TDataType extends string, TData extends object> = {
-    meta: {
-        type: TDataType;
-        file: string;
-        position: {
-            start: {
-                column: number;
-                line: number;
-            };
-            end: {
-                column: number;
-                line: number;
-            };
+type SyntaxTreeMeta = {
+    position: {
+        start: {
+            column: number;
+            line: number;
+        };
+        end: {
+            column: number;
+            line: number;
         };
     };
-    data: TData;
 };
+
+export type UnknownPgslSyntaxTree = BasePgslSyntaxTree<PgslSyntaxTreeInitData>;
+
+type PgslSyntaxTreeInitDataValue = BasePgslSyntaxTree<PgslSyntaxTreeInitData> | string | PgslSyntaxTreeInitData | Array<PgslSyntaxTreeInitDataValue>;
+export type PgslSyntaxTreeInitData = { [Key: string]: PgslSyntaxTreeInitDataValue; };

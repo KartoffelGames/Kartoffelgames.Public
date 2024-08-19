@@ -5,27 +5,27 @@ import { PgslBuildInTypeName } from '../enum/pgsl-type-name.enum';
 import { PgslSyntaxTreeDataStructure } from '../syntax_tree/base-pgsl-syntax-tree';
 import { PgslAliasDeclarationSyntaxTreeStructureData } from '../syntax_tree/declarations/pgsl-alias-declaration-syntax-tree';
 import { PgslEnumDeclarationSyntaxTreeStructureData } from '../syntax_tree/declarations/pgsl-enum-declaration-syntax-tree';
-import { PgslFunctionCallExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/parenthesized/pgsl-function-call-expression-syntax-tree';
-import { PgslParenthesizedExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/parenthesized/pgsl-parenthesized-expression';
+import { PgslFunctionCallExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/pgsl-function-call-expression-syntax-tree';
+import { PgslParenthesizedExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/single_value/pgsl-parenthesized-expression-syntax-tree';
 import { PgslArithmeticExpression } from '../syntax_tree/expression/pgsl-arithmetic-expression';
 import { PgslBinaryExpression as PgslBitExpression } from '../syntax_tree/expression/pgsl-bit-expression';
 import { PgslComparisonExpression } from '../syntax_tree/expression/pgsl-comparison-expression';
-import { PgslExpressionSyntaxTreeStructureData, PgslVariableExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/pgsl-expression-syntax-tree-factory';
+import { PgslExpressionSyntaxTreeStructureData, PgslVariableExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/base-pgsl-expression-syntax-tree';
 import { PgslLiteralValueExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/pgsl-literal-value-expression-syntax-tree';
 import { PgslLogicalExpression } from '../syntax_tree/expression/pgsl-logical-expression';
 import { PgslAddressOfExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/unary/pgsl-address-of-expression-syntax-tree';
 import { PgslPointerExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/unary/pgsl-pointer-expression-syntax-tree';
 import { PgslUnaryExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/unary/pgsl-unary-expression-syntax-tree';
-import { PgslEnumValueExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/variable/pgsl-enum-value-expression-syntax-tree';
-import { PgslIndexedValueExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/variable/pgsl-indexed-value-expression-syntax-tree';
-import { PgslValueDecompositionExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/variable/pgsl-value-decomposition-expression-syntax-tree';
-import { PgslVariableNameExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/variable/pgsl-variable-name-expression-syntax-tree';
+import { PgslEnumValueExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/single_value/pgsl-enum-value-expression-syntax-tree';
+import { PgslIndexedValueExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/single_value/pgsl-indexed-value-expression-syntax-tree';
+import { PgslValueDecompositionExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/single_value/pgsl-value-decomposition-expression-syntax-tree';
+import { PgslVariableNameExpressionSyntaxTreeStructureData } from '../syntax_tree/expression/single_value/pgsl-variable-name-expression-syntax-tree';
 import { PgslAttributeListSyntaxTreeStructureData } from '../syntax_tree/general/pgsl-attribute-list-syntax-tree';
 import { PgslTemplateListSyntaxTreeStructureData } from '../syntax_tree/general/pgsl-template-list-syntax-tree';
 import { PgslTypeDefinitionSyntaxTreeStructureData } from '../syntax_tree/general/pgsl-type-definition-syntax-tree';
 import { PgslModuleSyntaxTree, PgslModuleSyntaxTreeStructureData } from '../syntax_tree/pgsl-module-syntax-tree';
 import { PgslBlockStatementSyntaxTreeStructureData } from '../syntax_tree/statement/pgsl-block-statement-syntax-tree';
-import { PgslFunctionCallStatement } from '../syntax_tree/statement/pgsl-function-call-statement';
+import { PgslFunctionCallStatementSyntaxTree } from '../syntax_tree/statement/pgsl-function-call-statement-syntax-tree';
 import { PgslIfStatement } from '../syntax_tree/statement/pgsl-if-statement';
 import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
@@ -688,7 +688,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             )
             .single(PgslToken.ParenthesesEnd)
             .single(PgslToken.Semicolon),
-            (pData): PgslFunctionCallStatement => {
+            (pData): PgslFunctionCallStatementSyntaxTree => {
                 // Build parameter list of function.
                 const lParameterList: Array<PgslExpressionSyntaxTreeStructureData> = new Array<PgslExpressionSyntaxTreeStructureData>();
                 if (pData.parameter) {
@@ -702,7 +702,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 }
 
                 // Build function structure.
-                const lFunctionStatement: PgslFunctionCallStatement = new PgslFunctionCallStatement();
+                const lFunctionStatement: PgslFunctionCallStatementSyntaxTree = new PgslFunctionCallStatementSyntaxTree();
                 lFunctionStatement.name = pData.name;
                 lFunctionStatement.parameter = lParameterList;
                 lFunctionStatement.templateList = pData.templateList ?? null;
@@ -739,7 +739,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 this.partReference<any /* TODO: */>('FunctionScopeVariableDeclaration'),
                 this.partReference<any /* TODO: */>('AssignmentStatement'),
                 this.partReference<any /* TODO: */>('IncrementDecrementStatement'),
-                this.partReference<PgslFunctionCallStatement>('FunctionCallStatement'),
+                this.partReference<PgslFunctionCallStatementSyntaxTree>('FunctionCallStatement'),
                 this.partReference<PgslBlockStatementSyntaxTreeStructureData>('Statement-Block')
             ]),
             (pData): PgslStatementSyntaxTreeStructureData => {

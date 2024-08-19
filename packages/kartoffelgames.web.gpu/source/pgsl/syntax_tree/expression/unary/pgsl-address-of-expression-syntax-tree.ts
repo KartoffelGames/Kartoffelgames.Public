@@ -1,55 +1,44 @@
-import { Exception } from '@kartoffelgames/core';
-import { BasePgslSyntaxTree, PgslSyntaxTreeDataStructure } from '../../base-pgsl-syntax-tree';
-import { PgslExpressionSyntaxTreeFactory, PgslVariableExpressionSyntaxTree, PgslVariableExpressionSyntaxTreeStructureData } from '../pgsl-expression-syntax-tree-factory';
+import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
+import { PgslVariableNameExpressionSyntaxTree } from '../single_value/pgsl-variable-name-expression-syntax-tree';
 
-export class PgslAddressOfExpressionSyntaxTree extends BasePgslSyntaxTree<PgslAddressOfExpressionSyntaxTreeStructureData['meta']['type'], PgslAddressOfExpressionSyntaxTreeStructureData['data']> {
-    private mVariable: PgslVariableExpressionSyntaxTree | null;
+/**
+ * PGSL structure holding a variable name used to get the address.
+ */
+export class PgslAddressOfExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslAddressOfExpressionSyntaxTreeStructureData> {
+    private readonly mVariable: PgslVariableNameExpressionSyntaxTree;
 
     /**
      * Variable reference.
      */
-    public get variable(): PgslVariableExpressionSyntaxTree {
-        if (this.mVariable === null) {
-            throw new Exception('Variable not set.', this);
-        }
-
+    public get variable(): PgslVariableNameExpressionSyntaxTree {
         return this.mVariable;
     }
 
     /**
      * Constructor.
-     */
-    public constructor() {
-        super('Expression-AddressOf');
-
-        this.mVariable = null;
-    }
-
-    /**
-     * Apply data to current structure.
-     * Any thrown error is converted into a parser error.
      * 
-     * @param pData - Structure data.
+     * @param pData - Initial data.
+     * @param pStartColumn - Parsing start column.
+     * @param pStartLine - Parsing start line.
+     * @param pEndColumn - Parsing end column.
+     * @param pEndLine - Parsing end line.
+     * @param pBuildIn - Buildin value.
      */
-    protected override applyData(pData: PgslAddressOfExpressionSyntaxTreeStructureData['data']): void {
-        this.mVariable = PgslExpressionSyntaxTreeFactory.createFrom(pData.variable, this) as PgslVariableExpressionSyntaxTree;
+    public constructor(pData: PgslAddressOfExpressionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
+        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+
+        // Set data.
+        this.mVariable = pData.variable;
     }
 
     /**
-     * Retrieve data of current structure.
+     * Validate data of current structure.
      */
-    protected override retrieveData(): PgslAddressOfExpressionSyntaxTreeStructureData['data'] {
-        // Value validation.
-        if (this.mVariable === null) {
-            throw new Exception('Variable not set.', this);
-        }
-
-        return {
-            variable: this.mVariable.retrieveDataStructure(),
-        };
+    protected override onValidate(): void {
+        // Nothing to validate eighter.
     }
 }
 
-export type PgslAddressOfExpressionSyntaxTreeStructureData = PgslSyntaxTreeDataStructure<'Expression-AddressOf', {
-    variable: PgslVariableExpressionSyntaxTreeStructureData;
-}>;
+type PgslAddressOfExpressionSyntaxTreeStructureData ={
+    variable: PgslVariableNameExpressionSyntaxTree;
+};

@@ -1,15 +1,14 @@
 import { EnumUtil } from '@kartoffelgames/core';
 import { CodeParser, LexerToken } from '@kartoffelgames/core.parser';
-import { PgslOperator } from '../enum/pgsl-operator.enum';
 import { PgslBuildInTypeName } from '../enum/pgsl-type-name.enum';
 import { PgslAliasDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-alias-declaration-syntax-tree';
 import { PgslEnumDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-enum-declaration-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../syntax_tree/expression/base-pgsl-expression-syntax-tree';
-import { PgslArithmeticExpression } from '../syntax_tree/expression/pgsl-arithmetic-expression';
-import { PgslBinaryExpression as PgslBitExpression } from '../syntax_tree/expression/pgsl-bit-expression';
-import { PgslComparisonExpression } from '../syntax_tree/expression/pgsl-comparison-expression';
+import { PgslArithmeticExpressionSyntaxTree } from '../syntax_tree/expression/pgsl-arithmetic-expression';
+import { PgslBinaryExpressionSyntaxTree } from '../syntax_tree/expression/pgsl-bit-expression';
+import { PgslComparisonExpressionSyntaxTree } from '../syntax_tree/expression/pgsl-comparison-expression';
 import { PgslLiteralValueExpressionSyntaxTree } from '../syntax_tree/expression/pgsl-literal-value-expression-syntax-tree';
-import { PgslLogicalExpression } from '../syntax_tree/expression/pgsl-logical-expression';
+import { PgslLogicalExpressionSyntaxTree } from '../syntax_tree/expression/pgsl-logical-expression';
 import { BasePgslSingleValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/base-pgsl-single-value-expression-syntax-tree';
 import { PgslEnumValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-enum-value-expression-syntax-tree';
 import { PgslFunctionCallExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-function-call-expression-syntax-tree';
@@ -240,27 +239,23 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
      */
     private defineExpression(): void {
 
-        this.defineGraphPart('LogicalExpression', this.graph()
+        this.defineGraphPart('Expression-Logical', this.graph()
             .single('leftExpression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
             .branch('operation', [
                 PgslToken.OperatorShortCircuitOr,
-                PgslToken.OperatorShortCircuitAnd,
-                PgslToken.OperatorMultiply,
-                PgslToken.OperatorBinaryOr,
-                PgslToken.OperatorBinaryAnd
+                PgslToken.OperatorShortCircuitAnd
             ])
             .single('rightExpression', this.partReference<BasePgslExpressionSyntaxTree>('Expression')),
-            (pData): PgslLogicalExpression => {
-                const lLogicalExpression: PgslLogicalExpression = new PgslLogicalExpression();
-                lLogicalExpression.leftExpression = pData.leftExpression;
-                lLogicalExpression.operator = EnumUtil.cast(PgslOperator, pData.operation)!;
-                lLogicalExpression.rightExpression = pData.rightExpression;
-
-                return lLogicalExpression;
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslLogicalExpressionSyntaxTree => {
+                return new PgslLogicalExpressionSyntaxTree({
+                    left: pData.leftExpression,
+                    operator: pData.operation,
+                    right: pData.rightExpression
+                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
-        this.defineGraphPart('ArithmeticExpression', this.graph()
+        this.defineGraphPart('Expression-Arithmetic', this.graph()
             .single('leftExpression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
             .branch('operation', [
                 PgslToken.OperatorPlus,
@@ -270,17 +265,16 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 PgslToken.OperatorModulo
             ])
             .single('rightExpression', this.partReference<BasePgslExpressionSyntaxTree>('Expression')),
-            (pData): PgslArithmeticExpression => {
-                const lArithmeticExpression: PgslArithmeticExpression = new PgslArithmeticExpression();
-                lArithmeticExpression.leftExpression = pData.leftExpression;
-                lArithmeticExpression.operator = EnumUtil.cast(PgslOperator, pData.operation)!;
-                lArithmeticExpression.rightExpression = pData.rightExpression;
-
-                return lArithmeticExpression;
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslArithmeticExpressionSyntaxTree => {
+                return new PgslArithmeticExpressionSyntaxTree({
+                    left: pData.leftExpression,
+                    operator: pData.operation,
+                    right: pData.rightExpression
+                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
-        this.defineGraphPart('ComparisonExpression', this.graph()
+        this.defineGraphPart('Expression-Comparison', this.graph()
             .single('leftExpression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
             .branch('comparison', [
                 PgslToken.OperatorEqual,
@@ -291,17 +285,16 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 PgslToken.OperatorGreaterThanEqual
             ])
             .single('rightExpression', this.partReference<BasePgslExpressionSyntaxTree>('Expression')),
-            (pData): PgslComparisonExpression => {
-                const lComparisonExpression: PgslComparisonExpression = new PgslComparisonExpression();
-                lComparisonExpression.leftExpression = pData.leftExpression;
-                lComparisonExpression.comparison = EnumUtil.cast(PgslOperator, pData.comparison)!;
-                lComparisonExpression.rightExpression = pData.rightExpression;
-
-                return lComparisonExpression;
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslComparisonExpressionSyntaxTree => {
+                return new PgslComparisonExpressionSyntaxTree({
+                    left: pData.leftExpression,
+                    operator: pData.comparison,
+                    right: pData.rightExpression
+                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
-        this.defineGraphPart('BitOperationExpression', this.graph()
+        this.defineGraphPart('Expression-BitOperation', this.graph()
             .single('leftExpression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
             .branch('operation', [
                 PgslToken.OperatorBinaryOr,
@@ -311,13 +304,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 PgslToken.OperatorShiftRight
             ])
             .single('rightExpression', this.partReference<BasePgslExpressionSyntaxTree>('Expression')),
-            (pData): PgslBitExpression => {
-                const lUnaryExpression: PgslBitExpression = new PgslBitExpression();
-                lUnaryExpression.leftExpression = pData.leftExpression;
-                lUnaryExpression.operator = EnumUtil.cast(PgslOperator, pData.operation)!;
-                lUnaryExpression.rightExpression = pData.rightExpression;
-
-                return lUnaryExpression;
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslBinaryExpressionSyntaxTree => {
+                return new PgslBinaryExpressionSyntaxTree({
+                    left: pData.leftExpression,
+                    operator: pData.operation,
+                    right: pData.rightExpression
+                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -395,10 +387,10 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 this.partReference<PgslAddressOfExpressionSyntaxTree>('Expression-AddressOf'),
                 this.partReference<PgslFunctionCallExpressionSyntaxTree>('Expression-FunctionCall'),
                 this.partReference<PgslParenthesizedExpressionSyntaxTree>('Expression-Parenthesized'),
-                this.partReference<PgslBitExpression>('BitOperationExpression'),
-                this.partReference<PgslComparisonExpression>('ComparisonExpression'),
-                this.partReference<PgslArithmeticExpression>('ArithmeticExpression'),
-                this.partReference<PgslLogicalExpression>('LogicalExpression')
+                this.partReference<PgslBinaryExpressionSyntaxTree>('Expression-BitOperation'),
+                this.partReference<PgslComparisonExpressionSyntaxTree>('Expression-Comparison'),
+                this.partReference<PgslArithmeticExpressionSyntaxTree>('Expression-Arithmetic'),
+                this.partReference<PgslLogicalExpressionSyntaxTree>('Expression-Logical')
             ]),
             (pData): BasePgslExpressionSyntaxTree => {
                 return pData.expression;

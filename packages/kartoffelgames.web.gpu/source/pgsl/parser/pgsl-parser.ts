@@ -4,15 +4,15 @@ import { PgslBuildInTypeName } from '../enum/pgsl-type-name.enum';
 import { PgslAliasDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-alias-declaration-syntax-tree';
 import { PgslEnumDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-enum-declaration-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../syntax_tree/expression/base-pgsl-expression-syntax-tree';
-import { PgslArithmeticExpressionSyntaxTree } from '../syntax_tree/expression/pgsl-arithmetic-expression';
-import { PgslBinaryExpressionSyntaxTree } from '../syntax_tree/expression/pgsl-bit-expression';
-import { PgslComparisonExpressionSyntaxTree } from '../syntax_tree/expression/pgsl-comparison-expression';
-import { PgslLiteralValueExpressionSyntaxTree } from '../syntax_tree/expression/pgsl-literal-value-expression-syntax-tree';
-import { PgslLogicalExpressionSyntaxTree } from '../syntax_tree/expression/pgsl-logical-expression';
+import { PgslArithmeticExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-arithmetic-expression';
+import { PgslBinaryExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-bit-expression';
+import { PgslComparisonExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-comparison-expression';
+import { PgslLogicalExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-logical-expression';
 import { BasePgslSingleValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/base-pgsl-single-value-expression-syntax-tree';
 import { PgslEnumValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-enum-value-expression-syntax-tree';
 import { PgslFunctionCallExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-function-call-expression-syntax-tree';
 import { PgslIndexedValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-indexed-value-expression-syntax-tree';
+import { PgslLiteralValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-literal-value-expression-syntax-tree';
 import { PgslParenthesizedExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-parenthesized-expression-syntax-tree';
 import { PgslValueDecompositionExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-value-decomposition-expression-syntax-tree';
 import { PgslVariableNameExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-variable-name-expression-syntax-tree';
@@ -348,40 +348,9 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('Expression-LiteralValue', this.graph()
-            .branch('value', [
-                this.graph().single('float', PgslToken.LiteralFloat),
-                this.graph().single('integer', PgslToken.LiteralInteger),
-                this.graph().single('boolean', PgslToken.LiteralBoolean)
-            ]),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslLiteralValueExpressionSyntaxTree => {
-                // Define different types of data for the different literals.
-                let lData: ConstructorParameters<typeof PgslLiteralValueExpressionSyntaxTree>[0];
-                if ('float' in pData.value) {
-                    lData = {
-                        textValue: pData.value.float,
-                        literalType: PgslBuildInTypeName.Float
-                    };
-                } else if ('integer' in pData.value) {
-                    lData = {
-                        textValue: pData.value.integer,
-                        literalType: PgslBuildInTypeName.Integer
-                    };
-                } else if ('boolean' in pData.value) {
-                    lData = {
-                        textValue: pData.value.boolean,
-                        literalType: PgslBuildInTypeName.Boolean
-                    };
-                }
-
-                return new PgslLiteralValueExpressionSyntaxTree(lData!, ...this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
-
         this.defineGraphPart('Expression', this.graph()
             .branch('expression', [
                 this.partReference<BasePgslSingleValueExpressionSyntaxTree>('Expression-SingleValue'), // => defineVariableExpression
-                this.partReference<PgslLiteralValueExpressionSyntaxTree>('Expression-LiteralValue'),
                 this.partReference<PgslUnaryExpressionSyntaxTree>('Expression-Unary'),
                 this.partReference<PgslPointerExpressionSyntaxTree>('Expression-Pointer'),
                 this.partReference<PgslAddressOfExpressionSyntaxTree>('Expression-AddressOf'),
@@ -955,8 +924,39 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
+        this.defineGraphPart('Expression-LiteralValue', this.graph()
+            .branch('value', [
+                this.graph().single('float', PgslToken.LiteralFloat),
+                this.graph().single('integer', PgslToken.LiteralInteger),
+                this.graph().single('boolean', PgslToken.LiteralBoolean)
+            ]),
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslLiteralValueExpressionSyntaxTree => {
+                // Define different types of data for the different literals.
+                let lData: ConstructorParameters<typeof PgslLiteralValueExpressionSyntaxTree>[0];
+                if ('float' in pData.value) {
+                    lData = {
+                        textValue: pData.value.float,
+                        literalType: PgslBuildInTypeName.Float
+                    };
+                } else if ('integer' in pData.value) {
+                    lData = {
+                        textValue: pData.value.integer,
+                        literalType: PgslBuildInTypeName.Integer
+                    };
+                } else if ('boolean' in pData.value) {
+                    lData = {
+                        textValue: pData.value.boolean,
+                        literalType: PgslBuildInTypeName.Boolean
+                    };
+                }
+
+                return new PgslLiteralValueExpressionSyntaxTree(lData!, ...this.createTokenBoundParameter(pStartToken, pEndToken));
+            }
+        );
+
         this.defineGraphPart('Expression-SingleValue', this.graph()
             .branch('expression', [
+                this.partReference<PgslLiteralValueExpressionSyntaxTree>('Expression-LiteralValue'),
                 this.partReference<PgslParenthesizedExpressionSyntaxTree>('Expression-Parenthesized'),
                 this.partReference<PgslFunctionCallExpressionSyntaxTree>('Expression-FunctionCall'),
                 this.partReference<PgslVariableNameExpressionSyntaxTree>('Expression-VariableName'),

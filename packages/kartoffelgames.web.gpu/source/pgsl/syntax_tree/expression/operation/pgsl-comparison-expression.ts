@@ -1,8 +1,11 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
-import { PgslOperator } from '../../enum/pgsl-operator.enum';
-import { BasePgslExpressionSyntaxTree } from './base-pgsl-expression-syntax-tree';
+import { PgslOperator } from '../../../enum/pgsl-operator.enum';
+import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
-export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslBinaryExpressionSyntaxTreeStructureData> {
+/**
+ * PGSL structure for a comparison expression between two values.
+ */
+export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslComparisonExpressionSyntaxTreeStructureData> {
     private readonly mLeftExpression: BasePgslExpressionSyntaxTree;
     private readonly mOperator: PgslOperator;
     private readonly mRightExpression: BasePgslExpressionSyntaxTree;
@@ -38,21 +41,22 @@ export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree
      * @param pEndLine - Parsing end line.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslBinaryExpressionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
+    public constructor(pData: PgslComparisonExpressionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
         super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
 
-        // Create list of all bit operations.
+        // Create list of all comparison operations.
         const lComparisonList: Array<PgslOperator> = [
-            PgslOperator.BinaryOr,
-            PgslOperator.BinaryAnd,
-            PgslOperator.BinaryXor,
-            PgslOperator.ShiftLeft,
-            PgslOperator.ShiftRight
+            PgslOperator.Equal,
+            PgslOperator.NotEqual,
+            PgslOperator.LowerThan,
+            PgslOperator.LowerThanEqual,
+            PgslOperator.GreaterThan,
+            PgslOperator.GreaterThanEqual
         ];
 
-        // Validate.
+        // Validate
         if (!lComparisonList.includes(pData.operator as PgslOperator)) {
-            throw new Exception(`Operator "${pData.operator}" can not used for bit operations.`, this);
+            throw new Exception(`Operator "${pData.operator}" can not used for comparisons.`, this);
         }
 
         this.mLeftExpression = pData.left;
@@ -68,7 +72,7 @@ export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree
     }
 }
 
-export type PgslBinaryExpressionSyntaxTreeStructureData = {
+export type PgslComparisonExpressionSyntaxTreeStructureData = {
     left: BasePgslExpressionSyntaxTree;
     operator: string;
     right: BasePgslExpressionSyntaxTree;

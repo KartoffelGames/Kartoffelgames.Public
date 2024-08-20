@@ -1,8 +1,8 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
-import { PgslOperator } from '../../enum/pgsl-operator.enum';
-import { BasePgslExpressionSyntaxTree } from './base-pgsl-expression-syntax-tree';
+import { PgslOperator } from '../../../enum/pgsl-operator.enum';
+import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
-export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslArithmeticExpressionSyntaxTreeStructureData> {
+export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslBinaryExpressionSyntaxTreeStructureData> {
     private readonly mLeftExpression: BasePgslExpressionSyntaxTree;
     private readonly mOperator: PgslOperator;
     private readonly mRightExpression: BasePgslExpressionSyntaxTree;
@@ -38,16 +38,16 @@ export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntax
      * @param pEndLine - Parsing end line.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslArithmeticExpressionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
+    public constructor(pData: PgslBinaryExpressionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
         super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
 
-        // Create list of all arithmetic operations.
+        // Create list of all bit operations.
         const lComparisonList: Array<PgslOperator> = [
-            PgslOperator.Plus,
-            PgslOperator.Minus,
-            PgslOperator.Multiply,
-            PgslOperator.Divide,
-            PgslOperator.Modulo
+            PgslOperator.BinaryOr,
+            PgslOperator.BinaryAnd,
+            PgslOperator.BinaryXor,
+            PgslOperator.ShiftLeft,
+            PgslOperator.ShiftRight
         ];
 
         // Validate.
@@ -64,11 +64,11 @@ export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntax
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // TODO: Left and right expressions need to resolve to number values.
+        // TODO: Left and right expressions need to resolve to scalar values.
     }
 }
 
-export type PgslArithmeticExpressionSyntaxTreeStructureData = {
+export type PgslBinaryExpressionSyntaxTreeStructureData = {
     left: BasePgslExpressionSyntaxTree;
     operator: string;
     right: BasePgslExpressionSyntaxTree;

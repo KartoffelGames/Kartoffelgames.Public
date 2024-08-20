@@ -1,11 +1,11 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
-import { PgslOperator } from '../../enum/pgsl-operator.enum';
-import { BasePgslExpressionSyntaxTree } from './base-pgsl-expression-syntax-tree';
+import { PgslOperator } from '../../../enum/pgsl-operator.enum';
+import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**
- * PGSL structure for a comparison expression between two values.
+ * PGSL structure for a logical expression between two values.
  */
-export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslComparisonExpressionSyntaxTreeStructureData> {
+export class PgslLogicalExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslLogicalExpressionSyntaxTreeStructureData> {
     private readonly mLeftExpression: BasePgslExpressionSyntaxTree;
     private readonly mOperator: PgslOperator;
     private readonly mRightExpression: BasePgslExpressionSyntaxTree;
@@ -41,24 +41,21 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
      * @param pEndLine - Parsing end line.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslComparisonExpressionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
+    public constructor(pData: PgslLogicalExpressionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
         super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
 
-        // Create list of all comparison operations.
-        const lComparisonList: Array<PgslOperator> = [
-            PgslOperator.Equal,
-            PgslOperator.NotEqual,
-            PgslOperator.LowerThan,
-            PgslOperator.LowerThanEqual,
-            PgslOperator.GreaterThan,
-            PgslOperator.GreaterThanEqual
+        // Create list of all short circuit operations.
+        const lShortCircuitOperationList: Array<PgslOperator> = [
+            PgslOperator.ShortCircuitOr,
+            PgslOperator.ShortCircuitAnd
         ];
 
         // Validate
-        if (!lComparisonList.includes(pData.operator as PgslOperator)) {
-            throw new Exception(`Operator "${pData.operator}" can not used for comparisons.`, this);
+        if (!lShortCircuitOperationList.includes(pData.operator as PgslOperator)) {
+            throw new Exception(`Operator "${pData.operator}" can not used for logical expressions.`, this);
         }
 
+        // Set data.
         this.mLeftExpression = pData.left;
         this.mOperator = EnumUtil.cast(PgslOperator, pData.operator)!;
         this.mRightExpression = pData.right;
@@ -68,11 +65,11 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // TODO: Left and right expressions need to resolve to scalar values.
+        // TODO: Left and right expressions need to resolve to boolean values.
     }
 }
 
-export type PgslComparisonExpressionSyntaxTreeStructureData = {
+export type PgslLogicalExpressionSyntaxTreeStructureData = {
     left: BasePgslExpressionSyntaxTree;
     operator: string;
     right: BasePgslExpressionSyntaxTree;

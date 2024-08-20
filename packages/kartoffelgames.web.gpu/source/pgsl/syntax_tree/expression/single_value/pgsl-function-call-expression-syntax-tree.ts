@@ -1,11 +1,12 @@
-import { PgslSyntaxTreeInitData } from '../base-pgsl-syntax-tree';
-import { PgslTemplateListSyntaxTree } from '../general/pgsl-template-list-syntax-tree';
-import { BasePgslExpressionSyntaxTree } from './base-pgsl-expression-syntax-tree';
+import { PgslSyntaxTreeInitData } from '../../base-pgsl-syntax-tree';
+import { PgslTemplateListSyntaxTree } from '../../general/pgsl-template-list-syntax-tree';
+import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
+import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
 
 /**
  * PGSL syntax tree of a function call expression with optional template list.
  */
-export class PgslFunctionCallExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslFunctionCallExpressionSyntaxTreeStructureData> {
+export class PgslFunctionCallExpressionSyntaxTree extends BasePgslSingleValueExpressionSyntaxTree<PgslFunctionCallExpressionSyntaxTreeStructureData> {
     private readonly mName: string;
     private readonly mParameterList: Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>>;
     private readonly mTemplateList: PgslTemplateListSyntaxTree | null;
@@ -53,7 +54,7 @@ export class PgslFunctionCallExpressionSyntaxTree extends BasePgslExpressionSynt
     /**
      * Validate data of current structure.
      */
-    protected override onValidate(): void {
+    protected override onValidateIntegrity(): void {
         // TODO: Validate function parameter and template.
     }
 }

@@ -4,6 +4,6 @@ import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tre
 /**
  * Base single value expression syntax tree.
  */
-export abstract class BasePgslSingleValueExpressionSyntaxTree<TData extends PgslSyntaxTreeInitData> extends BasePgslExpressionSyntaxTree<TData> {
+export abstract class BasePgslSingleValueExpressionSyntaxTree<TData extends PgslSyntaxTreeInitData = PgslSyntaxTreeInitData> extends BasePgslExpressionSyntaxTree<TData> {
 
 }

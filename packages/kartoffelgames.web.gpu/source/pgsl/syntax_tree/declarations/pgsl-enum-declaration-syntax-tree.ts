@@ -57,7 +57,7 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslEnumDe
     /**
      * Validate data of current structure.
      */
-    protected override onValidate(): void {
+    protected override onValidateIntegrity(): void {
         // Not really something to validate.
     }
 }

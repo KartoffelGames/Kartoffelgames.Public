@@ -103,7 +103,7 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
     /**
      * Validate data of current structure.
      */
-    protected override onValidate(): void {
+    protected override onValidateIntegrity(): void {
         // TODO: Maybe the parent can set allowed attributes. 
     }
 

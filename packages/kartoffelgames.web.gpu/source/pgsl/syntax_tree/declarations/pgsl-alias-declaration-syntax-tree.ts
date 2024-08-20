@@ -43,7 +43,7 @@ export class PgslAliasDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslAlias
     /**
      * Validate data of current structure.
      */
-    protected override onValidate(): void {
+    protected override onValidateIntegrity(): void {
         // Not really something to validate.
     }
 }

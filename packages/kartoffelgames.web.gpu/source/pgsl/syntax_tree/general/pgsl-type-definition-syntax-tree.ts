@@ -138,7 +138,7 @@ export class PgslTypeDefinitionSyntaxTree extends BasePgslSyntaxTree<PgslTypeDef
     /**
      * Validate data of current structure.
      */
-    protected override onValidate(): void {
+    protected override onValidateIntegrity(): void {
         // Alias has no template.
         if (!this.mTemplateList && this.document.resolveAlias(this.mName)) {
             return;

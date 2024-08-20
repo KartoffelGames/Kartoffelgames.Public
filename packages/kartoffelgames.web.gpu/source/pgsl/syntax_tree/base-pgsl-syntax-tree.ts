@@ -31,6 +31,13 @@ export abstract class BasePgslSyntaxTree<TData extends PgslSyntaxTreeInitData> {
     }
 
     /**
+     * Get syntax tree meta.
+     */
+    public get meta(): SyntaxTreeMeta {
+        return this.mMeta;
+    }
+
+    /**
      * Parent structure of this object.
      * 
      * @throws {@link Exception}
@@ -115,16 +122,16 @@ export abstract class BasePgslSyntaxTree<TData extends PgslSyntaxTreeInitData> {
     /**
      * validate tree structure. 
      */
-    public validate(): void {
+    public validateIntegrity(): void {
         // Validate all child structures.
         for (const lChild of this.mChilds) {
-            lChild.validate();
+            lChild.validateIntegrity();
         }
 
         // Apply data.
         try {
             // Call structure validate function.
-            this.onValidate();
+            this.onValidateIntegrity();
         } catch (pError) {
             // Get message of exception.
             let lMessage: string = '';
@@ -165,7 +172,7 @@ export abstract class BasePgslSyntaxTree<TData extends PgslSyntaxTreeInitData> {
     /**
      * Retrieve data of current structure.
      */
-    protected abstract onValidate(): void;
+    protected abstract onValidateIntegrity(): void;
 
     // TODO: Add something that can transpile into wgsl.
 }

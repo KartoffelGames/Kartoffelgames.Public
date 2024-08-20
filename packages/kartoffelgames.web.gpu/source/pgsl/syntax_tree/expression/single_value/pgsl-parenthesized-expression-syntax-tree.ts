@@ -35,7 +35,7 @@ export class PgslParenthesizedExpressionSyntaxTree extends BasePgslSingleValueEx
     /**
      * Validate data of current structure.
      */
-    protected override onValidate(): void {
+    protected override onValidateIntegrity(): void {
         // Nothing to validate 
     }
 }

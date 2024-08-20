@@ -54,7 +54,7 @@ export class PgslFunctionCallStatementSyntaxTree extends BasePgslStatementSyntax
     /**
      * Validate data of current structure.
      */
-    protected override onValidate(): void {
+    protected override onValidateIntegrity(): void {
         // TODO: Validate function parameter and template.
     }
 }

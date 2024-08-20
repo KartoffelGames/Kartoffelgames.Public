@@ -44,7 +44,7 @@ export class PgslEnumValueExpressionSyntaxTree extends BasePgslSingleValueExpres
     /**
      * Validate data of current structure.
      */
-    protected override onValidate(): void {
+    protected override onValidateIntegrity(): void {
         const lReferencedEnum: PgslEnumDeclarationSyntaxTree | null = this.document.resolveEnum(this.mName);
 
         // Catch undefined enum names.

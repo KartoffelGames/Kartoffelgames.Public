@@ -34,7 +34,7 @@ export class PgslVariableNameExpressionSyntaxTree extends BasePgslSingleValueExp
     /**
      * Validate data of current structure.
      */
-    protected override onValidate(): void {
+    protected override onValidateIntegrity(): void {
         // Catch undefined variables.
         if (!this.scopedVariables.has(this.name)) {
             throw new Exception(`Variable "${this.name}" not defined.`, this);

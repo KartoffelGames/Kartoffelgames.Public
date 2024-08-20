@@ -44,7 +44,7 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSynt
     /**
      * Validate data of current structure.
      */
-    protected override onValidate(): void {
+    protected override onValidateIntegrity(): void {
         // Nothing to validate 
     }
 

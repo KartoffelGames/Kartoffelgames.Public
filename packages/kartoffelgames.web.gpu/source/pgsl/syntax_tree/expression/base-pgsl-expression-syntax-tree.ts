@@ -3,6 +3,6 @@ import { BasePgslSyntaxTree, PgslSyntaxTreeInitData } from '../base-pgsl-syntax-
 /**
  * PGSL base expression.
  */
-export abstract class BasePgslExpressionSyntaxTree<TData extends PgslSyntaxTreeInitData> extends BasePgslSyntaxTree<TData> {
+export abstract class BasePgslExpressionSyntaxTree<TData extends PgslSyntaxTreeInitData = PgslSyntaxTreeInitData> extends BasePgslSyntaxTree<TData> {
     
 }

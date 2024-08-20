@@ -26,7 +26,7 @@ import { PgslModuleSyntaxTree } from '../syntax_tree/pgsl-module-syntax-tree';
 import { BasePgslStatementSyntaxTree } from '../syntax_tree/statement/base-pgsl-statement-syntax-tree';
 import { PgslBlockStatementSyntaxTree } from '../syntax_tree/statement/pgsl-block-statement-syntax-tree';
 import { PgslFunctionCallStatementSyntaxTree } from '../syntax_tree/statement/pgsl-function-call-statement-syntax-tree';
-import { PgslIfStatement } from '../syntax_tree/statement/pgsl-if-statement';
+import { PgslIfStatementSyntaxTree } from '../syntax_tree/statement/pgsl-if-statement';
 import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
 
@@ -403,22 +403,33 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
      */
     private defineFunctionScope(): void {
 
-        this.defineGraphPart('IfStatement', this.graph()
+        this.defineGraphPart('Statement-If', this.graph()
             .single(PgslToken.KeywordIf)
             .single(PgslToken.ParenthesesStart)
             .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
             .single(PgslToken.ParenthesesEnd)
             .single('block', this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block'))
-            .optional('ifElse', this.graph()
-                .single(PgslToken.KeywordElse)
-                .single('if', this.partReference<PgslIfStatement>('IfStatement'))
-            )
             .optional('else', this.graph()
                 .single(PgslToken.KeywordElse)
-                .single('block', this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block'))
+                .branch('block', [
+                    this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block'),
+                    this.partReference<PgslIfStatementSyntaxTree>('Statement-If')
+                ])
             ),
-            (_pData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslIfStatementSyntaxTree => {
+                // Create data.
+                const lData: ConstructorParameters<typeof PgslIfStatementSyntaxTree>[0] = {
+                    expression: pData.expression,
+                    block: pData.block
+                };
+
+                // Optional else block.
+                if (pData.else) {
+                    lData.else = pData.else.block;
+                }
+
+                // Create if statement syntax tree.
+                return new PgslIfStatementSyntaxTree(lData, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -626,7 +637,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
 
         this.defineGraphPart('Statement', this.graph()
             .branch('statement', [
-                this.partReference<any /* TODO: */>('IfStatement'),
+                this.partReference<PgslIfStatementSyntaxTree>('Statement-If'),
                 this.partReference<any /* TODO: */>('SwitchStatement'),
                 this.partReference<any /* TODO: */>('ForStatement'),
                 this.partReference<any /* TODO: */>('WhileStatement'),

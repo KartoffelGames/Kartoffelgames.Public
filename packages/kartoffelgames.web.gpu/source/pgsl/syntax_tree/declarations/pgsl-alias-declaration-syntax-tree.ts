@@ -1,10 +1,10 @@
-import { BasePgslSyntaxTree } from '../base-pgsl-syntax-tree';
 import { PgslTypeDefinitionSyntaxTree } from '../general/pgsl-type-definition-syntax-tree';
+import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
 
 /**
  * PGSL syntax tree for a alias declaration.
  */
-export class PgslAliasDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslAliasDeclarationSyntaxTreeStructureData> {
+export class PgslAliasDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslAliasDeclarationSyntaxTreeStructureData> {
     private readonly mName: string;
     private readonly mTypeDefinition: PgslTypeDefinitionSyntaxTree;
 

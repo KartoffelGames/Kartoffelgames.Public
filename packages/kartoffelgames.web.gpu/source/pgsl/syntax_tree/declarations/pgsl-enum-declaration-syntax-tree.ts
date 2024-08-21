@@ -1,10 +1,10 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { BasePgslSyntaxTree } from '../base-pgsl-syntax-tree';
+import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
 
 /**
  * PGSL syntax tree of a enum declaration.
  */
-export class PgslEnumDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslEnumDeclarationSyntaxTreeStructureData> {
+export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslEnumDeclarationSyntaxTreeStructureData> {
     private readonly mName: string;
     private readonly mValues: Dictionary<string, string | number>;
 

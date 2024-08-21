@@ -4,16 +4,17 @@ import { PgslBuildInTypeName } from '../enum/pgsl-type-name.enum';
 import { PgslAliasDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-alias-declaration-syntax-tree';
 import { PgslEnumDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-enum-declaration-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../syntax_tree/expression/base-pgsl-expression-syntax-tree';
-import { PgslArithmeticExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-arithmetic-expression';
-import { PgslBinaryExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-bit-expression';
-import { PgslComparisonExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-comparison-expression';
-import { PgslLogicalExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-logical-expression';
+import { PgslArithmeticExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-arithmetic-expression-syntax-tree';
+import { PgslBinaryExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-bit-expression-syntax-tree';
+import { PgslComparisonExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-comparison-expression-syntax-tree';
+import { PgslLogicalExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-logical-expression-syntax-tree';
 import { BasePgslSingleValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/base-pgsl-single-value-expression-syntax-tree';
 import { PgslEnumValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-enum-value-expression-syntax-tree';
 import { PgslFunctionCallExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-function-call-expression-syntax-tree';
 import { PgslIndexedValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-indexed-value-expression-syntax-tree';
 import { PgslLiteralValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-literal-value-expression-syntax-tree';
 import { PgslParenthesizedExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-parenthesized-expression-syntax-tree';
+import { PgslStringValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-string-value-expression-syntax-tree';
 import { PgslValueDecompositionExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-value-decomposition-expression-syntax-tree';
 import { PgslVariableNameExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-variable-name-expression-syntax-tree';
 import { PgslAddressOfExpressionSyntaxTree } from '../syntax_tree/expression/unary/pgsl-address-of-expression-syntax-tree';
@@ -26,7 +27,7 @@ import { PgslModuleSyntaxTree } from '../syntax_tree/pgsl-module-syntax-tree';
 import { BasePgslStatementSyntaxTree } from '../syntax_tree/statement/base-pgsl-statement-syntax-tree';
 import { PgslBlockStatementSyntaxTree } from '../syntax_tree/statement/pgsl-block-statement-syntax-tree';
 import { PgslFunctionCallStatementSyntaxTree } from '../syntax_tree/statement/pgsl-function-call-statement-syntax-tree';
-import { PgslIfStatementSyntaxTree } from '../syntax_tree/statement/pgsl-if-statement';
+import { PgslIfStatementSyntaxTree } from '../syntax_tree/statement/pgsl-if-statement-syntax-tree';
 import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
 
@@ -552,7 +553,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('FunctionCallStatement', this.graph()
+        this.defineGraphPart('Statement-FunctionCall', this.graph()
             .single('name', PgslToken.Identifier)
             .optional('templateList', this.partReference<PgslTemplateListSyntaxTree>('General-TemplateList'))
             .single(PgslToken.ParenthesesStart)
@@ -618,7 +619,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 this.partReference<any /* TODO: */>('FunctionScopeVariableDeclaration'),
                 this.partReference<any /* TODO: */>('AssignmentStatement'),
                 this.partReference<any /* TODO: */>('IncrementDecrementStatement'),
-                this.partReference<PgslFunctionCallStatementSyntaxTree>('FunctionCallStatement'),
+                this.partReference<PgslFunctionCallStatementSyntaxTree>('Statement-FunctionCall'),
                 this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block')
             ]),
             (pData): BasePgslStatementSyntaxTree => {
@@ -954,6 +955,15 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
+        this.defineGraphPart('Expression-StringValue', this.graph()
+            .single('string', PgslToken.LiteralString),
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslStringValueExpressionSyntaxTree => {
+                return new PgslStringValueExpressionSyntaxTree({
+                    textValue: pData.string
+                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
+            }
+        );
+
         this.defineGraphPart('Expression-SingleValue', this.graph()
             .branch('expression', [
                 this.partReference<PgslLiteralValueExpressionSyntaxTree>('Expression-LiteralValue'),
@@ -961,6 +971,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 this.partReference<PgslFunctionCallExpressionSyntaxTree>('Expression-FunctionCall'),
                 this.partReference<PgslVariableNameExpressionSyntaxTree>('Expression-VariableName'),
                 this.partReference<PgslIndexedValueExpressionSyntaxTree>('Expression-IndexedValue'),
+                this.partReference<PgslStringValueExpressionSyntaxTree>('Expression-StringValue'),
                 this.partReference<PgslValueDecompositionExpressionSyntaxTree | PgslEnumValueExpressionSyntaxTree>('Expression-ValueDecomposition')
             ]),
             (pData): BasePgslSingleValueExpressionSyntaxTree => {

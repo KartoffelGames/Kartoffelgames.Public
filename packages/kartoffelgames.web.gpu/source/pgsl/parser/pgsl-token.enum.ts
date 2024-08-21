@@ -66,6 +66,7 @@ export enum PgslToken {
     LiteralBoolean = 'LiteralBoolean',
     LiteralInteger = 'LiteralInteger',
     LiteralFloat = 'LiteralFloat',
+    LiteralString = 'LiteralString',
 
     // Declaration keywords
     KeywordDeclarationLet = 'KeywordDeclarationLet',

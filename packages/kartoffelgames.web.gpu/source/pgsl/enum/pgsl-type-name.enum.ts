@@ -4,6 +4,7 @@ export enum PgslBuildInTypeName {
     Integer = 'int',
     UnsignedInteger = 'uint',
     Float = 'float',
+    String = 'string',
 
     // Vector types.
     Vector2 = 'vec2',

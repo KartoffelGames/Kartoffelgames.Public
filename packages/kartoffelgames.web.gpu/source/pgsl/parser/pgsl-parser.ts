@@ -30,6 +30,7 @@ import { PgslFunctionCallStatementSyntaxTree } from '../syntax_tree/statement/pg
 import { PgslIfStatementSyntaxTree } from '../syntax_tree/statement/pgsl-if-statement-syntax-tree';
 import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
+import { PgslFunctionDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-function-declaration-syntax-tree';
 
 export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
     private mParserBuffer: ParserBuffer;
@@ -750,7 +751,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('FunctionDeclaration', this.graph()
+        this.defineGraphPart('Declaration-Function', this.graph()
             .optional('attributes', this.partReference<PgslAttributeListSyntaxTree>('General-AttributeList'))
             .single(PgslToken.KeywordFunction)
             .single('name', PgslToken.Identifier)
@@ -770,8 +771,22 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single(PgslToken.Colon)
             .single('returnType', this.partReference<PgslTypeDefinitionSyntaxTree>('General-TypeDefinition'))
             .single('block', this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block')),
-            (_pData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslFunctionDeclarationSyntaxTree => {
+                // Create base data.
+                const lData: ConstructorParameters<typeof PgslFunctionDeclarationSyntaxTree>[0] = {
+                    name: pData.name,
+                    parameter: new Array<ConstructorParameters<typeof PgslFunctionDeclarationSyntaxTree>[0]['parameter'][number]>(),
+                    returnType: pData.returnType,
+                    block: pData.block
+                };
+
+                // Read and insert parameter data.
+                if (pData.parameter) {
+                    // Add parameter to parameter list.
+                    lData.parameter.push(pData.parameter.first, ...pData.parameter.additional);
+                }
+
+                return new PgslFunctionDeclarationSyntaxTree(lData, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
     }
@@ -788,7 +803,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                     this.partReference('ModuleScopeVariableDeclaration'),
                     this.partReference<PgslEnumDeclarationSyntaxTree>('Declaration-Enum'),
                     this.partReference('StructDeclaration'),
-                    this.partReference('FunctionDeclaration')
+                    this.partReference<PgslFunctionDeclarationSyntaxTree>('Declaration-Function')
                 ])
             ),
             (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslModuleSyntaxTree => {

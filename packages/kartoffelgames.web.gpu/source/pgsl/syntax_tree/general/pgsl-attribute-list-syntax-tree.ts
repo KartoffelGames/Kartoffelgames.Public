@@ -81,7 +81,7 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
             if (!PgslAttributeListSyntaxTree.mValidAttributes.has(lAttribute.name)) {
                 // TODO: Allow own attribute names but ignore it.
 
-                throw new Exception(`Invalid attribute "${lAttribute}" used.`, this);
+                throw new Exception(`Invalid attribute "${lAttribute.name}" used.`, this);
             }
 
             // Validate existance.

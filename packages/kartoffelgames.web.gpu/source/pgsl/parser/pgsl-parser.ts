@@ -4,6 +4,7 @@ import { PgslBuildInTypeName } from '../enum/pgsl-type-name.enum';
 import { PgslAliasDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-alias-declaration-syntax-tree';
 import { PgslEnumDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-enum-declaration-syntax-tree';
 import { PgslFunctionDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-function-declaration-syntax-tree';
+import { PgslVariableDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-variable-declaration-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../syntax_tree/expression/base-pgsl-expression-syntax-tree';
 import { PgslArithmeticExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-arithmetic-expression-syntax-tree';
 import { PgslBinaryExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-bit-expression-syntax-tree';
@@ -634,7 +635,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
      */
     private defineModuleScope(): void {
 
-        this.defineGraphPart('ModuleScopeVariableDeclaration', this.graph()
+        this.defineGraphPart('Declaration-Variable', this.graph()
             .optional('attributes', this.partReference<PgslAttributeListSyntaxTree>('General-AttributeList'))
             .branch('declarationType', [
                 PgslToken.KeywordDeclarationStorage,
@@ -646,12 +647,29 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             ])
             .single('variableName', PgslToken.Identifier).single(PgslToken.Colon)
             .single('type', this.partReference<PgslTypeDefinitionSyntaxTree>('General-TypeDefinition'))
-            .branch([
+            .branch('initialization', [
                 PgslToken.Semicolon,
                 this.graph().single(PgslToken.Assignment).single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression')).single(PgslToken.Semicolon)
             ]),
-            (_pData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslVariableDeclarationSyntaxTree => {
+                // Build data structure.
+                const lData: ConstructorParameters<typeof PgslVariableDeclarationSyntaxTree>[0] = {
+                    name: pData.variableName,
+                    type: pData.type,
+                    declarationType: pData.declarationType
+                };
+
+                // Optional attributes.
+                if (pData.attributes) {
+                    lData.attributeList = pData.attributes;
+                }
+
+                // Optional attributes.
+                if (typeof pData.initialization !== 'string') {
+                    lData.expression = pData.initialization.expression;
+                }
+
+                return new PgslVariableDeclarationSyntaxTree(lData, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -695,7 +713,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 // Add enum name to buffer.
                 this.mParserBuffer.enumDeclaration.add(pData.name);
 
-                // Build struct data structure.
+                // Build enum data structure.
                 const lData: ConstructorParameters<typeof PgslEnumDeclarationSyntaxTree>[0] = {
                     name: pData.name,
                     items: new Array<{ name: string, value?: string; }>()
@@ -800,7 +818,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .loop('list', this.graph()
                 .branch('content', [
                     this.partReference<PgslAliasDeclarationSyntaxTree>('Declaration-Alias'),
-                    this.partReference('ModuleScopeVariableDeclaration'),
+                    this.partReference<PgslVariableDeclarationSyntaxTree>('Declaration-Variable'),
                     this.partReference<PgslEnumDeclarationSyntaxTree>('Declaration-Enum'),
                     this.partReference('StructDeclaration'),
                     this.partReference<PgslFunctionDeclarationSyntaxTree>('Declaration-Function')
@@ -810,7 +828,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 const lData: ConstructorParameters<typeof PgslModuleSyntaxTree>[0] = {
                     aliases: new Array<PgslAliasDeclarationSyntaxTree>(),
                     enums: new Array<PgslEnumDeclarationSyntaxTree>(),
-                    functions: new Array<PgslFunctionDeclarationSyntaxTree>()
+                    functions: new Array<PgslFunctionDeclarationSyntaxTree>(),
+                    variables: new Array<PgslVariableDeclarationSyntaxTree>()
                 };
 
                 // Loop data.
@@ -827,6 +846,10 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                         }
                         case lContent instanceof PgslFunctionDeclarationSyntaxTree: {
                             lData.functions.push(lContent);
+                            break;
+                        }
+                        case lContent instanceof PgslVariableDeclarationSyntaxTree: {
+                            lData.variables.push(lContent);
                             break;
                         }
                     }

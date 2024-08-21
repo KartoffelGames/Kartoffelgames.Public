@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { PgslParser } from '../../../source/pgsl/parser/pgsl-parser';
 import { PgslModuleSyntaxTree } from '../../../source/pgsl/syntax_tree/pgsl-module-syntax-tree';
 
-describe('PsglLexer', () => {
+describe('PsglParser', () => {
     const lPgslParser: PgslParser = new PgslParser();
 
     describe('-- Modulescope variable declarations', () => {

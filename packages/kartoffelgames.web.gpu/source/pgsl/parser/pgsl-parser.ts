@@ -3,6 +3,7 @@ import { CodeParser, LexerToken } from '@kartoffelgames/core.parser';
 import { PgslBuildInTypeName } from '../enum/pgsl-type-name.enum';
 import { PgslAliasDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-alias-declaration-syntax-tree';
 import { PgslEnumDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-enum-declaration-syntax-tree';
+import { PgslFunctionDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-function-declaration-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../syntax_tree/expression/base-pgsl-expression-syntax-tree';
 import { PgslArithmeticExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-arithmetic-expression-syntax-tree';
 import { PgslBinaryExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-bit-expression-syntax-tree';
@@ -30,7 +31,6 @@ import { PgslFunctionCallStatementSyntaxTree } from '../syntax_tree/statement/pg
 import { PgslIfStatementSyntaxTree } from '../syntax_tree/statement/pgsl-if-statement-syntax-tree';
 import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
-import { PgslFunctionDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-function-declaration-syntax-tree';
 
 export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
     private mParserBuffer: ParserBuffer;
@@ -808,8 +808,9 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             ),
             (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslModuleSyntaxTree => {
                 const lData: ConstructorParameters<typeof PgslModuleSyntaxTree>[0] = {
-                    alias: new Array<PgslAliasDeclarationSyntaxTree>(),
-                    enum: new Array<PgslEnumDeclarationSyntaxTree>()
+                    aliases: new Array<PgslAliasDeclarationSyntaxTree>(),
+                    enums: new Array<PgslEnumDeclarationSyntaxTree>(),
+                    functions: new Array<PgslFunctionDeclarationSyntaxTree>()
                 };
 
                 // Loop data.
@@ -817,11 +818,15 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                     // Set data to correct buckets.
                     switch (true) {
                         case lContent instanceof PgslAliasDeclarationSyntaxTree: {
-                            lData.alias.push(lContent);
+                            lData.aliases.push(lContent);
                             break;
                         }
                         case lContent instanceof PgslEnumDeclarationSyntaxTree: {
-                            lData.enum.push(lContent);
+                            lData.enums.push(lContent);
+                            break;
+                        }
+                        case lContent instanceof PgslFunctionDeclarationSyntaxTree: {
+                            lData.functions.push(lContent);
                             break;
                         }
                     }

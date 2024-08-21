@@ -1,17 +1,17 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { PgslFunction } from '../very_old_structure/pgsl-function';
 import { PgslStruct } from '../very_old_structure/struct/pgsl-struct';
 import { BasePgslSyntaxTree } from './base-pgsl-syntax-tree';
 import { PgslAliasDeclarationSyntaxTree } from './declarations/pgsl-alias-declaration-syntax-tree';
 import { PgslEnumDeclarationSyntaxTree } from './declarations/pgsl-enum-declaration-syntax-tree';
+import { PgslFunctionDeclarationSyntaxTree } from './declarations/pgsl-function-declaration-syntax-tree';
 import { PgslVariableDeclarationStatementSyntaxTree } from './statement/pgsl-variable-declaration-statement-syntax-tree';
 
 export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTreeStructureData> {
     // Values
     private readonly mAlias: Dictionary<string, PgslAliasDeclarationSyntaxTree>;
     private readonly mEnums: Dictionary<string, PgslEnumDeclarationSyntaxTree>;
+    private readonly mFunctions: Dictionary<string, PgslFunctionDeclarationSyntaxTree>;
 
-    private readonly mFunctions: Dictionary<string, PgslFunction>;
     private readonly mGlobals: Dictionary<string, PgslVariableDeclarationStatementSyntaxTree>;
     private readonly mStructs: Dictionary<string, PgslStruct>;
 
@@ -46,7 +46,7 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
 
         this.mGlobals = new Dictionary<string, PgslVariableDeclarationStatementSyntaxTree>();
         this.mStructs = new Dictionary<string, PgslStruct>();
-        this.mFunctions = new Dictionary<string, PgslFunction>();
+        this.mFunctions = new Dictionary<string, PgslFunctionDeclarationSyntaxTree>();
 
         // Add buildin enums.
         this.mEnums.set('AccessMode', new PgslEnumDeclarationSyntaxTree({
@@ -120,7 +120,7 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
         }, 0, 0, 0, 0, true));
 
         // Apply alias data.
-        for (const lAlias of pData.alias) {
+        for (const lAlias of pData.aliases) {
             if (this.mAlias.has(lAlias.name)) {
                 throw new Exception(`Alias "${lAlias.name}" is already defined.`, this);
             }
@@ -130,7 +130,7 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
         }
 
         // Apply enum data.
-        for (const lEnum of pData.enum) {
+        for (const lEnum of pData.enums) {
             // Enum data does not merge.
             if (this.mEnums.has(lEnum.name)) {
                 throw new Exception(`Enum "${lEnum.name}" is already defined.`, this);
@@ -138,6 +138,17 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
 
             // Apply new enum.
             this.mEnums.set(lEnum.name, lEnum);
+        }
+
+        // Apply enum data.
+        for (const lFunction of pData.functions) {
+            // Enum data does not merge.
+            if (this.mFunctions.has(lFunction.name)) {
+                throw new Exception(`Function "${lFunction.name}" is already defined.`, this);
+            }
+
+            // Apply new function.
+            this.mFunctions.set(lFunction.name, lFunction);
         }
 
         // TODO: Other globals
@@ -185,6 +196,7 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
 }
 
 type PgslModuleSyntaxTreeStructureData = {
-    alias: Array<PgslAliasDeclarationSyntaxTree>;
-    enum: Array<PgslEnumDeclarationSyntaxTree>;
+    aliases: Array<PgslAliasDeclarationSyntaxTree>;
+    enums: Array<PgslEnumDeclarationSyntaxTree>;
+    functions: Array<PgslFunctionDeclarationSyntaxTree>;
 };

@@ -1,3 +1,4 @@
+import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
 import { PgslTypeDefinitionSyntaxTree } from '../general/pgsl-type-definition-syntax-tree';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
 
@@ -33,7 +34,7 @@ export class PgslAliasDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTre
      * @param pBuildIn - Buildin value.
      */
     public constructor(pData: PgslAliasDeclarationSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+        super(pData, pData.attributes, pStartColumn, pStartLine, pEndColumn, pEndLine);
 
         // Set data.
         this.mName = pData.name;
@@ -49,6 +50,7 @@ export class PgslAliasDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTre
 }
 
 export type PgslAliasDeclarationSyntaxTreeStructureData = {
+    attributes: PgslAttributeListSyntaxTree;
     name: string;
     type: PgslTypeDefinitionSyntaxTree;
 };

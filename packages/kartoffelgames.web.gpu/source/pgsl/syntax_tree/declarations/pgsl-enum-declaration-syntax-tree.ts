@@ -1,5 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
+import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
 
 /**
  * PGSL syntax tree of a enum declaration.
@@ -13,7 +14,7 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
      */
     public get name(): string {
         return this.mName;
-    } 
+    }
 
     /**
      * Constructor.
@@ -26,11 +27,11 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
      * @param pBuildIn - Buildin value.
      */
     public constructor(pData: PgslEnumDeclarationSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number, pBuildIn: boolean = false) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
+        super(pData, pData.attributes, pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
 
         // Set data.
         this.mName = pData.name;
-        
+
         // Add each item to enum.
         this.mValues = new Dictionary<string, string | number>();
         for (const lItem of pData.items) {
@@ -50,7 +51,7 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
      * 
      * @returns Value of property or null when the property is not defined.
      */
-    public property(pName: string): string | number | null{
+    public property(pName: string): string | number | null {
         return this.mValues.get(pName) ?? null;
     }
 
@@ -63,6 +64,7 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
 }
 
 export type PgslEnumDeclarationSyntaxTreeStructureData = {
+    attributes: PgslAttributeListSyntaxTree;
     name: string;
     items: Array<{
         name: string;

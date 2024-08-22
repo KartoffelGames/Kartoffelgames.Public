@@ -5,6 +5,7 @@ import { PgslAliasDeclarationSyntaxTree } from './declarations/pgsl-alias-declar
 import { PgslEnumDeclarationSyntaxTree } from './declarations/pgsl-enum-declaration-syntax-tree';
 import { PgslFunctionDeclarationSyntaxTree } from './declarations/pgsl-function-declaration-syntax-tree';
 import { PgslVariableDeclarationSyntaxTree } from './declarations/pgsl-variable-declaration-syntax-tree';
+import { PgslAttributeListSyntaxTree } from './general/pgsl-attribute-list-syntax-tree';
 
 export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTreeStructureData> {
     // Values
@@ -50,6 +51,7 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
 
         // Add buildin enums.
         this.mEnums.set('AccessMode', new PgslEnumDeclarationSyntaxTree({
+            attributes: new PgslAttributeListSyntaxTree({ attributes: [] }, 0, 0, 0, 0),
             name: 'AccessMode',
             items: [
                 { name: 'Read', value: 'read' },
@@ -59,6 +61,7 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
         }, 0, 0, 0, 0, true));
 
         this.mEnums.set('TexelFormat', new PgslEnumDeclarationSyntaxTree({
+            attributes: new PgslAttributeListSyntaxTree({ attributes: [] }, 0, 0, 0, 0),
             name: 'TexelFormat',
             items: [
                 { name: 'Rgba8unorm', value: 'rgba8unorm' },
@@ -82,6 +85,7 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
         }, 0, 0, 0, 0, true));
 
         this.mEnums.set('BuildIn', new PgslEnumDeclarationSyntaxTree({
+            attributes: new PgslAttributeListSyntaxTree({ attributes: [] }, 0, 0, 0, 0),
             name: 'BuildIn',
             items: [
                 { name: 'VertexIndex', value: 'vertex_index' },
@@ -100,6 +104,7 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
         }, 0, 0, 0, 0, true));
 
         this.mEnums.set('InterpolationSampling', new PgslEnumDeclarationSyntaxTree({
+            attributes: new PgslAttributeListSyntaxTree({ attributes: [] }, 0, 0, 0, 0),
             name: 'InterpolationSampling',
             items: [
                 { name: 'Center', value: 'center' },
@@ -111,6 +116,7 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
         }, 0, 0, 0, 0, true));
 
         this.mEnums.set('InterpolationType', new PgslEnumDeclarationSyntaxTree({
+            attributes: new PgslAttributeListSyntaxTree({ attributes: [] }, 0, 0, 0, 0),
             name: 'InterpolationType',
             items: [
                 { name: 'Perspective', value: 'perspective' },

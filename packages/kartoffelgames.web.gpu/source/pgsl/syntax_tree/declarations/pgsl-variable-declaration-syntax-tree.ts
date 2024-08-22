@@ -9,18 +9,10 @@ import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tr
  * PGSL syntax tree for a alias declaration.
  */
 export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslVariableDeclarationSyntaxTreeStructureData> {
-    private readonly mAttributeList: PgslAttributeListSyntaxTree | null;
     private readonly mDeclarationType: PgslDeclarationType;
     private readonly mExpression: BasePgslExpressionSyntaxTree | null;
     private readonly mName: string;
     private readonly mType: PgslTypeDefinitionSyntaxTree;
-
-    /**
-     * Declaration attributes.
-     */
-    public get attributes(): PgslAttributeListSyntaxTree | null {
-        return this.mAttributeList;
-    }
 
     /**
      * Variable declaration type.
@@ -61,7 +53,7 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
      * @param pBuildIn - Buildin value.
      */
     public constructor(pData: PgslVariableDeclarationSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number, pBuildIn: boolean = false) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
+        super(pData, pData.attributes, pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
 
         // Create list of all bit operations.
         const lDeclarationTypeList: Array<PgslDeclarationType> = [
@@ -82,13 +74,7 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
         this.mType = pData.type;
         this.mName = pData.name;
         this.mDeclarationType = EnumUtil.cast(PgslDeclarationType, pData.declarationType)!;
-        this.mAttributeList = null;
         this.mExpression = null;
-
-        // Optional attribute list.
-        if (pData.attributeList) {
-            this.mAttributeList = pData.attributeList;
-        }
 
         // Optional expression.
         if (pData.expression) {
@@ -108,7 +94,7 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
 }
 
 export type PgslVariableDeclarationSyntaxTreeStructureData = {
-    attributeList?: PgslAttributeListSyntaxTree;
+    attributes: PgslAttributeListSyntaxTree;
     declarationType: string;
     name: string;
     type: PgslTypeDefinitionSyntaxTree;

@@ -7,18 +7,10 @@ import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tr
  * PGSL syntax tree for a alias declaration.
  */
 export class PgslFunctionDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslFunctionDeclarationSyntaxTreeStructureData> {
-    private readonly mAttributeList: PgslAttributeListSyntaxTree | null;
     private readonly mBlock: PgslBlockStatementSyntaxTree;
     private readonly mName: string;
     private readonly mParameter: Array<PgslFunctionDeclarationParameter>;
     private readonly mReturnType: PgslTypeDefinitionSyntaxTree;
-
-    /**
-     * Declaration attributes.
-     */
-    public get attributes(): PgslAttributeListSyntaxTree | null {
-        return this.mAttributeList;
-    }
 
     /**
      * Function block.
@@ -59,19 +51,13 @@ export class PgslFunctionDeclarationSyntaxTree extends BasePgslDeclarationSyntax
      * @param pBuildIn - Buildin value.
      */
     public constructor(pData: PgslFunctionDeclarationSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number, pBuildIn: boolean = false) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
+        super(pData, pData.attributes, pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
 
         // Set data.
         this.mBlock = pData.block;
         this.mName = pData.name;
         this.mParameter = pData.parameter;
         this.mReturnType = pData.returnType;
-        this.mAttributeList = null;
-
-        // Optional attribute list.
-        if (pData.attributeList) {
-            this.mAttributeList = pData.attributeList;
-        }
     }
 
     /**
@@ -88,9 +74,9 @@ type PgslFunctionDeclarationParameter = {
 };
 
 export type PgslFunctionDeclarationSyntaxTreeStructureData = {
+    attributes: PgslAttributeListSyntaxTree;
     name: string;
     parameter: Array<PgslFunctionDeclarationParameter>;
     returnType: PgslTypeDefinitionSyntaxTree;
     block: PgslBlockStatementSyntaxTree;
-    attributeList?: PgslAttributeListSyntaxTree;
 };

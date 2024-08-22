@@ -636,7 +636,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
     private defineModuleScope(): void {
 
         this.defineGraphPart('Declaration-Variable', this.graph()
-            .optional('attributes', this.partReference<PgslAttributeListSyntaxTree>('General-AttributeList'))
+            .single('attributes', this.partReference<PgslAttributeListSyntaxTree>('General-AttributeList'))
             .branch('declarationType', [
                 PgslToken.KeywordDeclarationStorage,
                 PgslToken.KeywordDeclarationUniform,
@@ -654,15 +654,11 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslVariableDeclarationSyntaxTree => {
                 // Build data structure.
                 const lData: ConstructorParameters<typeof PgslVariableDeclarationSyntaxTree>[0] = {
+                    attributes: pData.attributes,
                     name: pData.variableName,
                     type: pData.type,
                     declarationType: pData.declarationType
                 };
-
-                // Optional attributes.
-                if (pData.attributes) {
-                    lData.attributeList = pData.attributes;
-                }
 
                 // Optional attributes.
                 if (typeof pData.initialization !== 'string') {
@@ -674,6 +670,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         );
 
         this.defineGraphPart('Declaration-Alias', this.graph()
+            .single('attributes', this.partReference<PgslAttributeListSyntaxTree>('General-AttributeList'))
             .single(PgslToken.KeywordAlias)
             .single('name', PgslToken.Identifier).single(PgslToken.Assignment)
             .single('type', this.partReference<PgslTypeDefinitionSyntaxTree>('General-TypeDefinition')).single(PgslToken.Semicolon),
@@ -683,6 +680,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
 
                 // Create structure.
                 return new PgslAliasDeclarationSyntaxTree({
+                    attributes: pData.attributes,
                     name: pData.name,
                     type: pData.type
                 }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
@@ -690,6 +688,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         );
 
         this.defineGraphPart('Declaration-Enum', this.graph()
+            .single('attributes', this.partReference<PgslAttributeListSyntaxTree>('General-AttributeList'))
             .single(PgslToken.KeywordEnum)
             .single('name', PgslToken.Identifier)
             .single(PgslToken.BlockStart)
@@ -715,6 +714,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
 
                 // Build enum data structure.
                 const lData: ConstructorParameters<typeof PgslEnumDeclarationSyntaxTree>[0] = {
+                    attributes: pData.attributes,
                     name: pData.name,
                     items: new Array<{ name: string, value?: string; }>()
                 };
@@ -770,7 +770,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         );
 
         this.defineGraphPart('Declaration-Function', this.graph()
-            .optional('attributes', this.partReference<PgslAttributeListSyntaxTree>('General-AttributeList'))
+            .single('attributes', this.partReference<PgslAttributeListSyntaxTree>('General-AttributeList'))
             .single(PgslToken.KeywordFunction)
             .single('name', PgslToken.Identifier)
             .single(PgslToken.ParenthesesStart)
@@ -792,6 +792,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslFunctionDeclarationSyntaxTree => {
                 // Create base data.
                 const lData: ConstructorParameters<typeof PgslFunctionDeclarationSyntaxTree>[0] = {
+                    attributes: pData.attributes,
                     name: pData.name,
                     parameter: new Array<ConstructorParameters<typeof PgslFunctionDeclarationSyntaxTree>[0]['parameter'][number]>(),
                     returnType: pData.returnType,

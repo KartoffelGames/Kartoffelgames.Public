@@ -739,29 +739,30 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('StructDeclaration', this.graph()
+        this.defineGraphPart('Declaration-StructProperty', this.graph()
+            .single('attributes', this.partReference<PgslAttributeListSyntaxTree>('General-AttributeList'))
+            .single('name', PgslToken.Identifier)
+            .single(PgslToken.Colon)
+            .single('type', this.partReference<PgslTypeDefinitionSyntaxTree>('General-TypeDefinition')),
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslStructPropertyDeclarationSyntaxTree {
+
+            }
+        );
+
+        this.defineGraphPart('Declaration-Struct', this.graph()
+            .single('attributes', this.partReference<PgslAttributeListSyntaxTree>('General-AttributeList'))
             .single(PgslToken.KeywordStruct)
             .single('name', PgslToken.Identifier)
             .single(PgslToken.BlockStart)
             .optional('values', this.graph()
-                .optional('attributes', this.partReference<PgslAttributeListSyntaxTree>('General-AttributeList'))
-                .single('name', PgslToken.Identifier)
-                .single(PgslToken.Colon)
-                .branch('value', [
-                    this.partReference<PgslTypeDefinitionSyntaxTree>('General-TypeDefinition')
-                ])
+                .single('first', this.partReference<PgslStructPropertyDeclarationSyntaxTree>('Declaration-StructProperty'))
                 .loop('additional', this.graph()
                     .single(PgslToken.Comma)
-                    .optional('attributes', this.partReference<PgslAttributeListSyntaxTree>('General-AttributeList'))
-                    .single('name', PgslToken.Identifier)
-                    .single(PgslToken.Assignment)
-                    .branch('value', [
-                        this.partReference<PgslTypeDefinitionSyntaxTree>('General-TypeDefinition')
-                    ])
+                    .single('property', this.partReference<PgslStructPropertyDeclarationSyntaxTree>('Declaration-StructProperty'))
                 )
             )
             .single(PgslToken.BlockEnd),
-            (pData) => {
+            (pData): PgslStructDeclarationSyntaxTree => {
                 // Add struct name to struct buffer.
                 this.mParserBuffer.structDeclaration.add(pData.name);
 
@@ -821,7 +822,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                     this.partReference<PgslAliasDeclarationSyntaxTree>('Declaration-Alias'),
                     this.partReference<PgslVariableDeclarationSyntaxTree>('Declaration-Variable'),
                     this.partReference<PgslEnumDeclarationSyntaxTree>('Declaration-Enum'),
-                    this.partReference('StructDeclaration'),
+                    this.partReference<PgslStructDeclarationSyntaxTree>('Declaration-Struct'),
                     this.partReference<PgslFunctionDeclarationSyntaxTree>('Declaration-Function')
                 ])
             ),

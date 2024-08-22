@@ -1,3 +1,5 @@
+import { EnumUtil, Exception } from '@kartoffelgames/core';
+import { PgslDeclarationType } from '../../enum/pgsl-declaration-type.enum';
 import { PgslSyntaxTreeInitData } from '../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 import { PgslTypeDefinitionSyntaxTree } from '../general/pgsl-type-definition-syntax-tree';
@@ -8,6 +10,7 @@ import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
  */
 export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslVariableDeclarationStatementSyntaxTreeStructureData> {
     private readonly mConstant: boolean;
+    private readonly mDeclarationType: PgslDeclarationType;
     private readonly mExpression: BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData> | null;
     private readonly mName: string;
     private readonly mType: PgslTypeDefinitionSyntaxTree;
@@ -17,6 +20,13 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
      */
     public get constant(): boolean {
         return this.mConstant;
+    }
+
+    /**
+     * Variable declaration type.
+     */
+    public get declarationType(): PgslDeclarationType {
+        return this.mDeclarationType;
     }
 
     /**
@@ -53,6 +63,24 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
     public constructor(pData: PgslVariableDeclarationStatementSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
         super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
 
+        // Create list of all bit operations.
+        const lDeclarationTypeList: Array<PgslDeclarationType> = [
+            PgslDeclarationType.Const,
+            PgslDeclarationType.Let
+        ];
+
+        // Validate.
+        if (!lDeclarationTypeList.includes(pData.declarationType as PgslDeclarationType)) {
+            throw new Exception(`Declaration type "${pData.declarationType}" can not be used for block variable declarations.`, this);
+        }
+
+        // Set parsed declaration type.
+        this.mDeclarationType = EnumUtil.cast(PgslDeclarationType, pData.declarationType)!;
+
+        if(this.mDeclarationType === PgslDeclarationType.Const && !pData.expression){
+            throw new Exception(`Const declaration "${pData.name}" needs a assignment.`, this);
+        }
+
         // Set data.
         this.mName = pData.name;
         this.mType = pData.type;
@@ -69,6 +97,7 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
 }
 
 export type PgslVariableDeclarationStatementSyntaxTreeStructureData = {
+    declarationType: string;
     name: string;
     type: PgslTypeDefinitionSyntaxTree;
     expression?: BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>;

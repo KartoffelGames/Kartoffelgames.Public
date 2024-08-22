@@ -1,5 +1,5 @@
-import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
-import { PgslBlockStatementSyntaxTree } from './pgsl-block-statement-syntax-tree';
+import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree';
+import { PgslBlockStatementSyntaxTree } from '../pgsl-block-statement-syntax-tree';
 
 /**
  * PGSL structure for a if statement with optional else block.

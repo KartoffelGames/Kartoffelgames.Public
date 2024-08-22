@@ -29,9 +29,10 @@ import { PgslTemplateListSyntaxTree } from '../syntax_tree/general/pgsl-template
 import { PgslTypeDefinitionSyntaxTree } from '../syntax_tree/general/pgsl-type-definition-syntax-tree';
 import { PgslModuleSyntaxTree } from '../syntax_tree/pgsl-module-syntax-tree';
 import { BasePgslStatementSyntaxTree } from '../syntax_tree/statement/base-pgsl-statement-syntax-tree';
+import { PgslIfStatementSyntaxTree } from '../syntax_tree/statement/branches/pgsl-if-statement-syntax-tree';
 import { PgslBlockStatementSyntaxTree } from '../syntax_tree/statement/pgsl-block-statement-syntax-tree';
 import { PgslFunctionCallStatementSyntaxTree } from '../syntax_tree/statement/pgsl-function-call-statement-syntax-tree';
-import { PgslIfStatementSyntaxTree } from '../syntax_tree/statement/pgsl-if-statement-syntax-tree';
+import { PgslVariableDeclarationStatementSyntaxTree } from '../syntax_tree/statement/pgsl-variable-declaration-statement-syntax-tree';
 import { PgslBreakStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-break-statement-syntax-tree';
 import { PgslContinueStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-continue-statement-syntax-tree';
 import { PgslDiscardStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-discard-statement-syntax-tree';
@@ -511,19 +512,31 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('FunctionScopeVariableDeclaration', this.graph()
+        this.defineGraphPart('Statement-VariableDeclaration', this.graph()
             .branch('declarationType', [
                 PgslToken.KeywordDeclarationConst,
                 PgslToken.KeywordDeclarationLet
             ])
             .single('variableName', PgslToken.Identifier).single(PgslToken.Colon)
             .single('type', this.partReference<PgslTypeDefinitionSyntaxTree>('General-TypeDefinition'))
-            .branch([
+            .branch('initial', [
                 PgslToken.Semicolon,
                 this.graph().single(PgslToken.Assignment).single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression')).single(PgslToken.Semicolon)
             ]),
-            (_pData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslVariableDeclarationStatementSyntaxTree => {
+                // Build enum data structure.
+                const lData: ConstructorParameters<typeof PgslVariableDeclarationStatementSyntaxTree>[0] = {
+                    declarationType: pData.declarationType,
+                    name: pData.variableName,
+                    type: pData.type
+                };
+
+                // Set inial value expression.
+                if (typeof pData.initial !== 'string') {
+                    lData.expression = pData.initial.expression;
+                }
+
+                return new PgslVariableDeclarationStatementSyntaxTree(lData, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -621,9 +634,9 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 this.partReference<any /* TODO: */>('DoWhileStatement'),
                 this.partReference<PgslBreakStatementSyntaxTree>('Statement-Break'),
                 this.partReference<PgslContinueStatementSyntaxTree>('Statement-Continue'),
-                this.partReference<any /* TODO: */>('ReturnStatement'),
                 this.partReference<PgslDiscardStatementSyntaxTree>('Statement-Discard'),
-                this.partReference<any /* TODO: */>('FunctionScopeVariableDeclaration'),
+                this.partReference<any /* TODO: */>('ReturnStatement'),
+                this.partReference<PgslVariableDeclarationStatementSyntaxTree>('Statement-VariableDeclaration'),
                 this.partReference<any /* TODO: */>('AssignmentStatement'),
                 this.partReference<any /* TODO: */>('IncrementDecrementStatement'),
                 this.partReference<PgslFunctionCallStatementSyntaxTree>('Statement-FunctionCall'),

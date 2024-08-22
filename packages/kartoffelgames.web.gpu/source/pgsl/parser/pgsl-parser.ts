@@ -4,6 +4,7 @@ import { PgslBuildInTypeName } from '../enum/pgsl-type-name.enum';
 import { PgslAliasDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-alias-declaration-syntax-tree';
 import { PgslEnumDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-enum-declaration-syntax-tree';
 import { PgslFunctionDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-function-declaration-syntax-tree';
+import { PgslStructPropertyDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-struct-property-declaration-syntax-tree';
 import { PgslVariableDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-variable-declaration-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../syntax_tree/expression/base-pgsl-expression-syntax-tree';
 import { PgslArithmeticExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-arithmetic-expression-syntax-tree';
@@ -744,8 +745,16 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single('name', PgslToken.Identifier)
             .single(PgslToken.Colon)
             .single('type', this.partReference<PgslTypeDefinitionSyntaxTree>('General-TypeDefinition')),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslStructPropertyDeclarationSyntaxTree {
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslStructPropertyDeclarationSyntaxTree => {
+                // Add alias name to parser buffer. Used for identifying type definitions over alias declarations.
+                this.mParserBuffer.aliasDeclarations.add(pData.name);
 
+                // Create structure.
+                return new PgslStructPropertyDeclarationSyntaxTree({
+                    attributes: pData.attributes,
+                    name: pData.name,
+                    type: pData.type
+                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 

@@ -4,6 +4,7 @@ import { PgslBuildInTypeName } from '../enum/pgsl-type-name.enum';
 import { PgslAliasDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-alias-declaration-syntax-tree';
 import { PgslEnumDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-enum-declaration-syntax-tree';
 import { PgslFunctionDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-function-declaration-syntax-tree';
+import { PgslStructDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-struct-declaration-syntax-tree';
 import { PgslStructPropertyDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-struct-property-declaration-syntax-tree';
 import { PgslVariableDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-variable-declaration-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../syntax_tree/expression/base-pgsl-expression-syntax-tree';
@@ -763,7 +764,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single(PgslToken.KeywordStruct)
             .single('name', PgslToken.Identifier)
             .single(PgslToken.BlockStart)
-            .optional('values', this.graph()
+            .optional('properties', this.graph()
                 .single('first', this.partReference<PgslStructPropertyDeclarationSyntaxTree>('Declaration-StructProperty'))
                 .loop('additional', this.graph()
                     .single(PgslToken.Comma)
@@ -771,11 +772,25 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 )
             )
             .single(PgslToken.BlockEnd),
-            (pData): PgslStructDeclarationSyntaxTree => {
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslStructDeclarationSyntaxTree => {
                 // Add struct name to struct buffer.
                 this.mParserBuffer.structDeclaration.add(pData.name);
 
-                // TODO: Yes this needs to be parsed.
+                // Create base data.
+                const lData: ConstructorParameters<typeof PgslStructDeclarationSyntaxTree>[0] = {
+                    attributes: pData.attributes,
+                    name: pData.name,
+                    properties: new Array<PgslStructPropertyDeclarationSyntaxTree>()
+                };
+
+                // Read and insert property data.
+                if (pData.properties) {
+                    // Add property to property list.
+                    lData.properties.push(pData.properties.first, ...pData.properties.additional.map((pItem) => { return pItem.property; }));
+                }
+
+                // Create struct syntax tree.
+                return new PgslStructDeclarationSyntaxTree(lData, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -840,7 +855,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                     aliases: new Array<PgslAliasDeclarationSyntaxTree>(),
                     enums: new Array<PgslEnumDeclarationSyntaxTree>(),
                     functions: new Array<PgslFunctionDeclarationSyntaxTree>(),
-                    variables: new Array<PgslVariableDeclarationSyntaxTree>()
+                    variables: new Array<PgslVariableDeclarationSyntaxTree>(),
+                    structs: new Array<PgslStructDeclarationSyntaxTree>()
                 };
 
                 // Loop data.
@@ -863,9 +879,11 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                             lData.variables.push(lContent);
                             break;
                         }
+                        case lContent instanceof PgslStructDeclarationSyntaxTree: {
+                            lData.structs.push(lContent);
+                            break;
+                        }
                     }
-
-                    // TODO: switch case with all things.
                 }
 
                 return new PgslModuleSyntaxTree(lData, ...this.createTokenBoundParameter(pStartToken, pEndToken));

@@ -1,9 +1,9 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { PgslStruct } from '../very_old_structure/struct/pgsl-struct';
 import { BasePgslSyntaxTree } from './base-pgsl-syntax-tree';
 import { PgslAliasDeclarationSyntaxTree } from './declarations/pgsl-alias-declaration-syntax-tree';
 import { PgslEnumDeclarationSyntaxTree } from './declarations/pgsl-enum-declaration-syntax-tree';
 import { PgslFunctionDeclarationSyntaxTree } from './declarations/pgsl-function-declaration-syntax-tree';
+import { PgslStructDeclarationSyntaxTree } from './declarations/pgsl-struct-declaration-syntax-tree';
 import { PgslVariableDeclarationSyntaxTree } from './declarations/pgsl-variable-declaration-syntax-tree';
 import { PgslAttributeListSyntaxTree } from './general/pgsl-attribute-list-syntax-tree';
 
@@ -14,7 +14,7 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
     private readonly mFunctions: Dictionary<string, PgslFunctionDeclarationSyntaxTree>;
 
     private readonly mGlobalVariables: Dictionary<string, PgslVariableDeclarationSyntaxTree>;
-    private readonly mStructs: Dictionary<string, PgslStruct>;
+    private readonly mStructs: Dictionary<string, PgslStructDeclarationSyntaxTree>;
 
     /**
      * This document.
@@ -44,9 +44,8 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
 
         this.mAlias = new Dictionary<string, PgslAliasDeclarationSyntaxTree>();
         this.mEnums = new Dictionary<string, PgslEnumDeclarationSyntaxTree>();
-
         this.mGlobalVariables = new Dictionary<string, PgslVariableDeclarationSyntaxTree>();
-        this.mStructs = new Dictionary<string, PgslStruct>();
+        this.mStructs = new Dictionary<string, PgslStructDeclarationSyntaxTree>();
         this.mFunctions = new Dictionary<string, PgslFunctionDeclarationSyntaxTree>();
 
         // Add buildin enums.
@@ -160,7 +159,7 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
         // Apply variables data.
         for (const lVariable of pData.variables) {
             // Variables data does not merge.
-            if (this.mFunctions.has(lVariable.name)) {
+            if (this.mGlobalVariables.has(lVariable.name)) {
                 throw new Exception(`Variable declaration "${lVariable.name}" is already defined.`, this);
             }
 
@@ -168,7 +167,16 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
             this.mGlobalVariables.set(lVariable.name, lVariable);
         }
 
-        // TODO: Structs
+        // Apply struct data.
+        for (const lStruct of pData.structs) {
+            // Struct data does not merge.
+            if (this.mStructs.has(lStruct.name)) {
+                throw new Exception(`Struct declaration "${lStruct.name}" is already defined.`, this);
+            }
+
+            // Apply new variable.
+            this.mStructs.set(lStruct.name, lStruct);
+        }
 
         // TODO: Maybe sort things, idk. 
     }
@@ -202,7 +210,7 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
      * 
      * @returns struct declaration  
      */
-    public resolveStruct(pName: string): PgslStruct | null {
+    public resolveStruct(pName: string): PgslStructDeclarationSyntaxTree | null {
         return this.mStructs.get(pName) ?? null;
     }
 
@@ -219,4 +227,5 @@ type PgslModuleSyntaxTreeStructureData = {
     enums: Array<PgslEnumDeclarationSyntaxTree>;
     functions: Array<PgslFunctionDeclarationSyntaxTree>;
     variables: Array<PgslVariableDeclarationSyntaxTree>;
+    structs: Array<PgslStructDeclarationSyntaxTree>;
 };

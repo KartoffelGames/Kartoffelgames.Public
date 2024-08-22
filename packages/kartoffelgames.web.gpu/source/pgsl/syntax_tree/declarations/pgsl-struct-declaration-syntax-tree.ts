@@ -1,13 +1,13 @@
 import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
-import { PgslTypeDefinitionSyntaxTree } from '../general/pgsl-type-definition-syntax-tree';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
+import { PgslStructPropertyDeclarationSyntaxTree } from './pgsl-struct-property-declaration-syntax-tree';
 
 /**
- * PGSL syntax tree for a struct property declaration.
+ * PGSL syntax tree for a struct declaration.
  */
-export class PgslStructPropertyDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslStructPropertyDeclarationSyntaxTreeStructureData> {
+export class PgslStructDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslStructDeclarationSyntaxTreeStructureData> {
     private readonly mName: string;
-    private readonly mTypeDefinition: PgslTypeDefinitionSyntaxTree;
+    private readonly mProperties: Array<PgslStructPropertyDeclarationSyntaxTree>;
 
     /**
      * Variable name.
@@ -19,8 +19,8 @@ export class PgslStructPropertyDeclarationSyntaxTree extends BasePgslDeclaration
     /**
      * Variable name.
      */
-    public get type(): PgslTypeDefinitionSyntaxTree {
-        return this.mTypeDefinition;
+    public get properties(): Array<PgslStructPropertyDeclarationSyntaxTree> {
+        return this.mProperties;
     }
 
     /**
@@ -33,24 +33,26 @@ export class PgslStructPropertyDeclarationSyntaxTree extends BasePgslDeclaration
      * @param pEndLine - Parsing end line.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslStructPropertyDeclarationSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
+    public constructor(pData: PgslStructDeclarationSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
         super(pData, pData.attributes, pStartColumn, pStartLine, pEndColumn, pEndLine);
 
         // Set data.
         this.mName = pData.name;
-        this.mTypeDefinition = pData.type;
+        this.mProperties = pData.properties;
     }
 
     /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // TODO: Only valid types.
+        // TODO: Scalar, Vector, Matrix, Atomic, Fixed arrays. Fixed structs
+
+        // TODO: Only types with fixed footprints but allow it as last property but then the struct is no longer fixed.
     }
 }
 
-export type PgslStructPropertyDeclarationSyntaxTreeStructureData = {
+export type PgslStructDeclarationSyntaxTreeStructureData = {
     attributes: PgslAttributeListSyntaxTree;
     name: string;
-    type: PgslTypeDefinitionSyntaxTree;
+    properties: Array<PgslStructPropertyDeclarationSyntaxTree>;
 };

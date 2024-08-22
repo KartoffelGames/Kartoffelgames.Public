@@ -32,6 +32,9 @@ import { BasePgslStatementSyntaxTree } from '../syntax_tree/statement/base-pgsl-
 import { PgslBlockStatementSyntaxTree } from '../syntax_tree/statement/pgsl-block-statement-syntax-tree';
 import { PgslFunctionCallStatementSyntaxTree } from '../syntax_tree/statement/pgsl-function-call-statement-syntax-tree';
 import { PgslIfStatementSyntaxTree } from '../syntax_tree/statement/pgsl-if-statement-syntax-tree';
+import { PgslBreakStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-break-statement-syntax-tree';
+import { PgslContinueStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-continue-statement-syntax-tree';
+import { PgslDiscardStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-discard-statement-syntax-tree';
 import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
 
@@ -475,19 +478,19 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('BreakStatement', this.graph()
+        this.defineGraphPart('Statement-Break', this.graph()
             .single(PgslToken.KeywordBreak)
             .single(PgslToken.Semicolon),
-            (_pData) => {
-                // TODO: Yes this needs to be parsed.
+            (_pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslBreakStatementSyntaxTree => {
+                return new PgslBreakStatementSyntaxTree({}, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
-        this.defineGraphPart('ContinueStatement', this.graph()
+        this.defineGraphPart('Statement-Continue', this.graph()
             .single(PgslToken.KeywordContinue)
             .single(PgslToken.Semicolon),
-            (_pData) => {
-                // TODO: Yes this needs to be parsed.
+            (_pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslContinueStatementSyntaxTree => {
+                return new PgslContinueStatementSyntaxTree({}, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -500,11 +503,11 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('DiscardStatement', this.graph()
+        this.defineGraphPart('Statement-Discard', this.graph()
             .single(PgslToken.KeywordDiscard)
             .single(PgslToken.Semicolon),
-            (_pData) => {
-                // TODO: Yes this needs to be parsed.
+            (_pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslDiscardStatementSyntaxTree => {
+                return new PgslDiscardStatementSyntaxTree({}, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -616,10 +619,10 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 this.partReference<any /* TODO: */>('ForStatement'),
                 this.partReference<any /* TODO: */>('WhileStatement'),
                 this.partReference<any /* TODO: */>('DoWhileStatement'),
-                this.partReference<any /* TODO: */>('BreakStatement'),
-                this.partReference<any /* TODO: */>('ContinueStatement'),
+                this.partReference<PgslBreakStatementSyntaxTree>('Statement-Break'),
+                this.partReference<PgslContinueStatementSyntaxTree>('Statement-Continue'),
                 this.partReference<any /* TODO: */>('ReturnStatement'),
-                this.partReference<any /* TODO: */>('DiscardStatement'),
+                this.partReference<PgslDiscardStatementSyntaxTree>('Statement-Discard'),
                 this.partReference<any /* TODO: */>('FunctionScopeVariableDeclaration'),
                 this.partReference<any /* TODO: */>('AssignmentStatement'),
                 this.partReference<any /* TODO: */>('IncrementDecrementStatement'),

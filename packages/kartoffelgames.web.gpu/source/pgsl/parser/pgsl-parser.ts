@@ -32,6 +32,7 @@ import { BasePgslStatementSyntaxTree } from '../syntax_tree/statement/base-pgsl-
 import { PgslIfStatementSyntaxTree } from '../syntax_tree/statement/branches/pgsl-if-statement-syntax-tree';
 import { PgslBlockStatementSyntaxTree } from '../syntax_tree/statement/pgsl-block-statement-syntax-tree';
 import { PgslFunctionCallStatementSyntaxTree } from '../syntax_tree/statement/pgsl-function-call-statement-syntax-tree';
+import { PgslIncrementDecrementStatementSyntaxTree } from '../syntax_tree/statement/pgsl-increment-decrement-statement-syntax-tree';
 import { PgslReturnStatementSyntaxTree } from '../syntax_tree/statement/pgsl-return-statement-syntax-tree';
 import { PgslVariableDeclarationStatementSyntaxTree } from '../syntax_tree/statement/pgsl-variable-declaration-statement-syntax-tree';
 import { PgslBreakStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-break-statement-syntax-tree';
@@ -571,14 +572,17 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('IncrementDecrementStatement', this.graph()
-            .single('variable', this.partReference<BasePgslSingleValueExpressionSyntaxTree>('Expression-SingleValue'))
-            .branch('', [
+        this.defineGraphPart('Statement-IncrementDecrement', this.graph()
+            .single('expression', this.partReference<BasePgslSingleValueExpressionSyntaxTree>('Expression-SingleValue'))
+            .branch('operator', [
                 PgslToken.OperatorIncrement,
                 PgslToken.OperatorDecrement
             ]),
-            (_pData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>) => {
+                return new PgslIncrementDecrementStatementSyntaxTree({
+                    expression: pData.expression,
+                    operator: pData.operator
+                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -647,7 +651,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 this.partReference<PgslReturnStatementSyntaxTree>('Statement-Return'),
                 this.partReference<PgslVariableDeclarationStatementSyntaxTree>('Statement-VariableDeclaration'),
                 this.partReference<any /* TODO: */>('AssignmentStatement'),
-                this.partReference<any /* TODO: */>('IncrementDecrementStatement'),
+                this.partReference<PgslIncrementDecrementStatementSyntaxTree>('Statement-IncrementDecrement'),
                 this.partReference<PgslFunctionCallStatementSyntaxTree>('Statement-FunctionCall'),
                 this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block')
             ]),

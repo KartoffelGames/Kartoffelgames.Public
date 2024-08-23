@@ -29,7 +29,10 @@ import { PgslTemplateListSyntaxTree } from '../syntax_tree/general/pgsl-template
 import { PgslTypeDefinitionSyntaxTree } from '../syntax_tree/general/pgsl-type-definition-syntax-tree';
 import { PgslModuleSyntaxTree } from '../syntax_tree/pgsl-module-syntax-tree';
 import { BasePgslStatementSyntaxTree } from '../syntax_tree/statement/base-pgsl-statement-syntax-tree';
+import { PgslDoWhileStatementSyntaxTree } from '../syntax_tree/statement/branches/pgsl-do-while-statement-syntax-tree';
 import { PgslIfStatementSyntaxTree } from '../syntax_tree/statement/branches/pgsl-if-statement-syntax-tree';
+import { PgslWhileStatementSyntaxTree } from '../syntax_tree/statement/branches/pgsl-while-statement-syntax-tree';
+import { PgslAssignmentStatementSyntaxTree } from '../syntax_tree/statement/pgsl-assignment-statement-syntax-tree';
 import { PgslBlockStatementSyntaxTree } from '../syntax_tree/statement/pgsl-block-statement-syntax-tree';
 import { PgslFunctionCallStatementSyntaxTree } from '../syntax_tree/statement/pgsl-function-call-statement-syntax-tree';
 import { PgslIncrementDecrementStatementSyntaxTree } from '../syntax_tree/statement/pgsl-increment-decrement-statement-syntax-tree';
@@ -40,7 +43,6 @@ import { PgslContinueStatementSyntaxTree } from '../syntax_tree/statement/single
 import { PgslDiscardStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-discard-statement-syntax-tree';
 import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
-import { PgslAssignmentStatementSyntaxTree } from '../syntax_tree/statement/pgsl-assignment-statement-syntax-tree';
 
 export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
     private mParserBuffer: ParserBuffer;
@@ -458,18 +460,21 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('WhileStatement', this.graph()
+        this.defineGraphPart('Statement-While', this.graph()
             .single(PgslToken.KeywordWhile)
             .single(PgslToken.ParenthesesStart)
             .single('expression', this.partReference<PgslBlockStatementSyntaxTree>('Expression'))
             .single(PgslToken.ParenthesesEnd)
             .single('block', this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block')),
-            (_pData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslWhileStatementSyntaxTree => {
+                return new PgslWhileStatementSyntaxTree({
+                    expression: pData.expression,
+                    block: pData.block
+                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
-        this.defineGraphPart('DoWhileStatement', this.graph()
+        this.defineGraphPart('Statement-DoWhile', this.graph()
             .single(PgslToken.KeywordDo)
             .single('block', this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block'))
             .single(PgslToken.KeywordWhile)
@@ -477,8 +482,11 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
             .single(PgslToken.ParenthesesEnd)
             .single(PgslToken.Semicolon),
-            (_pData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslDoWhileStatementSyntaxTree => {
+                return new PgslDoWhileStatementSyntaxTree({
+                    expression: pData.expression,
+                    block: pData.block
+                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -649,8 +657,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 this.partReference<PgslIfStatementSyntaxTree>('Statement-If'),
                 this.partReference<any /* TODO: */>('SwitchStatement'),
                 this.partReference<any /* TODO: */>('ForStatement'),
-                this.partReference<any /* TODO: */>('WhileStatement'),
-                this.partReference<any /* TODO: */>('DoWhileStatement'),
+                this.partReference<PgslWhileStatementSyntaxTree>('Statement-While'),
+                this.partReference<PgslDoWhileStatementSyntaxTree>('-StatementDoWhile'),
                 this.partReference<PgslBreakStatementSyntaxTree>('Statement-Break'),
                 this.partReference<PgslContinueStatementSyntaxTree>('Statement-Continue'),
                 this.partReference<PgslDiscardStatementSyntaxTree>('Statement-Discard'),

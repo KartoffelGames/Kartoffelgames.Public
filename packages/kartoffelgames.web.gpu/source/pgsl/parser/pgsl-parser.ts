@@ -31,6 +31,7 @@ import { PgslModuleSyntaxTree } from '../syntax_tree/pgsl-module-syntax-tree';
 import { BasePgslStatementSyntaxTree } from '../syntax_tree/statement/base-pgsl-statement-syntax-tree';
 import { PgslDoWhileStatementSyntaxTree } from '../syntax_tree/statement/branches/pgsl-do-while-statement-syntax-tree';
 import { PgslIfStatementSyntaxTree } from '../syntax_tree/statement/branches/pgsl-if-statement-syntax-tree';
+import { PgslSwitchStatementSyntaxTree } from '../syntax_tree/statement/branches/pgsl-switch-statement-syntax-tree';
 import { PgslWhileStatementSyntaxTree } from '../syntax_tree/statement/branches/pgsl-while-statement-syntax-tree';
 import { PgslAssignmentStatementSyntaxTree } from '../syntax_tree/statement/pgsl-assignment-statement-syntax-tree';
 import { PgslBlockStatementSyntaxTree } from '../syntax_tree/statement/pgsl-block-statement-syntax-tree';
@@ -416,7 +417,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('SwitchStatement', this.graph()
+        this.defineGraphPart('Statement-Switch', this.graph()
             .single(PgslToken.KeywordSwitch)
             .single(PgslToken.ParenthesesStart)
             .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
@@ -436,8 +437,27 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 .single('block', this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block'))
             )
             .single(PgslToken.BlockEnd),
-            (_pData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslSwitchStatementSyntaxTree => {
+                // Build switch data structure.
+                const lData: ConstructorParameters<typeof PgslSwitchStatementSyntaxTree>[0] = {
+                    expression: pData.expression,
+                    cases: new Array<ConstructorParameters<typeof PgslSwitchStatementSyntaxTree>[0]['cases'][number]>()
+                };
+
+                // Add each case.
+                for (const lCase of pData.cases) {
+                    lData.cases.push({
+                        block: lCase.block,
+                        cases: [lCase.expression, ...lCase.additionals.map((pCase) => { return pCase.expression; })]
+                    });
+                }
+
+                // Add optional default case.
+                if (pData.default) {
+                    lData.default = pData.default.block;
+                }
+
+                return new PgslSwitchStatementSyntaxTree(lData, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -647,7 +667,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         this.defineGraphPart('Statement', this.graph()
             .branch('item', [
                 this.graph().single('statement', this.partReference<PgslIfStatementSyntaxTree>('Statement-If')),
-                this.graph().single('statement', this.partReference<any /* TODO: */>('SwitchStatement')),
+                this.graph().single('statement', this.partReference<PgslSwitchStatementSyntaxTree>('Statement-Switch')),
                 this.graph().single('statement', this.partReference<any /* TODO: */>('ForStatement')),
                 this.graph().single('statement', this.partReference<PgslWhileStatementSyntaxTree>('Statement-While')),
                 this.graph().single('statement', this.partReference<PgslDoWhileStatementSyntaxTree>('Statement-DoWhile')),

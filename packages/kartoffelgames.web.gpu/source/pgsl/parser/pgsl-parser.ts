@@ -450,7 +450,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             ])
             .optional('expression', this.partReference<PgslBlockStatementSyntaxTree>('Expression'))
             .single(PgslToken.Semicolon)
-            .single('statement', this.partReference<BasePgslExpressionSyntaxTree>('Statement')) // TODO: Remove semicolon somehow.
+            .single('statement', this.partReference<BasePgslExpressionSyntaxTree>('Statement')) // TODO: Add semicolons to Statement graph instead of every graph.
             .single(PgslToken.ParenthesesEnd)
             .single('block', this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block')),
             (_pData) => {
@@ -480,8 +480,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single(PgslToken.KeywordWhile)
             .single(PgslToken.ParenthesesStart)
             .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
-            .single(PgslToken.ParenthesesEnd)
-            .single(PgslToken.Semicolon),
+            .single(PgslToken.ParenthesesEnd),
             (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslDoWhileStatementSyntaxTree => {
                 return new PgslDoWhileStatementSyntaxTree({
                     expression: pData.expression,
@@ -491,16 +490,14 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         );
 
         this.defineGraphPart('Statement-Break', this.graph()
-            .single(PgslToken.KeywordBreak)
-            .single(PgslToken.Semicolon),
+            .single(PgslToken.KeywordBreak),
             (_pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslBreakStatementSyntaxTree => {
                 return new PgslBreakStatementSyntaxTree({}, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
         this.defineGraphPart('Statement-Continue', this.graph()
-            .single(PgslToken.KeywordContinue)
-            .single(PgslToken.Semicolon),
+            .single(PgslToken.KeywordContinue),
             (_pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslContinueStatementSyntaxTree => {
                 return new PgslContinueStatementSyntaxTree({}, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
@@ -508,8 +505,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
 
         this.defineGraphPart('Statement-Return', this.graph()
             .single(PgslToken.KeywordContinue)
-            .optional('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
-            .single(PgslToken.Semicolon),
+            .optional('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression')),
             (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslReturnStatementSyntaxTree => {
                 // Build return data structure.
                 const lData: ConstructorParameters<typeof PgslReturnStatementSyntaxTree>[0] = {};
@@ -524,8 +520,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         );
 
         this.defineGraphPart('Statement-Discard', this.graph()
-            .single(PgslToken.KeywordDiscard)
-            .single(PgslToken.Semicolon),
+            .single(PgslToken.KeywordDiscard),
             (_pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslDiscardStatementSyntaxTree => {
                 return new PgslDiscardStatementSyntaxTree({}, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
@@ -538,10 +533,9 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             ])
             .single('variableName', PgslToken.Identifier).single(PgslToken.Colon)
             .single('type', this.partReference<PgslTypeDefinitionSyntaxTree>('General-TypeDefinition'))
-            .branch('initial', [
-                PgslToken.Semicolon,
-                this.graph().single(PgslToken.Assignment).single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression')).single(PgslToken.Semicolon)
-            ]),
+            .optional('initial', 
+                this.graph().single(PgslToken.Assignment).single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
+            ),
             (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslVariableDeclarationStatementSyntaxTree => {
                 // Build enum data structure.
                 const lData: ConstructorParameters<typeof PgslVariableDeclarationStatementSyntaxTree>[0] = {
@@ -551,7 +545,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 };
 
                 // Set inial value expression.
-                if (typeof pData.initial !== 'string') {
+                if (pData.initial) {
                     lData.expression = pData.initial.expression;
                 }
 
@@ -574,8 +568,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 PgslToken.AssignmentShiftRight,
                 PgslToken.AssignmentShiftLeft,
             ])
-            .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
-            .single(PgslToken.Semicolon),
+            .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression')),
             (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslAssignmentStatementSyntaxTree => {
                 return new PgslAssignmentStatementSyntaxTree({
                     expression: pData.expression,
@@ -590,8 +583,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .branch('operator', [
                 PgslToken.OperatorIncrement,
                 PgslToken.OperatorDecrement
-            ])
-            .single(PgslToken.Semicolon),
+            ]),
             (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslIncrementDecrementStatementSyntaxTree => {
                 return new PgslIncrementDecrementStatementSyntaxTree({
                     expression: pData.expression,
@@ -610,8 +602,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                     .single(PgslToken.Comma).single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
                 )
             )
-            .single(PgslToken.ParenthesesEnd)
-            .single(PgslToken.Semicolon),
+            .single(PgslToken.ParenthesesEnd),
             (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslFunctionCallStatementSyntaxTree => {
                 // Build parameter list of function.
                 const lParameterList: Array<BasePgslExpressionSyntaxTree> = new Array<BasePgslExpressionSyntaxTree>();
@@ -653,24 +644,24 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         );
 
         this.defineGraphPart('Statement', this.graph()
-            .branch('statement', [
-                this.partReference<PgslIfStatementSyntaxTree>('Statement-If'),
-                this.partReference<any /* TODO: */>('SwitchStatement'),
-                this.partReference<any /* TODO: */>('ForStatement'),
-                this.partReference<PgslWhileStatementSyntaxTree>('Statement-While'),
-                this.partReference<PgslDoWhileStatementSyntaxTree>('-StatementDoWhile'),
-                this.partReference<PgslBreakStatementSyntaxTree>('Statement-Break'),
-                this.partReference<PgslContinueStatementSyntaxTree>('Statement-Continue'),
-                this.partReference<PgslDiscardStatementSyntaxTree>('Statement-Discard'),
-                this.partReference<PgslReturnStatementSyntaxTree>('Statement-Return'),
-                this.partReference<PgslVariableDeclarationStatementSyntaxTree>('Statement-VariableDeclaration'),
-                this.partReference<PgslAssignmentStatementSyntaxTree>('Statement-Assignment'),
-                this.partReference<PgslIncrementDecrementStatementSyntaxTree>('Statement-IncrementDecrement'),
-                this.partReference<PgslFunctionCallStatementSyntaxTree>('Statement-FunctionCall'),
-                this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block')
+            .branch('item', [
+                this.graph().single('statement', this.partReference<PgslIfStatementSyntaxTree>('Statement-If')),
+                this.graph().single('statement', this.partReference<any /* TODO: */>('SwitchStatement')),
+                this.graph().single('statement', this.partReference<any /* TODO: */>('ForStatement')),
+                this.graph().single('statement', this.partReference<PgslWhileStatementSyntaxTree>('Statement-While')),
+                this.graph().single('statement', this.partReference<PgslDoWhileStatementSyntaxTree>('Statement-DoWhile')),
+                this.graph().single('statement', this.partReference<PgslBreakStatementSyntaxTree>('Statement-Break')).single(PgslToken.Semicolon),
+                this.graph().single('statement', this.partReference<PgslContinueStatementSyntaxTree>('Statement-Continue')).single(PgslToken.Semicolon),
+                this.graph().single('statement', this.partReference<PgslDiscardStatementSyntaxTree>('Statement-Discard')).single(PgslToken.Semicolon),
+                this.graph().single('statement', this.partReference<PgslReturnStatementSyntaxTree>('Statement-Return')).single(PgslToken.Semicolon),
+                this.graph().single('statement', this.partReference<PgslVariableDeclarationStatementSyntaxTree>('Statement-VariableDeclaration')).single(PgslToken.Semicolon),
+                this.graph().single('statement', this.partReference<PgslAssignmentStatementSyntaxTree>('Statement-Assignment')).single(PgslToken.Semicolon),
+                this.graph().single('statement', this.partReference<PgslIncrementDecrementStatementSyntaxTree>('Statement-IncrementDecrement')).single(PgslToken.Semicolon),
+                this.graph().single('statement', this.partReference<PgslFunctionCallStatementSyntaxTree>('Statement-FunctionCall')).single(PgslToken.Semicolon),
+                this.graph().single('statement', this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block'))
             ]),
             (pData): BasePgslStatementSyntaxTree => {
-                return pData.statement;
+                return pData.item.statement;
             }
         );
     }

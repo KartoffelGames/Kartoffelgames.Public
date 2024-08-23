@@ -582,7 +582,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .branch('operator', [
                 PgslToken.OperatorIncrement,
                 PgslToken.OperatorDecrement
-            ]),
+            ])
+            .single(PgslToken.Semicolon),
             (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslIncrementDecrementStatementSyntaxTree => {
                 return new PgslIncrementDecrementStatementSyntaxTree({
                     expression: pData.expression,

@@ -444,13 +444,14 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         this.defineGraphPart('ForStatement', this.graph()
             .single(PgslToken.KeywordFor)
             .single(PgslToken.ParenthesesStart)
-            .branch('declaration', [
-                this.partReference<unknown>('FunctionScopeVariableDeclaration'), // Includes semicolon
-                PgslToken.Semicolon
-            ])
+            .optional('declaration', this.partReference<unknown>('FunctionScopeVariableDeclaration'))
+            .single(PgslToken.Semicolon)
             .optional('expression', this.partReference<PgslBlockStatementSyntaxTree>('Expression'))
             .single(PgslToken.Semicolon)
-            .single('statement', this.partReference<BasePgslExpressionSyntaxTree>('Statement')) // TODO: Add semicolons to Statement graph instead of every graph.
+            .optionalBranch('statement', [
+                this.partReference<PgslAssignmentStatementSyntaxTree>('Statement-Assignment'),
+                this.partReference<PgslIncrementDecrementStatementSyntaxTree>('Statement-IncrementDecrement')
+            ])
             .single(PgslToken.ParenthesesEnd)
             .single('block', this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block')),
             (_pData) => {
@@ -533,7 +534,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             ])
             .single('variableName', PgslToken.Identifier).single(PgslToken.Colon)
             .single('type', this.partReference<PgslTypeDefinitionSyntaxTree>('General-TypeDefinition'))
-            .optional('initial', 
+            .optional('initial',
                 this.graph().single(PgslToken.Assignment).single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
             ),
             (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslVariableDeclarationStatementSyntaxTree => {

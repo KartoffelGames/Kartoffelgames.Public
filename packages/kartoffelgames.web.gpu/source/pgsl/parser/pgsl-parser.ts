@@ -32,6 +32,7 @@ import { BasePgslStatementSyntaxTree } from '../syntax_tree/statement/base-pgsl-
 import { PgslIfStatementSyntaxTree } from '../syntax_tree/statement/branches/pgsl-if-statement-syntax-tree';
 import { PgslBlockStatementSyntaxTree } from '../syntax_tree/statement/pgsl-block-statement-syntax-tree';
 import { PgslFunctionCallStatementSyntaxTree } from '../syntax_tree/statement/pgsl-function-call-statement-syntax-tree';
+import { PgslReturnStatementSyntaxTree } from '../syntax_tree/statement/pgsl-return-statement-syntax-tree';
 import { PgslVariableDeclarationStatementSyntaxTree } from '../syntax_tree/statement/pgsl-variable-declaration-statement-syntax-tree';
 import { PgslBreakStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-break-statement-syntax-tree';
 import { PgslContinueStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-continue-statement-syntax-tree';
@@ -495,12 +496,20 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('ReturnStatement', this.graph()
+        this.defineGraphPart('Statement-Return', this.graph()
             .single(PgslToken.KeywordContinue)
             .optional('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
             .single(PgslToken.Semicolon),
-            (_pData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>) => {
+                // Build return data structure.
+                const lData: ConstructorParameters<typeof PgslReturnStatementSyntaxTree>[0] = {};
+
+                // Add optional expression.
+                if (pData.expression) {
+                    lData.expression = pData.expression;
+                }
+
+                return new PgslReturnStatementSyntaxTree(lData, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -635,7 +644,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 this.partReference<PgslBreakStatementSyntaxTree>('Statement-Break'),
                 this.partReference<PgslContinueStatementSyntaxTree>('Statement-Continue'),
                 this.partReference<PgslDiscardStatementSyntaxTree>('Statement-Discard'),
-                this.partReference<any /* TODO: */>('ReturnStatement'),
+                this.partReference<PgslReturnStatementSyntaxTree>('Statement-Return'),
                 this.partReference<PgslVariableDeclarationStatementSyntaxTree>('Statement-VariableDeclaration'),
                 this.partReference<any /* TODO: */>('AssignmentStatement'),
                 this.partReference<any /* TODO: */>('IncrementDecrementStatement'),

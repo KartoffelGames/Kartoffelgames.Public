@@ -1,11 +1,11 @@
-import { EnumUtil, Exception } from 'packages/kartoffelgames.core/library/source';
+import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { BasePgslSingleValueExpressionSyntaxTree } from '../expression/single_value/base-pgsl-single-value-expression-syntax-tree';
 import { PgslIndexedValueExpressionSyntaxTree } from '../expression/single_value/pgsl-indexed-value-expression-syntax-tree';
 import { PgslValueDecompositionExpressionSyntaxTree } from '../expression/single_value/pgsl-value-decomposition-expression-syntax-tree';
 import { PgslVariableNameExpressionSyntaxTree } from '../expression/single_value/pgsl-variable-name-expression-syntax-tree';
 import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
-import { PgslAssignment } from '../../enum/pgsl-assignment.enum';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
+import { PgslAssignment } from '../../enum/pgsl-assignment.enum';
 
 /**
  * PGSL structure holding a assignment statement.

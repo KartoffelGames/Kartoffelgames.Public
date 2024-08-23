@@ -7,7 +7,7 @@ import { PgslVariableNameExpressionSyntaxTree } from '../expression/single_value
 import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
 
 /**
- * PGSL structure holding a return statement with an optional expression.
+ * PGSL structure holding a increment or decrement statement.
  */
 export class PgslIncrementDecrementStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslIncrementDecrementStatementSyntaxTreeStructureData> {
     private readonly mExpression: BasePgslSingleValueExpressionSyntaxTree;

@@ -40,6 +40,7 @@ import { PgslContinueStatementSyntaxTree } from '../syntax_tree/statement/single
 import { PgslDiscardStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-discard-statement-syntax-tree';
 import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
+import { PgslAssignmentStatementSyntaxTree } from '../syntax_tree/statement/pgsl-assignment-statement-syntax-tree';
 
 export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
     private mParserBuffer: ParserBuffer;
@@ -501,7 +502,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single(PgslToken.KeywordContinue)
             .optional('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
             .single(PgslToken.Semicolon),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>) => {
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslReturnStatementSyntaxTree => {
                 // Build return data structure.
                 const lData: ConstructorParameters<typeof PgslReturnStatementSyntaxTree>[0] = {};
 
@@ -550,7 +551,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('AssignmentStatement', this.graph()
+        this.defineGraphPart('Statement-Assignment', this.graph()
             .single('variable', this.partReference<BasePgslSingleValueExpressionSyntaxTree>('Expression-SingleValue'))
             .branch('assignment', [
                 PgslToken.Assignment,
@@ -567,8 +568,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             ])
             .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
             .single(PgslToken.Semicolon),
-            (_pData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslAssignmentStatementSyntaxTree => {
+                return new PgslAssignmentStatementSyntaxTree({
+                    expression: pData.expression,
+                    assignment: pData.assignment,
+                    variable: pData.variable
+                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -578,7 +583,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 PgslToken.OperatorIncrement,
                 PgslToken.OperatorDecrement
             ]),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>) => {
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslIncrementDecrementStatementSyntaxTree => {
                 return new PgslIncrementDecrementStatementSyntaxTree({
                     expression: pData.expression,
                     operator: pData.operator
@@ -650,7 +655,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 this.partReference<PgslDiscardStatementSyntaxTree>('Statement-Discard'),
                 this.partReference<PgslReturnStatementSyntaxTree>('Statement-Return'),
                 this.partReference<PgslVariableDeclarationStatementSyntaxTree>('Statement-VariableDeclaration'),
-                this.partReference<any /* TODO: */>('AssignmentStatement'),
+                this.partReference<PgslAssignmentStatementSyntaxTree>('Statement-Assignment'),
                 this.partReference<PgslIncrementDecrementStatementSyntaxTree>('Statement-IncrementDecrement'),
                 this.partReference<PgslFunctionCallStatementSyntaxTree>('Statement-FunctionCall'),
                 this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block')

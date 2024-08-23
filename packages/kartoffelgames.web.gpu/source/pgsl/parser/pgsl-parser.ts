@@ -30,6 +30,7 @@ import { PgslTypeDefinitionSyntaxTree } from '../syntax_tree/general/pgsl-type-d
 import { PgslModuleSyntaxTree } from '../syntax_tree/pgsl-module-syntax-tree';
 import { BasePgslStatementSyntaxTree } from '../syntax_tree/statement/base-pgsl-statement-syntax-tree';
 import { PgslDoWhileStatementSyntaxTree } from '../syntax_tree/statement/branches/pgsl-do-while-statement-syntax-tree';
+import { PgslForStatementSyntaxTree } from '../syntax_tree/statement/branches/pgsl-for-statement-syntax-tree';
 import { PgslIfStatementSyntaxTree } from '../syntax_tree/statement/branches/pgsl-if-statement-syntax-tree';
 import { PgslSwitchStatementSyntaxTree } from '../syntax_tree/statement/branches/pgsl-switch-statement-syntax-tree';
 import { PgslWhileStatementSyntaxTree } from '../syntax_tree/statement/branches/pgsl-while-statement-syntax-tree';
@@ -461,23 +462,42 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('ForStatement', this.graph()
+        this.defineGraphPart('Statement-For', this.graph()
             .single(PgslToken.KeywordFor)
             .single(PgslToken.ParenthesesStart)
-            .optional('declaration', this.partReference<unknown>('FunctionScopeVariableDeclaration'))
+            .optional('init', this.partReference<PgslVariableDeclarationStatementSyntaxTree>('Statement-VariableDeclaration'))
             .single(PgslToken.Semicolon)
             .optional('expression', this.partReference<PgslBlockStatementSyntaxTree>('Expression'))
             .single(PgslToken.Semicolon)
-            .optionalBranch('statement', [
+            .optionalBranch('update', [
                 this.partReference<PgslAssignmentStatementSyntaxTree>('Statement-Assignment'),
-                this.partReference<PgslIncrementDecrementStatementSyntaxTree>('Statement-IncrementDecrement')
+                this.partReference<PgslIncrementDecrementStatementSyntaxTree>('Statement-IncrementDecrement'),
+                this.partReference<PgslFunctionCallStatementSyntaxTree>('Statement-FunctionCall')
             ])
             .single(PgslToken.ParenthesesEnd)
             .single('block', this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block')),
-            (_pData) => {
-                // TODO: Yes this needs to be parsed.
+            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslForStatementSyntaxTree => {
+                // Build switch data structure.
+                const lData: ConstructorParameters<typeof PgslForStatementSyntaxTree>[0] = {
+                    block: pData.block
+                };
 
-                // TODO: Statement must eighter be a functionCall | Assignment | IncrementDecrement
+                // Optional initial declaration.
+                if(pData.init){
+                    lData.init = pData.init;
+                }
+
+                // Optional expression.
+                if(pData.expression){
+                    lData.expression = pData.expression;
+                }
+
+                // Optional expression.
+                if(pData.update){
+                    lData.update = pData.update;
+                }
+
+                return new PgslForStatementSyntaxTree(lData, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
@@ -668,7 +688,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .branch('item', [
                 this.graph().single('statement', this.partReference<PgslIfStatementSyntaxTree>('Statement-If')),
                 this.graph().single('statement', this.partReference<PgslSwitchStatementSyntaxTree>('Statement-Switch')),
-                this.graph().single('statement', this.partReference<any /* TODO: */>('ForStatement')),
+                this.graph().single('statement', this.partReference<PgslForStatementSyntaxTree>('Statement-For')),
                 this.graph().single('statement', this.partReference<PgslWhileStatementSyntaxTree>('Statement-While')),
                 this.graph().single('statement', this.partReference<PgslDoWhileStatementSyntaxTree>('Statement-DoWhile')),
                 this.graph().single('statement', this.partReference<PgslBreakStatementSyntaxTree>('Statement-Break')).single(PgslToken.Semicolon),

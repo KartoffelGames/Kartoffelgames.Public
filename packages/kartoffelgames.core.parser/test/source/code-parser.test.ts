@@ -1297,6 +1297,34 @@ describe('CodeParser', () => {
                 expect(lErrorFunction).to.throws(ParserException, lErrorMessage);
             });
 
+            it('-- Keep error messages stacktrace', () => {
+                // Setup. Function name.
+                const lFunctionName: string = 'lMyErrorFunctionName';
+
+                // Setup.
+                const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
+                lParser.defineGraphPart('PartName',
+                    lParser.graph().single(TokenType.Modifier),
+                    function lMyErrorFunctionName() {
+                        throw new Error();
+                    }
+                );
+                lParser.setRootGraphPart('PartName');
+
+                // Process.
+                let lError: Error | null = null;
+                try {
+                    lParser.parse('const');
+                } catch (pError) {
+                    lError = <Error>pError;
+                }
+
+                // Evaluation.
+                expect(lError).not.to.be.null;
+                expect(lError).to.have.property('cause').and.instanceOf(Error);
+                expect(lError?.cause).to.have.property('stack').and.contains(lFunctionName);
+            });
+
             it('-- Keep error messages of string', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
@@ -1368,7 +1396,7 @@ describe('CodeParser', () => {
                 lException.with.property('lineEnd', 1);
             });
 
-            it('-- Error rethrow on parser erro.', () => {
+            it('-- Error rethrow on parser error.', () => {
                 // Setup.
                 const lParser: CodeParser<TokenType, any> = new CodeParser(lCreateLexer());
                 const lError: ParserException<any> = new ParserException('', null, 2, 3, 4, 5);

@@ -349,10 +349,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
                     throw pError;
                 }
 
-                const lMessage: string = typeof pError === 'object' && pError !== null && 'message' in pError ? pError.message : pError.toString();
-
                 // When no token was processed, throw default error on first token.
-                throw ParserException.fromToken(lMessage, this, lStartToken, lEndToken);
+                throw ParserException.fromToken(pError, this, lStartToken, lEndToken);
             }
         }
 

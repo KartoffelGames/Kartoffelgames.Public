@@ -49,9 +49,10 @@ export class PgslFunctionDeclarationSyntaxTree extends BasePgslDeclarationSyntax
      * @param pEndColumn - Parsing end column.
      * @param pEndLine - Parsing end line.
      * @param pBuildIn - Buildin value.
+     * @param pConstant - Function is a constant function.
      */
-    public constructor(pData: PgslFunctionDeclarationSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number, pBuildIn: boolean = false) {
-        super(pData, pData.attributes, pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
+    public constructor(pData: PgslFunctionDeclarationSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number, pBuildIn: boolean = false, pConstant: boolean = false) {
+        super(pData, pData.attributes, pConstant, pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
 
         // Set data.
         this.mBlock = pData.block;

@@ -39,6 +39,9 @@ export class PgslEnumValueExpressionSyntaxTree extends BasePgslSingleValueExpres
         // Set data.
         this.mName = pData.name;
         this.mProperty = pData.property;
+
+        // Enums are allways constant.
+        this.setConstantState(true);
     }
 
     /**

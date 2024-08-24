@@ -40,12 +40,15 @@ export class PgslIndexedValueExpressionSyntaxTree extends BasePgslSingleValueExp
         this.mIndex = pData.index;
         this.mValue = pData.value;
     }
-    
+
     /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
         // TODO: Validate value to be a array and index to be a number.
+
+        // Set constant state when both value and index are constants.
+        this.setConstantState(this.mIndex.isConstant && this.mValue.isConstant);
     }
 }
 

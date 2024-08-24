@@ -2,6 +2,7 @@ import { Dictionary } from '@kartoffelgames/core';
 import { PgslSyntaxTreeInitData } from '../base-pgsl-syntax-tree';
 import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
 import { PgslVariableDeclarationStatementSyntaxTree } from './pgsl-variable-declaration-statement-syntax-tree';
+import { PgslVariableDeclarationSyntaxTree } from '../declarations/pgsl-variable-declaration-syntax-tree';
 
 /**
  * PGSL structure holding a list of statements. Handles scoped values.
@@ -13,13 +14,13 @@ export class PgslBlockStatementSyntaxTree extends BasePgslStatementSyntaxTree<Pg
     /**
      * Get all scoped variables of scope.
      */
-    protected override get scopedVariables(): Dictionary<string, boolean> {
+    protected override get scopedVariables(): Dictionary<string, PgslVariableDeclarationStatementSyntaxTree | PgslVariableDeclarationSyntaxTree> {
         // Read parent scoped variables
-        const lParentVariables: Dictionary<string, boolean> = super.scopedVariables;
+        const lParentVariables: Dictionary<string, PgslVariableDeclarationStatementSyntaxTree | PgslVariableDeclarationSyntaxTree> = super.scopedVariables;
 
-        // Append current scoped.
+        // Append current scoped variables. Override parent.
         for (const lVariable of this.mDeclaredVariables) {
-            lParentVariables.set(lVariable.name, lVariable.constant);
+            lParentVariables.set(lVariable.name, lVariable);
         }
 
         return lParentVariables;

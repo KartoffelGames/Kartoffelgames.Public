@@ -27,7 +27,7 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
      * @param pBuildIn - Buildin value.
      */
     public constructor(pData: PgslEnumDeclarationSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number, pBuildIn: boolean = false) {
-        super(pData, pData.attributes, pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
+        super(pData, pData.attributes, true, pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
 
         // Set data.
         this.mName = pData.name;

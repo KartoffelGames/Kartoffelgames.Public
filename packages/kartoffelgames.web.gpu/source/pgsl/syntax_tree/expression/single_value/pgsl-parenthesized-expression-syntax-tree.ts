@@ -6,7 +6,7 @@ import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-valu
  * PGSL structure holding a expression surrounded with parentheses.
  */
 export class PgslParenthesizedExpressionSyntaxTree extends BasePgslSingleValueExpressionSyntaxTree<PgslParenthesizedExpressionSyntaxTreeStructureData> {
-    private readonly mExpression: BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData> ;
+    private readonly mExpression: BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>;
 
     /**
      * Expression reference.
@@ -31,12 +31,15 @@ export class PgslParenthesizedExpressionSyntaxTree extends BasePgslSingleValueEx
         // Set data.
         this.mExpression = pData.expression;
     }
-    
+
     /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
         // Nothing to validate 
+
+        // Set constant state when the inner expression is a constants.
+        this.setConstantState(this.mExpression.isConstant);
     }
 }
 

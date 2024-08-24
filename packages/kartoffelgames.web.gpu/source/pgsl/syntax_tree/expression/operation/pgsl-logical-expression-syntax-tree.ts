@@ -66,6 +66,9 @@ export class PgslLogicalExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
      */
     protected override onValidateIntegrity(): void {
         // TODO: Left and right expressions need to resolve to boolean values.
+
+        // Set constant state when both expressions are constants.
+        this.setConstantState(this.mLeftExpression.isConstant && this.mRightExpression.isConstant);
     }
 }
 

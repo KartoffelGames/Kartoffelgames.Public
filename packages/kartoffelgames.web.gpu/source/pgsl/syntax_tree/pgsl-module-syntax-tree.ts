@@ -204,6 +204,17 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
     }
 
     /**
+     * Resolve function name to its declaration.
+     * 
+     * @param pName - Function name.
+     * 
+     * @returns function declaration.
+     */
+    public resolveFunction(pName: string): PgslFunctionDeclarationSyntaxTree | null {
+        return this.mFunctions.get(pName) ?? null;
+    }
+
+    /**
      * Resolve struct name to its declaration.
      * 
      * @param pName - Struct name.

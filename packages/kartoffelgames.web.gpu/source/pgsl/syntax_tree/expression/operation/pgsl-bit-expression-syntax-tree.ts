@@ -65,6 +65,9 @@ export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree
      */
     protected override onValidateIntegrity(): void {
         // TODO: Left and right expressions need to resolve to scalar values.
+
+        // Set constant state when both expressions are constants.
+        this.setConstantState(this.mLeftExpression.isConstant && this.mRightExpression.isConstant);
     }
 }
 

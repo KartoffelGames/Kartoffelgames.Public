@@ -1,6 +1,8 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { ParserException } from '@kartoffelgames/core.parser';
+import { PgslVariableDeclarationSyntaxTree } from './declarations/pgsl-variable-declaration-syntax-tree';
 import { PgslModuleSyntaxTree } from './pgsl-module-syntax-tree';
+import { PgslVariableDeclarationStatementSyntaxTree } from './statement/pgsl-variable-declaration-statement-syntax-tree';
 
 /**
  * Base pgsl syntax tree object.
@@ -52,10 +54,10 @@ export abstract class BasePgslSyntaxTree<TData extends PgslSyntaxTreeInitData> {
     /**
      * Get all scoped variables of scope.
      */
-    protected get scopedVariables(): Dictionary<string, boolean> {
+    protected get scopedVariables(): Dictionary<string, PgslVariableDeclarationStatementSyntaxTree | PgslVariableDeclarationSyntaxTree> {
         // Empty scoped variables.
         if (!this.mParent) {
-            return new Dictionary<string, boolean>();
+            return new Dictionary<string, PgslVariableDeclarationStatementSyntaxTree | PgslVariableDeclarationSyntaxTree>();
         }
 
         return this.mParent.scopedVariables;

@@ -308,7 +308,7 @@ describe('PsglParser', () => {
                 expect(lResult).to.be.true;
             });
 
-            it('-- Declaration  with write access', () => {
+            it('-- Declaration with write access', () => {
                 // Setup.
                 const lSourceCode: string = `
                     [GroupBinding(x, y)]

@@ -34,6 +34,9 @@ export class PgslStringValueExpressionSyntaxTree extends BasePgslSingleValueExpr
     public constructor(pData: PgslStringValueExpressionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
         super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
 
+        // A string is allways a constant.
+        this.setConstantState(true);
+
         // Set data.
         this.mValue = pData.textValue.substring(1, pData.textValue.length - 1);
     }

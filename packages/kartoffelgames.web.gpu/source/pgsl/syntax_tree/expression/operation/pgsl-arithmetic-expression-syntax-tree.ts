@@ -65,6 +65,9 @@ export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntax
      */
     protected override onValidateIntegrity(): void {
         // TODO: Left and right expressions need to resolve to number values.
+
+        // Set constant state when both expressions are constants.
+        this.setConstantState(this.mLeftExpression.isConstant && this.mRightExpression.isConstant);
     }
 }
 

@@ -37,6 +37,9 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslSingleValueExp
     public constructor(pData: PgslLiteralValueExpressionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
         super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
 
+        // Literals are allways constants.
+        this.setConstantState(true);
+
         // Set data.
         [this.mScalarType, this.mValue] = this.convertData(pData.literalType, pData.textValue);
     }
@@ -46,6 +49,8 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslSingleValueExp
      */
     protected override onValidateIntegrity(): void {
         // Nothing to validate 
+
+        
     }
 
     /**

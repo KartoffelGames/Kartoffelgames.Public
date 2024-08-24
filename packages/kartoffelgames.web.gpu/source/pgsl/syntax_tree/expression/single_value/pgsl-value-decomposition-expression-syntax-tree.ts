@@ -46,6 +46,9 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslSingleVa
     protected override onValidateIntegrity(): void {
         // TODO: Validate value to be a composition object and haves the property.
         // Only structs, matrix or vector types.
+
+        // Set constant state when the value is a constants.
+        this.setConstantState(this.mValue.isConstant);
     }
 }
 

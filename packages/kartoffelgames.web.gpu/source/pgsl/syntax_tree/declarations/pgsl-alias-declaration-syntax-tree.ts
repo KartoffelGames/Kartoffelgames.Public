@@ -34,7 +34,7 @@ export class PgslAliasDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTre
      * @param pBuildIn - Buildin value.
      */
     public constructor(pData: PgslAliasDeclarationSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pData.attributes, pStartColumn, pStartLine, pEndColumn, pEndLine);
+        super(pData, pData.attributes, true, pStartColumn, pStartLine, pEndColumn, pEndLine);
 
         // Set data.
         this.mName = pData.name;

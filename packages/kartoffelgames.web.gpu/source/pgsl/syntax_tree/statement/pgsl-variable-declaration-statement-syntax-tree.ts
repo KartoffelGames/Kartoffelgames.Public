@@ -9,18 +9,11 @@ import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
  * PGSL structure holding a variable declaration for a function scope variable.
  */
 export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslVariableDeclarationStatementSyntaxTreeStructureData> {
-    private readonly mConstant: boolean;
     private readonly mDeclarationType: PgslDeclarationType;
     private readonly mExpression: BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData> | null;
+    private mIsConstant: boolean | null;
     private readonly mName: string;
     private readonly mType: PgslTypeDefinitionSyntaxTree;
-
-    /**
-     * Variable declaration is a constant value and can not be changed.
-     */
-    public get constant(): boolean {
-        return this.mConstant;
-    }
 
     /**
      * Variable declaration type.
@@ -34,6 +27,20 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
      */
     public get expression(): BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData> | null {
         return this.mExpression;
+    }
+
+    /**
+     * Variable declaration is a constant value and can not be changed.
+     */
+    public get isConstant(): boolean {
+        this.ensureValidity();
+
+        // Constant was not set.
+        if (this.mIsConstant === null) {
+            throw new Exception('Constant state of declaration was not set.', this);
+        }
+
+        return this.mIsConstant;
     }
 
     /**
@@ -77,7 +84,7 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
         // Set parsed declaration type.
         this.mDeclarationType = EnumUtil.cast(PgslDeclarationType, pData.declarationType)!;
 
-        if(this.mDeclarationType === PgslDeclarationType.Const && !pData.expression){
+        if (this.mDeclarationType === PgslDeclarationType.Const && !pData.expression) {
             throw new Exception(`Const declaration "${pData.name}" needs a assignment.`, this);
         }
 
@@ -85,14 +92,15 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
         this.mName = pData.name;
         this.mType = pData.type;
         this.mExpression = pData.expression ?? null;
-        this.mConstant = false; // TODO: Read from expression.
+        this.mIsConstant = null;
     }
 
     /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // Nothing to validate eighter.
+        // Is a constant when const type and expression is a constant.
+        this.mIsConstant = this.mDeclarationType === PgslDeclarationType.Const && this.mExpression!.isConstant;
     }
 }
 

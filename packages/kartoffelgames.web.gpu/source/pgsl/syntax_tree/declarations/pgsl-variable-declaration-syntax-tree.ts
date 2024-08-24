@@ -53,9 +53,16 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
      * @param pBuildIn - Buildin value.
      */
     public constructor(pData: PgslVariableDeclarationSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number, pBuildIn: boolean = false) {
-        super(pData, pData.attributes, pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
+        // Create list of all constant declaration types.
+        const lConstDeclarationTypeList: Array<PgslDeclarationType> = [
+            PgslDeclarationType.Const,
+            PgslDeclarationType.Param,
+        ];
 
-        // Create list of all bit operations.
+        // Set only as const when a constant declaration type was used. 
+        super(pData, pData.attributes, lConstDeclarationTypeList.includes(pData.declarationType as PgslDeclarationType), pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
+
+        // Create list of all module variable declarations types.
         const lDeclarationTypeList: Array<PgslDeclarationType> = [
             PgslDeclarationType.Const,
             PgslDeclarationType.Storage,

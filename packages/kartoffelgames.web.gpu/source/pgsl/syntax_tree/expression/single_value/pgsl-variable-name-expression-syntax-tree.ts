@@ -1,5 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
+import { PgslVariableDeclarationStatementSyntaxTree } from '../../statement/pgsl-variable-declaration-statement-syntax-tree';
+import { PgslVariableDeclarationSyntaxTree } from '../../declarations/pgsl-variable-declaration-syntax-tree';
 
 /**
  * PGSL structure holding single variable name.
@@ -35,10 +37,16 @@ export class PgslVariableNameExpressionSyntaxTree extends BasePgslSingleValueExp
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
+        // Read declaration of variable.
+        const lDeclaration: PgslVariableDeclarationStatementSyntaxTree | PgslVariableDeclarationSyntaxTree | undefined = this.scopedVariables.get(this.mName);
+
         // Catch undefined variables.
-        if (!this.scopedVariables.has(this.name)) {
+        if (!lDeclaration) {
             throw new Exception(`Variable "${this.name}" not defined.`, this);
         }
+
+        // Variable is constant when the declaration is a constant.
+        this.setConstantState(lDeclaration.isConstant);
     }
 }
 

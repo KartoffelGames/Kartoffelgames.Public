@@ -52,7 +52,8 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // Nothing to validate eighter.
+        // Expression is constant when variable is a constant.
+        this.setConstantState(this.mExpression.isConstant);
     }
 }
 

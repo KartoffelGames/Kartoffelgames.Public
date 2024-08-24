@@ -107,6 +107,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             structDeclaration: new Set<string>()
         };
 
+        // TODO: Add all build in values.
+
         return lDocument;
     }
 
@@ -489,7 +491,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single(PgslToken.ParenthesesStart)
             .optional('init', this.partReference<PgslVariableDeclarationStatementSyntaxTree>('Statement-VariableDeclaration'))
             .single(PgslToken.Semicolon)
-            .optional('expression', this.partReference<PgslBlockStatementSyntaxTree>('Expression'))
+            .optional('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
             .single(PgslToken.Semicolon)
             .optionalBranch('update', [
                 this.partReference<PgslAssignmentStatementSyntaxTree>('Statement-Assignment'),
@@ -526,7 +528,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         this.defineGraphPart('Statement-While', this.graph()
             .single(PgslToken.KeywordWhile)
             .single(PgslToken.ParenthesesStart)
-            .single('expression', this.partReference<PgslBlockStatementSyntaxTree>('Expression'))
+            .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
             .single(PgslToken.ParenthesesEnd)
             .single('block', this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block')),
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslWhileStatementSyntaxTree => {

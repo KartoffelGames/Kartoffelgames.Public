@@ -1661,19 +1661,6 @@ describe('PsglLexer', () => {
         expect(lTokenList[1]).property('type').to.equal(PgslToken.Semicolon);
     });
 
-    it('-- AttributeIndicator', () => {
-        // Setup.
-        const lCodeString = `bbb @aaa()`;
-
-        // Process.
-        const lTokenList: Array<LexerToken<PgslToken>> = [...lPgslLexer.tokenize(lCodeString)];
-
-        // Evaluation.
-        expect(lTokenList[0]).property('type').to.equal(PgslToken.Identifier);
-        expect(lTokenList[1]).property('type').to.equal(PgslToken.AttributeIndicator);
-        expect(lTokenList[2]).property('type').to.equal(PgslToken.Identifier);
-    });
-
     it('-- ReservedKeyword', () => {
         // Setup.
         const lCodeString = `aaa unsafe;`;

@@ -53,7 +53,8 @@ describe('PsglParser', () => {
             it('-- Reject const declaration with attributes', () => {
                 // Setup.
                 const lSourceCode: string = `
-                    @attribute() const myInt: Integer = 1;
+                    [Attribute]
+                    const myInt: Integer = 1;
                 `;
 
                 // Process.
@@ -125,8 +126,9 @@ describe('PsglParser', () => {
 
             it('-- Reject param declaration with attributes', () => {
                 // Setup.
-                const lSourceCode: string = `
-                    @attribute() param myInt: Integer = 1;
+                const lSourceCode: string = ` 
+                    [Attribute]
+                    param myInt: Integer = 1;
                 `;
 
                 // Process.
@@ -182,7 +184,8 @@ describe('PsglParser', () => {
             it('-- Reject private declaration with attributes', () => {
                 // Setup.
                 const lSourceCode: string = `
-                    @attribute() private myInt: Integer;
+                    [Attribute]
+                    private myInt: Integer;
                 `;
 
                 // Process.
@@ -227,7 +230,8 @@ describe('PsglParser', () => {
             it('-- Reject workgroup declaration with attributes', () => {
                 // Setup.
                 const lSourceCode: string = `
-                    @attribute() workgroup myInt: Integer;
+                    [Attribute]
+                    workgroup myInt: Integer;
                 `;
 
                 // Process.
@@ -272,7 +276,8 @@ describe('PsglParser', () => {
             it('-- Reject uniform declaration with assignment', () => {
                 // Setup.
                 const lSourceCode: string = `
-                    @groupBind(x, y) uniform myInt: Integer = 10;
+                    [GroupBind(x, y)]
+                    uniform myInt: Integer = 10;
                 `;
 
                 // Process.
@@ -291,7 +296,9 @@ describe('PsglParser', () => {
             it('-- Declaration with read access', () => {
                 // Setup.
                 const lSourceCode: string = `
-                    @groupBind(x, y) @accessMode(AccessMode.Read) storage myInt: Integer;
+                    [GroupBind(x, y)]
+                    [AccessMode(AccessMode.Read)]
+                    storage myInt: Integer;
                 `;
 
                 // Process.
@@ -304,7 +311,9 @@ describe('PsglParser', () => {
             it('-- Declaration  with write access', () => {
                 // Setup.
                 const lSourceCode: string = `
-                    @groupBind(x, y) @accessMode(AccessMode.Write) storage myInt: Integer;
+                    [GroupBind(x, y)]
+                    [AccessMode(AccessMode.Write)]
+                    storage myInt: Integer;
                 `;
 
                 // Process.
@@ -317,7 +326,9 @@ describe('PsglParser', () => {
             it('-- Declaration with read write access', () => {
                 // Setup.
                 const lSourceCode: string = `
-                    @groupBind(x, y) @accessMode(AccessMode.ReadWrite) storage myInt: Integer;
+                    [GroupBind(x, y)]
+                    [AccessMode(AccessMode.ReadWrite)]
+                    storage myInt: Integer;
                 `;
 
                 // Process.
@@ -330,7 +341,8 @@ describe('PsglParser', () => {
             it('-- Reject storage declaration without binding', () => {
                 // Setup.
                 const lSourceCode: string = `
-                    @accessMode(AccessMode.ReadWrite) storage myInt: Integer;
+                    [AccessMode(AccessMode.ReadWrite)]
+                    storage myInt: Integer;
                 `;
 
                 // Process.
@@ -345,7 +357,8 @@ describe('PsglParser', () => {
             it('-- Reject storage declaration without access mode', () => {
                 // Setup.
                 const lSourceCode: string = `
-                    @groupBind(x, y) storage myInt: Integer;
+                    [GroupBind(x, y)]
+                    storage myInt: Integer;
                 `;
 
                 // Process.
@@ -360,7 +373,9 @@ describe('PsglParser', () => {
             it('-- Reject storage declaration with assignment', () => {
                 // Setup.
                 const lSourceCode: string = `
-                    @groupBind(x, y) @accessMode(AccessMode.ReadWrite) storage myInt: Integer = 10;
+                    [GroupBind(x, y)]
+                    [AccessMode(AccessMode.ReadWrite)]
+                    storage myInt: Integer = 10;
                 `;
 
                 // Process.

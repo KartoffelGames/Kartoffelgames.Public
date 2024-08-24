@@ -155,7 +155,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
 
         this.defineGraphPart('General-AttributeList', this.graph()
             .loop('list', this.graph()
-                .single(PgslToken.AttributeIndicator)
+                .single(PgslToken.ListStart)
                 .single('name', PgslToken.Identifier)
                 .single(PgslToken.ParenthesesStart)
                 .optional('parameter', this.graph()
@@ -165,6 +165,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                     )
                 )
                 .single(PgslToken.ParenthesesEnd)
+                .single(PgslToken.ListEnd)
             ),
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAttributeListSyntaxTree => {
                 // Create attribute list.

@@ -180,14 +180,6 @@ export class PgslLexer extends Lexer<PgslToken> {
             },
         });
 
-        // AttributeIndicator.
-        this.addTokenTemplate('AttributeIndicator', {
-            pattern: {
-                regex: /@/,
-                type: PgslToken.AttributeIndicator
-            },
-        });
-
         // Parentheses.
         this.addTokenTemplate('Parentheses', {
             pattern: {
@@ -478,7 +470,6 @@ export class PgslLexer extends Lexer<PgslToken> {
             this.useTokenTemplate('Block', 1);
             this.useTokenTemplate('Parentheses', 1);
             this.useTokenTemplate('List', 1);
-            this.useTokenTemplate('AttributeIndicator', 1);
 
             // Tokens with ambiguity. 
             this.useTokenTemplate('TemplateList', 1);

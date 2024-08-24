@@ -7,7 +7,6 @@ export enum PgslToken {
     Colon = 'colon',
     Semicolon = 'Semicolon',
     ReservedKeyword = 'ReservedKeyword',
-    AttributeIndicator = 'AttributeIndicator',
 
     // Assignments
     Assignment = 'Assignment',

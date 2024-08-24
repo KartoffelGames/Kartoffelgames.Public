@@ -1,4 +1,4 @@
-import { EnumUtil } from '@kartoffelgames/core';
+import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { CodeParser, LexerToken } from '@kartoffelgames/core.parser';
 import { PgslBuildInTypeName } from '../enum/pgsl-type-name.enum';
 import { PgslAliasDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-alias-declaration-syntax-tree';
@@ -118,7 +118,31 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
      * 
      * @returns parameter of start and end token as a four number tuple.
      */
-    private createTokenBoundParameter(pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): [number, number, number, number] {
+    private createTokenBoundParameter(pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): [number, number, number, number] {
+        // No token.
+        if (!pStartToken && !pEndToken) {
+            return [0, 0, 0, 0];
+        }
+
+        
+
+        // Catch some alien behaviour.
+        if (!pStartToken) {
+            console.log(null, pEndToken?.value)
+            throw new Exception('Something wrong happened. Start token musst be present when endtoken exists.', this);
+        }
+
+        // Only starting token.
+        if (!pEndToken) {
+            return [
+                pStartToken.columnNumber,
+                pStartToken.lineNumber,
+                pStartToken.columnNumber,
+                pStartToken.lineNumber
+            ];
+        }
+
+        // Solid start and end token.
         return [
             pStartToken.columnNumber,
             pStartToken.lineNumber,
@@ -145,7 +169,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 )
                 .single(PgslToken.ParenthesesEnd)
             ),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslAttributeListSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAttributeListSyntaxTree => {
                 // Create attribute list.
                 const lAttributeList: ConstructorParameters<typeof PgslAttributeListSyntaxTree>[0]['attributes'] = new Array<{ name: string; parameter: Array<BasePgslExpressionSyntaxTree>; }>();
 
@@ -186,7 +210,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 ])
             )
             .single(PgslToken.TemplateListEnd),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslTemplateListSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslTemplateListSyntaxTree => {
                 // Build Parameter list
                 const lParameterList: Array<PgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree> = [pData.first, ...pData.additional.map((pParameter) => { return pParameter.value; })];
 
@@ -221,7 +245,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         this.defineGraphPart('General-TypeDefinition', this.graph()
             .single('name', PgslToken.Identifier)
             .optional('templateList', this.partReference<PgslTemplateListSyntaxTree>('General-TemplateList')),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslTypeDefinitionSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslTypeDefinitionSyntaxTree => {
                 // Define root structure of type definition syntax tree structure data and apply type name.
                 const lData: ConstructorParameters<typeof PgslTypeDefinitionSyntaxTree>[0] = {
                     name: pData.name
@@ -240,7 +264,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         this.defineGraphPart('General-TypeDefinition-ForcedTemplate', this.graph()
             .single('name', PgslToken.Identifier)
             .single('templateList', this.partReference<PgslTemplateListSyntaxTree>('General-TemplateList')),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslTypeDefinitionSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslTypeDefinitionSyntaxTree => {
                 // Create type definition syntax tree.
                 return new PgslTypeDefinitionSyntaxTree({
                     name: pData.name,
@@ -262,7 +286,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 PgslToken.OperatorShortCircuitAnd
             ])
             .single('rightExpression', this.partReference<BasePgslExpressionSyntaxTree>('Expression')),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslLogicalExpressionSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslLogicalExpressionSyntaxTree => {
                 return new PgslLogicalExpressionSyntaxTree({
                     left: pData.leftExpression,
                     operator: pData.operation,
@@ -281,7 +305,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 PgslToken.OperatorModulo
             ])
             .single('rightExpression', this.partReference<BasePgslExpressionSyntaxTree>('Expression')),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslArithmeticExpressionSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslArithmeticExpressionSyntaxTree => {
                 return new PgslArithmeticExpressionSyntaxTree({
                     left: pData.leftExpression,
                     operator: pData.operation,
@@ -301,7 +325,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 PgslToken.OperatorGreaterThanEqual
             ])
             .single('rightExpression', this.partReference<BasePgslExpressionSyntaxTree>('Expression')),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslComparisonExpressionSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslComparisonExpressionSyntaxTree => {
                 return new PgslComparisonExpressionSyntaxTree({
                     left: pData.leftExpression,
                     operator: pData.comparison,
@@ -320,7 +344,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 PgslToken.OperatorShiftRight
             ])
             .single('rightExpression', this.partReference<BasePgslExpressionSyntaxTree>('Expression')),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslBinaryExpressionSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslBinaryExpressionSyntaxTree => {
                 return new PgslBinaryExpressionSyntaxTree({
                     left: pData.leftExpression,
                     operator: pData.operation,
@@ -336,7 +360,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 PgslToken.OperatorNot
             ])
             .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression')),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslUnaryExpressionSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslUnaryExpressionSyntaxTree => {
                 return new PgslUnaryExpressionSyntaxTree({
                     expression: pData.expression,
                     operator: pData.prefix
@@ -347,7 +371,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         this.defineGraphPart('Expression-AddressOf', this.graph()
             .single(PgslToken.OperatorBinaryAnd)
             .single('variable', this.partReference<BasePgslSingleValueExpressionSyntaxTree>('Expression-SingleValue')),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslAddressOfExpressionSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAddressOfExpressionSyntaxTree => {
                 return new PgslAddressOfExpressionSyntaxTree({
                     variable: pData.variable
                 }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
@@ -357,7 +381,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         this.defineGraphPart('Expression-Pointer', this.graph()
             .single(PgslToken.OperatorMultiply)
             .single('variable', this.partReference<BasePgslSingleValueExpressionSyntaxTree>('Expression-SingleValue')),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslPointerExpressionSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslPointerExpressionSyntaxTree => {
                 return new PgslPointerExpressionSyntaxTree({
                     variable: pData.variable
                 }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
@@ -401,7 +425,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                     this.partReference<PgslIfStatementSyntaxTree>('Statement-If')
                 ])
             ),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslIfStatementSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslIfStatementSyntaxTree => {
                 // Create data.
                 const lData: ConstructorParameters<typeof PgslIfStatementSyntaxTree>[0] = {
                     expression: pData.expression,
@@ -438,7 +462,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 .single('block', this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block'))
             )
             .single(PgslToken.BlockEnd),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslSwitchStatementSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslSwitchStatementSyntaxTree => {
                 // Build switch data structure.
                 const lData: ConstructorParameters<typeof PgslSwitchStatementSyntaxTree>[0] = {
                     expression: pData.expression,
@@ -476,24 +500,24 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             ])
             .single(PgslToken.ParenthesesEnd)
             .single('block', this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block')),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslForStatementSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslForStatementSyntaxTree => {
                 // Build switch data structure.
                 const lData: ConstructorParameters<typeof PgslForStatementSyntaxTree>[0] = {
                     block: pData.block
                 };
 
                 // Optional initial declaration.
-                if(pData.init){
+                if (pData.init) {
                     lData.init = pData.init;
                 }
 
                 // Optional expression.
-                if(pData.expression){
+                if (pData.expression) {
                     lData.expression = pData.expression;
                 }
 
                 // Optional expression.
-                if(pData.update){
+                if (pData.update) {
                     lData.update = pData.update;
                 }
 
@@ -507,7 +531,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single('expression', this.partReference<PgslBlockStatementSyntaxTree>('Expression'))
             .single(PgslToken.ParenthesesEnd)
             .single('block', this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block')),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslWhileStatementSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslWhileStatementSyntaxTree => {
                 return new PgslWhileStatementSyntaxTree({
                     expression: pData.expression,
                     block: pData.block
@@ -522,7 +546,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single(PgslToken.ParenthesesStart)
             .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
             .single(PgslToken.ParenthesesEnd),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslDoWhileStatementSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslDoWhileStatementSyntaxTree => {
                 return new PgslDoWhileStatementSyntaxTree({
                     expression: pData.expression,
                     block: pData.block
@@ -532,14 +556,14 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
 
         this.defineGraphPart('Statement-Break', this.graph()
             .single(PgslToken.KeywordBreak),
-            (_pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslBreakStatementSyntaxTree => {
+            (_pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslBreakStatementSyntaxTree => {
                 return new PgslBreakStatementSyntaxTree({}, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 
         this.defineGraphPart('Statement-Continue', this.graph()
             .single(PgslToken.KeywordContinue),
-            (_pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslContinueStatementSyntaxTree => {
+            (_pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslContinueStatementSyntaxTree => {
                 return new PgslContinueStatementSyntaxTree({}, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
@@ -547,7 +571,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         this.defineGraphPart('Statement-Return', this.graph()
             .single(PgslToken.KeywordContinue)
             .optional('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression')),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslReturnStatementSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslReturnStatementSyntaxTree => {
                 // Build return data structure.
                 const lData: ConstructorParameters<typeof PgslReturnStatementSyntaxTree>[0] = {};
 
@@ -562,7 +586,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
 
         this.defineGraphPart('Statement-Discard', this.graph()
             .single(PgslToken.KeywordDiscard),
-            (_pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslDiscardStatementSyntaxTree => {
+            (_pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslDiscardStatementSyntaxTree => {
                 return new PgslDiscardStatementSyntaxTree({}, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
@@ -577,7 +601,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .optional('initial',
                 this.graph().single(PgslToken.Assignment).single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
             ),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslVariableDeclarationStatementSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslVariableDeclarationStatementSyntaxTree => {
                 // Build enum data structure.
                 const lData: ConstructorParameters<typeof PgslVariableDeclarationStatementSyntaxTree>[0] = {
                     declarationType: pData.declarationType,
@@ -610,7 +634,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 PgslToken.AssignmentShiftLeft,
             ])
             .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression')),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslAssignmentStatementSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAssignmentStatementSyntaxTree => {
                 return new PgslAssignmentStatementSyntaxTree({
                     expression: pData.expression,
                     assignment: pData.assignment,
@@ -625,7 +649,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 PgslToken.OperatorIncrement,
                 PgslToken.OperatorDecrement
             ]),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslIncrementDecrementStatementSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslIncrementDecrementStatementSyntaxTree => {
                 return new PgslIncrementDecrementStatementSyntaxTree({
                     expression: pData.expression,
                     operator: pData.operator
@@ -644,7 +668,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 )
             )
             .single(PgslToken.ParenthesesEnd),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslFunctionCallStatementSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslFunctionCallStatementSyntaxTree => {
                 // Build parameter list of function.
                 const lParameterList: Array<BasePgslExpressionSyntaxTree> = new Array<BasePgslExpressionSyntaxTree>();
                 if (pData.parameter) {
@@ -677,7 +701,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single(PgslToken.BlockStart)
             .loop('statements', this.partReference<BasePgslStatementSyntaxTree>('Statement'))
             .single(PgslToken.BlockEnd),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslBlockStatementSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslBlockStatementSyntaxTree => {
                 return new PgslBlockStatementSyntaxTree({
                     statements: pData.statements
                 }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
@@ -728,7 +752,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 PgslToken.Semicolon,
                 this.graph().single(PgslToken.Assignment).single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression')).single(PgslToken.Semicolon)
             ]),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslVariableDeclarationSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslVariableDeclarationSyntaxTree => {
                 // Build data structure.
                 const lData: ConstructorParameters<typeof PgslVariableDeclarationSyntaxTree>[0] = {
                     attributes: pData.attributes,
@@ -751,7 +775,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single(PgslToken.KeywordAlias)
             .single('name', PgslToken.Identifier).single(PgslToken.Assignment)
             .single('type', this.partReference<PgslTypeDefinitionSyntaxTree>('General-TypeDefinition')).single(PgslToken.Semicolon),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslAliasDeclarationSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAliasDeclarationSyntaxTree => {
                 // Add alias name to parser buffer. Used for identifying type definitions over alias declarations.
                 this.mParserBuffer.aliasDeclarations.add(pData.name);
 
@@ -785,7 +809,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 )
             )
             .single(PgslToken.BlockEnd),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslEnumDeclarationSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslEnumDeclarationSyntaxTree => {
                 // Add enum name to buffer.
                 this.mParserBuffer.enumDeclaration.add(pData.name);
 
@@ -821,7 +845,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single('name', PgslToken.Identifier)
             .single(PgslToken.Colon)
             .single('type', this.partReference<PgslTypeDefinitionSyntaxTree>('General-TypeDefinition')),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslStructPropertyDeclarationSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslStructPropertyDeclarationSyntaxTree => {
                 // Add alias name to parser buffer. Used for identifying type definitions over alias declarations.
                 this.mParserBuffer.aliasDeclarations.add(pData.name);
 
@@ -847,7 +871,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 )
             )
             .single(PgslToken.BlockEnd),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslStructDeclarationSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslStructDeclarationSyntaxTree => {
                 // Add struct name to struct buffer.
                 this.mParserBuffer.structDeclaration.add(pData.name);
 
@@ -889,7 +913,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single(PgslToken.Colon)
             .single('returnType', this.partReference<PgslTypeDefinitionSyntaxTree>('General-TypeDefinition'))
             .single('block', this.partReference<PgslBlockStatementSyntaxTree>('Statement-Block')),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslFunctionDeclarationSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslFunctionDeclarationSyntaxTree => {
                 // Create base data.
                 const lData: ConstructorParameters<typeof PgslFunctionDeclarationSyntaxTree>[0] = {
                     attributes: pData.attributes,
@@ -925,7 +949,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                     this.partReference<PgslFunctionDeclarationSyntaxTree>('Declaration-Function')
                 ])
             ),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslModuleSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslModuleSyntaxTree => {
                 const lData: ConstructorParameters<typeof PgslModuleSyntaxTree>[0] = {
                     aliases: new Array<PgslAliasDeclarationSyntaxTree>(),
                     enums: new Array<PgslEnumDeclarationSyntaxTree>(),
@@ -975,7 +999,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
     private defineVariableExpression(): void {
         this.defineGraphPart('Expression-VariableName', this.graph()
             .single('name', PgslToken.Identifier),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslVariableNameExpressionSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslVariableNameExpressionSyntaxTree => {
                 return new PgslVariableNameExpressionSyntaxTree({
                     name: pData.name
                 }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
@@ -987,7 +1011,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single(PgslToken.ListStart)
             .single('indexExpression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
             .single(PgslToken.ListEnd),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslIndexedValueExpressionSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslIndexedValueExpressionSyntaxTree => {
                 return new PgslIndexedValueExpressionSyntaxTree({
                     value: pData.value,
                     index: pData.indexExpression
@@ -999,7 +1023,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single('leftExpression', this.partReference<BasePgslSingleValueExpressionSyntaxTree>('Expression-SingleValue'))
             .single(PgslToken.MemberDelimiter)
             .single('propertyName', PgslToken.Identifier),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslEnumValueExpressionSyntaxTree | PgslValueDecompositionExpressionSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslEnumValueExpressionSyntaxTree | PgslValueDecompositionExpressionSyntaxTree => {
                 // When left expression is a single name, it can be a enum value.
                 if (pData.leftExpression instanceof PgslVariableNameExpressionSyntaxTree) {
                     // Check variable name with the currently existing declared enums. 
@@ -1032,7 +1056,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 )
             )
             .single(PgslToken.ParenthesesEnd),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslFunctionCallExpressionSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslFunctionCallExpressionSyntaxTree => {
                 // Build parameter list of function.
                 const lParameterList: Array<BasePgslExpressionSyntaxTree> = new Array<BasePgslExpressionSyntaxTree>();
                 if (pData.parameter) {
@@ -1065,7 +1089,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .single(PgslToken.ParenthesesStart)
             .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
             .single(PgslToken.ParenthesesEnd),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslParenthesizedExpressionSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslParenthesizedExpressionSyntaxTree => {
                 return new PgslParenthesizedExpressionSyntaxTree({
                     expression: pData.expression
                 }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
@@ -1078,7 +1102,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 this.graph().single('integer', PgslToken.LiteralInteger),
                 this.graph().single('boolean', PgslToken.LiteralBoolean)
             ]),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslLiteralValueExpressionSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslLiteralValueExpressionSyntaxTree => {
                 // Define different types of data for the different literals.
                 let lData: ConstructorParameters<typeof PgslLiteralValueExpressionSyntaxTree>[0];
                 if ('float' in pData.value) {
@@ -1104,7 +1128,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
 
         this.defineGraphPart('Expression-StringValue', this.graph()
             .single('string', PgslToken.LiteralString),
-            (pData, pStartToken: LexerToken<PgslToken>, pEndToken: LexerToken<PgslToken>): PgslStringValueExpressionSyntaxTree => {
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslStringValueExpressionSyntaxTree => {
                 return new PgslStringValueExpressionSyntaxTree({
                     textValue: pData.string
                 }, ...this.createTokenBoundParameter(pStartToken, pEndToken));

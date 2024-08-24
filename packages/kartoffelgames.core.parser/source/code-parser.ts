@@ -336,7 +336,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
 
         // Read start end end token.
         const lStartToken: LexerToken<TTokenType> | undefined = pTokenList.at(pCurrentTokenIndex);
-        const lEndToken: LexerToken<TTokenType> | undefined = pTokenList.at(lNodeParseResult.nextTokenIndex - 1);
+        const lEndTokenIndex: number = (lNodeParseResult.nextTokenIndex === pCurrentTokenIndex) ? pCurrentTokenIndex : lNodeParseResult.nextTokenIndex - 1;
+        const lEndToken: LexerToken<TTokenType> | undefined = pTokenList.at(lEndTokenIndex);
 
         // Execute optional collector.
         let lResultData: unknown = lNodeParseResult.data;

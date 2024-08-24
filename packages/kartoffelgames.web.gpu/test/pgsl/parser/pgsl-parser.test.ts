@@ -276,7 +276,7 @@ describe('PsglParser', () => {
             it('-- Reject uniform declaration with assignment', () => {
                 // Setup.
                 const lSourceCode: string = `
-                    [GroupBind(x, y)]
+                    [GroupBinding(x, y)]
                     uniform myInt: Integer = 10;
                 `;
 
@@ -296,7 +296,7 @@ describe('PsglParser', () => {
             it('-- Declaration with read access', () => {
                 // Setup.
                 const lSourceCode: string = `
-                    [GroupBind(x, y)]
+                    [GroupBinding(x, y)]
                     [AccessMode(AccessMode.Read)]
                     storage myInt: Integer;
                 `;
@@ -311,7 +311,7 @@ describe('PsglParser', () => {
             it('-- Declaration  with write access', () => {
                 // Setup.
                 const lSourceCode: string = `
-                    [GroupBind(x, y)]
+                    [GroupBinding(x, y)]
                     [AccessMode(AccessMode.Write)]
                     storage myInt: Integer;
                 `;
@@ -326,7 +326,7 @@ describe('PsglParser', () => {
             it('-- Declaration with read write access', () => {
                 // Setup.
                 const lSourceCode: string = `
-                    [GroupBind(x, y)]
+                    [GroupBinding(x, y)]
                     [AccessMode(AccessMode.ReadWrite)]
                     storage myInt: Integer;
                 `;
@@ -357,7 +357,7 @@ describe('PsglParser', () => {
             it('-- Reject storage declaration without access mode', () => {
                 // Setup.
                 const lSourceCode: string = `
-                    [GroupBind(x, y)]
+                    [GroupBinding(x, y)]
                     storage myInt: Integer;
                 `;
 
@@ -373,7 +373,7 @@ describe('PsglParser', () => {
             it('-- Reject storage declaration with assignment', () => {
                 // Setup.
                 const lSourceCode: string = `
-                    [GroupBind(x, y)]
+                    [GroupBinding(x, y)]
                     [AccessMode(AccessMode.ReadWrite)]
                     storage myInt: Integer = 10;
                 `;

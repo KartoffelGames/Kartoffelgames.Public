@@ -15,44 +15,44 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
         const lAttributes: Dictionary<string, AttributeDefinitionInformation> = new Dictionary<string, AttributeDefinitionInformation>();
 
         // Function and declaration config.
-        lAttributes.set('group_binding', [
+        lAttributes.set('GroupBinding', [
             ['String', 'String']
         ]);
-        lAttributes.set('access_mode', [
+        lAttributes.set('AccessMode', [
             ['AccessMode']
         ]);
-        lAttributes.set('workgroup_size', [
+        lAttributes.set('WorkgroupSize', [
             ['Expression'],
             ['Expression', 'Expression'],
             ['Expression', 'Expression', 'Expression']
         ]);
 
         // Struct type.
-        lAttributes.set('align', [
+        lAttributes.set('Align', [
             ['Expression']
         ]);
-        lAttributes.set('blend_src', [
+        lAttributes.set('BlendSource', [
             ['Expression']
         ]);
-        lAttributes.set('builtin', [
+        lAttributes.set('Builtin', [
             ['BuildIn']
         ]);
-        lAttributes.set('interpolate', [
+        lAttributes.set('Interpolate', [
             ['InterpolationType'],
             ['InterpolationType', 'InterpolationSampling']
         ]);
-        lAttributes.set('invariant', []);
+        lAttributes.set('Invariant', []);
         lAttributes.set('location', [
             ['Expression']
         ]);
-        lAttributes.set('size', [
+        lAttributes.set('Size', [
             ['Expression']
         ]);
 
         // Entry points.
-        lAttributes.set('vertex', []);
-        lAttributes.set('fragment', []);
-        lAttributes.set('compute', []);
+        lAttributes.set('Vertex', []);
+        lAttributes.set('Fragment', []);
+        lAttributes.set('Compute', []);
 
         return lAttributes;
     })();
@@ -105,6 +105,7 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
      */
     protected override onValidateIntegrity(): void {
         // TODO: Maybe the parent can set allowed attributes. 
+        // TODO: Only const expressions allowed-
     }
 
     /**

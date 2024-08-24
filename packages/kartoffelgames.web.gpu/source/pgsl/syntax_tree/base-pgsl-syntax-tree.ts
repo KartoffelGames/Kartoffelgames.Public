@@ -8,8 +8,10 @@ import { PgslModuleSyntaxTree } from './pgsl-module-syntax-tree';
 export abstract class BasePgslSyntaxTree<TData extends PgslSyntaxTreeInitData> {
     private readonly mBuildIn: boolean;
     private readonly mChilds: Array<UnknownPgslSyntaxTree>;
+    private mIsValid: boolean;
     private readonly mMeta: SyntaxTreeMeta;
     private mParent: UnknownPgslSyntaxTree | null;
+
 
     /**
      * Structure is build in and does not be included in the final output.
@@ -72,6 +74,7 @@ export abstract class BasePgslSyntaxTree<TData extends PgslSyntaxTreeInitData> {
     public constructor(pData: TData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number, pBuildIn: boolean = false) {
         this.mBuildIn = pBuildIn;
         this.mParent = null;
+        this.mIsValid = false;
 
         // Save meta information.
         this.mMeta = {
@@ -151,6 +154,17 @@ export abstract class BasePgslSyntaxTree<TData extends PgslSyntaxTreeInitData> {
                 this.mMeta.position.end.column,
                 this.mMeta.position.end.line
             );
+        }
+
+        this.mIsValid = true;
+    }
+
+    /**
+     * Throws when the syntax tree was not validated.
+     */
+    protected ensureValidity(): void {
+        if (!this.mIsValid) {
+            throw new Exception('Syntax tree is not validated to access properties.', this);
         }
     }
 

@@ -36,4 +36,4 @@ export class GraphPart<TTokenType extends string, TResult extends object = objec
     }
 }
 
-export type GraphPartDataCollector<TTokenType extends string, TRawData extends object> = (pRawData: TRawData, pStartToken: LexerToken<TTokenType>, pEndToken: LexerToken<TTokenType>) => unknown;
+export type GraphPartDataCollector<TTokenType extends string, TRawData extends object> = (pRawData: TRawData, pStartToken: LexerToken<TTokenType> | undefined, pEndToken: LexerToken<TTokenType> | undefined) => unknown;

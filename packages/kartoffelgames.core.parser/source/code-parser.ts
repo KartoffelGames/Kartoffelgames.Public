@@ -335,8 +335,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         pRecursionNodeChain.delete(pPartReference);
 
         // Read start end end token.
-        const lStartToken: LexerToken<TTokenType> = pTokenList.at(pCurrentTokenIndex)!;
-        const lEndToken: LexerToken<TTokenType> = pTokenList.at(lNodeParseResult.nextTokenIndex - 1)!;
+        const lStartToken: LexerToken<TTokenType> | undefined = pTokenList.at(pCurrentTokenIndex);
+        const lEndToken: LexerToken<TTokenType> | undefined = pTokenList.at(lNodeParseResult.nextTokenIndex - 1);
 
         // Execute optional collector.
         let lResultData: unknown = lNodeParseResult.data;

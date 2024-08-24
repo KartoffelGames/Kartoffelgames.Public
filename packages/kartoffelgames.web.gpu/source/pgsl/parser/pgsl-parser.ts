@@ -124,11 +124,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             return [0, 0, 0, 0];
         }
 
-        
-
         // Catch some alien behaviour.
         if (!pStartToken) {
-            console.log(null, pEndToken?.value)
             throw new Exception('Something wrong happened. Start token musst be present when endtoken exists.', this);
         }
 

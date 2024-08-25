@@ -1,10 +1,9 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslSyntaxTreeInitData } from '../../base-pgsl-syntax-tree';
 import { PgslFunctionDeclarationSyntaxTree } from '../../declarations/pgsl-function-declaration-syntax-tree';
-import { PgslTemplateListSyntaxTree } from '../../general/pgsl-template-list-syntax-tree';
+import { PgslTypeDefinitionSyntaxTree } from '../../general/pgsl-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
-import { PgslTypeDefinitionSyntaxTree } from '../../general/pgsl-type-definition-syntax-tree';
 
 /**
  * PGSL syntax tree of a function call expression with optional template list.
@@ -12,7 +11,6 @@ import { PgslTypeDefinitionSyntaxTree } from '../../general/pgsl-type-definition
 export class PgslFunctionCallExpressionSyntaxTree extends BasePgslSingleValueExpressionSyntaxTree<PgslFunctionCallExpressionSyntaxTreeStructureData> {
     private readonly mName: string;
     private readonly mParameterList: Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>>;
-    private readonly mTemplateList: PgslTemplateListSyntaxTree | null;
 
     /**
      * Function name.
@@ -26,13 +24,6 @@ export class PgslFunctionCallExpressionSyntaxTree extends BasePgslSingleValueExp
      */
     public get parameter(): Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>> {
         return this.mParameterList;
-    }
-
-    /**
-     * Function template.
-     */
-    public get templateList(): PgslTemplateListSyntaxTree | null {
-        return this.mTemplateList;
     }
 
     /**
@@ -51,7 +42,6 @@ export class PgslFunctionCallExpressionSyntaxTree extends BasePgslSingleValueExp
         // Set data.
         this.mName = pData.name;
         this.mParameterList = pData.parameterList;
-        this.mTemplateList = pData.template ?? null;
     }
 
     /**
@@ -101,5 +91,4 @@ export class PgslFunctionCallExpressionSyntaxTree extends BasePgslSingleValueExp
 type PgslFunctionCallExpressionSyntaxTreeStructureData = {
     name: string;
     parameterList: Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>>;
-    template?: PgslTemplateListSyntaxTree;
 };

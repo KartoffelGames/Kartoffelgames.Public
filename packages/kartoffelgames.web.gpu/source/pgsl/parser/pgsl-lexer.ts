@@ -51,6 +51,7 @@ export class PgslLexer extends Lexer<PgslToken> {
         lKeywords.set(PgslToken.KeywordWhile, 'while');
         lKeywords.set(PgslToken.KeywordEnum, 'enum');
         lKeywords.set(PgslToken.KeywordDo, 'do');
+        lKeywords.set(PgslToken.KeywordNew, 'new');
 
         // Declarations
         lKeywords.set(PgslToken.KeywordDeclarationLet, 'let');

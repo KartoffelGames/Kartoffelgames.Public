@@ -74,7 +74,8 @@ export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntax
      * On type resolve of expression
      */
     protected onResolveType(): PgslTypeDefinitionSyntaxTree {
-        // TODO: Vectors ... yes. Why.
+        // Types are the same.
+        return this.mLeftExpression.resolveType;
     }
 
     /**

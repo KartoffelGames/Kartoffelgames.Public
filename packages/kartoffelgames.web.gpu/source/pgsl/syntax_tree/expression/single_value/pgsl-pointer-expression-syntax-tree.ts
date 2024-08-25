@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { PgslTypeDefinitionSyntaxTree } from '../../general/pgsl-type-definition-syntax-tree';
+import { PgslTypeDeclarationSyntaxTree } from '../../general/pgsl-type-declaration-syntax-tree';
 import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
 import { PgslIndexedValueExpressionSyntaxTree } from './pgsl-indexed-value-expression-syntax-tree';
 import { PgslValueDecompositionExpressionSyntaxTree } from './pgsl-value-decomposition-expression-syntax-tree';
@@ -51,7 +51,7 @@ export class PgslPointerExpressionSyntaxTree extends BasePgslSingleValueExpressi
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): PgslTypeDefinitionSyntaxTree {
+    protected onResolveType(): PgslTypeDeclarationSyntaxTree {
         // Pointer value will allways be a pointer.
         return this.mVariable.resolveType;
     }

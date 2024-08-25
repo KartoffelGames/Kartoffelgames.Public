@@ -1,5 +1,5 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { PgslBuildInTypeName } from '../../enum/pgsl-type-name.enum';
+import { PgslBuildInTypeName } from '../../enum/pgsl-build-in-type-name.enum';
 import { PgslValueType } from '../../enum/pgsl-value-type.enum';
 import { BasePgslSyntaxTree, PgslSyntaxTreeInitData } from '../base-pgsl-syntax-tree';
 import { PgslAliasDeclarationSyntaxTree } from '../declarations/pgsl-alias-declaration-syntax-tree';
@@ -11,7 +11,7 @@ import { PgslTemplateListSyntaxTree } from './pgsl-template-list-syntax-tree';
 /**
  * General PGSL syntax tree of a type definition.
  */
-export class PgslTypeDefinitionSyntaxTree extends BasePgslSyntaxTree<PgslTypeDefinitionSyntaxTreeStructureData> {
+export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDefinitionSyntaxTreeStructureData> {
     /**
      * Define types.
      */
@@ -123,10 +123,11 @@ export class PgslTypeDefinitionSyntaxTree extends BasePgslSyntaxTree<PgslTypeDef
     })();
 
     private mIsConstructible: boolean | null;
+    private mIsFixedLength: boolean | null;
     private readonly mRawName: string;
     private readonly mRawTemplateList: PgslTemplateListSyntaxTree | null;
     private mTemplate: PgslTemplateListSyntaxTree | null;
-    private mType: PgslBuildInTypeName | PgslStructDeclarationSyntaxTree | PgslEnumDeclarationSyntaxTree | null;
+    private mType: PgslBuildInTypeName | PgslStructDeclarationSyntaxTree | null;
     private mValueType: PgslValueType | null;
 
     /**
@@ -144,6 +145,20 @@ export class PgslTypeDefinitionSyntaxTree extends BasePgslSyntaxTree<PgslTypeDef
     }
 
     /**
+     * Type has a fixed byte length.
+     */
+    public get isFixedLength(): boolean {
+        this.ensureValidity();
+
+        // Determine if type is a construtable type.
+        if (this.mIsFixedLength === null) {
+            this.mIsFixedLength = this.determineFixedLength();
+        }
+
+        return this.mIsFixedLength;
+    }
+
+    /**
      * Template of type.
      */
     public get template(): PgslTemplateListSyntaxTree | null {
@@ -155,7 +170,7 @@ export class PgslTypeDefinitionSyntaxTree extends BasePgslSyntaxTree<PgslTypeDef
     /**
      * Type definition type.
      */
-    public get type(): PgslBuildInTypeName | PgslStructDeclarationSyntaxTree | PgslEnumDeclarationSyntaxTree {
+    public get type(): PgslBuildInTypeName | PgslStructDeclarationSyntaxTree {
         this.ensureValidity();
 
         // Value not set.
@@ -202,6 +217,7 @@ export class PgslTypeDefinitionSyntaxTree extends BasePgslSyntaxTree<PgslTypeDef
         this.mValueType = null;
 
         this.mIsConstructible = null;
+        this.mIsFixedLength = null;
     }
 
     /**
@@ -238,13 +254,17 @@ export class PgslTypeDefinitionSyntaxTree extends BasePgslSyntaxTree<PgslTypeDef
             }
 
             // The inner type musst be constructible to.
-            const lArrayInnerType: PgslTypeDefinitionSyntaxTree = this.mTemplate!.items[0] as PgslTypeDefinitionSyntaxTree;
+            const lArrayInnerType: PgslTypeDeclarationSyntaxTree = this.mTemplate!.items[0] as PgslTypeDeclarationSyntaxTree;
             if (!lConstructibleValueType.includes(lArrayInnerType.valueType)) {
                 return false;
             }
         }
 
         return true;
+    }
+
+    private determineFixedLength(): boolean {
+        return false; // TODO:
     }
 
     /**
@@ -280,7 +300,7 @@ export class PgslTypeDefinitionSyntaxTree extends BasePgslSyntaxTree<PgslTypeDef
     private resolveBuildIn(pRawName: string, pRawTemplate: PgslTemplateListSyntaxTree | null): boolean {
         const lResolver = (): [PgslBuildInTypeName, PgslValueType, PgslTemplateListSyntaxTree | null] | null => {
             // Validate as build in type.
-            const lTypeDefinitionInformation: TypeDefinitionInformation | undefined = PgslTypeDefinitionSyntaxTree.mBuildInTypes.get(pRawName as PgslBuildInTypeName);
+            const lTypeDefinitionInformation: TypeDefinitionInformation | undefined = PgslTypeDeclarationSyntaxTree.mBuildInTypes.get(pRawName as PgslBuildInTypeName);
             if (lTypeDefinitionInformation) {
                 // Type exists and doesn't need a template.
                 if (!pRawTemplate && lTypeDefinitionInformation.template.length === 0) {
@@ -303,8 +323,8 @@ export class PgslTypeDefinitionSyntaxTree extends BasePgslSyntaxTree<PgslTypeDef
                     for (let lIndex = 0; lIndex < lTemplate.length; lIndex++) {
                         const lExpectedTemplateType: 'Expression' | 'Type' = lTemplate[lIndex];
 
-                        const lActualTemplateParameter: PgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData> = pRawTemplate.items[lIndex];
-                        const lActualTemplateType: 'Expression' | 'Type' = (lActualTemplateParameter instanceof PgslTypeDefinitionSyntaxTree) ? 'Type' : 'Expression';
+                        const lActualTemplateParameter: PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData> = pRawTemplate.items[lIndex];
+                        const lActualTemplateType: 'Expression' | 'Type' = (lActualTemplateParameter instanceof PgslTypeDeclarationSyntaxTree) ? 'Type' : 'Expression';
 
                         // Need to have same parameter type.
                         if (lExpectedTemplateType !== lActualTemplateType) {
@@ -351,9 +371,10 @@ export class PgslTypeDefinitionSyntaxTree extends BasePgslSyntaxTree<PgslTypeDef
                 throw new Exception(`Enum can't have templates values.`, this);
             }
 
+            // Enum types are converted into unsiged integer.
             this.mTemplate = null;
-            this.mType = lEnum;
-            this.mValueType = PgslValueType.Enum;
+            this.mType = PgslBuildInTypeName.UnsignedInteger;
+            this.mValueType = PgslValueType.Numeric;
 
             return true;
         }

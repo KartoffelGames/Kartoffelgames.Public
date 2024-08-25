@@ -1,17 +1,17 @@
 import { BasePgslSyntaxTree, PgslSyntaxTreeInitData } from '../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
-import { PgslTypeDefinitionSyntaxTree } from './pgsl-type-definition-syntax-tree';
+import { PgslTypeDeclarationSyntaxTree } from './pgsl-type-declaration-syntax-tree';
 
 /**
  * Template list parameter.
  */
 export class PgslTemplateListSyntaxTree extends BasePgslSyntaxTree<PgslTemplateListSyntaxTreeStructureData> {
-    private readonly mItems: Array<PgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>>;
+    private readonly mItems: Array<PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>>;
 
     /**
      * Parameter list.
      */
-    public get items(): Array<PgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>> {
+    public get items(): Array<PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>> {
         return [...this.mItems];
     }
 
@@ -48,5 +48,5 @@ export class PgslTemplateListSyntaxTree extends BasePgslSyntaxTree<PgslTemplateL
 }
 
 type PgslTemplateListSyntaxTreeStructureData = {
-    parameterList: Array<PgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>>;
+    parameterList: Array<PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>>;
 };

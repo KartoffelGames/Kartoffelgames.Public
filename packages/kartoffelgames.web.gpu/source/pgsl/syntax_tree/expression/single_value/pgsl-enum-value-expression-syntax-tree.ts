@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslEnumDeclarationSyntaxTree } from '../../declarations/pgsl-enum-declaration-syntax-tree';
-import { PgslTypeDefinitionSyntaxTree } from '../../general/pgsl-type-definition-syntax-tree';
+import { PgslTypeDeclarationSyntaxTree } from '../../general/pgsl-type-declaration-syntax-tree';
 import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
 import { PgslLiteralValueExpressionSyntaxTree } from './pgsl-literal-value-expression-syntax-tree';
 import { PgslStringValueExpressionSyntaxTree } from './pgsl-string-value-expression-syntax-tree';
@@ -64,7 +64,7 @@ export class PgslEnumValueExpressionSyntaxTree extends BasePgslSingleValueExpres
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): PgslTypeDefinitionSyntaxTree {
+    protected onResolveType(): PgslTypeDeclarationSyntaxTree {
         const lPropertyValue: PgslLiteralValueExpressionSyntaxTree | PgslStringValueExpressionSyntaxTree = this.document.resolveEnum(this.mName)!.property(this.mProperty)!;
 
         // Set resolve type.

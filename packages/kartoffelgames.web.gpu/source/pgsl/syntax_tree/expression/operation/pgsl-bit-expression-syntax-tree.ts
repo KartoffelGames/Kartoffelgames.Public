@@ -1,7 +1,7 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum';
 import { PgslValueType } from '../../../enum/pgsl-value-type.enum';
-import { PgslTypeDefinitionSyntaxTree } from '../../general/pgsl-type-definition-syntax-tree';
+import { PgslTypeDeclarationSyntaxTree } from '../../general/pgsl-type-declaration-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslBinaryExpressionSyntaxTreeStructureData> {
@@ -73,7 +73,7 @@ export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): PgslTypeDefinitionSyntaxTree {
+    protected onResolveType(): PgslTypeDeclarationSyntaxTree {
         // TODO: Vectors are also allowed...
 
         // Set resolved type to left expression type.

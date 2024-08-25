@@ -1,12 +1,12 @@
 import { BasePgslSyntaxTree, PgslSyntaxTreeInitData } from '../base-pgsl-syntax-tree';
-import { PgslTypeDefinitionSyntaxTree } from '../general/pgsl-type-definition-syntax-tree';
+import { PgslTypeDeclarationSyntaxTree } from '../general/pgsl-type-declaration-syntax-tree';
 
 /**
  * PGSL base expression.
  */
 export abstract class BasePgslExpressionSyntaxTree<TData extends PgslSyntaxTreeInitData = PgslSyntaxTreeInitData> extends BasePgslSyntaxTree<TData> {
     private mIsConstant: boolean | null;
-    private mResolveType: PgslTypeDefinitionSyntaxTree | null;
+    private mResolveType: PgslTypeDeclarationSyntaxTree | null;
 
     /**
      * If expression is a constant expression.
@@ -25,7 +25,7 @@ export abstract class BasePgslExpressionSyntaxTree<TData extends PgslSyntaxTreeI
     /**
      * Type the expression will resolve into.
      */
-    public get resolveType(): PgslTypeDefinitionSyntaxTree {
+    public get resolveType(): PgslTypeDeclarationSyntaxTree {
         this.ensureValidity();
 
         // Constant was not set.
@@ -61,5 +61,5 @@ export abstract class BasePgslExpressionSyntaxTree<TData extends PgslSyntaxTreeI
     /**
      * On type resolve of expression
      */
-    protected abstract onResolveType(): PgslTypeDefinitionSyntaxTree
+    protected abstract onResolveType(): PgslTypeDeclarationSyntaxTree
 }

@@ -1,5 +1,5 @@
 import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
-import { PgslTypeDefinitionSyntaxTree } from '../general/pgsl-type-definition-syntax-tree';
+import { PgslTypeDeclarationSyntaxTree } from '../general/pgsl-type-declaration-syntax-tree';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
 
 /**
@@ -7,7 +7,7 @@ import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tr
  */
 export class PgslStructPropertyDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslStructPropertyDeclarationSyntaxTreeStructureData> {
     private readonly mName: string;
-    private readonly mTypeDefinition: PgslTypeDefinitionSyntaxTree;
+    private readonly mTypeDefinition: PgslTypeDeclarationSyntaxTree;
 
     /**
      * Variable name.
@@ -19,7 +19,7 @@ export class PgslStructPropertyDeclarationSyntaxTree extends BasePgslDeclaration
     /**
      * Variable name.
      */
-    public get type(): PgslTypeDefinitionSyntaxTree {
+    public get type(): PgslTypeDeclarationSyntaxTree {
         return this.mTypeDefinition;
     }
 
@@ -52,5 +52,5 @@ export class PgslStructPropertyDeclarationSyntaxTree extends BasePgslDeclaration
 export type PgslStructPropertyDeclarationSyntaxTreeStructureData = {
     attributes: PgslAttributeListSyntaxTree;
     name: string;
-    type: PgslTypeDefinitionSyntaxTree;
+    type: PgslTypeDeclarationSyntaxTree;
 };

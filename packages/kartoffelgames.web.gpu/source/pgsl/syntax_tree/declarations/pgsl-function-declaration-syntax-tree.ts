@@ -1,5 +1,5 @@
 import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
-import { PgslTypeDefinitionSyntaxTree } from '../general/pgsl-type-definition-syntax-tree';
+import { PgslTypeDeclarationSyntaxTree } from '../general/pgsl-type-declaration-syntax-tree';
 import { PgslBlockStatementSyntaxTree } from '../statement/pgsl-block-statement-syntax-tree';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
 
@@ -10,7 +10,7 @@ export class PgslFunctionDeclarationSyntaxTree extends BasePgslDeclarationSyntax
     private readonly mBlock: PgslBlockStatementSyntaxTree;
     private readonly mName: string;
     private readonly mParameter: Array<PgslFunctionDeclarationParameter>;
-    private readonly mReturnType: PgslTypeDefinitionSyntaxTree;
+    private readonly mReturnType: PgslTypeDeclarationSyntaxTree;
 
     /**
      * Function block.
@@ -36,7 +36,7 @@ export class PgslFunctionDeclarationSyntaxTree extends BasePgslDeclarationSyntax
     /**
      * Function return type.
      */
-    public get returnType(): PgslTypeDefinitionSyntaxTree {
+    public get returnType(): PgslTypeDeclarationSyntaxTree {
         return this.mReturnType;
     }
 
@@ -70,7 +70,7 @@ export class PgslFunctionDeclarationSyntaxTree extends BasePgslDeclarationSyntax
 }
 
 type PgslFunctionDeclarationParameter = {
-    readonly type: PgslTypeDefinitionSyntaxTree;
+    readonly type: PgslTypeDeclarationSyntaxTree;
     readonly name: string;
 };
 
@@ -78,6 +78,6 @@ export type PgslFunctionDeclarationSyntaxTreeStructureData = {
     attributes: PgslAttributeListSyntaxTree;
     name: string;
     parameter: Array<PgslFunctionDeclarationParameter>;
-    returnType: PgslTypeDefinitionSyntaxTree;
+    returnType: PgslTypeDeclarationSyntaxTree;
     block: PgslBlockStatementSyntaxTree;
 };

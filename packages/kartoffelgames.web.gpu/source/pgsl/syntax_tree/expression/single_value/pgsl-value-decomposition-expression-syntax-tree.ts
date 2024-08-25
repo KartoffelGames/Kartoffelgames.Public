@@ -1,9 +1,9 @@
 import { Exception } from '@kartoffelgames/core';
-import { PgslBuildInTypeName } from '../../../enum/pgsl-type-name.enum';
+import { PgslBuildInTypeName } from '../../../enum/pgsl-build-in-type-name.enum';
 import { PgslValueType } from '../../../enum/pgsl-value-type.enum';
 import { PgslSyntaxTreeInitData } from '../../base-pgsl-syntax-tree';
 import { PgslTemplateListSyntaxTree } from '../../general/pgsl-template-list-syntax-tree';
-import { PgslTypeDefinitionSyntaxTree } from '../../general/pgsl-type-definition-syntax-tree';
+import { PgslTypeDeclarationSyntaxTree } from '../../general/pgsl-type-declaration-syntax-tree';
 import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
 
 /**
@@ -56,15 +56,15 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslSingleVa
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): PgslTypeDefinitionSyntaxTree {
+    protected onResolveType(): PgslTypeDeclarationSyntaxTree {
         // Type depends on value type.
         switch (this.mValue.resolveType.valueType) {
             case PgslValueType.Struct: {
                 // Array must have at least one template parameter. The first ist allways a type definition.
-                return this.mValue.resolveType.template!.items[0] as PgslTypeDefinitionSyntaxTree;
+                return this.mValue.resolveType.template!.items[0] as PgslTypeDeclarationSyntaxTree;
             }
             case PgslValueType.Vector: {
-                const lInnerType: PgslTypeDefinitionSyntaxTree = this.mValue.resolveType.template!.items[0] as PgslTypeDefinitionSyntaxTree;
+                const lInnerType: PgslTypeDeclarationSyntaxTree = this.mValue.resolveType.template!.items[0] as PgslTypeDeclarationSyntaxTree;
 
                 // When swizzle is only one long return the inner type.
                 if (this.mProperty.length === 1) {
@@ -89,11 +89,11 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslSingleVa
                 }
 
                 // Build vectorN type from matrix type.
-                const lVectorTypeDefinition: PgslTypeDefinitionSyntaxTree = new PgslTypeDefinitionSyntaxTree({
+                const lVectorTypeDefinition: PgslTypeDeclarationSyntaxTree = new PgslTypeDeclarationSyntaxTree({
                     name: lVectorType,
                     templateList: new PgslTemplateListSyntaxTree({
                         parameterList: [
-                            new PgslTypeDefinitionSyntaxTree({ name: lInnerType.type as PgslBuildInTypeName }, 0, 0, 0, 0) // Inner Type can only be a scalar.
+                            new PgslTypeDeclarationSyntaxTree({ name: lInnerType.type as PgslBuildInTypeName }, 0, 0, 0, 0) // Inner Type can only be a scalar.
                         ]
                     }, 0, 0, 0, 0)
                 }, 0, 0, 0, 0);

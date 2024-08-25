@@ -2,7 +2,7 @@ import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslDeclarationType } from '../../enum/pgsl-declaration-type.enum';
 import { PgslSyntaxTreeInitData } from '../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
-import { PgslTypeDefinitionSyntaxTree } from '../general/pgsl-type-definition-syntax-tree';
+import { PgslTypeDeclarationSyntaxTree } from '../general/pgsl-type-declaration-syntax-tree';
 import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
 
 /**
@@ -13,7 +13,7 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
     private readonly mExpression: BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData> | null;
     private mIsConstant: boolean | null;
     private readonly mName: string;
-    private readonly mType: PgslTypeDefinitionSyntaxTree;
+    private readonly mType: PgslTypeDeclarationSyntaxTree;
 
     /**
      * Variable declaration type.
@@ -53,7 +53,7 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
     /**
      * Variable type.
      */
-    public get type(): PgslTypeDefinitionSyntaxTree {
+    public get type(): PgslTypeDeclarationSyntaxTree {
         return this.mType;
     }
 
@@ -119,6 +119,6 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
 export type PgslVariableDeclarationStatementSyntaxTreeStructureData = {
     declarationType: string;
     name: string;
-    type: PgslTypeDefinitionSyntaxTree;
+    type: PgslTypeDeclarationSyntaxTree;
     expression?: BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>;
 };

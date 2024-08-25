@@ -1,7 +1,7 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum';
 import { PgslValueType } from '../../../enum/pgsl-value-type.enum';
-import { PgslTypeDefinitionSyntaxTree } from '../../general/pgsl-type-definition-syntax-tree';
+import { PgslTypeDeclarationSyntaxTree } from '../../general/pgsl-type-declaration-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**
@@ -74,7 +74,7 @@ export class PgslLogicalExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): PgslTypeDefinitionSyntaxTree {
+    protected onResolveType(): PgslTypeDeclarationSyntaxTree {
         // TODO: Bitwise on vector changes type to vector<numeric>
 
         // Set result type to left side value. Both types must be the same, so it does not matter.

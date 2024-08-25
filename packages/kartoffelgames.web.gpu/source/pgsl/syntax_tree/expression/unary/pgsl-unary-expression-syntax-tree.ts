@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum';
 import { PgslValueType } from '../../../enum/pgsl-value-type.enum';
 import { PgslSyntaxTreeInitData } from '../../base-pgsl-syntax-tree';
-import { PgslTypeDefinitionSyntaxTree } from '../../general/pgsl-type-definition-syntax-tree';
+import { PgslTypeDeclarationSyntaxTree } from '../../general/pgsl-type-declaration-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 import { BasePgslSingleValueExpressionSyntaxTree } from '../single_value/base-pgsl-single-value-expression-syntax-tree';
 
@@ -61,7 +61,7 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): PgslTypeDefinitionSyntaxTree {
+    protected onResolveType(): PgslTypeDeclarationSyntaxTree {
         // TODO: Integer type changes when value is negative.
 
         // Input type is output type.
@@ -73,7 +73,7 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<
      */
     protected override onValidateIntegrity(): void {
         // Read type of inner expression.
-        const lExpressionType: PgslTypeDefinitionSyntaxTree = this.mExpression.resolveType;
+        const lExpressionType: PgslTypeDeclarationSyntaxTree = this.mExpression.resolveType;
 
         // Validate type for each.
         switch (this.mOperator) {

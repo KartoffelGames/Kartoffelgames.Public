@@ -2,7 +2,7 @@ import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslDeclarationType } from '../../enum/pgsl-declaration-type.enum';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
-import { PgslTypeDefinitionSyntaxTree } from '../general/pgsl-type-definition-syntax-tree';
+import { PgslTypeDeclarationSyntaxTree } from '../general/pgsl-type-declaration-syntax-tree';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
 
 /**
@@ -12,7 +12,7 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
     private readonly mDeclarationType: PgslDeclarationType;
     private readonly mExpression: BasePgslExpressionSyntaxTree | null;
     private readonly mName: string;
-    private readonly mType: PgslTypeDefinitionSyntaxTree;
+    private readonly mType: PgslTypeDeclarationSyntaxTree;
 
     /**
      * Variable declaration type.
@@ -38,7 +38,7 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
     /**
      * Variable type.
      */
-    public get type(): PgslTypeDefinitionSyntaxTree {
+    public get type(): PgslTypeDeclarationSyntaxTree {
         return this.mType;
     }
 
@@ -108,7 +108,7 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
         // TODO: private workgroup dont need a initializer
         // TODO: Storage, Uniform shoulnt have a initializer.
 
-        
+
 
         // TODO: Storage value musst be host sharable.
         // a numeric scalar type
@@ -133,6 +133,6 @@ export type PgslVariableDeclarationSyntaxTreeStructureData = {
     attributes: PgslAttributeListSyntaxTree;
     declarationType: string;
     name: string;
-    type: PgslTypeDefinitionSyntaxTree;
+    type: PgslTypeDeclarationSyntaxTree;
     expression?: BasePgslExpressionSyntaxTree;
 };

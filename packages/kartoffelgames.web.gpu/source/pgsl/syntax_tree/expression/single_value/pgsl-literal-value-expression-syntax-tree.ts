@@ -1,5 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslBuildInTypeName } from '../../../enum/pgsl-type-name.enum';
+import { PgslTypeDefinitionSyntaxTree } from '../../general/pgsl-type-definition-syntax-tree';
 import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
 
 /**
@@ -37,20 +38,42 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslSingleValueExp
     public constructor(pData: PgslLiteralValueExpressionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
         super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
 
-        // Literals are allways constants.
-        this.setConstantState(true);
-
         // Set data.
         [this.mScalarType, this.mValue] = this.convertData(pData.literalType, pData.textValue);
+    }
+
+    /**
+     * On constant state request.
+     */
+    protected onConstantStateSet(): boolean {
+        // Literals are allways constants.
+        return true;
+    }
+
+    /**
+     * On type resolve of expression
+     */
+    protected onResolveType(): PgslTypeDefinitionSyntaxTree {
+        // Create type declaration.
+        const lTypeDeclaration: PgslTypeDefinitionSyntaxTree = new PgslTypeDefinitionSyntaxTree({
+            name: this.mScalarType
+        }, 0, 0, 0, 0);
+
+        // Set parent to this tree.
+        lTypeDeclaration.setParent(this);
+
+        // Validate type.
+        lTypeDeclaration.validateIntegrity();
+
+        // Set resolve type.
+        return lTypeDeclaration;
     }
 
     /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // Nothing to validate 
-
-        
+        // Nothing realy to validate.
     }
 
     /**

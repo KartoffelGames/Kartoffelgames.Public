@@ -1,16 +1,17 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum';
 import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree';
+import { BasePgslStatementSyntaxTree } from '../base-pgsl-statement-syntax-tree';
 import { PgslAssignmentStatementSyntaxTree } from '../pgsl-assignment-statement-syntax-tree';
 import { PgslBlockStatementSyntaxTree } from '../pgsl-block-statement-syntax-tree';
+import { PgslFunctionCallStatementSyntaxTree } from '../pgsl-function-call-statement-syntax-tree';
 import { PgslIncrementDecrementStatementSyntaxTree } from '../pgsl-increment-decrement-statement-syntax-tree';
 import { PgslVariableDeclarationStatementSyntaxTree } from '../pgsl-variable-declaration-statement-syntax-tree';
-import { PgslFunctionCallStatementSyntaxTree } from '../pgsl-function-call-statement-syntax-tree';
 
 /**
  * PGSL structure for a if statement with optional else block.
  */
-export class PgslForStatementSyntaxTree extends BasePgslExpressionSyntaxTree<PgslForStatementSyntaxTreeStructureData> {
+export class PgslForStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslForStatementSyntaxTreeStructureData> {
     private readonly mBlock: PgslBlockStatementSyntaxTree;
     private readonly mExpression: BasePgslExpressionSyntaxTree | null;
     private readonly mInit: PgslVariableDeclarationStatementSyntaxTree | null;

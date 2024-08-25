@@ -4,6 +4,7 @@ import { PgslFunctionDeclarationSyntaxTree } from '../../declarations/pgsl-funct
 import { PgslTemplateListSyntaxTree } from '../../general/pgsl-template-list-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
+import { PgslTypeDefinitionSyntaxTree } from '../../general/pgsl-type-definition-syntax-tree';
 
 /**
  * PGSL syntax tree of a function call expression with optional template list.
@@ -54,6 +55,37 @@ export class PgslFunctionCallExpressionSyntaxTree extends BasePgslSingleValueExp
     }
 
     /**
+     * On constant state request.
+     */
+    protected onConstantStateSet(): boolean {
+        const lFunctionDeclaration: PgslFunctionDeclarationSyntaxTree = this.document.resolveFunction(this.mName)!;
+
+        // Set call expression as constant when all parameter are constants and the function itself is a constant.
+        // When the function is not a constant, the parameters doesn't matter.
+        if (!lFunctionDeclaration.isConstant) {
+            return false;
+        } else {
+            // When one parameter is not a constant then nothing is a constant.
+            for (const lParameter of this.mParameterList) {
+                if (!lParameter.isConstant) {
+                    return false;
+                }
+            }
+
+            // Function is constant, parameters need to be to.
+            return true;
+        }
+    }
+
+    /**
+     * On type resolve of expression
+     */
+    protected onResolveType(): PgslTypeDefinitionSyntaxTree {
+        // Set resolve type to return type.
+        return this.document.resolveFunction(this.mName)!.returnType;
+    }
+
+    /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
@@ -63,24 +95,6 @@ export class PgslFunctionCallExpressionSyntaxTree extends BasePgslSingleValueExp
         }
 
         // TODO: Validate function parameter and template.
-
-        // Set call expression as constant when all parameter are constants and the function itself is a constant.
-        // When the function is not a constant, the parameters doesn't matter.
-        if (!lFunctionDeclaration.isConstant) {
-            this.setConstantState(false);
-        } else {
-            // When one parameter is not a constant then nothing is a constant.
-            let lConstant: boolean = true;
-            for (const lParameter of this.mParameterList) {
-                if (!lParameter.isConstant) {
-                    lConstant = false;
-                    break;
-                }
-            }
-
-            // Function is constant, parameters need to be to.
-            this.setConstantState(lConstant);
-        }
     }
 }
 

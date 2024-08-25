@@ -1,5 +1,8 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum';
+import { PgslBuildInTypeName } from '../../../enum/pgsl-type-name.enum';
+import { PgslValueType } from '../../../enum/pgsl-value-type.enum';
+import { PgslTypeDefinitionSyntaxTree } from '../../general/pgsl-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**
@@ -65,13 +68,59 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
     }
 
     /**
+     * On constant state request.
+     */
+    protected onConstantStateSet(): boolean {
+        // Set constant state when both expressions are constants.
+        return this.mLeftExpression.isConstant && this.mRightExpression.isConstant;
+    }
+
+    /**
+     * On type resolve of expression
+     */
+    protected onResolveType(): PgslTypeDefinitionSyntaxTree {
+        // TODO: When it is a vector, is is vector<boolean>
+
+        // Create type declaration for a boolean.
+        const lTypeDeclaration: PgslTypeDefinitionSyntaxTree = new PgslTypeDefinitionSyntaxTree({
+            name: PgslBuildInTypeName.Boolean
+        }, 0, 0, 0, 0);
+
+        // Set parent to this tree.
+        lTypeDeclaration.setParent(this);
+
+        // Validate type.
+        lTypeDeclaration.validateIntegrity();
+
+        // Set resolve type.
+        return lTypeDeclaration;
+    }
+
+    /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // TODO: Left and right expressions need to resolve to scalar values.
+        // TODO: This shit allows vectors as well. WTF.
 
-        // Set constant state when both expressions are constants.
-        this.setConstantState(this.mLeftExpression.isConstant && this.mRightExpression.isConstant);
+        // Comparison needs to be the same type.
+        if (this.mLeftExpression.resolveType.valueType !== this.mRightExpression.resolveType.valueType) {
+            throw new Exception(`Comparison can only be between values of the same type.`, this);
+        }
+
+        const lBooleanComparisonList: Array<PgslOperator> = [
+            PgslOperator.Equal,
+            PgslOperator.NotEqual
+        ];
+
+        // Validate boolean compare.
+        if (this.mLeftExpression.resolveType.valueType === PgslValueType.Boolean && !lBooleanComparisonList.includes(this.mOperator)) {
+            throw new Exception(`Boolean can only be compares with "NotEqual" or "Equal"`, this);
+        }
+
+        // Both values need to be numeric.
+        if (this.mLeftExpression.resolveType.valueType !== PgslValueType.Numeric) {
+            throw new Exception(`None numeric values can't be compared`, this);
+        }
     }
 }
 

@@ -1,5 +1,7 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum';
+import { PgslValueType } from '../../../enum/pgsl-value-type.enum';
+import { PgslTypeDefinitionSyntaxTree } from '../../general/pgsl-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**
@@ -62,13 +64,38 @@ export class PgslLogicalExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
     }
 
     /**
+     * On constant state request.
+     */
+    protected onConstantStateSet(): boolean {
+        // Set constant state when both expressions are constants.
+        return this.mLeftExpression.isConstant && this.mRightExpression.isConstant;
+    }
+
+    /**
+     * On type resolve of expression
+     */
+    protected onResolveType(): PgslTypeDefinitionSyntaxTree {
+        // TODO: Bitwise on vector changes type to vector<numeric>
+
+        // Set result type to left side value. Both types must be the same, so it does not matter.
+        return this.mLeftExpression.resolveType;
+    }
+
+    /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // TODO: Left and right expressions need to resolve to boolean values.
+        // TODO: Allow vectors. For Bitwise or and Bitwise and
 
-        // Set constant state when both expressions are constants.
-        this.setConstantState(this.mLeftExpression.isConstant && this.mRightExpression.isConstant);
+        // Validate left side type.
+        if (this.mLeftExpression.resolveType.valueType !== PgslValueType.Boolean) {
+            throw new Exception('Left side of logical expression needs to be a boolean', this);
+        }
+
+        // Validate right side type.
+        if (this.mRightExpression.resolveType.valueType !== PgslValueType.Boolean) {
+            throw new Exception('Right side of logical expression needs to be a boolean', this);
+        }
     }
 }
 

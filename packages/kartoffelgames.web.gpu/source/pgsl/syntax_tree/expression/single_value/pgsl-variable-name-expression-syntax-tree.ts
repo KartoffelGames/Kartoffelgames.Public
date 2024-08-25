@@ -1,7 +1,8 @@
 import { Exception } from '@kartoffelgames/core';
-import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
-import { PgslVariableDeclarationStatementSyntaxTree } from '../../statement/pgsl-variable-declaration-statement-syntax-tree';
 import { PgslVariableDeclarationSyntaxTree } from '../../declarations/pgsl-variable-declaration-syntax-tree';
+import { PgslVariableDeclarationStatementSyntaxTree } from '../../statement/pgsl-variable-declaration-statement-syntax-tree';
+import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
+import { PgslTypeDefinitionSyntaxTree } from '../../general/pgsl-type-definition-syntax-tree';
 
 /**
  * PGSL structure holding single variable name.
@@ -34,6 +35,22 @@ export class PgslVariableNameExpressionSyntaxTree extends BasePgslSingleValueExp
     }
 
     /**
+     * On constant state request.
+     */
+    protected onConstantStateSet(): boolean {
+        // Expression is constant when variable is a constant.
+        return this.scopedVariables.get(this.mName)!.isConstant;
+    }
+
+    /**
+     * On type resolve of expression
+     */
+    protected onResolveType(): PgslTypeDefinitionSyntaxTree {
+        // Input type is output type.
+        return this.scopedVariables.get(this.mName)!.type;
+    }
+
+    /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
@@ -44,9 +61,6 @@ export class PgslVariableNameExpressionSyntaxTree extends BasePgslSingleValueExp
         if (!lDeclaration) {
             throw new Exception(`Variable "${this.name}" not defined.`, this);
         }
-
-        // Variable is constant when the declaration is a constant.
-        this.setConstantState(lDeclaration.isConstant);
     }
 }
 

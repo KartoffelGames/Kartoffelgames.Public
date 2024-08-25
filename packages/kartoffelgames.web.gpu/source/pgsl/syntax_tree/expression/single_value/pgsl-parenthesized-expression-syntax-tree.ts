@@ -1,4 +1,5 @@
 import { PgslSyntaxTreeInitData } from '../../base-pgsl-syntax-tree';
+import { PgslTypeDefinitionSyntaxTree } from '../../general/pgsl-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
 
@@ -33,13 +34,26 @@ export class PgslParenthesizedExpressionSyntaxTree extends BasePgslSingleValueEx
     }
 
     /**
+     * On constant state request.
+     */
+    protected onConstantStateSet(): boolean {
+        // Set constant state when the inner expression is a constants.
+        return this.mExpression.isConstant;
+    }
+
+    /**
+     * On type resolve of expression
+     */
+    protected onResolveType(): PgslTypeDefinitionSyntaxTree {
+        // Set resolved type to the same as inner expression.
+        return this.mExpression.resolveType;
+    }
+
+    /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // Nothing to validate 
-
-        // Set constant state when the inner expression is a constants.
-        this.setConstantState(this.mExpression.isConstant);
+        // Nothing realy to validate.
     }
 }
 

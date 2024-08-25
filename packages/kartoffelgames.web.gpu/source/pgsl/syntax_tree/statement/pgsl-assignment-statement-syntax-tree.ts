@@ -54,7 +54,7 @@ export class PgslAssignmentStatementSyntaxTree extends BasePgslStatementSyntaxTr
             throw new Exception(`Operation "${pData.assignment}" can not used for increment or decrement statements.`, this);
         }
 
-        // Validate expression type.
+        // Validate expression type. // TODO: Add pointer expression.
         if (!(pData.variable instanceof PgslVariableNameExpressionSyntaxTree) && !(pData.variable instanceof PgslIndexedValueExpressionSyntaxTree) && !(pData.variable instanceof PgslValueDecompositionExpressionSyntaxTree)) {
             throw new Exception(`Increment and decrement operations can only be applied to variables.`, this);
         }
@@ -68,7 +68,14 @@ export class PgslAssignmentStatementSyntaxTree extends BasePgslStatementSyntaxTr
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // TODO: SHouldnt be a const value and expression is scalar.
+        // Validate that it is not a constant.
+        if (this.mVariable.isConstant) {
+            throw new Exception(`Can't assign values to a constant`, this);
+        }
+
+        // TODO: Only a addressOf should be assigned to a pointer variable.
+
+        // TODO:expression should be the correct value type for each assignment.
     }
 }
 

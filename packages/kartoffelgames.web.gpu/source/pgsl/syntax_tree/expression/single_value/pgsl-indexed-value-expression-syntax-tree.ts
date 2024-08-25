@@ -1,4 +1,6 @@
+import { PgslValueType } from '../../../enum/pgsl-value-type.enum';
 import { PgslSyntaxTreeInitData } from '../../base-pgsl-syntax-tree';
+import { PgslTypeDefinitionSyntaxTree } from '../../general/pgsl-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
 
@@ -42,13 +44,48 @@ export class PgslIndexedValueExpressionSyntaxTree extends BasePgslSingleValueExp
     }
 
     /**
+     * On constant state request.
+     */
+    protected onConstantStateSet(): boolean {
+        // Set constant state when both value and index are constants.
+        return this.mIndex.isConstant && this.mValue.isConstant;
+    }
+
+    /**
+     * On type resolve of expression
+     */
+    protected onResolveType(): PgslTypeDefinitionSyntaxTree {
+        // Type depends on value type.
+        switch (this.mValue.resolveType.valueType) {
+            case PgslValueType.Array: {
+                break;
+            }
+            case PgslValueType.Vector: {
+                break;
+            }
+            case PgslValueType.Matrix: {
+                break;
+            }
+        }
+    }
+
+    /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // TODO: Validate value to be a array and index to be a number.
+        // TODO: Validate value to be a arraylike and index to be a number.
 
-        // Set constant state when both value and index are constants.
-        this.setConstantState(this.mIndex.isConstant && this.mValue.isConstant);
+        switch (this.mValue.resolveType.valueType) {
+            case PgslValueType.Array: {
+                break;
+            }
+            case PgslValueType.Vector: {
+                break;
+            }
+            case PgslValueType.Matrix: {
+                break;
+            }
+        }
     }
 }
 

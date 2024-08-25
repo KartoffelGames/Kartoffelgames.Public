@@ -1,5 +1,7 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum';
+import { PgslValueType } from '../../../enum/pgsl-value-type.enum';
+import { PgslTypeDefinitionSyntaxTree } from '../../general/pgsl-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslBinaryExpressionSyntaxTreeStructureData> {
@@ -61,13 +63,36 @@ export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree
     }
 
     /**
+     * On constant state request.
+     */
+    protected onConstantStateSet(): boolean {
+        // Set constant state when both expressions are constants.
+        return this.mLeftExpression.isConstant && this.mRightExpression.isConstant;
+    }
+
+    /**
+     * On type resolve of expression
+     */
+    protected onResolveType(): PgslTypeDefinitionSyntaxTree {
+        // TODO: Vectors are also allowed...
+
+        // Set resolved type to left expression type.
+        return this.mLeftExpression.resolveType;
+    }
+
+    /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // TODO: Left and right expressions need to resolve to scalar values.
+        // TODO: Validate that rigth expression of shift operator needs to be a signed integer.
+        //if ((this.mOperator === PgslOperator.ShiftLeft || this.mOperator === PgslOperator.ShiftRight) && this.mRightExpression.resolveType.type !== Integer) {
+        //    throw new Exception(`Right expression of a shift operation must be a integer.`, this);
+        //}
 
-        // Set constant state when both expressions are constants.
-        this.setConstantState(this.mLeftExpression.isConstant && this.mRightExpression.isConstant);
+        // Both values need to be numeric.
+        if (this.mLeftExpression.resolveType.valueType !== PgslValueType.Numeric) {
+            throw new Exception(`Binary operations can only be applied to numeric values.`, this);
+        }
     }
 }
 

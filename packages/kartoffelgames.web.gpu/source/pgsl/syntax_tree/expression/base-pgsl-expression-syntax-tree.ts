@@ -1,11 +1,12 @@
-import { Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTree, PgslSyntaxTreeInitData } from '../base-pgsl-syntax-tree';
+import { PgslTypeDefinitionSyntaxTree } from '../general/pgsl-type-definition-syntax-tree';
 
 /**
  * PGSL base expression.
  */
 export abstract class BasePgslExpressionSyntaxTree<TData extends PgslSyntaxTreeInitData = PgslSyntaxTreeInitData> extends BasePgslSyntaxTree<TData> {
     private mIsConstant: boolean | null;
+    private mResolveType: PgslTypeDefinitionSyntaxTree | null;
 
     /**
      * If expression is a constant expression.
@@ -15,10 +16,24 @@ export abstract class BasePgslExpressionSyntaxTree<TData extends PgslSyntaxTreeI
 
         // Constant was not set.
         if (this.mIsConstant === null) {
-            throw new Exception('Constant state of expression was not set.', this);
+            this.mIsConstant = this.onConstantStateSet();
         }
 
         return this.mIsConstant;
+    }
+
+    /**
+     * Type the expression will resolve into.
+     */
+    public get resolveType(): PgslTypeDefinitionSyntaxTree {
+        this.ensureValidity();
+
+        // Constant was not set.
+        if (this.mResolveType === null) {
+            this.mResolveType = this.onResolveType();
+        }
+
+        return this.mResolveType;
     }
 
     /**
@@ -35,14 +50,16 @@ export abstract class BasePgslExpressionSyntaxTree<TData extends PgslSyntaxTreeI
         super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
 
         this.mIsConstant = null;
+        this.mResolveType = null;
     }
 
     /**
-     * Set the expressions constant state.
-     * 
-     * @param pConstant - Constant state.
+     * On constant state request.
      */
-    protected setConstantState(pConstant: boolean): void {
-        this.mIsConstant = pConstant;
-    }
+    protected abstract onConstantStateSet(): boolean
+
+    /**
+     * On type resolve of expression
+     */
+    protected abstract onResolveType(): PgslTypeDefinitionSyntaxTree
 }

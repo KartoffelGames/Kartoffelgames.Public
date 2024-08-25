@@ -13,16 +13,16 @@ import { PgslBinaryExpressionSyntaxTree } from '../syntax_tree/expression/operat
 import { PgslComparisonExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-comparison-expression-syntax-tree';
 import { PgslLogicalExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-logical-expression-syntax-tree';
 import { BasePgslSingleValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/base-pgsl-single-value-expression-syntax-tree';
+import { PgslAddressOfExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-address-of-expression-syntax-tree';
 import { PgslEnumValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-enum-value-expression-syntax-tree';
 import { PgslFunctionCallExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-function-call-expression-syntax-tree';
 import { PgslIndexedValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-indexed-value-expression-syntax-tree';
 import { PgslLiteralValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-literal-value-expression-syntax-tree';
 import { PgslParenthesizedExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-parenthesized-expression-syntax-tree';
+import { PgslPointerExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-pointer-expression-syntax-tree';
 import { PgslStringValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-string-value-expression-syntax-tree';
 import { PgslValueDecompositionExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-value-decomposition-expression-syntax-tree';
 import { PgslVariableNameExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-variable-name-expression-syntax-tree';
-import { PgslAddressOfExpressionSyntaxTree } from '../syntax_tree/expression/unary/pgsl-address-of-expression-syntax-tree';
-import { PgslPointerExpressionSyntaxTree } from '../syntax_tree/expression/unary/pgsl-pointer-expression-syntax-tree';
 import { PgslUnaryExpressionSyntaxTree } from '../syntax_tree/expression/unary/pgsl-unary-expression-syntax-tree';
 import { PgslAttributeListSyntaxTree } from '../syntax_tree/general/pgsl-attribute-list-syntax-tree';
 import { PgslTemplateListSyntaxTree } from '../syntax_tree/general/pgsl-template-list-syntax-tree';
@@ -368,32 +368,10 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('Expression-AddressOf', this.graph()
-            .single(PgslToken.OperatorBinaryAnd)
-            .single('variable', this.partReference<BasePgslSingleValueExpressionSyntaxTree>('Expression-SingleValue')),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAddressOfExpressionSyntaxTree => {
-                return new PgslAddressOfExpressionSyntaxTree({
-                    variable: pData.variable
-                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
-
-        this.defineGraphPart('Expression-Pointer', this.graph()
-            .single(PgslToken.OperatorMultiply)
-            .single('variable', this.partReference<BasePgslSingleValueExpressionSyntaxTree>('Expression-SingleValue')),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslPointerExpressionSyntaxTree => {
-                return new PgslPointerExpressionSyntaxTree({
-                    variable: pData.variable
-                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
-
         this.defineGraphPart('Expression', this.graph()
             .branch('expression', [
                 this.partReference<BasePgslSingleValueExpressionSyntaxTree>('Expression-SingleValue'), // => defineVariableExpression
                 this.partReference<PgslUnaryExpressionSyntaxTree>('Expression-Unary'),
-                this.partReference<PgslPointerExpressionSyntaxTree>('Expression-Pointer'),
-                this.partReference<PgslAddressOfExpressionSyntaxTree>('Expression-AddressOf'),
                 this.partReference<PgslFunctionCallExpressionSyntaxTree>('Expression-FunctionCall'),
                 this.partReference<PgslParenthesizedExpressionSyntaxTree>('Expression-Parenthesized'),
                 this.partReference<PgslBinaryExpressionSyntaxTree>('Expression-BitOperation'),
@@ -1135,6 +1113,26 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
+        this.defineGraphPart('Expression-AddressOf', this.graph()
+            .single(PgslToken.OperatorBinaryAnd)
+            .single('variable', this.partReference<BasePgslSingleValueExpressionSyntaxTree>('Expression-SingleValue')),
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAddressOfExpressionSyntaxTree => {
+                return new PgslAddressOfExpressionSyntaxTree({
+                    variable: pData.variable
+                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
+            }
+        );
+
+        this.defineGraphPart('Expression-Pointer', this.graph()
+            .single(PgslToken.OperatorMultiply)
+            .single('variable', this.partReference<BasePgslSingleValueExpressionSyntaxTree>('Expression-SingleValue')),
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslPointerExpressionSyntaxTree => {
+                return new PgslPointerExpressionSyntaxTree({
+                    variable: pData.variable
+                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
+            }
+        );
+
         this.defineGraphPart('Expression-SingleValue', this.graph()
             .branch('expression', [
                 this.partReference<PgslLiteralValueExpressionSyntaxTree>('Expression-LiteralValue'),
@@ -1143,7 +1141,9 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 this.partReference<PgslVariableNameExpressionSyntaxTree>('Expression-VariableName'),
                 this.partReference<PgslIndexedValueExpressionSyntaxTree>('Expression-IndexedValue'),
                 this.partReference<PgslStringValueExpressionSyntaxTree>('Expression-StringValue'),
-                this.partReference<PgslValueDecompositionExpressionSyntaxTree | PgslEnumValueExpressionSyntaxTree>('Expression-ValueDecomposition')
+                this.partReference<PgslAddressOfExpressionSyntaxTree>('Expression-AddressOf'),
+                this.partReference<PgslValueDecompositionExpressionSyntaxTree | PgslEnumValueExpressionSyntaxTree>('Expression-ValueDecomposition'),
+                this.partReference<PgslPointerExpressionSyntaxTree>('Expression-Pointer')
             ]),
             (pData): BasePgslSingleValueExpressionSyntaxTree => {
                 return pData.expression;

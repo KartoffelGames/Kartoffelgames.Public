@@ -1,10 +1,11 @@
 import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree';
+import { BasePgslStatementSyntaxTree } from '../base-pgsl-statement-syntax-tree';
 import { PgslBlockStatementSyntaxTree } from '../pgsl-block-statement-syntax-tree';
 
 /**
  * PGSL structure for a do while statement.
  */
-export class PgslDoWhileStatementSyntaxTree extends BasePgslExpressionSyntaxTree<PgslDoWhileStatementSyntaxTreeStructureData> {
+export class PgslDoWhileStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslDoWhileStatementSyntaxTreeStructureData> {
     private readonly mBlock: PgslBlockStatementSyntaxTree;
     private readonly mExpression: BasePgslExpressionSyntaxTree;
 

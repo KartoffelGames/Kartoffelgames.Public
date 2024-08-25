@@ -3,6 +3,7 @@ import { PgslBuildInTypeName } from '../../enum/pgsl-type-name.enum';
 import { BasePgslSyntaxTree, PgslSyntaxTreeInitData } from '../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 import { PgslTemplateListSyntaxTree } from './pgsl-template-list-syntax-tree';
+import { PgslValueType } from '../../enum/pgsl-value-type.enum';
 
 /**
  * General PGSL syntax tree of a type definition.
@@ -118,6 +119,13 @@ export class PgslTypeDefinitionSyntaxTree extends BasePgslSyntaxTree<PgslTypeDef
     }
 
     /**
+     * Type of value.
+     */
+    public get valueType(): PgslValueType {
+
+    }
+
+    /**
      * Constructor.
      * 
      * @param pData - Initial data.
@@ -139,6 +147,8 @@ export class PgslTypeDefinitionSyntaxTree extends BasePgslSyntaxTree<PgslTypeDef
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
+        // TODO: Resolve alias.
+
         // Alias has no template.
         if (!this.mTemplateList && this.document.resolveAlias(this.mName)) {
             return;

@@ -1,4 +1,6 @@
+import { Exception } from '@kartoffelgames/core';
 import { PgslBuildInTypeName } from '../../../enum/pgsl-type-name.enum';
+import { PgslTypeDefinitionSyntaxTree } from '../../general/pgsl-type-definition-syntax-tree';
 import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
 
 /**
@@ -6,6 +8,13 @@ import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-valu
  */
 export class PgslStringValueExpressionSyntaxTree extends BasePgslSingleValueExpressionSyntaxTree<PgslStringValueExpressionSyntaxTreeStructureData> {
     private readonly mValue: string;
+
+    /**
+     * Never resolve to any type.
+     */
+    public override get resolveType(): never {
+        throw new Exception(`String type cant have a resolve type.`, this);
+    }
 
     /**
      * Type name of literal value.
@@ -34,20 +43,42 @@ export class PgslStringValueExpressionSyntaxTree extends BasePgslSingleValueExpr
     public constructor(pData: PgslStringValueExpressionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
         super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
 
-        // A string is allways a constant.
-        this.setConstantState(true);
-
         // Set data.
         this.mValue = pData.textValue.substring(1, pData.textValue.length - 1);
+    }
+
+    /**
+     * On constant state request.
+     */
+    protected onConstantStateSet(): boolean {
+        // A string is allways a constant.
+        return true;
+    }
+
+    /**
+     * On type resolve of expression
+     */
+    protected onResolveType(): PgslTypeDefinitionSyntaxTree {
+        // Create type declaration.
+        const lTypeDeclaration: PgslTypeDefinitionSyntaxTree = new PgslTypeDefinitionSyntaxTree({
+            name: PgslBuildInTypeName.String
+        }, 0, 0, 0, 0);
+
+        // Set parent to this tree.
+        lTypeDeclaration.setParent(this);
+
+        // Validate type.
+        lTypeDeclaration.validateIntegrity();
+
+        return lTypeDeclaration;
     }
 
     /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // Nothing to validate 
+        // Nothing to validate.
     }
-
 }
 
 export type PgslStringValueExpressionSyntaxTreeStructureData = {

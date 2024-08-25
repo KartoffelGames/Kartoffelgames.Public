@@ -1,10 +1,11 @@
 import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree';
+import { BasePgslStatementSyntaxTree } from '../base-pgsl-statement-syntax-tree';
 import { PgslBlockStatementSyntaxTree } from '../pgsl-block-statement-syntax-tree';
 
 /**
  * PGSL structure for a if statement with optional else block.
  */
-export class PgslIfStatementSyntaxTree extends BasePgslExpressionSyntaxTree<PgslIfStatementSyntaxTreeStructureData> {
+export class PgslIfStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslIfStatementSyntaxTreeStructureData> {
     private readonly mBlock: PgslBlockStatementSyntaxTree;
     private readonly mElse: PgslIfStatementSyntaxTree | PgslBlockStatementSyntaxTree | null;
     private readonly mExpression: BasePgslExpressionSyntaxTree;

@@ -1,5 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
+import { PgslBuildInTypeName } from '../../../enum/pgsl-type-name.enum';
 import { PgslEnumDeclarationSyntaxTree } from '../../declarations/pgsl-enum-declaration-syntax-tree';
+import { PgslTypeDefinitionSyntaxTree } from '../../general/pgsl-type-definition-syntax-tree';
 import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
 
 /**
@@ -39,9 +41,35 @@ export class PgslEnumValueExpressionSyntaxTree extends BasePgslSingleValueExpres
         // Set data.
         this.mName = pData.name;
         this.mProperty = pData.property;
+    }
 
+    /**
+     * On constant state request.
+     */
+    protected onConstantStateSet(): boolean {
         // Enums are allways constant.
-        this.setConstantState(true);
+        return true;
+    }
+
+    /**
+     * On type resolve of expression
+     */
+    protected onResolveType(): PgslTypeDefinitionSyntaxTree {
+        const lPropertyValue: string | number = this.document.resolveEnum(this.mName)!.property(this.mProperty)!;
+
+        // Create type declaration.
+        const lTypeDeclaration: PgslTypeDefinitionSyntaxTree = new PgslTypeDefinitionSyntaxTree({
+            name: (typeof lPropertyValue === 'number') ? PgslBuildInTypeName.Integer : PgslBuildInTypeName.String
+        }, 0, 0, 0, 0);
+
+        // Set parent to this tree.
+        lTypeDeclaration.setParent(this);
+
+        // Validate type.
+        lTypeDeclaration.validateIntegrity();
+
+        // Set resolve type.
+        return lTypeDeclaration;
     }
 
     /**
@@ -62,7 +90,7 @@ export class PgslEnumValueExpressionSyntaxTree extends BasePgslSingleValueExpres
     }
 }
 
-type PgslEnumValueExpressionSyntaxTreeStructureData =  {
+type PgslEnumValueExpressionSyntaxTreeStructureData = {
     name: string;
     property: string;
 };

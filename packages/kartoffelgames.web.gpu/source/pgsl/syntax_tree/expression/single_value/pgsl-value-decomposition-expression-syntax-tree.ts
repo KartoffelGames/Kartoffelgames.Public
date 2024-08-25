@@ -1,12 +1,15 @@
+import { Exception } from '@kartoffelgames/core';
+import { PgslValueType } from '../../../enum/pgsl-value-type.enum';
 import { PgslSyntaxTreeInitData } from '../../base-pgsl-syntax-tree';
 import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
+import { PgslTypeDefinitionSyntaxTree } from '../../general/pgsl-type-definition-syntax-tree';
 
 /**
  * PGSL structure holding a single value of a decomposited composite value.
  */
 export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslSingleValueExpressionSyntaxTree<PgslValueDecompositionExpressionSyntaxTreeStructureData> {
     private readonly mProperty: string;
-    private readonly mValue:  BasePgslSingleValueExpressionSyntaxTree<PgslSyntaxTreeInitData>;
+    private readonly mValue: BasePgslSingleValueExpressionSyntaxTree<PgslSyntaxTreeInitData>;
 
     /**
      * Index expression of variable index expression.
@@ -18,7 +21,7 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslSingleVa
     /**
      * Value reference.
      */
-    public get value():  BasePgslSingleValueExpressionSyntaxTree<PgslSyntaxTreeInitData> {
+    public get value(): BasePgslSingleValueExpressionSyntaxTree<PgslSyntaxTreeInitData> {
         return this.mValue;
     }
 
@@ -39,16 +42,47 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslSingleVa
         this.mProperty = pData.property;
         this.mValue = pData.value;
     }
-    
+
+    /**
+     * On constant state request.
+     */
+    protected onConstantStateSet(): boolean {
+        // Set constant state when the value is a constants.
+        return this.mValue.isConstant;
+    }
+
+    /**
+     * On type resolve of expression
+     */
+    protected onResolveType(): PgslTypeDefinitionSyntaxTree {
+        // TODO: Depends on swizzle property or struct property.
+    }
+
     /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
         // TODO: Validate value to be a composition object and haves the property.
-        // Only structs, matrix or vector types.
 
-        // Set constant state when the value is a constants.
-        this.setConstantState(this.mValue.isConstant);
+        // Only struct likes can have accessable properties.
+        switch (this.mValue.resolveType.valueType) {
+            case PgslValueType.Struct: {
+                break;
+            }
+
+            case PgslValueType.Vector: {
+                if (!/[rgba]{1,4}|[xyzw]{1,4}/.test(this.mProperty)) {
+                    throw new Exception(`Swizzle name "${this.mProperty}" can't be used to access vector.`, this);
+                }
+
+                // TODO: Vector of length of swizzle name.
+                break;
+            }
+
+            default: {
+                throw new Exception(`Value type "${this.mValue.resolveType.valueType}" can't have properties.`, this);
+            }
+        }
     }
 }
 

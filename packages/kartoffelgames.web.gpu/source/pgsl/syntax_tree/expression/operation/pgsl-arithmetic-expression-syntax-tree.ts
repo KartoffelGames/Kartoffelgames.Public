@@ -1,5 +1,7 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum';
+import { PgslValueType } from '../../../enum/pgsl-value-type.enum';
+import { PgslTypeDefinitionSyntaxTree } from '../../general/pgsl-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslArithmeticExpressionSyntaxTreeStructureData> {
@@ -61,13 +63,37 @@ export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntax
     }
 
     /**
+     * On constant state request.
+     */
+    protected onConstantStateSet(): boolean {
+        // Set constant state when both expressions are constants.
+        return this.mLeftExpression.isConstant && this.mRightExpression.isConstant;
+    }
+
+    /**
+     * On type resolve of expression
+     */
+    protected onResolveType(): PgslTypeDefinitionSyntaxTree {
+        // TODO: Vectors ... yes. Why.
+    }
+
+    /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
+        // TODO: Left and right need to be same type.
+        // TODO: Allow vector types but only same type.
         // TODO: Left and right expressions need to resolve to number values.
 
-        // Set constant state when both expressions are constants.
-        this.setConstantState(this.mLeftExpression.isConstant && this.mRightExpression.isConstant);
+        // Validate left side type.
+        if (this.mLeftExpression.resolveType.valueType !== PgslValueType.Numeric) {
+            throw new Exception('Left side of arithmetic expression needs to be a numeric value', this);
+        }
+
+        // Validate right side type.
+        if (this.mRightExpression.resolveType.valueType !== PgslValueType.Numeric) {
+            throw new Exception('Right side of arithmetic expression needs to be a numeric value', this);
+        }
     }
 }
 

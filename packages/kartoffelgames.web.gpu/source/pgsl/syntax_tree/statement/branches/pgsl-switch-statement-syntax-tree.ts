@@ -5,7 +5,7 @@ import { PgslBlockStatementSyntaxTree } from '../pgsl-block-statement-syntax-tre
 /**
  * PGSL structure for a switch statement with optional default block.
  */
-export class PgslSwitchStatementSyntaxTree extends BasePgslExpressionSyntaxTree<PgslSwitchStatementSyntaxTreeStructureData> {
+export class PgslSwitchStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslSwitchStatementSyntaxTreeStructureData> {
     private readonly mCases: Array<PgslSwitchStatementSwitchCase>;
     private readonly mDefault: PgslBlockStatementSyntaxTree | null;
     private readonly mExpression: BasePgslExpressionSyntaxTree;

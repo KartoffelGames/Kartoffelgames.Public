@@ -1131,6 +1131,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         this.defineGraphPart('Expression-New', this.graph()
             .single(PgslToken.KeywordNew)
             .single('type', this.partReference<PgslTypeDefinitionSyntaxTree>('General-TypeDefinition'))
+            .single(PgslToken.ParenthesesStart)
             .optional('parameter', this.graph()
                 .single('first', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
                 .loop('additional', this.graph()

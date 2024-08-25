@@ -40,12 +40,52 @@ export class PgslTemplateListSyntaxTree extends BasePgslSyntaxTree<PgslTemplateL
     }
 
     /**
+     * Validate template with multiple validation expressions.
+     * 
+     * @param pValidation - Validation expression.
+     * 
+     * @returns true when template validates. 
+     */
+    public validateWithExpression(pValidation: TemplateValidations): boolean {
+        for (const lTemplateValidation of pValidation) {
+            // Parameter length not matched.
+            if (lTemplateValidation.length !== this.mItems.length) {
+                continue;
+            }
+
+            // Match every single template parameter.
+            let lTemplateMatches: boolean = true;
+            for (let lIndex = 0; lIndex < lTemplateValidation.length; lIndex++) {
+                const lExpectedTemplateType: 'Expression' | 'Type' = lTemplateValidation[lIndex];
+
+                const lActualTemplateParameter: PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData> = this.mItems[lIndex];
+                const lActualTemplateType: 'Expression' | 'Type' = (lActualTemplateParameter instanceof PgslTypeDeclarationSyntaxTree) ? 'Type' : 'Expression';
+
+                // Need to have same parameter type.
+                if (lExpectedTemplateType !== lActualTemplateType) {
+                    lTemplateMatches = false;
+                    break;
+                }
+            }
+
+            // All templates matches.
+            if (lTemplateMatches) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
         // Nothing really to validate.
     }
 }
+
+type TemplateValidations = Array<Array<'Expression' | 'Type'>>;
 
 type PgslTemplateListSyntaxTreeStructureData = {
     parameterList: Array<PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>>;

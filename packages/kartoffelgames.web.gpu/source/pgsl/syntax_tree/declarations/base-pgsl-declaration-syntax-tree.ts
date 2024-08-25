@@ -6,7 +6,10 @@ import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-synt
  */
 export abstract class BasePgslDeclarationSyntaxTree<TData extends PgslSyntaxTreeInitData = PgslSyntaxTreeInitData> extends BasePgslSyntaxTree<TData> {
     private readonly mAttributeList: PgslAttributeListSyntaxTree;
-    private readonly mIsConstant: boolean;
+
+    private mIsConstant: boolean | null;
+    private mIsConstructable: boolean | null;
+    private mIsFixed: boolean | null;
 
     /**
      * Declaration attributes.
@@ -16,10 +19,45 @@ export abstract class BasePgslDeclarationSyntaxTree<TData extends PgslSyntaxTree
     }
 
     /**
-     * If expression is a constant expression.
+     * If declaration is a constant expression.
      */
     public get isConstant(): boolean {
+        this.ensureValidity();
+
+        // Init value.
+        if (this.mIsConstant === null) {
+            this.mIsConstant = this.determinateIsConstant();
+        }
+
         return this.mIsConstant;
+    }
+
+    /**
+     * If declaration has a fixed byte length.
+     */
+    public get isConstructable(): boolean {
+        this.ensureValidity();
+
+        // Init value.
+        if (this.mIsConstructable === null) {
+            this.mIsConstructable = this.determinateIsConstructable();
+        }
+
+        return this.mIsConstructable;
+    }
+
+    /**
+     * If declaration has a fixed byte length.
+     */
+    public get isFixed(): boolean {
+        this.ensureValidity();
+
+        // Init value.
+        if (this.mIsFixed === null) {
+            this.mIsFixed = this.determinateIsConstant();
+        }
+
+        return this.mIsFixed;
     }
 
     /**
@@ -32,11 +70,30 @@ export abstract class BasePgslDeclarationSyntaxTree<TData extends PgslSyntaxTree
      * @param pEndLine - Parsing end line.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: TData, pAttributeList: PgslAttributeListSyntaxTree, pIsConstant: boolean, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number, pBuildIn: boolean = false) {
+    public constructor(pData: TData, pAttributeList: PgslAttributeListSyntaxTree, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number, pBuildIn: boolean = false) {
         super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
 
         // Set data.
         this.mAttributeList = pAttributeList;
-        this.mIsConstant = pIsConstant;
+
+        // Set empty values.
+        this.mIsConstant = null;
+        this.mIsConstructable = null;
+        this.mIsFixed = null;
     }
+
+    /**
+     * Determinate if declaration is a constant.
+     */
+    protected abstract determinateIsConstant(): boolean;
+
+    /**
+     * Determinate if declaration is a constructable.
+     */
+    protected abstract determinateIsConstructable(): boolean;
+
+    /**
+     * Determinate if declaration has a fixed byte length.
+     */
+    protected abstract determinateIsFixed(): boolean;
 }

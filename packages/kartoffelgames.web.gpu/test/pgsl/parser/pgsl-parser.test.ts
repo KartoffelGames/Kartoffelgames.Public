@@ -491,7 +491,7 @@ describe('PsglParser', () => {
         it('-- Single', () => {
             // Setup.
             const lSourceCode: string = `
-                const valName: Array<Integer>;
+                private valName: Array<Integer>;
             `;
 
             // Process.

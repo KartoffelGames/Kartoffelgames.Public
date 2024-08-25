@@ -1,11 +1,10 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { PgslBuildInTypeName } from '../../enum/pgsl-build-in-type-name.enum';
 import { PgslValueType } from '../../enum/pgsl-value-type.enum';
-import { BasePgslSyntaxTree, PgslSyntaxTreeInitData } from '../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTree } from '../base-pgsl-syntax-tree';
 import { PgslAliasDeclarationSyntaxTree } from '../declarations/pgsl-alias-declaration-syntax-tree';
 import { PgslEnumDeclarationSyntaxTree } from '../declarations/pgsl-enum-declaration-syntax-tree';
 import { PgslStructDeclarationSyntaxTree } from '../declarations/pgsl-struct-declaration-syntax-tree';
-import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 import { PgslTemplateListSyntaxTree } from './pgsl-template-list-syntax-tree';
 
 /**
@@ -147,7 +146,7 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
     /**
      * Type has a fixed byte length.
      */
-    public get isFixedLength(): boolean {
+    public get isFixed(): boolean {
         this.ensureValidity();
 
         // Determine if type is a construtable type.
@@ -298,61 +297,34 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
      * @param pRawTemplate - Type template.
      */
     private resolveBuildIn(pRawName: string, pRawTemplate: PgslTemplateListSyntaxTree | null): boolean {
-        const lResolver = (): [PgslBuildInTypeName, PgslValueType, PgslTemplateListSyntaxTree | null] | null => {
-            // Validate as build in type.
-            const lTypeDefinitionInformation: TypeDefinitionInformation | undefined = PgslTypeDeclarationSyntaxTree.mBuildInTypes.get(pRawName as PgslBuildInTypeName);
-            if (lTypeDefinitionInformation) {
-                // Type exists and doesn't need a template.
-                if (!pRawTemplate && lTypeDefinitionInformation.template.length === 0) {
-                    return [lTypeDefinitionInformation.type, lTypeDefinitionInformation.valueType, pRawTemplate];
-                }
-
-                // Validate all templates.
-                if (!pRawTemplate) {
-                    throw new Exception(`Type "${pRawName}" needs template variables.`, this);
-                }
-
-                for (const lTemplate of lTypeDefinitionInformation.template) {
-                    // Parameter length not matched.
-                    if (lTemplate.length !== pRawTemplate.items.length) {
-                        continue;
-                    }
-
-                    // Match every single template parameter.
-                    let lTemplateMatches: boolean = true;
-                    for (let lIndex = 0; lIndex < lTemplate.length; lIndex++) {
-                        const lExpectedTemplateType: 'Expression' | 'Type' = lTemplate[lIndex];
-
-                        const lActualTemplateParameter: PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData> = pRawTemplate.items[lIndex];
-                        const lActualTemplateType: 'Expression' | 'Type' = (lActualTemplateParameter instanceof PgslTypeDeclarationSyntaxTree) ? 'Type' : 'Expression';
-
-                        // Need to have same parameter type.
-                        if (lExpectedTemplateType !== lActualTemplateType) {
-                            lTemplateMatches = false;
-                            break;
-                        }
-                    }
-
-                    // All templates matches.
-                    if (lTemplateMatches) {
-                        return [lTypeDefinitionInformation.type, lTypeDefinitionInformation.valueType, pRawTemplate];
-                    }
-                }
-
-                throw new Exception(`Type "${pRawName}" has invalid template parameter.`, this);
-            }
-
-            return null;
-        };
-
-        // Try to resolve type.
-        const lResolvedType: [PgslBuildInTypeName, PgslValueType, PgslTemplateListSyntaxTree | null] | null = lResolver();
-        if (!lResolvedType) {
+        // When type name is a build in type.
+        const lTypeDefinitionInformation: TypeDefinitionInformation | undefined = PgslTypeDeclarationSyntaxTree.mBuildInTypes.get(pRawName as PgslBuildInTypeName);
+        if (!lTypeDefinitionInformation) {
             return false;
         }
 
+        // When it has a template but the definition has none.
+        if (lTypeDefinitionInformation.template.length === 0 && pRawTemplate) {
+            throw new Exception(`Type "${pRawName}" can't have any templates.`, this);
+        }
+
+        // Only validate when it can have a template.
+        if (lTypeDefinitionInformation.template.length > 0) {
+            // Type exists and doesn't need a template.
+            if (!pRawTemplate) {
+                throw new Exception(`Type "${pRawName}" needs template variables.`, this);
+            }
+
+            // All templates matches.
+            if (!pRawTemplate.validateWithExpression(lTypeDefinitionInformation.template)) {
+                throw new Exception(`Type "${pRawName}" has invalid template parameter.`, this);
+            }
+        }
+
         // Set type and template when resolved.
-        [this.mType, this.mValueType, this.mTemplate] = lResolvedType;
+        this.mType = lTypeDefinitionInformation.type;
+        this.mValueType = lTypeDefinitionInformation.valueType;
+        this.mTemplate = pRawTemplate;
 
         return true;
     }

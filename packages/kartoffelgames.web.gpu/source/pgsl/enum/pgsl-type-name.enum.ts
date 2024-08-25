@@ -1,55 +1,70 @@
 export enum PgslBuildInTypeName {
     // Scalar types.
-    Boolean = 'bool',
-    Integer = 'int',
-    UnsignedInteger = 'uint',
-    Float = 'float',
-    String = 'string',
+    Boolean = 'Boolean',
+    Integer = 'Integer',
+    UnsignedInteger = 'UInteger',
+    Float = 'Float',
+    String = '*STRING*', // Should never be named
 
     // Vector types.
-    Vector2 = 'vec2',
-    Vector3 = 'vec3',
-    Vector4 = 'vec4',
+    Vector2 = 'Vector2',
+    Vector3 = 'Vector3',
+    Vector4 = 'Vector4',
 
     // Matrix types.
-    Matrix22 = 'mat2x2',
-    Matrix23 = 'mat2x3',
-    Matrix24 = 'mat2x4',
-    Matrix32 = 'mat3x2',
-    Matrix33 = 'mat3x3',
-    Matrix34 = 'mat3x4',
-    Matrix42 = 'mat4x2',
-    Matrix43 = 'mat4x3',
-    Matrix44 = 'mat4x4',
+    Matrix22 = 'Matrix22',
+    Matrix23 = 'Matrix23',
+    Matrix24 = 'Matrix24',
+    Matrix32 = 'Matrix32',
+    Matrix33 = 'Matrix33',
+    Matrix34 = 'Matrix34',
+    Matrix42 = 'Matrix42',
+    Matrix43 = 'Matrix43',
+    Matrix44 = 'Matrix44',
 
     // Container.
-    Array = 'array',
-    Struct = '*', // Should never be named.
+    Array = 'Array',
+    Struct = '*STRUCT*', // Should never be named.
 
     // Textures.
-    Texture1d = 'texture_1d',
-    Texture2d = 'texture_2d',
-    Texture2dArray = 'texture_2d_array',
-    Texture3d = 'texture_3d',
-    TextureCube = 'texture_cube',
-    TextureCubeArray = 'texture_cube_array',
-    TextureMultisampled2d = 'texture_multisampled_2d',
-    TextureExternal = 'texture_external',
+    Texture1d = 'Texture1d',
+    Texture2d = 'Texture2d',
+    Texture2dArray = 'Texture2dArray',
+    Texture3d = 'Texture3d',
+    TextureCube = 'TextureCube',
+    TextureCubeArray = 'TextureCubeArray',
+    TextureMultisampled2d = 'TextureMultisampled2d',
+    TextureExternal = 'TextureExternal',
 
     // Depth texture.
-    TextureDepth2d = 'texture_depth_2d',
-    TextureDepth2dArray = 'texture_depth_2d_array',
-    TextureDepthCube = 'texture_depth_cube',
-    TextureDepthCubeArray = 'texture_depth_cube_array',
-    TextureDepthMultisampled2d = 'texture_depth_multisampled_2d',
+    TextureDepth2d = 'TextureDepth2d',
+    TextureDepth2dArray = 'TextureDepth2dArray',
+    TextureDepthCube = 'TextureDepthCube',
+    TextureDepthCubeArray = 'TextureDepthCubeArray',
+    TextureDepthMultisampled2d = 'TextureDepthMultisampled2d',
 
     // Storage textures.
-    TextureStorage1d = 'texture_storage_1d',
-    TextureStorage2d = 'texture_storage_2d',
-    TextureStorage2dArray = 'texture_storage_2d_array',
-    TextureStorage3d = 'texture_storage_3d',
+    TextureStorage1d = 'TextureStorage1d',
+    TextureStorage2d = 'TextureStorage2d',
+    TextureStorage2dArray = 'TextureStorage2dArray',
+    TextureStorage3d = 'TextureStorage3d',
 
     // Sampler.
-    Sampler = 'sampler',
-    SamplerComparison = 'sampler_comparison',
+    Sampler = 'Sampler',
+    SamplerComparison = 'SamplerComparison',
+
+    // Build in types.
+    VertexIndex = 'VertexIndex',
+    InstanceIndex = 'InstanceIndex',
+    Position = 'Position',
+    FrontFacing = 'FrontFacing',
+    FragDepth = 'FragDepth',
+    SampleIndex = 'SampleIndex',
+    SampleMask = 'SampleMask',
+    LocalInvocationId = 'LocalInvocationId',
+    LocalInvocationIndex = 'LocalInvocationIndex',
+    GlobalInvocationId = 'GlobalInvocationId',
+    WorkgroupId = 'WorkgroupId',
+    NumWorkgroups = 'NumWorkgroups',
+    ClipDistances = 'ClipDistances'
 }

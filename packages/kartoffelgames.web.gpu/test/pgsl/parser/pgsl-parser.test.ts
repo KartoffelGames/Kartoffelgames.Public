@@ -2,43 +2,142 @@ import { ParserException } from '@kartoffelgames/core.parser';
 import { expect } from 'chai';
 import { PgslParser } from '../../../source/pgsl/parser/pgsl-parser';
 import { PgslModuleSyntaxTree } from '../../../source/pgsl/syntax_tree/pgsl-module-syntax-tree';
+import { PgslVariableDeclarationSyntaxTree } from '../../../source/pgsl/syntax_tree/declarations/pgsl-variable-declaration-syntax-tree';
+import { PgslDeclarationType } from '../../../source/pgsl/enum/pgsl-declaration-type.enum';
 
 describe('PsglParser', () => {
     const lPgslParser: PgslParser = new PgslParser();
 
     describe('-- Modulescope variable declarations', () => {
-        describe('-- const declaration', () => {
-            it('-- Declaration with const value', () => {
+        describe('-- General', () => {
+            it('-- Correct name', () => {
+                // Setup. Set variable name.
+                const lVariableName: string = 'myInt';
+
                 // Setup.
                 const lSourceCode: string = `
-                    const myInt: Integer = 10;
+                    const ${lVariableName}: Integer = 10;
                 `;
 
                 // Process.
                 const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
+                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getVariableDeclarationOf(lVariableName) as PgslVariableDeclarationSyntaxTree;
+
+                // Evaluation.
+                expect(lResultDeclaration.name).to.equal(lVariableName);
+            });
+
+            it('-- Correct declaration type', () => {
+                // Setup. Set variable name.
+                const lVariableName: string = 'myInt';
+
+                // Setup.
+                const lSourceCode: string = `
+                    const ${lVariableName}: Integer = 10;
+                `;
+
+                // Process.
+                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
+                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getVariableDeclarationOf(lVariableName) as PgslVariableDeclarationSyntaxTree;
+
+                // Evaluation.
+                expect(lResultDeclaration.declarationType).to.equal(PgslDeclarationType.Const);
+            });
+
+            it('-- Reject wrong type assignment', () => {
+                // Setup.
+                const lSourceCode: string = `
+                    const myInt: Integer = 10f;
+                `;
+
+                // Process.
+                const lErrorFunction = () => {
+                    lPgslParser.parse(lSourceCode);
+                };
 
                 // Evaluation. // TODO:
-                expect(lResult).to.be.true;
+                expect(lErrorFunction).to.throw(ParserException);
+            });
+        });
+
+        describe('-- const declaration', () => {
+            it('-- Correct constant flag.', () => {
+                // Setup. Set variable name.
+                const lVariableName: string = 'myInt';
+
+                // Setup.
+                const lSourceCode: string = `
+                    const ${lVariableName}: Integer = 10;
+                `;
+
+                // Process.
+                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
+                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getVariableDeclarationOf(lVariableName) as PgslVariableDeclarationSyntaxTree;
+
+                // Evaluation.
+                expect(lResultDeclaration.isConstant).to.be.true;
+            });
+
+            it('-- Declaration with const value', () => {
+                // Setup. Set variable name.
+                const lVariableName: string = 'myInt';
+
+                // Setup.
+                const lSourceCode: string = `
+                    const ${lVariableName}: Integer = 10;
+                `;
+
+                // Process.
+                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
+                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getVariableDeclarationOf(lVariableName) as PgslVariableDeclarationSyntaxTree;
+
+                // Evaluation.
+                expect(lResultDeclaration.isConstant).to.be.true;
             });
 
             it('-- Declaration with const expression', () => {
+                // Setup. Set variable name.
+                const lVariableName: string = 'myInt';
+
                 // Setup.
                 const lSourceCode: string = `
                     const otherConst: Integer = 10;
-                    const myInt: Integer = 10 * otherConst;
+                    const ${lVariableName}: Integer = 10 * otherConst;
                 `;
 
                 // Process.
                 const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
+                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getVariableDeclarationOf(lVariableName) as PgslVariableDeclarationSyntaxTree;
 
-                // Evaluation. // TODO:
-                expect(lResult).to.be.true;
+                // Evaluation.
+                expect(lResultDeclaration.isConstant).to.be.true;
+            });
+
+            it('-- Const declaration with attributes', () => {
+                // Setup. Set variable name.
+                const lVariableName: string = 'myInt';
+                const lAttributeName: string = 'CustomAttribute';
+
+                // Setup.
+                const lSourceCode: string = `
+                    [${lAttributeName}()]
+                    const ${lVariableName}: Integer = 10;
+                `;
+
+                // Process.
+                const lResult: PgslModuleSyntaxTree = lPgslParser.parse(lSourceCode);
+                const lResultDeclaration: PgslVariableDeclarationSyntaxTree = lResult.getVariableDeclarationOf(lVariableName) as PgslVariableDeclarationSyntaxTree;
+                const lAttribute = lResultDeclaration.attributes.getAttribute(lAttributeName);
+
+                // Evaluation.
+                expect(lAttribute).to.exist;
             });
 
             it('-- Reject const declaration without assignment', () => {
                 // Setup.
                 const lSourceCode: string = `
-                    const myInt: Integer;
+                    private notAConst: Integer = 10;
+                    const myInt: Integer = notAConst;
                 `;
 
                 // Process.
@@ -50,11 +149,10 @@ describe('PsglParser', () => {
                 expect(lErrorFunction).to.throw(ParserException);
             });
 
-            it('-- Reject const declaration with attributes', () => {
+            it('-- Reject const declaration without const assignment', () => {
                 // Setup.
                 const lSourceCode: string = `
-                    [Attribute]
-                    const myInt: Integer = 1;
+                    const myInt: Integer;
                 `;
 
                 // Process.
@@ -419,7 +517,7 @@ describe('PsglParser', () => {
         it('-- Nested', () => {
             // Setup.
             const lSourceCode: string = `
-                const valName: Array<Vector<Integer>>;
+                const valName: Array<Vector2<Integer>>;
             `;
 
             // Process.

@@ -108,8 +108,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             structDeclaration: new Set<string>()
         };
 
-        // TODO: Add all build in values.
-
         return lDocument;
     }
 
@@ -776,14 +774,16 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 .single('name', PgslToken.Identifier)
                 .single(PgslToken.Assignment)
                 .branch('value', [
-                    this.partReference<PgslLiteralValueExpressionSyntaxTree>('Expression-LiteralValue')
+                    this.partReference<PgslLiteralValueExpressionSyntaxTree>('Expression-LiteralValue'),
+                    this.partReference<PgslStringValueExpressionSyntaxTree>('Expression-StringValue')
                 ])
                 .loop('additional', this.graph()
                     .single(PgslToken.Comma)
                     .single('name', PgslToken.Identifier)
                     .single(PgslToken.Assignment)
                     .branch('value', [
-                        this.partReference<PgslLiteralValueExpressionSyntaxTree>('Expression-LiteralValue')
+                        this.partReference<PgslLiteralValueExpressionSyntaxTree>('Expression-LiteralValue'),
+                        this.partReference<PgslStringValueExpressionSyntaxTree>('Expression-StringValue')
                     ])
                 )
             )
@@ -796,23 +796,12 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 const lData: ConstructorParameters<typeof PgslEnumDeclarationSyntaxTree>[0] = {
                     attributes: pData.attributes,
                     name: pData.name,
-                    items: new Array<{ name: string, value?: string; }>()
+                    items: new Array<{ name: string, value: PgslLiteralValueExpressionSyntaxTree | PgslStringValueExpressionSyntaxTree; }>()
                 };
 
                 // Only add values when they exist.
                 if (pData.values) {
-                    lData.items.push({
-                        name: pData.values.name,
-                        value: pData.values.value.value.toString()
-                    });
-
-                    // Add each value to data structure.
-                    for (const lItem of pData.values.additional) {
-                        lData.items.push({
-                            name: lItem.name,
-                            value: lItem.value.value.toString()
-                        });
-                    }
+                    lData.items.push(pData.values, ...pData.values.additional);
                 }
 
                 return new PgslEnumDeclarationSyntaxTree(lData, ...this.createTokenBoundParameter(pStartToken, pEndToken));
@@ -941,24 +930,24 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 for (const lContent of pData.list) {
                     // Set data to correct buckets.
                     switch (true) {
-                        case lContent instanceof PgslAliasDeclarationSyntaxTree: {
-                            lData.aliases.push(lContent);
+                        case lContent.content instanceof PgslAliasDeclarationSyntaxTree: {
+                            lData.aliases.push(lContent.content);
                             break;
                         }
-                        case lContent instanceof PgslEnumDeclarationSyntaxTree: {
-                            lData.enums.push(lContent);
+                        case lContent.content instanceof PgslEnumDeclarationSyntaxTree: {
+                            lData.enums.push(lContent.content);
                             break;
                         }
-                        case lContent instanceof PgslFunctionDeclarationSyntaxTree: {
-                            lData.functions.push(lContent);
+                        case lContent.content instanceof PgslFunctionDeclarationSyntaxTree: {
+                            lData.functions.push(lContent.content);
                             break;
                         }
-                        case lContent instanceof PgslVariableDeclarationSyntaxTree: {
-                            lData.variables.push(lContent);
+                        case lContent.content instanceof PgslVariableDeclarationSyntaxTree: {
+                            lData.variables.push(lContent.content);
                             break;
                         }
-                        case lContent instanceof PgslStructDeclarationSyntaxTree: {
-                            lData.structs.push(lContent);
+                        case lContent.content instanceof PgslStructDeclarationSyntaxTree: {
+                            lData.structs.push(lContent.content);
                             break;
                         }
                     }

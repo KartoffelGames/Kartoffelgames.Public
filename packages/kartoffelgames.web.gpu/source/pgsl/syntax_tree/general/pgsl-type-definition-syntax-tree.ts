@@ -45,71 +45,103 @@ export class PgslTypeDefinitionSyntaxTree extends BasePgslSyntaxTree<PgslTypeDef
         lAddType(PgslBuildInTypeName.Matrix43, PgslValueType.Matrix);
         lAddType(PgslBuildInTypeName.Matrix44, PgslValueType.Matrix);
 
+        // Buildin types.
+        lAddType(PgslBuildInTypeName.Position, PgslValueType.Vector);
+        lAddType(PgslBuildInTypeName.LocalInvocationId, PgslValueType.Vector);
+        lAddType(PgslBuildInTypeName.GlobalInvocationId, PgslValueType.Vector);
+        lAddType(PgslBuildInTypeName.WorkgroupId, PgslValueType.Vector);
+        lAddType(PgslBuildInTypeName.NumWorkgroups, PgslValueType.Vector);
+        lAddType(PgslBuildInTypeName.VertexIndex, PgslValueType.Numeric);
+        lAddType(PgslBuildInTypeName.InstanceIndex, PgslValueType.Numeric);
+        lAddType(PgslBuildInTypeName.FragDepth, PgslValueType.Numeric);
+        lAddType(PgslBuildInTypeName.SampleIndex, PgslValueType.Numeric);
+        lAddType(PgslBuildInTypeName.SampleMask, PgslValueType.Numeric);
+        lAddType(PgslBuildInTypeName.LocalInvocationIndex, PgslValueType.Numeric);
+        lAddType(PgslBuildInTypeName.FrontFacing, PgslValueType.Boolean);
+        lAddType(PgslBuildInTypeName.ClipDistances, PgslValueType.Array, [
+            ['Expression']
+        ]);
+
+
         // Bundled types.
         lAddType(PgslBuildInTypeName.Array, PgslValueType.Array, [
             ['Type'], ['Type', 'Expression']
         ]);
 
         // Image textures.
-        lAddType(PgslBuildInTypeName.Texture1d, PgslValueType.Binary, [
+        lAddType(PgslBuildInTypeName.Texture1d, PgslValueType.Texture, [
             ['Type']
         ]);
-        lAddType(PgslBuildInTypeName.Texture2d, PgslValueType.Binary, [
+        lAddType(PgslBuildInTypeName.Texture2d, PgslValueType.Texture, [
             ['Type']
         ]);
-        lAddType(PgslBuildInTypeName.Texture2dArray, PgslValueType.Binary, [
+        lAddType(PgslBuildInTypeName.Texture2dArray, PgslValueType.Texture, [
             ['Type']
         ]);
-        lAddType(PgslBuildInTypeName.Texture3d, PgslValueType.Binary, [
+        lAddType(PgslBuildInTypeName.Texture3d, PgslValueType.Texture, [
             ['Type']
         ]);
-        lAddType(PgslBuildInTypeName.TextureCube, PgslValueType.Binary, [
+        lAddType(PgslBuildInTypeName.TextureCube, PgslValueType.Texture, [
             ['Type']
         ]);
-        lAddType(PgslBuildInTypeName.TextureCubeArray, PgslValueType.Binary, [
+        lAddType(PgslBuildInTypeName.TextureCubeArray, PgslValueType.Texture, [
             ['Type']
         ]);
-        lAddType(PgslBuildInTypeName.TextureMultisampled2d, PgslValueType.Binary, [
+        lAddType(PgslBuildInTypeName.TextureMultisampled2d, PgslValueType.Texture, [
             ['Type']
         ]);
 
         // External tetures.
-        lAddType(PgslBuildInTypeName.TextureExternal, PgslValueType.Binary,);
+        lAddType(PgslBuildInTypeName.TextureExternal, PgslValueType.Texture,);
 
         // Storage textures.
-        lAddType(PgslBuildInTypeName.TextureStorage1d, PgslValueType.Binary, [
+        lAddType(PgslBuildInTypeName.TextureStorage1d, PgslValueType.Texture, [
             ['Type']
         ]);
-        lAddType(PgslBuildInTypeName.TextureStorage2d, PgslValueType.Binary, [
+        lAddType(PgslBuildInTypeName.TextureStorage2d, PgslValueType.Texture, [
             ['Type']
         ]);
-        lAddType(PgslBuildInTypeName.TextureStorage2dArray, PgslValueType.Binary, [
+        lAddType(PgslBuildInTypeName.TextureStorage2dArray, PgslValueType.Texture, [
             ['Type']
         ]);
-        lAddType(PgslBuildInTypeName.TextureStorage3d, PgslValueType.Binary, [
+        lAddType(PgslBuildInTypeName.TextureStorage3d, PgslValueType.Texture, [
             ['Type']
         ]);
 
         // Depth Textures.
-        lAddType(PgslBuildInTypeName.TextureDepth2d, PgslValueType.Binary,);
-        lAddType(PgslBuildInTypeName.TextureDepth2dArray, PgslValueType.Binary,);
-        lAddType(PgslBuildInTypeName.TextureDepthCube, PgslValueType.Binary,);
-        lAddType(PgslBuildInTypeName.TextureDepthCubeArray, PgslValueType.Binary,);
-        lAddType(PgslBuildInTypeName.TextureDepthMultisampled2d, PgslValueType.Binary,);
+        lAddType(PgslBuildInTypeName.TextureDepth2d, PgslValueType.Texture,);
+        lAddType(PgslBuildInTypeName.TextureDepth2dArray, PgslValueType.Texture,);
+        lAddType(PgslBuildInTypeName.TextureDepthCube, PgslValueType.Texture,);
+        lAddType(PgslBuildInTypeName.TextureDepthCubeArray, PgslValueType.Texture,);
+        lAddType(PgslBuildInTypeName.TextureDepthMultisampled2d, PgslValueType.Texture,);
 
         // Sampler
-        lAddType(PgslBuildInTypeName.Sampler, PgslValueType.Binary,);
-        lAddType(PgslBuildInTypeName.SamplerComparison, PgslValueType.Binary,);
+        lAddType(PgslBuildInTypeName.Sampler, PgslValueType.Texture,);
+        lAddType(PgslBuildInTypeName.SamplerComparison, PgslValueType.Texture,);
 
         return lTypes;
     })();
 
+    private mIsConstructible: boolean | null;
     private readonly mRawName: string;
     private readonly mRawTemplateList: PgslTemplateListSyntaxTree | null;
-
     private mTemplate: PgslTemplateListSyntaxTree | null;
     private mType: PgslBuildInTypeName | PgslStructDeclarationSyntaxTree | PgslEnumDeclarationSyntaxTree | null;
     private mValueType: PgslValueType | null;
+
+    /**
+     * Type is a constructible type.
+     */
+    public get isConstructible(): boolean {
+        this.ensureValidity();
+
+        // Determine if type is a construtable type.
+        if (this.mIsConstructible === null) {
+            this.mIsConstructible = this.determineConstructible();
+        }
+
+        return this.mIsConstructible;
+    }
 
     /**
      * Template of type.
@@ -120,6 +152,9 @@ export class PgslTypeDefinitionSyntaxTree extends BasePgslSyntaxTree<PgslTypeDef
         return this.mTemplate;
     }
 
+    /**
+     * Type definition type.
+     */
     public get type(): PgslBuildInTypeName | PgslStructDeclarationSyntaxTree | PgslEnumDeclarationSyntaxTree {
         this.ensureValidity();
 
@@ -165,33 +200,51 @@ export class PgslTypeDefinitionSyntaxTree extends BasePgslSyntaxTree<PgslTypeDef
         this.mTemplate = null;
         this.mType = null;
         this.mValueType = null;
+
+        this.mIsConstructible = null;
     }
 
     /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // Try to resolve alias.
-        if (this.resolveAlias(this.mRawName, this.mRawTemplateList)) {
-            return;
+        // Try to resolve as alias, struct or build in value..
+        if (!this.resolveAlias(this.mRawName, this.mRawTemplateList)
+            && !this.resolveEnum(this.mRawName, this.mRawTemplateList)
+            && !this.resolveStruct(this.mRawName, this.mRawTemplateList)
+            && !this.resolveBuildIn(this.mRawName, this.mRawTemplateList)) {
+            throw new Exception(`Typename "${this.mRawName}" not defined`, this);
+        }
+    }
+
+    /**
+     * Check type to be constructible.
+     * 
+     * @returns if the type is constructible.
+     */
+    private determineConstructible(): boolean {
+        const lConstructibleValueType: Array<PgslValueType> = [PgslValueType.Boolean, PgslValueType.Array, PgslValueType.Matrix, PgslValueType.Numeric, PgslValueType.Vector];
+
+        // Must be a constructible type
+        if (!lConstructibleValueType.includes(this.mValueType!)) {
+            return false;
         }
 
-        // Try to resolve enum.
-        if (this.resolveEnum(this.mRawName, this.mRawTemplateList)) {
-            return;
+        // Inner types of Arrays musst be a constructible type to and have a fixed blueprint.
+        if (this.mValueType! === PgslValueType.Array) {
+            // Must have a fixed footprint so must have a second length template parameter.
+            if (this.mTemplate!.items.length !== 2) {
+                return false;
+            }
+
+            // The inner type musst be constructible to.
+            const lArrayInnerType: PgslTypeDefinitionSyntaxTree = this.mTemplate!.items[0] as PgslTypeDefinitionSyntaxTree;
+            if (!lConstructibleValueType.includes(lArrayInnerType.valueType)) {
+                return false;
+            }
         }
 
-        // Try to resolve struct.
-        if (this.resolveStruct(this.mRawName, this.mRawTemplateList)) {
-            return;
-        }
-
-        // Try to as build in value.
-        if (this.resolveBuildIn(this.mRawName, this.mRawTemplateList)) {
-            return;
-        }
-
-        throw new Exception(`Typename "${this.mRawName}" not defined`, this);
+        return true;
     }
 
     /**
@@ -317,7 +370,7 @@ export class PgslTypeDefinitionSyntaxTree extends BasePgslSyntaxTree<PgslTypeDef
     private resolveStruct(pRawName: string, pRawTemplate: PgslTemplateListSyntaxTree | null): boolean {
         // Resolve struct
         const lStruct: PgslStructDeclarationSyntaxTree | null = this.document.resolveStruct(pRawName);
-        if (!lStruct) {
+        if (lStruct) {
             if (pRawTemplate) {
                 throw new Exception(`Structs can't have templates values.`, this);
             }

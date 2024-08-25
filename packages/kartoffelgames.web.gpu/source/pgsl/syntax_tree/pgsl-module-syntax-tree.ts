@@ -5,7 +5,7 @@ import { PgslEnumDeclarationSyntaxTree } from './declarations/pgsl-enum-declarat
 import { PgslFunctionDeclarationSyntaxTree } from './declarations/pgsl-function-declaration-syntax-tree';
 import { PgslStructDeclarationSyntaxTree } from './declarations/pgsl-struct-declaration-syntax-tree';
 import { PgslVariableDeclarationSyntaxTree } from './declarations/pgsl-variable-declaration-syntax-tree';
-import { PgslAttributeListSyntaxTree } from './general/pgsl-attribute-list-syntax-tree';
+import { PgslVariableDeclarationStatementSyntaxTree } from './statement/pgsl-variable-declaration-statement-syntax-tree';
 
 export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTreeStructureData> {
     // Values
@@ -23,11 +23,23 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
         return this;
     }
 
+    /**
+     * Get all scoped variables of scope.
+     */
+    protected override get scopedVariables(): Dictionary<string, PgslVariableDeclarationStatementSyntaxTree | PgslVariableDeclarationSyntaxTree> {
+        // Read parent scoped variables
+        const lParentVariables: Dictionary<string, PgslVariableDeclarationStatementSyntaxTree | PgslVariableDeclarationSyntaxTree> = super.scopedVariables;
+
+        // Append current scoped variables. Override parent.
+        for (const lVariable of this.mGlobalVariables.values()) {
+            lParentVariables.set(lVariable.name, lVariable);
+        }
+
+        return lParentVariables;
+    }
+
     // TODO: There was something with const. (Setable on Pipline creation).
     // TODO: Fast access bindings.
-
-    // TODO: Predefine type aliases.
-    // TODO: Predefine enums.
 
     /**
      * Constructor.
@@ -47,82 +59,6 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
         this.mGlobalVariables = new Dictionary<string, PgslVariableDeclarationSyntaxTree>();
         this.mStructs = new Dictionary<string, PgslStructDeclarationSyntaxTree>();
         this.mFunctions = new Dictionary<string, PgslFunctionDeclarationSyntaxTree>();
-
-        // Add buildin enums.
-        this.mEnums.set('AccessMode', new PgslEnumDeclarationSyntaxTree({
-            attributes: new PgslAttributeListSyntaxTree({ attributes: [] }, 0, 0, 0, 0),
-            name: 'AccessMode',
-            items: [
-                { name: 'Read', value: 'read' },
-                { name: 'Write', value: 'write' },
-                { name: 'ReadWrite', value: 'read_write' }
-            ]
-        }, 0, 0, 0, 0, true));
-
-        this.mEnums.set('TexelFormat', new PgslEnumDeclarationSyntaxTree({
-            attributes: new PgslAttributeListSyntaxTree({ attributes: [] }, 0, 0, 0, 0),
-            name: 'TexelFormat',
-            items: [
-                { name: 'Rgba8unorm', value: 'rgba8unorm' },
-                { name: 'Rgba8snorm', value: 'rgba8snorm' },
-                { name: 'Rgba8uint', value: 'rgba8uint' },
-                { name: 'Rgba8sint', value: 'rgba8sint' },
-                { name: 'Rgba16uint', value: 'rgba16uint' },
-                { name: 'Rgba16sint', value: 'rgba16sint' },
-                { name: 'Rgba16float', value: 'rgba16float' },
-                { name: 'R32uint', value: 'r32uint' },
-                { name: 'R32sint', value: 'r32sint' },
-                { name: 'R32float', value: 'r32float' },
-                { name: 'Rg32uint', value: 'rg32uint' },
-                { name: 'Rg32sint', value: 'rg32sint' },
-                { name: 'Rg32float', value: 'rg32float' },
-                { name: 'Rgba32uint', value: 'rgba32uint' },
-                { name: 'Rgba32sint', value: 'rgba32sint' },
-                { name: 'Rgba32float', value: 'rgba32float' },
-                { name: 'Bgra8unorm', value: 'bgra8unorm' }
-            ]
-        }, 0, 0, 0, 0, true));
-
-        this.mEnums.set('BuildIn', new PgslEnumDeclarationSyntaxTree({
-            attributes: new PgslAttributeListSyntaxTree({ attributes: [] }, 0, 0, 0, 0),
-            name: 'BuildIn',
-            items: [
-                { name: 'VertexIndex', value: 'vertex_index' },
-                { name: 'InstanceIndex', value: 'instance_index' },
-                { name: 'Position', value: 'position' },
-                { name: 'FrontFacing', value: 'front_facing' },
-                { name: 'FragDepth', value: 'frag_depth' },
-                { name: 'SampleIndex', value: 'sample_index' },
-                { name: 'SampleMask', value: 'sample_mask' },
-                { name: 'LocalInvocationId', value: 'local_invocation_id' },
-                { name: 'LocalInvocationIndex', value: 'local_invocation_index' },
-                { name: 'GlobalInvocationId', value: 'global_invocation_id' },
-                { name: 'WorkgroupId', value: 'workgroup_id' },
-                { name: 'NumWorkgroups', value: 'num_workgroups' }
-            ]
-        }, 0, 0, 0, 0, true));
-
-        this.mEnums.set('InterpolationSampling', new PgslEnumDeclarationSyntaxTree({
-            attributes: new PgslAttributeListSyntaxTree({ attributes: [] }, 0, 0, 0, 0),
-            name: 'InterpolationSampling',
-            items: [
-                { name: 'Center', value: 'center' },
-                { name: 'Centroid', value: 'centroid' },
-                { name: 'Sample', value: 'sample' },
-                { name: 'First', value: 'first' },
-                { name: 'Either', value: 'either' }
-            ]
-        }, 0, 0, 0, 0, true));
-
-        this.mEnums.set('InterpolationType', new PgslEnumDeclarationSyntaxTree({
-            attributes: new PgslAttributeListSyntaxTree({ attributes: [] }, 0, 0, 0, 0),
-            name: 'InterpolationType',
-            items: [
-                { name: 'Perspective', value: 'perspective' },
-                { name: 'Linear', value: 'linear' },
-                { name: 'Flat', value: 'flat' },
-            ]
-        }, 0, 0, 0, 0, true));
 
         // Apply alias data.
         for (const lAlias of pData.aliases) {

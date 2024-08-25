@@ -125,6 +125,26 @@ export abstract class BasePgslSyntaxTree<TData extends PgslSyntaxTreeInitData> {
     }
 
     /**
+     * Read variable declaration by name.
+     * 
+     * @param pVariableName - Variable name.
+     * 
+     * @returns the declaration of the scoped variable.
+     * 
+     * @throws {@link Exception}
+     * When the variable does not exits. 
+     */
+    public getVariableDeclarationOf(pVariableName: string): PgslVariableDeclarationStatementSyntaxTree | PgslVariableDeclarationSyntaxTree {
+        // Try to read declaration
+        const lDeclaration: PgslVariableDeclarationStatementSyntaxTree | PgslVariableDeclarationSyntaxTree | undefined = this.scopedVariables.get(pVariableName);
+        if (!lDeclaration) {
+            throw new Exception(`Variable "${pVariableName}" not defined in current scope.`, this);
+        }
+
+        return lDeclaration;
+    }
+
+    /**
      * Set parent tree of syntax tree.
      * 
      * @param pParent - Parent of structure.

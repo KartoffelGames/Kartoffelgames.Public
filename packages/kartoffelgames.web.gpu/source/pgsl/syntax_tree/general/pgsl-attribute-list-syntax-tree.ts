@@ -2,7 +2,7 @@ import { Dictionary, Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTree, PgslSyntaxTreeInitData } from '../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 import { PgslEnumValueExpressionSyntaxTree } from '../expression/single_value/pgsl-enum-value-expression-syntax-tree';
-import { PgslVariableNameExpressionSyntaxTree } from '../expression/single_value/pgsl-variable-name-expression-syntax-tree';
+import { PgslStringValueExpressionSyntaxTree } from '../expression/single_value/pgsl-string-value-expression-syntax-tree';
 
 /**
  * Generic attributre list.
@@ -19,7 +19,7 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
             ['String', 'String']
         ]);
         lAttributes.set('AccessMode', [
-            ['AccessMode']
+            [['read', 'write', 'read_write']]
         ]);
         lAttributes.set('WorkgroupSize', [
             ['Expression'],
@@ -34,13 +34,11 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
         lAttributes.set('BlendSource', [
             ['Expression']
         ]);
-        lAttributes.set('Builtin', [
-            ['BuildIn']
-        ]);
         lAttributes.set('Interpolate', [
-            ['InterpolationType'],
-            ['InterpolationType', 'InterpolationSampling']
+            [['perspective','linear','flat']],
+            [['perspective','linear','flat'], ['centroid','sample','first','either']]
         ]);
+
         lAttributes.set('Invariant', []);
         lAttributes.set('location', [
             ['Expression']
@@ -57,7 +55,7 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
         return lAttributes;
     })();
 
-    private readonly mAttributes: Dictionary<string, Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData> | string>>;
+    private readonly mAttributes: Dictionary<string, Array<BasePgslExpressionSyntaxTree>>;
 
     /**
      * Constructor.
@@ -73,39 +71,56 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
         super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
 
         // Set data.
-        this.mAttributes = new Dictionary<string, Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData> | string>>();
+        this.mAttributes = new Dictionary<string, Array<BasePgslExpressionSyntaxTree>>();
 
         // Convert and add each attribute to list.
         for (const lAttribute of pData.attributes) {
-            // Validate validity of name.
-            if (!PgslAttributeListSyntaxTree.mValidAttributes.has(lAttribute.name)) {
-                // TODO: Allow own attribute names but ignore it.
-
-                throw new Exception(`Invalid attribute "${lAttribute.name}" used.`, this);
-            }
-
             // Validate existance.
             if (this.mAttributes.has(lAttribute.name)) {
                 throw new Exception(`Attribute "${lAttribute}" already exists for this entity.`, this);
             }
 
-            // Validate and convert parameter.
-            const lParameterList: Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData> | string> | null = this.convertParameter(lAttribute.parameter, PgslAttributeListSyntaxTree.mValidAttributes.get(lAttribute.name)!);
-            if (!lParameterList) {
-                throw new Exception(`Attribute "${lAttribute.name}" has invalid parameters.`, this);
+            // Allow own attribute names but ignore it.
+            if (!PgslAttributeListSyntaxTree.mValidAttributes.has(lAttribute.name)) {
+                this.mAttributes.set(lAttribute.name, lAttribute.parameter);
+                continue;
             }
 
+
             // Set attribute.
-            this.mAttributes.set(lAttribute.name, lParameterList);
+            this.mAttributes.set(lAttribute.name, lAttribute.parameter);
         }
+    }
+
+    public getAttribute(pName: string): Array<BasePgslExpressionSyntaxTree> {
+        // Try to read attribute parameters.
+        const lAttributeParameter: Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>> | undefined = this.mAttributes.get(pName);
+        if (!lAttributeParameter) {
+            throw new Exception(`Attribute "${pName}" is not defined for the declaration.`, this);
+        }
+
+        return lAttributeParameter;
     }
 
     /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // TODO: Maybe the parent can set allowed attributes. 
-        // TODO: Only const expressions allowed-
+        // Only const expressions allowed.
+        for (const [lAttributeName, lAttributeParameter] of this.mAttributes) {
+            for (const lParameter of lAttributeParameter) {
+                if (!lParameter.isConstant) {
+                    throw new Exception(`Attribute "${lAttributeName}" contains a none constant parameter.`, this);
+                }
+            }
+
+            // Validate parameters when it is a build in attribute.
+            if (PgslAttributeListSyntaxTree.mValidAttributes.has(lAttributeName)) {
+                if (!this.validateParameter(lAttributeParameter, PgslAttributeListSyntaxTree.mValidAttributes.get(lAttributeName)!)) {
+                    throw new Exception(`Attribute "${lAttributeName}" has invalid parameters.`, this);
+                }
+            }
+        }
     }
 
     /**
@@ -114,75 +129,76 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
      * 
      * @param pData - Structure data.
      */
-    private convertParameter(pParameterSourceList: Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>>, pValidationList: Array<Array<AttributeParameterType>>): Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData> | string> | null {
+    private validateParameter(pParameterSourceList: Array<BasePgslExpressionSyntaxTree>, pValidationParameterList: Array<Array<AttributeParameterType>>): boolean {
         // Attribute doesn needs parameter.
-        if (pParameterSourceList.length === 0 && pValidationList.length === 0) {
-            return new Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData> | string>();
+        if (pParameterSourceList.length === 0 && pValidationParameterList.length === 0) {
+            return true;
         }
 
         // Validate all templates.
-        for (const lValidation of pValidationList) {
+        for (const lValidationParameter of pValidationParameterList) {
             // Parameter length not matched.
-            if (pParameterSourceList.length !== lValidation.length) {
+            if (pParameterSourceList.length !== lValidationParameter.length) {
                 continue;
             }
 
             // Match every single template parameter.
-            const lConvertedParameterList: Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData> | string> = new Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData> | string>();
-            CONVERT_LOOP: for (let lIndex = 0; lIndex < lValidation.length; lIndex++) {
-                const lExpectedTemplateType: 'Expression' | 'String' | string = lValidation[lIndex];
-                const lActualTemplateParameter: BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData> = pParameterSourceList[lIndex];
+            let lValidParameterCount: number = 0;
+            CONVERT_LOOP: for (let lIndex = 0; lIndex < lValidationParameter.length; lIndex++) {
+                const lExpectedTemplateType: 'Expression' | 'String' | Array<string> = lValidationParameter[lIndex];
 
-                let lConvertedParameter: BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData> | string;
+                // Convert enum to literal or string. expression.
+                let lActualAttributeParameter: BasePgslExpressionSyntaxTree = pParameterSourceList[lIndex];
+                if (lActualAttributeParameter instanceof PgslEnumValueExpressionSyntaxTree) {
+                    lActualAttributeParameter = lActualAttributeParameter.value;
+                }
+
                 switch (lExpectedTemplateType) {
                     case 'Expression': {
-                        lConvertedParameter = lActualTemplateParameter;
                         break;
                     }
                     case 'String': {
                         // Not a string parameter.
-                        if (!(lActualTemplateParameter instanceof PgslVariableNameExpressionSyntaxTree)) {
+                        if (!(lActualAttributeParameter instanceof PgslStringValueExpressionSyntaxTree)) {
                             break CONVERT_LOOP;
                         }
 
-                        lConvertedParameter = lActualTemplateParameter.name;
                         break;
                     }
                     default: { // Enum
                         // Not a string parameter.
-                        if (!(lActualTemplateParameter instanceof PgslEnumValueExpressionSyntaxTree)) {
+                        if (!(lActualAttributeParameter instanceof PgslStringValueExpressionSyntaxTree)) {
                             break CONVERT_LOOP;
                         }
 
                         // Convert enum value and validate if the right enum was used.
-                        if (lActualTemplateParameter.name !== lExpectedTemplateType) {
+                        if (!lExpectedTemplateType.includes(lActualAttributeParameter.value)) {
                             break CONVERT_LOOP;
                         }
 
-                        lConvertedParameter = lActualTemplateParameter;
                         break;
                     }
                 }
 
-                lConvertedParameterList.push(lConvertedParameter);
+                lValidParameterCount++;
             }
 
             // All parameter were converted, so they are all valid.
-            if (lConvertedParameterList.length === lValidation.length) {
-                return lConvertedParameterList;
+            if (lValidParameterCount === lValidationParameter.length) {
+                return true;
             }
         }
 
-        return null;
+        return false;
     }
 }
 
 type PgslAttributeListSyntaxTreeStructureData = {
     attributes: Array<{
         name: string,
-        parameter: Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>>;
+        parameter: Array<BasePgslExpressionSyntaxTree>;
     }>;
 };
 
-type AttributeParameterType = 'Expression' | 'String' | string;
+type AttributeParameterType = 'Expression' | 'String' | Array<string>;
 type AttributeDefinitionInformation = Array<Array<AttributeParameterType>>;

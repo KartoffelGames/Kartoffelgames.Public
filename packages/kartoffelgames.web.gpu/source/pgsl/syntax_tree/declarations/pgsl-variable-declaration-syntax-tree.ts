@@ -93,8 +93,37 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
+        // Const declaration types.
+        const lConstDeclarationTypeList: Array<PgslDeclarationType> = [
+            PgslDeclarationType.Const,
+            PgslDeclarationType.Param,
+        ];
+
+        // Validate const type needs to be constructible.
+        if (lConstDeclarationTypeList.includes(this.mDeclarationType) && !this.mType.isConstructible) {
+            throw new Exception(`Constant variable declarations can only be of a constructible type.`, this);
+        }
+
+        // TODO: When const, param, must habe a initializer.
+        // TODO: private workgroup dont need a initializer
+        // TODO: Storage, Uniform shoulnt have a initializer.
+
+        
+
+        // TODO: Storage value musst be host sharable.
+        // a numeric scalar type
+        // a numeric vector type
+        // a matrix type
+        // an atomic type
+        // a fixed-size array type, if it has creation-fixed footprint and its element type is host-shareable
+        // a runtime-sized array type, if its element type is host-shareable
+        // a structure type, if all its members are host-shareable
+
+        
+
+
         // TODO: Validate if declaration type can store the type.
-        // TODO: Validate if declaration type allows any initialization expression. 
+        // TODO: Validate if declaration type allows any initialization expression.
         // TODO: Validate if expression fits declaration type.
         // TODO: Validate if declaration is const when it is the expression part should be the same.
     }

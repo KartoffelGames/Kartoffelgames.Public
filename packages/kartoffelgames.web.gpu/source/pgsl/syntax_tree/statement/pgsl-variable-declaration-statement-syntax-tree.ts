@@ -101,7 +101,19 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
     protected override onValidateIntegrity(): void {
         // Is a constant when const type and expression is a constant.
         this.mIsConstant = this.mDeclarationType === PgslDeclarationType.Const && this.mExpression!.isConstant;
+
+        // Const declaration type needs to be constructible.
+        if (this.mDeclarationType === PgslDeclarationType.Const && !this.mType.isConstructible) {
+            throw new Exception(`Constant variable declarations can only be of a constructible type.`, this);
+        }
+
+        // TODO.
+        // TODO: Musst be a creation-fixed footprint type.
+        // TODO: Validate const value need to have a initialization.
+        // TODO: Validate same type.
     }
+
+    // TODO: When const declaration and const initial value, this can be a wgsl-const instead of a let.
 }
 
 export type PgslVariableDeclarationStatementSyntaxTreeStructureData = {

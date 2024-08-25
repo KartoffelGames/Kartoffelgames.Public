@@ -1,8 +1,10 @@
 import { Exception } from '@kartoffelgames/core';
-import { PgslBuildInTypeName } from '../../../enum/pgsl-type-name.enum';
 import { PgslEnumDeclarationSyntaxTree } from '../../declarations/pgsl-enum-declaration-syntax-tree';
 import { PgslTypeDefinitionSyntaxTree } from '../../general/pgsl-type-definition-syntax-tree';
 import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
+import { PgslLiteralValueExpressionSyntaxTree } from './pgsl-literal-value-expression-syntax-tree';
+import { PgslStringValueExpressionSyntaxTree } from './pgsl-string-value-expression-syntax-tree';
+import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**
  * PGSL structure holding single enum value.
@@ -23,6 +25,14 @@ export class PgslEnumValueExpressionSyntaxTree extends BasePgslSingleValueExpres
      */
     public get property(): string {
         return this.mProperty;
+    }
+
+    /**
+     * Value of enum expression.
+     */
+    public get value(): BasePgslExpressionSyntaxTree {
+        this.ensureValidity();
+        return this.document.resolveEnum(this.mName)!.property(this.mProperty)!;
     }
 
     /**
@@ -55,21 +65,10 @@ export class PgslEnumValueExpressionSyntaxTree extends BasePgslSingleValueExpres
      * On type resolve of expression
      */
     protected onResolveType(): PgslTypeDefinitionSyntaxTree {
-        const lPropertyValue: string | number = this.document.resolveEnum(this.mName)!.property(this.mProperty)!;
-
-        // Create type declaration.
-        const lTypeDeclaration: PgslTypeDefinitionSyntaxTree = new PgslTypeDefinitionSyntaxTree({
-            name: (typeof lPropertyValue === 'number') ? PgslBuildInTypeName.Integer : PgslBuildInTypeName.String
-        }, 0, 0, 0, 0);
-
-        // Set parent to this tree.
-        lTypeDeclaration.setParent(this);
-
-        // Validate type.
-        lTypeDeclaration.validateIntegrity();
+        const lPropertyValue: PgslLiteralValueExpressionSyntaxTree | PgslStringValueExpressionSyntaxTree = this.document.resolveEnum(this.mName)!.property(this.mProperty)!;
 
         // Set resolve type.
-        return lTypeDeclaration;
+        return lPropertyValue.resolveType;
     }
 
     /**

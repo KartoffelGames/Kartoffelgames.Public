@@ -14,7 +14,7 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
     /**
      * Define types.
      */
-    private static readonly mBuildInTypes: Dictionary<PgslBuildInTypeName, TypeDefinitionInformation> = (() => {
+    private static readonly mBuildInTypes: Dictionary<PgslBuildInTypeName, TypeDefinitionInformation> = (() => {  // TODO: Move it into a seperate Type handler.
         const lTypes: Dictionary<PgslBuildInTypeName, TypeDefinitionInformation> = new Dictionary<PgslBuildInTypeName, TypeDefinitionInformation>();
 
         // Add type to Type storage.
@@ -206,6 +206,9 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
      */
     public constructor(pData: PgslTypeDefinitionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
         super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+
+        // TODO: Create a BuildInType syntax tree, that is a declaration.
+        // TODO: Convert buildin enum string into the BuildInType syntax tree.
 
         // Set data.
         this.mRawName = pData.name;

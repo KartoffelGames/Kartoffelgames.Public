@@ -24,6 +24,7 @@ export enum PgslBuildInTypeName {
 
     // Container.
     Array = 'array',
+    Struct = '*', // Should never be named.
 
     // Textures.
     Texture1d = 'texture_1d',

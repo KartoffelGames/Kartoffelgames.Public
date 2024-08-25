@@ -10,14 +10,14 @@ export class PgslAliasDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTre
     private readonly mTypeDefinition: PgslTypeDefinitionSyntaxTree;
 
     /**
-     * Variable name.
+     * Alias name.
      */
     public get name(): string {
         return this.mName;
     }
 
     /**
-     * Variable name.
+     * Alias type definition.
      */
     public get type(): PgslTypeDefinitionSyntaxTree {
         return this.mTypeDefinition;

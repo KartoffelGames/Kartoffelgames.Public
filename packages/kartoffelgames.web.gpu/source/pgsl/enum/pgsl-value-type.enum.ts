@@ -5,5 +5,6 @@ export enum PgslValueType {
     Struct = 'StructLike',
     Vector = 'Vector',
     Matrix = 'Matrix',
-    Binary = 'Binary'
+    Binary = 'Binary',
+    Enum = 'Enum'
 }

@@ -1,11 +1,11 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { PgslBuildInTypeName } from '../../enum/pgsl-build-in-type-name.enum';
-import { PgslValueType } from '../../enum/pgsl-value-type.enum';
 import { BasePgslSyntaxTree } from '../base-pgsl-syntax-tree';
 import { PgslAliasDeclarationSyntaxTree } from '../declarations/pgsl-alias-declaration-syntax-tree';
 import { PgslEnumDeclarationSyntaxTree } from '../declarations/pgsl-enum-declaration-syntax-tree';
 import { PgslStructDeclarationSyntaxTree } from '../declarations/pgsl-struct-declaration-syntax-tree';
 import { PgslTemplateListSyntaxTree } from './pgsl-template-list-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree } from '../type/base-pgsl-type-definition-syntax-tree';
 
 /**
  * General PGSL syntax tree of a type definition.
@@ -121,41 +121,11 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
         return lTypes;
     })();
 
-    private mIsConstructible: boolean | null;
-    private mIsFixedLength: boolean | null;
     private readonly mRawName: string;
     private readonly mRawTemplateList: PgslTemplateListSyntaxTree | null;
     private mTemplate: PgslTemplateListSyntaxTree | null;
-    private mType: PgslBuildInTypeName | PgslStructDeclarationSyntaxTree | null;
-    private mValueType: PgslValueType | null;
+    private mType: BasePgslTypeDefinitionSyntaxTree | null;
 
-    /**
-     * Type is a constructible type.
-     */
-    public get isConstructible(): boolean {
-        this.ensureValidity();
-
-        // Determine if type is a construtable type.
-        if (this.mIsConstructible === null) {
-            this.mIsConstructible = this.determineConstructible();
-        }
-
-        return this.mIsConstructible;
-    }
-
-    /**
-     * Type has a fixed byte length.
-     */
-    public get isFixed(): boolean {
-        this.ensureValidity();
-
-        // Determine if type is a construtable type.
-        if (this.mIsFixedLength === null) {
-            this.mIsFixedLength = this.determineFixedLength();
-        }
-
-        return this.mIsFixedLength;
-    }
 
     /**
      * Template of type.
@@ -169,7 +139,7 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
     /**
      * Type definition type.
      */
-    public get type(): PgslBuildInTypeName | PgslStructDeclarationSyntaxTree {
+    public get type(): BasePgslTypeDefinitionSyntaxTree {
         this.ensureValidity();
 
         // Value not set.
@@ -178,20 +148,6 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
         }
 
         return this.mType;
-    }
-
-    /**
-     * Type of value.
-     */
-    public get valueType(): PgslValueType {
-        this.ensureValidity();
-
-        // Value not set.
-        if (!this.mValueType) {
-            throw new Exception(`Value type of definition not set.`, this);
-        }
-
-        return this.mValueType;
     }
 
     /**
@@ -263,10 +219,6 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
         }
 
         return true;
-    }
-
-    private determineFixedLength(): boolean {
-        return false; // TODO:
     }
 
     /**
@@ -390,5 +342,4 @@ type PgslTypeDefinitionSyntaxTreeStructureData = {
 type TypeDefinitionInformation = {
     type: PgslBuildInTypeName;
     template: Array<Array<'Expression' | 'Type'>>;
-    valueType: PgslValueType;
 };

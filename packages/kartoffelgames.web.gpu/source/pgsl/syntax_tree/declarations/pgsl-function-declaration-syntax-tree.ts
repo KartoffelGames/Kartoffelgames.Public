@@ -8,10 +8,11 @@ import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tr
  */
 export class PgslFunctionDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslFunctionDeclarationSyntaxTreeStructureData> {
     private readonly mBlock: PgslBlockStatementSyntaxTree;
+    private readonly mConstant: boolean;
     private readonly mName: string;
     private readonly mParameter: Array<PgslFunctionDeclarationParameter>;
     private readonly mReturnType: PgslTypeDeclarationSyntaxTree;
-
+    
     /**
      * Function block.
      */
@@ -52,13 +53,21 @@ export class PgslFunctionDeclarationSyntaxTree extends BasePgslDeclarationSyntax
      * @param pConstant - Function is a constant function.
      */
     public constructor(pData: PgslFunctionDeclarationSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number, pBuildIn: boolean = false, pConstant: boolean = false) {
-        super(pData, pData.attributes, pConstant, pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
+        super(pData, pData.attributes, pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
 
         // Set data.
+        this.mConstant = pConstant;
         this.mBlock = pData.block;
         this.mName = pData.name;
         this.mParameter = pData.parameter;
         this.mReturnType = pData.returnType;
+    }
+
+    /**
+     * Determinate if declaration is a constant.
+     */
+    protected determinateIsConstant(): boolean {
+        return this.mConstant;
     }
 
     /**

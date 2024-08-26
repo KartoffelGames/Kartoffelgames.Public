@@ -8,8 +8,7 @@ export abstract class BasePgslDeclarationSyntaxTree<TData extends PgslSyntaxTree
     private readonly mAttributeList: PgslAttributeListSyntaxTree;
 
     private mIsConstant: boolean | null;
-    private mIsConstructable: boolean | null;
-    private mIsFixed: boolean | null;
+
 
     /**
      * Declaration attributes.
@@ -33,34 +32,6 @@ export abstract class BasePgslDeclarationSyntaxTree<TData extends PgslSyntaxTree
     }
 
     /**
-     * If declaration has a fixed byte length.
-     */
-    public get isConstructable(): boolean {
-        this.ensureValidity();
-
-        // Init value.
-        if (this.mIsConstructable === null) {
-            this.mIsConstructable = this.determinateIsConstructable();
-        }
-
-        return this.mIsConstructable;
-    }
-
-    /**
-     * If declaration has a fixed byte length.
-     */
-    public get isFixed(): boolean {
-        this.ensureValidity();
-
-        // Init value.
-        if (this.mIsFixed === null) {
-            this.mIsFixed = this.determinateIsConstant();
-        }
-
-        return this.mIsFixed;
-    }
-
-    /**
      * Constructor.
      * 
      * @param pData - Initial data.
@@ -78,22 +49,10 @@ export abstract class BasePgslDeclarationSyntaxTree<TData extends PgslSyntaxTree
 
         // Set empty values.
         this.mIsConstant = null;
-        this.mIsConstructable = null;
-        this.mIsFixed = null;
     }
 
     /**
      * Determinate if declaration is a constant.
      */
     protected abstract determinateIsConstant(): boolean;
-
-    /**
-     * Determinate if declaration is a constructable.
-     */
-    protected abstract determinateIsConstructable(): boolean;
-
-    /**
-     * Determinate if declaration has a fixed byte length.
-     */
-    protected abstract determinateIsFixed(): boolean;
 }

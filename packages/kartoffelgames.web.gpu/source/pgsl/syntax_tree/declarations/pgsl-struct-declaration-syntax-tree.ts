@@ -6,10 +6,10 @@ import { PgslStructPropertyDeclarationSyntaxTree } from './pgsl-struct-property-
  * PGSL syntax tree for a struct declaration.
  */
 export class PgslStructDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslStructDeclarationSyntaxTreeStructureData> {
+    private mIsConstructible: boolean | null;
     private readonly mName: string;
     private readonly mProperties: Array<PgslStructPropertyDeclarationSyntaxTree>;
-    private mIsConstructible: boolean | null;
-
+    
     /**
      * Type is a constructible type.
      */
@@ -60,12 +60,19 @@ export class PgslStructDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTr
      * @param pBuildIn - Buildin value.
      */
     public constructor(pData: PgslStructDeclarationSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pData.attributes, true, pStartColumn, pStartLine, pEndColumn, pEndLine);
+        super(pData, pData.attributes, pStartColumn, pStartLine, pEndColumn, pEndLine);
 
         // Set data.
         this.mName = pData.name;
         this.mProperties = pData.properties;
         this.mIsConstructible = null;
+    }
+
+    /**
+     * Determinate if declaration is a constant.
+     */
+    protected determinateIsConstant(): boolean {
+        return true;
     }
 
     /**
@@ -80,8 +87,8 @@ export class PgslStructDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTr
     }
 
     private determineConstructible(): boolean {
-        for(const lProperty of this.mProperties.values()){
-            if(!lProperty.type.isConstructible) {
+        for (const lProperty of this.mProperties.values()) {
+            if (!lProperty.type.isConstructible) {
                 return false;
             }
         }

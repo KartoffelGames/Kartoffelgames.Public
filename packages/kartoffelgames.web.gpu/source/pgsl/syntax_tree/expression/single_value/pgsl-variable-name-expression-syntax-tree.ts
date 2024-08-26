@@ -47,7 +47,7 @@ export class PgslVariableNameExpressionSyntaxTree extends BasePgslSingleValueExp
      */
     protected onResolveType(): PgslTypeDeclarationSyntaxTree {
         // Input type is output type.
-        return this.scopedVariables.get(this.mName)!.type;
+        return this.scopedVariables.get(this.mName)!.typeDeclaration;
     }
 
     /**

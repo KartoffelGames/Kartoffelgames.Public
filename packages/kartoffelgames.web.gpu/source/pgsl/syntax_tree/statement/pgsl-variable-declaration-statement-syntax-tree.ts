@@ -13,7 +13,7 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
     private readonly mExpression: BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData> | null;
     private mIsConstant: boolean | null;
     private readonly mName: string;
-    private readonly mType: PgslTypeDeclarationSyntaxTree;
+    private readonly mTypeDeclaration: PgslTypeDeclarationSyntaxTree;
 
     /**
      * Variable declaration type.
@@ -53,8 +53,8 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
     /**
      * Variable type.
      */
-    public get type(): PgslTypeDeclarationSyntaxTree {
-        return this.mType;
+    public get typeDeclaration(): PgslTypeDeclarationSyntaxTree {
+        return this.mTypeDeclaration;
     }
 
     /**
@@ -90,7 +90,7 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
 
         // Set data.
         this.mName = pData.name;
-        this.mType = pData.type;
+        this.mTypeDeclaration = pData.type;
         this.mExpression = pData.expression ?? null;
         this.mIsConstant = null;
     }
@@ -103,7 +103,7 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
         this.mIsConstant = this.mDeclarationType === PgslDeclarationType.Const && this.mExpression!.isConstant;
 
         // Const declaration type needs to be constructible.
-        if (this.mDeclarationType === PgslDeclarationType.Const && !this.mType.isConstructible) {
+        if (this.mDeclarationType === PgslDeclarationType.Const && !this.mTypeDeclaration.type.isConstructable) {
             throw new Exception(`Constant variable declarations can only be of a constructible type.`, this);
         }
 

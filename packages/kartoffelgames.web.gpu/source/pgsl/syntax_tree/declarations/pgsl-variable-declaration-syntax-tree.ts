@@ -53,14 +53,7 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
      * @param pBuildIn - Buildin value.
      */
     public constructor(pData: PgslVariableDeclarationSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number, pBuildIn: boolean = false) {
-        // Create list of all constant declaration types.
-        const lConstDeclarationTypeList: Array<PgslDeclarationType> = [
-            PgslDeclarationType.Const,
-            PgslDeclarationType.Param,
-        ];
-
-        // Set only as const when a constant declaration type was used. 
-        super(pData, pData.attributes, lConstDeclarationTypeList.includes(pData.declarationType as PgslDeclarationType), pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
+        super(pData, pData.attributes, pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
 
         // Create list of all module variable declarations types.
         const lDeclarationTypeList: Array<PgslDeclarationType> = [
@@ -87,6 +80,19 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
         if (pData.expression) {
             this.mExpression = pData.expression;
         }
+    }
+
+    /**
+     * Determinate if declaration is a constant.
+     */
+    protected determinateIsConstant(): boolean {
+        // Create list of all constant declaration types.
+        const lConstDeclarationTypeList: Array<PgslDeclarationType> = [
+            PgslDeclarationType.Const,
+            PgslDeclarationType.Param,
+        ];
+
+        return lConstDeclarationTypeList.includes(this.mDeclarationType);
     }
 
     /**
@@ -119,7 +125,7 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
         // a runtime-sized array type, if its element type is host-shareable
         // a structure type, if all its members are host-shareable
 
-        
+
 
 
         // TODO: Validate if declaration type can store the type.

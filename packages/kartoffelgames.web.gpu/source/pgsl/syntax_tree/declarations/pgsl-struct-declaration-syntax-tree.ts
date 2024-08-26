@@ -6,35 +6,9 @@ import { PgslStructPropertyDeclarationSyntaxTree } from './pgsl-struct-property-
  * PGSL syntax tree for a struct declaration.
  */
 export class PgslStructDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslStructDeclarationSyntaxTreeStructureData> {
-    private mIsConstructible: boolean | null;
     private readonly mName: string;
     private readonly mProperties: Array<PgslStructPropertyDeclarationSyntaxTree>;
     
-    /**
-     * Type is a constructible type.
-     */
-    public get isConstructible(): boolean {
-        this.ensureValidity();
-
-        // Determine if type is a construtable type.
-        if (this.mIsConstructible === null) {
-            this.mIsConstructible = this.determineConstructible();
-        }
-
-        return this.mIsConstructible;
-    }
-
-    /**
-     * If struct has a fixed byte length.
-     */
-    public get isFixed(): boolean {
-        if (this.mProperties.length === 0) {
-            return true;
-        }
-
-        return this.mProperties.at(-1)!.type.isFixed;
-    }
-
     /**
      * Variable name.
      */
@@ -65,7 +39,6 @@ export class PgslStructDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTr
         // Set data.
         this.mName = pData.name;
         this.mProperties = pData.properties;
-        this.mIsConstructible = null;
     }
 
     /**
@@ -84,16 +57,6 @@ export class PgslStructDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTr
         // TODO: Only types with fixed footprints but allow it as last property but then the struct is no longer fixed.
 
         // TODO: 
-    }
-
-    private determineConstructible(): boolean {
-        for (const lProperty of this.mProperties.values()) {
-            if (!lProperty.type.isConstructible) {
-                return false;
-            }
-        }
-
-        return true;
     }
 }
 

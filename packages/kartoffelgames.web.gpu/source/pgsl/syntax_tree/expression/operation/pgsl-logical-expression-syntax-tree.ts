@@ -1,7 +1,7 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum';
-import { PgslValueType } from '../../../enum/pgsl-value-type.enum';
-import { PgslTypeDeclarationSyntaxTree } from '../../general/pgsl-type-declaration-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
+import { PgslBooleanTypeDefinitionSyntaxTree } from '../../type/pgsl-boolean-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**
@@ -74,7 +74,7 @@ export class PgslLogicalExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): PgslTypeDeclarationSyntaxTree {
+    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // TODO: Bitwise on vector changes type to vector<numeric>
 
         // Set result type to left side value. Both types must be the same, so it does not matter.
@@ -88,12 +88,12 @@ export class PgslLogicalExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
         // TODO: Allow vectors. For Bitwise or and Bitwise and
 
         // Validate left side type.
-        if (this.mLeftExpression.resolveType.valueType !== PgslValueType.Boolean) {
+        if (!(this.mLeftExpression.resolveType instanceof PgslBooleanTypeDefinitionSyntaxTree)) {
             throw new Exception('Left side of logical expression needs to be a boolean', this);
         }
 
         // Validate right side type.
-        if (this.mRightExpression.resolveType.valueType !== PgslValueType.Boolean) {
+        if (!(this.mRightExpression.resolveType instanceof PgslBooleanTypeDefinitionSyntaxTree)) {
             throw new Exception('Right side of logical expression needs to be a boolean', this);
         }
     }

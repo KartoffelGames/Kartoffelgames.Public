@@ -1,8 +1,10 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum';
-import { PgslValueType } from '../../../enum/pgsl-value-type.enum';
 import { PgslSyntaxTreeInitData } from '../../base-pgsl-syntax-tree';
-import { PgslTypeDeclarationSyntaxTree } from '../../general/pgsl-type-declaration-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
+import { PgslBooleanTypeDefinitionSyntaxTree } from '../../type/pgsl-boolean-type-definition-syntax-tree';
+import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/pgsl-numeric-type-definition-syntax-tree';
+import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/pgsl-vector-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 import { BasePgslSingleValueExpressionSyntaxTree } from '../single_value/base-pgsl-single-value-expression-syntax-tree';
 
@@ -61,7 +63,7 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): PgslTypeDeclarationSyntaxTree {
+    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // TODO: Integer type changes when value is negative.
 
         // Input type is output type.
@@ -73,20 +75,20 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<
      */
     protected override onValidateIntegrity(): void {
         // Read type of inner expression.
-        const lExpressionType: PgslTypeDeclarationSyntaxTree = this.mExpression.resolveType;
+        const lExpressionType: BasePgslTypeDefinitionSyntaxTree = this.mExpression.resolveType;
 
         // Validate type for each.
         switch (this.mOperator) {
             case PgslOperator.BinaryNegate: {
                 // TODO: Allow numeric vectors.
-                if (lExpressionType.valueType !== PgslValueType.Numeric) {
+                if (!(lExpressionType instanceof PgslNumericTypeDefinitionSyntaxTree)) {
                     throw new Exception(`Binary negation only valid for numeric type.`, this);
                 }
 
                 break;
             }
             case PgslOperator.Minus: {
-                if (lExpressionType.valueType !== PgslValueType.Numeric && lExpressionType.valueType !== PgslValueType.Vector) {
+                if (!(lExpressionType instanceof PgslNumericTypeDefinitionSyntaxTree) && !(lExpressionType instanceof PgslVectorTypeDefinitionSyntaxTree)) {
                     throw new Exception(`Negation only valid for numeric or vector type.`, this);
                 }
 
@@ -94,7 +96,7 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<
             }
             case PgslOperator.Not: {
                 // TODO: Only vector booleans.
-                if (lExpressionType.valueType !== PgslValueType.Boolean) {
+                if (!(lExpressionType instanceof PgslBooleanTypeDefinitionSyntaxTree)) {
                     throw new Exception(`Boolean negation only valid for boolean type.`, this);
                 }
 

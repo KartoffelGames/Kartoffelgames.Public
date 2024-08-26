@@ -1,8 +1,9 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
-import { PgslOperator } from '../../../enum/pgsl-operator.enum';
 import { PgslBuildInTypeName } from '../../../enum/pgsl-build-in-type-name.enum';
-import { PgslValueType } from '../../../enum/pgsl-value-type.enum';
+import { PgslOperator } from '../../../enum/pgsl-operator.enum';
 import { PgslTypeDeclarationSyntaxTree } from '../../general/pgsl-type-declaration-syntax-tree';
+import { PgslBooleanTypeDefinitionSyntaxTree } from '../../type/pgsl-boolean-type-definition-syntax-tree';
+import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/pgsl-numeric-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**
@@ -113,12 +114,12 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
         ];
 
         // Validate boolean compare.
-        if (this.mLeftExpression.resolveType.valueType === PgslValueType.Boolean && !lBooleanComparisonList.includes(this.mOperator)) {
+        if (this.mLeftExpression.resolveType instanceof PgslBooleanTypeDefinitionSyntaxTree && !lBooleanComparisonList.includes(this.mOperator)) {
             throw new Exception(`Boolean can only be compares with "NotEqual" or "Equal"`, this);
         }
 
         // Both values need to be numeric.
-        if (this.mLeftExpression.resolveType.valueType !== PgslValueType.Numeric) {
+        if (!(this.mLeftExpression.resolveType instanceof PgslNumericTypeDefinitionSyntaxTree)) {
             throw new Exception(`None numeric values can't be compared`, this);
         }
     }

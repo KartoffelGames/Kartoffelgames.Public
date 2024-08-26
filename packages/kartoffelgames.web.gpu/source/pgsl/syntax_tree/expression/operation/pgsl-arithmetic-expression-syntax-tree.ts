@@ -1,7 +1,7 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum';
-import { PgslValueType } from '../../../enum/pgsl-value-type.enum';
-import { PgslTypeDeclarationSyntaxTree } from '../../general/pgsl-type-declaration-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
+import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/pgsl-numeric-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslArithmeticExpressionSyntaxTreeStructureData> {
@@ -73,7 +73,7 @@ export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntax
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): PgslTypeDeclarationSyntaxTree {
+    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // Types are the same.
         return this.mLeftExpression.resolveType;
     }
@@ -87,12 +87,12 @@ export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntax
         // TODO: Left and right expressions need to resolve to number values.
 
         // Validate left side type.
-        if (this.mLeftExpression.resolveType.valueType !== PgslValueType.Numeric) {
+        if (!(this.mLeftExpression.resolveType instanceof PgslNumericTypeDefinitionSyntaxTree)) {
             throw new Exception('Left side of arithmetic expression needs to be a numeric value', this);
         }
 
         // Validate right side type.
-        if (this.mRightExpression.resolveType.valueType !== PgslValueType.Numeric) {
+        if (!(this.mRightExpression.resolveType instanceof PgslNumericTypeDefinitionSyntaxTree)) {
             throw new Exception('Right side of arithmetic expression needs to be a numeric value', this);
         }
     }

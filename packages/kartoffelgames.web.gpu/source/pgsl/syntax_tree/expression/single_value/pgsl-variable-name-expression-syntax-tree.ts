@@ -1,8 +1,8 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslVariableDeclarationSyntaxTree } from '../../declarations/pgsl-variable-declaration-syntax-tree';
 import { PgslVariableDeclarationStatementSyntaxTree } from '../../statement/pgsl-variable-declaration-statement-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
 import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
-import { PgslTypeDeclarationSyntaxTree } from '../../general/pgsl-type-declaration-syntax-tree';
 
 /**
  * PGSL structure holding single variable name.
@@ -45,7 +45,7 @@ export class PgslVariableNameExpressionSyntaxTree extends BasePgslSingleValueExp
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): PgslTypeDeclarationSyntaxTree {
+    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // Input type is output type.
         return this.scopedVariables.get(this.mName)!.typeDeclaration;
     }

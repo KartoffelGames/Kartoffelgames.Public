@@ -1,8 +1,8 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum';
-import { PgslValueType } from '../../../enum/pgsl-value-type.enum';
-import { PgslTypeDeclarationSyntaxTree } from '../../general/pgsl-type-declaration-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
+import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/pgsl-numeric-type-definition-syntax-tree';
 
 export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslBinaryExpressionSyntaxTreeStructureData> {
     private readonly mLeftExpression: BasePgslExpressionSyntaxTree;
@@ -73,7 +73,7 @@ export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): PgslTypeDeclarationSyntaxTree {
+    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // TODO: Vectors are also allowed...
 
         // Set resolved type to left expression type.
@@ -90,7 +90,7 @@ export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree
         //}
 
         // Both values need to be numeric.
-        if (this.mLeftExpression.resolveType.valueType !== PgslValueType.Numeric) {
+        if (!(this.mLeftExpression.resolveType instanceof PgslNumericTypeDefinitionSyntaxTree)) {
             throw new Exception(`Binary operations can only be applied to numeric values.`, this);
         }
     }

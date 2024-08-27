@@ -46,7 +46,7 @@ export class PgslNewCallExpressionSyntaxTree extends BasePgslSingleValueExpressi
     /**
      * On constant state request.
      */
-    protected onConstantStateSet(): boolean {
+    protected determinateIsConstant(): boolean {
         // When one parameter is not a constant then nothing is a constant.
         for (const lParameter of this.mParameterList) {
             if (!lParameter.isConstant) {
@@ -61,7 +61,7 @@ export class PgslNewCallExpressionSyntaxTree extends BasePgslSingleValueExpressi
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
+    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // Set resolve type to return type.
         return this.mType.type;
     }

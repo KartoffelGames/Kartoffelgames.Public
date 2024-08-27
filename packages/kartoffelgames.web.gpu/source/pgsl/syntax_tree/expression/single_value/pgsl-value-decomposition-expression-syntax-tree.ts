@@ -48,7 +48,7 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslSingleVa
     /**
      * On constant state request.
      */
-    protected onConstantStateSet(): boolean {
+    protected determinateIsConstant(): boolean {
         // Set constant state when the value is a constants.
         return this.mValue.isConstant;
     }
@@ -56,7 +56,7 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslSingleVa
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): PgslTypeDeclarationSyntaxTree {
+    protected determinateResolveType(): PgslTypeDeclarationSyntaxTree {
         // Type depends on value type.
         switch (this.mValue.resolveType.valueType) {
             case PgslValueType.Struct: {
@@ -130,6 +130,7 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslSingleVa
 
             default: {
                 throw new Exception(`Value type "${this.mValue.resolveType.valueType}" can't have properties.`, this);
+                
             }
         }
     }

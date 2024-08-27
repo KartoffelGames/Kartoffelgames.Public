@@ -35,7 +35,7 @@ export class PgslAddressOfExpressionSyntaxTree extends BasePgslSingleValueExpres
     /**
      * On constant state request.
      */
-    protected onConstantStateSet(): boolean {
+    protected determinateIsConstant(): boolean {
         // Expression is constant when variable is a constant.
         return this.mVariable.isConstant;
     }
@@ -43,7 +43,7 @@ export class PgslAddressOfExpressionSyntaxTree extends BasePgslSingleValueExpres
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
+    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // Create type declaration.
         const lTypeDeclaration: PgslPointerTypeDefinitionSyntaxTree = new PgslPointerTypeDefinitionSyntaxTree({
             // TODO: this.mVariable.resolveType

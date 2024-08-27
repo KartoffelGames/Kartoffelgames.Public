@@ -36,7 +36,7 @@ export class PgslParenthesizedExpressionSyntaxTree extends BasePgslSingleValueEx
     /**
      * On constant state request.
      */
-    protected onConstantStateSet(): boolean {
+    protected determinateIsConstant(): boolean {
         // Set constant state when the inner expression is a constants.
         return this.mExpression.isConstant;
     }
@@ -44,7 +44,7 @@ export class PgslParenthesizedExpressionSyntaxTree extends BasePgslSingleValueEx
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
+    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // Set resolved type to the same as inner expression.
         return this.mExpression.resolveType;
     }

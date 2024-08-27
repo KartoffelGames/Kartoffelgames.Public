@@ -12,7 +12,7 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
     private readonly mDeclarationType: PgslDeclarationType;
     private readonly mExpression: BasePgslExpressionSyntaxTree | null;
     private readonly mName: string;
-    private readonly mType: PgslTypeDeclarationSyntaxTree;
+    private readonly mTypeDeclaration: PgslTypeDeclarationSyntaxTree;
 
     /**
      * Variable declaration type.
@@ -36,10 +36,10 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
     }
 
     /**
-     * Variable type.
+     * Variable type declaration.
      */
-    public get type(): PgslTypeDeclarationSyntaxTree {
-        return this.mType;
+    public get typeDeclaration(): PgslTypeDeclarationSyntaxTree {
+        return this.mTypeDeclaration;
     }
 
     /**
@@ -71,7 +71,7 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
         }
 
         // Set data.
-        this.mType = pData.type;
+        this.mTypeDeclaration = pData.type;
         this.mName = pData.name;
         this.mDeclarationType = EnumUtil.cast(PgslDeclarationType, pData.declarationType)!;
         this.mExpression = null;
@@ -106,7 +106,7 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
         ];
 
         // Validate const type needs to be constructible.
-        if (lConstDeclarationTypeList.includes(this.mDeclarationType) && !this.mType.isConstructible) {
+        if (lConstDeclarationTypeList.includes(this.mDeclarationType) && !this.mTypeDeclaration.type.isConstructable) {
             throw new Exception(`Constant variable declarations can only be of a constructible type.`, this);
         }
 

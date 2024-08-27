@@ -70,7 +70,7 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
     /**
      * On constant state request.
      */
-    protected onConstantStateSet(): boolean {
+    protected determinateIsConstant(): boolean {
         // Set constant state when both expressions are constants.
         return this.mLeftExpression.isConstant && this.mRightExpression.isConstant;
     }
@@ -78,7 +78,7 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
+    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // TODO: When it is a vector, is is vector<boolean>
 
         // Create type declaration for a boolean.

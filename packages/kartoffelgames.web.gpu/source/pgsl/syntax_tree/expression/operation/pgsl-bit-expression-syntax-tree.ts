@@ -65,7 +65,7 @@ export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree
     /**
      * On constant state request.
      */
-    protected onConstantStateSet(): boolean {
+    protected determinateIsConstant(): boolean {
         // Set constant state when both expressions are constants.
         return this.mLeftExpression.isConstant && this.mRightExpression.isConstant;
     }
@@ -73,7 +73,7 @@ export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
+    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // TODO: Vectors are also allowed...
 
         // Set resolved type to left expression type.

@@ -46,7 +46,7 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslSingleValueExp
     /**
      * On constant state request.
      */
-    protected onConstantStateSet(): boolean {
+    protected determinateIsConstant(): boolean {
         // Literals are allways constants.
         return true;
     }
@@ -54,7 +54,7 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslSingleValueExp
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
+    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // Create type declaration.
         const lTypeDeclaration: PgslNumericTypeDefinitionSyntaxTree = new PgslNumericTypeDefinitionSyntaxTree({
             // TODO: Build in numeric type.

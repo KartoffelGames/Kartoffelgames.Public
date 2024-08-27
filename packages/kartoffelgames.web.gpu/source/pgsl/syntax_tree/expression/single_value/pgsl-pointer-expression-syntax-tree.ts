@@ -36,7 +36,7 @@ export class PgslPointerExpressionSyntaxTree extends BasePgslSingleValueExpressi
     /**
      * On constant state request.
      */
-    protected onConstantStateSet(): boolean {
+    protected determinateIsConstant(): boolean {
         // Expression is constant when variable is a constant.
         return this.mVariable.isConstant;
     }
@@ -44,7 +44,7 @@ export class PgslPointerExpressionSyntaxTree extends BasePgslSingleValueExpressi
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
+    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // Pointer value will allways be a pointer.
         return this.mVariable.resolveType; // TODO: Should not return the pointer but the type instead.
     }

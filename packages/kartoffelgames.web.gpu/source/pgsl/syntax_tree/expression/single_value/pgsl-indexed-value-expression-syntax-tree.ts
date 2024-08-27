@@ -49,7 +49,7 @@ export class PgslIndexedValueExpressionSyntaxTree extends BasePgslSingleValueExp
     /**
      * On constant state request.
      */
-    protected onConstantStateSet(): boolean {
+    protected determinateIsConstant(): boolean {
         // Set constant state when both value and index are constants.
         return this.mIndex.isConstant && this.mValue.isConstant;
     }
@@ -57,7 +57,7 @@ export class PgslIndexedValueExpressionSyntaxTree extends BasePgslSingleValueExp
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): PgslTypeDeclarationSyntaxTree {
+    protected determinateResolveType(): PgslTypeDeclarationSyntaxTree {
         // Type depends on value type.
         switch (this.mValue.resolveType.valueType) {
             case PgslValueType.Array: {

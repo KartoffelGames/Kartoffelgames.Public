@@ -37,7 +37,7 @@ export class PgslVariableNameExpressionSyntaxTree extends BasePgslSingleValueExp
     /**
      * On constant state request.
      */
-    protected onConstantStateSet(): boolean {
+    protected determinateIsConstant(): boolean {
         // Expression is constant when variable is a constant.
         return this.scopedVariables.get(this.mName)!.isConstant;
     }
@@ -45,9 +45,9 @@ export class PgslVariableNameExpressionSyntaxTree extends BasePgslSingleValueExp
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
+    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // Input type is output type.
-        return this.scopedVariables.get(this.mName)!.typeDeclaration;
+        return this.scopedVariables.get(this.mName)!.typeDeclaration.type;
     }
 
     /**

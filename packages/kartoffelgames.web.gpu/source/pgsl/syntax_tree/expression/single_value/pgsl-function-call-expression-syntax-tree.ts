@@ -47,7 +47,7 @@ export class PgslFunctionCallExpressionSyntaxTree extends BasePgslSingleValueExp
     /**
      * On constant state request.
      */
-    protected onConstantStateSet(): boolean {
+    protected determinateIsConstant(): boolean {
         const lFunctionDeclaration: PgslFunctionDeclarationSyntaxTree = this.document.resolveFunction(this.mName)!;
 
         // Set call expression as constant when all parameter are constants and the function itself is a constant.
@@ -70,7 +70,7 @@ export class PgslFunctionCallExpressionSyntaxTree extends BasePgslSingleValueExp
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
+    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // Set resolve type to return type.
         return this.document.resolveFunction(this.mName)!.returnType;
     }

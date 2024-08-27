@@ -65,7 +65,7 @@ export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntax
     /**
      * On constant state request.
      */
-    protected onConstantStateSet(): boolean {
+    protected determinateIsConstant(): boolean {
         // Set constant state when both expressions are constants.
         return this.mLeftExpression.isConstant && this.mRightExpression.isConstant;
     }
@@ -73,7 +73,7 @@ export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntax
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
+    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // Types are the same.
         return this.mLeftExpression.resolveType;
     }

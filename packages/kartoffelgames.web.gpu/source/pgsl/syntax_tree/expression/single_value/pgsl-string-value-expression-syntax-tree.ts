@@ -51,7 +51,7 @@ export class PgslStringValueExpressionSyntaxTree extends BasePgslSingleValueExpr
     /**
      * On constant state request.
      */
-    protected onConstantStateSet(): boolean {
+    protected determinateIsConstant(): boolean {
         // A string is allways a constant.
         return true;
     }
@@ -59,7 +59,7 @@ export class PgslStringValueExpressionSyntaxTree extends BasePgslSingleValueExpr
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
+    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // Create type declaration.
         const lTypeDeclaration: PgslStringTypeDefinitionSyntaxTree = new PgslStringTypeDefinitionSyntaxTree({}, 0, 0, 0, 0);
 

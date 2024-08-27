@@ -54,7 +54,7 @@ export class PgslEnumValueExpressionSyntaxTree extends BasePgslSingleValueExpres
     /**
      * On constant state request.
      */
-    protected onConstantStateSet(): boolean {
+    protected determinateIsConstant(): boolean {
         // Enums are allways constant.
         return true;
     }
@@ -62,7 +62,7 @@ export class PgslEnumValueExpressionSyntaxTree extends BasePgslSingleValueExpres
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
+    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // Set resolve type.
         return this.document.resolveEnum(this.mName)!.property(this.mProperty)!.resolveType;
     }

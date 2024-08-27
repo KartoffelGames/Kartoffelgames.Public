@@ -55,7 +55,7 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<
     /**
      * On constant state request.
      */
-    protected onConstantStateSet(): boolean {
+    protected determinateIsConstant(): boolean {
         // Expression is constant when variable is a constant.
         return this.mExpression.isConstant;
     }
@@ -63,7 +63,7 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
+    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // TODO: Integer type changes when value is negative.
 
         // Input type is output type.

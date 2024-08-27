@@ -66,7 +66,7 @@ export class PgslLogicalExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
     /**
      * On constant state request.
      */
-    protected onConstantStateSet(): boolean {
+    protected determinateIsConstant(): boolean {
         // Set constant state when both expressions are constants.
         return this.mLeftExpression.isConstant && this.mRightExpression.isConstant;
     }
@@ -74,7 +74,7 @@ export class PgslLogicalExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
+    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // TODO: Bitwise on vector changes type to vector<numeric>
 
         // Set result type to left side value. Both types must be the same, so it does not matter.

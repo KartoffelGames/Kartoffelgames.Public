@@ -6,6 +6,7 @@ import { BasePgslTypeDefinitionSyntaxTree } from '../type/base-pgsl-type-definit
  */
 export abstract class BasePgslExpressionSyntaxTree<TData extends PgslSyntaxTreeInitData = PgslSyntaxTreeInitData> extends BasePgslSyntaxTree<TData> {
     private mIsConstant: boolean | null;
+    private mIsStorage: boolean | null;
     private mResolveType: BasePgslTypeDefinitionSyntaxTree | null;
 
     /**
@@ -16,10 +17,24 @@ export abstract class BasePgslExpressionSyntaxTree<TData extends PgslSyntaxTreeI
 
         // Constant was not set.
         if (this.mIsConstant === null) {
-            this.mIsConstant = this.onConstantStateSet();
+            this.mIsConstant = this.determinateIsConstant();
         }
 
         return this.mIsConstant;
+    }
+
+    /**
+     * If expression is value storage.
+     */
+    public get isStorage(): boolean {
+        this.ensureValidity();
+
+        // Constant was not set.
+        if (this.mIsStorage === null) {
+            this.mIsStorage = this.determinateIsStorage();
+        }
+
+        return this.mIsStorage;
     }
 
     /**
@@ -30,7 +45,7 @@ export abstract class BasePgslExpressionSyntaxTree<TData extends PgslSyntaxTreeI
 
         // Constant was not set.
         if (this.mResolveType === null) {
-            this.mResolveType = this.onResolveType();
+            this.mResolveType = this.determinateResolveType();
         }
 
         return this.mResolveType;
@@ -50,16 +65,22 @@ export abstract class BasePgslExpressionSyntaxTree<TData extends PgslSyntaxTreeI
         super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
 
         this.mIsConstant = null;
+        this.mIsStorage = null;
         this.mResolveType = null;
     }
 
     /**
      * On constant state request.
      */
-    protected abstract onConstantStateSet(): boolean
+    protected abstract determinateIsConstant(): boolean
+
+    /**
+     * On is storage set..
+     */
+    protected abstract determinateIsStorage(): boolean
 
     /**
      * On type resolve of expression
      */
-    protected abstract onResolveType(): BasePgslTypeDefinitionSyntaxTree
+    protected abstract determinateResolveType(): BasePgslTypeDefinitionSyntaxTree
 }

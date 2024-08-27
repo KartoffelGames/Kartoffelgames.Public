@@ -60,7 +60,7 @@ export class PgslAssignmentStatementSyntaxTree extends BasePgslStatementSyntaxTr
         }
 
         this.mAssignment = EnumUtil.cast(PgslAssignment, pData.assignment)!;
-        this.mVariable = pData.variable;
+        this.mVariable = pData.variable; // TODO: Add a isStorage flag to expression.
         this.mExpression = pData.expression;
     }
 

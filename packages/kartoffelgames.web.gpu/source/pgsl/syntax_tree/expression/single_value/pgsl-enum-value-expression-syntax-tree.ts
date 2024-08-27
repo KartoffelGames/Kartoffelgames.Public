@@ -2,12 +2,11 @@ import { Exception } from '@kartoffelgames/core';
 import { PgslEnumDeclarationSyntaxTree } from '../../declarations/pgsl-enum-declaration-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
-import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
 
 /**
  * PGSL structure holding single enum value.
  */
-export class PgslEnumValueExpressionSyntaxTree extends BasePgslSingleValueExpressionSyntaxTree<PgslEnumValueExpressionSyntaxTreeStructureData> {
+export class PgslEnumValueExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslEnumValueExpressionSyntaxTreeStructureData> {
     private readonly mName: string;
     private readonly mProperty: string;
 
@@ -57,6 +56,13 @@ export class PgslEnumValueExpressionSyntaxTree extends BasePgslSingleValueExpres
     protected determinateIsConstant(): boolean {
         // Enums are allways constant.
         return true;
+    }
+
+    /**
+     * On is storage set.
+     */
+    protected determinateIsStorage(): boolean {
+        return false;
     }
 
     /**

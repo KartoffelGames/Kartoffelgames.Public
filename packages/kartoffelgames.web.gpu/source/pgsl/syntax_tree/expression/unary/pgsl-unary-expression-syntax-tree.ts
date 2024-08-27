@@ -1,24 +1,22 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum';
-import { PgslSyntaxTreeInitData } from '../../base-pgsl-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
 import { PgslBooleanTypeDefinitionSyntaxTree } from '../../type/pgsl-boolean-type-definition-syntax-tree';
 import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/pgsl-numeric-type-definition-syntax-tree';
 import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/pgsl-vector-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
-import { BasePgslSingleValueExpressionSyntaxTree } from '../single_value/base-pgsl-single-value-expression-syntax-tree';
 
 /**
  * PGSL structure holding a expression with a single value and a single unary operation.
  */
 export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslUnaryExpressionSyntaxTreeStructureData> {
-    private readonly mExpression: BasePgslSingleValueExpressionSyntaxTree<PgslSyntaxTreeInitData>;
+    private readonly mExpression: BasePgslExpressionSyntaxTree;
     private readonly mOperator: PgslOperator;
 
     /**
      * Expression reference.
      */
-    public get expression(): BasePgslSingleValueExpressionSyntaxTree<PgslSyntaxTreeInitData> {
+    public get expression(): BasePgslExpressionSyntaxTree {
         return this.mExpression;
     }
 
@@ -58,6 +56,13 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<
     protected determinateIsConstant(): boolean {
         // Expression is constant when variable is a constant.
         return this.mExpression.isConstant;
+    }
+
+    /**
+     * On is storage set.
+     */
+    protected determinateIsStorage(): boolean {
+        return false;
     }
 
     /**
@@ -107,6 +112,6 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<
 }
 
 export type PgslUnaryExpressionSyntaxTreeStructureData = {
-    expression: BasePgslSingleValueExpressionSyntaxTree<PgslSyntaxTreeInitData>;
+    expression: BasePgslExpressionSyntaxTree;
     operator: string;
 };

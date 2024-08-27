@@ -1,22 +1,19 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../enum/pgsl-operator.enum';
-import { BasePgslSingleValueExpressionSyntaxTree } from '../expression/single_value/base-pgsl-single-value-expression-syntax-tree';
-import { PgslIndexedValueExpressionSyntaxTree } from '../expression/single_value/pgsl-indexed-value-expression-syntax-tree';
-import { PgslValueDecompositionExpressionSyntaxTree } from '../expression/single_value/pgsl-value-decomposition-expression-syntax-tree';
-import { PgslVariableNameExpressionSyntaxTree } from '../expression/single_value/pgsl-variable-name-expression-syntax-tree';
+import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
 
 /**
  * PGSL structure holding a increment or decrement statement.
  */
 export class PgslIncrementDecrementStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslIncrementDecrementStatementSyntaxTreeStructureData> {
-    private readonly mExpression: BasePgslSingleValueExpressionSyntaxTree;
+    private readonly mExpression: BasePgslExpressionSyntaxTree;
     private readonly mOperator: PgslOperator;
 
     /**
      * Expression reference.
      */
-    public get expression(): BasePgslSingleValueExpressionSyntaxTree {
+    public get expression(): BasePgslExpressionSyntaxTree {
         return this.mExpression;
     }
 
@@ -51,10 +48,6 @@ export class PgslIncrementDecrementStatementSyntaxTree extends BasePgslStatement
             throw new Exception(`Operator "${pData.operator}" can not used for increment or decrement statements.`, this);
         }
 
-        // Validate expression type.
-        if (!(pData.expression instanceof PgslVariableNameExpressionSyntaxTree) && !(pData.expression instanceof PgslIndexedValueExpressionSyntaxTree) && !(pData.expression instanceof PgslValueDecompositionExpressionSyntaxTree)) {
-            throw new Exception(`Increment and decrement operations can only be applied to variables.`, this);
-        }
 
         this.mOperator = EnumUtil.cast(PgslOperator, pData.operator)!;
         this.mExpression = pData.expression;
@@ -64,11 +57,16 @@ export class PgslIncrementDecrementStatementSyntaxTree extends BasePgslStatement
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
+        // Must be a storage.
+        if (!this.mExpression.isStorage) {
+            throw new Exception('Increment or decrement expression muss be applied to a storage expression', this);
+        }
+
         // TODO: SHouldnt be a const value.
     }
 }
 
 export type PgslIncrementDecrementStatementSyntaxTreeStructureData = {
     operator: string;
-    expression: BasePgslSingleValueExpressionSyntaxTree;
+    expression: BasePgslExpressionSyntaxTree;
 };

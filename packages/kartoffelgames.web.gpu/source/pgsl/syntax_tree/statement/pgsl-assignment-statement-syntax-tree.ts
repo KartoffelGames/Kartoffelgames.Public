@@ -1,11 +1,7 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
-import { BasePgslSingleValueExpressionSyntaxTree } from '../expression/single_value/base-pgsl-single-value-expression-syntax-tree';
-import { PgslIndexedValueExpressionSyntaxTree } from '../expression/single_value/pgsl-indexed-value-expression-syntax-tree';
-import { PgslValueDecompositionExpressionSyntaxTree } from '../expression/single_value/pgsl-value-decomposition-expression-syntax-tree';
-import { PgslVariableNameExpressionSyntaxTree } from '../expression/single_value/pgsl-variable-name-expression-syntax-tree';
-import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
-import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 import { PgslAssignment } from '../../enum/pgsl-assignment.enum';
+import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
+import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
 
 /**
  * PGSL structure holding a assignment statement.
@@ -13,7 +9,7 @@ import { PgslAssignment } from '../../enum/pgsl-assignment.enum';
 export class PgslAssignmentStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslAssignmentStatementSyntaxTreeStructureData> {
     private readonly mAssignment: PgslAssignment;
     private readonly mExpression: BasePgslExpressionSyntaxTree;
-    private readonly mVariable: BasePgslSingleValueExpressionSyntaxTree;
+    private readonly mVariable: BasePgslExpressionSyntaxTree;
 
     /**
      * Expression operator.
@@ -32,7 +28,7 @@ export class PgslAssignmentStatementSyntaxTree extends BasePgslStatementSyntaxTr
     /**
      * Expression reference.
      */
-    public get variable(): BasePgslSingleValueExpressionSyntaxTree {
+    public get variable(): BasePgslExpressionSyntaxTree {
         return this.mVariable;
     }
 
@@ -54,11 +50,6 @@ export class PgslAssignmentStatementSyntaxTree extends BasePgslStatementSyntaxTr
             throw new Exception(`Operation "${pData.assignment}" can not used for increment or decrement statements.`, this);
         }
 
-        // Validate expression type. // TODO: Add pointer expression.
-        if (!(pData.variable instanceof PgslVariableNameExpressionSyntaxTree) && !(pData.variable instanceof PgslIndexedValueExpressionSyntaxTree) && !(pData.variable instanceof PgslValueDecompositionExpressionSyntaxTree)) {
-            throw new Exception(`Increment and decrement operations can only be applied to variables.`, this);
-        }
-
         this.mAssignment = EnumUtil.cast(PgslAssignment, pData.assignment)!;
         this.mVariable = pData.variable; // TODO: Add a isStorage flag to expression.
         this.mExpression = pData.expression;
@@ -68,19 +59,23 @@ export class PgslAssignmentStatementSyntaxTree extends BasePgslStatementSyntaxTr
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
+        // Must be a storage.
+        if (!this.mVariable.isStorage) {
+            throw new Exception('Increment or decrement expression muss be applied to a storage expression', this);
+        }
+
         // Validate that it is not a constant.
         if (this.mVariable.isConstant) {
             throw new Exception(`Can't assign values to a constant`, this);
         }
 
         // TODO: Only a addressOf should be assigned to a pointer variable.
-
-        // TODO:expression should be the correct value type for each assignment.
+        // TODO: expression should be the correct value type for each assignment.
     }
 }
 
 export type PgslAssignmentStatementSyntaxTreeStructureData = {
     assignment: string;
-    variable: BasePgslSingleValueExpressionSyntaxTree;
+    variable: BasePgslExpressionSyntaxTree;
     expression: BasePgslExpressionSyntaxTree;
 };

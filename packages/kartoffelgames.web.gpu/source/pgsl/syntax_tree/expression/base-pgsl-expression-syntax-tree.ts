@@ -75,7 +75,7 @@ export abstract class BasePgslExpressionSyntaxTree<TData extends PgslSyntaxTreeI
     protected abstract determinateIsConstant(): boolean
 
     /**
-     * On is storage set..
+     * On is storage set.
      */
     protected abstract determinateIsStorage(): boolean
 

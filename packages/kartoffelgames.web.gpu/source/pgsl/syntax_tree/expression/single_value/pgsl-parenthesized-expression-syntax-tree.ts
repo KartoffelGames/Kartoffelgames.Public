@@ -1,12 +1,11 @@
 import { PgslSyntaxTreeInitData } from '../../base-pgsl-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
-import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
 
 /**
  * PGSL structure holding a expression surrounded with parentheses.
  */
-export class PgslParenthesizedExpressionSyntaxTree extends BasePgslSingleValueExpressionSyntaxTree<PgslParenthesizedExpressionSyntaxTreeStructureData> {
+export class PgslParenthesizedExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslParenthesizedExpressionSyntaxTreeStructureData> {
     private readonly mExpression: BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>;
 
     /**
@@ -39,6 +38,13 @@ export class PgslParenthesizedExpressionSyntaxTree extends BasePgslSingleValueEx
     protected determinateIsConstant(): boolean {
         // Set constant state when the inner expression is a constants.
         return this.mExpression.isConstant;
+    }
+
+    /**
+     * On is storage set.
+     */
+    protected determinateIsStorage(): boolean {
+        return false;
     }
 
     /**

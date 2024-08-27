@@ -3,12 +3,11 @@ import { PgslSyntaxTreeInitData } from '../../base-pgsl-syntax-tree';
 import { PgslFunctionDeclarationSyntaxTree } from '../../declarations/pgsl-function-declaration-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
-import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
 
 /**
  * PGSL syntax tree of a function call expression with optional template list.
  */
-export class PgslFunctionCallExpressionSyntaxTree extends BasePgslSingleValueExpressionSyntaxTree<PgslFunctionCallExpressionSyntaxTreeStructureData> {
+export class PgslFunctionCallExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslFunctionCallExpressionSyntaxTreeStructureData> {
     private readonly mName: string;
     private readonly mParameterList: Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>>;
 
@@ -65,6 +64,13 @@ export class PgslFunctionCallExpressionSyntaxTree extends BasePgslSingleValueExp
             // Function is constant, parameters need to be to.
             return true;
         }
+    }
+
+    /**
+     * On is storage set.
+     */
+    protected determinateIsStorage(): boolean {
+        return false;
     }
 
     /**

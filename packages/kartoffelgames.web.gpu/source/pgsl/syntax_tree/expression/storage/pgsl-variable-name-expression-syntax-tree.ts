@@ -2,12 +2,12 @@ import { Exception } from '@kartoffelgames/core';
 import { PgslVariableDeclarationSyntaxTree } from '../../declarations/pgsl-variable-declaration-syntax-tree';
 import { PgslVariableDeclarationStatementSyntaxTree } from '../../statement/pgsl-variable-declaration-statement-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
-import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
+import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**
  * PGSL structure holding single variable name.
  */
-export class PgslVariableNameExpressionSyntaxTree extends BasePgslSingleValueExpressionSyntaxTree<PgslVariableNameExpressionSyntaxTreeStructureData> {
+export class PgslVariableNameExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslVariableNameExpressionSyntaxTreeStructureData> {
     private readonly mName: string;
 
     /**
@@ -40,6 +40,13 @@ export class PgslVariableNameExpressionSyntaxTree extends BasePgslSingleValueExp
     protected determinateIsConstant(): boolean {
         // Expression is constant when variable is a constant.
         return this.scopedVariables.get(this.mName)!.isConstant;
+    }
+
+    /**
+     * On is storage set.
+     */
+    protected determinateIsStorage(): boolean {
+        return true;
     }
 
     /**

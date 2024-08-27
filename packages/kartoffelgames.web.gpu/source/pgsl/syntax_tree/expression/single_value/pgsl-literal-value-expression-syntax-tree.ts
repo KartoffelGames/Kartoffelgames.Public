@@ -2,12 +2,12 @@ import { Exception } from '@kartoffelgames/core';
 import { PgslBuildInTypeName } from '../../../enum/pgsl-build-in-type-name.enum';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
 import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/pgsl-numeric-type-definition-syntax-tree';
-import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
+import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**
  * PGSL syntax tree for a single literal value of boolean, float, integer or uinteger.
  */
-export class PgslLiteralValueExpressionSyntaxTree extends BasePgslSingleValueExpressionSyntaxTree<PgslLiteralValueExpressionSyntaxTreeStructureData> {
+export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslLiteralValueExpressionSyntaxTreeStructureData> {
     private readonly mScalarType: PgslBuildInTypeName;
     private readonly mValue: number;
 
@@ -49,6 +49,13 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslSingleValueExp
     protected determinateIsConstant(): boolean {
         // Literals are allways constants.
         return true;
+    }
+
+    /**
+     * On is storage set.
+     */
+    protected determinateIsStorage(): boolean {
+        return false;
     }
 
     /**

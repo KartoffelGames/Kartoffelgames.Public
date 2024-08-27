@@ -2,12 +2,12 @@ import { Exception } from '@kartoffelgames/core';
 import { PgslBuildInTypeName } from '../../../enum/pgsl-build-in-type-name.enum';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
 import { PgslStringTypeDefinitionSyntaxTree } from '../../type/pgsl-string-type-definition-syntax-tree';
-import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
+import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**
  * PGSL syntax tree for a single string value of boolean, float, integer or uinteger.
  */
-export class PgslStringValueExpressionSyntaxTree extends BasePgslSingleValueExpressionSyntaxTree<PgslStringValueExpressionSyntaxTreeStructureData> {
+export class PgslStringValueExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslStringValueExpressionSyntaxTreeStructureData> {
     private readonly mValue: string;
 
     /**
@@ -54,6 +54,13 @@ export class PgslStringValueExpressionSyntaxTree extends BasePgslSingleValueExpr
     protected determinateIsConstant(): boolean {
         // A string is allways a constant.
         return true;
+    }
+
+    /**
+     * On is storage set.
+     */
+    protected determinateIsStorage(): boolean {
+        return false;
     }
 
     /**

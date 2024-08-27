@@ -1,17 +1,17 @@
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
 import { PgslPointerTypeDefinitionSyntaxTree } from '../../type/pgsl-pointer-type-definition-syntax-tree';
-import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
+import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**
  * PGSL structure holding a variable name used to get the address.
  */
-export class PgslAddressOfExpressionSyntaxTree extends BasePgslSingleValueExpressionSyntaxTree<PgslAddressOfExpressionSyntaxTreeStructureData> {
-    private readonly mVariable: BasePgslSingleValueExpressionSyntaxTree;
+export class PgslAddressOfExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslAddressOfExpressionSyntaxTreeStructureData> {
+    private readonly mVariable: BasePgslExpressionSyntaxTree;
 
     /**
      * Variable reference.
      */
-    public get variable(): BasePgslSingleValueExpressionSyntaxTree {
+    public get variable(): BasePgslExpressionSyntaxTree {
         return this.mVariable;
     }
 
@@ -38,6 +38,13 @@ export class PgslAddressOfExpressionSyntaxTree extends BasePgslSingleValueExpres
     protected determinateIsConstant(): boolean {
         // Expression is constant when variable is a constant.
         return this.mVariable.isConstant;
+    }
+
+    /**
+     * On is storage set.
+     */
+    protected determinateIsStorage(): boolean {
+        return false;
     }
 
     /**
@@ -68,5 +75,5 @@ export class PgslAddressOfExpressionSyntaxTree extends BasePgslSingleValueExpres
 }
 
 type PgslAddressOfExpressionSyntaxTreeStructureData = {
-    variable: BasePgslSingleValueExpressionSyntaxTree;
+    variable: BasePgslExpressionSyntaxTree;
 };

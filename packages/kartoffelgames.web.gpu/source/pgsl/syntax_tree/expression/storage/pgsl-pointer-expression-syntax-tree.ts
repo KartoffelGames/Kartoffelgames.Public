@@ -1,18 +1,18 @@
 import { Exception } from '@kartoffelgames/core';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
 import { PgslPointerTypeDefinitionSyntaxTree } from '../../type/pgsl-pointer-type-definition-syntax-tree';
-import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
+import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**
  * PGSL structure holding a variable name used as a pointer value.
  */
-export class PgslPointerExpressionSyntaxTree extends BasePgslSingleValueExpressionSyntaxTree<PgslPointerExpressionSyntaxTreeStructureData> {
-    private readonly mVariable: BasePgslSingleValueExpressionSyntaxTree;
+export class PgslPointerExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslPointerExpressionSyntaxTreeStructureData> {
+    private readonly mVariable: BasePgslExpressionSyntaxTree;
 
     /**
      * Variable reference.
      */
-    public get variable(): BasePgslSingleValueExpressionSyntaxTree {
+    public get variable(): BasePgslExpressionSyntaxTree {
         return this.mVariable;
     }
 
@@ -42,6 +42,13 @@ export class PgslPointerExpressionSyntaxTree extends BasePgslSingleValueExpressi
     }
 
     /**
+     * On is storage set.
+     */
+    protected determinateIsStorage(): boolean {
+        return true;
+    }
+
+    /**
      * On type resolve of expression
      */
     protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
@@ -54,7 +61,7 @@ export class PgslPointerExpressionSyntaxTree extends BasePgslSingleValueExpressi
      */
     protected override onValidateIntegrity(): void {
         // Validate that it needs to be a variable name, index value or value decomposition.
-        if(this.mVariable.resolveType instanceof PgslPointerTypeDefinitionSyntaxTree){
+        if (this.mVariable.resolveType instanceof PgslPointerTypeDefinitionSyntaxTree) {
             throw new Exception('Value of a pointer expression needs to be a pointer', this);
         }
 
@@ -63,5 +70,5 @@ export class PgslPointerExpressionSyntaxTree extends BasePgslSingleValueExpressi
 }
 
 export type PgslPointerExpressionSyntaxTreeStructureData = {
-    variable: BasePgslSingleValueExpressionSyntaxTree;
+    variable: BasePgslExpressionSyntaxTree;
 };

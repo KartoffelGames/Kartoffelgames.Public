@@ -12,18 +12,17 @@ import { PgslArithmeticExpressionSyntaxTree } from '../syntax_tree/expression/op
 import { PgslBinaryExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-bit-expression-syntax-tree';
 import { PgslComparisonExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-comparison-expression-syntax-tree';
 import { PgslLogicalExpressionSyntaxTree } from '../syntax_tree/expression/operation/pgsl-logical-expression-syntax-tree';
-import { BasePgslSingleValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/base-pgsl-single-value-expression-syntax-tree';
 import { PgslAddressOfExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-address-of-expression-syntax-tree';
 import { PgslEnumValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-enum-value-expression-syntax-tree';
 import { PgslFunctionCallExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-function-call-expression-syntax-tree';
-import { PgslIndexedValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-indexed-value-expression-syntax-tree';
+import { PgslIndexedValueExpressionSyntaxTree } from '../syntax_tree/expression/storage/pgsl-indexed-value-expression-syntax-tree';
 import { PgslLiteralValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-literal-value-expression-syntax-tree';
 import { PgslNewCallExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-new-expression-syntax-tree';
 import { PgslParenthesizedExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-parenthesized-expression-syntax-tree';
-import { PgslPointerExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-pointer-expression-syntax-tree';
+import { PgslPointerExpressionSyntaxTree } from '../syntax_tree/expression/storage/pgsl-pointer-expression-syntax-tree';
 import { PgslStringValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-string-value-expression-syntax-tree';
-import { PgslValueDecompositionExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-value-decomposition-expression-syntax-tree';
-import { PgslVariableNameExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-variable-name-expression-syntax-tree';
+import { PgslValueDecompositionExpressionSyntaxTree } from '../syntax_tree/expression/storage/pgsl-value-decomposition-expression-syntax-tree';
+import { PgslVariableNameExpressionSyntaxTree } from '../syntax_tree/expression/storage/pgsl-variable-name-expression-syntax-tree';
 import { PgslUnaryExpressionSyntaxTree } from '../syntax_tree/expression/unary/pgsl-unary-expression-syntax-tree';
 import { PgslAttributeListSyntaxTree } from '../syntax_tree/general/pgsl-attribute-list-syntax-tree';
 import { PgslTemplateListSyntaxTree } from '../syntax_tree/general/pgsl-template-list-syntax-tree';
@@ -65,7 +64,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
 
         // Define helper graphs.
         this.defineCore();
-        this.defineVariableExpression();
         this.defineExpression();
         this.defineModuleScope();
 
@@ -367,9 +365,205 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
+        this.defineGraphPart('Expression-VariableName', this.graph()
+            .single('name', PgslToken.Identifier),
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslVariableNameExpressionSyntaxTree => {
+                return new PgslVariableNameExpressionSyntaxTree({
+                    name: pData.name
+                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
+            }
+        );
+
+        this.defineGraphPart('Expression-IndexedValue', this.graph()
+            .single('value', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
+            .single(PgslToken.ListStart)
+            .single('indexExpression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
+            .single(PgslToken.ListEnd),
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslIndexedValueExpressionSyntaxTree => {
+                return new PgslIndexedValueExpressionSyntaxTree({
+                    value: pData.value,
+                    index: pData.indexExpression
+                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
+            }
+        );
+
+        this.defineGraphPart('Expression-ValueDecomposition', this.graph()
+            .single('leftExpression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
+            .single(PgslToken.MemberDelimiter)
+            .single('propertyName', PgslToken.Identifier),
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslEnumValueExpressionSyntaxTree | PgslValueDecompositionExpressionSyntaxTree => {
+                // When left expression is a single name, it can be a enum value.
+                if (pData.leftExpression instanceof PgslVariableNameExpressionSyntaxTree) {
+                    // Check variable name with the currently existing declared enums. 
+                    const lVariableName: string = pData.leftExpression.name;
+                    if (this.mParserBuffer.enumDeclaration.has(lVariableName)) {
+                        // Return enum value structure data instead.
+                        return new PgslEnumValueExpressionSyntaxTree({
+                            name: lVariableName,
+                            property: pData.propertyName
+                        }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
+                    }
+                }
+
+                // When not a enum than it can only be a decomposition.
+                return new PgslValueDecompositionExpressionSyntaxTree({
+                    value: pData.leftExpression,
+                    property: pData.propertyName
+                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
+            }
+        );
+
+        this.defineGraphPart('Expression-FunctionCall', this.graph()
+            .single('name', PgslToken.Identifier)
+            .single(PgslToken.ParenthesesStart)
+            .optional('parameter', this.graph()
+                .single('first', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
+                .loop('additional', this.graph()
+                    .single(PgslToken.Comma).single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
+                )
+            )
+            .single(PgslToken.ParenthesesEnd),
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslFunctionCallExpressionSyntaxTree => {
+                // Build parameter list of function.
+                const lParameterList: Array<BasePgslExpressionSyntaxTree> = new Array<BasePgslExpressionSyntaxTree>();
+                if (pData.parameter) {
+                    // Add parameter expressions.
+                    lParameterList.push(
+                        // Add first expression.
+                        pData.parameter.first,
+                        // Add optional appending expressions.
+                        ...(pData.parameter ?? []).additional.map((pAdditional) => { return pAdditional.expression; })
+                    );
+                }
+
+                // Build function structure.
+                const lData: ConstructorParameters<typeof PgslFunctionCallExpressionSyntaxTree>[0] = {
+                    name: pData.name,
+                    parameterList: lParameterList
+                };
+
+                // Create function call expression syntax tree.
+                return new PgslFunctionCallExpressionSyntaxTree(lData, ...this.createTokenBoundParameter(pStartToken, pEndToken));
+            }
+        );
+
+        this.defineGraphPart('Expression-Parenthesized', this.graph()
+            .single(PgslToken.ParenthesesStart)
+            .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
+            .single(PgslToken.ParenthesesEnd),
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslParenthesizedExpressionSyntaxTree => {
+                return new PgslParenthesizedExpressionSyntaxTree({
+                    expression: pData.expression
+                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
+            }
+        );
+
+        this.defineGraphPart('Expression-LiteralValue', this.graph()
+            .branch('value', [
+                this.graph().single('float', PgslToken.LiteralFloat),
+                this.graph().single('integer', PgslToken.LiteralInteger),
+                this.graph().single('boolean', PgslToken.LiteralBoolean)
+            ]),
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslLiteralValueExpressionSyntaxTree => {
+                // Define different types of data for the different literals.
+                let lData: ConstructorParameters<typeof PgslLiteralValueExpressionSyntaxTree>[0];
+                if ('float' in pData.value) {
+                    lData = {
+                        textValue: pData.value.float,
+                        literalType: PgslBuildInTypeName.Float
+                    };
+                } else if ('integer' in pData.value) {
+                    lData = {
+                        textValue: pData.value.integer,
+                        literalType: PgslBuildInTypeName.Integer
+                    };
+                } else if ('boolean' in pData.value) {
+                    lData = {
+                        textValue: pData.value.boolean,
+                        literalType: PgslBuildInTypeName.Boolean
+                    };
+                }
+
+                return new PgslLiteralValueExpressionSyntaxTree(lData!, ...this.createTokenBoundParameter(pStartToken, pEndToken));
+            }
+        );
+
+        this.defineGraphPart('Expression-StringValue', this.graph()
+            .single('string', PgslToken.LiteralString),
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslStringValueExpressionSyntaxTree => {
+                return new PgslStringValueExpressionSyntaxTree({
+                    textValue: pData.string
+                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
+            }
+        );
+
+        this.defineGraphPart('Expression-AddressOf', this.graph()
+            .single(PgslToken.OperatorBinaryAnd)
+            .single('variable', this.partReference<BasePgslExpressionSyntaxTree>('Expression')),
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAddressOfExpressionSyntaxTree => {
+                return new PgslAddressOfExpressionSyntaxTree({
+                    variable: pData.variable
+                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
+            }
+        );
+
+        this.defineGraphPart('Expression-Pointer', this.graph()
+            .single(PgslToken.OperatorMultiply)
+            .single('variable', this.partReference<BasePgslExpressionSyntaxTree>('Expression')),
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslPointerExpressionSyntaxTree => {
+                return new PgslPointerExpressionSyntaxTree({
+                    variable: pData.variable
+                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
+            }
+        );
+
+        this.defineGraphPart('Expression-New', this.graph()
+            .single(PgslToken.KeywordNew)
+            .single('type', this.partReference<PgslTypeDeclarationSyntaxTree>('General-TypeDeclaration'))
+            .single(PgslToken.ParenthesesStart)
+            .optional('parameter', this.graph()
+                .single('first', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
+                .loop('additional', this.graph()
+                    .single(PgslToken.Comma).single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
+                )
+            )
+            .single(PgslToken.ParenthesesEnd),
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslNewCallExpressionSyntaxTree => {
+                // Build parameter list of function.
+                const lParameterList: Array<BasePgslExpressionSyntaxTree> = new Array<BasePgslExpressionSyntaxTree>();
+                if (pData.parameter) {
+                    // Add parameter expressions.
+                    lParameterList.push(
+                        // Add first expression.
+                        pData.parameter.first,
+                        // Add optional appending expressions.
+                        ...(pData.parameter ?? []).additional.map((pAdditional) => { return pAdditional.expression; })
+                    );
+                }
+
+                // Build function structure.
+                const lData: ConstructorParameters<typeof PgslNewCallExpressionSyntaxTree>[0] = {
+                    type: pData.type,
+                    parameterList: lParameterList
+                };
+
+                // Create function call expression syntax tree.
+                return new PgslNewCallExpressionSyntaxTree(lData, ...this.createTokenBoundParameter(pStartToken, pEndToken));
+            }
+        );
+
         this.defineGraphPart('Expression', this.graph()
             .branch('expression', [
-                this.partReference<BasePgslSingleValueExpressionSyntaxTree>('Expression-SingleValue'), // => defineVariableExpression
+                this.partReference<PgslLiteralValueExpressionSyntaxTree>('Expression-LiteralValue'),
+                this.partReference<PgslParenthesizedExpressionSyntaxTree>('Expression-Parenthesized'),
+                this.partReference<PgslFunctionCallExpressionSyntaxTree>('Expression-FunctionCall'),
+                this.partReference<PgslVariableNameExpressionSyntaxTree>('Expression-VariableName'),
+                this.partReference<PgslIndexedValueExpressionSyntaxTree>('Expression-IndexedValue'),
+                this.partReference<PgslStringValueExpressionSyntaxTree>('Expression-StringValue'),
+                this.partReference<PgslAddressOfExpressionSyntaxTree>('Expression-AddressOf'),
+                this.partReference<PgslValueDecompositionExpressionSyntaxTree | PgslEnumValueExpressionSyntaxTree>('Expression-ValueDecomposition'),
+                this.partReference<PgslPointerExpressionSyntaxTree>('Expression-Pointer'),
+                this.partReference<PgslNewCallExpressionSyntaxTree>('Expression-New'),
                 this.partReference<PgslUnaryExpressionSyntaxTree>('Expression-Unary'),
                 this.partReference<PgslBinaryExpressionSyntaxTree>('Expression-BitOperation'),
                 this.partReference<PgslComparisonExpressionSyntaxTree>('Expression-Comparison'),
@@ -594,7 +788,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         );
 
         this.defineGraphPart('Statement-Assignment', this.graph()
-            .single('variable', this.partReference<BasePgslSingleValueExpressionSyntaxTree>('Expression-SingleValue'))
+            .single('variable', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
             .branch('assignment', [
                 PgslToken.Assignment,
                 PgslToken.AssignmentPlus,
@@ -619,7 +813,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         );
 
         this.defineGraphPart('Statement-IncrementDecrement', this.graph()
-            .single('expression', this.partReference<BasePgslSingleValueExpressionSyntaxTree>('Expression-SingleValue'))
+            .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
             .branch('operator', [
                 PgslToken.OperatorIncrement,
                 PgslToken.OperatorDecrement
@@ -957,216 +1151,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
 
         // Define root part.
         this.setRootGraphPart('Module');
-    }
-
-    /**
-     * Define variable expressions used for assigning or reading values.
-     */
-    private defineVariableExpression(): void {
-        this.defineGraphPart('Expression-VariableName', this.graph()
-            .single('name', PgslToken.Identifier),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslVariableNameExpressionSyntaxTree => {
-                return new PgslVariableNameExpressionSyntaxTree({
-                    name: pData.name
-                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
-
-        this.defineGraphPart('Expression-IndexedValue', this.graph()
-            .single('value', this.partReference<BasePgslSingleValueExpressionSyntaxTree>('Expression-SingleValue'))
-            .single(PgslToken.ListStart)
-            .single('indexExpression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
-            .single(PgslToken.ListEnd),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslIndexedValueExpressionSyntaxTree => {
-                return new PgslIndexedValueExpressionSyntaxTree({
-                    value: pData.value,
-                    index: pData.indexExpression
-                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
-
-        this.defineGraphPart('Expression-ValueDecomposition', this.graph()
-            .single('leftExpression', this.partReference<BasePgslSingleValueExpressionSyntaxTree>('Expression-SingleValue'))
-            .single(PgslToken.MemberDelimiter)
-            .single('propertyName', PgslToken.Identifier),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslEnumValueExpressionSyntaxTree | PgslValueDecompositionExpressionSyntaxTree => {
-                // When left expression is a single name, it can be a enum value.
-                if (pData.leftExpression instanceof PgslVariableNameExpressionSyntaxTree) {
-                    // Check variable name with the currently existing declared enums. 
-                    const lVariableName: string = pData.leftExpression.name;
-                    if (this.mParserBuffer.enumDeclaration.has(lVariableName)) {
-                        // Return enum value structure data instead.
-                        return new PgslEnumValueExpressionSyntaxTree({
-                            name: lVariableName,
-                            property: pData.propertyName
-                        }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
-                    }
-                }
-
-                // When not a enum than it can only be a decomposition.
-                return new PgslValueDecompositionExpressionSyntaxTree({
-                    value: pData.leftExpression,
-                    property: pData.propertyName
-                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
-
-        this.defineGraphPart('Expression-FunctionCall', this.graph()
-            .single('name', PgslToken.Identifier)
-            .single(PgslToken.ParenthesesStart)
-            .optional('parameter', this.graph()
-                .single('first', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
-                .loop('additional', this.graph()
-                    .single(PgslToken.Comma).single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
-                )
-            )
-            .single(PgslToken.ParenthesesEnd),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslFunctionCallExpressionSyntaxTree => {
-                // Build parameter list of function.
-                const lParameterList: Array<BasePgslExpressionSyntaxTree> = new Array<BasePgslExpressionSyntaxTree>();
-                if (pData.parameter) {
-                    // Add parameter expressions.
-                    lParameterList.push(
-                        // Add first expression.
-                        pData.parameter.first,
-                        // Add optional appending expressions.
-                        ...(pData.parameter ?? []).additional.map((pAdditional) => { return pAdditional.expression; })
-                    );
-                }
-
-                // Build function structure.
-                const lData: ConstructorParameters<typeof PgslFunctionCallExpressionSyntaxTree>[0] = {
-                    name: pData.name,
-                    parameterList: lParameterList
-                };
-
-                // Create function call expression syntax tree.
-                return new PgslFunctionCallExpressionSyntaxTree(lData, ...this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
-
-        this.defineGraphPart('Expression-Parenthesized', this.graph()
-            .single(PgslToken.ParenthesesStart)
-            .single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
-            .single(PgslToken.ParenthesesEnd),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslParenthesizedExpressionSyntaxTree => {
-                return new PgslParenthesizedExpressionSyntaxTree({
-                    expression: pData.expression
-                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
-
-        this.defineGraphPart('Expression-LiteralValue', this.graph()
-            .branch('value', [
-                this.graph().single('float', PgslToken.LiteralFloat),
-                this.graph().single('integer', PgslToken.LiteralInteger),
-                this.graph().single('boolean', PgslToken.LiteralBoolean)
-            ]),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslLiteralValueExpressionSyntaxTree => {
-                // Define different types of data for the different literals.
-                let lData: ConstructorParameters<typeof PgslLiteralValueExpressionSyntaxTree>[0];
-                if ('float' in pData.value) {
-                    lData = {
-                        textValue: pData.value.float,
-                        literalType: PgslBuildInTypeName.Float
-                    };
-                } else if ('integer' in pData.value) {
-                    lData = {
-                        textValue: pData.value.integer,
-                        literalType: PgslBuildInTypeName.Integer
-                    };
-                } else if ('boolean' in pData.value) {
-                    lData = {
-                        textValue: pData.value.boolean,
-                        literalType: PgslBuildInTypeName.Boolean
-                    };
-                }
-
-                return new PgslLiteralValueExpressionSyntaxTree(lData!, ...this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
-
-        this.defineGraphPart('Expression-StringValue', this.graph()
-            .single('string', PgslToken.LiteralString),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslStringValueExpressionSyntaxTree => {
-                return new PgslStringValueExpressionSyntaxTree({
-                    textValue: pData.string
-                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
-
-        this.defineGraphPart('Expression-AddressOf', this.graph()
-            .single(PgslToken.OperatorBinaryAnd)
-            .single('variable', this.partReference<BasePgslSingleValueExpressionSyntaxTree>('Expression-SingleValue')),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslAddressOfExpressionSyntaxTree => {
-                return new PgslAddressOfExpressionSyntaxTree({
-                    variable: pData.variable
-                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
-
-        this.defineGraphPart('Expression-Pointer', this.graph()
-            .single(PgslToken.OperatorMultiply)
-            .single('variable', this.partReference<BasePgslSingleValueExpressionSyntaxTree>('Expression-SingleValue')),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslPointerExpressionSyntaxTree => {
-                return new PgslPointerExpressionSyntaxTree({
-                    variable: pData.variable
-                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
-
-        this.defineGraphPart('Expression-New', this.graph()
-            .single(PgslToken.KeywordNew)
-            .single('type', this.partReference<PgslTypeDeclarationSyntaxTree>('General-TypeDeclaration'))
-            .single(PgslToken.ParenthesesStart)
-            .optional('parameter', this.graph()
-                .single('first', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
-                .loop('additional', this.graph()
-                    .single(PgslToken.Comma).single('expression', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
-                )
-            )
-            .single(PgslToken.ParenthesesEnd),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslNewCallExpressionSyntaxTree => {
-                // Build parameter list of function.
-                const lParameterList: Array<BasePgslExpressionSyntaxTree> = new Array<BasePgslExpressionSyntaxTree>();
-                if (pData.parameter) {
-                    // Add parameter expressions.
-                    lParameterList.push(
-                        // Add first expression.
-                        pData.parameter.first,
-                        // Add optional appending expressions.
-                        ...(pData.parameter ?? []).additional.map((pAdditional) => { return pAdditional.expression; })
-                    );
-                }
-
-                // Build function structure.
-                const lData: ConstructorParameters<typeof PgslNewCallExpressionSyntaxTree>[0] = {
-                    type: pData.type,
-                    parameterList: lParameterList
-                };
-
-                // Create function call expression syntax tree.
-                return new PgslNewCallExpressionSyntaxTree(lData, ...this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
-
-        this.defineGraphPart('Expression-SingleValue', this.graph()
-            .branch('expression', [
-                this.partReference<PgslLiteralValueExpressionSyntaxTree>('Expression-LiteralValue'),
-                this.partReference<PgslParenthesizedExpressionSyntaxTree>('Expression-Parenthesized'),
-                this.partReference<PgslFunctionCallExpressionSyntaxTree>('Expression-FunctionCall'),
-                this.partReference<PgslVariableNameExpressionSyntaxTree>('Expression-VariableName'),
-                this.partReference<PgslIndexedValueExpressionSyntaxTree>('Expression-IndexedValue'),
-                this.partReference<PgslStringValueExpressionSyntaxTree>('Expression-StringValue'),
-                this.partReference<PgslAddressOfExpressionSyntaxTree>('Expression-AddressOf'),
-                this.partReference<PgslValueDecompositionExpressionSyntaxTree | PgslEnumValueExpressionSyntaxTree>('Expression-ValueDecomposition'),
-                this.partReference<PgslPointerExpressionSyntaxTree>('Expression-Pointer'),
-                this.partReference<PgslNewCallExpressionSyntaxTree>('Expression-New')
-            ]),
-            (pData): BasePgslSingleValueExpressionSyntaxTree => {
-                return pData.expression;
-            }
-        );
     }
 }
 

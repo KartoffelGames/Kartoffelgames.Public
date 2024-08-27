@@ -71,6 +71,13 @@ export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree
     }
 
     /**
+     * On is storage set.
+     */
+    protected determinateIsStorage(): boolean {
+        return false;
+    }
+
+    /**
      * On type resolve of expression
      */
     protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {

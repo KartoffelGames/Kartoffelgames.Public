@@ -1,29 +1,28 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslBuildInTypeName } from '../../../enum/pgsl-build-in-type-name.enum';
 import { PgslValueType } from '../../../enum/pgsl-value-type.enum';
-import { PgslSyntaxTreeInitData } from '../../base-pgsl-syntax-tree';
 import { PgslTemplateListSyntaxTree } from '../../general/pgsl-template-list-syntax-tree';
 import { PgslTypeDeclarationSyntaxTree } from '../../general/pgsl-type-declaration-syntax-tree';
-import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
+import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**
- * PGSL structure holding a single value of a decomposited composite value.
+ * PGSL structure holding a variable with index expression.
  */
-export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslSingleValueExpressionSyntaxTree<PgslValueDecompositionExpressionSyntaxTreeStructureData> {
-    private readonly mProperty: string;
-    private readonly mValue: BasePgslSingleValueExpressionSyntaxTree<PgslSyntaxTreeInitData>;
+export class PgslIndexedValueExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslIndexedValueExpressionSyntaxTreeStructureData> {
+    private readonly mIndex: BasePgslExpressionSyntaxTree;
+    private readonly mValue: BasePgslExpressionSyntaxTree;
 
     /**
      * Index expression of variable index expression.
      */
-    public get property(): string {
-        return this.mProperty;
+    public get index(): BasePgslExpressionSyntaxTree {
+        return this.mIndex;
     }
 
     /**
      * Value reference.
      */
-    public get value(): BasePgslSingleValueExpressionSyntaxTree<PgslSyntaxTreeInitData> {
+    public get value(): BasePgslExpressionSyntaxTree {
         return this.mValue;
     }
 
@@ -37,11 +36,11 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslSingleVa
      * @param pEndLine - Parsing end line.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslValueDecompositionExpressionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
+    public constructor(pData: PgslIndexedValueExpressionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
         super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
 
         // Set data.
-        this.mProperty = pData.property;
+        this.mIndex = pData.index;
         this.mValue = pData.value;
     }
 
@@ -49,8 +48,15 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslSingleVa
      * On constant state request.
      */
     protected determinateIsConstant(): boolean {
-        // Set constant state when the value is a constants.
-        return this.mValue.isConstant;
+        // Set constant state when both value and index are constants.
+        return this.mIndex.isConstant && this.mValue.isConstant;
+    }
+
+    /**
+     * On is storage set.
+     */
+    protected determinateIsStorage(): boolean {
+        return true;
     }
 
     /**
@@ -59,30 +65,37 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslSingleVa
     protected determinateResolveType(): PgslTypeDeclarationSyntaxTree {
         // Type depends on value type.
         switch (this.mValue.resolveType.valueType) {
-            case PgslValueType.Struct: {
+            case PgslValueType.Array: {
                 // Array must have at least one template parameter. The first ist allways a type definition.
                 return this.mValue.resolveType.template!.items[0] as PgslTypeDeclarationSyntaxTree;
             }
             case PgslValueType.Vector: {
+                // Vector has one template parameter that is allways a type definition.
+                return this.mValue.resolveType.template!.items[0] as PgslTypeDeclarationSyntaxTree;
+            }
+            case PgslValueType.Matrix: {
                 const lInnerType: PgslTypeDeclarationSyntaxTree = this.mValue.resolveType.template!.items[0] as PgslTypeDeclarationSyntaxTree;
 
-                // When swizzle is only one long return the inner type.
-                if (this.mProperty.length === 1) {
-                    return lInnerType;
-                }
-
-                // Find vector type from swizzle length.
+                // Find vector type from matrix type.
                 let lVectorType: PgslBuildInTypeName = PgslBuildInTypeName.Vector2;
-                switch (this.mProperty.length) {
-                    case 2: {
+                switch (lInnerType.type as PgslBuildInTypeName) {
+                    case PgslBuildInTypeName.Matrix22:
+                    case PgslBuildInTypeName.Matrix32:
+                    case PgslBuildInTypeName.Matrix42: {
                         lVectorType = PgslBuildInTypeName.Vector2;
                         break;
                     }
-                    case 3: {
+
+                    case PgslBuildInTypeName.Matrix23:
+                    case PgslBuildInTypeName.Matrix33:
+                    case PgslBuildInTypeName.Matrix43: {
                         lVectorType = PgslBuildInTypeName.Vector3;
                         break;
                     }
-                    case 4: {
+
+                    case PgslBuildInTypeName.Matrix24:
+                    case PgslBuildInTypeName.Matrix34:
+                    case PgslBuildInTypeName.Matrix44: {
                         lVectorType = PgslBuildInTypeName.Vector4;
                         break;
                     }
@@ -111,32 +124,23 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslSingleVa
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // TODO: Validate value to be a composition object and haves the property.
+        // TODO: Validate value to be a arraylike and index to be a number.
 
-        // Only struct likes can have accessable properties.
         switch (this.mValue.resolveType.valueType) {
-            case PgslValueType.Struct: {
+            case PgslValueType.Array: {
                 break;
             }
-
             case PgslValueType.Vector: {
-                if (!/[rgba]{1,4}|[xyzw]{1,4}/.test(this.mProperty)) {
-                    throw new Exception(`Swizzle name "${this.mProperty}" can't be used to access vector.`, this);
-                }
-
-                // TODO: Vector of length of swizzle name.
                 break;
             }
-
-            default: {
-                throw new Exception(`Value type "${this.mValue.resolveType.valueType}" can't have properties.`, this);
-                
+            case PgslValueType.Matrix: {
+                break;
             }
         }
     }
 }
 
-type PgslValueDecompositionExpressionSyntaxTreeStructureData = {
-    value: BasePgslSingleValueExpressionSyntaxTree<PgslSyntaxTreeInitData>;
-    property: string;
+type PgslIndexedValueExpressionSyntaxTreeStructureData = {
+    value: BasePgslExpressionSyntaxTree;
+    index: BasePgslExpressionSyntaxTree;
 };

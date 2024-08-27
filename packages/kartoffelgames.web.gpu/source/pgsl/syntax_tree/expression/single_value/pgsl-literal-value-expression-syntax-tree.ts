@@ -1,20 +1,22 @@
 import { Exception } from '@kartoffelgames/core';
-import { PgslBuildInTypeName } from '../../../enum/pgsl-build-in-type-name.enum';
-import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
-import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/pgsl-numeric-type-definition-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
+import { PgslBooleanTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-boolean-type-definition-syntax-tree';
+import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree';
+import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum';
+import { PgslTypeName } from '../../type/enum/pgsl-type-name.enum';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**
  * PGSL syntax tree for a single literal value of boolean, float, integer or uinteger.
  */
 export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslLiteralValueExpressionSyntaxTreeStructureData> {
-    private readonly mScalarType: PgslBuildInTypeName;
+    private readonly mScalarType: PgslTypeName;
     private readonly mValue: number;
 
     /**
      * Type name of literal value.
      */
-    public get type(): PgslBuildInTypeName {
+    public get type(): PgslTypeName {
         return this.mScalarType;
     }
 
@@ -62,19 +64,15 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSynt
      * On type resolve of expression
      */
     protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
-        // Create type declaration.
-        const lTypeDeclaration: PgslNumericTypeDefinitionSyntaxTree = new PgslNumericTypeDefinitionSyntaxTree({
-            // TODO: Build in numeric type.
-        }, 0, 0, 0, 0);
+        // Literal is a boolean value.
+        if (this.mScalarType === PgslTypeName.Boolean) {
+            return new PgslBooleanTypeDefinitionSyntaxTree({}, 0, 0, 0, 0).setParent(this).validateIntegrity();
+        }
 
-        // Set parent to this tree.
-        lTypeDeclaration.setParent(this);
-
-        // Validate type.
-        lTypeDeclaration.validateIntegrity();
-
-        // Set resolve type.
-        return lTypeDeclaration;
+        // Create numeric type declaration.
+        return new PgslNumericTypeDefinitionSyntaxTree({
+            typeName: this.mScalarType as any as PgslNumericTypeName
+        }, 0, 0, 0, 0).setParent(this).validateIntegrity();
     }
 
     /**
@@ -93,26 +91,26 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSynt
      * @throws {@link Exception}
      * When a unsupported type should be set or the {@link pTextValue} value does not fit the {@link pType}.
      */
-    private convertData(pType: PgslBuildInTypeName, pTextValue: string): [PgslBuildInTypeName, number] {
+    private convertData(pType: PgslTypeName, pTextValue: string): [PgslTypeName, number] {
         switch (pType) {
-            case PgslBuildInTypeName.Integer:
-            case PgslBuildInTypeName.UnsignedInteger: {
+            case PgslTypeName.Integer:
+            case PgslTypeName.UnsignedInteger: {
                 // Try to parse signed integer value.
                 if (/(0[i]?)|([1-9][0-9]*[i]?)|(0[xX][0-9a-fA-F]+[i]?)/.test(pTextValue)) {
-                    return [PgslBuildInTypeName.Integer, parseInt(pTextValue)];
+                    return [PgslTypeName.Integer, parseInt(pTextValue)];
                 }
 
                 if (/(0[u])|([1-9][0-9]*[u])|(0[xX][0-9a-fA-F]+[u])/.test(pTextValue)) {
-                    return [PgslBuildInTypeName.UnsignedInteger, parseInt(pTextValue)];
+                    return [PgslTypeName.UnsignedInteger, parseInt(pTextValue)];
                 }
 
                 throw new Exception(`Value "${pTextValue}" can not be parsed into a ${pTextValue}`, this);
             }
 
-            case PgslBuildInTypeName.Float: {
+            case PgslTypeName.Float: {
                 // Parse float non hex literals.
                 if (/(0[f])|([1-9][0-9]*[f])|([0-9]*\.[0-9]+([eE][+-]?[0-9]+)?[f]?)|([0-9]+\.[0-9]*([eE][+-]?[0-9]+)?[f]?)|([0-9]+[eE][+-]?[0-9]+[f]?)/.test(pTextValue)) {
-                    return [PgslBuildInTypeName.Float, parseFloat(pTextValue)];
+                    return [PgslTypeName.Float, parseFloat(pTextValue)];
                 }
 
                 // Parse float hex literals.
@@ -132,20 +130,20 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSynt
                     const lExponentialNumber = lExponential ? parseInt(lExponential, 10) : 0;
 
                     // Construct and set float value.
-                    return [PgslBuildInTypeName.Float, (lIntegerNumber + lFractureNumber) * Math.pow(2, lExponentialNumber)];
+                    return [PgslTypeName.Float, (lIntegerNumber + lFractureNumber) * Math.pow(2, lExponentialNumber)];
                 }
 
                 throw new Exception(`Value "${pTextValue}" can not be parsed into a ${pTextValue}`, this);
             }
 
-            case PgslBuildInTypeName.Boolean: {
+            case PgslTypeName.Boolean: {
                 // Validate text to be a boolean value.
                 if (pTextValue !== 'true' && pTextValue !== 'false') {
                     throw new Exception(`Value "${pTextValue}" can not be parsed into a boolean.`, this);
                 }
 
                 // Set boolean values.
-                return [PgslBuildInTypeName.Boolean, pTextValue === 'true' ? 1 : 0];
+                return [PgslTypeName.Boolean, pTextValue === 'true' ? 1 : 0];
             }
 
             default: {
@@ -157,5 +155,5 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSynt
 
 export type PgslLiteralValueExpressionSyntaxTreeStructureData = {
     textValue: string,
-    literalType: PgslBuildInTypeName;
+    literalType: PgslTypeName;
 };

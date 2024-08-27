@@ -1,6 +1,5 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { CodeParser, LexerToken } from '@kartoffelgames/core.parser';
-import { PgslBuildInTypeName } from '../enum/pgsl-build-in-type-name.enum';
 import { PgslAliasDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-alias-declaration-syntax-tree';
 import { PgslEnumDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-enum-declaration-syntax-tree';
 import { PgslFunctionDeclarationSyntaxTree } from '../syntax_tree/declarations/pgsl-function-declaration-syntax-tree';
@@ -44,6 +43,7 @@ import { PgslDiscardStatementSyntaxTree } from '../syntax_tree/statement/single/
 import { PgslTypeDeclarationSyntaxTree } from '../syntax_tree/type/pgsl-type-declaration-syntax-tree';
 import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
+import { PgslTypeName } from '../syntax_tree/type/enum/pgsl-type-name.enum';
 
 export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
     private mParserBuffer: ParserBuffer;
@@ -226,7 +226,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                         const lParameter: PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree = lParameterList[lIndex];
                         if (lParameter instanceof PgslVariableNameExpressionSyntaxTree) {
                             // Replace variable name expression with type expression.
-                            if (EnumUtil.exists(PgslBuildInTypeName, lParameter.name) || this.mParserBuffer.structDeclaration.has(lParameter.name)) {
+                            if (EnumUtil.exists(PgslTypeName, lParameter.name) || this.mParserBuffer.structDeclaration.has(lParameter.name)) {
                                 // Replace variable name with a type definition of the same name.
                                 lParameterList[lIndex] = new PgslTypeDeclarationSyntaxTree(
                                     {
@@ -276,7 +276,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                     const lParameter: PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree = lParameterList[lIndex];
                     if (lParameter instanceof PgslVariableNameExpressionSyntaxTree) {
                         // Replace variable name expression with type expression.
-                        if (EnumUtil.exists(PgslBuildInTypeName, lParameter.name) || this.mParserBuffer.structDeclaration.has(lParameter.name)) {
+                        if (EnumUtil.exists(PgslTypeName, lParameter.name) || this.mParserBuffer.structDeclaration.has(lParameter.name)) {
                             // Replace variable name with a type definition of the same name.
                             lParameterList[lIndex] = new PgslTypeDeclarationSyntaxTree(
                                 {
@@ -499,17 +499,17 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                 if ('float' in pData.value) {
                     lData = {
                         textValue: pData.value.float,
-                        literalType: PgslBuildInTypeName.Float
+                        literalType: PgslTypeName.Float
                     };
                 } else if ('integer' in pData.value) {
                     lData = {
                         textValue: pData.value.integer,
-                        literalType: PgslBuildInTypeName.Integer
+                        literalType: PgslTypeName.Integer
                     };
                 } else if ('boolean' in pData.value) {
                     lData = {
                         textValue: pData.value.boolean,
-                        literalType: PgslBuildInTypeName.Boolean
+                        literalType: PgslTypeName.Boolean
                     };
                 }
 

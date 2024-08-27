@@ -1,10 +1,10 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { PgslBuildInTypeName } from '../../enum/pgsl-build-in-type-name.enum';
 import { PgslLiteralValueExpressionSyntaxTree } from '../expression/single_value/pgsl-literal-value-expression-syntax-tree';
 import { PgslStringValueExpressionSyntaxTree } from '../expression/single_value/pgsl-string-value-expression-syntax-tree';
 import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
-import { BasePgslTypeDefinitionSyntaxTree } from '../type/base-pgsl-type-definition-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree';
+import { PgslTypeName } from '../type/enum/pgsl-type-name.enum';
 
 /**
  * PGSL syntax tree of a enum declaration.
@@ -89,7 +89,7 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
         for (const lProperty of this.mValues.values()) {
             // All values need to be string or integer.
             if (lProperty instanceof PgslLiteralValueExpressionSyntaxTree) {
-                if (lProperty.type !== PgslBuildInTypeName.UnsignedInteger) {
+                if (lProperty.type !== PgslTypeName.UnsignedInteger) {
                     throw new Exception(`Enum can only hold string or unsigned integer values.`, this);
                 }
             }

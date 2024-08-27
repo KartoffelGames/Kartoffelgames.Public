@@ -1,8 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
-import { PgslBuildInTypeName } from '../../../enum/pgsl-build-in-type-name.enum';
-import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
-import { PgslStringTypeDefinitionSyntaxTree } from '../../type/pgsl-string-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
+import { PgslStringTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-string-type-definition-syntax-tree';
 
 /**
  * PGSL syntax tree for a single string value of boolean, float, integer or uinteger.
@@ -15,13 +14,6 @@ export class PgslStringValueExpressionSyntaxTree extends BasePgslExpressionSynta
      */
     public override get resolveType(): never {
         throw new Exception(`String type cant have a resolve type.`, this);
-    }
-
-    /**
-     * Type name of literal value.
-     */
-    public get type(): PgslBuildInTypeName {
-        return PgslBuildInTypeName.String;
     }
 
     /**

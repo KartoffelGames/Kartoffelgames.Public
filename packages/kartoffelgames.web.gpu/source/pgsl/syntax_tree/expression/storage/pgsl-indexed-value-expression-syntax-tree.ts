@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import { PgslBuildInTypeName } from '../../../enum/pgsl-build-in-type-name.enum';
 import { PgslValueType } from '../../../enum/pgsl-value-type.enum';
 import { PgslTemplateListSyntaxTree } from '../../general/pgsl-template-list-syntax-tree';
-import { PgslTypeDeclarationSyntaxTree } from '../../general/pgsl-type-declaration-syntax-tree';
+import { PgslTypeDeclarationSyntaxTree } from '../../type/pgsl-type-declaration-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**

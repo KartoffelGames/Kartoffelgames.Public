@@ -1,4 +1,4 @@
-import { BasePgslSyntaxTree, PgslSyntaxTreeInitData } from '../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTree, PgslSyntaxTreeInitData } from '../../base-pgsl-syntax-tree';
 
 /**
  * PGSL base type definition.
@@ -115,8 +115,6 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxT
         this.mIsShareable = null;
         this.mIsStorable = null;
         this.mIsPlainType = null;
-
-        // TODO: Maybe set Composite type flag.
 
         // TODO: A constructible type has a creation-fixed footprint.
     }

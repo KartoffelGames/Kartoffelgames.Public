@@ -1,5 +1,5 @@
 import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
-import { PgslTypeDeclarationSyntaxTree } from '../general/pgsl-type-declaration-syntax-tree';
+import { PgslTypeDeclarationSyntaxTree } from '../type/pgsl-type-declaration-syntax-tree';
 import { PgslBlockStatementSyntaxTree } from '../statement/pgsl-block-statement-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../type/base-pgsl-type-definition-syntax-tree';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';

@@ -15,18 +15,16 @@ import { PgslLogicalExpressionSyntaxTree } from '../syntax_tree/expression/opera
 import { PgslAddressOfExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-address-of-expression-syntax-tree';
 import { PgslEnumValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-enum-value-expression-syntax-tree';
 import { PgslFunctionCallExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-function-call-expression-syntax-tree';
-import { PgslIndexedValueExpressionSyntaxTree } from '../syntax_tree/expression/storage/pgsl-indexed-value-expression-syntax-tree';
 import { PgslLiteralValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-literal-value-expression-syntax-tree';
 import { PgslNewCallExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-new-expression-syntax-tree';
 import { PgslParenthesizedExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-parenthesized-expression-syntax-tree';
-import { PgslPointerExpressionSyntaxTree } from '../syntax_tree/expression/storage/pgsl-pointer-expression-syntax-tree';
 import { PgslStringValueExpressionSyntaxTree } from '../syntax_tree/expression/single_value/pgsl-string-value-expression-syntax-tree';
+import { PgslIndexedValueExpressionSyntaxTree } from '../syntax_tree/expression/storage/pgsl-indexed-value-expression-syntax-tree';
+import { PgslPointerExpressionSyntaxTree } from '../syntax_tree/expression/storage/pgsl-pointer-expression-syntax-tree';
 import { PgslValueDecompositionExpressionSyntaxTree } from '../syntax_tree/expression/storage/pgsl-value-decomposition-expression-syntax-tree';
 import { PgslVariableNameExpressionSyntaxTree } from '../syntax_tree/expression/storage/pgsl-variable-name-expression-syntax-tree';
 import { PgslUnaryExpressionSyntaxTree } from '../syntax_tree/expression/unary/pgsl-unary-expression-syntax-tree';
 import { PgslAttributeListSyntaxTree } from '../syntax_tree/general/pgsl-attribute-list-syntax-tree';
-import { PgslTemplateListSyntaxTree } from '../syntax_tree/general/pgsl-template-list-syntax-tree';
-import { PgslTypeDeclarationSyntaxTree } from '../syntax_tree/general/pgsl-type-declaration-syntax-tree';
 import { PgslModuleSyntaxTree } from '../syntax_tree/pgsl-module-syntax-tree';
 import { BasePgslStatementSyntaxTree } from '../syntax_tree/statement/base-pgsl-statement-syntax-tree';
 import { PgslDoWhileStatementSyntaxTree } from '../syntax_tree/statement/branches/pgsl-do-while-statement-syntax-tree';
@@ -43,6 +41,7 @@ import { PgslVariableDeclarationStatementSyntaxTree } from '../syntax_tree/state
 import { PgslBreakStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-break-statement-syntax-tree';
 import { PgslContinueStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-continue-statement-syntax-tree';
 import { PgslDiscardStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-discard-statement-syntax-tree';
+import { PgslTypeDeclarationSyntaxTree } from '../syntax_tree/type/pgsl-type-declaration-syntax-tree';
 import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
 
@@ -193,23 +192,83 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             }
         );
 
-        this.defineGraphPart('General-TemplateList', this.graph()
-            .single(PgslToken.TemplateListStart)
-            .branch('first', [
-                this.partReference<BasePgslExpressionSyntaxTree>('Expression'),
-                this.partReference<PgslTypeDeclarationSyntaxTree>('General-TypeDeclaration-ForcedTemplate')
-            ])
-            .loop('additional', this.graph()
-                .single(PgslToken.Comma)
-                .branch('value', [
+        this.defineGraphPart('General-TypeDeclaration', this.graph()
+            .single('name', PgslToken.Identifier)
+            .optional('templateList', this.graph()
+                .single(PgslToken.TemplateListStart)
+                .branch('first', [
                     this.partReference<BasePgslExpressionSyntaxTree>('Expression'),
                     this.partReference<PgslTypeDeclarationSyntaxTree>('General-TypeDeclaration-ForcedTemplate')
                 ])
-            )
-            .single(PgslToken.TemplateListEnd),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslTemplateListSyntaxTree => {
+                .loop('additional', this.graph()
+                    .single(PgslToken.Comma)
+                    .branch('value', [
+                        this.partReference<BasePgslExpressionSyntaxTree>('Expression'),
+                        this.partReference<PgslTypeDeclarationSyntaxTree>('General-TypeDeclaration-ForcedTemplate')
+                    ])
+                )
+                .single(PgslToken.TemplateListEnd)
+            ),
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslTypeDeclarationSyntaxTree => {
+                // Define root structure of type definition syntax tree structure data and apply type name.
+                const lData: ConstructorParameters<typeof PgslTypeDeclarationSyntaxTree>[0] = {
+                    name: pData.name
+                };
+
+                // Append optional template list.
+                if (pData.templateList) {
+                    // Build Parameter list
+                    const lParameterList: Array<PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree> = [pData.templateList.first, ...pData.templateList.additional.map((pParameter) => { return pParameter.value; })];
+
+                    // Sometimes a variable name expression is a type definition :(
+                    // So we need to filter it.
+                    for (let lIndex: number = 0; lIndex < lParameterList.length; lIndex++) {
+                        const lParameter: PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree = lParameterList[lIndex];
+                        if (lParameter instanceof PgslVariableNameExpressionSyntaxTree) {
+                            // Replace variable name expression with type expression.
+                            if (EnumUtil.exists(PgslBuildInTypeName, lParameter.name) || this.mParserBuffer.structDeclaration.has(lParameter.name)) {
+                                // Replace variable name with a type definition of the same name.
+                                lParameterList[lIndex] = new PgslTypeDeclarationSyntaxTree(
+                                    {
+                                        name: lParameter.name
+                                    }, lParameter.meta.position.start.column,
+                                    lParameter.meta.position.start.line,
+                                    lParameter.meta.position.end.column,
+                                    lParameter.meta.position.end.line
+                                );
+
+                            }
+                        }
+                    }
+
+                    lData.templateList = lParameterList;
+                }
+
+                // Create type definition syntax tree.
+                return new PgslTypeDeclarationSyntaxTree(lData, ...this.createTokenBoundParameter(pStartToken, pEndToken));
+            }
+        );
+
+        this.defineGraphPart('General-TypeDeclaration-ForcedTemplate', this.graph()
+            .single('name', PgslToken.Identifier)
+            .single('templateList', this.graph()
+                .single(PgslToken.TemplateListStart)
+                .branch('first', [
+                    this.partReference<BasePgslExpressionSyntaxTree>('Expression'),
+                    this.partReference<PgslTypeDeclarationSyntaxTree>('General-TypeDeclaration-ForcedTemplate')
+                ])
+                .loop('additional', this.graph()
+                    .single(PgslToken.Comma)
+                    .branch('value', [
+                        this.partReference<BasePgslExpressionSyntaxTree>('Expression'),
+                        this.partReference<PgslTypeDeclarationSyntaxTree>('General-TypeDeclaration-ForcedTemplate')
+                    ])
+                )
+                .single(PgslToken.TemplateListEnd)
+            ),
+            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslTypeDeclarationSyntaxTree => {
                 // Build Parameter list
-                const lParameterList: Array<PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree> = [pData.first, ...pData.additional.map((pParameter) => { return pParameter.value; })];
+                const lParameterList: Array<PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree> = [pData.templateList.first, ...pData.templateList.additional.map((pParameter) => { return pParameter.value; })];
 
                 // Sometimes a variable name expression is a type definition :(
                 // So we need to filter it.
@@ -232,40 +291,10 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                     }
                 }
 
-                // Create template list syntax tree.
-                return new PgslTemplateListSyntaxTree({
-                    parameterList: lParameterList
-                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
-
-        this.defineGraphPart('General-TypeDeclaration', this.graph()
-            .single('name', PgslToken.Identifier)
-            .optional('templateList', this.partReference<PgslTemplateListSyntaxTree>('General-TemplateList')),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslTypeDeclarationSyntaxTree => {
-                // Define root structure of type definition syntax tree structure data and apply type name.
-                const lData: ConstructorParameters<typeof PgslTypeDeclarationSyntaxTree>[0] = {
-                    name: pData.name
-                };
-
-                // Append optional template list.
-                if (pData.templateList) {
-                    lData.templateList = pData.templateList;
-                }
-
-                // Create type definition syntax tree.
-                return new PgslTypeDeclarationSyntaxTree(lData, ...this.createTokenBoundParameter(pStartToken, pEndToken));
-            }
-        );
-
-        this.defineGraphPart('General-TypeDeclaration-ForcedTemplate', this.graph()
-            .single('name', PgslToken.Identifier)
-            .single('templateList', this.partReference<PgslTemplateListSyntaxTree>('General-TemplateList')),
-            (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslTypeDeclarationSyntaxTree => {
                 // Create type definition syntax tree.
                 return new PgslTypeDeclarationSyntaxTree({
                     name: pData.name,
-                    templateList: pData.templateList
+                    templateList: lParameterList
                 }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
@@ -828,7 +857,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
 
         this.defineGraphPart('Statement-FunctionCall', this.graph()
             .single('name', PgslToken.Identifier)
-            .optional('templateList', this.partReference<PgslTemplateListSyntaxTree>('General-TemplateList'))
             .single(PgslToken.ParenthesesStart)
             .optional('parameter', this.graph()
                 .single('first', this.partReference<BasePgslExpressionSyntaxTree>('Expression'))
@@ -855,11 +883,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                     name: pData.name,
                     parameterList: lParameterList
                 };
-
-                // Optional template.
-                if (pData.templateList) {
-                    lData.template = pData.templateList;
-                }
 
                 // Create function call expression syntax tree.
                 return new PgslFunctionCallStatementSyntaxTree(lData, ...this.createTokenBoundParameter(pStartToken, pEndToken));

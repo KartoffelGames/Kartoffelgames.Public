@@ -1,4 +1,4 @@
-export enum PgslBuildInTypeName {
+export enum PgslTypeName {
     // Scalar types.
     Boolean = 'Boolean',
     Integer = 'Integer',

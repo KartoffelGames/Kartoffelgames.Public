@@ -4,6 +4,7 @@ import { PgslLiteralValueExpressionSyntaxTree } from '../expression/single_value
 import { PgslStringValueExpressionSyntaxTree } from '../expression/single_value/pgsl-string-value-expression-syntax-tree';
 import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree } from '../type/base-pgsl-type-definition-syntax-tree';
 
 /**
  * PGSL syntax tree of a enum declaration.
@@ -17,6 +18,16 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
      */
     public get name(): string {
         return this.mName;
+    }
+
+    /**
+     * Underlying type of enum.
+     */
+    public get type(): BasePgslTypeDefinitionSyntaxTree {
+        this.ensureValidity();
+
+        // The best way of getting the first value.
+        return this.mValues.values().next().value;
     }
 
     /**
@@ -69,6 +80,11 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
+        // Empty enums not allows.
+        if (this.mValues.size) {
+            throw new Exception(`Enum ${this.mName} has no values`, this);
+        }
+
         let lFirstPropertyType: typeof PgslLiteralValueExpressionSyntaxTree | typeof PgslStringValueExpressionSyntaxTree | null = null;
         for (const lProperty of this.mValues.values()) {
             // All values need to be string or integer.

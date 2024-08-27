@@ -1,6 +1,6 @@
 import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
 
-export class PgslNumericTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslNumericTypeDefinitionSyntaxTreeStructureData> {
+export class PgslMatrixTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslMatrixTypeDefinitionSyntaxTreeStructureData> {
     /**
      * Constructor.
      * 
@@ -11,14 +11,16 @@ export class PgslNumericTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param pEndLine - Parsing end line.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslNumericTypeDefinitionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
+    public constructor(pData: PgslMatrixTypeDefinitionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
         super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
     }
 
     /**
      * Determinate if declaration is a constructable.
      */
-    protected determinateIsConstructable(): boolean { }
+    protected determinateIsConstructable(): boolean { 
+        return true;
+    }
 
     /**
      * Determinate if declaration has a fixed byte length.
@@ -31,5 +33,5 @@ export class PgslNumericTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
     protected override onValidateIntegrity(): void {}
 }
 
-export type PgslNumericTypeDefinitionSyntaxTreeStructureData = {
+export type PgslMatrixTypeDefinitionSyntaxTreeStructureData = {
 };

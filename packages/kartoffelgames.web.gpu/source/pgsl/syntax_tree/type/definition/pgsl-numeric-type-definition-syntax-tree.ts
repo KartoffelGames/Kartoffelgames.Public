@@ -1,14 +1,14 @@
-import { PgslBuildInTypeName } from '../../enum/pgsl-build-in-type-name.enum';
+import { PgslNumericTypeName } from '../enum/pgsl-numeric-type-name.enum';
 import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
 
-export class PgslSamplerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslSamplerTypeDefinitionSyntaxTreeStructureData> {
-    private readonly mComparision: boolean;
+export class PgslNumericTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslNumericTypeDefinitionSyntaxTreeStructureData> {
+    private readonly mTypeName: PgslNumericTypeName;
 
     /**
-     * If sampler is a comparison sampler.
+     * Typename of numerice type.
      */
-    public get comparison(): boolean {
-        return this.mComparision;
+    public get typeName(): PgslNumericTypeName {
+        return this.mTypeName;
     }
 
     /**
@@ -21,11 +21,11 @@ export class PgslSamplerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param pEndLine - Parsing end line.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslSamplerTypeDefinitionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
+    public constructor(pData: PgslNumericTypeDefinitionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
         super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
 
         // Set data.
-        this.mComparision = pData.type === PgslBuildInTypeName.SamplerComparison;
+        this.mTypeName = pData.typeName;
     }
 
     /**
@@ -39,7 +39,7 @@ export class PgslSamplerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * Determinate if declaration is a constructable.
      */
     protected override determinateIsConstructable(): boolean {
-        return false;
+        return true;
     }
 
     /**
@@ -53,21 +53,21 @@ export class PgslSamplerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * Determinate if declaration is a plain type.
      */
     protected override determinateIsPlain(): boolean {
-        return false;
+        return true;
     }
 
     /**
      * Determinate if is sharable with the host.
      */
     protected override determinateIsShareable(): boolean {
-        return false;
+        return true;
     }
 
     /**
      * Determinate if value is storable in a variable.
      */
     protected override determinateIsStorable(): boolean {
-        return false;
+        return true;
     }
 
     /**
@@ -76,7 +76,7 @@ export class PgslSamplerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param pTarget - Target type definition.
      */
     protected override onEqual(pTarget: this): boolean {
-        return this.mComparision === pTarget.comparison;
+        return this.mTypeName === pTarget.typeName;
     }
 
     /**
@@ -87,6 +87,6 @@ export class PgslSamplerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
     }
 }
 
-export type PgslSamplerTypeDefinitionSyntaxTreeStructureData = {
-    type: PgslBuildInTypeName.Sampler | PgslBuildInTypeName.SamplerComparison;
+export type PgslNumericTypeDefinitionSyntaxTreeStructureData = {
+    typeName: PgslNumericTypeName;
 };

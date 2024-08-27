@@ -149,7 +149,7 @@ export abstract class BasePgslSyntaxTree<TData extends PgslSyntaxTreeInitData> {
      * 
      * @param pParent - Parent of structure.
      */
-    public setParent(pParent: UnknownPgslSyntaxTree): void {
+    public setParent(pParent: UnknownPgslSyntaxTree): this {
         // Cant set parent twice.
         if (this.mParent) {
             throw new Exception('PGSL-Structure has a parent can not be moved.', this);
@@ -157,12 +157,15 @@ export abstract class BasePgslSyntaxTree<TData extends PgslSyntaxTreeInitData> {
 
         // Set parent.
         this.mParent = pParent;
+
+        // Return reference.
+        return this;
     }
 
     /**
      * validate tree structure. 
      */
-    public validateIntegrity(): void {
+    public validateIntegrity(): this {
         // Validate all child structures.
         for (const lChild of this.mChilds) {
             lChild.validateIntegrity();
@@ -194,6 +197,9 @@ export abstract class BasePgslSyntaxTree<TData extends PgslSyntaxTreeInitData> {
         }
 
         this.mIsValid = true;
+
+        // Return reference.
+        return this;
     }
 
     /**

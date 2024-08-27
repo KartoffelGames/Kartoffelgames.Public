@@ -1,6 +1,5 @@
 import { PgslSyntaxTreeInitData } from '../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
-import { PgslTemplateListSyntaxTree } from '../general/pgsl-template-list-syntax-tree';
 import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
 
 /**
@@ -9,7 +8,6 @@ import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
 export class PgslFunctionCallStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslFunctionCallStatementSyntaxTreeStructureData> {
     private readonly mName: string;
     private readonly mParameterList: Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>>;
-    private readonly mTemplateList: PgslTemplateListSyntaxTree | null;
 
     /**
      * Function name.
@@ -23,13 +21,6 @@ export class PgslFunctionCallStatementSyntaxTree extends BasePgslStatementSyntax
      */
     public get parameter(): Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>> {
         return this.mParameterList;
-    }
-
-    /**
-     * Function template.
-     */
-    public get templateList(): PgslTemplateListSyntaxTree | null {
-        return this.mTemplateList;
     }
 
     /**
@@ -48,7 +39,6 @@ export class PgslFunctionCallStatementSyntaxTree extends BasePgslStatementSyntax
         // Set data.
         this.mName = pData.name;
         this.mParameterList = pData.parameterList;
-        this.mTemplateList = pData.template ?? null;
     }
 
     /**
@@ -62,5 +52,4 @@ export class PgslFunctionCallStatementSyntaxTree extends BasePgslStatementSyntax
 type PgslFunctionCallStatementSyntaxTreeStructureData = {
     name: string;
     parameterList: Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>>;
-    template?: PgslTemplateListSyntaxTree;
 };

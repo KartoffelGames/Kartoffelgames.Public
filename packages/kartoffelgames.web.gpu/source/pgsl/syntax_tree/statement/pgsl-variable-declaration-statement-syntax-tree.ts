@@ -2,7 +2,7 @@ import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslDeclarationType } from '../../enum/pgsl-declaration-type.enum';
 import { PgslSyntaxTreeInitData } from '../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
-import { PgslTypeDeclarationSyntaxTree } from '../general/pgsl-type-declaration-syntax-tree';
+import { PgslTypeDeclarationSyntaxTree } from '../type/pgsl-type-declaration-syntax-tree';
 import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
 
 /**

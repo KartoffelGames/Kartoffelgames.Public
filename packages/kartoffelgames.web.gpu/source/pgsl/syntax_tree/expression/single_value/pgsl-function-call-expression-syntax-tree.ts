@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslSyntaxTreeInitData } from '../../base-pgsl-syntax-tree';
 import { PgslFunctionDeclarationSyntaxTree } from '../../declarations/pgsl-function-declaration-syntax-tree';
-import { PgslTypeDeclarationSyntaxTree } from '../../general/pgsl-type-declaration-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
 
@@ -70,7 +70,7 @@ export class PgslFunctionCallExpressionSyntaxTree extends BasePgslSingleValueExp
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): PgslTypeDeclarationSyntaxTree {
+    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // Set resolve type to return type.
         return this.document.resolveFunction(this.mName)!.returnType;
     }
@@ -84,7 +84,7 @@ export class PgslFunctionCallExpressionSyntaxTree extends BasePgslSingleValueExp
             throw new Exception(`Function "${this.mName}" is not defined.`, this);
         }
 
-        // TODO: Validate function parameter and template.
+        // TODO: Validate function parameter.
     }
 }
 

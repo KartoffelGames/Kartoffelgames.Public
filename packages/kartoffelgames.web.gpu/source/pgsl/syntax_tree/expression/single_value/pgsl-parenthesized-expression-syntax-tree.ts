@@ -1,5 +1,5 @@
 import { PgslSyntaxTreeInitData } from '../../base-pgsl-syntax-tree';
-import { PgslTypeDeclarationSyntaxTree } from '../../general/pgsl-type-declaration-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
 
@@ -44,7 +44,7 @@ export class PgslParenthesizedExpressionSyntaxTree extends BasePgslSingleValueEx
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): PgslTypeDeclarationSyntaxTree {
+    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // Set resolved type to the same as inner expression.
         return this.mExpression.resolveType;
     }

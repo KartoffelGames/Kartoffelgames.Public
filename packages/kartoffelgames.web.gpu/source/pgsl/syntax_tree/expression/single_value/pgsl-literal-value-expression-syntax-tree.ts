@@ -1,6 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslBuildInTypeName } from '../../../enum/pgsl-build-in-type-name.enum';
-import { PgslTypeDeclarationSyntaxTree } from '../../general/pgsl-type-declaration-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
+import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/pgsl-numeric-type-definition-syntax-tree';
 import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
 
 /**
@@ -53,10 +54,10 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslSingleValueExp
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): PgslTypeDeclarationSyntaxTree {
+    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // Create type declaration.
-        const lTypeDeclaration: PgslTypeDeclarationSyntaxTree = new PgslTypeDeclarationSyntaxTree({
-            name: this.mScalarType
+        const lTypeDeclaration: PgslNumericTypeDefinitionSyntaxTree = new PgslNumericTypeDefinitionSyntaxTree({
+            // TODO: Build in numeric type.
         }, 0, 0, 0, 0);
 
         // Set parent to this tree.

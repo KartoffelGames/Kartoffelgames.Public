@@ -1,7 +1,6 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
-import { PgslBuildInTypeName } from '../../../enum/pgsl-build-in-type-name.enum';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum';
-import { PgslTypeDeclarationSyntaxTree } from '../../general/pgsl-type-declaration-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
 import { PgslBooleanTypeDefinitionSyntaxTree } from '../../type/pgsl-boolean-type-definition-syntax-tree';
 import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/pgsl-numeric-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
@@ -79,13 +78,11 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): PgslTypeDeclarationSyntaxTree {
+    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // TODO: When it is a vector, is is vector<boolean>
 
         // Create type declaration for a boolean.
-        const lTypeDeclaration: PgslTypeDeclarationSyntaxTree = new PgslTypeDeclarationSyntaxTree({
-            name: PgslBuildInTypeName.Boolean
-        }, 0, 0, 0, 0);
+        const lTypeDeclaration: PgslBooleanTypeDefinitionSyntaxTree = new PgslBooleanTypeDefinitionSyntaxTree({}, 0, 0, 0, 0);
 
         // Set parent to this tree.
         lTypeDeclaration.setParent(this);
@@ -104,7 +101,7 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
         // TODO: This shit allows vectors as well. WTF.
 
         // Comparison needs to be the same type.
-        if (this.mLeftExpression.resolveType.valueType !== this.mRightExpression.resolveType.valueType) {
+        if (!this.mLeftExpression.resolveType.equals(this.mRightExpression.resolveType)) {
             throw new Exception(`Comparison can only be between values of the same type.`, this);
         }
 

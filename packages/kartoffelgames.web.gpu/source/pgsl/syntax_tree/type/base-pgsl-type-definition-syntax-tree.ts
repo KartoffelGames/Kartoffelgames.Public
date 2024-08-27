@@ -89,6 +89,15 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxT
         // TODO: A constructible type has a creation-fixed footprint.
     }
 
+    public equals(pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
+        // Need to be same type.
+        if(!(pTarget instanceof this.constructor)){
+            return false;
+        }
+
+        return this.onEqual(pTarget as this);
+    }
+
     /**
      * Determinate if declaration is a constructable.
      */
@@ -108,4 +117,11 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxT
      * Determinate if value is storable in a variable.
      */
     protected abstract determinateIsStorable(): boolean;
+
+    /**
+     * On equal check of type definitions.
+     * 
+     * @param pTarget - Target type definition.
+     */
+    protected abstract onEqual(pTarget: this): boolean;
 }

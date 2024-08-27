@@ -1,9 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
-import { PgslTypeDeclarationSyntaxTree } from '../../general/pgsl-type-declaration-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
+import { PgslPointerTypeDefinitionSyntaxTree } from '../../type/pgsl-pointer-type-definition-syntax-tree';
 import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
-import { PgslIndexedValueExpressionSyntaxTree } from './pgsl-indexed-value-expression-syntax-tree';
-import { PgslValueDecompositionExpressionSyntaxTree } from './pgsl-value-decomposition-expression-syntax-tree';
-import { PgslVariableNameExpressionSyntaxTree } from './pgsl-variable-name-expression-syntax-tree';
 
 /**
  * PGSL structure holding a variable name used as a pointer value.
@@ -31,11 +29,6 @@ export class PgslPointerExpressionSyntaxTree extends BasePgslSingleValueExpressi
     public constructor(pData: PgslPointerExpressionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
         super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
 
-        // Validate that it needs to be a variable name, index value or value decomposition. // TODO: Or a parentheses with variable or addressof as expression. 
-        if (!(pData.variable instanceof PgslVariableNameExpressionSyntaxTree || pData.variable instanceof PgslIndexedValueExpressionSyntaxTree || pData.variable instanceof PgslValueDecompositionExpressionSyntaxTree)) {
-            throw new Exception('Pointer value can only be a variable', this);
-        }
-
         // Set data.
         this.mVariable = pData.variable;
     }
@@ -51,16 +44,21 @@ export class PgslPointerExpressionSyntaxTree extends BasePgslSingleValueExpressi
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): PgslTypeDeclarationSyntaxTree {
+    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // Pointer value will allways be a pointer.
-        return this.mVariable.resolveType;
+        return this.mVariable.resolveType; // TODO: Should not return the pointer but the type instead.
     }
 
     /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // TODO: Variable needs to be a address.
+        // Validate that it needs to be a variable name, index value or value decomposition.
+        if(this.mVariable.resolveType instanceof PgslPointerTypeDefinitionSyntaxTree){
+            throw new Exception('Value of a pointer expression needs to be a pointer', this);
+        }
+
+        // TODO: Is the pointer used in the right context?
     }
 }
 

@@ -371,8 +371,6 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             .branch('expression', [
                 this.partReference<BasePgslSingleValueExpressionSyntaxTree>('Expression-SingleValue'), // => defineVariableExpression
                 this.partReference<PgslUnaryExpressionSyntaxTree>('Expression-Unary'),
-                this.partReference<PgslFunctionCallExpressionSyntaxTree>('Expression-FunctionCall'),
-                this.partReference<PgslParenthesizedExpressionSyntaxTree>('Expression-Parenthesized'),
                 this.partReference<PgslBinaryExpressionSyntaxTree>('Expression-BitOperation'),
                 this.partReference<PgslComparisonExpressionSyntaxTree>('Expression-Comparison'),
                 this.partReference<PgslArithmeticExpressionSyntaxTree>('Expression-Arithmetic'),

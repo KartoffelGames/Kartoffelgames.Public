@@ -1,5 +1,6 @@
 import { PgslSyntaxTreeInitData } from '../../base-pgsl-syntax-tree';
 import { PgslTypeDeclarationSyntaxTree } from '../../general/pgsl-type-declaration-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
 
@@ -60,9 +61,9 @@ export class PgslNewCallExpressionSyntaxTree extends BasePgslSingleValueExpressi
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): PgslTypeDeclarationSyntaxTree {
+    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // Set resolve type to return type.
-        return this.mType;
+        return this.mType.type;
     }
 
     /**

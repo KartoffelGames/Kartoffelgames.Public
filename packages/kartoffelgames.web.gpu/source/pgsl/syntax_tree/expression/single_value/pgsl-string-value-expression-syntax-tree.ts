@@ -1,6 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslBuildInTypeName } from '../../../enum/pgsl-build-in-type-name.enum';
-import { PgslTypeDeclarationSyntaxTree } from '../../general/pgsl-type-declaration-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
+import { PgslStringTypeDefinitionSyntaxTree } from '../../type/pgsl-string-type-definition-syntax-tree';
 import { BasePgslSingleValueExpressionSyntaxTree } from './base-pgsl-single-value-expression-syntax-tree';
 
 /**
@@ -58,11 +59,9 @@ export class PgslStringValueExpressionSyntaxTree extends BasePgslSingleValueExpr
     /**
      * On type resolve of expression
      */
-    protected onResolveType(): PgslTypeDeclarationSyntaxTree {
+    protected onResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // Create type declaration.
-        const lTypeDeclaration: PgslTypeDeclarationSyntaxTree = new PgslTypeDeclarationSyntaxTree({
-            name: PgslBuildInTypeName.String
-        }, 0, 0, 0, 0);
+        const lTypeDeclaration: PgslStringTypeDefinitionSyntaxTree = new PgslStringTypeDefinitionSyntaxTree({}, 0, 0, 0, 0);
 
         // Set parent to this tree.
         lTypeDeclaration.setParent(this);

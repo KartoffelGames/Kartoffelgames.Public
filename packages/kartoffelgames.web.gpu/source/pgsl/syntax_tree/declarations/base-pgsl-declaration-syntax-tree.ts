@@ -6,7 +6,6 @@ import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-synt
  */
 export abstract class BasePgslDeclarationSyntaxTree<TData extends PgslSyntaxTreeInitData = PgslSyntaxTreeInitData> extends BasePgslSyntaxTree<TData> {
     private readonly mAttributeList: PgslAttributeListSyntaxTree;
-
     private mIsConstant: boolean | null;
 
 

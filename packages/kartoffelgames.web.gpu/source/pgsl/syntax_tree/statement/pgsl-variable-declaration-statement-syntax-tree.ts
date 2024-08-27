@@ -30,14 +30,14 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
     }
 
     /**
-     * Variable declaration is a constant value and can not be changed.
+     * If declaration is a constant expression.
      */
     public get isConstant(): boolean {
         this.ensureValidity();
 
-        // Constant was not set.
+        // Init value.
         if (this.mIsConstant === null) {
-            throw new Exception('Constant state of declaration was not set.', this);
+            this.mIsConstant = this.determinateIsConstant();
         }
 
         return this.mIsConstant;
@@ -92,25 +92,39 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
         this.mName = pData.name;
         this.mTypeDeclaration = pData.type;
         this.mExpression = pData.expression ?? null;
+
+        // Set empty values.
         this.mIsConstant = null;
+    }
+
+    /**
+     * Determinate if declaration is a constant.
+     */
+    protected determinateIsConstant(): boolean {
+        // Is a constant when const type and expression is a constant.
+        return this.mDeclarationType === PgslDeclarationType.Const && this.mExpression!.isConstant;
     }
 
     /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // Is a constant when const type and expression is a constant.
-        this.mIsConstant = this.mDeclarationType === PgslDeclarationType.Const && this.mExpression!.isConstant;
+        if (!this.mTypeDeclaration.type.isStorable) {
+            throw new Exception(`Type is not storable.`, this);
+        }
 
         // Const declaration type needs to be constructible.
         if (this.mDeclarationType === PgslDeclarationType.Const && !this.mTypeDeclaration.type.isConstructable) {
             throw new Exception(`Constant variable declarations can only be of a constructible type.`, this);
         }
 
-        // TODO.
-        // TODO: Musst be a creation-fixed footprint type.
+        // Validate same type.
+        if(this.mExpression && !this.mTypeDeclaration.type.equals(this.mExpression.resolveType)){
+            throw new Exception(`Expression value doesn't match variable declaration type.`, this);
+        }
+
+        // TODO: Musst be a creation-fixed footprint type. ?? Really
         // TODO: Validate const value need to have a initialization.
-        // TODO: Validate same type.
     }
 
     // TODO: When const declaration and const initial value, this can be a wgsl-const instead of a let.

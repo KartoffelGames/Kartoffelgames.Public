@@ -1,3 +1,4 @@
+import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
 
 export class PgslArrayTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslArrayTypeDefinitionSyntaxTreeStructureData> {
@@ -30,8 +31,14 @@ export class PgslArrayTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyn
     /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(): void {}
+    protected override onValidateIntegrity(): void { 
+
+        // TODO: Fixed length from const expressions are only valid on workgroup variables. ??? How.
+        //       Do we need to split expressions into isConstant and isCompileConstant or so????
+    }
 }
 
 export type PgslArrayTypeDefinitionSyntaxTreeStructureData = {
+    type: BasePgslTypeDefinitionSyntaxTree;
+    lengthExpression: BasePgslExpressionSyntaxTree;
 };

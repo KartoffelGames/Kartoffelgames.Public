@@ -16,19 +16,62 @@ export class PgslBooleanTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
     }
 
     /**
+     * Determinate if declaration is a composite type.
+     */
+    protected override determinateIsComposite(): boolean {
+        return false;
+    }
+
+    /**
      * Determinate if declaration is a constructable.
      */
-    protected determinateIsConstructable(): boolean { }
+    protected override determinateIsConstructable(): boolean {
+        return true;
+    }
 
     /**
      * Determinate if declaration has a fixed byte length.
      */
-    protected determinateIsFixed(): boolean { }
+    protected override determinateIsFixed(): boolean {
+        return true;
+    }
+
+    /**
+     * Determinate if declaration is a plain type.
+     */
+    protected override determinateIsPlain(): boolean {
+        return true;
+    }
+
+    /**
+     * Determinate if is sharable with the host.
+     */
+    protected override determinateIsShareable(): boolean {
+        return false;
+    }
+
+    /**
+     * Determinate if value is storable in a variable.
+     */
+    protected override determinateIsStorable(): boolean {
+        return true;
+    }
+
+    /**
+     * On equal check of type definitions.
+     * 
+     * @param _pTarget - Target type definition.
+     */
+    protected override onEqual(_pTarget: this): boolean {
+        return true;
+    }
 
     /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(): void {}
+    protected override onValidateIntegrity(): void {
+        // Nothing to validate.
+    }
 }
 
 export type PgslBooleanTypeDefinitionSyntaxTreeStructureData = {

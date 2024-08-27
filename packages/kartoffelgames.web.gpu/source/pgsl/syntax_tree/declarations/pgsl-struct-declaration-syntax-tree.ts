@@ -1,3 +1,4 @@
+import { Exception } from 'packages/kartoffelgames.core/library/source';
 import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
 import { PgslStructPropertyDeclarationSyntaxTree } from './pgsl-struct-property-declaration-syntax-tree';
@@ -52,11 +53,21 @@ export class PgslStructDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTr
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // TODO: Scalar, Vector, Matrix, Atomic, Fixed arrays. Fixed structs
+        // Type validation is in property syntax tree.
 
-        // TODO: Only types with fixed footprints but allow it as last property but then the struct is no longer fixed.
+        // Only types with fixed footprints.
+        // Only last property is allowed to be variable but then the struct is no longer fixed.
+        for(let lIndex: number = 0; lIndex < this.mProperties.length; lIndex++){
+            // Skip last property. 
+            if(lIndex === (this.mProperties.length - 1)) {
+                break;
+            }
 
-        // TODO: 
+            // Validate if properties dont have fixed length.
+            if(!this.mProperties[lIndex].type.isFixed) {
+                throw new Exception('Only the last property of a struct can have a variable length.', this);
+            }
+        }
     }
 }
 

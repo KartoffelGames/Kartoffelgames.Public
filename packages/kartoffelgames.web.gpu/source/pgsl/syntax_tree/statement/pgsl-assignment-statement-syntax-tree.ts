@@ -47,11 +47,11 @@ export class PgslAssignmentStatementSyntaxTree extends BasePgslStatementSyntaxTr
 
         // Validate assignment.
         if (!EnumUtil.exists<PgslAssignment>(PgslAssignment, pData.assignment)) {
-            throw new Exception(`Operation "${pData.assignment}" can not used for increment or decrement statements.`, this);
+            throw new Exception(`Operation "${pData.assignment}" can not used for assignment statements.`, this);
         }
 
         this.mAssignment = EnumUtil.cast(PgslAssignment, pData.assignment)!;
-        this.mVariable = pData.variable; // TODO: Add a isStorage flag to expression.
+        this.mVariable = pData.variable;
         this.mExpression = pData.expression;
     }
 
@@ -61,7 +61,7 @@ export class PgslAssignmentStatementSyntaxTree extends BasePgslStatementSyntaxTr
     protected override onValidateIntegrity(): void {
         // Must be a storage.
         if (!this.mVariable.isStorage) {
-            throw new Exception('Increment or decrement expression muss be applied to a storage expression', this);
+            throw new Exception('Assignment statement muss be applied to a storage expression', this);
         }
 
         // Validate that it is not a constant.
@@ -69,8 +69,10 @@ export class PgslAssignmentStatementSyntaxTree extends BasePgslStatementSyntaxTr
             throw new Exception(`Can't assign values to a constant`, this);
         }
 
-        // TODO: Only a addressOf should be assigned to a pointer variable.
-        // TODO: expression should be the correct value type for each assignment.
+        // Validate that it has the same value.
+        if (!this.mVariable.resolveType.equals(this.mExpression.resolveType)) {
+            throw new Exception(`Can't assigne a different type to a variable`, this);
+        }
     }
 }
 

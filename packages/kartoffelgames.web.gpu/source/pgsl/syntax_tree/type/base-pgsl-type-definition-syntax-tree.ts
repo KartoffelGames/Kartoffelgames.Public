@@ -4,10 +4,26 @@ import { BasePgslSyntaxTree, PgslSyntaxTreeInitData } from '../base-pgsl-syntax-
  * PGSL base type definition.
  */
 export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxTreeInitData = PgslSyntaxTreeInitData> extends BasePgslSyntaxTree<TData> {
+    private mIsComposite: boolean | null;
     private mIsConstructable: boolean | null;
     private mIsFixed: boolean | null;
+    private mIsPlainType: boolean | null;
     private mIsShareable: boolean | null;
     private mIsStorable: boolean | null;
+    
+    /**
+     * If declaration is a composite type.
+     */
+    public get isComposite(): boolean {
+        this.ensureValidity();
+
+        // Init value.
+        if (this.mIsComposite === null) {
+            this.mIsComposite = this.determinateIsComposite();
+        }
+
+        return this.mIsComposite;
+    }
 
     /**
      * If declaration has a fixed byte length.
@@ -35,6 +51,20 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxT
         }
 
         return this.mIsFixed;
+    }
+
+    /**
+     * If is a plain type.
+     */
+    public get isPlainType(): boolean {
+        this.ensureValidity();
+
+        // Init value.
+        if (this.mIsPlainType === null) {
+            this.mIsPlainType = this.determinateIsPlain();
+        }
+
+        return this.mIsPlainType;
     }
 
     /**
@@ -79,16 +109,25 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxT
         super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
 
         // Set data default
+        this.mIsComposite = null;
         this.mIsConstructable = null;
         this.mIsFixed = null;
         this.mIsShareable = null;
         this.mIsStorable = null;
+        this.mIsPlainType = null;
 
         // TODO: Maybe set Composite type flag.
 
         // TODO: A constructible type has a creation-fixed footprint.
     }
 
+    /**
+     * Check if set type is equal to this type.
+     * 
+     * @param pTarget - Target type.
+     * 
+     * @returns if both declarations are equal.
+     */
     public equals(pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // Need to be same type.
         if(!(pTarget instanceof this.constructor)){
@@ -97,6 +136,11 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxT
 
         return this.onEqual(pTarget as this);
     }
+
+    /**
+     * Determinate if declaration is a composite type.
+     */
+    protected abstract determinateIsComposite(): boolean;
 
     /**
      * Determinate if declaration is a constructable.
@@ -108,6 +152,11 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxT
      */
     protected abstract determinateIsFixed(): boolean;
 
+    /**
+     * Determinate if declaration is a plain type.
+     */
+    protected abstract determinateIsPlain(): boolean;
+    
     /**
      * Determinate if is sharable with the host.
      */

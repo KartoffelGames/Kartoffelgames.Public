@@ -94,6 +94,7 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
     private readonly mRawName: string;
     private readonly mRawTemplateList: PgslTypeTemplateList | null;
     private mType: BasePgslTypeDefinitionSyntaxTree | null;
+    private mPointer: boolean;
 
     /**
      * Type definition type.
@@ -110,6 +111,13 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
     }
 
     /**
+     * Type declaration is a pointer .
+     */
+    public get pointer(): boolean {
+        return this.mPointer;
+    }
+
+    /**
      * Constructor.
      * 
      * @param pData - Initial data.
@@ -122,10 +130,12 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
     public constructor(pData: PgslTypeDefinitionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
         super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
 
-        // Set data.
+        // Set data buffer data.
         this.mRawName = pData.name;
         this.mRawTemplateList = pData.templateList ?? null;
 
+        // Set data.
+        this.mPointer = pData.pointer;
         this.mType = null;
     }
 
@@ -356,10 +366,15 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
      */
     private resolvePointer(pRawName: string, pRawTemplate: PgslTypeTemplateList | null): BasePgslTypeDefinitionSyntaxTree | null {
         // Try to resolve type name.
-        if (!pRawName !== ) {
+        if (!this.mPointer) {
             return null;
         }
 
+        // TODO: Parse type again.
+        const lTypeDeclaration: PgslTypeDeclarationSyntaxTree = new PgslTypeDeclarationSyntaxTree({
+            name: this.mRawName,
+            templateList: this.mRawTemplateList
+        }, this.meta);
 
         // Build pointer type definition.
         return new PgslPointerTypeDefinitionSyntaxTree({
@@ -470,6 +485,7 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
 type PgslTypeTemplateList = Array<PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree>;
 
 type PgslTypeDefinitionSyntaxTreeStructureData = {
-    name: string,
+    pointer: boolean;
+    name: string;
     templateList?: PgslTypeTemplateList;
 };

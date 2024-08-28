@@ -40,10 +40,10 @@ import { PgslVariableDeclarationStatementSyntaxTree } from '../syntax_tree/state
 import { PgslBreakStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-break-statement-syntax-tree';
 import { PgslContinueStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-continue-statement-syntax-tree';
 import { PgslDiscardStatementSyntaxTree } from '../syntax_tree/statement/single/pgsl-discard-statement-syntax-tree';
+import { PgslTypeName } from '../syntax_tree/type/enum/pgsl-type-name.enum';
 import { PgslTypeDeclarationSyntaxTree } from '../syntax_tree/type/pgsl-type-declaration-syntax-tree';
 import { PgslLexer } from './pgsl-lexer';
 import { PgslToken } from './pgsl-token.enum';
-import { PgslTypeName } from '../syntax_tree/type/enum/pgsl-type-name.enum';
 
 export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
     private mParserBuffer: ParserBuffer;
@@ -193,6 +193,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         );
 
         this.defineGraphPart('General-TypeDeclaration', this.graph()
+            .optional('pointer', PgslToken.OperatorMultiply)
             .single('name', PgslToken.Identifier)
             .optional('templateList', this.graph()
                 .single(PgslToken.TemplateListStart)
@@ -212,6 +213,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslTypeDeclarationSyntaxTree => {
                 // Define root structure of type definition syntax tree structure data and apply type name.
                 const lData: ConstructorParameters<typeof PgslTypeDeclarationSyntaxTree>[0] = {
+                    pointer: !!pData.pointer,
                     name: pData.name
                 };
 
@@ -230,6 +232,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                                 // Replace variable name with a type definition of the same name.
                                 lParameterList[lIndex] = new PgslTypeDeclarationSyntaxTree(
                                     {
+                                        pointer: false,
                                         name: lParameter.name
                                     }, lParameter.meta.position.start.column,
                                     lParameter.meta.position.start.line,
@@ -250,6 +253,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         );
 
         this.defineGraphPart('General-TypeDeclaration-ForcedTemplate', this.graph()
+            .optional('pointer', PgslToken.OperatorMultiply)
             .single('name', PgslToken.Identifier)
             .single('templateList', this.graph()
                 .single(PgslToken.TemplateListStart)
@@ -280,6 +284,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
                             // Replace variable name with a type definition of the same name.
                             lParameterList[lIndex] = new PgslTypeDeclarationSyntaxTree(
                                 {
+                                    pointer: false,
                                     name: lParameter.name
                                 }, lParameter.meta.position.start.column,
                                 lParameter.meta.position.start.line,
@@ -293,6 +298,7 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
 
                 // Create type definition syntax tree.
                 return new PgslTypeDeclarationSyntaxTree({
+                    pointer: !!pData.pointer,
                     name: pData.name,
                     templateList: lParameterList
                 }, ...this.createTokenBoundParameter(pStartToken, pEndToken));

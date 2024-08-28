@@ -19,6 +19,7 @@ import { PgslMatrixTypeDefinitionSyntaxTree } from './definition/pgsl-matrix-typ
 import { PgslMatrixTypeName } from './enum/pgsl-matrix-type-name.enum';
 import { PgslSamplerTypeName } from './enum/pgsl-sampler-build-name.enum';
 import { PgslSamplerTypeDefinitionSyntaxTree } from './definition/pgsl-sampler-type-definition-syntax-tree';
+import { PgslPointerTypeDefinitionSyntaxTree } from './definition/pgsl-pointer-type-definition-syntax-tree';
 
 /**
  * General PGSL syntax tree of a type definition.
@@ -192,8 +193,13 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
             return;
         }
 
+        // Try to parse pointer type.
+        this.mType = this.resolvePointer(this.mRawName, this.mRawTemplateList);
+        if (this.mType) {
+            return;
+        }
+
         // resolveArray => Nothing
-        // resolvePointer => Nothing
         // resolveTexture => PgslTextureTypeName
 
         throw new Exception(`Typename "${this.mRawName}" not defined`, this);
@@ -339,6 +345,25 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
         // Build numeric definition.
         return new PgslNumericTypeDefinitionSyntaxTree({
             typeName: lTypeName
+        }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+    }
+
+    /**
+     * Try to resolve raw type as pointer value.
+     * 
+     * @param pRawName - Type raw name.
+     * @param pRawTemplate - Type template.
+     */
+    private resolvePointer(pRawName: string, pRawTemplate: PgslTypeTemplateList | null): BasePgslTypeDefinitionSyntaxTree | null {
+        // Try to resolve type name.
+        if (!pRawName !== ) {
+            return null;
+        }
+
+
+        // Build pointer type definition.
+        return new PgslPointerTypeDefinitionSyntaxTree({
+            referencedType: 
         }, 0, 0, 0, 0).setParent(this).validateIntegrity();
     }
 

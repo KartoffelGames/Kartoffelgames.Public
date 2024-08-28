@@ -15,6 +15,10 @@ import { PgslTypeName } from './enum/pgsl-type-name.enum';
 import { PgslBooleanTypeDefinitionSyntaxTree } from './definition/pgsl-boolean-type-definition-syntax-tree';
 import { PgslVectorTypeDefinitionSyntaxTree } from './definition/pgsl-vector-type-definition-syntax-tree';
 import { PgslVectorTypeName } from './enum/pgsl-vector-type-name.enum';
+import { PgslMatrixTypeDefinitionSyntaxTree } from './definition/pgsl-matrix-type-definition-syntax-tree';
+import { PgslMatrixTypeName } from './enum/pgsl-matrix-type-name.enum';
+import { PgslSamplerTypeName } from './enum/pgsl-sampler-build-name.enum';
+import { PgslSamplerTypeDefinitionSyntaxTree } from './definition/pgsl-sampler-type-definition-syntax-tree';
 
 /**
  * General PGSL syntax tree of a type definition.
@@ -30,17 +34,6 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
         const lAddType = (pType: PgslBuildInTypeName, pValueType: PgslValueType, pTemplate?: TypeDefinitionInformation['template']): void => {
             lTypes.set(pType, { type: pType, valueType: pValueType, template: pTemplate ?? [] });
         };
-
-        // Matrix types.
-        lAddType(PgslBuildInTypeName.Matrix22, PgslValueType.Matrix);
-        lAddType(PgslBuildInTypeName.Matrix23, PgslValueType.Matrix);
-        lAddType(PgslBuildInTypeName.Matrix24, PgslValueType.Matrix);
-        lAddType(PgslBuildInTypeName.Matrix32, PgslValueType.Matrix);
-        lAddType(PgslBuildInTypeName.Matrix33, PgslValueType.Matrix);
-        lAddType(PgslBuildInTypeName.Matrix34, PgslValueType.Matrix);
-        lAddType(PgslBuildInTypeName.Matrix42, PgslValueType.Matrix);
-        lAddType(PgslBuildInTypeName.Matrix43, PgslValueType.Matrix);
-        lAddType(PgslBuildInTypeName.Matrix44, PgslValueType.Matrix);
 
         // Bundled types.
         lAddType(PgslBuildInTypeName.Array, PgslValueType.Array, [
@@ -187,14 +180,21 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
             return;
         }
 
-        // resolveArray => Nothing
-        // resolveBoolean => Nothing
-        // resolveMatrix => PgslMatrixTypeName
-        // resolvePointer => Nothing
-        // resolveSampler => PgslSamplerTypeName
-        // resolveTexture => PgslTextureTypeName
-        // resolveVector => PgslVectorTypeName
+        // Try to parse matrix type.
+        this.mType = this.resolveMatrix(this.mRawName, this.mRawTemplateList);
+        if (this.mType) {
+            return;
+        }
 
+        // Try to parse sampler type.
+        this.mType = this.resolveSampler(this.mRawName, this.mRawTemplateList);
+        if (this.mType) {
+            return;
+        }
+
+        // resolveArray => Nothing
+        // resolvePointer => Nothing
+        // resolveTexture => PgslTextureTypeName
 
         throw new Exception(`Typename "${this.mRawName}" not defined`, this);
     }
@@ -288,6 +288,37 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
     }
 
     /**
+     * Try to resolve raw type as matrix value.
+     * 
+     * @param pRawName - Type raw name.
+     * @param pRawTemplate - Type template.
+     */
+    private resolveMatrix(pRawName: string, pRawTemplate: PgslTypeTemplateList | null): BasePgslTypeDefinitionSyntaxTree | null {
+        // Try to resolve type name.
+        const lTypeName: PgslMatrixTypeName | undefined = EnumUtil.cast(PgslMatrixTypeName, pRawName);
+        if (!lTypeName) {
+            return null;
+        }
+
+        // Validate matrix type.
+        if (!pRawTemplate || pRawTemplate.length !== 1) {
+            throw new Exception(`Matrix types need a single template type.`, this);
+        }
+
+        // Validate template parameter.
+        const lMatrixInnerTypeTemplate: PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree = pRawTemplate[0];
+        if (!(lMatrixInnerTypeTemplate instanceof PgslTypeDeclarationSyntaxTree)) {
+            throw new Exception(`Matrix template parameter needs to be a type definition.`, this);
+        }
+
+        // Build matrix definition.
+        return new PgslMatrixTypeDefinitionSyntaxTree({
+            typeName: lTypeName,
+            innerType: lMatrixInnerTypeTemplate.type
+        }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+    }
+
+    /**
      * Try to resolve raw type as numeric value.
      * 
      * @param pRawName - Type raw name.
@@ -307,6 +338,30 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
 
         // Build numeric definition.
         return new PgslNumericTypeDefinitionSyntaxTree({
+            typeName: lTypeName
+        }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+    }
+
+    /**
+     * Try to resolve raw type as sampler value.
+     * 
+     * @param pRawName - Type raw name.
+     * @param pRawTemplate - Type template.
+     */
+    private resolveSampler(pRawName: string, pRawTemplate: PgslTypeTemplateList | null): BasePgslTypeDefinitionSyntaxTree | null {
+        // Try to resolve type name.
+        const lTypeName: PgslSamplerTypeName | undefined = EnumUtil.cast(PgslSamplerTypeName, pRawName);
+        if (!lTypeName) {
+            return null;
+        }
+
+        // Sampler should not have any templates.
+        if (pRawTemplate) {
+            throw new Exception(`Numeric can't have templates values.`, this);
+        }
+
+        // Build numeric definition.
+        return new PgslSamplerTypeDefinitionSyntaxTree({
             typeName: lTypeName
         }, 0, 0, 0, 0).setParent(this).validateIntegrity();
     }

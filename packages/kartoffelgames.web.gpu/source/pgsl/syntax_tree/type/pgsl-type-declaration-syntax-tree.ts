@@ -482,6 +482,8 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
                 throw new Exception(`Texture type only supports two parameter.`, this);
             }
 
+            const lTemplateList: Array<BasePgslExpressionSyntaxTree> = new Array<BasePgslExpressionSyntaxTree>();
+
             // First format parameter.
             if (pRawTemplate.length > 0) {
                 const lTypeParameter: PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree = pRawTemplate[0];
@@ -489,7 +491,7 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
                     throw new Exception(`Texture type expression needs to be a value expression.`, this);
                 }
 
-                lParameter.format = lTypeParameter;
+                lTemplateList.push(lTypeParameter);
             }
 
             // Second access parameter.
@@ -499,8 +501,11 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
                     throw new Exception(`Texture type expression needs to be a value expression.`, this);
                 }
 
-                lParameter.access = lAccessParameter;
+                lTemplateList.push(lAccessParameter);
             }
+
+            // Set template list.
+            lParameter.template = lTemplateList;
         }
 
         // Build texture type definition.

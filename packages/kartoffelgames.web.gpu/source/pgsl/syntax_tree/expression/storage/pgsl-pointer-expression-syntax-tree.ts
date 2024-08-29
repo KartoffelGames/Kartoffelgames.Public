@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
-import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslPointerTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-pointer-type-definition-syntax-tree';
+import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**
  * PGSL structure holding a variable name used as a pointer value.
@@ -42,6 +42,14 @@ export class PgslPointerExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
     }
 
     /**
+     * On creation fixed state request.
+     */
+    protected override determinateIsCreationFixed(): boolean {
+        // Expression is constant when variable is a constant.
+        return this.mVariable.isCreationFixed;
+    }
+
+    /**
      * On is storage set.
      */
     protected determinateIsStorage(): boolean {
@@ -53,7 +61,10 @@ export class PgslPointerExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
      */
     protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // Pointer value will allways be a pointer.
-        return this.mVariable.resolveType; // TODO: Should not return the pointer but the type instead.
+        const lPointerType: PgslPointerTypeDefinitionSyntaxTree = this.mVariable.resolveType as PgslPointerTypeDefinitionSyntaxTree;
+
+        // Pointer expression returns refered type.
+        return lPointerType.referencedType;
     }
 
     /**
@@ -64,8 +75,6 @@ export class PgslPointerExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
         if (this.mVariable.resolveType instanceof PgslPointerTypeDefinitionSyntaxTree) {
             throw new Exception('Value of a pointer expression needs to be a pointer', this);
         }
-
-        // TODO: Is the pointer used in the right context?
     }
 }
 

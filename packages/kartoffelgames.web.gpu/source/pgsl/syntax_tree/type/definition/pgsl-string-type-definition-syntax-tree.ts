@@ -37,6 +37,13 @@ export class PgslStringTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
     }
 
     /**
+     * Determinate if composite value with properties that can be access by index.
+     */
+    protected override determinateIsIndexable(): boolean {
+        return false;
+    }
+
+    /**
      * Determinate if declaration is a plain type.
      */
     protected override determinateIsPlain(): boolean {

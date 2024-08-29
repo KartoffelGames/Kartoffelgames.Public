@@ -5,6 +5,12 @@ export class PgslArrayTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyn
     private readonly mLengthExpression: BasePgslExpressionSyntaxTree | null;
     private readonly mType: BasePgslTypeDefinitionSyntaxTree;
 
+    /**
+     * Inner type of array.
+     */
+    public get innerType(): BasePgslTypeDefinitionSyntaxTree {
+        return this.mType;
+    }
 
     /**
      * Constructor.
@@ -41,6 +47,13 @@ export class PgslArrayTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyn
     protected determinateIsFixed(): boolean {
         // TODO: a fixed-size array type, when: its element count is a const-expression
         // When it is a param, it is not fixed, it is creation fixed and only valid in a workgroup variable. 
+    }
+
+    /**
+     * Determinate if composite value with properties that can be access by index.
+     */
+    protected override determinateIsIndexable(): boolean {
+        return true;
     }
 
     /**

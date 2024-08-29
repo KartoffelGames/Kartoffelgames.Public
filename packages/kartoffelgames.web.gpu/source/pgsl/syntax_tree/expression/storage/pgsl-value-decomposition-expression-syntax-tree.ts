@@ -1,8 +1,8 @@
 import { Exception } from '@kartoffelgames/core';
-import { PgslBuildInTypeName } from '../../../enum/pgsl-build-in-type-name.enum';
-import { PgslValueType } from '../../../enum/pgsl-value-type.enum';
-import { PgslTemplateListSyntaxTree } from '../../general/pgsl-template-list-syntax-tree';
-import { PgslTypeDeclarationSyntaxTree } from '../../type/pgsl-type-declaration-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
+import { PgslStructTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-struct-type-definition-syntax-tree';
+import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree';
+import { PgslVectorTypeName } from '../../type/enum/pgsl-vector-type-name.enum';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**
@@ -53,6 +53,14 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslExpressi
     }
 
     /**
+     * On creation fixed state request.
+     */
+    protected override determinateIsCreationFixed(): boolean {
+        // Expression is constant when variable is a constant.
+        return this.mValue.isCreationFixed;
+    }
+
+    /**
      * On is storage set.
      */
     protected determinateIsStorage(): boolean {
@@ -62,81 +70,61 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslExpressi
     /**
      * On type resolve of expression
      */
-    protected determinateResolveType(): PgslTypeDeclarationSyntaxTree {
-        // Type depends on value type.
-        switch (this.mValue.resolveType.valueType) {
-            case PgslValueType.Struct: {
-                // Array must have at least one template parameter. The first ist allways a type definition.
-                return this.mValue.resolveType.template!.items[0] as PgslTypeDeclarationSyntaxTree;
+    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
+        switch (true) {
+            case this.mValue.resolveType instanceof PgslStructTypeDefinitionSyntaxTree: {
+                if (!this.mValue.resolveType.struct.properties.find((pProperty) => { pProperty.name === this.mProperty; })) {
+                    throw new Exception(`Struct has no defined property "${this.mProperty}"`, this);
+                }
+                break;
             }
-            case PgslValueType.Vector: {
-                const lInnerType: PgslTypeDeclarationSyntaxTree = this.mValue.resolveType.template!.items[0] as PgslTypeDeclarationSyntaxTree;
+
+            case this.mValue.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree: {
+                const lInnerType: BasePgslTypeDefinitionSyntaxTree = this.mValue.resolveType.innerType;
 
                 // When swizzle is only one long return the inner type.
                 if (this.mProperty.length === 1) {
                     return lInnerType;
                 }
 
-                // Find vector type from swizzle length.
-                let lVectorType: PgslBuildInTypeName = PgslBuildInTypeName.Vector2;
-                switch (this.mProperty.length) {
-                    case 2: {
-                        lVectorType = PgslBuildInTypeName.Vector2;
-                        break;
-                    }
-                    case 3: {
-                        lVectorType = PgslBuildInTypeName.Vector3;
-                        break;
-                    }
-                    case 4: {
-                        lVectorType = PgslBuildInTypeName.Vector4;
-                        break;
-                    }
-                }
+                // List of vector types.
+                const lVectorTypeList: Array<PgslVectorTypeName> = [PgslVectorTypeName.Vector2, PgslVectorTypeName.Vector2, PgslVectorTypeName.Vector3, PgslVectorTypeName.Vector4];
 
                 // Build vectorN type from matrix type.
-                const lVectorTypeDefinition: PgslTypeDeclarationSyntaxTree = new PgslTypeDeclarationSyntaxTree({
-                    name: lVectorType,
-                    templateList: new PgslTemplateListSyntaxTree({
-                        parameterList: [
-                            new PgslTypeDeclarationSyntaxTree({ name: lInnerType.type as PgslBuildInTypeName }, 0, 0, 0, 0) // Inner Type can only be a scalar.
-                        ]
-                    }, 0, 0, 0, 0)
-                }, 0, 0, 0, 0);
-
-                // Matrix has one template parameter that is allways a type definition.
-                return lVectorTypeDefinition;
+                return new PgslVectorTypeDefinitionSyntaxTree({
+                    typeName: lVectorTypeList[this.mProperty.length],
+                    innerType: lInnerType
+                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
         }
 
-        // This should never be called.
-        throw new Exception('Type does not support a index signature', this);
+        throw new Exception(`Value is not a composite type properties.`, this);
     }
 
     /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // TODO: Validate value to be a composition object and haves the property.
-
         // Only struct likes can have accessable properties.
-        switch (this.mValue.resolveType.valueType) {
-            case PgslValueType.Struct: {
+        switch (true) {
+            case this.mValue.resolveType instanceof PgslStructTypeDefinitionSyntaxTree: {
+                if (!this.mValue.resolveType.struct.properties.find((pProperty) => { pProperty.name === this.mProperty; })) {
+                    throw new Exception(`Struct has no defined property "${this.mProperty}"`, this);
+                }
                 break;
             }
 
-            case PgslValueType.Vector: {
+            case this.mValue.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree: {
+                // Validate swizzle name.
                 if (!/[rgba]{1,4}|[xyzw]{1,4}/.test(this.mProperty)) {
                     throw new Exception(`Swizzle name "${this.mProperty}" can't be used to access vector.`, this);
                 }
 
-                // TODO: Vector of length of swizzle name.
                 break;
             }
 
             default: {
-                throw new Exception(`Value type "${this.mValue.resolveType.valueType}" can't have properties.`, this);
-                
+                throw new Exception(`Value is not a composite type properties.`, this);
             }
         }
     }

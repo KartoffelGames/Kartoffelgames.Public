@@ -57,6 +57,14 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<
         // Expression is constant when variable is a constant.
         return this.mExpression.isConstant;
     }
+    
+    /**
+     * On creation fixed state request.
+     */
+    protected override determinateIsCreationFixed(): boolean {
+        // Expression is constant when variable is a constant.
+        return this.mExpression.isCreationFixed;
+    }
 
     /**
      * On is storage set.

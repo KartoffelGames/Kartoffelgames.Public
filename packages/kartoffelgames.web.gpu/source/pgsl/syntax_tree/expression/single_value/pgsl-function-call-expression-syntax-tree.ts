@@ -1,15 +1,14 @@
 import { Exception } from '@kartoffelgames/core';
-import { PgslSyntaxTreeInitData } from '../../base-pgsl-syntax-tree';
 import { PgslFunctionDeclarationSyntaxTree } from '../../declaration/pgsl-function-declaration-syntax-tree';
-import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 
 /**
  * PGSL syntax tree of a function call expression with optional template list.
  */
 export class PgslFunctionCallExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslFunctionCallExpressionSyntaxTreeStructureData> {
     private readonly mName: string;
-    private readonly mParameterList: Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>>;
+    private readonly mParameterList: Array<BasePgslExpressionSyntaxTree>;
 
     /**
      * Function name.
@@ -21,7 +20,7 @@ export class PgslFunctionCallExpressionSyntaxTree extends BasePgslExpressionSynt
     /**
      * Function parameter.
      */
-    public get parameter(): Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>> {
+    public get parameter(): Array<BasePgslExpressionSyntaxTree> {
         return this.mParameterList;
     }
 
@@ -67,6 +66,29 @@ export class PgslFunctionCallExpressionSyntaxTree extends BasePgslExpressionSynt
     }
 
     /**
+     * On creation fixed state request.
+     */
+    protected override determinateIsCreationFixed(): boolean {
+        const lFunctionDeclaration: PgslFunctionDeclarationSyntaxTree = this.document.resolveFunction(this.mName)!;
+
+        // Set call expression as constant when all parameter are constants and the function itself is a constant.
+        // When the function is not a constant, the parameters doesn't matter.
+        if (!lFunctionDeclaration.isConstant) {
+            return false;
+        } else {
+            // When one parameter is not a constant then nothing is a constant.
+            for (const lParameter of this.mParameterList) {
+                if (!lParameter.isCreationFixed) {
+                    return false;
+                }
+            }
+
+            // Function is constant, parameters need to be to.
+            return true;
+        }
+    }
+
+    /**
      * On is storage set.
      */
     protected determinateIsStorage(): boolean {
@@ -96,5 +118,5 @@ export class PgslFunctionCallExpressionSyntaxTree extends BasePgslExpressionSynt
 
 type PgslFunctionCallExpressionSyntaxTreeStructureData = {
     name: string;
-    parameterList: Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>>;
+    parameterList: Array<BasePgslExpressionSyntaxTree>;
 };

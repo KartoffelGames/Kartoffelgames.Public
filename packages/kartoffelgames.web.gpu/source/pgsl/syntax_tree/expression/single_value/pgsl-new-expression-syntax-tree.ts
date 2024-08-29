@@ -58,6 +58,21 @@ export class PgslNewCallExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
     }
 
     /**
+     * On creation fixed state request.
+     */
+    protected override determinateIsCreationFixed(): boolean {
+        // When one parameter is not a creation fixed then nothing is a creation fixed.
+        for (const lParameter of this.mParameterList) {
+            if (!lParameter.isCreationFixed) {
+                return false;
+            }
+        }
+
+        // Function is constant, parameters need to be to.
+        return true;
+    }
+
+    /**
      * On is storage set.
      */
     protected determinateIsStorage(): boolean {

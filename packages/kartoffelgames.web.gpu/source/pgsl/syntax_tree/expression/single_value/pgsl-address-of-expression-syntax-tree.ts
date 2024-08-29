@@ -1,3 +1,4 @@
+import { Exception } from '@kartoffelgames/core';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslPointerTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-pointer-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
@@ -36,8 +37,16 @@ export class PgslAddressOfExpressionSyntaxTree extends BasePgslExpressionSyntaxT
      * On constant state request.
      */
     protected determinateIsConstant(): boolean {
-        // Expression is constant when variable is a constant.
-        return this.mVariable.isConstant;
+        // A address is allways a constant.
+        return true;
+    }
+
+    /**
+     * On creation fixed state request.
+     */
+    protected override determinateIsCreationFixed(): boolean {
+        // A address is allways a creation fixed value.
+        return true;
     }
 
     /**
@@ -52,25 +61,24 @@ export class PgslAddressOfExpressionSyntaxTree extends BasePgslExpressionSyntaxT
      */
     protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // Create type declaration.
-        const lTypeDeclaration: PgslPointerTypeDefinitionSyntaxTree = new PgslPointerTypeDefinitionSyntaxTree({
-            // TODO: this.mVariable.resolveType
-        }, 0, 0, 0, 0);
-
-        // Set parent to this tree.
-        lTypeDeclaration.setParent(this);
-
-        // Validate type.
-        lTypeDeclaration.validateIntegrity();
-
-        // Set resolve type.
-        return lTypeDeclaration;
+        return new PgslPointerTypeDefinitionSyntaxTree({
+            referencedType: this.mVariable.resolveType
+        }, 0, 0, 0, 0).setParent(this).validateIntegrity();
     }
 
     /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // TODO: Needs to be a special type.. storable, hostsharable???
+        // Type of expression needs to be storable.
+        if(!this.mVariable.isStorage) {
+            throw new Exception(`Target of address needs to a stored value`, this);
+        }
+
+        // Type of expression needs to be storable.
+        if(!this.mVariable.resolveType.isStorable) {
+            throw new Exception(`Target of address needs to storable`, this);
+        }
 
         // TODO: No vector item.
     }

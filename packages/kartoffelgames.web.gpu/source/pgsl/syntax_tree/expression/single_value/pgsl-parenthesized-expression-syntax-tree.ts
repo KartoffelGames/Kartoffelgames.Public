@@ -1,5 +1,5 @@
 import { PgslSyntaxTreeInitData } from '../../base-pgsl-syntax-tree';
-import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**
@@ -38,6 +38,14 @@ export class PgslParenthesizedExpressionSyntaxTree extends BasePgslExpressionSyn
     protected determinateIsConstant(): boolean {
         // Set constant state when the inner expression is a constants.
         return this.mExpression.isConstant;
+    }
+
+    /**
+     * On creation fixed state request.
+     */
+    protected override determinateIsCreationFixed(): boolean {
+        // Set creation fixed to the same as inner expression.
+        return this.mExpression.isCreationFixed;
     }
 
     /**

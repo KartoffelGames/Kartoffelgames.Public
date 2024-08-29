@@ -1,8 +1,10 @@
 import { Exception } from '@kartoffelgames/core';
-import { PgslBuildInTypeName } from '../../../enum/pgsl-build-in-type-name.enum';
-import { PgslValueType } from '../../../enum/pgsl-value-type.enum';
-import { PgslTemplateListSyntaxTree } from '../../general/pgsl-template-list-syntax-tree';
-import { PgslTypeDeclarationSyntaxTree } from '../../type/pgsl-type-declaration-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
+import { PgslArrayTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-array-type-definition-syntax-tree';
+import { PgslMatrixTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-matrix-type-definition-syntax-tree';
+import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree';
+import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree';
+import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**
@@ -53,6 +55,14 @@ export class PgslIndexedValueExpressionSyntaxTree extends BasePgslExpressionSynt
     }
 
     /**
+     * On creation fixed state request.
+     */
+    protected override determinateIsCreationFixed(): boolean {
+        // Expression is constant when variable and index is a constant.
+        return this.mIndex.isCreationFixed && this.mValue.isCreationFixed;
+    }
+
+    /**
      * On is storage set.
      */
     protected determinateIsStorage(): boolean {
@@ -62,57 +72,18 @@ export class PgslIndexedValueExpressionSyntaxTree extends BasePgslExpressionSynt
     /**
      * On type resolve of expression
      */
-    protected determinateResolveType(): PgslTypeDeclarationSyntaxTree {
-        // Type depends on value type.
-        switch (this.mValue.resolveType.valueType) {
-            case PgslValueType.Array: {
-                // Array must have at least one template parameter. The first ist allways a type definition.
-                return this.mValue.resolveType.template!.items[0] as PgslTypeDeclarationSyntaxTree;
+    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
+        switch (true) {
+            case this.mValue.resolveType instanceof PgslArrayTypeDefinitionSyntaxTree: {
+                return this.mValue.resolveType.innerType;
             }
-            case PgslValueType.Vector: {
-                // Vector has one template parameter that is allways a type definition.
-                return this.mValue.resolveType.template!.items[0] as PgslTypeDeclarationSyntaxTree;
+
+            case this.mValue.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree: {
+                return this.mValue.resolveType.innerType;
             }
-            case PgslValueType.Matrix: {
-                const lInnerType: PgslTypeDeclarationSyntaxTree = this.mValue.resolveType.template!.items[0] as PgslTypeDeclarationSyntaxTree;
 
-                // Find vector type from matrix type.
-                let lVectorType: PgslBuildInTypeName = PgslBuildInTypeName.Vector2;
-                switch (lInnerType.type as PgslBuildInTypeName) {
-                    case PgslBuildInTypeName.Matrix22:
-                    case PgslBuildInTypeName.Matrix32:
-                    case PgslBuildInTypeName.Matrix42: {
-                        lVectorType = PgslBuildInTypeName.Vector2;
-                        break;
-                    }
-
-                    case PgslBuildInTypeName.Matrix23:
-                    case PgslBuildInTypeName.Matrix33:
-                    case PgslBuildInTypeName.Matrix43: {
-                        lVectorType = PgslBuildInTypeName.Vector3;
-                        break;
-                    }
-
-                    case PgslBuildInTypeName.Matrix24:
-                    case PgslBuildInTypeName.Matrix34:
-                    case PgslBuildInTypeName.Matrix44: {
-                        lVectorType = PgslBuildInTypeName.Vector4;
-                        break;
-                    }
-                }
-
-                // Build vectorN type from matrix type.
-                const lVectorTypeDefinition: PgslTypeDeclarationSyntaxTree = new PgslTypeDeclarationSyntaxTree({
-                    name: lVectorType,
-                    templateList: new PgslTemplateListSyntaxTree({
-                        parameterList: [
-                            new PgslTypeDeclarationSyntaxTree({ name: lInnerType.type as PgslBuildInTypeName }, 0, 0, 0, 0) // Inner Type can only be a scalar.
-                        ]
-                    }, 0, 0, 0, 0)
-                }, 0, 0, 0, 0);
-
-                // Matrix has one template parameter that is allways a type definition.
-                return lVectorTypeDefinition;
+            case this.mValue.resolveType instanceof PgslMatrixTypeDefinitionSyntaxTree: {
+                return this.mValue.resolveType.vectorType;
             }
         }
 
@@ -124,18 +95,14 @@ export class PgslIndexedValueExpressionSyntaxTree extends BasePgslExpressionSynt
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // TODO: Validate value to be a arraylike and index to be a number.
+        // Type needs to be a composite.
+        if (!this.mValue.resolveType.isIndexable) {
+            throw new Exception(`Value of index expression needs to be a indexable composite value.`, this);
+        }
 
-        switch (this.mValue.resolveType.valueType) {
-            case PgslValueType.Array: {
-                break;
-            }
-            case PgslValueType.Vector: {
-                break;
-            }
-            case PgslValueType.Matrix: {
-                break;
-            }
+        // Value needs to be a unsigned numeric value.
+        if (!(this.mIndex.resolveType instanceof PgslNumericTypeDefinitionSyntaxTree) || this.mIndex.resolveType.typeName !== PgslNumericTypeName.Integer) {
+            throw new Exception(`Index needs to be a unsigned numeric value.`, this);
         }
     }
 }

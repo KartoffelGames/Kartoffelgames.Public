@@ -1,8 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
-import { PgslVariableDeclarationSyntaxTree } from '../../declaration/pgsl-variable-declaration-syntax-tree';
-import { PgslVariableDeclarationStatementSyntaxTree } from '../../statement/pgsl-variable-declaration-statement-syntax-tree';
-import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
+import { IPgslVariableDeclarationSyntaxTree } from '../../interface/i-pgsl-variable-declaration-syntax-tree.interface';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
+import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**
  * PGSL structure holding single variable name.
@@ -43,6 +42,14 @@ export class PgslVariableNameExpressionSyntaxTree extends BasePgslExpressionSynt
     }
 
     /**
+     * On creation fixed state request.
+     */
+    protected override determinateIsCreationFixed(): boolean {
+        // Expression is constant when variable is a constant.
+        return this.scopedVariables.get(this.mName)!.isCreationFixed;
+    }
+
+    /**
      * On is storage set.
      */
     protected determinateIsStorage(): boolean {
@@ -54,7 +61,7 @@ export class PgslVariableNameExpressionSyntaxTree extends BasePgslExpressionSynt
      */
     protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // Input type is output type.
-        return this.scopedVariables.get(this.mName)!.typeDeclaration.type;
+        return this.scopedVariables.get(this.mName)!.type;
     }
 
     /**
@@ -62,7 +69,7 @@ export class PgslVariableNameExpressionSyntaxTree extends BasePgslExpressionSynt
      */
     protected override onValidateIntegrity(): void {
         // Read declaration of variable.
-        const lDeclaration: PgslVariableDeclarationStatementSyntaxTree | PgslVariableDeclarationSyntaxTree | undefined = this.scopedVariables.get(this.mName);
+        const lDeclaration: IPgslVariableDeclarationSyntaxTree | undefined = this.scopedVariables.get(this.mName);
 
         // Catch undefined variables.
         if (!lDeclaration) {

@@ -62,6 +62,13 @@ export class PgslVectorTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
     }
 
     /**
+     * Determinate if composite value with properties that can be access by index.
+     */
+    protected override determinateIsIndexable(): boolean {
+        return true;
+    }
+
+    /**
      * Determinate if declaration is a plain type.
      */
     protected override determinateIsPlain(): boolean {
@@ -96,7 +103,7 @@ export class PgslVectorTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
      */
     protected override onValidateIntegrity(): void {
         // Must be scalar.
-        if(!(this.mInnerType instanceof PgslNumericTypeDefinitionSyntaxTree) && !(this.mInnerType instanceof PgslBooleanTypeDefinitionSyntaxTree)) {
+        if (!(this.mInnerType instanceof PgslNumericTypeDefinitionSyntaxTree) && !(this.mInnerType instanceof PgslBooleanTypeDefinitionSyntaxTree)) {
             throw new Exception('Vector type must be a scalar value', this);
         }
     }

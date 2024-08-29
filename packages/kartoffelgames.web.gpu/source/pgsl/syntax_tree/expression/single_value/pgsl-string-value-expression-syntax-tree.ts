@@ -49,6 +49,14 @@ export class PgslStringValueExpressionSyntaxTree extends BasePgslExpressionSynta
     }
 
     /**
+     * On creation fixed state request.
+     */
+    protected override determinateIsCreationFixed(): boolean {
+        // A string is allways a creation fixed value.
+        return true;
+    }
+
+    /**
      * On is storage set.
      */
     protected determinateIsStorage(): boolean {

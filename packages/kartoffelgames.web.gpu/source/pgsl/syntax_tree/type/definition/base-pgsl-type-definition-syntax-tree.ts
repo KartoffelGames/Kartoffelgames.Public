@@ -7,10 +7,11 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxT
     private mIsComposite: boolean | null;
     private mIsConstructable: boolean | null;
     private mIsFixed: boolean | null;
+    private mIsIndexable: boolean | null;
     private mIsPlainType: boolean | null;
     private mIsShareable: boolean | null;
     private mIsStorable: boolean | null;
-    
+
     /**
      * If declaration is a composite type.
      */
@@ -51,6 +52,20 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxT
         }
 
         return this.mIsFixed;
+    }
+
+    /**
+     * Composite value with properties that can be access by index.
+     */
+    public get isIndexable(): boolean {
+        this.ensureValidity();
+
+        // Init value.
+        if (this.mIsIndexable === null) {
+            this.mIsIndexable = this.determinateIsIndexable();
+        }
+
+        return this.mIsIndexable;
     }
 
     /**
@@ -112,6 +127,7 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxT
         this.mIsComposite = null;
         this.mIsConstructable = null;
         this.mIsFixed = null;
+        this.mIsIndexable = null;
         this.mIsShareable = null;
         this.mIsStorable = null;
         this.mIsPlainType = null;
@@ -128,7 +144,7 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxT
      */
     public equals(pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         // Need to be same type.
-        if(!(pTarget instanceof this.constructor)){
+        if (!(pTarget instanceof this.constructor)) {
             return false;
         }
 
@@ -151,10 +167,15 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxT
     protected abstract determinateIsFixed(): boolean;
 
     /**
+     * Determinate if composite value with properties that can be access by index
+     */
+    protected abstract determinateIsIndexable(): boolean;
+
+    /**
      * Determinate if declaration is a plain type.
      */
     protected abstract determinateIsPlain(): boolean;
-    
+
     /**
      * Determinate if is sharable with the host.
      */

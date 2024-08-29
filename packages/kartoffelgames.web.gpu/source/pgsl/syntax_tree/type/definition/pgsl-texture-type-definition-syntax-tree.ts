@@ -25,7 +25,15 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
     /**
      * Determinate if declaration has a fixed byte length.
      */
-    protected determinateIsFixed(): boolean { }
+    protected determinateIsFixed(): boolean { 
+    }
+
+    /**
+     * Determinate if composite value with properties that can be access by index.
+     */
+    protected override determinateIsIndexable(): boolean {
+        return false;
+    }
 
     /**
      * Validate data of current structure.

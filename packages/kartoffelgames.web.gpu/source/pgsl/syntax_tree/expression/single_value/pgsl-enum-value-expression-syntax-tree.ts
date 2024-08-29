@@ -53,22 +53,30 @@ export class PgslEnumValueExpressionSyntaxTree extends BasePgslExpressionSyntaxT
     /**
      * On constant state request.
      */
-    protected determinateIsConstant(): boolean {
+    protected override determinateIsConstant(): boolean {
         // Enums are allways constant.
+        return true;
+    }
+
+    /**
+     * On creation fixed state request.
+     */
+    protected override determinateIsCreationFixed(): boolean {
+        // Enums are allways creation fixed.
         return true;
     }
 
     /**
      * On is storage set.
      */
-    protected determinateIsStorage(): boolean {
+    protected override determinateIsStorage(): boolean {
         return false;
     }
 
     /**
      * On type resolve of expression
      */
-    protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
+    protected override determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // Set resolve type.
         return this.document.resolveEnum(this.mName)!.property(this.mProperty)!.resolveType;
     }

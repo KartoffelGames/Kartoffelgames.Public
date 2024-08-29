@@ -71,6 +71,14 @@ export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree
     }
 
     /**
+     * On creation fixed state request.
+     */
+    protected override determinateIsCreationFixed(): boolean {
+        // Set creation fixed state when both expressions are creation fixed.
+        return this.mLeftExpression.isCreationFixed && this.mRightExpression.isCreationFixed;
+    }
+
+    /**
      * On is storage set.
      */
     protected determinateIsStorage(): boolean {

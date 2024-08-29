@@ -54,6 +54,14 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSynt
     }
 
     /**
+     * On creation fixed state request.
+     */
+    protected override determinateIsCreationFixed(): boolean {
+        // Literals are allways creation fixed.
+        return true;
+    }
+
+    /**
      * On is storage set.
      */
     protected determinateIsStorage(): boolean {

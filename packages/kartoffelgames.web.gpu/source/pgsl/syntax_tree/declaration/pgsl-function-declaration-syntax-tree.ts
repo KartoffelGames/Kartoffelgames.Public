@@ -1,8 +1,8 @@
 import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
 import { PgslTypeDeclarationSyntaxTree } from '../type/pgsl-type-declaration-syntax-tree';
 import { PgslBlockStatementSyntaxTree } from '../statement/pgsl-block-statement-syntax-tree';
-import { BasePgslTypeDefinitionSyntaxTree } from '../type/base-pgsl-type-definition-syntax-tree';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree';
 
 /**
  * PGSL syntax tree for a alias declaration.
@@ -19,6 +19,13 @@ export class PgslFunctionDeclarationSyntaxTree extends BasePgslDeclarationSyntax
      */
     public get block(): PgslBlockStatementSyntaxTree {
         return this.mBlock;
+    }
+
+    /**
+     * Function declaration can be used to create constant expressions.
+     */
+    public get isConstant(): boolean {
+        return this.mConstant;
     }
 
     /**
@@ -62,13 +69,6 @@ export class PgslFunctionDeclarationSyntaxTree extends BasePgslDeclarationSyntax
         this.mName = pData.name;
         this.mParameter = pData.parameter;
         this.mReturnType = pData.returnType;
-    }
-
-    /**
-     * Determinate if declaration is a constant.
-     */
-    protected determinateIsConstant(): boolean {
-        return this.mConstant;
     }
 
     /**

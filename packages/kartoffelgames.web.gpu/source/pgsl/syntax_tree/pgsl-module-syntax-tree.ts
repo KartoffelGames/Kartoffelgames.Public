@@ -5,7 +5,7 @@ import { PgslEnumDeclarationSyntaxTree } from './declaration/pgsl-enum-declarati
 import { PgslFunctionDeclarationSyntaxTree } from './declaration/pgsl-function-declaration-syntax-tree';
 import { PgslStructDeclarationSyntaxTree } from './declaration/pgsl-struct-declaration-syntax-tree';
 import { PgslVariableDeclarationSyntaxTree } from './declaration/pgsl-variable-declaration-syntax-tree';
-import { PgslVariableDeclarationStatementSyntaxTree } from './statement/pgsl-variable-declaration-statement-syntax-tree';
+import { IPgslVariableDeclarationSyntaxTree } from './interface/i-pgsl-variable-declaration-syntax-tree.interface';
 
 export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTreeStructureData> {
     // Values
@@ -26,9 +26,9 @@ export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTre
     /**
      * Get all scoped variables of scope.
      */
-    protected override get scopedVariables(): Dictionary<string, PgslVariableDeclarationStatementSyntaxTree | PgslVariableDeclarationSyntaxTree> {
+    protected override get scopedVariables(): Dictionary<string, IPgslVariableDeclarationSyntaxTree> {
         // Read parent scoped variables
-        const lParentVariables: Dictionary<string, PgslVariableDeclarationStatementSyntaxTree | PgslVariableDeclarationSyntaxTree> = super.scopedVariables;
+        const lParentVariables: Dictionary<string, IPgslVariableDeclarationSyntaxTree> = super.scopedVariables;
 
         // Append current scoped variables. Override parent.
         for (const lVariable of this.mGlobalVariables.values()) {

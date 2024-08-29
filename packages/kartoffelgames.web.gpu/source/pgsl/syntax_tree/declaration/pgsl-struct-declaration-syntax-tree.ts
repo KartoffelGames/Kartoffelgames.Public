@@ -1,4 +1,4 @@
-import { Exception } from 'packages/kartoffelgames.core/library/source';
+import { Exception } from '@kartoffelgames/core';
 import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
 import { PgslStructPropertyDeclarationSyntaxTree } from './pgsl-struct-property-declaration-syntax-tree';
@@ -9,7 +9,7 @@ import { PgslStructPropertyDeclarationSyntaxTree } from './pgsl-struct-property-
 export class PgslStructDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslStructDeclarationSyntaxTreeStructureData> {
     private readonly mName: string;
     private readonly mProperties: Array<PgslStructPropertyDeclarationSyntaxTree>;
-    
+
     /**
      * Variable name.
      */
@@ -57,14 +57,14 @@ export class PgslStructDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTr
 
         // Only types with fixed footprints.
         // Only last property is allowed to be variable but then the struct is no longer fixed.
-        for(let lIndex: number = 0; lIndex < this.mProperties.length; lIndex++){
+        for (let lIndex: number = 0; lIndex < this.mProperties.length; lIndex++) {
             // Skip last property. 
-            if(lIndex === (this.mProperties.length - 1)) {
+            if (lIndex === (this.mProperties.length - 1)) {
                 break;
             }
 
             // Validate if properties dont have fixed length.
-            if(!this.mProperties[lIndex].type.isFixed) {
+            if (!this.mProperties[lIndex].type.isFixed) {
                 throw new Exception('Only the last property of a struct can have a variable length.', this);
             }
         }

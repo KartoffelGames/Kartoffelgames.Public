@@ -2,9 +2,13 @@ import { Exception } from '@kartoffelgames/core';
 import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree';
 import { PgslBuildInTypeName } from '../enum/pgsl-build-in-type-name.enum';
 import { PgslNumericTypeName } from '../enum/pgsl-numeric-type-name.enum';
+import { PgslVectorTypeName } from '../enum/pgsl-vector-type-name.enum';
 import { PgslTypeDeclarationSyntaxTree } from '../pgsl-type-declaration-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
+import { PgslArrayTypeDefinitionSyntaxTree } from './pgsl-array-type-definition-syntax-tree';
+import { PgslBooleanTypeDefinitionSyntaxTree } from './pgsl-boolean-type-definition-syntax-tree';
 import { PgslNumericTypeDefinitionSyntaxTree } from './pgsl-numeric-type-definition-syntax-tree';
+import { PgslVectorTypeDefinitionSyntaxTree } from './pgsl-vector-type-definition-syntax-tree';
 
 export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslBuildInTypeDefinitionSyntaxTreeStructureData> {
     private mRealType: BasePgslTypeDefinitionSyntaxTree | null;
@@ -151,47 +155,84 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
         // Big ass switch case.
         switch (this.mTypeName) {
             case PgslBuildInTypeName.Position: {
-                break;
+                return new PgslVectorTypeDefinitionSyntaxTree({
+                    typeName: PgslVectorTypeName.Vector4,
+                    innerType: new PgslNumericTypeDefinitionSyntaxTree({
+                        typeName: PgslNumericTypeName.Float
+                    }, 0, 0, 0, 0).setParent(this).validateIntegrity()
+                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
             case PgslBuildInTypeName.LocalInvocationId: {
-                break;
+                return new PgslNumericTypeDefinitionSyntaxTree({
+                    typeName: PgslNumericTypeName.UnsignedInteger
+                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
             case PgslBuildInTypeName.GlobalInvocationId: {
-                break;
+                return new PgslVectorTypeDefinitionSyntaxTree({
+                    typeName: PgslVectorTypeName.Vector3,
+                    innerType: new PgslNumericTypeDefinitionSyntaxTree({
+                        typeName: PgslNumericTypeName.UnsignedInteger
+                    }, 0, 0, 0, 0).setParent(this).validateIntegrity()
+                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
             case PgslBuildInTypeName.WorkgroupId: {
-                break;
+                return new PgslVectorTypeDefinitionSyntaxTree({
+                    typeName: PgslVectorTypeName.Vector3,
+                    innerType: new PgslNumericTypeDefinitionSyntaxTree({
+                        typeName: PgslNumericTypeName.UnsignedInteger
+                    }, 0, 0, 0, 0).setParent(this).validateIntegrity()
+                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
             case PgslBuildInTypeName.NumWorkgroups: {
-                break;
+                return new PgslVectorTypeDefinitionSyntaxTree({
+                    typeName: PgslVectorTypeName.Vector3,
+                    innerType: new PgslNumericTypeDefinitionSyntaxTree({
+                        typeName: PgslNumericTypeName.UnsignedInteger
+                    }, 0, 0, 0, 0).setParent(this).validateIntegrity()
+                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
             case PgslBuildInTypeName.VertexIndex: {
-                break;
+                return new PgslNumericTypeDefinitionSyntaxTree({
+                    typeName: PgslNumericTypeName.UnsignedInteger
+                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
             case PgslBuildInTypeName.InstanceIndex: {
-                break;
+                return new PgslNumericTypeDefinitionSyntaxTree({
+                    typeName: PgslNumericTypeName.UnsignedInteger
+                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
             case PgslBuildInTypeName.FragDepth: {
-                break;
+                return new PgslNumericTypeDefinitionSyntaxTree({
+                    typeName: PgslNumericTypeName.Float
+                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
             case PgslBuildInTypeName.SampleIndex: {
-                break;
+                return new PgslNumericTypeDefinitionSyntaxTree({
+                    typeName: PgslNumericTypeName.UnsignedInteger
+                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
             case PgslBuildInTypeName.SampleMask: {
-                break;
+                return new PgslNumericTypeDefinitionSyntaxTree({
+                    typeName: PgslNumericTypeName.UnsignedInteger
+                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
             case PgslBuildInTypeName.LocalInvocationIndex: {
-                break;
+                return new PgslNumericTypeDefinitionSyntaxTree({
+                    typeName: PgslNumericTypeName.UnsignedInteger
+                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
             case PgslBuildInTypeName.FrontFacing: {
-                break;
+                return new PgslBooleanTypeDefinitionSyntaxTree({}, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
             case PgslBuildInTypeName.ClipDistances: {
-                break;
+                return new PgslArrayTypeDefinitionSyntaxTree({
+                    type: new PgslNumericTypeDefinitionSyntaxTree({
+                        typeName: PgslNumericTypeName.Float
+                    }, 0, 0, 0, 0).setParent(this).validateIntegrity(),
+                    lengthExpression: this.mTemplate as BasePgslExpressionSyntaxTree
+                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
         }
-
-        throw new Exception('Unsupported buildin type name.', this);
     }
 }
 

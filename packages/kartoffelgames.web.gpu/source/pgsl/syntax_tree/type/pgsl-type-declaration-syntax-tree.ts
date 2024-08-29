@@ -370,15 +370,28 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
             return null;
         }
 
-        // TODO: Parse type again.
-        const lTypeDeclaration: PgslTypeDeclarationSyntaxTree = new PgslTypeDeclarationSyntaxTree({
-            name: this.mRawName,
-            templateList: this.mRawTemplateList
-        }, this.meta);
+        // Create type declaration parameter.
+        const lTypeDeclarationParameter: ConstructorParameters<typeof PgslTypeDeclarationSyntaxTree>[0] = {
+            name: pRawName,
+            pointer: false
+        };
+
+        // Add optional template.
+        if (pRawTemplate) {
+            lTypeDeclarationParameter.templateList = pRawTemplate;
+        }
+
+        // Parse type again but this time without pointer.
+        const lTypeDeclaration: PgslTypeDeclarationSyntaxTree = new PgslTypeDeclarationSyntaxTree(lTypeDeclarationParameter,
+            this.meta.position.start.column,
+            this.meta.position.start.line,
+            this.meta.position.end.column,
+            this.meta.position.end.line
+        ).setParent(this).validateIntegrity();
 
         // Build pointer type definition.
         return new PgslPointerTypeDefinitionSyntaxTree({
-            referencedType: 
+            referencedType: lTypeDeclaration.type
         }, 0, 0, 0, 0).setParent(this).validateIntegrity();
     }
 

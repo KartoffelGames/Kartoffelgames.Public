@@ -1,100 +1,44 @@
-import { Dictionary, EnumUtil, Exception } from '@kartoffelgames/core';
+import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTree } from '../base-pgsl-syntax-tree';
 import { PgslAliasDeclarationSyntaxTree } from '../declaration/pgsl-alias-declaration-syntax-tree';
 import { PgslEnumDeclarationSyntaxTree } from '../declaration/pgsl-enum-declaration-syntax-tree';
 import { PgslStructDeclarationSyntaxTree } from '../declaration/pgsl-struct-declaration-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from './definition/base-pgsl-type-definition-syntax-tree';
+import { PgslArrayTypeDefinitionSyntaxTree } from './definition/pgsl-array-type-definition-syntax-tree';
+import { PgslBooleanTypeDefinitionSyntaxTree } from './definition/pgsl-boolean-type-definition-syntax-tree';
 import { PgslBuildInTypeDefinitionSyntaxTree } from './definition/pgsl-build-in-type-definition-syntax-tree';
+import { PgslMatrixTypeDefinitionSyntaxTree } from './definition/pgsl-matrix-type-definition-syntax-tree';
 import { PgslNumericTypeDefinitionSyntaxTree } from './definition/pgsl-numeric-type-definition-syntax-tree';
+import { PgslPointerTypeDefinitionSyntaxTree } from './definition/pgsl-pointer-type-definition-syntax-tree';
+import { PgslSamplerTypeDefinitionSyntaxTree } from './definition/pgsl-sampler-type-definition-syntax-tree';
 import { PgslStringTypeDefinitionSyntaxTree } from './definition/pgsl-string-type-definition-syntax-tree';
 import { PgslStructTypeDefinitionSyntaxTree } from './definition/pgsl-struct-type-definition-syntax-tree';
-import { PgslBuildInTypeName } from './enum/pgsl-build-in-type-name.enum';
-import { PgslNumericTypeName } from './enum/pgsl-numeric-type-name.enum';
-import { PgslTypeName } from './enum/pgsl-type-name.enum';
-import { PgslBooleanTypeDefinitionSyntaxTree } from './definition/pgsl-boolean-type-definition-syntax-tree';
+import { PgslTextureTypeDefinitionSyntaxTree } from './definition/pgsl-texture-type-definition-syntax-tree';
 import { PgslVectorTypeDefinitionSyntaxTree } from './definition/pgsl-vector-type-definition-syntax-tree';
-import { PgslVectorTypeName } from './enum/pgsl-vector-type-name.enum';
-import { PgslMatrixTypeDefinitionSyntaxTree } from './definition/pgsl-matrix-type-definition-syntax-tree';
+import { PgslBuildInTypeName } from './enum/pgsl-build-in-type-name.enum';
 import { PgslMatrixTypeName } from './enum/pgsl-matrix-type-name.enum';
+import { PgslNumericTypeName } from './enum/pgsl-numeric-type-name.enum';
 import { PgslSamplerTypeName } from './enum/pgsl-sampler-build-name.enum';
-import { PgslSamplerTypeDefinitionSyntaxTree } from './definition/pgsl-sampler-type-definition-syntax-tree';
-import { PgslPointerTypeDefinitionSyntaxTree } from './definition/pgsl-pointer-type-definition-syntax-tree';
+import { PgslTextureTypeName } from './enum/pgsl-texture-type-name.enum';
+import { PgslTypeName } from './enum/pgsl-type-name.enum';
+import { PgslVectorTypeName } from './enum/pgsl-vector-type-name.enum';
 
 /**
  * General PGSL syntax tree of a type definition.
  */
 export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDefinitionSyntaxTreeStructureData> {
-    /**
-     * Define types.
-     */
-    private static readonly mBuildInTypes: Dictionary<PgslBuildInTypeName, TypeDefinitionInformation> = (() => {  // TODO: Move it into a seperate Type handler.
-        const lTypes: Dictionary<PgslBuildInTypeName, TypeDefinitionInformation> = new Dictionary<PgslBuildInTypeName, TypeDefinitionInformation>();
-
-        // Add type to Type storage.
-        const lAddType = (pType: PgslBuildInTypeName, pValueType: PgslValueType, pTemplate?: TypeDefinitionInformation['template']): void => {
-            lTypes.set(pType, { type: pType, valueType: pValueType, template: pTemplate ?? [] });
-        };
-
-        // Bundled types.
-        lAddType(PgslBuildInTypeName.Array, PgslValueType.Array, [
-            ['Type'], ['Type', 'Expression']
-        ]);
-
-        // Image textures.
-        lAddType(PgslBuildInTypeName.Texture1d, PgslValueType.Texture, [
-            ['Type']
-        ]);
-        lAddType(PgslBuildInTypeName.Texture2d, PgslValueType.Texture, [
-            ['Type']
-        ]);
-        lAddType(PgslBuildInTypeName.Texture2dArray, PgslValueType.Texture, [
-            ['Type']
-        ]);
-        lAddType(PgslBuildInTypeName.Texture3d, PgslValueType.Texture, [
-            ['Type']
-        ]);
-        lAddType(PgslBuildInTypeName.TextureCube, PgslValueType.Texture, [
-            ['Type']
-        ]);
-        lAddType(PgslBuildInTypeName.TextureCubeArray, PgslValueType.Texture, [
-            ['Type']
-        ]);
-        lAddType(PgslBuildInTypeName.TextureMultisampled2d, PgslValueType.Texture, [
-            ['Type']
-        ]);
-
-        // External tetures.
-        lAddType(PgslBuildInTypeName.TextureExternal, PgslValueType.Texture,);
-
-        // Storage textures.
-        lAddType(PgslBuildInTypeName.TextureStorage1d, PgslValueType.Texture, [
-            ['Type']
-        ]);
-        lAddType(PgslBuildInTypeName.TextureStorage2d, PgslValueType.Texture, [
-            ['Type']
-        ]);
-        lAddType(PgslBuildInTypeName.TextureStorage2dArray, PgslValueType.Texture, [
-            ['Type']
-        ]);
-        lAddType(PgslBuildInTypeName.TextureStorage3d, PgslValueType.Texture, [
-            ['Type']
-        ]);
-
-        // Depth Textures.
-        lAddType(PgslBuildInTypeName.TextureDepth2d, PgslValueType.Texture,);
-        lAddType(PgslBuildInTypeName.TextureDepth2dArray, PgslValueType.Texture,);
-        lAddType(PgslBuildInTypeName.TextureDepthCube, PgslValueType.Texture,);
-        lAddType(PgslBuildInTypeName.TextureDepthCubeArray, PgslValueType.Texture,);
-        lAddType(PgslBuildInTypeName.TextureDepthMultisampled2d, PgslValueType.Texture,);
-
-        return lTypes;
-    })();
-
+    private readonly mPointer: boolean;
     private readonly mRawName: string;
     private readonly mRawTemplateList: PgslTypeTemplateList | null;
     private mType: BasePgslTypeDefinitionSyntaxTree | null;
-    private mPointer: boolean;
+
+    /**
+     * Type declaration is a pointer .
+     */
+    public get pointer(): boolean {
+        return this.mPointer;
+    }
 
     /**
      * Type definition type.
@@ -108,13 +52,6 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
         }
 
         return this.mType;
-    }
-
-    /**
-     * Type declaration is a pointer .
-     */
-    public get pointer(): boolean {
-        return this.mPointer;
     }
 
     /**
@@ -185,7 +122,7 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
             return;
         }
 
-        // Try to parse string type.
+        // Try to parse vector type.
         this.mType = this.resolveVector(this.mRawName, this.mRawTemplateList);
         if (this.mType) {
             return;
@@ -209,8 +146,17 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
             return;
         }
 
-        // resolveArray => Nothing
-        // resolveTexture => PgslTextureTypeName
+        // Try to parse array type.
+        this.mType = this.resolveArray(this.mRawName, this.mRawTemplateList);
+        if (this.mType) {
+            return;
+        }
+
+        // Try to parse texture type.
+        this.mType = this.resolveTexture(this.mRawName, this.mRawTemplateList);
+        if (this.mType) {
+            return;
+        }
 
         throw new Exception(`Typename "${this.mRawName}" not defined`, this);
     }
@@ -233,6 +179,54 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
         }
 
         return null;
+    }
+
+    /**
+     * Try to resolve raw type as array type.
+     * 
+     * @param pRawName - Type raw name.
+     * @param pRawTemplate - Type template.
+     */
+    private resolveArray(pRawName: string, pRawTemplate: PgslTypeTemplateList | null): BasePgslTypeDefinitionSyntaxTree | null {
+        // Resolve array type.
+        if (pRawName !== PgslTypeName.Array) {
+            return null;
+        }
+
+        // Arrays need at least one type parameter.
+        if (!pRawTemplate || pRawTemplate.length < 1) {
+            throw new Exception(`Arrays need at least one template parameter`, this);
+        }
+
+        // But not more than two parameter.
+        if (pRawTemplate.length > 2) {
+            throw new Exception(`Arrays supports only two template parameter.`, this);
+        }
+
+        // First template needs to be a type.
+        const lTypeTemplate: PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree = pRawTemplate[0];
+        if (!(lTypeTemplate instanceof PgslTypeDeclarationSyntaxTree)) {
+            throw new Exception(`First array template parameter must be a type.`, this);
+        }
+
+        // BuildInType parameter.
+        const lParameter: ConstructorParameters<typeof PgslArrayTypeDefinitionSyntaxTree>[0] = {
+            type: lTypeTemplate.type
+        };
+
+        // Second length parameter.
+        if (pRawTemplate.length > 1) {
+            const lLengthParameter: PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree = pRawTemplate[1];
+            if (!(lLengthParameter instanceof BasePgslExpressionSyntaxTree)) {
+                throw new Exception(`Arra length template parameter cant be a type.`, this);
+            }
+
+            // Set optional length expression.
+            lParameter.lengthExpression = lLengthParameter;
+        }
+
+        // Build BuildInType definition.
+        return new PgslArrayTypeDefinitionSyntaxTree(lParameter, 0, 0, 0, 0).setParent(this).validateIntegrity();
     }
 
     /**
@@ -461,6 +455,56 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
         return new PgslStructTypeDefinitionSyntaxTree({
             struct: lStruct
         }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+    }
+
+    /**
+     * Try to resolve raw type as texture value.
+     * 
+     * @param pRawName - Type raw name.
+     * @param pRawTemplate - Type template.
+     */
+    private resolveTexture(pRawName: string, pRawTemplate: PgslTypeTemplateList | null): BasePgslTypeDefinitionSyntaxTree | null {
+        // Try to resolve type name.
+        const lTypeName: PgslTextureTypeName | undefined = EnumUtil.cast(PgslTextureTypeName, pRawName);
+        if (!lTypeName) {
+            return null;
+        }
+
+        // BuildInType parameter.
+        const lParameter: ConstructorParameters<typeof PgslTextureTypeDefinitionSyntaxTree>[0] = {
+            typeName: lTypeName
+        };
+
+        // When a template is present, try to add it.
+        if (pRawTemplate) {
+            // Limit template length.
+            if (pRawTemplate.length > 2) {
+                throw new Exception(`Texture type only supports two parameter.`, this);
+            }
+
+            // First format parameter.
+            if (pRawTemplate.length > 0) {
+                const lTypeParameter: PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree = pRawTemplate[0];
+                if (!(lTypeParameter instanceof BasePgslExpressionSyntaxTree)) {
+                    throw new Exception(`Texture type expression needs to be a value expression.`, this);
+                }
+
+                lParameter.format = lTypeParameter;
+            }
+
+            // Second access parameter.
+            if (pRawTemplate.length > 1) {
+                const lAccessParameter: PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree = pRawTemplate[0];
+                if (!(lAccessParameter instanceof BasePgslExpressionSyntaxTree)) {
+                    throw new Exception(`Texture type expression needs to be a value expression.`, this);
+                }
+
+                lParameter.access = lAccessParameter;
+            }
+        }
+
+        // Build texture type definition.
+        return new PgslTextureTypeDefinitionSyntaxTree(lParameter, 0, 0, 0, 0).setParent(this).validateIntegrity();
     }
 
     /**

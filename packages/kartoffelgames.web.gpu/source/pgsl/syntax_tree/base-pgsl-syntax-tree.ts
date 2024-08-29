@@ -102,8 +102,8 @@ export abstract class BasePgslSyntaxTree<TData extends PgslSyntaxTreeInitData> {
                     continue;
                 }
 
-                // String is defnitly not a child.
-                if (typeof lValue === 'string') {
+                // String or boolean is defnitly not a child.
+                if (typeof lValue === 'string' || typeof lValue === 'boolean') {
                     continue;
                 }
 
@@ -233,5 +233,5 @@ type SyntaxTreeMeta = {
 
 export type UnknownPgslSyntaxTree = BasePgslSyntaxTree<PgslSyntaxTreeInitData>;
 
-type PgslSyntaxTreeInitDataValue = BasePgslSyntaxTree<PgslSyntaxTreeInitData> | string | PgslSyntaxTreeInitData | Array<PgslSyntaxTreeInitDataValue>;
+type PgslSyntaxTreeInitDataValue = BasePgslSyntaxTree<PgslSyntaxTreeInitData> | string | boolean | PgslSyntaxTreeInitData | Array<PgslSyntaxTreeInitDataValue>;
 export type PgslSyntaxTreeInitData = { [Key: string]: PgslSyntaxTreeInitDataValue; };

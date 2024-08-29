@@ -2,14 +2,21 @@ import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-express
 import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
 
 export class PgslArrayTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslArrayTypeDefinitionSyntaxTreeStructureData> {
+    private readonly mInnerType: BasePgslTypeDefinitionSyntaxTree;
     private readonly mLengthExpression: BasePgslExpressionSyntaxTree | null;
-    private readonly mType: BasePgslTypeDefinitionSyntaxTree;
 
     /**
      * Inner type of array.
      */
     public get innerType(): BasePgslTypeDefinitionSyntaxTree {
-        return this.mType;
+        return this.mInnerType;
+    }
+
+    /**
+     * Length expression of array.
+     */
+    public get length(): BasePgslExpressionSyntaxTree | null {
+        return this.mLengthExpression;
     }
 
     /**
@@ -26,7 +33,14 @@ export class PgslArrayTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyn
         super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
 
         this.mLengthExpression = pData.lengthExpression ?? null;
-        this.mType = pData.type;
+        this.mInnerType = pData.type;
+    }
+
+    /**
+     * Determinate if declaration is a composite type.
+     */
+    protected override determinateIsComposite(): boolean {
+        return false;
     }
 
     /**
@@ -38,15 +52,19 @@ export class PgslArrayTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyn
             return false;
         }
 
-        return this.mType.isConstructable;
+        return this.mInnerType.isConstructable;
     }
 
     /**
      * Determinate if declaration has a fixed byte length.
      */
     protected determinateIsFixed(): boolean {
-        // TODO: a fixed-size array type, when: its element count is a const-expression
-        // When it is a param, it is not fixed, it is creation fixed and only valid in a workgroup variable. 
+        // Allways variable when no length expression is set.
+        if (!this.mLengthExpression) {
+            return false;
+        }
+
+        return this.mLengthExpression.isConstant;
     }
 
     /**
@@ -57,10 +75,46 @@ export class PgslArrayTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyn
     }
 
     /**
+     * Determinate if declaration is a plain type.
+     */
+    protected override determinateIsPlain(): boolean {
+        return this.mInnerType.isPlainType;
+    }
+
+    /**
+     * Determinate if is sharable with the host.
+     */
+    protected override determinateIsShareable(): boolean {
+        return this.mInnerType.isShareable;
+    }
+
+    /**
+     * Determinate if value is storable in a variable.
+     */
+    protected override determinateIsStorable(): boolean {
+        return this.mInnerType.isStorable;
+    }
+
+    /**
+     * On equal check of type definitions
+     * 
+     * @param pTarget - Target type definition.
+     */
+    protected override onEqual(pTarget: this): boolean {
+        // Validate same inner type.
+        if(!this.mInnerType.equals(pTarget.innerType)) {
+            return false;
+        }
+
+        // TODO: Same length???
+
+        return true;
+    }
+
+    /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-
         // TODO: Fixed length from const expressions are only valid on workgroup variables. ??? How.
         //       Do we need to split expressions into isConstant and isCompileConstant or so????
     }

@@ -1,18 +1,38 @@
-import { EnumUtil, Exception } from '@kartoffelgames/core';
+import { Dictionary, EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslDeclarationType } from '../../enum/pgsl-declaration-type.enum';
+import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
+import { IPgslVariableDeclarationSyntaxTree } from '../interface/i-pgsl-variable-declaration-syntax-tree.interface';
+import { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslTypeDeclarationSyntaxTree } from '../type/pgsl-type-declaration-syntax-tree';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
 
 /**
  * PGSL syntax tree for a alias declaration.
  */
-export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslVariableDeclarationSyntaxTreeStructureData> {
+export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree<PgslVariableDeclarationSyntaxTreeStructureData> implements IPgslVariableDeclarationSyntaxTree {
+    private mAddressSpace: PgslValueAddressSpace | null;
     private readonly mDeclarationType: PgslDeclarationType;
     private readonly mExpression: BasePgslExpressionSyntaxTree | null;
+    private mIsConstant: boolean | null;
+    private mIsCreationFixed: boolean | null;
     private readonly mName: string;
     private readonly mTypeDeclaration: PgslTypeDeclarationSyntaxTree;
+
+    /**
+     * If declaration is a constant expression.
+     */
+    public get addressSpace(): PgslValueAddressSpace {
+        this.ensureValidity();
+
+        // Init value.
+        if (this.mAddressSpace === null) {
+            this.mAddressSpace = this.determinateAddressSpace();
+        }
+
+        return this.mAddressSpace;
+    }
 
     /**
      * Variable declaration type.
@@ -29,6 +49,34 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
     }
 
     /**
+     * If declaration is a constant expression.
+     */
+    public get isConstant(): boolean {
+        this.ensureValidity();
+
+        // Init value.
+        if (this.mIsConstant === null) {
+            this.mIsConstant = this.determinateIsConstant();
+        }
+
+        return this.mIsConstant;
+    }
+
+    /**
+     * If declaration is a constant expression.
+     */
+    public get isCreationFixed(): boolean {
+        this.ensureValidity();
+
+        // Init value.
+        if (this.mIsCreationFixed === null) {
+            this.mIsCreationFixed = this.determinateIsCreationFixed();
+        }
+
+        return this.mIsCreationFixed;
+    }
+
+    /**
      * Variable name.
      */
     public get name(): string {
@@ -36,10 +84,12 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
     }
 
     /**
-     * Variable type declaration.
+     * Variable type.
      */
-    public get typeDeclaration(): PgslTypeDeclarationSyntaxTree {
-        return this.mTypeDeclaration;
+    public get type(): BasePgslTypeDefinitionSyntaxTree {
+        this.ensureValidity();
+
+        return this.mTypeDeclaration.type;
     }
 
     /**
@@ -74,25 +124,12 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
         this.mTypeDeclaration = pData.type;
         this.mName = pData.name;
         this.mDeclarationType = EnumUtil.cast(PgslDeclarationType, pData.declarationType)!;
-        this.mExpression = null;
+        this.mExpression = pData.expression ?? null;
 
-        // Optional expression.
-        if (pData.expression) {
-            this.mExpression = pData.expression;
-        }
-    }
-
-    /**
-     * Determinate if declaration is a constant.
-     */
-    protected determinateIsConstant(): boolean {
-        // Create list of all constant declaration types.
-        const lConstDeclarationTypeList: Array<PgslDeclarationType> = [
-            PgslDeclarationType.Const,
-            PgslDeclarationType.Param,
-        ];
-
-        return lConstDeclarationTypeList.includes(this.mDeclarationType);
+        // Set empty data.
+        this.mIsConstant = null;
+        this.mIsCreationFixed = null;
+        this.mAddressSpace = null;
     }
 
     /**
@@ -132,6 +169,42 @@ export class PgslVariableDeclarationSyntaxTree extends BasePgslDeclarationSyntax
         // TODO: Validate if declaration type allows any initialization expression.
         // TODO: Validate if expression fits declaration type.
         // TODO: Validate if declaration is const when it is the expression part should be the same.
+    }
+
+    /**
+     * Determinate address space of declaration.
+     */
+    private determinateAddressSpace(): PgslValueAddressSpace {
+        // Create mapping of declaration type to address space.
+        const lAddressSpaceMapping: Dictionary<PgslDeclarationType, PgslValueAddressSpace> = new Dictionary<PgslDeclarationType, PgslValueAddressSpace>();
+        lAddressSpaceMapping.set(PgslDeclarationType.Storage, PgslValueAddressSpace.Storage);
+        lAddressSpaceMapping.set(PgslDeclarationType.Uniform, PgslValueAddressSpace.Uniform);
+        lAddressSpaceMapping.set(PgslDeclarationType.Workgroup, PgslValueAddressSpace.Workgroup);
+        lAddressSpaceMapping.set(PgslDeclarationType.Private, PgslValueAddressSpace.Private);
+
+        // Read mapping of declaration type, default to none address space for unsupported declarations.
+        return lAddressSpaceMapping.getOrDefault(this.mDeclarationType, PgslValueAddressSpace.None);
+    }
+
+    /**
+     * Determinate if declaration is a constant.
+     */
+    private determinateIsConstant(): boolean {
+        // Is a constant on constant declarations declaration
+        return this.mDeclarationType === PgslDeclarationType.Const;
+    }
+
+    /**
+     * Determinate if declaration is a creation fixed constant.
+     */
+    private determinateIsCreationFixed(): boolean {
+        // Constant values are also creation fixed
+        if (this.isConstant) {
+            return true;
+        }
+
+        // Is a creation fixed on param declarations declaration
+        return this.mDeclarationType === PgslDeclarationType.Param;
     }
 }
 

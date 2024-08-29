@@ -89,6 +89,8 @@ export class PgslPointerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
         if (!this.mReferencedType.isStorable) {
             throw new Exception(`Referenced types of pointers need to be storable`, this);
         }
+
+        // TODO: Not on handle/texture or None address space.
     }
 }
 

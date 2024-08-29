@@ -1,8 +1,7 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { ParserException } from '@kartoffelgames/core.parser';
-import { PgslVariableDeclarationSyntaxTree } from './declarations/pgsl-variable-declaration-syntax-tree';
+import { IPgslVariableDeclarationSyntaxTree } from './interface/i-pgsl-variable-declaration-syntax-tree.interface';
 import { PgslModuleSyntaxTree } from './pgsl-module-syntax-tree';
-import { PgslVariableDeclarationStatementSyntaxTree } from './statement/pgsl-variable-declaration-statement-syntax-tree';
 
 /**
  * Base pgsl syntax tree object.
@@ -54,10 +53,10 @@ export abstract class BasePgslSyntaxTree<TData extends PgslSyntaxTreeInitData> {
     /**
      * Get all scoped variables of scope.
      */
-    protected get scopedVariables(): Dictionary<string, PgslVariableDeclarationStatementSyntaxTree | PgslVariableDeclarationSyntaxTree> {
+    protected get scopedVariables(): Dictionary<string, IPgslVariableDeclarationSyntaxTree> {
         // Empty scoped variables.
         if (!this.mParent) {
-            return new Dictionary<string, PgslVariableDeclarationStatementSyntaxTree | PgslVariableDeclarationSyntaxTree>();
+            return new Dictionary<string, IPgslVariableDeclarationSyntaxTree>();
         }
 
         return this.mParent.scopedVariables;
@@ -134,9 +133,9 @@ export abstract class BasePgslSyntaxTree<TData extends PgslSyntaxTreeInitData> {
      * @throws {@link Exception}
      * When the variable does not exits. 
      */
-    public getVariableDeclarationOf(pVariableName: string): PgslVariableDeclarationStatementSyntaxTree | PgslVariableDeclarationSyntaxTree {
+    public getVariableDeclarationOf(pVariableName: string): IPgslVariableDeclarationSyntaxTree {
         // Try to read declaration
-        const lDeclaration: PgslVariableDeclarationStatementSyntaxTree | PgslVariableDeclarationSyntaxTree | undefined = this.scopedVariables.get(pVariableName);
+        const lDeclaration: IPgslVariableDeclarationSyntaxTree | undefined = this.scopedVariables.get(pVariableName);
         if (!lDeclaration) {
             throw new Exception(`Variable "${pVariableName}" not defined in current scope.`, this);
         }

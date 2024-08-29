@@ -71,6 +71,8 @@ export class PgslAddressOfExpressionSyntaxTree extends BasePgslExpressionSyntaxT
      */
     protected override onValidateIntegrity(): void {
         // TODO: Needs to be a special type.. storable, hostsharable???
+
+        // TODO: No vector item.
     }
 }
 

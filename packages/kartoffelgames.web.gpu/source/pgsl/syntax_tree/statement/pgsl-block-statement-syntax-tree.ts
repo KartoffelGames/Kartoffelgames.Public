@@ -1,22 +1,21 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { PgslSyntaxTreeInitData } from '../base-pgsl-syntax-tree';
+import { IPgslVariableDeclarationSyntaxTree } from '../interface/i-pgsl-variable-declaration-syntax-tree.interface';
 import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
 import { PgslVariableDeclarationStatementSyntaxTree } from './pgsl-variable-declaration-statement-syntax-tree';
-import { PgslVariableDeclarationSyntaxTree } from '../declarations/pgsl-variable-declaration-syntax-tree';
 
 /**
  * PGSL structure holding a list of statements. Handles scoped values.
  */
 export class PgslBlockStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslBlockStatementSyntaxTreeStructureData> {
     private readonly mDeclaredVariables: Set<PgslVariableDeclarationStatementSyntaxTree>;
-    private readonly mStatementList: Array<BasePgslStatementSyntaxTree<PgslSyntaxTreeInitData>>;
+    private readonly mStatementList: Array<BasePgslStatementSyntaxTree>;
 
     /**
      * Get all scoped variables of scope.
      */
-    protected override get scopedVariables(): Dictionary<string, PgslVariableDeclarationStatementSyntaxTree | PgslVariableDeclarationSyntaxTree> {
+    protected override get scopedVariables(): Dictionary<string, IPgslVariableDeclarationSyntaxTree> {
         // Read parent scoped variables
-        const lParentVariables: Dictionary<string, PgslVariableDeclarationStatementSyntaxTree | PgslVariableDeclarationSyntaxTree> = super.scopedVariables;
+        const lParentVariables: Dictionary<string, IPgslVariableDeclarationSyntaxTree> = super.scopedVariables;
 
         // Append current scoped variables. Override parent.
         for (const lVariable of this.mDeclaredVariables) {
@@ -64,5 +63,5 @@ export class PgslBlockStatementSyntaxTree extends BasePgslStatementSyntaxTree<Pg
 }
 
 type PgslBlockStatementSyntaxTreeStructureData = {
-    statements: Array<BasePgslStatementSyntaxTree<PgslSyntaxTreeInitData>>;
+    statements: Array<BasePgslStatementSyntaxTree>;
 };

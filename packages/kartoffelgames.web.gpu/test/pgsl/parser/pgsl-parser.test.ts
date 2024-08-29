@@ -2,7 +2,7 @@ import { ParserException } from '@kartoffelgames/core.parser';
 import { expect } from 'chai';
 import { PgslParser } from '../../../source/pgsl/parser/pgsl-parser';
 import { PgslModuleSyntaxTree } from '../../../source/pgsl/syntax_tree/pgsl-module-syntax-tree';
-import { PgslVariableDeclarationSyntaxTree } from '../../../source/pgsl/syntax_tree/declarations/pgsl-variable-declaration-syntax-tree';
+import { PgslVariableDeclarationSyntaxTree } from '../../../source/pgsl/syntax_tree/declaration/pgsl-variable-declaration-syntax-tree';
 import { PgslDeclarationType } from '../../../source/pgsl/enum/pgsl-declaration-type.enum';
 
 describe('PsglParser', () => {

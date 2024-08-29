@@ -1,4 +1,4 @@
-import { PgslStructDeclarationSyntaxTree } from '../../declarations/pgsl-struct-declaration-syntax-tree';
+import { PgslStructDeclarationSyntaxTree } from '../../declaration/pgsl-struct-declaration-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
 
 export class PgslStructTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslStructTypeDefinitionSyntaxTreeStructureData> {

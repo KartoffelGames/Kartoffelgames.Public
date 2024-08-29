@@ -6,28 +6,12 @@ import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-synt
  */
 export abstract class BasePgslDeclarationSyntaxTree<TData extends PgslSyntaxTreeInitData = PgslSyntaxTreeInitData> extends BasePgslSyntaxTree<TData> {
     private readonly mAttributeList: PgslAttributeListSyntaxTree;
-    private mIsConstant: boolean | null;
-
 
     /**
      * Declaration attributes.
      */
     public get attributes(): PgslAttributeListSyntaxTree {
         return this.mAttributeList;
-    }
-
-    /**
-     * If declaration is a constant expression.
-     */
-    public get isConstant(): boolean {
-        this.ensureValidity();
-
-        // Init value.
-        if (this.mIsConstant === null) {
-            this.mIsConstant = this.determinateIsConstant();
-        }
-
-        return this.mIsConstant;
     }
 
     /**
@@ -45,13 +29,5 @@ export abstract class BasePgslDeclarationSyntaxTree<TData extends PgslSyntaxTree
 
         // Set data.
         this.mAttributeList = pAttributeList;
-
-        // Set empty values.
-        this.mIsConstant = null;
     }
-
-    /**
-     * Determinate if declaration is a constant.
-     */
-    protected abstract determinateIsConstant(): boolean;
 }

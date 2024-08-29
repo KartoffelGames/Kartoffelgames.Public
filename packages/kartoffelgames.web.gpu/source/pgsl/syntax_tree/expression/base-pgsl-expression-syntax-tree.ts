@@ -1,11 +1,12 @@
 import { BasePgslSyntaxTree, PgslSyntaxTreeInitData } from '../base-pgsl-syntax-tree';
-import { BasePgslTypeDefinitionSyntaxTree } from '../type/base-pgsl-type-definition-syntax-tree';
+import { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree';
 
 /**
  * PGSL base expression.
  */
 export abstract class BasePgslExpressionSyntaxTree<TData extends PgslSyntaxTreeInitData = PgslSyntaxTreeInitData> extends BasePgslSyntaxTree<TData> {
     private mIsConstant: boolean | null;
+    private mIsCreationFixed: boolean | null;
     private mIsStorage: boolean | null;
     private mResolveType: BasePgslTypeDefinitionSyntaxTree | null;
 
@@ -21,6 +22,20 @@ export abstract class BasePgslExpressionSyntaxTree<TData extends PgslSyntaxTreeI
         }
 
         return this.mIsConstant;
+    }
+
+    /**
+     * If expression is a constant expression.
+     */
+    public get isCreationFixed(): boolean {
+        this.ensureValidity();
+
+        // Constant was not set.
+        if (this.mIsCreationFixed === null) {
+            this.mIsCreationFixed = this.determinateIsCreationFixed();
+        }
+
+        return this.mIsCreationFixed;
     }
 
     /**
@@ -65,6 +80,7 @@ export abstract class BasePgslExpressionSyntaxTree<TData extends PgslSyntaxTreeI
         super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
 
         this.mIsConstant = null;
+        this.mIsCreationFixed = null;
         this.mIsStorage = null;
         this.mResolveType = null;
     }
@@ -72,15 +88,20 @@ export abstract class BasePgslExpressionSyntaxTree<TData extends PgslSyntaxTreeI
     /**
      * On constant state request.
      */
-    protected abstract determinateIsConstant(): boolean
+    protected abstract determinateIsConstant(): boolean;
+
+    /**
+     * On creation fixed state request.
+     */
+    protected abstract determinateIsCreationFixed(): boolean;
 
     /**
      * On is storage set.
      */
-    protected abstract determinateIsStorage(): boolean
+    protected abstract determinateIsStorage(): boolean;
 
     /**
      * On type resolve of expression
      */
-    protected abstract determinateResolveType(): BasePgslTypeDefinitionSyntaxTree
+    protected abstract determinateResolveType(): BasePgslTypeDefinitionSyntaxTree;
 }

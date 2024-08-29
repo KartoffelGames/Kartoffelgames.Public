@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { PgslEnumDeclarationSyntaxTree } from '../../declarations/pgsl-enum-declaration-syntax-tree';
+import { PgslEnumDeclarationSyntaxTree } from '../../declaration/pgsl-enum-declaration-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 

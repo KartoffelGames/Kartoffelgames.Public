@@ -1,10 +1,10 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTree } from './base-pgsl-syntax-tree';
-import { PgslAliasDeclarationSyntaxTree } from './declarations/pgsl-alias-declaration-syntax-tree';
-import { PgslEnumDeclarationSyntaxTree } from './declarations/pgsl-enum-declaration-syntax-tree';
-import { PgslFunctionDeclarationSyntaxTree } from './declarations/pgsl-function-declaration-syntax-tree';
-import { PgslStructDeclarationSyntaxTree } from './declarations/pgsl-struct-declaration-syntax-tree';
-import { PgslVariableDeclarationSyntaxTree } from './declarations/pgsl-variable-declaration-syntax-tree';
+import { PgslAliasDeclarationSyntaxTree } from './declaration/pgsl-alias-declaration-syntax-tree';
+import { PgslEnumDeclarationSyntaxTree } from './declaration/pgsl-enum-declaration-syntax-tree';
+import { PgslFunctionDeclarationSyntaxTree } from './declaration/pgsl-function-declaration-syntax-tree';
+import { PgslStructDeclarationSyntaxTree } from './declaration/pgsl-struct-declaration-syntax-tree';
+import { PgslVariableDeclarationSyntaxTree } from './declaration/pgsl-variable-declaration-syntax-tree';
 import { PgslVariableDeclarationStatementSyntaxTree } from './statement/pgsl-variable-declaration-statement-syntax-tree';
 
 export class PgslModuleSyntaxTree extends BasePgslSyntaxTree<PgslModuleSyntaxTreeStructureData> {

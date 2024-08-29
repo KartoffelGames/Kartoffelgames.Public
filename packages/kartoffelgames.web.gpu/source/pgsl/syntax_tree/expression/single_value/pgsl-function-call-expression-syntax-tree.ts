@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslSyntaxTreeInitData } from '../../base-pgsl-syntax-tree';
-import { PgslFunctionDeclarationSyntaxTree } from '../../declarations/pgsl-function-declaration-syntax-tree';
+import { PgslFunctionDeclarationSyntaxTree } from '../../declaration/pgsl-function-declaration-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/base-pgsl-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 

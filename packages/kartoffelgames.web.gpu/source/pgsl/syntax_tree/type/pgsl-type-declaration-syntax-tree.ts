@@ -1,8 +1,8 @@
 import { Dictionary, EnumUtil, Exception } from '@kartoffelgames/core';
 import { BasePgslSyntaxTree } from '../base-pgsl-syntax-tree';
-import { PgslAliasDeclarationSyntaxTree } from '../declarations/pgsl-alias-declaration-syntax-tree';
-import { PgslEnumDeclarationSyntaxTree } from '../declarations/pgsl-enum-declaration-syntax-tree';
-import { PgslStructDeclarationSyntaxTree } from '../declarations/pgsl-struct-declaration-syntax-tree';
+import { PgslAliasDeclarationSyntaxTree } from '../declaration/pgsl-alias-declaration-syntax-tree';
+import { PgslEnumDeclarationSyntaxTree } from '../declaration/pgsl-enum-declaration-syntax-tree';
+import { PgslStructDeclarationSyntaxTree } from '../declaration/pgsl-struct-declaration-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from './definition/base-pgsl-type-definition-syntax-tree';
 import { PgslBuildInTypeDefinitionSyntaxTree } from './definition/pgsl-build-in-type-definition-syntax-tree';

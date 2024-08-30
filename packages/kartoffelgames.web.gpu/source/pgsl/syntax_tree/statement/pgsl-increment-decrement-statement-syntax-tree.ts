@@ -62,7 +62,10 @@ export class PgslIncrementDecrementStatementSyntaxTree extends BasePgslStatement
             throw new Exception('Increment or decrement expression muss be applied to a storage expression', this);
         }
 
-        // TODO: SHouldnt be a const value.
+        // Shouldnt be a const value.
+        if (this.mExpression.isConstant) {
+            throw new Exception(`Increment or decrement expression shouldn't be a constant`, this);
+        }
     }
 }
 

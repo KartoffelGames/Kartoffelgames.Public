@@ -1,4 +1,7 @@
+import { Exception } from '@kartoffelgames/core';
 import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree';
+import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree';
+import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum';
 import { BasePgslStatementSyntaxTree } from '../base-pgsl-statement-syntax-tree';
 import { PgslBlockStatementSyntaxTree } from '../pgsl-block-statement-syntax-tree';
 
@@ -54,13 +57,30 @@ export class PgslSwitchStatementSyntaxTree extends BasePgslStatementSyntaxTree<P
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // TODO: Expression and cases should all be the same integer scalar type.
-        // TODO: All cases must be const.
+        // Switch statement must be of a unsigned integer type.
+        if (!(this.mExpression.resolveType instanceof PgslNumericTypeDefinitionSyntaxTree) || this.mExpression.resolveType.typeName !== PgslNumericTypeName.UnsignedInteger) {
+            throw new Exception('Switch expression must be of a unsigned integer type.', this);
+        }
+
+        // Validate each case.
+        for (const lCase of this.mCases) {
+            // Validate any case value.
+            for (const lCaseValue of lCase.cases) {
+                // Must be unsigned integer.
+                if (!(lCaseValue.resolveType instanceof PgslNumericTypeDefinitionSyntaxTree) || this.mExpression.resolveType.typeName !== PgslNumericTypeName.UnsignedInteger) {
+                    throw new Exception('Case expression must be of a unsigned integer type.', this);
+                }
+
+                if (!lCaseValue.isConstant) {
+                    throw new Exception('Case expression must be a constant.', this);
+                }
+            }
+        }
     }
 }
 
 type PgslSwitchStatementSwitchCase = {
-    readonly cases: Array<BasePgslStatementSyntaxTree>,
+    readonly cases: Array<BasePgslExpressionSyntaxTree>,
     readonly block: PgslBlockStatementSyntaxTree;
 };
 

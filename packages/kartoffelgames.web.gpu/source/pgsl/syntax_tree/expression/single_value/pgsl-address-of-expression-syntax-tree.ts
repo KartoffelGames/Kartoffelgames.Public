@@ -2,6 +2,9 @@ import { Exception } from '@kartoffelgames/core';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslPointerTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-pointer-type-definition-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
+import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree';
+import { PgslValueDecompositionExpressionSyntaxTree } from '../storage/pgsl-value-decomposition-expression-syntax-tree';
+import { PgslIndexedValueExpressionSyntaxTree } from '../storage/pgsl-indexed-value-expression-syntax-tree';
 
 /**
  * PGSL structure holding a variable name used to get the address.
@@ -71,16 +74,28 @@ export class PgslAddressOfExpressionSyntaxTree extends BasePgslExpressionSyntaxT
      */
     protected override onValidateIntegrity(): void {
         // Type of expression needs to be storable.
-        if(!this.mVariable.isStorage) {
+        if (!this.mVariable.isStorage) {
             throw new Exception(`Target of address needs to a stored value`, this);
         }
 
         // Type of expression needs to be storable.
-        if(!this.mVariable.resolveType.isStorable) {
+        if (!this.mVariable.resolveType.isStorable) {
             throw new Exception(`Target of address needs to storable`, this);
         }
 
-        // TODO: No vector item.
+        // No vector item.
+        const lParent: BasePgslExpressionSyntaxTree = this.mVariable.parent as BasePgslExpressionSyntaxTree;
+        if (lParent.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) {
+            // Single swizzle name.
+            if (this.mVariable instanceof PgslValueDecompositionExpressionSyntaxTree && this.mVariable.property.length === 1) {
+                throw new Exception(`AddressOf operator can not be applied to a vector item.`, this);
+            }
+
+            // Reference by index.
+            if (this.mVariable instanceof PgslIndexedValueExpressionSyntaxTree) {
+                throw new Exception(`AddressOf operator can not be applied to a vector item.`, this);
+            }
+        }
     }
 }
 

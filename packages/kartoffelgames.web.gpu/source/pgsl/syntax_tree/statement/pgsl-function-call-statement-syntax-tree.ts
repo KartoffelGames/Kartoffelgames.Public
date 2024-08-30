@@ -1,26 +1,19 @@
 import { PgslSyntaxTreeInitData } from '../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
+import { PgslFunctionCallExpressionSyntaxTree } from '../expression/single_value/pgsl-function-call-expression-syntax-tree';
 import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
 
 /**
  * PGSL syntax tree of a function call statement with optional template list.
  */
 export class PgslFunctionCallStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslFunctionCallStatementSyntaxTreeStructureData> {
-    private readonly mName: string;
-    private readonly mParameterList: Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>>;
+    private readonly mFunctionExpression: PgslFunctionCallExpressionSyntaxTree;
 
     /**
-     * Function name.
+     * Function expression of statement.
      */
-    public get name(): string {
-        return this.mName;
-    }
-
-    /**
-     * Function parameter.
-     */
-    public get parameter(): Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>> {
-        return this.mParameterList;
+    public get functionExpression(): PgslFunctionCallExpressionSyntaxTree {
+        return this.mFunctionExpression;
     }
 
     /**
@@ -36,16 +29,18 @@ export class PgslFunctionCallStatementSyntaxTree extends BasePgslStatementSyntax
     public constructor(pData: PgslFunctionCallStatementSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
         super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
 
-        // Set data.
-        this.mName = pData.name;
-        this.mParameterList = pData.parameterList;
+        // Create and validate expression instead.
+        this.mFunctionExpression = new PgslFunctionCallExpressionSyntaxTree({
+            name: pData.name,
+            parameterList: pData.parameterList
+        },0,0,0,0).setParent(this);
     }
 
     /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // TODO: Validate function parameter and template.
+        this.mFunctionExpression.validateIntegrity();
     }
 }
 

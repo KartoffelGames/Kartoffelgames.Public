@@ -87,29 +87,35 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // Read type of inner expression.
-        const lExpressionType: BasePgslTypeDefinitionSyntaxTree = this.mExpression.resolveType;
+        // Type buffer for validating the processed types.
+        let lValueType: BasePgslTypeDefinitionSyntaxTree;
+
+        // Validate vectors differently.
+        if (this.mExpression.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) {
+            lValueType = this.mExpression.resolveType.innerType;
+        } else {
+            lValueType = this.mExpression.resolveType;
+        }
 
         // Validate type for each.
         switch (this.mOperator) {
             case PgslOperator.BinaryNegate: {
-                // TODO: Allow numeric vectors.
-                if (!(lExpressionType instanceof PgslNumericTypeDefinitionSyntaxTree)) {
+                if (!(lValueType instanceof PgslNumericTypeDefinitionSyntaxTree)) {
                     throw new Exception(`Binary negation only valid for numeric type.`, this);
                 }
 
                 break;
             }
             case PgslOperator.Minus: {
-                if (!(lExpressionType instanceof PgslNumericTypeDefinitionSyntaxTree) && !(lExpressionType instanceof PgslVectorTypeDefinitionSyntaxTree)) {
+                // TODO: Not unsigned int.
+                if (!(lValueType instanceof PgslNumericTypeDefinitionSyntaxTree)) {
                     throw new Exception(`Negation only valid for numeric or vector type.`, this);
                 }
 
                 break;
             }
             case PgslOperator.Not: {
-                // TODO: Only vector booleans.
-                if (!(lExpressionType instanceof PgslBooleanTypeDefinitionSyntaxTree)) {
+                if (!(lValueType instanceof PgslBooleanTypeDefinitionSyntaxTree)) {
                     throw new Exception(`Boolean negation only valid for boolean type.`, this);
                 }
 

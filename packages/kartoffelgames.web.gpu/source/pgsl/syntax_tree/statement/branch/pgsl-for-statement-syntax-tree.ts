@@ -7,6 +7,7 @@ import { PgslBlockStatementSyntaxTree } from '../pgsl-block-statement-syntax-tre
 import { PgslFunctionCallStatementSyntaxTree } from '../pgsl-function-call-statement-syntax-tree';
 import { PgslIncrementDecrementStatementSyntaxTree } from '../pgsl-increment-decrement-statement-syntax-tree';
 import { PgslVariableDeclarationStatementSyntaxTree } from '../pgsl-variable-declaration-statement-syntax-tree';
+import { PgslBooleanTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-boolean-type-definition-syntax-tree';
 
 /**
  * PGSL structure for a if statement with optional else block.
@@ -74,8 +75,15 @@ export class PgslForStatementSyntaxTree extends BasePgslStatementSyntaxTree<Pgsl
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // TODO: Expression should resolve into a boolean.
-        // TODO: Variable musst be a let
+        // Expression must be a boolean.
+        if(this.mExpression && !(this.mExpression.resolveType instanceof PgslBooleanTypeDefinitionSyntaxTree)) {
+            throw new Exception('Expression of for loops must resolve into a boolean.', this);
+        }
+
+        // Variable musst be a let
+        if(this.mInit && this.mInit.declarationType !== PgslDeclarationType.Let){
+            throw new Exception('Initial of for loops must be a let declaration.', this);
+        }
     }
 }
 

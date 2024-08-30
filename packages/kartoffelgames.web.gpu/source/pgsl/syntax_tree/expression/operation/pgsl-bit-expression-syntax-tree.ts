@@ -3,6 +3,8 @@ import { PgslOperator } from '../../../enum/pgsl-operator.enum';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree';
+import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree';
+import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum';
 
 export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslBinaryExpressionSyntaxTreeStructureData> {
     private readonly mLeftExpression: BasePgslExpressionSyntaxTree;
@@ -89,8 +91,6 @@ export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree
      * On type resolve of expression
      */
     protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
-        // TODO: Vectors are also allowed...
-
         // Set resolved type to left expression type.
         return this.mLeftExpression.resolveType;
     }
@@ -99,13 +99,35 @@ export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // TODO: Validate that rigth expression of shift operator needs to be a signed integer.
-        //if ((this.mOperator === PgslOperator.ShiftLeft || this.mOperator === PgslOperator.ShiftRight) && this.mRightExpression.resolveType.type !== Integer) {
-        //    throw new Exception(`Right expression of a shift operation must be a integer.`, this);
-        //}
+        // Type buffer for validating the processed types.
+        let lLeftValueType: BasePgslTypeDefinitionSyntaxTree;
+        let lRightValueType: BasePgslTypeDefinitionSyntaxTree;
+
+        // Validate vectors differently.
+        if (this.mLeftExpression.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) {
+            lLeftValueType = this.mLeftExpression.resolveType.innerType;
+
+            // Left and right must be a vector.
+            if (!(this.mRightExpression.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree)) {
+                throw new Exception('Left and right side of bit expression must be the a vector type.', this);
+            }
+            lRightValueType = this.mRightExpression.resolveType.innerType;
+        } else {
+            // Expression types are the processed types.
+            lLeftValueType = this.mLeftExpression.resolveType;
+            lRightValueType = this.mRightExpression.resolveType;
+        }
+
+        // Validate that rigth expression of shift operator needs to be a signed integer.
+        if (this.mOperator === PgslOperator.ShiftLeft || this.mOperator === PgslOperator.ShiftRight) {
+            // Shift value must be numeric.
+            if(!(lRightValueType instanceof PgslNumericTypeDefinitionSyntaxTree) || lRightValueType.typeName !== PgslNumericTypeName.UnsignedInteger) {
+                throw new Exception(`Right expression of a shift operation must be a unsigned integer.`, this);
+            }
+        }
 
         // Both values need to be numeric.
-        if (!(this.mLeftExpression.resolveType instanceof PgslNumericTypeDefinitionSyntaxTree)) {
+        if (!(lLeftValueType instanceof PgslNumericTypeDefinitionSyntaxTree)) {
             throw new Exception(`Binary operations can only be applied to numeric values.`, this);
         }
     }

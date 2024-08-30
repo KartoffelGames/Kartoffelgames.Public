@@ -90,8 +90,6 @@ export class PgslLogicalExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
      * On type resolve of expression
      */
     protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
-        // TODO: Bitwise on vector changes type to vector<numeric>
-
         // Set result type to left side value. Both types must be the same, so it does not matter.
         return this.mLeftExpression.resolveType;
     }
@@ -100,8 +98,6 @@ export class PgslLogicalExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // TODO: Allow vectors. For Bitwise or and Bitwise and
-
         // Validate left side type.
         if (!(this.mLeftExpression.resolveType instanceof PgslBooleanTypeDefinitionSyntaxTree)) {
             throw new Exception('Left side of logical expression needs to be a boolean', this);

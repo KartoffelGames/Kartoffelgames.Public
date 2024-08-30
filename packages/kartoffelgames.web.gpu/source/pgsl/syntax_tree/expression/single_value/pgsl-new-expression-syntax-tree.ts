@@ -1,3 +1,4 @@
+import { Exception } from '@kartoffelgames/core';
 import { PgslSyntaxTreeInitData } from '../../base-pgsl-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslTypeDeclarationSyntaxTree } from '../../type/pgsl-type-declaration-syntax-tree';
@@ -91,6 +92,16 @@ export class PgslNewCallExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
+        // Must be fixed.
+        if(!this.mType.type.isFixed){
+            throw new Exception(`New expression must be a length fixed type.`, this);
+        }
+
+        // Must be constructable.
+        if(!this.mType.type.isConstructable){
+            throw new Exception(`New expression must be a length fixed type.`, this);
+        }
+
         // TODO: Validate function parameter and template.
     }
 }

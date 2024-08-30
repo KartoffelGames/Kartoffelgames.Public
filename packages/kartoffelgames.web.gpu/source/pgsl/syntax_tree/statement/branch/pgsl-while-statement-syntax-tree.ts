@@ -1,6 +1,8 @@
+import { Exception } from '@kartoffelgames/core';
 import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree';
 import { BasePgslStatementSyntaxTree } from '../base-pgsl-statement-syntax-tree';
 import { PgslBlockStatementSyntaxTree } from '../pgsl-block-statement-syntax-tree';
+import { PgslBooleanTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-boolean-type-definition-syntax-tree';
 
 /**
  * PGSL structure for a while statement.
@@ -46,7 +48,10 @@ export class PgslWhileStatementSyntaxTree extends BasePgslStatementSyntaxTree<Pg
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // TODO: Expression should resolve into a boolean.
+        // Expression must be a boolean.
+        if(!(this.mExpression.resolveType instanceof PgslBooleanTypeDefinitionSyntaxTree)) {
+            throw new Exception('Expression of do-while loops must resolve into a boolean.', this);
+        }
     }
 }
 

@@ -3,6 +3,7 @@ import { PgslOperator } from '../../../enum/pgsl-operator.enum';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree';
+import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree';
 
 export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslArithmeticExpressionSyntaxTreeStructureData> {
     private readonly mLeftExpression: BasePgslExpressionSyntaxTree;
@@ -97,18 +98,24 @@ export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntax
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // TODO: Left and right need to be same type.
-        // TODO: Allow vector types but only same type.
-        // TODO: Left and right expressions need to resolve to number values.
+        // TODO: Also matrix calculations :(
 
-        // Validate left side type.
-        if (!(this.mLeftExpression.resolveType instanceof PgslNumericTypeDefinitionSyntaxTree)) {
-            throw new Exception('Left side of arithmetic expression needs to be a numeric value', this);
+        // Left and right need to be same type.
+        if (!this.mLeftExpression.resolveType.equals(this.mRightExpression.resolveType)) {
+            throw new Exception('Left and right side of arithmetic expression must be the same type.', this);
         }
 
-        // Validate right side type.
-        if (!(this.mRightExpression.resolveType instanceof PgslNumericTypeDefinitionSyntaxTree)) {
-            throw new Exception('Right side of arithmetic expression needs to be a numeric value', this);
+        // Validate vector inner values. 
+        if (this.mLeftExpression.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) {
+            // Validate left side vector type. Right ist the same type.
+            if (!(this.mLeftExpression.resolveType.innerType instanceof PgslNumericTypeDefinitionSyntaxTree)) {
+                throw new Exception('Left and right side of arithmetic expression must be a numeric vector value', this);
+            }
+        } else {
+            // Validate left side type. Right ist the same type.
+            if (!(this.mLeftExpression.resolveType instanceof PgslNumericTypeDefinitionSyntaxTree)) {
+                throw new Exception('Left and right side of arithmetic expression must be a numeric value', this);
+            }
         }
     }
 }

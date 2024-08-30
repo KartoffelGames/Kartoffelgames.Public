@@ -42,7 +42,7 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSynt
         super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
 
         // Set data.
-        [this.mScalarType, this.mValue] = this.convertData(pData.literalType, pData.textValue);
+        [this.mScalarType, this.mValue] = this.convertData(pData.textValue);
     }
 
     /**
@@ -94,74 +94,96 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSynt
      * Apply data to current structure.
      * Any thrown error is converted into a parser error.
      * 
-     * @param pData - Structure data.
+     * @param pTextValue - literal value as text.
      * 
      * @throws {@link Exception}
      * When a unsupported type should be set or the {@link pTextValue} value does not fit the {@link pType}.
      */
-    private convertData(pType: PgslTypeName, pTextValue: string): [PgslTypeName, number] {
-        switch (pType) {
-            case PgslTypeName.Integer:
-            case PgslTypeName.UnsignedInteger: {
-                // Try to parse signed integer value.
-                if (/(0[i]?)|([1-9][0-9]*[i]?)|(0[xX][0-9a-fA-F]+[i]?)/.test(pTextValue)) {
-                    return [PgslTypeName.Integer, parseInt(pTextValue)];
-                }
-
-                if (/(0[u])|([1-9][0-9]*[u])|(0[xX][0-9a-fA-F]+[u])/.test(pTextValue)) {
-                    return [PgslTypeName.UnsignedInteger, parseInt(pTextValue)];
-                }
-
-                throw new Exception(`Value "${pTextValue}" can not be parsed into a ${pTextValue}`, this);
-            }
-
-            case PgslTypeName.Float: {
-                // Parse float non hex literals.
-                if (/(0[f])|([1-9][0-9]*[f])|([0-9]*\.[0-9]+([eE][+-]?[0-9]+)?[f]?)|([0-9]+\.[0-9]*([eE][+-]?[0-9]+)?[f]?)|([0-9]+[eE][+-]?[0-9]+[f]?)/.test(pTextValue)) {
-                    return [PgslTypeName.Float, parseFloat(pTextValue)];
-                }
-
-                // Parse float hex literals.
-                if (/(0[xX][0-9a-fA-F]*\.[0-9a-fA-F]+([pP][+-]?[0-9]+[f]?)?)|(0[xX][0-9a-fA-F]+\.[0-9a-fA-F]*([pP][+-]?[0-9]+[f]?)?)|(0[xX][0-9a-fA-F]+[pP][+-]?[0-9]+[f]?)/.test(pTextValue)) {
-                    // Remove staring 0x or 0X
-                    const lNumber = pTextValue.slice(2);
-
-                    // Split float part from exponential.
-                    const [lFloatPart, lExponential] = lNumber.split(/pP/g) as [string, string | undefined];
-
-                    // Integer part can be empty, decimal part can be undefined.
-                    const [lInteger, lFracture] = lFloatPart.split('.') as [string, string | undefined];
-
-                    // Parse text values to seperate parts as number.
-                    const lIntegerNumber = lInteger ? parseInt(lInteger, 16) : 0;
-                    const lFractureNumber = lFracture ? parseInt(lFracture, 16) * Math.pow(16, -lFracture.length) : 0;
-                    const lExponentialNumber = lExponential ? parseInt(lExponential, 10) : 0;
-
-                    // Construct and set float value.
-                    return [PgslTypeName.Float, (lIntegerNumber + lFractureNumber) * Math.pow(2, lExponentialNumber)];
-                }
-
-                throw new Exception(`Value "${pTextValue}" can not be parsed into a ${pTextValue}`, this);
-            }
-
-            case PgslTypeName.Boolean: {
-                // Validate text to be a boolean value.
-                if (pTextValue !== 'true' && pTextValue !== 'false') {
-                    throw new Exception(`Value "${pTextValue}" can not be parsed into a boolean.`, this);
-                }
-
-                // Set boolean values.
-                return [PgslTypeName.Boolean, pTextValue === 'true' ? 1 : 0];
-            }
-
-            default: {
-                throw new Exception(`Type "${pType}" not valid for literal "${pTextValue}".`, this);
-            }
+    private convertData(pTextValue: string): [PgslTypeName, number] {
+        // Might be a boolean
+        if (pTextValue === 'true') {
+            return [PgslTypeName.Boolean, 1];
         }
+        if (pTextValue === 'false') {
+            return [PgslTypeName.Boolean, 0];
+        }
+
+        // Might be a integer.
+        const lIntegerMatch: RegExpExecArray | null = /^(?<number>(0)|(?:[1-9][0-9]*)|(?:0[xX][0-9a-fA-F]+))(?<suffix>[iu]?)$/.exec(pTextValue);
+        if (lIntegerMatch) {
+            // Convert number value.
+            const lNumber: number = parseInt(lIntegerMatch.groups!['number']);
+
+            // Convert suffix to concrete type.
+            let lSuffixType: PgslTypeName;
+            switch (lIntegerMatch.groups!['suffix']) {
+                case 'u': {
+                    lSuffixType = PgslTypeName.UnsignedInteger;
+                    break;
+                }
+                case 'i': {
+                    lSuffixType = PgslTypeName.Integer;
+                    break;
+                }
+                default: {
+                    lSuffixType = PgslTypeName.AbstractInteger;
+                    break;
+                }
+            }
+
+            return [lSuffixType, lNumber];
+        }
+
+        // Might be a float.
+        const lFloatMatch: RegExpExecArray | null = /^(?:(?<number>(?:0)|(?:[1-9][0-9]*)|(?:[0-9]*\.[0-9]+(?:[eE][+-]?[0-9]+)?)|(?:[0-9]+\.[0-9]*(?:[eE][+-]?[0-9]+)?)|(?:[0-9]+[eE][+-]?[0-9]+))|(?<hex>(?:0[xX][0-9a-fA-F]*\.[0-9a-fA-F]+(?:[pP][+-]?[0-9]+)?)|(?:0[xX][0-9a-fA-F]+\.[0-9a-fA-F]*(?:[pP][+-]?[0-9]+)?)|(?:0[xX][0-9a-fA-F]+[pP][+-]?[0-9]+)))(?<suffix>[fh]?)$/.exec(pTextValue);
+        if (lFloatMatch) {
+            // Parse float number.
+            let lNumber: number;
+            if (lFloatMatch.groups!['number']) {
+                lNumber = parseFloat(lFloatMatch.groups!['number']);
+            } else {
+                // Remove staring 0x or 0X
+                const lHexNumber = lFloatMatch.groups!['hex'].slice(2);
+
+                // Split float part from exponential.
+                const [lFloatPart, lExponential] = lHexNumber.split(/pP/g) as [string, string | undefined];
+
+                // Integer part can be empty, decimal part can be undefined.
+                const [lInteger, lFracture] = lFloatPart.split('.') as [string, string | undefined];
+
+                // Parse text values to seperate parts as number.
+                const lIntegerNumber = lInteger ? parseInt(lInteger, 16) : 0;
+                const lFractureNumber = lFracture ? parseInt(lFracture, 16) * Math.pow(16, -lFracture.length) : 0;
+                const lExponentialNumber = lExponential ? parseInt(lExponential, 10) : 0;
+
+                // Construct and set float value.
+                lNumber = (lIntegerNumber + lFractureNumber) * Math.pow(2, lExponentialNumber);
+            }
+
+            // Convert suffix to concrete type.
+            let lSuffixType: PgslTypeName;
+            switch (lFloatMatch.groups!['suffix']) {
+                case 'f': {
+                    lSuffixType = PgslTypeName.Float;
+                    break;
+                }
+                case 'h': {
+                    lSuffixType = PgslTypeName.Float16;
+                    break;
+                }
+                default: {
+                    lSuffixType = PgslTypeName.AbstractFloat;
+                    break;
+                }
+            }
+
+            return [lSuffixType, lNumber];
+        }
+
+        throw new Exception(`Type not valid for literal "${pTextValue}".`, this);
     }
 }
 
 export type PgslLiteralValueExpressionSyntaxTreeStructureData = {
     textValue: string,
-    literalType: PgslTypeName;
 };

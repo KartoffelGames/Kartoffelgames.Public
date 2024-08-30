@@ -4,6 +4,9 @@ export enum PgslTypeName {
     Integer = 'Integer',
     UnsignedInteger = 'UInteger',
     Float = 'Float',
+    Float16 = 'Float16',
+    AbstractFloat = 'AbstractFloat',
+    AbstractInteger = 'AbstractInteger',
     String = '*STRING*', // Should never be named
 
     // Vector types.

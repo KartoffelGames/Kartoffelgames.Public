@@ -102,7 +102,7 @@ describe('PsglLexer', () => {
             it('-- Hex value with ending f value.', () => {
                 // Setup.
                 const lCodeString = `
-                    const my_var_name: f32 = 0.e+4f;
+                    const my_var_name: f32 = 0x1P+4f;
                 `;
 
                 // Process.
@@ -115,7 +115,7 @@ describe('PsglLexer', () => {
             it('-- Hex value with zero integer.', () => {
                 // Setup.
                 const lCodeString = `
-                    const my_var_name: f32 = 1e-3;
+                    const my_var_name: f32 = 0X.3;
                 `;
 
                 // Process.

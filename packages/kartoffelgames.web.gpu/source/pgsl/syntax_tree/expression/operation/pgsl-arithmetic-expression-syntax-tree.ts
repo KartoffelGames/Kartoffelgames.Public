@@ -99,6 +99,7 @@ export class PgslArithmeticExpressionSyntaxTree extends BasePgslExpressionSyntax
      */
     protected override onValidateIntegrity(): void {
         // TODO: Also matrix calculations :(
+        // TODO: And Mixed vector calculation...
 
         // Left and right need to be same type.
         if (!this.mLeftExpression.resolveType.equals(this.mRightExpression.resolveType)) {

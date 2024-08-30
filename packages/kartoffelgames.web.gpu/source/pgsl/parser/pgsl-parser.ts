@@ -495,31 +495,14 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
 
         this.defineGraphPart('Expression-LiteralValue', this.graph()
             .branch('value', [
-                this.graph().single('float', PgslToken.LiteralFloat),
-                this.graph().single('integer', PgslToken.LiteralInteger),
-                this.graph().single('boolean', PgslToken.LiteralBoolean)
+                PgslToken.LiteralFloat,
+                PgslToken.LiteralInteger,
+                PgslToken.LiteralBoolean
             ]),
             (pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PgslLiteralValueExpressionSyntaxTree => {
-                // Define different types of data for the different literals.
-                let lData: ConstructorParameters<typeof PgslLiteralValueExpressionSyntaxTree>[0];
-                if ('float' in pData.value) {
-                    lData = {
-                        textValue: pData.value.float,
-                        literalType: PgslTypeName.Float
-                    };
-                } else if ('integer' in pData.value) {
-                    lData = {
-                        textValue: pData.value.integer,
-                        literalType: PgslTypeName.Integer
-                    };
-                } else if ('boolean' in pData.value) {
-                    lData = {
-                        textValue: pData.value.boolean,
-                        literalType: PgslTypeName.Boolean
-                    };
-                }
-
-                return new PgslLiteralValueExpressionSyntaxTree(lData!, ...this.createTokenBoundParameter(pStartToken, pEndToken));
+                return new PgslLiteralValueExpressionSyntaxTree({
+                    textValue: pData.value
+                }, ...this.createTokenBoundParameter(pStartToken, pEndToken));
             }
         );
 

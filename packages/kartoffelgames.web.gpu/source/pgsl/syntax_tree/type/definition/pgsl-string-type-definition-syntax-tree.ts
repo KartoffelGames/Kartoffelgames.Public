@@ -1,3 +1,4 @@
+import { PgslTypeName } from '../enum/pgsl-type-name.enum';
 import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
 
 export class PgslStringTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslStringTypeDefinitionSyntaxTreeStructureData> {
@@ -12,7 +13,18 @@ export class PgslStringTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
      * @param pBuildIn - Buildin value.
      */
     public constructor(pData: PgslStringTypeDefinitionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+        const lIdentifier: string = 'ID:STRING->STRING';
+
+        // Return cached when available.
+        if (BasePgslTypeDefinitionSyntaxTree.mTypeCache.has(lIdentifier)) {
+            return BasePgslTypeDefinitionSyntaxTree.mTypeCache.get(lIdentifier)! as PgslStringTypeDefinitionSyntaxTree;
+        }
+
+        // Create.
+        super(PgslTypeName.String, lIdentifier, pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+
+        // Set cache.
+        BasePgslTypeDefinitionSyntaxTree.mTypeCache.set(lIdentifier, this);
     }
 
     /**
@@ -65,18 +77,9 @@ export class PgslStringTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
     }
 
     /**
-     * On equal check of type definitions.
-     * 
-     * @param _pTarget - Target type definition.
-     */
-    protected override onEqual(_pTarget: this): boolean {
-        return true;
-    }
-
-    /**
      * Validate data of current structure.
      */
-    protected override onValidateIntegrity(): void { 
+    protected override onValidateIntegrity(): void {
         // Nothing to validate.
     }
 }

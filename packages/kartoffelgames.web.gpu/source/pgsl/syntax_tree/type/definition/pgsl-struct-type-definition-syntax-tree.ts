@@ -1,8 +1,9 @@
 import { PgslStructDeclarationSyntaxTree } from '../../declaration/pgsl-struct-declaration-syntax-tree';
+import { PgslTypeName } from '../enum/pgsl-type-name.enum';
 import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
 
 export class PgslStructTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslStructTypeDefinitionSyntaxTreeStructureData> {
-    private readonly mStruct: PgslStructDeclarationSyntaxTree;
+    private readonly mStruct!: PgslStructDeclarationSyntaxTree;
 
     /**
      * Struct declaration of type.
@@ -22,7 +23,18 @@ export class PgslStructTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
      * @param pBuildIn - Buildin value.
      */
     public constructor(pData: PgslStructTypeDefinitionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+        const lIdentifier: string = `ID:STRUCT->${pData.struct.name.toUpperCase()}`;
+
+        // Return cached when available.
+        if (BasePgslTypeDefinitionSyntaxTree.mTypeCache.has(lIdentifier)) {
+            return BasePgslTypeDefinitionSyntaxTree.mTypeCache.get(lIdentifier)! as PgslStructTypeDefinitionSyntaxTree;
+        }
+
+        // Create.
+        super(PgslTypeName.Struct, lIdentifier, pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+
+        // Set cache.
+        BasePgslTypeDefinitionSyntaxTree.mTypeCache.set(lIdentifier, this);
 
         // Set data.
         this.mStruct = pData.struct;
@@ -95,15 +107,6 @@ export class PgslStructTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
      */
     protected override determinateIsStorable(): boolean {
         return true;
-    }
-
-    /**
-     * On equal check of type definitions.
-     * 
-     * @param pTarget - Target type definition.
-     */
-    protected override onEqual(pTarget: this): boolean {
-        return this.mStruct === pTarget.struct;
     }
 
     /**

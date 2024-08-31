@@ -1,10 +1,10 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum';
-import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree';
 import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree';
-import { PgslBooleanTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-boolean-type-definition-syntax-tree';
+import { PgslTypeName } from '../../type/enum/pgsl-type-name.enum';
+import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**
  * PGSL structure holding a expression with a single value and a single unary operation.
@@ -57,7 +57,7 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<
         // Expression is constant when variable is a constant.
         return this.mExpression.isConstant;
     }
-    
+
     /**
      * On creation fixed state request.
      */
@@ -115,7 +115,7 @@ export class PgslUnaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<
                 break;
             }
             case PgslOperator.Not: {
-                if (!(lValueType instanceof PgslBooleanTypeDefinitionSyntaxTree)) {
+                if (lValueType.typeName !== PgslTypeName.Boolean) {
                     throw new Exception(`Boolean negation only valid for boolean type.`, this);
                 }
 

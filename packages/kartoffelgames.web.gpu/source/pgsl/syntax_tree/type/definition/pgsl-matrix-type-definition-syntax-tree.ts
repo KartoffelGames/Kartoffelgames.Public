@@ -1,27 +1,20 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { PgslMatrixTypeName } from '../enum/pgsl-matrix-type-name.enum';
+import { PgslTypeName } from '../enum/pgsl-type-name.enum';
 import { PgslVectorTypeName } from '../enum/pgsl-vector-type-name.enum';
 import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
 import { PgslNumericTypeDefinitionSyntaxTree } from './pgsl-numeric-type-definition-syntax-tree';
 import { PgslVectorTypeDefinitionSyntaxTree } from './pgsl-vector-type-definition-syntax-tree';
 
 export class PgslMatrixTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslMatrixTypeDefinitionSyntaxTreeStructureData> {
-    private readonly mInnerType: BasePgslTypeDefinitionSyntaxTree;
-    private readonly mTypeName: PgslMatrixTypeName;
-    private mVectorType: PgslVectorTypeDefinitionSyntaxTree | null;
+    private readonly mInnerType!: BasePgslTypeDefinitionSyntaxTree;
+    private mVectorType!: PgslVectorTypeDefinitionSyntaxTree | null;
 
     /**
      * Inner type of matrix.
      */
     public get innerType(): BasePgslTypeDefinitionSyntaxTree {
         return this.mInnerType;
-    }
-
-    /**
-     * Typename of matrix type.
-     */
-    public get typeName(): PgslMatrixTypeName {
-        return this.mTypeName;
     }
 
     /**
@@ -49,10 +42,20 @@ export class PgslMatrixTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
      * @param pBuildIn - Buildin value.
      */
     public constructor(pData: PgslMatrixTypeDefinitionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+        const lIdentifier: string = `ID:MATRIX->${pData.typeName.toUpperCase()}->${pData.innerType.identifier}`;
+
+        // Return cached when available.
+        if (BasePgslTypeDefinitionSyntaxTree.mTypeCache.has(lIdentifier)) {
+            return BasePgslTypeDefinitionSyntaxTree.mTypeCache.get(lIdentifier)! as PgslMatrixTypeDefinitionSyntaxTree;
+        }
+
+        // Create. Matrix typename is convertable to general typename. 
+        super(pData.typeName as unknown as PgslTypeName, lIdentifier, pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+
+        // Set cache.
+        BasePgslTypeDefinitionSyntaxTree.mTypeCache.set(lIdentifier, this);
 
         // Set data.
-        this.mTypeName = pData.typeName;
         this.mInnerType = pData.innerType;
 
         // Set empty data.
@@ -109,15 +112,6 @@ export class PgslMatrixTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
     }
 
     /**
-     * On equal check of type definitions.
-     * 
-     * @param pTarget - Target type definition.
-     */
-    protected override onEqual(pTarget: this): boolean {
-        return this.mInnerType === pTarget.innerType && this.mInnerType.equals(pTarget.innerType);
-    }
-
-    /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
@@ -145,7 +139,7 @@ export class PgslMatrixTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
 
         // Create vector type.
         return new PgslVectorTypeDefinitionSyntaxTree({
-            typeName: lMatrixToVectorMapping.get(this.mTypeName)!,
+            typeName: lMatrixToVectorMapping.get(this.typeName as unknown as PgslMatrixTypeName)!,
             innerType: this.mInnerType,
         }, 0, 0, 0, 0).setParent(this).validateIntegrity();
     }

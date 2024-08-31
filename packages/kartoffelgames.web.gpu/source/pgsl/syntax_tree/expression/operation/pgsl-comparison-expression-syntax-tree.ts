@@ -4,6 +4,8 @@ import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgs
 import { PgslBooleanTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-boolean-type-definition-syntax-tree';
 import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree';
 import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree';
+import { PgslTypeName } from '../../type/enum/pgsl-type-name.enum';
+import { PgslVectorTypeName } from '../../type/enum/pgsl-vector-type-name.enum';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**
@@ -101,7 +103,7 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
         if (this.mLeftExpression.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) {
             return new PgslVectorTypeDefinitionSyntaxTree({
                 innerType: lBooleanDefinition,
-                typeName: this.mLeftExpression.resolveType.typeName
+                typeName: this.mLeftExpression.resolveType.typeName as unknown as PgslVectorTypeName
             }, 0, 0, 0, 0).setParent(this).validateIntegrity();
         }
 
@@ -128,13 +130,13 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
         }
 
         // Both values need to be numeric or boolean.
-        if (!(lValueType instanceof PgslNumericTypeDefinitionSyntaxTree) || !(lValueType instanceof PgslBooleanTypeDefinitionSyntaxTree)) {
+        if (!(lValueType instanceof PgslNumericTypeDefinitionSyntaxTree) || lValueType.typeName !== PgslTypeName.Boolean) {
             throw new Exception(`None numeric or boolean values can't be compared`, this);
         }
 
         // Validate boolean compare.
         if (![PgslOperator.Equal, PgslOperator.NotEqual].includes(this.mOperator)) {
-            if (lValueType instanceof PgslBooleanTypeDefinitionSyntaxTree) {
+            if (lValueType.typeName === PgslTypeName.Boolean) {
                 throw new Exception(`Boolean can only be compares with "NotEqual" or "Equal"`, this);
             }
         }

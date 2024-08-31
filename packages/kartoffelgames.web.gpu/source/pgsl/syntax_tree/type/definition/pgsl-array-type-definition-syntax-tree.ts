@@ -94,23 +94,7 @@ export class PgslArrayTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyn
     protected override determinateIsStorable(): boolean {
         return this.mInnerType.isStorable;
     }
-
-    /**
-     * On equal check of type definitions
-     * 
-     * @param pTarget - Target type definition.
-     */
-    protected override onEqual(pTarget: this): boolean {
-        // Validate same inner type.
-        if(!this.mInnerType.equals(pTarget.innerType)) {
-            return false;
-        }
-
-        // TODO: Same length???
-
-        return true;
-    }
-
+    
     /**
      * Validate data of current structure.
      */

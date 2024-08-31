@@ -1,16 +1,8 @@
 import { PgslNumericTypeName } from '../enum/pgsl-numeric-type-name.enum';
+import { PgslTypeName } from '../enum/pgsl-type-name.enum';
 import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
 
 export class PgslNumericTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslNumericTypeDefinitionSyntaxTreeStructureData> {
-    private readonly mTypeName: PgslNumericTypeName;
-
-    /**
-     * Typename of numerice type.
-     */
-    public get typeName(): PgslNumericTypeName {
-        return this.mTypeName;
-    }
-
     /**
      * Constructor.
      * 
@@ -22,10 +14,18 @@ export class PgslNumericTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param pBuildIn - Buildin value.
      */
     public constructor(pData: PgslNumericTypeDefinitionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+        const lIdentifier: string = `ID:NUMERIC->${pData.typeName.toUpperCase()}`;
 
-        // Set data.
-        this.mTypeName = pData.typeName;
+        // Return cached when available.
+        if (BasePgslTypeDefinitionSyntaxTree.mTypeCache.has(lIdentifier)) {
+            return BasePgslTypeDefinitionSyntaxTree.mTypeCache.get(lIdentifier)! as PgslNumericTypeDefinitionSyntaxTree;
+        }
+
+        // Create. Numeric typename is convertable to general typename.
+        super(pData.typeName as unknown as PgslTypeName, lIdentifier, pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+
+        // Set cache.
+        BasePgslTypeDefinitionSyntaxTree.mTypeCache.set(lIdentifier, this);
     }
 
     /**
@@ -75,15 +75,6 @@ export class PgslNumericTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      */
     protected override determinateIsStorable(): boolean {
         return true;
-    }
-
-    /**
-     * On equal check of type definitions.
-     * 
-     * @param pTarget - Target type definition.
-     */
-    protected override onEqual(pTarget: this): boolean {
-        return this.mTypeName === pTarget.typeName;
     }
 
     /**

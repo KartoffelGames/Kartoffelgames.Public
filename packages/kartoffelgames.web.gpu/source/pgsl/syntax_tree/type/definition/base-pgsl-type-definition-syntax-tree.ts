@@ -1,9 +1,14 @@
+import { Dictionary } from '@kartoffelgames/core';
 import { BasePgslSyntaxTree, PgslSyntaxTreeInitData } from '../../base-pgsl-syntax-tree';
+import { PgslTypeName } from '../enum/pgsl-type-name.enum';
 
 /**
  * PGSL base type definition.
  */
 export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxTreeInitData = PgslSyntaxTreeInitData> extends BasePgslSyntaxTree<TData> {
+    protected static readonly mTypeCache: Dictionary<string, BasePgslTypeDefinitionSyntaxTree> = new Dictionary<string, BasePgslTypeDefinitionSyntaxTree>();
+
+    private readonly mIdentifier: string;
     private mIsComposite: boolean | null;
     private mIsConstructable: boolean | null;
     private mIsFixed: boolean | null;
@@ -11,6 +16,16 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxT
     private mIsPlainType: boolean | null;
     private mIsShareable: boolean | null;
     private mIsStorable: boolean | null;
+    private readonly mTypeName: PgslTypeName;
+
+    // TODO: Add some type of caching.
+
+    /**
+     * Type identifier.
+     */
+    public get identifier(): string {
+        return this.mIdentifier;
+    }
 
     /**
      * If declaration is a composite type.
@@ -111,8 +126,17 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxT
     }
 
     /**
+     * Type name of definition.
+     */
+    public get typeName(): PgslTypeName {
+        return this.mTypeName;
+    }
+
+    /**
      * Constructor.
      * 
+     * @param pTypeName - Typename.
+     * @param pIdentifier - Unique identifier of type.
      * @param pData - Initial data.
      * @param pStartColumn - Parsing start column.
      * @param pStartLine - Parsing start line.
@@ -120,8 +144,12 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxT
      * @param pEndLine - Parsing end line.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: TData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number, pBuildIn: boolean = false) {
+    public constructor(pTypeName: PgslTypeName, pIdentifier: string, pData: TData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number, pBuildIn: boolean = false) {
         super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
+
+        // Set type name.
+        this.mTypeName = pTypeName;
+        this.mIdentifier = pIdentifier;
 
         // Set data default
         this.mIsComposite = null;
@@ -131,8 +159,6 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxT
         this.mIsShareable = null;
         this.mIsStorable = null;
         this.mIsPlainType = null;
-
-        // TODO: A constructible type has a creation-fixed footprint.
     }
 
     /**
@@ -143,12 +169,7 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxT
      * @returns if both declarations are equal.
      */
     public equals(pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
-        // Need to be same type.
-        if (!(pTarget instanceof this.constructor)) {
-            return false;
-        }
-
-        return this.onEqual(pTarget as this);
+        return pTarget.identifier === this.identifier;
     }
 
     /**
@@ -185,11 +206,4 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxT
      * Determinate if value is storable in a variable.
      */
     protected abstract determinateIsStorable(): boolean;
-
-    /**
-     * On equal check of type definitions.
-     * 
-     * @param pTarget - Target type definition.
-     */
-    protected abstract onEqual(pTarget: this): boolean;
 }

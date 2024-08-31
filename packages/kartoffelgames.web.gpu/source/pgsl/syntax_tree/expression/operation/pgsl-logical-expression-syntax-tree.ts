@@ -1,7 +1,7 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
-import { PgslBooleanTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-boolean-type-definition-syntax-tree';
+import { PgslTypeName } from '../../type/enum/pgsl-type-name.enum';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**
@@ -99,12 +99,12 @@ export class PgslLogicalExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
      */
     protected override onValidateIntegrity(): void {
         // Validate left side type.
-        if (!(this.mLeftExpression.resolveType instanceof PgslBooleanTypeDefinitionSyntaxTree)) {
+        if (this.mLeftExpression.resolveType.typeName !== PgslTypeName.Boolean) {
             throw new Exception('Left side of logical expression needs to be a boolean', this);
         }
 
         // Validate right side type.
-        if (!(this.mRightExpression.resolveType instanceof PgslBooleanTypeDefinitionSyntaxTree)) {
+        if (this.mRightExpression.resolveType.typeName !== PgslTypeName.Boolean) {
             throw new Exception('Right side of logical expression needs to be a boolean', this);
         }
     }

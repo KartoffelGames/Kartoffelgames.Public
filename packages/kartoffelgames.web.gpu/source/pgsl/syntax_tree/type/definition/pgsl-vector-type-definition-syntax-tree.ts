@@ -1,25 +1,17 @@
 import { Exception } from '@kartoffelgames/core';
+import { PgslTypeName } from '../enum/pgsl-type-name.enum';
 import { PgslVectorTypeName } from '../enum/pgsl-vector-type-name.enum';
 import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
-import { PgslBooleanTypeDefinitionSyntaxTree } from './pgsl-boolean-type-definition-syntax-tree';
 import { PgslNumericTypeDefinitionSyntaxTree } from './pgsl-numeric-type-definition-syntax-tree';
 
 export class PgslVectorTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslVectorTypeDefinitionSyntaxTreeStructureData> {
-    private readonly mInnerType: BasePgslTypeDefinitionSyntaxTree;
-    private readonly mTypeName: PgslVectorTypeName;
+    private readonly mInnerType!: BasePgslTypeDefinitionSyntaxTree;
 
     /**
      * Inner type of vector.
      */
     public get innerType(): BasePgslTypeDefinitionSyntaxTree {
         return this.mInnerType;
-    }
-
-    /**
-     * Typename of vector type.
-     */
-    public get typeName(): PgslVectorTypeName {
-        return this.mTypeName;
     }
 
     /**
@@ -33,10 +25,20 @@ export class PgslVectorTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
      * @param pBuildIn - Buildin value.
      */
     public constructor(pData: PgslVectorTypeDefinitionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+        const lIdentifier: string = `ID:VECTOR->${pData.typeName.toUpperCase()}->${pData.innerType.identifier}`;
+
+        // Return cached when available.
+        if (BasePgslTypeDefinitionSyntaxTree.mTypeCache.has(lIdentifier)) {
+            return BasePgslTypeDefinitionSyntaxTree.mTypeCache.get(lIdentifier)! as PgslVectorTypeDefinitionSyntaxTree;
+        }
+
+        // Create. Vector typename is convertable to general typename. 
+        super(pData.typeName as unknown as PgslTypeName, lIdentifier, pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+
+        // Set cache.
+        BasePgslTypeDefinitionSyntaxTree.mTypeCache.set(lIdentifier, this);
 
         // Set data.
-        this.mTypeName = pData.typeName;
         this.mInnerType = pData.innerType;
     }
 
@@ -90,20 +92,11 @@ export class PgslVectorTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
     }
 
     /**
-     * On equal check of type definitions.
-     * 
-     * @param pTarget - Target type definition.
-     */
-    protected override onEqual(pTarget: this): boolean {
-        return this.mInnerType === pTarget.innerType && this.mInnerType.equals(pTarget.innerType);
-    }
-
-    /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
         // Must be scalar.
-        if (!(this.mInnerType instanceof PgslNumericTypeDefinitionSyntaxTree) && !(this.mInnerType instanceof PgslBooleanTypeDefinitionSyntaxTree)) {
+        if (!(this.mInnerType instanceof PgslNumericTypeDefinitionSyntaxTree) && this.mInnerType.typeName !== PgslTypeName.Boolean) {
             throw new Exception('Vector type must be a scalar value', this);
         }
     }

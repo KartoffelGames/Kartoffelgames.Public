@@ -165,6 +165,11 @@ export abstract class BasePgslSyntaxTree<TData extends PgslSyntaxTreeInitData> {
      * validate tree structure. 
      */
     public validateIntegrity(): this {
+        // Already validated.
+        if (this.mIsValid) {
+            return this;
+        }
+
         // Validate all child structures.
         for (const lChild of this.mChilds) {
             lChild.validateIntegrity();

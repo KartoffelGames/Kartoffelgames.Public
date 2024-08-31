@@ -1,3 +1,4 @@
+import { PgslTypeName } from '../enum/pgsl-type-name.enum';
 import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
 
 export class PgslBooleanTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslBooleanTypeDefinitionSyntaxTreeStructureData> {
@@ -12,7 +13,18 @@ export class PgslBooleanTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param pBuildIn - Buildin value.
      */
     public constructor(pData: PgslBooleanTypeDefinitionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+        const lIdentifier: string = 'ID:BOOLEAN->BOOLEAN';
+
+        // Return cached when available.
+        if (BasePgslTypeDefinitionSyntaxTree.mTypeCache.has(lIdentifier)) {
+            return BasePgslTypeDefinitionSyntaxTree.mTypeCache.get(lIdentifier)! as PgslBooleanTypeDefinitionSyntaxTree;
+        }
+
+        // Create.
+        super(PgslTypeName.Boolean, lIdentifier, pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+
+        // Set cache.
+        BasePgslTypeDefinitionSyntaxTree.mTypeCache.set(lIdentifier, this);
     }
 
     /**
@@ -61,15 +73,6 @@ export class PgslBooleanTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * Determinate if value is storable in a variable.
      */
     protected override determinateIsStorable(): boolean {
-        return true;
-    }
-
-    /**
-     * On equal check of type definitions.
-     * 
-     * @param _pTarget - Target type definition.
-     */
-    protected override onEqual(_pTarget: this): boolean {
         return true;
     }
 

@@ -1,10 +1,10 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum';
-import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree';
 import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree';
-import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum';
+import { PgslTypeName } from '../../type/enum/pgsl-type-name.enum';
+import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree<PgslBinaryExpressionSyntaxTreeStructureData> {
     private readonly mLeftExpression: BasePgslExpressionSyntaxTree;
@@ -121,7 +121,7 @@ export class PgslBinaryExpressionSyntaxTree extends BasePgslExpressionSyntaxTree
         // Validate that rigth expression of shift operator needs to be a signed integer.
         if (this.mOperator === PgslOperator.ShiftLeft || this.mOperator === PgslOperator.ShiftRight) {
             // Shift value must be numeric.
-            if(!(lRightValueType instanceof PgslNumericTypeDefinitionSyntaxTree) || lRightValueType.typeName !== PgslNumericTypeName.UnsignedInteger) {
+            if(lRightValueType.typeName !== PgslTypeName.UnsignedInteger) {
                 throw new Exception(`Right expression of a shift operation must be a unsigned integer.`, this);
             }
         }

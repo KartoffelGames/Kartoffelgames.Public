@@ -5,7 +5,7 @@ import { PgslSyntaxTreeInitData } from '../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 import { IPgslVariableDeclarationSyntaxTree } from '../interface/i-pgsl-variable-declaration-syntax-tree.interface';
 import { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree';
-import { PgslPointerTypeDefinitionSyntaxTree } from '../type/definition/pgsl-pointer-type-definition-syntax-tree';
+import { PgslTypeName } from '../type/enum/pgsl-type-name.enum';
 import { PgslTypeDeclarationSyntaxTree } from '../type/pgsl-type-declaration-syntax-tree';
 import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
 
@@ -131,7 +131,7 @@ export class PgslVariableDeclarationStatementSyntaxTree extends BasePgslStatemen
      */
     protected override onValidateIntegrity(): void {
         // Value validation does not apply to pointers.
-        if (!(this.mTypeDeclaration.type instanceof PgslPointerTypeDefinitionSyntaxTree)) {
+        if (!(this.mTypeDeclaration.type.typeName !== PgslTypeName.Pointer)) {
             // Type needs to be storable.
             if (!this.mTypeDeclaration.type.isStorable) {
                 throw new Exception(`Type is not storable or a pointer of it.`, this);

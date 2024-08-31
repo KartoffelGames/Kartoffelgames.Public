@@ -2,6 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree';
 import { PgslBuildInTypeName } from '../enum/pgsl-build-in-type-name.enum';
 import { PgslNumericTypeName } from '../enum/pgsl-numeric-type-name.enum';
+import { PgslTypeName } from '../enum/pgsl-type-name.enum';
 import { PgslVectorTypeName } from '../enum/pgsl-vector-type-name.enum';
 import { PgslTypeDeclarationSyntaxTree } from '../pgsl-type-declaration-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
@@ -11,9 +12,8 @@ import { PgslNumericTypeDefinitionSyntaxTree } from './pgsl-numeric-type-definit
 import { PgslVectorTypeDefinitionSyntaxTree } from './pgsl-vector-type-definition-syntax-tree';
 
 export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslBuildInTypeDefinitionSyntaxTreeStructureData> {
-    private mRealType: BasePgslTypeDefinitionSyntaxTree | null;
-    private readonly mTemplate: PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree | null;
-    private readonly mTypeName: PgslBuildInTypeName;
+    private mRealType!: BasePgslTypeDefinitionSyntaxTree | null;
+    private readonly mTemplate!: PgslTypeDeclarationSyntaxTree | BasePgslExpressionSyntaxTree | null;
 
     /**
      * Get real type of build in.
@@ -30,13 +30,6 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
     }
 
     /**
-     * Typename of numerice type.
-     */
-    public get typeName(): PgslBuildInTypeName {
-        return this.mTypeName;
-    }
-
-    /**
      * Constructor.
      * 
      * @param pData - Initial data.
@@ -47,10 +40,21 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * @param pBuildIn - Buildin value.
      */
     public constructor(pData: PgslBuildInTypeDefinitionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+        // Create identifier. Template does not matter.
+        const lIdentifier: string = `ID:BUILDIN->${pData.type.toUpperCase()}`;
+
+        // Return cached when available.
+        if (BasePgslTypeDefinitionSyntaxTree.mTypeCache.has(lIdentifier)) {
+            return BasePgslTypeDefinitionSyntaxTree.mTypeCache.get(lIdentifier)! as PgslBuildInTypeDefinitionSyntaxTree;
+        }
+
+        // Create. Texture typename is convertable to general typename. 
+        super(pData.type as unknown as PgslTypeName, lIdentifier, pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+
+        // Set cache.
+        BasePgslTypeDefinitionSyntaxTree.mTypeCache.set(lIdentifier, this);
 
         // Set data.
-        this.mTypeName = pData.type;
         this.mTemplate = pData.template ?? null;
         this.mRealType = null;
     }
@@ -107,20 +111,11 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
     }
 
     /**
-     * On equal check of type definitions.
-     * 
-     * @param pTarget - Target type definition.
-     */
-    protected override onEqual(pTarget: this): boolean {
-        return this.mTypeName === pTarget.typeName;
-    }
-
-    /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
         // Only clip distance needs validation.
-        if (this.mTypeName === PgslBuildInTypeName.ClipDistances) {
+        if (this.typeName === PgslTypeName.ClipDistances) {
             // Must have a template.
             if (!this.mTemplate) {
                 throw new Exception(`Clip distance buildin must have a template value.`, this);
@@ -142,7 +137,7 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
             }
 
             // Template needs to be a unsigned integer.
-            if (this.mTemplate.resolveType.typeName !== PgslNumericTypeName.UnsignedInteger) {
+            if (this.mTemplate.resolveType.typeName !== PgslTypeName.UnsignedInteger) {
                 throw new Exception(`Clip distance buildin template value musst be a unssigned integer.`, this);
             }
         }
@@ -153,8 +148,8 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      */
     private determinateRealType(): BasePgslTypeDefinitionSyntaxTree {
         // Big ass switch case.
-        switch (this.mTypeName) {
-            case PgslBuildInTypeName.Position: {
+        switch (this.typeName) {
+            case PgslTypeName.Position: {
                 return new PgslVectorTypeDefinitionSyntaxTree({
                     typeName: PgslVectorTypeName.Vector4,
                     innerType: new PgslNumericTypeDefinitionSyntaxTree({
@@ -162,12 +157,12 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
                     }, 0, 0, 0, 0).setParent(this).validateIntegrity()
                 }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
-            case PgslBuildInTypeName.LocalInvocationId: {
+            case PgslTypeName.LocalInvocationId: {
                 return new PgslNumericTypeDefinitionSyntaxTree({
                     typeName: PgslNumericTypeName.UnsignedInteger
                 }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
-            case PgslBuildInTypeName.GlobalInvocationId: {
+            case PgslTypeName.GlobalInvocationId: {
                 return new PgslVectorTypeDefinitionSyntaxTree({
                     typeName: PgslVectorTypeName.Vector3,
                     innerType: new PgslNumericTypeDefinitionSyntaxTree({
@@ -175,7 +170,7 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
                     }, 0, 0, 0, 0).setParent(this).validateIntegrity()
                 }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
-            case PgslBuildInTypeName.WorkgroupId: {
+            case PgslTypeName.WorkgroupId: {
                 return new PgslVectorTypeDefinitionSyntaxTree({
                     typeName: PgslVectorTypeName.Vector3,
                     innerType: new PgslNumericTypeDefinitionSyntaxTree({
@@ -183,7 +178,7 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
                     }, 0, 0, 0, 0).setParent(this).validateIntegrity()
                 }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
-            case PgslBuildInTypeName.NumWorkgroups: {
+            case PgslTypeName.NumWorkgroups: {
                 return new PgslVectorTypeDefinitionSyntaxTree({
                     typeName: PgslVectorTypeName.Vector3,
                     innerType: new PgslNumericTypeDefinitionSyntaxTree({
@@ -191,40 +186,40 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
                     }, 0, 0, 0, 0).setParent(this).validateIntegrity()
                 }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
-            case PgslBuildInTypeName.VertexIndex: {
+            case PgslTypeName.VertexIndex: {
                 return new PgslNumericTypeDefinitionSyntaxTree({
                     typeName: PgslNumericTypeName.UnsignedInteger
                 }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
-            case PgslBuildInTypeName.InstanceIndex: {
+            case PgslTypeName.InstanceIndex: {
                 return new PgslNumericTypeDefinitionSyntaxTree({
                     typeName: PgslNumericTypeName.UnsignedInteger
                 }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
-            case PgslBuildInTypeName.FragDepth: {
+            case PgslTypeName.FragDepth: {
                 return new PgslNumericTypeDefinitionSyntaxTree({
                     typeName: PgslNumericTypeName.Float
                 }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
-            case PgslBuildInTypeName.SampleIndex: {
+            case PgslTypeName.SampleIndex: {
                 return new PgslNumericTypeDefinitionSyntaxTree({
                     typeName: PgslNumericTypeName.UnsignedInteger
                 }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
-            case PgslBuildInTypeName.SampleMask: {
+            case PgslTypeName.SampleMask: {
                 return new PgslNumericTypeDefinitionSyntaxTree({
                     typeName: PgslNumericTypeName.UnsignedInteger
                 }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
-            case PgslBuildInTypeName.LocalInvocationIndex: {
+            case PgslTypeName.LocalInvocationIndex: {
                 return new PgslNumericTypeDefinitionSyntaxTree({
                     typeName: PgslNumericTypeName.UnsignedInteger
                 }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
-            case PgslBuildInTypeName.FrontFacing: {
+            case PgslTypeName.FrontFacing: {
                 return new PgslBooleanTypeDefinitionSyntaxTree({}, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
-            case PgslBuildInTypeName.ClipDistances: {
+            case PgslTypeName.ClipDistances: {
                 return new PgslArrayTypeDefinitionSyntaxTree({
                     type: new PgslNumericTypeDefinitionSyntaxTree({
                         typeName: PgslNumericTypeName.Float
@@ -233,6 +228,8 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
                 }, 0, 0, 0, 0).setParent(this).validateIntegrity();
             }
         }
+
+        throw new Exception(`Build in type "${this.typeName}" not defined.`, this);
     }
 }
 

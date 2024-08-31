@@ -1,13 +1,13 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum';
 import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree';
+import { PgslTypeName } from '../../type/enum/pgsl-type-name.enum';
 import { BasePgslStatementSyntaxTree } from '../base-pgsl-statement-syntax-tree';
 import { PgslAssignmentStatementSyntaxTree } from '../pgsl-assignment-statement-syntax-tree';
 import { PgslBlockStatementSyntaxTree } from '../pgsl-block-statement-syntax-tree';
 import { PgslFunctionCallStatementSyntaxTree } from '../pgsl-function-call-statement-syntax-tree';
 import { PgslIncrementDecrementStatementSyntaxTree } from '../pgsl-increment-decrement-statement-syntax-tree';
 import { PgslVariableDeclarationStatementSyntaxTree } from '../pgsl-variable-declaration-statement-syntax-tree';
-import { PgslBooleanTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-boolean-type-definition-syntax-tree';
 
 /**
  * PGSL structure for a if statement with optional else block.
@@ -76,12 +76,12 @@ export class PgslForStatementSyntaxTree extends BasePgslStatementSyntaxTree<Pgsl
      */
     protected override onValidateIntegrity(): void {
         // Expression must be a boolean.
-        if(this.mExpression && !(this.mExpression.resolveType instanceof PgslBooleanTypeDefinitionSyntaxTree)) {
+        if (this.mExpression && this.mExpression.resolveType.typeName !== PgslTypeName.Boolean) {
             throw new Exception('Expression of for loops must resolve into a boolean.', this);
         }
 
         // Variable musst be a let
-        if(this.mInit && this.mInit.declarationType !== PgslDeclarationType.Let){
+        if (this.mInit && this.mInit.declarationType !== PgslDeclarationType.Let) {
             throw new Exception('Initial of for loops must be a let declaration.', this);
         }
     }

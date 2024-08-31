@@ -2,9 +2,8 @@ import { Exception } from '@kartoffelgames/core';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslArrayTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-array-type-definition-syntax-tree';
 import { PgslMatrixTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-matrix-type-definition-syntax-tree';
-import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree';
 import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree';
-import { PgslNumericTypeName } from '../../type/enum/pgsl-numeric-type-name.enum';
+import { PgslTypeName } from '../../type/enum/pgsl-type-name.enum';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**
@@ -101,7 +100,7 @@ export class PgslIndexedValueExpressionSyntaxTree extends BasePgslExpressionSynt
         }
 
         // Value needs to be a unsigned numeric value.
-        if (!(this.mIndex.resolveType instanceof PgslNumericTypeDefinitionSyntaxTree) || this.mIndex.resolveType.typeName !== PgslNumericTypeName.Integer) {
+        if (this.mIndex.resolveType.typeName !== PgslTypeName.Integer) {
             throw new Exception(`Index needs to be a unsigned numeric value.`, this);
         }
     }

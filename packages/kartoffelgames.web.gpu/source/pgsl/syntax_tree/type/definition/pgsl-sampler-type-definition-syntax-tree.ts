@@ -1,3 +1,4 @@
+import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { PgslSamplerTypeName } from '../enum/pgsl-sampler-build-name.enum';
 import { PgslTypeName } from '../enum/pgsl-type-name.enum';
 import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
@@ -16,32 +17,25 @@ export class PgslSamplerTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslSamplerTypeDefinitionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        // Create type name
-        const lTypeName: PgslTypeName = pData.typeName === PgslSamplerTypeName.SamplerComparison ? PgslTypeName.SamplerComparison : PgslTypeName.Sampler;
-
-        // Create identifier.
-        const lIdentifier: string = `ID:SAMPLER->${lTypeName.toUpperCase()}`;
-
-        // Return cached when available.
-        if (BasePgslTypeDefinitionSyntaxTree.mTypeCache.has(lIdentifier)) {
-            return BasePgslTypeDefinitionSyntaxTree.mTypeCache.get(lIdentifier)! as PgslSamplerTypeDefinitionSyntaxTree;
+    public constructor(pData: PgslSamplerTypeDefinitionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        // Create and check if structure was loaded from cache. Skip additional processing by returning early.
+        super(pData, pData.typeName as unknown as PgslTypeName, pMeta, pBuildIn);
+        if (this.loadedFromCache) {
+            return this;
         }
-
-        // Create.
-        super(PgslTypeName.Boolean, lIdentifier, pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
-
-        // Set cache.
-        BasePgslTypeDefinitionSyntaxTree.mTypeCache.set(lIdentifier, this);
 
         // Set data.
         this.mComparision = pData.typeName === PgslSamplerTypeName.SamplerComparison;
+    }
+
+    /**
+     * Determinate structures identifier.
+     */
+    protected determinateIdentifier(this: null, pData: PgslSamplerTypeDefinitionSyntaxTreeStructureData): string {
+        return `ID:TYPE-DEF_SAMPLER->${pData.typeName.toUpperCase()}`;
     }
 
     /**

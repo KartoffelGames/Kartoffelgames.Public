@@ -1,5 +1,6 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../enum/pgsl-operator.enum';
+import { SyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
 
@@ -28,14 +29,12 @@ export class PgslIncrementDecrementStatementSyntaxTree extends BasePgslStatement
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslIncrementDecrementStatementSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+    public constructor(pData: PgslIncrementDecrementStatementSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        // Create and check if structure was loaded from cache. Skip additional processing by returning early.
+        super(pData, pMeta, pBuildIn);
 
         // Create list of all bit operations.
         const lIncrementDecrementOperatorList: Array<PgslOperator> = [
@@ -47,7 +46,6 @@ export class PgslIncrementDecrementStatementSyntaxTree extends BasePgslStatement
         if (!lIncrementDecrementOperatorList.includes(pData.operator as PgslOperator)) {
             throw new Exception(`Operator "${pData.operator}" can not used for increment or decrement statements.`, this);
         }
-
 
         this.mOperator = EnumUtil.cast(PgslOperator, pData.operator)!;
         this.mExpression = pData.expression;

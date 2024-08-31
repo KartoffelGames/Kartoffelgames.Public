@@ -1,3 +1,4 @@
+import { SyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
 
@@ -18,14 +19,11 @@ export class PgslReturnStatementSyntaxTree extends BasePgslStatementSyntaxTree<P
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslReturnStatementSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+    public constructor(pData: PgslReturnStatementSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        super(pData, pMeta, pBuildIn);
 
         this.mExpression = pData.expression ?? null;
     }

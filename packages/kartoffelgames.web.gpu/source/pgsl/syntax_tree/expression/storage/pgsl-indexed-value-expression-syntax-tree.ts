@@ -5,6 +5,7 @@ import { PgslMatrixTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-m
 import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree';
 import { PgslTypeName } from '../../type/enum/pgsl-type-name.enum';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
+import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 
 /**
  * PGSL structure holding a variable with index expression.
@@ -31,14 +32,11 @@ export class PgslIndexedValueExpressionSyntaxTree extends BasePgslExpressionSynt
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslIndexedValueExpressionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+    public constructor(pData: PgslIndexedValueExpressionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        super(pData, pMeta, pBuildIn);
 
         // Set data.
         this.mIndex = pData.index;

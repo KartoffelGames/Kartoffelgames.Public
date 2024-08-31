@@ -3,6 +3,7 @@ import { PgslOperator } from '../../../enum/pgsl-operator.enum';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslTypeName } from '../../type/enum/pgsl-type-name.enum';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
+import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 
 /**
  * PGSL structure for a logical expression between two values.
@@ -37,14 +38,11 @@ export class PgslLogicalExpressionSyntaxTree extends BasePgslExpressionSyntaxTre
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslLogicalExpressionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+    public constructor(pData: PgslLogicalExpressionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        super(pData, pMeta, pBuildIn);
 
         // Create list of all short circuit operations.
         const lShortCircuitOperationList: Array<PgslOperator> = [

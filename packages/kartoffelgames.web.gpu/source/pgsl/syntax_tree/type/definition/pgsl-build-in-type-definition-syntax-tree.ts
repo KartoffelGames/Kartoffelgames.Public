@@ -1,4 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
+import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree';
 import { PgslBuildInTypeName } from '../enum/pgsl-build-in-type-name.enum';
 import { PgslNumericTypeName } from '../enum/pgsl-numeric-type-name.enum';
@@ -33,30 +34,26 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslBuildInTypeDefinitionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        // Create identifier. Template does not matter.
-        const lIdentifier: string = `ID:BUILDIN->${pData.type.toUpperCase()}`;
-
-        // Return cached when available.
-        if (BasePgslTypeDefinitionSyntaxTree.mTypeCache.has(lIdentifier)) {
-            return BasePgslTypeDefinitionSyntaxTree.mTypeCache.get(lIdentifier)! as PgslBuildInTypeDefinitionSyntaxTree;
+    public constructor(pData: PgslBuildInTypeDefinitionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        // Create and check if structure was loaded from cache. Skip additional processing by returning early.
+        super(pData, pData.type as unknown as PgslTypeName, pMeta, pBuildIn);
+        if (this.loadedFromCache) {
+            return this;
         }
-
-        // Create. Texture typename is convertable to general typename. 
-        super(pData.type as unknown as PgslTypeName, lIdentifier, pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
-
-        // Set cache.
-        BasePgslTypeDefinitionSyntaxTree.mTypeCache.set(lIdentifier, this);
 
         // Set data.
         this.mTemplate = pData.template ?? null;
         this.mRealType = null;
+    }
+
+    /**
+     * Determinate structures identifier.
+     */
+    protected determinateIdentifier(this: null, pData: PgslBuildInTypeDefinitionSyntaxTreeStructureData): string {
+        return `ID:TYPE-DEF_BUILDIN->${pData.type.toUpperCase()}`;
     }
 
     /**
@@ -154,78 +151,78 @@ export class PgslBuildInTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
                     typeName: PgslVectorTypeName.Vector4,
                     innerType: new PgslNumericTypeDefinitionSyntaxTree({
                         typeName: PgslNumericTypeName.Float
-                    }, 0, 0, 0, 0).setParent(this).validateIntegrity()
-                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+                    }, this.meta).setParent(this).validateIntegrity()
+                }, this.meta).setParent(this).validateIntegrity();
             }
             case PgslTypeName.LocalInvocationId: {
                 return new PgslNumericTypeDefinitionSyntaxTree({
                     typeName: PgslNumericTypeName.UnsignedInteger
-                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+                }, this.meta).setParent(this).validateIntegrity();
             }
             case PgslTypeName.GlobalInvocationId: {
                 return new PgslVectorTypeDefinitionSyntaxTree({
                     typeName: PgslVectorTypeName.Vector3,
                     innerType: new PgslNumericTypeDefinitionSyntaxTree({
                         typeName: PgslNumericTypeName.UnsignedInteger
-                    }, 0, 0, 0, 0).setParent(this).validateIntegrity()
-                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+                    }, this.meta).setParent(this).validateIntegrity()
+                }, this.meta).setParent(this).validateIntegrity();
             }
             case PgslTypeName.WorkgroupId: {
                 return new PgslVectorTypeDefinitionSyntaxTree({
                     typeName: PgslVectorTypeName.Vector3,
                     innerType: new PgslNumericTypeDefinitionSyntaxTree({
                         typeName: PgslNumericTypeName.UnsignedInteger
-                    }, 0, 0, 0, 0).setParent(this).validateIntegrity()
-                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+                    }, this.meta).setParent(this).validateIntegrity()
+                }, this.meta).setParent(this).validateIntegrity();
             }
             case PgslTypeName.NumWorkgroups: {
                 return new PgslVectorTypeDefinitionSyntaxTree({
                     typeName: PgslVectorTypeName.Vector3,
                     innerType: new PgslNumericTypeDefinitionSyntaxTree({
                         typeName: PgslNumericTypeName.UnsignedInteger
-                    }, 0, 0, 0, 0).setParent(this).validateIntegrity()
-                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+                    }, this.meta).setParent(this).validateIntegrity()
+                }, this.meta).setParent(this).validateIntegrity();
             }
             case PgslTypeName.VertexIndex: {
                 return new PgslNumericTypeDefinitionSyntaxTree({
                     typeName: PgslNumericTypeName.UnsignedInteger
-                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+                }, this.meta).setParent(this).validateIntegrity();
             }
             case PgslTypeName.InstanceIndex: {
                 return new PgslNumericTypeDefinitionSyntaxTree({
                     typeName: PgslNumericTypeName.UnsignedInteger
-                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+                }, this.meta).setParent(this).validateIntegrity();
             }
             case PgslTypeName.FragDepth: {
                 return new PgslNumericTypeDefinitionSyntaxTree({
                     typeName: PgslNumericTypeName.Float
-                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+                }, this.meta).setParent(this).validateIntegrity();
             }
             case PgslTypeName.SampleIndex: {
                 return new PgslNumericTypeDefinitionSyntaxTree({
                     typeName: PgslNumericTypeName.UnsignedInteger
-                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+                }, this.meta).setParent(this).validateIntegrity();
             }
             case PgslTypeName.SampleMask: {
                 return new PgslNumericTypeDefinitionSyntaxTree({
                     typeName: PgslNumericTypeName.UnsignedInteger
-                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+                }, this.meta).setParent(this).validateIntegrity();
             }
             case PgslTypeName.LocalInvocationIndex: {
                 return new PgslNumericTypeDefinitionSyntaxTree({
                     typeName: PgslNumericTypeName.UnsignedInteger
-                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+                }, this.meta).setParent(this).validateIntegrity();
             }
             case PgslTypeName.FrontFacing: {
-                return new PgslBooleanTypeDefinitionSyntaxTree({}, 0, 0, 0, 0).setParent(this).validateIntegrity();
+                return new PgslBooleanTypeDefinitionSyntaxTree({}, this.meta).setParent(this).validateIntegrity();
             }
             case PgslTypeName.ClipDistances: {
                 return new PgslArrayTypeDefinitionSyntaxTree({
                     type: new PgslNumericTypeDefinitionSyntaxTree({
                         typeName: PgslNumericTypeName.Float
-                    }, 0, 0, 0, 0).setParent(this).validateIntegrity(),
+                    }, this.meta).setParent(this).validateIntegrity(),
                     lengthExpression: this.mTemplate as BasePgslExpressionSyntaxTree
-                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+                }, this.meta).setParent(this).validateIntegrity();
             }
         }
 

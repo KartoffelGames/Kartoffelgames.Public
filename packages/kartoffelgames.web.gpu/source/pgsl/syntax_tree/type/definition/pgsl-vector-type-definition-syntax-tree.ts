@@ -1,4 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
+import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { PgslTypeName } from '../enum/pgsl-type-name.enum';
 import { PgslVectorTypeName } from '../enum/pgsl-vector-type-name.enum';
 import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
@@ -18,28 +19,25 @@ export class PgslVectorTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslVectorTypeDefinitionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        const lIdentifier: string = `ID:VECTOR->${pData.typeName.toUpperCase()}->${pData.innerType.identifier}`;
-
-        // Return cached when available.
-        if (BasePgslTypeDefinitionSyntaxTree.mTypeCache.has(lIdentifier)) {
-            return BasePgslTypeDefinitionSyntaxTree.mTypeCache.get(lIdentifier)! as PgslVectorTypeDefinitionSyntaxTree;
+    public constructor(pData: PgslVectorTypeDefinitionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        // Create and check if structure was loaded from cache. Skip additional processing by returning early.
+        super(pData, pData.typeName as unknown as PgslTypeName, pMeta, pBuildIn);
+        if (this.loadedFromCache) {
+            return this;
         }
-
-        // Create. Vector typename is convertable to general typename. 
-        super(pData.typeName as unknown as PgslTypeName, lIdentifier, pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
-
-        // Set cache.
-        BasePgslTypeDefinitionSyntaxTree.mTypeCache.set(lIdentifier, this);
 
         // Set data.
         this.mInnerType = pData.innerType;
+    }
+
+    /**
+     * Determinate structures identifier.
+     */
+    protected determinateIdentifier(this: null, pData: PgslVectorTypeDefinitionSyntaxTreeStructureData): string {
+        return `ID:TYPE-DEF_VECTOR->${pData.typeName.toUpperCase()}->${pData.innerType.identifier}`;
     }
 
     /**

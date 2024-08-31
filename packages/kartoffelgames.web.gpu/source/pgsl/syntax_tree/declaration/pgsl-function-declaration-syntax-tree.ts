@@ -1,8 +1,9 @@
+import { SyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
-import { PgslTypeDeclarationSyntaxTree } from '../type/pgsl-type-declaration-syntax-tree';
 import { PgslBlockStatementSyntaxTree } from '../statement/pgsl-block-statement-syntax-tree';
-import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree';
+import { PgslTypeDeclarationSyntaxTree } from '../type/pgsl-type-declaration-syntax-tree';
+import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
 
 /**
  * PGSL syntax tree for a alias declaration.
@@ -13,7 +14,7 @@ export class PgslFunctionDeclarationSyntaxTree extends BasePgslDeclarationSyntax
     private readonly mName: string;
     private readonly mParameter: Array<PgslFunctionDeclarationParameter>;
     private readonly mReturnType: PgslTypeDeclarationSyntaxTree;
-    
+
     /**
      * Function block.
      */
@@ -53,18 +54,14 @@ export class PgslFunctionDeclarationSyntaxTree extends BasePgslDeclarationSyntax
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
-     * @param pConstant - Function is a constant function.
      */
-    public constructor(pData: PgslFunctionDeclarationSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number, pBuildIn: boolean = false, pConstant: boolean = false) {
-        super(pData, pData.attributes, pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
+    public constructor(pData: PgslFunctionDeclarationSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        super(pData, pData.attributes, pMeta, pBuildIn);
 
         // Set data.
-        this.mConstant = pConstant;
+        this.mConstant = pData.constant;
         this.mBlock = pData.block;
         this.mName = pData.name;
         this.mParameter = pData.parameter;
@@ -90,4 +87,5 @@ export type PgslFunctionDeclarationSyntaxTreeStructureData = {
     parameter: Array<PgslFunctionDeclarationParameter>;
     returnType: PgslTypeDeclarationSyntaxTree;
     block: PgslBlockStatementSyntaxTree;
+    constant: boolean;
 };

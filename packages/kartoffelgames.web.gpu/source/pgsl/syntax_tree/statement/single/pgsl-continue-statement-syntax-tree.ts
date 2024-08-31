@@ -1,3 +1,4 @@
+import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslStatementSyntaxTree } from '../base-pgsl-statement-syntax-tree';
 
 /**
@@ -8,21 +9,19 @@ export class PgslContinueStatementSyntaxTree extends BasePgslStatementSyntaxTree
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslContinueStatementSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+    public constructor(pData: PgslContinueStatementSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        // Create and check if structure was loaded from cache. Skip additional processing by returning early.
+        super(pData, pMeta, pBuildIn);
     }
 
     /**
      * Validate data of current structure.
      */
     protected override onValidateIntegrity(): void {
-        // Nothing to validate eighter.
+        // TODO: Only in Loops
     }
 }
 

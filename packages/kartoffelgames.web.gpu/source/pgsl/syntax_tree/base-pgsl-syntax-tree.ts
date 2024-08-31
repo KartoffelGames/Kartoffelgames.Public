@@ -6,13 +6,14 @@ import { PgslModuleSyntaxTree } from './pgsl-module-syntax-tree';
 /**
  * Base pgsl syntax tree object.
  */
-export abstract class BasePgslSyntaxTree<TData extends PgslSyntaxTreeInitData> {
+export abstract class BasePgslSyntaxTree<TData extends PgslSyntaxTreeInitData = PgslSyntaxTreeInitData> {
+    protected static readonly mStructureCache: Dictionary<string, BasePgslSyntaxTree> = new Dictionary<string, BasePgslSyntaxTree>();
+
     private readonly mBuildIn: boolean;
     private readonly mChilds: Array<UnknownPgslSyntaxTree>;
     private mIsValid: boolean;
     private readonly mMeta: SyntaxTreeMeta;
     private mParent: UnknownPgslSyntaxTree | null;
-
 
     /**
      * Structure is build in and does not be included in the final output.
@@ -66,13 +67,10 @@ export abstract class BasePgslSyntaxTree<TData extends PgslSyntaxTreeInitData> {
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: TData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number, pBuildIn: boolean = false) {
+    public constructor(pData: TData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
         this.mBuildIn = pBuildIn;
         this.mParent = null;
         this.mIsValid = false;
@@ -81,12 +79,12 @@ export abstract class BasePgslSyntaxTree<TData extends PgslSyntaxTreeInitData> {
         this.mMeta = {
             position: {
                 start: {
-                    column: pStartColumn,
-                    line: pStartLine,
+                    column: pMeta?.position.start.column ?? 0,
+                    line: pMeta?.position.start.line ?? 0,
                 },
                 end: {
-                    column: pEndColumn,
-                    line: pEndLine,
+                    column: pMeta?.position.end.column ?? 0,
+                    line: pMeta?.position.end.line ?? 0,
                 },
             }
         };
@@ -223,7 +221,7 @@ export abstract class BasePgslSyntaxTree<TData extends PgslSyntaxTreeInitData> {
     // TODO: Add something that can transpile into wgsl.
 }
 
-type SyntaxTreeMeta = {
+export type SyntaxTreeMeta = {
     position: {
         start: {
             column: number;

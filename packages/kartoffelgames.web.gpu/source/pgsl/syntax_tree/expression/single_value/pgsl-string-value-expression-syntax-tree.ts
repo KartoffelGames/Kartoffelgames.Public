@@ -1,7 +1,8 @@
 import { Exception } from '@kartoffelgames/core';
-import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
+import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslStringTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-string-type-definition-syntax-tree';
+import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
 
 /**
  * PGSL syntax tree for a single string value of boolean, float, integer or uinteger.
@@ -27,14 +28,11 @@ export class PgslStringValueExpressionSyntaxTree extends BasePgslExpressionSynta
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslStringValueExpressionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+    public constructor(pData: PgslStringValueExpressionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        super(pData, pMeta, pBuildIn);
 
         // Set data.
         this.mValue = pData.textValue.substring(1, pData.textValue.length - 1);
@@ -68,7 +66,7 @@ export class PgslStringValueExpressionSyntaxTree extends BasePgslExpressionSynta
      */
     protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // Create type declaration.
-        const lTypeDeclaration: PgslStringTypeDefinitionSyntaxTree = new PgslStringTypeDefinitionSyntaxTree({}, 0, 0, 0, 0);
+        const lTypeDeclaration: PgslStringTypeDefinitionSyntaxTree = new PgslStringTypeDefinitionSyntaxTree({}, this.meta);
 
         // Set parent to this tree.
         lTypeDeclaration.setParent(this);

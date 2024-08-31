@@ -1,4 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
+import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslBooleanTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-boolean-type-definition-syntax-tree';
 import { PgslNumericTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-numeric-type-definition-syntax-tree';
@@ -32,14 +33,11 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSynt
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslLiteralValueExpressionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+    public constructor(pData: PgslLiteralValueExpressionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        super(pData, pMeta, pBuildIn);
 
         // Set data.
         [this.mScalarType, this.mValue] = this.convertData(pData.textValue);
@@ -74,13 +72,13 @@ export class PgslLiteralValueExpressionSyntaxTree extends BasePgslExpressionSynt
     protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
         // Literal is a boolean value.
         if (this.mScalarType === PgslTypeName.Boolean) {
-            return new PgslBooleanTypeDefinitionSyntaxTree({}, 0, 0, 0, 0).setParent(this).validateIntegrity();
+            return new PgslBooleanTypeDefinitionSyntaxTree({}, this.meta).setParent(this).validateIntegrity();
         }
 
         // Create numeric type declaration.
         return new PgslNumericTypeDefinitionSyntaxTree({
             typeName: this.mScalarType as any as PgslNumericTypeName
-        }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+        }, this.meta).setParent(this).validateIntegrity();
     }
 
     /**

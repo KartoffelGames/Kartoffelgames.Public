@@ -2,6 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
 import { PgslStructPropertyDeclarationSyntaxTree } from './pgsl-struct-property-declaration-syntax-tree';
+import { SyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 
 /**
  * PGSL syntax tree for a struct declaration.
@@ -28,14 +29,11 @@ export class PgslStructDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTr
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslStructDeclarationSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pData.attributes, pStartColumn, pStartLine, pEndColumn, pEndLine);
+    public constructor(pData: PgslStructDeclarationSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        super(pData, pData.attributes, pMeta, pBuildIn);
 
         // Set data.
         this.mName = pData.name;

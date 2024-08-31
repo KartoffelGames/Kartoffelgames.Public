@@ -1,4 +1,4 @@
-import { BasePgslSyntaxTree, PgslSyntaxTreeInitData } from '../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTree, PgslSyntaxTreeInitData, SyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-syntax-tree';
 
 /**
@@ -18,16 +18,23 @@ export abstract class BasePgslDeclarationSyntaxTree<TData extends PgslSyntaxTree
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pAttributeList - Declaration attribute list.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: TData, pAttributeList: PgslAttributeListSyntaxTree, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number, pBuildIn: boolean = false) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
+    public constructor(pData: TData, pAttributeList: PgslAttributeListSyntaxTree, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        super(pData, pMeta, pBuildIn);
 
         // Set data.
         this.mAttributeList = pAttributeList;
+    }
+
+    /**
+     * Determinate structures identifier.
+     */
+    protected determinateIdentifier(this: null, _pData: TData): string {
+        // Declarations should allways be unique.
+        // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
+        return `ID:DECLARATION::${(Math.random() * 0xffffffffffffff).toString(36)}`;
     }
 }

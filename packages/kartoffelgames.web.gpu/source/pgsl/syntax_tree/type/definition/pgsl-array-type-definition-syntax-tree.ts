@@ -1,9 +1,12 @@
+import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree';
+import { PgslLiteralValueExpressionSyntaxTree } from '../../expression/single_value/pgsl-literal-value-expression-syntax-tree';
+import { PgslTypeName } from '../enum/pgsl-type-name.enum';
 import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
 
 export class PgslArrayTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyntaxTree<PgslArrayTypeDefinitionSyntaxTreeStructureData> {
-    private readonly mInnerType: BasePgslTypeDefinitionSyntaxTree;
-    private readonly mLengthExpression: BasePgslExpressionSyntaxTree | null;
+    private readonly mInnerType!: BasePgslTypeDefinitionSyntaxTree;
+    private readonly mLengthExpression!: BasePgslExpressionSyntaxTree | null;
 
     /**
      * Inner type of array.
@@ -23,17 +26,38 @@ export class PgslArrayTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyn
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslArrayTypeDefinitionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+    public constructor(pData: PgslArrayTypeDefinitionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        // Create and check if structure was loaded from cache. Skip additional processing by returning early.
+        super(pData, PgslTypeName.Array, pMeta, pBuildIn);
+        if (this.loadedFromCache) {
+            return this;
+        }
 
         this.mLengthExpression = pData.lengthExpression ?? null;
         this.mInnerType = pData.type;
+    }
+
+    /**
+     * Determinate structures identifier.
+     */
+    protected determinateIdentifier(this: null, pData: PgslArrayTypeDefinitionSyntaxTreeStructureData): string {
+        // Convert template list into identifier list.
+        let lTemplateListIdentifier: string = pData.type.identifier;
+        if (pData.lengthExpression) {
+            // Set literal value as length identifier.
+            if (pData.lengthExpression instanceof PgslLiteralValueExpressionSyntaxTree) {
+                lTemplateListIdentifier += pData.lengthExpression.value;
+            }
+
+            // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
+            lTemplateListIdentifier += (Math.random() * 0xffffffffffffff).toFixed(32);
+        }
+
+        // Create identifier
+        return `ID:TYPE-DEF_ARRAY->[${lTemplateListIdentifier}]`;
     }
 
     /**
@@ -94,7 +118,7 @@ export class PgslArrayTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSyn
     protected override determinateIsStorable(): boolean {
         return this.mInnerType.isStorable;
     }
-    
+
     /**
      * Validate data of current structure.
      */

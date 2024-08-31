@@ -5,6 +5,7 @@ import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tre
 import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree';
 import { PgslValueDecompositionExpressionSyntaxTree } from '../storage/pgsl-value-decomposition-expression-syntax-tree';
 import { PgslIndexedValueExpressionSyntaxTree } from '../storage/pgsl-indexed-value-expression-syntax-tree';
+import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 
 /**
  * PGSL structure holding a variable name used to get the address.
@@ -23,14 +24,11 @@ export class PgslAddressOfExpressionSyntaxTree extends BasePgslExpressionSyntaxT
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslAddressOfExpressionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+    public constructor(pData: PgslAddressOfExpressionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        super(pData, pMeta, pBuildIn);
 
         // Set data.
         this.mVariable = pData.variable;
@@ -66,7 +64,7 @@ export class PgslAddressOfExpressionSyntaxTree extends BasePgslExpressionSyntaxT
         // Create type declaration.
         return new PgslPointerTypeDefinitionSyntaxTree({
             referencedType: this.mVariable.resolveType
-        }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+        }, this.meta).setParent(this).validateIntegrity();
     }
 
     /**

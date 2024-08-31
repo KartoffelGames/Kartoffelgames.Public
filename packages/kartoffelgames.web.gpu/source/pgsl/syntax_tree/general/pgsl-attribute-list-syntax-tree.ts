@@ -1,5 +1,5 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { BasePgslSyntaxTree, PgslSyntaxTreeInitData } from '../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTree, PgslSyntaxTreeInitData, SyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../expression/base-pgsl-expression-syntax-tree';
 import { PgslEnumValueExpressionSyntaxTree } from '../expression/single_value/pgsl-enum-value-expression-syntax-tree';
 import { PgslStringValueExpressionSyntaxTree } from '../expression/single_value/pgsl-string-value-expression-syntax-tree';
@@ -35,8 +35,8 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
             ['Expression']
         ]);
         lAttributes.set('Interpolate', [
-            [['perspective','linear','flat']],
-            [['perspective','linear','flat'], ['centroid','sample','first','either']]
+            [['perspective', 'linear', 'flat']],
+            [['perspective', 'linear', 'flat'], ['centroid', 'sample', 'first', 'either']]
         ]);
 
         lAttributes.set('Invariant', []);
@@ -61,14 +61,11 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslAttributeListSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+    public constructor(pData: PgslAttributeListSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        super(pData, pMeta, pBuildIn);
 
         // Set data.
         this.mAttributes = new Dictionary<string, Array<BasePgslExpressionSyntaxTree>>();
@@ -86,12 +83,18 @@ export class PgslAttributeListSyntaxTree extends BasePgslSyntaxTree<PgslAttribut
                 continue;
             }
 
-
             // Set attribute.
             this.mAttributes.set(lAttribute.name, lAttribute.parameter);
         }
     }
 
+    /**
+     * Get all parameter of attributes by name.
+     * 
+     * @param pName - Attribute name.
+     * 
+     * @returns all attribute parameters 
+     */
     public getAttribute(pName: string): Array<BasePgslExpressionSyntaxTree> {
         // Try to read attribute parameters.
         const lAttributeParameter: Array<BasePgslExpressionSyntaxTree<PgslSyntaxTreeInitData>> | undefined = this.mAttributes.get(pName);

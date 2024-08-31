@@ -4,6 +4,7 @@ import { PgslStructTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-s
 import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-vector-type-definition-syntax-tree';
 import { PgslVectorTypeName } from '../../type/enum/pgsl-vector-type-name.enum';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
+import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 
 /**
  * PGSL structure holding a single value of a decomposited composite value.
@@ -30,14 +31,11 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslExpressi
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslValueDecompositionExpressionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+    public constructor(pData: PgslValueDecompositionExpressionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        super(pData, pMeta, pBuildIn);
 
         // Set data.
         this.mProperty = pData.property;
@@ -94,7 +92,7 @@ export class PgslValueDecompositionExpressionSyntaxTree extends BasePgslExpressi
                 return new PgslVectorTypeDefinitionSyntaxTree({
                     typeName: lVectorTypeList[this.mProperty.length],
                     innerType: lInnerType
-                }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+                }, this.meta).setParent(this).validateIntegrity();
             }
         }
 

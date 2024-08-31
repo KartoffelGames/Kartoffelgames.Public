@@ -1,3 +1,4 @@
+import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { PgslNumericTypeName } from '../enum/pgsl-numeric-type-name.enum';
 import { PgslTypeName } from '../enum/pgsl-type-name.enum';
 import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
@@ -7,26 +8,24 @@ export class PgslNumericTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslNumericTypeDefinitionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        const lIdentifier: string = `ID:NUMERIC->${pData.typeName.toUpperCase()}`;
-
-        // Return cached when available.
-        if (BasePgslTypeDefinitionSyntaxTree.mTypeCache.has(lIdentifier)) {
-            return BasePgslTypeDefinitionSyntaxTree.mTypeCache.get(lIdentifier)! as PgslNumericTypeDefinitionSyntaxTree;
+    public constructor(pData: PgslNumericTypeDefinitionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        // Create and check if structure was loaded from cache. Skip additional processing by returning early.
+        super(pData, pData.typeName as unknown as PgslTypeName, pMeta, pBuildIn);
+        if (this.loadedFromCache) {
+            return this;
         }
-
-        // Create. Numeric typename is convertable to general typename.
-        super(pData.typeName as unknown as PgslTypeName, lIdentifier, pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
-
-        // Set cache.
-        BasePgslTypeDefinitionSyntaxTree.mTypeCache.set(lIdentifier, this);
     }
+
+    /**
+     * Determinate structures identifier.
+     */
+    protected determinateIdentifier(this: null, pData: PgslNumericTypeDefinitionSyntaxTreeStructureData): string {
+        return `ID:TYPE-DEF_NUMERIC->${pData.typeName.toUpperCase()}`;
+    }
+
 
     /**
      * Determinate if declaration is a composite type.

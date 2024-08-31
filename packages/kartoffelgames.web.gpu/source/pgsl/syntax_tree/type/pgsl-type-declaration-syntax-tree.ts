@@ -1,5 +1,5 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
-import { BasePgslSyntaxTree } from '../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTree, SyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 import { PgslAliasDeclarationSyntaxTree } from '../declaration/pgsl-alias-declaration-syntax-tree';
 import { PgslEnumDeclarationSyntaxTree } from '../declaration/pgsl-enum-declaration-syntax-tree';
 import { PgslStructDeclarationSyntaxTree } from '../declaration/pgsl-struct-declaration-syntax-tree';
@@ -58,14 +58,11 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslTypeDefinitionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+    public constructor(pData: PgslTypeDefinitionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        super(pData, pMeta, pBuildIn);
 
         // Set data buffer data.
         this.mRawName = pData.name;
@@ -226,7 +223,7 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
         }
 
         // Build BuildInType definition.
-        return new PgslArrayTypeDefinitionSyntaxTree(lParameter, 0, 0, 0, 0).setParent(this).validateIntegrity();
+        return new PgslArrayTypeDefinitionSyntaxTree(lParameter, this.meta).setParent(this).validateIntegrity();
     }
 
     /**
@@ -246,7 +243,7 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
             throw new Exception(`Boolean can't have templates values.`, this);
         }
 
-        return new PgslBooleanTypeDefinitionSyntaxTree({}, 0, 0, 0, 0).setParent(this).validateIntegrity();
+        return new PgslBooleanTypeDefinitionSyntaxTree({}, this.meta).setParent(this).validateIntegrity();
     }
 
     /**
@@ -273,7 +270,7 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
         }
 
         // Build BuildInType definition.
-        return new PgslBuildInTypeDefinitionSyntaxTree(lParameter, 0, 0, 0, 0).setParent(this).validateIntegrity();
+        return new PgslBuildInTypeDefinitionSyntaxTree(lParameter, this.meta).setParent(this).validateIntegrity();
     }
 
     /**
@@ -325,7 +322,7 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
         return new PgslMatrixTypeDefinitionSyntaxTree({
             typeName: lTypeName,
             innerType: lMatrixInnerTypeTemplate.type
-        }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+        }, this.meta).setParent(this).validateIntegrity();
     }
 
     /**
@@ -349,7 +346,7 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
         // Build numeric definition.
         return new PgslNumericTypeDefinitionSyntaxTree({
             typeName: lTypeName
-        }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+        }, this.meta).setParent(this).validateIntegrity();
     }
 
     /**
@@ -376,17 +373,12 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
         }
 
         // Parse type again but this time without pointer.
-        const lTypeDeclaration: PgslTypeDeclarationSyntaxTree = new PgslTypeDeclarationSyntaxTree(lTypeDeclarationParameter,
-            this.meta.position.start.column,
-            this.meta.position.start.line,
-            this.meta.position.end.column,
-            this.meta.position.end.line
-        ).setParent(this).validateIntegrity();
+        const lTypeDeclaration: PgslTypeDeclarationSyntaxTree = new PgslTypeDeclarationSyntaxTree(lTypeDeclarationParameter, this.meta).setParent(this).validateIntegrity();
 
         // Build pointer type definition.
         return new PgslPointerTypeDefinitionSyntaxTree({
             referencedType: lTypeDeclaration.type
-        }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+        }, this.meta).setParent(this).validateIntegrity();
     }
 
     /**
@@ -410,7 +402,7 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
         // Build numeric definition.
         return new PgslSamplerTypeDefinitionSyntaxTree({
             typeName: lTypeName
-        }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+        }, this.meta).setParent(this).validateIntegrity();
     }
 
     /**
@@ -430,7 +422,7 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
             throw new Exception(`String can't have templates values.`, this);
         }
 
-        return new PgslStringTypeDefinitionSyntaxTree({}, 0, 0, 0, 0).setParent(this).validateIntegrity();
+        return new PgslStringTypeDefinitionSyntaxTree({}, this.meta).setParent(this).validateIntegrity();
     }
 
     /**
@@ -454,7 +446,7 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
         // Create new struct type definition.
         return new PgslStructTypeDefinitionSyntaxTree({
             struct: lStruct
-        }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+        }, this.meta).setParent(this).validateIntegrity();
     }
 
     /**
@@ -509,7 +501,7 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
         }
 
         // Build texture type definition.
-        return new PgslTextureTypeDefinitionSyntaxTree(lParameter, 0, 0, 0, 0).setParent(this).validateIntegrity();
+        return new PgslTextureTypeDefinitionSyntaxTree(lParameter, this.meta).setParent(this).validateIntegrity();
     }
 
     /**
@@ -540,7 +532,7 @@ export class PgslTypeDeclarationSyntaxTree extends BasePgslSyntaxTree<PgslTypeDe
         return new PgslVectorTypeDefinitionSyntaxTree({
             typeName: lTypeName,
             innerType: lVectorInnerTypeTemplate.type
-        }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+        }, this.meta).setParent(this).validateIntegrity();
     }
 }
 

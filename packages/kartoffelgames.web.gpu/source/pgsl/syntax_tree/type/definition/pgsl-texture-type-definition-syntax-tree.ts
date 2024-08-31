@@ -1,6 +1,7 @@
 import { Dictionary, EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslAccessMode } from '../../../enum/pgsl-access-mode.enum';
 import { PgslTexelFormat } from '../../../enum/pgsl-texel-format.enum';
+import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { BasePgslExpressionSyntaxTree } from '../../expression/base-pgsl-expression-syntax-tree';
 import { PgslStringValueExpressionSyntaxTree } from '../../expression/single_value/pgsl-string-value-expression-syntax-tree';
 import { PgslTextureTypeName } from '../enum/pgsl-texture-type-name.enum';
@@ -77,47 +78,15 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslTextureTypeDefinitionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        // Convert expression list into array list.
-        const lTemplateList: Array<string> = new Array<string>();
-        for (let lTemplateIndex: number = 0; lTemplateIndex < (pData.template?.length ?? 0); lTemplateIndex++) {
-            // Read template parameter.
-            const lTemplate: BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree = pData.template![lTemplateIndex];
-
-            // Expression is string value.
-            if (lTemplate instanceof PgslStringValueExpressionSyntaxTree) {
-                lTemplateList.push(lTemplate.value);
-                continue;
-            }
-
-            // Expression is any type.
-            if (lTemplate instanceof BasePgslTypeDefinitionSyntaxTree) {
-                lTemplateList.push(lTemplate.identifier);
-            }
-
-            // Template is invalid but validation step is executed later.
-            lTemplateList.push('NULL');
+    public constructor(pData: PgslTextureTypeDefinitionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        // Create and check if structure was loaded from cache. Skip additional processing by returning early.
+        super(pData, pData.typeName as unknown as PgslTypeName, pMeta, pBuildIn);
+        if (this.loadedFromCache) {
+            return this;
         }
-
-        // Create identifier
-        const lIdentifier: string = `ID:TEXTURE->${pData.typeName.toUpperCase()}->[${lTemplateList.join(',')}]`;
-
-        // Return cached when available.
-        if (BasePgslTypeDefinitionSyntaxTree.mTypeCache.has(lIdentifier)) {
-            return BasePgslTypeDefinitionSyntaxTree.mTypeCache.get(lIdentifier)! as PgslTextureTypeDefinitionSyntaxTree;
-        }
-
-        // Create. Texture typename is convertable to general typename. 
-        super(pData.typeName as unknown as PgslTypeName, lIdentifier, pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
-
-        // Set cache.
-        BasePgslTypeDefinitionSyntaxTree.mTypeCache.set(lIdentifier, this);
 
         // Set data.
         this.mTemplateList = pData.template ?? new Array<BasePgslTypeDefinitionSyntaxTree | BasePgslExpressionSyntaxTree>();
@@ -126,6 +95,27 @@ export class PgslTextureTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionS
         this.mSampledType = null;
         this.mFormat = null;
         this.mAccess = null;
+    }
+
+    /**
+     * Determinate structures identifier.
+     */
+    protected determinateIdentifier(this: null, pData: PgslTextureTypeDefinitionSyntaxTreeStructureData): string {
+        // Convert template list into identifier list.
+        const lTemplateListIdentifier: string = pData.template?.map<string>((pParameter) => {
+            if (pParameter instanceof PgslStringValueExpressionSyntaxTree) {
+                return pParameter.value;
+            }
+
+            if (pParameter instanceof BasePgslTypeDefinitionSyntaxTree) {
+                return pParameter.identifier;
+            }
+
+            return 'NULL';
+        }).join(', ') ?? '';
+
+        // Create identifier
+        return `ID:TYPE-DEF_TEXTURE->${pData.typeName.toUpperCase()}->[${lTemplateListIdentifier}]`;
     }
 
     /**

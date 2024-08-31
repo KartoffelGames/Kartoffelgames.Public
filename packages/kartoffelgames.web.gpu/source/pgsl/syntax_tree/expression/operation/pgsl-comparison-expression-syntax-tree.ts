@@ -7,6 +7,7 @@ import { PgslVectorTypeDefinitionSyntaxTree } from '../../type/definition/pgsl-v
 import { PgslTypeName } from '../../type/enum/pgsl-type-name.enum';
 import { PgslVectorTypeName } from '../../type/enum/pgsl-vector-type-name.enum';
 import { BasePgslExpressionSyntaxTree } from '../base-pgsl-expression-syntax-tree';
+import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 
 /**
  * PGSL structure for a comparison expression between two values.
@@ -41,14 +42,11 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslComparisonExpressionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+    public constructor(pData: PgslComparisonExpressionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        super(pData, pMeta, pBuildIn);
 
         // Create list of all comparison operations.
         const lComparisonList: Array<PgslOperator> = [
@@ -97,14 +95,14 @@ export class PgslComparisonExpressionSyntaxTree extends BasePgslExpressionSyntax
      * On type resolve of expression
      */
     protected determinateResolveType(): BasePgslTypeDefinitionSyntaxTree {
-        const lBooleanDefinition: PgslBooleanTypeDefinitionSyntaxTree = new PgslBooleanTypeDefinitionSyntaxTree({}, 0, 0, 0, 0).setParent(this).validateIntegrity();
+        const lBooleanDefinition: PgslBooleanTypeDefinitionSyntaxTree = new PgslBooleanTypeDefinitionSyntaxTree({}, this.meta).setParent(this).validateIntegrity();
 
         // Wrap boolean into a vector when it is a vector expression.
         if (this.mLeftExpression.resolveType instanceof PgslVectorTypeDefinitionSyntaxTree) {
             return new PgslVectorTypeDefinitionSyntaxTree({
                 innerType: lBooleanDefinition,
                 typeName: this.mLeftExpression.resolveType.typeName as unknown as PgslVectorTypeName
-            }, 0, 0, 0, 0).setParent(this).validateIntegrity();
+            }, this.meta).setParent(this).validateIntegrity();
         }
 
         return lBooleanDefinition;

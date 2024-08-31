@@ -5,6 +5,7 @@ import { PgslAttributeListSyntaxTree } from '../general/pgsl-attribute-list-synt
 import { BasePgslDeclarationSyntaxTree } from './base-pgsl-declaration-syntax-tree';
 import { BasePgslTypeDefinitionSyntaxTree } from '../type/definition/base-pgsl-type-definition-syntax-tree';
 import { PgslTypeName } from '../type/enum/pgsl-type-name.enum';
+import { SyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 
 /**
  * PGSL syntax tree of a enum declaration.
@@ -34,14 +35,11 @@ export class PgslEnumDeclarationSyntaxTree extends BasePgslDeclarationSyntaxTree
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslEnumDeclarationSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number, pBuildIn: boolean = false) {
-        super(pData, pData.attributes, pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
+    public constructor(pData: PgslEnumDeclarationSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        super(pData, pData.attributes, pMeta, pBuildIn);
 
         // Set data.
         this.mName = pData.name;

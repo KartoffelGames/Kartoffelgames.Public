@@ -1,3 +1,4 @@
+import { SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { PgslTypeName } from '../enum/pgsl-type-name.enum';
 import { BasePgslTypeDefinitionSyntaxTree } from './base-pgsl-type-definition-syntax-tree';
 
@@ -6,25 +7,22 @@ export class PgslStringTypeDefinitionSyntaxTree extends BasePgslTypeDefinitionSy
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslStringTypeDefinitionSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        const lIdentifier: string = 'ID:STRING->STRING';
-
-        // Return cached when available.
-        if (BasePgslTypeDefinitionSyntaxTree.mTypeCache.has(lIdentifier)) {
-            return BasePgslTypeDefinitionSyntaxTree.mTypeCache.get(lIdentifier)! as PgslStringTypeDefinitionSyntaxTree;
+    public constructor(pData: PgslStringTypeDefinitionSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        // Create and check if structure was loaded from cache. Skip additional processing by returning early.
+        super(pData, PgslTypeName.String, pMeta, pBuildIn);
+        if (this.loadedFromCache) {
+            return this;
         }
+    }
 
-        // Create.
-        super(PgslTypeName.String, lIdentifier, pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
-
-        // Set cache.
-        BasePgslTypeDefinitionSyntaxTree.mTypeCache.set(lIdentifier, this);
+    /**
+     * Determinate structures identifier.
+     */
+    protected determinateIdentifier(this: null, _pData: PgslStringTypeDefinitionSyntaxTreeStructureData): string {
+        return `ID:TYPE-DEF_STRING->STRING`;
     }
 
     /**

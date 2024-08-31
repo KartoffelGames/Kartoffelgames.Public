@@ -1,4 +1,5 @@
 import { Dictionary } from '@kartoffelgames/core';
+import { SyntaxTreeMeta } from '../base-pgsl-syntax-tree';
 import { IPgslVariableDeclarationSyntaxTree } from '../interface/i-pgsl-variable-declaration-syntax-tree.interface';
 import { BasePgslStatementSyntaxTree } from './base-pgsl-statement-syntax-tree';
 import { PgslVariableDeclarationStatementSyntaxTree } from './pgsl-variable-declaration-statement-syntax-tree';
@@ -9,6 +10,13 @@ import { PgslVariableDeclarationStatementSyntaxTree } from './pgsl-variable-decl
 export class PgslBlockStatementSyntaxTree extends BasePgslStatementSyntaxTree<PgslBlockStatementSyntaxTreeStructureData> {
     private readonly mDeclaredVariables: Set<PgslVariableDeclarationStatementSyntaxTree>;
     private readonly mStatementList: Array<BasePgslStatementSyntaxTree>;
+
+    /**
+     * Statements of block.
+     */
+    public get statements(): Array<BasePgslStatementSyntaxTree> {
+        return this.mStatementList;
+    }
 
     /**
      * Get all scoped variables of scope.
@@ -29,14 +37,11 @@ export class PgslBlockStatementSyntaxTree extends BasePgslStatementSyntaxTree<Pg
      * Constructor.
      * 
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pData: PgslBlockStatementSyntaxTreeStructureData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine);
+    public constructor(pData: PgslBlockStatementSyntaxTreeStructureData, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        super(pData, pMeta, pBuildIn);
 
         // Set data.
         this.mStatementList = pData.statements;

@@ -1,27 +1,24 @@
-import { Dictionary } from '@kartoffelgames/core';
-import { BasePgslSyntaxTree, PgslSyntaxTreeInitData } from '../../base-pgsl-syntax-tree';
+import { BasePgslSyntaxTree, PgslSyntaxTreeInitData, SyntaxTreeMeta } from '../../base-pgsl-syntax-tree';
 import { PgslTypeName } from '../enum/pgsl-type-name.enum';
 
 /**
  * PGSL base type definition.
  */
 export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxTreeInitData = PgslSyntaxTreeInitData> extends BasePgslSyntaxTree<TData> {
-    protected static readonly mTypeCache: Dictionary<string, BasePgslTypeDefinitionSyntaxTree> = new Dictionary<string, BasePgslTypeDefinitionSyntaxTree>();
-
     private readonly mIdentifier: string;
-    private mIsComposite: boolean | null;
-    private mIsConstructable: boolean | null;
-    private mIsFixed: boolean | null;
-    private mIsIndexable: boolean | null;
-    private mIsPlainType: boolean | null;
-    private mIsShareable: boolean | null;
-    private mIsStorable: boolean | null;
-    private readonly mTypeName: PgslTypeName;
-
-    // TODO: Add some type of caching.
+    private mIsComposite!: boolean | null;
+    private mIsConstructable!: boolean | null;
+    private mIsFixed!: boolean | null;
+    private mIsIndexable!: boolean | null;
+    private mIsPlainType!: boolean | null;
+    private mIsShareable!: boolean | null;
+    private mIsStorable!: boolean | null;
+    // eslint-disable-next-line @typescript-eslint/prefer-readonly
+    private mLoadedFromCache!: boolean;
+    private readonly mTypeName!: PgslTypeName;
 
     /**
-     * Type identifier.
+     * Structure unique identifier.
      */
     public get identifier(): string {
         return this.mIdentifier;
@@ -126,6 +123,13 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxT
     }
 
     /**
+     * When element was loaded from cache and not newly created.
+     */
+    public get loadedFromCache(): boolean {
+        return this.mLoadedFromCache;
+    }
+
+    /**
      * Type name of definition.
      */
     public get typeName(): PgslTypeName {
@@ -135,23 +139,29 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxT
     /**
      * Constructor.
      * 
-     * @param pTypeName - Typename.
-     * @param pIdentifier - Unique identifier of type.
      * @param pData - Initial data.
-     * @param pStartColumn - Parsing start column.
-     * @param pStartLine - Parsing start line.
-     * @param pEndColumn - Parsing end column.
-     * @param pEndLine - Parsing end line.
+     * @param pTypeName - Base type name of definition.
+     * @param pMeta - Syntax tree meta data.
      * @param pBuildIn - Buildin value.
      */
-    public constructor(pTypeName: PgslTypeName, pIdentifier: string, pData: TData, pStartColumn: number, pStartLine: number, pEndColumn: number, pEndLine: number, pBuildIn: boolean = false) {
-        super(pData, pStartColumn, pStartLine, pEndColumn, pEndLine, pBuildIn);
+    public constructor(pData: TData, pTypeName: PgslTypeName, pMeta?: SyntaxTreeMeta, pBuildIn: boolean = false) {
+        // Call super and prevent reasigning empty data to cached structures.
+        super(pData, pMeta, pBuildIn);
+
+        // Load idenifier and check if a cached structure exists.
+        this.mIdentifier = this.determinateIdentifier.call(null, pData);
+        if (BasePgslSyntaxTree.mStructureCache.has(this.mIdentifier)) {
+            const lCachedStructure: this = BasePgslSyntaxTree.mStructureCache.get(this.mIdentifier)! as this;
+            lCachedStructure.mLoadedFromCache = true;
+
+            return lCachedStructure;
+        }
 
         // Set type name.
         this.mTypeName = pTypeName;
-        this.mIdentifier = pIdentifier;
 
         // Set data default
+        this.mLoadedFromCache = false;
         this.mIsComposite = null;
         this.mIsConstructable = null;
         this.mIsFixed = null;
@@ -162,15 +172,20 @@ export abstract class BasePgslTypeDefinitionSyntaxTree<TData extends PgslSyntaxT
     }
 
     /**
-     * Check if set type is equal to this type.
+     * Check if set structure is equal to this structure.
      * 
-     * @param pTarget - Target type.
+     * @param pTarget - Target structure.
      * 
-     * @returns if both declarations are equal.
+     * @returns if both structures are equal.
      */
     public equals(pTarget: BasePgslTypeDefinitionSyntaxTree): boolean {
         return pTarget.identifier === this.identifier;
     }
+
+    /**
+     * Determinate structures identifier.
+     */
+    protected abstract determinateIdentifier(this: null, pData: TData): string;
 
     /**
      * Determinate if declaration is a composite type.

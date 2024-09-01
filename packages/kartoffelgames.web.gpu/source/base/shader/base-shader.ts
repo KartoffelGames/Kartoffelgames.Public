@@ -71,7 +71,3 @@ export abstract class BaseShader extends GpuNativeObject<GPUShaderModule> {
         return lEntryPointFunctions.map((pFunction: ShaderFunction) => { return pFunction.name; });
     }
 }
-
-type ShaderLayout = {
-
-}

@@ -5,7 +5,7 @@ import { BaseBufferMemoryLayout } from '../../base/memory_layout/buffer/base-buf
 import { SamplerMemoryLayout } from '../../base/memory_layout/texture/sampler-memory-layout';
 import { TextureMemoryLayout } from '../../base/memory_layout/texture/texture-memory-layout';
 import { AccessMode } from '../../constant/access-mode.enum';
-import { BufferBindType } from '../../constant/buffer-bind-type.enum';
+import { BufferUsage } from '../../constant/buffer-usage.enum';
 import { SamplerType } from '../../constant/sampler-type.enum';
 import { TextureBindType } from '../../constant/texture-bind-type.enum';
 import { NativeWebGpuMap } from '../web-gpu-generator-factory';
@@ -36,11 +36,11 @@ export class WebGpuBindDataGroupLayoutGenerator extends BaseNativeGenerator<Nati
             if (lEntry.layout instanceof BaseBufferMemoryLayout) {
                 let lBufferBindingType: GPUBufferBindingType;
                 switch (lEntry.layout.bindType) {
-                    case BufferBindType.Uniform: {
+                    case BufferUsage.Uniform: {
                         lBufferBindingType = 'uniform';
                         break;
                     }
-                    case BufferBindType.Storage: {
+                    case BufferUsage.Storage: {
                         // Read only access. No bit compare.
                         if (lEntry.layout.accessMode === AccessMode.Read) {
                             lBufferBindingType = 'read-only-storage';

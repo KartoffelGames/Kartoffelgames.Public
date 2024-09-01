@@ -1,35 +1,8 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { WebGpuBindDataGroupGenerator } from './native-generator/web-gpu-bind-data-group-generator';
-import { WebGpuBindDataGroupLayoutGenerator } from './native-generator/web-gpu-bind-data-group-layout-generator';
-import { WebGpuCanvasTextureGenerator } from './native-generator/web-gpu-canvas-texture-generator';
-import { WebGpuFramebufferTextureGenerator } from './native-generator/web-gpu-frame-buffer-texture-generator';
-import { WebGpuGpuBufferGenerator } from './native-generator/web-gpu-gpu-buffer-generator';
-import { WebGpuImageTextureGenerator } from './native-generator/web-gpu-image-texture-generator';
-import { WebGpuPipelineDataLayoutGenerator } from './native-generator/web-gpu-pipeline-data-layout-generator';
-import { WebGpuVertexFragmentShaderGenerator } from './native-generator/web-gpu-vertex-fragment-shader-generator';
-import { WebGpuTextureSamplerGenerator } from './native-generator/web-gpu-texture-sampler-generator';
-import { WebGpuVideoTextureGenerator } from './native-generator/web-gpu-video-texture-generator';
-import { WebGpuRenderTargetsGenerator } from './native-generator/web-gpu-render-targets-generator';
-import { WebGpuComputeShaderGenerator } from './native-generator/web-gpu-compute-shader-generator';
-import { WebGpuVertexFragmentPipelineGenerator } from './native-generator/web-gpu-vertex-fragment-pipeline-generator';
-import { CompareFunction } from '../constant/compare-function.enum';
 import { BufferPrimitiveFormat } from '../base/memory_layout/buffer/enum/primitive-buffer-format';
-import { WebGpuComputeInstructionGenerator } from './native-generator/web-gpu-compute-instruction-generator';
-import { WebGpuVertexFragmentInstructionGenerator } from './native-generator/web-gpu-vertex-fragment-instruction-generator';
-import { WebGpuComputePipelineGenerator } from './native-generator/web-gpu-compute-pipeline-generator';
-import { WebGpuInstructionExecutorGenerator } from './native-generator/web-gpu-instruction-executor-generator';
-import { BindDataGroup } from '../base/binding/bind-data-group';
-import { BindDataGroupLayout } from '../base/binding/bind-data-group-layout';
-import { PipelineDataLayout } from '../base/binding/pipeline-data-layout';
-import { GpuBuffer } from '../base/buffer/gpu-buffer';
-import { BaseGeneratorFactory, GeneratorNativeMap } from '../base/native_generator/base-generator-factory';
 import { TextureMemoryLayout } from '../base/memory_layout/texture/texture-memory-layout';
-import { VertexFragmentShader } from '../base/shader/vertex-fragment-shader';
-import { CanvasTexture } from '../base/texture/canvas-texture';
-import { FrameBufferTexture } from '../base/texture/frame-buffer-texture';
-import { ImageTexture } from '../base/texture/image-texture';
-import { TextureSampler } from '../base/texture/texture-sampler';
-import { VideoTexture } from '../base/texture/video-texture';
+import { BaseGeneratorFactory } from '../base/native_generator/base-generator-factory';
+import { CompareFunction } from '../constant/compare-function.enum';
 import { MemoryCopyType } from '../constant/memory-copy-type.enum';
 import { TextureDimension } from '../constant/texture-dimension.enum';
 import { TextureFormat } from '../constant/texture-format.enum';
@@ -39,55 +12,13 @@ export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap
     private static readonly mAdapters: Dictionary<GPUPowerPreference, GPUAdapter> = new Dictionary<GPUPowerPreference, GPUAdapter>();
     private static readonly mDevices: Dictionary<GPUAdapter, GPUDevice> = new Dictionary<GPUAdapter, GPUDevice>();
 
-    private mGpuAdapter: GPUAdapter | null;
-    private mGpuDevice: GPUDevice | null;
     private readonly mPerformance: GPUPowerPreference;
-
-    /**
-     * GPU device.
-     */
-    public get gpu(): GPUDevice {
-        if (this.mGpuDevice === null) {
-            throw new Exception('Web GPU device not initialized.', this);
-        }
-
-        return this.mGpuDevice;
-    }
 
     /**
      * Preferred texture format.
      */
     public get preferredFormat(): GPUTextureFormat {
         return window.navigator.gpu.getPreferredCanvasFormat();
-    }
-
-    /**
-     * Constructor.
-     */
-    public constructor(pMode: GPUPowerPreference) {
-        super();
-
-        this.mPerformance = pMode;
-        this.mGpuAdapter = null;
-        this.mGpuDevice = null;
-
-        // Data.
-        this.registerGenerator<'gpuBuffer'>(GpuBuffer, WebGpuGpuBufferGenerator);
-
-        // Data binding.
-        this.registerGenerator<'bindDataGroupLayout'>(BindDataGroupLayout, WebGpuBindDataGroupLayoutGenerator);
-        this.registerGenerator<'bindDataGroup'>(BindDataGroup, WebGpuBindDataGroupGenerator);
-        this.registerGenerator<'pipelineDataLayout'>(PipelineDataLayout, WebGpuPipelineDataLayoutGenerator);
-
-        // Textures.
-        this.registerGenerator<'canvasTexture'>(CanvasTexture, WebGpuCanvasTextureGenerator);
-        this.registerGenerator<'frameBufferTexture'>(FrameBufferTexture, WebGpuFramebufferTextureGenerator);
-        this.registerGenerator<'videoTexture'>(VideoTexture, WebGpuVideoTextureGenerator);
-        this.registerGenerator<'imageTexture'>(ImageTexture, WebGpuImageTextureGenerator);
-        this.registerGenerator<'textureSampler'>(TextureSampler, WebGpuTextureSamplerGenerator);
-
-        // Shader.
-        this.registerGenerator<'vertexFragmentShader'>(VertexFragmentShader, WebGpuVertexFragmentShaderGenerator);
     }
 
     /**
@@ -229,30 +160,6 @@ export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap
     }
 
     /**
-     * Init devices.
-     */
-    public override async initInternals(): Promise<void> {
-        // Try to load cached adapter. When not cached, request new one.
-        const lAdapter: GPUAdapter | null = WebGpuGeneratorFactory.mAdapters.get(this.mPerformance) ?? await window.navigator.gpu.requestAdapter({ powerPreference: this.mPerformance });
-        if (!lAdapter) {
-            throw new Exception('Error requesting GPU adapter', WebGpuGeneratorFactory);
-        }
-
-        WebGpuGeneratorFactory.mAdapters.set(this.mPerformance, lAdapter);
-
-        // Try to load cached device. When not cached, request new one.
-        const lDevice: GPUDevice | null = WebGpuGeneratorFactory.mDevices.get(lAdapter) ?? await lAdapter.requestDevice();
-        if (!lDevice) {
-            throw new Exception('Error requesting GPU device', WebGpuGeneratorFactory);
-        }
-
-        WebGpuGeneratorFactory.mDevices.set(lAdapter, lDevice);
-
-        this.mGpuAdapter = lAdapter;
-        this.mGpuDevice = lDevice;
-    }
-
-    /**
      * Get sample type from texture layout.
      */
     public sampleTypeFromLayout(pLayout: TextureMemoryLayout): GPUTextureSampleType {
@@ -351,39 +258,4 @@ export class WebGpuGeneratorFactory extends BaseGeneratorFactory<NativeWebGpuMap
 
         return lUsage;
     }
-}
-
-export interface NativeWebGpuMap extends GeneratorNativeMap {
-    factory: WebGpuGeneratorFactory;
-
-    generators: {
-        // Textures.
-        textureSampler: { generator: WebGpuTextureSamplerGenerator; native: GPUSampler; };
-        imageTexture: { generator: WebGpuImageTextureGenerator; native: GPUTextureView; };
-        frameBufferTexture: { generator: WebGpuFramebufferTextureGenerator; native: GPUTextureView; };
-        videoTexture: { generator: WebGpuVideoTextureGenerator; native: GPUExternalTexture; };
-        canvasTexture: { generator: WebGpuCanvasTextureGenerator; native: GPUTextureView; };
-
-        // Things with generics. :(
-        gpuBuffer: { generator: WebGpuGpuBufferGenerator; native: GPUBuffer; };
-
-        // Pipeline layouting.
-        bindDataGroupLayout: { generator: WebGpuBindDataGroupLayoutGenerator; native: GPUBindGroupLayout; };
-        bindDataGroup: { generator: WebGpuBindDataGroupGenerator; native: GPUBindGroup; };
-        pipelineDataLayout: { generator: WebGpuPipelineDataLayoutGenerator; native: GPUPipelineLayout; };
-        renderTargets: { generator: WebGpuRenderTargetsGenerator; native: GPURenderPassDescriptor; };
-
-        // Pipelines.
-        vertexFragmentPipeline: { generator: WebGpuVertexFragmentPipelineGenerator; native: GPURenderPipeline; };
-        computePipeline: { generator: WebGpuComputePipelineGenerator; native: GPUComputePipeline; };
-
-        // Shader.
-        vertexFragmentShader: { generator: WebGpuVertexFragmentShaderGenerator; native: GPUShaderModule; };
-        computeShader: { generator: WebGpuComputeShaderGenerator; native: GPUShaderModule; };
-
-        // Execution.
-        computeInstruction: { generator: WebGpuComputeInstructionGenerator; native: null; };
-        vertexFragmentInstruction: { generator: WebGpuVertexFragmentInstructionGenerator; native: null; };
-        instructionExecutor: { generator: WebGpuInstructionExecutorGenerator; native: null; };
-    };
 }

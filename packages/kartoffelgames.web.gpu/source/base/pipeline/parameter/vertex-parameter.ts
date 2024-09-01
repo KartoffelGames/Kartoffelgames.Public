@@ -1,6 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { AccessMode } from '../../../constant/access-mode.enum';
-import { BufferBindType } from '../../../constant/buffer-bind-type.enum';
+import { BufferUsage } from '../../../constant/buffer-usage.enum';
 import { BufferPrimitiveFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format';
 import { ComputeStage } from '../../../constant/compute-stage.enum';
 import { GpuBuffer } from '../../buffer/gpu-buffer';
@@ -45,7 +45,7 @@ export class VertexParameter extends GpuObject {
         // Create index layout.
         const lIndexLayout: PrimitiveBufferMemoryLayout = new PrimitiveBufferMemoryLayout(pDevice, {
             primitiveFormat: BufferPrimitiveFormat.Uint,
-            bindType: BufferBindType.Index,
+            bindType: BufferUsage.Index,
             size: 4,
             alignment: 4,
             locationIndex: null,
@@ -59,7 +59,7 @@ export class VertexParameter extends GpuObject {
         const lIndexBufferLayout: ArrayBufferMemoryLayout = new ArrayBufferMemoryLayout(pDevice, {
             innerType: lIndexLayout,
             arraySize: pIndices.length,
-            bindType: BufferBindType.Index,
+            bindType: BufferUsage.Index,
             access: AccessMode.Read,
             bindingIndex: null,
             name: '',

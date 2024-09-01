@@ -95,7 +95,7 @@ export class CanvasTexture extends GpuNativeObject<GPUTextureView> {
             // Create and configure canvas context.
             this.mContext = <GPUCanvasContext><any>this.canvas.getContext('webgpu');
             this.mContext.configure({
-                device: this.device.device,
+                device: this.device.gpu,
                 format: this.factory.formatFromLayout(this.memoryLayout),
                 usage: this.factory.usageFromLayout(this.memoryLayout),
                 alphaMode: 'opaque'

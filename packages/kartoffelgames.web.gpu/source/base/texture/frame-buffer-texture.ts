@@ -108,7 +108,7 @@ export class FrameBufferTexture extends GpuNativeObject<GPUTextureView> {
         // Configure context.
         if (!this.mTexture) {
             // Create and configure canvas context.
-            this.mTexture = this.device.device.createTexture({
+            this.mTexture = this.device.gpu.createTexture({
                 label: 'Frame-Buffer-Texture',
                 size: [this.width, this.height, this.depth],
                 format: this.factory.formatFromLayout(this.memoryLayout),

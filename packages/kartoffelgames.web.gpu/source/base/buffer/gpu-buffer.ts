@@ -15,9 +15,9 @@ export class GpuBuffer<TType extends TypedArray> extends GpuNativeObject<GPUBuff
     private readonly mLayout: BaseBufferMemoryLayout;
     private readonly mReadyBufferList: Array<GPUBuffer>;
     private readonly mUsage: BufferUsage;
-    private readonly mWavingBufferList: Array<GPUBuffer>;
     private readonly mWavingBufferLimitation: number;
-
+    private readonly mWavingBufferList: Array<GPUBuffer>;
+    
     /**
      * Buffer copy type.
      */
@@ -73,6 +73,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuNativeObject<GPUBuff
         // Set config.
         this.mCopyType = pCopyType;
         this.mUsage = pUsage;
+        this.mWavingBufferLimitation = pWavingBufferLimitation;
         this.mDataType = <BufferDataType<TType>>pInitialData.constructor;
 
         // Waving buffer list.
@@ -80,12 +81,8 @@ export class GpuBuffer<TType extends TypedArray> extends GpuNativeObject<GPUBuff
         this.mWavingBufferList = new Array<GPUBuffer>();
 
         // Set buffer initial data from buffer size or buffer data.
-        if (typeof pInitialData === 'number') {
-            this.mItemCount = pInitialData;
-        } else {
-            this.mItemCount = pInitialData.length;
-            this.writeRaw(pInitialData, 0);
-        }
+        this.mItemCount = pInitialData.length;
+        this.writeRaw(pInitialData, 0);
     }
 
     /**
@@ -142,7 +139,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuNativeObject<GPUBuff
         if (this.mReadyBufferList.length === 0) {
             // Create new buffer when limitation is not meet.
             if (this.mWavingBufferList.length < this.mWavingBufferLimitation) {
-                lStagingBuffer = this.device.device.createBuffer({
+                lStagingBuffer = this.device.gpu.createBuffer({
                     label: `RingBuffer-WaveBuffer-${this.mWavingBufferList.length}`,
                     size: this.size,
                     usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
@@ -165,7 +162,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuNativeObject<GPUBuff
             // Write data into mapped range.
             const lBufferArray: TypedArray = new this.dataType(lNativeBuffer.getMappedRange());
             lBufferArray.set(pData);
-            
+
             // And now let the gpu handle it.
             lNativeBuffer.unmap();
 
@@ -180,9 +177,9 @@ export class GpuBuffer<TType extends TypedArray> extends GpuNativeObject<GPUBuff
         lStagingBuffer.unmap();
 
         // Copy buffer data from staging into wavig buffer.
-        const lCommandDecoder: GPUCommandEncoder = this.device.device.createCommandEncoder();
+        const lCommandDecoder: GPUCommandEncoder = this.device.gpu.createCommandEncoder();
         lCommandDecoder.copyBufferToBuffer(lStagingBuffer, 0, this.native, 0, this.size);
-        this.device.device.queue.submit([lCommandDecoder.finish()]);
+        this.device.gpu.queue.submit([lCommandDecoder.finish()]);
 
         // Shedule staging buffer remaping.
         lStagingBuffer.mapAsync(GPUMapMode.WRITE).then(() => {
@@ -216,7 +213,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuNativeObject<GPUBuff
         const lUsage: number = this.mUsage | this.copyType;
 
         // Create gpu buffer mapped
-        const lBuffer: GPUBuffer = this.device.device.createBuffer({
+        const lBuffer: GPUBuffer = this.device.gpu.createBuffer({
             label: 'Ring-Buffer-Static-Buffer',
             size: this.size,
             usage: lUsage,

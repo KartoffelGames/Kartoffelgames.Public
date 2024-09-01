@@ -42,18 +42,19 @@ export class GpuDevice {
         return this.mGpuAdapter;
     }
 
-    /**
-     * Gpu device.
-     */
-    public get device(): GPUDevice {
-        return this.mGpuDevice;
-    }
 
     /**
      * Get frame count.
      */
     public get frameCount(): number {
         return this.mFrameCounter;
+    }
+
+    /**
+     * Gpu device.
+     */
+    public get gpu(): GPUDevice {
+        return this.mGpuDevice;
     }
 
     /**

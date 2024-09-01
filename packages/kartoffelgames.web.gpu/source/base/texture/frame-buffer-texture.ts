@@ -1,13 +1,14 @@
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/gpu-object';
+import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
-import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
+import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 
-export class FrameBufferTexture extends GpuObject<'frameBufferTexture'> {
+export class FrameBufferTexture extends GpuNativeObject<GPUTextureView> {
     private mDepth: number;
     private mHeight: number;
     private readonly mMemoryLayout: TextureMemoryLayout;
     private mMultiSampleLevel: number;
+    private mTexture: GPUTexture | null;
     private mWidth: number;
 
     /**
@@ -72,10 +73,11 @@ export class FrameBufferTexture extends GpuObject<'frameBufferTexture'> {
      * @param pDepth - Texture depth.
      */
     public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout) {
-        super(pDevice);
+        super(pDevice, NativeObjectLifeTime.Frame);
+
+        this.mTexture = null;
 
         // Fixed values.
-
         this.mMemoryLayout = pLayout;
 
         // Set defaults.
@@ -88,5 +90,35 @@ export class FrameBufferTexture extends GpuObject<'frameBufferTexture'> {
         pLayout.addUpdateListener(() => {
             this.triggerAutoUpdate(UpdateReason.ChildData);
         });
+    }
+
+    /**
+     * Destory texture object.
+     * @param _pNativeObject - Native canvas texture.
+     */
+    protected override destroy(_pNativeObject: GPUTextureView): void {
+        this.mTexture?.destroy();
+        this.mTexture = null;
+    }
+
+    /**
+     * Generate native canvas texture view.
+     */
+    protected override generate(): GPUTextureView {
+        // Configure context.
+        if (!this.mTexture) {
+            // Create and configure canvas context.
+            this.mTexture = this.device.device.createTexture({
+                label: 'Frame-Buffer-Texture',
+                size: [this.width, this.height, this.depth],
+                format: this.factory.formatFromLayout(this.memoryLayout),
+                usage: this.factory.usageFromLayout(this.memoryLayout),
+                dimension: this.factory.dimensionFromLayout(this.memoryLayout),
+                sampleCount: this.gpuObject.multiSampleLevel
+            });
+        }
+
+        // TODO: View descriptor.
+        return this.mTexture.createView();
     }
 }

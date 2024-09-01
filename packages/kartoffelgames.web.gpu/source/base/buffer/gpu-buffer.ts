@@ -1,6 +1,6 @@
 import { TypedArray } from '@kartoffelgames/core';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/gpu-object';
+import { GpuObject } from '../gpu/gpu-native-object';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
 

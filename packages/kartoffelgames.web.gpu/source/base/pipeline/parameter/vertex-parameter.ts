@@ -1,13 +1,13 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { AccessMode } from '../../../constant/access-mode.enum';
 import { BufferBindType } from '../../../constant/buffer-bind-type.enum';
-import { BufferPrimitiveFormat } from '../../../constant/buffer-primitive-format';
+import { BufferPrimitiveFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format';
 import { ComputeStage } from '../../../constant/compute-stage.enum';
 import { GpuBuffer } from '../../buffer/gpu-buffer';
 import { GpuDevice } from '../../gpu/gpu-device';
-import { GpuObject } from '../../gpu/gpu-object';
+import { GpuObject } from '../../gpu/gpu-native-object';
 import { ArrayBufferMemoryLayout } from '../../memory_layout/buffer/array-buffer-memory-layout';
-import { LinearBufferMemoryLayout } from '../../memory_layout/buffer/linear-buffer-memory-layout';
+import { PrimitiveBufferMemoryLayout } from '../../memory_layout/buffer/primitive-buffer-memory-layout';
 import { VertexParameterLayout } from './vertex-parameter-layout';
 
 export class VertexParameter extends GpuObject {
@@ -43,7 +43,7 @@ export class VertexParameter extends GpuObject {
         this.mData = new Dictionary<string, GpuBuffer<Float32Array>>();
 
         // Create index layout.
-        const lIndexLayout: LinearBufferMemoryLayout = new LinearBufferMemoryLayout(pDevice, {
+        const lIndexLayout: PrimitiveBufferMemoryLayout = new PrimitiveBufferMemoryLayout(pDevice, {
             primitiveFormat: BufferPrimitiveFormat.Uint,
             bindType: BufferBindType.Index,
             size: 4,
@@ -89,7 +89,7 @@ export class VertexParameter extends GpuObject {
      * @param pData - Parameter data.
      */
     public set(pName: string, pData: Array<number>): void {
-        const lBufferLayout: LinearBufferMemoryLayout = this.mLayout.getLayoutOf(pName);
+        const lBufferLayout: PrimitiveBufferMemoryLayout = this.mLayout.getLayoutOf(pName);
 
         // TODO: Load typed array from layout format.
         const lParameterBuffer: GpuBuffer<Float32Array> = lBufferLayout.create(new Float32Array(pData));

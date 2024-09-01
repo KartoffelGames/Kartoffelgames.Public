@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/gpu-object';
-import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
+import { GpuObject } from '../gpu/gpu-native-object';
+import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
 
 export class ImageTexture extends GpuObject<'imageTexture'> {

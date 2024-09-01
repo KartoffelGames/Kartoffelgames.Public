@@ -1,13 +1,10 @@
 import { Exception } from '@kartoffelgames/core';
-import { GpuDevice } from '../../gpu/gpu-device';
 import { BaseBufferMemoryLayout, BufferLayoutLocation, BufferMemoryLayoutParameter } from './base-buffer-memory-layout';
-import { LinearBufferMemoryLayout } from './linear-buffer-memory-layout';
 
 export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
     private mAlignment: number;
     private mInnerProperties: Array<[number, BaseBufferMemoryLayout]>;
     private mSize: number;
-    private readonly mStructName: string;
 
     /**
      * Alignment of type.
@@ -31,25 +28,17 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
     }
 
     /**
-     * Struct name.
-     */
-    public get structName(): string {
-        return this.mStructName;
-    }
-
-    /**
      * Constructor.
      * @param pParameter - Parameter.
      */
-    public constructor(pGpu: GpuDevice, pParameter: StructBufferMemoryLayoutParameter) {
-        super(pGpu, pParameter);
+    public constructor(pParameter: StructBufferMemoryLayoutParameter) {
+        super(pParameter);
 
         // Calculated properties.
         this.mAlignment = 0;
         this.mSize = 0;
 
         // Static properties.
-        this.mStructName = pParameter.structName;
         this.mInnerProperties = new Array<[number, BaseBufferMemoryLayout]>();
     }
 
@@ -61,7 +50,6 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
      */
     public addProperty(pOrder: number, pType: BaseBufferMemoryLayout): void {
         this.mInnerProperties.push([pOrder, pType]);
-        pType.parent = this;
 
         // Order properties.
         this.mInnerProperties = this.mInnerProperties.sort((pA, pB) => {
@@ -70,51 +58,6 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
 
         // Call recalculation. Or other usefull things.
         this.recalculateAlignment();
-    }
-
-    /**
-     * Get types of properties with a set memory index.
-     */
-    public bindingLayouts(): Array<BaseBufferMemoryLayout> {
-        const lLocationTypes: Array<BaseBufferMemoryLayout> = new Array<BaseBufferMemoryLayout>();
-
-        // Include itself.
-        if (this.bindingIndex !== null) {
-            lLocationTypes.push(this);
-        }
-
-        // Check all properties.
-        for (const [, lPropertyType] of this.mInnerProperties.values()) {
-            // Get all inner locations when property is a struct type.
-            if (lPropertyType instanceof StructBufferMemoryLayout) {
-                // Result does include itself 
-                lLocationTypes.push(...lPropertyType.bindingLayouts());
-            } else if (lPropertyType.bindingIndex !== null) {
-                lLocationTypes.push(lPropertyType);
-            }
-        }
-
-        return lLocationTypes;
-    }
-
-    /**
-     * Get types of properties with a set memory index.
-     */
-    public locationLayouts(): Array<LinearBufferMemoryLayout> {
-        const lLocationTypes: Array<LinearBufferMemoryLayout> = new Array<LinearBufferMemoryLayout>();
-
-        // Check all properties.
-        for (const [, lPropertyType] of this.mInnerProperties.values()) {
-            // Get all inner locations when property is a struct type.
-            if (lPropertyType instanceof StructBufferMemoryLayout) {
-                // Result does include itself 
-                lLocationTypes.push(...lPropertyType.locationLayouts());
-            } else if (lPropertyType instanceof LinearBufferMemoryLayout && lPropertyType.locationIndex !== null) {
-                lLocationTypes.push(lPropertyType);
-            }
-        }
-
-        return lLocationTypes;
     }
 
     /**
@@ -188,6 +131,4 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
     }
 }
 
-export interface StructBufferMemoryLayoutParameter extends BufferMemoryLayoutParameter {
-    structName: string;
-}
+export interface StructBufferMemoryLayoutParameter extends BufferMemoryLayoutParameter { }

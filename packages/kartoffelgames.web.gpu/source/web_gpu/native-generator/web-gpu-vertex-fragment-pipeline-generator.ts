@@ -1,8 +1,8 @@
 import { BaseNativeGenerator, NativeObjectLifeTime } from '../../base/native_generator/base-native-generator';
-import { LinearBufferMemoryLayout } from '../../base/memory_layout/buffer/linear-buffer-memory-layout';
-import { PrimitiveCullMode } from '../../constant/primitive-cullmode';
-import { PrimitiveFrontFace } from '../../constant/primitive-front-face';
-import { PrimitiveTopology } from '../../constant/primitive-topology';
+import { PrimitiveBufferMemoryLayout } from '../../base/memory_layout/buffer/primitive-buffer-memory-layout';
+import { PrimitiveCullMode } from '../../constant/primitive-cullmode.enum';
+import { PrimitiveFrontFace } from '../../constant/primitive-front-face.enum';
+import { PrimitiveTopology } from '../../constant/primitive-topology.enum';
 import { TextureFormat } from '../../constant/texture-format.enum';
 import { NativeWebGpuMap } from '../web-gpu-generator-factory';
 
@@ -25,7 +25,7 @@ export class WebGpuVertexFragmentPipelineGenerator extends BaseNativeGenerator<N
         const lVertexBufferLayoutList: Array<GPUVertexBufferLayout> = new Array<GPUVertexBufferLayout>(this.gpuObject.shader.parameterLayout.count);
         for (const lAttributeName of this.gpuObject.shader.parameterLayout.parameter) {
             const lAttributeIndex: number = this.gpuObject.shader.parameterLayout.getIndexOf(lAttributeName);
-            const lAttributeLayout: LinearBufferMemoryLayout = this.gpuObject.shader.parameterLayout.getLayoutOf(lAttributeName);
+            const lAttributeLayout: PrimitiveBufferMemoryLayout = this.gpuObject.shader.parameterLayout.getLayoutOf(lAttributeName);
 
             // Set location offset based on previous vertex attributes.
             lVertexBufferLayoutList.push(this.generateAttribute(lAttributeIndex, lAttributeLayout));
@@ -93,7 +93,7 @@ export class WebGpuVertexFragmentPipelineGenerator extends BaseNativeGenerator<N
      * @param pLocation - Attribute location-
      * @param pLayout - Attribute buffer layout.
      */
-    private generateAttribute(pLocation: number, pLayout: LinearBufferMemoryLayout): GPUVertexBufferLayout {
+    private generateAttribute(pLocation: number, pLayout: PrimitiveBufferMemoryLayout): GPUVertexBufferLayout {
         const lBufferLayout: GPUVertexBufferLayout = {
             arrayStride: this.factory.byteCountOfVertexFormat(pLayout.format),
             stepMode: 'vertex',

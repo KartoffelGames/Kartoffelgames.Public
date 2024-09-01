@@ -1,7 +1,7 @@
 import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core';
 import { GpuBuffer } from '../buffer/gpu-buffer';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/gpu-object';
+import { GpuObject } from '../gpu/gpu-native-object';
 import { FrameBufferTexture } from '../texture/frame-buffer-texture';
 import { ImageTexture } from '../texture/image-texture';
 import { TextureSampler } from '../texture/texture-sampler';
@@ -32,7 +32,7 @@ export class BindDataGroup extends GpuObject<'bindDataGroup'> {
         this.mBindData = new Dictionary<string, BindData>();
 
         // Register change listener for layout changes.
-        pBindGroupLayout.addUpdateListener(() => {
+        pBindGroupLayout.addInvalidationListener(() => {
             this.triggerAutoUpdate(UpdateReason.ChildData);
         });
     }

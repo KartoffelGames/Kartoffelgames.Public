@@ -1,10 +1,11 @@
-import { GeneratorObjectKeys } from '../native_generator/base-generator-factory';
 import { GpuDevice } from './gpu-device';
-import { UpdateReason } from './gpu-object-update-reason';
+import { GpuObjectUpdateListener } from './gpu-native-object';
+import { GpuObjectUpdateReason, UpdateReason } from './gpu-object-update-reason';
 
-export abstract class GpuObject<TGpuObjectKey extends GeneratorObjectKeys = 'none'> {
+export abstract class GpuObject {
     private mAutoUpdate: boolean;
     private readonly mDevice: GpuDevice;
+    private readonly mInvalidationReasons: GpuObjectUpdateReason;
     private readonly mUpdateListenerList: Set<GpuObjectUpdateListener>;
 
     /**
@@ -24,56 +25,65 @@ export abstract class GpuObject<TGpuObjectKey extends GeneratorObjectKeys = 'non
     }
 
     /**
+     * Current invalidation reasons.
+     */
+    protected get invalidationReasons(): GpuObjectUpdateReason {
+        return this.mInvalidationReasons;
+    }
+
+    /**
      * Constructor.
      * @param pDevice - Gpu device.
      */
     public constructor(pDevice: GpuDevice) {
-        this.mAutoUpdate = true;
+        // Save static settings.
         this.mDevice = pDevice;
+
+        // Init default settings and config.
+        this.mAutoUpdate = true;
+
+        // Init lists.
         this.mUpdateListenerList = new Set<GpuObjectUpdateListener>();
+        this.mInvalidationReasons = new GpuObjectUpdateReason();
     }
 
     /**
-     * Add update listener.
+     * Add invalidation listener.
      * @param pListener - Listener.
      */
-    public addUpdateListener(pListener: GpuObjectUpdateListener): void {
+    public addInvalidationListener(pListener: GpuObjectUpdateListener): void {
         this.mUpdateListenerList.add(pListener);
     }
 
     /**
-     * Add update listener.
-     * @param pListener - Listener.
+     * Invalidate native gpu object so it will be created again.
      */
-    public removeUpdateListener(pListener: GpuObjectUpdateListener): void {
-        this.mUpdateListenerList.delete(pListener);
+    public invalidate(pReason: UpdateReason): void {
+        // Add invalidation reason.
+        this.mInvalidationReasons.add(pReason);
+
+        // Call parent update listerner.
+        for (const lInvalidationListener of this.mUpdateListenerList) {
+            lInvalidationListener();
+        }
     }
 
     /**
-     * Update gpu object.
+     * Add invalidation listener.
+     * @param pListener - Listener.
      */
-    public update(pUpdateReason: UpdateReason): void {
-        // Invalidate before calling parent listener. Only when a generator exists.
-        const lGenerator = this.device.generator.request<TGpuObjectKey>(<any>this);
-        if (lGenerator) {
-            lGenerator.invalidate(pUpdateReason);
-        }
-
-        // Call parent update listerner.
-        for (const lUpdateListener of this.mUpdateListenerList) {
-            lUpdateListener();
-        }
+    public removeInvalidationListener(pListener: GpuObjectUpdateListener): void {
+        this.mUpdateListenerList.delete(pListener);
     }
+
 
     /**
      * Trigger auto update.
      * Does nothing on disabled auto update.
      */
-    protected triggerAutoUpdate(pUpdateReason: UpdateReason): void {
+    protected triggerAutoUpdate(pReason: UpdateReason): void {
         if (this.mAutoUpdate) {
-            this.update(pUpdateReason);
+            this.invalidate(pReason);
         }
     }
 }
-
-export type GpuObjectUpdateListener = () => void;

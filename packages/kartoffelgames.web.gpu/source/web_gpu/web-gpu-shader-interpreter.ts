@@ -2,14 +2,14 @@ import { Exception } from '@kartoffelgames/core';
 import { BaseMemoryLayout } from '../base/memory_layout/base-memory-layout';
 import { ArrayBufferMemoryLayout } from '../base/memory_layout/buffer/array-buffer-memory-layout';
 import { BaseBufferMemoryLayout } from '../base/memory_layout/buffer/base-buffer-memory-layout';
-import { LinearBufferMemoryLayout } from '../base/memory_layout/buffer/linear-buffer-memory-layout';
+import { PrimitiveBufferMemoryLayout } from '../base/memory_layout/buffer/primitive-buffer-memory-layout';
 import { StructBufferMemoryLayout } from '../base/memory_layout/buffer/struct-buffer-memory-layout';
-import { SamplerMemoryLayout } from '../base/memory_layout/sampler-memory-layout';
-import { TextureMemoryLayout } from '../base/memory_layout/texture-memory-layout';
+import { SamplerMemoryLayout } from '../base/memory_layout/texture/sampler-memory-layout';
+import { TextureMemoryLayout } from '../base/memory_layout/texture/texture-memory-layout';
 import { BaseShaderInterpreter, ShaderFunctionDefinition, ShaderValueDefinition, ShaderStructDefinition, ShaderFunction, ShaderTypeDefinition, ShaderValue, ShaderType } from '../base/shader/interpreter/base-shader-interpreter';
 import { AccessMode } from '../constant/access-mode.enum';
 import { BufferBindType } from '../constant/buffer-bind-type.enum';
-import { BufferPrimitiveFormat } from '../constant/buffer-primitive-format';
+import { BufferPrimitiveFormat } from '../base/memory_layout/buffer/enum/primitive-buffer-format';
 import { ComputeStage } from '../constant/compute-stage.enum';
 import { SamplerType } from '../constant/sampler-type.enum';
 import { TextureBindType } from '../constant/texture-bind-type.enum';
@@ -493,7 +493,7 @@ export class WebGpuShaderInterpreter extends BaseShaderInterpreter {
             throw new Exception('Type not supported.', this);
         }
 
-        const lLinearBufferLayout = new LinearBufferMemoryLayout(this.device, {
+        const lLinearBufferLayout = new PrimitiveBufferMemoryLayout(this.device, {
             size: pParameter.typeDefinition.size,
             alignment: pParameter.typeDefinition.align,
             bindType: pParameter.bufferBindType,

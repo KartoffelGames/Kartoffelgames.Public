@@ -1,5 +1,5 @@
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/gpu-object';
+import { GpuObject } from '../gpu/gpu-native-object';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
 import { ComputeShader } from '../shader/compute-shader';
 
@@ -24,7 +24,7 @@ export class ComputePipeline extends GpuObject<'computePipeline'> {
         this.mShader = pShader;
 
         // Listen for shader changes.
-        pShader.addUpdateListener(() => {
+        pShader.addInvalidationListener(() => {
             this.triggerAutoUpdate(UpdateReason.ChildData);
         });
     }

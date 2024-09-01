@@ -2,9 +2,9 @@ import { CompareFunction } from '../../constant/compare-function.enum';
 import { FilterMode } from '../../constant/filter-mode.enum';
 import { WrappingMode } from '../../constant/wrapping-mode.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/gpu-object';
+import { GpuObject } from '../gpu/gpu-native-object';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
-import { SamplerMemoryLayout } from '../memory_layout/sampler-memory-layout';
+import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
 
 export class TextureSampler extends GpuObject<'textureSampler'> {
     private mCompare: CompareFunction | null;

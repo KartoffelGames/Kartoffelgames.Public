@@ -6,11 +6,11 @@ import { StructBufferMemoryLayout } from '../memory_layout/buffer/struct-buffer-
 import { VertexParameterLayout } from '../pipeline/parameter/vertex-parameter-layout';
 import { BaseShader } from './base-shader';
 import { ShaderFunction } from './interpreter/base-shader-interpreter';
-import { LinearBufferMemoryLayout } from '../memory_layout/buffer/linear-buffer-memory-layout';
+import { PrimitiveBufferMemoryLayout } from '../memory_layout/buffer/primitive-buffer-memory-layout';
 import { RenderTargets } from '../pipeline/target/render-targets';
 import { VertexFragmentPipeline } from '../pipeline/vertex-fragment-pipeline';
 
-export class VertexFragmentShader extends BaseShader<'vertexFragmentShader'> {
+export class VertexFragmentShader extends BaseShader {
     private readonly mAttachmentCount: number;
     private readonly mFragmentEntry: string | null;
     private readonly mParameterLayout: VertexParameterLayout;
@@ -78,7 +78,7 @@ export class VertexFragmentShader extends BaseShader<'vertexFragmentShader'> {
         this.mParameterLayout = new VertexParameterLayout(this.device);
         for (const lParameter of lVertexEntryFunction.parameter) {
             // Validate buffer type.
-            if (!(lParameter instanceof LinearBufferMemoryLayout)) {
+            if (!(lParameter instanceof PrimitiveBufferMemoryLayout)) {
                 throw new Exception('Only simple data types are allowed for vertex attributes.', this);
             }
 

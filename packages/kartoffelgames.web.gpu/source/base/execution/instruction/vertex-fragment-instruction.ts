@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { BindDataGroup } from '../../binding/bind-data-group';
 import { GpuDevice } from '../../gpu/gpu-device';
-import { GpuObject } from '../../gpu/gpu-object';
+import { GpuObject } from '../../gpu/gpu-native-object';
 import { VertexParameter } from '../../pipeline/parameter/vertex-parameter';
 import { RenderTargets } from '../../pipeline/target/render-targets';
 import { VertexFragmentPipeline } from '../../pipeline/vertex-fragment-pipeline';

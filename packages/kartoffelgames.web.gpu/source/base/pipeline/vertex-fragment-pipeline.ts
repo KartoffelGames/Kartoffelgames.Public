@@ -1,9 +1,9 @@
 import { CompareFunction } from '../../constant/compare-function.enum';
-import { PrimitiveCullMode } from '../../constant/primitive-cullmode';
-import { PrimitiveFrontFace } from '../../constant/primitive-front-face';
-import { PrimitiveTopology } from '../../constant/primitive-topology';
+import { PrimitiveCullMode } from '../../constant/primitive-cullmode.enum';
+import { PrimitiveFrontFace } from '../../constant/primitive-front-face.enum';
+import { PrimitiveTopology } from '../../constant/primitive-topology.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/gpu-object';
+import { GpuObject } from '../gpu/gpu-native-object';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
 import { VertexFragmentShader } from '../shader/vertex-fragment-shader';
 import { RenderTargets } from './target/render-targets';
@@ -103,10 +103,10 @@ export class VertexFragmentPipeline extends GpuObject<'vertexFragmentPipeline'> 
         this.mRenderTargets = pRenderTargets;
 
         // Listen for render target and shader changes.
-        pShader.addUpdateListener(() => {
+        pShader.addInvalidationListener(() => {
             this.triggerAutoUpdate(UpdateReason.ChildData);
         });
-        pRenderTargets.addUpdateListener(() => {
+        pRenderTargets.addInvalidationListener(() => {
             this.triggerAutoUpdate(UpdateReason.ChildData);
         });
 

@@ -2,16 +2,14 @@ import { Dictionary } from '@kartoffelgames/core';
 import { ComputeStage } from '../../constant/compute-stage.enum';
 import { BindDataGroupLayout } from '../binding/bind-data-group-layout';
 import { PipelineDataLayout } from '../binding/pipeline-data-layout';
-import { GeneratorFactoryMap } from '../native_generator/base-generator-factory';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/gpu-object';
-import { BaseShaderInterpreter, ShaderFunction } from './interpreter/base-shader-interpreter';
+import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
 
 // TODO: Split into Compute- and RenderShader AND ModuleShader(Block any entry point.)
 // TODO: Add ShaderModules. With own PreCompile command. (import/if/define ....)
 // TODO: Maybe own language??? 
 
-export abstract class BaseShader<TGpuObjectKey extends keyof GeneratorFactoryMap> extends GpuObject<TGpuObjectKey> {
+export abstract class BaseShader extends GpuNativeObject<GPUShaderModule> {
     private static readonly mBindGroupLayoutCache: Dictionary<string, BindDataGroupLayout> = new Dictionary<string, BindDataGroupLayout>();
 
     private readonly mPipelineLayout: PipelineDataLayout;
@@ -36,7 +34,7 @@ export abstract class BaseShader<TGpuObjectKey extends keyof GeneratorFactoryMap
      * @param pDevice - Gpu Device reference.
      */
     public constructor(pDevice: GpuDevice, pSource: string) {
-        super(pDevice);
+        super(pDevice, NativeObjectLifeTime.Persistent);
 
         // Create shader information for source.
         this.mShaderInformation = this.device.shaderInterpreter.interpret(pSource);
@@ -74,3 +72,6 @@ export abstract class BaseShader<TGpuObjectKey extends keyof GeneratorFactoryMap
     }
 }
 
+type ShaderLayout = {
+
+}

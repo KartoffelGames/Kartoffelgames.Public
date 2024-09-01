@@ -2,16 +2,16 @@ import { InstructionExecuter } from '../../source/base/execution/instruction-exe
 import { GpuDevice } from '../../source/base/gpu/gpu-device';
 
 import { ArrayBufferMemoryLayout } from '../../source/base/memory_layout/buffer/array-buffer-memory-layout';
-import { LinearBufferMemoryLayout } from '../../source/base/memory_layout/buffer/linear-buffer-memory-layout';
+import { PrimitiveBufferMemoryLayout } from '../../source/base/memory_layout/buffer/primitive-buffer-memory-layout';
 import { StructBufferMemoryLayout } from '../../source/base/memory_layout/buffer/struct-buffer-memory-layout';
-import { SamplerMemoryLayout } from '../../source/base/memory_layout/sampler-memory-layout';
-import { TextureMemoryLayout } from '../../source/base/memory_layout/texture-memory-layout';
+import { SamplerMemoryLayout } from '../../source/base/memory_layout/texture/sampler-memory-layout';
+import { TextureMemoryLayout } from '../../source/base/memory_layout/texture/texture-memory-layout';
 import { VertexParameter } from '../../source/base/pipeline/parameter/vertex-parameter';
 import { RenderTargets } from '../../source/base/pipeline/target/render-targets';
 import { TextureGroup } from '../../source/base/pipeline/target/texture-group';
 import { VertexFragmentPipeline } from '../../source/base/pipeline/vertex-fragment-pipeline';
-import { PrimitiveCullMode } from '../../source/constant/primitive-cullmode';
-import { TextureOperation } from '../../source/constant/texture-operation';
+import { PrimitiveCullMode } from '../../source/constant/primitive-cullmode.enum';
+import { TextureOperation } from '../../source/constant/texture-operation.enum';
 import { WebGpuGeneratorFactory } from '../../source/web_gpu/web-gpu-generator-factory';
 import { WebGpuShaderInterpreter } from '../../source/web_gpu/web-gpu-shader-interpreter';
 import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVertexUvData } from './cube/cube';
@@ -34,7 +34,7 @@ const gDepth: number = 10;
 })();
 
 (async () => {
-    const lGpu: GpuDevice = await GpuDevice.request(new WebGpuGeneratorFactory('high-performance'), WebGpuShaderInterpreter);
+    const lGpu: GpuDevice = await GpuDevice.request('high-performance');
 
     // Create and configure render targets.
     const lTextureGroup: TextureGroup = lGpu.textureGroup(640, 640, 2);
@@ -83,7 +83,7 @@ const gDepth: number = 10;
     // Create camera.
     const lCamera: ViewProjection = new ViewProjection(lPerspectiveProjection);
     lCamera.transformation.setTranslation(0, 0, -4);
-    lWorldGroup.setData('viewProjectionMatrix', (<LinearBufferMemoryLayout>lWorldGroupLayout.getBind('viewProjectionMatrix').layout).create(new Float32Array(lCamera.getMatrix(CameraMatrix.ViewProjection).dataArray)));
+    lWorldGroup.setData('viewProjectionMatrix', (<PrimitiveBufferMemoryLayout>lWorldGroupLayout.getBind('viewProjectionMatrix').layout).create(new Float32Array(lCamera.getMatrix(CameraMatrix.ViewProjection).dataArray)));
 
     // Create ambient light.
     const lAmbientLight: AmbientLight = new AmbientLight();

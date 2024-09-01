@@ -1,6 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/gpu-object';
+import { GpuObject } from '../gpu/gpu-native-object';
 import { BindDataGroupLayout } from './bind-data-group-layout';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
 
@@ -34,7 +34,7 @@ export class PipelineDataLayout extends GpuObject<'pipelineDataLayout'> {
         this.mBindGroups.add(pIndex, pLayout);
 
         // Register change listener for layout changes.
-        pLayout.addUpdateListener(() => {
+        pLayout.addInvalidationListener(() => {
             this.triggerAutoUpdate(UpdateReason.ChildData);
         });
 

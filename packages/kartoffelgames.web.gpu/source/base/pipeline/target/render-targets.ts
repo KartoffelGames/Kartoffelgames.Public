@@ -1,15 +1,14 @@
 import { Exception } from '@kartoffelgames/core';
-import { TextureGroup } from './texture-group';
-import { GpuObject } from '../../gpu/gpu-object';
-import { GpuDevice } from '../../gpu/gpu-device';
-import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
-import { CanvasTexture } from '../../texture/canvas-texture';
-import { UpdateReason } from '../../gpu/gpu-object-update-reason';
-import { TextureOperation } from '../../../constant/texture-operation';
 import { TextureFormat } from '../../../constant/texture-format.enum';
+import { TextureOperation } from '../../../constant/texture-operation.enum';
+import { GpuDevice } from '../../gpu/gpu-device';
+import { GpuNativeObject, NativeObjectLifeTime } from '../../gpu/gpu-native-object';
+import { GpuObjectUpdateReason, UpdateReason } from '../../gpu/gpu-object-update-reason';
+import { CanvasTexture } from '../../texture/canvas-texture';
+import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
+import { TextureGroup } from './texture-group';
 
-
-export class RenderTargets extends GpuObject<'renderTargets'> {
+export class RenderTargets extends GpuNativeObject<GPURenderPassDescriptor> {
     private readonly mColorBuffer: Array<RenderTargetColorTexture>;
     private mDepthBuffer: RenderTargetDepthStencilTexture | null;
     private readonly mTextureGroup: TextureGroup;
@@ -41,7 +40,7 @@ export class RenderTargets extends GpuObject<'renderTargets'> {
      * @param pTextureGroup - Texture group.
      */
     public constructor(pDevice: GpuDevice, pTextureGroup: TextureGroup) {
-        super(pDevice);
+        super(pDevice, NativeObjectLifeTime.Persistent);
 
         this.mTextureGroup = pTextureGroup;
         this.mColorBuffer = new Array<RenderTargetColorTexture>();
@@ -59,13 +58,13 @@ export class RenderTargets extends GpuObject<'renderTargets'> {
             lTargetBuffer = this.mTextureGroup.getTargetTextureOf(pTargetName);
 
             // Add update listener.
-            lTargetBuffer.addUpdateListener(() => {
+            lTargetBuffer.addInvalidationListener(() => {
                 this.triggerAutoUpdate(UpdateReason.ChildData);
             });
         }
 
         // Add update listener.
-        lColorBuffer.addUpdateListener(() => {
+        lColorBuffer.addInvalidationListener(() => {
             this.triggerAutoUpdate(UpdateReason.ChildData);
         });
 
@@ -103,9 +102,9 @@ export class RenderTargets extends GpuObject<'renderTargets'> {
 
         // Update depth buffer update listener.
         if (this.mDepthBuffer) {
-            this.mDepthBuffer.texture.removeUpdateListener(this.onDepthBufferUpdate);
+            this.mDepthBuffer.texture.removeInvalidationListener(this.onDepthBufferUpdate);
         }
-        lDepthBuffer.addUpdateListener(this.onDepthBufferUpdate);
+        lDepthBuffer.addInvalidationListener(this.onDepthBufferUpdate);
 
         // Set new buffer.
         this.mDepthBuffer = {
@@ -117,6 +116,82 @@ export class RenderTargets extends GpuObject<'renderTargets'> {
             stencilLoadOperation: pLoadOp,
             stencilStoreOperation: pStoreOp,
         };
+    }
+
+    protected override destroy(pNative: GPURenderPassDescriptor, pReasons: GpuObjectUpdateReason): void {
+        // Nothing to destroy as it is only a configuration object.
+    }
+
+    /**
+     * Generate native gpu bind data group.
+     */
+    protected override generate(): GPURenderPassDescriptor {
+        // Create color attachments.
+        const lColorAttachments: Array<GPURenderPassColorAttachment> = new Array<GPURenderPassColorAttachment>();
+        for (const lColorAttachment of this.colorBuffer) {
+            // Convert clear value from hex values to Float[3] range from 0..1.
+            const lClearColor: [number, number, number] = [
+                (lColorAttachment.clearValue & 0xff0000 >> 4) / 255,
+                (lColorAttachment.clearValue & 0xff00 >> 2) / 255,
+                (lColorAttachment.clearValue & 0xff) / 255,
+            ];
+
+            // Convert Texture operation to load operations.
+            const lLoadOperation: GPULoadOp = lColorAttachment.loadOperation === TextureOperation.Keep ? 'load' : 'clear';
+            const lStoreOperation: GPUStoreOp = lColorAttachment.storeOperation === TextureOperation.Keep ? 'store' : 'discard';
+
+            // Create basic color attachment.
+            const lPassColorAttachment: GPURenderPassColorAttachment = {
+                view: this.factory.request<'frameBufferTexture'>(lColorAttachment.texture).create(),
+                clearValue: lClearColor,
+                loadOp: lLoadOperation,
+                storeOp: lStoreOperation
+            };
+
+            // Resolve optional resolve attachment but only when texture uses multisample.
+            if (lColorAttachment.resolveTarget && this.multisampleCount > 1) {
+                lPassColorAttachment.resolveTarget = this.factory.request<'canvasTexture'>(lColorAttachment.resolveTarget).create();
+            }
+
+            lColorAttachments.push(lPassColorAttachment);
+        }
+
+        // Create descriptor with color attachments.
+        const lDescriptor: GPURenderPassDescriptor = {
+            colorAttachments: lColorAttachments
+        };
+
+        // Set optional depth attachment.
+        if (this.depthStencilBuffer) {
+            const lDepthStencilAttachment = this.depthStencilBuffer;
+
+            // Add texture view for depth.
+            lDescriptor.depthStencilAttachment = {
+                view: this.factory.request<'frameBufferTexture'>(lDepthStencilAttachment.texture).create(),
+            };
+
+            // Add depth values when depth formats are used.
+            if (lDepthStencilAttachment.texture.memoryLayout.format === TextureFormat.DepthStencil || lDepthStencilAttachment.texture.memoryLayout.format === TextureFormat.Depth) {
+                // Convert clear value from hex values to Float range from 0..1.
+                lDescriptor.depthStencilAttachment.depthClearValue = (lDepthStencilAttachment.depthClearValue & 0xff) / 255;
+
+                // Convert Texture operation to load operations.
+                lDescriptor.depthStencilAttachment.depthLoadOp = lDepthStencilAttachment.depthLoadOperation === TextureOperation.Keep ? 'load' : 'clear';
+                lDescriptor.depthStencilAttachment.depthStoreOp = lDepthStencilAttachment.depthStoreOperation === TextureOperation.Keep ? 'store' : 'discard';
+            }
+
+            // Add stencil values when stencil formats are used.
+            if (lDepthStencilAttachment.texture.memoryLayout.format === TextureFormat.DepthStencil || lDepthStencilAttachment.texture.memoryLayout.format === TextureFormat.Stencil) {
+                // Convert clear value from hex values to Float range from 0..1.
+                lDescriptor.depthStencilAttachment.stencilClearValue = (lDepthStencilAttachment.stencilClearValue & 0xff) / 255;
+
+                // Convert Texture operation to load operations.
+                lDescriptor.depthStencilAttachment.stencilLoadOp = lDepthStencilAttachment.stencilLoadOperation === TextureOperation.Keep ? 'load' : 'clear';
+                lDescriptor.depthStencilAttachment.stencilStoreOp = lDepthStencilAttachment.stencilStoreOperation === TextureOperation.Keep ? 'store' : 'discard';
+            }
+        }
+
+        return lDescriptor;
     }
 
     /**

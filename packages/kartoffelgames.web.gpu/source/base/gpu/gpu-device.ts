@@ -1,27 +1,53 @@
+import { Dictionary, Exception } from '@kartoffelgames/core';
 import { InstructionExecuter } from '../execution/instruction-executor';
-import { BaseGeneratorFactory } from '../native_generator/base-generator-factory';
 import { TextureGroup } from '../pipeline/target/texture-group';
-import { ShaderInterpreterConstructor, ShaderInterpreterFactory } from '../shader/interpreter/shader-interpreter-factory';
 import { VertexFragmentShader } from '../shader/vertex-fragment-shader';
 
 export class GpuDevice {
+    private static readonly mAdapters: Dictionary<GPUPowerPreference, GPUAdapter> = new Dictionary<GPUPowerPreference, GPUAdapter>();
+    private static readonly mDevices: Dictionary<GPUAdapter, GPUDevice> = new Dictionary<GPUAdapter, GPUDevice>();
+
     /**
      * Request new gpu device.
      * @param pGenerator - Native object generator.
      */
-    public static async request(pGenerator: BaseGeneratorFactory, pShaderInterpreter: ShaderInterpreterConstructor): Promise<GpuDevice> {
-        // Construct gpu device.
-        const lDevice: GpuDevice = new GpuDevice(pGenerator, pShaderInterpreter);
+    public static async request(pPerformance: GPUPowerPreference): Promise<GpuDevice> {
+        // Try to load cached adapter. When not cached, request new one.
+        const lAdapter: GPUAdapter | null = GpuDevice.mAdapters.get(pPerformance) ?? await window.navigator.gpu.requestAdapter({ powerPreference: pPerformance });
+        if (!lAdapter) {
+            throw new Exception('Error requesting GPU adapter', GpuDevice);
+        }
 
-        // Init generator with created device.
-        await pGenerator.init(lDevice);
+        GpuDevice.mAdapters.set(pPerformance, lAdapter);
 
-        return lDevice;
+        // Try to load cached device. When not cached, request new one.
+        const lDevice: GPUDevice | null = GpuDevice.mDevices.get(lAdapter) ?? await lAdapter.requestDevice();
+        if (!lDevice) {
+            throw new Exception('Error requesting GPU device', GpuDevice);
+        }
+
+        GpuDevice.mDevices.set(lAdapter, lDevice);
+
+        return new GpuDevice(lAdapter, lDevice);
     }
 
     private mFrameCounter: number;
-    private readonly mGenerator: BaseGeneratorFactory;
-    private readonly mShaderInterpreter: ShaderInterpreterFactory;
+    private readonly mGpuAdapter: GPUAdapter;
+    private readonly mGpuDevice: GPUDevice;
+
+    /**
+     * Gpu adapter.
+     */
+    public get adapter(): GPUAdapter {
+        return this.mGpuAdapter;
+    }
+
+    /**
+     * Gpu device.
+     */
+    public get device(): GPUDevice {
+        return this.mGpuDevice;
+    }
 
     /**
      * Get frame count.
@@ -31,27 +57,14 @@ export class GpuDevice {
     }
 
     /**
-     * Native object generator.
-     */
-    public get generator(): BaseGeneratorFactory {
-        return this.mGenerator;
-    }
-
-    /**
-     * Shader interpreter.
-     */
-    public get shaderInterpreter(): ShaderInterpreterFactory {
-        return this.mShaderInterpreter;
-    }
-
-    /**
      * Constructor.
      * @param pGenerator - Native GPU-Object Generator.
      */
-    private constructor(pGenerator: BaseGeneratorFactory, pShaderInterpreter: ShaderInterpreterConstructor) {
+    private constructor(pAdapter: GPUAdapter, pDevice: GPUDevice) {
+        this.mGpuAdapter = pAdapter;
+        this.mGpuDevice = pDevice;
+
         this.mFrameCounter = 0;
-        this.mGenerator = pGenerator;
-        this.mShaderInterpreter = new ShaderInterpreterFactory(this, pShaderInterpreter);
     }
 
     /**

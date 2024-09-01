@@ -1,14 +1,14 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../../gpu/gpu-device';
-import { GpuObject } from '../../gpu/gpu-object';
+import { GpuObject } from '../../gpu/gpu-native-object';
 import { BaseBufferMemoryLayout } from '../../memory_layout/buffer/base-buffer-memory-layout';
 import { StructBufferMemoryLayout } from '../../memory_layout/buffer/struct-buffer-memory-layout';
 import { UpdateReason } from '../../gpu/gpu-object-update-reason';
-import { LinearBufferMemoryLayout } from '../../memory_layout/buffer/linear-buffer-memory-layout';
+import { PrimitiveBufferMemoryLayout } from '../../memory_layout/buffer/primitive-buffer-memory-layout';
 import { VertexParameter } from './vertex-parameter';
 
 export class VertexParameterLayout extends GpuObject {
-    private readonly mParameter: Dictionary<number, LinearBufferMemoryLayout>;
+    private readonly mParameter: Dictionary<number, PrimitiveBufferMemoryLayout>;
     private readonly mParameterNames: Dictionary<string, number>;
 
     /**
@@ -33,7 +33,7 @@ export class VertexParameterLayout extends GpuObject {
      */
     public constructor(pDevice: GpuDevice) {
         super(pDevice);
-        this.mParameter = new Dictionary<number, LinearBufferMemoryLayout>();
+        this.mParameter = new Dictionary<number, PrimitiveBufferMemoryLayout>();
         this.mParameterNames = new Dictionary<string, number>();
     }
 
@@ -42,12 +42,12 @@ export class VertexParameterLayout extends GpuObject {
      * @param pName - Parameter name.
      * @param pLayout - Parameter layout.
      */
-    public add(pLayout: StructBufferMemoryLayout | LinearBufferMemoryLayout): void {
+    public add(pLayout: StructBufferMemoryLayout | PrimitiveBufferMemoryLayout): void {
         // Find all childs of layout with locations.
-        const lLocationLayoutList: Array<LinearBufferMemoryLayout> = new Array<LinearBufferMemoryLayout>();
+        const lLocationLayoutList: Array<PrimitiveBufferMemoryLayout> = new Array<PrimitiveBufferMemoryLayout>();
         if (pLayout instanceof StructBufferMemoryLayout) {
             lLocationLayoutList.push(...pLayout.locationLayouts());
-        } else if (pLayout instanceof LinearBufferMemoryLayout) {
+        } else if (pLayout instanceof PrimitiveBufferMemoryLayout) {
             lLocationLayoutList.push(pLayout);
         }
 
@@ -115,7 +115,7 @@ export class VertexParameterLayout extends GpuObject {
      * Get layout of name.
      * @param pName - Parameter name.
      */
-    public getLayoutOf(pName: string): LinearBufferMemoryLayout {
+    public getLayoutOf(pName: string): PrimitiveBufferMemoryLayout {
         const lIndex: number = this.getIndexOf(pName);
 
         // Layout should exist when it name exists.

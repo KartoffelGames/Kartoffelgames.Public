@@ -39,6 +39,9 @@ export class GpuObjectUpdateReason {
     }
 }
 
+/**
+ * Update reason.
+ */
 export enum UpdateReason {
     Setting = 1,
     Data = 2,

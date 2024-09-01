@@ -1,6 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/gpu-object';
+import { GpuObject } from '../gpu/gpu-native-object';
 import { BaseMemoryLayout } from '../memory_layout/base-memory-layout';
 import { BindDataGroup } from './bind-data-group';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
@@ -48,7 +48,7 @@ export class BindDataGroupLayout extends GpuObject<'bindDataGroupLayout'> {
 
         // Update identifier.
         this.mIdentifier = '';
-        this.addUpdateListener(() => {
+        this.addInvalidationListener(() => {
             let lIdentifier: string = '';
             for (const lBind of this.mBindings.values()) {
                 // Simple chain of values.

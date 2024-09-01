@@ -1,6 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { GpuDevice } from '../../gpu/gpu-device';
-import { BufferLayoutLocation, BaseBufferMemoryLayout, BufferMemoryLayoutParameter } from './base-buffer-memory-layout';
+import { BaseBufferMemoryLayout, BufferLayoutLocation, BufferMemoryLayoutParameter } from './base-buffer-memory-layout';
 
 export class ArrayBufferMemoryLayout extends BaseBufferMemoryLayout {
     private readonly mArraySize: number;
@@ -32,7 +31,7 @@ export class ArrayBufferMemoryLayout extends BaseBufferMemoryLayout {
      */
     public get size(): number {
         if (this.arraySize === -1) {
-            return this.arraySize;
+            return -1;
         }
 
         return this.arraySize * (Math.ceil(this.innerType.size / this.innerType.alignment) * this.innerType.alignment);
@@ -40,17 +39,15 @@ export class ArrayBufferMemoryLayout extends BaseBufferMemoryLayout {
 
     /**
      * Constructor.
+     * 
      * @param pParameter - Parameter.
      */
-    public constructor(pGpu: GpuDevice, pParameter: ArrayBufferMemoryLayoutParameter) {
-        super(pGpu, pParameter);
+    public constructor(pParameter: ArrayBufferMemoryLayoutParameter) {
+        super(pParameter);
 
         // Static properties.
         this.mArraySize = pParameter.arraySize;
         this.mInnerType = pParameter.innerType;
-
-        // Set inner type parent.
-        pParameter.innerType.parent = this;
     }
 
     /**
@@ -92,7 +89,6 @@ export class ArrayBufferMemoryLayout extends BaseBufferMemoryLayout {
 }
 
 export interface ArrayBufferMemoryLayoutParameter extends BufferMemoryLayoutParameter {
-    // New.
     arraySize: number;
     innerType: BaseBufferMemoryLayout;
 }

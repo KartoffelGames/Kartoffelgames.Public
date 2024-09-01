@@ -13,7 +13,7 @@ import { WebGpuRenderTargetsGenerator } from './native-generator/web-gpu-render-
 import { WebGpuComputeShaderGenerator } from './native-generator/web-gpu-compute-shader-generator';
 import { WebGpuVertexFragmentPipelineGenerator } from './native-generator/web-gpu-vertex-fragment-pipeline-generator';
 import { CompareFunction } from '../constant/compare-function.enum';
-import { BufferPrimitiveFormat } from '../constant/buffer-primitive-format';
+import { BufferPrimitiveFormat } from '../base/memory_layout/buffer/enum/primitive-buffer-format';
 import { WebGpuComputeInstructionGenerator } from './native-generator/web-gpu-compute-instruction-generator';
 import { WebGpuVertexFragmentInstructionGenerator } from './native-generator/web-gpu-vertex-fragment-instruction-generator';
 import { WebGpuComputePipelineGenerator } from './native-generator/web-gpu-compute-pipeline-generator';
@@ -23,7 +23,7 @@ import { BindDataGroupLayout } from '../base/binding/bind-data-group-layout';
 import { PipelineDataLayout } from '../base/binding/pipeline-data-layout';
 import { GpuBuffer } from '../base/buffer/gpu-buffer';
 import { BaseGeneratorFactory, GeneratorNativeMap } from '../base/native_generator/base-generator-factory';
-import { TextureMemoryLayout } from '../base/memory_layout/texture-memory-layout';
+import { TextureMemoryLayout } from '../base/memory_layout/texture/texture-memory-layout';
 import { VertexFragmentShader } from '../base/shader/vertex-fragment-shader';
 import { CanvasTexture } from '../base/texture/canvas-texture';
 import { FrameBufferTexture } from '../base/texture/frame-buffer-texture';

@@ -1,5 +1,5 @@
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/gpu-object';
+import { GpuObject } from '../gpu/gpu-native-object';
 import { RenderTargets } from '../pipeline/target/render-targets';
 import { ComputeInstruction } from './instruction/compute-instruction';
 import { IGpuInstruction } from './instruction/i-gpu-instruction.interface';

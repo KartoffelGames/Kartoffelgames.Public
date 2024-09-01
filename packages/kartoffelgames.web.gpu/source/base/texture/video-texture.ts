@@ -1,7 +1,7 @@
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/gpu-object';
+import { GpuObject } from '../gpu/gpu-native-object';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
-import { TextureMemoryLayout } from '../memory_layout/texture-memory-layout';
+import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 
 export class VideoTexture extends GpuObject<'videoTexture'> {
     private readonly mMemoryLayout: TextureMemoryLayout;

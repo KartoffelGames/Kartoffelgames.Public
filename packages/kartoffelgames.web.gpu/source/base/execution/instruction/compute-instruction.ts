@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { BindDataGroup } from '../../binding/bind-data-group';
 import { GpuDevice } from '../../gpu/gpu-device';
-import { GpuObject } from '../../gpu/gpu-object';
+import { GpuObject } from '../../gpu/gpu-native-object';
 import { ComputePipeline } from '../../pipeline/compute-pipeline';
 import { InstructionExecuter } from '../instruction-executor';
 import { IGpuInstruction } from './i-gpu-instruction.interface';

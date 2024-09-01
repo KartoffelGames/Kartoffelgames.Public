@@ -2,8 +2,8 @@
 import { Exception } from '@kartoffelgames/core';
 import { BaseNativeGenerator, NativeObjectLifeTime } from '../../base/native_generator/base-native-generator';
 import { BaseBufferMemoryLayout } from '../../base/memory_layout/buffer/base-buffer-memory-layout';
-import { SamplerMemoryLayout } from '../../base/memory_layout/sampler-memory-layout';
-import { TextureMemoryLayout } from '../../base/memory_layout/texture-memory-layout';
+import { SamplerMemoryLayout } from '../../base/memory_layout/texture/sampler-memory-layout';
+import { TextureMemoryLayout } from '../../base/memory_layout/texture/texture-memory-layout';
 import { AccessMode } from '../../constant/access-mode.enum';
 import { BufferBindType } from '../../constant/buffer-bind-type.enum';
 import { SamplerType } from '../../constant/sampler-type.enum';

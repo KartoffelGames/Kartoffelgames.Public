@@ -4,7 +4,7 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { BaseShader } from './base-shader';
 import { ShaderFunction } from './interpreter/base-shader-interpreter';
 
-export class ComputeShader extends BaseShader<'computeShader'> {
+export class ComputeShader extends BaseShader {
     private readonly mComputeEntry: string;
     private readonly mWorkGroupSizes: [number, number, number];
 

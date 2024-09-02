@@ -1,3 +1,4 @@
+import { BufferUsage } from '../../constant/buffer-usage.enum';
 import { ComputeStage } from '../../constant/compute-stage.enum';
 import { BaseMemoryLayout } from '../memory_layout/base-memory-layout';
 import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-buffer-format';
@@ -14,8 +15,9 @@ export type ShaderLayout = {
             bindings: {
                 [bindingName: string]: {
                     index: number;
-                    usage: ComputeStage;
+                    visibility: ComputeStage;
                     layout: BaseMemoryLayout;
+                    bindingType: BufferUsage; // TODO: Type is wrong.
                 };
             };
         };

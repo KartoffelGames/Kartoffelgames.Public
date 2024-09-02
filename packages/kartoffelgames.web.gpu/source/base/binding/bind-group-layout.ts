@@ -4,6 +4,7 @@ import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object'
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
 import { BaseMemoryLayout } from '../memory_layout/base-memory-layout';
 import { BindDataGroup } from './bind-data-group';
+import { ComputeStage } from '../../constant/compute-stage.enum';
 
 export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     private readonly mBindings: Dictionary<string, BindLayout>;
@@ -51,6 +52,9 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
         this.addInvalidationListener(() => {
             let lIdentifier: string = '';
             for (const lBind of this.mBindings.values()) {
+                // TODO: Make a kind of json and serialize.
+                // TODO: Update cached group on layout. 
+
                 // Simple chain of values.
                 lIdentifier += lBind.index;
                 lIdentifier += '-' + lBind.name;
@@ -72,20 +76,17 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
      * @param pName - Binding name. For easy access only.
      * @param pIndex - Index of bind inside group.
      */
-    public addBinding(pLayout: BaseMemoryLayout, pName: string): void {
-        if (pLayout.bindingIndex === null) {
-            throw new Exception(`Layout "${pLayout.name}" binding needs a binding index.`, this);
-        }
-
+    public addBinding(pLayout: BaseMemoryLayout, pName: string, pBindPosition: number, pVisibility: ComputeStage): void {
         // Set layout.
         this.mBindings.set(pName, {
             name: pName,
-            index: pLayout.bindingIndex,
-            layout: pLayout
+            index: pBindPosition,
+            layout: pLayout,
+            visibility: pVisibility
         });
 
         // Register change listener for layout changes.
-        pLayout.addUpdateListener(() => {
+        pLayout.addInvalidationListener(() => {
             this.triggerAutoUpdate(UpdateReason.ChildData);
         });
 
@@ -126,10 +127,10 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
         const lEntryList: Array<GPUBindGroupLayoutEntry> = new Array<GPUBindGroupLayoutEntry>();
 
         // Generate layout entry for each binding.
-        for (const lEntry of this.gpuObject.bindings) {
+        for (const lEntry of this.bindings) {
             // Generate default properties.
             const lLayoutEntry: GPUBindGroupLayoutEntry = {
-                visibility: lEntry.layout.visibility,
+                visibility: lEntry.visibility,
                 binding: lEntry.index
             };
 
@@ -256,4 +257,5 @@ type BindLayout = {
     name: string,
     index: number,
     layout: BaseMemoryLayout;
+    visibility: ComputeStage;
 };

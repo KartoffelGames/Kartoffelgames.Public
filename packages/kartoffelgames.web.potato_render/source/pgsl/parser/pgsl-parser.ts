@@ -91,6 +91,8 @@ export class PgslParser extends CodeParser<PgslToken, PgslModuleSyntaxTree> {
         // Setup #IFDEF. Fill Replaced '#IFDEFs, #ENDIFDEF with same amount of spaces and newlines.
         // Remove any other # statements as they do nothing. Replace with same amount of spaces and newlines.
 
+        // TODO: How to generate a sourcemap. https://sourcemaps.info/spec.html
+
         // TODO: Replace comments with same amount of spaces ans newlines.
 
         // Parse document structure.

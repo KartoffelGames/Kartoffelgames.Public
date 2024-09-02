@@ -1,7 +1,8 @@
 import { AccessMode } from '../../constant/access-mode.enum';
 import { ComputeStage } from '../../constant/compute-stage.enum';
+import { InvalidationObject } from '../gpu/invalidation-object';
 
-export abstract class BaseMemoryLayout {
+export abstract class BaseMemoryLayout extends InvalidationObject {
     private readonly mName: string;
 
     /**
@@ -16,6 +17,8 @@ export abstract class BaseMemoryLayout {
      * @param pParameter - Parameter.
      */
     public constructor(pParameter: MemoryLayoutParameter) {
+        super();
+        
         this.mName = pParameter.name;
     }
 }

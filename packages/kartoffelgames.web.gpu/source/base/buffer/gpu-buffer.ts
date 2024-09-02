@@ -3,6 +3,7 @@ import { BufferUsage } from '../../constant/buffer-usage.enum';
 import { MemoryCopyType } from '../../constant/memory-copy-type.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
+import { UpdateReason } from '../gpu/gpu-object-update-reason';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 
 /**
@@ -17,7 +18,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuNativeObject<GPUBuff
     private readonly mUsage: BufferUsage;
     private readonly mWavingBufferLimitation: number;
     private readonly mWavingBufferList: Array<GPUBuffer>;
-    
+
     /**
      * Buffer copy type.
      */
@@ -83,6 +84,11 @@ export class GpuBuffer<TType extends TypedArray> extends GpuNativeObject<GPUBuff
         // Set buffer initial data from buffer size or buffer data.
         this.mItemCount = pInitialData.length;
         this.writeRaw(pInitialData, 0);
+
+        // Register change listener for layout changes.
+        pLayout.addInvalidationListener(() => {
+            this.triggerAutoUpdate(UpdateReason.ChildData);
+        });
     }
 
     /**

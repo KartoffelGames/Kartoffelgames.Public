@@ -64,7 +64,7 @@ export class ImageTexture extends GpuObject<'imageTexture'> {
         this.mImageList = new Array<ImageBitmap>();
 
         // Register change listener for layout changes.
-        pLayout.addUpdateListener(() => {
+        pLayout.addInvalidationListener(() => {
             this.triggerAutoUpdate(UpdateReason.ChildData);
         });
     }

@@ -6,18 +6,18 @@ import { FrameBufferTexture } from '../texture/frame-buffer-texture';
 import { ImageTexture } from '../texture/image-texture';
 import { TextureSampler } from '../texture/texture-sampler';
 import { VideoTexture } from '../texture/video-texture';
-import { BindDataGroupLayout } from './bind-data-group-layout';
+import { BindGroupLayout } from './bind-group-layout';
 import { CanvasTexture } from '../texture/canvas-texture';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
 
 export class BindDataGroup extends GpuObject<'bindDataGroup'> {
     private readonly mBindData: Dictionary<string, BindData>;
-    private readonly mLayout: BindDataGroupLayout;
+    private readonly mLayout: BindGroupLayout;
 
     /**
      * Layout of bind group.
      */
-    public get layout(): BindDataGroupLayout {
+    public get layout(): BindGroupLayout {
         return this.mLayout;
     }
 
@@ -25,7 +25,7 @@ export class BindDataGroup extends GpuObject<'bindDataGroup'> {
      * Constructor.
      * @param pDevice - Gpu Device reference.
      */
-    public constructor(pDevice: GpuDevice, pBindGroupLayout: BindDataGroupLayout) {
+    public constructor(pDevice: GpuDevice, pBindGroupLayout: BindGroupLayout) {
         super(pDevice);
 
         this.mLayout = pBindGroupLayout;

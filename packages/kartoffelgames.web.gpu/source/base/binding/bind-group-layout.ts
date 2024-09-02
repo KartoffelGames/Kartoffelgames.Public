@@ -1,21 +1,122 @@
+import { Dictionary, Exception } from '@kartoffelgames/core';
+import { GpuDevice } from '../gpu/gpu-device';
+import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
+import { UpdateReason } from '../gpu/gpu-object-update-reason';
+import { BaseMemoryLayout } from '../memory_layout/base-memory-layout';
+import { BindDataGroup } from './bind-data-group';
 
-import { Exception } from '@kartoffelgames/core';
-import { BaseNativeGenerator, NativeObjectLifeTime } from '../../base/native_generator/base-native-generator';
-import { BaseBufferMemoryLayout } from '../../base/memory_layout/buffer/base-buffer-memory-layout';
-import { SamplerMemoryLayout } from '../../base/memory_layout/texture/sampler-memory-layout';
-import { TextureMemoryLayout } from '../../base/memory_layout/texture/texture-memory-layout';
-import { AccessMode } from '../../constant/access-mode.enum';
-import { BufferUsage } from '../../constant/buffer-usage.enum';
-import { SamplerType } from '../../constant/sampler-type.enum';
-import { TextureBindType } from '../../constant/texture-bind-type.enum';
-import { NativeWebGpuMap } from '../web-gpu-generator-factory';
+export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
+    private readonly mBindings: Dictionary<string, BindLayout>;
+    private mIdentifier: string;
 
-export class WebGpuBindDataGroupLayoutGenerator extends BaseNativeGenerator<NativeWebGpuMap,'bindDataGroupLayout'>  {
     /**
-     * Set life time of generated native.
+     * Get binding names.
      */
-    protected override get nativeLifeTime(): NativeObjectLifeTime {
-        return NativeObjectLifeTime.Persistent;
+    public get bindingNames(): Array<string> {
+        return [...this.mBindings.keys()];
+    }
+
+    /**
+    * Get bindings of group.
+    */
+    public get bindings(): Array<BindLayout> {
+        const lBindingList: Array<BindLayout> = new Array<BindLayout>();
+        for (const lBinding of this.mBindings.values()) {
+            lBindingList[lBinding.index] = lBinding;
+        }
+
+        return lBindingList;
+    }
+
+    /**
+     * Get bind group identifier.
+     * Same configured groups has the same identifier.
+     */
+    public get identifier(): string {
+        return this.mIdentifier;
+    }
+
+    /**
+     * Constructor.
+     * @param pDevice - Gpu Device reference.
+     */
+    public constructor(pDevice: GpuDevice) {
+        super(pDevice, NativeObjectLifeTime.Persistent);
+
+        // Init storage.
+        this.mBindings = new Dictionary<string, BindLayout>();
+
+        // Update identifier.
+        this.mIdentifier = '';
+        this.addInvalidationListener(() => {
+            let lIdentifier: string = '';
+            for (const lBind of this.mBindings.values()) {
+                // Simple chain of values.
+                lIdentifier += lBind.index;
+                lIdentifier += '-' + lBind.name;
+                lIdentifier += '-' + lBind.layout.accessMode;
+                lIdentifier += '-' + lBind.layout.bindingIndex;
+                lIdentifier += '-' + lBind.layout.memoryType;
+                lIdentifier += '-' + lBind.layout.name;
+                lIdentifier += '-' + lBind.layout.visibility;
+                lIdentifier += ';';
+            }
+
+            this.mIdentifier = lIdentifier;
+        });
+    }
+
+    /**
+     * Add layout to binding group.
+     * @param pLayout - Memory layout.
+     * @param pName - Binding name. For easy access only.
+     * @param pIndex - Index of bind inside group.
+     */
+    public addBinding(pLayout: BaseMemoryLayout, pName: string): void {
+        if (pLayout.bindingIndex === null) {
+            throw new Exception(`Layout "${pLayout.name}" binding needs a binding index.`, this);
+        }
+
+        // Set layout.
+        this.mBindings.set(pName, {
+            name: pName,
+            index: pLayout.bindingIndex,
+            layout: pLayout
+        });
+
+        // Register change listener for layout changes.
+        pLayout.addUpdateListener(() => {
+            this.triggerAutoUpdate(UpdateReason.ChildData);
+        });
+
+        // Trigger next auto update.
+        this.triggerAutoUpdate(UpdateReason.ChildData);
+    }
+
+    /**
+     * Create bind group from layout.
+     */
+    public createGroup(): BindDataGroup {
+        return new BindDataGroup(this.device, this);
+    }
+
+    /**
+     * Get full bind information.
+     * @param pName - Bind name.
+     */
+    public getBind(pName: string): Readonly<BindLayout> {
+        if (!this.mBindings.has(pName)) {
+            throw new Exception(`Bind ${pName} does not exist.`, this);
+        }
+
+        return this.mBindings.get(pName)!;
+    }
+
+    /**
+     * Destroy nothing.
+     */
+    protected override destroy(): void {
+        // Yeah nothing is here to destroy.
     }
 
     /**
@@ -150,3 +251,9 @@ export class WebGpuBindDataGroupLayoutGenerator extends BaseNativeGenerator<Nati
         });
     }
 }
+
+type BindLayout = {
+    name: string,
+    index: number,
+    layout: BaseMemoryLayout;
+};

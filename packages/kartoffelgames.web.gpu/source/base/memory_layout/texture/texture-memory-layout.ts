@@ -2,6 +2,7 @@ import { TextureBindType } from '../../../constant/texture-bind-type.enum';
 import { TextureDimension } from '../../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../../constant/texture-format.enum';
 import { TextureUsage } from '../../../constant/texture-usage.enum';
+import { UpdateReason } from '../../gpu/gpu-object-update-reason';
 import { BaseMemoryLayout, MemoryLayoutParameter } from '../base-memory-layout';
 
 export class TextureMemoryLayout extends BaseMemoryLayout {
@@ -46,6 +47,9 @@ export class TextureMemoryLayout extends BaseMemoryLayout {
         return this.mUsage;
     } set usage(pValue: TextureUsage) {
         this.mUsage = pValue;
+
+        // Invalidate layout on setting changes.
+        this.invalidate(UpdateReason.Setting);
     }
 
     /**

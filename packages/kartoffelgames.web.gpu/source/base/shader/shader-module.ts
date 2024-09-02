@@ -1,18 +1,18 @@
-import { BindDataGroupLayout } from '../binding/bind-data-group-layout';
-import { PipelineDataLayout } from '../binding/pipeline-data-layout';
+import { BindGroupLayout } from '../binding/bind-group-layout';
+import { PipelineLayout } from '../binding/pipeline-layout';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
 import { ShaderLayout } from './shader-layout';
 
 export class ShaderModule extends GpuNativeObject<GPUShaderModule> {
-    private readonly mPipelineLayout: PipelineDataLayout;
+    private readonly mPipelineLayout: PipelineLayout;
     private readonly mShaderLayout: ShaderLayout;
     private readonly mSource: string;
 
     /**
      * Shader pipeline layout.
      */
-    public get layout(): PipelineDataLayout {
+    public get layout(): PipelineLayout {
         return this.mPipelineLayout;
     }
 
@@ -32,10 +32,10 @@ export class ShaderModule extends GpuNativeObject<GPUShaderModule> {
         this.mSource = pSource;
 
         // Generate layout.
-        this.mPipelineLayout = new PipelineDataLayout(this.device);
+        this.mPipelineLayout = new PipelineLayout(this.device);
         for (const [lGroupIndex, lBindingList] of this.mShaderInformation.bindings) {
             // Create group layout and add each binding.
-            let lGroupLayout: BindDataGroupLayout = new BindDataGroupLayout(this.device);
+            let lGroupLayout: BindGroupLayout = new BindGroupLayout(this.device);
             for (const lBinding of lBindingList) {
                 lGroupLayout.addBinding(lBinding, lBinding.name);
             }

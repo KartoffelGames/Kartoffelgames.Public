@@ -1,5 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { BaseBufferMemoryLayout, BufferLayoutLocation, BufferMemoryLayoutParameter } from './base-buffer-memory-layout';
+import { UpdateReason } from '../../gpu/gpu-object-update-reason';
 
 export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
     private mAlignment: number;
@@ -58,6 +59,9 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
 
         // Call recalculation. Or other usefull things.
         this.recalculateAlignment();
+
+        // Invalidate layout on setting changes.
+        this.invalidate(UpdateReason.Setting);
     }
 
     /**

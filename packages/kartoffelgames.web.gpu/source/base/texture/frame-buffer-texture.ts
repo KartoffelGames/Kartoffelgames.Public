@@ -87,7 +87,7 @@ export class FrameBufferTexture extends GpuNativeObject<GPUTextureView> {
         this.mMultiSampleLevel = 1;
 
         // Register change listener for layout changes.
-        pLayout.addUpdateListener(() => {
+        pLayout.addInvalidationListener(() => {
             this.triggerAutoUpdate(UpdateReason.ChildData);
         });
     }

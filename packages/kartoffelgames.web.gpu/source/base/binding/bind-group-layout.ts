@@ -1,13 +1,23 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { AccessMode } from '../../constant/access-mode.enum';
-import { BufferBindingType } from '../../constant/buffer-binding-type.enum';
+import { BufferUsage } from '../../constant/buffer-usage.enum';
 import { ComputeStage } from '../../constant/compute-stage.enum';
+import { SamplerType } from '../../constant/sampler-type.enum';
+import { TextureBindType } from '../../constant/texture-bind-type.enum';
+import { TextureFormat } from '../../constant/texture-format.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
 import { BaseMemoryLayout } from '../memory_layout/base-memory-layout';
-import { BindDataGroup } from './bind-data-group';
+import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
+import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
+import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 
+// TODO: Find a good way to create new binding groups.
+
+/**
+ * Bind group layout. Fixed at creation. 
+ */
 export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     private readonly mBindings: Dictionary<string, BindLayout>;
 
@@ -19,9 +29,9 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     }
 
     /**
-    * Get bindings of group.
-    */
-    public get bindings(): Array<BindLayout> {
+     * Get bindings of group.
+     */
+    public get bindings(): Array<Readonly<BindLayout>> {
         const lBindingList: Array<BindLayout> = new Array<BindLayout>();
         for (const lBinding of this.mBindings.values()) {
             lBindingList[lBinding.index] = lBinding;
@@ -32,44 +42,54 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
 
     /**
      * Constructor.
+     * 
      * @param pDevice - Gpu Device reference.
+     * @param pBindingList - Binding list.
      */
-    public constructor(pDevice: GpuDevice) {
+    public constructor(pDevice: GpuDevice, pBindingList: Array<BindLayout>) {
         super(pDevice, NativeObjectLifeTime.Persistent);
 
-        // Init storage.
+        // Validation set.
+        const lBindingIndices: Set<number> = new Set<number>();
+        const lBindingName: Set<string> = new Set<string>();
+        let lHighestBindingIndex: number = -1;
+
+        // Init bindings.
         this.mBindings = new Dictionary<string, BindLayout>();
-    }
+        for (const lBinding of pBindingList) {
+            this.mBindings.set(lBinding.name, {
+                name: lBinding.name,
+                index: lBinding.index,
+                layout: lBinding.layout,
+                visibility: lBinding.visibility,
+                accessMode: lBinding.accessMode,
+                usage: lBinding.usage
+            });
 
-    /**
-     * Add layout to binding group.
-     * @param pLayout - Memory layout.
-     * @param pName - Binding name. For easy access only.
-     * @param pIndex - Index of bind inside group.
-     */
-    public addBinding(pLayout: BaseMemoryLayout, pName: string, pBindPosition: number, pVisibility: ComputeStage): void {
-        // Set layout.
-        this.mBindings.set(pName, {
-            name: pName,
-            index: pBindPosition,
-            layout: pLayout,
-            visibility: pVisibility
-        });
+            // Register change listener for layout changes.
+            lBinding.layout.addInvalidationListener(() => {
+                this.triggerAutoUpdate(UpdateReason.ChildData);
+            });
 
-        // Register change listener for layout changes.
-        pLayout.addInvalidationListener(() => {
-            this.triggerAutoUpdate(UpdateReason.ChildData);
-        });
+            // Validate dublicate indices.
+            if (lBindingIndices.has(lBinding.index) || lBindingName.has(lBinding.name)) {
+                throw new Exception(`Binding "${lBinding.name}" with index "${lBinding.index}" added twice.`, this);
+            }
 
-        // Trigger next auto update.
-        this.triggerAutoUpdate(UpdateReason.ChildData);
-    }
+            // Add binding index to already binded indices. 
+            lBindingIndices.add(lBinding.index);
+            lBindingName.add(lBinding.name);
 
-    /**
-     * Create bind group from layout.
-     */
-    public createGroup(): BindDataGroup {
-        return new BindDataGroup(this.device, this);
+            // Save max index number.
+            if (lHighestBindingIndex < lBinding.index) {
+                lHighestBindingIndex = lBinding.index;
+            }
+        }
+
+        // Validate binding continuity.
+        if (lHighestBindingIndex !== (lBindingIndices.size - 1)) {
+            throw new Exception(`Binding groups must have continious binding indices.`, this);
+        }
     }
 
     /**
@@ -105,114 +125,130 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
                 binding: lEntry.index
             };
 
-            // Buffer layouts.
-            if (lEntry.layout instanceof BaseBufferMemoryLayout) {
-                let lBufferBindingType: GPUBufferBindingType;
-                switch (lEntry.layout.bindType) {
-                    case BufferUsage.Uniform: {
-                        lBufferBindingType = 'uniform';
-                        break;
-                    }
-                    case BufferUsage.Storage: {
-                        // Read only access. No bit compare.
-                        if (lEntry.layout.accessMode === AccessMode.Read) {
-                            lBufferBindingType = 'read-only-storage';
-                        } else {
-                            lBufferBindingType = 'storage';
+            // Different binding for different
+            switch (true) {
+                // Buffer layouts.
+                case lEntry.layout instanceof BaseBufferMemoryLayout: {
+                    // Convert bind type info bufer binding type.
+                    const lBufferBindingType: GPUBufferBindingType = (() => {
+                        switch (lEntry.usage) { // TODO: Usage is used only in buffers and not in textures. Can we group it only for buffers.
+                            case BufferUsage.Uniform: {
+                                return 'uniform';
+                            }
+                            case BufferUsage.Storage: {
+                                // Read only access. No bit compare.
+                                if (lEntry.accessMode === AccessMode.Read) {
+                                    return 'read-only-storage';
+                                }
+
+                                return 'storage';
+                            }
+                            default: {
+                                throw new Exception('Can only bind buffers of bind type storage or uniform.', this);
+                            }
                         }
-                        break;
-                    }
-                    default: {
-                        throw new Exception('Can only bind buffers of bind type storage or uniform.', this);
-                    }
+                    })();
+
+                    // Create buffer layout with all optional values.
+                    lLayoutEntry.buffer = {
+                        type: lBufferBindingType,
+                        minBindingSize: 0,
+                        hasDynamicOffset: false
+                    } satisfies Required<GPUBufferBindingLayout>;
+
+                    break;
                 }
 
-                // Create buffer layout with all optional values.
-                const lBufferLayout: Required<GPUBufferBindingLayout> = {
-                    type: lBufferBindingType,
-                    minBindingSize: 0,
-                    hasDynamicOffset: false
-                };
-                lLayoutEntry.buffer = lBufferLayout;
+                // Sampler layouts.
+                case lEntry.layout instanceof SamplerMemoryLayout: {
+                    const lSamplerBindingType: GPUSamplerBindingType = (() => {
+                        switch (lEntry.layout.samplerType) {
+                            case SamplerType.Comparison: {
+                                return 'comparison';
+                            }
+                            case SamplerType.Filter: {
+                                return 'filtering';
+                            }
+                        }
+                    })();
 
-                // Add buffer layout entry to bindings.
-                lEntryList.push(lLayoutEntry);
+                    // Create sampler layout with all optional values.
+                    lLayoutEntry.sampler = {
+                        type: lSamplerBindingType
+                    } satisfies Required<GPUSamplerBindingLayout>;
 
-                continue;
-            }
-
-            // Sampler layouts.
-            if (lEntry.layout instanceof SamplerMemoryLayout) {
-                let lSamplerBindingType: GPUSamplerBindingType;
-                switch (lEntry.layout.samplerType) {
-                    case SamplerType.Comparison: {
-                        lSamplerBindingType = 'comparison';
-                        break;
-                    }
-                    case SamplerType.Filter: {
-                        lSamplerBindingType = 'filtering';
-                        break;
-                    }
+                    break;
                 }
 
-                // Create sampler layout with all optional values.
-                const lSamplerLayout: Required<GPUSamplerBindingLayout> = {
-                    type: lSamplerBindingType
-                };
-                lLayoutEntry.sampler = lSamplerLayout;
+                // Texture layouts.
+                case lEntry.layout instanceof TextureMemoryLayout: {
+                    switch (lEntry.layout.bindType) {
+                        case TextureBindType.External: {
+                            if (lEntry.accessMode !== AccessMode.Read) {
+                                throw new Exception('External textures must have access mode read.', this);
+                            }
 
-                // Add sampler layout entry to bindings.
-                lEntryList.push(lLayoutEntry);
-
-                continue;
-            }
-
-            // Texture layouts.
-            if (lEntry.layout instanceof TextureMemoryLayout) {
-                switch (lEntry.layout.bindType) {
-                    case TextureBindType.External: {
-                        if (lEntry.layout.accessMode !== AccessMode.Read) {
-                            throw new Exception('External textures must have access mode read.', this);
+                            lLayoutEntry.externalTexture = {} satisfies Required<GPUExternalTextureBindingLayout>;
+                            break;
                         }
+                        case TextureBindType.Image: {
+                            if (lEntry.accessMode !== AccessMode.Read) {
+                                throw new Exception('Image textures must have access mode read.', this);
+                            }
 
-                        const lExternalTextureLayout: Required<GPUExternalTextureBindingLayout> = {};
-                        lLayoutEntry.externalTexture = lExternalTextureLayout;
-                        break;
-                    }
-                    case TextureBindType.Images: {
-                        if (lEntry.layout.accessMode !== AccessMode.Read) {
-                            throw new Exception('Image textures must have access mode read.', this);
+                            // Convert texture format to sampler values.
+                            const lTextureFormat = (() => {
+                                switch (lEntry.layout.format) {
+                                    case TextureFormat.Depth:
+                                    case TextureFormat.DepthStencil: {
+                                        return 'depth';
+                                    }
+
+                                    case TextureFormat.Stencil:
+                                    case TextureFormat.BlueRedGreenAlpha:
+                                    case TextureFormat.Red:
+                                    case TextureFormat.RedGreen:
+                                    case TextureFormat.RedGreenBlueAlpha: {
+                                        return 'float';
+                                    }
+
+                                    case TextureFormat.RedGreenBlueAlphaInteger:
+                                    case TextureFormat.RedGreenInteger:
+                                    case TextureFormat.RedInteger: {
+                                        return 'uint';
+                                    }
+                                }
+                            })();
+
+                            lLayoutEntry.texture = {
+                                sampleType: lTextureFormat,
+                                multisampled: lEntry.layout.multisampled,
+                                viewDimension: lEntry.layout.dimension
+                            } satisfies Required<GPUTextureBindingLayout>;
+
+                            break;
                         }
+                        case TextureBindType.Storage: {
+                            if (lEntry.accessMode !== AccessMode.Write) {
+                                throw new Exception('Storage textures must have access mode write.', this);
+                            }
 
-                        const lTextureLayout: Required<GPUTextureBindingLayout> = {
-                            sampleType: this.factory.sampleTypeFromLayout(lEntry.layout),
-                            multisampled: lEntry.layout.multisampled,
-                            viewDimension: lEntry.layout.dimension
-                        };
-                        lLayoutEntry.texture = lTextureLayout;
-                        break;
-                    }
-                    case TextureBindType.Storage: {
-                        if (lEntry.layout.accessMode !== AccessMode.Write) {
-                            throw new Exception('Storage textures must have access mode write.', this);
+                            const lStorageTextureLayout: Required<GPUStorageTextureBindingLayout> = {
+                                access: 'write-only',
+                                format: lEntry.layout.format,
+                                viewDimension: lEntry.layout.dimension
+                            };
+                            lLayoutEntry.storageTexture = lStorageTextureLayout;
+                            break;
                         }
-
-                        const lStorageTextureLayout: Required<GPUStorageTextureBindingLayout> = {
-                            access: 'write-only',
-                            format: this.factory.formatFromLayout(lEntry.layout),
-                            viewDimension: lEntry.layout.dimension
-                        };
-                        lLayoutEntry.storageTexture = lStorageTextureLayout;
-                        break;
-                    }
-                    default: {
-                        throw new Exception('Cant bind attachment textures.', this);
+                        default: {
+                            throw new Exception('Cant bind attachment textures.', this);
+                        }
                     }
                 }
-
-                lEntryList.push(lLayoutEntry);
             }
 
+            // Add binding entry to bindings.
             lEntryList.push(lLayoutEntry);
         }
 
@@ -224,12 +260,11 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     }
 }
 
-// TODO: Do we really need all this data?
 type BindLayout = {
     name: string,
     index: number,
     layout: BaseMemoryLayout;
     visibility: ComputeStage;
     accessMode: AccessMode;
-    bindType: BufferBindingType;
+    usage: BufferUsage;
 };

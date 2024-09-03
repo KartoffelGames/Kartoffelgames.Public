@@ -1,4 +1,5 @@
 export enum SamplerType {
-    Filter = 'Filter',
-    Comparison = 'Comparison',
+    Filter = 'filtering',
+    NoneFiltering = 'non-filtering',
+    Comparison = 'comparison'
 }

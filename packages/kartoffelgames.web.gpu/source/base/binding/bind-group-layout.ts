@@ -2,7 +2,6 @@ import { Dictionary, Exception } from '@kartoffelgames/core';
 import { AccessMode } from '../../constant/access-mode.enum';
 import { BufferUsage } from '../../constant/buffer-usage.enum';
 import { ComputeStage } from '../../constant/compute-stage.enum';
-import { SamplerType } from '../../constant/sampler-type.enum';
 import { TextureBindType } from '../../constant/texture-bind-type.enum';
 import { TextureFormat } from '../../constant/texture-format.enum';
 import { GpuDevice } from '../gpu/gpu-device';
@@ -57,6 +56,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
         // Init bindings.
         this.mBindings = new Dictionary<string, BindLayout>();
         for (const lBinding of pBindingList) {
+            // Shallow copy binding.
             this.mBindings.set(lBinding.name, {
                 name: lBinding.name,
                 index: lBinding.index,
@@ -67,7 +67,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
             });
 
             // Register change listener for layout changes.
-            lBinding.layout.addInvalidationListener(() => {
+            lBinding.layout.addInvalidationListener(() => { // TODO: Maybe remove it or create anew.
                 this.triggerAutoUpdate(UpdateReason.ChildData);
             });
 
@@ -161,20 +161,9 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
 
                 // Sampler layouts.
                 case lEntry.layout instanceof SamplerMemoryLayout: {
-                    const lSamplerBindingType: GPUSamplerBindingType = (() => {
-                        switch (lEntry.layout.samplerType) {
-                            case SamplerType.Comparison: {
-                                return 'comparison';
-                            }
-                            case SamplerType.Filter: {
-                                return 'filtering';
-                            }
-                        }
-                    })();
-
                     // Create sampler layout with all optional values.
                     lLayoutEntry.sampler = {
-                        type: lSamplerBindingType
+                        type: lEntry.layout.samplerType
                     } satisfies Required<GPUSamplerBindingLayout>;
 
                     break;
@@ -183,15 +172,8 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
                 // Texture layouts.
                 case lEntry.layout instanceof TextureMemoryLayout: {
                     switch (lEntry.layout.bindType) {
-                        case TextureBindType.External: {
-                            if (lEntry.accessMode !== AccessMode.Read) {
-                                throw new Exception('External textures must have access mode read.', this);
-                            }
-
-                            lLayoutEntry.externalTexture = {} satisfies Required<GPUExternalTextureBindingLayout>;
-                            break;
-                        }
                         case TextureBindType.Image: {
+                            // Image textures need to be read only.
                             if (lEntry.accessMode !== AccessMode.Read) {
                                 throw new Exception('Image textures must have access mode read.', this);
                             }
@@ -220,6 +202,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
                                 }
                             })();
 
+                            // Create image texture bind information.
                             lLayoutEntry.texture = {
                                 sampleType: lTextureFormat,
                                 multisampled: lEntry.layout.multisampled,
@@ -228,23 +211,38 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
 
                             break;
                         }
+                        case TextureBindType.External: {
+                            // External textures need to be read only.
+                            if (lEntry.accessMode !== AccessMode.Read) {
+                                throw new Exception('External textures must have access mode read.', this);
+                            }
+
+                            // Create external texture bind information.
+                            lLayoutEntry.externalTexture = {} satisfies Required<GPUExternalTextureBindingLayout>;
+
+                            break;
+                        }
                         case TextureBindType.Storage: {
+                            // Storage textures need to be write only.
                             if (lEntry.accessMode !== AccessMode.Write) {
                                 throw new Exception('Storage textures must have access mode write.', this);
                             }
 
-                            const lStorageTextureLayout: Required<GPUStorageTextureBindingLayout> = {
+                            // Create storage texture bind information.
+                            lLayoutEntry.storageTexture = {
                                 access: 'write-only',
                                 format: lEntry.layout.format,
                                 viewDimension: lEntry.layout.dimension
-                            };
-                            lLayoutEntry.storageTexture = lStorageTextureLayout;
+                            } satisfies Required<GPUStorageTextureBindingLayout>;
+
                             break;
                         }
                         default: {
                             throw new Exception('Cant bind attachment textures.', this);
                         }
                     }
+
+                    break;
                 }
             }
 

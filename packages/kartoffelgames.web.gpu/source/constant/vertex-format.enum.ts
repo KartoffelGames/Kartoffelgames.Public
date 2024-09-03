@@ -1,3 +1,4 @@
+// TODO: remove and replace with a set of Primitive-buffer-format and multiplier.
 export enum VertexFormat {
     Uint8x2 = 'uint8x2',
     Uint8x4 = 'uint8x4',

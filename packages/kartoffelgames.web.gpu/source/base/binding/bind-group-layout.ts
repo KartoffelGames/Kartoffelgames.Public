@@ -1,14 +1,15 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
+import { AccessMode } from '../../constant/access-mode.enum';
+import { BufferBindingType } from '../../constant/buffer-binding-type.enum';
+import { ComputeStage } from '../../constant/compute-stage.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
 import { BaseMemoryLayout } from '../memory_layout/base-memory-layout';
 import { BindDataGroup } from './bind-data-group';
-import { ComputeStage } from '../../constant/compute-stage.enum';
 
 export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     private readonly mBindings: Dictionary<string, BindLayout>;
-    private mIdentifier: string;
 
     /**
      * Get binding names.
@@ -30,14 +31,6 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     }
 
     /**
-     * Get bind group identifier.
-     * Same configured groups has the same identifier.
-     */
-    public get identifier(): string {
-        return this.mIdentifier;
-    }
-
-    /**
      * Constructor.
      * @param pDevice - Gpu Device reference.
      */
@@ -47,27 +40,8 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
         // Init storage.
         this.mBindings = new Dictionary<string, BindLayout>();
 
-        // Update identifier.
-        this.mIdentifier = '';
-        this.addInvalidationListener(() => {
-            let lIdentifier: string = '';
-            for (const lBind of this.mBindings.values()) {
-                // TODO: Make a kind of json and serialize.
-                // TODO: Update cached group on layout. 
-
-                // Simple chain of values.
-                lIdentifier += lBind.index;
-                lIdentifier += '-' + lBind.name;
-                lIdentifier += '-' + lBind.layout.accessMode;
-                lIdentifier += '-' + lBind.layout.bindingIndex;
-                lIdentifier += '-' + lBind.layout.memoryType;
-                lIdentifier += '-' + lBind.layout.name;
-                lIdentifier += '-' + lBind.layout.visibility;
-                lIdentifier += ';';
-            }
-
-            this.mIdentifier = lIdentifier;
-        });
+        // TODO: Find a way to reuse groups instead of initializing a new every time.
+        // TODO: Validate if replaced group meets at least the preset criteria. (Same, layout, visibility, bindings)
     }
 
     /**
@@ -246,16 +220,19 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
         }
 
         // Create binding group layout.
-        return this.factory.gpu.createBindGroupLayout({
+        return this.device.gpu.createBindGroupLayout({
             label: 'Bind-Group-Layout',
             entries: lEntryList
         });
     }
 }
 
+// TODO: Do we really need all this data?
 type BindLayout = {
     name: string,
     index: number,
     layout: BaseMemoryLayout;
     visibility: ComputeStage;
+    accessMode: AccessMode;
+    bindType: BufferBindingType;
 };

@@ -1,7 +1,7 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { AccessMode } from '../../../constant/access-mode.enum';
 import { BufferUsage } from '../../../constant/buffer-usage.enum';
-import { BufferPrimitiveFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format';
+import { BufferPrimitiveFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { ComputeStage } from '../../../constant/compute-stage.enum';
 import { GpuBuffer } from '../../buffer/gpu-buffer';
 import { GpuDevice } from '../../gpu/gpu-device';

@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { BaseBufferMemoryLayout, BufferMemoryLayoutParameter } from './base-buffer-memory-layout';
-import { PrimitiveBufferFormat } from './enum/primitive-buffer-format';
+import { PrimitiveBufferFormat } from './enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from './enum/primitive-buffer-multiplier.enum';
 
 export class PrimitiveBufferMemoryLayout extends BaseBufferMemoryLayout {

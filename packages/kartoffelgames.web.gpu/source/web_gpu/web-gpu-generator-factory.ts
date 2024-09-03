@@ -1,5 +1,5 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { BufferPrimitiveFormat } from '../base/memory_layout/buffer/enum/primitive-buffer-format';
+import { BufferPrimitiveFormat } from '../base/memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { TextureMemoryLayout } from '../base/memory_layout/texture/texture-memory-layout';
 import { BaseGeneratorFactory } from '../base/native_generator/base-generator-factory';
 import { CompareFunction } from '../constant/compare-function.enum';

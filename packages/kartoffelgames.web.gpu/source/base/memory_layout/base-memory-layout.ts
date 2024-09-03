@@ -1,5 +1,3 @@
-import { AccessMode } from '../../constant/access-mode.enum';
-import { ComputeStage } from '../../constant/compute-stage.enum';
 import { InvalidationObject } from '../gpu/invalidation-object';
 
 export abstract class BaseMemoryLayout extends InvalidationObject {
@@ -24,8 +22,5 @@ export abstract class BaseMemoryLayout extends InvalidationObject {
 }
 
 export interface MemoryLayoutParameter {
-    access: AccessMode;
-    bindingIndex: number | null;
     name: string;
-    visibility: ComputeStage;
 }

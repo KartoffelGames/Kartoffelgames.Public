@@ -24,6 +24,9 @@ export class PipelineLayout extends GpuNativeObject<GPUPipelineLayout> {
 
         // Init storage.
         this.mBindGroups = new Dictionary<number, BindGroupLayout>();
+
+        // TODO: Find a way to reuse groups instead of initializing a new every time.
+        // TODO: Validate if replaced group meets at least the preset criteria. (Same, layout, visibility, bindings)
     }
 
     /**

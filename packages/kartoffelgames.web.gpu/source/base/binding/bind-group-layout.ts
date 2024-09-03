@@ -39,9 +39,6 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
 
         // Init storage.
         this.mBindings = new Dictionary<string, BindLayout>();
-
-        // TODO: Find a way to reuse groups instead of initializing a new every time.
-        // TODO: Validate if replaced group meets at least the preset criteria. (Same, layout, visibility, bindings)
     }
 
     /**

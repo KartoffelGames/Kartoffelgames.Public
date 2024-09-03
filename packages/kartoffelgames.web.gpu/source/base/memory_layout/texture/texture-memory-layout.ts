@@ -48,6 +48,8 @@ export class TextureMemoryLayout extends BaseMemoryLayout {
     } set usage(pValue: TextureUsage) {
         this.mUsage = pValue;
 
+        // TODO: Updateable property of everything.
+
         // Invalidate layout on setting changes.
         this.invalidate(UpdateReason.Setting);
     }

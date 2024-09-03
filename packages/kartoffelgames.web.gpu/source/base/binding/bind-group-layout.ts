@@ -28,7 +28,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     }
 
     /**
-     * Get bindings of group.
+     * Get bindings of group in binding order.
      */
     public get bindings(): Array<Readonly<BindLayout>> {
         const lBindingList: Array<BindLayout> = new Array<BindLayout>();
@@ -131,7 +131,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
                 case lEntry.layout instanceof BaseBufferMemoryLayout: {
                     // Convert bind type info bufer binding type.
                     const lBufferBindingType: GPUBufferBindingType = (() => {
-                        switch (lEntry.usage) { // TODO: Usage is used only in buffers and not in textures. Can we group it only for buffers.
+                        switch (lEntry.usage) { // TODO: Usage is used only in buffers and not in textures. Maybe add it to base-buffer-memory-layout as the buffer itseld needs it for creation.
                             case BufferUsage.Uniform: {
                                 return 'uniform';
                             }

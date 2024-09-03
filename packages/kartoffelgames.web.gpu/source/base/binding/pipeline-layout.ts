@@ -7,6 +7,7 @@ import { BindGroupLayout } from './bind-group-layout';
 export class PipelineLayout extends GpuNativeObject<GPUPipelineLayout> {
     private readonly mBindGroups: Dictionary<number, BindGroupLayout>;
 
+
     /**
      * Bind group count.
      */
@@ -27,6 +28,11 @@ export class PipelineLayout extends GpuNativeObject<GPUPipelineLayout> {
 
         // TODO: Find a way to reuse groups instead of initializing a new every time.
         // TODO: Validate if replaced group meets at least the preset criteria. (Same, layout, visibility, bindings)
+
+        // TODO: Add initial data and at the same time to "working" data dictionary.
+        // TODO: Add replaceGroup method. Method checks if replacement meets lowest standard of initial data. When it does, add it to "working" data dictionary but keep the inital data intact.
+
+        // TODO: Access bind groups by name not index.
     }
 
     /**
@@ -58,13 +64,6 @@ export class PipelineLayout extends GpuNativeObject<GPUPipelineLayout> {
 
         // Bind group should allways exist.
         return this.mBindGroups.get(pIndex)!;
-    }
-
-    /**
-     * Set life time of generated native.
-     */
-    protected override get nativeLifeTime(): NativeObjectLifeTime {
-        return NativeObjectLifeTime.Persistent;
     }
 
     /**

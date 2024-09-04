@@ -63,7 +63,6 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
         // Validation set.
         const lBindingIndices: Set<number> = new Set<number>();
         const lBindingName: Set<string> = new Set<string>();
-        let lHighestBindingIndex: number = -1;
 
         // Init bindings.
         this.mBindings = new Dictionary<string, BindLayout>();
@@ -91,16 +90,6 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
             // Add binding index to already binded indices. 
             lBindingIndices.add(lBinding.index);
             lBindingName.add(lBinding.name);
-
-            // Save max index number.
-            if (lHighestBindingIndex < lBinding.index) {
-                lHighestBindingIndex = lBinding.index;
-            }
-        }
-
-        // Validate binding continuity.
-        if (lHighestBindingIndex !== (lBindingIndices.size - 1)) {
-            throw new Exception(`Binding groups must have continious binding indices.`, this);
         }
     }
 

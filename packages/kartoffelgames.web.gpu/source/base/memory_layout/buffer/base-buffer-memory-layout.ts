@@ -1,7 +1,12 @@
 import { Exception } from '@kartoffelgames/core';
+import { BufferUsage } from '../../../constant/buffer-usage.enum';
+import { UpdateReason } from '../../gpu/gpu-object-update-reason';
 import { BaseMemoryLayout, MemoryLayoutParameter } from '../base-memory-layout';
 
 export abstract class BaseBufferMemoryLayout extends BaseMemoryLayout {
+    private mUsage: BufferUsage;
+
+
     /**
      * Type byte alignment.
      */
@@ -13,11 +18,26 @@ export abstract class BaseBufferMemoryLayout extends BaseMemoryLayout {
     public abstract readonly size: number;
 
     /**
+     * Buffer usage. Bitmask.
+     */
+    public get usage(): BufferUsage {
+        return this.mUsage;
+    } set usage(pUsage: BufferUsage) {
+        this.mUsage = pUsage;
+
+        // Trigger auto update.
+        this.triggerAutoUpdate(UpdateReason.Setting);
+    }
+
+    /**
      * Constructor.
      * @param pParameter - Parameter.
      */
     public constructor(pParameter: BufferMemoryLayoutParameter) {
         super(pParameter);
+
+        // Settings.
+        this.mUsage = pParameter.usage;
     }
 
     /**
@@ -34,7 +54,9 @@ export abstract class BaseBufferMemoryLayout extends BaseMemoryLayout {
     }
 }
 
-export interface BufferMemoryLayoutParameter extends MemoryLayoutParameter { }
+export interface BufferMemoryLayoutParameter extends MemoryLayoutParameter {
+    usage: BufferUsage;
+}
 
 export type BufferLayoutLocation = {
     offset: number;

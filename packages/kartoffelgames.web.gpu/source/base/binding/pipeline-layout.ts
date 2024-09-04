@@ -117,8 +117,14 @@ export class PipelineLayout extends GpuNativeObject<GPUPipelineLayout> {
                 throw new Exception(`Group binding replacement "${lReplacementBinding.name}" must at least cover the initial visibility.`, this);
             }
 
-            // TODO: layout: BaseMemoryLayout;
+            // TODO: layout: BaseMemoryLayout; some type of equal.
         }
+
+        // Replace binding group.
+        this.mBindGroups.set(lGroupIndex, pBindGroup);
+
+        // Trigger updates.
+        this.triggerAutoUpdate(UpdateReason.ChildData);
     }
 
     /**

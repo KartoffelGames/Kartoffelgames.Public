@@ -1,3 +1,4 @@
+import { AccessMode } from '../../constant/access-mode.enum';
 import { BufferUsage } from '../../constant/buffer-usage.enum';
 import { ComputeStage } from '../../constant/compute-stage.enum';
 import { BaseMemoryLayout } from '../memory_layout/base-memory-layout';
@@ -14,10 +15,11 @@ export type ShaderLayout = {
             index: number;
             bindings: {
                 [bindingName: string]: {
-                    index: number;
-                    visibility: ComputeStage;
+                    index: number,
                     layout: BaseMemoryLayout;
-                    bindingType: BufferUsage; // TODO: Type is wrong.
+                    visibility: ComputeStage;
+                    accessMode: AccessMode;
+                    usage: BufferUsage;
                 };
             };
         };

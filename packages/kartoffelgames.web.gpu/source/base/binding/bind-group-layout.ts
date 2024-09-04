@@ -259,7 +259,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     }
 }
 
-type BindLayout = {
+export type BindLayout = {
     name: string,
     index: number,
     layout: BaseMemoryLayout;

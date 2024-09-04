@@ -19,6 +19,7 @@ import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-lay
  */
 export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     private readonly mBindings: Dictionary<string, BindLayout>;
+    private readonly mName: string;
 
     /**
      * Get binding names.
@@ -40,13 +41,24 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
     }
 
     /**
+     * Bind group name.
+     */
+    public get name(): string {
+        return this.mName;
+    }
+
+    /**
      * Constructor.
      * 
      * @param pDevice - Gpu Device reference.
+     * @param pName - Name of binding group.
      * @param pBindingList - Binding list.
      */
-    public constructor(pDevice: GpuDevice, pBindingList: Array<BindLayout>) {
+    public constructor(pDevice: GpuDevice, pName: string, pBindingList: Array<BindLayout>) {
         super(pDevice, NativeObjectLifeTime.Persistent);
+
+        // Set binding group name.
+        this.mName = pName;
 
         // Validation set.
         const lBindingIndices: Set<number> = new Set<number>();

@@ -12,8 +12,6 @@ import { TextureGroup } from '../../source/base/pipeline/target/texture-group';
 import { VertexFragmentPipeline } from '../../source/base/pipeline/vertex-fragment-pipeline';
 import { PrimitiveCullMode } from '../../source/constant/primitive-cullmode.enum';
 import { TextureOperation } from '../../source/constant/texture-operation.enum';
-import { WebGpuGeneratorFactory } from '../../source/web_gpu/web-gpu-generator-factory';
-import { WebGpuShaderInterpreter } from '../../source/web_gpu/web-gpu-shader-interpreter';
 import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVertexUvData } from './cube/cube';
 import shader from './shader.pgsl';
 import { AmbientLight } from './something_better/light/ambient-light';

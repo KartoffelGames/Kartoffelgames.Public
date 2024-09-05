@@ -90,14 +90,16 @@ export class CanvasTexture extends GpuNativeObject<GPUTextureView> {
      * Generate native canvas texture view.
      */
     protected override generate(): GPUTextureView {
+        // TODO: Add invalidation context to generate to better understand new generating.
+
         // Configure context.
         if (!this.mContext) {
             // Create and configure canvas context.
             this.mContext = <GPUCanvasContext><any>this.canvas.getContext('webgpu');
             this.mContext.configure({
                 device: this.device.gpu,
-                format: this.factory.formatFromLayout(this.memoryLayout),
-                usage: this.factory.usageFromLayout(this.memoryLayout),
+                format: this.memoryLayout.format,
+                usage: this.memoryLayout.usage,
                 alphaMode: 'opaque'
             });
         }

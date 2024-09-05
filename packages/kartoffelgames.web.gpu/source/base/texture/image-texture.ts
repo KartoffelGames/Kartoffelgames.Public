@@ -1,14 +1,16 @@
 import { Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/gpu-native-object';
-import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
+import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
+import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
+import { TextureDimension } from '../../constant/texture-dimension.enum';
 
-export class ImageTexture extends GpuObject<'imageTexture'> {
+export class ImageTexture extends GpuNativeObject<GPUTextureView> {
     private mDepth: number;
     private mHeight: number;
     private mImageList: Array<ImageBitmap>;
     private readonly mMemoryLayout: TextureMemoryLayout;
+    private mTexture: GPUTexture | null;
     private mWidth: number;
 
     /**
@@ -52,7 +54,9 @@ export class ImageTexture extends GpuObject<'imageTexture'> {
      * @param pLayout - Texture memory layout.
      */
     public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout) {
-        super(pDevice);
+        super(pDevice, NativeObjectLifeTime.Persistent);
+
+        this.mTexture = null;
 
         // Fixed values.
         this.mMemoryLayout = pLayout;
@@ -109,5 +113,67 @@ export class ImageTexture extends GpuObject<'imageTexture'> {
 
         // Trigger change.
         this.triggerAutoUpdate(UpdateReason.Data);
+    }
+
+    /**
+     * Destory texture object.
+     * @param _pNativeObject - Native canvas texture.
+     */
+    protected override destroy(_pNativeObject: GPUTextureView): void {
+        this.mTexture?.destroy();
+        this.mTexture = null;
+    }
+
+    /**
+     * Generate native canvas texture view.
+     */
+    protected override generate(): GPUTextureView {
+        // Generate gpu dimension from memory layout dimension.
+        const lGpuDimension: GPUTextureDimension = (() => {
+            switch (this.memoryLayout.dimension) {
+                case TextureDimension.OneDimension: {
+                    return '1d';
+                }
+                case TextureDimension.TwoDimension: {
+                    return '2d';
+                }
+                case TextureDimension.TwoDimensionArray: {
+                    return '3d';
+                }
+                case TextureDimension.Cube: {
+                    return '3d';
+                }
+                case TextureDimension.CubeArray: {
+                    return '3d';
+                }
+                case TextureDimension.ThreeDimension: {
+                    return '3d';
+                }
+            }
+        })();
+
+        // Create texture with set size, format and usage. Save it for destorying later.
+        this.mTexture = this.device.gpu.createTexture({
+            label: 'Frame-Buffer-Texture',
+            size: [this.width, this.height, this.depth],
+            format: this.memoryLayout.format,
+            usage: this.memoryLayout.usage,
+            dimension: lGpuDimension
+        });
+
+        // Load images into texture.
+        for (let lImageIndex: number = 0; lImageIndex < this.images.length; lImageIndex++) {
+            const lBitmap: ImageBitmap = this.images[lImageIndex];
+
+            // Copy image into depth layer.
+            this.device.gpu.queue.copyExternalImageToTexture(
+                { source: lBitmap },
+                { texture: this.mTexture, origin: [0, 0, lImageIndex] },
+                [lBitmap.width, lBitmap.height]
+            );
+        }
+
+        // TODO: View descriptor.
+        return this.mTexture.createView();
     }
 }

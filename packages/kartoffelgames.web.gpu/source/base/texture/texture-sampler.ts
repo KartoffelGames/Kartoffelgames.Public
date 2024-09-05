@@ -1,12 +1,14 @@
+import { Exception } from '@kartoffelgames/core';
 import { CompareFunction } from '../../constant/compare-function.enum';
 import { FilterMode } from '../../constant/filter-mode.enum';
+import { SamplerType } from '../../constant/sampler-type.enum';
 import { WrappingMode } from '../../constant/wrapping-mode.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/gpu-native-object';
+import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
 import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
 
-export class TextureSampler extends GpuObject<'textureSampler'> {
+export class TextureSampler extends GpuNativeObject<GPUSampler> {
     private mCompare: CompareFunction | null;
     private mLodMaxClamp: number;
     private mLodMinClamp: number;
@@ -126,7 +128,7 @@ export class TextureSampler extends GpuObject<'textureSampler'> {
      * @param pLayout - Sampler memory layout.
      */
     public constructor(pDevice: GpuDevice, pLayout: SamplerMemoryLayout) {
-        super(pDevice);
+        super(pDevice, NativeObjectLifeTime.Persistent);
 
         this.mMemoryLayout = pLayout;
 
@@ -141,8 +143,44 @@ export class TextureSampler extends GpuObject<'textureSampler'> {
         this.mMaxAnisotropy = 1;
 
         // Register change listener for layout changes.
-        pLayout.addUpdateListener(() => {
+        pLayout.addInvalidationListener(() => {
             this.triggerAutoUpdate(UpdateReason.ChildData);
         });
+    }
+
+    /**
+     * Destroy nothing.
+     */
+    protected override destroy(): void {
+        // Nothing to destroy.
+    }
+
+    /**
+     * Generate native bind data group layout object.
+     */
+    protected override generate(): GPUSampler {
+        // Create sampler descriptor.
+        const lSamplerOptions: GPUSamplerDescriptor = {
+            label: 'Texture-Sampler',
+            addressModeU: this.wrapMode,
+            addressModeV: this.wrapMode,
+            addressModeW: this.wrapMode,
+            magFilter: this.magFilter,
+            minFilter: this.minFilter,
+            mipmapFilter: this.mipmapFilter,
+            lodMaxClamp: this.lodMaxClamp,
+            lodMinClamp: this.lodMinClamp,
+            maxAnisotropy: this.maxAnisotropy
+        };
+
+        // Add compare function when sampler is a compare sampler.
+        if (this.memoryLayout.samplerType === SamplerType.Comparison) {
+            if (!this.compare) {
+                throw new Exception(`No compare function is set for a comparison sampler.`, this);
+            }
+            lSamplerOptions.compare = this.compare;
+        }
+
+        return this.device.gpu.createSampler(lSamplerOptions);
     }
 }

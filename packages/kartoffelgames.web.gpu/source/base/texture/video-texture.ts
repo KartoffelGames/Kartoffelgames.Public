@@ -1,9 +1,9 @@
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/gpu-native-object';
+import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 
-export class VideoTexture extends GpuObject<'videoTexture'> {
+export class VideoTexture extends GpuNativeObject<GPUExternalTexture> {
     private readonly mMemoryLayout: TextureMemoryLayout;
     private readonly mVideo: HTMLVideoElement;
 
@@ -60,7 +60,7 @@ export class VideoTexture extends GpuObject<'videoTexture'> {
      * @param pDepth - Texture depth.
      */
     public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout) {
-        super(pDevice);
+        super(pDevice, NativeObjectLifeTime.Persistent);
 
         // Fixed values.
         this.mMemoryLayout = pLayout;
@@ -71,7 +71,7 @@ export class VideoTexture extends GpuObject<'videoTexture'> {
         this.mVideo.muted = true; // Allways muted.
 
         // Register change listener for layout changes.
-        pLayout.addUpdateListener(() => {
+        pLayout.addInvalidationListener(() => {
             this.triggerAutoUpdate(UpdateReason.ChildData);
         });
     }
@@ -88,5 +88,23 @@ export class VideoTexture extends GpuObject<'videoTexture'> {
      */
     public play(): void {
         this.mVideo.play();
+    }
+
+    /**
+     * Destroy nothing.
+     */
+    protected override destroy(): void {
+        // Nothing to destroy.
+    }
+
+    /**
+     * Generate native canvas texture view.
+     */
+    protected override generate(): GPUExternalTexture {
+        return this.device.gpu.importExternalTexture({
+            label: 'External-Texture',
+            source: this.video,
+            colorSpace: 'srgb'
+        });
     }
 }

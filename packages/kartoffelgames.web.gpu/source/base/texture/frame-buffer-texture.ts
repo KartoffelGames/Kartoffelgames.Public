@@ -1,3 +1,4 @@
+import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
@@ -107,14 +108,38 @@ export class FrameBufferTexture extends GpuNativeObject<GPUTextureView> {
     protected override generate(): GPUTextureView {
         // Configure context.
         if (!this.mTexture) {
+            // Generate gpu dimension from memory layout dimension.
+            const lGpuDimension: GPUTextureDimension = (() => {
+                switch (this.memoryLayout.dimension) {
+                    case TextureDimension.OneDimension: {
+                        return '1d';
+                    }
+                    case TextureDimension.TwoDimension: {
+                        return '2d';
+                    }
+                    case TextureDimension.TwoDimensionArray: {
+                        return '3d';
+                    }
+                    case TextureDimension.Cube: {
+                        return '3d';
+                    }
+                    case TextureDimension.CubeArray: {
+                        return '3d';
+                    }
+                    case TextureDimension.ThreeDimension: {
+                        return '3d';
+                    }
+                }
+            })();
+
             // Create and configure canvas context.
             this.mTexture = this.device.gpu.createTexture({
                 label: 'Frame-Buffer-Texture',
                 size: [this.width, this.height, this.depth],
-                format: this.factory.formatFromLayout(this.memoryLayout),
-                usage: this.factory.usageFromLayout(this.memoryLayout),
-                dimension: this.factory.dimensionFromLayout(this.memoryLayout),
-                sampleCount: this.gpuObject.multiSampleLevel
+                format: this.memoryLayout.format,
+                usage: this.memoryLayout.usage,
+                dimension: lGpuDimension,
+                sampleCount: this.multiSampleLevel
             });
         }
 

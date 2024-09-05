@@ -1,10 +1,11 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
+import { GpuNativeObject, GpuObjectUpdateListener, NativeObjectLifeTime } from '../gpu/gpu-native-object';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
 import { BindGroupLayout, BindLayout } from './bind-group-layout';
 
 export class PipelineLayout extends GpuNativeObject<GPUPipelineLayout> {
+    private readonly mBindGroupInvalidationListener: WeakMap<BindGroupLayout, GpuObjectUpdateListener>;
     private readonly mBindGroupNames: Dictionary<string, number>;
     private readonly mBindGroups: Dictionary<number, BindGroupLayout>;
     private readonly mInitialBindGroups: Dictionary<number, BindGroupLayout>;
@@ -29,6 +30,10 @@ export class PipelineLayout extends GpuNativeObject<GPUPipelineLayout> {
         this.mBindGroupNames = new Dictionary<string, number>();
         this.mInitialBindGroups = new Dictionary<number, BindGroupLayout>();
         this.mBindGroups = new Dictionary<number, BindGroupLayout>();
+        this.mBindGroupInvalidationListener = new WeakMap<BindGroupLayout, GpuObjectUpdateListener>();
+
+        // TODO: Check gpu restriction.
+        //this.device.gpu.limits.maxBindGroups
 
         // Set initial work groups.
         for (const [lGroupIndex, lGroup] of pInitialGroups) {
@@ -38,15 +43,56 @@ export class PipelineLayout extends GpuNativeObject<GPUPipelineLayout> {
             // Set bind groups to initial data and working bind group.
             this.mInitialBindGroups.set(lGroupIndex, lGroup);
             this.mBindGroups.set(lGroupIndex, lGroup);
+
+            // Add invalidationlistener.
+            const lListener: GpuObjectUpdateListener = () => {
+                this.triggerAutoUpdate(UpdateReason.ChildData);
+            };
+            lGroup.addInvalidationListener(lListener);
+            this.mBindGroupInvalidationListener.set(lGroup, lListener);
+        }
+    }
+
+    /**
+     * Get bind group layout by name.
+     * 
+     * @param pGroupName - Group name.
+     */
+    public getGroupLayout(pGroupName: string): BindGroupLayout {
+        const lGroupIndex: number | undefined = this.mBindGroupNames.get(pGroupName);
+
+        // Throw on unaccessable group.
+        if (typeof lGroupIndex === 'undefined') {
+            throw new Exception(`Bind group layout (${pGroupName}) does not exists.`, this);
         }
 
-        // TODO: Find a way to reuse groups instead of initializing a new every time.
-        // TODO: Validate if replaced group meets at least the preset criteria. (Same, layout, visibility, bindings)
+        // Bind group should allways exist.
+        return this.mBindGroups.get(lGroupIndex)!;
+    }
 
-        // TODO: Add initial data and at the same time to "working" data dictionary.
-        // TODO: Add replaceGroup method. Method checks if replacement meets lowest standard of initial data. When it does, add it to "working" data dictionary but keep the inital data intact.
+    /**
+     * Remove placeholder group.
+     * 
+     * @param pName - Bind group name of replacement.
+     */
+    public removePlaceholderGroup(pName: string): void {
+        const lBindGroupIndex: number | undefined = this.mBindGroupNames.get(pName);
+        if (!lBindGroupIndex) {
+            throw new Exception(`Group binding placeholder can not replace a requiered bind group.`, this);
+        }
 
-        // TODO: Access bind groups by name not index.
+        // Clean old placeholder.
+        const lLastBindGroup: BindGroupLayout | undefined = this.mBindGroups.get(lBindGroupIndex);
+        if (lLastBindGroup) {
+            // Remove invalidation listener.
+            lLastBindGroup.removeInvalidationListener(this.mBindGroupInvalidationListener.get(lLastBindGroup)!);
+
+            // Remove old name.
+            this.mBindGroupNames.delete(lLastBindGroup.name);
+        }
+
+        // Remove replacement layout.
+        this.mBindGroups.delete(lBindGroupIndex);
     }
 
     /**
@@ -69,6 +115,7 @@ export class PipelineLayout extends GpuNativeObject<GPUPipelineLayout> {
             throw new Exception(`Only initial bind group layouts can be replaced.`, this);
         }
 
+        // Read binding lists.
         const lInitialBindingList: Array<Readonly<BindLayout>> = pBindGroup.bindings;
         const lReplacementBindingList: Array<Readonly<BindLayout>> = pBindGroup.bindings;
 
@@ -117,48 +164,67 @@ export class PipelineLayout extends GpuNativeObject<GPUPipelineLayout> {
                 throw new Exception(`Group binding replacement "${lReplacementBinding.name}" must at least cover the initial visibility.`, this);
             }
 
-            // TODO: layout: BaseMemoryLayout; some type of equal.
+            // Must be same memory layout.
+            if(lReplacementBinding.constructor !== lInitialBinding.constructor){
+                throw new Exception(`Group binding replacement "${lReplacementBinding.name}" must have the same memory layout as initial bind group layout.`, this);
+                // TODO: layout: BaseMemoryLayout; some type of equal.
+            }
+            
         }
 
-        // Replace binding group.
-        this.mBindGroups.set(lGroupIndex, pBindGroup);
+        // Remove last 
+        const lLastBindGroup: BindGroupLayout | undefined = this.mBindGroups.get(lGroupIndex);
+        if (lLastBindGroup) {
+            // Remove invalidation listener.
+            lLastBindGroup.removeInvalidationListener(this.mBindGroupInvalidationListener.get(lLastBindGroup)!);
+        }
+
+        // Replace binding group and add invalidation listener.
+        const lListener: GpuObjectUpdateListener = () => {
+            this.triggerAutoUpdate(UpdateReason.ChildData);
+        };
+        pBindGroup.addInvalidationListener(lListener);
+        this.mBindGroupInvalidationListener.set(pBindGroup, lListener);
 
         // Trigger updates.
         this.triggerAutoUpdate(UpdateReason.ChildData);
     }
 
     /**
-     * Create bind group.
+     * Set a placeholder group that will not be used.
+     * 
      * @param pIndex - Group index.
      * @param pLayout - [Optional] Bind group Layout.
      */
     public setPlaceholderGroup(pIndex: number, pLayout: BindGroupLayout): void {
-        this.mBindGroups.add(pIndex, pLayout);
+        // Initial group must be undefined.
+        if (this.mInitialBindGroups.has(pIndex)) {
+            throw new Exception(`Group binding placeholder can not replace a requiered bind group.`, this);
+        }
+
+        // Clean old placeholder.
+        const lLastBindGroup: BindGroupLayout | undefined = this.mBindGroups.get(pIndex);
+        if (lLastBindGroup) {
+            // Remove invalidation listener.
+            lLastBindGroup.removeInvalidationListener(this.mBindGroupInvalidationListener.get(lLastBindGroup)!);
+
+            // Remove old name.
+            this.mBindGroupNames.delete(lLastBindGroup.name);
+        }
+
+        // Add replacment layout and name.
+        this.mBindGroups.set(pIndex, pLayout);
+        this.mBindGroupNames.set(pLayout.name, pIndex);
 
         // Register change listener for layout changes.
-        pLayout.addInvalidationListener(() => {
+        const lListener: GpuObjectUpdateListener = () => {
             this.triggerAutoUpdate(UpdateReason.ChildData);
-        });
+        };
+        pLayout.addInvalidationListener(lListener);
+        this.mBindGroupInvalidationListener.set(pLayout, lListener);
 
         // Trigger auto update.
         this.triggerAutoUpdate(UpdateReason.ChildData);
-    }
-
-    /**
-     * Get bind group layout by name.
-     * 
-     * @param pGroupName - Group name.
-     */
-    public getGroupLayout(pGroupName: string): BindGroupLayout {
-        const lGroupIndex: number | undefined = this.mBindGroupNames.get(pGroupName);
-
-        // Throw on unaccessable group.
-        if (typeof lGroupIndex === 'undefined') {
-            throw new Exception(`Bind group layout (${pGroupName}) does not exists.`, this);
-        }
-
-        // Bind group should allways exist.
-        return this.mBindGroups.get(lGroupIndex)!;
     }
 
     /**

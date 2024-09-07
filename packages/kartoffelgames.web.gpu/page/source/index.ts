@@ -8,12 +8,12 @@ import { SamplerMemoryLayout } from '../../source/base/memory_layout/texture/sam
 import { TextureMemoryLayout } from '../../source/base/memory_layout/texture/texture-memory-layout';
 import { VertexParameter } from '../../source/base/pipeline/parameter/vertex-parameter';
 import { RenderTargets } from '../../source/base/pipeline/target/render-targets';
-import { TextureGroup } from '../../source/base/pipeline/target/texture-group';
+import { TextureGroup } from '../../source/base/pipeline/target/render-targets';
 import { VertexFragmentPipeline } from '../../source/base/pipeline/vertex-fragment-pipeline';
 import { PrimitiveCullMode } from '../../source/constant/primitive-cullmode.enum';
 import { TextureOperation } from '../../source/constant/texture-operation.enum';
 import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVertexUvData } from './cube/cube';
-import shader from './shader.pgsl';
+import shader from './shader.wgsl';
 import { AmbientLight } from './something_better/light/ambient-light';
 import { Transform, TransformMatrix } from './something_better/transform';
 import { PerspectiveProjection } from './something_better/view_projection/projection/perspective-projection';

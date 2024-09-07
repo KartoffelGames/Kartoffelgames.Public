@@ -94,6 +94,7 @@ export class VertexFragmentPipeline extends GpuObject<'vertexFragmentPipeline'> 
     /**
      * Constructor.
      * Set default data.
+     * 
      * @param pDevice - Device.
      * @param pShader - Pipeline shader.
      */

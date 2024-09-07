@@ -1,6 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { InstructionExecuter } from '../execution/instruction-executor';
-import { TextureGroup } from '../pipeline/target/texture-group';
+import { TextureGroup } from '../pipeline/target/render-targets';
 import { VertexFragmentShader } from '../shader/vertex-fragment-shader';
 
 export class GpuDevice {

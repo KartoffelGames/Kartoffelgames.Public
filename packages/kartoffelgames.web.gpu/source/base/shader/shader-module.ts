@@ -3,14 +3,16 @@ import { BindGroupLayout, BindLayout } from '../binding/bind-group-layout';
 import { PipelineLayout } from '../binding/pipeline-layout';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
-import { ShaderLayout } from './shader-layout';
 import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-buffer-format.enum';
+import { PrimitiveBufferMultiplier } from '../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
+import { ShaderLayout } from './shader-layout';
 
 export class ShaderModule extends GpuNativeObject<GPUShaderModule> {
+    private readonly mEntryPoints: ShaderModuleEntryPoints;
     private readonly mParameter: Dictionary<string, PrimitiveBufferFormat>;
     private readonly mPipelineLayout: PipelineLayout;
     private readonly mSource: string;
-    
+
     /**
      * Shader pipeline layout.
      */
@@ -69,7 +71,77 @@ export class ShaderModule extends GpuNativeObject<GPUShaderModule> {
 
         // Save parameters.
         this.mParameter = new Dictionary<string, PrimitiveBufferFormat>(Object.entries(pLayout.parameter));
+
+        // Init entry points.
+        this.mEntryPoints = {
+            compute: new Dictionary<string, ShaderModuleEntryPointCompute>(),
+            vertex: new Dictionary<string, ShaderModuleEntryPointVertex>(),
+            fragment: new Dictionary<string, ShaderModuleEntryPointFragment>()
+        };
+
+        // Convert compute entry point informations
+        for (const lComputeEntryName of Object.keys(pLayout.computeEntryPoints)) {
+            const lComputeEntry: ShaderLayout['computeEntryPoints'][string] = pLayout.computeEntryPoints[lComputeEntryName];
+
+            this.mEntryPoints.compute.set(lComputeEntryName, {
+                // Workgroup is static when all dimensions are static set.
+                static: lComputeEntry.workgroupSize.x > 0 && lComputeEntry.workgroupSize.y > 0 && lComputeEntry.workgroupSize.z > 0,
+
+                workgroupDimentsion: {
+                    x: lComputeEntry.workgroupSize.x > 0 ? lComputeEntry.workgroupSize.x : null,
+                    y: lComputeEntry.workgroupSize.y > 0 ? lComputeEntry.workgroupSize.y : null,
+                    z: lComputeEntry.workgroupSize.z > 0 ? lComputeEntry.workgroupSize.z : null
+                }
+            });
+        }
+
+        // Convert fragment entry point informations
+        for (const lFragmentEntryName of Object.keys(pLayout.fragmentEntryPoints)) {
+            const lFragmentEntry: ShaderLayout['fragmentEntryPoints'][string] = pLayout.fragmentEntryPoints[lFragmentEntryName];
+
+            // Convert all render attachments to a location mapping. 
+            const lLocations: ShaderModuleEntryPointFragment['attachments'] = new Dictionary<string, any>();
+            for (const lAttachmentName of Object.keys(lFragmentEntry.attachments)) {
+                const lAttachment: ShaderLayout['fragmentEntryPoints'][string]['attachments'][string] = lFragmentEntry.attachments[lAttachmentName];
+                lLocations.set(lAttachmentName, {
+                    name: lAttachmentName,
+                    location: lAttachment.location,
+                    format: lAttachment.primitive.format,
+                    multiplier: lAttachment.primitive.multiplier
+                });
+            }
+
+            // Set fragment entry point definition. 
+            this.mEntryPoints.fragment.set(lFragmentEntryName, {
+                attachments: lLocations
+            });
+        }
+
+        // Convert vertex entry point informations
+        for (const lVertexEntryName of Object.keys(pLayout.vertexEntryPoints)) {
+            const lVertexEntry: ShaderLayout['vertexEntryPoints'][string] = pLayout.vertexEntryPoints[lVertexEntryName];
+
+            // Convert all render attachments to a location mapping. 
+            const lLocations: ShaderModuleEntryPointVertex['parameter'] = new Dictionary<string, any>();
+            for (const lParameterName of Object.keys(lVertexEntry.parameter)) {
+                const lAttachment: ShaderLayout['vertexEntryPoints'][string]['parameter'][string] = lVertexEntry.parameter[lParameterName];
+                lLocations.set(lParameterName, {
+                    name: lParameterName,
+                    location: lAttachment.location,
+                    format: lAttachment.primitive.format,
+                    multiplier: lAttachment.primitive.multiplier
+                });
+            }
+
+            // Set vertex entry point definition. 
+            this.mEntryPoints.vertex.set(lVertexEntryName, {
+                parameter: lLocations
+            });
+        }
     }
+
+    // TODO: CreateRenderModule Generate some kind of ShaderModuleBuild that contains name of all entry points. That module can create a render target and vertex parameter objects.
+    // TODO: CreateComputeModule
 
     /**
      * Destroy absolutly nothing.
@@ -92,3 +164,36 @@ export class ShaderModule extends GpuNativeObject<GPUShaderModule> {
         });
     }
 }
+
+type ShaderModuleEntryPointCompute = {
+    static: boolean;
+    workgroupDimentsion: {
+        x: number | null;
+        y: number | null;
+        z: number | null;
+    };
+};
+
+type ShaderModuleEntryPointVertex = {
+    parameter: Dictionary<string, {
+        name: string;
+        location: number;
+        format: PrimitiveBufferFormat;
+        multiplier: PrimitiveBufferMultiplier;
+    }>;
+};
+
+type ShaderModuleEntryPointFragment = {
+    attachments: Dictionary<string, {
+        name: string;
+        location: number;
+        format: PrimitiveBufferFormat;
+        multiplier: PrimitiveBufferMultiplier;
+    }>;
+};
+
+type ShaderModuleEntryPoints = {
+    compute: Dictionary<string, ShaderModuleEntryPointCompute>,
+    vertex: Dictionary<string, ShaderModuleEntryPointVertex>,
+    fragment: Dictionary<string, ShaderModuleEntryPointFragment>,
+};

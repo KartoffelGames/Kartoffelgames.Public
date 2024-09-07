@@ -9,6 +9,8 @@ import { PrimitiveBufferMultiplier } from '../memory_layout/buffer/enum/primitiv
  * Shader layout description.
  */
 export type ShaderLayout = {
+    // TODO: Add limitations that should be checked. (GroupCount, BindCount, Float16)
+
     // Memory binding.
     groups: {
         [groupName: string]: {
@@ -33,9 +35,11 @@ export type ShaderLayout = {
     // Compute entry points.
     computeEntryPoints: {
         [functionName: string]: {
-            x: number;
-            y: number;
-            z: number;
+            workgroupSize: {
+                x: number;
+                y: number;
+                z: number;
+            };
         };
     };
 
@@ -57,7 +61,7 @@ export type ShaderLayout = {
     // Fragment entry point.
     fragmentEntryPoints: {
         [functionName: string]: {
-            attachment: {
+            attachments: {
                 [attachmentName: string]: {
                     location: number;
                     primitive: {

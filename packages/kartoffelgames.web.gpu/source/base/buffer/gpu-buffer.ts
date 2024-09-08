@@ -110,6 +110,10 @@ export class GpuBuffer<TType extends TypedArray> extends GpuNativeObject<GPUBuff
         const lOffset: number = pOffset ?? 0;
         const lSize: number = pSize ?? this.size;
 
+        // TODO: Buffer cant be used as binding or anything else when it has MAP_READ
+        // TODO: Create a read buffer. Copy native information into it and than map it.
+        // https://www.w3.org/TR/webgpu/#dom-gpubufferusage-map_write
+
         // Get buffer and map data.
         const lBuffer: GPUBuffer = this.native;
         await lBuffer.mapAsync(GPUMapMode.READ, lOffset, lSize);
@@ -161,6 +165,9 @@ export class GpuBuffer<TType extends TypedArray> extends GpuNativeObject<GPUBuff
 
         // When no staging buffer is available, use the slow native.
         if (!lStagingBuffer) {
+            // TODO: Buffer cant be used as binding or anything else when it has MAP_WRITE 
+            // https://www.w3.org/TR/webgpu/#dom-gpubufferusage-map_write
+
             // Create and map native buffer.
             const lNativeBuffer: GPUBuffer = this.native;
             await lNativeBuffer.mapAsync(GPUMapMode.WRITE, lOffset, pData.length);

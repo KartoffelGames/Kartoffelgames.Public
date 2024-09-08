@@ -15,7 +15,7 @@ export class TextureMemoryLayout extends BaseMemoryLayout {
     /**
      * Texture dimension.
      */
-    public get bindType(): TextureBindType {
+    public get bindType(): TextureBindType { // TODO: Do we need bind type when we have usage.
         return this.mBindType;
     }
 

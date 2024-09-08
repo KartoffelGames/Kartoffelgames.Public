@@ -2,6 +2,7 @@ import { Dictionary, Exception } from '@kartoffelgames/core';
 import { InstructionExecuter } from '../execution/instruction-executor';
 import { ShaderLayout } from '../shader/shader-layout';
 import { ShaderModule } from '../shader/shader-module';
+import { TextureFormatValidator } from '../texture/texture-format-validator';
 
 export class GpuDevice {
     private static readonly mAdapters: Dictionary<GPUPowerPreference, GPUAdapter> = new Dictionary<GPUPowerPreference, GPUAdapter>();
@@ -31,6 +32,7 @@ export class GpuDevice {
         return new GpuDevice(lAdapter, lDevice);
     }
 
+    private readonly mFormatValidator: TextureFormatValidator;
     private mFrameCounter: number;
     private readonly mGpuAdapter: GPUAdapter;
     private readonly mGpuDevice: GPUDevice;
@@ -42,6 +44,12 @@ export class GpuDevice {
         return this.mGpuAdapter;
     }
 
+    /**
+     * Texture format validator.
+     */
+    public get formatValidator(): TextureFormatValidator {
+        return this.mFormatValidator;
+    }
 
     /**
      * Get frame count.
@@ -65,7 +73,11 @@ export class GpuDevice {
         this.mGpuAdapter = pAdapter;
         this.mGpuDevice = pDevice;
 
+        // Set default for frame counter.
         this.mFrameCounter = 0;
+
+        // Init form validator.
+        this.mFormatValidator = new TextureFormatValidator(this);
     }
 
     /**

@@ -44,7 +44,7 @@ export class FrameBufferTexture extends GpuNativeObject<GPUTextureView> {
     }
 
     /**
-     * Texture multi sample level.
+     * Texture multi sample level. // TODO: Move into layout.
      */
     public get multiSampleLevel(): number {
         return this.mMultiSampleLevel;

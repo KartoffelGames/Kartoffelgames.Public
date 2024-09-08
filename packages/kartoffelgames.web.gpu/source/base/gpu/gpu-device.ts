@@ -1,7 +1,7 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { InstructionExecuter } from '../execution/instruction-executor';
-import { TextureGroup } from '../pipeline/target/render-targets';
-import { VertexFragmentShader } from '../shader/vertex-fragment-shader';
+import { ShaderLayout } from '../shader/shader-layout';
+import { ShaderModule } from '../shader/shader-module';
 
 export class GpuDevice {
     private static readonly mAdapters: Dictionary<GPUPowerPreference, GPUAdapter> = new Dictionary<GPUPowerPreference, GPUAdapter>();
@@ -77,12 +77,12 @@ export class GpuDevice {
 
     /**
      * Create shader.
-     * @param pSource - Shader source.
-     * @param pVertexEntry - Vertex entry name.
-     * @param pFragmentEntry - Optional fragment entry.
+     * 
+     * @param pSource - Shader source as wgsl.
+     * @param pLayout - Shader layout.
      */
-    public renderShader(pSource: string, pVertexEntry: string, pFragmentEntry?: string): VertexFragmentShader {
-        return new VertexFragmentShader(this, pSource, pVertexEntry, pFragmentEntry);
+    public shader(pSource: string, pLayout: ShaderLayout): ShaderModule {
+        return new ShaderModule(this, pSource, pLayout);
     }
 
     /**
@@ -90,15 +90,5 @@ export class GpuDevice {
      */
     public startNewFrame(): void {
         this.mFrameCounter++;
-    }
-
-    /**
-     * Create texture group that shares the same dimensions.
-     * @param pWidth - Texture width.
-     * @param pHeight - Texture height.
-     * @param pMultisampleLevel - Multisample level of textures.
-     */
-    public textureGroup(pWidth: number, pHeight: number, pMultisampleLevel: number = 1): TextureGroup {
-        return new TextureGroup(this, pWidth, pHeight, pMultisampleLevel);
     }
 }

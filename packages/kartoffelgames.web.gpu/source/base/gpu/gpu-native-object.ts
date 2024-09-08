@@ -1,3 +1,4 @@
+import { Exception, IDeconstructable } from '@kartoffelgames/core';
 import { GpuDevice } from './gpu-device';
 import { GpuObject } from './gpu-object';
 import { GpuObjectUpdateReason, UpdateReason } from './gpu-object-update-reason';
@@ -5,11 +6,12 @@ import { GpuObjectUpdateReason, UpdateReason } from './gpu-object-update-reason'
 /**
  * Gpu object with a native internal object.
  */
-export abstract class GpuNativeObject<TNativeObject> extends GpuObject {
+export abstract class GpuNativeObject<TNativeObject> extends GpuObject implements IDeconstructable {
+    private mDeconstructed: boolean;
     private mLastGeneratedFrame: number;
     private readonly mNativeLifeTime: NativeObjectLifeTime;
     private mNativeObject: TNativeObject | null;
-    
+
     /**
      * Native gpu object.
      */
@@ -29,8 +31,24 @@ export abstract class GpuNativeObject<TNativeObject> extends GpuObject {
         this.mNativeLifeTime = pNativeLifeTime;
 
         // Init default settings and config.
+        this.mDeconstructed = false;
         this.mNativeObject = null;
         this.mLastGeneratedFrame = 0;
+    }
+
+    /**
+     * Deconstruct native object.
+     */
+    public deconstruct(): void {
+        this.invalidate(UpdateReason.Data);
+
+        // Clear and destroy old native when any update reason exists.
+        if (this.mNativeObject !== null && this.invalidationReasons.any()) {
+            this.destroy(this.mNativeObject, this.invalidationReasons);
+            this.mNativeObject = null;
+        }
+
+        this.mDeconstructed = true;
     }
 
     /**
@@ -40,6 +58,11 @@ export abstract class GpuNativeObject<TNativeObject> extends GpuObject {
      * @returns native object.
      */
     private readNative(): TNativeObject {
+        // Restrict deconstructed access.
+        if (this.mDeconstructed) {
+            throw new Exception(`Native GPU object was deconstructed and can't be used again.`, this);
+        }
+
         // Validate life time.
         switch (this.mNativeLifeTime) {
             case NativeObjectLifeTime.Persistent: {

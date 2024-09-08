@@ -27,8 +27,6 @@ export class ShaderModule extends GpuNativeObject<GPUShaderModule> {
         return this.mParameter;
     }
 
-    // TODO: Entry points.
-
     /**
      * Constructor.
      * @param pDevice - Gpu Device reference.
@@ -140,7 +138,10 @@ export class ShaderModule extends GpuNativeObject<GPUShaderModule> {
         }
     }
 
-    // TODO: CreateRenderModule Generate some kind of ShaderModuleBuild that contains name of all entry points. That module can create a render target and vertex parameter objects.
+    // TODO: CreateRenderModule Generate some kind of ShaderModuleBuild that contains name of all entry points and RenderTargets.
+    // Render targets will be validated with fragment output.
+    // That module can create a render target and vertex parameter objects.
+
     // TODO: CreateComputeModule
 
     /**

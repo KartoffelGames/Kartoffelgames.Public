@@ -5,6 +5,8 @@ import { GpuNativeObject, NativeObjectLifeTime } from '../../gpu/gpu-native-obje
 import { UpdateReason } from '../../gpu/gpu-object-update-reason';
 import { CanvasTexture } from '../../texture/canvas-texture';
 import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
+import { RenderTargetColorSetup } from './render-target-color-setup';
+import { RenderTargetDepthStencilSetup } from './render-target-depth-stencil-setup';
 
 /**
  * Group of textures with the same size and multisample level.
@@ -99,6 +101,38 @@ export class RenderTargets extends GpuNativeObject<GPURenderPassDescriptor> {
                 };
             }
         }
+    }
+
+    /**
+     * Get depth stencil target setup object. 
+     */
+    public depthStencil(): RenderTargetDepthStencilSetup {
+        // Validate existance.
+        if (!this.mDepthStencilTexture) {
+            throw new Exception(`Render target depth stencil  not specified`, this);
+        }
+
+        return new RenderTargetDepthStencilSetup(this.device, this.mDepthStencilTexture, () => {
+            this.triggerAutoUpdate(UpdateReason.ChildData);
+        });
+    }
+
+    /**
+     * Get color target setup object. 
+     * 
+     * @param pTargetName - Color target name.
+     */
+    public target(pTargetName: string): RenderTargetColorSetup {
+        const lTarget: RenderTargetsColorTarget | undefined = this.mColorTextures.get(pTargetName);
+
+        // Validate existance.
+        if (!lTarget) {
+            throw new Exception(`Render target "${pTargetName}" not specified`, this);
+        }
+
+        return new RenderTargetColorSetup(this.device, lTarget, () => {
+            this.triggerAutoUpdate(UpdateReason.ChildData);
+        });
     }
 
     /**
@@ -284,7 +318,7 @@ type TextureSize = {
     multisampleLevel: number;
 };
 
-type RenderTargetsDepthStencilTexture = {
+export type RenderTargetsDepthStencilTexture = {
     target: FrameBufferTexture | null;
     depth?: {
         clearValue: number | null;
@@ -301,7 +335,7 @@ type RenderTargetsColorTexture = {
     target: FrameBufferTexture | CanvasTexture;
 };
 
-type RenderTargetsColorTarget = {
+export type RenderTargetsColorTarget = {
     name: string;
     index: number;
     clearValue: { r: number; g: number; b: number; a: number; } | null;

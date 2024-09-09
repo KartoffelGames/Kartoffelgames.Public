@@ -144,6 +144,7 @@ export class FrameBufferTexture extends GpuNativeObject<GPUTextureView> {
         }
 
         // TODO: View descriptor.
+        // https://www.w3.org/TR/webgpu/#dom-gputexture-createview
         return this.mTexture.createView();
     }
 }

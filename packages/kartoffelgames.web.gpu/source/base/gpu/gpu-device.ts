@@ -66,6 +66,13 @@ export class GpuDevice {
     }
 
     /**
+     * Preferred texture format.
+     */
+    public get preferredFormat(): GPUTextureFormat {
+        return window.navigator.gpu.getPreferredCanvasFormat();
+    }
+
+    /**
      * Constructor.
      * @param pGenerator - Native GPU-Object Generator.
      */

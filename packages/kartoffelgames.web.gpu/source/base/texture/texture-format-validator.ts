@@ -298,6 +298,13 @@ export class TextureFormatValidator {
 
         // TODO: Define anything.
     }
+
+    /**
+     * Find right format for used capability.
+     */
+    public formatSuggestion(pCapability: Partial<TextureFormatCapability>): TextureFormat {
+        // TODO: Find right suggestion for parameters.
+    }
 }
 
 type TextureFormatCapability = {

@@ -4,6 +4,7 @@ import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../constant/texture-format.enum';
 import { TextureSampleType } from '../../constant/texture-sample-type.enum';
 import { GpuDevice } from '../gpu/gpu-device';
+import { GpuFeature } from '../gpu/capabilities/gpu-feature.enum';
 
 export class TextureFormatValidator {
     private readonly mDevice: GpuDevice;
@@ -13,6 +14,12 @@ export class TextureFormatValidator {
 
     public constructor(pDevice: GpuDevice) {
         this.mDevice = pDevice;
+
+        // Construct sample type for float32 texture types.
+        const lFloat32Filterable: Array<TextureSampleType> = [TextureSampleType.UnfilterableFloat];
+        if(this.mDevice.capabilities.hasFeature(GpuFeature.Float32Filterable)) {
+            lFloat32Filterable.push(TextureSampleType.Float)
+        }
 
         // Setup any format with its capabilities.
         this.mFormatCapabilitys = new Dictionary<TextureFormat, TextureFormatCapability>();
@@ -256,7 +263,28 @@ export class TextureFormatValidator {
                 }
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.R32float, {});
+        this.mFormatCapabilitys.set(TextureFormat.R32float, {
+            aspects: [TextureAspect.Red],
+            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
+            type: lFloat32Filterable,
+            usage: {
+                textureBinding: true,
+                renderAttachment: {
+                    resolveTarget: false,
+                    blendable: false,
+                    multisample: true,
+                },
+                copy: {
+                    source: true,
+                    target: true
+                },
+                storage: {
+                    readonly: true,
+                    writeonly: true,
+                    readwrite: true
+                }
+            }
+        });
         this.mFormatCapabilitys.set(TextureFormat.Rg16uint, {});
         this.mFormatCapabilitys.set(TextureFormat.Rg16sint, {});
         this.mFormatCapabilitys.set(TextureFormat.Rg16float, {});

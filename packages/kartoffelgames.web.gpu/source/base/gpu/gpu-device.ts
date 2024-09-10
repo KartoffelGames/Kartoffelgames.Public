@@ -3,6 +3,7 @@ import { InstructionExecuter } from '../execution/instruction-executor';
 import { ShaderLayout } from '../shader/shader-layout';
 import { ShaderModule } from '../shader/shader-module';
 import { TextureFormatValidator } from '../texture/texture-format-validator';
+import { GpuCapabilities } from './capabilities/gpu-capabilities';
 
 export class GpuDevice {
     private static readonly mAdapters: Dictionary<GPUPowerPreference, GPUAdapter> = new Dictionary<GPUPowerPreference, GPUAdapter>();
@@ -32,16 +33,24 @@ export class GpuDevice {
         return new GpuDevice(lAdapter, lDevice);
     }
 
+    private readonly mCapabilities: GpuCapabilities;
     private readonly mFormatValidator: TextureFormatValidator;
     private mFrameCounter: number;
     private readonly mGpuAdapter: GPUAdapter;
     private readonly mGpuDevice: GPUDevice;
-
+    
     /**
      * Gpu adapter.
      */
     public get adapter(): GPUAdapter {
         return this.mGpuAdapter;
+    }
+
+    /**
+     * Gpu capabilities.
+     */
+    public get capabilities(): GpuCapabilities {
+        return this.mCapabilities;
     }
 
     /**
@@ -79,6 +88,9 @@ export class GpuDevice {
     private constructor(pAdapter: GPUAdapter, pDevice: GPUDevice) {
         this.mGpuAdapter = pAdapter;
         this.mGpuDevice = pDevice;
+
+        // Setup capabilities.
+        this.mCapabilities = new GpuCapabilities(pAdapter);
 
         // Set default for frame counter.
         this.mFrameCounter = 0;

@@ -26,7 +26,10 @@ export class TextureFormatValidator {
 
         // 8-bit formats
         this.mFormatCapabilitys.set(TextureFormat.R8unorm, {
-            aspects: [TextureAspect.Red],
+            aspect: {
+                types: [TextureAspect.Red],
+                byte: 1
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionLevel: 0,
@@ -47,7 +50,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.R8snorm, {
-            aspects: [TextureAspect.Red],
+            aspect: {
+                types: [TextureAspect.Red],
+                byte: 1
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionLevel: 0,
@@ -64,7 +70,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.R8uint, {
-            aspects: [TextureAspect.Red],
+            aspect: {
+                types: [TextureAspect.Red],
+                byte: 1
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.UnsignedInteger],
             compressionLevel: 0,
@@ -85,7 +94,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.R8sint, {
-            aspects: [TextureAspect.Red],
+            aspect: {
+                types: [TextureAspect.Red],
+                byte: 1
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.SignedInteger],
             compressionLevel: 0,
@@ -108,7 +120,10 @@ export class TextureFormatValidator {
 
         // 16-bit formats
         this.mFormatCapabilitys.set(TextureFormat.R16uint, {
-            aspects: [TextureAspect.Red],
+            aspect: {
+                types: [TextureAspect.Red],
+                byte: 2
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.UnsignedInteger],
             compressionLevel: 0,
@@ -129,7 +144,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.R16sint, {
-            aspects: [TextureAspect.Red],
+            aspect: {
+                types: [TextureAspect.Red],
+                byte: 2
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.SignedInteger],
             compressionLevel: 0,
@@ -150,7 +168,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.R16float, {
-            aspects: [TextureAspect.Red],
+            aspect: {
+                types: [TextureAspect.Red],
+                byte: 2
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionLevel: 0,
@@ -171,7 +192,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rg8unorm, {
-            aspects: [TextureAspect.Red, TextureAspect.Green],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green],
+                byte: 1
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionLevel: 0,
@@ -192,7 +216,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rg8snorm, {
-            aspects: [TextureAspect.Red, TextureAspect.Green],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green],
+                byte: 1
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionLevel: 0,
@@ -209,7 +236,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rg8uint, {
-            aspects: [TextureAspect.Red, TextureAspect.Green],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green],
+                byte: 1
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.UnsignedInteger],
             compressionLevel: 0,
@@ -230,7 +260,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rg8sint, {
-            aspects: [TextureAspect.Red, TextureAspect.Green],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green],
+                byte: 1
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.SignedInteger],
             compressionLevel: 0,
@@ -253,7 +286,10 @@ export class TextureFormatValidator {
 
         // 32-bit formats
         this.mFormatCapabilitys.set(TextureFormat.R32uint, {
-            aspects: [TextureAspect.Red],
+            aspect: {
+                types: [TextureAspect.Red],
+                byte: 4
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.UnsignedInteger],
             compressionLevel: 0,
@@ -278,7 +314,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.R32sint, {
-            aspects: [TextureAspect.Red],
+            aspect: {
+                types: [TextureAspect.Red],
+                byte: 4
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.SignedInteger],
             compressionLevel: 0,
@@ -303,7 +342,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.R32float, {
-            aspects: [TextureAspect.Red],
+            aspect: {
+                types: [TextureAspect.Red],
+                byte: 4
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: lFloat32Filterable,
             compressionLevel: 0,
@@ -328,7 +370,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rg16uint, {
-            aspects: [TextureAspect.Red, TextureAspect.Green],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green],
+                byte: 2
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.UnsignedInteger],
             compressionLevel: 0,
@@ -349,7 +394,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rg16sint, {
-            aspects: [TextureAspect.Red, TextureAspect.Green],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green],
+                byte: 2
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.SignedInteger],
             compressionLevel: 0,
@@ -370,7 +418,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rg16float, {
-            aspects: [TextureAspect.Red, TextureAspect.Green],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green],
+                byte: 2
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionLevel: 0,
@@ -1146,7 +1197,10 @@ type TextureFormatCapability = {
     compressionLevel: number;
 
     // Aspects of texture. Only really relevant for depth and stencil textures.
-    aspects: Array<TextureAspect>;
+    aspect: {
+        types: Array<TextureAspect>;
+        byte: number;
+    };
 
     // Usable dimensions. When multisample is used only 2d is allowed. 
     dimensions: Array<TextureDimension>;

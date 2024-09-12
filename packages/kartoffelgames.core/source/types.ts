@@ -29,3 +29,8 @@ export type TypedArray = Float32Array | Float64Array | Uint8Array | Int8Array | 
  * Deep remove all optionals from properties. 
  */
 export type NoOptional<T> = { [P in keyof Required<T>]: NoOptional<T[P]> };
+
+/**
+ * Deep partial type.
+ */
+export type DeepPartial<T> = T extends object ? { [P in keyof T]?: DeepPartial<T[P]>; } : T;

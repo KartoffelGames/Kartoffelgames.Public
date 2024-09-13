@@ -442,7 +442,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rgba8unorm, {
-            aspects: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+                byte: 1
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionLevel: 0,
@@ -467,7 +470,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rgba8unormSrgb, {
-            aspects: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+                byte: 1
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionLevel: 0,
@@ -488,7 +494,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rgba8snorm, {
-            aspects: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+                byte: 1
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionLevel: 0,
@@ -509,7 +518,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rgba8uint, {
-            aspects: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+                byte: 1
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.UnsignedInteger],
             compressionLevel: 0,
@@ -534,7 +546,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rgba8sint, {
-            aspects: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+                byte: 1
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.SignedInteger],
             compressionLevel: 0,
@@ -559,7 +574,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Bgra8unorm, {
-            aspects: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+                byte: 1
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionLevel: 0,
@@ -584,7 +602,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Bgra8unormSrgb, {
-            aspects: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+                byte: 1
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionLevel: 0,
@@ -607,7 +628,10 @@ export class TextureFormatValidator {
 
         // Packed 32-bit formats
         this.mFormatCapabilitys.set(TextureFormat.Rgb9e5ufloat, {
-            aspects: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+                byte: 1
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionLevel: 1,
@@ -624,7 +648,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rgb10a2uint, {
-            aspects: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+                byte: 2
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.UnsignedInteger],
             compressionLevel: 0,
@@ -645,7 +672,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rgb10a2unorm, {
-            aspects: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+                byte: 2
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionLevel: 0,
@@ -666,7 +696,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rg11b10ufloat, {
-            aspects: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+                byte: 2
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionLevel: 0,
@@ -689,7 +722,10 @@ export class TextureFormatValidator {
 
         // 64-bit formats
         this.mFormatCapabilitys.set(TextureFormat.Rg32uint, {
-            aspects: [TextureAspect.Red, TextureAspect.Green],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green],
+                byte: 4
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.UnsignedInteger],
             compressionLevel: 0,
@@ -714,7 +750,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rg32sint, {
-            aspects: [TextureAspect.Red, TextureAspect.Green],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green],
+                byte: 4
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.SignedInteger],
             compressionLevel: 0,
@@ -739,7 +778,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rg32float, {
-            aspects: [TextureAspect.Red, TextureAspect.Green],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green],
+                byte: 4
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: lFloat32Filterable,
             compressionLevel: 0,
@@ -764,7 +806,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rgba16uint, {
-            aspects: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+                byte: 2
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.UnsignedInteger],
             compressionLevel: 0,
@@ -789,7 +834,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rgba16sint, {
-            aspects: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+                byte: 2
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.SignedInteger],
             compressionLevel: 0,
@@ -814,7 +862,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rgba16float, {
-            aspects: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+                byte: 2
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionLevel: 0,
@@ -841,7 +892,10 @@ export class TextureFormatValidator {
 
         // 128-bit formats
         this.mFormatCapabilitys.set(TextureFormat.Rgba32uint, {
-            aspects: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+                byte: 4
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.UnsignedInteger],
             compressionLevel: 0,
@@ -866,7 +920,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rgba32sint, {
-            aspects: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+                byte: 4
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: [TextureSampleType.SignedInteger],
             compressionLevel: 0,
@@ -891,7 +948,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Rgba32float, {
-            aspects: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+            aspect: {
+                types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+                byte: 4
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray, TextureDimension.ThreeDimension],
             type: lFloat32Filterable,
             compressionLevel: 0,
@@ -918,7 +978,10 @@ export class TextureFormatValidator {
 
         // Depth/stencil formats
         this.mFormatCapabilitys.set(TextureFormat.Stencil8, {
-            aspects: [TextureAspect.Stencil],
+            aspect: {
+                types: [TextureAspect.Stencil],
+                byte: 1
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray],
             type: [TextureSampleType.UnsignedInteger],
             compressionLevel: 0,
@@ -939,7 +1002,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Depth16unorm, {
-            aspects: [TextureAspect.Depth],
+            aspect: {
+                types: [TextureAspect.Depth],
+                byte: 2
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray],
             type: [TextureSampleType.Depth, TextureSampleType.UnfilterableFloat],
             compressionLevel: 0,
@@ -960,7 +1026,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Depth24plus, {
-            aspects: [TextureAspect.Depth],
+            aspect: {
+                types: [TextureAspect.Depth],
+                byte: 3
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray],
             type: [TextureSampleType.Depth, TextureSampleType.UnfilterableFloat],
             compressionLevel: 0,
@@ -981,7 +1050,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Depth24plusStencil8, {
-            aspects: [TextureAspect.Depth, TextureAspect.Stencil],
+            aspect: {
+                types: [TextureAspect.Depth, TextureAspect.Stencil],
+                byte: 3
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray],
             type: [TextureSampleType.Depth, TextureSampleType.UnfilterableFloat, TextureSampleType.UnsignedInteger],
             compressionLevel: 0,
@@ -1002,7 +1074,10 @@ export class TextureFormatValidator {
             }
         });
         this.mFormatCapabilitys.set(TextureFormat.Depth32float, {
-            aspects: [TextureAspect.Depth],
+            aspect: {
+                types: [TextureAspect.Depth],
+                byte: 4
+            },
             dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray],
             type: [TextureSampleType.Depth, TextureSampleType.UnfilterableFloat],
             compressionLevel: 0,
@@ -1026,7 +1101,10 @@ export class TextureFormatValidator {
         // "depth32float-stencil8" feature
         if (pDevice.capabilities.hasFeature(GpuFeature.Depth32floatStencil8)) {
             this.mFormatCapabilitys.set(TextureFormat.Depth32floatStencil8, {
-                aspects: [TextureAspect.Depth, TextureAspect.Stencil],
+                aspect: {
+                    types: [TextureAspect.Depth, TextureAspect.Stencil],
+                    byte: 4
+                },
                 dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray],
                 type: [TextureSampleType.Depth, TextureSampleType.UnfilterableFloat, TextureSampleType.UnsignedInteger],
                 compressionLevel: 0,
@@ -1050,9 +1128,12 @@ export class TextureFormatValidator {
 
         // BC compressed formats
         if (pDevice.capabilities.hasFeature(GpuFeature.TextureCompressionBc)) {
-            const lBcTextureFormatCapability = (pAspects: Array<TextureAspect>) => {
+            const lBcTextureFormatCapability = (pAspects: Array<TextureAspect>, pByteOfAspect: number) => {
                 const lFormat: TextureFormatCapability = {
-                    aspects: pAspects,
+                    aspect: {
+                        types: pAspects,
+                        byte: pByteOfAspect
+                    },
                     dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray],
                     type: [TextureSampleType.UnfilterableFloat, TextureSampleType.Float],
                     compressionLevel: 16,
@@ -1076,27 +1157,30 @@ export class TextureFormatValidator {
                 return lFormat;
             };
 
-            this.mFormatCapabilitys.set(TextureFormat.Bc1RgbaUnorm, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha]));
-            this.mFormatCapabilitys.set(TextureFormat.Bc1RgbaUnormSrgb, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha]));
-            this.mFormatCapabilitys.set(TextureFormat.Bc2RgbaUnorm, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha]));
-            this.mFormatCapabilitys.set(TextureFormat.Bc2RgbaUnormSrgb, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha]));
-            this.mFormatCapabilitys.set(TextureFormat.Bc3RgbaUnorm, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha]));
-            this.mFormatCapabilitys.set(TextureFormat.Bc3RgbaUnormSrgb, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha]));
-            this.mFormatCapabilitys.set(TextureFormat.Bc4Runorm, lBcTextureFormatCapability([TextureAspect.Red]));
-            this.mFormatCapabilitys.set(TextureFormat.Bc4Rsnorm, lBcTextureFormatCapability([TextureAspect.Red]));
-            this.mFormatCapabilitys.set(TextureFormat.Bc5RgUnorm, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green]));
-            this.mFormatCapabilitys.set(TextureFormat.Bc5RgSnorm, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green]));
-            this.mFormatCapabilitys.set(TextureFormat.Bc6hRgbUfloat, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue]));
-            this.mFormatCapabilitys.set(TextureFormat.Bc6hRgbFloat, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue]));
-            this.mFormatCapabilitys.set(TextureFormat.Bc7RgbaUnorm, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha]));
-            this.mFormatCapabilitys.set(TextureFormat.Bc7RgbaUnormSrgb, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha]));
+            this.mFormatCapabilitys.set(TextureFormat.Bc1RgbaUnorm, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 2));
+            this.mFormatCapabilitys.set(TextureFormat.Bc1RgbaUnormSrgb, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 2));
+            this.mFormatCapabilitys.set(TextureFormat.Bc2RgbaUnorm, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4));
+            this.mFormatCapabilitys.set(TextureFormat.Bc2RgbaUnormSrgb, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4));
+            this.mFormatCapabilitys.set(TextureFormat.Bc3RgbaUnorm, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4));
+            this.mFormatCapabilitys.set(TextureFormat.Bc3RgbaUnormSrgb, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4));
+            this.mFormatCapabilitys.set(TextureFormat.Bc4Runorm, lBcTextureFormatCapability([TextureAspect.Red], 8));
+            this.mFormatCapabilitys.set(TextureFormat.Bc4Rsnorm, lBcTextureFormatCapability([TextureAspect.Red], 8));
+            this.mFormatCapabilitys.set(TextureFormat.Bc5RgUnorm, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green], 8));
+            this.mFormatCapabilitys.set(TextureFormat.Bc5RgSnorm, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green], 8));
+            this.mFormatCapabilitys.set(TextureFormat.Bc6hRgbUfloat, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue], 4));
+            this.mFormatCapabilitys.set(TextureFormat.Bc6hRgbFloat, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue], 4));
+            this.mFormatCapabilitys.set(TextureFormat.Bc7RgbaUnorm, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4));
+            this.mFormatCapabilitys.set(TextureFormat.Bc7RgbaUnormSrgb, lBcTextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4));
         }
 
         // ETC2 compressed formats
         if (pDevice.capabilities.hasFeature(GpuFeature.TextureCompressionEtc2)) {
-            const lEtc2TextureFormatCapability = (pAspects: Array<TextureAspect>) => {
+            const lEtc2TextureFormatCapability = (pAspects: Array<TextureAspect>, pByteOfAspect: number) => {
                 const lFormat: TextureFormatCapability = {
-                    aspects: pAspects,
+                    aspect: {
+                        types: pAspects,
+                        byte: pByteOfAspect
+                    },
                     dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray],
                     type: [TextureSampleType.UnfilterableFloat, TextureSampleType.Float],
                     compressionLevel: 16,
@@ -1116,23 +1200,26 @@ export class TextureFormatValidator {
                 return lFormat;
             };
 
-            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgb8unorm, lEtc2TextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue]));
-            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgb8unormSrgb, lEtc2TextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue]));
-            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgb8a1unorm, lEtc2TextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha]));
-            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgb8a1unormSrgb, lEtc2TextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha]));
-            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgba8unorm, lEtc2TextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha]));
-            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgba8unormSrgb, lEtc2TextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha]));
-            this.mFormatCapabilitys.set(TextureFormat.EacR11unorm, lEtc2TextureFormatCapability([TextureAspect.Red]));
-            this.mFormatCapabilitys.set(TextureFormat.EacR11snorm, lEtc2TextureFormatCapability([TextureAspect.Red]));
-            this.mFormatCapabilitys.set(TextureFormat.EacRg11unorm, lEtc2TextureFormatCapability([TextureAspect.Red, TextureAspect.Green]));
-            this.mFormatCapabilitys.set(TextureFormat.EacRg11snorm, lEtc2TextureFormatCapability([TextureAspect.Red, TextureAspect.Green]));
+            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgb8unorm, lEtc2TextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue], 2));
+            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgb8unormSrgb, lEtc2TextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue], 2));
+            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgb8a1unorm, lEtc2TextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 2));
+            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgb8a1unormSrgb, lEtc2TextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 2));
+            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgba8unorm, lEtc2TextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4));
+            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgba8unormSrgb, lEtc2TextureFormatCapability([TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4));
+            this.mFormatCapabilitys.set(TextureFormat.EacR11unorm, lEtc2TextureFormatCapability([TextureAspect.Red], 8));
+            this.mFormatCapabilitys.set(TextureFormat.EacR11snorm, lEtc2TextureFormatCapability([TextureAspect.Red], 8));
+            this.mFormatCapabilitys.set(TextureFormat.EacRg11unorm, lEtc2TextureFormatCapability([TextureAspect.Red, TextureAspect.Green], 8));
+            this.mFormatCapabilitys.set(TextureFormat.EacRg11snorm, lEtc2TextureFormatCapability([TextureAspect.Red, TextureAspect.Green], 8));
         }
 
         // ASTC compressed formats
         if (pDevice.capabilities.hasFeature(GpuFeature.TextureCompressionAstc)) {
             const lAstcTextureFormatCapability = (pCompressionLevel: number) => {
                 const lFormat: TextureFormatCapability = {
-                    aspects: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+                    aspect: {
+                        types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
+                        byte: 4
+                    },
                     dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.TwoDimensionArray, TextureDimension.Cube, TextureDimension.CubeArray],
                     type: [TextureSampleType.UnfilterableFloat, TextureSampleType.Float],
                     compressionLevel: pCompressionLevel,

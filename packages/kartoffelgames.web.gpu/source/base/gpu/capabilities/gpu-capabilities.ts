@@ -12,12 +12,12 @@ export class GpuCapabilities {
     /**
      * Constructor.
      * 
-     * @param pAdapter - Gpu adapter.
+     * @param pDevice - Gpu adapter.
      */
-    public constructor(pAdapter: GPUAdapter) {
+    public constructor(pDevice: GPUDevice) {
         // Convert all gpu features.
         this.mFeatures = new Set<GpuFeature>();
-        for (const lFeature of pAdapter.features) {
+        for (const lFeature of pDevice.features) {
             const lGpuFeature: GpuFeature | undefined = EnumUtil.cast<GpuFeature>(GpuFeature, lFeature);
             if (lGpuFeature) {
                 this.mFeatures.add(lGpuFeature);
@@ -27,7 +27,7 @@ export class GpuCapabilities {
         // Convert gpu limits.
         this.mLimits = new Dictionary<GpuLimit, number>();
         for (const lLimitName of EnumUtil.valuesOf<GpuLimit>(GpuLimit)) {
-            this.mLimits.set(lLimitName, pAdapter.limits[lLimitName] ?? null);
+            this.mLimits.set(lLimitName, pDevice.limits[lLimitName] ?? null);
         }
     }
 

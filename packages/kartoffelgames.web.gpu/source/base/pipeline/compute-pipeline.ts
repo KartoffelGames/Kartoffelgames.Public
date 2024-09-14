@@ -1,16 +1,16 @@
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
-import { ComputeShader } from '../shader/compute-shader';
+import { ShaderComputeModule } from '../shader/shader-compute-module';
 
 export class ComputePipeline extends GpuNativeObject<GPUComputePipeline> {
-    private readonly mShader: ComputeShader;
+    private readonly mShaderModule: ShaderComputeModule;
 
     /**
      * Pipeline shader.
      */
-    public get shader(): ComputeShader {
-        return this.mShader;
+    public get shader(): ShaderComputeModule {
+        return this.mShaderModule;
     }
 
     /**
@@ -19,9 +19,9 @@ export class ComputePipeline extends GpuNativeObject<GPUComputePipeline> {
      * @param pDevice - Device.
      * @param pShader - Pipeline shader.
      */
-    public constructor(pDevice: GpuDevice, pShader: ComputeShader) {
+    public constructor(pDevice: GpuDevice, pShader: ShaderComputeModule) {
         super(pDevice, NativeObjectLifeTime.Persistent);
-        this.mShader = pShader;
+        this.mShaderModule = pShader;
 
         // Listen for shader changes.
         pShader.addInvalidationListener(() => {
@@ -40,20 +40,17 @@ export class ComputePipeline extends GpuNativeObject<GPUComputePipeline> {
      * Generate native gpu pipeline data layout.
      */
     protected override generate(): GPUComputePipeline {
-        // Generate pipeline layout from bind group layouts.
-        const lPipelineLayout: GPUPipelineLayout = this.factory.request<'pipelineDataLayout'>(this.gpuObject.shader.pipelineLayout).create();
-
         // Construct basic GPURenderPipelineDescriptor.
         const lPipelineDescriptor: GPUComputePipelineDescriptor = {
-            layout: lPipelineLayout,
+            layout: this.shader.shader.layout.native,
             compute: {
-                module: this.factory.request<'computeShader'>(this.gpuObject.shader).create(),
-                entryPoint: this.gpuObject.shader.computeEntry,
+                module: this.shader.shader.native,
+                entryPoint: this.shader.entryPoint,
                 // TODO: Constants. Yes.
             }
         };
 
-        // Async is none GPU stalling.
-        return this.factory.gpu.createComputePipeline(lPipelineDescriptor); // TODO: Async create compute pipeline somehow.
+        // Async is none GPU stalling. // TODO: Async create compute pipeline somehow.
+        return this.device.gpu.createComputePipeline(lPipelineDescriptor); 
     }
 }

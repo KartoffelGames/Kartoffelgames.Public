@@ -1,7 +1,7 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { InstructionExecuter } from '../execution/instruction-executor';
 import { ShaderLayout } from '../shader/shader-layout';
-import { ShaderModule } from '../shader/shader-module';
+import { Shader } from '../shader/shader';
 import { TextureFormatCapabilities } from '../texture/texture-format-capabilities';
 import { GpuCapabilities } from './capabilities/gpu-capabilities';
 
@@ -22,7 +22,7 @@ export class GpuDevice {
 
         GpuDevice.mAdapters.set(pPerformance, lAdapter);
 
-        // Try to load cached device. When not cached, request new one.
+        // Try to load cached device. When not cached, request new one. // TODO: Required features.
         const lDevice: GPUDevice | null = GpuDevice.mDevices.get(lAdapter) ?? await lAdapter.requestDevice();
         if (!lDevice) {
             throw new Exception('Error requesting GPU device', GpuDevice);
@@ -90,7 +90,7 @@ export class GpuDevice {
         this.mGpuDevice = pDevice;
 
         // Setup capabilities.
-        this.mCapabilities = new GpuCapabilities(pAdapter);
+        this.mCapabilities = new GpuCapabilities(pDevice);
 
         // Set default for frame counter.
         this.mFrameCounter = 0;
@@ -112,8 +112,8 @@ export class GpuDevice {
      * @param pSource - Shader source as wgsl.
      * @param pLayout - Shader layout.
      */
-    public shader(pSource: string, pLayout: ShaderLayout): ShaderModule {
-        return new ShaderModule(this, pSource, pLayout);
+    public shader(pSource: string, pLayout: ShaderLayout): Shader {
+        return new Shader(this, pSource, pLayout);
     }
 
     /**

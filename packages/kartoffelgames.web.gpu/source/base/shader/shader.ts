@@ -1,13 +1,14 @@
-import { Dictionary } from '@kartoffelgames/core';
+import { Dictionary, Exception } from '@kartoffelgames/core';
 import { BindGroupLayout, BindLayout } from '../binding/bind-group-layout';
 import { PipelineLayout } from '../binding/pipeline-layout';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
 import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
+import { ShaderComputeModule } from './shader-compute-module';
 import { ShaderLayout } from './shader-layout';
 
-export class ShaderModule extends GpuNativeObject<GPUShaderModule> {
+export class Shader extends GpuNativeObject<GPUShaderModule> {
     private readonly mEntryPoints: ShaderModuleEntryPoints;
     private readonly mParameter: Dictionary<string, PrimitiveBufferFormat>;
     private readonly mPipelineLayout: PipelineLayout;
@@ -86,7 +87,7 @@ export class ShaderModule extends GpuNativeObject<GPUShaderModule> {
                 // Workgroup is static when all dimensions are static set.
                 static: lComputeEntry.workgroupSize.x > 0 && lComputeEntry.workgroupSize.y > 0 && lComputeEntry.workgroupSize.z > 0,
 
-                workgroupDimentsion: {
+                workgroupDimension: {
                     x: lComputeEntry.workgroupSize.x > 0 ? lComputeEntry.workgroupSize.x : null,
                     y: lComputeEntry.workgroupSize.y > 0 ? lComputeEntry.workgroupSize.y : null,
                     z: lComputeEntry.workgroupSize.z > 0 ? lComputeEntry.workgroupSize.z : null
@@ -143,7 +144,27 @@ export class ShaderModule extends GpuNativeObject<GPUShaderModule> {
     // Render targets will be validated with fragment output.
     // That module can create a render target and vertex parameter objects.
 
-    // TODO: CreateComputeModule
+    /**
+     * Create a compute module from shader entry point.
+     * 
+     * @param pEntryName - Compute entry name.
+     * 
+     * @returns Shader compute module. 
+     */
+    public createComputeModule(pEntryName: string): ShaderComputeModule {
+        const lEntryPoint: ShaderModuleEntryPointCompute | undefined = this.mEntryPoints.compute.get(pEntryName);
+        if (!lEntryPoint) {
+            throw new Exception(`Compute entry point "${pEntryName}" does not exists.`, this);
+        }
+
+        // Return shader module without defined workgroup sizes.
+        if (!lEntryPoint.static) {
+            return new ShaderComputeModule(this.device, this, pEntryName);
+        }
+
+        // Define workgroup sizes.
+        return new ShaderComputeModule(this.device, this, pEntryName, [lEntryPoint.workgroupDimension.x ?? 1, lEntryPoint.workgroupDimension.y ?? 1, lEntryPoint.workgroupDimension.z ?? 1]);
+    }
 
     /**
      * Destroy absolutly nothing.
@@ -168,7 +189,7 @@ export class ShaderModule extends GpuNativeObject<GPUShaderModule> {
 
 type ShaderModuleEntryPointCompute = {
     static: boolean;
-    workgroupDimentsion: {
+    workgroupDimension: {
         x: number | null;
         y: number | null;
         z: number | null;

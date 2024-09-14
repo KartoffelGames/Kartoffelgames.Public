@@ -36,6 +36,8 @@ export class ShaderModule extends GpuNativeObject<GPUShaderModule> {
     public constructor(pDevice: GpuDevice, pSource: string, pLayout: ShaderLayout) {
         super(pDevice, NativeObjectLifeTime.Persistent);
 
+        // TODO: Add limitations that should be checked. (GroupCount, BindCount, Float16)
+
         // Create shader information for source.
         this.mSource = pSource;
 
@@ -55,8 +57,7 @@ export class ShaderModule extends GpuNativeObject<GPUShaderModule> {
                     index: lBind.index,
                     layout: lBind.layout,
                     visibility: lBind.visibility,
-                    accessMode: lBind.accessMode,
-                    usage: lBind.usage
+                    accessMode: lBind.accessMode
                 });
             }
 
@@ -155,12 +156,11 @@ export class ShaderModule extends GpuNativeObject<GPUShaderModule> {
      * Generate shader module.
      */
     protected override generate(): GPUShaderModule {
+        // TODO: Create compilationHints for every entry point?
+
         // Create shader module use hints to speed up compilation on safari.
         return this.device.gpu.createShaderModule({
             code: this.mSource,
-            hints: {
-                WHAT: { layout: this.mPipelineLayout.native }
-            },
             // TODO: sourceMap: undefined
         });
     }

@@ -1,3 +1,4 @@
+import { Exception } from '@kartoffelgames/core';
 import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
@@ -106,45 +107,30 @@ export class FrameBufferTexture extends GpuNativeObject<GPUTextureView> {
      * Generate native canvas texture view.
      */
     protected override generate(): GPUTextureView {
+        // TODO: Validate format based on layout. Maybe replace used format.
+        
         // Configure context.
         if (!this.mTexture) {
-            // Generate gpu dimension from memory layout dimension.
-            const lGpuDimension: GPUTextureDimension = (() => {
-                switch (this.memoryLayout.dimension) {
-                    case TextureDimension.OneDimension: {
-                        return '1d';
-                    }
-                    case TextureDimension.TwoDimension: {
-                        return '2d';
-                    }
-                    case TextureDimension.TwoDimensionArray: {
-                        return '3d';
-                    }
-                    case TextureDimension.Cube: {
-                        return '3d';
-                    }
-                    case TextureDimension.CubeArray: {
-                        return '3d';
-                    }
-                    case TextureDimension.ThreeDimension: {
-                        return '3d';
-                    }
-                }
-            })();
+            // Validate two dimensional texture.
+            if (this.memoryLayout.dimension !== TextureDimension.TwoDimension) {
+                throw new Exception('Frame buffers must be two dimensional.', this);
+            }
 
             // Create and configure canvas context.
             this.mTexture = this.device.gpu.createTexture({
                 label: 'Frame-Buffer-Texture',
-                size: [this.width, this.height, this.depth],
-                format: this.memoryLayout.format,
+                size: [this.width, this.height, 1], // Force 2d texture.
+                format: this.memoryLayout.format as GPUTextureFormat,
                 usage: this.memoryLayout.usage,
-                dimension: lGpuDimension,
+                dimension: '2d',
                 sampleCount: this.multiSampleLevel
             });
         }
 
-        // TODO: View descriptor.
-        // https://www.w3.org/TR/webgpu/#dom-gputexture-createview
-        return this.mTexture.createView();
+        // Force a 2d view.
+        return this.mTexture.createView({
+            format: this.memoryLayout.format as GPUTextureFormat,
+            dimension: '2d'
+        });
     }
 }

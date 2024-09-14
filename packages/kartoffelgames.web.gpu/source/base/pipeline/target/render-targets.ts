@@ -7,6 +7,8 @@ import { CanvasTexture } from '../../texture/canvas-texture';
 import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
 import { RenderTargetColorSetup } from './render-target-color-setup';
 import { RenderTargetDepthStencilSetup } from './render-target-depth-stencil-setup';
+import { TextureFormatCapability } from '../../texture/texture-format-capabilities';
+import { TextureAspect } from '../../../constant/texture-aspect.enum';
 
 /**
  * Group of textures with the same size and multisample level.
@@ -204,13 +206,15 @@ export class RenderTargets extends GpuNativeObject<GPURenderPassDescriptor> {
                 view: lDepthStencilTexture.native,
             };
 
-            // TODO: Create a texture format helper, that anaslyses all texture formats. Detecting stencil and depth textures. Checks compatibility with current system and can offer a replacement format.
-            // https://www.w3.org/TR/webgpu/#texture-compression-bc
+            // Read capability of used depth stencil texture format.
+            const lFormatCapability: TextureFormatCapability = this.device.formatValidator.capabilityOf(lDepthStencilTexture.memoryLayout.format);
 
             // Add depth values when depth formats are used.
             if (this.mDepthStencilTexture.depth) {
-                // TODO: Validate if depth texture
-                // lDepthTexture.memoryLayout.format === TextureFormat.DepthStencil || lDepthTexture.memoryLayout.format === TextureFormat.Depth
+                // Validate if depth texture
+                if(lFormatCapability.aspect.types.includes(TextureAspect.Depth)){
+                    throw new Exception('Used texture for the depth texture attachment must have a depth aspect. ', this);
+                }
 
                 // Set clear value of depth texture.
                 if (this.mDepthStencilTexture.depth.clearValue !== null) {
@@ -226,8 +230,10 @@ export class RenderTargets extends GpuNativeObject<GPURenderPassDescriptor> {
 
             // Add stencil values when stencil formats are used.
             if (this.mDepthStencilTexture.stencil) {
-                // TODO: Validate if stencil texture
-                // lDepthStencilTexture.memoryLayout.format === TextureFormat.DepthStencil || lDepthStencilTexture.memoryLayout.format === TextureFormat.Stencil
+                // Validate if stencil texture
+                if(lFormatCapability.aspect.types.includes(TextureAspect.Stencil)){
+                    throw new Exception('Used texture for the stencil texture attachment must have a stencil aspect. ', this);
+                }
 
                 // Set clear value of stencil texture.
                 if (this.mDepthStencilTexture.stencil.clearValue !== null) {

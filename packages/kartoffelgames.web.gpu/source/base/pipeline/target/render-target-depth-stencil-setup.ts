@@ -28,11 +28,11 @@ export class RenderTargetDepthStencilSetup {
     /**
      * Create new depth and or stencil render target.
      */
-    public new(pUsage: TextureUsage, pDimension: TextureDimension, pFormat: TextureFormat): void {
+    public new(pUsage: TextureUsage, pFormat: TextureFormat): void {
         const lMemoryLayout: TextureMemoryLayout = new TextureMemoryLayout({
             name: 'DepthStencil-Target',
             usage: TextureUsage.RenderAttachment | pUsage,
-            dimension: pDimension, // TODO: Maybe validate with format validater, as depth stencil textures cant be used with 3d dimensions.
+            dimension: TextureDimension.TwoDimension,
             format: pFormat, // TODO: Validate with format validator. Allow only depth or and stencil formats.
             bindType: TextureBindType.RenderTarget,
             multisampled: false // Should be set in render target generation.

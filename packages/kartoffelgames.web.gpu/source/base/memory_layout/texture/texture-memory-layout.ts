@@ -36,7 +36,7 @@ export class TextureMemoryLayout extends BaseMemoryLayout {
     /**
      * Texture uses multisample.
      */
-    public get multisampled(): boolean {
+    public get multisampled(): boolean { // TODO: Change to multisample level.
         return this.mMultisampled;
     }
 

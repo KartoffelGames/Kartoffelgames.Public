@@ -2,7 +2,7 @@ import { Dictionary, Exception } from '@kartoffelgames/core';
 import { InstructionExecuter } from '../execution/instruction-executor';
 import { ShaderLayout } from '../shader/shader-layout';
 import { ShaderModule } from '../shader/shader-module';
-import { TextureFormatValidator } from '../texture/texture-format-validator';
+import { TextureFormatCapabilities } from '../texture/texture-format-capabilities';
 import { GpuCapabilities } from './capabilities/gpu-capabilities';
 
 export class GpuDevice {
@@ -34,7 +34,7 @@ export class GpuDevice {
     }
 
     private readonly mCapabilities: GpuCapabilities;
-    private readonly mFormatValidator: TextureFormatValidator;
+    private readonly mFormatValidator: TextureFormatCapabilities;
     private mFrameCounter: number;
     private readonly mGpuAdapter: GPUAdapter;
     private readonly mGpuDevice: GPUDevice;
@@ -56,7 +56,7 @@ export class GpuDevice {
     /**
      * Texture format validator.
      */
-    public get formatValidator(): TextureFormatValidator {
+    public get formatValidator(): TextureFormatCapabilities {
         return this.mFormatValidator;
     }
 
@@ -96,7 +96,7 @@ export class GpuDevice {
         this.mFrameCounter = 0;
 
         // Init form validator.
-        this.mFormatValidator = new TextureFormatValidator(this);
+        this.mFormatValidator = new TextureFormatCapabilities(this);
     }
 
     /**

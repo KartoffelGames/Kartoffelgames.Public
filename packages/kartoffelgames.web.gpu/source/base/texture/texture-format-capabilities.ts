@@ -6,7 +6,7 @@ import { TextureSampleType } from '../../constant/texture-sample-type.enum';
 import { GpuFeature } from '../gpu/capabilities/gpu-feature.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 
-export class TextureFormatValidator {
+export class TextureFormatCapabilities {
     private readonly mDevice: GpuDevice;
     private readonly mFormatCapabilitys: Dictionary<TextureFormat, TextureFormatCapability>;
 
@@ -1272,14 +1272,25 @@ export class TextureFormatValidator {
     }
 
     /**
+     * Get all texture format capabilities of format.
+     * 
+     * @param pFormat - Format.
+     * 
+     * @returns capabilities of format. 
+     */
+    public capabilityOf(pFormat: TextureFormat): TextureFormatCapability {
+        return this.mFormatCapabilitys.get(pFormat)!;
+    }
+
+    /**
      * Find right format for used capability.
      */
-    public formatSuggestion(pCapability: DeepPartial<TextureFormatCapability>): TextureFormat {
+    public formatSuggestion(pCapability: DeepPartial<TextureFormatCapability>): Array<TextureFormat> {
         // TODO: Find right suggestion for parameters.
     }
 }
 
-type TextureFormatCapability = {
+export type TextureFormatCapability = {
     // Compression level. Higher level means higher compression.
     compressionLevel: number;
 

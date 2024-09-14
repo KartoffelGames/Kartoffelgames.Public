@@ -1,9 +1,9 @@
 import { Exception } from '@kartoffelgames/core';
+import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
-import { TextureDimension } from '../../constant/texture-dimension.enum';
 
 export class ImageTexture extends GpuNativeObject<GPUTextureView> {
     private mDepth: number;
@@ -128,6 +128,8 @@ export class ImageTexture extends GpuNativeObject<GPUTextureView> {
      * Generate native canvas texture view.
      */
     protected override generate(): GPUTextureView {
+        // TODO: Validate format based on layout. Maybe replace used format.
+
         // Generate gpu dimension from memory layout dimension.
         const lGpuDimension: GPUTextureDimension = (() => {
             switch (this.memoryLayout.dimension) {
@@ -138,13 +140,13 @@ export class ImageTexture extends GpuNativeObject<GPUTextureView> {
                     return '2d';
                 }
                 case TextureDimension.TwoDimensionArray: {
-                    return '3d';
+                    return '2d';
                 }
                 case TextureDimension.Cube: {
-                    return '3d';
+                    return '2d';
                 }
                 case TextureDimension.CubeArray: {
-                    return '3d';
+                    return '2d';
                 }
                 case TextureDimension.ThreeDimension: {
                     return '3d';
@@ -156,12 +158,12 @@ export class ImageTexture extends GpuNativeObject<GPUTextureView> {
         this.mTexture = this.device.gpu.createTexture({
             label: 'Frame-Buffer-Texture',
             size: [this.width, this.height, this.depth],
-            format: this.memoryLayout.format,
+            format: this.memoryLayout.format as GPUTextureFormat,
             usage: this.memoryLayout.usage,
             dimension: lGpuDimension
         });
 
-        // Load images into texture.
+        // Load images into texture. // TODO: Make it somewhat comnpletly async.
         for (let lImageIndex: number = 0; lImageIndex < this.images.length; lImageIndex++) {
             const lBitmap: ImageBitmap = this.images[lImageIndex];
 
@@ -173,7 +175,13 @@ export class ImageTexture extends GpuNativeObject<GPUTextureView> {
             );
         }
 
+        // TODO: mipLevel??
+        // TODO: ArrayLayer based on dimension.
+
         // TODO: View descriptor.
-        return this.mTexture.createView();
+        return this.mTexture.createView({
+            format: this.memoryLayout.format as GPUTextureFormat,
+            dimension: this.memoryLayout.dimension
+        });
     }
 }

@@ -4,7 +4,6 @@ import { UpdateReason } from '../gpu/gpu-object-update-reason';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 
 export class VideoTexture extends GpuNativeObject<GPUExternalTexture> {
-    private readonly mMemoryLayout: TextureMemoryLayout;
     private readonly mVideo: HTMLVideoElement;
 
     /**
@@ -21,13 +20,6 @@ export class VideoTexture extends GpuNativeObject<GPUExternalTexture> {
         return this.mVideo.loop;
     } set loop(pValue: boolean) {
         this.mVideo.loop = pValue;
-    }
-
-    /**
-     * Textures memory layout.
-     */
-    public get memoryLayout(): TextureMemoryLayout {
-        return this.mMemoryLayout;
     }
 
     /**
@@ -61,9 +53,6 @@ export class VideoTexture extends GpuNativeObject<GPUExternalTexture> {
      */
     public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout) {
         super(pDevice, NativeObjectLifeTime.Persistent);
-
-        // Fixed values.
-        this.mMemoryLayout = pLayout;
 
         // Create video.
         this.mVideo = new HTMLVideoElement();

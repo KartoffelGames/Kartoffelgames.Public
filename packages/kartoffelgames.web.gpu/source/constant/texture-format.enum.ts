@@ -117,5 +117,5 @@ export enum TextureFormat {
     Astc12x10unorm = 'astc-12x10-unorm',
     Astc12x10unormSrgb = 'astc-12x10-unorm-srgb',
     Astc12x12unorm = 'astc-12x12-unorm',
-    Astc12x12unormSrgb = 'astc-12x12-unorm-srgb',
+    Astc12x12unormSrgb = 'astc-12x12-unorm-srgb'
 }

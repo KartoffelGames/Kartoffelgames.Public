@@ -28,11 +28,11 @@ export class RenderTargetColorSetup {
     /**
      * Create new color render target.
      */
-    public new(pUsage: TextureUsage, pDimension: TextureDimension, pFormat: TextureFormat): void {
+    public new(pUsage: TextureUsage, pFormat: TextureFormat): void {
         const lMemoryLayout: TextureMemoryLayout = new TextureMemoryLayout({
             name: this.mColorTarget.name,
             usage: TextureUsage.RenderAttachment | pUsage,
-            dimension: pDimension,
+            dimension: TextureDimension.TwoDimension,
             format: pFormat, // TODO: Validate with format validator.
             bindType: TextureBindType.RenderTarget,
             multisampled: false // Should be set in render target generation.

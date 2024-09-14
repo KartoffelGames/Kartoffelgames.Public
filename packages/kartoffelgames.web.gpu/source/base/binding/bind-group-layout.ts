@@ -3,7 +3,6 @@ import { AccessMode } from '../../constant/access-mode.enum';
 import { BufferUsage } from '../../constant/buffer-usage.enum';
 import { ComputeStage } from '../../constant/compute-stage.enum';
 import { TextureBindType } from '../../constant/texture-bind-type.enum';
-import { TextureFormat } from '../../constant/texture-format.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
@@ -11,6 +10,7 @@ import { BaseMemoryLayout } from '../memory_layout/base-memory-layout';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
+import { TextureFormatCapability } from '../texture/texture-format-capabilities';
 
 // TODO: Find a good way to create new binding groups.
 
@@ -73,12 +73,11 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
                 index: lBinding.index,
                 layout: lBinding.layout,
                 visibility: lBinding.visibility,
-                accessMode: lBinding.accessMode,
-                usage: lBinding.usage
+                accessMode: lBinding.accessMode
             });
 
             // Register change listener for layout changes.
-            lBinding.layout.addInvalidationListener(() => { // TODO: Maybe remove it or create anew.
+            lBinding.layout.addInvalidationListener(() => {
                 this.triggerAutoUpdate(UpdateReason.ChildData);
             });
 
@@ -132,7 +131,7 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
                 case lEntry.layout instanceof BaseBufferMemoryLayout: {
                     // Convert bind type info bufer binding type.
                     const lBufferBindingType: GPUBufferBindingType = (() => {
-                        switch (lEntry.usage) { // TODO: Usage is used only in buffers and not in textures. Maybe add it to base-buffer-memory-layout as the buffer itseld needs it for creation.
+                        switch (lEntry.layout.usage) {
                             case BufferUsage.Uniform: {
                                 return 'uniform';
                             }
@@ -179,33 +178,12 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
                                 throw new Exception('Image textures must have access mode read.', this);
                             }
 
-                            // Convert texture format to sampler values.
-                            const lTextureFormat = (() => {
-                                switch (lEntry.layout.format) {
-                                    case TextureFormat.Depth:
-                                    case TextureFormat.DepthStencil: {
-                                        return 'depth';
-                                    }
-
-                                    case TextureFormat.Stencil:
-                                    case TextureFormat.BlueRedGreenAlpha:
-                                    case TextureFormat.Red:
-                                    case TextureFormat.RedGreen:
-                                    case TextureFormat.RedGreenBlueAlpha: {
-                                        return 'float';
-                                    }
-
-                                    case TextureFormat.RedGreenBlueAlphaInteger:
-                                    case TextureFormat.RedGreenInteger:
-                                    case TextureFormat.RedInteger: {
-                                        return 'uint';
-                                    }
-                                }
-                            })();
+                            // Read texture capabilities.
+                            const lTextureFormatCapabilities: TextureFormatCapability = this.device.formatValidator.capabilityOf(lEntry.layout.format);
 
                             // Create image texture bind information.
                             lLayoutEntry.texture = {
-                                sampleType: lTextureFormat,
+                                sampleType: lTextureFormatCapabilities.type[0],
                                 multisampled: lEntry.layout.multisampled,
                                 viewDimension: lEntry.layout.dimension
                             } satisfies Required<GPUTextureBindingLayout>;
@@ -225,14 +203,26 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
                         }
                         case TextureBindType.Storage: {
                             // Storage textures need to be write only.
-                            if (lEntry.accessMode !== AccessMode.Write) {
-                                throw new Exception('Storage textures must have access mode write.', this);
+                            let lStorageAccess: GPUStorageTextureAccess;
+                            switch (lEntry.accessMode) {
+                                case AccessMode.Write & AccessMode.Read: {
+                                    lStorageAccess = 'read-write';
+                                    break;
+                                }
+                                case AccessMode.Write: {
+                                    lStorageAccess = 'write-only';
+                                    break;
+                                }
+                                case AccessMode.Read: {
+                                    lStorageAccess = 'read-only';
+                                    break;
+                                }
                             }
 
                             // Create storage texture bind information.
                             lLayoutEntry.storageTexture = {
-                                access: 'write-only',
-                                format: lEntry.layout.format,
+                                access: lStorageAccess!,
+                                format: lEntry.layout.format as GPUTextureFormat,
                                 viewDimension: lEntry.layout.dimension
                             } satisfies Required<GPUStorageTextureBindingLayout>;
 
@@ -265,5 +255,4 @@ export type BindLayout = {
     layout: BaseMemoryLayout;
     visibility: ComputeStage;
     accessMode: AccessMode;
-    usage: BufferUsage;
 };

@@ -91,6 +91,7 @@ export class CanvasTexture extends GpuNativeObject<GPUTextureView> {
      */
     protected override generate(): GPUTextureView {
         // TODO: Add invalidation context to generate to better understand new generating.
+        const lFormat: GPUTextureFormat = this.memoryLayout.format as GPUTextureFormat;
 
         // Configure context.
         if (!this.mContext) {
@@ -98,7 +99,7 @@ export class CanvasTexture extends GpuNativeObject<GPUTextureView> {
             this.mContext = <GPUCanvasContext><any>this.canvas.getContext('webgpu');
             this.mContext.configure({
                 device: this.device.gpu,
-                format: this.memoryLayout.format,
+                format: lFormat,
                 usage: this.memoryLayout.usage,
                 alphaMode: 'opaque'
             });
@@ -107,7 +108,10 @@ export class CanvasTexture extends GpuNativeObject<GPUTextureView> {
         // Create texture and save it for destorying later.
         const lTexture: GPUTexture = this.mContext.getCurrentTexture();
 
-        // TODO: View descriptor.
-        return lTexture.createView();
+        // force a two dimensional view.
+        return lTexture.createView({
+            format: lFormat,
+            dimension: '2d'
+        });
     }
 }

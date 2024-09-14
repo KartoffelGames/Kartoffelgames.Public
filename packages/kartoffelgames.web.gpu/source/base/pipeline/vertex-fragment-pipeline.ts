@@ -113,7 +113,7 @@ export class VertexFragmentPipeline extends GpuObject<'vertexFragmentPipeline'> 
 
         // Depth default settings.
         this.mDepthCompare = CompareFunction.Less;
-        this.mDepthWriteEnabled = true;
+        this.mDepthWriteEnabled = true; // TODO: Default based on render target. 
 
         // Primitive default settings.
         this.mPrimitiveTopology = PrimitiveTopology.TriangleList;

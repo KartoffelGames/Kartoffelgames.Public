@@ -3,19 +3,19 @@ import { PrimitiveCullMode } from '../../constant/primitive-cullmode.enum';
 import { PrimitiveFrontFace } from '../../constant/primitive-front-face.enum';
 import { PrimitiveTopology } from '../../constant/primitive-topology.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/gpu-native-object';
+import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
-import { VertexFragmentShader } from '../shader/vertex-fragment-shader';
+import { ShaderRenderModule } from '../shader/shader-render-module';
 import { RenderTargets } from './target/render-targets';
 
-export class VertexFragmentPipeline extends GpuObject<'vertexFragmentPipeline'> {
+export class VertexFragmentPipeline extends GpuNativeObject<GPURenderPipeline> {
     private mDepthCompare: CompareFunction;
     private mDepthWriteEnabled: boolean;
     private mPrimitiveCullMode: PrimitiveCullMode;
     private mPrimitiveFrontFace: PrimitiveFrontFace;
     private mPrimitiveTopology: PrimitiveTopology;
     private readonly mRenderTargets: RenderTargets;
-    private readonly mShader: VertexFragmentShader;
+    private readonly mShaderModule: ShaderRenderModule;
 
     /**
      * Set depth compare function.
@@ -27,6 +27,13 @@ export class VertexFragmentPipeline extends GpuObject<'vertexFragmentPipeline'> 
 
         // Set data changed flag.
         this.triggerAutoUpdate(UpdateReason.Setting);
+    }
+
+    /**
+     * Pipeline shader.
+     */
+    public get module(): ShaderRenderModule {
+        return this.mShaderModule;
     }
 
     /**
@@ -73,13 +80,6 @@ export class VertexFragmentPipeline extends GpuObject<'vertexFragmentPipeline'> 
     }
 
     /**
-     * Pipeline shader.
-     */
-    public get shader(): VertexFragmentShader {
-        return this.mShader;
-    }
-
-    /**
      * Set depth write enabled / disabled.
      */
     public get writeDepth(): boolean {
@@ -98,9 +98,10 @@ export class VertexFragmentPipeline extends GpuObject<'vertexFragmentPipeline'> 
      * @param pDevice - Device.
      * @param pShader - Pipeline shader.
      */
-    public constructor(pDevice: GpuDevice, pShader: VertexFragmentShader, pRenderTargets: RenderTargets) {
-        super(pDevice);
-        this.mShader = pShader;
+    public constructor(pDevice: GpuDevice, pShader: ShaderRenderModule, pRenderTargets: RenderTargets) {
+        super(pDevice, NativeObjectLifeTime.Persistent);
+
+        this.mShaderModule = pShader;
         this.mRenderTargets = pRenderTargets;
 
         // Listen for render target and shader changes.
@@ -119,5 +120,108 @@ export class VertexFragmentPipeline extends GpuObject<'vertexFragmentPipeline'> 
         this.mPrimitiveTopology = PrimitiveTopology.TriangleList;
         this.mPrimitiveCullMode = PrimitiveCullMode.Back;
         this.mPrimitiveFrontFace = PrimitiveFrontFace.ClockWise;
+    }
+
+    /**
+     * Destroy nothing.
+     */
+    protected override destroy(): void {
+        // Destroy nothing.
+    }
+
+    /**
+     * Generate native gpu pipeline data layout.
+     */
+    protected override generate(): GPURenderPipeline {
+        // Generate pipeline layout from bind group layouts.
+        const lPipelineLayout: GPUPipelineLayout = this.mShaderModule.shader.layout.native;
+
+        // Construct basic GPURenderPipelineDescriptor.
+        const lPipelineDescriptor: GPURenderPipelineDescriptor = {
+            layout: lPipelineLayout,
+            vertex: {
+                module: this.mShaderModule.shader.native,
+                entryPoint: this.mShaderModule.vertexEntryPoint,
+                buffers: this.mShaderModule.vertexParameter.native
+                // TODO: Yes constants.
+            },
+            primitive: this.generatePrimitive()
+        };
+
+        // Optional fragment state.
+        if (this.gpuObject.shader.fragmentEntry) {
+            // Generate fragment targets only when fragment state is needed.
+            const lFragmentTargetList: Array<GPUColorTargetState> = new Array<GPUColorTargetState>();
+            for (const lRenderTarget of this.gpuObject.renderTargets.colorBuffer) {
+                lFragmentTargetList.push({
+                    format: this.factory.formatFromLayout(lRenderTarget.texture.memoryLayout),
+                    // blend?: GPUBlendState;   // TODO: GPUBlendState
+                    // writeMask?: GPUColorWriteFlags; // TODO: GPUColorWriteFlags
+                });
+            }
+
+            lPipelineDescriptor.fragment = {
+                module: this.factory.request<'vertexFragmentShader'>(this.gpuObject.shader).create(),
+                entryPoint: this.gpuObject.shader.fragmentEntry,
+                targets: lFragmentTargetList,
+                // TODO: constants
+            };
+        }
+
+        // Setup optional depth attachment.
+        const lDepthStencilBuffer = this.renderTargets.depthStencil();
+        if (lDepthStencilBuffer) {
+            lPipelineDescriptor.depthStencil = {
+                depthWriteEnabled: this.writeDepth,
+                depthCompare: this.depthCompare,
+                format: lDepthStencilBuffer.texture.memoryLayout.layout,
+            };
+
+            // Stencil can only be set, when depth is set.
+            if (lDepthStencilBuffer.texture.memoryLayout.format === TextureFormat.Stencil || lDepthStencilBuffer.texture.memoryLayout.format === TextureFormat.DepthStencil) {
+                // TODO: Stencil settings. Empty for now.
+            }
+        }
+
+        // Set multisample count.
+        if (this.renderTargets.multiSampleLevel > 1) {
+            lPipelineDescriptor.multisample = {
+                count: this.renderTargets.multiSampleLevel
+            };
+        }
+
+        // Async is none GPU stalling.
+        return this.device.gpu.createRenderPipeline(lPipelineDescriptor); // TODO: Async create render pipeline somehow.
+    }
+
+    /**
+     * Primitive settings.
+     */
+    private generatePrimitive(): GPUPrimitiveState {
+        // Convert topology to native. Set strip format for strip topology.
+        let lStripIndexFormat: GPUIndexFormat | undefined = undefined;
+
+        switch (this.primitiveTopology) {
+            case PrimitiveTopology.LineStrip:
+            case PrimitiveTopology.TriangleStrip: {
+                lStripIndexFormat = 'uint32';
+                break;
+            }
+        }
+
+        // Create primitive state.
+        const lPrimitiveState: GPUPrimitiveState = {
+            topology: this.primitiveTopology,
+            frontFace: this.primitiveFrontFace,
+            cullMode: this.primitiveCullMode,
+            unclippedDepth: false
+        };
+
+        // Set optional strip format.
+        if (lStripIndexFormat) {
+            lPrimitiveState.stripIndexFormat = lStripIndexFormat;
+        }
+
+        return lPrimitiveState;
     }
 }

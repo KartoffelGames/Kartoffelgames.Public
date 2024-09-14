@@ -3,9 +3,9 @@ export enum PrimitiveBufferMultiplier {
     Single = 'x1',
     
     // Vector
-    Vector2 = 'x2',
-    Vector3 = 'x3',
-    Vector4 = 'x4',
+    Vector2 = 'v2',
+    Vector3 = 'v3',
+    Vector4 = 'v4',
 
     // Matrix
     Matrix22 = 'm22',

@@ -48,7 +48,7 @@ export class ComputeInstruction extends GpuObject<'computeInstruction'> implemen
         };
 
         // Fill in data groups.
-        for (const lGroup of pPipeline.shader.pipelineLayout.groups) {
+        for (const lGroup of pPipeline.module.pipelineLayout.groups) {
             const lBindDataGroup: BindDataGroup | undefined = pBindData[lGroup];
 
             // Validate bind data group.
@@ -57,7 +57,7 @@ export class ComputeInstruction extends GpuObject<'computeInstruction'> implemen
             }
 
             // Validate same layout bind layout.
-            const lBindGroupLayout = pPipeline.shader.pipelineLayout.getGroupLayout(lGroup);
+            const lBindGroupLayout = pPipeline.module.pipelineLayout.getGroupLayout(lGroup);
             if (lBindDataGroup.layout.identifier !== lBindGroupLayout.identifier) {
                 throw new Exception('Source bind group layout does not match target layout.', this);
             }

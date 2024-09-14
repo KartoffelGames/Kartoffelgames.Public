@@ -5,6 +5,7 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
 import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
+import { VertexParameterLayout } from '../pipeline/parameter/vertex-parameter-layout';
 import { ShaderComputeModule } from './shader-compute-module';
 import { ShaderLayout } from './shader-layout';
 
@@ -140,10 +141,6 @@ export class Shader extends GpuNativeObject<GPUShaderModule> {
         }
     }
 
-    // TODO: CreateRenderModule Generate some kind of ShaderModuleBuild that contains name of all entry points and RenderTargets.
-    // Render targets will be validated with fragment output.
-    // That module can create a render target and vertex parameter objects.
-
     /**
      * Create a compute module from shader entry point.
      * 
@@ -164,6 +161,19 @@ export class Shader extends GpuNativeObject<GPUShaderModule> {
 
         // Define workgroup sizes.
         return new ShaderComputeModule(this.device, this, pEntryName, [lEntryPoint.workgroupDimension.x ?? 1, lEntryPoint.workgroupDimension.y ?? 1, lEntryPoint.workgroupDimension.z ?? 1]);
+    }
+
+
+    // TODO: CreateRenderModule Generate some kind of ShaderModuleBuild that contains name of all entry points and RenderTargets.
+    // Render targets will be validated with fragment output.
+    // That module can create a render target and vertex parameter objects.
+    public createRenderModule(pVertexEntryName: string, pFragmentEntryName?: string): ShaderRenderModule {
+        const lVertexEntryPoint: ShaderModuleEntryPointVertex | undefined = this.mEntryPoints.vertex.get(pVertexEntryName);
+        if (!lVertexEntryPoint) {
+            throw new Exception(`Vertex entry point "${pVertexEntryName}" does not exists.`, this);
+        }
+
+        
     }
 
     /**
@@ -197,12 +207,7 @@ type ShaderModuleEntryPointCompute = {
 };
 
 type ShaderModuleEntryPointVertex = {
-    parameter: Dictionary<string, {
-        name: string;
-        location: number;
-        format: PrimitiveBufferFormat;
-        multiplier: PrimitiveBufferMultiplier;
-    }>;
+    parameter: VertexParameterLayout;
 };
 
 type ShaderModuleEntryPointFragment = {

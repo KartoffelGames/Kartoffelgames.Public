@@ -1,5 +1,6 @@
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
+import { UpdateReason } from '../gpu/gpu-object-update-reason';
 import { Shader } from './shader';
 
 export class ShaderComputeModule extends GpuObject {
@@ -43,6 +44,7 @@ export class ShaderComputeModule extends GpuObject {
     }
 
     /**
+     * Constructor.
      * 
      * @param pDevice - Device reference.
      * @param pShader - Shader.
@@ -55,5 +57,10 @@ export class ShaderComputeModule extends GpuObject {
         this.mEntryPoint = pEntryPointName;
         this.mShader = pShader;
         this.mSize = pSize ?? [-1, -1, -1];
+
+        // Update on shader update.
+        pShader.addInvalidationListener(() => {
+            this.triggerAutoUpdate(UpdateReason.ChildData);
+        });
     }
 }

@@ -9,7 +9,7 @@ export class ComputePipeline extends GpuNativeObject<GPUComputePipeline> {
     /**
      * Pipeline shader.
      */
-    public get shader(): ShaderComputeModule {
+    public get module(): ShaderComputeModule {
         return this.mShaderModule;
     }
 
@@ -42,10 +42,10 @@ export class ComputePipeline extends GpuNativeObject<GPUComputePipeline> {
     protected override generate(): GPUComputePipeline {
         // Construct basic GPURenderPipelineDescriptor.
         const lPipelineDescriptor: GPUComputePipelineDescriptor = {
-            layout: this.shader.shader.layout.native,
+            layout: this.mShaderModule.shader.layout.native,
             compute: {
-                module: this.shader.shader.native,
-                entryPoint: this.shader.entryPoint,
+                module: this.mShaderModule.shader.native,
+                entryPoint: this.mShaderModule.entryPoint,
                 // TODO: Constants. Yes.
             }
         };

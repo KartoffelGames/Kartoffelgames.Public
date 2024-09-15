@@ -19,6 +19,23 @@ export class RenderTargets extends GpuNativeObject<GPURenderPassDescriptor> {
     private readonly mSize: TextureSize;
 
     /**
+     * Color attachment textures.
+     */
+    public get colorTextures(): Array<FrameBufferTexture | CanvasTexture> {
+        // Create color attachment list in order.
+        const lColorAttachmentList: Array<FrameBufferTexture | CanvasTexture> = new Array<FrameBufferTexture | CanvasTexture>();
+        for (const lColorAttachment of this.mColorTextures.values()) {
+            if (!lColorAttachment.texture) {
+                throw new Exception(`Missing color attachment texture for "${lColorAttachment.name}".`, this);
+            }
+
+            lColorAttachmentList[lColorAttachment.index] = lColorAttachment.texture.target;
+        }
+
+        return lColorAttachmentList;
+    }
+
+    /**
      * Render target height.
      */
     public get height(): number {
@@ -106,25 +123,11 @@ export class RenderTargets extends GpuNativeObject<GPURenderPassDescriptor> {
     }
 
     /**
-     * Get depth stencil target setup object. 
-     */
-    public depthStencil(): RenderTargetDepthStencilSetup {
-        // Validate existance.
-        if (!this.mDepthStencilTexture) {
-            throw new Exception(`Render target depth stencil  not specified`, this);
-        }
-
-        return new RenderTargetDepthStencilSetup(this.device, this.mDepthStencilTexture, () => {
-            this.triggerAutoUpdate(UpdateReason.ChildData);
-        });
-    }
-
-    /**
      * Get color target setup object. 
      * 
      * @param pTargetName - Color target name.
      */
-    public target(pTargetName: string): RenderTargetColorSetup {
+    public colorTarget(pTargetName: string): RenderTargetColorSetup {
         const lTarget: RenderTargetsColorTarget | undefined = this.mColorTextures.get(pTargetName);
 
         // Validate existance.
@@ -133,6 +136,20 @@ export class RenderTargets extends GpuNativeObject<GPURenderPassDescriptor> {
         }
 
         return new RenderTargetColorSetup(this.device, lTarget, () => {
+            this.triggerAutoUpdate(UpdateReason.ChildData);
+        });
+    }
+
+    /**
+     * Get depth stencil target setup object. 
+     */
+    public depthStencilTarget(): RenderTargetDepthStencilSetup {
+        // Validate existance.
+        if (!this.mDepthStencilTexture) {
+            throw new Exception(`Render target depth stencil  not specified`, this);
+        }
+
+        return new RenderTargetDepthStencilSetup(this.device, this.mDepthStencilTexture, () => {
             this.triggerAutoUpdate(UpdateReason.ChildData);
         });
     }
@@ -212,7 +229,7 @@ export class RenderTargets extends GpuNativeObject<GPURenderPassDescriptor> {
             // Add depth values when depth formats are used.
             if (this.mDepthStencilTexture.depth) {
                 // Validate if depth texture
-                if(lFormatCapability.aspect.types.includes(TextureAspect.Depth)){
+                if (lFormatCapability.aspect.types.includes(TextureAspect.Depth)) {
                     throw new Exception('Used texture for the depth texture attachment must have a depth aspect. ', this);
                 }
 
@@ -231,7 +248,7 @@ export class RenderTargets extends GpuNativeObject<GPURenderPassDescriptor> {
             // Add stencil values when stencil formats are used.
             if (this.mDepthStencilTexture.stencil) {
                 // Validate if stencil texture
-                if(lFormatCapability.aspect.types.includes(TextureAspect.Stencil)){
+                if (lFormatCapability.aspect.types.includes(TextureAspect.Stencil)) {
                     throw new Exception('Used texture for the stencil texture attachment must have a stencil aspect. ', this);
                 }
 

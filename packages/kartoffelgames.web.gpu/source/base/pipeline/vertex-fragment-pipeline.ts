@@ -149,27 +149,27 @@ export class VertexFragmentPipeline extends GpuNativeObject<GPURenderPipeline> {
         };
 
         // Optional fragment state.
-        if (this.gpuObject.shader.fragmentEntry) {
+        if (this.module.fragmentEntryPoint) {
             // Generate fragment targets only when fragment state is needed.
             const lFragmentTargetList: Array<GPUColorTargetState> = new Array<GPUColorTargetState>();
-            for (const lRenderTarget of this.gpuObject.renderTargets.colorBuffer) {
+            for (const lRenderTarget of this.renderTargets.colorTextures) {
                 lFragmentTargetList.push({
-                    format: this.factory.formatFromLayout(lRenderTarget.texture.memoryLayout),
+                    format: lRenderTarget.memoryLayout.format as GPUTextureFormat,
                     // blend?: GPUBlendState;   // TODO: GPUBlendState
                     // writeMask?: GPUColorWriteFlags; // TODO: GPUColorWriteFlags
                 });
             }
 
             lPipelineDescriptor.fragment = {
-                module: this.factory.request<'vertexFragmentShader'>(this.gpuObject.shader).create(),
-                entryPoint: this.gpuObject.shader.fragmentEntry,
+                module: this.mShaderModule.shader.native,
+                entryPoint: this.module.fragmentEntryPoint,
                 targets: lFragmentTargetList,
                 // TODO: constants
             };
         }
 
         // Setup optional depth attachment.
-        const lDepthStencilBuffer = this.renderTargets.depthStencil();
+        const lDepthStencilBuffer = this.renderTargets.depthStencilTarget();
         if (lDepthStencilBuffer) {
             lPipelineDescriptor.depthStencil = {
                 depthWriteEnabled: this.writeDepth,

@@ -1,11 +1,21 @@
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject } from '../gpu/gpu-object';
 import { UpdateReason } from '../gpu/gpu-object-update-reason';
+import { VertexParameterLayout } from '../pipeline/parameter/vertex-parameter-layout';
 import { Shader } from './shader';
 
 export class ShaderRenderModule extends GpuObject {
+    private readonly mFragmentEntryPoint: string | null;
     private readonly mShader: Shader;
     private readonly mVertexEntryPoint: string;
+    private readonly mVertexParameter: VertexParameterLayout;
+
+    /**
+     * Fragment entry point.
+     */
+    public get fragmentEntryPoint(): string | null {
+        return this.mFragmentEntryPoint;
+    }
 
     /**
      * Module shader.
@@ -21,8 +31,11 @@ export class ShaderRenderModule extends GpuObject {
         return this.mVertexEntryPoint;
     }
 
+    /**
+     * Vertex parameter.
+     */
     public get vertexParameter(): VertexParameterLayout {
-        
+        return this.mVertexParameter;
     }
 
     /**
@@ -33,14 +46,21 @@ export class ShaderRenderModule extends GpuObject {
      * @param pEntryPointName - Compute entry point.
      * @param pSize - Workgroup size.
      */
-    public constructor(pDevice: GpuDevice, pShader: Shader, pVertexEntryPointName: string,) {
+    public constructor(pDevice: GpuDevice, pShader: Shader, pVertexEntryPointName: string, pVertexParameter: VertexParameterLayout, pFragmentEntryPointName?: string) {
         super(pDevice);
 
         this.mVertexEntryPoint = pVertexEntryPointName;
+        this.mVertexParameter = pVertexParameter;
+        this.mFragmentEntryPoint = pFragmentEntryPointName ?? null;
         this.mShader = pShader;
 
         // Update on shader update.
         pShader.addInvalidationListener(() => {
+            this.triggerAutoUpdate(UpdateReason.ChildData);
+        });
+
+        // Update on vertex parameter.
+        pVertexParameter.addInvalidationListener(() => {
             this.triggerAutoUpdate(UpdateReason.ChildData);
         });
     }

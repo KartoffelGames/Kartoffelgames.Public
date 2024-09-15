@@ -8,6 +8,7 @@ import { PrimitiveBufferMultiplier } from '../memory_layout/buffer/enum/primitiv
 import { VertexParameterLayout } from '../pipeline/parameter/vertex-parameter-layout';
 import { ShaderComputeModule } from './shader-compute-module';
 import { ShaderLayout } from './shader-layout';
+import { ShaderRenderModule } from './shader-render-module';
 
 export class Shader extends GpuNativeObject<GPUShaderModule> {
     private readonly mEntryPoints: ShaderModuleEntryPoints;
@@ -146,7 +147,7 @@ export class Shader extends GpuNativeObject<GPUShaderModule> {
      * 
      * @param pEntryName - Compute entry name.
      * 
-     * @returns Shader compute module. 
+     * @returns shader compute module. 
      */
     public createComputeModule(pEntryName: string): ShaderComputeModule {
         const lEntryPoint: ShaderModuleEntryPointCompute | undefined = this.mEntryPoints.compute.get(pEntryName);
@@ -163,17 +164,32 @@ export class Shader extends GpuNativeObject<GPUShaderModule> {
         return new ShaderComputeModule(this.device, this, pEntryName, [lEntryPoint.workgroupDimension.x ?? 1, lEntryPoint.workgroupDimension.y ?? 1, lEntryPoint.workgroupDimension.z ?? 1]);
     }
 
-
-    // TODO: CreateRenderModule Generate some kind of ShaderModuleBuild that contains name of all entry points and RenderTargets.
-    // Render targets will be validated with fragment output.
-    // That module can create a render target and vertex parameter objects.
+    /**
+     * Create a render module from a vertex and fragment entry point.
+     * 
+     * @param pVertexEntryName - Vertex entry point.
+     * @param pFragmentEntryName - Optional fragment entry point.
+     * 
+     * @returns shader render module. 
+     */
     public createRenderModule(pVertexEntryName: string, pFragmentEntryName?: string): ShaderRenderModule {
         const lVertexEntryPoint: ShaderModuleEntryPointVertex | undefined = this.mEntryPoints.vertex.get(pVertexEntryName);
         if (!lVertexEntryPoint) {
             throw new Exception(`Vertex entry point "${pVertexEntryName}" does not exists.`, this);
         }
 
-        
+        // Return shader module without fragment entry.
+        if (!pFragmentEntryName) {
+            return new ShaderRenderModule(this.device, this, pVertexEntryName, lVertexEntryPoint.parameter);
+        }
+
+        // Validate fragment entry point.
+        const lFragmentEntryPoint: ShaderModuleEntryPointFragment | undefined = this.mEntryPoints.fragment.get(pFragmentEntryName);
+        if (!lFragmentEntryPoint) {
+            throw new Exception(`Fragment entry point "${pFragmentEntryName}" does not exists.`, this);
+        }
+
+        return new ShaderRenderModule(this.device, this, pVertexEntryName, lVertexEntryPoint.parameter, pFragmentEntryName);
     }
 
     /**

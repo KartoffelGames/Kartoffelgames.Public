@@ -21,7 +21,7 @@ export class VertexParameterLayout extends GpuNativeObject<Array<GPUVertexBuffer
     /**
      * Get all parameter names.
      */
-    public get parameter(): Array<string> {
+    public get parameterNames(): Array<string> {
         return [...this.mParameter.keys()];
     }
 
@@ -50,9 +50,23 @@ export class VertexParameterLayout extends GpuNativeObject<Array<GPUVertexBuffer
     }
 
     /**
+     * Get vertex parameter layout definition of name.
+     * 
+     * @param pName - Parameter name.
+     */
+    public parameter(pName: string): Readonly<VertexParameterLayoutDefinition> {
+        const lLayout: VertexParameterLayoutDefinition | undefined = this.mParameter.get(pName);
+        if (!lLayout) {
+            throw new Exception(`Vertex parameter "${pName}" is not defined.`, this);
+        }
+
+        return lLayout;
+    }
+
+    /**
      * Destruct nothing.
      */
-    public override destroy(): void {
+    protected override destroy(): void {
         // Nothing to destroy as it is only a description.
     }
 

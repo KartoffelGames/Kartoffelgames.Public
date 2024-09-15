@@ -67,13 +67,13 @@ export class GpuBuffer<TType extends TypedArray> extends GpuNativeObject<GPUBuff
      * @param pLayout - Buffer layout.
      * @param pInitialData  - Inital data. Can be empty. Or Buffer size. 
      */
-    public constructor(pDevice: GpuDevice, pLayout: BaseBufferMemoryLayout, pUsage: BufferUsage, pCopyType: MemoryCopyType, pInitialData: TType, pWavingBufferLimitation: number = Number.MAX_SAFE_INTEGER) {
+    public constructor(pDevice: GpuDevice, pLayout: BaseBufferMemoryLayout, pCopyType: MemoryCopyType, pInitialData: TType, pWavingBufferLimitation: number = Number.MAX_SAFE_INTEGER) {
         super(pDevice, NativeObjectLifeTime.Persistent);
         this.mLayout = pLayout;
 
         // Set config.
         this.mCopyType = pCopyType;
-        this.mUsage = pUsage;
+        this.mUsage = pLayout.usage;
         this.mWavingBufferLimitation = pWavingBufferLimitation;
         this.mDataType = <BufferDataType<TType>>pInitialData.constructor;
 

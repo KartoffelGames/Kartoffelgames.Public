@@ -71,15 +71,28 @@ export class PipelineLayout extends GpuNativeObject<GPUPipelineLayout> {
     }
 
     /**
+     * Get group binding index by name.
+     * 
+     * @param pGroupName - Group name.
+     * 
+     * @returns group binding index. 
+     */
+    public groupIndex(pGroupName: string): number {
+        const lBindGroupIndex: number | undefined = this.mBindGroupNames.get(pGroupName);
+        if (!lBindGroupIndex) {
+            throw new Exception(`Group binding placeholder can not replace a requiered bind group.`, this);
+        }
+
+        return lBindGroupIndex;
+    }
+
+    /**
      * Remove placeholder group.
      * 
      * @param pName - Bind group name of replacement.
      */
     public removePlaceholderGroup(pName: string): void {
-        const lBindGroupIndex: number | undefined = this.mBindGroupNames.get(pName);
-        if (!lBindGroupIndex) {
-            throw new Exception(`Group binding placeholder can not replace a requiered bind group.`, this);
-        }
+        const lBindGroupIndex: number = this.groupIndex(pName);
 
         // Clean old placeholder.
         const lLastBindGroup: BindGroupLayout | undefined = this.mBindGroups.get(lBindGroupIndex);
@@ -102,15 +115,10 @@ export class PipelineLayout extends GpuNativeObject<GPUPipelineLayout> {
      * @param pBindGroup - Replacement bind group.
      */
     public replaceGroup(pGroupName: string, pBindGroup: BindGroupLayout): void {
-        const lGroupIndex: number | undefined = this.mBindGroupNames.get(pGroupName);
-
-        // Throw on unaccessable group.
-        if (typeof lGroupIndex === 'undefined') {
-            throw new Exception(`Bind group layout (${pGroupName}) does not exists.`, this);
-        }
+        const lBindGroupIndex: number = this.groupIndex(pGroupName);
 
         // Read original bind group.
-        const lInitialGroup: BindGroupLayout | undefined = this.mInitialBindGroups.get(lGroupIndex);
+        const lInitialGroup: BindGroupLayout | undefined = this.mInitialBindGroups.get(lBindGroupIndex);
         if (!lInitialGroup) {
             throw new Exception(`Only initial bind group layouts can be replaced.`, this);
         }
@@ -154,26 +162,21 @@ export class PipelineLayout extends GpuNativeObject<GPUPipelineLayout> {
                 throw new Exception(`Group binding replacement "${lReplacementBinding.name}" must at least cover the initial access mode.`, this);
             }
 
-            // Must share the same access mode.
-            if (lReplacementBinding.usage !== lInitialBinding.usage) {
-                throw new Exception(`Group binding replacement "${lReplacementBinding.name}" must be the initial usage.`, this);
-            }
-
             // Must share the same visibility.
             if ((lReplacementBinding.visibility & lInitialBinding.visibility) !== lReplacementBinding.visibility) {
                 throw new Exception(`Group binding replacement "${lReplacementBinding.name}" must at least cover the initial visibility.`, this);
             }
 
             // Must be same memory layout.
-            if(lReplacementBinding.constructor !== lInitialBinding.constructor){
+            if (lReplacementBinding.constructor !== lInitialBinding.constructor) {
                 throw new Exception(`Group binding replacement "${lReplacementBinding.name}" must have the same memory layout as initial bind group layout.`, this);
-                // TODO: layout: BaseMemoryLayout; some type of equal.
             }
-            
+
+            // TODO: layout: BaseMemoryLayout; some type of equal.
         }
 
         // Remove last 
-        const lLastBindGroup: BindGroupLayout | undefined = this.mBindGroups.get(lGroupIndex);
+        const lLastBindGroup: BindGroupLayout | undefined = this.mBindGroups.get(lBindGroupIndex);
         if (lLastBindGroup) {
             // Remove invalidation listener.
             lLastBindGroup.removeInvalidationListener(this.mBindGroupInvalidationListener.get(lLastBindGroup)!);

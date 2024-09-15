@@ -1,9 +1,9 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { InstructionExecuter } from '../execution/instruction-executor';
 import { ShaderLayout } from '../shader/shader-layout';
 import { Shader } from '../shader/shader';
 import { TextureFormatCapabilities } from '../texture/texture-format-capabilities';
 import { GpuCapabilities } from './capabilities/gpu-capabilities';
+import { GpuExecution } from '../execution/gpu-execution';
 
 export class GpuDevice {
     private static readonly mAdapters: Dictionary<GPUPowerPreference, GPUAdapter> = new Dictionary<GPUPowerPreference, GPUAdapter>();
@@ -100,10 +100,10 @@ export class GpuDevice {
     }
 
     /**
-     * Create instruction executor.
+     * Create pass executor.
      */
-    public instructionExecutor(): InstructionExecuter {
-        return new InstructionExecuter(this);
+    public executor(pExecution: ExecutionFunction): GpuExecution {
+        return new GpuExecution(this, pExecution);
     }
 
     /**

@@ -1,17 +1,17 @@
-import { Dictionary, Exception } from '@kartoffelgames/core';
-import { AccessMode } from '../../../constant/access-mode.enum';
+import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core';
 import { BufferUsage } from '../../../constant/buffer-usage.enum';
-import { BufferPrimitiveFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
-import { ComputeStage } from '../../../constant/compute-stage.enum';
+import { MemoryCopyType } from '../../../constant/memory-copy-type.enum';
 import { GpuBuffer } from '../../buffer/gpu-buffer';
 import { GpuDevice } from '../../gpu/gpu-device';
-import { GpuObject } from '../../gpu/gpu-native-object';
 import { ArrayBufferMemoryLayout } from '../../memory_layout/buffer/array-buffer-memory-layout';
+import { PrimitiveBufferMultiplier } from '../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
 import { PrimitiveBufferMemoryLayout } from '../../memory_layout/buffer/primitive-buffer-memory-layout';
-import { VertexParameterLayout } from './vertex-parameter-layout';
+import { VertexParameterLayout, VertexParameterLayoutDefinition } from './vertex-parameter-layout';
+import { GpuObject } from '../../gpu/gpu-object';
+import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
 
 export class VertexParameter extends GpuObject {
-    private readonly mData: Dictionary<string, GpuBuffer<Float32Array>>;
+    private readonly mData: Dictionary<string, GpuBuffer<TypedArray>>;
     private readonly mIndexBuffer: GpuBuffer<Uint32Array>;
     private readonly mLayout: VertexParameterLayout;
 
@@ -40,44 +40,36 @@ export class VertexParameter extends GpuObject {
 
         // Set vertex parameter layout.
         this.mLayout = pVertexParameterLayout;
-        this.mData = new Dictionary<string, GpuBuffer<Float32Array>>();
+        this.mData = new Dictionary<string, GpuBuffer<TypedArray>>();
 
         // Create index layout.
-        const lIndexLayout: PrimitiveBufferMemoryLayout = new PrimitiveBufferMemoryLayout(pDevice, {
-            primitiveFormat: BufferPrimitiveFormat.Uint,
-            bindType: BufferUsage.Index,
-            size: 4,
-            alignment: 4,
-            locationIndex: null,
-            access: AccessMode.Read,
-            bindingIndex: null,
-            name: '',
-            visibility: ComputeStage.Vertex
+        const lIndexLayout: PrimitiveBufferMemoryLayout = new PrimitiveBufferMemoryLayout({
+            primitiveFormat: PrimitiveBufferFormat.Uint32,
+            usage: BufferUsage.Index,
+            primitiveMultiplier: PrimitiveBufferMultiplier.Single,
+            name: ''
         });
 
         // Create index buffer layout.
-        const lIndexBufferLayout: ArrayBufferMemoryLayout = new ArrayBufferMemoryLayout(pDevice, {
-            innerType: lIndexLayout,
+        const lIndexBufferLayout: ArrayBufferMemoryLayout = new ArrayBufferMemoryLayout({
             arraySize: pIndices.length,
-            bindType: BufferUsage.Index,
-            access: AccessMode.Read,
-            bindingIndex: null,
+            innerType: lIndexLayout,
+            usage: BufferUsage.Index,
             name: '',
-            visibility: ComputeStage.Vertex
         });
 
         // Create index buffer.
-        this.mIndexBuffer = lIndexBufferLayout.create(new Uint32Array(pIndices));
+        this.mIndexBuffer = new GpuBuffer(pDevice, lIndexBufferLayout, MemoryCopyType.None, new Uint32Array(pIndices), 0);
     }
 
     /**
      * Get parameter buffer.
      * @param pName - Parameter name.
      */
-    public get(pName: string): GpuBuffer<Float32Array> {
+    public get(pName: string): GpuBuffer<TypedArray> {
         // Validate.
-        if(!this.mData.has(pName)){
-            throw new Exception(`Vertex parameter "${pName}" not found.`, this);
+        if (!this.mData.has(pName)) {
+            throw new Exception(`Vertex parameter buffer for "${pName}" not set.`, this);
         }
 
         return this.mData.get(pName)!;
@@ -88,13 +80,40 @@ export class VertexParameter extends GpuObject {
      * @param pName - Parameter name.
      * @param pData - Parameter data.
      */
-    public set(pName: string, pData: Array<number>): void {
-        const lBufferLayout: PrimitiveBufferMemoryLayout = this.mLayout.getLayoutOf(pName);
+    public set(pName: string, pData: Array<number>): GpuBuffer<TypedArray> {
+        const lParameterLayout: VertexParameterLayoutDefinition = this.mLayout.parameter(pName);
 
-        // TODO: Load typed array from layout format.
-        const lParameterBuffer: GpuBuffer<Float32Array> = lBufferLayout.create(new Float32Array(pData));
+        // Create buffer layout.
+        const lBufferLayout: PrimitiveBufferMemoryLayout = new PrimitiveBufferMemoryLayout({
+            primitiveFormat: lParameterLayout.format,
+            usage: BufferUsage.Vertex,
+            primitiveMultiplier: lParameterLayout.multiplier,
+            name: lParameterLayout.name
+        });
 
+        // Load typed array from layout format.
+        let lParameterBuffer: GpuBuffer<TypedArray>;
+        switch (lParameterLayout.format) {
+            case PrimitiveBufferFormat.Float32: {
+                lParameterBuffer = new GpuBuffer(this.device, lBufferLayout, MemoryCopyType.None, new Float32Array(pData), 0);
+                break;
+            }
+            case PrimitiveBufferFormat.Sint32: {
+                lParameterBuffer = new GpuBuffer(this.device, lBufferLayout, MemoryCopyType.None, new Int32Array(pData), 0);
+                break;
+            }
+            case PrimitiveBufferFormat.Uint32: {
+                lParameterBuffer = new GpuBuffer(this.device, lBufferLayout, MemoryCopyType.None, new Uint32Array(pData), 0);
+                break;
+            }
+            default: {
+                throw new Exception(`Format "${lParameterLayout.format}" not supported for vertex buffer.`, this);
+            }
+        }
+        
         // Save gpu buffer in correct index.
         this.mData.set(pName, lParameterBuffer);
+
+        return lParameterBuffer;
     }
 }

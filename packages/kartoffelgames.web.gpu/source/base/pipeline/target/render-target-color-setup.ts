@@ -28,10 +28,10 @@ export class RenderTargetColorSetup {
     /**
      * Create new color render target.
      */
-    public new(pUsage: TextureUsage, pFormat: TextureFormat): void {
+    public new(pFormat: TextureFormat): void {
         const lMemoryLayout: TextureMemoryLayout = new TextureMemoryLayout({
             name: this.mColorTarget.name,
-            usage: TextureUsage.RenderAttachment | pUsage,
+            usage: TextureUsage.RenderAttachment,
             dimension: TextureDimension.TwoDimension,
             format: pFormat, // TODO: Validate with format validator.
             bindType: TextureBindType.RenderTarget,

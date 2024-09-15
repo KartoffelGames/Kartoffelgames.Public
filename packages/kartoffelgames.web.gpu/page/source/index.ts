@@ -8,10 +8,9 @@ import { SamplerMemoryLayout } from '../../source/base/memory_layout/texture/sam
 import { TextureMemoryLayout } from '../../source/base/memory_layout/texture/texture-memory-layout';
 import { VertexParameter } from '../../source/base/pipeline/parameter/vertex-parameter';
 import { RenderTargets } from '../../source/base/pipeline/target/render-targets';
-import { TextureGroup } from '../../source/base/pipeline/target/render-targets';
 import { VertexFragmentPipeline } from '../../source/base/pipeline/vertex-fragment-pipeline';
 import { PrimitiveCullMode } from '../../source/constant/primitive-cullmode.enum';
-import { TextureOperation } from '../../source/constant/texture-operation.enum';
+import { TextureFormat } from '../../source/constant/texture-format.enum';
 import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVertexUvData } from './cube/cube';
 import shader from './shader.wgsl';
 import { AmbientLight } from './something_better/light/ambient-light';
@@ -35,10 +34,17 @@ const gDepth: number = 10;
     const lGpu: GpuDevice = await GpuDevice.request('high-performance');
 
     // Create and configure render targets.
-    const lTextureGroup: TextureGroup = lGpu.textureGroup(640, 640, 2);
-    lTextureGroup.addBuffer('color', 'Color');
-    lTextureGroup.addBuffer('depth', 'Depth');
-    lTextureGroup.addTarget('canvas');
+    const lRenderTargets: RenderTargets = lGpu.renderTargets((pSetup) => {
+        // Add "color" target and init new texture.
+        pSetup.addColor('color', 0, true, { r: 0, g: 0, b: 0, a: 0 })
+            .new(TextureFormat.Rgba8unorm);
+
+        // Add depth texture and init new texture.    
+        pSetup.addDepth(true, 0xff)
+            .new(TextureFormat.Depth24plus);
+    }).resize(640, 640, 2);
+
+
 
     // Create shader.
     const lShader = lGpu.renderShader(shader, 'vertex_main', 'fragment_main');
@@ -73,7 +79,7 @@ const gDepth: number = 10;
 
     // Create camera perspective.
     const lPerspectiveProjection: PerspectiveProjection = new PerspectiveProjection();
-    lPerspectiveProjection.aspectRatio = lTextureGroup.width / lTextureGroup.height;
+    lPerspectiveProjection.aspectRatio = lRenderTargets.width / lRenderTargets.height;
     lPerspectiveProjection.angleOfView = 72;
     lPerspectiveProjection.near = 0.1;
     lPerspectiveProjection.far = 9999999;
@@ -113,11 +119,6 @@ const gDepth: number = 10;
     lMesh.set('vertex.position', CubeVertexPositionData);
     lMesh.set('vertex.uv', CubeVertexUvData); // TODO: Convert to Indexbased parameter.
     lMesh.set('vertex.normal', CubeVertexNormalData); // TODO: Convert to Indexbased parameter.
-
-    // Set render targets.
-    const lRenderTargets: RenderTargets = lTextureGroup.create();
-    lRenderTargets.addColorBuffer('color', 0xaaaaaa, TextureOperation.Clear, TextureOperation.Keep, 'canvas');
-    lRenderTargets.setDepthStencilBuffer('depth', 0xff, TextureOperation.Clear, TextureOperation.Keep);
 
     // Create pipeline.
     const lPipeline: VertexFragmentPipeline = lShader.createPipeline(lRenderTargets);

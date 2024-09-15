@@ -15,7 +15,8 @@ import { RenderTargetDepthStencilSetup } from './render-target-depth-stencil-set
  */
 export class RenderTargets extends GpuNativeObject<GPURenderPassDescriptor> {
     private readonly mColorTextures = new Dictionary<string, RenderTargetsColorTarget>();
-    private readonly mDepthStencilTexture: RenderTargetsDepthStencilTexture | null;
+    // eslint-disable-next-line @typescript-eslint/prefer-readonly
+    private mDepthStencilTexture: RenderTargetsDepthStencilTexture | null;
     private readonly mSize: TextureSize;
 
     /**
@@ -47,11 +48,6 @@ export class RenderTargets extends GpuNativeObject<GPURenderPassDescriptor> {
      */
     public get height(): number {
         return this.mSize.height;
-    } set height(pValue: number) {
-        this.mSize.height = pValue;
-
-        // Trigger updates.
-        this.triggerAutoUpdate(UpdateReason.ChildData);
     }
 
     /**
@@ -59,11 +55,6 @@ export class RenderTargets extends GpuNativeObject<GPURenderPassDescriptor> {
      */
     public get multiSampleLevel(): number {
         return this.mSize.multisampleLevel;
-    } set multiSampleLevel(pLevel: number) {
-        this.mSize.multisampleLevel = pLevel;
-
-        // Trigger updates.
-        this.triggerAutoUpdate(UpdateReason.ChildData);
     }
 
     /**
@@ -78,94 +69,103 @@ export class RenderTargets extends GpuNativeObject<GPURenderPassDescriptor> {
      */
     public get width(): number {
         return this.mSize.width;
-    } set width(pValue: number) {
-        this.mSize.width = pValue;
-
-        // Trigger updates.
-        this.triggerAutoUpdate(UpdateReason.ChildData);
     }
 
     /**
      * Constuctor.
      * @param pDevice - Gpu device reference.
      */
-    public constructor(pDevice: GpuDevice, pLayout: RenderTargetLayout) {
+    public constructor(pDevice: GpuDevice, pSetup: (pSetup: IRenderTargetSetup) => void) {
         super(pDevice, NativeObjectLifeTime.Persistent);
 
         // Set "fixed" 
         this.mSize = { width: 1, height: 1, multisampleLevel: 1 };
 
-        // Add color render targets.
-        this.mColorTextures = new Dictionary<string, RenderTargetsColorTarget>();
-        for (const lAttachmentName of Object.keys(pLayout.attachments)) {
-            const lAttachmentEntry: RenderTargetLayout['attachments'][string] = pLayout.attachments[lAttachmentName];
-
-            // Convert all render attachments to a location mapping. 
-            this.mColorTextures.set(lAttachmentName, {
-                name: lAttachmentName,
-                index: lAttachmentEntry.index,
-                clearValue: lAttachmentEntry.clearValue,
-                storeOperation: (lAttachmentEntry.clearValue) ? TextureOperation.Clear : TextureOperation.Keep,
-                texture: null
-            });
-        }
-
-        // Add optional depth or stencil targets.
+        // Setup initial data.
         this.mDepthStencilTexture = null;
-        if (pLayout.depth || pLayout.stencil) {
-            // Define basic layout.
-            this.mDepthStencilTexture = {
-                target: null
-            };
 
-            // Set depth texture information.
-            if (pLayout.depth) {
-                this.mDepthStencilTexture.depth = {
-                    clearValue: pLayout.depth.clearValue,
-                    storeOperation: (pLayout.depth.clearValue) ? TextureOperation.Clear : TextureOperation.Keep,
+        // Init setup object.
+        const lSelf: this = this;
+        const lSetupObject = new class implements IRenderTargetSetup {
+            public addColor(pName: string, pLocationIndex: number, pKeepOnEnd: boolean = true, pClearValue?: { r: number; g: number; b: number; a: number; }): RenderTargetColorSetup {
+                // Convert render attachment to a location mapping. 
+                const lTarget: RenderTargetsColorTarget = {
+                    name: pName,
+                    index: pLocationIndex,
+                    clearValue: pClearValue ?? null,
+                    storeOperation: (pKeepOnEnd) ? TextureOperation.Keep : TextureOperation.Clear,
+                    texture: null
                 };
+
+                // Add to color attachment list.
+                lSelf.mColorTextures.set(pName, lTarget);
+
+                return new RenderTargetColorSetup(lSelf.device, lTarget, () => {
+                    lSelf.triggerAutoUpdate(UpdateReason.ChildData);
+                });
             }
 
-            // Set stencil texture information.
-            if (pLayout.stencil) {
-                this.mDepthStencilTexture.stencil = {
-                    clearValue: pLayout.stencil.clearValue,
-                    storeOperation: (pLayout.stencil.clearValue) ? TextureOperation.Clear : TextureOperation.Keep,
+            public addDepth(pKeepOnEnd: boolean = false, pClearValue?: number): RenderTargetDepthStencilSetup {
+                // Define basic layout.
+                if (!lSelf.mDepthStencilTexture) {
+                    lSelf.mDepthStencilTexture = { target: null };
+                }
+
+                // Setup depth.
+                lSelf.mDepthStencilTexture.depth = {
+                    clearValue: pClearValue ?? null,
+                    storeOperation: (pKeepOnEnd) ? TextureOperation.Keep : TextureOperation.Clear,
                 };
+
+                return new RenderTargetDepthStencilSetup(lSelf.device, lSelf.mDepthStencilTexture, () => {
+                    lSelf.triggerAutoUpdate(UpdateReason.ChildData);
+                });
             }
-        }
+
+            public addStencil(pKeepOnEnd: boolean = false, pClearValue?: number): RenderTargetDepthStencilSetup {
+                // Define basic layout.
+                if (!lSelf.mDepthStencilTexture) {
+                    lSelf.mDepthStencilTexture = { target: null };
+                }
+
+                // Setup stencil.
+                lSelf.mDepthStencilTexture.stencil = {
+                    clearValue: pClearValue ?? null,
+                    storeOperation: (pKeepOnEnd) ? TextureOperation.Keep : TextureOperation.Clear,
+                };
+
+                return new RenderTargetDepthStencilSetup(lSelf.device, lSelf.mDepthStencilTexture, () => {
+                    lSelf.triggerAutoUpdate(UpdateReason.ChildData);
+                });
+            }
+        }();
+
+        // Call setup.
+        pSetup(lSetupObject);
     }
 
     /**
-     * Get color target setup object. 
+     * Resize all render targets.
      * 
-     * @param pTargetName - Color target name.
+     * @param pWidth - New texture width.
+     * @param pHeight - New texture height.
+     * @param pMultisampleLevel - New texture multisample level.
+     *  
+     * @returns this. 
      */
-    public colorTarget(pTargetName: string): RenderTargetColorSetup {
-        const lTarget: RenderTargetsColorTarget | undefined = this.mColorTextures.get(pTargetName);
+    public resize(pWidth: number, pHeight: number, pMultisampleLevel: number | null = null): this {
+        this.mSize.width = pWidth;
+        this.mSize.height = pHeight;
 
-        // Validate existance.
-        if (!lTarget) {
-            throw new Exception(`Render target "${pTargetName}" not specified`, this);
+        // Optional multisample level.
+        if (pMultisampleLevel !== null) {
+            this.mSize.multisampleLevel = pMultisampleLevel;
         }
 
-        return new RenderTargetColorSetup(this.device, lTarget, () => {
-            this.triggerAutoUpdate(UpdateReason.ChildData);
-        });
-    }
+        // Retrigger update.
+        this.triggerAutoUpdate(UpdateReason.Setting);
 
-    /**
-     * Get depth stencil target setup object. 
-     */
-    public depthStencilTarget(): RenderTargetDepthStencilSetup {
-        // Validate existance.
-        if (!this.mDepthStencilTexture) {
-            throw new Exception(`Render target depth stencil  not specified`, this);
-        }
-
-        return new RenderTargetDepthStencilSetup(this.device, this.mDepthStencilTexture, () => {
-            this.triggerAutoUpdate(UpdateReason.ChildData);
-        });
+        return this;
     }
 
     /**
@@ -380,25 +380,30 @@ export type RenderTargetsColorTarget = {
     texture: RenderTargetsColorTexture | null;
 };
 
-export type RenderTargetLayout = {
-    // Color attachments.
-    attachments: {
-        [attachmentName: string]: {
-            index: number;
-            storeOnLoad: boolean;
-            clearValue: { r: number; g: number; b: number; a: number; } | null;
-        };
-    };
+export interface IRenderTargetSetup { // TODO: How to move it into own file?
+    /**
+     * Add color target.
+     * 
+     * @param pName - Color target name.
+     * @param pLocationIndex - Target location index. 
+     * @param pKeepOnEnd - Keep information after render pass end.
+     * @param pClearValue - Clear value on render pass start. Omit to never clear.
+     */
+    addColor(pName: string, pLocationIndex: number, pKeepOnEnd?: boolean, pClearValue?: { r: number; g: number; b: number; a: number; }): RenderTargetColorSetup;
 
-    // Depth settings.
-    depth?: {
-        clearValue: number | null;
-        storeOnLoad: boolean;
-    };
+    /**
+     * Add depth target.
+     * 
+     * @param pKeepOnEnd - Keep information after render pass end.
+     * @param pClearValue - Clear value on render pass start. Omit to never clear.
+     */
+    addDepth(pKeepOnEnd?: boolean, pClearValue?: number): RenderTargetDepthStencilSetup; // TODO: Setup for depth and stencil overrides the same texture.
 
-    // Stencil settings.
-    stencil?: {
-        clearValue: number | null;
-        storeOnLoad: boolean;
-    };
-};
+    /**
+     * Add stencil target.
+     * 
+     * @param pKeepOnEnd - Keep information after render pass end.
+     * @param pClearValue - Clear value on render pass start. Omit to never clear.
+     */
+    addStencil(pKeepOnEnd?: boolean, pClearValue?: number): RenderTargetDepthStencilSetup;
+}

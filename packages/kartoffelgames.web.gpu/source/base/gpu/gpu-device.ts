@@ -1,9 +1,10 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { ShaderLayout } from '../shader/shader-layout';
+import { GpuExecution } from '../execution/gpu-execution';
+import { IRenderTargetSetup, RenderTargets } from '../pipeline/target/render-targets';
 import { Shader } from '../shader/shader';
+import { ShaderLayout } from '../shader/shader-layout';
 import { TextureFormatCapabilities } from '../texture/texture-format-capabilities';
 import { GpuCapabilities } from './capabilities/gpu-capabilities';
-import { GpuExecution } from '../execution/gpu-execution';
 
 export class GpuDevice {
     private static readonly mAdapters: Dictionary<GPUPowerPreference, GPUAdapter> = new Dictionary<GPUPowerPreference, GPUAdapter>();
@@ -14,6 +15,8 @@ export class GpuDevice {
      * @param pGenerator - Native object generator.
      */
     public static async request(pPerformance: GPUPowerPreference): Promise<GpuDevice> {
+        // TODO: Required and optional requirements. Load available features and limits from adapter and request in device.
+
         // Try to load cached adapter. When not cached, request new one.
         const lAdapter: GPUAdapter | null = GpuDevice.mAdapters.get(pPerformance) ?? await window.navigator.gpu.requestAdapter({ powerPreference: pPerformance });
         if (!lAdapter) {
@@ -30,21 +33,13 @@ export class GpuDevice {
 
         GpuDevice.mDevices.set(lAdapter, lDevice);
 
-        return new GpuDevice(lAdapter, lDevice);
+        return new GpuDevice(lDevice);
     }
 
     private readonly mCapabilities: GpuCapabilities;
     private readonly mFormatValidator: TextureFormatCapabilities;
     private mFrameCounter: number;
-    private readonly mGpuAdapter: GPUAdapter;
     private readonly mGpuDevice: GPUDevice;
-    
-    /**
-     * Gpu adapter.
-     */
-    public get adapter(): GPUAdapter {
-        return this.mGpuAdapter;
-    }
 
     /**
      * Gpu capabilities.
@@ -75,18 +70,10 @@ export class GpuDevice {
     }
 
     /**
-     * Preferred texture format.
-     */
-    public get preferredFormat(): GPUTextureFormat {
-        return window.navigator.gpu.getPreferredCanvasFormat();
-    }
-
-    /**
      * Constructor.
      * @param pGenerator - Native GPU-Object Generator.
      */
-    private constructor(pAdapter: GPUAdapter, pDevice: GPUDevice) {
-        this.mGpuAdapter = pAdapter;
+    private constructor(pDevice: GPUDevice) {
         this.mGpuDevice = pDevice;
 
         // Setup capabilities.
@@ -102,8 +89,19 @@ export class GpuDevice {
     /**
      * Create pass executor.
      */
-    public executor(pExecution: ExecutionFunction): GpuExecution {
-        return new GpuExecution(this, pExecution);
+    public executor(): GpuExecution {
+        return new GpuExecution(this, () => { /* TODO */ });
+    }
+
+    /**
+     * Create and setup render target object.
+     * 
+     * @param pSetup - Setup function.
+     * 
+     * @returns render target object. 
+     */
+    public renderTargets(pSetup: (pSetup: IRenderTargetSetup) => void): RenderTargets {
+        return new RenderTargets(this, pSetup);
     }
 
     /**

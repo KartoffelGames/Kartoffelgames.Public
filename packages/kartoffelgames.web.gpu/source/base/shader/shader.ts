@@ -5,7 +5,7 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
 import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
-import { VertexParameterLayout } from '../pipeline/parameter/vertex-parameter-layout';
+import { VertexParameterLayout, VertexParameterLayoutDefinition } from '../pipeline/parameter/vertex-parameter-layout';
 import { ShaderComputeModule } from './shader-compute-module';
 import { ShaderLayout } from './shader-layout';
 import { ShaderRenderModule } from './shader-render-module';
@@ -124,10 +124,10 @@ export class Shader extends GpuNativeObject<GPUShaderModule> {
             const lVertexEntry: ShaderLayout['vertexEntryPoints'][string] = pLayout.vertexEntryPoints[lVertexEntryName];
 
             // Convert all render attachments to a location mapping. 
-            const lLocations: ShaderModuleEntryPointVertex['parameter'] = new Dictionary<string, any>();
+            const lLocations: Array<VertexParameterLayoutDefinition> = new Array<VertexParameterLayoutDefinition>();
             for (const lParameterName of Object.keys(lVertexEntry.parameter)) {
                 const lAttachment: ShaderLayout['vertexEntryPoints'][string]['parameter'][string] = lVertexEntry.parameter[lParameterName];
-                lLocations.set(lParameterName, {
+                lLocations.push({
                     name: lParameterName,
                     location: lAttachment.location,
                     format: lAttachment.primitive.format,
@@ -137,7 +137,7 @@ export class Shader extends GpuNativeObject<GPUShaderModule> {
 
             // Set vertex entry point definition. 
             this.mEntryPoints.vertex.set(lVertexEntryName, {
-                parameter: lLocations
+                parameter: new VertexParameterLayout(this.device, lLocations)
             });
         }
     }

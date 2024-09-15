@@ -100,7 +100,7 @@ export class VertexParameterLayout extends GpuNativeObject<Array<GPUVertexBuffer
     }
 }
 
-type VertexParameterLayoutDefinition = {
+export type VertexParameterLayoutDefinition = {
     name: string;
     location: number;
     format: PrimitiveBufferFormat;

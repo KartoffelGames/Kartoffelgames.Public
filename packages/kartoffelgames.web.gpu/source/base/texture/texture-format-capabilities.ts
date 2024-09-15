@@ -1287,6 +1287,7 @@ export class TextureFormatCapabilities {
      */
     public formatSuggestion(pCapability: DeepPartial<TextureFormatCapability>): Array<TextureFormat> {
         // TODO: Find right suggestion for parameters.
+        return [];
     }
 }
 

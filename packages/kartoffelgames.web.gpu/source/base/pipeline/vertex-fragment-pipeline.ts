@@ -169,19 +169,15 @@ export class VertexFragmentPipeline extends GpuNativeObject<GPURenderPipeline> {
         }
 
         // Setup optional depth attachment.
-        const lDepthStencilBuffer = this.renderTargets.depthStencilTarget();
-        if (lDepthStencilBuffer) {
+        if (this.renderTargets.depthTexture) {
             lPipelineDescriptor.depthStencil = {
                 depthWriteEnabled: this.writeDepth,
                 depthCompare: this.depthCompare,
-                format: lDepthStencilBuffer.texture.memoryLayout.layout,
+                format: this.renderTargets.depthTexture.memoryLayout.format as GPUTextureFormat,
             };
-
-            // Stencil can only be set, when depth is set.
-            if (lDepthStencilBuffer.texture.memoryLayout.format === TextureFormat.Stencil || lDepthStencilBuffer.texture.memoryLayout.format === TextureFormat.DepthStencil) {
-                // TODO: Stencil settings. Empty for now.
-            }
         }
+
+        // TODO: Stencil.
 
         // Set multisample count.
         if (this.renderTargets.multiSampleLevel > 1) {

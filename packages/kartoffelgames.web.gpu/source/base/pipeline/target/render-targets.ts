@@ -1,14 +1,14 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
+import { TextureAspect } from '../../../constant/texture-aspect.enum';
 import { TextureOperation } from '../../../constant/texture-operation.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuNativeObject, NativeObjectLifeTime } from '../../gpu/gpu-native-object';
 import { UpdateReason } from '../../gpu/gpu-object-update-reason';
 import { CanvasTexture } from '../../texture/canvas-texture';
 import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
+import { TextureFormatCapability } from '../../texture/texture-format-capabilities';
 import { RenderTargetColorSetup } from './render-target-color-setup';
 import { RenderTargetDepthStencilSetup } from './render-target-depth-stencil-setup';
-import { TextureFormatCapability } from '../../texture/texture-format-capabilities';
-import { TextureAspect } from '../../../constant/texture-aspect.enum';
 
 /**
  * Group of textures with the same size and multisample level.
@@ -36,6 +36,13 @@ export class RenderTargets extends GpuNativeObject<GPURenderPassDescriptor> {
     }
 
     /**
+     * Depth attachment texture.
+     */
+    public get depthTexture(): FrameBufferTexture | null {
+        return this.mDepthStencilTexture?.depth ? this.mDepthStencilTexture.target : null;
+    }
+
+    /**
      * Render target height.
      */
     public get height(): number {
@@ -57,6 +64,13 @@ export class RenderTargets extends GpuNativeObject<GPURenderPassDescriptor> {
 
         // Trigger updates.
         this.triggerAutoUpdate(UpdateReason.ChildData);
+    }
+
+    /**
+     * Stencil attachment texture.
+     */
+    public get stencilTexture(): FrameBufferTexture | null {
+        return this.mDepthStencilTexture?.stencil ? this.mDepthStencilTexture.target : null;
     }
 
     /**

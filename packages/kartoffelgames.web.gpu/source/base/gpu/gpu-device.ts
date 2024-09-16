@@ -1,6 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { GpuExecution } from '../execution/gpu-execution';
-import { IRenderTargetSetup, RenderTargets } from '../pipeline/target/render-targets';
+import { RenderTargets } from '../pipeline/target/render-targets';
 import { Shader } from '../shader/shader';
 import { ShaderLayout } from '../shader/shader-layout';
 import { TextureFormatCapabilities } from '../texture/texture-format-capabilities';
@@ -94,14 +94,12 @@ export class GpuDevice {
     }
 
     /**
-     * Create and setup render target object.
-     * 
-     * @param pSetup - Setup function.
+     * Create render target object.
      * 
      * @returns render target object. 
      */
-    public renderTargets(pSetup: (pSetup: IRenderTargetSetup) => void): RenderTargets {
-        return new RenderTargets(this, pSetup);
+    public renderTargets(): RenderTargets {
+        return new RenderTargets(this);
     }
 
     /**

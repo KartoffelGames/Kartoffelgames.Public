@@ -34,20 +34,25 @@ const gDepth: number = 10;
     const lGpu: GpuDevice = await GpuDevice.request('high-performance');
 
     // Create and configure render targets.
-    const lRenderTargets: RenderTargets = lGpu.renderTargets((pSetup) => {
-        // Add "color" target and init new texture.
-        pSetup.addColor('color', 0, true, { r: 0, g: 0, b: 0, a: 0 })
-            .new(TextureFormat.Rgba8unorm);
+    const lRenderTargets: RenderTargets = lGpu.renderTargets()
+        .resize(640, 640, 2)
+        .setup((pSetup) => {
+            // Add "color" target and init new texture.
+            pSetup.addColor('color', 0, true, { r: 0, g: 0, b: 0, a: 0 })
+                .new(TextureFormat.Rgba8unorm);
 
-        // Add depth texture and init new texture.    
-        pSetup.addDepth(true, 0xff)
-            .new(TextureFormat.Depth24plus);
-    }).resize(640, 640, 2);
+            // Add depth texture and init new texture.    
+            pSetup.addDepthStencil(true, 0xff)
+                .new(TextureFormat.Depth24plus);
+        });
 
 
 
     // Create shader.
-    const lShader = lGpu.renderShader(shader, 'vertex_main', 'fragment_main');
+    const lShader = lGpu.shader(shader);
+
+
+    lGpu.renderShader(shader, 'vertex_main', 'fragment_main');
 
     /*
      * Transformation and position group. 

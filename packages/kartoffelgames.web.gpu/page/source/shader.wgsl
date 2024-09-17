@@ -6,16 +6,7 @@
 
 // ------------------------- World Values ---------------------- //
 @group(1) @binding(0) var<uniform> viewProjectionMatrix: mat4x4<f32>;
-// -------------------------------------------------------------- //
 
-
-// ------------------------- User Inputs ------------------------ //
-@group(2) @binding(0) var cubeTextureSampler: sampler;
-@group(2) @binding(1) var cubeTexture: texture_2d<f32>;
-// -------------------------------------------------------------- //
-
-
-// --------------------- Light calculations --------------------- //
 struct AmbientLight {
     color: vec4<f32>
 }
@@ -27,6 +18,16 @@ struct PointLight {
     range: f32
 }
 @group(1) @binding(2) var<storage, read> pointLights: array<PointLight>;
+// -------------------------------------------------------------- //
+
+
+// ------------------------- User Inputs ------------------------ //
+@group(2) @binding(0) var cubeTextureSampler: sampler;
+@group(2) @binding(1) var cubeTexture: texture_2d<f32>;
+// -------------------------------------------------------------- //
+
+
+// --------------------- Light calculations --------------------- //
 
 /**
  * Calculate point light output.

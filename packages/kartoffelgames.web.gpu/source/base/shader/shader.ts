@@ -7,20 +7,26 @@ import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-bu
 import { PrimitiveBufferMultiplier } from '../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
 import { VertexParameterLayout, VertexParameterLayoutDefinition } from '../pipeline/parameter/vertex-parameter-layout';
 import { ShaderComputeModule } from './shader-compute-module';
-import { ShaderLayout } from './shader-layout';
 import { ShaderRenderModule } from './shader-render-module';
+import { ShaderSetup } from './setup/shader-setup';
 
 export class Shader extends GpuNativeObject<GPUShaderModule> {
     private readonly mEntryPoints: ShaderModuleEntryPoints;
+    private mIsSetup: boolean;
     private readonly mParameter: Dictionary<string, PrimitiveBufferFormat>;
-    private readonly mPipelineLayout: PipelineLayout;
+    private mPipelineLayout: PipelineLayout | null;
     private readonly mSource: string;
 
     /**
      * Shader pipeline layout.
      */
     public get layout(): PipelineLayout {
-        return this.mPipelineLayout;
+        // Layout only available after setup.
+        if (this.mIsSetup) {
+            throw new Exception(`To access the layout, the shader must be setup.`, this);
+        }
+
+        return this.mPipelineLayout!;
     }
 
     /**
@@ -36,13 +42,24 @@ export class Shader extends GpuNativeObject<GPUShaderModule> {
      * @param pSource - Shader source as wgsl code.
      * @param pLayout - Shader layout information.
      */
-    public constructor(pDevice: GpuDevice, pSource: string, pLayout: ShaderLayout) {
+    public constructor(pDevice: GpuDevice, pSource: string) {
         super(pDevice, NativeObjectLifeTime.Persistent);
 
-        // TODO: Add limitations that should be checked. (GroupCount, BindCount, Float16)
+        // Init setup object.
+        this.mIsSetup = false;
 
         // Create shader information for source.
         this.mSource = pSource;
+
+        // Init default unset values.
+        this.mParameter = new Dictionary<string, PrimitiveBufferFormat>();
+        this.mPipelineLayout = null;
+        this.mEntryPoints = {
+            compute: new Dictionary<string, ShaderModuleEntryPointCompute>(),
+            vertex: new Dictionary<string, ShaderModuleEntryPointVertex>(),
+            fragment: new Dictionary<string, ShaderModuleEntryPointFragment>()
+        };
+
 
         // Generate initial pipeline layout.
         const lInitialPipelineLayout: Dictionary<number, BindGroupLayout> = new Dictionary<number, BindGroupLayout>();
@@ -66,35 +83,6 @@ export class Shader extends GpuNativeObject<GPUShaderModule> {
 
             // Set bind group layout with group index.
             lInitialPipelineLayout.set(lGroup.index, new BindGroupLayout(this.device, lGroupName, lBindLayoutList));
-        }
-
-        // Generate layout.
-        this.mPipelineLayout = new PipelineLayout(this.device, lInitialPipelineLayout);
-
-        // Save parameters.
-        this.mParameter = new Dictionary<string, PrimitiveBufferFormat>(Object.entries(pLayout.parameter));
-
-        // Init entry points.
-        this.mEntryPoints = {
-            compute: new Dictionary<string, ShaderModuleEntryPointCompute>(),
-            vertex: new Dictionary<string, ShaderModuleEntryPointVertex>(),
-            fragment: new Dictionary<string, ShaderModuleEntryPointFragment>()
-        };
-
-        // Convert compute entry point informations
-        for (const lComputeEntryName of Object.keys(pLayout.computeEntryPoints)) {
-            const lComputeEntry: ShaderLayout['computeEntryPoints'][string] = pLayout.computeEntryPoints[lComputeEntryName];
-
-            this.mEntryPoints.compute.set(lComputeEntryName, {
-                // Workgroup is static when all dimensions are static set.
-                static: lComputeEntry.workgroupSize.x > 0 && lComputeEntry.workgroupSize.y > 0 && lComputeEntry.workgroupSize.z > 0,
-
-                workgroupDimension: {
-                    x: lComputeEntry.workgroupSize.x > 0 ? lComputeEntry.workgroupSize.x : null,
-                    y: lComputeEntry.workgroupSize.y > 0 ? lComputeEntry.workgroupSize.y : null,
-                    z: lComputeEntry.workgroupSize.z > 0 ? lComputeEntry.workgroupSize.z : null
-                }
-            });
         }
 
         // Convert fragment entry point informations
@@ -193,6 +181,47 @@ export class Shader extends GpuNativeObject<GPUShaderModule> {
     }
 
     /**
+     * Setup render targets.
+     * Can only be called once and is the only way to create or add target textures.
+     * 
+     * @param pSetup - Setup call.
+     * 
+     * @returns this. 
+     */
+    public setup(pSetup: (pSetup: ShaderSetup) => void): this {
+        // Dont call twice.
+        if (this.mIsSetup) {
+            throw new Exception(`Shader setup can't be called twice.`, this);
+        }
+
+        // Create references to internal resources.
+        const lSetupReference: ShaderSetupReference = {
+            shader: this,
+            device: this.device,
+            inSetup: true,
+            entrypoints: this.mEntryPoints,
+            parameter: this.mParameter,
+            pipelineLayout: new Dictionary<number, BindGroupLayout>()
+        };
+
+        // Call setup.
+        pSetup(new ShaderSetup(lSetupReference));
+
+        // Lock setup.
+        this.mIsSetup = true;
+
+        // Lock setup reference.
+        lSetupReference.inSetup = false;
+
+        // Init and generate layout.
+        this.mPipelineLayout = new PipelineLayout(this.device, lSetupReference.pipelineLayout);
+
+        // TODO: Add limitations that should be checked. (GroupCount, BindCount, Float16)
+
+        return this;
+    }
+
+    /**
      * Destroy absolutly nothing.
      */
     protected override destroy(): void {
@@ -203,6 +232,11 @@ export class Shader extends GpuNativeObject<GPUShaderModule> {
      * Generate shader module.
      */
     protected override generate(): GPUShaderModule {
+        // Must be setup.
+        if (!this.mIsSetup) {
+            throw new Exception(`Shader must be setup.`, this);
+        }
+
         // TODO: Create compilationHints for every entry point?
 
         // Create shader module use hints to speed up compilation on safari.
@@ -213,7 +247,7 @@ export class Shader extends GpuNativeObject<GPUShaderModule> {
     }
 }
 
-type ShaderModuleEntryPointCompute = {
+export type ShaderModuleEntryPointCompute = {
     static: boolean;
     workgroupDimension: {
         x: number | null;
@@ -222,11 +256,11 @@ type ShaderModuleEntryPointCompute = {
     };
 };
 
-type ShaderModuleEntryPointVertex = {
+export type ShaderModuleEntryPointVertex = {
     parameter: VertexParameterLayout;
 };
 
-type ShaderModuleEntryPointFragment = {
+export type ShaderModuleEntryPointFragment = {
     attachments: Dictionary<string, {
         name: string;
         location: number;
@@ -239,4 +273,81 @@ type ShaderModuleEntryPoints = {
     compute: Dictionary<string, ShaderModuleEntryPointCompute>,
     vertex: Dictionary<string, ShaderModuleEntryPointVertex>,
     fragment: Dictionary<string, ShaderModuleEntryPointFragment>,
+};
+
+export type ShaderSetupReference = {
+    shader: Shader;
+    device: GpuDevice;
+    inSetup: boolean;
+    entrypoints: ShaderModuleEntryPoints;
+    parameter: Dictionary<string, PrimitiveBufferFormat>;
+    pipelineLayout: Dictionary<number, BindGroupLayout>;
+};
+
+
+
+/**
+ * Shader layout description. // TODO: remove
+ */
+export type ShaderLayout = {
+    // Memory binding.
+    groups: {
+        [groupName: string]: {
+            index: number;
+            bindings: {
+                [bindingName: string]: {
+                    index: number,
+                    layout: BaseMemoryLayout;
+                    visibility: ComputeStage;
+                    accessMode: AccessMode;
+                };
+            };
+        };
+    };
+
+    // Parameter.
+    parameter: {
+        [parameterName: string]: PrimitiveBufferFormat;
+    };
+
+    // Compute entry points.
+    computeEntryPoints: {
+        [functionName: string]: {
+            workgroupSize: {
+                x: number;
+                y: number;
+                z: number;
+            };
+        };
+    };
+
+    // Vertex entry point.
+    vertexEntryPoints: {
+        [functionName: string]: {
+            parameter: {
+                [parameterName: string]: {
+                    location: number;
+                    primitive: {
+                        format: PrimitiveBufferFormat;
+                        multiplier: PrimitiveBufferMultiplier;
+                    };
+                };
+            };
+        };
+    };
+
+    // Fragment entry point.
+    fragmentEntryPoints: {
+        [functionName: string]: {
+            attachments: {
+                [attachmentName: string]: {
+                    location: number;
+                    primitive: {
+                        format: PrimitiveBufferFormat;
+                        multiplier: PrimitiveBufferMultiplier;
+                    };
+                };
+            };
+        };
+    };
 };

@@ -2,7 +2,6 @@ import { Dictionary, Exception } from '@kartoffelgames/core';
 import { GpuExecution } from '../execution/gpu-execution';
 import { RenderTargets } from '../pipeline/target/render-targets';
 import { Shader } from '../shader/shader';
-import { ShaderLayout } from '../shader/shader-layout';
 import { TextureFormatCapabilities } from '../texture/texture-format-capabilities';
 import { GpuCapabilities } from './capabilities/gpu-capabilities';
 
@@ -106,10 +105,9 @@ export class GpuDevice {
      * Create shader.
      * 
      * @param pSource - Shader source as wgsl.
-     * @param pLayout - Shader layout.
      */
-    public shader(pSource: string, pLayout: ShaderLayout): Shader {
-        return new Shader(this, pSource, pLayout);
+    public shader(pSource: string): Shader {
+        return new Shader(this, pSource);
     }
 
     /**

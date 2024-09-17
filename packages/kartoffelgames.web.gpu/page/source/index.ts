@@ -1,6 +1,5 @@
 import { InstructionExecuter } from '../../source/base/execution/instruction-executor';
 import { GpuDevice } from '../../source/base/gpu/gpu-device';
-
 import { ArrayBufferMemoryLayout } from '../../source/base/memory_layout/buffer/array-buffer-memory-layout';
 import { PrimitiveBufferMemoryLayout } from '../../source/base/memory_layout/buffer/primitive-buffer-memory-layout';
 import { StructBufferMemoryLayout } from '../../source/base/memory_layout/buffer/struct-buffer-memory-layout';
@@ -49,15 +48,19 @@ const gDepth: number = 10;
 
 
     // Create shader.
-    const lShader = lGpu.shader(shader);
+    const lShader = lGpu.shader(shader)
+        .setup((pSetup) => {
+
+        });
 
 
-    lGpu.renderShader(shader, 'vertex_main', 'fragment_main');
+    // Create render module from shader.
+    const lRenderModule = lShader.createRenderModule('vertex_main', 'fragment_main');
 
     /*
      * Transformation and position group. 
      */
-    const lTransformationGroupLayout = lShader.pipelineLayout.getGroupLayout(0);
+    const lTransformationGroupLayout = lRenderModule.pipelineLayout.getGroupLayout(0);
     const lTransformationGroup = lTransformationGroupLayout.createGroup();
 
     // Create transformation.
@@ -79,7 +82,7 @@ const gDepth: number = 10;
     /*
      * Camera and world group. 
      */
-    const lWorldGroupLayout = lShader.pipelineLayout.getGroupLayout(1);
+    const lWorldGroupLayout = lRenderModule.pipelineLayout.getGroupLayout(1);
     const lWorldGroup = lWorldGroupLayout.createGroup();
 
     // Create camera perspective.
@@ -108,7 +111,7 @@ const gDepth: number = 10;
     /*
      * User defined group.
      */
-    const lUserGroupLayout = lShader.pipelineLayout.getGroupLayout(2);
+    const lUserGroupLayout = lRenderModule.pipelineLayout.getGroupLayout(2);
     const lUserGroup = lUserGroupLayout.createGroup();
 
     // Setup cube texture.
@@ -120,13 +123,13 @@ const gDepth: number = 10;
     lUserGroup.setData('cubeTextureSampler', lCubeSampler);
 
     // Generate render parameter from parameter layout.
-    const lMesh: VertexParameter = lShader.parameterLayout.createData(CubeVertexIndices);
+    const lMesh: VertexParameter = lRenderModule.parameterLayout.createData(CubeVertexIndices);
     lMesh.set('vertex.position', CubeVertexPositionData);
     lMesh.set('vertex.uv', CubeVertexUvData); // TODO: Convert to Indexbased parameter.
     lMesh.set('vertex.normal', CubeVertexNormalData); // TODO: Convert to Indexbased parameter.
 
     // Create pipeline.
-    const lPipeline: VertexFragmentPipeline = lShader.createPipeline(lRenderTargets);
+    const lPipeline: VertexFragmentPipeline = lRenderModule.createPipeline(lRenderTargets);
     lPipeline.primitiveCullMode = PrimitiveCullMode.Back;
 
     // Create executor.

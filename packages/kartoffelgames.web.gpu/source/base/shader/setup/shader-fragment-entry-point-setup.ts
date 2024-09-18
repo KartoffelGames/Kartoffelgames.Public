@@ -11,17 +11,17 @@ export class ShaderFragmentEntryPointSetup {
      * Constructor.
      * 
      * @param pSetupReference - Setup references.
-     * @param pSizeCallback - Size update callback.
+     * @param pRenderTargetCallback - Render target update callback.
      */
-    public constructor(pSetupReference: ShaderSetupReference, pSizeCallback: RenderTargetCallback) {
+    public constructor(pSetupReference: ShaderSetupReference, pRenderTargetCallback: RenderTargetCallback) {
         this.mSetupReference = pSetupReference;
-        this.mRenderTargetCallback = pSizeCallback;
+        this.mRenderTargetCallback = pRenderTargetCallback;
     }
 
     /**
      * Setup fragment render target.
      */
-    public addRenderTarget(pName: string, pLocationIndex: number, pDataFormat: PrimitiveBufferFormat, pDataMultiplier: PrimitiveBufferMultiplier): void {
+    public addRenderTarget(pName: string, pLocationIndex: number, pDataFormat: PrimitiveBufferFormat, pDataMultiplier: PrimitiveBufferMultiplier): this {
         // Lock setup to a setup call.
         if (!this.mSetupReference.inSetup) {
             throw new Exception('Can only setup fragment shader entry point in a setup call.', this);
@@ -36,6 +36,8 @@ export class ShaderFragmentEntryPointSetup {
 
         // Callback size.
         this.mRenderTargetCallback(lRenderTarget);
+
+        return this;
     }
 }
 

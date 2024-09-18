@@ -1,8 +1,9 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
-import { ShaderModuleEntryPointCompute, ShaderModuleEntryPointFragment, ShaderModuleEntryPointFragmentRenderTarget, ShaderSetupReference } from '../shader';
+import { ShaderModuleEntryPointCompute, ShaderModuleEntryPointFragment, ShaderModuleEntryPointFragmentRenderTarget, ShaderModuleEntryPointVertex, ShaderSetupReference } from '../shader';
 import { ShaderComputeEntryPointSetup } from './shader-compute-entry-point-setup';
 import { ShaderFragmentEntryPointSetup } from './shader-fragment-entry-point-setup';
+import { VertexParameterLayoutDefinition } from '../../pipeline/parameter/vertex-parameter-layout';
 
 export class ShaderSetup {
     private readonly mSetupReference: ShaderSetupReference;
@@ -83,7 +84,7 @@ export class ShaderSetup {
     /**
      * Setup fragment entry point.
      * 
-     * @param pName - Compute entry name.
+     * @param pName - Fragment entry name.
      */
     public fragmentEntryPoint(pName: string): ShaderFragmentEntryPointSetup {
         // Lock setup to a setup call.
@@ -114,12 +115,41 @@ export class ShaderSetup {
         });
     }
 
-    public vertexEntryPoint(): void {
+    /**
+     * Setup vertex entry point.
+     * 
+     * @param pName - Vertex entry name.
+     */
+    public vertexEntryPoint(pName: string): void {
         // Lock setup to a setup call.
         if (!this.mSetupReference.inSetup) {
             throw new Exception('Can only setup shader in a setup call.', this);
         }
 
-        // TODO:
+        // Restrict dublicate fragment entries.
+        if (this.mSetupReference.entrypoints.vertex.has(pName)) {
+            throw new Exception(`Can't add dublicate vertex entry point "${pName}"`, this.mSetupReference.shader);
+        }
+
+        // Create empty fragment entry point.
+        const lEntryPoint: ShaderModuleEntryPointVertex = {
+            parameter: VertexParameterLayout
+        };
+
+        const a: VertexParameterLayoutDefinition = {
+            
+        }
+
+        // Append compute entry.
+        this.mSetupReference.entrypoints.fragment.set(pName, lEntryPoint);
+
+        // Return fragment entry setup object.
+        return new ShaderFragmentEntryPointSetup(this.mSetupReference, (pRenderTarget: ShaderModuleEntryPointFragmentRenderTarget) => {
+            if (lEntryPoint.renderTargets.has(pName)) {
+                throw new Exception(`Can't add dublicate render target to fragment entry point`, this);
+            }
+
+            lEntryPoint.renderTargets.set(pRenderTarget.name, pRenderTarget);
+        });
     }
 }

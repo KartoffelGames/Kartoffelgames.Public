@@ -285,8 +285,6 @@ export type ShaderSetupReference = {
     pipelineLayout: Dictionary<number, BindGroupLayout>;
 };
 
-
-
 /**
  * Shader layout description. // TODO: remove
  */

@@ -1,7 +1,8 @@
-import { Exception } from '@kartoffelgames/core';
+import { Dictionary, Exception } from '@kartoffelgames/core';
 import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
-import { ShaderModuleEntryPointCompute, ShaderSetupReference } from '../shader';
+import { ShaderModuleEntryPointCompute, ShaderModuleEntryPointFragment, ShaderModuleEntryPointFragmentRenderTarget, ShaderSetupReference } from '../shader';
 import { ShaderComputeEntryPointSetup } from './shader-compute-entry-point-setup';
+import { ShaderFragmentEntryPointSetup } from './shader-fragment-entry-point-setup';
 
 export class ShaderSetup {
     private readonly mSetupReference: ShaderSetupReference;
@@ -79,13 +80,38 @@ export class ShaderSetup {
         });
     }
 
-    public fragmentEntryPoint(): void {
+    /**
+     * Setup fragment entry point.
+     * 
+     * @param pName - Compute entry name.
+     */
+    public fragmentEntryPoint(pName: string): ShaderFragmentEntryPointSetup {
         // Lock setup to a setup call.
         if (!this.mSetupReference.inSetup) {
             throw new Exception('Can only setup shader in a setup call.', this);
         }
 
-        // TODO:
+        // Restrict dublicate fragment entries.
+        if (this.mSetupReference.entrypoints.fragment.has(pName)) {
+            throw new Exception(`Can't add dublicate fragment entry point "${pName}"`, this.mSetupReference.shader);
+        }
+
+        // Create empty fragment entry point.
+        const lEntryPoint: ShaderModuleEntryPointFragment = {
+            renderTargets: new Dictionary<string, ShaderModuleEntryPointFragmentRenderTarget>()
+        };
+
+        // Append compute entry.
+        this.mSetupReference.entrypoints.fragment.set(pName, lEntryPoint);
+
+        // Return fragment entry setup object.
+        return new ShaderFragmentEntryPointSetup(this.mSetupReference, (pRenderTarget: ShaderModuleEntryPointFragmentRenderTarget) => {
+            if (lEntryPoint.renderTargets.has(pName)) {
+                throw new Exception(`Can't add dublicate render target to fragment entry point`, this);
+            }
+
+            lEntryPoint.renderTargets.set(pRenderTarget.name, pRenderTarget);
+        });
     }
 
     public vertexEntryPoint(): void {

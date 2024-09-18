@@ -6,9 +6,9 @@ import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object'
 import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
 import { VertexParameterLayout, VertexParameterLayoutDefinition } from '../pipeline/parameter/vertex-parameter-layout';
+import { ShaderSetup } from './setup/shader-setup';
 import { ShaderComputeModule } from './shader-compute-module';
 import { ShaderRenderModule } from './shader-render-module';
-import { ShaderSetup } from './setup/shader-setup';
 
 export class Shader extends GpuNativeObject<GPUShaderModule> {
     private readonly mEntryPoints: ShaderModuleEntryPoints;
@@ -90,7 +90,7 @@ export class Shader extends GpuNativeObject<GPUShaderModule> {
             const lFragmentEntry: ShaderLayout['fragmentEntryPoints'][string] = pLayout.fragmentEntryPoints[lFragmentEntryName];
 
             // Convert all render attachments to a location mapping. 
-            const lLocations: ShaderModuleEntryPointFragment['attachments'] = new Dictionary<string, any>();
+            const lLocations: ShaderModuleEntryPointFragment['renderTargets'] = new Dictionary<string, any>();
             for (const lAttachmentName of Object.keys(lFragmentEntry.attachments)) {
                 const lAttachment: ShaderLayout['fragmentEntryPoints'][string]['attachments'][string] = lFragmentEntry.attachments[lAttachmentName];
                 lLocations.set(lAttachmentName, {
@@ -103,7 +103,7 @@ export class Shader extends GpuNativeObject<GPUShaderModule> {
 
             // Set fragment entry point definition. 
             this.mEntryPoints.fragment.set(lFragmentEntryName, {
-                attachments: lLocations
+                renderTargets: lLocations
             });
         }
 
@@ -260,13 +260,14 @@ export type ShaderModuleEntryPointVertex = {
     parameter: VertexParameterLayout;
 };
 
+export type ShaderModuleEntryPointFragmentRenderTarget = {
+    name: string;
+    location: number;
+    format: PrimitiveBufferFormat;
+    multiplier: PrimitiveBufferMultiplier;
+};
 export type ShaderModuleEntryPointFragment = {
-    attachments: Dictionary<string, {
-        name: string;
-        location: number;
-        format: PrimitiveBufferFormat;
-        multiplier: PrimitiveBufferMultiplier;
-    }>;
+    renderTargets: Dictionary<string, ShaderModuleEntryPointFragmentRenderTarget>;
 };
 
 type ShaderModuleEntryPoints = {

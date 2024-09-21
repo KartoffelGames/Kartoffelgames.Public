@@ -2,14 +2,14 @@ import { TypedArray } from '@kartoffelgames/core';
 import { BufferUsage } from '../../constant/buffer-usage.enum';
 import { MemoryCopyType } from '../../constant/memory-copy-type.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
-import { UpdateReason } from '../gpu/gpu-object-update-reason';
+import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
+import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 
 /**
  * GpuBuffer. Uses local and native gpu buffers.
  */
-export class GpuBuffer<TType extends TypedArray> extends GpuNativeObject<GPUBuffer> {
+export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> {
     private readonly mCopyType: MemoryCopyType;
     private readonly mDataType: BufferDataType<TType>;
     private readonly mItemCount: number;

@@ -1,10 +1,10 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuNativeObject, GpuObjectUpdateListener, NativeObjectLifeTime } from '../gpu/gpu-native-object';
-import { UpdateReason } from '../gpu/gpu-object-update-reason';
+import { GpuObject, GpuObjectUpdateListener, NativeObjectLifeTime } from '../gpu/object/gpu-object';
+import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
 import { BindGroupLayout, BindLayout } from './bind-group-layout';
 
-export class PipelineLayout extends GpuNativeObject<GPUPipelineLayout> {
+export class PipelineLayout extends GpuObject<GPUPipelineLayout> {
     private readonly mBindGroupInvalidationListener: WeakMap<BindGroupLayout, GpuObjectUpdateListener>;
     private readonly mBindGroupNames: Dictionary<string, number>;
     private readonly mBindGroups: Dictionary<number, BindGroupLayout>;
@@ -228,13 +228,6 @@ export class PipelineLayout extends GpuNativeObject<GPUPipelineLayout> {
 
         // Trigger auto update.
         this.triggerAutoUpdate(UpdateReason.ChildData);
-    }
-
-    /**
-     * Destroy native object.
-     */
-    protected override destroy(): void {
-        // Nothing to destroy as it is only a descriptor object.
     }
 
     /**

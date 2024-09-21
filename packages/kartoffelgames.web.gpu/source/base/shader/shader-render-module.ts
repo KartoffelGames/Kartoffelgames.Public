@@ -1,6 +1,6 @@
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/gpu-object';
-import { UpdateReason } from '../gpu/gpu-object-update-reason';
+import { GpuObject } from '../gpu/object/gpu-object';
+import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
 import { VertexParameterLayout } from '../pipeline/parameter/vertex-parameter-layout';
 import { Shader } from './shader';
 

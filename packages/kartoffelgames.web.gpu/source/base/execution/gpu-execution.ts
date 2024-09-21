@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/gpu-object';
+import { GpuObject } from '../gpu/object/gpu-object';
 
 export class GpuExecution extends GpuObject {
     private mEncoder: GPUCommandEncoder | null;

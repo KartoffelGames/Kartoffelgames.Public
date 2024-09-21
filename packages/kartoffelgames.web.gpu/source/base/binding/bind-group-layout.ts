@@ -4,8 +4,8 @@ import { BufferUsage } from '../../constant/buffer-usage.enum';
 import { ComputeStage } from '../../constant/compute-stage.enum';
 import { TextureBindType } from '../../constant/texture-bind-type.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
-import { UpdateReason } from '../gpu/gpu-object-update-reason';
+import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
+import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
 import { BaseMemoryLayout } from '../memory_layout/base-memory-layout';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
@@ -17,7 +17,7 @@ import { TextureFormatCapability } from '../texture/texture-format-capabilities'
 /**
  * Bind group layout. Fixed at creation. 
  */
-export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
+export class BindGroupLayout extends GpuObject<GPUBindGroupLayout> {
     private readonly mBindings: Dictionary<string, BindLayout>;
     private readonly mName: string;
 
@@ -102,13 +102,6 @@ export class BindGroupLayout extends GpuNativeObject<GPUBindGroupLayout> {
         }
 
         return this.mBindings.get(pName)!;
-    }
-
-    /**
-     * Destroy nothing.
-     */
-    protected override destroy(): void {
-        // Yeah nothing is here to destroy.
     }
 
     /**

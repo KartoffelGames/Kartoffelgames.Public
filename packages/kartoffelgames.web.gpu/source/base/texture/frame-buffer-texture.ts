@@ -1,11 +1,11 @@
 import { Exception } from '@kartoffelgames/core';
 import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
-import { UpdateReason } from '../gpu/gpu-object-update-reason';
+import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
+import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 
-export class FrameBufferTexture extends GpuNativeObject<GPUTextureView> {
+export class FrameBufferTexture extends GpuObject<GPUTextureView> {
     private mDepth: number;
     private mHeight: number;
     private readonly mMemoryLayout: TextureMemoryLayout;

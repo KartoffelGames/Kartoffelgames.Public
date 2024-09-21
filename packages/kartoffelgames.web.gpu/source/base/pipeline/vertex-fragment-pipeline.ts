@@ -3,12 +3,12 @@ import { PrimitiveCullMode } from '../../constant/primitive-cullmode.enum';
 import { PrimitiveFrontFace } from '../../constant/primitive-front-face.enum';
 import { PrimitiveTopology } from '../../constant/primitive-topology.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
-import { UpdateReason } from '../gpu/gpu-object-update-reason';
+import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
+import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
 import { ShaderRenderModule } from '../shader/shader-render-module';
 import { RenderTargets } from './target/render-targets';
 
-export class VertexFragmentPipeline extends GpuNativeObject<GPURenderPipeline> {
+export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline> {
     private mDepthCompare: CompareFunction;
     private mDepthWriteEnabled: boolean;
     private mPrimitiveCullMode: PrimitiveCullMode;
@@ -120,13 +120,6 @@ export class VertexFragmentPipeline extends GpuNativeObject<GPURenderPipeline> {
         this.mPrimitiveTopology = PrimitiveTopology.TriangleList;
         this.mPrimitiveCullMode = PrimitiveCullMode.Back;
         this.mPrimitiveFrontFace = PrimitiveFrontFace.ClockWise;
-    }
-
-    /**
-     * Destroy nothing.
-     */
-    protected override destroy(): void {
-        // Destroy nothing.
     }
 
     /**

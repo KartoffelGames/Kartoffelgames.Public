@@ -1,6 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../../gpu/gpu-device';
-import { GpuNativeObject, NativeObjectLifeTime } from '../../gpu/gpu-native-object';
+import { GpuObject, NativeObjectLifeTime } from '../../gpu/object/gpu-object';
 import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
 import { VertexParameter } from './vertex-parameter';
@@ -8,7 +8,7 @@ import { VertexParameter } from './vertex-parameter';
 /**
  * Vertex parameter layout.
  */
-export class VertexParameterLayout extends GpuNativeObject<Array<GPUVertexBufferLayout>> {
+export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout>> {
     private readonly mParameter: Dictionary<string, VertexParameterLayoutDefinition>;
 
     /**
@@ -61,13 +61,6 @@ export class VertexParameterLayout extends GpuNativeObject<Array<GPUVertexBuffer
         }
 
         return lLayout;
-    }
-
-    /**
-     * Destruct nothing.
-     */
-    protected override destroy(): void {
-        // Nothing to destroy as it is only a description.
     }
 
     /**

@@ -45,8 +45,6 @@ const gDepth: number = 10;
                 .new(TextureFormat.Depth24plus);
         });
 
-
-
     // Create shader.
     const lShader = lGpu.shader(shader)
         .setup((pSetup) => {

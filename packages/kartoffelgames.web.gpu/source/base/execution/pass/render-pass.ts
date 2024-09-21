@@ -4,7 +4,7 @@ import { GpuDevice } from '../../gpu/gpu-device';
 
 import { PipelineLayout } from '../../binding/pipeline-layout';
 import { GpuBuffer } from '../../buffer/gpu-buffer';
-import { GpuObject } from '../../gpu/gpu-object';
+import { GpuObject } from '../../gpu/object/gpu-object';
 import { VertexParameter } from '../../pipeline/parameter/vertex-parameter';
 import { RenderTargets } from '../../pipeline/target/render-targets';
 import { VertexFragmentPipeline } from '../../pipeline/vertex-fragment-pipeline';

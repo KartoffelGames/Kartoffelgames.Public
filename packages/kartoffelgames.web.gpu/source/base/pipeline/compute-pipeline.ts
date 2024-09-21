@@ -1,9 +1,9 @@
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
-import { UpdateReason } from '../gpu/gpu-object-update-reason';
+import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
+import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
 import { ShaderComputeModule } from '../shader/shader-compute-module';
 
-export class ComputePipeline extends GpuNativeObject<GPUComputePipeline> {
+export class ComputePipeline extends GpuObject<GPUComputePipeline> {
     private readonly mShaderModule: ShaderComputeModule;
 
     /**
@@ -27,13 +27,6 @@ export class ComputePipeline extends GpuNativeObject<GPUComputePipeline> {
         pShader.addInvalidationListener(() => {
             this.triggerAutoUpdate(UpdateReason.ChildData);
         });
-    }
-
-    /**
-     * Destroys nothing.
-     */
-    protected override destroy(): void {
-        // Nothing to destroy.
     }
 
     /**

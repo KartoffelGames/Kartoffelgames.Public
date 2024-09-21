@@ -1,6 +1,6 @@
-import { InvalidationObject } from '../gpu/invalidation-object';
+import { GpuSettingObject } from '../gpu/object/gpu-setting-object';
 
-export abstract class BaseMemoryLayout extends InvalidationObject {
+export abstract class BaseMemoryLayout extends GpuSettingObject {
     private readonly mName: string;
 
     /**

@@ -2,7 +2,7 @@ import { Dictionary, Exception } from '@kartoffelgames/core';
 import { BindGroupLayout, BindLayout } from '../binding/bind-group-layout';
 import { PipelineLayout } from '../binding/pipeline-layout';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
+import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
 import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
 import { VertexParameterLayout, VertexParameterLayoutDefinition } from '../pipeline/parameter/vertex-parameter-layout';
@@ -10,7 +10,7 @@ import { ShaderSetup } from './setup/shader-setup';
 import { ShaderComputeModule } from './shader-compute-module';
 import { ShaderRenderModule } from './shader-render-module';
 
-export class Shader extends GpuNativeObject<GPUShaderModule> {
+export class Shader extends GpuObject<GPUShaderModule> {
     private readonly mEntryPoints: ShaderModuleEntryPoints;
     private mIsSetup: boolean;
     private readonly mParameter: Dictionary<string, PrimitiveBufferFormat>;
@@ -219,13 +219,6 @@ export class Shader extends GpuNativeObject<GPUShaderModule> {
         // TODO: Add limitations that should be checked. (GroupCount, BindCount, Float16)
 
         return this;
-    }
-
-    /**
-     * Destroy absolutly nothing.
-     */
-    protected override destroy(): void {
-        // Nothing to destroy.
     }
 
     /**

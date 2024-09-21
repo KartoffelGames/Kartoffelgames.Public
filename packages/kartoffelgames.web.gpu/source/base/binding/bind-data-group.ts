@@ -1,8 +1,8 @@
 import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core';
 import { GpuBuffer } from '../buffer/gpu-buffer';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
-import { UpdateReason } from '../gpu/gpu-object-update-reason';
+import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
+import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
 import { CanvasTexture } from '../texture/canvas-texture';
 import { FrameBufferTexture } from '../texture/frame-buffer-texture';
 import { ImageTexture } from '../texture/image-texture';
@@ -10,7 +10,7 @@ import { TextureSampler } from '../texture/texture-sampler';
 import { VideoTexture } from '../texture/video-texture';
 import { BindGroupLayout } from './bind-group-layout';
 
-export class BindDataGroup extends GpuNativeObject<GPUBindGroup> {
+export class BindDataGroup extends GpuObject<GPUBindGroup> {
     private readonly mBindData: Dictionary<string, BindData>;
     private readonly mLayout: BindGroupLayout;
 
@@ -60,13 +60,6 @@ export class BindDataGroup extends GpuNativeObject<GPUBindGroup> {
 
         // Set bind type to Teture for TS type check shutup.
         this.mBindData.set(pBindName, pData);
-    }
-
-    /**
-     * Destroy nothing.
-     */
-    protected override destroy(): void {
-        // Yeah nothing is here to destroy.
     }
 
     /**

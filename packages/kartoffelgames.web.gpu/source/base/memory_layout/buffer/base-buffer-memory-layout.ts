@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { BufferUsage } from '../../../constant/buffer-usage.enum';
-import { UpdateReason } from '../../gpu/gpu-object-update-reason';
+import { UpdateReason } from '../../gpu/object/gpu-object-update-reason';
 import { BaseMemoryLayout, MemoryLayoutParameter } from '../base-memory-layout';
 
 export abstract class BaseBufferMemoryLayout extends BaseMemoryLayout {

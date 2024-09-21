@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { BaseBufferMemoryLayout, BufferLayoutLocation, BufferMemoryLayoutParameter } from './base-buffer-memory-layout';
-import { UpdateReason } from '../../gpu/gpu-object-update-reason';
+import { UpdateReason } from '../../gpu/object/gpu-object-update-reason';
 
 export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
     private mAlignment: number;

@@ -2,7 +2,7 @@ import { TextureBindType } from '../../../constant/texture-bind-type.enum';
 import { TextureDimension } from '../../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../../constant/texture-format.enum';
 import { TextureUsage } from '../../../constant/texture-usage.enum';
-import { UpdateReason } from '../../gpu/gpu-object-update-reason';
+import { UpdateReason } from '../../gpu/object/gpu-object-update-reason';
 import { BaseMemoryLayout, MemoryLayoutParameter } from '../base-memory-layout';
 
 export class TextureMemoryLayout extends BaseMemoryLayout {

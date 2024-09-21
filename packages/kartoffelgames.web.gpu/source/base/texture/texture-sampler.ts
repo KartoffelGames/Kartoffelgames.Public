@@ -4,11 +4,11 @@ import { FilterMode } from '../../constant/filter-mode.enum';
 import { SamplerType } from '../../constant/sampler-type.enum';
 import { WrappingMode } from '../../constant/wrapping-mode.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
-import { UpdateReason } from '../gpu/gpu-object-update-reason';
+import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
+import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
 import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
 
-export class TextureSampler extends GpuNativeObject<GPUSampler> {
+export class TextureSampler extends GpuObject<GPUSampler> {
     private mCompare: CompareFunction | null;
     private mLodMaxClamp: number;
     private mLodMinClamp: number;
@@ -146,13 +146,6 @@ export class TextureSampler extends GpuNativeObject<GPUSampler> {
         pLayout.addInvalidationListener(() => {
             this.triggerAutoUpdate(UpdateReason.ChildData);
         });
-    }
-
-    /**
-     * Destroy nothing.
-     */
-    protected override destroy(): void {
-        // Nothing to destroy.
     }
 
     /**

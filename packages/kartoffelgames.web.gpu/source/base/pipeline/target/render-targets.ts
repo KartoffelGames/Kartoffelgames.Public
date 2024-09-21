@@ -2,8 +2,10 @@ import { Dictionary, Exception } from '@kartoffelgames/core';
 import { TextureAspect } from '../../../constant/texture-aspect.enum';
 import { TextureOperation } from '../../../constant/texture-operation.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
-import { GpuNativeObject, NativeObjectLifeTime } from '../../gpu/gpu-native-object';
-import { UpdateReason } from '../../gpu/gpu-object-update-reason';
+import { GpuObject, GpuObjectSetupReferences, NativeObjectLifeTime } from '../../gpu/object/gpu-object';
+import { UpdateReason } from '../../gpu/object/gpu-object-update-reason';
+import { IGpuObjectNative } from '../../gpu/object/interface/i-gpu-object-native';
+import { IGpuObjectSetup } from '../../gpu/object/interface/i-gpu-object-setup';
 import { CanvasTexture } from '../../texture/canvas-texture';
 import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
 import { TextureFormatCapability } from '../../texture/texture-format-capabilities';
@@ -12,10 +14,9 @@ import { RenderTargetsSetup } from './render-targets-setup';
 /**
  * Group of textures with the same size and multisample level.
  */
-export class RenderTargets extends GpuNativeObject<GPURenderPassDescriptor> {
-    private readonly mColorTextures: Dictionary<string, RenderTargetsColorTarget>;
-    private readonly mDepthStencilTexture: RenderTargetsDepthStencilTexture;
-    private mIsSetup: boolean;
+export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTargetsSetup> implements IGpuObjectSetup<RenderTargetsSetup>, IGpuObjectNative<GPURenderPassDescriptor> {
+    private mColorTextures: Dictionary<string, RenderTargetsColorTarget>;
+    private mDepthStencilTexture: RenderTargetsDepthStencilTexture;
     private readonly mSize: TextureSize;
 
     /**
@@ -57,6 +58,13 @@ export class RenderTargets extends GpuNativeObject<GPURenderPassDescriptor> {
     }
 
     /**
+     * Native gpu object.
+     */
+    public override get native(): GPURenderPassDescriptor {
+        return super.native;
+    }
+
+    /**
      * Stencil attachment texture.
      */
     public get stencilTexture(): FrameBufferTexture | null {
@@ -81,11 +89,8 @@ export class RenderTargets extends GpuNativeObject<GPURenderPassDescriptor> {
         this.mSize = { width: 1, height: 1, multisampleLevel: 1 };
 
         // Setup initial data.
-        this.mDepthStencilTexture = { target: null };
-        this.mColorTextures = new Dictionary<string, RenderTargetsColorTarget>();
-
-        // Init setup object.
-        this.mIsSetup = false;
+        this.mDepthStencilTexture = null;
+        this.mColorTextures = null;
     }
 
     /**
@@ -113,56 +118,21 @@ export class RenderTargets extends GpuNativeObject<GPURenderPassDescriptor> {
     }
 
     /**
-     * Setup render targets.
-     * Can only be called once and is the only way to create or add target textures.
+     * Call setup.
+     * Exposes internal setup.
      * 
-     * @param pSetup - Setup call.
+     * @param pSetupCallback - Setup callback. 
      * 
      * @returns this. 
      */
-    public setup(pSetup: (pSetup: RenderTargetsSetup) => void): this {
-        // Dont call twice.
-        if (this.mIsSetup) {
-            throw new Exception(`Render targets setup can't be called twice.`, this);
-        }
-
-        // Create references to internal resources.
-        const lSetupReference: RenderTargetSetupReference = {
-            device: this.device,
-            renderTarget: this,
-            inSetup: true,
-            colorTargetReference: this.mColorTextures,
-            depthStencilTargetReference: this.mDepthStencilTexture
-        };
-
-        // Call setup.
-        pSetup(new RenderTargetsSetup(lSetupReference));
-
-        // Lock setup.
-        this.mIsSetup = true;
-
-        // Lock setup reference.
-        lSetupReference.inSetup = false;
-
-        return this;
-    }
-
-    /**
-     * Nothing to destroy.
-     */
-    protected override destroy(): void {
-        // Nothing to destroy as it is only a configuration object.
+    public override setup(pSetupCallback?: ((pSetup: RenderTargetsSetup) => void) | undefined): this {
+        return super.setup(pSetupCallback);
     }
 
     /**
      * Generate native gpu bind data group.
      */
     protected override generate(): GPURenderPassDescriptor {
-        // Must be setup.
-        if (!this.mIsSetup) {
-            throw new Exception(`Render targets must be setup.`, this);
-        }
-
         // Apply all resize and multisample changes.
         // Cool side effect is, that it validates the existence of all textures.
         this.applyResize();
@@ -267,17 +237,55 @@ export class RenderTargets extends GpuNativeObject<GPURenderPassDescriptor> {
         return lDescriptor;
     }
 
+    protected override onSetup(_pSetupObject: RenderTargetsSetup, pReferenceData: RenderTargetSetupReferenceData): void {
+        // TODO: Nothing :( but make it something.
+        // Setup initial data.
+        this.mDepthStencilTexture = { target: null };
+        if (pReferenceData.data.depthStencilTargetReference) {
+
+        }
+
+        // Setup color targets.
+        const lAttachmentLocations: Set<number> = new Set<number>();
+        this.mColorTextures = new Dictionary<string, RenderTargetsColorTarget>();
+        if (pReferenceData.data.colorTargetReference) {
+            for (const lAttachment of pReferenceData.data.colorTargetReference.values()) {
+                // Validate existance of depth stencil texture.
+                if (!lAttachment.texture) {
+                    throw new Exception(`Color attachment "${lAttachment.name}" defined but no texture was assigned.`, this);
+                }
+
+                // No double names.
+                if (this.mColorTextures.has(lAttachment.name)) {
+                    throw new Exception(`Color attachment name "${lAttachment.name}" can only be defined once.`, this);
+                }
+
+                // No double location indices.
+                if (lAttachmentLocations.has(lAttachment.index)) {
+                    throw new Exception(`Color attachment location index "${lAttachment.index}" can only be defined once.`, this);
+                }
+
+                this.mColorTextures.set(lAttachment.name, lAttachment);
+                lAttachmentLocations.add(lAttachment.index);
+            }
+        }
+        this.mColorTextures = new Dictionary<string, RenderTargetsColorTarget>(pReferenceData.colorTargetReference);
+    }
+
+    protected override onSetupInit(pReferences: GpuObjectSetupReferences<RenderTargetSetupReferenceData>): RenderTargetsSetup {
+        // Setup references.
+        pReferences.data.colorTargetReference = this.mColorTextures;
+        pReferences.data.depthStencilTargetReference = this.mDepthStencilTexture;
+
+        return new RenderTargetsSetup(pReferences);
+    }
+
     /**
      * Resize all textures.
      */
     private applyResize(): void {
         // Update buffer texture multisample level.
         for (const lAttachment of this.mColorTextures.values()) {
-            // Validate existance of depth stencil texture.
-            if (!lAttachment.texture) {
-                throw new Exception(`Color attachment defined but no texture was assigned.`, this);
-            }
-
             // Check for removed or added multisample level.
             if (this.mSize.multisampleLevel === 1) {
                 // When the multisample state is removed, use all canvas resolve textures into the actual target and clear the placeholder target buffer.
@@ -341,7 +349,7 @@ type TextureSize = {
 };
 
 export type RenderTargetsDepthStencilTexture = {
-    target: FrameBufferTexture | null;
+    target: FrameBufferTexture;
     depth?: {
         clearValue: number | null;
         storeOperation: TextureOperation;
@@ -362,13 +370,10 @@ export type RenderTargetsColorTarget = {
     index: number;
     clearValue: { r: number; g: number; b: number; a: number; } | null;
     storeOperation: TextureOperation;
-    texture: RenderTargetsColorTexture | null;
+    texture: RenderTargetsColorTexture;
 };
 
-export type RenderTargetSetupReference = {
-    renderTarget: RenderTargets;
-    device: GpuDevice;
-    inSetup: boolean;
+export interface RenderTargetSetupReferenceData {
     colorTargetReference: Dictionary<string, RenderTargetsColorTarget>;
     depthStencilTargetReference: RenderTargetsDepthStencilTexture;
-};
+}

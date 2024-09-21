@@ -1,9 +1,9 @@
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
-import { UpdateReason } from '../gpu/gpu-object-update-reason';
+import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
+import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 
-export class VideoTexture extends GpuNativeObject<GPUExternalTexture> {
+export class VideoTexture extends GpuObject<GPUExternalTexture> {
     private readonly mVideo: HTMLVideoElement;
 
     /**
@@ -77,13 +77,6 @@ export class VideoTexture extends GpuNativeObject<GPUExternalTexture> {
      */
     public play(): void {
         this.mVideo.play();
-    }
-
-    /**
-     * Destroy nothing.
-     */
-    protected override destroy(): void {
-        // Nothing to destroy.
     }
 
     /**

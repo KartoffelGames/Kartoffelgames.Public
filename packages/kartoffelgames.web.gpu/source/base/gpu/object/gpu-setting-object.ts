@@ -1,8 +1,10 @@
-import { GpuObjectUpdateListener } from './gpu-native-object';
 import { GpuObjectUpdateReason, UpdateReason } from './gpu-object-update-reason';
 
-// TODO: Find a better name for this.
-export abstract class InvalidationObject {
+/**
+ * Setting object for gpu related objects.
+ * Is not gpu specific and can be created without initializing any hardware.
+ */
+export abstract class GpuSettingObject {
     private mAutoUpdate: boolean;
     private readonly mInvalidationReasons: GpuObjectUpdateReason;
     private readonly mUpdateListenerList: Set<GpuObjectUpdateListener>;
@@ -75,3 +77,8 @@ export abstract class InvalidationObject {
         }
     }
 }
+
+
+export type GpuObjectUpdateListener = () => void;
+
+// TODO: Custom invalidation mapping to destinct between creating everything new or replace a view in native objects.

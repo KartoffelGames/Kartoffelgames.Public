@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import { BindDataGroup } from '../../binding/bind-data-group';
 import { PipelineLayout } from '../../binding/pipeline-layout';
 import { GpuDevice } from '../../gpu/gpu-device';
-import { GpuObject } from '../../gpu/gpu-object';
+import { GpuObject } from '../../gpu/object/gpu-object';
 import { ComputePipeline } from '../../pipeline/compute-pipeline';
 import { GpuExecution } from '../gpu-execution';
 

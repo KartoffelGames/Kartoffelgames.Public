@@ -1,9 +1,9 @@
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuNativeObject, NativeObjectLifeTime } from '../gpu/gpu-native-object';
-import { GpuObjectUpdateReason, UpdateReason } from '../gpu/gpu-object-update-reason';
+import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
+import { GpuObjectUpdateReason, UpdateReason } from '../gpu/object/gpu-object-update-reason';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 
-export class CanvasTexture extends GpuNativeObject<GPUTextureView> {
+export class CanvasTexture extends GpuObject<null, GPUTextureView> {
     private readonly mCanvas: HTMLCanvasElement;
     private mContext: GPUCanvasContext | null;
     private readonly mMemoryLayout: TextureMemoryLayout;

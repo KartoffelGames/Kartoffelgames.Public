@@ -1,20 +1,10 @@
-import { Exception } from '@kartoffelgames/core';
 import { TextureOperation } from '../../../constant/texture-operation.enum';
+import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
 import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
-import { RenderTargetsColorTarget, RenderTargetSetupReference } from './render-targets';
+import { RenderTargetsColorTarget, RenderTargetSetupReferenceData } from './render-targets';
 import { RenderTargetTextureSetup } from './render-targets-texture-setup';
 
-export class RenderTargetsSetup {
-    private readonly mSetupReference: RenderTargetSetupReference;
-
-    /**
-     * Constructor.
-     * 
-     * @param pSetupReference - Setup references.
-     */
-    public constructor(pSetupReference: RenderTargetSetupReference) {
-        this.mSetupReference = pSetupReference;
-    }
+export class RenderTargetsSetup extends GpuObjectSetup<RenderTargetSetupReferenceData> {
 
     /**
      * Add color target.
@@ -26,9 +16,7 @@ export class RenderTargetsSetup {
      */
     public addColor(pName: string, pLocationIndex: number, pKeepOnEnd: boolean = true, pClearValue?: { r: number; g: number; b: number; a: number; }): RenderTargetTextureSetup {
         // Lock setup to a setup call.
-        if (!this.mSetupReference.inSetup) {
-            throw new Exception('Can only setup render targets in a setup call.', this);
-        }
+        this.ensureThatInSetup();
 
         // Convert render attachment to a location mapping. 
         const lTarget: RenderTargetsColorTarget = {
@@ -60,25 +48,27 @@ export class RenderTargetsSetup {
      */
     public addDepthStencil(pDepthKeepOnEnd: boolean = false, pDepthClearValue?: number, pStencilKeepOnEnd: boolean = false, pStencilClearValue?: number): RenderTargetTextureSetup {
         // Lock setup to a setup call.
-        if (!this.mSetupReference.inSetup) {
-            throw new Exception('Can only setup render targets in a setup call.', this);
-        }
+        this.ensureThatInSetup();
+
+        this.setupData.depthStencilTargetReference = {
+            target: null
+        };
 
         // Setup depth.
-        this.mSetupReference.depthStencilTargetReference.depth = {
+        this.setupData.depthStencilTargetReference.depth = {
             clearValue: pDepthClearValue ?? null,
             storeOperation: (pDepthKeepOnEnd) ? TextureOperation.Keep : TextureOperation.Clear,
         };
 
         // Setup stencil.
-        this.mSetupReference.depthStencilTargetReference.stencil = {
+        this.setupData.depthStencilTargetReference.stencil = {
             clearValue: pStencilClearValue ?? null,
             storeOperation: (pStencilKeepOnEnd) ? TextureOperation.Keep : TextureOperation.Clear,
         };
 
         // Return texture setup. Set texture on texture resolve.
         return new RenderTargetTextureSetup(this.mSetupReference, (pTexture: FrameBufferTexture) => {
-            this.mSetupReference.depthStencilTargetReference.target = pTexture;
+            this.setupData.depthStencilTargetReference!.target = pTexture;
         });
     }
 }

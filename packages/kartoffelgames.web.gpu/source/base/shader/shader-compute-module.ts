@@ -1,6 +1,6 @@
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/gpu-object';
-import { UpdateReason } from '../gpu/gpu-object-update-reason';
+import { GpuObject } from '../gpu/object/gpu-object';
+import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
 import { Shader } from './shader';
 
 export class ShaderComputeModule extends GpuObject {

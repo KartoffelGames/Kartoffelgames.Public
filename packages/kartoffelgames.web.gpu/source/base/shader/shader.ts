@@ -65,31 +65,6 @@ export class Shader extends GpuObject<GPUShaderModule, ShaderSetup> implements I
             vertex: new Dictionary<string, ShaderModuleEntryPointVertex>(),
             fragment: new Dictionary<string, ShaderModuleEntryPointFragment>()
         };
-
-
-        // Generate initial pipeline layout.
-        const lInitialPipelineLayout: Dictionary<number, BindGroupLayout> = new Dictionary<number, BindGroupLayout>();
-        for (const lGroupName of Object.keys(pLayout.groups)) {
-            const lGroup: ShaderLayout['groups'][string] = pLayout.groups[lGroupName];
-
-            // Generate each binding.
-            const lBindLayoutList: Array<BindLayout> = new Array<BindLayout>();
-            for (const lBindName of Object.keys(lGroup.bindings)) {
-                const lBind: ShaderLayout['groups'][string]['bindings'][string] = lGroup.bindings[lBindName];
-
-                // Generate and add bind layout to bind layout list.
-                lBindLayoutList.push({
-                    name: lBindName,
-                    index: lBind.index,
-                    layout: lBind.layout,
-                    visibility: lBind.visibility,
-                    accessMode: lBind.accessMode
-                });
-            }
-
-            // Set bind group layout with group index.
-            lInitialPipelineLayout.set(lGroup.index, new BindGroupLayout(this.device, lGroupName, lBindLayoutList));
-        }
     }
 
     /**
@@ -286,8 +261,26 @@ export class Shader extends GpuObject<GPUShaderModule, ShaderSetup> implements I
             });
         }
 
-        // Init and generate layout.
-        this.mPipelineLayout = new PipelineLayout(this.device, lSetupReference.pipelineLayout);
+        // Generate initial pipeline layout.
+        const lInitialPipelineLayout: Dictionary<number, BindGroupLayout> = new Dictionary<number, BindGroupLayout>();
+        for (const lGroup of pReferences.bindingGroups) {
+            // Generate each binding.
+            const lBindLayoutList: Array<BindLayout> = new Array<BindLayout>();
+            for (const lBind of lGroup.bindings) {
+                // Generate and add bind layout to bind layout list.
+                lBindLayoutList.push({
+                    name: lBind.name,
+                    index: lBind.index,
+                    layout: lBind.layout,
+                    visibility: lBind.visibility,
+                    accessMode: lBind.accessMode
+                });
+            }
+
+            // Set bind group layout with group index.
+            lInitialPipelineLayout.set(lGroup.index, new BindGroupLayout(this.device, lGroup.name, lBindLayoutList));
+        }
+        this.mPipelineLayout = new PipelineLayout(this.device, lInitialPipelineLayout);
     }
 
     /**

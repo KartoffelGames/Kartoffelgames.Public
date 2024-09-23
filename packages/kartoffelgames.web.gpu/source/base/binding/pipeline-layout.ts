@@ -2,9 +2,9 @@ import { Dictionary, Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
 import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
-import { BindGroupLayout, BindLayout } from './bind-group-layout';
 import { GpuObjectUpdateListener } from '../gpu/object/gpu-setting-object';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
+import { BindGroupLayout, BindLayout } from './bind-group-layout';
 
 export class PipelineLayout extends GpuObject<GPUPipelineLayout> implements IGpuObjectNative<GPUPipelineLayout> {
     private readonly mBindGroupInvalidationListener: WeakMap<BindGroupLayout, GpuObjectUpdateListener>;
@@ -46,6 +46,16 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout> implements IGpu
 
         // Set initial work groups.
         for (const [lGroupIndex, lGroup] of pInitialGroups) {
+            // Restrict dublicate names.
+            if (this.mBindGroupNames.has(lGroup.name)) {
+                throw new Exception(`Can add group name "${lGroup.name}" only once.`, this);
+            }
+
+            // Restrict dublicate locations.
+            if (this.mInitialBindGroups.has(lGroupIndex)) {
+                throw new Exception(`Can add group location index "${lGroupIndex}" only once.`, this);
+            }
+
             // Set name to index mapping.
             this.mBindGroupNames.set(lGroup.name, lGroupIndex);
 

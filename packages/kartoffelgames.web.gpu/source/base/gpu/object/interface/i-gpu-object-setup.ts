@@ -1,6 +1,6 @@
 import { GpuObjectSetup } from '../gpu-object-setup';
 
-export interface IGpuObjectSetup<TSetupObject extends GpuObjectSetup> {
+export interface IGpuObjectSetup<TSetupObject extends GpuObjectSetup<any>> {
     /**
      * Call setup.
      * Exposes internal setup.

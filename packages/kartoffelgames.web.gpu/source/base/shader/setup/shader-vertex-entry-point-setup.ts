@@ -1,34 +1,17 @@
-import { Exception } from '@kartoffelgames/core';
+import { GpuObjectChildSetup } from '../../gpu/object/gpu-object-child-setup';
 import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
-import { VertexParameterLayoutDefinition } from '../../pipeline/parameter/vertex-parameter-layout';
-import { ShaderSetupReference } from '../shader';
+import { ShaderSetupReferenceData } from './shader-setup';
 
-export class ShaderFragmentEntryPointSetup {
-    private readonly mSetupReference: ShaderSetupReference;
-    private readonly mVertexParameterCallback: RenderTargetCallback;
-
-    /**
-     * Constructor.
-     * 
-     * @param pSetupReference - Setup references.
-     * @param pVertexParameterCallback - Vertex parameter update callback.
-     */
-    public constructor(pSetupReference: ShaderSetupReference, pVertexParameterCallback: RenderTargetCallback) {
-        this.mSetupReference = pSetupReference;
-        this.mVertexParameterCallback = pVertexParameterCallback;
-    }
-
+export class ShaderVertexEntryPointSetup extends GpuObjectChildSetup<ShaderSetupReferenceData, VertexParameterCallback> {
     /**
      * Setup vertex parameter.
      */
     public addParameter(pName: string, pLocationIndex: number, pDataFormat: PrimitiveBufferFormat, pDataMultiplier: PrimitiveBufferMultiplier): this {
         // Lock setup to a setup call.
-        if (!this.mSetupReference.inSetup) {
-            throw new Exception('Can only setup vertex shader entry point in a setup call.', this);
-        }
+        this.ensureThatInSetup();
 
-        const lVertexParameter: VertexParameterLayoutDefinition = {
+        const lVertexParameter: VertexEntryPointParameterSetupData = {
             name: pName,
             location: pLocationIndex,
             format: pDataFormat,
@@ -36,10 +19,17 @@ export class ShaderFragmentEntryPointSetup {
         };
 
         // Callback size.
-        this.mVertexParameterCallback(lVertexParameter);
+        this.sendData(lVertexParameter);
 
         return this;
     }
 }
 
-type RenderTargetCallback = (pVertexParameter: VertexParameterLayoutDefinition) => void;
+export type VertexEntryPointParameterSetupData = {
+    name: string;
+    location: number;
+    format: PrimitiveBufferFormat;
+    multiplier: PrimitiveBufferMultiplier;
+}
+
+type VertexParameterCallback = (pVertexParameter: VertexEntryPointParameterSetupData) => void;

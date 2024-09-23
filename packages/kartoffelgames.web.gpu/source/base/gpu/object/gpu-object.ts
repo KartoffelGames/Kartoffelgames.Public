@@ -102,7 +102,7 @@ export abstract class GpuObject<TNativeObject = null, TSetupObject extends GpuOb
      * 
      * @param _pReferences - Used references.
      */
-    protected onSetup(_pReferences: Partial<GpuObjectSetupData<TSetupObject>>): void {
+    protected onSetup(_pReferences: GpuObjectSetupData<TSetupObject>): void {
         return;
     }
 
@@ -147,7 +147,7 @@ export abstract class GpuObject<TNativeObject = null, TSetupObject extends GpuOb
             }
 
             // Call gpu object setup. At this point all references should be filled.
-            this.onSetup(lSetupReferences.data);
+            this.onSetup(lSetupReferences.data as GpuObjectSetupData<TSetupObject>);
         }
 
         // Defuse setup references.

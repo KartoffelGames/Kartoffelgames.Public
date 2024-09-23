@@ -7,7 +7,7 @@ import { ArrayBufferMemoryLayout } from '../../memory_layout/buffer/array-buffer
 import { PrimitiveBufferMultiplier } from '../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
 import { PrimitiveBufferMemoryLayout } from '../../memory_layout/buffer/primitive-buffer-memory-layout';
 import { VertexParameterLayout, VertexParameterLayoutDefinition } from './vertex-parameter-layout';
-import { GpuObject } from '../../gpu/object/gpu-object';
+import { GpuObject, NativeObjectLifeTime } from '../../gpu/object/gpu-object';
 import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
 
 export class VertexParameter extends GpuObject {
@@ -36,7 +36,7 @@ export class VertexParameter extends GpuObject {
      * @param pIndices - Index buffer data.
      */
     public constructor(pDevice: GpuDevice, pVertexParameterLayout: VertexParameterLayout, pIndices: Array<number>) {
-        super(pDevice);
+        super(pDevice, NativeObjectLifeTime.Persistent);
 
         // Set vertex parameter layout.
         this.mLayout = pVertexParameterLayout;

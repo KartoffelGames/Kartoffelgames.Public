@@ -1,33 +1,17 @@
-import { Exception } from '@kartoffelgames/core';
+import { GpuObjectChildSetup } from '../../gpu/object/gpu-object-child-setup';
 import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
-import { ShaderModuleEntryPointFragmentRenderTarget, ShaderSetupReference } from '../shader';
+import { ShaderSetupReferenceData } from './shader-setup';
 
-export class ShaderFragmentEntryPointSetup {
-    private readonly mRenderTargetCallback: RenderTargetCallback;
-    private readonly mSetupReference: ShaderSetupReference;
-
-    /**
-     * Constructor.
-     * 
-     * @param pSetupReference - Setup references.
-     * @param pRenderTargetCallback - Render target update callback.
-     */
-    public constructor(pSetupReference: ShaderSetupReference, pRenderTargetCallback: RenderTargetCallback) {
-        this.mSetupReference = pSetupReference;
-        this.mRenderTargetCallback = pRenderTargetCallback;
-    }
-
+export class ShaderFragmentEntryPointSetup extends GpuObjectChildSetup<ShaderSetupReferenceData, RenderTargetCallback> {
     /**
      * Setup fragment render target.
      */
     public addRenderTarget(pName: string, pLocationIndex: number, pDataFormat: PrimitiveBufferFormat, pDataMultiplier: PrimitiveBufferMultiplier): this {
         // Lock setup to a setup call.
-        if (!this.mSetupReference.inSetup) {
-            throw new Exception('Can only setup fragment shader entry point in a setup call.', this);
-        }
+        this.ensureThatInSetup();
 
-        const lRenderTarget: ShaderModuleEntryPointFragmentRenderTarget = {
+        const lRenderTarget: ShaderFragmentEntryPointRenderTargetSetupData = {
             name: pName,
             location: pLocationIndex,
             format: pDataFormat,
@@ -35,10 +19,17 @@ export class ShaderFragmentEntryPointSetup {
         };
 
         // Callback size.
-        this.mRenderTargetCallback(lRenderTarget);
+        this.sendData(lRenderTarget);
 
         return this;
     }
 }
 
-type RenderTargetCallback = (pRenderTarget: ShaderModuleEntryPointFragmentRenderTarget) => void;
+export type ShaderFragmentEntryPointRenderTargetSetupData = {
+    name: string;
+    location: number;
+    format: PrimitiveBufferFormat;
+    multiplier: PrimitiveBufferMultiplier;
+};
+
+type RenderTargetCallback = (pRenderTarget: ShaderFragmentEntryPointRenderTargetSetupData) => void;

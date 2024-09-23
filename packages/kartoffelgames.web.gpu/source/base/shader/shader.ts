@@ -2,18 +2,18 @@ import { Dictionary, Exception } from '@kartoffelgames/core';
 import { BindGroupLayout, BindLayout } from '../binding/bind-group-layout';
 import { PipelineLayout } from '../binding/pipeline-layout';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
+import { GpuObject, GpuObjectSetupReferences, NativeObjectLifeTime } from '../gpu/object/gpu-object';
+import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
+import { IGpuObjectSetup } from '../gpu/object/interface/i-gpu-object-setup';
 import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
 import { VertexParameterLayout, VertexParameterLayoutDefinition } from '../pipeline/parameter/vertex-parameter-layout';
-import { ShaderSetup } from './setup/shader-setup';
+import { ShaderSetup, ShaderSetupReferenceData } from './setup/shader-setup';
 import { ShaderComputeModule } from './shader-compute-module';
 import { ShaderRenderModule } from './shader-render-module';
-import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 
-export class Shader extends GpuObject<GPUShaderModule> implements IGpuObjectNative<GPUShaderModule> {
+export class Shader extends GpuObject<GPUShaderModule, ShaderSetup> implements IGpuObjectNative<GPUShaderModule>, IGpuObjectSetup<ShaderSetup> {
     private readonly mEntryPoints: ShaderModuleEntryPoints;
-    private mIsSetup: boolean;
     private readonly mParameter: Dictionary<string, PrimitiveBufferFormat>;
     private mPipelineLayout: PipelineLayout | null;
     private readonly mSource: string;
@@ -22,10 +22,8 @@ export class Shader extends GpuObject<GPUShaderModule> implements IGpuObjectNati
      * Shader pipeline layout.
      */
     public get layout(): PipelineLayout {
-        // Layout only available after setup.
-        if (this.mIsSetup) {
-            throw new Exception(`To access the layout, the shader must be setup.`, this);
-        }
+        // Ensure setup is called.
+        this.ensureSetup();
 
         return this.mPipelineLayout!;
     }
@@ -41,6 +39,9 @@ export class Shader extends GpuObject<GPUShaderModule> implements IGpuObjectNati
      * Shader pipeline parameters.
      */
     public get parameter(): Dictionary<string, PrimitiveBufferFormat> {
+        // Ensure setup is called.
+        this.ensureSetup();
+
         return this.mParameter;
     }
 
@@ -52,9 +53,6 @@ export class Shader extends GpuObject<GPUShaderModule> implements IGpuObjectNati
      */
     public constructor(pDevice: GpuDevice, pSource: string) {
         super(pDevice, NativeObjectLifeTime.Persistent);
-
-        // Init setup object.
-        this.mIsSetup = false;
 
         // Create shader information for source.
         this.mSource = pSource;
@@ -92,50 +90,6 @@ export class Shader extends GpuObject<GPUShaderModule> implements IGpuObjectNati
             // Set bind group layout with group index.
             lInitialPipelineLayout.set(lGroup.index, new BindGroupLayout(this.device, lGroupName, lBindLayoutList));
         }
-
-        // Convert fragment entry point informations
-        for (const lFragmentEntryName of Object.keys(pLayout.fragmentEntryPoints)) {
-            const lFragmentEntry: ShaderLayout['fragmentEntryPoints'][string] = pLayout.fragmentEntryPoints[lFragmentEntryName];
-
-            // Convert all render attachments to a location mapping. 
-            const lLocations: ShaderModuleEntryPointFragment['renderTargets'] = new Dictionary<string, any>();
-            for (const lAttachmentName of Object.keys(lFragmentEntry.attachments)) {
-                const lAttachment: ShaderLayout['fragmentEntryPoints'][string]['attachments'][string] = lFragmentEntry.attachments[lAttachmentName];
-                lLocations.set(lAttachmentName, {
-                    name: lAttachmentName,
-                    location: lAttachment.location,
-                    format: lAttachment.primitive.format,
-                    multiplier: lAttachment.primitive.multiplier
-                });
-            }
-
-            // Set fragment entry point definition. 
-            this.mEntryPoints.fragment.set(lFragmentEntryName, {
-                renderTargets: lLocations
-            });
-        }
-
-        // Convert vertex entry point informations
-        for (const lVertexEntryName of Object.keys(pLayout.vertexEntryPoints)) {
-            const lVertexEntry: ShaderLayout['vertexEntryPoints'][string] = pLayout.vertexEntryPoints[lVertexEntryName];
-
-            // Convert all render attachments to a location mapping. 
-            const lLocations: Array<VertexParameterLayoutDefinition> = new Array<VertexParameterLayoutDefinition>();
-            for (const lParameterName of Object.keys(lVertexEntry.parameter)) {
-                const lAttachment: ShaderLayout['vertexEntryPoints'][string]['parameter'][string] = lVertexEntry.parameter[lParameterName];
-                lLocations.push({
-                    name: lParameterName,
-                    location: lAttachment.location,
-                    format: lAttachment.primitive.format,
-                    multiplier: lAttachment.primitive.multiplier
-                });
-            }
-
-            // Set vertex entry point definition. 
-            this.mEntryPoints.vertex.set(lVertexEntryName, {
-                parameter: new VertexParameterLayout(this.device, lLocations)
-            });
-        }
     }
 
     /**
@@ -146,6 +100,9 @@ export class Shader extends GpuObject<GPUShaderModule> implements IGpuObjectNati
      * @returns shader compute module. 
      */
     public createComputeModule(pEntryName: string): ShaderComputeModule {
+        // Ensure setup is called.
+        this.ensureSetup();
+
         const lEntryPoint: ShaderModuleEntryPointCompute | undefined = this.mEntryPoints.compute.get(pEntryName);
         if (!lEntryPoint) {
             throw new Exception(`Compute entry point "${pEntryName}" does not exists.`, this);
@@ -169,6 +126,9 @@ export class Shader extends GpuObject<GPUShaderModule> implements IGpuObjectNati
      * @returns shader render module. 
      */
     public createRenderModule(pVertexEntryName: string, pFragmentEntryName?: string): ShaderRenderModule {
+        // Ensure setup is called.
+        this.ensureSetup();
+
         const lVertexEntryPoint: ShaderModuleEntryPointVertex | undefined = this.mEntryPoints.vertex.get(pVertexEntryName);
         if (!lVertexEntryPoint) {
             throw new Exception(`Vertex entry point "${pVertexEntryName}" does not exists.`, this);
@@ -196,48 +156,14 @@ export class Shader extends GpuObject<GPUShaderModule> implements IGpuObjectNati
      * 
      * @returns this. 
      */
-    public setup(pSetup: (pSetup: ShaderSetup) => void): this {
-        // Dont call twice.
-        if (this.mIsSetup) {
-            throw new Exception(`Shader setup can't be called twice.`, this);
-        }
-
-        // Create references to internal resources.
-        const lSetupReference: ShaderSetupReference = {
-            shader: this,
-            device: this.device,
-            inSetup: true,
-            entrypoints: this.mEntryPoints,
-            parameter: this.mParameter,
-            pipelineLayout: new Dictionary<number, BindGroupLayout>()
-        };
-
-        // Call setup.
-        pSetup(new ShaderSetup(lSetupReference));
-
-        // Lock setup.
-        this.mIsSetup = true;
-
-        // Lock setup reference.
-        lSetupReference.inSetup = false;
-
-        // Init and generate layout.
-        this.mPipelineLayout = new PipelineLayout(this.device, lSetupReference.pipelineLayout);
-
-        // TODO: Add limitations that should be checked. (GroupCount, BindCount, Float16)
-
-        return this;
+    public override setup(pSetupCallback?: ((pSetup: ShaderSetup) => void) | undefined): this {
+        return super.setup(pSetupCallback);
     }
 
     /**
      * Generate shader module.
      */
     protected override generate(): GPUShaderModule {
-        // Must be setup.
-        if (!this.mIsSetup) {
-            throw new Exception(`Shader must be setup.`, this);
-        }
-
         // TODO: Create compilationHints for every entry point?
 
         // Create shader module use hints to speed up compilation on safari.
@@ -245,6 +171,134 @@ export class Shader extends GpuObject<GPUShaderModule> implements IGpuObjectNati
             code: this.mSource,
             // TODO: sourceMap: undefined
         });
+    }
+
+    /**
+     * Setup with setup object.
+     * 
+     * @param pReferences - Used references.
+     */
+    protected override onSetup(pReferences: ShaderSetupReferenceData): void {
+        // Setup parameter.
+        for (const lParameter of pReferences.parameter) {
+            // Dont override parameters.
+            if (this.mParameter.has(lParameter.name)) {
+                throw new Exception(`Can't add parameter "${lParameter.name}" more than once.`, this);
+            }
+
+            // Add parameter.
+            this.mParameter.set(lParameter.name, lParameter.format);
+        }
+
+        // Convert fragment entry point informations
+        for (const lFragmentEntry of pReferences.fragmentEntrypoints) {
+            // Restrict doublicate fragment entry names.
+            if (this.mEntryPoints.fragment.has(lFragmentEntry.name)) {
+                throw new Exception(`Fragment entry "${lFragmentEntry.name}" was setup more than once.`, this);
+            }
+
+            // Convert all render attachments to a location mapping.
+            const lRenderTargetLocations: Set<number> = new Set<number>();
+            const lRenderTargets: ShaderModuleEntryPointFragment['renderTargets'] = new Dictionary<string, any>();
+            for (const lRenderTarget of lFragmentEntry.renderTargets) {
+                // Restrict doublicate fragment entry render target names.
+                if (lRenderTargets.has(lRenderTarget.name)) {
+                    throw new Exception(`Fragment entry "${lFragmentEntry.name}" was has doublicate render attachment name "${lRenderTarget.name}".`, this);
+                }
+
+                // Restrict doublicate fragment entry render target locations.
+                if (lRenderTargetLocations.has(lRenderTarget.location)) {
+                    throw new Exception(`Fragment entry "${lFragmentEntry.name}" was has doublicate render attachment location index "${lRenderTarget.location}".`, this);
+                }
+
+                // Add location to location index buffer. Used for finding dublicates.
+                lRenderTargetLocations.add(lRenderTarget.location);
+
+                // Add target to list. 
+                lRenderTargets.set(lRenderTarget.name, {
+                    name: lRenderTarget.name,
+                    location: lRenderTarget.location,
+                    format: lRenderTarget.format,
+                    multiplier: lRenderTarget.multiplier
+                });
+            }
+
+            // Set fragment entry point definition. 
+            this.mEntryPoints.fragment.set(lFragmentEntry.name, {
+                renderTargets: lRenderTargets
+            });
+        }
+
+        // Convert vertex entry point informations
+        for (const lVertexEntry of pReferences.vertexEntrypoints) {
+            // Restrict doublicate vertex entry names.
+            if (this.mEntryPoints.vertex.has(lVertexEntry.name)) {
+                throw new Exception(`Vertex entry "${lVertexEntry.name}" was setup more than once.`, this);
+            }
+
+            // Convert all render attachments to a location mapping. 
+            const lVertexParameterLocations: Set<number> = new Set<number>();
+            const lVertexParameter: Dictionary<string, VertexParameterLayoutDefinition> = new Dictionary<string, VertexParameterLayoutDefinition>();
+            for (const lParameter of lVertexEntry.parameter) {
+                // Restrict doublicate vertex entry parameter names.
+                if (lVertexParameter.has(lParameter.name)) {
+                    throw new Exception(`Vertex entry "${lVertexEntry.name}" was has doublicate parameter name "${lParameter.name}".`, this);
+                }
+
+                // Restrict doublicate vertex entry parameter locations.
+                if (lVertexParameterLocations.has(lParameter.location)) {
+                    throw new Exception(`Vertex entry "${lVertexEntry.name}" was has doublicate parameter location index "${lParameter.location}".`, this);
+                }
+
+                // Add location to location index buffer. Used for finding dublicates.
+                lVertexParameterLocations.add(lParameter.location);
+
+                // Add parameter to list.
+                lVertexParameter.add(lParameter.name, {
+                    name: lParameter.name,
+                    location: lParameter.location,
+                    format: lParameter.format,
+                    multiplier: lParameter.multiplier
+                });
+            }
+
+            // Set vertex entry point definition. 
+            this.mEntryPoints.vertex.set(lVertexEntry.name, {
+                parameter: new VertexParameterLayout(this.device, [...lVertexParameter.values()])
+            });
+        }
+
+        // Convert compute entry point informations
+        for (const lComputeEntry of pReferences.computeEntrypoints) {
+            // Restrict doublicate compute entry names.
+            if (this.mEntryPoints.compute.has(lComputeEntry.name)) {
+                throw new Exception(`Vertex entry "${lComputeEntry.name}" was setup more than once.`, this);
+            }
+
+            // Set vertex entry point definition. 
+            this.mEntryPoints.compute.set(lComputeEntry.name, {
+                static: lComputeEntry.workgroupDimension !== null,
+                workgroupDimension: {
+                    x: lComputeEntry.workgroupDimension?.x ?? null,
+                    y: lComputeEntry.workgroupDimension?.y ?? null,
+                    z: lComputeEntry.workgroupDimension?.z ?? null
+                }
+            });
+        }
+
+        // Init and generate layout.
+        this.mPipelineLayout = new PipelineLayout(this.device, lSetupReference.pipelineLayout);
+    }
+
+    /**
+     * Create setup object. Return null to skip any setups.
+     * 
+     *  @param pReferences - Unfilled setup references.
+     * 
+     *  @returns Setup object.
+     */
+    protected override onSetupObjectCreate(pReferences: GpuObjectSetupReferences<ShaderSetupReferenceData>): ShaderSetup {
+        return new ShaderSetup(pReferences);
     }
 }
 
@@ -275,79 +329,4 @@ type ShaderModuleEntryPoints = {
     compute: Dictionary<string, ShaderModuleEntryPointCompute>,
     vertex: Dictionary<string, ShaderModuleEntryPointVertex>,
     fragment: Dictionary<string, ShaderModuleEntryPointFragment>,
-};
-
-export type ShaderSetupReference = {
-    shader: Shader;
-    device: GpuDevice;
-    inSetup: boolean;
-    entrypoints: ShaderModuleEntryPoints;
-    parameter: Dictionary<string, PrimitiveBufferFormat>;
-    pipelineLayout: Dictionary<number, BindGroupLayout>;
-};
-
-/**
- * Shader layout description. // TODO: remove
- */
-export type ShaderLayout = {
-    // Memory binding.
-    groups: {
-        [groupName: string]: {
-            index: number;
-            bindings: {
-                [bindingName: string]: {
-                    index: number,
-                    layout: BaseMemoryLayout;
-                    visibility: ComputeStage;
-                    accessMode: AccessMode;
-                };
-            };
-        };
-    };
-
-    // Parameter.
-    parameter: {
-        [parameterName: string]: PrimitiveBufferFormat;
-    };
-
-    // Compute entry points.
-    computeEntryPoints: {
-        [functionName: string]: {
-            workgroupSize: {
-                x: number;
-                y: number;
-                z: number;
-            };
-        };
-    };
-
-    // Vertex entry point.
-    vertexEntryPoints: {
-        [functionName: string]: {
-            parameter: {
-                [parameterName: string]: {
-                    location: number;
-                    primitive: {
-                        format: PrimitiveBufferFormat;
-                        multiplier: PrimitiveBufferMultiplier;
-                    };
-                };
-            };
-        };
-    };
-
-    // Fragment entry point.
-    fragmentEntryPoints: {
-        [functionName: string]: {
-            attachments: {
-                [attachmentName: string]: {
-                    location: number;
-                    primitive: {
-                        format: PrimitiveBufferFormat;
-                        multiplier: PrimitiveBufferMultiplier;
-                    };
-                };
-            };
-        };
-    };
 };

@@ -1,22 +1,14 @@
-import { Dictionary, Exception } from '@kartoffelgames/core';
+import { AccessMode } from '../../../constant/access-mode.enum';
+import { ComputeStage } from '../../../constant/compute-stage.enum';
+import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
+import { BaseMemoryLayout } from '../../memory_layout/base-memory-layout';
 import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
-import { ShaderModuleEntryPointCompute, ShaderModuleEntryPointFragment, ShaderModuleEntryPointFragmentRenderTarget, ShaderModuleEntryPointVertex, ShaderSetupReference } from '../shader';
+import { ShaderModuleEntryPointFragmentRenderTarget } from '../shader';
 import { ShaderComputeEntryPointSetup } from './shader-compute-entry-point-setup';
-import { ShaderFragmentEntryPointSetup } from './shader-fragment-entry-point-setup';
-import { VertexParameterLayoutDefinition } from '../../pipeline/parameter/vertex-parameter-layout';
+import { ShaderFragmentEntryPointRenderTargetSetupData, ShaderFragmentEntryPointSetup } from './shader-fragment-entry-point-setup';
+import { ShaderVertexEntryPointSetup, VertexEntryPointParameterSetupData } from './shader-vertex-entry-point-setup';
 
-export class ShaderSetup {
-    private readonly mSetupReference: ShaderSetupReference;
-
-    /**
-     * Constructor.
-     * 
-     * @param pSetupReference - Setup references.
-     */
-    public constructor(pSetupReference: ShaderSetupReference) {
-        this.mSetupReference = pSetupReference;
-    }
-
+export class ShaderSetup extends GpuObjectSetup<ShaderSetupReferenceData> {
     /**
      * Add static pipeline parameters definitions.
      * 
@@ -27,16 +19,10 @@ export class ShaderSetup {
      */
     public addParameter(pName: string, pFormat: PrimitiveBufferFormat): this {
         // Lock setup to a setup call.
-        if (!this.mSetupReference.inSetup) {
-            throw new Exception('Can only setup shader in a setup call.', this);
-        }
+        this.ensureThatInSetup();
 
-        // Restrict overriding parameters.
-        if (this.mSetupReference.parameter.has(pName)) {
-            throw new Exception(`Can't add dublicate parameter definition of "${pName}"`, this.mSetupReference.shader);
-        }
-
-        this.mSetupReference.parameter.set(pName, pFormat);
+        // Add parameter.
+        this.setupData.parameter.push({ name: pName, format: pFormat });
 
         return this;
     }
@@ -49,30 +35,19 @@ export class ShaderSetup {
      */
     public computeEntryPoint(pName: string): ShaderComputeEntryPointSetup {
         // Lock setup to a setup call.
-        if (!this.mSetupReference.inSetup) {
-            throw new Exception('Can only setup shader in a setup call.', this);
-        }
-
-        // Restrict dublicate compute entries.
-        if (this.mSetupReference.entrypoints.compute.has(pName)) {
-            throw new Exception(`Can't add dublicate compute entry point "${pName}"`, this.mSetupReference.shader);
-        }
+        this.ensureThatInSetup();
 
         // Create dynamic compute entry point.
-        const lEntryPoint: ShaderModuleEntryPointCompute = {
-            static: false,
-            workgroupDimension: {
-                x: null,
-                y: null,
-                z: null
-            }
+        const lEntryPoint: ShaderEntryPointComputeSetupData = {
+            name: pName,
+            workgroupDimension: null
         };
 
         // Append compute entry.
-        this.mSetupReference.entrypoints.compute.set(pName, lEntryPoint);
+        this.setupData.computeEntrypoints.push(lEntryPoint);
 
         // Return compute entry setup object.
-        return new ShaderComputeEntryPointSetup(this.mSetupReference, (pX: number, pY: number, pZ: number) => {
+        return new ShaderComputeEntryPointSetup(this.setupReferences, (pX: number, pY: number, pZ: number) => {
             lEntryPoint.workgroupDimension = {
                 x: pX,
                 y: pY,
@@ -88,30 +63,20 @@ export class ShaderSetup {
      */
     public fragmentEntryPoint(pName: string): ShaderFragmentEntryPointSetup {
         // Lock setup to a setup call.
-        if (!this.mSetupReference.inSetup) {
-            throw new Exception('Can only setup shader in a setup call.', this);
-        }
-
-        // Restrict dublicate fragment entries.
-        if (this.mSetupReference.entrypoints.fragment.has(pName)) {
-            throw new Exception(`Can't add dublicate fragment entry point "${pName}"`, this.mSetupReference.shader);
-        }
+        this.ensureThatInSetup();
 
         // Create empty fragment entry point.
-        const lEntryPoint: ShaderModuleEntryPointFragment = {
-            renderTargets: new Dictionary<string, ShaderModuleEntryPointFragmentRenderTarget>()
+        const lEntryPoint: ShaderEntryPointFragmentSetupData = {
+            name: pName,
+            renderTargets: new Array<ShaderFragmentEntryPointRenderTargetSetupData>()
         };
 
         // Append compute entry.
-        this.mSetupReference.entrypoints.fragment.set(pName, lEntryPoint);
+        this.setupData.fragmentEntrypoints.push(lEntryPoint);
 
         // Return fragment entry setup object.
-        return new ShaderFragmentEntryPointSetup(this.mSetupReference, (pRenderTarget: ShaderModuleEntryPointFragmentRenderTarget) => {
-            if (lEntryPoint.renderTargets.has(pName)) {
-                throw new Exception(`Can't add dublicate render target to fragment entry point`, this);
-            }
-
-            lEntryPoint.renderTargets.set(pRenderTarget.name, pRenderTarget);
+        return new ShaderFragmentEntryPointSetup(this.setupReferences, (pRenderTarget: ShaderModuleEntryPointFragmentRenderTarget) => {
+            lEntryPoint.renderTargets.push(pRenderTarget);
         });
     }
 
@@ -120,36 +85,90 @@ export class ShaderSetup {
      * 
      * @param pName - Vertex entry name.
      */
-    public vertexEntryPoint(pName: string): void {
+    public vertexEntryPoint(pName: string): ShaderVertexEntryPointSetup {
         // Lock setup to a setup call.
-        if (!this.mSetupReference.inSetup) {
-            throw new Exception('Can only setup shader in a setup call.', this);
-        }
-
-        // Restrict dublicate fragment entries.
-        if (this.mSetupReference.entrypoints.vertex.has(pName)) {
-            throw new Exception(`Can't add dublicate vertex entry point "${pName}"`, this.mSetupReference.shader);
-        }
+        this.ensureThatInSetup();
 
         // Create empty fragment entry point.
-        const lEntryPoint: ShaderModuleEntryPointVertex = {
-            parameter: VertexParameterLayout
+        const lEntryPoint: ShaderEntryPointVertexSetupData = {
+            name: pName,
+            parameter: new Array<VertexEntryPointParameterSetupData>()
         };
 
-        const a: VertexParameterLayoutDefinition = {
-            
-        }
-
         // Append compute entry.
-        this.mSetupReference.entrypoints.fragment.set(pName, lEntryPoint);
+        this.setupData.vertexEntrypoints.push(lEntryPoint);
 
         // Return fragment entry setup object.
-        return new ShaderFragmentEntryPointSetup(this.mSetupReference, (pRenderTarget: ShaderModuleEntryPointFragmentRenderTarget) => {
-            if (lEntryPoint.renderTargets.has(pName)) {
-                throw new Exception(`Can't add dublicate render target to fragment entry point`, this);
-            }
-
-            lEntryPoint.renderTargets.set(pRenderTarget.name, pRenderTarget);
+        return new ShaderVertexEntryPointSetup(this.setupReferences, (pRenderTarget: VertexEntryPointParameterSetupData) => {
+            lEntryPoint.parameter.push(pRenderTarget);
         });
     }
+
+    /**
+     * Fill in default data before the setup starts.
+     *
+     * @param pDataReference - Setup data reference.
+     */
+    protected override fillDefaultData(pDataReference: ShaderSetupReferenceData): void {
+        // Entry points.
+        pDataReference.computeEntrypoints = new Array<ShaderEntryPointComputeSetupData>();
+        pDataReference.fragmentEntrypoints = new Array<ShaderEntryPointFragmentSetupData>();
+        pDataReference.vertexEntrypoints = new Array<ShaderEntryPointVertexSetupData>();
+
+        // Parameter.
+        pDataReference.parameter = new Array<{ name: string; format: PrimitiveBufferFormat; }>();
+
+        // Bind groups.
+        pDataReference.bindingGroups = new Array<ShaderBindGroupSetupData>();
+    }
 }
+
+type ShaderEntryPointComputeSetupData = {
+    name: string;
+    workgroupDimension: {
+        x: number;
+        y: number;
+        z: number;
+    } | null;
+};
+
+type ShaderEntryPointVertexSetupData = {
+    name: string;
+    parameter: Array<VertexEntryPointParameterSetupData>;
+};
+
+type ShaderEntryPointFragmentSetupData = {
+    name: string;
+    renderTargets: Array<ShaderFragmentEntryPointRenderTargetSetupData>;
+};
+
+export type ShaderSetupReferenceData = {
+    // Entry points.
+    computeEntrypoints: Array<ShaderEntryPointComputeSetupData>;
+    fragmentEntrypoints: Array<ShaderEntryPointFragmentSetupData>;
+    vertexEntrypoints: Array<ShaderEntryPointVertexSetupData>;
+
+    // Parameter.
+    parameter: Array<{
+        name: string; format:
+        PrimitiveBufferFormat;
+    }>;
+
+    // Bind groups.
+    bindingGroups: Array<ShaderBindGroupSetupData>;
+};
+
+
+type ShaderBindingSetupData = {
+    index: number,
+    name: string;
+    layout: BaseMemoryLayout;
+    visibility: ComputeStage;
+    accessMode: AccessMode;
+};
+
+type ShaderBindGroupSetupData = {
+    index: number;
+    name: string;
+    bindings: Array<ShaderBindingSetupData>;
+};

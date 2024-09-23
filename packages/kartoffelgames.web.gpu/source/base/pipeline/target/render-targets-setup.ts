@@ -13,9 +13,6 @@ export class RenderTargetsSetup extends GpuObjectSetup<RenderTargetSetupReferenc
      */
     public constructor(pSetupReference: GpuObjectSetupReferences<RenderTargetSetupReferenceData>) {
         super(pSetupReference);
-
-        // Setup references.
-        this.setupData.colorTargets = new Array<RenderTargetsColorTargetSetupData>();
     }
 
     /**
@@ -80,6 +77,15 @@ export class RenderTargetsSetup extends GpuObjectSetup<RenderTargetSetupReferenc
         return new RenderTargetTextureSetup(this.setupReferences, (pTexture: FrameBufferTexture) => {
             this.setupData.depthStencil!.texture = pTexture;
         });
+    }
+
+    /**
+     * Fill in default data before the setup starts.
+     * 
+     * @param pDataReference - Setup data reference.
+     */
+    protected override fillDefaultData(pDataReference: RenderTargetSetupReferenceData): void {
+        pDataReference.colorTargets = new Array<RenderTargetsColorTargetSetupData>();
     }
 }
 

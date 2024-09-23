@@ -2,9 +2,10 @@ import { Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../gpu-device';
 import { GpuObjectSetupReferences } from './gpu-object';
 
-export abstract class GpuObjectSetup<TSetupReferenceData> {
+export abstract class GpuObjectChildSetup<TSetupReferenceData, TCallback extends GpuObjectChildSetupCallback> {
+    private readonly mSetupCallback: TCallback;
     private readonly mSetupReference: GpuObjectSetupReferences<TSetupReferenceData>;
-
+    
     /**
      * Gpu device reference.
      */
@@ -15,7 +16,7 @@ export abstract class GpuObjectSetup<TSetupReferenceData> {
     /**
      * Setup data.
      */
-    protected get setupData(): TSetupReferenceData {
+    protected get setupData(): Readonly<TSetupReferenceData> {
         // References should be setup at this point.
         return this.mSetupReference.data as TSetupReferenceData;
     }
@@ -32,8 +33,9 @@ export abstract class GpuObjectSetup<TSetupReferenceData> {
      * 
      * @param pSetupReference - Setup references.
      */
-    public constructor(pSetupReference: GpuObjectSetupReferences<TSetupReferenceData>) {
+    public constructor(pSetupReference: GpuObjectSetupReferences<TSetupReferenceData>, pDataCallback: TCallback) {
         this.mSetupReference = pSetupReference;
+        this.mSetupCallback = pDataCallback;
     }
 
     /**
@@ -47,9 +49,13 @@ export abstract class GpuObjectSetup<TSetupReferenceData> {
     }
 
     /**
-     * Fill in default data before the setup starts.
+     * Send data back to parent setup.
      * 
-     * @param pDataReference - Setup data reference.
+     * @param pData - Setup complete data.
      */
-    protected abstract fillDefaultData(pDataReference: TSetupReferenceData): void;
+    protected sendData(...pData: Parameters<TCallback>): void {
+        this.mSetupCallback(...pData);
+    }
 }
+
+type GpuObjectChildSetupCallback = (...args: any) => void;

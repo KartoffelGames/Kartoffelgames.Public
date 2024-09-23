@@ -2,27 +2,12 @@ import { TextureBindType } from '../../../constant/texture-bind-type.enum';
 import { TextureDimension } from '../../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../../constant/texture-format.enum';
 import { TextureUsage } from '../../../constant/texture-usage.enum';
-import { GpuObjectSetupReferences } from '../../gpu/object/gpu-object';
-import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
+import { GpuObjectChildSetup } from '../../gpu/object/gpu-object-child-setup';
 import { TextureMemoryLayout } from '../../memory_layout/texture/texture-memory-layout';
 import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
 import { RenderTargetSetupReferenceData } from './render-targets-setup';
 
-export class RenderTargetTextureSetup extends GpuObjectSetup<RenderTargetSetupReferenceData> {
-    private readonly mTextureCallback: RenderTargetTextureCallback;
-
-    /**
-     * Constructor.
-     * 
-     * @param pSetupReference - Setup references.
-     * @param pTarget - Render target configuration object.
-     */
-    public constructor(pSetupReference: GpuObjectSetupReferences<RenderTargetSetupReferenceData>, pTextureCallback: RenderTargetTextureCallback) {
-        super(pSetupReference);
-
-        this.mTextureCallback = pTextureCallback;
-    }
-
+export class RenderTargetTextureSetup extends GpuObjectChildSetup<RenderTargetSetupReferenceData, RenderTargetTextureCallback> {
     /**
      * Create new color render target.
      */
@@ -31,7 +16,7 @@ export class RenderTargetTextureSetup extends GpuObjectSetup<RenderTargetSetupRe
         this.ensureThatInSetup();
 
         const lMemoryLayout: TextureMemoryLayout = new TextureMemoryLayout({
-            name: this.mTextureCallback.name,
+            name: 'RenderTarget', // TODO: 
             usage: TextureUsage.RenderAttachment,
             dimension: TextureDimension.TwoDimension,
             format: pFormat, // TODO: Validate with format validator. // TODO: Add format preferences/restrictions to texture setup.
@@ -40,7 +25,7 @@ export class RenderTargetTextureSetup extends GpuObjectSetup<RenderTargetSetupRe
         });
 
         // Callback texture.
-        this.mTextureCallback(new FrameBufferTexture(this.device, lMemoryLayout));
+        this.sendData(new FrameBufferTexture(this.device, lMemoryLayout));
     }
 
     /**
@@ -53,7 +38,7 @@ export class RenderTargetTextureSetup extends GpuObjectSetup<RenderTargetSetupRe
         this.ensureThatInSetup();
 
         // Callback texture.
-        this.mTextureCallback(pTexture);
+        this.sendData(pTexture);
     }
 }
 

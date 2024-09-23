@@ -4,8 +4,9 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
 import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
+import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 
-export class ImageTexture extends GpuObject<GPUTextureView> {
+export class ImageTexture extends GpuObject<GPUTextureView> implements IGpuObjectNative<GPUTextureView> {
     private mDepth: number;
     private mHeight: number;
     private mImageList: Array<ImageBitmap>;
@@ -39,6 +40,13 @@ export class ImageTexture extends GpuObject<GPUTextureView> {
      */
     public get memoryLayout(): TextureMemoryLayout {
         return this.mMemoryLayout;
+    }
+
+    /**
+     * Native gpu object.
+     */
+    public override get native(): GPUTextureView {
+        return super.native;
     }
 
     /**

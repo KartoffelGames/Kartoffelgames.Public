@@ -5,11 +5,12 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
 import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
+import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 
 /**
  * GpuBuffer. Uses local and native gpu buffers.
  */
-export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> {
+export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> implements IGpuObjectNative<GPUBuffer> {
     private readonly mCopyType: MemoryCopyType;
     private readonly mDataType: BufferDataType<TType>;
     private readonly mItemCount: number;
@@ -45,6 +46,13 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> {
      */
     public get memoryLayout(): BaseBufferMemoryLayout {
         return this.mLayout;
+    }
+
+    /**
+     * Native gpu object.
+     */
+    public override get native(): GPUBuffer {
+        return super.native;
     }
 
     /**

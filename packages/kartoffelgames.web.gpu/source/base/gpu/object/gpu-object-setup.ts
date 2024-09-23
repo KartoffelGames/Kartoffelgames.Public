@@ -15,8 +15,9 @@ export class GpuObjectSetup<TSetupReferenceData = any> {
     /**
      * Setup data.
      */
-    protected get setupData(): Partial<TSetupReferenceData> {
-        return this.mSetupReference.data;
+    protected get setupData(): TSetupReferenceData {
+        // References should be setup at this point.
+        return this.mSetupReference.data as TSetupReferenceData;
     }
 
     /**

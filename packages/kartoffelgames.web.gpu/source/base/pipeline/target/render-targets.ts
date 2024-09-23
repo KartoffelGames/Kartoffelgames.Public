@@ -9,27 +9,26 @@ import { IGpuObjectSetup } from '../../gpu/object/interface/i-gpu-object-setup';
 import { CanvasTexture } from '../../texture/canvas-texture';
 import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
 import { TextureFormatCapability } from '../../texture/texture-format-capabilities';
-import { RenderTargetsSetup } from './render-targets-setup';
+import { RenderTargetSetupReferenceData, RenderTargetsSetup } from './render-targets-setup';
 
 /**
  * Group of textures with the same size and multisample level.
  */
 export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTargetsSetup> implements IGpuObjectSetup<RenderTargetsSetup>, IGpuObjectNative<GPURenderPassDescriptor> {
-    private mColorTextures: Dictionary<string, RenderTargetsColorTarget>;
-    private mDepthStencilTexture: RenderTargetsDepthStencilTexture;
+    private readonly mColorTextures: Dictionary<string, RenderTargetsColorTarget>; // TODO: Maybe use a ordered array for that.
+    private mDepthStencilTexture: RenderTargetsDepthStencilTexture | null;
     private readonly mSize: TextureSize;
 
     /**
      * Color attachment textures.
      */
     public get colorTextures(): Array<FrameBufferTexture | CanvasTexture> {
+        // Ensure setup was called.
+        this.ensureSetup();
+
         // Create color attachment list in order.
         const lColorAttachmentList: Array<FrameBufferTexture | CanvasTexture> = new Array<FrameBufferTexture | CanvasTexture>();
         for (const lColorAttachment of this.mColorTextures.values()) {
-            if (!lColorAttachment.texture) {
-                throw new Exception(`Missing color attachment texture for "${lColorAttachment.name}".`, this);
-            }
-
             lColorAttachmentList[lColorAttachment.index] = lColorAttachment.texture.target;
         }
 
@@ -40,7 +39,15 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
      * Depth attachment texture.
      */
     public get depthTexture(): FrameBufferTexture | null {
-        return this.mDepthStencilTexture.depth ? this.mDepthStencilTexture.target : null;
+        // Ensure setup was called.
+        this.ensureSetup();
+
+        // No depth texture setup.
+        if (!this.mDepthStencilTexture || !this.mDepthStencilTexture.depth) {
+            return null;
+        }
+
+        return this.mDepthStencilTexture.target;
     }
 
     /**
@@ -68,6 +75,9 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
      * Stencil attachment texture.
      */
     public get stencilTexture(): FrameBufferTexture | null {
+        // Ensure setup was called.
+        this.ensureSetup();
+
         return this.mDepthStencilTexture?.stencil ? this.mDepthStencilTexture.target : null;
     }
 
@@ -90,7 +100,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
 
         // Setup initial data.
         this.mDepthStencilTexture = null;
-        this.mColorTextures = null;
+        this.mColorTextures = new Dictionary<string, RenderTargetsColorTarget>();
     }
 
     /**
@@ -134,7 +144,6 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
      */
     protected override generate(): GPURenderPassDescriptor {
         // Apply all resize and multisample changes.
-        // Cool side effect is, that it validates the existence of all textures.
         this.applyResize();
 
         // Create color attachment list in order.
@@ -143,15 +152,9 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
             lColorAttachmentList[lColorAttachment.index] = lColorAttachment;
         }
 
-        // Validate attachment list.
-        if (lColorAttachmentList.length !== this.mColorTextures.size) {
-            throw new Exception(`Color attachment locations must be in order.`, this);
-        }
-
         // Create color attachments.
         const lColorAttachments: Array<GPURenderPassColorAttachment> = new Array<GPURenderPassColorAttachment>();
         for (const lColorAttachment of lColorAttachmentList) {
-
             // Convert Texture operation to load operations.
             const lStoreOperation: GPUStoreOp = lColorAttachment.storeOperation === TextureOperation.Keep ? 'store' : 'discard';
 
@@ -184,24 +187,16 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
         };
 
         // Set optional depth attachment.
-        if (this.mDepthStencilTexture.depth || this.mDepthStencilTexture.stencil) {
-            const lDepthStencilTexture: FrameBufferTexture = this.mDepthStencilTexture.target!;
+        if (this.mDepthStencilTexture) {
+            const lDepthStencilTexture: FrameBufferTexture = this.mDepthStencilTexture.target;
 
             // Add texture view for depth.
             lDescriptor.depthStencilAttachment = {
                 view: lDepthStencilTexture.native,
             };
 
-            // Read capability of used depth stencil texture format.
-            const lFormatCapability: TextureFormatCapability = this.device.formatValidator.capabilityOf(lDepthStencilTexture.memoryLayout.format);
-
             // Add depth values when depth formats are used.
             if (this.mDepthStencilTexture.depth) {
-                // Validate if depth texture
-                if (lFormatCapability.aspect.types.includes(TextureAspect.Depth)) {
-                    throw new Exception('Used texture for the depth texture attachment must have a depth aspect. ', this);
-                }
-
                 // Set clear value of depth texture.
                 if (this.mDepthStencilTexture.depth.clearValue !== null) {
                     lDescriptor.depthStencilAttachment.depthClearValue = this.mDepthStencilTexture.depth.clearValue;
@@ -216,11 +211,6 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
 
             // Add stencil values when stencil formats are used.
             if (this.mDepthStencilTexture.stencil) {
-                // Validate if stencil texture
-                if (lFormatCapability.aspect.types.includes(TextureAspect.Stencil)) {
-                    throw new Exception('Used texture for the stencil texture attachment must have a stencil aspect. ', this);
-                }
-
                 // Set clear value of stencil texture.
                 if (this.mDepthStencilTexture.stencil.clearValue !== null) {
                     lDescriptor.depthStencilAttachment.stencilClearValue = this.mDepthStencilTexture.stencil.clearValue;
@@ -237,46 +227,101 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
         return lDescriptor;
     }
 
-    protected override onSetup(_pSetupObject: RenderTargetsSetup, pReferenceData: RenderTargetSetupReferenceData): void {
-        // TODO: Nothing :( but make it something.
-        // Setup initial data.
-        this.mDepthStencilTexture = { target: null };
-        if (pReferenceData.data.depthStencilTargetReference) {
+    /**
+     * Setup object based on setup data.
+     * 
+     * @param pReferenceData - Referenced setup data.
+     */
+    protected override onSetup(pReferenceData: RenderTargetSetupReferenceData): void {
+        // Setup depth stencil targets.
+        if (pReferenceData.depthStencil) {
+            // Validate existance of depth stencil texture.
+            if (!pReferenceData.depthStencil.texture) {
+                throw new Exception(`Depth/ stencil attachment defined but no texture was assigned.`, this);
+            }
 
+            // Read capability of used depth stencil texture format.
+            const lFormatCapability: TextureFormatCapability = this.device.formatValidator.capabilityOf(pReferenceData.depthStencil.texture.memoryLayout.format);
+
+            // Save setup texture.
+            this.mDepthStencilTexture = {
+                target: pReferenceData.depthStencil.texture
+            };
+
+            // Setup depth texture.
+            if (pReferenceData.depthStencil.depth) {
+                // Validate if depth texture
+                if (lFormatCapability.aspect.types.includes(TextureAspect.Depth)) {
+                    throw new Exception('Used texture for the depth texture attachment must have a depth aspect. ', this);
+                }
+
+                this.mDepthStencilTexture.depth = {
+                    clearValue: pReferenceData.depthStencil.depth.clearValue,
+                    storeOperation: pReferenceData.depthStencil.depth.storeOperation
+                };
+            }
+
+            // Setup stencil texture.
+            if (pReferenceData.depthStencil.stencil) {
+                // Validate if depth texture
+                if (lFormatCapability.aspect.types.includes(TextureAspect.Stencil)) {
+                    throw new Exception('Used texture for the depth texture attachment must have a depth aspect. ', this);
+                }
+
+                this.mDepthStencilTexture.stencil = {
+                    clearValue: pReferenceData.depthStencil.stencil.clearValue,
+                    storeOperation: pReferenceData.depthStencil.stencil.storeOperation
+                };
+            }
         }
 
         // Setup color targets.
-        const lAttachmentLocations: Set<number> = new Set<number>();
-        this.mColorTextures = new Dictionary<string, RenderTargetsColorTarget>();
-        if (pReferenceData.data.colorTargetReference) {
-            for (const lAttachment of pReferenceData.data.colorTargetReference.values()) {
-                // Validate existance of depth stencil texture.
-                if (!lAttachment.texture) {
-                    throw new Exception(`Color attachment "${lAttachment.name}" defined but no texture was assigned.`, this);
-                }
-
-                // No double names.
-                if (this.mColorTextures.has(lAttachment.name)) {
-                    throw new Exception(`Color attachment name "${lAttachment.name}" can only be defined once.`, this);
-                }
-
-                // No double location indices.
-                if (lAttachmentLocations.has(lAttachment.index)) {
-                    throw new Exception(`Color attachment location index "${lAttachment.index}" can only be defined once.`, this);
-                }
-
-                this.mColorTextures.set(lAttachment.name, lAttachment);
-                lAttachmentLocations.add(lAttachment.index);
+        const lAttachmentLocations: Array<boolean> = new Array<boolean>();
+        for (const lAttachment of pReferenceData.colorTargets.values()) {
+            // Validate existance of color texture.
+            if (!lAttachment.texture) {
+                throw new Exception(`Color attachment "${lAttachment.name}" defined but no texture was assigned.`, this);
             }
+
+            // No double names.
+            if (this.mColorTextures.has(lAttachment.name)) {
+                throw new Exception(`Color attachment name "${lAttachment.name}" can only be defined once.`, this);
+            }
+
+            // No double location indices.
+            if (lAttachmentLocations[lAttachment.index] === true) {
+                throw new Exception(`Color attachment location index "${lAttachment.index}" can only be defined once.`, this);
+            }
+
+            // Buffer used location index.
+            lAttachmentLocations[lAttachment.index] = true;
+
+            // Convert setup into storage data.
+            this.mColorTextures.set(lAttachment.name, {
+                name: lAttachment.name,
+                index: lAttachment.index,
+                clearValue: lAttachment.clearValue,
+                storeOperation: lAttachment.storeOperation,
+                texture: {
+                    target: lAttachment.texture
+                }
+            });
         }
-        this.mColorTextures = new Dictionary<string, RenderTargetsColorTarget>(pReferenceData.colorTargetReference);
+        
+        // Validate attachment list.
+        if (lAttachmentLocations.length !== this.mColorTextures.size) {
+            throw new Exception(`Color attachment locations must be in order.`, this);
+        }
     }
 
-    protected override onSetupInit(pReferences: GpuObjectSetupReferences<RenderTargetSetupReferenceData>): RenderTargetsSetup {
-        // Setup references.
-        pReferences.data.colorTargetReference = this.mColorTextures;
-        pReferences.data.depthStencilTargetReference = this.mDepthStencilTexture;
-
+    /**
+     * On setup object creation. Create setup object.
+     * 
+     * @param pReferences - Setup references.
+     * 
+     * @returns build setup object. 
+     */
+    protected override onSetupObjectCreate(pReferences: GpuObjectSetupReferences<RenderTargetSetupReferenceData>): RenderTargetsSetup {
         return new RenderTargetsSetup(pReferences);
     }
 
@@ -314,30 +359,25 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
         }
 
         // Update target texture multisample level.
-        if (this.mDepthStencilTexture.depth || this.mDepthStencilTexture.stencil) {
-            // Validate existance of depth stencil texture.
-            if (!this.mDepthStencilTexture.target) {
-                throw new Exception(`DepthStencil target defined but no texture was assigned.`, this);
-            }
-
+        if (this.mDepthStencilTexture) {
             this.mDepthStencilTexture.target.multiSampleLevel = this.mSize.multisampleLevel;
         }
 
         // Update buffer texture sizes.
         for (const lAttachment of this.mColorTextures.values()) {
-            lAttachment.texture!.target.height = this.mSize.height;
-            lAttachment.texture!.target.width = this.mSize.width;
+            lAttachment.texture.target.height = this.mSize.height;
+            lAttachment.texture.target.width = this.mSize.width;
 
-            if (lAttachment.texture!.resolve) {
-                lAttachment.texture!.resolve.height = this.mSize.height;
-                lAttachment.texture!.resolve.width = this.mSize.width;
+            if (lAttachment.texture.resolve) {
+                lAttachment.texture.resolve.height = this.mSize.height;
+                lAttachment.texture.resolve.width = this.mSize.width;
             }
         }
 
         // Update target texture sizes.
-        if (this.mDepthStencilTexture.depth || this.mDepthStencilTexture.stencil) {
-            this.mDepthStencilTexture.target!.height = this.mSize.height;
-            this.mDepthStencilTexture.target!.width = this.mSize.width;
+        if (this.mDepthStencilTexture) {
+            this.mDepthStencilTexture.target.height = this.mSize.height;
+            this.mDepthStencilTexture.target.width = this.mSize.width;
         }
     }
 }
@@ -372,8 +412,3 @@ export type RenderTargetsColorTarget = {
     storeOperation: TextureOperation;
     texture: RenderTargetsColorTexture;
 };
-
-export interface RenderTargetSetupReferenceData {
-    colorTargetReference: Dictionary<string, RenderTargetsColorTarget>;
-    depthStencilTargetReference: RenderTargetsDepthStencilTexture;
-}

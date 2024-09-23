@@ -9,8 +9,9 @@ import { VertexParameterLayout, VertexParameterLayoutDefinition } from '../pipel
 import { ShaderSetup } from './setup/shader-setup';
 import { ShaderComputeModule } from './shader-compute-module';
 import { ShaderRenderModule } from './shader-render-module';
+import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 
-export class Shader extends GpuObject<GPUShaderModule> {
+export class Shader extends GpuObject<GPUShaderModule> implements IGpuObjectNative<GPUShaderModule> {
     private readonly mEntryPoints: ShaderModuleEntryPoints;
     private mIsSetup: boolean;
     private readonly mParameter: Dictionary<string, PrimitiveBufferFormat>;
@@ -27,6 +28,13 @@ export class Shader extends GpuObject<GPUShaderModule> {
         }
 
         return this.mPipelineLayout!;
+    }
+
+    /**
+     * Native gpu object.
+     */
+    public override get native(): GPUShaderModule {
+        return super.native;
     }
 
     /**

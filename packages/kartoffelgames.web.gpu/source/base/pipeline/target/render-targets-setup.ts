@@ -1,10 +1,22 @@
 import { TextureOperation } from '../../../constant/texture-operation.enum';
+import { GpuObjectSetupReferences } from '../../gpu/object/gpu-object';
 import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
+import { CanvasTexture } from '../../texture/canvas-texture';
 import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
-import { RenderTargetsColorTarget, RenderTargetSetupReferenceData } from './render-targets';
 import { RenderTargetTextureSetup } from './render-targets-texture-setup';
 
 export class RenderTargetsSetup extends GpuObjectSetup<RenderTargetSetupReferenceData> {
+    /**
+     * Constructor
+     * 
+     * @param pSetupReference -Setup references.
+     */
+    public constructor(pSetupReference: GpuObjectSetupReferences<RenderTargetSetupReferenceData>) {
+        super(pSetupReference);
+
+        // Setup references.
+        this.setupData.colorTargets = new Array<RenderTargetsColorTargetSetupData>();
+    }
 
     /**
      * Add color target.
@@ -19,7 +31,7 @@ export class RenderTargetsSetup extends GpuObjectSetup<RenderTargetSetupReferenc
         this.ensureThatInSetup();
 
         // Convert render attachment to a location mapping. 
-        const lTarget: RenderTargetsColorTarget = {
+        const lTarget: RenderTargetsColorTargetSetupData = {
             name: pName,
             index: pLocationIndex,
             clearValue: pClearValue ?? null,
@@ -28,13 +40,11 @@ export class RenderTargetsSetup extends GpuObjectSetup<RenderTargetSetupReferenc
         };
 
         // Add to color attachment list.
-        this.mSetupReference.colorTargetReference.set(pName, lTarget);
+        this.setupData.colorTargets.push(lTarget);
 
         // Return texture setup. Set texture on texture resolve.
-        return new RenderTargetTextureSetup(this.mSetupReference, (pTexture: FrameBufferTexture) => {
-            lTarget.texture = {
-                target: pTexture
-            };
+        return new RenderTargetTextureSetup(this.setupReferences, (pTexture: FrameBufferTexture) => {
+            lTarget.texture = pTexture;
         });
     }
 
@@ -50,25 +60,50 @@ export class RenderTargetsSetup extends GpuObjectSetup<RenderTargetSetupReferenc
         // Lock setup to a setup call.
         this.ensureThatInSetup();
 
-        this.setupData.depthStencilTargetReference = {
-            target: null
+        this.setupData.depthStencil = {
+            texture: null
         };
 
         // Setup depth.
-        this.setupData.depthStencilTargetReference.depth = {
+        this.setupData.depthStencil.depth = {
             clearValue: pDepthClearValue ?? null,
             storeOperation: (pDepthKeepOnEnd) ? TextureOperation.Keep : TextureOperation.Clear,
         };
 
         // Setup stencil.
-        this.setupData.depthStencilTargetReference.stencil = {
+        this.setupData.depthStencil.stencil = {
             clearValue: pStencilClearValue ?? null,
             storeOperation: (pStencilKeepOnEnd) ? TextureOperation.Keep : TextureOperation.Clear,
         };
 
         // Return texture setup. Set texture on texture resolve.
-        return new RenderTargetTextureSetup(this.mSetupReference, (pTexture: FrameBufferTexture) => {
-            this.setupData.depthStencilTargetReference!.target = pTexture;
+        return new RenderTargetTextureSetup(this.setupReferences, (pTexture: FrameBufferTexture) => {
+            this.setupData.depthStencil!.texture = pTexture;
         });
     }
+}
+
+type RenderTargetsDepthStencilTextureSetupData = {
+    texture: FrameBufferTexture | null;
+    depth?: {
+        clearValue: number | null;
+        storeOperation: TextureOperation;
+    };
+    stencil?: {
+        clearValue: number | null;
+        storeOperation: TextureOperation;
+    };
+};
+
+type RenderTargetsColorTargetSetupData = {
+    name: string;
+    index: number;
+    clearValue: { r: number; g: number; b: number; a: number; } | null;
+    storeOperation: TextureOperation;
+    texture: FrameBufferTexture | CanvasTexture | null;
+};
+
+export interface RenderTargetSetupReferenceData {
+    colorTargets: Array<RenderTargetsColorTargetSetupData>;
+    depthStencil?: RenderTargetsDepthStencilTextureSetupData;
 }

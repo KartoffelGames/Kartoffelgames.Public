@@ -4,11 +4,12 @@ import { GpuObject, NativeObjectLifeTime } from '../../gpu/object/gpu-object';
 import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
 import { VertexParameter } from './vertex-parameter';
+import { IGpuObjectNative } from '../../gpu/object/interface/i-gpu-object-native';
 
 /**
  * Vertex parameter layout.
  */
-export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout>> {
+export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout>> implements IGpuObjectNative<Array<GPUVertexBufferLayout>> {
     private readonly mParameter: Dictionary<string, VertexParameterLayoutDefinition>;
 
     /**
@@ -16,6 +17,13 @@ export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout
      */
     public get count(): number {
         return this.mParameter.size;
+    }
+    
+    /**
+     * Native gpu object.
+     */
+    public override get native(): Array<GPUVertexBufferLayout> {
+        return super.native;
     }
 
     /**

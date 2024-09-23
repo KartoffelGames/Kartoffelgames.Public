@@ -5,10 +5,11 @@ import { PrimitiveTopology } from '../../constant/primitive-topology.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
 import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
+import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { ShaderRenderModule } from '../shader/shader-render-module';
 import { RenderTargets } from './target/render-targets';
 
-export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline> {
+export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline> implements IGpuObjectNative<GPURenderPipeline> {
     private mDepthCompare: CompareFunction;
     private mDepthWriteEnabled: boolean;
     private mPrimitiveCullMode: PrimitiveCullMode;
@@ -34,6 +35,13 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline> {
      */
     public get module(): ShaderRenderModule {
         return this.mShaderModule;
+    }
+
+    /**
+     * Native gpu object.
+     */
+    public override get native(): GPURenderPipeline {
+        return super.native;
     }
 
     /**

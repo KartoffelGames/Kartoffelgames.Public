@@ -1,5 +1,5 @@
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject } from '../gpu/object/gpu-object';
+import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
 import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
 import { VertexParameterLayout } from '../pipeline/parameter/vertex-parameter-layout';
 import { Shader } from './shader';
@@ -47,7 +47,7 @@ export class ShaderRenderModule extends GpuObject {
      * @param pSize - Workgroup size.
      */
     public constructor(pDevice: GpuDevice, pShader: Shader, pVertexEntryPointName: string, pVertexParameter: VertexParameterLayout, pFragmentEntryPointName?: string) {
-        super(pDevice);
+        super(pDevice, NativeObjectLifeTime.Persistent);
 
         this.mVertexEntryPoint = pVertexEntryPointName;
         this.mVertexParameter = pVertexParameter;

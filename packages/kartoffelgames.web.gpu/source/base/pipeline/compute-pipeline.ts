@@ -1,9 +1,10 @@
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
 import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
+import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { ShaderComputeModule } from '../shader/shader-compute-module';
 
-export class ComputePipeline extends GpuObject<GPUComputePipeline> {
+export class ComputePipeline extends GpuObject<GPUComputePipeline> implements IGpuObjectNative<GPUComputePipeline> {
     private readonly mShaderModule: ShaderComputeModule;
 
     /**
@@ -11,6 +12,13 @@ export class ComputePipeline extends GpuObject<GPUComputePipeline> {
      */
     public get module(): ShaderComputeModule {
         return this.mShaderModule;
+    }
+
+    /**
+     * Native gpu object.
+     */
+    public override get native(): GPUComputePipeline {
+        return super.native;
     }
 
     /**
@@ -44,6 +52,6 @@ export class ComputePipeline extends GpuObject<GPUComputePipeline> {
         };
 
         // Async is none GPU stalling. // TODO: Async create compute pipeline somehow.
-        return this.device.gpu.createComputePipeline(lPipelineDescriptor); 
+        return this.device.gpu.createComputePipeline(lPipelineDescriptor);
     }
 }

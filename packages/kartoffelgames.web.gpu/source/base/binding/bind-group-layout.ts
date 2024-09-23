@@ -6,6 +6,7 @@ import { TextureBindType } from '../../constant/texture-bind-type.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
 import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
+import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { BaseMemoryLayout } from '../memory_layout/base-memory-layout';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
@@ -17,7 +18,7 @@ import { TextureFormatCapability } from '../texture/texture-format-capabilities'
 /**
  * Bind group layout. Fixed at creation. 
  */
-export class BindGroupLayout extends GpuObject<GPUBindGroupLayout> {
+export class BindGroupLayout extends GpuObject<GPUBindGroupLayout> implements IGpuObjectNative<GPUBindGroupLayout> {
     private readonly mBindings: Dictionary<string, BindLayout>;
     private readonly mName: string;
 
@@ -45,6 +46,13 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout> {
      */
     public get name(): string {
         return this.mName;
+    }
+
+    /**
+     * Native gpu object.
+     */
+    public override get native(): GPUBindGroupLayout {
+        return super.native;
     }
 
     /**

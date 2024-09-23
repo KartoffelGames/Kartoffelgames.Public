@@ -4,8 +4,9 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
 import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
+import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 
-export class FrameBufferTexture extends GpuObject<GPUTextureView> {
+export class FrameBufferTexture extends GpuObject<GPUTextureView> implements IGpuObjectNative<GPUTextureView> {
     private mDepth: number;
     private mHeight: number;
     private readonly mMemoryLayout: TextureMemoryLayout;
@@ -54,6 +55,13 @@ export class FrameBufferTexture extends GpuObject<GPUTextureView> {
 
         // Trigger auto update.
         this.triggerAutoUpdate(UpdateReason.Setting);
+    }
+
+    /**
+     * Native gpu object.
+     */
+    public override get native(): GPUTextureView {
+        return super.native;
     }
 
     /**
@@ -108,7 +116,7 @@ export class FrameBufferTexture extends GpuObject<GPUTextureView> {
      */
     protected override generate(): GPUTextureView {
         // TODO: Validate format based on layout. Maybe replace used format.
-        
+
         // Configure context.
         if (!this.mTexture) {
             // Validate two dimensional texture.

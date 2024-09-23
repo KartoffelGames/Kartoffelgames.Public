@@ -1,9 +1,10 @@
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
 import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
+import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 
-export class VideoTexture extends GpuObject<GPUExternalTexture> {
+export class VideoTexture extends GpuObject<GPUExternalTexture> implements IGpuObjectNative<GPUExternalTexture> {
     private readonly mVideo: HTMLVideoElement;
 
     /**
@@ -20,6 +21,13 @@ export class VideoTexture extends GpuObject<GPUExternalTexture> {
         return this.mVideo.loop;
     } set loop(pValue: boolean) {
         this.mVideo.loop = pValue;
+    }
+
+    /**
+     * Native gpu object.
+     */
+    public override get native(): GPUExternalTexture {
+        return super.native;
     }
 
     /**

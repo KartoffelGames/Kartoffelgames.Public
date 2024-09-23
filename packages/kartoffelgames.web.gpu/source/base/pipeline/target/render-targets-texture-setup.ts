@@ -1,14 +1,14 @@
-import { Exception } from '@kartoffelgames/core';
 import { TextureBindType } from '../../../constant/texture-bind-type.enum';
 import { TextureDimension } from '../../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../../constant/texture-format.enum';
 import { TextureUsage } from '../../../constant/texture-usage.enum';
+import { GpuObjectSetupReferences } from '../../gpu/object/gpu-object';
+import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
 import { TextureMemoryLayout } from '../../memory_layout/texture/texture-memory-layout';
 import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
-import { RenderTargetSetupReference } from './render-targets';
+import { RenderTargetSetupReferenceData } from './render-targets-setup';
 
-export class RenderTargetTextureSetup {
-    private readonly mSetupReference: RenderTargetSetupReference;
+export class RenderTargetTextureSetup extends GpuObjectSetup<RenderTargetSetupReferenceData> {
     private readonly mTextureCallback: RenderTargetTextureCallback;
 
     /**
@@ -17,8 +17,9 @@ export class RenderTargetTextureSetup {
      * @param pSetupReference - Setup references.
      * @param pTarget - Render target configuration object.
      */
-    public constructor(pSetupReference: RenderTargetSetupReference, pTextureCallback: RenderTargetTextureCallback) {
-        this.mSetupReference = pSetupReference;
+    public constructor(pSetupReference: GpuObjectSetupReferences<RenderTargetSetupReferenceData>, pTextureCallback: RenderTargetTextureCallback) {
+        super(pSetupReference);
+
         this.mTextureCallback = pTextureCallback;
     }
 
@@ -27,9 +28,7 @@ export class RenderTargetTextureSetup {
      */
     public new(pFormat: TextureFormat): void {
         // Lock setup to a setup call.
-        if (!this.mSetupReference.inSetup) {
-            throw new Exception('Can only setup render targets in a setup call.', this);
-        }
+        this.ensureThatInSetup();
 
         const lMemoryLayout: TextureMemoryLayout = new TextureMemoryLayout({
             name: this.mTextureCallback.name,
@@ -41,7 +40,7 @@ export class RenderTargetTextureSetup {
         });
 
         // Callback texture.
-        this.mTextureCallback(new FrameBufferTexture(this.mSetupReference.device, lMemoryLayout));
+        this.mTextureCallback(new FrameBufferTexture(this.device, lMemoryLayout));
     }
 
     /**
@@ -51,9 +50,7 @@ export class RenderTargetTextureSetup {
      */
     public use(pTexture: FrameBufferTexture): void {
         // Lock setup to a setup call.
-        if (!this.mSetupReference.inSetup) {
-            throw new Exception('Can only setup render targets in a setup call.', this);
-        }
+        this.ensureThatInSetup();
 
         // Callback texture.
         this.mTextureCallback(pTexture);

@@ -3,14 +3,15 @@ import { GpuBuffer } from '../buffer/gpu-buffer';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
 import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
+import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { CanvasTexture } from '../texture/canvas-texture';
 import { FrameBufferTexture } from '../texture/frame-buffer-texture';
 import { ImageTexture } from '../texture/image-texture';
 import { TextureSampler } from '../texture/texture-sampler';
 import { VideoTexture } from '../texture/video-texture';
-import { BindGroupLayout } from './bind-group-layout';
+import { BindGroupLayout, BindLayout } from './bind-group-layout';
 
-export class BindDataGroup extends GpuObject<GPUBindGroup> {
+export class BindDataGroup extends GpuObject<GPUBindGroup> implements IGpuObjectNative<GPUBindGroup> {
     private readonly mBindData: Dictionary<string, BindData>;
     private readonly mLayout: BindGroupLayout;
 
@@ -19,6 +20,13 @@ export class BindDataGroup extends GpuObject<GPUBindGroup> {
      */
     public get layout(): BindGroupLayout {
         return this.mLayout;
+    }
+
+    /**
+     * Native gpu object.
+     */
+    public override get native(): GPUBindGroup {
+        return super.native;
     }
 
     /**
@@ -69,8 +77,8 @@ export class BindDataGroup extends GpuObject<GPUBindGroup> {
         const lEntryList: Array<GPUBindGroupEntry> = new Array<GPUBindGroupEntry>();
 
         for (const lBindname of this.layout.bindingNames) {
-            const lBindLayout = this.layout.getBind(lBindname);
-            const lBindData = this.getData(lBindname);
+            const lBindLayout: Readonly<BindLayout> = this.layout.getBind(lBindname);
+            const lBindData: BindData = this.getData(lBindname);
 
             // Set resource to group entry for each 
             const lGroupEntry: GPUBindGroupEntry = { binding: lBindLayout.index, resource: <any>null };

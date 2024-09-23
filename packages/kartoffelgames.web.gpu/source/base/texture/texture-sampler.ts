@@ -6,9 +6,10 @@ import { WrappingMode } from '../../constant/wrapping-mode.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
 import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
+import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
 
-export class TextureSampler extends GpuObject<GPUSampler> {
+export class TextureSampler extends GpuObject<GPUSampler> implements IGpuObjectNative<GPUSampler> {
     private mCompare: CompareFunction | null;
     private mLodMaxClamp: number;
     private mLodMinClamp: number;
@@ -108,6 +109,13 @@ export class TextureSampler extends GpuObject<GPUSampler> {
 
         // Trigger auto update.
         this.triggerAutoUpdate(UpdateReason.Setting);
+    }
+
+    /**
+     * Native gpu object.
+     */
+    public override get native(): GPUSampler {
+        return super.native;
     }
 
     /**

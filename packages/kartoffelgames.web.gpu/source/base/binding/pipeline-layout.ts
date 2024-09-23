@@ -1,10 +1,12 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, GpuObjectUpdateListener, NativeObjectLifeTime } from '../gpu/object/gpu-object';
+import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
 import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
 import { BindGroupLayout, BindLayout } from './bind-group-layout';
+import { GpuObjectUpdateListener } from '../gpu/object/gpu-setting-object';
+import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 
-export class PipelineLayout extends GpuObject<GPUPipelineLayout> {
+export class PipelineLayout extends GpuObject<GPUPipelineLayout> implements IGpuObjectNative<GPUPipelineLayout> {
     private readonly mBindGroupInvalidationListener: WeakMap<BindGroupLayout, GpuObjectUpdateListener>;
     private readonly mBindGroupNames: Dictionary<string, number>;
     private readonly mBindGroups: Dictionary<number, BindGroupLayout>;
@@ -15,6 +17,13 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout> {
      */
     public get groups(): Array<string> {
         return [...this.mBindGroupNames.keys()];
+    }
+
+    /**
+     * Native gpu object.
+     */
+    public override get native(): GPUPipelineLayout {
+        return super.native;
     }
 
     /**

@@ -100,10 +100,9 @@ export abstract class GpuObject<TNativeObject = null, TSetupObject extends GpuOb
     /**
      * Setup with setup object.
      * 
-     * @param _pSetupObject - Setup object.
      * @param _pReferences - Used references.
      */
-    protected onSetup(_pSetupObject: TSetupObject, _pReferences: Partial<GpuObjectSetupData<TSetupObject>>): void {
+    protected onSetup(_pReferences: Partial<GpuObjectSetupData<TSetupObject>>): void {
         return;
     }
 
@@ -115,7 +114,7 @@ export abstract class GpuObject<TNativeObject = null, TSetupObject extends GpuOb
      * 
      * @returns Setup object.
      */
-    protected onSetupInit(_pReferences: GpuObjectSetupReferences<GpuObjectSetupData<TSetupObject>>): TSetupObject {
+    protected onSetupObjectCreate(_pReferences: GpuObjectSetupReferences<GpuObjectSetupData<TSetupObject>>): TSetupObject {
         return null as TSetupObject;
     }
 
@@ -140,7 +139,7 @@ export abstract class GpuObject<TNativeObject = null, TSetupObject extends GpuOb
         };
 
         // Creates setup object.
-        const lSetupObject: TSetupObject | null = this.onSetupInit(lSetupReferences);
+        const lSetupObject: TSetupObject | null = this.onSetupObjectCreate(lSetupReferences);
         if (lSetupObject !== null) {
             // Call optional user setup.
             if (pSetupCallback) {
@@ -148,7 +147,7 @@ export abstract class GpuObject<TNativeObject = null, TSetupObject extends GpuOb
             }
 
             // Call gpu object setup. At this point all references should be filled.
-            this.onSetup(lSetupObject, lSetupReferences.data);
+            this.onSetup(lSetupReferences.data);
         }
 
         // Defuse setup references.

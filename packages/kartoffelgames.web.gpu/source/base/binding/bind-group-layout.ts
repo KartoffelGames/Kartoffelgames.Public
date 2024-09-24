@@ -14,6 +14,7 @@ import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-lay
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 import { TextureFormatCapability } from '../texture/texture-format-capabilities';
 import { BindGroupLayoutSetup, BindGroupLayoutSetupData } from './setup/bind-group-layout-setup';
+import { BindGroup } from './bind-group';
 
 // TODO: Find a good way to create new binding groups.
 
@@ -74,6 +75,15 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, BindGroupLayo
 
         // Init bindings.
         this.mBindings = new Dictionary<string, BindLayout>();
+    }
+
+    /**
+     * Create new bind group from layout.
+     * 
+     * @returns new bind group.
+     */
+    public create(): BindGroup {
+        return new BindGroup(this.device, this);
     }
 
     /**

@@ -97,13 +97,12 @@ const gDepth: number = 10;
     /*
      * Transformation and position group. 
      */
-    const lTransformationGroupLayout = lRenderModule.pipelineLayout.getGroupLayout(0);
-    const lTransformationGroup = lTransformationGroupLayout.createGroup();
+    const lTransformationGroup = lRenderModule.shader.layout.getGroupLayout('object').create();
 
     // Create transformation.
     const lCubeTransform: Transform = new Transform();
     lCubeTransform.setScale(0.1, 0.1, 0.1);
-    lTransformationGroup.setData('transformationMatrix', (<ArrayBufferMemoryLayout>lTransformationGroupLayout.getBind('transformationMatrix').layout).create(new Float32Array(lCubeTransform.getMatrix(TransformMatrix.Transformation).dataArray)));
+    lTransformationGroup.setData('transformationMatrix', (<ArrayBufferMemoryLayout>lObjectGroupLayout.getBind('transformationMatrix').layout).create(new Float32Array(lCubeTransform.getMatrix(TransformMatrix.Transformation).dataArray)));
 
     // Create instance positions.
     const lCubeInstanceTransformationData: Array<number> = new Array<number>();
@@ -114,13 +113,12 @@ const gDepth: number = 10;
             }
         }
     }
-    lTransformationGroup.setData('transformationMatrix', (<ArrayBufferMemoryLayout>lTransformationGroupLayout.getBind('transformationMatrix').layout).create(new Float32Array(lCubeInstanceTransformationData)));
+    lTransformationGroup.setData('transformationMatrix', (<ArrayBufferMemoryLayout>lObjectGroupLayout.getBind('transformationMatrix').layout).create(new Float32Array(lCubeInstanceTransformationData)));
 
     /*
      * Camera and world group. 
      */
-    const lWorldGroupLayout = lRenderModule.pipelineLayout.getGroupLayout(1);
-    const lWorldGroup = lWorldGroupLayout.createGroup();
+    const lWorldGroup = lRenderModule.shader.layout.getGroupLayout('world').create();
 
     // Create camera perspective.
     const lPerspectiveProjection: PerspectiveProjection = new PerspectiveProjection();
@@ -148,8 +146,7 @@ const gDepth: number = 10;
     /*
      * User defined group.
      */
-    const lUserGroupLayout = lRenderModule.pipelineLayout.getGroupLayout(2);
-    const lUserGroup = lUserGroupLayout.createGroup();
+    const lUserGroup = lRenderModule.shader.layout.getGroupLayout('user').create();
 
     // Setup cube texture.
     const lCubeTexture = await (<TextureMemoryLayout>lUserGroupLayout.getBind('cubeTexture').layout).createImageTexture('/source/cube_texture/cube-texture.png');

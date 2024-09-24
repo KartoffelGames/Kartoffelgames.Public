@@ -1,8 +1,12 @@
 import { Exception } from '@kartoffelgames/core';
-import { UpdateReason } from '../../gpu/object/gpu-object-update-reason';
+import { BufferUsage } from '../../../constant/buffer-usage.enum';
+import { GpuDevice } from '../../gpu/gpu-device';
+import { GpuObjectSetupReferences } from '../../gpu/object/gpu-object';
 import { BaseBufferMemoryLayout, BufferLayoutLocation, BufferMemoryLayoutParameter } from './base-buffer-memory-layout';
+import { StructBufferMemoryLayoutSetup, StructBufferMemoryLayoutSetupData } from './struct-buffer-memory-layout-setup';
+import { IGpuObjectSetup } from '../../gpu/object/interface/i-gpu-object-setup';
 
-export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
+export class StructBufferMemoryLayout extends BaseBufferMemoryLayout<StructBufferMemoryLayoutSetup> implements IGpuObjectSetup<StructBufferMemoryLayoutSetup> {
     private mAlignment: number;
     private mInnerProperties: Array<StructBufferMemoryLayoutProperty>;
     private mSize: number;
@@ -11,6 +15,9 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
      * Alignment of type.
      */
     public get alignment(): number {
+        // Ensure setup was called.
+        this.ensureSetup();
+
         return this.mAlignment;
     }
 
@@ -18,6 +25,9 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
      * Ordered inner properties.
      */
     public get properties(): Array<BaseBufferMemoryLayout> {
+        // Ensure setup was called.
+        this.ensureSetup();
+
         return this.mInnerProperties.map((pProperty) => pProperty.layout);
     }
 
@@ -25,15 +35,20 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
      * Type size in byte.
      */
     public get size(): number {
+        // Ensure setup was called.
+        this.ensureSetup();
+
         return this.mSize;
     }
 
     /**
      * Constructor.
+     * 
+     * @param pDevice - Device reference.
      * @param pParameter - Parameter.
      */
-    public constructor(pParameter: StructBufferMemoryLayoutParameter) {
-        super(pParameter);
+    public constructor(pDevice: GpuDevice, pUsage: BufferUsage) {
+        super(pDevice, { usage: pUsage });
 
         // Calculated properties.
         this.mAlignment = 0;
@@ -44,36 +59,13 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
     }
 
     /**
-     * Add property to struct.
-     *
-     * @param pOrder - Index of property.
-     * @param pName - Property name.
-     * @param pType - Property type.
-     */
-    public addProperty(pOrder: number, pName: string, pType: BaseBufferMemoryLayout): void {
-        this.mInnerProperties.push({
-            orderIndex: pOrder,
-            name: pName,
-            layout: pType
-        });
-
-        // Order properties.
-        this.mInnerProperties = this.mInnerProperties.sort((pA, pB) => {
-            return pA.orderIndex - pB.orderIndex;
-        });
-
-        // Call recalculation. Or other usefull things.
-        this.recalculateAlignment();
-
-        // Invalidate layout on setting changes.
-        this.invalidate(UpdateReason.Setting);
-    }
-
-    /**
      * Get location of path.
      * @param pPathName - Path name. Divided by dots.
      */
     public override locationOf(pPathName: Array<string>): BufferLayoutLocation {
+        // Ensure setup was called.
+        this.ensureSetup();
+
         const lPathName: Array<string> = [...pPathName];
 
         // Complete array.
@@ -118,10 +110,43 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
     }
 
     /**
-     * Recalculate size and alignment.
+     * Call setup.
+     *
+     * @param pSetupCallback - Setup callback.
+     *
+     * @returns this.
      */
-    private recalculateAlignment(): void {
-        // Recalculate size.
+    public override setup(pSetupCallback?: ((pSetup: StructBufferMemoryLayoutSetup) => void)): this {
+        super.setup(pSetupCallback);
+
+        return this;
+    }
+
+    /**
+     * Setup struct layout.
+     * 
+     * @param pReferences - Setup data references.
+     */
+    protected override onSetup(pReferences: StructBufferMemoryLayoutSetupData): void {
+        // Add each property
+        for (const lProperty of pReferences.properties) {
+            if (!lProperty.layout) {
+                throw new Exception(`Struct propery layout was not set.`, this);
+            }
+
+            this.mInnerProperties.push({
+                orderIndex: lProperty.orderIndex,
+                name: lProperty.name,
+                layout: lProperty.layout
+            });
+        }
+
+        // Order properties.
+        this.mInnerProperties = this.mInnerProperties.sort((pA, pB) => {
+            return pA.orderIndex - pB.orderIndex;
+        });
+
+        // Calculate size.
         let lRawDataSize: number = 0;
         for (const lType of this.properties) {
             // Increase offset to needed alignment.
@@ -137,6 +162,17 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
 
         // Apply struct alignment to raw data size.
         this.mSize = Math.ceil(lRawDataSize / this.mAlignment) * this.mAlignment;
+    }
+
+    /**
+     * Create setup object.
+     * 
+     * @param pReferences - Setup references.
+     * 
+     * @returns setup object. 
+     */
+    protected override onSetupObjectCreate(pReferences: GpuObjectSetupReferences<StructBufferMemoryLayoutSetupData>): StructBufferMemoryLayoutSetup {
+        return new StructBufferMemoryLayoutSetup(pReferences);
     }
 }
 

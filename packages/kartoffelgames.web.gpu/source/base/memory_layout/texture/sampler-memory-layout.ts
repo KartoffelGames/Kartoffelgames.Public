@@ -1,5 +1,6 @@
 import { SamplerType } from '../../../constant/sampler-type.enum';
-import { BaseMemoryLayout, MemoryLayoutParameter } from '../base-memory-layout';
+import { GpuDevice } from '../../gpu/gpu-device';
+import { BaseMemoryLayout } from '../base-memory-layout';
 
 export class SamplerMemoryLayout extends BaseMemoryLayout {
     private readonly mSamplerType: SamplerType;
@@ -13,15 +14,17 @@ export class SamplerMemoryLayout extends BaseMemoryLayout {
 
     /**
      * Constructor.
+     * 
+     * @param pDevice - Device reference.
      * @param pParameter - Parameter.
      */
-    public constructor(pParameter: SamplerMemoryLayoutParameter) {
-        super(pParameter);
+    public constructor(pDevice: GpuDevice, pParameter: SamplerMemoryLayoutParameter) {
+        super(pDevice);
 
         this.mSamplerType = pParameter.samplerType;
     }
 }
 
-export interface SamplerMemoryLayoutParameter extends MemoryLayoutParameter {
+export interface SamplerMemoryLayoutParameter {
     samplerType: SamplerType;
 }

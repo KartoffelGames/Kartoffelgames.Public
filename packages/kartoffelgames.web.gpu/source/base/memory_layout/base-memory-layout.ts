@@ -1,14 +1,13 @@
-import { GpuSettingObject } from '../gpu/object/gpu-setting-object';
+import { GpuDevice } from '../gpu/gpu-device';
+import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
+import { GpuObjectSetup } from '../gpu/object/gpu-object-setup';
 
-export abstract class BaseMemoryLayout extends GpuSettingObject {
+export abstract class BaseMemoryLayout<TSetupObject extends GpuObjectSetup<any> | null = any> extends GpuObject<null, TSetupObject> {
     /**
      * Constuctor.
-     * @param _pParameter - Parameter.
+     * @param pDevice - Device reference.
      */
-    public constructor(_pParameter: MemoryLayoutParameter) {
-        super();
+    public constructor(pDevice: GpuDevice) {
+        super(pDevice, NativeObjectLifeTime.Persistent);
     }
-}
-
-export interface MemoryLayoutParameter {
 }

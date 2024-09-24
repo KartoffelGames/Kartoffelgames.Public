@@ -1,8 +1,7 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
+import { GpuObject, GpuObjectUpdateListener, NativeObjectLifeTime } from '../gpu/object/gpu-object';
 import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
-import { GpuObjectUpdateListener } from '../gpu/object/gpu-setting-object';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { BindGroupLayout, BindLayout } from './bind-group-layout';
 

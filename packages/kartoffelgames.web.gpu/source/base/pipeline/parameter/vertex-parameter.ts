@@ -3,12 +3,12 @@ import { BufferUsage } from '../../../constant/buffer-usage.enum';
 import { MemoryCopyType } from '../../../constant/memory-copy-type.enum';
 import { GpuBuffer } from '../../buffer/gpu-buffer';
 import { GpuDevice } from '../../gpu/gpu-device';
+import { GpuObject, NativeObjectLifeTime } from '../../gpu/object/gpu-object';
 import { ArrayBufferMemoryLayout } from '../../memory_layout/buffer/array-buffer-memory-layout';
+import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
 import { PrimitiveBufferMemoryLayout } from '../../memory_layout/buffer/primitive-buffer-memory-layout';
 import { VertexParameterLayout, VertexParameterLayoutDefinition } from './vertex-parameter-layout';
-import { GpuObject, NativeObjectLifeTime } from '../../gpu/object/gpu-object';
-import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
 
 export class VertexParameter extends GpuObject {
     private readonly mData: Dictionary<string, GpuBuffer<TypedArray>>;
@@ -43,14 +43,14 @@ export class VertexParameter extends GpuObject {
         this.mData = new Dictionary<string, GpuBuffer<TypedArray>>();
 
         // Create index layout.
-        const lIndexLayout: PrimitiveBufferMemoryLayout = new PrimitiveBufferMemoryLayout({
+        const lIndexLayout: PrimitiveBufferMemoryLayout = new PrimitiveBufferMemoryLayout(this.device, {
             primitiveFormat: PrimitiveBufferFormat.Uint32,
             usage: BufferUsage.Index,
             primitiveMultiplier: PrimitiveBufferMultiplier.Single,
         });
 
         // Create index buffer layout.
-        const lIndexBufferLayout: ArrayBufferMemoryLayout = new ArrayBufferMemoryLayout({
+        const lIndexBufferLayout: ArrayBufferMemoryLayout = new ArrayBufferMemoryLayout(this.device, {
             arraySize: pIndices.length,
             innerType: lIndexLayout,
             usage: BufferUsage.Index,
@@ -82,7 +82,7 @@ export class VertexParameter extends GpuObject {
         const lParameterLayout: VertexParameterLayoutDefinition = this.mLayout.parameter(pName);
 
         // Create buffer layout.
-        const lBufferLayout: PrimitiveBufferMemoryLayout = new PrimitiveBufferMemoryLayout({
+        const lBufferLayout: PrimitiveBufferMemoryLayout = new PrimitiveBufferMemoryLayout(this.device,{
             primitiveFormat: lParameterLayout.format,
             usage: BufferUsage.Vertex,
             primitiveMultiplier: lParameterLayout.multiplier,
@@ -107,7 +107,7 @@ export class VertexParameter extends GpuObject {
                 throw new Exception(`Format "${lParameterLayout.format}" not supported for vertex buffer.`, this);
             }
         }
-        
+
         // Save gpu buffer in correct index.
         this.mData.set(pName, lParameterBuffer);
 

@@ -1,4 +1,5 @@
 import { AccessMode } from '../../../constant/access-mode.enum';
+import { BufferUsage } from '../../../constant/buffer-usage.enum';
 import { ComputeStage } from '../../../constant/compute-stage.enum';
 import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
 import { BaseMemoryLayout } from '../../memory_layout/base-memory-layout';
@@ -10,10 +11,11 @@ export class BindGroupLayoutSetup extends GpuObjectSetup<BindGroupLayoutSetupDat
      * 
      * @param pName - Binding name.
      * @param pIndex - - Binding index.
+     * @param pUsage - Buffer usage.
      * @param pVisibility - Visibility.
      * @param pAccessMode - Access mode.
      */
-    public binding(pName: string, pIndex: number, pVisibility: ComputeStage, pAccessMode: AccessMode): BindGroupLayoutMemoryLayoutSetup {
+    public binding(pIndex: number, pName: string, pUsage: BufferUsage, pVisibility: ComputeStage, pAccessMode: AccessMode): BindGroupLayoutMemoryLayoutSetup {
         // Lock setup to a setup call.
         this.ensureThatInSetup();
 
@@ -30,7 +32,7 @@ export class BindGroupLayoutSetup extends GpuObjectSetup<BindGroupLayoutSetupDat
         this.setupData.bindings.push(lBind);
 
         // Create layout memory layout.
-        return new BindGroupLayoutMemoryLayoutSetup(this.setupReferences, (pMemoryLayout: BaseMemoryLayout) => {
+        return new BindGroupLayoutMemoryLayoutSetup(pUsage, this.setupReferences, (pMemoryLayout: BaseMemoryLayout) => {
             lBind.layout = pMemoryLayout;
         });
     }

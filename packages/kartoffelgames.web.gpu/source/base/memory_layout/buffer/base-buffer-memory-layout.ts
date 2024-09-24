@@ -1,11 +1,12 @@
 import { Exception } from '@kartoffelgames/core';
 import { BufferUsage } from '../../../constant/buffer-usage.enum';
+import { GpuDevice } from '../../gpu/gpu-device';
+import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
 import { UpdateReason } from '../../gpu/object/gpu-object-update-reason';
-import { BaseMemoryLayout, MemoryLayoutParameter } from '../base-memory-layout';
+import { BaseMemoryLayout } from '../base-memory-layout';
 
-export abstract class BaseBufferMemoryLayout extends BaseMemoryLayout {
+export abstract class BaseBufferMemoryLayout<TSetupObject extends GpuObjectSetup<any> | null = any> extends BaseMemoryLayout<TSetupObject> {
     private mUsage: BufferUsage;
-
 
     /**
      * Type byte alignment.
@@ -31,10 +32,12 @@ export abstract class BaseBufferMemoryLayout extends BaseMemoryLayout {
 
     /**
      * Constructor.
+     * 
+     * @param pDevice - Device reference.
      * @param pParameter - Parameter.
      */
-    public constructor(pParameter: BufferMemoryLayoutParameter) {
-        super(pParameter);
+    public constructor(pDevice: GpuDevice, pParameter: BufferMemoryLayoutParameter) {
+        super(pDevice);
 
         // Settings.
         this.mUsage = pParameter.usage;
@@ -54,7 +57,7 @@ export abstract class BaseBufferMemoryLayout extends BaseMemoryLayout {
     }
 }
 
-export interface BufferMemoryLayoutParameter extends MemoryLayoutParameter {
+export interface BufferMemoryLayoutParameter {
     usage: BufferUsage;
 }
 

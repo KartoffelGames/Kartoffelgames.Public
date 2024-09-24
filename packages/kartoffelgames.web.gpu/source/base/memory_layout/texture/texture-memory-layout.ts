@@ -2,8 +2,9 @@ import { TextureBindType } from '../../../constant/texture-bind-type.enum';
 import { TextureDimension } from '../../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../../constant/texture-format.enum';
 import { TextureUsage } from '../../../constant/texture-usage.enum';
+import { GpuDevice } from '../../gpu/gpu-device';
 import { UpdateReason } from '../../gpu/object/gpu-object-update-reason';
-import { BaseMemoryLayout, MemoryLayoutParameter } from '../base-memory-layout';
+import { BaseMemoryLayout} from '../base-memory-layout';
 
 export class TextureMemoryLayout extends BaseMemoryLayout {
     private readonly mBindType: TextureBindType;
@@ -36,7 +37,7 @@ export class TextureMemoryLayout extends BaseMemoryLayout {
     /**
      * Texture uses multisample.
      */
-    public get multisampled(): boolean { // TODO: Change to multisample level.
+    public get multisampled(): boolean {
         return this.mMultisampled;
     }
 
@@ -56,10 +57,12 @@ export class TextureMemoryLayout extends BaseMemoryLayout {
 
     /**
      * Constructor.
+     * 
+     * @param pDevice - Device reference.
      * @param pParameter - Parameter.
      */
-    public constructor(pParameter: TextureMemoryLayoutParameter) {
-        super(pParameter);
+    public constructor(pDevice: GpuDevice, pParameter: TextureMemoryLayoutParameter) {
+        super(pDevice);
 
         this.mBindType = pParameter.bindType;
         this.mDimension = pParameter.dimension;
@@ -69,7 +72,7 @@ export class TextureMemoryLayout extends BaseMemoryLayout {
     }
 }
 
-export interface TextureMemoryLayoutParameter extends MemoryLayoutParameter {
+export interface TextureMemoryLayoutParameter {
     usage: TextureUsage;
     dimension: TextureDimension;
     format: TextureFormat;

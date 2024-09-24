@@ -1,5 +1,4 @@
 import { BindGroupLayout } from '../../source/base/binding/bind-group-layout';
-import { InstructionExecuter } from '../../source/base/execution/instruction-executor';
 import { GpuDevice } from '../../source/base/gpu/gpu-device';
 import { ArrayBufferMemoryLayout } from '../../source/base/memory_layout/buffer/array-buffer-memory-layout';
 import { PrimitiveBufferFormat } from '../../source/base/memory_layout/buffer/enum/primitive-buffer-format.enum';
@@ -19,7 +18,6 @@ import { SamplerType } from '../../source/constant/sampler-type.enum';
 import { TextureBindType } from '../../source/constant/texture-bind-type.enum';
 import { TextureDimension } from '../../source/constant/texture-dimension.enum';
 import { TextureFormat } from '../../source/constant/texture-format.enum';
-import { TextureUsage } from '../../source/constant/texture-usage.enum';
 import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVertexUvData } from './cube/cube';
 import shader from './shader.wgsl';
 import { AmbientLight } from './something_better/light/ambient-light';
@@ -30,14 +28,6 @@ import { CameraMatrix, ViewProjection } from './something_better/view_projection
 const gHeight: number = 10;
 const gWidth: number = 10;
 const gDepth: number = 10;
-
-(async () => {
-    // const lGpu: GpuDevice = await GpuDevice.request(new WebGpuGeneratorFactory('high-performance'), WebGpuShaderInterpreter);
-
-    // const lInterpreter = new PgslInterpreter(lGpu);
-    // // eslint-disable-next-line no-console
-    // (<any>window).interpreter = lInterpreter;
-})();
 
 (async () => {
     const lGpu: GpuDevice = await GpuDevice.request('high-performance');
@@ -65,38 +55,38 @@ const gDepth: number = 10;
 
         // Object bind group.
         pShaderSetup.group(0, new BindGroupLayout(lGpu, 'object').setup((pBindGroupSetup) => {
-            pBindGroupSetup.binding('transformationMatrix', 0, BufferUsage.Uniform, ComputeStage.Vertex, AccessMode.Read)
-                .asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
+            pBindGroupSetup.binding(0, 'transformationMatrix', BufferUsage.Uniform, ComputeStage.Vertex, AccessMode.Read)
+                .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
 
-            pBindGroupSetup.binding('instancePositions', 0, BufferUsage.Storage, ComputeStage.Vertex, AccessMode.Read)
-                .asArray().withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
+            pBindGroupSetup.binding(1, 'instancePositions', BufferUsage.Storage, ComputeStage.Vertex, AccessMode.Read)
+                .withArray().withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
         }));
 
         // World bind group.
         pShaderSetup.group(1, new BindGroupLayout(lGpu, 'world').setup((pBindGroupSetup) => {
-            pBindGroupSetup.binding('viewProjectionMatrix', 0, BufferUsage.Uniform, ComputeStage.Vertex, AccessMode.Read)
-                .asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
+            pBindGroupSetup.binding(0, 'viewProjectionMatrix', BufferUsage.Uniform, ComputeStage.Vertex, AccessMode.Read)
+                .withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
 
-            pBindGroupSetup.binding('ambientLight', 1, ComputeStage.Fragment, AccessMode.Read)
-                .asStruct('AmbientLight', (pStruct) => {
-                    pStruct.property('color', PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
+            pBindGroupSetup.binding(1, 'ambientLight', BufferUsage.Uniform, ComputeStage.Fragment, AccessMode.Read)
+                .withStruct((pStruct) => {
+                    pStruct.property('color').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
                 });
 
-            pBindGroupSetup.binding('pointLights', 2, BufferUsage.Storage, ComputeStage.Fragment, AccessMode.Read)
-                .asArray().withStruct((pStruct) => {
-                    pStruct.property('position', PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
-                    pStruct.property('color', PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
-                    pStruct.property('range', PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Single);
+            pBindGroupSetup.binding(2, 'pointLights', BufferUsage.Storage, ComputeStage.Fragment, AccessMode.Read)
+                .withArray().withStruct((pStruct) => {
+                    pStruct.property('position').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
+                    pStruct.property('color').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
+                    pStruct.property('range').asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Single);
                 });
         }));
 
         // User bind group
         pShaderSetup.group(2, new BindGroupLayout(lGpu, 'user').setup((pBindGroupSetup) => {
-            pBindGroupSetup.binding('cubeTextureSampler', 0, BufferUsage.Uniform, ComputeStage.Fragment, AccessMode.Read)
-                .asSampler(SamplerType.Filter);
+            pBindGroupSetup.binding(0, 'cubeTextureSampler', BufferUsage.Uniform, ComputeStage.Fragment, AccessMode.Read)
+                .withSampler(SamplerType.Filter);
 
-            pBindGroupSetup.binding('cubeTexture', 1, BufferUsage.Uniform, ComputeStage.Fragment, AccessMode.Read)
-                .asTexture(TextureUsage.TextureBinding, TextureDimension.TwoDimension, TextureFormat.Rgba8snorm, TextureBindType.Image, false);
+            pBindGroupSetup.binding(1, 'cubeTexture', BufferUsage.Uniform, ComputeStage.Fragment, AccessMode.Read)
+                .withTexture(TextureDimension.TwoDimension, TextureFormat.Rgba8snorm, TextureBindType.Image, false);
         }));
     });
 

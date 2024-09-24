@@ -2,24 +2,42 @@ import { Exception, IDeconstructable, Writeable } from '@kartoffelgames/core';
 import { GpuDevice } from '../gpu-device';
 import { GpuObjectSetup } from './gpu-object-setup';
 import { GpuObjectUpdateReason, UpdateReason } from './gpu-object-update-reason';
-import { GpuSettingObject } from './gpu-setting-object';
 
 /**
  * Gpu object with a native internal object.
  */
-export abstract class GpuObject<TNativeObject = null, TSetupObject extends GpuObjectSetup<any> | null = null> extends GpuSettingObject implements IDeconstructable {
+export abstract class GpuObject<TNativeObject = null, TSetupObject extends GpuObjectSetup<any> | null = null> implements IDeconstructable {
+    private mAutoUpdate: boolean;
     private mDeconstructed: boolean;
     private readonly mDevice: GpuDevice;
+    private readonly mInvalidationReasons: GpuObjectUpdateReason;
     private mIsSetup: boolean;
     private mLastGeneratedFrame: number;
     private readonly mNativeLifeTime: NativeObjectLifeTime;
     private mNativeObject: TNativeObject | null;
+    private readonly mUpdateListenerList: Set<GpuObjectUpdateListener>;
+
+    /**
+     * Enable or disable auto update.
+     */
+    public get autoUpdate(): boolean {
+        return this.mAutoUpdate;
+    } set autoUpdate(pValue: boolean) {
+        this.mAutoUpdate = pValue;
+    }
 
     /**
      * Gpu Device.
      */
     protected get device(): GpuDevice {
         return this.mDevice;
+    }
+
+    /**
+     * Current invalidation reasons.
+     */
+    protected get invalidationReasons(): GpuObjectUpdateReason {
+        return this.mInvalidationReasons;
     }
 
     /**
@@ -42,8 +60,6 @@ export abstract class GpuObject<TNativeObject = null, TSetupObject extends GpuOb
      * @param pNativeLifeTime - Lifetime of native object.
      */
     public constructor(pDevice: GpuDevice, pNativeLifeTime: NativeObjectLifeTime) {
-        super();
-
         // Save static settings.
         this.mDevice = pDevice;
         this.mIsSetup = false;
@@ -53,6 +69,21 @@ export abstract class GpuObject<TNativeObject = null, TSetupObject extends GpuOb
         this.mDeconstructed = false;
         this.mNativeObject = null;
         this.mLastGeneratedFrame = 0;
+
+        // Init default settings and config.
+        this.mAutoUpdate = true;
+
+        // Init lists.
+        this.mUpdateListenerList = new Set<GpuObjectUpdateListener>();
+        this.mInvalidationReasons = new GpuObjectUpdateReason();
+    }
+
+    /**
+     * Add invalidation listener.
+     * @param pListener - Listener.
+     */
+    public addInvalidationListener(pListener: GpuObjectUpdateListener): void {
+        this.mUpdateListenerList.add(pListener);
     }
 
     /**
@@ -68,6 +99,27 @@ export abstract class GpuObject<TNativeObject = null, TSetupObject extends GpuOb
         }
 
         this.mDeconstructed = true;
+    }
+
+    /**
+     * Invalidate native gpu object so it will be created again.
+     */
+    public invalidate(pReason: UpdateReason): void {
+        // Add invalidation reason.
+        this.mInvalidationReasons.add(pReason);
+
+        // Call parent update listerner.
+        for (const lInvalidationListener of this.mUpdateListenerList) {
+            lInvalidationListener();
+        }
+    }
+
+    /**
+     * Add invalidation listener.
+     * @param pListener - Listener.
+     */
+    public removeInvalidationListener(pListener: GpuObjectUpdateListener): void {
+        this.mUpdateListenerList.delete(pListener);
     }
 
     /**
@@ -160,6 +212,16 @@ export abstract class GpuObject<TNativeObject = null, TSetupObject extends GpuOb
     }
 
     /**
+     * Trigger auto update.
+     * Does nothing on disabled auto update.
+     */
+    protected triggerAutoUpdate(pReason: UpdateReason): void {
+        if (this.mAutoUpdate) {
+            this.invalidate(pReason);
+        }
+    }
+
+    /**
      * Read up to date native object.
      * Invalidates, destroys and generates the native object.
      * 
@@ -234,3 +296,7 @@ export enum NativeObjectLifeTime {
     Frame = 1,
     Single = 2
 }
+
+export type GpuObjectUpdateListener = () => void;
+
+// TODO: Custom invalidation mapping to destinct between creating everything new or replace a view in native objects.

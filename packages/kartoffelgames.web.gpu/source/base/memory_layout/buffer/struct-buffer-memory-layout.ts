@@ -1,10 +1,10 @@
 import { Exception } from '@kartoffelgames/core';
-import { BaseBufferMemoryLayout, BufferLayoutLocation, BufferMemoryLayoutParameter } from './base-buffer-memory-layout';
 import { UpdateReason } from '../../gpu/object/gpu-object-update-reason';
+import { BaseBufferMemoryLayout, BufferLayoutLocation, BufferMemoryLayoutParameter } from './base-buffer-memory-layout';
 
 export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
     private mAlignment: number;
-    private mInnerProperties: Array<[number, BaseBufferMemoryLayout]>;
+    private mInnerProperties: Array<StructBufferMemoryLayoutProperty>;
     private mSize: number;
 
     /**
@@ -18,7 +18,7 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
      * Ordered inner properties.
      */
     public get properties(): Array<BaseBufferMemoryLayout> {
-        return this.mInnerProperties.map((pProperty) => pProperty[1]);
+        return this.mInnerProperties.map((pProperty) => pProperty.layout);
     }
 
     /**
@@ -40,21 +40,26 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
         this.mSize = 0;
 
         // Static properties.
-        this.mInnerProperties = new Array<[number, BaseBufferMemoryLayout]>();
+        this.mInnerProperties = new Array<StructBufferMemoryLayoutProperty>();
     }
 
     /**
      * Add property to struct.
-     * @param pName - Property name.
+     *
      * @param pOrder - Index of property.
+     * @param pName - Property name.
      * @param pType - Property type.
      */
-    public addProperty(pOrder: number, pType: BaseBufferMemoryLayout): void {
-        this.mInnerProperties.push([pOrder, pType]);
+    public addProperty(pOrder: number, pName: string, pType: BaseBufferMemoryLayout): void {
+        this.mInnerProperties.push({
+            orderIndex: pOrder,
+            name: pName,
+            layout: pType
+        });
 
         // Order properties.
         this.mInnerProperties = this.mInnerProperties.sort((pA, pB) => {
-            return pA[0] - pB[0];
+            return pA.orderIndex - pB.orderIndex;
         });
 
         // Call recalculation. Or other usefull things.
@@ -78,34 +83,34 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
         }
 
         // Get ordered types.
-        const lOrderedTypeList: Array<BaseBufferMemoryLayout> = this.mInnerProperties.sort(([pOrderA], [pOrderB]) => {
-            return pOrderA - pOrderB;
-        }).map(([, pType]) => pType);
+        const lOrderedTypeList: Array<StructBufferMemoryLayoutProperty> = this.mInnerProperties.sort((pPropertyA, pPropertyB) => {
+            return pPropertyA.orderIndex - pPropertyB.orderIndex;
+        });
 
         // Recalculate size.
         let lPropertyOffset: number = 0;
-        let lPropertyLayout: BaseBufferMemoryLayout | null = null;
+        let lFoundProperty: StructBufferMemoryLayoutProperty | null = null;
         for (const lProperty of lOrderedTypeList) {
             // Increase offset to needed alignment.
-            lPropertyOffset = Math.ceil(lPropertyOffset / lProperty.alignment) * lProperty.alignment;
+            lPropertyOffset = Math.ceil(lPropertyOffset / lProperty.layout.alignment) * lProperty.layout.alignment;
 
             // Inner property is found. Skip searching.
             // Alignment just applied so it can be skipped later.
             if (lProperty.name === lPropertyName) {
-                lPropertyLayout = lProperty;
+                lFoundProperty = lProperty;
                 break;
             }
 
             // Increase offset for complete property.
-            lPropertyOffset += lProperty.size;
+            lPropertyOffset += lProperty.layout.size;
         }
 
         // Validate property.
-        if (!lPropertyLayout) {
+        if (!lFoundProperty) {
             throw new Exception(`Struct buffer layout property "${lPropertyName}" not found.`, this);
         }
 
-        const lPropertyLocation = lPropertyLayout.locationOf(lPathName);
+        const lPropertyLocation = lFoundProperty.layout.locationOf(lPathName);
         return {
             size: lPropertyLocation.size,
             offset: lPropertyOffset + lPropertyLocation.offset
@@ -136,3 +141,9 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout {
 }
 
 export interface StructBufferMemoryLayoutParameter extends BufferMemoryLayoutParameter { }
+
+type StructBufferMemoryLayoutProperty = {
+    orderIndex: number,
+    name: string,
+    layout: BaseBufferMemoryLayout;
+};

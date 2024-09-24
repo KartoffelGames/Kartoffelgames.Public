@@ -47,7 +47,6 @@ export class VertexParameter extends GpuObject {
             primitiveFormat: PrimitiveBufferFormat.Uint32,
             usage: BufferUsage.Index,
             primitiveMultiplier: PrimitiveBufferMultiplier.Single,
-            name: ''
         });
 
         // Create index buffer layout.
@@ -55,7 +54,6 @@ export class VertexParameter extends GpuObject {
             arraySize: pIndices.length,
             innerType: lIndexLayout,
             usage: BufferUsage.Index,
-            name: '',
         });
 
         // Create index buffer.
@@ -88,7 +86,6 @@ export class VertexParameter extends GpuObject {
             primitiveFormat: lParameterLayout.format,
             usage: BufferUsage.Vertex,
             primitiveMultiplier: lParameterLayout.multiplier,
-            name: lParameterLayout.name
         });
 
         // Load typed array from layout format.

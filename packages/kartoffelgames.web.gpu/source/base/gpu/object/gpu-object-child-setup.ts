@@ -41,7 +41,7 @@ export abstract class GpuObjectChildSetup<TSetupReferenceData, TCallback extends
     /**
      * Ensure that current call is used inside a setup call.
      */
-    public ensureThatInSetup(): void {
+    protected ensureThatInSetup(): void {
         // Lock setup to a setup call.
         if (!this.mSetupReference.inSetup) {
             throw new Exception('Can only setup in a setup call.', this);

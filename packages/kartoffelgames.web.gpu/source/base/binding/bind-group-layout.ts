@@ -4,21 +4,23 @@ import { BufferUsage } from '../../constant/buffer-usage.enum';
 import { ComputeStage } from '../../constant/compute-stage.enum';
 import { TextureBindType } from '../../constant/texture-bind-type.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
+import { GpuObject, GpuObjectSetupReferences, NativeObjectLifeTime } from '../gpu/object/gpu-object';
 import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
+import { IGpuObjectSetup } from '../gpu/object/interface/i-gpu-object-setup';
 import { BaseMemoryLayout } from '../memory_layout/base-memory-layout';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 import { TextureFormatCapability } from '../texture/texture-format-capabilities';
+import { BindGroupLayoutSetup, BindGroupLayoutSetupData } from './setup/bind-group-layout-setup';
 
 // TODO: Find a good way to create new binding groups.
 
 /**
  * Bind group layout. Fixed at creation. 
  */
-export class BindGroupLayout extends GpuObject<GPUBindGroupLayout> implements IGpuObjectNative<GPUBindGroupLayout> {
+export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, BindGroupLayoutSetup> implements IGpuObjectNative<GPUBindGroupLayout>, IGpuObjectSetup<BindGroupLayoutSetup> {
     private readonly mBindings: Dictionary<string, BindLayout>;
     private readonly mName: string;
 
@@ -33,6 +35,9 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout> implements IG
      * Get bindings of group in binding order.
      */
     public get bindings(): Array<Readonly<BindLayout>> {
+        // Ensure setup.
+        this.ensureSetup();
+
         const lBindingList: Array<BindLayout> = new Array<BindLayout>();
         for (const lBinding of this.mBindings.values()) {
             lBindingList[lBinding.index] = lBinding;
@@ -60,44 +65,15 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout> implements IG
      * 
      * @param pDevice - Gpu Device reference.
      * @param pName - Name of binding group.
-     * @param pBindingList - Binding list.
      */
-    public constructor(pDevice: GpuDevice, pName: string, pBindingList: Array<BindLayout>) {
+    public constructor(pDevice: GpuDevice, pName: string) {
         super(pDevice, NativeObjectLifeTime.Persistent);
 
         // Set binding group name.
         this.mName = pName;
 
-        // Validation set.
-        const lBindingIndices: Set<number> = new Set<number>();
-        const lBindingName: Set<string> = new Set<string>();
-
         // Init bindings.
         this.mBindings = new Dictionary<string, BindLayout>();
-        for (const lBinding of pBindingList) {
-            // Shallow copy binding.
-            this.mBindings.set(lBinding.name, {
-                name: lBinding.name,
-                index: lBinding.index,
-                layout: lBinding.layout,
-                visibility: lBinding.visibility,
-                accessMode: lBinding.accessMode
-            });
-
-            // Register change listener for layout changes.
-            lBinding.layout.addInvalidationListener(() => {
-                this.triggerAutoUpdate(UpdateReason.ChildData);
-            });
-
-            // Validate dublicate indices.
-            if (lBindingIndices.has(lBinding.index) || lBindingName.has(lBinding.name)) {
-                throw new Exception(`Binding "${lBinding.name}" with index "${lBinding.index}" added twice.`, this);
-            }
-
-            // Add binding index to already binded indices. 
-            lBindingIndices.add(lBinding.index);
-            lBindingName.add(lBinding.name);
-        }
     }
 
     /**
@@ -105,11 +81,25 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout> implements IG
      * @param pName - Bind name.
      */
     public getBind(pName: string): Readonly<BindLayout> {
+        // Ensure setup.
+        this.ensureSetup();
+
         if (!this.mBindings.has(pName)) {
             throw new Exception(`Bind ${pName} does not exist.`, this);
         }
 
         return this.mBindings.get(pName)!;
+    }
+
+    /**
+     * Call setup.
+     * 
+     * @param pSetupCallback - Setup callback.
+     *
+     * @returns — this. 
+     */
+    public override setup(pSetupCallback?: ((pSetup: BindGroupLayoutSetup) => void) | undefined): this {
+        return this.setup(pSetupCallback);
     }
 
     /**
@@ -247,6 +237,59 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout> implements IG
             label: 'Bind-Group-Layout',
             entries: lEntryList
         });
+    }
+
+    /**
+     * Setup bind group.
+     * 
+     * @param pReferences - Setup data references. 
+     */
+    protected override onSetup(pReferences: BindGroupLayoutSetupData): void {
+        // Validation set.
+        const lBindingIndices: Set<number> = new Set<number>();
+        const lBindingName: Set<string> = new Set<string>();
+
+        // Add each binding.
+        for (const lBinding of pReferences.bindings) {
+            // Validate layout.
+            if (!lBinding.layout) {
+                throw new Exception(`Bind group binding "${lBinding.name}" has no setup layout.`, this);
+            }
+
+            // Shallow copy binding.
+            this.mBindings.set(lBinding.name, {
+                name: lBinding.name,
+                index: lBinding.index,
+                layout: lBinding.layout,
+                visibility: lBinding.visibility,
+                accessMode: lBinding.accessMode
+            });
+
+            // Register change listener for layout changes.
+            lBinding.layout.addInvalidationListener(() => {
+                this.triggerAutoUpdate(UpdateReason.ChildData);
+            });
+
+            // Validate dublicate indices.
+            if (lBindingIndices.has(lBinding.index) || lBindingName.has(lBinding.name)) {
+                throw new Exception(`Binding "${lBinding.name}" with index "${lBinding.index}" added twice.`, this);
+            }
+
+            // Add binding index to already binded indices. 
+            lBindingIndices.add(lBinding.index);
+            lBindingName.add(lBinding.name);
+        }
+    }
+
+    /**
+     * Create setup object. Return null to skip any setups.
+     * 
+     * @param pReferences - Setup references.
+     * 
+     * @returns setup.
+     */
+    protected override onSetupObjectCreate(pReferences: GpuObjectSetupReferences<never>): BindGroupLayoutSetup {
+        return new BindGroupLayoutSetup(pReferences);
     }
 }
 

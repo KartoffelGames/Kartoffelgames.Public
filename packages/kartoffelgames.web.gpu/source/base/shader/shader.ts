@@ -1,5 +1,5 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { BindGroupLayout, BindLayout } from '../binding/bind-group-layout';
+import { BindGroupLayout } from '../binding/bind-group-layout';
 import { PipelineLayout } from '../binding/pipeline-layout';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, GpuObjectSetupReferences, NativeObjectLifeTime } from '../gpu/object/gpu-object';
@@ -264,21 +264,8 @@ export class Shader extends GpuObject<GPUShaderModule, ShaderSetup> implements I
         // Generate initial pipeline layout.
         const lInitialPipelineLayout: Dictionary<number, BindGroupLayout> = new Dictionary<number, BindGroupLayout>();
         for (const lGroup of pReferences.bindingGroups) {
-            // Generate each binding.
-            const lBindLayoutList: Array<BindLayout> = new Array<BindLayout>();
-            for (const lBind of lGroup.bindings) {
-                // Generate and add bind layout to bind layout list.
-                lBindLayoutList.push({
-                    name: lBind.name,
-                    index: lBind.index,
-                    layout: lBind.layout,
-                    visibility: lBind.visibility,
-                    accessMode: lBind.accessMode
-                });
-            }
-
             // Set bind group layout with group index.
-            lInitialPipelineLayout.set(lGroup.index, new BindGroupLayout(this.device, lGroup.name, lBindLayoutList));
+            lInitialPipelineLayout.set(lGroup.index, new BindGroupLayout(this.device, lGroup.group.name));
         }
         this.mPipelineLayout = new PipelineLayout(this.device, lInitialPipelineLayout);
     }

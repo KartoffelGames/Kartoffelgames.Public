@@ -9,7 +9,7 @@ import { IGpuObjectSetup } from '../../gpu/object/interface/i-gpu-object-setup';
 import { CanvasTexture } from '../../texture/canvas-texture';
 import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
 import { TextureFormatCapability } from '../../texture/texture-format-capabilities';
-import { RenderTargetSetupReferenceData, RenderTargetsSetup } from './render-targets-setup';
+import { RenderTargetSetupData, RenderTargetsSetup } from './render-targets-setup';
 
 /**
  * Group of textures with the same size and multisample level.
@@ -232,7 +232,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
      * 
      * @param pReferenceData - Referenced setup data.
      */
-    protected override onSetup(pReferenceData: RenderTargetSetupReferenceData): void {
+    protected override onSetup(pReferenceData: RenderTargetSetupData): void {
         // Setup depth stencil targets.
         if (pReferenceData.depthStencil) {
             // Validate existance of depth stencil texture.
@@ -321,7 +321,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
      * 
      * @returns build setup object. 
      */
-    protected override onSetupObjectCreate(pReferences: GpuObjectSetupReferences<RenderTargetSetupReferenceData>): RenderTargetsSetup {
+    protected override onSetupObjectCreate(pReferences: GpuObjectSetupReferences<RenderTargetSetupData>): RenderTargetsSetup {
         return new RenderTargetsSetup(pReferences);
     }
 

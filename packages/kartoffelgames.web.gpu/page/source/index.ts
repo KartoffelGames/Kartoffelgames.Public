@@ -1,6 +1,9 @@
+import { BindGroupLayout } from '../../source/base/binding/bind-group-layout';
 import { InstructionExecuter } from '../../source/base/execution/instruction-executor';
 import { GpuDevice } from '../../source/base/gpu/gpu-device';
 import { ArrayBufferMemoryLayout } from '../../source/base/memory_layout/buffer/array-buffer-memory-layout';
+import { PrimitiveBufferFormat } from '../../source/base/memory_layout/buffer/enum/primitive-buffer-format.enum';
+import { PrimitiveBufferMultiplier } from '../../source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
 import { PrimitiveBufferMemoryLayout } from '../../source/base/memory_layout/buffer/primitive-buffer-memory-layout';
 import { StructBufferMemoryLayout } from '../../source/base/memory_layout/buffer/struct-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../../source/base/memory_layout/texture/sampler-memory-layout';
@@ -8,8 +11,15 @@ import { TextureMemoryLayout } from '../../source/base/memory_layout/texture/tex
 import { VertexParameter } from '../../source/base/pipeline/parameter/vertex-parameter';
 import { RenderTargets } from '../../source/base/pipeline/target/render-targets';
 import { VertexFragmentPipeline } from '../../source/base/pipeline/vertex-fragment-pipeline';
+import { AccessMode } from '../../source/constant/access-mode.enum';
+import { BufferUsage } from '../../source/constant/buffer-usage.enum';
+import { ComputeStage } from '../../source/constant/compute-stage.enum';
 import { PrimitiveCullMode } from '../../source/constant/primitive-cullmode.enum';
+import { SamplerType } from '../../source/constant/sampler-type.enum';
+import { TextureBindType } from '../../source/constant/texture-bind-type.enum';
+import { TextureDimension } from '../../source/constant/texture-dimension.enum';
 import { TextureFormat } from '../../source/constant/texture-format.enum';
+import { TextureUsage } from '../../source/constant/texture-usage.enum';
 import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVertexUvData } from './cube/cube';
 import shader from './shader.wgsl';
 import { AmbientLight } from './something_better/light/ambient-light';
@@ -33,23 +43,62 @@ const gDepth: number = 10;
     const lGpu: GpuDevice = await GpuDevice.request('high-performance');
 
     // Create and configure render targets.
-    const lRenderTargets: RenderTargets = lGpu.renderTargets()
-        .resize(640, 640, 2)
-        .setup((pSetup) => {
-            // Add "color" target and init new texture.
-            pSetup.addColor('color', 0, true, { r: 0, g: 0, b: 0, a: 0 })
-                .new(TextureFormat.Rgba8unorm);
+    const lRenderTargets: RenderTargets = lGpu.renderTargets().setup((pSetup) => {
+        // Add "color" target and init new texture.
+        pSetup.addColor('color', 0, true, { r: 0, g: 0, b: 0, a: 0 })
+            .new(TextureFormat.Rgba8unorm);
 
-            // Add depth texture and init new texture.    
-            pSetup.addDepthStencil(true, 0xff)
-                .new(TextureFormat.Depth24plus);
-        });
+        // Add depth texture and init new texture.    
+        pSetup.addDepthStencil(true, 0xff)
+            .new(TextureFormat.Depth24plus);
+    }).resize(640, 640, 2);
 
     // Create shader.
-    const lShader = lGpu.shader(shader)
-        .setup((pSetup) => {
+    const lShader = lGpu.shader(shader).setup((pShaderSetup) => {
+        pShaderSetup.vertexEntryPoint('vertex_main')
+            .addParameter('position', 0, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4)
+            .addParameter('uv', 1, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector2)
+            .addParameter('normal', 2, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
 
-        });
+        pShaderSetup.fragmentEntryPoint('fragment_main')
+            .addRenderTarget('main', 0, PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
+
+        // Object bind group.
+        pShaderSetup.group(0, new BindGroupLayout(lGpu, 'object').setup((pBindGroupSetup) => {
+            pBindGroupSetup.binding('transformationMatrix', 0, BufferUsage.Uniform, ComputeStage.Vertex, AccessMode.Read)
+                .asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
+
+            pBindGroupSetup.binding('instancePositions', 0, BufferUsage.Storage, ComputeStage.Vertex, AccessMode.Read)
+                .asArray().withPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
+        }));
+
+        // World bind group.
+        pShaderSetup.group(1, new BindGroupLayout(lGpu, 'world').setup((pBindGroupSetup) => {
+            pBindGroupSetup.binding('viewProjectionMatrix', 0, BufferUsage.Uniform, ComputeStage.Vertex, AccessMode.Read)
+                .asPrimitive(PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Matrix44);
+
+            pBindGroupSetup.binding('ambientLight', 1, ComputeStage.Fragment, AccessMode.Read)
+                .asStruct('AmbientLight', (pStruct) => {
+                    pStruct.property('color', PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
+                });
+
+            pBindGroupSetup.binding('pointLights', 2, BufferUsage.Storage, ComputeStage.Fragment, AccessMode.Read)
+                .asArray().withStruct((pStruct) => {
+                    pStruct.property('position', PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
+                    pStruct.property('color', PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Vector4);
+                    pStruct.property('range', PrimitiveBufferFormat.Float32, PrimitiveBufferMultiplier.Single);
+                });
+        }));
+
+        // User bind group
+        pShaderSetup.group(2, new BindGroupLayout(lGpu, 'user').setup((pBindGroupSetup) => {
+            pBindGroupSetup.binding('cubeTextureSampler', 0, BufferUsage.Uniform, ComputeStage.Fragment, AccessMode.Read)
+                .asSampler(SamplerType.Filter);
+
+            pBindGroupSetup.binding('cubeTexture', 1, BufferUsage.Uniform, ComputeStage.Fragment, AccessMode.Read)
+                .asTexture(TextureUsage.TextureBinding, TextureDimension.TwoDimension, TextureFormat.Rgba8snorm, TextureBindType.Image, false);
+        }));
+    });
 
 
     // Create render module from shader.

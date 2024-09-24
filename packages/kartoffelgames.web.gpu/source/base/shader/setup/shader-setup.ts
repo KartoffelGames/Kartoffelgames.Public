@@ -1,7 +1,5 @@
-import { AccessMode } from '../../../constant/access-mode.enum';
-import { ComputeStage } from '../../../constant/compute-stage.enum';
+import { BindGroupLayout } from '../../binding/bind-group-layout';
 import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
-import { BaseMemoryLayout } from '../../memory_layout/base-memory-layout';
 import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { ShaderModuleEntryPointFragmentRenderTarget } from '../shader';
 import { ShaderComputeEntryPointSetup } from './shader-compute-entry-point-setup';
@@ -9,24 +7,6 @@ import { ShaderFragmentEntryPointRenderTargetSetupData, ShaderFragmentEntryPoint
 import { ShaderVertexEntryPointSetup, VertexEntryPointParameterSetupData } from './shader-vertex-entry-point-setup';
 
 export class ShaderSetup extends GpuObjectSetup<ShaderSetupReferenceData> {
-    /**
-     * Add static pipeline parameters definitions.
-     * 
-     * @param pName- Parameter name.
-     * @param pFormat - Parameter format.
-     * 
-     * @returns this. 
-     */
-    public addParameter(pName: string, pFormat: PrimitiveBufferFormat): this {
-        // Lock setup to a setup call.
-        this.ensureThatInSetup();
-
-        // Add parameter.
-        this.setupData.parameter.push({ name: pName, format: pFormat });
-
-        return this;
-    }
-
     /**
      * Setup compute entry point.
      * When size is not called, the compute entry point will be setup with a dynamic size.
@@ -81,6 +61,42 @@ export class ShaderSetup extends GpuObjectSetup<ShaderSetupReferenceData> {
     }
 
     /**
+     * Add group to layout.
+     * 
+     * @param pIndex - Bind group index.
+     * @param pGroup - Group.
+     * 
+     * @returns the same group.
+     */
+    public group(pIndex: number, pGroup: BindGroupLayout): BindGroupLayout {
+        // Register group.
+        this.setupData.bindingGroups.push({
+            index: pIndex,
+            group: pGroup
+        });
+
+        return pGroup;
+    }
+
+    /**
+     * Add static pipeline parameters definitions.
+     * 
+     * @param pName- Parameter name.
+     * @param pFormat - Parameter format.
+     * 
+     * @returns this. 
+     */
+    public parameter(pName: string, pFormat: PrimitiveBufferFormat): this {
+        // Lock setup to a setup call.
+        this.ensureThatInSetup();
+
+        // Add parameter.
+        this.setupData.parameter.push({ name: pName, format: pFormat });
+
+        return this;
+    }
+
+    /**
      * Setup vertex entry point.
      * 
      * @param pName - Vertex entry name.
@@ -116,10 +132,16 @@ export class ShaderSetup extends GpuObjectSetup<ShaderSetupReferenceData> {
         pDataReference.vertexEntrypoints = new Array<ShaderEntryPointVertexSetupData>();
 
         // Parameter.
-        pDataReference.parameter = new Array<{ name: string; format: PrimitiveBufferFormat; }>();
+        pDataReference.parameter = new Array<{
+            name: string;
+            format: PrimitiveBufferFormat;
+        }>();
 
         // Bind groups.
-        pDataReference.bindingGroups = new Array<ShaderBindGroupSetupData>();
+        pDataReference.bindingGroups = new Array<{
+            index: number;
+            group: BindGroupLayout;
+        }>();
     }
 }
 
@@ -155,20 +177,8 @@ export type ShaderSetupReferenceData = {
     }>;
 
     // Bind groups.
-    bindingGroups: Array<ShaderBindGroupSetupData>;
-};
-
-
-type ShaderBindingSetupData = {
-    index: number,
-    name: string;
-    layout: BaseMemoryLayout;
-    visibility: ComputeStage;
-    accessMode: AccessMode;
-};
-
-type ShaderBindGroupSetupData = {
-    index: number;
-    name: string;
-    bindings: Array<ShaderBindingSetupData>;
+    bindingGroups: Array<{
+        index: number;
+        group: BindGroupLayout;
+    }>;
 };

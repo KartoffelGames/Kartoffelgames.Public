@@ -5,9 +5,9 @@ import { TextureUsage } from '../../../constant/texture-usage.enum';
 import { GpuObjectChildSetup } from '../../gpu/object/gpu-object-child-setup';
 import { TextureMemoryLayout } from '../../memory_layout/texture/texture-memory-layout';
 import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
-import { RenderTargetSetupReferenceData } from './render-targets-setup';
+import { RenderTargetSetupData } from './render-targets-setup';
 
-export class RenderTargetTextureSetup extends GpuObjectChildSetup<RenderTargetSetupReferenceData, RenderTargetTextureCallback> {
+export class RenderTargetTextureSetup extends GpuObjectChildSetup<RenderTargetSetupData, RenderTargetTextureCallback> {
     /**
      * Create new color render target.
      */

@@ -11,7 +11,7 @@ import { TextureSampler } from '../texture/texture-sampler';
 import { VideoTexture } from '../texture/video-texture';
 import { BindGroupLayout, BindLayout } from './bind-group-layout';
 
-export class BindDataGroup extends GpuObject<GPUBindGroup> implements IGpuObjectNative<GPUBindGroup> {
+export class BindGroup extends GpuObject<GPUBindGroup> implements IGpuObjectNative<GPUBindGroup> {
     private readonly mBindData: Dictionary<string, BindData>;
     private readonly mLayout: BindGroupLayout;
 

@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { BindDataGroup } from '../../binding/bind-data-group';
+import { BindGroup } from '../../binding/bind-group';
 import { PipelineLayout } from '../../binding/pipeline-layout';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObject, NativeObjectLifeTime } from '../../gpu/object/gpu-object';
@@ -24,11 +24,11 @@ export class ComputePass extends GpuObject {
      * @param pPipeline - Pipeline.
      * @param pBindData -  Pipeline bind data.
      */
-    public addStep(pPipeline: ComputePipeline, pWorkGroupSizes: [number, number, number], pBindData: Record<string, BindDataGroup>): symbol {
+    public addStep(pPipeline: ComputePipeline, pWorkGroupSizes: [number, number, number], pBindData: Record<string, BindGroup>): symbol {
         const lStep: ComputeInstruction = {
             id: Symbol('ComuteStep'),
             pipeline: pPipeline,
-            bindData: new Array<BindDataGroup>(),
+            bindData: new Array<BindGroup>(),
             workGroupSizes: pWorkGroupSizes
         };
 
@@ -36,7 +36,7 @@ export class ComputePass extends GpuObject {
         const lPipelineLayout: PipelineLayout = pPipeline.module.shader.layout;
         for (const lGroupName of lPipelineLayout.groups) {
             // Get and validate existance of set bind group.
-            const lBindDataGroup: BindDataGroup | undefined = pBindData[lGroupName];
+            const lBindDataGroup: BindGroup | undefined = pBindData[lGroupName];
             if (!lBindDataGroup) {
                 throw new Exception(`Required bind group "${lGroupName}" not set.`, this);
             }
@@ -65,7 +65,7 @@ export class ComputePass extends GpuObject {
 
         // Instruction cache.
         let lPipeline: ComputePipeline | null = null;
-        const lBindGroupList: Array<BindDataGroup | null> = new Array<BindDataGroup | null>();
+        const lBindGroupList: Array<BindGroup | null> = new Array<BindGroup | null>();
 
         // Execute instructions.
         for (const lInstruction of this.mInstructionList) {
@@ -82,8 +82,8 @@ export class ComputePass extends GpuObject {
             for (const lBindGroupName of lPipelineLayout.groups) {
                 const lBindGroupLayout: number = lPipelineLayout.groupIndex(lBindGroupName);
 
-                const lNewBindGroup: BindDataGroup | undefined = lInstruction.bindData[lBindGroupLayout];
-                const lCurrentBindGroup: BindDataGroup | null = lBindGroupList[lBindGroupLayout];
+                const lNewBindGroup: BindGroup | undefined = lInstruction.bindData[lBindGroupLayout];
+                const lCurrentBindGroup: BindGroup | null = lBindGroupList[lBindGroupLayout];
 
                 // Use cached bind group or use new.
                 if (lNewBindGroup !== lCurrentBindGroup) {
@@ -133,6 +133,6 @@ export class ComputePass extends GpuObject {
 type ComputeInstruction = {
     id: symbol;
     pipeline: ComputePipeline;
-    bindData: Array<BindDataGroup>;
+    bindData: Array<BindGroup>;
     workGroupSizes: [number, number, number];
 };

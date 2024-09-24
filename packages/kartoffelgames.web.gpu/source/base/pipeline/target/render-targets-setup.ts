@@ -5,13 +5,13 @@ import { CanvasTexture } from '../../texture/canvas-texture';
 import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
 import { RenderTargetTextureSetup } from './render-targets-texture-setup';
 
-export class RenderTargetsSetup extends GpuObjectSetup<RenderTargetSetupReferenceData> {
+export class RenderTargetsSetup extends GpuObjectSetup<RenderTargetSetupData> {
     /**
      * Constructor
      * 
      * @param pSetupReference -Setup references.
      */
-    public constructor(pSetupReference: GpuObjectSetupReferences<RenderTargetSetupReferenceData>) {
+    public constructor(pSetupReference: GpuObjectSetupReferences<RenderTargetSetupData>) {
         super(pSetupReference);
     }
 
@@ -84,7 +84,7 @@ export class RenderTargetsSetup extends GpuObjectSetup<RenderTargetSetupReferenc
      * 
      * @param pDataReference - Setup data reference.
      */
-    protected override fillDefaultData(pDataReference: RenderTargetSetupReferenceData): void {
+    protected override fillDefaultData(pDataReference: RenderTargetSetupData): void {
         pDataReference.colorTargets = new Array<RenderTargetsColorTargetSetupData>();
     }
 }
@@ -109,7 +109,7 @@ type RenderTargetsColorTargetSetupData = {
     texture: FrameBufferTexture | CanvasTexture | null;
 };
 
-export interface RenderTargetSetupReferenceData {
+export interface RenderTargetSetupData {
     colorTargets: Array<RenderTargetsColorTargetSetupData>;
     depthStencil?: RenderTargetsDepthStencilTextureSetupData;
 }

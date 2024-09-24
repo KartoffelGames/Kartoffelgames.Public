@@ -2,8 +2,8 @@ import { Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../gpu-device';
 import { GpuObjectSetupReferences } from './gpu-object';
 
-export abstract class GpuObjectSetup<TSetupReferenceData> {
-    private readonly mSetupReference: GpuObjectSetupReferences<TSetupReferenceData>;
+export abstract class GpuObjectSetup<TSetupData> {
+    private readonly mSetupReference: GpuObjectSetupReferences<TSetupData>;
 
     /**
      * Gpu device reference.
@@ -15,15 +15,15 @@ export abstract class GpuObjectSetup<TSetupReferenceData> {
     /**
      * Setup data.
      */
-    protected get setupData(): TSetupReferenceData {
+    protected get setupData(): TSetupData {
         // References should be setup at this point.
-        return this.mSetupReference.data as TSetupReferenceData;
+        return this.mSetupReference.data as TSetupData;
     }
 
     /**
      * Setup references.
      */
-    protected get setupReferences(): GpuObjectSetupReferences<TSetupReferenceData> {
+    protected get setupReferences(): GpuObjectSetupReferences<TSetupData> {
         return this.mSetupReference;
     }
 
@@ -32,14 +32,14 @@ export abstract class GpuObjectSetup<TSetupReferenceData> {
      * 
      * @param pSetupReference - Setup references.
      */
-    public constructor(pSetupReference: GpuObjectSetupReferences<TSetupReferenceData>) {
+    public constructor(pSetupReference: GpuObjectSetupReferences<TSetupData>) {
         this.mSetupReference = pSetupReference;
     }
 
     /**
      * Ensure that current call is used inside a setup call.
      */
-    public ensureThatInSetup(): void {
+    protected ensureThatInSetup(): void {
         // Lock setup to a setup call.
         if (!this.mSetupReference.inSetup) {
             throw new Exception('Can only setup in a setup call.', this);
@@ -51,5 +51,5 @@ export abstract class GpuObjectSetup<TSetupReferenceData> {
      * 
      * @param pDataReference - Setup data reference.
      */
-    protected abstract fillDefaultData(pDataReference: TSetupReferenceData): void;
+    protected abstract fillDefaultData(pDataReference: TSetupData): void;
 }

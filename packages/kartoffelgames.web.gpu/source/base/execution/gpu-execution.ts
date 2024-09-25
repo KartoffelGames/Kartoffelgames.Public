@@ -4,7 +4,7 @@ import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
 
 export class GpuExecution extends GpuObject {
     private mEncoder: GPUCommandEncoder | null;
-    private readonly mExecutionFunction: ExecutionFunction;
+    private readonly mExecutionFunction: GpuExecutionFunction;
     
     /**
      * GPU command encoder.
@@ -17,7 +17,7 @@ export class GpuExecution extends GpuObject {
         return this.mEncoder;
     }
 
-    public constructor(pDevice: GpuDevice, pExecution: ExecutionFunction) {
+    public constructor(pDevice: GpuDevice, pExecution: GpuExecutionFunction) {
         super(pDevice, NativeObjectLifeTime.Persistent);
 
         this.mExecutionFunction = pExecution;
@@ -38,4 +38,4 @@ export class GpuExecution extends GpuObject {
     }
 }
 
-type ExecutionFunction = (pExecutor: GpuExecution) => void;
+export type GpuExecutionFunction = (pExecutor: GpuExecution) => void;

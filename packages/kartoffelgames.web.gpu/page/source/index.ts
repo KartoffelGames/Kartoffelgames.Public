@@ -1,4 +1,6 @@
 import { BindGroupLayout } from '../../source/base/binding/bind-group-layout';
+import { GpuExecution } from '../../source/base/execution/gpu-execution';
+import { RenderPass } from '../../source/base/execution/pass/render-pass';
 import { GpuDevice } from '../../source/base/gpu/gpu-device';
 import { PrimitiveBufferFormat } from '../../source/base/memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../../source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
@@ -86,7 +88,6 @@ const gDepth: number = 10;
         }));
     });
 
-
     // Create render module from shader.
     const lRenderModule: ShaderRenderModule = lShader.createRenderModule('vertex_main', 'fragment_main');
 
@@ -160,25 +161,25 @@ const gDepth: number = 10;
     const lPipeline: VertexFragmentPipeline = lRenderModule.create(lRenderTargets);
     lPipeline.primitiveCullMode = PrimitiveCullMode.Back;
 
-    // Create executor.
-    const lInstructionExecutor: InstructionExecuter = lGpu.instructionExecutor();
-
     // Create instruction.
-    const lRenderInstruction = lInstructionExecutor.createVertexFragmentInstruction(lRenderTargets);
-    lRenderInstruction.addStep(lPipeline, lMesh, {
-        0: lTransformationGroup,
-        1: lWorldGroup,
-        2: lUserGroup
+    const lRenderPass: RenderPass = lGpu.renderPass(lRenderTargets);
+    lRenderPass.addStep(lPipeline, lMesh, [lTransformationGroup, lWorldGroup, lUserGroup], 1);
+
+    /*
+     * Execution 
+     */
+    const lRenderExecutor: GpuExecution = lGpu.executor((pExecutor) => {
+        lRenderPass.execute(pExecutor);
     });
 
-    // TODO: Instruction set execution.
+    // Actual execute.
     let lLastTime: number = 0;
     const lRender = (pTime: number) => {
         // Start new frame.
         lGpu.startNewFrame();
 
         // Generate encoder and add render commands.
-        lInstructionExecutor.execute();
+        lRenderExecutor.execute();
 
         const lFps: number = 1000 / (pTime - lLastTime);
         (<any>window).currentFps = lFps;

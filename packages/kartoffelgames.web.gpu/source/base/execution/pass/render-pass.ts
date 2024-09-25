@@ -33,7 +33,7 @@ export class RenderPass extends GpuObject {
      * @param pBindData - Pipline bind data groups.
      * @param pInstanceCount - Instance count.
      */
-    public addStep(pPipeline: VertexFragmentPipeline, pParameter: VertexParameter, pBindData: Record<string, BindGroup>, pInstanceCount: number = 1): void {
+    public addStep(pPipeline: VertexFragmentPipeline, pParameter: VertexParameter, pBindData: Array<BindGroup>, pInstanceCount: number = 1): void {
         // Validate same render targets.
         if (this.mRenderTargets !== pPipeline.renderTargets) {
             throw new Exception('Instruction render pass not valid for instruction set.', this);
@@ -46,11 +46,23 @@ export class RenderPass extends GpuObject {
             bindData: new Array<BindGroup>()
         };
 
+        // Write bind groups into searchable structure.
+        const lBindGroups: Dictionary<string, BindGroup> = new Dictionary<string, BindGroup>();
+        for (const lBindGroup of pBindData) {
+            // Only distinct bind group names.
+            if (lBindGroups.has(lBindGroup.layout.name)) {
+                throw new Exception(`Bind group "${lBindGroup.layout.name}" was added multiple times to render pass step.`, this);
+            }
+
+            // Add bind group by name.
+            lBindGroups.set(lBindGroup.layout.name, lBindGroup);
+        }
+
         // Fill in data groups.
         const lPipelineLayout: PipelineLayout = pPipeline.module.shader.layout;
         for (const lGroupName of lPipelineLayout.groups) {
             // Get and validate existance of set bind group.
-            const lBindDataGroup: BindGroup | undefined = pBindData[lGroupName];
+            const lBindDataGroup: BindGroup | undefined = lBindGroups.get(lGroupName);
             if (!lBindDataGroup) {
                 throw new Exception(`Required bind group "${lGroupName}" not set.`, this);
             }
@@ -61,7 +73,7 @@ export class RenderPass extends GpuObject {
                 throw new Exception('Source bind group layout does not match target layout.', this);
             }
 
-            lStep.bindData[lPipelineLayout.groupIndex(lGroupName)] = pBindData[lGroupName];
+            lStep.bindData[lPipelineLayout.groupIndex(lGroupName)] = lBindDataGroup;
         }
 
         this.mInstructionList.push(lStep);

@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core';
+import { Dictionary, Exception } from '@kartoffelgames/core';
 import { BindGroup } from '../../binding/bind-group';
 import { PipelineLayout } from '../../binding/pipeline-layout';
 import { GpuDevice } from '../../gpu/gpu-device';
@@ -24,7 +24,7 @@ export class ComputePass extends GpuObject {
      * @param pPipeline - Pipeline.
      * @param pBindData -  Pipeline bind data.
      */
-    public addStep(pPipeline: ComputePipeline, pWorkGroupSizes: [number, number, number], pBindData: Record<string, BindGroup>): symbol {
+    public addStep(pPipeline: ComputePipeline, pWorkGroupSizes: [number, number, number], pBindData: Array<BindGroup>): symbol {
         const lStep: ComputeInstruction = {
             id: Symbol('ComuteStep'),
             pipeline: pPipeline,
@@ -32,11 +32,23 @@ export class ComputePass extends GpuObject {
             workGroupSizes: pWorkGroupSizes
         };
 
+        // Write bind groups into searchable structure.
+        const lBindGroups: Dictionary<string, BindGroup> = new Dictionary<string, BindGroup>();
+        for (const lBindGroup of pBindData) {
+            // Only distinct bind group names.
+            if (lBindGroups.has(lBindGroup.layout.name)) {
+                throw new Exception(`Bind group "${lBindGroup.layout.name}" was added multiple times to render pass step.`, this);
+            }
+
+            // Add bind group by name.
+            lBindGroups.set(lBindGroup.layout.name, lBindGroup);
+        }
+
         // Fill in data groups.
         const lPipelineLayout: PipelineLayout = pPipeline.module.shader.layout;
         for (const lGroupName of lPipelineLayout.groups) {
             // Get and validate existance of set bind group.
-            const lBindDataGroup: BindGroup | undefined = pBindData[lGroupName];
+            const lBindDataGroup: BindGroup | undefined = lBindGroups.get(lGroupName);
             if (!lBindDataGroup) {
                 throw new Exception(`Required bind group "${lGroupName}" not set.`, this);
             }
@@ -47,7 +59,7 @@ export class ComputePass extends GpuObject {
                 throw new Exception('Source bind group layout does not match target layout.', this);
             }
 
-            lStep.bindData[lPipelineLayout.groupIndex(lGroupName)] = pBindData[lGroupName];
+            lStep.bindData[lPipelineLayout.groupIndex(lGroupName)] = lBindDataGroup;
         }
 
         this.mInstructionList.push(lStep);

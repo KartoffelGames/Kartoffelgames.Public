@@ -1,5 +1,7 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { GpuExecution } from '../execution/gpu-execution';
+import { GpuExecution, GpuExecutionFunction } from '../execution/gpu-execution';
+import { ComputePass } from '../execution/pass/compute-pass';
+import { RenderPass } from '../execution/pass/render-pass';
 import { RenderTargets } from '../pipeline/target/render-targets';
 import { Shader } from '../shader/shader';
 import { TextureFormatCapabilities } from '../texture/texture-format-capabilities';
@@ -86,10 +88,32 @@ export class GpuDevice {
     }
 
     /**
-     * Create pass executor.
+     * Create new compute pass.
+     *
+     * @returns new compute pass. 
      */
-    public executor(): GpuExecution {
-        return new GpuExecution(this, () => { /* TODO */ });
+    public computePass(): ComputePass {
+        return new ComputePass(this);
+    }
+
+    /**
+     * Create pass executor.
+     * 
+     * @param pOnExecute - On executor execute.
+     */
+    public executor(pOnExecute: GpuExecutionFunction): GpuExecution {
+        return new GpuExecution(this, pOnExecute);
+    }
+
+    /**
+     * Create new render pass.
+     * 
+     * @param pRenderTargets - Render targets of pass.
+     * 
+     * @returns new render pass. 
+     */
+    public renderPass(pRenderTargets: RenderTargets): RenderPass {
+        return new RenderPass(this, pRenderTargets);
     }
 
     /**

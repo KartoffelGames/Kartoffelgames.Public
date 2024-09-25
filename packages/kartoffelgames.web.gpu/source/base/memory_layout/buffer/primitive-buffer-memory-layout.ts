@@ -1,8 +1,8 @@
 import { Exception } from '@kartoffelgames/core';
-import { BaseBufferMemoryLayout, BufferMemoryLayoutParameter } from './base-buffer-memory-layout';
+import { GpuDevice } from '../../gpu/gpu-device';
+import { BaseBufferMemoryLayout, BufferLayoutLocation, BufferMemoryLayoutParameter } from './base-buffer-memory-layout';
 import { PrimitiveBufferFormat } from './enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from './enum/primitive-buffer-multiplier.enum';
-import { GpuDevice } from '../../gpu/gpu-device';
 
 export class PrimitiveBufferMemoryLayout extends BaseBufferMemoryLayout {
     private readonly mAlignment: number;
@@ -16,10 +16,17 @@ export class PrimitiveBufferMemoryLayout extends BaseBufferMemoryLayout {
     }
 
     /**
+     * Fixed buffer size in bytes.
+     */
+    public get fixedSize(): number {
+        return this.mSize;
+    }
+
+    /**
      * Buffer size in bytes.
      */
-    public get size(): number {
-        return this.mSize;
+    public get variableSize(): number {
+        return 0;
     }
 
     /**
@@ -77,6 +84,19 @@ export class PrimitiveBufferMemoryLayout extends BaseBufferMemoryLayout {
 
             this.mAlignment = pParameter.overrideAlignment;
         }
+    }
+
+    /**
+     * Get location of path.
+     * @param pPathName - Path name. Divided by dots.
+     */
+    public locationOf(pPathName: Array<string>): BufferLayoutLocation {
+        // Only validate name.
+        if (pPathName.length !== 0) {
+            throw new Exception(`Simple buffer layout has no properties.`, this);
+        }
+
+        return { size: this.fixedSize, offset: 0 };
     }
 }
 

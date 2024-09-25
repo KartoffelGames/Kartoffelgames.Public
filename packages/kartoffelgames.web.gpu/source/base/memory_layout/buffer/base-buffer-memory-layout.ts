@@ -1,4 +1,3 @@
-import { Exception } from '@kartoffelgames/core';
 import { BufferUsage } from '../../../constant/buffer-usage.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
@@ -14,14 +13,14 @@ export abstract class BaseBufferMemoryLayout<TSetupObject extends GpuObjectSetup
     public abstract readonly alignment: number;
 
     /**
-     * Buffer size in bytes.
+     * Fixed buffer size in bytes.
      */
-    public abstract readonly size: number;
+    public abstract readonly fixedSize: number;
 
     /**
-     * Buffer layout can have a variable size.
+     * Size of the variable part of layout in bytes.
      */
-    public abstract readonly variableSize: boolean;
+    public abstract readonly variableSize: number;
 
     /**
      * Buffer usage. Bitmask.
@@ -52,14 +51,7 @@ export abstract class BaseBufferMemoryLayout<TSetupObject extends GpuObjectSetup
      * Get location of path.
      * @param pPathName - Path name. Divided by dots.
      */
-    public locationOf(pPathName: Array<string>): BufferLayoutLocation {
-        // Only validate name.
-        if (pPathName.length !== 0) {
-            throw new Exception(`Simple buffer layout has no properties.`, this);
-        }
-
-        return { size: this.size, offset: 0 };
-    }
+    public abstract locationOf(pPathName: Array<string>): BufferLayoutLocation;
 }
 
 export interface BufferMemoryLayoutParameter {

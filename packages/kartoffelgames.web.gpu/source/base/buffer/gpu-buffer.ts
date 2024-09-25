@@ -91,7 +91,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
      * @param pLayout - Buffer layout.
      * @param pInitialData  - Inital data. Can be empty. Or Buffer size. 
      */
-    public constructor(pDevice: GpuDevice, pLayout: BaseBufferMemoryLayout, pCopyType: MemoryCopyType, pDataType: PrimitiveBufferFormat) {
+    public constructor(pDevice: GpuDevice, pLayout: BaseBufferMemoryLayout, pCopyType: MemoryCopyType, pDataType: PrimitiveBufferFormat, pVariableSizeCount: number = -1) {
         super(pDevice, NativeObjectLifeTime.Persistent);
         this.mLayout = pLayout;
 
@@ -105,9 +105,15 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
         this.mReadyBufferList = new Array<GPUBuffer>();
         this.mWavingBufferList = new Array<GPUBuffer>();
 
+        if (pLayout.variableSize !== 0 && pVariableSizeCount === -1) {
+            throw new Exception('Variable size must be set for gpu buffers with variable memory layouts.', this);
+        }
+
+        // Layout size can be variable so we clamp variable size to 0. 
+        const lByteSize: number = Math.max(0, pVariableSizeCount) * pLayout.variableSize + pLayout.fixedSize;
+
         // Set buffer initial data from buffer size or buffer data.
-        this.mItemCount = pLayout.size / 4; // All data is 4byte/ 32bit. 
-        // TODO: This layout size can be variable. 
+        this.mItemCount = lByteSize / 4; // All data is 4byte/ 32bit. 
 
         // No intial data.
         this.mInitialDataCallback = null;

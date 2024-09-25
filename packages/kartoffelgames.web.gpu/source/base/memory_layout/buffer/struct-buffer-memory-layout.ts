@@ -8,8 +8,9 @@ import { IGpuObjectSetup } from '../../gpu/object/interface/i-gpu-object-setup';
 
 export class StructBufferMemoryLayout extends BaseBufferMemoryLayout<StructBufferMemoryLayoutSetup> implements IGpuObjectSetup<StructBufferMemoryLayoutSetup> {
     private mAlignment: number;
+    private mFixedSize: number;
     private mInnerProperties: Array<StructBufferMemoryLayoutProperty>;
-    private mSize: number;
+    private mVariableSize: number;
 
     /**
      * Alignment of type.
@@ -19,6 +20,16 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout<StructBuffe
         this.ensureSetup();
 
         return this.mAlignment;
+    }
+
+    /**
+     * Type size in byte.
+     */
+    public get fixedSize(): number {
+        // Ensure setup was called.
+        this.ensureSetup();
+
+        return this.mFixedSize;
     }
 
     /**
@@ -32,17 +43,13 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout<StructBuffe
     }
 
     /**
-     * Type size in byte.
+     * Size of variable part of struct.
      */
-    public get size(): number {
+    public get variableSize(): number {
         // Ensure setup was called.
         this.ensureSetup();
 
-        return this.mSize;
-    }
-
-    public get variableSizeStep(): number {
-        // TODO: Size the buffer gains for every variable item. // Default to 0 when not variable.
+        return this.mVariableSize;
     }
 
     /**
@@ -56,7 +63,8 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout<StructBuffe
 
         // Calculated properties.
         this.mAlignment = 0;
-        this.mSize = 0;
+        this.mFixedSize = 0;
+        this.mVariableSize = 0;
 
         // Static properties.
         this.mInnerProperties = new Array<StructBufferMemoryLayoutProperty>();
@@ -75,18 +83,17 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout<StructBuffe
         // Complete array.
         const lPropertyName: string | undefined = lPathName.shift();
         if (!lPropertyName) {
-            return { size: this.size, offset: 0 };
-        }
+            if (this.mVariableSize > 0) {
+                throw new Exception(`Can't read location of a memory layout with a variable size.`, this);
+            }
 
-        // Get ordered types.
-        const lOrderedTypeList: Array<StructBufferMemoryLayoutProperty> = this.mInnerProperties.sort((pPropertyA, pPropertyB) => {
-            return pPropertyA.orderIndex - pPropertyB.orderIndex;
-        });
+            return { size: this.fixedSize, offset: 0 };
+        }
 
         // Recalculate size.
         let lPropertyOffset: number = 0;
         let lFoundProperty: StructBufferMemoryLayoutProperty | null = null;
-        for (const lProperty of lOrderedTypeList) {
+        for (const lProperty of this.mInnerProperties) {
             // Increase offset to needed alignment.
             lPropertyOffset = Math.ceil(lPropertyOffset / lProperty.layout.alignment) * lProperty.layout.alignment;
 
@@ -97,8 +104,9 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout<StructBuffe
                 break;
             }
 
-            // Increase offset for complete property.
-            lPropertyOffset += lProperty.layout.size;
+            // Increase offset for complete property. 
+            // Only last property can have a variable size, so we can only save the fixed size.
+            lPropertyOffset += lProperty.layout.fixedSize;
         }
 
         // Validate property.
@@ -152,22 +160,32 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout<StructBuffe
 
         // Calculate size.
         let lRawDataSize: number = 0;
-        for (const lType of this.properties) {
+        for (let lIndex: number = 0; lIndex < this.mInnerProperties.length; lIndex++) {
+            const lType = this.properties[lIndex];
+
+            if (lType.variableSize > 0 && lIndex !== (this.mInnerProperties.length - 1)) {
+                throw new Exception(`Only the last property of a struct memory layout can have a variable size.`, this);
+            }
+
             // Increase offset to needed alignment.
             lRawDataSize = Math.ceil(lRawDataSize / lType.alignment) * lType.alignment;
 
             // Increase offset for type.
-            lRawDataSize += lType.size;
+            lRawDataSize += lType.fixedSize;
 
-            // TODO: Size can be variable with arrays. What to do? Add a variableSize in MemoryBufferLayout and check for it in any buffer creation.
-
+            // Alignment is the highest alignment of all properties.
             if (lType.alignment > this.mAlignment) {
                 this.mAlignment = lType.alignment;
+            }
+
+            // Set variable size. Can only be the last property.
+            if (lType.variableSize > 0) {
+                this.mVariableSize = lType.variableSize;
             }
         }
 
         // Apply struct alignment to raw data size.
-        this.mSize = Math.ceil(lRawDataSize / this.mAlignment) * this.mAlignment;
+        this.mFixedSize = Math.ceil(lRawDataSize / this.mAlignment) * this.mAlignment;
     }
 
     /**

@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
-import { BaseBufferMemoryLayout, BufferLayoutLocation, BufferMemoryLayoutParameter } from './base-buffer-memory-layout';
 import { GpuDevice } from '../../gpu/gpu-device';
+import { BaseBufferMemoryLayout, BufferLayoutLocation, BufferMemoryLayoutParameter } from './base-buffer-memory-layout';
 
 export class ArrayBufferMemoryLayout extends BaseBufferMemoryLayout {
     private readonly mArraySize: number;
@@ -21,6 +21,17 @@ export class ArrayBufferMemoryLayout extends BaseBufferMemoryLayout {
     }
 
     /**
+     * Type size in byte.
+     */
+    public get fixedSize(): number {
+        if (this.arraySize < 1) {
+            return 0;
+        }
+
+        return this.arraySize * (Math.ceil(this.innerType.fixedSize / this.innerType.alignment) * this.innerType.alignment);
+    }
+
+    /**
      * Array type.
      */
     public get innerType(): BaseBufferMemoryLayout {
@@ -28,14 +39,14 @@ export class ArrayBufferMemoryLayout extends BaseBufferMemoryLayout {
     }
 
     /**
-     * Type size in byte.
+     * Size of the variable part of layout in bytes.
      */
-    public get size(): number {
-        if (this.arraySize === -1) {
-            return -1;
+    public get variableSize(): number {
+        if (this.arraySize > 0) {
+            return 0;
         }
 
-        return this.arraySize * (Math.ceil(this.innerType.size / this.innerType.alignment) * this.innerType.alignment);
+        return (Math.ceil(this.innerType.fixedSize / this.innerType.alignment) * this.innerType.alignment);
     }
 
     /**
@@ -50,6 +61,10 @@ export class ArrayBufferMemoryLayout extends BaseBufferMemoryLayout {
         // Static properties.
         this.mArraySize = pParameter.arraySize;
         this.mInnerType = pParameter.innerType;
+
+        if (this.mInnerType.variableSize > 0) {
+            throw new Exception(`Array memory layout must be of fixed size.`, this);
+        }
     }
 
     /**
@@ -63,11 +78,11 @@ export class ArrayBufferMemoryLayout extends BaseBufferMemoryLayout {
         const lItemIndexString: string | undefined = lPathName.shift();
         if (!lItemIndexString) {
             // Only valid for ststic arrays.
-            if (this.mArraySize < 0) {
+            if (this.variableSize > 0) {
                 throw new Exception('No size can be calculated for dynamic array buffer locations.', this);
             }
 
-            return { size: this.size, offset: 0 };
+            return { size: this.fixedSize, offset: 0 };
         }
 
         // Validate item index.
@@ -75,13 +90,13 @@ export class ArrayBufferMemoryLayout extends BaseBufferMemoryLayout {
             throw new Exception('Array index must be a number.', this);
         }
 
-        // Calculate size of single item.s
-        const lArrayItemSize: number = Math.ceil(this.innerType.size / this.innerType.alignment) * this.innerType.alignment;
+        // Calculate size of single item.
+        const lArrayItemSize: number = Math.ceil(this.innerType.fixedSize / this.innerType.alignment) * this.innerType.alignment;
         const lArrayItemOffset: number = parseInt(lItemIndexString) * lArrayItemSize;
 
         // Single item.
         if (lPathName.length === 0) {
-            return { size: lArrayItemSize, offset: lArrayItemSize * lArrayItemOffset };
+            return { size: lArrayItemSize, offset: lArrayItemOffset };
         }
 
         // Inner property.

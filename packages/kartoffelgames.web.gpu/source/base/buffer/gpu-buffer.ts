@@ -1,18 +1,20 @@
-import { TypedArray } from '@kartoffelgames/core';
+import { Exception, TypedArray } from '@kartoffelgames/core';
 import { BufferUsage } from '../../constant/buffer-usage.enum';
 import { MemoryCopyType } from '../../constant/memory-copy-type.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
 import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
-import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
+import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
+import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-buffer-format.enum';
 
 /**
  * GpuBuffer. Uses local and native gpu buffers.
  */
 export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> implements IGpuObjectNative<GPUBuffer> {
     private readonly mCopyType: MemoryCopyType;
-    private readonly mDataType: BufferDataType<TType>;
+    private readonly mDataType: PrimitiveBufferFormat;
+    private mInitialDataCallback: (() => TType) | null;
     private readonly mItemCount: number;
     private readonly mLayout: BaseBufferMemoryLayout;
     private readonly mReadyBufferList: Array<GPUBuffer>;
@@ -30,7 +32,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
     /**
      * Data type of buffer.
      */
-    public get dataType(): BufferDataType<TType> {
+    public get dataType(): PrimitiveBufferFormat {
         return this.mDataType;
     }
 
@@ -59,7 +61,21 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
      * Buffer size in bytes aligned to 4 bytes.
      */
     public get size(): number {
-        return ((this.mItemCount * this.mDataType.BYTES_PER_ELEMENT) + 3) & ~3;
+        // Read bytes per element
+        const lBytePerElement: number = (() => {
+            switch (this.mDataType) {
+                case PrimitiveBufferFormat.Float32:
+                case PrimitiveBufferFormat.Sint32:
+                case PrimitiveBufferFormat.Uint32:
+                    return 4;
+
+                default: // Float16
+                    throw new Exception(`Could not create a size for ${this.mDataType} type.`, this);
+            }
+        })();
+
+        // Align data size by 4 byte.
+        return ((this.mItemCount * lBytePerElement) + 3) & ~3;
     }
 
     /**
@@ -75,28 +91,46 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
      * @param pLayout - Buffer layout.
      * @param pInitialData  - Inital data. Can be empty. Or Buffer size. 
      */
-    public constructor(pDevice: GpuDevice, pLayout: BaseBufferMemoryLayout, pCopyType: MemoryCopyType, pInitialData: TType, pWavingBufferLimitation: number = Number.MAX_SAFE_INTEGER) {
+    public constructor(pDevice: GpuDevice, pLayout: BaseBufferMemoryLayout, pCopyType: MemoryCopyType, pDataType: PrimitiveBufferFormat) {
         super(pDevice, NativeObjectLifeTime.Persistent);
         this.mLayout = pLayout;
 
         // Set config.
         this.mCopyType = pCopyType;
         this.mUsage = pLayout.usage;
-        this.mWavingBufferLimitation = pWavingBufferLimitation;
-        this.mDataType = <BufferDataType<TType>>pInitialData.constructor;
+        this.mWavingBufferLimitation = Number.MAX_SAFE_INTEGER;
+        this.mDataType = pDataType;
 
         // Waving buffer list.
         this.mReadyBufferList = new Array<GPUBuffer>();
         this.mWavingBufferList = new Array<GPUBuffer>();
 
         // Set buffer initial data from buffer size or buffer data.
-        this.mItemCount = pInitialData.length;
-        this.writeRaw(pInitialData, 0);
+        this.mItemCount = pLayout.size / 4; // All data is 4byte/ 32bit. 
+        // TODO: This layout size can be variable. 
+
+        // No intial data.
+        this.mInitialDataCallback = null;
 
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {
             this.triggerAutoUpdate(UpdateReason.ChildData);
         });
+    }
+
+    /**
+     * Set new initial data before the buffer is created.
+     * 
+     * @param pDataCallback - Data callback. 
+     */
+    public initialData(pDataCallback: () => TType): this {
+        // Set new initial data, set on creation.
+        this.mInitialDataCallback = pDataCallback;
+
+        // Trigger update.
+        this.triggerAutoUpdate(UpdateReason.Data);
+
+        return this;
     }
 
     /**
@@ -127,8 +161,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
         await lBuffer.mapAsync(GPUMapMode.READ, lOffset, lSize);
 
         // Get mapped data and force it into typed array.
-        const lData = new this.dataType(lBuffer.getMappedRange());
-        return lData;
+        return this.createTypedArray(lBuffer.getMappedRange()) as TType;
     }
 
     /**
@@ -181,7 +214,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
             await lNativeBuffer.mapAsync(GPUMapMode.WRITE, lOffset, pData.length);
 
             // Write data into mapped range.
-            const lBufferArray: TypedArray = new this.dataType(lNativeBuffer.getMappedRange());
+            const lBufferArray: TypedArray = this.createTypedArray(lNativeBuffer.getMappedRange());
             lBufferArray.set(pData);
 
             // And now let the gpu handle it.
@@ -191,7 +224,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
         }
 
         // Execute write operations on waving buffer.
-        const lBufferArray: TypedArray = new this.dataType(lStagingBuffer.getMappedRange(lOffset, pData.length));
+        const lBufferArray: TypedArray = this.createTypedArray(lStagingBuffer.getMappedRange(lOffset, pData.length));
         lBufferArray.set(pData);
 
         // Unmap for copying data.
@@ -244,12 +277,38 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
         // unmap buffer.
         lBuffer.unmap();
 
+        // Write data. Is completly async.
+        const lInitalData: TType | undefined = this.mInitialDataCallback?.();
+        if (lInitalData) {
+            this.writeRaw(lInitalData);
+        }
+
         return lBuffer;
     }
-}
 
-type BufferDataType<T extends TypedArray> = {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    BYTES_PER_ELEMENT: number;
-    new(pInitValues: ArrayBuffer | number | TypedArray): T;
-};
+    /**
+     * Create a typed array based on buffer data type.
+     * 
+     * @param pArrayBuffer - Array buffer.
+     * 
+     * @returns typed array. 
+     */
+    private createTypedArray(pArrayBuffer: ArrayBuffer): TypedArray {
+        // Read bytes per element
+        const lArrayBufferConstructor = (() => {
+            switch (this.mDataType) {
+                case PrimitiveBufferFormat.Float32:
+                    return Float32Array;
+                case PrimitiveBufferFormat.Sint32:
+                    return Int32Array;
+                case PrimitiveBufferFormat.Uint32:
+                    return Uint32Array;
+
+                default: // Float16
+                    throw new Exception(`Could not create a buffered array for ${this.mDataType} type.`, this);
+            }
+        })();
+
+        return new lArrayBufferConstructor(pArrayBuffer);
+    }
+}

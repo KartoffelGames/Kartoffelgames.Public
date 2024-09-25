@@ -57,7 +57,9 @@ export class VertexParameter extends GpuObject {
         });
 
         // Create index buffer.
-        this.mIndexBuffer = new GpuBuffer(pDevice, lIndexBufferLayout, MemoryCopyType.None, new Uint32Array(pIndices), 0);
+        this.mIndexBuffer = new GpuBuffer<Uint32Array>(pDevice, lIndexBufferLayout, MemoryCopyType.None, PrimitiveBufferFormat.Uint32).initialData(() => {
+            return new Uint32Array(pIndices);
+        });
     }
 
     /**
@@ -82,31 +84,35 @@ export class VertexParameter extends GpuObject {
         const lParameterLayout: VertexParameterLayoutDefinition = this.mLayout.parameter(pName);
 
         // Create buffer layout.
-        const lBufferLayout: PrimitiveBufferMemoryLayout = new PrimitiveBufferMemoryLayout(this.device,{
+        const lBufferLayout: PrimitiveBufferMemoryLayout = new PrimitiveBufferMemoryLayout(this.device, {
             primitiveFormat: lParameterLayout.format,
             usage: BufferUsage.Vertex,
             primitiveMultiplier: lParameterLayout.multiplier,
         });
 
         // Load typed array from layout format.
-        let lParameterBuffer: GpuBuffer<TypedArray>;
-        switch (lParameterLayout.format) {
-            case PrimitiveBufferFormat.Float32: {
-                lParameterBuffer = new GpuBuffer(this.device, lBufferLayout, MemoryCopyType.None, new Float32Array(pData), 0);
-                break;
+        const lParameterBuffer: GpuBuffer<TypedArray> = (() => {
+            switch (lParameterLayout.format) {
+                case PrimitiveBufferFormat.Float32: {
+                    return new GpuBuffer(this.device, lBufferLayout, MemoryCopyType.None, PrimitiveBufferFormat.Float32).initialData(() => {
+                        return new Float32Array(pData);
+                    });
+                }
+                case PrimitiveBufferFormat.Sint32: {
+                    return new GpuBuffer(this.device, lBufferLayout, MemoryCopyType.None, PrimitiveBufferFormat.Sint32).initialData(() => {
+                        return new Int32Array(pData);
+                    });
+                }
+                case PrimitiveBufferFormat.Uint32: {
+                    return new GpuBuffer(this.device, lBufferLayout, MemoryCopyType.None, PrimitiveBufferFormat.Uint32).initialData(() => {
+                        return new Uint32Array(pData);
+                    });
+                }
+                default: {
+                    throw new Exception(`Format "${lParameterLayout.format}" not supported for vertex buffer.`, this);
+                }
             }
-            case PrimitiveBufferFormat.Sint32: {
-                lParameterBuffer = new GpuBuffer(this.device, lBufferLayout, MemoryCopyType.None, new Int32Array(pData), 0);
-                break;
-            }
-            case PrimitiveBufferFormat.Uint32: {
-                lParameterBuffer = new GpuBuffer(this.device, lBufferLayout, MemoryCopyType.None, new Uint32Array(pData), 0);
-                break;
-            }
-            default: {
-                throw new Exception(`Format "${lParameterLayout.format}" not supported for vertex buffer.`, this);
-            }
-        }
+        })();
 
         // Save gpu buffer in correct index.
         this.mData.set(pName, lParameterBuffer);

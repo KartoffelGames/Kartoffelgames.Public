@@ -19,6 +19,11 @@ export abstract class BaseBufferMemoryLayout<TSetupObject extends GpuObjectSetup
     public abstract readonly size: number;
 
     /**
+     * Buffer layout can have a variable size.
+     */
+    public abstract readonly variableSize: boolean;
+
+    /**
      * Buffer usage. Bitmask.
      */
     public get usage(): BufferUsage {

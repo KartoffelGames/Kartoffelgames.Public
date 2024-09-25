@@ -1,10 +1,8 @@
 import { BindGroupLayout } from '../../source/base/binding/bind-group-layout';
 import { GpuDevice } from '../../source/base/gpu/gpu-device';
-import { ArrayBufferMemoryLayout } from '../../source/base/memory_layout/buffer/array-buffer-memory-layout';
 import { PrimitiveBufferFormat } from '../../source/base/memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../../source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
 import { PrimitiveBufferMemoryLayout } from '../../source/base/memory_layout/buffer/primitive-buffer-memory-layout';
-import { StructBufferMemoryLayout } from '../../source/base/memory_layout/buffer/struct-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../../source/base/memory_layout/texture/sampler-memory-layout';
 import { TextureMemoryLayout } from '../../source/base/memory_layout/texture/texture-memory-layout';
 import { VertexParameter } from '../../source/base/pipeline/parameter/vertex-parameter';
@@ -115,7 +113,7 @@ const gDepth: number = 10;
             }
         }
     }
-    lTransformationGroup.setData('transformationMatrix', (<ArrayBufferMemoryLayout>lObjectGroupLayout.getBind('transformationMatrix').layout).create(new Float32Array(lCubeInstanceTransformationData)));
+    lTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lCubeInstanceTransformationData));
 
     /*
      * Camera and world group. 
@@ -132,18 +130,18 @@ const gDepth: number = 10;
     // Create camera.
     const lCamera: ViewProjection = new ViewProjection(lPerspectiveProjection);
     lCamera.transformation.setTranslation(0, 0, -4);
-    lWorldGroup.setData('viewProjectionMatrix', (<PrimitiveBufferMemoryLayout>lWorldGroupLayout.getBind('viewProjectionMatrix').layout).create(new Float32Array(lCamera.getMatrix(CameraMatrix.ViewProjection).dataArray)));
+    lWorldGroup.data('viewProjectionMatrix').createBuffer(new Float32Array(lCamera.getMatrix(CameraMatrix.ViewProjection).dataArray)));
 
     // Create ambient light.
     const lAmbientLight: AmbientLight = new AmbientLight();
     lAmbientLight.setColor(0.1, 0.1, 0.1);
-    lWorldGroup.setData('ambientLight', (<StructBufferMemoryLayout>lWorldGroupLayout.getBind('ambientLight').layout).create(new Float32Array(lCamera.getMatrix(CameraMatrix.ViewProjection).dataArray)));
+    lWorldGroup.data('ambientLight').createBuffer(new Float32Array(lCamera.getMatrix(CameraMatrix.ViewProjection).dataArray));
 
     // Create point lights.
-    lWorldGroup.setData('pointLights', (<StructBufferMemoryLayout>lWorldGroupLayout.getBind('pointLights').layout).create(new Float32Array([
+    lWorldGroup.data('pointLights').createBuffer(new Float32Array([
         /* Position */1, 1, 1, 1, /* Color */1, 0, 0, 1,/* Range */ 200, 0, 0, 0,
         /* Position */10, 10, 10, 1, /* Color */0, 0, 1, 1,/* Range */ 200, 0, 0, 0
-    ])));
+    ]));
 
     /*
      * User defined group.

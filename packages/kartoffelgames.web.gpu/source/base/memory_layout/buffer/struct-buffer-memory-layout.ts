@@ -41,6 +41,10 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout<StructBuffe
         return this.mSize;
     }
 
+    public get variableSizeStep(): number {
+        // TODO: Size the buffer gains for every variable item. // Default to 0 when not variable.
+    }
+
     /**
      * Constructor.
      * 
@@ -154,6 +158,8 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout<StructBuffe
 
             // Increase offset for type.
             lRawDataSize += lType.size;
+
+            // TODO: Size can be variable with arrays. What to do? Add a variableSize in MemoryBufferLayout and check for it in any buffer creation.
 
             if (lType.alignment > this.mAlignment) {
                 this.mAlignment = lType.alignment;

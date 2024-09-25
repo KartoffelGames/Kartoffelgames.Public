@@ -64,9 +64,7 @@ export class BindGroup extends GpuObject<GPUBindGroup> implements IGpuObjectNati
             data: null
         };
 
-        return new BindGroupDataSetup(lDataLayout.layout, lData, lDataSetupReferences, (pData: BindData) => {
-            // TODO: Validate data type with value type.
-
+        return new BindGroupDataSetup(lDataLayout, lData, lDataSetupReferences, (pData: BindData) => {
             // Set data.
             this.mBindData.set(pBindName, pData);
 

@@ -2,6 +2,7 @@ import { PipelineLayout } from '../binding/pipeline-layout';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
 import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
+import { ComputePipeline } from '../pipeline/compute-pipeline';
 import { Shader } from './shader';
 
 export class ShaderComputeModule extends GpuObject {
@@ -70,5 +71,14 @@ export class ShaderComputeModule extends GpuObject {
         pShader.addInvalidationListener(() => {
             this.triggerAutoUpdate(UpdateReason.ChildData);
         });
+    }
+
+    /**
+     * Create a new compute pipeline.
+     * 
+     * @returns new compute pipeline. 
+     */
+    public create(): ComputePipeline {
+        return new ComputePipeline(this.device, this);
     }
 }

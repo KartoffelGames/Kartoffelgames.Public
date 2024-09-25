@@ -3,6 +3,8 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
 import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
 import { VertexParameterLayout } from '../pipeline/parameter/vertex-parameter-layout';
+import { RenderTargets } from '../pipeline/target/render-targets';
+import { VertexFragmentPipeline } from '../pipeline/vertex-fragment-pipeline';
 import { Shader } from './shader';
 
 export class ShaderRenderModule extends GpuObject {
@@ -71,5 +73,16 @@ export class ShaderRenderModule extends GpuObject {
         pVertexParameter.addInvalidationListener(() => {
             this.triggerAutoUpdate(UpdateReason.ChildData);
         });
+    }
+
+    /**
+     * Create a new render pipeline for set render targets.
+     * 
+     * @param pRenderTargets - Render targets of pipeline.
+     * 
+     * @returns new render pipeline. 
+     */
+    public create(pRenderTargets: RenderTargets): VertexFragmentPipeline {
+        return new VertexFragmentPipeline(this.device, this, pRenderTargets);
     }
 }

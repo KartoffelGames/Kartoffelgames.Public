@@ -157,7 +157,7 @@ const gDepth: number = 10;
     lMesh.set('normal', CubeVertexNormalData); // TODO: Convert to Indexbased parameter.
 
     // Create pipeline.
-    const lPipeline: VertexFragmentPipeline = lRenderModule.createPipeline(lRenderTargets);
+    const lPipeline: VertexFragmentPipeline = lRenderModule.create(lRenderTargets);
     lPipeline.primitiveCullMode = PrimitiveCullMode.Back;
 
     // Create executor.

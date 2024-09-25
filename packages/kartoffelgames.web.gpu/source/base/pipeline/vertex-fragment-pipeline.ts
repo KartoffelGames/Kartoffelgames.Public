@@ -104,16 +104,16 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline> impleme
      * Set default data.
      * 
      * @param pDevice - Device.
-     * @param pShader - Pipeline shader.
+     * @param pShaderRenderModule - Pipeline shader.
      */
-    public constructor(pDevice: GpuDevice, pShader: ShaderRenderModule, pRenderTargets: RenderTargets) {
+    public constructor(pDevice: GpuDevice, pShaderRenderModule: ShaderRenderModule, pRenderTargets: RenderTargets) {
         super(pDevice, NativeObjectLifeTime.Persistent);
 
-        this.mShaderModule = pShader;
+        this.mShaderModule = pShaderRenderModule;
         this.mRenderTargets = pRenderTargets;
 
         // Listen for render target and shader changes.
-        pShader.addInvalidationListener(() => {
+        pShaderRenderModule.addInvalidationListener(() => {
             this.triggerAutoUpdate(UpdateReason.ChildData);
         });
         pRenderTargets.addInvalidationListener(() => {

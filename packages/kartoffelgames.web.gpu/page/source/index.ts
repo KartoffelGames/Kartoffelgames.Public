@@ -97,12 +97,14 @@ const gDepth: number = 10;
     /*
      * Transformation and position group. 
      */
-    const lTransformationGroup = lRenderModule.shader.layout.getGroupLayout('object').create();
+    const lTransformationGroup = lRenderModule.layout.getGroupLayout('object').create();
 
     // Create transformation.
     const lCubeTransform: Transform = new Transform();
     lCubeTransform.setScale(0.1, 0.1, 0.1);
-    lTransformationGroup.setData('transformationMatrix', (<ArrayBufferMemoryLayout>lObjectGroupLayout.getBind('transformationMatrix').layout).create(new Float32Array(lCubeTransform.getMatrix(TransformMatrix.Transformation).dataArray)));
+    lTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lCubeTransform.getMatrix(TransformMatrix.Transformation).dataArray));
+
+    //  (<ArrayBufferMemoryLayout>lObjectGroupLayout.getBind('transformationMatrix').layout).create(new Float32Array(lCubeTransform.getMatrix(TransformMatrix.Transformation).dataArray)));
 
     // Create instance positions.
     const lCubeInstanceTransformationData: Array<number> = new Array<number>();
@@ -118,7 +120,7 @@ const gDepth: number = 10;
     /*
      * Camera and world group. 
      */
-    const lWorldGroup = lRenderModule.shader.layout.getGroupLayout('world').create();
+    const lWorldGroup = lRenderModule.layout.getGroupLayout('world').create();
 
     // Create camera perspective.
     const lPerspectiveProjection: PerspectiveProjection = new PerspectiveProjection();
@@ -146,7 +148,7 @@ const gDepth: number = 10;
     /*
      * User defined group.
      */
-    const lUserGroup = lRenderModule.shader.layout.getGroupLayout('user').create();
+    const lUserGroup = lRenderModule.layout.getGroupLayout('user').create();
 
     // Setup cube texture.
     const lCubeTexture = await (<TextureMemoryLayout>lUserGroupLayout.getBind('cubeTexture').layout).createImageTexture('/source/cube_texture/cube-texture.png');

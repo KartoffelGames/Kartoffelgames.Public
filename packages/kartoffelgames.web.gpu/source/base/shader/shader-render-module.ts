@@ -1,3 +1,4 @@
+import { PipelineLayout } from '../binding/pipeline-layout';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
 import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
@@ -15,6 +16,13 @@ export class ShaderRenderModule extends GpuObject {
      */
     public get fragmentEntryPoint(): string | null {
         return this.mFragmentEntryPoint;
+    }
+
+    /**
+     * Shader pipeline layout.
+     */
+    public get layout(): PipelineLayout {
+        return this.mShader.layout;
     }
 
     /**

@@ -29,6 +29,9 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, BindGroupLayo
      * Get binding names.
      */
     public get bindingNames(): Array<string> {
+        // Ensure setup.
+        this.ensureSetup();
+
         return [...this.mBindings.keys()];
     }
 
@@ -83,6 +86,9 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, BindGroupLayo
      * @returns new bind group.
      */
     public create(): BindGroup {
+        // Ensure setup.
+        this.ensureSetup();
+
         return new BindGroup(this.device, this);
     }
 

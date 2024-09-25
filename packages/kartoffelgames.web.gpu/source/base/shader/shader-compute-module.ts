@@ -1,3 +1,4 @@
+import { PipelineLayout } from '../binding/pipeline-layout';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
 import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
@@ -13,6 +14,13 @@ export class ShaderComputeModule extends GpuObject {
      */
     public get entryPoint(): string {
         return this.mEntryPoint;
+    }
+
+    /**
+     * Shader pipeline layout.
+     */
+    public get layout(): PipelineLayout {
+        return this.mShader.layout;
     }
 
     /**

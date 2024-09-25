@@ -53,7 +53,7 @@ export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout
      * Create vertex parameters from layout.
      * @param pIndexData - Index data.
      */
-    public createData(pIndexData: Array<number>): VertexParameter {
+    public create(pIndexData: Array<number>): VertexParameter {
         return new VertexParameter(this.device, this, pIndexData);
     }
 

@@ -5,6 +5,7 @@ import { PrimitiveBufferMultiplier } from '../../source/base/memory_layout/buffe
 import { VertexParameter } from '../../source/base/pipeline/parameter/vertex-parameter';
 import { RenderTargets } from '../../source/base/pipeline/target/render-targets';
 import { VertexFragmentPipeline } from '../../source/base/pipeline/vertex-fragment-pipeline';
+import { ShaderRenderModule } from '../../source/base/shader/shader-render-module';
 import { AccessMode } from '../../source/constant/access-mode.enum';
 import { BufferUsage } from '../../source/constant/buffer-usage.enum';
 import { ComputeStage } from '../../source/constant/compute-stage.enum';
@@ -87,7 +88,7 @@ const gDepth: number = 10;
 
 
     // Create render module from shader.
-    const lRenderModule = lShader.createRenderModule('vertex_main', 'fragment_main');
+    const lRenderModule: ShaderRenderModule = lShader.createRenderModule('vertex_main', 'fragment_main');
 
     /*
      * Transformation and position group. 
@@ -150,10 +151,10 @@ const gDepth: number = 10;
     lUserGroup.data('cubeTextureSampler').createSampler();
 
     // Generate render parameter from parameter layout.
-    const lMesh: VertexParameter = lRenderModule.parameterLayout.createData(CubeVertexIndices);
-    lMesh.set('vertex.position', CubeVertexPositionData);
-    lMesh.set('vertex.uv', CubeVertexUvData); // TODO: Convert to Indexbased parameter.
-    lMesh.set('vertex.normal', CubeVertexNormalData); // TODO: Convert to Indexbased parameter.
+    const lMesh: VertexParameter = lRenderModule.vertexParameter.create(CubeVertexIndices);
+    lMesh.set('position', CubeVertexPositionData);
+    lMesh.set('uv', CubeVertexUvData); // TODO: Convert to Indexbased parameter.
+    lMesh.set('normal', CubeVertexNormalData); // TODO: Convert to Indexbased parameter.
 
     // Create pipeline.
     const lPipeline: VertexFragmentPipeline = lRenderModule.createPipeline(lRenderTargets);

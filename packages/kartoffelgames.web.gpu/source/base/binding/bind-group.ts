@@ -4,6 +4,8 @@ import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, GpuObjectSetupReferences, NativeObjectLifeTime } from '../gpu/object/gpu-object';
 import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
+import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
+import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
 import { CanvasTexture } from '../texture/canvas-texture';
 import { FrameBufferTexture } from '../texture/frame-buffer-texture';
 import { ImageTexture } from '../texture/image-texture';
@@ -11,6 +13,7 @@ import { TextureSampler } from '../texture/texture-sampler';
 import { VideoTexture } from '../texture/video-texture';
 import { BindGroupDataSetup } from './bind-group-data-setup';
 import { BindGroupLayout, BindLayout } from './bind-group-layout';
+import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 
 export class BindGroup extends GpuObject<GPUBindGroup> implements IGpuObjectNative<GPUBindGroup> {
     private readonly mBindData: Dictionary<string, BindData>;
@@ -65,6 +68,38 @@ export class BindGroup extends GpuObject<GPUBindGroup> implements IGpuObjectNati
         };
 
         return new BindGroupDataSetup(lDataLayout, lData, lDataSetupReferences, (pData: BindData) => {
+            // Validate bind data based on layout.
+            const lBindDataValid: boolean = (() => {
+                switch (true) {
+                    // Textures must use a buffer memory layout.
+                    case pData instanceof GpuBuffer: {
+                        return lDataLayout instanceof BaseBufferMemoryLayout;
+                    }
+
+                    // Samplers must use a texture sampler memory layout.
+                    case pData instanceof TextureSampler: {
+                        return lDataLayout instanceof SamplerMemoryLayout;
+
+                    }
+                    // Textures must use a texture memory layout.
+                    case pData instanceof ImageTexture:
+                    case pData instanceof FrameBufferTexture:
+                    case pData instanceof VideoTexture:
+                    case pData instanceof CanvasTexture: {
+                        return lDataLayout instanceof TextureMemoryLayout;
+                    }
+
+                    default: {
+                        return false;
+                    }
+                }
+            })();
+
+            // Apply validation.
+            if (!lBindDataValid) {
+                throw new Exception(`Bind data for "${pBindName}" not valid for its layout.`, this);
+            }
+
             // Set data.
             this.mBindData.set(pBindName, pData);
 

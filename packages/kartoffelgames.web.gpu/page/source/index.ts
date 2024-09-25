@@ -2,9 +2,6 @@ import { BindGroupLayout } from '../../source/base/binding/bind-group-layout';
 import { GpuDevice } from '../../source/base/gpu/gpu-device';
 import { PrimitiveBufferFormat } from '../../source/base/memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../../source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
-import { PrimitiveBufferMemoryLayout } from '../../source/base/memory_layout/buffer/primitive-buffer-memory-layout';
-import { SamplerMemoryLayout } from '../../source/base/memory_layout/texture/sampler-memory-layout';
-import { TextureMemoryLayout } from '../../source/base/memory_layout/texture/texture-memory-layout';
 import { VertexParameter } from '../../source/base/pipeline/parameter/vertex-parameter';
 import { RenderTargets } from '../../source/base/pipeline/target/render-targets';
 import { VertexFragmentPipeline } from '../../source/base/pipeline/vertex-fragment-pipeline';
@@ -102,8 +99,6 @@ const gDepth: number = 10;
     lCubeTransform.setScale(0.1, 0.1, 0.1);
     lTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lCubeTransform.getMatrix(TransformMatrix.Transformation).dataArray));
 
-    //  (<ArrayBufferMemoryLayout>lObjectGroupLayout.getBind('transformationMatrix').layout).create(new Float32Array(lCubeTransform.getMatrix(TransformMatrix.Transformation).dataArray)));
-
     // Create instance positions.
     const lCubeInstanceTransformationData: Array<number> = new Array<number>();
     for (let lWidthIndex: number = 0; lWidthIndex < gWidth; lWidthIndex++) {
@@ -130,7 +125,7 @@ const gDepth: number = 10;
     // Create camera.
     const lCamera: ViewProjection = new ViewProjection(lPerspectiveProjection);
     lCamera.transformation.setTranslation(0, 0, -4);
-    lWorldGroup.data('viewProjectionMatrix').createBuffer(new Float32Array(lCamera.getMatrix(CameraMatrix.ViewProjection).dataArray)));
+    lWorldGroup.data('viewProjectionMatrix').createBuffer(new Float32Array(lCamera.getMatrix(CameraMatrix.ViewProjection).dataArray));
 
     // Create ambient light.
     const lAmbientLight: AmbientLight = new AmbientLight();
@@ -149,12 +144,10 @@ const gDepth: number = 10;
     const lUserGroup = lRenderModule.layout.getGroupLayout('user').create();
 
     // Setup cube texture.
-    const lCubeTexture = await (<TextureMemoryLayout>lUserGroupLayout.getBind('cubeTexture').layout).createImageTexture('/source/cube_texture/cube-texture.png');
-    lUserGroup.setData('cubeTexture', lCubeTexture);
+    await lUserGroup.data('cubeTexture').createImage('/source/cube_texture/cube-texture.png');
 
     // Setup Sampler.
-    const lCubeSampler = (<SamplerMemoryLayout>lUserGroupLayout.getBind('cubeTextureSampler').layout).create();
-    lUserGroup.setData('cubeTextureSampler', lCubeSampler);
+    lUserGroup.data('cubeTextureSampler').createSampler();
 
     // Generate render parameter from parameter layout.
     const lMesh: VertexParameter = lRenderModule.parameterLayout.createData(CubeVertexIndices);

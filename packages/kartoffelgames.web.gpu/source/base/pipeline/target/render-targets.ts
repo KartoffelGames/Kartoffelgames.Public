@@ -10,6 +10,7 @@ import { CanvasTexture } from '../../texture/canvas-texture';
 import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
 import { TextureFormatCapability } from '../../texture/texture-format-capabilities';
 import { RenderTargetSetupData, RenderTargetsSetup } from './render-targets-setup';
+import { TextureUsage } from '../../../constant/texture-usage.enum';
 
 /**
  * Group of textures with the same size and multisample level.
@@ -112,7 +113,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
      *  
      * @returns this. 
      */
-    public resize(pWidth: number, pHeight: number, pMultisampleLevel: number | null = null): this {
+    public resize(pHeight: number, pWidth: number, pMultisampleLevel: number | null = null): this {
         this.mSize.width = pWidth;
         this.mSize.height = pHeight;
 
@@ -244,13 +245,16 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
                 throw new Exception(`Depth/ stencil attachment defined but no texture was assigned.`, this);
             }
 
-            // Read capability of used depth stencil texture format.
-            const lFormatCapability: TextureFormatCapability = this.device.formatValidator.capabilityOf(pReferenceData.depthStencil.texture.memoryLayout.format);
-
             // Save setup texture.
             this.mDepthStencilTexture = {
                 target: pReferenceData.depthStencil.texture
             };
+
+            // Add render attachment texture usage to depth stencil texture.
+            pReferenceData.depthStencil.texture.memoryLayout.usage |= TextureUsage.RenderAttachment;
+
+            // Read capability of used depth stencil texture format.
+            const lFormatCapability: TextureFormatCapability = this.device.formatValidator.capabilityOf(pReferenceData.depthStencil.texture.memoryLayout.format);
 
             // Setup depth texture.
             if (pReferenceData.depthStencil.depth) {
@@ -296,6 +300,9 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
             if (lAttachmentLocations[lAttachment.index] === true) {
                 throw new Exception(`Color attachment location index "${lAttachment.index}" can only be defined once.`, this);
             }
+
+            // Add render attachment texture usage to color texture.
+            lAttachment.texture.memoryLayout.usage |= TextureUsage.RenderAttachment;
 
             // Buffer used location index.
             lAttachmentLocations[lAttachment.index] = true;

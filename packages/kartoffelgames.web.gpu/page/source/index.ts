@@ -41,9 +41,9 @@ const gDepth: number = 10;
             .use(lCanvasTexture);
 
         // Add depth texture and init new texture.    
-        pSetup.addDepthStencil(true, 0xff)
+        pSetup.addDepthStencil(true, 1)
             .new(TextureFormat.Depth24plus);
-    }).resize(640, 640, 4);
+    }).resize(640, 800, 4);
 
     // Create shader.
     const lShader = lGpu.shader(shader).setup((pShaderSetup) => {

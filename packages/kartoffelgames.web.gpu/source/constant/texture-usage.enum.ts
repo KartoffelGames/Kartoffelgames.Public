@@ -1,6 +1,6 @@
 export enum TextureUsage {
     None = 0,
-    TextureBinding = 1,
-    StorageBinding = 2,
-    RenderAttachment = 4
+    TextureBinding = GPUTextureUsage.TEXTURE_BINDING,
+    StorageBinding = GPUTextureUsage.STORAGE_BINDING,
+    RenderAttachment = GPUTextureUsage.RENDER_ATTACHMENT
 }

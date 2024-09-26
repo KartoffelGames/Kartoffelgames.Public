@@ -17,7 +17,7 @@ export class RenderTargetTextureSetup extends GpuObjectChildSetup<RenderTargetSe
         this.ensureThatInSetup();
 
         const lMemoryLayout: TextureMemoryLayout = new TextureMemoryLayout(this.device, {
-            usage: TextureUsage.RenderAttachment,
+            usage: TextureUsage.None,
             dimension: TextureDimension.TwoDimension,
             format: pFormat, // TODO: Validate with format validator. // TODO: Add format preferences/restrictions to texture setup.
             bindType: TextureBindType.RenderTarget,

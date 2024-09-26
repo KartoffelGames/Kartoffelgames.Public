@@ -164,7 +164,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline> impleme
             lPipelineDescriptor.fragment = {
                 module: this.mShaderModule.shader.native,
                 entryPoint: this.module.fragmentEntryPoint,
-                targets: lFragmentTargetList,
+                targets: lFragmentTargetList
                 // TODO: constants
             };
         }

@@ -312,8 +312,8 @@ _asyncToGenerator(function* () {
       a: 0
     }).use(lCanvasTexture);
     // Add depth texture and init new texture.    
-    pSetup.addDepthStencil(true, 0xff).new(texture_format_enum_1.TextureFormat.Depth24plus);
-  }).resize(640, 640, 4);
+    pSetup.addDepthStencil(true, 1).new(texture_format_enum_1.TextureFormat.Depth24plus);
+  }).resize(640, 800, 4);
   // Create shader.
   const lShader = lGpu.shader(shader_wgsl_1.default).setup(pShaderSetup => {
     pShaderSetup.vertexEntryPoint('vertex_main').addParameter('position', 0, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4).addParameter('uv', 1, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector2).addParameter('normal', 2, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
@@ -2135,7 +2135,7 @@ class BindGroupLayout extends gpu_object_1.GpuObject {
     }
     // Create binding group layout.
     return this.device.gpu.createBindGroupLayout({
-      label: 'Bind-Group-Layout',
+      label: `BindGroupLayout-${this.mName}`,
       entries: lEntryList
     });
   }
@@ -5401,7 +5401,7 @@ class RenderTargetTextureSetup extends gpu_object_child_setup_1.GpuObjectChildSe
     // Lock setup to a setup call.
     this.ensureThatInSetup();
     const lMemoryLayout = new texture_memory_layout_1.TextureMemoryLayout(this.device, {
-      usage: texture_usage_enum_1.TextureUsage.RenderAttachment,
+      usage: texture_usage_enum_1.TextureUsage.None,
       dimension: texture_dimension_enum_1.TextureDimension.TwoDimension,
       format: pFormat,
       // TODO: Validate with format validator. // TODO: Add format preferences/restrictions to texture setup.
@@ -5448,6 +5448,7 @@ const gpu_object_update_reason_1 = __webpack_require__(/*! ../../gpu/object/gpu-
 const canvas_texture_1 = __webpack_require__(/*! ../../texture/canvas-texture */ "./source/base/texture/canvas-texture.ts");
 const frame_buffer_texture_1 = __webpack_require__(/*! ../../texture/frame-buffer-texture */ "./source/base/texture/frame-buffer-texture.ts");
 const render_targets_setup_1 = __webpack_require__(/*! ./render-targets-setup */ "./source/base/pipeline/target/render-targets-setup.ts");
+const texture_usage_enum_1 = __webpack_require__(/*! ../../../constant/texture-usage.enum */ "./source/constant/texture-usage.enum.ts");
 /**
  * Group of textures with the same size and multisample level.
  */
@@ -5534,7 +5535,7 @@ class RenderTargets extends gpu_object_1.GpuObject {
    *
    * @returns this.
    */
-  resize(pWidth, pHeight, pMultisampleLevel = null) {
+  resize(pHeight, pWidth, pMultisampleLevel = null) {
     this.mSize.width = pWidth;
     this.mSize.height = pHeight;
     // Optional multisample level.
@@ -5644,12 +5645,14 @@ class RenderTargets extends gpu_object_1.GpuObject {
       if (!pReferenceData.depthStencil.texture) {
         throw new core_1.Exception(`Depth/ stencil attachment defined but no texture was assigned.`, this);
       }
-      // Read capability of used depth stencil texture format.
-      const lFormatCapability = this.device.formatValidator.capabilityOf(pReferenceData.depthStencil.texture.memoryLayout.format);
       // Save setup texture.
       this.mDepthStencilTexture = {
         target: pReferenceData.depthStencil.texture
       };
+      // Add render attachment texture usage to depth stencil texture.
+      pReferenceData.depthStencil.texture.memoryLayout.usage |= texture_usage_enum_1.TextureUsage.RenderAttachment;
+      // Read capability of used depth stencil texture format.
+      const lFormatCapability = this.device.formatValidator.capabilityOf(pReferenceData.depthStencil.texture.memoryLayout.format);
       // Setup depth texture.
       if (pReferenceData.depthStencil.depth) {
         // Validate if depth texture
@@ -5688,6 +5691,8 @@ class RenderTargets extends gpu_object_1.GpuObject {
       if (lAttachmentLocations[lAttachment.index] === true) {
         throw new core_1.Exception(`Color attachment location index "${lAttachment.index}" can only be defined once.`, this);
       }
+      // Add render attachment texture usage to color texture.
+      lAttachment.texture.memoryLayout.usage |= texture_usage_enum_1.TextureUsage.RenderAttachment;
       // Buffer used location index.
       lAttachmentLocations[lAttachment.index] = true;
       // Convert setup into storage data.
@@ -8729,9 +8734,9 @@ exports.ComputeStage = void 0;
 var ComputeStage;
 (function (ComputeStage) {
   ComputeStage[ComputeStage["None"] = 0] = "None";
-  ComputeStage[ComputeStage["Fragment"] = 1] = "Fragment";
-  ComputeStage[ComputeStage["Vertex"] = 2] = "Vertex";
-  ComputeStage[ComputeStage["Compute"] = 4] = "Compute";
+  ComputeStage[ComputeStage["Fragment"] = GPUShaderStage.FRAGMENT] = "Fragment";
+  ComputeStage[ComputeStage["Vertex"] = GPUShaderStage.VERTEX] = "Vertex";
+  ComputeStage[ComputeStage["Compute"] = GPUShaderStage.COMPUTE] = "Compute";
 })(ComputeStage || (exports.ComputeStage = ComputeStage = {}));
 
 /***/ }),
@@ -9130,9 +9135,9 @@ exports.TextureUsage = void 0;
 var TextureUsage;
 (function (TextureUsage) {
   TextureUsage[TextureUsage["None"] = 0] = "None";
-  TextureUsage[TextureUsage["TextureBinding"] = 1] = "TextureBinding";
-  TextureUsage[TextureUsage["StorageBinding"] = 2] = "StorageBinding";
-  TextureUsage[TextureUsage["RenderAttachment"] = 4] = "RenderAttachment";
+  TextureUsage[TextureUsage["TextureBinding"] = GPUTextureUsage.TEXTURE_BINDING] = "TextureBinding";
+  TextureUsage[TextureUsage["StorageBinding"] = GPUTextureUsage.STORAGE_BINDING] = "StorageBinding";
+  TextureUsage[TextureUsage["RenderAttachment"] = GPUTextureUsage.RENDER_ATTACHMENT] = "RenderAttachment";
 })(TextureUsage || (exports.TextureUsage = TextureUsage = {}));
 
 /***/ }),
@@ -13207,7 +13212,7 @@ exports.TypeUtil = TypeUtil;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("8dfe0585d3c6ce085837")
+/******/ 		__webpack_require__.h = () => ("abfe13849af9ee107b15")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

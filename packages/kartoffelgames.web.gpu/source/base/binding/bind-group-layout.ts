@@ -250,7 +250,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, BindGroupLayo
 
         // Create binding group layout.
         return this.device.gpu.createBindGroupLayout({
-            label: 'Bind-Group-Layout',
+            label: `BindGroupLayout-${this.mName}`,
             entries: lEntryList
         });
     }

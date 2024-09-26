@@ -378,7 +378,7 @@ _asyncToGenerator(function* () {
   // Create ambient light.
   const lAmbientLight = new ambient_light_1.AmbientLight();
   lAmbientLight.setColor(0.1, 0.1, 0.1);
-  lWorldGroup.data('ambientLight').createBuffer(new Float32Array(lCamera.getMatrix(view_projection_1.CameraMatrix.ViewProjection).dataArray));
+  lWorldGroup.data('ambientLight').createBuffer(new Float32Array(lAmbientLight.data));
   // Create point lights.
   lWorldGroup.data('pointLights').createBuffer(new Float32Array([/* Position */1, 1, 1, 1, /* Color */1, 0, 0, 1, /* Range */200, 0, 0, 0, /* Position */10, 10, 10, 1, /* Color */0, 0, 1, 1, /* Range */200, 0, 0, 0]));
   /*
@@ -1737,7 +1737,6 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.BindGroupDataSetup = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
-const memory_copy_type_enum_1 = __webpack_require__(/*! ../../constant/memory-copy-type.enum */ "./source/constant/memory-copy-type.enum.ts");
 const gpu_buffer_1 = __webpack_require__(/*! ../buffer/gpu-buffer */ "./source/base/buffer/gpu-buffer.ts");
 const gpu_object_child_setup_1 = __webpack_require__(/*! ../gpu/object/gpu-object-child-setup */ "./source/base/gpu/object/gpu-object-child-setup.ts");
 const base_buffer_memory_layout_1 = __webpack_require__(/*! ../memory_layout/buffer/base-buffer-memory-layout */ "./source/base/memory_layout/buffer/base-buffer-memory-layout.ts");
@@ -1813,7 +1812,7 @@ class BindGroupDataSetup extends gpu_object_child_setup_1.GpuObjectChildSetup {
       return lItemCount;
     })();
     // Create buffer.
-    const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, this.mBindLayout.layout, memory_copy_type_enum_1.MemoryCopyType.None, lBufferFormat, lVariableItemCount);
+    const lBuffer = new gpu_buffer_1.GpuBuffer(this.device, this.mBindLayout.layout, lBufferFormat, lVariableItemCount);
     // Add initial data.
     if (typeof pDataOrType === 'object') {
       lBuffer.initialData(() => {
@@ -2856,6 +2855,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.GpuBuffer = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const memory_copy_type_enum_1 = __webpack_require__(/*! ../../constant/memory-copy-type.enum */ "./source/constant/memory-copy-type.enum.ts");
 const gpu_object_1 = __webpack_require__(/*! ../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
 const gpu_object_update_reason_1 = __webpack_require__(/*! ../gpu/object/gpu-object-update-reason */ "./source/base/gpu/object/gpu-object-update-reason.ts");
 const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
@@ -2863,12 +2863,6 @@ const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../memory_layout/
  * GpuBuffer. Uses local and native gpu buffers.
  */
 class GpuBuffer extends gpu_object_1.GpuObject {
-  /**
-   * Buffer copy type.
-   */
-  get copyType() {
-    return this.mCopyType;
-  }
   /**
    * Data type of buffer.
    */
@@ -2897,8 +2891,15 @@ class GpuBuffer extends gpu_object_1.GpuObject {
    * Buffer size in bytes aligned to 4 bytes.
    */
   get size() {
+    // Align data size by 4 byte.
+    return this.mItemCount * this.bytePerElement + 3 & ~3;
+  }
+  /**
+   * Byte per buffer element.
+   */
+  get bytePerElement() {
     // Read bytes per element
-    const lBytePerElement = (() => {
+    return (() => {
       switch (this.mDataType) {
         case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32:
         case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Sint32:
@@ -2909,14 +2910,6 @@ class GpuBuffer extends gpu_object_1.GpuObject {
           throw new core_1.Exception(`Could not create a size for ${this.mDataType} type.`, this);
       }
     })();
-    // Align data size by 4 byte.
-    return this.mItemCount * lBytePerElement + 3 & ~3;
-  }
-  /**
-   * Buffer usage.
-   */
-  get usage() {
-    return this.mUsage;
   }
   /**
    * Constructor.
@@ -2924,14 +2917,14 @@ class GpuBuffer extends gpu_object_1.GpuObject {
    * @param pLayout - Buffer layout.
    * @param pInitialData  - Inital data. Can be empty. Or Buffer size.
    */
-  constructor(pDevice, pLayout, pCopyType, pDataType, pVariableSizeCount = null) {
+  constructor(pDevice, pLayout, pDataType, pVariableSizeCount = null) {
     super(pDevice, gpu_object_1.NativeObjectLifeTime.Persistent);
     this.mLayout = pLayout;
     // Set config.
-    this.mCopyType = pCopyType;
-    this.mUsage = pLayout.usage;
     this.mWavingBufferLimitation = Number.MAX_SAFE_INTEGER;
     this.mDataType = pDataType;
+    // At default buffer can not be read and not be written to.
+    this.mCopyType = memory_copy_type_enum_1.MemoryCopyType.None;
     // Waving buffer list.
     this.mReadyBufferList = new Array();
     this.mWavingBufferList = new Array();
@@ -2981,6 +2974,8 @@ class GpuBuffer extends gpu_object_1.GpuObject {
   readRaw(pOffset, pSize) {
     var _this2 = this;
     return _asyncToGenerator(function* () {
+      // Set buffer as writeable.
+      _this2.updateCopyType(memory_copy_type_enum_1.MemoryCopyType.CopySource);
       const lOffset = pOffset ?? 0;
       const lSize = pSize ?? _this2.size;
       // TODO: Buffer cant be used as binding or anything else when it has MAP_READ
@@ -3015,6 +3010,8 @@ class GpuBuffer extends gpu_object_1.GpuObject {
   writeRaw(pData, pOffset) {
     var _this4 = this;
     return _asyncToGenerator(function* () {
+      // Set buffer as writeable.
+      _this4.updateCopyType(memory_copy_type_enum_1.MemoryCopyType.CopyDestination);
       const lOffset = pOffset ?? 0;
       // Try to read a mapped buffer from waving list.
       let lStagingBuffer = null;
@@ -3033,22 +3030,16 @@ class GpuBuffer extends gpu_object_1.GpuObject {
       } else {
         lStagingBuffer = _this4.mReadyBufferList.pop();
       }
+      // Get byte length of data to write.
+      const lDataByteLength = pData.length * _this4.bytePerElement;
       // When no staging buffer is available, use the slow native.
       if (!lStagingBuffer) {
-        // TODO: Buffer cant be used as binding or anything else when it has MAP_WRITE 
-        // https://www.w3.org/TR/webgpu/#dom-gpubufferusage-map_write
-        // Create and map native buffer.
-        const lNativeBuffer = _this4.native;
-        yield lNativeBuffer.mapAsync(GPUMapMode.WRITE, lOffset, pData.length);
         // Write data into mapped range.
-        const lBufferArray = _this4.createTypedArray(lNativeBuffer.getMappedRange());
-        lBufferArray.set(pData);
-        // And now let the gpu handle it.
-        lNativeBuffer.unmap();
+        _this4.device.gpu.queue.writeBuffer(_this4.native, lOffset, _this4.createTypedArray(pData), 0, lDataByteLength);
         return;
       }
       // Execute write operations on waving buffer.
-      const lBufferArray = _this4.createTypedArray(lStagingBuffer.getMappedRange(lOffset, pData.length));
+      const lBufferArray = _this4.createTypedArray(lStagingBuffer.getMappedRange(lOffset, lDataByteLength));
       lBufferArray.set(pData);
       // Unmap for copying data.
       lStagingBuffer.unmap();
@@ -3081,21 +3072,29 @@ class GpuBuffer extends gpu_object_1.GpuObject {
    * Generate buffer. Write local gpu object data as initial native buffer data.
    */
   generate() {
+    // Read optional initial data.
+    const lInitalData = this.mInitialDataCallback?.();
     // Append usage type from abstract usage type.
-    const lUsage = this.mUsage | this.copyType;
+    const lUsage = this.mLayout.usage | this.mCopyType;
     // Create gpu buffer mapped
     const lBuffer = this.device.gpu.createBuffer({
       label: 'Ring-Buffer-Static-Buffer',
       size: this.size,
       usage: lUsage,
-      mappedAtCreation: true // Map data when buffer would receive initial data.
+      mappedAtCreation: !!lInitalData
     });
-    // unmap buffer.
-    lBuffer.unmap();
     // Write data. Is completly async.
-    const lInitalData = this.mInitialDataCallback?.();
     if (lInitalData) {
-      this.writeRaw(lInitalData);
+      // Write initial data.
+      const lMappedBuffer = this.createTypedArray(lBuffer.getMappedRange());
+      // Validate buffer and initial data length.
+      if (lMappedBuffer.length !== lInitalData.length) {
+        throw new core_1.Exception(`Initial buffer data (length: ${lInitalData.length}) does not fit into buffer (length: ${lMappedBuffer.length}). `, this);
+      }
+      // Set data to buffer.
+      lMappedBuffer.set(lInitalData);
+      // Unmap buffer.
+      lBuffer.unmap();
     }
     return lBuffer;
   }
@@ -3122,6 +3121,18 @@ class GpuBuffer extends gpu_object_1.GpuObject {
       }
     })();
     return new lArrayBufferConstructor(pArrayBuffer);
+  }
+  /**
+   * Update copy type of core buffer.
+   *
+   * @param pCopyType - Requested copy type.
+   */
+  updateCopyType(pCopyType) {
+    // Update onyl when not already set.
+    if ((this.mCopyType & pCopyType) === 0) {
+      this.mCopyType |= pCopyType;
+      this.triggerAutoUpdate(gpu_object_update_reason_1.UpdateReason.Setting);
+    }
   }
 }
 exports.GpuBuffer = GpuBuffer;
@@ -4500,7 +4511,7 @@ class PrimitiveBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBuffer
       }
     })();
     // Calculate alignment and size.
-    [this.mSize, this.mAlignment] = (() => {
+    [this.mAlignment, this.mSize] = (() => {
       switch (pParameter.primitiveMultiplier) {
         case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single:
           return [this.mSize, this.mSize];
@@ -5163,7 +5174,6 @@ Object.defineProperty(exports, "__esModule", ({
 exports.VertexParameter = void 0;
 const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
 const buffer_usage_enum_1 = __webpack_require__(/*! ../../../constant/buffer-usage.enum */ "./source/constant/buffer-usage.enum.ts");
-const memory_copy_type_enum_1 = __webpack_require__(/*! ../../../constant/memory-copy-type.enum */ "./source/constant/memory-copy-type.enum.ts");
 const gpu_buffer_1 = __webpack_require__(/*! ../../buffer/gpu-buffer */ "./source/base/buffer/gpu-buffer.ts");
 const gpu_object_1 = __webpack_require__(/*! ../../gpu/object/gpu-object */ "./source/base/gpu/object/gpu-object.ts");
 const array_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/array-buffer-memory-layout */ "./source/base/memory_layout/buffer/array-buffer-memory-layout.ts");
@@ -5207,7 +5217,7 @@ class VertexParameter extends gpu_object_1.GpuObject {
       usage: buffer_usage_enum_1.BufferUsage.Index
     });
     // Create index buffer.
-    this.mIndexBuffer = new gpu_buffer_1.GpuBuffer(pDevice, lIndexBufferLayout, memory_copy_type_enum_1.MemoryCopyType.None, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32).initialData(() => {
+    this.mIndexBuffer = new gpu_buffer_1.GpuBuffer(pDevice, lIndexBufferLayout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32).initialData(() => {
       return new Uint32Array(pIndices);
     });
   }
@@ -5240,19 +5250,19 @@ class VertexParameter extends gpu_object_1.GpuObject {
       switch (lParameterLayout.format) {
         case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32:
           {
-            return new gpu_buffer_1.GpuBuffer(this.device, lBufferLayout, memory_copy_type_enum_1.MemoryCopyType.None, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32).initialData(() => {
+            return new gpu_buffer_1.GpuBuffer(this.device, lBufferLayout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32).initialData(() => {
               return new Float32Array(pData);
             });
           }
         case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Sint32:
           {
-            return new gpu_buffer_1.GpuBuffer(this.device, lBufferLayout, memory_copy_type_enum_1.MemoryCopyType.None, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Sint32).initialData(() => {
+            return new gpu_buffer_1.GpuBuffer(this.device, lBufferLayout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Sint32).initialData(() => {
               return new Int32Array(pData);
             });
           }
         case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32:
           {
-            return new gpu_buffer_1.GpuBuffer(this.device, lBufferLayout, memory_copy_type_enum_1.MemoryCopyType.None, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32).initialData(() => {
+            return new gpu_buffer_1.GpuBuffer(this.device, lBufferLayout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32).initialData(() => {
               return new Uint32Array(pData);
             });
           }
@@ -8778,8 +8788,8 @@ exports.MemoryCopyType = void 0;
 var MemoryCopyType;
 (function (MemoryCopyType) {
   MemoryCopyType[MemoryCopyType["None"] = 0] = "None";
-  MemoryCopyType[MemoryCopyType["CopySource"] = GPUTextureUsage.COPY_SRC] = "CopySource";
-  MemoryCopyType[MemoryCopyType["CopyDestination"] = GPUTextureUsage.COPY_DST] = "CopyDestination";
+  MemoryCopyType[MemoryCopyType["CopySource"] = GPUBufferUsage.COPY_SRC] = "CopySource";
+  MemoryCopyType[MemoryCopyType["CopyDestination"] = GPUBufferUsage.COPY_DST] = "CopyDestination";
 })(MemoryCopyType || (exports.MemoryCopyType = MemoryCopyType = {}));
 
 /***/ }),
@@ -13212,7 +13222,7 @@ exports.TypeUtil = TypeUtil;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("abfe13849af9ee107b15")
+/******/ 		__webpack_require__.h = () => ("98e90d091503c12104d4")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

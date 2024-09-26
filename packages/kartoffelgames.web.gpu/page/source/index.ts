@@ -136,7 +136,7 @@ const gDepth: number = 10;
     // Create ambient light.
     const lAmbientLight: AmbientLight = new AmbientLight();
     lAmbientLight.setColor(0.1, 0.1, 0.1);
-    lWorldGroup.data('ambientLight').createBuffer(new Float32Array(lCamera.getMatrix(CameraMatrix.ViewProjection).dataArray));
+    lWorldGroup.data('ambientLight').createBuffer(new Float32Array(lAmbientLight.data));
 
     // Create point lights.
     lWorldGroup.data('pointLights').createBuffer(new Float32Array([

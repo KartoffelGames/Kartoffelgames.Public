@@ -1,5 +1,4 @@
 import { Exception, TypedArray } from '@kartoffelgames/core';
-import { BufferUsage } from '../../constant/buffer-usage.enum';
 import { MemoryCopyType } from '../../constant/memory-copy-type.enum';
 import { GpuDevice } from '../gpu/gpu-device';
 import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
@@ -12,22 +11,14 @@ import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-bu
  * GpuBuffer. Uses local and native gpu buffers.
  */
 export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> implements IGpuObjectNative<GPUBuffer> {
-    private readonly mCopyType: MemoryCopyType;
+    private mCopyType: MemoryCopyType;
     private readonly mDataType: PrimitiveBufferFormat;
     private mInitialDataCallback: (() => TType) | null;
     private readonly mItemCount: number;
     private readonly mLayout: BaseBufferMemoryLayout;
     private readonly mReadyBufferList: Array<GPUBuffer>;
-    private readonly mUsage: BufferUsage;
     private readonly mWavingBufferLimitation: number;
     private readonly mWavingBufferList: Array<GPUBuffer>;
-
-    /**
-     * Buffer copy type.
-     */
-    public get copyType(): MemoryCopyType {
-        return this.mCopyType;
-    }
 
     /**
      * Data type of buffer.
@@ -61,8 +52,16 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
      * Buffer size in bytes aligned to 4 bytes.
      */
     public get size(): number {
+        // Align data size by 4 byte.
+        return ((this.mItemCount * this.bytePerElement) + 3) & ~3;
+    }
+
+    /**
+     * Byte per buffer element.
+     */
+    private get bytePerElement(): number {
         // Read bytes per element
-        const lBytePerElement: number = (() => {
+        return (() => {
             switch (this.mDataType) {
                 case PrimitiveBufferFormat.Float32:
                 case PrimitiveBufferFormat.Sint32:
@@ -73,16 +72,6 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
                     throw new Exception(`Could not create a size for ${this.mDataType} type.`, this);
             }
         })();
-
-        // Align data size by 4 byte.
-        return ((this.mItemCount * lBytePerElement) + 3) & ~3;
-    }
-
-    /**
-     * Buffer usage.
-     */
-    public get usage(): BufferUsage {
-        return this.mUsage;
     }
 
     /**
@@ -91,15 +80,16 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
      * @param pLayout - Buffer layout.
      * @param pInitialData  - Inital data. Can be empty. Or Buffer size. 
      */
-    public constructor(pDevice: GpuDevice, pLayout: BaseBufferMemoryLayout, pCopyType: MemoryCopyType, pDataType: PrimitiveBufferFormat, pVariableSizeCount: number | null = null) {
+    public constructor(pDevice: GpuDevice, pLayout: BaseBufferMemoryLayout, pDataType: PrimitiveBufferFormat, pVariableSizeCount: number | null = null) {
         super(pDevice, NativeObjectLifeTime.Persistent);
         this.mLayout = pLayout;
 
         // Set config.
-        this.mCopyType = pCopyType;
-        this.mUsage = pLayout.usage;
         this.mWavingBufferLimitation = Number.MAX_SAFE_INTEGER;
         this.mDataType = pDataType;
+
+        // At default buffer can not be read and not be written to.
+        this.mCopyType = MemoryCopyType.None;
 
         // Waving buffer list.
         this.mReadyBufferList = new Array<GPUBuffer>();
@@ -155,6 +145,9 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
      * @param pSize - Data read size.
      */
     public async readRaw(pOffset?: number | undefined, pSize?: number | undefined): Promise<TType> {
+        // Set buffer as writeable.
+        this.updateCopyType(MemoryCopyType.CopySource);
+
         const lOffset: number = pOffset ?? 0;
         const lSize: number = pSize ?? this.size;
 
@@ -189,6 +182,9 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
      * @param pOffset - Data offset.
      */
     public async writeRaw(pData: ArrayLike<number>, pOffset?: number): Promise<void> {
+        // Set buffer as writeable.
+        this.updateCopyType(MemoryCopyType.CopyDestination);
+
         const lOffset: number = pOffset ?? 0;
 
         // Try to read a mapped buffer from waving list.
@@ -210,27 +206,19 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
             lStagingBuffer = this.mReadyBufferList.pop()!;
         }
 
+        // Get byte length of data to write.
+        const lDataByteLength: number = pData.length * this.bytePerElement;
+
         // When no staging buffer is available, use the slow native.
         if (!lStagingBuffer) {
-            // TODO: Buffer cant be used as binding or anything else when it has MAP_WRITE 
-            // https://www.w3.org/TR/webgpu/#dom-gpubufferusage-map_write
-
-            // Create and map native buffer.
-            const lNativeBuffer: GPUBuffer = this.native;
-            await lNativeBuffer.mapAsync(GPUMapMode.WRITE, lOffset, pData.length);
-
             // Write data into mapped range.
-            const lBufferArray: TypedArray = this.createTypedArray(lNativeBuffer.getMappedRange());
-            lBufferArray.set(pData);
-
-            // And now let the gpu handle it.
-            lNativeBuffer.unmap();
+            this.device.gpu.queue.writeBuffer(this.native, lOffset, this.createTypedArray(pData), 0, lDataByteLength);
 
             return;
         }
 
         // Execute write operations on waving buffer.
-        const lBufferArray: TypedArray = this.createTypedArray(lStagingBuffer.getMappedRange(lOffset, pData.length));
+        const lBufferArray: TypedArray = this.createTypedArray(lStagingBuffer.getMappedRange(lOffset, lDataByteLength));
         lBufferArray.set(pData);
 
         // Unmap for copying data.
@@ -269,24 +257,35 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
      * Generate buffer. Write local gpu object data as initial native buffer data.
      */
     protected override generate(): GPUBuffer {
+        // Read optional initial data.
+        const lInitalData: TType | undefined = this.mInitialDataCallback?.();
+
         // Append usage type from abstract usage type.
-        const lUsage: number = this.mUsage | this.copyType;
+        const lUsage: number = this.mLayout.usage | this.mCopyType;
 
         // Create gpu buffer mapped
         const lBuffer: GPUBuffer = this.device.gpu.createBuffer({
             label: 'Ring-Buffer-Static-Buffer',
             size: this.size,
             usage: lUsage,
-            mappedAtCreation: true // Map data when buffer would receive initial data.
+            mappedAtCreation: !!lInitalData
         });
 
-        // unmap buffer.
-        lBuffer.unmap();
-
         // Write data. Is completly async.
-        const lInitalData: TType | undefined = this.mInitialDataCallback?.();
         if (lInitalData) {
-            this.writeRaw(lInitalData);
+            // Write initial data.
+            const lMappedBuffer: TypedArray = this.createTypedArray(lBuffer.getMappedRange());
+
+            // Validate buffer and initial data length.
+            if(lMappedBuffer.length !== lInitalData.length) {
+                throw new Exception(`Initial buffer data (length: ${lInitalData.length}) does not fit into buffer (length: ${lMappedBuffer.length}). `, this);
+            }
+
+            // Set data to buffer.
+            lMappedBuffer.set(lInitalData);
+
+            // Unmap buffer.
+            lBuffer.unmap();
         }
 
         return lBuffer;
@@ -299,7 +298,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
      * 
      * @returns typed array. 
      */
-    private createTypedArray(pArrayBuffer: ArrayBuffer): TypedArray {
+    private createTypedArray(pArrayBuffer: ArrayLike<number> | ArrayBufferLike): TypedArray {
         // Read bytes per element
         const lArrayBufferConstructor = (() => {
             switch (this.mDataType) {
@@ -316,5 +315,19 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
         })();
 
         return new lArrayBufferConstructor(pArrayBuffer);
+    }
+
+    /**
+     * Update copy type of core buffer.
+     * 
+     * @param pCopyType - Requested copy type.
+     */
+    private updateCopyType(pCopyType: MemoryCopyType): void {
+        // Update onyl when not already set.
+        if ((this.mCopyType & pCopyType) === 0) {
+            this.mCopyType |= pCopyType;
+
+            this.triggerAutoUpdate(UpdateReason.Setting);
+        }
     }
 }

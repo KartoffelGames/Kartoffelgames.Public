@@ -1,6 +1,5 @@
 import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core';
 import { BufferUsage } from '../../../constant/buffer-usage.enum';
-import { MemoryCopyType } from '../../../constant/memory-copy-type.enum';
 import { GpuBuffer } from '../../buffer/gpu-buffer';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObject, NativeObjectLifeTime } from '../../gpu/object/gpu-object';
@@ -57,7 +56,7 @@ export class VertexParameter extends GpuObject {
         });
 
         // Create index buffer.
-        this.mIndexBuffer = new GpuBuffer<Uint32Array>(pDevice, lIndexBufferLayout, MemoryCopyType.None, PrimitiveBufferFormat.Uint32).initialData(() => {
+        this.mIndexBuffer = new GpuBuffer<Uint32Array>(pDevice, lIndexBufferLayout, PrimitiveBufferFormat.Uint32).initialData(() => {
             return new Uint32Array(pIndices);
         });
     }
@@ -94,17 +93,17 @@ export class VertexParameter extends GpuObject {
         const lParameterBuffer: GpuBuffer<TypedArray> = (() => {
             switch (lParameterLayout.format) {
                 case PrimitiveBufferFormat.Float32: {
-                    return new GpuBuffer(this.device, lBufferLayout, MemoryCopyType.None, PrimitiveBufferFormat.Float32).initialData(() => {
+                    return new GpuBuffer(this.device, lBufferLayout, PrimitiveBufferFormat.Float32).initialData(() => {
                         return new Float32Array(pData);
                     });
                 }
                 case PrimitiveBufferFormat.Sint32: {
-                    return new GpuBuffer(this.device, lBufferLayout, MemoryCopyType.None, PrimitiveBufferFormat.Sint32).initialData(() => {
+                    return new GpuBuffer(this.device, lBufferLayout, PrimitiveBufferFormat.Sint32).initialData(() => {
                         return new Int32Array(pData);
                     });
                 }
                 case PrimitiveBufferFormat.Uint32: {
-                    return new GpuBuffer(this.device, lBufferLayout, MemoryCopyType.None, PrimitiveBufferFormat.Uint32).initialData(() => {
+                    return new GpuBuffer(this.device, lBufferLayout, PrimitiveBufferFormat.Uint32).initialData(() => {
                         return new Uint32Array(pData);
                     });
                 }

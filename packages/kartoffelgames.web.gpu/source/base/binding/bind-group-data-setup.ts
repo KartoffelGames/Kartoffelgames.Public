@@ -1,5 +1,4 @@
 import { Exception, TypedArray } from '@kartoffelgames/core';
-import { MemoryCopyType } from '../../constant/memory-copy-type.enum';
 import { GpuBuffer } from '../buffer/gpu-buffer';
 import { GpuObjectSetupReferences } from '../gpu/object/gpu-object';
 import { GpuObjectChildSetup } from '../gpu/object/gpu-object-child-setup';
@@ -97,7 +96,7 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
         })();
 
         // Create buffer.
-        const lBuffer: GpuBuffer<TypedArray> = new GpuBuffer(this.device, this.mBindLayout.layout, MemoryCopyType.None, lBufferFormat, lVariableItemCount);
+        const lBuffer: GpuBuffer<TypedArray> = new GpuBuffer(this.device, this.mBindLayout.layout, lBufferFormat, lVariableItemCount);
 
         // Add initial data.
         if (typeof pDataOrType === 'object') {

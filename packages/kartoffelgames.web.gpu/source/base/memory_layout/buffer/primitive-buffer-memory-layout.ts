@@ -49,7 +49,7 @@ export class PrimitiveBufferMemoryLayout extends BaseBufferMemoryLayout {
         })();
 
         // Calculate alignment and size.
-        [this.mSize, this.mAlignment] = ((): [number, number] => {
+        [this.mAlignment, this.mSize] = ((): [number, number] => {
             switch (pParameter.primitiveMultiplier) {
                 case PrimitiveBufferMultiplier.Single: return [this.mSize, this.mSize];
                 case PrimitiveBufferMultiplier.Vector2: return [this.mSize * 2, this.mSize * 2];

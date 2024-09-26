@@ -34,6 +34,9 @@ export abstract class GpuObjectSetup<TSetupData> {
      */
     public constructor(pSetupReference: GpuObjectSetupReferences<TSetupData>) {
         this.mSetupReference = pSetupReference;
+
+        // Fill default data to setup references.
+        this.fillDefaultData(pSetupReference.data);
     }
 
     /**
@@ -51,5 +54,5 @@ export abstract class GpuObjectSetup<TSetupData> {
      * 
      * @param pDataReference - Setup data reference.
      */
-    protected abstract fillDefaultData(pDataReference: TSetupData): void;
+    protected abstract fillDefaultData(pDataReference: Partial<TSetupData>): void;
 }

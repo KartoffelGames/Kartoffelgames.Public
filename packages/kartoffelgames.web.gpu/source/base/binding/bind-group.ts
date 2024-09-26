@@ -57,7 +57,7 @@ export class BindGroup extends GpuObject<GPUBindGroup> implements IGpuObjectNati
      * @returns Data setup object. 
      */
     public data(pBindName: string): BindGroupDataSetup {
-        const lDataLayout: Readonly<BindLayout> = this.mLayout.getBind(pBindName);
+        const lBindLayout: Readonly<BindLayout> = this.mLayout.getBind(pBindName);
         const lData: BindData | null = this.mBindData.get(pBindName) ?? null;
 
         // Construct setup data to data.
@@ -67,26 +67,26 @@ export class BindGroup extends GpuObject<GPUBindGroup> implements IGpuObjectNati
             data: null
         };
 
-        return new BindGroupDataSetup(lDataLayout, lData, lDataSetupReferences, (pData: BindData) => {
+        return new BindGroupDataSetup(lBindLayout, lData, lDataSetupReferences, (pData: BindData) => {
             // Validate bind data based on layout.
             const lBindDataValid: boolean = (() => {
                 switch (true) {
                     // Textures must use a buffer memory layout.
                     case pData instanceof GpuBuffer: {
-                        return lDataLayout instanceof BaseBufferMemoryLayout;
+                        return lBindLayout.layout instanceof BaseBufferMemoryLayout;
                     }
 
                     // Samplers must use a texture sampler memory layout.
                     case pData instanceof TextureSampler: {
-                        return lDataLayout instanceof SamplerMemoryLayout;
-
+                        return lBindLayout.layout instanceof SamplerMemoryLayout;
                     }
+
                     // Textures must use a texture memory layout.
                     case pData instanceof ImageTexture:
                     case pData instanceof FrameBufferTexture:
                     case pData instanceof VideoTexture:
                     case pData instanceof CanvasTexture: {
-                        return lDataLayout instanceof TextureMemoryLayout;
+                        return lBindLayout.layout instanceof TextureMemoryLayout;
                     }
 
                     default: {

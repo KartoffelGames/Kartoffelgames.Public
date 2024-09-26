@@ -114,7 +114,7 @@ const gDepth: number = 10;
             }
         }
     }
-    lTransformationGroup.data('transformationMatrix').createBuffer(new Float32Array(lCubeInstanceTransformationData));
+    lTransformationGroup.data('instancePositions').createBuffer(new Float32Array(lCubeInstanceTransformationData));
 
     /*
      * Camera and world group. 
@@ -150,7 +150,7 @@ const gDepth: number = 10;
     const lUserGroup = lRenderModule.layout.getGroupLayout('user').create();
 
     // Setup cube texture.
-    await lUserGroup.data('cubeTexture').createImage('/source/cube_texture/cube-texture.png');
+    await lUserGroup.data('cubeTexture').createImage('/source/cube/cube-texture.png');
 
     // Setup Sampler.
     lUserGroup.data('cubeTextureSampler').createSampler();

@@ -2,9 +2,9 @@ import { Exception } from '@kartoffelgames/core';
 import { BufferUsage } from '../../../constant/buffer-usage.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObjectSetupReferences } from '../../gpu/object/gpu-object';
+import { IGpuObjectSetup } from '../../gpu/object/interface/i-gpu-object-setup';
 import { BaseBufferMemoryLayout, BufferLayoutLocation, BufferMemoryLayoutParameter } from './base-buffer-memory-layout';
 import { StructBufferMemoryLayoutSetup, StructBufferMemoryLayoutSetupData } from './struct-buffer-memory-layout-setup';
-import { IGpuObjectSetup } from '../../gpu/object/interface/i-gpu-object-setup';
 
 export class StructBufferMemoryLayout extends BaseBufferMemoryLayout<StructBufferMemoryLayoutSetup> implements IGpuObjectSetup<StructBufferMemoryLayoutSetup> {
     private mAlignment: number;
@@ -161,26 +161,26 @@ export class StructBufferMemoryLayout extends BaseBufferMemoryLayout<StructBuffe
         // Calculate size.
         let lRawDataSize: number = 0;
         for (let lIndex: number = 0; lIndex < this.mInnerProperties.length; lIndex++) {
-            const lType = this.properties[lIndex];
+            const lPropertyLayout = this.mInnerProperties[lIndex].layout;
 
-            if (lType.variableSize > 0 && lIndex !== (this.mInnerProperties.length - 1)) {
+            if (lPropertyLayout.variableSize > 0 && lIndex !== (this.mInnerProperties.length - 1)) {
                 throw new Exception(`Only the last property of a struct memory layout can have a variable size.`, this);
             }
 
             // Increase offset to needed alignment.
-            lRawDataSize = Math.ceil(lRawDataSize / lType.alignment) * lType.alignment;
+            lRawDataSize = Math.ceil(lRawDataSize / lPropertyLayout.alignment) * lPropertyLayout.alignment;
 
             // Increase offset for type.
-            lRawDataSize += lType.fixedSize;
+            lRawDataSize += lPropertyLayout.fixedSize;
 
             // Alignment is the highest alignment of all properties.
-            if (lType.alignment > this.mAlignment) {
-                this.mAlignment = lType.alignment;
+            if (lPropertyLayout.alignment > this.mAlignment) {
+                this.mAlignment = lPropertyLayout.alignment;
             }
 
             // Set variable size. Can only be the last property.
-            if (lType.variableSize > 0) {
-                this.mVariableSize = lType.variableSize;
+            if (lPropertyLayout.variableSize > 0) {
+                this.mVariableSize = lPropertyLayout.variableSize;
             }
         }
 

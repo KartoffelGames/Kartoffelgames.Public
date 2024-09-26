@@ -38,8 +38,11 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
      * Create na new buffer.
      * 
      * @param pDataOrType - Type or initial data.
+     * @param pVariableSizeCount - Variable item count.
      */
-    public createBuffer(pDataOrType: TypedArray | PrimitiveBufferFormat): void {
+    public createBuffer(pData: TypedArray): void;
+    public createBuffer(pType: PrimitiveBufferFormat, pVariableSizeCount?: number): void;
+    public createBuffer(pDataOrType: TypedArray | PrimitiveBufferFormat, pVariableSizeCount: number | null = null): void {
         // Layout must be a buffer memory layout.
         if (!(this.mBindLayout.layout instanceof BaseBufferMemoryLayout)) {
             throw new Exception(`Bind data layout is not suitable for buffers.`, this);
@@ -69,8 +72,32 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
             }
         })();
 
+        // Calculate variable item count from initial buffer data.  
+        const lVariableItemCount: number = pVariableSizeCount ?? (() => {
+            // No need to calculate was it is allways zero.
+            if (this.mBindLayout.layout.variableSize === 0) {
+                return 0;
+            }
+
+            // A variable size count can only be calculated for data.
+            if (typeof pDataOrType !== 'object') {
+                throw new Exception(`For bind group data buffer "${this.mBindLayout.name}" a variable item count must be set.`, this);
+            }
+
+            // Get initial buffer data byte length.
+            const lBufferByteLength: number = pDataOrType.length * pDataOrType.BYTES_PER_ELEMENT;
+
+            // calculate item count and check if initial data meets requirments.
+            const lItemCount: number = (lBufferByteLength - this.mBindLayout.layout.fixedSize) / this.mBindLayout.layout.variableSize;
+            if (lItemCount % 1 > 0) {
+                throw new Exception('Initial bind group data buffer data "${this.mBindLayout.name}" does not meet alignment or data size requirements.', this);
+            }
+
+            return lItemCount;
+        })();
+
         // Create buffer.
-        const lBuffer: GpuBuffer<TypedArray> = new GpuBuffer(this.device, this.mBindLayout.layout, MemoryCopyType.None, lBufferFormat); // TODO: Must set variable buffer sizes.
+        const lBuffer: GpuBuffer<TypedArray> = new GpuBuffer(this.device, this.mBindLayout.layout, MemoryCopyType.None, lBufferFormat, lVariableItemCount);
 
         // Add initial data.
         if (typeof pDataOrType === 'object') {

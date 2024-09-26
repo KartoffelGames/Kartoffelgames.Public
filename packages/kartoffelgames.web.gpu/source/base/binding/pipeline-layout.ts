@@ -97,8 +97,8 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout> implements IGpu
      */
     public groupIndex(pGroupName: string): number {
         const lBindGroupIndex: number | undefined = this.mBindGroupNames.get(pGroupName);
-        if (!lBindGroupIndex) {
-            throw new Exception(`Group binding placeholder can not replace a requiered bind group.`, this);
+        if (typeof lBindGroupIndex === 'undefined') {
+            throw new Exception(`Pipeline does not contain a group with name "${pGroupName}".`, this);
         }
 
         return lBindGroupIndex;

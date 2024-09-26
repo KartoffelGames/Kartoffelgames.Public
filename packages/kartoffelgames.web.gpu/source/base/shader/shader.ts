@@ -265,7 +265,7 @@ export class Shader extends GpuObject<GPUShaderModule, ShaderSetup> implements I
         const lInitialPipelineLayout: Dictionary<number, BindGroupLayout> = new Dictionary<number, BindGroupLayout>();
         for (const lGroup of pReferences.bindingGroups) {
             // Set bind group layout with group index.
-            lInitialPipelineLayout.set(lGroup.index, new BindGroupLayout(this.device, lGroup.group.name));
+            lInitialPipelineLayout.set(lGroup.index, lGroup.group);
         }
         this.mPipelineLayout = new PipelineLayout(this.device, lInitialPipelineLayout);
     }

@@ -251,7 +251,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
             // Setup depth texture.
             if (pReferenceData.depthStencil.depth) {
                 // Validate if depth texture
-                if (lFormatCapability.aspect.types.includes(TextureAspect.Depth)) {
+                if (!lFormatCapability.aspect.types.includes(TextureAspect.Depth)) {
                     throw new Exception('Used texture for the depth texture attachment must have a depth aspect. ', this);
                 }
 
@@ -264,8 +264,8 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
             // Setup stencil texture.
             if (pReferenceData.depthStencil.stencil) {
                 // Validate if depth texture
-                if (lFormatCapability.aspect.types.includes(TextureAspect.Stencil)) {
-                    throw new Exception('Used texture for the depth texture attachment must have a depth aspect. ', this);
+                if (!lFormatCapability.aspect.types.includes(TextureAspect.Stencil)) {
+                    throw new Exception('Used texture for the stencil texture attachment must have a depth aspect. ', this);
                 }
 
                 this.mDepthStencilTexture.stencil = {

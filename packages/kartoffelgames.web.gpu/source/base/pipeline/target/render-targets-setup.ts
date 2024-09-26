@@ -54,7 +54,7 @@ export class RenderTargetsSetup extends GpuObjectSetup<RenderTargetSetupData> {
      * @param pStencilKeepOnEnd - Keep information after render pass end.
      * @param pStencilClearValue - Clear value on render pass start. Omit to never clear.
      */
-    public addDepthStencil(pDepthKeepOnEnd: boolean = false, pDepthClearValue?: number, pStencilKeepOnEnd: boolean = false, pStencilClearValue?: number): RenderTargetTextureSetup {
+    public addDepthStencil(pDepthKeepOnEnd: boolean | null = null, pDepthClearValue: number | null = null, pStencilKeepOnEnd: boolean | null = null, pStencilClearValue: number | null = null): RenderTargetTextureSetup {
         // Lock setup to a setup call.
         this.ensureThatInSetup();
 
@@ -62,17 +62,21 @@ export class RenderTargetsSetup extends GpuObjectSetup<RenderTargetSetupData> {
             texture: null
         };
 
-        // Setup depth.
-        this.setupData.depthStencil.depth = {
-            clearValue: pDepthClearValue ?? null,
-            storeOperation: (pDepthKeepOnEnd) ? TextureOperation.Keep : TextureOperation.Clear,
-        };
+        // Setup depth when values where set.
+        if (pDepthKeepOnEnd !== null || pDepthClearValue !== null) {
+            this.setupData.depthStencil.depth = {
+                clearValue: pDepthClearValue ?? null,
+                storeOperation: (pDepthKeepOnEnd) ? TextureOperation.Keep : TextureOperation.Clear,
+            };
+        }
 
-        // Setup stencil.
-        this.setupData.depthStencil.stencil = {
-            clearValue: pStencilClearValue ?? null,
-            storeOperation: (pStencilKeepOnEnd) ? TextureOperation.Keep : TextureOperation.Clear,
-        };
+        // Setup stencil when values where set.
+        if (pStencilKeepOnEnd !== null || pStencilClearValue !== null) {
+            this.setupData.depthStencil.stencil = {
+                clearValue: pStencilClearValue ?? null,
+                storeOperation: (pStencilKeepOnEnd) ? TextureOperation.Keep : TextureOperation.Clear,
+            };
+        }
 
         // Return texture setup. Set texture on texture resolve.
         return new RenderTargetTextureSetup(this.setupReferences, (pTexture: FrameBufferTexture | CanvasTexture) => {

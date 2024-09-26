@@ -115,7 +115,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, BindGroupLayo
      * @returns — this. 
      */
     public override setup(pSetupCallback?: ((pSetup: BindGroupLayoutSetup) => void) | undefined): this {
-        return this.setup(pSetupCallback);
+        return super.setup(pSetupCallback);
     }
 
     /**

@@ -107,7 +107,7 @@ export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout
         }
 
         // Validate continuity of parameter locations.
-        if (lLayoutList.length !== (this.mParameter.size - 1)) {
+        if (lLayoutList.length !== this.mParameter.size) {
             throw new Exception(`Vertex parameter locations need to be in continious order.`, this);
         }
 

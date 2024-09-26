@@ -137,7 +137,7 @@ export abstract class GpuObject<TNativeObject = null, TSetupObject extends GpuOb
      */
     protected ensureSetup(): void {
         if (!this.mIsSetup) {
-            throw new Exception('Gpu object is not validated to access properties.', this);
+            throw new Exception('Gpu object must be setup to access properties.', this);
         }
     }
 

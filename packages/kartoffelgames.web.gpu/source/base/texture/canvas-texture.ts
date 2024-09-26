@@ -57,15 +57,14 @@ export class CanvasTexture extends GpuObject<GPUTextureView> implements IGpuObje
     /**
      * Constructor.
      * @param pDevice - Device.
-     * @param pCanvas - Canvas of texture.
      * @param pLayout - Texture layout.
-     * @param pDepth - Depth of texture. Can only be set to one.
+     * @param pCanvas - Canvas of texture.
      */
-    public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout) {
+    public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout, pCanvas: HTMLCanvasElement) {
         super(pDevice, NativeObjectLifeTime.Frame);
 
         // Set canvas reference.
-        this.mCanvas = document.createElement('canvas');
+        this.mCanvas = pCanvas;
         this.mMemoryLayout = pLayout;
         this.mContext = null;
 

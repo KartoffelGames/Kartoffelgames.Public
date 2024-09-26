@@ -4,6 +4,7 @@ import { TextureFormat } from '../../../constant/texture-format.enum';
 import { TextureUsage } from '../../../constant/texture-usage.enum';
 import { GpuObjectChildSetup } from '../../gpu/object/gpu-object-child-setup';
 import { TextureMemoryLayout } from '../../memory_layout/texture/texture-memory-layout';
+import { CanvasTexture } from '../../texture/canvas-texture';
 import { FrameBufferTexture } from '../../texture/frame-buffer-texture';
 import { RenderTargetSetupData } from './render-targets-setup';
 
@@ -32,7 +33,7 @@ export class RenderTargetTextureSetup extends GpuObjectChildSetup<RenderTargetSe
      * 
      * @param pTexture - Existing texture.
      */
-    public use(pTexture: FrameBufferTexture): void {
+    public use(pTexture: FrameBufferTexture | CanvasTexture): void {
         // Lock setup to a setup call.
         this.ensureThatInSetup();
 
@@ -41,4 +42,4 @@ export class RenderTargetTextureSetup extends GpuObjectChildSetup<RenderTargetSe
     }
 }
 
-type RenderTargetTextureCallback = (pTexture: FrameBufferTexture) => void;
+type RenderTargetTextureCallback = (pTexture: FrameBufferTexture | CanvasTexture) => void;

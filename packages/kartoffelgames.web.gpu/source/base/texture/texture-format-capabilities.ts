@@ -10,6 +10,13 @@ export class TextureFormatCapabilities {
     private readonly mDevice: GpuDevice;
     private readonly mFormatCapabilitys: Dictionary<TextureFormat, TextureFormatCapability>;
 
+    /**
+     * Get prefered canvas format.
+     */
+    public get preferredCanvasFormat(): TextureFormat {
+        return window.navigator.gpu.getPreferredCanvasFormat() as TextureFormat;
+    }
+
     // TODO: https://www.w3.org/TR/webgpu/#texture-format-caps
 
     public constructor(pDevice: GpuDevice) {

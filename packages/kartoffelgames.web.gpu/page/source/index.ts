@@ -8,6 +8,7 @@ import { VertexParameter } from '../../source/base/pipeline/parameter/vertex-par
 import { RenderTargets } from '../../source/base/pipeline/target/render-targets';
 import { VertexFragmentPipeline } from '../../source/base/pipeline/vertex-fragment-pipeline';
 import { ShaderRenderModule } from '../../source/base/shader/shader-render-module';
+import { CanvasTexture } from '../../source/base/texture/canvas-texture';
 import { AccessMode } from '../../source/constant/access-mode.enum';
 import { BufferUsage } from '../../source/constant/buffer-usage.enum';
 import { ComputeStage } from '../../source/constant/compute-stage.enum';
@@ -30,11 +31,14 @@ const gDepth: number = 10;
 (async () => {
     const lGpu: GpuDevice = await GpuDevice.request('high-performance');
 
+    // Create canvas.
+    const lCanvasTexture: CanvasTexture = lGpu.canvas(document.getElementById('canvas') as HTMLCanvasElement);
+
     // Create and configure render targets.
     const lRenderTargets: RenderTargets = lGpu.renderTargets().setup((pSetup) => {
         // Add "color" target and init new texture.
         pSetup.addColor('color', 0, true, { r: 0, g: 0, b: 0, a: 0 })
-            .new(TextureFormat.Rgba8unorm);
+            .use(lCanvasTexture);
 
         // Add depth texture and init new texture.    
         pSetup.addDepthStencil(true, 0xff)
@@ -189,4 +193,4 @@ const gDepth: number = 10;
         requestAnimationFrame(lRender);
     };
     requestAnimationFrame(lRender);
-});
+})();

@@ -1,3 +1,4 @@
+import { Exception } from '@kartoffelgames/core';
 import { TextureOperation } from '../../../constant/texture-operation.enum';
 import { GpuObjectSetupReferences } from '../../gpu/object/gpu-object';
 import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
@@ -40,7 +41,7 @@ export class RenderTargetsSetup extends GpuObjectSetup<RenderTargetSetupData> {
         this.setupData.colorTargets.push(lTarget);
 
         // Return texture setup. Set texture on texture resolve.
-        return new RenderTargetTextureSetup(this.setupReferences, (pTexture: FrameBufferTexture) => {
+        return new RenderTargetTextureSetup(this.setupReferences, (pTexture: FrameBufferTexture | CanvasTexture) => {
             lTarget.texture = pTexture;
         });
     }
@@ -74,7 +75,12 @@ export class RenderTargetsSetup extends GpuObjectSetup<RenderTargetSetupData> {
         };
 
         // Return texture setup. Set texture on texture resolve.
-        return new RenderTargetTextureSetup(this.setupReferences, (pTexture: FrameBufferTexture) => {
+        return new RenderTargetTextureSetup(this.setupReferences, (pTexture: FrameBufferTexture | CanvasTexture) => {
+            // Restrict used texture type to a frame buffer.
+            if (pTexture instanceof CanvasTexture) {
+                throw new Exception(`Can't use a canvas texture as depth or stencil texture.`, this);
+            }
+
             this.setupData.depthStencil!.texture = pTexture;
         });
     }

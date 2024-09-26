@@ -8,6 +8,7 @@ import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive
 import { PrimitiveBufferMultiplier } from '../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
 import { PrimitiveBufferMemoryLayout } from '../../memory_layout/buffer/primitive-buffer-memory-layout';
 import { VertexParameterLayout, VertexParameterLayoutDefinition } from './vertex-parameter-layout';
+import { VertexBufferMemoryLayout } from '../../memory_layout/buffer/vertex-buffer-memory-layout';
 
 export class VertexParameter extends GpuObject {
     private readonly mData: Dictionary<string, GpuBuffer<TypedArray>>;
@@ -83,27 +84,30 @@ export class VertexParameter extends GpuObject {
         const lParameterLayout: VertexParameterLayoutDefinition = this.mLayout.parameter(pName);
 
         // Create buffer layout.
-        const lBufferLayout: PrimitiveBufferMemoryLayout = new PrimitiveBufferMemoryLayout(this.device, {
+        const lBufferLayout: VertexBufferMemoryLayout = new VertexBufferMemoryLayout(this.device, {
             primitiveFormat: lParameterLayout.format,
             usage: BufferUsage.Vertex,
             primitiveMultiplier: lParameterLayout.multiplier,
         });
 
+        // Calculate vertex parameter count.
+        const lVertexParameterItemCount: number = (pData.length * 4) / (lBufferLayout.variableSize); // TODO: How to support other than 32bit types.
+
         // Load typed array from layout format.
         const lParameterBuffer: GpuBuffer<TypedArray> = (() => {
             switch (lParameterLayout.format) {
                 case PrimitiveBufferFormat.Float32: {
-                    return new GpuBuffer(this.device, lBufferLayout, PrimitiveBufferFormat.Float32).initialData(() => {
+                    return new GpuBuffer(this.device, lBufferLayout, PrimitiveBufferFormat.Float32, lVertexParameterItemCount).initialData(() => {
                         return new Float32Array(pData);
                     });
                 }
                 case PrimitiveBufferFormat.Sint32: {
-                    return new GpuBuffer(this.device, lBufferLayout, PrimitiveBufferFormat.Sint32).initialData(() => {
+                    return new GpuBuffer(this.device, lBufferLayout, PrimitiveBufferFormat.Sint32, lVertexParameterItemCount).initialData(() => {
                         return new Int32Array(pData);
                     });
                 }
                 case PrimitiveBufferFormat.Uint32: {
-                    return new GpuBuffer(this.device, lBufferLayout, PrimitiveBufferFormat.Uint32).initialData(() => {
+                    return new GpuBuffer(this.device, lBufferLayout, PrimitiveBufferFormat.Uint32, lVertexParameterItemCount).initialData(() => {
                         return new Uint32Array(pData);
                     });
                 }

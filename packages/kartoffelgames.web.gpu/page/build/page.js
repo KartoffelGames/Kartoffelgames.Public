@@ -4874,6 +4874,114 @@ exports.StructBufferMemoryLayout = StructBufferMemoryLayout;
 
 /***/ }),
 
+/***/ "./source/base/memory_layout/buffer/vertex-buffer-memory-layout.ts":
+/*!*************************************************************************!*\
+  !*** ./source/base/memory_layout/buffer/vertex-buffer-memory-layout.ts ***!
+  \*************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.VertexBufferMemoryLayout = void 0;
+const core_1 = __webpack_require__(/*! @kartoffelgames/core */ "../kartoffelgames.core/library/source/index.js");
+const base_buffer_memory_layout_1 = __webpack_require__(/*! ./base-buffer-memory-layout */ "./source/base/memory_layout/buffer/base-buffer-memory-layout.ts");
+const primitive_buffer_format_enum_1 = __webpack_require__(/*! ./enum/primitive-buffer-format.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
+const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ./enum/primitive-buffer-multiplier.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
+class VertexBufferMemoryLayout extends base_buffer_memory_layout_1.BaseBufferMemoryLayout {
+  /**
+   * Type byte alignment.
+   */
+  get alignment() {
+    return this.mSize;
+  }
+  /**
+   * Fixed buffer size in bytes.
+   */
+  get fixedSize() {
+    return 0;
+  }
+  /**
+   * Buffer size in bytes.
+   */
+  get variableSize() {
+    return this.mSize;
+  }
+  /**
+   * Constructor.
+   *
+   * @param pDevice - Device reference.
+   * @param pParameter - Parameter.
+   */
+  constructor(pDevice, pParameter) {
+    super(pDevice, pParameter);
+    // Set default size by format.
+    const lPrimitiveByteCount = (() => {
+      switch (pParameter.primitiveFormat) {
+        case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float16:
+          return 2;
+        case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32:
+          return 4;
+        case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32:
+          return 4;
+        case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Sint32:
+          return 4;
+      }
+    })();
+    // Calculate alignment and size.
+    this.mSize = (() => {
+      switch (pParameter.primitiveMultiplier) {
+        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single:
+          return lPrimitiveByteCount;
+        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector2:
+          return lPrimitiveByteCount * 2;
+        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector3:
+          return lPrimitiveByteCount * 3;
+        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4:
+          return lPrimitiveByteCount * 4;
+        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix22:
+          return lPrimitiveByteCount * 2 * 2;
+        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix23:
+          return lPrimitiveByteCount * 2 * 3;
+        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix24:
+          return lPrimitiveByteCount * 2 * 4;
+        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix32:
+          return lPrimitiveByteCount * 3 * 2;
+        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix33:
+          return lPrimitiveByteCount * 3 * 3;
+        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix34:
+          return lPrimitiveByteCount * 3 * 4;
+        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix42:
+          return lPrimitiveByteCount * 4 * 2;
+        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix43:
+          return lPrimitiveByteCount * 4 * 3;
+        case primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Matrix44:
+          return lPrimitiveByteCount * 4 * 4;
+      }
+    })();
+  }
+  /**
+   * Get location of path.
+   * @param pPathName - Path name. Divided by dots.
+   */
+  locationOf(pPathName) {
+    // Only validate name.
+    if (pPathName.length !== 0) {
+      throw new core_1.Exception(`Simple buffer layout has no properties.`, this);
+    }
+    return {
+      size: this.fixedSize,
+      offset: 0
+    };
+  }
+}
+exports.VertexBufferMemoryLayout = VertexBufferMemoryLayout;
+
+/***/ }),
+
 /***/ "./source/base/memory_layout/texture/sampler-memory-layout.ts":
 /*!********************************************************************!*\
   !*** ./source/base/memory_layout/texture/sampler-memory-layout.ts ***!
@@ -5180,6 +5288,7 @@ const array_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout
 const primitive_buffer_format_enum_1 = __webpack_require__(/*! ../../memory_layout/buffer/enum/primitive-buffer-format.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-format.enum.ts");
 const primitive_buffer_multiplier_enum_1 = __webpack_require__(/*! ../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum */ "./source/base/memory_layout/buffer/enum/primitive-buffer-multiplier.enum.ts");
 const primitive_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/primitive-buffer-memory-layout */ "./source/base/memory_layout/buffer/primitive-buffer-memory-layout.ts");
+const vertex_buffer_memory_layout_1 = __webpack_require__(/*! ../../memory_layout/buffer/vertex-buffer-memory-layout */ "./source/base/memory_layout/buffer/vertex-buffer-memory-layout.ts");
 class VertexParameter extends gpu_object_1.GpuObject {
   /**
    * Get index buffer.
@@ -5240,29 +5349,31 @@ class VertexParameter extends gpu_object_1.GpuObject {
   set(pName, pData) {
     const lParameterLayout = this.mLayout.parameter(pName);
     // Create buffer layout.
-    const lBufferLayout = new primitive_buffer_memory_layout_1.PrimitiveBufferMemoryLayout(this.device, {
+    const lBufferLayout = new vertex_buffer_memory_layout_1.VertexBufferMemoryLayout(this.device, {
       primitiveFormat: lParameterLayout.format,
       usage: buffer_usage_enum_1.BufferUsage.Vertex,
       primitiveMultiplier: lParameterLayout.multiplier
     });
+    // Calculate vertex parameter count.
+    const lVertexParameterItemCount = pData.length * 4 / lBufferLayout.variableSize; // TODO: How to support other than 32bit types.
     // Load typed array from layout format.
     const lParameterBuffer = (() => {
       switch (lParameterLayout.format) {
         case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32:
           {
-            return new gpu_buffer_1.GpuBuffer(this.device, lBufferLayout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32).initialData(() => {
+            return new gpu_buffer_1.GpuBuffer(this.device, lBufferLayout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, lVertexParameterItemCount).initialData(() => {
               return new Float32Array(pData);
             });
           }
         case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Sint32:
           {
-            return new gpu_buffer_1.GpuBuffer(this.device, lBufferLayout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Sint32).initialData(() => {
+            return new gpu_buffer_1.GpuBuffer(this.device, lBufferLayout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Sint32, lVertexParameterItemCount).initialData(() => {
               return new Int32Array(pData);
             });
           }
         case primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32:
           {
-            return new gpu_buffer_1.GpuBuffer(this.device, lBufferLayout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32).initialData(() => {
+            return new gpu_buffer_1.GpuBuffer(this.device, lBufferLayout, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Uint32, lVertexParameterItemCount).initialData(() => {
               return new Uint32Array(pData);
             });
           }
@@ -13222,7 +13333,7 @@ exports.TypeUtil = TypeUtil;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("98e90d091503c12104d4")
+/******/ 		__webpack_require__.h = () => ("407b29f9ba189792ff61")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

@@ -86,7 +86,7 @@ export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout
                 }
 
                 return pPreviousNumber * lCurrentNumber;
-            }, 0);
+            }, 1);
 
             // Convert multiplier to float32 format. // TODO: How to support other vertex formats.
             let lFormat: GPUVertexFormat = `float32x${lByteMultiplier}` as GPUVertexFormat;

@@ -313,7 +313,7 @@ _asyncToGenerator(function* () {
     }).use(lCanvasTexture);
     // Add depth texture and init new texture.    
     pSetup.addDepthStencil(true, 0xff).new(texture_format_enum_1.TextureFormat.Depth24plus);
-  }).resize(640, 640, 2);
+  }).resize(640, 640, 4);
   // Create shader.
   const lShader = lGpu.shader(shader_wgsl_1.default).setup(pShaderSetup => {
     pShaderSetup.vertexEntryPoint('vertex_main').addParameter('position', 0, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4).addParameter('uv', 1, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector2).addParameter('normal', 2, primitive_buffer_format_enum_1.PrimitiveBufferFormat.Float32, primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Vector4);
@@ -386,7 +386,7 @@ _asyncToGenerator(function* () {
    */
   const lUserGroup = lRenderModule.layout.getGroupLayout('user').create();
   // Setup cube texture.
-  yield lUserGroup.data('cubeTexture').createImage('/source/cube_texture/cube-texture.png');
+  yield lUserGroup.data('cubeTexture').createImage('/source/cube/cube-texture.png');
   // Setup Sampler.
   lUserGroup.data('cubeTextureSampler').createSampler();
   // Generate render parameter from parameter layout.
@@ -2456,8 +2456,8 @@ class PipelineLayout extends gpu_object_1.GpuObject {
    */
   groupIndex(pGroupName) {
     const lBindGroupIndex = this.mBindGroupNames.get(pGroupName);
-    if (!lBindGroupIndex) {
-      throw new core_1.Exception(`Group binding placeholder can not replace a requiered bind group.`, this);
+    if (typeof lBindGroupIndex === 'undefined') {
+      throw new core_1.Exception(`Pipeline does not contain a group with name "${pGroupName}".`, this);
     }
     return lBindGroupIndex;
   }
@@ -5119,7 +5119,7 @@ class VertexParameterLayout extends gpu_object_1.GpuObject {
           return pPreviousNumber;
         }
         return pPreviousNumber * lCurrentNumber;
-      }, 0);
+      }, 1);
       // Convert multiplier to float32 format. // TODO: How to support other vertex formats.
       let lFormat = `float32x${lByteMultiplier}`;
       if (lParameter.multiplier === primitive_buffer_multiplier_enum_1.PrimitiveBufferMultiplier.Single) {
@@ -5138,7 +5138,7 @@ class VertexParameterLayout extends gpu_object_1.GpuObject {
       };
     }
     // Validate continuity of parameter locations.
-    if (lLayoutList.length !== this.mParameter.size - 1) {
+    if (lLayoutList.length !== this.mParameter.size) {
       throw new core_1.Exception(`Vertex parameter locations need to be in continious order.`, this);
     }
     return lLayoutList;
@@ -5539,6 +5539,9 @@ class RenderTargets extends gpu_object_1.GpuObject {
     this.mSize.height = pHeight;
     // Optional multisample level.
     if (pMultisampleLevel !== null) {
+      if (pMultisampleLevel !== 1 && pMultisampleLevel % 4 !== 0) {
+        throw new core_1.Exception(`Only multisample level 1 or 4 is supported.`, this);
+      }
       this.mSize.multisampleLevel = pMultisampleLevel;
     }
     // Retrigger update.
@@ -13204,7 +13207,7 @@ exports.TypeUtil = TypeUtil;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("78e22f605f230b60e755")
+/******/ 		__webpack_require__.h = () => ("8dfe0585d3c6ce085837")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

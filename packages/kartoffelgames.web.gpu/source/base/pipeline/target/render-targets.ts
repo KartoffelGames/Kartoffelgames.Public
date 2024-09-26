@@ -118,6 +118,10 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
 
         // Optional multisample level.
         if (pMultisampleLevel !== null) {
+            if (pMultisampleLevel !== 1 && pMultisampleLevel % 4 !== 0) {
+                throw new Exception(`Only multisample level 1 or 4 is supported.`, this);
+            }
+
             this.mSize.multisampleLevel = pMultisampleLevel;
         }
 
@@ -307,7 +311,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
                 }
             });
         }
-        
+
         // Validate attachment list.
         if (lAttachmentLocations.length !== this.mColorTextures.size) {
             throw new Exception(`Color attachment locations must be in order.`, this);

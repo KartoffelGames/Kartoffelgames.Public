@@ -2,7 +2,7 @@ import { Dictionary, Exception } from '@kartoffelgames/core';
 import { BindGroup } from '../../binding/bind-group';
 import { PipelineLayout } from '../../binding/pipeline-layout';
 import { GpuDevice } from '../../gpu/gpu-device';
-import { GpuObject, NativeObjectLifeTime } from '../../gpu/object/gpu-object';
+import { GpuObject, GpuObjectLifeTime } from '../../gpu/object/gpu-object';
 import { ComputePipeline } from '../../pipeline/compute-pipeline';
 import { GpuExecution } from '../gpu-execution';
 
@@ -14,7 +14,7 @@ export class ComputePass extends GpuObject {
      * @param pDevice - Device reference.
      */
     public constructor(pDevice: GpuDevice) {
-        super(pDevice, NativeObjectLifeTime.Persistent);
+        super(pDevice, GpuObjectLifeTime.Persistent);
 
         this.mInstructionList = new Array<ComputeInstruction>();
     }

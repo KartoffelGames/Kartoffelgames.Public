@@ -1,8 +1,8 @@
 import { Exception, TypedArray } from '@kartoffelgames/core';
 import { MemoryCopyType } from '../../constant/memory-copy-type.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
-import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
+import { GpuObject, GpuObjectLifeTime } from '../gpu/object/gpu-object';
+import { GpuObjectInvalidationReason } from '../gpu/object/gpu-object-invalidation-reasons';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-buffer-format.enum';
@@ -81,7 +81,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
      * @param pInitialData  - Inital data. Can be empty. Or Buffer size. 
      */
     public constructor(pDevice: GpuDevice, pLayout: BaseBufferMemoryLayout, pDataType: PrimitiveBufferFormat, pVariableSizeCount: number | null = null) {
-        super(pDevice, NativeObjectLifeTime.Persistent);
+        super(pDevice, GpuObjectLifeTime.Persistent);
         this.mLayout = pLayout;
 
         // Set config.
@@ -110,7 +110,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
 
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {
-            this.triggerAutoUpdate(UpdateReason.ChildData);
+            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
         });
     }
 
@@ -124,7 +124,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
         this.mInitialDataCallback = pDataCallback;
 
         // Trigger update.
-        this.triggerAutoUpdate(UpdateReason.Data);
+        this.triggerAutoUpdate(GpuObjectInvalidationReason.Data);
 
         return this;
     }
@@ -238,7 +238,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
     /**
      * Destroy wave and ready buffer.
      */
-    protected override destroy(pNativeObject: GPUBuffer): void {
+    protected override destroyNative(pNativeObject: GPUBuffer): void {
         pNativeObject.destroy();
 
         // Destroy all wave buffer and clear list.
@@ -256,7 +256,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
     /**
      * Generate buffer. Write local gpu object data as initial native buffer data.
      */
-    protected override generate(): GPUBuffer {
+    protected override generateNative(): GPUBuffer {
         // Read optional initial data.
         const lInitalData: TType | undefined = this.mInitialDataCallback?.();
 
@@ -327,7 +327,7 @@ export class GpuBuffer<TType extends TypedArray> extends GpuObject<GPUBuffer> im
         if ((this.mCopyType & pCopyType) === 0) {
             this.mCopyType |= pCopyType;
 
-            this.triggerAutoUpdate(UpdateReason.Setting);
+            this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
         }
     }
 }

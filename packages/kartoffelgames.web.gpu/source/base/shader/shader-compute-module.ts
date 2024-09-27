@@ -1,7 +1,7 @@
 import { PipelineLayout } from '../binding/pipeline-layout';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
-import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
+import { GpuObject, GpuObjectLifeTime } from '../gpu/object/gpu-object';
+import { GpuObjectInvalidationReason } from '../gpu/object/gpu-object-invalidation-reasons';
 import { ComputePipeline } from '../pipeline/compute-pipeline';
 import { Shader } from './shader';
 
@@ -61,7 +61,7 @@ export class ShaderComputeModule extends GpuObject {
      * @param pSize - Workgroup size.
      */
     public constructor(pDevice: GpuDevice, pShader: Shader, pEntryPointName: string, pSize?: [number, number, number]) {
-        super(pDevice, NativeObjectLifeTime.Persistent);
+        super(pDevice, GpuObjectLifeTime.Persistent);
 
         this.mEntryPoint = pEntryPointName;
         this.mShader = pShader;
@@ -69,7 +69,7 @@ export class ShaderComputeModule extends GpuObject {
 
         // Update on shader update.
         pShader.addInvalidationListener(() => {
-            this.triggerAutoUpdate(UpdateReason.ChildData);
+            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
         });
     }
 

@@ -4,8 +4,8 @@ import { FilterMode } from '../../constant/filter-mode.enum';
 import { SamplerType } from '../../constant/sampler-type.enum';
 import { WrappingMode } from '../../constant/wrapping-mode.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
-import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
+import { GpuObject, GpuObjectLifeTime } from '../gpu/object/gpu-object';
+import { GpuObjectInvalidationReason } from '../gpu/object/gpu-object-invalidation-reasons';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
 
@@ -29,7 +29,7 @@ export class TextureSampler extends GpuObject<GPUSampler> implements IGpuObjectN
         this.mCompare = pValue;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(UpdateReason.Setting);
+        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
     }
 
     /**
@@ -41,7 +41,7 @@ export class TextureSampler extends GpuObject<GPUSampler> implements IGpuObjectN
         this.mLodMaxClamp = pValue;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(UpdateReason.Setting);
+        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
     }
 
     /**
@@ -53,7 +53,7 @@ export class TextureSampler extends GpuObject<GPUSampler> implements IGpuObjectN
         this.mLodMinClamp = pValue;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(UpdateReason.Setting);
+        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
     }
 
     /**
@@ -65,7 +65,7 @@ export class TextureSampler extends GpuObject<GPUSampler> implements IGpuObjectN
         this.mMagFilter = pValue;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(UpdateReason.Setting);
+        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
     }
 
     /**
@@ -77,7 +77,7 @@ export class TextureSampler extends GpuObject<GPUSampler> implements IGpuObjectN
         this.mMaxAnisotropy = pValue;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(UpdateReason.Setting);
+        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
     }
 
     /**
@@ -96,7 +96,7 @@ export class TextureSampler extends GpuObject<GPUSampler> implements IGpuObjectN
         this.mMinFilter = pValue;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(UpdateReason.Setting);
+        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
     }
 
     /**
@@ -108,7 +108,7 @@ export class TextureSampler extends GpuObject<GPUSampler> implements IGpuObjectN
         this.mMipmapFilter = pValue;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(UpdateReason.Setting);
+        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
     }
 
     /**
@@ -127,7 +127,7 @@ export class TextureSampler extends GpuObject<GPUSampler> implements IGpuObjectN
         this.mWrapMode = pValue;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(UpdateReason.Setting);
+        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
     }
 
     /**
@@ -136,7 +136,7 @@ export class TextureSampler extends GpuObject<GPUSampler> implements IGpuObjectN
      * @param pLayout - Sampler memory layout.
      */
     public constructor(pDevice: GpuDevice, pLayout: SamplerMemoryLayout) {
-        super(pDevice, NativeObjectLifeTime.Persistent);
+        super(pDevice, GpuObjectLifeTime.Persistent);
 
         this.mMemoryLayout = pLayout;
 
@@ -152,14 +152,14 @@ export class TextureSampler extends GpuObject<GPUSampler> implements IGpuObjectN
 
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {
-            this.triggerAutoUpdate(UpdateReason.ChildData);
+            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
         });
     }
 
     /**
      * Generate native bind data group layout object.
      */
-    protected override generate(): GPUSampler {
+    protected override generateNative(): GPUSampler {
         // Create sampler descriptor.
         const lSamplerOptions: GPUSamplerDescriptor = {
             label: 'Texture-Sampler',

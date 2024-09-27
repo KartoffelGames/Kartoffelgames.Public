@@ -4,7 +4,7 @@ import { GpuDevice } from '../../gpu/gpu-device';
 
 import { PipelineLayout } from '../../binding/pipeline-layout';
 import { GpuBuffer } from '../../buffer/gpu-buffer';
-import { GpuObject, NativeObjectLifeTime } from '../../gpu/object/gpu-object';
+import { GpuObject, GpuObjectLifeTime } from '../../gpu/object/gpu-object';
 import { VertexParameter } from '../../pipeline/parameter/vertex-parameter';
 import { RenderTargets } from '../../pipeline/target/render-targets';
 import { VertexFragmentPipeline } from '../../pipeline/vertex-fragment-pipeline';
@@ -20,7 +20,7 @@ export class RenderPass extends GpuObject {
      * @param pRenderTargets - Render targets. 
      */
     public constructor(pDevice: GpuDevice, pRenderTargets: RenderTargets) {
-        super(pDevice, NativeObjectLifeTime.Persistent);
+        super(pDevice, GpuObjectLifeTime.Persistent);
 
         this.mInstructionList = new Array<RenderInstruction>();
         this.mRenderTargets = pRenderTargets;

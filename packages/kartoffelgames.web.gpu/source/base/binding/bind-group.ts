@@ -1,8 +1,8 @@
 import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core';
 import { GpuBuffer } from '../buffer/gpu-buffer';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, GpuObjectSetupReferences, NativeObjectLifeTime } from '../gpu/object/gpu-object';
-import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
+import { GpuObject, GpuObjectSetupReferences, GpuObjectLifeTime } from '../gpu/object/gpu-object';
+import { GpuObjectInvalidationReason } from '../gpu/object/gpu-object-invalidation-reasons';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { BaseBufferMemoryLayout } from '../memory_layout/buffer/base-buffer-memory-layout';
 import { SamplerMemoryLayout } from '../memory_layout/texture/sampler-memory-layout';
@@ -38,14 +38,14 @@ export class BindGroup extends GpuObject<GPUBindGroup> implements IGpuObjectNati
      * @param pDevice - Gpu Device reference.
      */
     public constructor(pDevice: GpuDevice, pBindGroupLayout: BindGroupLayout) {
-        super(pDevice, NativeObjectLifeTime.Persistent);
+        super(pDevice, GpuObjectLifeTime.Persistent);
 
         this.mLayout = pBindGroupLayout;
         this.mBindData = new Dictionary<string, BindData>();
 
         // Register change listener for layout changes.
         pBindGroupLayout.addInvalidationListener(() => {
-            this.triggerAutoUpdate(UpdateReason.ChildData);
+            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
         });
     }
 
@@ -104,14 +104,14 @@ export class BindGroup extends GpuObject<GPUBindGroup> implements IGpuObjectNati
             this.mBindData.set(pBindName, pData);
 
             // Trigger update on data change. 
-            this.triggerAutoUpdate(UpdateReason.ChildData);
+            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
         });
     }
 
     /**
      * Generate native gpu bind data group.
      */
-    protected override generate(): GPUBindGroup {
+    protected override generateNative(): GPUBindGroup {
         const lEntryList: Array<GPUBindGroupEntry> = new Array<GPUBindGroupEntry>();
 
         for (const lBindname of this.layout.bindingNames) {

@@ -1,6 +1,6 @@
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
-import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
+import { GpuObject, GpuObjectLifeTime } from '../gpu/object/gpu-object';
+import { GpuObjectInvalidationReason } from '../gpu/object/gpu-object-invalidation-reasons';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 
@@ -60,7 +60,7 @@ export class VideoTexture extends GpuObject<GPUExternalTexture> implements IGpuO
      * @param pDepth - Texture depth.
      */
     public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout) {
-        super(pDevice, NativeObjectLifeTime.Persistent);
+        super(pDevice, GpuObjectLifeTime.Persistent);
 
         // Create video.
         this.mVideo = new HTMLVideoElement();
@@ -69,7 +69,7 @@ export class VideoTexture extends GpuObject<GPUExternalTexture> implements IGpuO
 
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {
-            this.triggerAutoUpdate(UpdateReason.ChildData);
+            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
         });
     }
 
@@ -90,7 +90,7 @@ export class VideoTexture extends GpuObject<GPUExternalTexture> implements IGpuO
     /**
      * Generate native canvas texture view.
      */
-    protected override generate(): GPUExternalTexture {
+    protected override generateNative(): GPUExternalTexture {
         return this.device.gpu.importExternalTexture({
             label: 'External-Texture',
             source: this.video,

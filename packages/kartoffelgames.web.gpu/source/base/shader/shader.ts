@@ -2,7 +2,7 @@ import { Dictionary, Exception } from '@kartoffelgames/core';
 import { BindGroupLayout } from '../binding/bind-group-layout';
 import { PipelineLayout } from '../binding/pipeline-layout';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, GpuObjectSetupReferences, NativeObjectLifeTime } from '../gpu/object/gpu-object';
+import { GpuObject, GpuObjectSetupReferences, GpuObjectLifeTime } from '../gpu/object/gpu-object';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { IGpuObjectSetup } from '../gpu/object/interface/i-gpu-object-setup';
 import { PrimitiveBufferFormat } from '../memory_layout/buffer/enum/primitive-buffer-format.enum';
@@ -52,7 +52,7 @@ export class Shader extends GpuObject<GPUShaderModule, ShaderSetup> implements I
      * @param pLayout - Shader layout information.
      */
     public constructor(pDevice: GpuDevice, pSource: string) {
-        super(pDevice, NativeObjectLifeTime.Persistent);
+        super(pDevice, GpuObjectLifeTime.Persistent);
 
         // Create shader information for source.
         this.mSource = pSource;
@@ -138,7 +138,7 @@ export class Shader extends GpuObject<GPUShaderModule, ShaderSetup> implements I
     /**
      * Generate shader module.
      */
-    protected override generate(): GPUShaderModule {
+    protected override generateNative(): GPUShaderModule {
         // TODO: Create compilationHints for every entry point?
 
         // Create shader module use hints to speed up compilation on safari.

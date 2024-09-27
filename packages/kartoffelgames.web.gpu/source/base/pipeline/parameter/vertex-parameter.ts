@@ -2,7 +2,7 @@ import { Dictionary, Exception, TypedArray } from '@kartoffelgames/core';
 import { BufferUsage } from '../../../constant/buffer-usage.enum';
 import { GpuBuffer } from '../../buffer/gpu-buffer';
 import { GpuDevice } from '../../gpu/gpu-device';
-import { GpuObject, NativeObjectLifeTime } from '../../gpu/object/gpu-object';
+import { GpuObject, GpuObjectLifeTime } from '../../gpu/object/gpu-object';
 import { ArrayBufferMemoryLayout } from '../../memory_layout/buffer/array-buffer-memory-layout';
 import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
@@ -36,7 +36,7 @@ export class VertexParameter extends GpuObject {
      * @param pIndices - Index buffer data.
      */
     public constructor(pDevice: GpuDevice, pVertexParameterLayout: VertexParameterLayout, pIndices: Array<number>) {
-        super(pDevice, NativeObjectLifeTime.Persistent);
+        super(pDevice, GpuObjectLifeTime.Persistent);
 
         // Set vertex parameter layout.
         this.mLayout = pVertexParameterLayout;

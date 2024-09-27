@@ -1,6 +1,6 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../../gpu/gpu-device';
-import { GpuObject, NativeObjectLifeTime } from '../../gpu/object/gpu-object';
+import { GpuObject, GpuObjectLifeTime } from '../../gpu/object/gpu-object';
 import { PrimitiveBufferFormat } from '../../memory_layout/buffer/enum/primitive-buffer-format.enum';
 import { PrimitiveBufferMultiplier } from '../../memory_layout/buffer/enum/primitive-buffer-multiplier.enum';
 import { VertexParameter } from './vertex-parameter';
@@ -40,7 +40,7 @@ export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout
      * @param pLayout - Simple layout of parameter.
      */
     public constructor(pDevice: GpuDevice, pLayout: Array<VertexParameterLayoutDefinition>) {
-        super(pDevice, NativeObjectLifeTime.Persistent);
+        super(pDevice, GpuObjectLifeTime.Persistent);
 
         // Convert layout list into name key values.
         this.mParameter = new Dictionary<string, VertexParameterLayoutDefinition>();
@@ -74,7 +74,7 @@ export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout
     /**
      * Generate new native object.
      */
-    protected override generate(): Array<GPUVertexBufferLayout> {
+    protected override generateNative(): Array<GPUVertexBufferLayout> {
         // Create vertex buffer layout for each parameter.
         const lLayoutList: Array<GPUVertexBufferLayout> = new Array<GPUVertexBufferLayout>();
         for (const lParameter of this.mParameter.values()) {

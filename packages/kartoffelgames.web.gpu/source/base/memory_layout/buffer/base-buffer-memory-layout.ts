@@ -1,7 +1,7 @@
 import { BufferUsage } from '../../../constant/buffer-usage.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
 import { GpuObjectSetup } from '../../gpu/object/gpu-object-setup';
-import { UpdateReason } from '../../gpu/object/gpu-object-update-reason';
+import { GpuObjectInvalidationReason } from '../../gpu/object/gpu-object-invalidation-reasons';
 import { BaseMemoryLayout } from '../base-memory-layout';
 
 export abstract class BaseBufferMemoryLayout<TSetupObject extends GpuObjectSetup<any> | null = any> extends BaseMemoryLayout<TSetupObject> {
@@ -31,7 +31,7 @@ export abstract class BaseBufferMemoryLayout<TSetupObject extends GpuObjectSetup
         this.mUsage = pUsage;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(UpdateReason.Setting);
+        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
     }
 
     /**

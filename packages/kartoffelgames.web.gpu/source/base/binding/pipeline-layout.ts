@@ -1,7 +1,7 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, GpuObjectUpdateListener, NativeObjectLifeTime } from '../gpu/object/gpu-object';
-import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
+import { GpuObject, GpuObjectUpdateListener, GpuObjectLifeTime } from '../gpu/object/gpu-object';
+import { GpuObjectInvalidationReason } from '../gpu/object/gpu-object-invalidation-reasons';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { BindGroupLayout, BindLayout } from './bind-group-layout';
 
@@ -32,7 +32,7 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout> implements IGpu
      * @param pInitialGroups - Initial groups.
      */
     public constructor(pDevice: GpuDevice, pInitialGroups: Dictionary<number, BindGroupLayout>) {
-        super(pDevice, NativeObjectLifeTime.Persistent);
+        super(pDevice, GpuObjectLifeTime.Persistent);
 
         // Init storages.
         this.mBindGroupNames = new Dictionary<string, number>();
@@ -64,7 +64,7 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout> implements IGpu
 
             // Add invalidationlistener.
             const lListener: GpuObjectUpdateListener = () => {
-                this.triggerAutoUpdate(UpdateReason.ChildData);
+                this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
             };
             lGroup.addInvalidationListener(lListener);
             this.mBindGroupInvalidationListener.set(lGroup, lListener);
@@ -202,13 +202,13 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout> implements IGpu
 
         // Replace binding group and add invalidation listener.
         const lListener: GpuObjectUpdateListener = () => {
-            this.triggerAutoUpdate(UpdateReason.ChildData);
+            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
         };
         pBindGroup.addInvalidationListener(lListener);
         this.mBindGroupInvalidationListener.set(pBindGroup, lListener);
 
         // Trigger updates.
-        this.triggerAutoUpdate(UpdateReason.ChildData);
+        this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
     }
 
     /**
@@ -239,19 +239,19 @@ export class PipelineLayout extends GpuObject<GPUPipelineLayout> implements IGpu
 
         // Register change listener for layout changes.
         const lListener: GpuObjectUpdateListener = () => {
-            this.triggerAutoUpdate(UpdateReason.ChildData);
+            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
         };
         pLayout.addInvalidationListener(lListener);
         this.mBindGroupInvalidationListener.set(pLayout, lListener);
 
         // Trigger auto update.
-        this.triggerAutoUpdate(UpdateReason.ChildData);
+        this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
     }
 
     /**
      * Generate native gpu pipeline data layout.
      */
-    protected override generate(): GPUPipelineLayout {
+    protected override generateNative(): GPUPipelineLayout {
         // Generate pipeline layout from bind group layouts.
         const lPipelineLayoutDescriptor = { bindGroupLayouts: new Array<GPUBindGroupLayout>() };
         for (const [lGroupIndex, lBindGroupLayout] of this.mBindGroups) {

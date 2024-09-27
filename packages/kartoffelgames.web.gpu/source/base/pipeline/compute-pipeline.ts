@@ -1,6 +1,6 @@
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
-import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
+import { GpuObject, GpuObjectLifeTime } from '../gpu/object/gpu-object';
+import { GpuObjectInvalidationReason } from '../gpu/object/gpu-object-invalidation-reasons';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { ShaderComputeModule } from '../shader/shader-compute-module';
 
@@ -28,19 +28,19 @@ export class ComputePipeline extends GpuObject<GPUComputePipeline> implements IG
      * @param pShader - Pipeline shader.
      */
     public constructor(pDevice: GpuDevice, pShader: ShaderComputeModule) {
-        super(pDevice, NativeObjectLifeTime.Persistent);
+        super(pDevice, GpuObjectLifeTime.Persistent);
         this.mShaderModule = pShader;
 
         // Listen for shader changes.
         pShader.addInvalidationListener(() => {
-            this.triggerAutoUpdate(UpdateReason.ChildData);
+            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
         });
     }
 
     /**
      * Generate native gpu pipeline data layout.
      */
-    protected override generate(): GPUComputePipeline {
+    protected override generateNative(): GPUComputePipeline {
         // Construct basic GPURenderPipelineDescriptor.
         const lPipelineDescriptor: GPUComputePipelineDescriptor = {
             layout: this.mShaderModule.shader.layout.native,

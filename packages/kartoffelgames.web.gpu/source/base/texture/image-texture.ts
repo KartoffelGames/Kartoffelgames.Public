@@ -1,8 +1,8 @@
 import { Exception } from '@kartoffelgames/core';
 import { TextureDimension } from '../../constant/texture-dimension.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
-import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
+import { GpuObject, GpuObjectLifeTime } from '../gpu/object/gpu-object';
+import { GpuObjectInvalidationReason } from '../gpu/object/gpu-object-invalidation-reasons';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 
@@ -62,7 +62,7 @@ export class ImageTexture extends GpuObject<GPUTextureView> implements IGpuObjec
      * @param pLayout - Texture memory layout.
      */
     public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout) {
-        super(pDevice, NativeObjectLifeTime.Persistent);
+        super(pDevice, GpuObjectLifeTime.Persistent);
 
         this.mTexture = null;
 
@@ -77,7 +77,7 @@ export class ImageTexture extends GpuObject<GPUTextureView> implements IGpuObjec
 
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {
-            this.triggerAutoUpdate(UpdateReason.ChildData);
+            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
         });
     }
 
@@ -120,14 +120,14 @@ export class ImageTexture extends GpuObject<GPUTextureView> implements IGpuObjec
         this.mDepth = pSourceList.length;
 
         // Trigger change.
-        this.triggerAutoUpdate(UpdateReason.Data);
+        this.triggerAutoUpdate(GpuObjectInvalidationReason.Data);
     }
 
     /**
      * Destory texture object.
      * @param _pNativeObject - Native canvas texture.
      */
-    protected override destroy(_pNativeObject: GPUTextureView): void {
+    protected override destroyNative(_pNativeObject: GPUTextureView): void {
         this.mTexture?.destroy();
         this.mTexture = null;
     }
@@ -135,7 +135,7 @@ export class ImageTexture extends GpuObject<GPUTextureView> implements IGpuObjec
     /**
      * Generate native canvas texture view.
      */
-    protected override generate(): GPUTextureView {
+    protected override generateNative(): GPUTextureView {
         // TODO: Validate format based on layout. Maybe replace used format.
 
         // Generate gpu dimension from memory layout dimension.

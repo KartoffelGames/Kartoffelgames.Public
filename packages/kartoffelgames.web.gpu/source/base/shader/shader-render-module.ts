@@ -1,7 +1,7 @@
 import { PipelineLayout } from '../binding/pipeline-layout';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
-import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
+import { GpuObject, GpuObjectLifeTime } from '../gpu/object/gpu-object';
+import { GpuObjectInvalidationReason } from '../gpu/object/gpu-object-invalidation-reasons';
 import { VertexParameterLayout } from '../pipeline/parameter/vertex-parameter-layout';
 import { RenderTargets } from '../pipeline/target/render-targets';
 import { VertexFragmentPipeline } from '../pipeline/vertex-fragment-pipeline';
@@ -57,7 +57,7 @@ export class ShaderRenderModule extends GpuObject {
      * @param pSize - Workgroup size.
      */
     public constructor(pDevice: GpuDevice, pShader: Shader, pVertexEntryPointName: string, pVertexParameter: VertexParameterLayout, pFragmentEntryPointName?: string) {
-        super(pDevice, NativeObjectLifeTime.Persistent);
+        super(pDevice, GpuObjectLifeTime.Persistent);
 
         this.mVertexEntryPoint = pVertexEntryPointName;
         this.mVertexParameter = pVertexParameter;
@@ -66,12 +66,12 @@ export class ShaderRenderModule extends GpuObject {
 
         // Update on shader update.
         pShader.addInvalidationListener(() => {
-            this.triggerAutoUpdate(UpdateReason.ChildData);
+            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
         });
 
         // Update on vertex parameter.
         pVertexParameter.addInvalidationListener(() => {
-            this.triggerAutoUpdate(UpdateReason.ChildData);
+            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
         });
     }
 

@@ -1,18 +1,18 @@
-export class GpuObjectUpdateReason {
-    private readonly mReasons: Set<UpdateReason>;
+export class GpuObjectInvalidationReasons<TReasons extends string> {
+    private readonly mReasons: Set<GpuObjectInvalidationReason | TReasons>;
 
     /**
      * Constructor.
      */
     public constructor() {
-        this.mReasons = new Set<UpdateReason>();
+        this.mReasons = new Set<GpuObjectInvalidationReason | TReasons>();
     }
 
     /**
      * Add update reason.
      * @param pReason - Update reason.
      */
-    public add(pReason: UpdateReason): void {
+    public add(pReason: GpuObjectInvalidationReason | TReasons): void {
         this.mReasons.add(pReason);
     }
 
@@ -34,7 +34,7 @@ export class GpuObjectUpdateReason {
      * Check for update reason.
      * @param pReason - Update reason.
      */
-    public has(pReason: UpdateReason): boolean {
+    public has(pReason: GpuObjectInvalidationReason | TReasons): boolean {
         return this.mReasons.has(pReason);
     }
 }
@@ -42,9 +42,7 @@ export class GpuObjectUpdateReason {
 /**
  * Update reason.
  */
-export enum UpdateReason {
-    Setting = 1,
-    Data = 2,
-    ChildData = 3,
-    LifeTime = 4
+export enum GpuObjectInvalidationReason {
+    Deconstruct = '_Deconstruction',
+    LifeTime = '_ LifeTimeEndReached',
 }

@@ -2,8 +2,8 @@ import { Dictionary, Exception } from '@kartoffelgames/core';
 import { TextureAspect } from '../../../constant/texture-aspect.enum';
 import { TextureOperation } from '../../../constant/texture-operation.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
-import { GpuObject, GpuObjectSetupReferences, NativeObjectLifeTime } from '../../gpu/object/gpu-object';
-import { UpdateReason } from '../../gpu/object/gpu-object-update-reason';
+import { GpuObject, GpuObjectSetupReferences, GpuObjectLifeTime } from '../../gpu/object/gpu-object';
+import { GpuObjectInvalidationReason } from '../../gpu/object/gpu-object-invalidation-reasons';
 import { IGpuObjectNative } from '../../gpu/object/interface/i-gpu-object-native';
 import { IGpuObjectSetup } from '../../gpu/object/interface/i-gpu-object-setup';
 import { CanvasTexture } from '../../texture/canvas-texture';
@@ -94,7 +94,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
      * @param pDevice - Gpu device reference.
      */
     public constructor(pDevice: GpuDevice) {
-        super(pDevice, NativeObjectLifeTime.Persistent);
+        super(pDevice, GpuObjectLifeTime.Persistent);
 
         // Set "fixed" 
         this.mSize = { width: 1, height: 1, multisampleLevel: 1 };
@@ -127,7 +127,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
         }
 
         // Retrigger update.
-        this.triggerAutoUpdate(UpdateReason.Setting);
+        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
 
         return this;
     }
@@ -147,7 +147,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
     /**
      * Generate native gpu bind data group.
      */
-    protected override generate(): GPURenderPassDescriptor {
+    protected override generateNative(): GPURenderPassDescriptor {
         // Apply all resize and multisample changes.
         this.applyResize();
 

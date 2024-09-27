@@ -3,7 +3,7 @@ import { TextureDimension } from '../../../constant/texture-dimension.enum';
 import { TextureFormat } from '../../../constant/texture-format.enum';
 import { TextureUsage } from '../../../constant/texture-usage.enum';
 import { GpuDevice } from '../../gpu/gpu-device';
-import { UpdateReason } from '../../gpu/object/gpu-object-update-reason';
+import { GpuObjectInvalidationReason } from '../../gpu/object/gpu-object-invalidation-reasons';
 import { BaseMemoryLayout} from '../base-memory-layout';
 
 export class TextureMemoryLayout extends BaseMemoryLayout {
@@ -52,7 +52,7 @@ export class TextureMemoryLayout extends BaseMemoryLayout {
         // TODO: Updateable property of everything.
 
         // Invalidate layout on setting changes.
-        this.invalidate(UpdateReason.Setting);
+        this.invalidate(GpuObjectInvalidationReason.Setting);
     }
 
     /**

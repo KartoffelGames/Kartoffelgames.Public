@@ -4,8 +4,8 @@ import { BufferUsage } from '../../constant/buffer-usage.enum';
 import { ComputeStage } from '../../constant/compute-stage.enum';
 import { TextureBindType } from '../../constant/texture-bind-type.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, GpuObjectSetupReferences, NativeObjectLifeTime } from '../gpu/object/gpu-object';
-import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
+import { GpuObject, GpuObjectSetupReferences, GpuObjectLifeTime } from '../gpu/object/gpu-object';
+import { GpuObjectInvalidationReason } from '../gpu/object/gpu-object-invalidation-reasons';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { IGpuObjectSetup } from '../gpu/object/interface/i-gpu-object-setup';
 import { BaseMemoryLayout } from '../memory_layout/base-memory-layout';
@@ -71,7 +71,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, BindGroupLayo
      * @param pName - Name of binding group.
      */
     public constructor(pDevice: GpuDevice, pName: string) {
-        super(pDevice, NativeObjectLifeTime.Persistent);
+        super(pDevice, GpuObjectLifeTime.Persistent);
 
         // Set binding group name.
         this.mName = pName;
@@ -121,7 +121,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, BindGroupLayo
     /**
      * Generate native bind data group layout object.
      */
-    protected override generate(): GPUBindGroupLayout {
+    protected override generateNative(): GPUBindGroupLayout {
         const lEntryList: Array<GPUBindGroupLayoutEntry> = new Array<GPUBindGroupLayoutEntry>();
 
         // Generate layout entry for each binding.
@@ -283,7 +283,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, BindGroupLayo
 
             // Register change listener for layout changes.
             lBinding.layout.addInvalidationListener(() => {
-                this.triggerAutoUpdate(UpdateReason.ChildData);
+                this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
             });
 
             // Validate dublicate indices.

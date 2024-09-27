@@ -3,8 +3,8 @@ import { PrimitiveCullMode } from '../../constant/primitive-cullmode.enum';
 import { PrimitiveFrontFace } from '../../constant/primitive-front-face.enum';
 import { PrimitiveTopology } from '../../constant/primitive-topology.enum';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
-import { UpdateReason } from '../gpu/object/gpu-object-update-reason';
+import { GpuObject, GpuObjectLifeTime } from '../gpu/object/gpu-object';
+import { GpuObjectInvalidationReason } from '../gpu/object/gpu-object-invalidation-reasons';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { ShaderRenderModule } from '../shader/shader-render-module';
 import { RenderTargets } from './target/render-targets';
@@ -27,7 +27,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline> impleme
         this.mDepthCompare = pValue;
 
         // Set data changed flag.
-        this.triggerAutoUpdate(UpdateReason.Setting);
+        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
     }
 
     /**
@@ -53,7 +53,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline> impleme
         this.mPrimitiveCullMode = pValue;
 
         // Set data changed flag.
-        this.triggerAutoUpdate(UpdateReason.Setting);
+        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
     }
 
     /**
@@ -65,7 +65,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline> impleme
         this.mPrimitiveFrontFace = pValue;
 
         // Set data changed flag.
-        this.triggerAutoUpdate(UpdateReason.Setting);
+        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
     }
 
     /**
@@ -77,7 +77,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline> impleme
         this.mPrimitiveTopology = pValue;
 
         // Set data changed flag.
-        this.triggerAutoUpdate(UpdateReason.Setting);
+        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
     }
 
     /**
@@ -96,7 +96,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline> impleme
         this.mDepthWriteEnabled = pValue;
 
         // Set data changed flag.
-        this.triggerAutoUpdate(UpdateReason.Setting);
+        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
     }
 
     /**
@@ -107,17 +107,17 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline> impleme
      * @param pShaderRenderModule - Pipeline shader.
      */
     public constructor(pDevice: GpuDevice, pShaderRenderModule: ShaderRenderModule, pRenderTargets: RenderTargets) {
-        super(pDevice, NativeObjectLifeTime.Persistent);
+        super(pDevice, GpuObjectLifeTime.Persistent);
 
         this.mShaderModule = pShaderRenderModule;
         this.mRenderTargets = pRenderTargets;
 
         // Listen for render target and shader changes.
         pShaderRenderModule.addInvalidationListener(() => {
-            this.triggerAutoUpdate(UpdateReason.ChildData);
+            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
         });
         pRenderTargets.addInvalidationListener(() => {
-            this.triggerAutoUpdate(UpdateReason.ChildData);
+            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
         });
 
         // Depth default settings.
@@ -133,7 +133,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline> impleme
     /**
      * Generate native gpu pipeline data layout.
      */
-    protected override generate(): GPURenderPipeline {
+    protected override generateNative(): GPURenderPipeline {
         // Generate pipeline layout from bind group layouts.
         const lPipelineLayout: GPUPipelineLayout = this.mShaderModule.shader.layout.native;
 

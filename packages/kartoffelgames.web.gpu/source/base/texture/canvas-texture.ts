@@ -1,6 +1,6 @@
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
-import { GpuObjectUpdateReason, UpdateReason } from '../gpu/object/gpu-object-update-reason';
+import { GpuObject, GpuObjectLifeTime } from '../gpu/object/gpu-object';
+import { GpuObjectInvalidationReasons, GpuObjectInvalidationReason } from '../gpu/object/gpu-object-invalidation-reasons';
 import { IGpuObjectNative } from '../gpu/object/interface/i-gpu-object-native';
 import { TextureMemoryLayout } from '../memory_layout/texture/texture-memory-layout';
 
@@ -25,7 +25,7 @@ export class CanvasTexture extends GpuObject<GPUTextureView> implements IGpuObje
         this.mCanvas.height = pValue;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(UpdateReason.Setting);
+        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
     }
 
     /**
@@ -51,7 +51,7 @@ export class CanvasTexture extends GpuObject<GPUTextureView> implements IGpuObje
         this.mCanvas.width = pValue;
 
         // Trigger auto update.
-        this.triggerAutoUpdate(UpdateReason.Setting);
+        this.triggerAutoUpdate(GpuObjectInvalidationReason.Setting);
     }
 
     /**
@@ -61,7 +61,7 @@ export class CanvasTexture extends GpuObject<GPUTextureView> implements IGpuObje
      * @param pCanvas - Canvas of texture.
      */
     public constructor(pDevice: GpuDevice, pLayout: TextureMemoryLayout, pCanvas: HTMLCanvasElement) {
-        super(pDevice, NativeObjectLifeTime.Frame);
+        super(pDevice, GpuObjectLifeTime.Frame);
 
         // Set canvas reference.
         this.mCanvas = pCanvas;
@@ -74,7 +74,7 @@ export class CanvasTexture extends GpuObject<GPUTextureView> implements IGpuObje
 
         // Register change listener for layout changes.
         pLayout.addInvalidationListener(() => {
-            this.triggerAutoUpdate(UpdateReason.ChildData);
+            this.triggerAutoUpdate(GpuObjectInvalidationReason.ChildData);
         });
     }
 
@@ -82,9 +82,9 @@ export class CanvasTexture extends GpuObject<GPUTextureView> implements IGpuObje
      * Destory texture object.
      * @param _pNativeObject - Native canvas texture.
      */
-    protected override destroy(_pNativeObject: GPUTextureView, pReasons: GpuObjectUpdateReason): void {
+    protected override destroyNative(_pNativeObject: GPUTextureView, pReasons: GpuObjectInvalidationReasons): void {
         // Only destroy context when child data/layout has changes.
-        if (pReasons.has(UpdateReason.ChildData)) {
+        if (pReasons.has(GpuObjectInvalidationReason.ChildData)) {
             // Destory context.
             this.mContext?.unconfigure();
             this.mContext = null;
@@ -96,7 +96,7 @@ export class CanvasTexture extends GpuObject<GPUTextureView> implements IGpuObje
     /**
      * Generate native canvas texture view.
      */
-    protected override generate(): GPUTextureView {
+    protected override generateNative(): GPUTextureView {
         // TODO: Add invalidation context to generate to better understand new generating.
         const lFormat: GPUTextureFormat = this.memoryLayout.format as GPUTextureFormat;
 

@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { GpuDevice } from '../gpu/gpu-device';
-import { GpuObject, NativeObjectLifeTime } from '../gpu/object/gpu-object';
+import { GpuObject, GpuObjectLifeTime } from '../gpu/object/gpu-object';
 
 export class GpuExecution extends GpuObject {
     private mEncoder: GPUCommandEncoder | null;
@@ -18,7 +18,7 @@ export class GpuExecution extends GpuObject {
     }
 
     public constructor(pDevice: GpuDevice, pExecution: GpuExecutionFunction) {
-        super(pDevice, NativeObjectLifeTime.Persistent);
+        super(pDevice, GpuObjectLifeTime.Persistent);
 
         this.mExecutionFunction = pExecution;
         this.mEncoder = null;

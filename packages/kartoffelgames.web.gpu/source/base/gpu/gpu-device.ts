@@ -44,8 +44,10 @@ export class GpuDevice {
 
     private readonly mCapabilities: GpuCapabilities;
     private readonly mFormatValidator: TextureFormatCapabilities;
+    private readonly mFrameChangeListener: Array<GpuDeviceFrameChangeListener>;
     private mFrameCounter: number;
     private readonly mGpuDevice: GPUDevice;
+
 
     /**
      * Gpu capabilities.
@@ -90,6 +92,18 @@ export class GpuDevice {
 
         // Init form validator.
         this.mFormatValidator = new TextureFormatCapabilities(this);
+
+        // Frame change listener.
+        this.mFrameChangeListener = new Array<GpuDeviceFrameChangeListener>();
+    }
+
+    /**
+     * Add listener called on frame change.
+     * 
+     * @param pListener - Listener.
+     */
+    public addFrameChangeListener(pListener: GpuDeviceFrameChangeListener): void {
+        this.mFrameChangeListener.push(pListener);
     }
 
     /**
@@ -167,5 +181,12 @@ export class GpuDevice {
      */
     public startNewFrame(): void {
         this.mFrameCounter++;
+
+        // Call all frame change listener.
+        for (const lListener of this.mFrameChangeListener) {
+            lListener();
+        }
     }
 }
+
+export type GpuDeviceFrameChangeListener = () => void;

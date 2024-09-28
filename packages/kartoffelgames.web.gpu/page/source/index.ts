@@ -37,7 +37,7 @@ const gDepth: number = 10;
     // Create and configure render targets.
     const lRenderTargets: RenderTargets = lGpu.renderTargets().setup((pSetup) => {
         // Add "color" target and init new texture.
-        pSetup.addColor('color', 0, true, { r: 0, g: 0, b: 0, a: 0 })
+        pSetup.addColor('color', 0, true, { r: 1, g: 0.5, b: 0.5, a: 0 })
             .use(lCanvasTexture);
 
         // Add depth texture and init new texture.    
@@ -167,7 +167,7 @@ const gDepth: number = 10;
 
     // Create instruction.
     const lRenderPass: RenderPass = lGpu.renderPass(lRenderTargets);
-    lRenderPass.addStep(lPipeline, lMesh, [lTransformationGroup, lWorldGroup, lUserGroup], 1);
+    lRenderPass.addStep(lPipeline, lMesh, [lTransformationGroup, lWorldGroup, lUserGroup], gWidth * gHeight * gDepth);
 
     /*
      * Execution 

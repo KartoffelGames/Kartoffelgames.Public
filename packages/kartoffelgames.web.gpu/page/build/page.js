@@ -306,9 +306,9 @@ _asyncToGenerator(function* () {
   const lRenderTargets = lGpu.renderTargets().setup(pSetup => {
     // Add "color" target and init new texture.
     pSetup.addColor('color', 0, true, {
-      r: 0,
-      g: 0,
-      b: 0,
+      r: 1,
+      g: 0.5,
+      b: 0.5,
       a: 0
     }).use(lCanvasTexture);
     // Add depth texture and init new texture.    
@@ -399,7 +399,7 @@ _asyncToGenerator(function* () {
   lPipeline.primitiveCullMode = primitive_cullmode_enum_1.PrimitiveCullMode.Back;
   // Create instruction.
   const lRenderPass = lGpu.renderPass(lRenderTargets);
-  lRenderPass.addStep(lPipeline, lMesh, [lTransformationGroup, lWorldGroup, lUserGroup], 1);
+  lRenderPass.addStep(lPipeline, lMesh, [lTransformationGroup, lWorldGroup, lUserGroup], gWidth * gHeight * gDepth);
   /*
    * Execution
    */
@@ -3716,6 +3716,16 @@ class GpuDevice {
     this.mFrameCounter = 0;
     // Init form validator.
     this.mFormatValidator = new texture_format_capabilities_1.TextureFormatCapabilities(this);
+    // Frame change listener.
+    this.mFrameChangeListener = new Array();
+  }
+  /**
+   * Add listener called on frame change.
+   *
+   * @param pListener - Listener.
+   */
+  addFrameChangeListener(pListener) {
+    this.mFrameChangeListener.push(pListener);
   }
   /**
    * Create or use a html canvas to create a canvas texture.
@@ -3786,6 +3796,10 @@ class GpuDevice {
    */
   startNewFrame() {
     this.mFrameCounter++;
+    // Call all frame change listener.
+    for (const lListener of this.mFrameChangeListener) {
+      lListener();
+    }
   }
 }
 exports.GpuDevice = GpuDevice;
@@ -3950,7 +3964,6 @@ var GpuObjectLifeTime;
 (function (GpuObjectLifeTime) {
   GpuObjectLifeTime[GpuObjectLifeTime["Persistent"] = 0] = "Persistent";
   GpuObjectLifeTime[GpuObjectLifeTime["Frame"] = 1] = "Frame";
-  GpuObjectLifeTime[GpuObjectLifeTime["Single"] = 2] = "Single";
 })(GpuObjectLifeTime || (exports.GpuObjectLifeTime = GpuObjectLifeTime = {}));
 
 /***/ }),
@@ -4061,6 +4074,7 @@ class GpuObject {
     this.mDevice = pDevice;
     this.mIsSetup = false;
     this.mNativeLifeTime = pNativeLifeTime;
+    // TODO: On FrameLifetime add gpudevice callback for frame change and invalidate.
     // Init default settings and config.
     this.mDeconstructed = false;
     this.mNativeObject = null;
@@ -4068,6 +4082,23 @@ class GpuObject {
     // Init lists.
     this.mUpdateListenerList = new core_1.Dictionary();
     this.mInvalidationReasons = new gpu_object_invalidation_reasons_1.GpuObjectInvalidationReasons();
+    // Validate life time.
+    switch (this.mNativeLifeTime) {
+      case gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent:
+        {
+          // Do nothing.
+          break;
+        }
+      case gpu_object_life_time_enum_1.GpuObjectLifeTime.Frame:
+        {
+          // TODO: Remove it on deconstruct.
+          this.mDevice.addFrameChangeListener(() => {
+            this.mInvalidationReasons.lifeTimeReached = true;
+            this.invalidate('');
+          });
+          break;
+        }
+    }
   }
   /**
    * Add invalidation listener.
@@ -4216,28 +4247,6 @@ class GpuObject {
     if (!this.isSetup) {
       // Call empty update.
       this.setup();
-    }
-    // Validate life time.
-    switch (this.mNativeLifeTime) {
-      case gpu_object_life_time_enum_1.GpuObjectLifeTime.Persistent:
-        {
-          // Do nothing.
-          break;
-        }
-      case gpu_object_life_time_enum_1.GpuObjectLifeTime.Single:
-        {
-          // Invalidate every time.
-          this.mInvalidationReasons.lifeTimeReached = true;
-          break;
-        }
-      case gpu_object_life_time_enum_1.GpuObjectLifeTime.Frame:
-        {
-          // Invalidate on different frame till last generated.
-          if (this.device.frameCount !== this.mLastGeneratedFrame) {
-            this.mInvalidationReasons.lifeTimeReached = true;
-          }
-          break;
-        }
     }
     // When native is generated and is invalid, try to update it.
     if (this.mNativeObject !== null && this.mInvalidationReasons.any()) {
@@ -13539,7 +13548,7 @@ exports.TypeUtil = TypeUtil;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("2202129ba1e8d6f25605")
+/******/ 		__webpack_require__.h = () => ("9692a936c245778dacd5")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

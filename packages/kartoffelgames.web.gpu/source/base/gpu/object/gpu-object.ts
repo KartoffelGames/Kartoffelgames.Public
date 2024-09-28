@@ -49,6 +49,8 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
         this.mIsSetup = false;
         this.mNativeLifeTime = pNativeLifeTime;
 
+        // TODO: On FrameLifetime add gpudevice callback for frame change and invalidate.
+
         // Init default settings and config.
         this.mDeconstructed = false;
         this.mNativeObject = null;
@@ -57,6 +59,23 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
         // Init lists.
         this.mUpdateListenerList = new Dictionary<GpuObjectUpdateListener<TInvalidationType>, Set<TInvalidationType> | null>();
         this.mInvalidationReasons = new GpuObjectInvalidationReasons<TInvalidationType>();
+
+        // Validate life time.
+        switch (this.mNativeLifeTime) {
+            case GpuObjectLifeTime.Persistent: {
+                // Do nothing.
+                break;
+            }
+            case GpuObjectLifeTime.Frame: {
+                // TODO: Remove it on deconstruct.
+                this.mDevice.addFrameChangeListener(() => {
+                    this.mInvalidationReasons.lifeTimeReached = true;
+
+                    this.invalidate('' as any);
+                });
+                break;
+            }
+        }
     }
 
     /**
@@ -227,26 +246,6 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
         if (!this.isSetup) {
             // Call empty update.
             this.setup();
-        }
-
-        // Validate life time.
-        switch (this.mNativeLifeTime) {
-            case GpuObjectLifeTime.Persistent: {
-                // Do nothing.
-                break;
-            }
-            case GpuObjectLifeTime.Single: {
-                // Invalidate every time.
-                this.mInvalidationReasons.lifeTimeReached = true;
-                break;
-            }
-            case GpuObjectLifeTime.Frame: {
-                // Invalidate on different frame till last generated.
-                if (this.device.frameCount !== this.mLastGeneratedFrame) {
-                    this.mInvalidationReasons.lifeTimeReached = true;
-                }
-                break;
-            }
         }
 
         // When native is generated and is invalid, try to update it.
